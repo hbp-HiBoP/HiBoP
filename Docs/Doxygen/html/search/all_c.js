@@ -1,0 +1,28 @@
+var searchData=
+[
+  ['components',['Components',['../namespace_new_theme_1_1_components.html',1,'NewTheme']]],
+  ['name',['Name',['../class_h_b_p_1_1_module3_d_1_1_base3_d_scene.html#a1673cedbb778f7d770c6a8d2f7bad025',1,'HBP.Module3D.Base3DScene.Name()'],['../class_h_b_p_1_1_data_1_1_anatomy_1_1_electrode.html#a1c10928dd21429934542477e676cb793',1,'HBP.Data.Anatomy.Electrode.Name()'],['../class_h_b_p_1_1_data_1_1_experience_1_1_dataset_1_1_data_info.html#a301a619869ebed11f62889a413c9ca16',1,'HBP.Data.Experience.Dataset.DataInfo.Name()'],['../class_h_b_p_1_1_data_1_1_experience_1_1_dataset_1_1_dataset.html#a5c3d183bcc57f18dc4e9c9b5549fb5b4',1,'HBP.Data.Experience.Dataset.Dataset.Name()'],['../class_h_b_p_1_1_data_1_1_experience_1_1_protocol_1_1_bloc.html#a66deaa9bf463411fbb153e249b98a411',1,'HBP.Data.Experience.Protocol.Bloc.Name()'],['../class_h_b_p_1_1_data_1_1_experience_1_1_protocol_1_1_event.html#aa557f948597289cec18e091fc408a458',1,'HBP.Data.Experience.Protocol.Event.Name()'],['../class_h_b_p_1_1_data_1_1_experience_1_1_protocol_1_1_icon.html#a67f36ed80352f89f0f1dc035ea3bfac7',1,'HBP.Data.Experience.Protocol.Icon.Name()'],['../class_h_b_p_1_1_data_1_1_experience_1_1_protocol_1_1_protocol.html#a28c77afd6bc50dea3138d48fdd9bb685',1,'HBP.Data.Experience.Protocol.Protocol.Name()'],['../class_h_b_p_1_1_data_1_1_group.html#a96837e67bba5d0f54023be64e1a25312',1,'HBP.Data.Group.Name()'],['../class_h_b_p_1_1_data_1_1_patient.html#ab610e135df608a19689a3ea178293f3c',1,'HBP.Data.Patient.Name()'],['../class_h_b_p_1_1_data_1_1_preferences_1_1_project_settings.html#a9033cb2999e55302d5742f81e274605b',1,'HBP.Data.Preferences.ProjectSettings.Name()'],['../class_h_b_p_1_1_data_1_1_visualization_1_1_visualization.html#a97e49113943d2a153be07bc2b3565b2f',1,'HBP.Data.Visualization.Visualization.Name()'],['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_mars_atlas_index.html#ac1f70cac77ef4ec26094e9738ca0c697',1,'HBP.Module3D.DLL.MarsAtlasIndex.Name()']]],
+  ['namefs',['NameFS',['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_mars_atlas_index.html#a6e60f84bf4addcf55134b9d958f9f96c',1,'HBP::Module3D::DLL::MarsAtlasIndex']]],
+  ['nestedprefabspreferences',['NestedPrefabsPreferences',['../class_nested_prefabs_preferences.html',1,'']]],
+  ['newproject',['NewProject',['../class_h_b_p_1_1_u_i_1_1_new_project.html',1,'HBP::UI']]],
+  ['newtheme',['NewTheme',['../namespace_new_theme.html',1,'']]],
+  ['nifti',['NIFTI',['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_n_i_f_t_i.html',1,'HBP::Module3D::DLL']]],
+  ['nifti_2ecs',['NIFTI.cs',['../_n_i_f_t_i_8cs.html',1,'']]],
+  ['noisesample',['NoiseSample',['../struct_noise_sample.html',1,'']]],
+  ['nomatchingsitesexception',['NoMatchingSitesException',['../class_no_matching_sites_exception.html',1,'']]],
+  ['normal',['Normal',['../class_h_b_p_1_1_module3_d_1_1_plane.html#aa2d4714bbb66002a3d1b1007ac9c425c',1,'HBP::Module3D::Plane']]],
+  ['normalization',['Normalization',['../class_h_b_p_1_1_data_1_1_experience_1_1_dataset_1_1_data_info.html#a5463bdfc52ac4078a9f4fddbb910352a',1,'HBP.Data.Experience.Dataset.DataInfo.Normalization()'],['../class_h_b_p_1_1_data_1_1_preferences_1_1_trial_matrix_settings.html#ad76913cf5819f5a341036798a7ca66a2',1,'HBP.Data.Preferences.TrialMatrixSettings.Normalization()']]],
+  ['normalizationtype',['NormalizationType',['../class_h_b_p_1_1_data_1_1_experience_1_1_dataset_1_1_data_info.html#a8aa5a2c254dc0f5052d272cdc0edbbbd',1,'HBP::Data::Experience::Dataset::DataInfo']]],
+  ['notraycasttargeteventtrigger',['NotRaycastTargetEventTrigger',['../class_tools_1_1_unity_1_1_components_1_1_not_raycast_target_event_trigger.html',1,'Tools::Unity::Components']]],
+  ['numberofbubbles',['NumberOfBubbles',['../class_h_b_p_1_1_module3_d_1_1_r_o_i.html#aa5d2fadacd9606f24d12b163bc841251',1,'HBP::Module3D::ROI']]],
+  ['numberofcuts',['NumberOfCuts',['../class_h_b_p_1_1_module3_d_1_1_cut.html#af48504e25e790c0b04d64548fbe0eef3',1,'HBP::Module3D::Cut']]],
+  ['numberofelectrodesinpatient',['NumberOfElectrodesInPatient',['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_patient_electrodes_list.html#a971eba04b27df919f21cbe0ee29d5e6c',1,'HBP::Module3D::DLL::PatientElectrodesList']]],
+  ['numberofpatients',['NumberOfPatients',['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_patient_electrodes_list.html#a5dfa8c9c7a1865498bbb91a78a13881c',1,'HBP::Module3D::DLL::PatientElectrodesList']]],
+  ['numberofscenesloadedsincestart',['NumberOfScenesLoadedSinceStart',['../class_h_b_p_1_1_module3_d_1_1_h_b_p3_d_module.html#ad20faff1c1ba80dd86729ac8873b0a4f',1,'HBP::Module3D::HBP3DModule']]],
+  ['numberofsites',['NumberOfSites',['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_raw_site_list.html#a0d2a2ed709b17311b050bd613b5dffe1',1,'HBP::Module3D::DLL::RawSiteList']]],
+  ['numberofsitesinelectrode',['NumberOfSitesInElectrode',['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_patient_electrodes_list.html#a487529af2c87ce244e3b7e4d53371239',1,'HBP::Module3D::DLL::PatientElectrodesList']]],
+  ['numberofsitesinpatient',['NumberOfSitesInPatient',['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_patient_electrodes_list.html#aa49a598fae02f81b48420a47995486fa',1,'HBP::Module3D::DLL::PatientElectrodesList']]],
+  ['numberoftriangles',['NumberOfTriangles',['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_surface.html#aacb0b756d36fa6feb32326f30eac974b',1,'HBP::Module3D::DLL::Surface']]],
+  ['numberofvertices',['NumberOfVertices',['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_surface.html#a3f802204ce7bdec3169548a5964c828a',1,'HBP::Module3D::DLL::Surface']]],
+  ['numberofvisibletriangles',['NumberOfVisibleTriangles',['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_surface.html#acd774f351433743b310b637509145171',1,'HBP::Module3D::DLL::Surface']]]
+];

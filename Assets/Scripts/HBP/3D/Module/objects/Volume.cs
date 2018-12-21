@@ -289,14 +289,24 @@ namespace HBP.Module3D.DLL
                 float[] valuesF = new float[6];
                 retrieveExtremeValues_Volume(_handle, valuesF);
 
-                values.min = valuesF[0];
-                values.max = valuesF[1];
-                values.loadedCalMin = valuesF[2];
-                values.loadedCalMax = valuesF[3];
-                values.computedCalMin = valuesF[4];
-                values.computedCalMax = valuesF[5];
+                values.Min = valuesF[0];
+                values.Max = valuesF[1];
+                values.LoadedCalMin = valuesF[2];
+                values.LoadedCalMax = valuesF[3];
+                values.ComputedCalMin = valuesF[4];
+                values.ComputedCalMax = valuesF[5];
 
                 return values;
+            }
+        }
+        /// <summary>
+        /// Bounding Box of this volume
+        /// </summary>
+        public BBox BoundingBox
+        {
+            get
+            {
+                return new BBox(boundingBox_Volume(_handle));
             }
         }
         #endregion
@@ -318,11 +328,34 @@ namespace HBP.Module3D.DLL
         /// <param name="plane"></param>
         /// <param name="idOrientation"></param>
         /// <param name="flip"></param>
-        public void SetPlaneWithOrientation(Plane plane, CutOrientation orientation, bool flip)
+        public void SetPlaneWithOrientation(Plane plane, Data.Enums.CutOrientation orientation, bool flip)
         {
             float[] normal = new float[3];
             definePlaneWithOrientation_Volume(_handle, normal, (int)orientation, flip);
             plane.Normal = new Vector3(normal[0], normal[1], normal[2]);
+        }
+        /// <summary>
+        /// Returns a cube bbox around the mesh depending on the cuts used
+        /// </summary>
+        /// <param name="cuts"></param>
+        /// <returns></returns>
+        public BBox GetCubeBoundingBox(List<Cut> cuts)
+        {
+            float[] planes = new float[cuts.Count * 6];
+            int planesCount = 0;
+            for (int ii = 0; ii < cuts.Count; ++ii)
+            {
+                if (cuts[ii].Orientation != Data.Enums.CutOrientation.Custom)
+                {
+                    for (int jj = 0; jj < 3; ++jj)
+                    {
+                        planes[ii * 6 + jj] = cuts[ii].Point[jj];
+                        planes[ii * 6 + jj + 3] = cuts[ii].Normal[jj];
+                    }
+                    planesCount++;
+                }
+            }
+            return new BBox(cube_bounding_box_Volume(_handle, planes, planesCount));
         }
         #endregion
 
@@ -376,6 +409,9 @@ namespace HBP.Module3D.DLL
 
         [DllImport("hbp_export", EntryPoint = "retrieveExtremeValues_Volume", CallingConvention = CallingConvention.Cdecl)]
         static private extern void retrieveExtremeValues_Volume(HandleRef handleVolume, float[] extremeValues);
+
+        [DllImport("hbp_export", EntryPoint = "cube_bounding_box_Volume", CallingConvention = CallingConvention.Cdecl)]
+        static private extern IntPtr cube_bounding_box_Volume(HandleRef handleSurface, float[] planes, int planesCount);
 
         //// memory management        
         //delegate IntPtr create_Volume();

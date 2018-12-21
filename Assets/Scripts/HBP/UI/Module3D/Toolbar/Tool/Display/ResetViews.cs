@@ -21,7 +21,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedScene.OnResetViewPositions.Invoke();
+                SelectedScene.OnResetViewPositions.Invoke();
             });
         }
         public override void DefaultState()

@@ -23,24 +23,39 @@ namespace HBP.Module3D
     public class Latencies
     {
         #region Properties
+        /// <summary>
+        /// Name of the CCEP
+        /// </summary>
         public string Name;
 
-        bool[] m_StimulationPlots = null;
-        public int[][] LatenciesValues = null;
-        public float[][] Heights = null;
+        /// <summary>
+        /// True if site is a source
+        /// </summary>
+        bool[] m_StimulationPlots;
+        /// <summary>
+        /// Values of the latencies between two sites
+        /// </summary>
+        public int[][] LatenciesValues;
+        /// <summary>
+        /// Values of the height between two sites
+        /// </summary>
+        public float[][] Heights;
 
-        public float[][] Transparencies = null; // for latency
-        public float[][] Sizes = null;          // for height
-        public bool[][] PositiveHeight = null;  // for height
+        /// <summary>
+        /// Transparency of the sites (for latency)
+        /// </summary>
+        public float[][] Transparencies;
+        /// <summary>
+        /// Size of the sites (for height)
+        /// </summary>
+        public float[][] Sizes;
+        /// <summary>
+        /// Is the height of the site positive ?
+        /// </summary>
+        public bool[][] PositiveHeight;
         #endregion
 
-        #region Public Methods
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="nbPlots"></param>
-        /// <param name="latencies1D"></param>
-        /// <param name="heights1D"></param>
+        #region Constructors
         public Latencies(int nbPlots, int[] latencies1D, float[] heights1D)
         {
             m_StimulationPlots = new bool[nbPlots];
@@ -49,7 +64,7 @@ namespace HBP.Module3D
             Transparencies = new float[nbPlots][];
             Sizes = new float[nbPlots][];
             PositiveHeight = new bool[nbPlots][];
-            
+
             int id = 0;
             for (int ii = 0; ii < nbPlots; ++ii)
             {
@@ -86,29 +101,35 @@ namespace HBP.Module3D
 
                         if (heights1D[id] > maxHeight)
                             maxHeight = heights1D[id];
-                    }                    
+                    }
                 }
 
                 float max;
 
-                
-                if (Math.Abs(minHeight) > Math.Abs(maxHeight)) {
+
+                if (Math.Abs(minHeight) > Math.Abs(maxHeight))
+                {
                     max = Math.Abs(minHeight);
                 }
-                else {
+                else
+                {
                     max = Math.Abs(maxHeight);
                 }
 
                 // now computes transparencies and sizes values 
                 for (int jj = 0; jj < nbPlots; ++jj)
                 {
-                    if (LatenciesValues[ii][jj] != 0 && LatenciesValues[ii][jj] != -1) {
+                    if (LatenciesValues[ii][jj] != 0 && LatenciesValues[ii][jj] != -1)
+                    {
                         Transparencies[ii][jj] = 1f - (0.9f * LatenciesValues[ii][jj] / maxLatency);
                         Sizes[ii][jj] = Math.Abs(Heights[ii][jj]) / max;
-                    }                    
+                    }
                 }
             }
         }
+        #endregion
+
+        #region Public Methods
         /// <summary>
         /// 
         /// </summary>
@@ -163,6 +184,16 @@ namespace HBP.Module3D
         /// </summary>
         public class MarsAtlasIndex : CppDLLImportBase
         {
+            #region Constructors
+            public MarsAtlasIndex(string path) : base()
+            {
+                if (!LoadMarsAtlasIndexFile(path))
+                {
+                    Debug.LogError("Can't load mars atlas index.");
+                }
+            }
+            #endregion
+
             #region Public Methods
             /// <summary>
             /// 
@@ -180,11 +211,10 @@ namespace HBP.Module3D
             /// <returns></returns>
             public string Hemisphere(int label)
             {
-                int length = 3;
-                StringBuilder str = new StringBuilder();
-                str.Append('?', length);
-                hemisphere_MarsAtlasIndex(_handle, label, str, length);
-                return str.ToString().Replace("?", string.Empty);
+                if (label < 0) return "not found";
+
+                IntPtr result = hemisphere_MarsAtlasIndex(_handle, label);
+                return Marshal.PtrToStringAnsi(result);
             }
             /// <summary>
             /// 
@@ -193,11 +223,10 @@ namespace HBP.Module3D
             /// <returns></returns>
             public string Lobe(int label)
             {
-                int length = 15;
-                StringBuilder str = new StringBuilder();
-                str.Append('?', length);
-                lobe_MarsAtlasIndex(_handle, label, str, length);
-                return str.ToString().Replace("?", string.Empty);
+                if (label < 0) return "not found";
+
+                IntPtr result = lobe_MarsAtlasIndex(_handle, label);
+                return Marshal.PtrToStringAnsi(result);
             }
             /// <summary>
             /// 
@@ -206,11 +235,10 @@ namespace HBP.Module3D
             /// <returns></returns>
             public string NameFS(int label)
             {
-                int length = 30;
-                StringBuilder str = new StringBuilder();
-                str.Append('?', length);
-                nameFS_MarsAtlasIndex(_handle, label, str, length);
-                return str.ToString().Replace("?", string.Empty);
+                if (label < 0) return "not found";
+
+                IntPtr result = nameFS_MarsAtlasIndex(_handle, label);
+                return Marshal.PtrToStringAnsi(result);
             }
             /// <summary>
             /// 
@@ -219,11 +247,10 @@ namespace HBP.Module3D
             /// <returns></returns>
             public string Name(int label)
             {
-                int length = 10;
-                StringBuilder str = new StringBuilder();
-                str.Append('?', length);
-                name_MarsAtlasIndex(_handle, label, str, length);
-                return str.ToString().Replace("?", string.Empty);
+                if (label < 0) return "not found";
+
+                IntPtr result = name_MarsAtlasIndex(_handle, label);
+                return Marshal.PtrToStringAnsi(result);
             }
             /// <summary>
             /// 
@@ -234,12 +261,8 @@ namespace HBP.Module3D
             {
                 if (label < 0) return "not found";
 
-                int length = 50;
-                StringBuilder str = new StringBuilder();
-                str.Append('?', length);
-                fullName_MarsAtlasIndex(_handle, label, str, length);
-
-                return str.ToString().Replace("?", string.Empty);
+                IntPtr result = fullName_MarsAtlasIndex(_handle, label);
+                return Marshal.PtrToStringAnsi(result);
             }
             /// <summary>
             /// 
@@ -250,11 +273,8 @@ namespace HBP.Module3D
             {
                 if (label < 0) return "not found";
 
-                int length = 100;
-                StringBuilder str = new StringBuilder();
-                str.Append('?', length);
-                BA_MarsAtlasIndex(_handle, label, str, length);
-                return str.ToString().Replace("?", string.Empty);
+                IntPtr result = BA_MarsAtlasIndex(_handle, label);
+                return Marshal.PtrToStringAnsi(result);
             }
             #endregion
 
@@ -286,17 +306,17 @@ namespace HBP.Module3D
             static private extern int load_MarsAtlasIndex(HandleRef marsAtlasIndex, string pathFile);
             // retrieve data
             [DllImport("hbp_export", EntryPoint = "hemisphere_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void hemisphere_MarsAtlasIndex(HandleRef marsAtlasIndex, int label, StringBuilder hemisphere, int length);
+            static private extern IntPtr hemisphere_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
             [DllImport("hbp_export", EntryPoint = "lobe_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void lobe_MarsAtlasIndex(HandleRef marsAtlasIndex, int label, StringBuilder lobe, int length);
+            static private extern IntPtr lobe_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
             [DllImport("hbp_export", EntryPoint = "nameFS_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void nameFS_MarsAtlasIndex(HandleRef marsAtlasIndex, int label, StringBuilder nameFS, int length);
+            static private extern IntPtr nameFS_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
             [DllImport("hbp_export", EntryPoint = "name_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void name_MarsAtlasIndex(HandleRef marsAtlasIndex, int label, StringBuilder name, int length);
+            static private extern IntPtr name_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
             [DllImport("hbp_export", EntryPoint = "fullName_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void fullName_MarsAtlasIndex(HandleRef marsAtlasIndex, int label, StringBuilder fullName, int length);
+            static private extern IntPtr fullName_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
             [DllImport("hbp_export", EntryPoint = "BA_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void BA_MarsAtlasIndex(HandleRef marsAtlasIndex, int label, StringBuilder BA, int length);
+            static private extern IntPtr BA_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
 
             #endregion
 
@@ -374,6 +394,45 @@ namespace HBP.Module3D
                 Latencies PatientLatencies = new Latencies(nbPlots, latencies, heights);
                 return PatientLatencies;
             }
+            /// <summary>
+            /// Get an array containing bool values telling if a site is on a plane or not considering a specific precision
+            /// </summary>
+            /// <param name="plane"></param>
+            /// <param name="precision"></param>
+            /// <param name="result"></param>
+            public void GetSitesOnPlane(Plane plane, float precision, out int[] result)
+            {
+                result = new int[NumberOfSites];
+                float[] planeV = new float[6];
+                for (int ii = 0; ii < 3; ++ii)
+                {
+                    planeV[ii] = plane.Point[ii];
+                    planeV[ii + 3] = plane.Normal[ii];
+                }
+                sites_on_plane_RawSiteList(_handle, planeV, precision, result);
+            }
+            /// <summary>
+            /// Returns true if a site is on a place, false otherwise
+            /// </summary>
+            /// <param name="site"></param>
+            /// <param name="plane"></param>
+            /// <param name="precision"></param>
+            /// <returns></returns>
+            public bool IsSiteOnAnyPlane(Site site, IEnumerable<Plane> planes, float precision)
+            {
+                bool result = false;
+                foreach (var plane in planes)
+                {
+                    float[] planeV = new float[6];
+                    for (int ii = 0; ii < 3; ++ii)
+                    {
+                        planeV[ii] = plane.Point[ii];
+                        planeV[ii + 3] = plane.Normal[ii];
+                    }
+                    result |= is_site_on_plane_RawSiteList(_handle, site.Information.GlobalID, planeV, precision) == 1;
+                }
+                return result;
+            }
             #endregion
 
             #region Memory Management
@@ -419,6 +478,12 @@ namespace HBP.Module3D
             // retrieve data
             [DllImport("hbp_export", EntryPoint = "sites_nb_RawSiteList", CallingConvention = CallingConvention.Cdecl)]
             static private extern int sites_nb_RawSiteList(HandleRef handleRawSiteLst);
+            
+            [DllImport("hbp_export", EntryPoint = "is_site_on_plane_RawSiteList", CallingConvention = CallingConvention.Cdecl)]
+            static private extern int is_site_on_plane_RawSiteList(HandleRef handleRawSiteLst, int siteID, float[] planeV, float precision);
+
+            [DllImport("hbp_export", EntryPoint = "sites_on_plane_RawSiteList", CallingConvention = CallingConvention.Cdecl)]
+            static private extern void sites_on_plane_RawSiteList(HandleRef handleRawSiteLst, float[] planeV, float precision, int[] result);
 
             //  memory management
             //delegate IntPtr create_RawPlotList();
@@ -580,12 +645,8 @@ namespace HBP.Module3D
             /// <returns></returns>
             public string SiteName(int patientId, int electrodeId, int siteId)
             {
-                int length = 8;
-                StringBuilder str = new StringBuilder();
-                str.Append('?', length);
-                site_name_PatientElectrodesList(_handle, patientId, electrodeId, siteId, str, length);
-
-                return str.ToString().Replace("?", string.Empty);
+                IntPtr result = site_name_PatientElectrodesList(_handle, patientId, electrodeId, siteId);
+                return Marshal.PtrToStringAnsi(result);
             }
             /// <summary>
             /// Reset the input raw site list with PatientElectrodesList data
@@ -610,12 +671,8 @@ namespace HBP.Module3D
             /// <returns></returns>
             public string PatientName(int patientId)
             {
-                int length = 30;
-                StringBuilder str = new StringBuilder();
-                str.Append('?', length);
-                patient_name_PatientElectrodesList(_handle, patientId, str, length);
-
-                return str.ToString().Replace("?", string.Empty);
+                IntPtr result = patient_name_PatientElectrodesList(_handle, patientId);
+                return Marshal.PtrToStringAnsi(result);
             }
             /// <summary>
             /// Return the electrode name
@@ -625,12 +682,8 @@ namespace HBP.Module3D
             /// <returns></returns>
             public string ElectrodeName(int patientId, int electrodeId)
             {
-                int length = 30;
-                StringBuilder str = new StringBuilder();
-                str.Append('?', length);
-                electrode_name_PatientElectrodesList(_handle, patientId, electrodeId, str, length);
-
-                return str.ToString().Replace("?", string.Empty);
+                IntPtr result = electrode_name_PatientElectrodesList(_handle, patientId, electrodeId);
+                return Marshal.PtrToStringAnsi(result);
             }
             /// <summary>
             /// 
@@ -642,6 +695,12 @@ namespace HBP.Module3D
             public int MarsAtlasLabelOfSite(int patientId, int electrodeId, int siteId)
             {
                 return site_mars_atlas_label_PatientElectrodesList(_handle, patientId, electrodeId, siteId);
+            }
+
+            public string FreesurferLabelOfSite(int patientID, int electrodeID, int siteID)
+            {
+                IntPtr result = site_freesurfer_label_PatientElectrodesList(_handle, patientID, electrodeID, siteID);
+                return Marshal.PtrToStringAnsi(result);
             }
             #endregion
 
@@ -722,7 +781,7 @@ namespace HBP.Module3D
 
             // retrieve data
             [DllImport("hbp_export", EntryPoint = "site_name_PatientElectrodesList", CallingConvention = CallingConvention.Cdecl)]
-            static private extern int site_name_PatientElectrodesList(HandleRef handlePatientElectrodesList, int patientId, int electrodeId, int siteId, StringBuilder name, int length);
+            static private extern IntPtr site_name_PatientElectrodesList(HandleRef handlePatientElectrodesList, int patientId, int electrodeId, int siteId);
 
             [DllImport("hbp_export", EntryPoint = "site_pos_PatientElectrodesList", CallingConvention = CallingConvention.Cdecl)]
             static private extern void site_pos_PatientElectrodesList(HandleRef handlePatientElectrodesList, int patientId, int electrodeId, int siteId, float[] position);
@@ -746,13 +805,16 @@ namespace HBP.Module3D
             static private extern int electrode_sites_nb_PatientElectrodesList(HandleRef handlePatientElectrodesList, int patientId, int electrodeId);
 
             [DllImport("hbp_export", EntryPoint = "patient_name_PatientElectrodesList", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void patient_name_PatientElectrodesList(HandleRef handlePatientElectrodesList, int patientId, StringBuilder name, int length);
+            static private extern IntPtr patient_name_PatientElectrodesList(HandleRef handlePatientElectrodesList, int patientId);
 
             [DllImport("hbp_export", EntryPoint = "electrode_name_PatientElectrodesList", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void electrode_name_PatientElectrodesList(HandleRef handlePatientElectrodesList, int patientId, int electrodeId, StringBuilder name, int length);
+            static private extern IntPtr electrode_name_PatientElectrodesList(HandleRef handlePatientElectrodesList, int patientId, int electrodeId);
 
             [DllImport("hbp_export", EntryPoint = "site_mars_atlas_label_PatientElectrodesList", CallingConvention = CallingConvention.Cdecl)]
             static private extern int site_mars_atlas_label_PatientElectrodesList(HandleRef handlePatientElectrodesList, int patientId, int electrodeId, int siteId);
+
+            [DllImport("hbp_export", EntryPoint = "site_freesurfer_label_PatientElectrodesList", CallingConvention = CallingConvention.Cdecl)]
+            static private extern IntPtr site_freesurfer_label_PatientElectrodesList(HandleRef handlePatientElectrodesList, int patientId, int electrodeId, int siteId);
 
             #endregion
         }

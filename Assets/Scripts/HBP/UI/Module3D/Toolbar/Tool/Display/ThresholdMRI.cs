@@ -33,12 +33,9 @@ namespace HBP.UI.Module3D.Tools
             m_Button.interactable = true;
         }
 
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Scene)
-            {
-                m_ThresholdMRI.UpdateMRICalValues(ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedMRI.Volume.ExtremeValues);
-            }
+            m_ThresholdMRI.UpdateMRICalValues(SelectedScene.ColumnManager.SelectedMRI.Volume.ExtremeValues);
         }
         #endregion
     }

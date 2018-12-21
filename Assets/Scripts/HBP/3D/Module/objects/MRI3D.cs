@@ -57,7 +57,7 @@ namespace HBP.Module3D
         {
             Name = mri.Name;
             m_MRI = mri;
-            if (ApplicationState.GeneralSettings.PreloadAnatomy)
+            if (ApplicationState.UserPreferences.Data.Anatomic.MRIPreloading)
             {
                 Load();
             }

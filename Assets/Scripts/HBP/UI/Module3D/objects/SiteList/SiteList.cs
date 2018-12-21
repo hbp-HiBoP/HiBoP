@@ -1,6 +1,8 @@
 ﻿using HBP.Module3D;
+using System.Linq;
 using Tools.Unity.Lists;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace HBP.UI.Module3D
 {
@@ -17,15 +19,10 @@ namespace HBP.UI.Module3D
             {
                 m_Objects = value;
                 m_NumberOfObjects = value.Count;
-                m_ScrollRect.content.sizeDelta = new Vector2(m_ScrollRect.content.sizeDelta.x, m_NumberOfObjects * ItemHeight);
+                m_ScrollRect.content.sizeDelta = new Vector2(0, ItemHeight * m_NumberOfObjects);
                 m_ScrollRect.content.hasChanged = true;
-                Refresh();
             }
         }
-        #endregion
-
-        #region Public Methods
-
         #endregion
     }
 }

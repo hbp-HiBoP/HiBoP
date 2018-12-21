@@ -51,7 +51,7 @@ namespace Tools.Unity.Lists
                 m_Toggle.onValueChanged.AddListener((value) =>
                 {
                     if (!m_isLock) m_OnChangeSelected.Invoke(value);
-                });
+                });  
             }
         }
         #endregion

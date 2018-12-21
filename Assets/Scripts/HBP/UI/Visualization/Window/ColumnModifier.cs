@@ -1,191 +1,126 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System;
 using System.Linq;
 using System.Collections.Generic;
-using HBP.Data.Experience.Dataset;
-using HBP.Data.Experience.Protocol;
 using HBP.Data.Visualization;
+using Tools.Unity;
+using UnityEngine.Events;
 
 namespace HBP.UI.Visualization
 {
     public class ColumnModifier : MonoBehaviour
     {
         #region Properties
+        bool m_Interactable;
+        public bool Interactable
+        {
+            get
+            {
+                return m_Interactable;
+            }
+            set
+            {
+                m_Interactable = value;
+                m_NameInputField.interactable = value;
+                m_TypeDropdown.interactable = value;
+                m_IEEGColumnModifier.Interactable = value;
+            }
+        }
+
         [SerializeField] InputField m_NameInputField;
         [SerializeField] Dropdown m_TypeDropdown;
-        [SerializeField] Dropdown m_ProtocolDropdown;
-        [SerializeField] Dropdown m_BlocDropdown;
-        [SerializeField] Dropdown m_DatasetDropdown;
-        [SerializeField] Dropdown m_DataDropdown;
+        [SerializeField] IEEGColumnModifier m_IEEGColumnModifier;
 
-        Column m_Column;
-        Data.Patient[] m_Patients;
+        List<Data.Patient> m_Patients;
+        BaseColumn m_Column;
+        BaseColumn Column
+        {
+            get
+            {
+                return m_Column;
+            }
+            set
+            {
+                m_Column = value;
+                OnChangeColumn.Invoke(value);
+            }
+        }
 
-        Dataset[] m_Datasets;
-        string[] m_Data;
-        Protocol[] m_Protocols;
+        public GenericEvent<string> OnChangeName { get; } = new GenericEvent<string>();
+        public GenericEvent<BaseColumn> OnChangeColumn { get; } = new GenericEvent<BaseColumn>();
         #endregion
 
         #region Public Methods
-        public void SetTab(Column column,Data.Patient[] patients)
+        public void Set(BaseColumn column,IEnumerable<Data.Patient> patients)
         {
-            m_Patients = patients;
             m_Column = column;
-            m_NameInputField.onValueChanged.RemoveAllListeners();
-            m_NameInputField.text = column.Name;
-            m_NameInputField.onValueChanged.AddListener((name) => m_Column.Name = name);
+            m_Patients = patients.ToList();
+
+            if (m_Column == null)
+            {
+                m_NameInputField.interactable = false;
+                m_NameInputField.text = "";
+            }
+            else
+            {
+                m_NameInputField.interactable = m_Interactable;
+                m_NameInputField.text = m_Column.Name;
+            }
             SetTypeDropdown();
         }
         #endregion
 
         #region Private Methods
-        void OnChangeType()
+        void Awake()
         {
-            m_Column.Type = (Column.ColumnType)m_TypeDropdown.value;
-            SetProtocolDropdown();
+            m_NameInputField.onValueChanged.AddListener((name) =>
+            {
+                if (m_Column != null)
+                {
+                    m_Column.Name = name;
+                }
+                OnChangeName.Invoke(name);
+            });
+            m_TypeDropdown.onValueChanged.AddListener(OnChangeType);
         }
+
+        // Type.
         void SetTypeDropdown()
         {
-            m_TypeDropdown.onValueChanged.RemoveAllListeners();
-            m_TypeDropdown.onValueChanged.AddListener((index) => OnChangeType());
-            m_TypeDropdown.interactable = true;
-            m_TypeDropdown.options = (from type in Enum.GetNames(typeof(Column.ColumnType)) select new Dropdown.OptionData(type, null)).ToList();
-            SetType(m_Column.Type);
-        }
-        void SetType(Column.ColumnType type)
-        {
-            m_TypeDropdown.value = (int)type;
-            OnChangeType();
-        }
-
-        void OnChangeProtocol()
-        {
-            m_Column.Protocol = m_Protocols[m_ProtocolDropdown.value];
-            SetBlocDropdown();
-            SetDatasetDropdown();
-        }
-        void SetProtocolDropdown()
-        {
-            m_ProtocolDropdown.onValueChanged.RemoveAllListeners();
-            m_ProtocolDropdown.onValueChanged.AddListener((index) => OnChangeProtocol());
-
-            m_Protocols = ApplicationState.ProjectLoaded.Protocols.ToArray();
-            if (m_Protocols.Length > 0 && m_Column.Type == Column.ColumnType.iEEG)
+            if (m_Column == null)
             {
-                m_ProtocolDropdown.interactable = true;
-                m_ProtocolDropdown.options = (from protocol in m_Protocols select new Dropdown.OptionData(protocol.Name, null)).ToList();
-                SetProtocol(m_Column.Protocol);
+                m_TypeDropdown.interactable = false;
+                m_TypeDropdown.Set(typeof(Data.Enums.ColumnType), 0);
+                m_IEEGColumnModifier.Set(null, m_Patients);
             }
-            else DeactivateProtocolDropdown();
-        }
-        void DeactivateProtocolDropdown()
-        {
-            m_ProtocolDropdown.interactable = false;
-            m_ProtocolDropdown.options = new List<Dropdown.OptionData>() { new Dropdown.OptionData("", null) };
-            m_ProtocolDropdown.value = 0;
-            DeactivateBlocDropdown();
-            DeactivateDatasetDropdown();
-        }
-        void SetProtocol(Protocol protocol)
-        {
-            m_ProtocolDropdown.value = Mathf.Max(0, Array.IndexOf(m_Protocols,protocol));
-            OnChangeProtocol();
-        }
-
-        void OnChangeBloc()
-        {
-            m_Column.Bloc = m_Column.Protocol.Blocs[m_BlocDropdown.value];
-        }
-        void SetBlocDropdown()
-        {
-            m_BlocDropdown.onValueChanged.RemoveAllListeners();
-            m_BlocDropdown.onValueChanged.AddListener((index) => OnChangeBloc());
-
-            if (m_Column.Protocol.Blocs.Count > 0 && m_ProtocolDropdown.interactable)
+            else
             {
-                m_BlocDropdown.interactable = true;
-                m_BlocDropdown.options = (from bloc in m_Column.Protocol.Blocs select new Dropdown.OptionData(bloc.Name, null)).ToList();
-                SetBloc(m_Column.Bloc);
-            }
-            else DeactivateBlocDropdown();
-        }
-        void DeactivateBlocDropdown()
-        {
-            m_BlocDropdown.interactable = false;
-            m_BlocDropdown.options = new List<Dropdown.OptionData>() { new Dropdown.OptionData("", null) }; ;
-            m_BlocDropdown.value = 0;
-        }
-        void SetBloc(Bloc bloc)
-        {
-            m_BlocDropdown.value = Mathf.Max(0, m_Column.Protocol.Blocs.IndexOf(bloc));
-            OnChangeBloc();
-        }
-
-        void OnChangeDataset()
-        {
-            if (m_Datasets.Length > 0)
-            {
-                m_Column.Dataset = m_Datasets[m_DatasetDropdown.value];
-                SetDataDropdown();
+                m_TypeDropdown.interactable = m_Interactable;
+                Data.Enums.ColumnType type;
+                if (m_Column is IEEGColumn) type = Data.Enums.ColumnType.iEEG;
+                else type = Data.Enums.ColumnType.Anatomic;
+                m_TypeDropdown.Set(typeof(Data.Enums.ColumnType), (int)type);
+                OnChangeType((int)type);
             }
         }
-        void SetDatasetDropdown()
+        void OnChangeType(int value)
         {
-            m_DatasetDropdown.onValueChanged.RemoveAllListeners();
-            m_DatasetDropdown.onValueChanged.AddListener((index) => OnChangeDataset());
-
-            m_Datasets = ApplicationState.ProjectLoaded.Datasets.Where((d) => d.Protocol == m_Column.Protocol).ToArray();
-            if (m_Datasets.Length > 0)
+            if (m_Column != null)
             {
-                m_DatasetDropdown.interactable = true;
-                m_DatasetDropdown.options = (from dataset in m_Datasets select new Dropdown.OptionData(dataset.Name, null)).ToList();
-                SetDataset(m_Column.Dataset);
+                switch ((Data.Enums.ColumnType)value)
+                {
+                    case Data.Enums.ColumnType.Anatomic:
+                        if (!(m_Column is AnatomicColumn)) Column = new AnatomicColumn(m_Column.Name, m_Column.BaseConfiguration);
+                        m_IEEGColumnModifier.gameObject.SetActive(false);
+                        break;
+                    case Data.Enums.ColumnType.iEEG:
+                        if (!(m_Column is IEEGColumn)) Column = new IEEGColumn(m_Column.Name, m_Column.BaseConfiguration, m_Patients);
+                        m_IEEGColumnModifier.gameObject.SetActive(true);
+                        m_IEEGColumnModifier.Set(m_Column as IEEGColumn, m_Patients);
+                        break;
+                }
             }
-            else DeactivateDatasetDropdown();
-        }
-        void DeactivateDatasetDropdown()
-        {
-            m_DatasetDropdown.interactable = false;
-            m_DatasetDropdown.options = new List<Dropdown.OptionData>() { new Dropdown.OptionData("", null) };
-            m_DatasetDropdown.value = 0;
-            DeactivateDataDropdown();
-        }
-        void SetDataset(Dataset dataset)
-        {
-            m_DatasetDropdown.value = Mathf.Max(0, Array.IndexOf(m_Datasets,dataset));
-            OnChangeDataset();
-        }
-
-        void OnChangeData()
-        {
-            m_Column.Data = m_Data[m_DataDropdown.value];
-        }
-        void SetDataDropdown()
-        {
-            m_DataDropdown.onValueChanged.RemoveAllListeners();
-            m_DataDropdown.onValueChanged.AddListener((index) => OnChangeData());
-
-            m_Data = (from data in m_Column.Dataset.Data select data.Name).Distinct().Where((l) => m_Patients.All((p) => m_Column.Dataset.Data.Any((d) => d.isOk && d.Name == l && d.Patient == p))).ToArray();
-            if(m_Data.Length > 0 && m_DatasetDropdown.interactable)
-            {
-                m_DataDropdown.interactable = true;
-                m_DataDropdown.options = (from label in m_Data select new Dropdown.OptionData(label,null)).ToList();
-                SetData(m_Column.Data);
-            }
-            else DeactivateDataDropdown();
-        }
-        void DeactivateDataDropdown()
-        {
-            m_DataDropdown.interactable = false;
-            m_DataDropdown.options = new List<Dropdown.OptionData>() { new Dropdown.OptionData("", null) };
-            m_DataDropdown.value = 0;
-        }
-        void SetData(string data)
-        {
-            m_DataDropdown.value = Mathf.Max(0, Array.IndexOf(m_Data,data));
-            OnChangeData();
-        }
+        }   
         #endregion
     }
 }

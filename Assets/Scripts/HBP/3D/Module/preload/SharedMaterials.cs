@@ -5,6 +5,7 @@
  * \brief Define SharedMaterials
  */
 
+using HBP.Data.Enums;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -39,11 +40,11 @@ namespace HBP.Module3D
                 Material brainMaterial = null, cutMaterial = null, simplifiedBrainMaterial = null;
                 switch (scene.Type) // Distinction is useful in the shader in order to show mars atlases in sp
                 {
-                    case SceneType.SinglePatient:
+                    case Data.Enums.SceneType.SinglePatient:
                         brainMaterial = Instantiate(Resources.Load("Materials/Brain/SpBrain", typeof(Material))) as Material;
                         cutMaterial = Instantiate(Resources.Load("Materials/Brain/SpCut", typeof(Material))) as Material;
                         break;
-                    case SceneType.MultiPatients:
+                    case Data.Enums.SceneType.MultiPatients:
                         brainMaterial = Instantiate(Resources.Load("Materials/Brain/MpBrain", typeof(Material))) as Material;
                         cutMaterial = Instantiate(Resources.Load("Materials/Brain/MpCut", typeof(Material))) as Material;
                         break;
@@ -119,6 +120,8 @@ namespace HBP.Module3D
             public static Material NoLatencyDataHighlighted = null;
             public static Material Marked = null;
             public static Material MarkedHighlighted = null;
+            public static Material Suspicious = null;
+            public static Material SuspiciousHighlighted = null;
         }
         #endregion
 
@@ -148,6 +151,8 @@ namespace HBP.Module3D
             Site.NoLatencyDataHighlighted = Instantiate(Resources.Load("Materials/Sites/noLatencyDataHighlighted", typeof(Material))) as Material;
             Site.Marked = Instantiate(Resources.Load("Materials/Sites/Marked", typeof(Material))) as Material;
             Site.MarkedHighlighted = Instantiate(Resources.Load("Materials/Sites/MarkedHighlighted", typeof(Material))) as Material;
+            Site.Suspicious = Instantiate(Resources.Load("Materials/Sites/Suspicious", typeof(Material))) as Material;
+            Site.SuspiciousHighlighted = Instantiate(Resources.Load("Materials/Sites/SuspiciousHighlighted", typeof(Material))) as Material;
             // Ring
             Ring.Selected = Instantiate(Resources.Load("Materials/Rings/Selected", typeof(Material))) as Material;
 
@@ -174,6 +179,7 @@ namespace HBP.Module3D
                     case SiteType.NonePos: return Site.Positive;
                     case SiteType.NoneNeg: return Site.Negative;
                     case SiteType.Marked: return Site.Marked;
+                    case SiteType.Suspicious: return Site.Suspicious;
                 }
             }
             else
@@ -191,6 +197,7 @@ namespace HBP.Module3D
                     case SiteType.NonePos: return Site.PositiveHighlighted;
                     case SiteType.NoneNeg: return Site.NegativeHighlighted;
                     case SiteType.Marked: return Site.MarkedHighlighted;
+                    case SiteType.Suspicious: return Site.SuspiciousHighlighted;
                 }
             }
 

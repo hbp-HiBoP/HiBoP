@@ -74,9 +74,18 @@ namespace HBP.Module3D.DLL
         /// </summary>
         /// <param name="index"></param>
         /// <param name="newRadius"></param>
-        public void UpdateBubble(int index, float newRadius)
+        public void UpdateBubbleRadius(int index, float newRadius)
         {
             updateSphere_ROI(_handle, index, newRadius);
+        }
+
+        public void UpdateBubblePosition(int index, Vector3 position)
+        {
+            float[] positionArray = new float[3];
+            positionArray[0] = position.x;
+            positionArray[1] = position.y;
+            positionArray[2] = position.z;
+            updateSpherePosition_ROI(_handle, index, positionArray);
         }
         /// <summary>
         /// 
@@ -113,6 +122,9 @@ namespace HBP.Module3D.DLL
 
         [DllImport("hbp_export", EntryPoint = "updateSphere_ROI", CallingConvention = CallingConvention.Cdecl)]
         static private extern void updateSphere_ROI(HandleRef handleROI, int index, float newRadius);
+
+        [DllImport("hbp_export", EntryPoint = "updateSpherePosition_ROI", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void updateSpherePosition_ROI(HandleRef handleROI, int index, float[] center);
 
         [DllImport("hbp_export", EntryPoint = "removeSphere_ROI", CallingConvention = CallingConvention.Cdecl)]
         static private extern void removeSphere_ROI(HandleRef handleROI, int index);

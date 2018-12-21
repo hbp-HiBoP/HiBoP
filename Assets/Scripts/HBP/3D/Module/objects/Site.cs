@@ -3,6 +3,7 @@
 
 
 // unity
+using HBP.Data.Enums;
 using System;
 /**
 * \file    Site.cs
@@ -11,10 +12,10 @@ using System;
 * \brief   Define site related classes
 */
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
-    public enum SiteType { Normal, Positive, Negative, Excluded, Source, NotASource, NoLatencyData, BlackListed, NonePos, NoneNeg, Marked};
     /// <summary>
     /// Structure containing informations related to the site shaders (not used for now, shader uniform too slow)
     /// </summary>
@@ -100,14 +101,34 @@ namespace HBP.Module3D
         public Data.Patient Patient { get; set; }
         public string Name { get; set; }
 
-        public int GlobalID { get; set; }        /**< global site id (all patients) */
-        public int SitePatientID { get; set; }    /**< site id of the patient */
+        public int GlobalID { get; set; }
+        public int SitePatientID { get; set; }
 
-        public int PatientNumber { get; set; }       /**< patient id */
-        public int ElectrodeNumber { get; set; }     /**< electrode id of the patient */
-        public int SiteNumber { get; set; }        /**< site id of the electrode */
+        public int PatientNumber { get; set; }
+        public int ElectrodeNumber { get; set; }
+        public int SiteNumber { get; set; }
 
-        public int MarsAtlasIndex { get; set; }   /**< label (corresponding index) mars atlas */
+        private int m_MarsAtlasIndex;
+        public int MarsAtlasIndex
+        {
+            get
+            {
+                return m_MarsAtlasIndex;
+            }
+            set
+            {
+                m_MarsAtlasIndex = value;
+                MarsAtlasLabel = string.Format("{0}/{1}/{2}/{3}",
+                    ApplicationState.Module3D.MarsAtlasIndex.Hemisphere(value).Replace('_', ' '),
+                    ApplicationState.Module3D.MarsAtlasIndex.Lobe(value).Replace('_', ' '),
+                    ApplicationState.Module3D.MarsAtlasIndex.NameFS(value).Replace('_', ' '),
+                    ApplicationState.Module3D.MarsAtlasIndex.FullName(value).Replace('_', ' '));
+                BroadmanAreaName = ApplicationState.Module3D.MarsAtlasIndex.BroadmanArea(value).Replace('_', ' ');
+            }
+        }
+        public string MarsAtlasLabel { get; private set; }
+        public string BroadmanAreaName { get; private set; }
+        public string FreesurferLabel { get; set; }
 
         public string PatientID
         {
@@ -120,14 +141,14 @@ namespace HBP.Module3D
         {
             get
             {
-                return Patient.ID + "_" + Name;
+                return PatientID + "_" + Name;
             }
         }
         public string FullCorrectedID
         {
             get
             {
-                if (ApplicationState.GeneralSettings.PlotNameAutomaticCorrectionType == Data.Settings.GeneralSettings.PlotNameCorrectionTypeEnum.Enable)
+                if (ApplicationState.UserPreferences.Data.Anatomic.SiteNameCorrection)
                 {
                     string siteName = Name.ToUpper();
                     int prime = siteName.LastIndexOf('P');
@@ -161,6 +182,7 @@ namespace HBP.Module3D
 
     public class SiteState
     {
+        public UnityEvent OnChangeState = new UnityEvent();
         public SiteState(SiteState state)
         {
             IsMasked = state.IsMasked;
@@ -169,24 +191,87 @@ namespace HBP.Module3D
             IsOutOfROI = state.IsOutOfROI;
             IsHighlighted = state.IsHighlighted;
             IsMarked = state.IsMarked;
+            IsSuspicious = state.IsSuspicious;
         }
         public SiteState() { }
-        public bool IsMasked { get; set; }     /**< is the site masked on the column ? */
-        public bool IsExcluded { get; set; }        /**< is the site excluded ? */
-        public bool IsBlackListed { get; set; }      /**< is the site blacklisted ? */
-        public bool IsOutOfROI { get; set; }      /**< is the site in a ROI ? */
-        public bool IsHighlighted { get; set; }       /**< is the site highlighted ? */
-        public bool IsMarked { get; set; }          /**< is the site marked ? */
+        public bool IsMasked { get; set; }
+        private bool m_IsExcluded;
+        public bool IsExcluded
+        {
+            get
+            {
+                return m_IsExcluded;
+            }
+            set
+            {
+                m_IsExcluded = value;
+                OnChangeState.Invoke();
+            }
+        }
+        private bool m_IsBlackListed;
+        public bool IsBlackListed
+        {
+            get
+            {
+                return m_IsBlackListed;
+            }
+            set
+            {
+                m_IsBlackListed = value;
+                OnChangeState.Invoke();
+            }
+        }
+        public bool IsOutOfROI { get; set; }
+        private bool m_IsHighlighted;
+        public bool IsHighlighted
+        {
+            get
+            {
+                return m_IsHighlighted;
+            }
+            set
+            {
+                m_IsHighlighted = value;
+                OnChangeState.Invoke();
+            }
+        }
+        private bool m_IsMarked;
+        public bool IsMarked
+        {
+            get
+            {
+                return m_IsMarked;
+            }
+            set
+            {
+                m_IsMarked = value;
+                OnChangeState.Invoke();
+            }
+        }
+        private bool m_IsSuspicious;
+        public bool IsSuspicious
+        {
+            get
+            {
+                return m_IsSuspicious;
+            }
+            set
+            {
+                m_IsSuspicious = value;
+                OnChangeState.Invoke();
+            }
+        }
         public void ApplyState(SiteState state)
         {
-            ApplyState(state.IsExcluded, state.IsBlackListed, state.IsHighlighted, state.IsMarked);
+            ApplyState(state.IsExcluded, state.IsBlackListed, state.IsHighlighted, state.IsMarked, state.IsSuspicious);
         }
-        public void ApplyState(bool excluded, bool blacklisted, bool highlighted, bool marked)
+        public void ApplyState(bool excluded, bool blacklisted, bool highlighted, bool marked, bool suspicious)
         {
             IsExcluded = excluded;
             IsBlackListed = blacklisted;
             IsHighlighted = highlighted;
             IsMarked = marked;
+            IsSuspicious = suspicious;
         }
     }
 
@@ -223,6 +308,24 @@ namespace HBP.Module3D
             }
         }
 
+        private bool m_IsSelected;
+        public bool IsSelected
+        {
+            get
+            {
+                return m_IsSelected;
+            }
+            set
+            {
+                if (m_IsSelected != value)
+                {
+                    m_IsSelected = value;
+                    OnSelectSite.Invoke(value);
+                }
+            }
+        }
+        public GenericEvent<bool> OnSelectSite = new GenericEvent<bool>();
+
         /// <summary>
         /// Information about this site
         /// </summary>
@@ -237,6 +340,9 @@ namespace HBP.Module3D
         /// Configuration of this site
         /// </summary>
         public Data.Visualization.SiteConfiguration Configuration { get; set; }
+
+        public Data.Experience.Dataset.BlocChannelData Data { get; set; }
+        public Data.Experience.Dataset.BlocChannelStatistics Statistics { get; set; }
         #endregion
 
         #region Private Methods
@@ -304,7 +410,8 @@ namespace HBP.Module3D
             State.IsExcluded = Configuration.IsExcluded;
             State.IsHighlighted = Configuration.IsHighlighted;
             State.IsMarked = Configuration.IsMarked;
-            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+            State.IsSuspicious = Configuration.IsSuspicious;
+            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
 
         public void SaveConfiguration()
@@ -313,6 +420,7 @@ namespace HBP.Module3D
             Configuration.IsExcluded = State.IsExcluded;
             Configuration.IsHighlighted = State.IsHighlighted;
             Configuration.IsMarked = State.IsMarked;
+            Configuration.IsSuspicious = State.IsSuspicious;
         }
 
         public void ResetConfiguration(bool firstCall = true)
@@ -321,7 +429,8 @@ namespace HBP.Module3D
             State.IsExcluded = false;
             State.IsHighlighted = false;
             State.IsMarked = false;
-            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+            State.IsSuspicious = false;
+            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
     }

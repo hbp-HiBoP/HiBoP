@@ -1,42 +1,59 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.Events;
+using System.Collections.Generic;
 
 namespace HBP.UI
 {
-    public abstract class Window : MonoBehaviour
+    public abstract class Window : MonoBehaviour, IClosable, IInteractable
     {
         #region Properties
-        protected UnityEvent closeEvent = new UnityEvent { };
-        public UnityEvent CloseEvent { get { return closeEvent; } }
+        protected UnityEvent m_OnClose = new UnityEvent();
+        public UnityEvent OnClose
+        {
+            get { return m_OnClose; }
+        }
 
-        protected UnityEvent openEvent = new UnityEvent { };
-        public UnityEvent OpenEvent { get { return openEvent; } }
+        protected bool m_Interactable;
+        public virtual bool Interactable
+        {
+            get
+            {
+                return m_Interactable;
+            }
+            set
+            {
+                m_Interactable = value;
+            }
+        }
+
+        protected List<Window> m_SubWindows = new List<Window>();
+        [SerializeField] protected Button m_CloseButton;
         #endregion
 
         #region Public Methods
-        public virtual void Open()
-        {
-            OpenEvent.Invoke();
-            SetActive(true);
-            SetWindow();
-        }
         public virtual void Close()
         {
-            CloseEvent.Invoke();
-            Destroy(gameObject);        
-        }
-        public virtual void SetInteractable(bool interactable)
-        {
-
+            foreach (var subWindow in m_SubWindows.ToArray()) subWindow.Close();
+            OnClose.Invoke();
+            Destroy(gameObject);
         }
         #endregion
 
         #region Private Methods
-        void SetActive(bool active)
+        void Awake()
         {
-            gameObject.SetActive(active);
+            Initialize();
         }
-        protected abstract void SetWindow();
+        protected virtual void Initialize()
+        {
+            m_CloseButton.onClick.AddListener(Close);
+            SetFields();
+        }
+        protected virtual void SetFields()
+        {
+
+        }
         #endregion
     }
 }

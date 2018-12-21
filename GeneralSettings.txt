@@ -12,12 +12,12 @@
   "TrialMatrixSettings": {
     "Smoothing": 1,
     "Normalization": 0,
-    "BlocFormat": 2,
-    "ConstantLineHeight": 30,
+    "BlocFormat": 0,
+    "ConstantLineHeight": 5,
     "LineHeightByWidth": 0.005,
     "HeightByWidth": 0.2,
     "TrialsSynchronization": 0,
-    "Type": 0
+    "Type": 1
   },
   "HideCurveWhenColumnHidden": true,
   "Theme": "Dark",

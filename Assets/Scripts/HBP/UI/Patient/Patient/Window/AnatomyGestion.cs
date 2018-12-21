@@ -4,18 +4,17 @@ using UnityEngine.UI;
 using Tools.Unity.Lists;
 using System;
 
-namespace HBP.UI.Anatomy
+namespace HBP.UI
 {
-    public abstract class AnatomyGestion<T> : MonoBehaviour where T: ICopiable, ICloneable, new()
+    public abstract class Gestion<T,P> : MonoBehaviour where T: ICopiable, ICloneable, new()
     {
         #region Properties
         protected abstract SelectableListWithItemAction<T> List {  get; }
         System.Collections.Generic.List<ItemModifier<T>> m_Modifiers = new System.Collections.Generic.List<ItemModifier<T>>();
-        [SerializeField] GameObject m_ModifierPrefab;
         [SerializeField] Text m_Counter;
         [SerializeField] Button m_AddButton;
         [SerializeField] Button m_RemoveButton;
-        protected Data.Patient m_Patient;
+        protected P m_ParentObject;
         bool m_Interactable;
         public virtual bool interactable
         {
@@ -25,22 +24,16 @@ namespace HBP.UI.Anatomy
                 m_Interactable = value;
                 m_AddButton.interactable = interactable;
                 m_RemoveButton.interactable = interactable;
-                List.interactable = interactable;
+                List.Interactable = interactable;
             }
         }
         #endregion
 
         #region Public Methods
-        public virtual void Set(Data.Patient patient)
+        public virtual void Set(P patientObject)
         {
-            m_Patient = patient;
-            List.Initialize();
-
-            List.OnSelectionChanged.RemoveAllListeners();
-            List.OnSelectionChanged.AddListener((mesh, i) => m_Counter.text = List.ObjectsSelected.Length.ToString());
-
-            List.OnAction.RemoveAllListeners();
-            List.OnAction.AddListener((item, i) => OpenModifier(item, interactable));
+            m_ParentObject = patientObject;
+            Initialize();
         }
         public virtual void SetActive(bool active)
         {
@@ -61,18 +54,23 @@ namespace HBP.UI.Anatomy
             foreach (var modifier in m_Modifiers.ToArray()) modifier.Close();
             m_Modifiers.Clear();
         }
+        public virtual void Initialize()
+        {
+            List.Initialize();
+            List.OnSelectionChanged.RemoveAllListeners();
+            List.OnSelectionChanged.AddListener(() => m_Counter.text = List.NumberOfItemSelected.ToString());
+
+            List.OnAction.RemoveAllListeners();
+            List.OnAction.AddListener((item, i) => OpenModifier(item, interactable));
+        }
         #endregion
 
         #region Private Methods
         protected void OpenModifier(T item, bool interactable)
         {
-            RectTransform obj = Instantiate(m_ModifierPrefab).GetComponent<RectTransform>();
-            obj.SetParent(GameObject.Find("Windows").transform);
-            obj.localPosition = new Vector3(0, 0, 0);
-            ItemModifier<T> modifier = obj.GetComponent<ItemModifier<T>>();
-            modifier.Open(item, interactable);
-            modifier.CloseEvent.AddListener(() => OnCloseModifier(modifier));
-            modifier.SaveEvent.AddListener(() => OnSaveModifier(modifier));
+            ItemModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(item, interactable);
+            modifier.OnClose.AddListener(() => OnCloseModifier(modifier));
+            modifier.OnSave.AddListener(() => OnSaveModifier(modifier));
             m_Modifiers.Add(modifier);
         }
         void OnCloseModifier(ItemModifier<T> modifier)

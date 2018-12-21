@@ -7,6 +7,8 @@ namespace Tools.Unity.ResizableGrid
     public class CornerHandler : Handler
     {
         #region Properties
+        [SerializeField] protected State m_CornerState;
+
         /// <summary>
         /// Associated vertical handler
         /// </summary>
@@ -55,7 +57,7 @@ namespace Tools.Unity.ResizableGrid
             base.OnPointerDown(data);
             m_HorizontalHandler.IsClicked = true;
             m_VerticalHandler.IsClicked = true;
-            Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.MoveCursor.Texture, ApplicationState.GeneralSettings.Theme.General.MoveCursor.Offset, CursorMode.Auto);
+            m_ThemeElement.Set(m_CornerState);
         }
         /// <summary>
         /// Callback event when releasing the click on the handler
@@ -75,7 +77,7 @@ namespace Tools.Unity.ResizableGrid
         {
             if (!m_ResizableGrid.IsHandlerClicked)
             {
-                Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.MoveCursor.Texture, ApplicationState.GeneralSettings.Theme.General.MoveCursor.Offset, CursorMode.Auto);
+                m_ThemeElement.Set(m_CornerState);
             }
         }
         /// <summary>

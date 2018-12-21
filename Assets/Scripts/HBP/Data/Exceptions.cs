@@ -44,7 +44,7 @@ public class CannotFindDataInfoException : HBPException
 public class CannotLoadDataInfoException : HBPException
 {
     public CannotLoadDataInfoException() { }
-    public CannotLoadDataInfoException(string data, string patient) : base("Can not load <color=red>" + data + "</color> for <color=red>" + patient + "</color>.\n\nPlease verify your data files.")
+    public CannotLoadDataInfoException(string data, string patient, string additionalInformation = "") : base("Can not load <color=red>" + data + "</color> for <color=red>" + patient + "</color>. " + additionalInformation + "\n\nPlease verify your data files.")
     {
         Title = "Data can not be loaded";
     }
@@ -429,12 +429,81 @@ public class CanNotLoadVisualization : HBPException
 [Serializable]
 public class FrequencyException : HBPException
 {
-    public FrequencyException() : base("The frequencies of the data of the columns of this visualization are not multiples of each other.\n\nThis is not supported.")
+    public FrequencyException() : base("The frequencies of the data of the columns of this visualization are not the same.\n\nThis is not supported.")
     {
         Title = "Invalid frequencies";
     }
     public FrequencyException(string message, Exception inner) : base(message, inner) { }
     protected FrequencyException(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
+[Serializable]
+public class InvalidConditionException : HBPException
+{
+    public InvalidConditionException() { }
+    public InvalidConditionException(string condition) : base("One of your conditions is not valid: \" " + condition + " \". Please fix it.")
+    {
+        Title = "Invalid condition";
+    }
+    public InvalidConditionException(string message, Exception inner) : base(message, inner) { }
+    protected InvalidConditionException(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
+[Serializable]
+public class InvalidBooleanExpressionException : HBPException
+{
+    public InvalidBooleanExpressionException() { }
+    public InvalidBooleanExpressionException(string additionalInformation) : base("The conditional expression you entered is not valid. Please fix it.\n\nAdditional information: " + additionalInformation)
+    {
+        Title = "Invalid expression";
+    }
+    public InvalidBooleanExpressionException(string message, Exception inner) : base(message, inner) { }
+    protected InvalidBooleanExpressionException(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
+[Serializable]
+public class ParsingValueException : HBPException
+{
+    public ParsingValueException() { }
+    public ParsingValueException(string value) : base("The value \"" + value + "\" could not be parsed correctly. Please enter a valid value.")
+    {
+        Title = "Parsing error";
+    }
+    public ParsingValueException(string message, Exception inner) : base(message, inner) { }
+    protected ParsingValueException(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
+[Serializable]
+public class NoMatchingSitesException : HBPException
+{
+    public NoMatchingSitesException() : base("No site used in this visualization has a name matching a channel name in the EEG files. Thus the values can not be displayed on the brain. This is not supported.\n\nPlease check your pts or eeg files, or make sure you enabled the automatic site name correction if you need it.")
+    {
+        Title = "No matching sites";
+    }
+    public NoMatchingSitesException(string message, Exception inner) : base(message, inner) { }
+    protected NoMatchingSitesException(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
+[Serializable]
+public class TimelineException : HBPException
+{
+    public TimelineException() { }
+    public TimelineException(string additionalInformation) : base("The columns of the visualization does not have the same timeline length. This version of HiBoP does not support that. This feature will be implemented soon.\n" + additionalInformation)
+    {
+        Title = "Incompatible timelines";
+    }
+    public TimelineException(string message, Exception inner) : base(message, inner) { }
+    protected TimelineException(
       System.Runtime.Serialization.SerializationInfo info,
       System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 }

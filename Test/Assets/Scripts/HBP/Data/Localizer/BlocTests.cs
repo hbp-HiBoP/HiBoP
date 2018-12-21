@@ -95,9 +95,9 @@ namespace HBP.Data.Localizer.Tests
 
             Bloc[] blocs = new Bloc[] { bloc1, bloc2, bloc3 };
             // Result => Value : Mean || Event : Mean.
-            Bloc meanResult = Bloc.Average(blocs, Settings.GeneralSettings.AveragingMode.Mean, Settings.GeneralSettings.AveragingMode.Mean);
+            Bloc meanResult = Bloc.Average(blocs, Preferences.UserPreferences.AveragingMode.Mean, Preferences.UserPreferences.AveragingMode.Mean);
             // Result => Value : Median || Event : Median.
-            Bloc medianResult = Bloc.Average(blocs, Settings.GeneralSettings.AveragingMode.Median, Settings.GeneralSettings.AveragingMode.Median);
+            Bloc medianResult = Bloc.Average(blocs, Preferences.UserPreferences.AveragingMode.Median, Preferences.UserPreferences.AveragingMode.Median);
 
             // Compare
             foreach (var site in sites)

@@ -21,7 +21,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
                 
-                ApplicationState.Module3D.SelectedScene.ShowAllSites = isOn;
+                SelectedScene.ShowAllSites = isOn;
             });
         }
         public override void DefaultState()
@@ -33,12 +33,9 @@ namespace HBP.UI.Module3D.Tools
         {
             m_Toggle.interactable = true;
         }
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Scene)
-            {
-                m_Toggle.isOn = ApplicationState.Module3D.SelectedScene.ShowAllSites;
-            }
+            m_Toggle.isOn = SelectedScene.ShowAllSites;
         }
         #endregion
     }

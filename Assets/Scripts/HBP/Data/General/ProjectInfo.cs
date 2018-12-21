@@ -1,6 +1,7 @@
 ﻿using System.IO;
-using HBP.Data.Settings;
+using HBP.Data.Preferences;
 using System.Linq;
+using Ionic.Zip;
 
 namespace HBP.Data.General
 {
@@ -29,36 +30,40 @@ namespace HBP.Data.General
         }
         public ProjectInfo(string path) : base()
         {
-            if(Project.IsProject(path)) 
+            if (Project.IsProject(path))
             {
-                DirectoryInfo directory = new DirectoryInfo(path);
-
-                FileInfo settingsFile = directory.GetFiles("*" + ProjectSettings.EXTENSION).First();
-                Settings = Tools.Unity.ClassLoaderSaver.LoadFromJson<ProjectSettings>(settingsFile.FullName);
                 Path = path;
-
-                DirectoryInfo[] directories = directory.GetDirectories();
-                foreach(DirectoryInfo dir in directories)
+                using (ZipFile zip = ZipFile.Read(path))
                 {
-                    if(dir.Name == "Patients")
+                    foreach (ZipEntry entry in zip)
                     {
-                        Patients = dir.GetFiles("*"+Patient.EXTENSION).Length;
-                    }
-                    else if(dir.Name == "Groups")
-                    {
-                        Groups = dir.GetFiles("*" + Group.EXTENSION).Length;
-                    }
-                    else if (dir.Name == "Protocols")
-                    {
-                        Protocols = dir.GetFiles("*" + Experience.Protocol.Protocol.EXTENSION).Length;
-                    }
-                    else if (dir.Name == "Datasets")
-                    {
-                        Datasets = dir.GetFiles("*" + Experience.Dataset.Dataset.EXTENSION).Length;
-                    }
-                    else if (dir.Name == "Visualizations")
-                    {
-                        Visualizations  = dir.GetFiles("*" + Visualization.Visualization.EXTENSION).Length;
+                        if (entry.FileName.EndsWith(Patient.EXTENSION))
+                        {
+                            Patients++;
+                        }
+                        else if(entry.FileName.EndsWith(Group.EXTENSION))
+                        {
+                            Groups++;
+                        }
+                        else if (entry.FileName.EndsWith(Experience.Protocol.Protocol.EXTENSION))
+                        {
+                            Protocols++;
+                        }
+                        else if(entry.FileName.EndsWith(Experience.Dataset.Dataset.EXTENSION))
+                        {
+                            Datasets++;
+                        }
+                        else if (entry.FileName.EndsWith(Visualization.Visualization.EXTENSION))
+                        {
+                            Visualizations++;
+                        }
+                        else if (entry.FileName.EndsWith(ProjectSettings.EXTENSION))
+                        {
+                            entry.Extract(ApplicationState.ProjectTMPFolder);
+                            FileInfo settingsFile = new FileInfo(ApplicationState.ProjectTMPFolder + "/" + entry.FileName);
+                            Settings = Tools.Unity.ClassLoaderSaver.LoadFromJson<ProjectSettings>(settingsFile.FullName);
+                            settingsFile.Directory.Delete(true);                        
+                        }
                     }
                 }
             }

@@ -25,7 +25,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedScene.IsLatencyModeEnabled = isOn;
+                SelectedScene.IsLatencyModeEnabled = isOn;
                 OnChangeState.Invoke(isOn);
             });
         }
@@ -38,17 +38,14 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool areCCEPAvailable = ApplicationState.Module3D.SelectedScene.Type == SceneType.SinglePatient && ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedImplantation.AreLatenciesLoaded;
+            bool areCCEPAvailable = SelectedScene.Type == Data.Enums.SceneType.SinglePatient && SelectedScene.ColumnManager.SelectedImplantation.AreLatenciesLoaded;
 
             m_Toggle.interactable = areCCEPAvailable;
         }
 
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Scene)
-            {
-                m_Toggle.isOn = ApplicationState.Module3D.SelectedScene.IsLatencyModeEnabled && ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedImplantation.AreLatenciesLoaded;
-            }
+            m_Toggle.isOn = SelectedScene.IsLatencyModeEnabled && SelectedScene.ColumnManager.SelectedImplantation.AreLatenciesLoaded;
         }
         #endregion
     }

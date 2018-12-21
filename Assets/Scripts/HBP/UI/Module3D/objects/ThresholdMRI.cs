@@ -23,11 +23,13 @@ namespace HBP.UI.Module3D
         /// </summary>
         private float m_MRICalMax = 1.0f;
 
+        private Dictionary<MRI3D, Texture2D> m_HistogramByMRI = new Dictionary<MRI3D, Texture2D>();
+
         /// <summary>
         /// MRI Histogram
         /// </summary>
         [SerializeField]
-        private Image m_Histogram;
+        private RawImage m_Histogram;
         /// <summary>
         /// Zone in which the handlers can move
         /// </summary>
@@ -55,7 +57,7 @@ namespace HBP.UI.Module3D
             m_MaxHandler.MinimumPosition = 0.1f;
             m_MaxHandler.MaximumPosition = 1.0f;
 
-            m_MinHandler.OnChangePosition.AddListener(() =>
+            m_MinHandler.OnChangePosition.AddListener((deplacement) =>
             {
                 m_MaxHandler.MinimumPosition = m_MinHandler.Position + 0.1f;
                 m_MaxHandler.ClampPosition();
@@ -64,7 +66,7 @@ namespace HBP.UI.Module3D
                 ApplicationState.Module3D.SelectedScene.ColumnManager.MRICalMinFactor = m_MRICalMin;
             });
 
-            m_MaxHandler.OnChangePosition.AddListener(() =>
+            m_MaxHandler.OnChangePosition.AddListener((deplacement) =>
             {
                 m_MinHandler.MaximumPosition = m_MaxHandler.Position - 0.1f;
                 m_MinHandler.ClampPosition();
@@ -72,21 +74,37 @@ namespace HBP.UI.Module3D
                 m_MRICalMax = m_MaxHandler.Position;
                 ApplicationState.Module3D.SelectedScene.ColumnManager.MRICalMaxFactor = m_MRICalMax;
             });
+
+            ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
+            {
+                foreach (var mri in s.ColumnManager.MRIs)
+                {
+                    Texture2D texture;
+                    if (m_HistogramByMRI.TryGetValue(mri, out texture))
+                    {
+                        Destroy(texture);
+                        m_HistogramByMRI.Remove(mri);
+                    }
+                }
+            });
         }
         /// <summary>
         /// Update MRI Histogram Texture
         /// </summary>
         private void UpdateMRIHistogram()
         {
-            UnityEngine.Profiling.Profiler.BeginSample("HISTOGRAM");
-            if (!m_MRIHistogram)
+            UnityEngine.Profiling.Profiler.BeginSample("HISTOGRAM MRI");
+            MRI3D mri3D = ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedMRI;
+            if (!m_HistogramByMRI.TryGetValue(mri3D, out m_MRIHistogram))
             {
-                m_MRIHistogram = new Texture2D(1, 1);
+                if (!m_MRIHistogram)
+                {
+                    m_MRIHistogram = new Texture2D(1, 1);
+                }
+                HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(mri3D.Volume, 4 * 110, 4 * 110, m_MRICalMin, m_MRICalMax).UpdateTexture2D(m_MRIHistogram);
+                m_HistogramByMRI.Add(mri3D, m_MRIHistogram);
             }
-            HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedMRI.Volume, 4 * 110, 4 * 110, m_MRICalMin, m_MRICalMax).UpdateTexture2D(m_MRIHistogram);
-
-            Destroy(m_Histogram.sprite);
-            m_Histogram.sprite = Sprite.Create(m_MRIHistogram, new Rect(0, 0, m_MRIHistogram.width, m_MRIHistogram.height), new Vector2(0.5f, 0.5f), 400f);
+            m_Histogram.texture = m_MRIHistogram;
             UnityEngine.Profiling.Profiler.EndSample();
         }
         #endregion
@@ -98,9 +116,9 @@ namespace HBP.UI.Module3D
         /// <param name="values">Cal values</param>
         public void UpdateMRICalValues(MRICalValues values)
         {
-            float amplitude = values.max - values.min;
-            float min = (values.computedCalMin - values.min) / amplitude;
-            float max = 1.0f - (values.max - values.computedCalMax) / amplitude;
+            float amplitude = values.Max - values.Min;
+            float min = (values.ComputedCalMin - values.Min) / amplitude;
+            float max = 1.0f - (values.Max - values.ComputedCalMax) / amplitude;
             m_HandlerZone.anchorMin = new Vector2(min, m_HandlerZone.anchorMin.y);
             m_HandlerZone.anchorMax = new Vector2(max, m_HandlerZone.anchorMax.y);
 

@@ -3,6 +3,8 @@ using System.Linq;
 using System.Collections.Generic;
 using Tools.CSharp;
 using System.Runtime.Serialization;
+using Tools.Unity;
+using System.IO;
 
 namespace HBP.Data.Experience.Protocol
 {
@@ -19,30 +21,36 @@ namespace HBP.Data.Experience.Protocol
     *     - \a Blocs.
     */
     [DataContract]
-	public class Protocol : ICloneable,ICopiable
+	public class Protocol : ICloneable,ICopiable, ILoadable, IIdentifiable
     {
         #region Properties
         public const string EXTENSION = ".prov";
+
         /// <summary>
-        /// Unique ID.
+        /// Unique ID of the protocol.
         /// </summary>
-        [DataMember]
-        public string ID { get; set; }
+        [DataMember] public string ID { get; set; }
         /// <summary>
         /// Name of the protocol.
         /// </summary>
-        [DataMember]
-        public string Name { get; set; }
+        [DataMember] public string Name { get; set; }
         /// <summary>
         /// Blocs of the protocol.
         /// </summary>
-        [DataMember]
-        public List<Bloc> Blocs { get; set; }
+        [DataMember] public List<Bloc> Blocs { get; set; }
+
+        public IOrderedEnumerable<Bloc> OrderedBlocs
+        {
+            get
+            {
+                return Blocs.OrderBy(s => s.Order).ThenBy(s => s.Name);
+            }
+        }
         #endregion
 
         #region Constructors
         /// <summary>
-        /// Create a new protocol instance.
+        /// Create a new protocol.
         /// </summary>
         /// <param name="name">Name of the protocol.</param>
         /// <param name="blocs">Blocs of the protocol.</param>
@@ -54,7 +62,7 @@ namespace HBP.Data.Experience.Protocol
             ID = id;
         }
         /// <summary>
-        /// Create a new protocol instance.
+        /// Create a new protocol.
         /// </summary>
         /// <param name="name">Name of the protocol.</param>
         /// <param name="blocs">Blocs of the protocol.</param>
@@ -66,6 +74,27 @@ namespace HBP.Data.Experience.Protocol
         /// </summary>
         public Protocol() : this(string.Empty,new List<Bloc>())
 		{
+        }
+        #endregion
+
+        #region Public Methods
+        public void Load(string path)
+        {
+            Protocol result;
+            try
+            {
+                result = ClassLoaderSaver.LoadFromJson<Protocol>(path);
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogException(e);
+                throw new CanNotReadProtocolFileException(Path.GetFileNameWithoutExtension(path));
+            }
+            Copy(result);
+        }
+        public string GetExtension()
+        {
+            return EXTENSION;
         }
         #endregion
 

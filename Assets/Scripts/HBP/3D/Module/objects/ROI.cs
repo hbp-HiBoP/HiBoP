@@ -42,6 +42,13 @@ namespace HBP.Module3D
         private int m_Layer;
 
         public int SelectedSphereID { get; set; }
+        public Sphere SelectedSphere
+        {
+            get
+            {
+                return SelectedSphereID == -1 ? null : m_Spheres[SelectedSphereID];
+            }
+        }
 
         private DLL.ROI m_DLLROI;
         private List<Sphere> m_Spheres = new List<Sphere>();
@@ -65,7 +72,7 @@ namespace HBP.Module3D
         }
 
         public UnityEvent OnChangeNumberOfVolumeInROI = new UnityEvent();
-        public UnityEvent OnChangeROIVolumeRadius = new UnityEvent();
+        public UnityEvent OnChangeROISphereParameters = new UnityEvent();
 
         [SerializeField]
         private GameObject m_SpherePrefab;
@@ -87,7 +94,7 @@ namespace HBP.Module3D
                 m_Spheres[SelectedSphereID].GetComponent<Sphere>().Selected = false;
             }
             SelectedSphereID = -1;
-            ApplicationState.Module3D.OnSelectROIVolume.Invoke();
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
 
@@ -208,7 +215,7 @@ namespace HBP.Module3D
                 m_Spheres[sphereID].GetComponent<Sphere>().Selected = true;
                 SelectedSphereID = sphereID;
             }
-            ApplicationState.Module3D.OnSelectROIVolume.Invoke();
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// 
@@ -228,7 +235,7 @@ namespace HBP.Module3D
             sphere.Initialize(m_Layer, ray, position);
             sphere.OnChangeROIVolumeRadius.AddListener(() =>
             {
-                OnChangeROIVolumeRadius.Invoke();
+                OnChangeROISphereParameters.Invoke();
             });
             m_Spheres.Add(sphere);
 
@@ -239,6 +246,20 @@ namespace HBP.Module3D
 
             OnChangeNumberOfVolumeInROI.Invoke();
             SelectSphere(m_Spheres.Count - 1);
+        }
+        public void MoveSelectedSphere(Vector3 translation)
+        {
+            if (SelectedSphereID != -1)
+            {
+                SelectedSphere.Position += translation;
+
+                // DLL
+                Vector3 positionBubble = SelectedSphere.Position;
+                positionBubble.x = -positionBubble.x;
+                m_DLLROI.UpdateBubblePosition(SelectedSphereID, positionBubble);
+
+                OnChangeROISphereParameters.Invoke();
+            }
         }
         /// <summary>
         /// 
@@ -283,41 +304,16 @@ namespace HBP.Module3D
             m_Spheres[idBubble].GetComponent<Sphere>().Radius *= coeff;
 
             // DLL
-            m_DLLROI.UpdateBubble(idBubble, m_Spheres[idBubble].GetComponent<Sphere>().Radius);
+            m_DLLROI.UpdateBubbleRadius(idBubble, m_Spheres[idBubble].GetComponent<Sphere>().Radius);
 
-            OnChangeROIVolumeRadius.Invoke();
+            OnChangeROISphereParameters.Invoke();
         }
         public void ChangeSelectedBubbleSize(float direction)
         {
-            Debug.Log(direction);
             if (Mathf.Abs(direction) > 0.2f)
             {
                 ChangeBubbleSize(SelectedSphereID, direction < 0 ? 0.9f : 1.1f);
             }
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="idBubble"></param>
-        /// <returns></returns>
-        public Sphere GetBubbleByIndex(int idBubble)
-        {
-            return m_Spheres[idBubble].GetComponent<Sphere>();
-        }
-        /// <summary>
-        /// Return a string containing all bubbles infos of the ROI
-        /// </summary>
-        /// <returns></returns>
-        public string BubblesInformationIntoString()
-        {
-            string text = m_Name + "\n";
-            for (int ii = 0; ii< m_Spheres.Count; ++ii)
-            {
-                Vector3 pos = m_Spheres[ii].transform.position;
-                text += ii + " " + m_Spheres[ii].GetComponent<Sphere>().Radius + " " + pos.x + " " + pos.y + " " + pos.z + "\n";
-            }
-
-            return text;
         }
         /// <summary>
         /// Start the growing animation

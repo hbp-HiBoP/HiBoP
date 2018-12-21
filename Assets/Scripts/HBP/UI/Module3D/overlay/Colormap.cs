@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
-    public class Colormap : OverlayElement
+    public class Colormap : ColumnOverlayElement
     {
         #region Properties
         public Sprite Colormap0;
@@ -49,30 +49,30 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Links between the type of a color and its sprite
         /// </summary>
-        private Dictionary<ColorType, Sprite> m_SpriteByColorType = new Dictionary<ColorType, Sprite>();
+        private Dictionary<Data.Enums.ColorType, Sprite> m_SpriteByColorType = new Dictionary<Data.Enums.ColorType, Sprite>();
         #endregion
 
         #region Private Methods
         private void Awake()
         {
-            m_SpriteByColorType.Add(ColorType.Grayscale, Colormap0);
-            m_SpriteByColorType.Add(ColorType.Hot, Colormap1);
-            m_SpriteByColorType.Add(ColorType.Winter, Colormap2);
-            m_SpriteByColorType.Add(ColorType.Warm, Colormap3);
-            m_SpriteByColorType.Add(ColorType.Surface, Colormap4);
-            m_SpriteByColorType.Add(ColorType.Cool, Colormap5);
-            m_SpriteByColorType.Add(ColorType.RedYellow, Colormap6);
-            m_SpriteByColorType.Add(ColorType.BlueGreen, Colormap7);
-            m_SpriteByColorType.Add(ColorType.ACTC, Colormap8);
-            m_SpriteByColorType.Add(ColorType.Bone, Colormap9);
-            m_SpriteByColorType.Add(ColorType.GEColor, Colormap10);
-            m_SpriteByColorType.Add(ColorType.Gold, Colormap11);
-            m_SpriteByColorType.Add(ColorType.XRain, Colormap12);
-            m_SpriteByColorType.Add(ColorType.MatLab, Colormap13);
-            m_SpriteByColorType.Add(ColorType.Default, Colormap14);
-            m_SpriteByColorType.Add(ColorType.BrainColor, Colormap15);
-            m_SpriteByColorType.Add(ColorType.White, Colormap16);
-            m_SpriteByColorType.Add(ColorType.SoftGrayscale, Colormap17);
+            m_SpriteByColorType.Add(Data.Enums.ColorType.Grayscale, Colormap0);
+            m_SpriteByColorType.Add(Data.Enums.ColorType.Hot, Colormap1);
+            m_SpriteByColorType.Add(Data.Enums.ColorType.Winter, Colormap2);
+            m_SpriteByColorType.Add(Data.Enums.ColorType.Warm, Colormap3);
+            m_SpriteByColorType.Add(Data.Enums.ColorType.Surface, Colormap4);
+            m_SpriteByColorType.Add(Data.Enums.ColorType.Cool, Colormap5);
+            m_SpriteByColorType.Add(Data.Enums.ColorType.RedYellow, Colormap6);
+            m_SpriteByColorType.Add(Data.Enums.ColorType.BlueGreen, Colormap7);
+            m_SpriteByColorType.Add(Data.Enums.ColorType.ACTC, Colormap8);
+            m_SpriteByColorType.Add(Data.Enums.ColorType.Bone, Colormap9);
+            m_SpriteByColorType.Add(Data.Enums.ColorType.GEColor, Colormap10);
+            m_SpriteByColorType.Add(Data.Enums.ColorType.Gold, Colormap11);
+            m_SpriteByColorType.Add(Data.Enums.ColorType.XRain, Colormap12);
+            m_SpriteByColorType.Add(Data.Enums.ColorType.MatLab, Colormap13);
+            m_SpriteByColorType.Add(Data.Enums.ColorType.Default, Colormap14);
+            m_SpriteByColorType.Add(Data.Enums.ColorType.BrainColor, Colormap15);
+            m_SpriteByColorType.Add(Data.Enums.ColorType.White, Colormap16);
+            m_SpriteByColorType.Add(Data.Enums.ColorType.SoftGrayscale, Colormap17);
 
             m_Icon = transform.Find("Color").GetComponent<Image>();
             Transform textTransform = transform.Find("Values");
@@ -83,14 +83,14 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
-        public override void Initialize(Base3DScene scene, Column3D column, Column3DUI columnUI)
+        public override void Setup(Base3DScene scene, Column3D column, Column3DUI columnUI)
         {
-            base.Initialize(scene, column, columnUI);
+            base.Setup(scene, column, columnUI);
             IsActive = false;
 
             scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
-                if (column.Type == Column3D.ColumnType.IEEG)
+                if (column.Type == Data.Enums.ColumnType.iEEG)
                 {
                     IsActive = value;
                 }
@@ -98,14 +98,15 @@ namespace HBP.UI.Module3D
 
             scene.OnChangeColormap.AddListener((color) => m_Icon.sprite = m_SpriteByColorType[color]);
 
-            scene.OnSendColorMapValues.AddListener((min, mid, max, col) =>
+            if (column is Column3DIEEG)
             {
-                if (col != column) return;
-
-                m_Min.text = min.ToString("0.0");
-                m_Mid.text = mid.ToString("0.0");
-                m_Max.text = max.ToString("0.0");
-            });
+                (column as Column3DIEEG).OnSendColorMapValues.AddListener((min, mid, max) =>
+                {
+                    m_Min.text = min.ToString("0.0");
+                    m_Mid.text = mid.ToString("0.0");
+                    m_Max.text = max.ToString("0.0");
+                });
+            }
         }
         #endregion
     }

@@ -7,14 +7,15 @@ using UnityEngine.UI;
 
 namespace Tools.Unity.Lists
 {
-    public class SelectableList<T> : List<T>
+    public class SelectableList<T> : List<T>, ISelectionCountable
     {
         #region Properties
-        protected GenericEvent<T, bool> m_OnSelectionChanged = new GenericEvent<T, bool>();
-        public virtual GenericEvent<T, bool> OnSelectionChanged
+        protected UnityEvent m_OnSelectionChanged = new UnityEvent();
+        public virtual UnityEvent OnSelectionChanged
         {
             get { return m_OnSelectionChanged; }
         }
+        public BoolEvent OnAllSelected = new BoolEvent();
         public virtual T[] ObjectsSelected
         {
             get
@@ -49,6 +50,11 @@ namespace Tools.Unity.Lists
                 }
             }
         }
+        public int NumberOfItemSelected
+        {
+            get { return ObjectsSelected.Length; }
+        }
+        protected bool m_AllSelected;
         #endregion
 
         #region Public Methods
@@ -57,6 +63,7 @@ namespace Tools.Unity.Lists
             if (base.Add(obj))
             {
                 m_SelectedStateByObject.Add(obj, false);
+                OnSelectionChangeCallBack();
                 return true;
             }
             return false;
@@ -66,6 +73,7 @@ namespace Tools.Unity.Lists
             if (base.Remove(obj))
             {
                 m_SelectedStateByObject.Remove(obj);
+                OnSelectionChangeCallBack();
                 return true;
             }
             return false;
@@ -97,10 +105,11 @@ namespace Tools.Unity.Lists
                 m_SelectedStateByObject[objectToSelect] = true;
             }
             Item<T> item;
-            if (m_ItemByObject.TryGetValue(objectToSelect, out item))
+            if (GetItemFromObject(objectToSelect, out item))
             {
                 (item as SelectableItem<T>).Select(true, transition);
             }
+            OnSelectionChangeCallBack();
         }
         public virtual void Select(IEnumerable<T> objectsToSelect, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {
@@ -113,10 +122,11 @@ namespace Tools.Unity.Lists
                 m_SelectedStateByObject[objectToDeselect] = false;
             }
             Item<T> item;
-            if (m_ItemByObject.TryGetValue(objectToDeselect, out item))
+            if (GetItemFromObject(objectToDeselect, out item))
             {
                 (item as SelectableItem<T>).Select(false, transition);
             }
+            OnSelectionChangeCallBack();
         }
         public virtual void Deselect(IEnumerable<T> objectsToDeselect, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {
@@ -125,7 +135,7 @@ namespace Tools.Unity.Lists
         public override bool UpdateObject(T objectToUpdate)
         {
             Item<T> item;
-            if (m_ItemByObject.TryGetValue(objectToUpdate, out item))
+            if (GetItemFromObject(objectToUpdate, out item))
             {
                 SelectableItem<T> selectableItem = item as SelectableItem<T>;
                 selectableItem.Object = objectToUpdate;
@@ -138,7 +148,7 @@ namespace Tools.Unity.Lists
         }
         public override bool Initialize()
         {
-            if (base.Initialize())
+            if(base.Initialize())
             {
                 m_SelectedStateByObject = new Dictionary<T, bool>();
                 return true;
@@ -147,15 +157,13 @@ namespace Tools.Unity.Lists
         }
         public override void Refresh()
         {
-            Item<T>[] items = m_ItemByObject.Values.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
+            Item<T>[] items = m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
             int itemsLength = items.Length;
-            m_ItemByObject.Clear();
-            for (int i = m_Start, j = 0; i <= m_End && j < itemsLength; i++, j++)
+            for (int i = m_FirstIndexDisplayed, j = 0; i <= m_LastIndexDisplayed && j < itemsLength; i++, j++)
             {
                 SelectableItem<T> item = items[j] as SelectableItem<T>;
                 T obj = m_Objects[i];
                 item.Object = obj;
-                m_ItemByObject.Add(obj, item);
                 item.OnChangeSelected.RemoveAllListeners();
                 item.Select(m_SelectedStateByObject[obj]);
                 item.OnChangeSelected.AddListener((selected) => OnSelection(obj, selected));
@@ -164,57 +172,13 @@ namespace Tools.Unity.Lists
         #endregion
 
         #region Private Methods
-        protected override void SpawnItem(int number)
+        protected override void SetItem(Item<T> item, T obj)
         {
-            int end = Mathf.Min(m_End + number, m_NumberOfObjects - 1);
-            for (int i = m_Start; i <= end; i++)
-            {
-                T obj = m_Objects[i];
-                if (!m_ItemByObject.ContainsKey(obj))
-                {
-                    SelectableItem<T> item = Instantiate(ItemPrefab, m_ScrollRect.content).GetComponent<SelectableItem<T>>();
-                    RectTransform itemRectTransform = item.transform as RectTransform;
-                    itemRectTransform.sizeDelta = new Vector2(0, itemRectTransform.sizeDelta.y);
-                    itemRectTransform.localPosition = new Vector3(itemRectTransform.localPosition.x, -i * ItemHeight, itemRectTransform.localPosition.z);
-                    m_ItemByObject.Add(obj, item);
-                    item.OnChangeSelected.RemoveAllListeners();
-                    item.Select(m_SelectedStateByObject[obj]);
-                    item.OnChangeSelected.AddListener((selected) => OnSelection(obj, selected));
-                    item.Object = obj;
-                }
-            };
-        }
-        protected override void MoveItemsDownwards(int deplacement)
-        {
-            for (int i = 0; i < deplacement; i++)
-            {
-                T obj = m_Objects[m_Start + i];
-                SelectableItem<T> item = m_ItemByObject[obj] as SelectableItem<T>;
-                m_ItemByObject.Remove(obj);
-                T newObj = m_Objects[m_End + 1 + i];
-                m_ItemByObject.Add(newObj, item);
-                item.transform.localPosition = new Vector3(item.transform.localPosition.x, -(m_End + 1 + i) * ItemHeight, item.transform.localPosition.z);
-                item.OnChangeSelected.RemoveAllListeners();
-                item.Select(m_SelectedStateByObject[newObj]);
-                item.OnChangeSelected.AddListener((selected) => OnSelection(newObj, selected));
-                item.Object = newObj;
-            }
-        }
-        protected override void MoveItemsUpwards(int deplacement)
-        {
-            for (int i = 0; i > deplacement; i--)
-            {
-                T obj = m_Objects[m_End + i];
-                SelectableItem<T> item = m_ItemByObject[obj] as SelectableItem<T>;
-                m_ItemByObject.Remove(obj);
-                T newObj = m_Objects[m_Start - 1 + i];
-                m_ItemByObject.Add(newObj, item);
-                item.transform.localPosition = new Vector3(item.transform.localPosition.x, -(m_Start - 1 + i) * ItemHeight, item.transform.localPosition.z);
-                item.OnChangeSelected.RemoveAllListeners();
-                item.Select(m_SelectedStateByObject[newObj]);
-                item.OnChangeSelected.AddListener((selected) => OnSelection(newObj, selected));
-                item.Object = newObj;
-            }
+            base.SetItem(item, obj);
+            SelectableItem<T> selectableItem = item as SelectableItem<T>;
+            selectableItem.OnChangeSelected.RemoveAllListeners();
+            selectableItem.Select(m_SelectedStateByObject[obj]);
+            selectableItem.OnChangeSelected.AddListener((selected) => OnSelection(obj, selected));
         }
         protected virtual void OnSelection(T obj, bool selected)
         {
@@ -226,7 +190,17 @@ namespace Tools.Unity.Lists
             {
                 m_SelectedStateByObject[obj] = selected;
             }
-            OnSelectionChanged.Invoke(obj, selected);
+            OnSelectionChangeCallBack();
+        }
+        protected virtual void OnSelectionChangeCallBack()
+        {
+            OnSelectionChanged.Invoke();
+            bool allSelected = Objects.Length == ObjectsSelected.Length && Objects.Length > 0;
+            if (m_AllSelected != allSelected)
+            {
+                m_AllSelected = allSelected;
+                OnAllSelected.Invoke(allSelected);
+            }
         }
         #endregion
     }

@@ -1,11 +1,13 @@
 ﻿using HBP.Module3D;
-using Tools.Unity;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Tools.Unity;
 using Tools.Unity.ResizableGrid;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
@@ -14,9 +16,39 @@ namespace HBP.UI.Module3D
     {
         #region Properties
         private Base3DScene m_Scene;
+        [SerializeField] private RectTransform m_RectTransform;
         public GameObject SceneUIPrefab;
         public GameObject CutUIPrefab;
         public GameObject GraphsUIPrefab;
+        public GameObject SitesInformationsPrefab;
+        #endregion
+
+        #region Private Methods
+        private void Update()
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                Rect rect = m_RectTransform.ToScreenSpace();
+                Vector3 mousePosition = Input.mousePosition;
+                if (mousePosition.x >= rect.x && mousePosition.x <= rect.x + rect.width && mousePosition.y >= rect.y && mousePosition.y <= rect.y + rect.height)
+                {
+                    PointerEventData pointerData = new PointerEventData(EventSystem.current)
+                    {
+                        pointerId = -1,
+                        position = Input.mousePosition
+                    };
+                    List<RaycastResult> raycastResults = new List<RaycastResult>();
+                    EventSystem.current.RaycastAll(pointerData, raycastResults);
+                    if (raycastResults.Count > 0)
+                    {
+                        if (raycastResults[0].gameObject.GetComponentInParent<Scene3DWindow>() == this)
+                        {
+                            m_Scene.IsSelected = true;
+                        }
+                    }
+                }
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -33,19 +65,22 @@ namespace HBP.UI.Module3D
             grid.AddColumn();
             grid.AddViewLine(SceneUIPrefab);
             grid.Columns.Last().Views.Last().GetComponent<Scene3DUI>().Initialize(scene);
-            // Graphs
+            // Information
             grid.AddColumn(null, GraphsUIPrefab);
-            Graph.GraphsGestion graphsGestion = grid.Columns.Last().Views.Last().GetComponent<Graph.GraphsGestion>();
-            graphsGestion.Scene = scene;
+            Informations.InformationsWrapper informations = grid.Columns.Last().Views.Last().GetComponent<Informations.InformationsWrapper>();
+            informations.Scene = scene;
+            // Sites
+            grid.AddColumn(null, SitesInformationsPrefab);
+            grid.Columns.Last().Views.Last().GetComponent<SitesInformations>().Initialize(scene);
             // Cuts
             grid.AddColumn(null, CutUIPrefab);
             grid.Columns.Last().Views.Last().GetComponent<CutController>().Initialize(scene);
             // Positions
             grid.VerticalHandlers[0].MagneticPosition = 0.45f;
+            grid.VerticalHandlers[1].MagneticPosition = 0.8f;
+            grid.VerticalHandlers[2].MagneticPosition = 0.9f;
             grid.VerticalHandlers[0].Position = 1.0f;
-            grid.VerticalHandlers[1].MagneticPosition = 0.9f;
-            grid.VerticalHandlers[1].Position = 0.9f;
-            grid.SetVerticalHandlersPosition(1);
+            grid.SetVerticalHandlersPosition(0);
 
             ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
             {
@@ -60,7 +95,7 @@ namespace HBP.UI.Module3D
             });
             scene.OnRequestScreenshot.AddListener((multipleFiles) =>
             {
-                string screenshotsPath = ApplicationState.GeneralSettings.DefaultScreenshotsLocation;
+                string screenshotsPath = ApplicationState.UserPreferences.General.Project.DefaultExportLocation;
                 if (string.IsNullOrEmpty(screenshotsPath))
                 {
                     screenshotsPath = Path.GetFullPath(Application.dataPath + "/../Screenshots/");
@@ -69,19 +104,20 @@ namespace HBP.UI.Module3D
                 {
                     screenshotsPath += "/";
                 }
-                if (!Directory.Exists(screenshotsPath))
-                {
-                    Directory.CreateDirectory(screenshotsPath);
-                }
+                if (!Directory.Exists(screenshotsPath)) Directory.CreateDirectory(screenshotsPath);
+                screenshotsPath += ApplicationState.ProjectLoaded.Settings.Name + "/";
+                if (!Directory.Exists(screenshotsPath)) Directory.CreateDirectory(screenshotsPath);
+                screenshotsPath += m_Scene.Name + "/";
+                if (!Directory.Exists(screenshotsPath)) Directory.CreateDirectory(screenshotsPath);
                 SaveSceneToPNG(screenshotsPath, multipleFiles);
             });
-            graphsGestion.OnOpenGraphsWindow.AddListener(() =>
+            informations.OnOpenInformationsWindow.AddListener(() =>
             {
                 grid.VerticalHandlers[0].Position = grid.VerticalHandlers[0].MagneticPosition;
                 grid.SetVerticalHandlersPosition(1);
                 grid.UpdateAnchors();
             });
-            graphsGestion.OnCloseGraphsWindow.AddListener(() =>
+            informations.OnCloseInformationsWindow.AddListener(() =>
             {
                 grid.VerticalHandlers[0].Position = grid.VerticalHandlers[1].Position - (grid.MinimumViewWidth / grid.RectTransform.rect.width);
                 grid.SetVerticalHandlersPosition(1);
@@ -99,13 +135,11 @@ namespace HBP.UI.Module3D
         private IEnumerator c_SaveSceneToPNG(string path, bool multipleFiles)
         {
             yield return new WaitForEndOfFrame();
-            
+
+            string openedProjectName = ApplicationState.ProjectLoaded.Settings.Name;
+
             if (multipleFiles) // TODO : add iconic scenario and / or scales
             {
-                string screenshotsPath = path + m_Scene.Name;
-                ClassLoaderSaver.GenerateUniqueDirectoryPath(ref screenshotsPath);
-                Directory.CreateDirectory(screenshotsPath);
-                screenshotsPath += "/";
                 // Scene
                 for (int c = 0; c < m_Scene.ColumnManager.Columns.Count; c++)
                 {
@@ -119,10 +153,13 @@ namespace HBP.UI.Module3D
                             {
                                 try
                                 {
-                                    view.ScreenshotTexture.SaveToPNG(screenshotsPath + "C" + c + "V" + v + ".png");
+                                    string viewFilePath = path + string.Format("{0}_{1}_{2}_Brain.png", openedProjectName, m_Scene.Name, column.Label);
+                                    ClassLoaderSaver.GenerateUniqueSavePath(ref viewFilePath);
+                                    view.ScreenshotTexture.SaveToPNG(viewFilePath);
                                 }
-                                catch
+                                catch (Exception e)
                                 {
+                                    Debug.LogException(e);
                                     ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                                     yield break;
                                 }
@@ -132,45 +169,55 @@ namespace HBP.UI.Module3D
                 }
                 // Cuts
                 CutController cutUI = GetComponentInChildren<CutController>();
-                Texture2D[] cutTextures = cutUI.CutTextures;
+                Tuple<Data.Enums.CutOrientation, Texture2D>[] cutTextures = cutUI.CutTextures;
                 for (int i = 0; i < cutTextures.Length; i++)
                 {
                     try
                     {
-                        cutTextures[i].SaveToPNG(screenshotsPath + "Cut" + i + ".png");
+                        string cutFilePath = path + string.Format("{0}_{1}_{2}_Cut.png", openedProjectName, m_Scene.Name, cutTextures[i].Item1.ToString());
+                        ClassLoaderSaver.GenerateUniqueSavePath(ref cutFilePath);
+                        cutTextures[i].Item2.SaveToPNG(cutFilePath);
                     }
-                    catch
+                    catch (Exception e)
                     {
+                        Debug.LogException(e);
                         ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                         yield break;
                     }
                 }
                 // Graph and Trial Matrix
-                Graph.GraphsGestion graphsGestion = GetComponentInChildren<Graph.GraphsGestion>();
-                if (!graphsGestion.IsMinimized)
+                Informations.InformationsWrapper informations = GetComponentInChildren<Informations.InformationsWrapper>();
+                Informations.ChannelInformations siteInformations = informations.GetComponentInChildren<Informations.ChannelInformations>();
+                if (!informations.IsMinimized)
                 {
-                    if (!Mathf.Approximately(graphsGestion.GetComponent<ZoneResizer>().Ratio, 1.0f))
+                    if (!Mathf.Approximately(siteInformations.GetComponent<ZoneResizer>().Ratio, 1.0f))
                     {
-                        global::Tools.Unity.Graph.Graph graph = graphsGestion.transform.GetComponentInChildren<global::Tools.Unity.Graph.Graph>();
+                        global::Tools.Unity.Graph.Graph graph = siteInformations.transform.GetComponentInChildren<global::Tools.Unity.Graph.Graph>();
                         Texture2D graphTexture = Texture2DExtension.ScreenRectToTexture(graph.GetComponent<RectTransform>().ToScreenSpace());
                         try
                         {
-                            graphTexture.SaveToPNG(screenshotsPath + "Graph.png");
+                            string graphFilePath = path + string.Format("{0}_{1}_Graph.png", openedProjectName, m_Scene.Name);
+                            ClassLoaderSaver.GenerateUniqueSavePath(ref graphFilePath);
+                            graphTexture.SaveToPNG(graphFilePath);
                         }
-                        catch
+                        catch (Exception e)
                         {
+                            Debug.LogException(e);
                             ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                             yield break;
                         }
                         try
                         {
-                            using (StreamWriter sw = new StreamWriter(screenshotsPath + "Graph.svg"))
+                            string graphFilePath = path + string.Format("{0}_{1}_Graph.svg", openedProjectName, m_Scene.Name);
+                            ClassLoaderSaver.GenerateUniqueSavePath(ref graphFilePath);
+                            using (StreamWriter sw = new StreamWriter(graphFilePath))
                             {
                                 sw.Write(graph.ToSVG());
                             }
                         }
-                        catch
+                        catch (Exception e)
                         {
+                            Debug.LogException(e);
                             ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                             yield break;
                         }
@@ -179,22 +226,25 @@ namespace HBP.UI.Module3D
                         {
                             foreach (var curve in curveValues)
                             {
-                                using (StreamWriter sw = new StreamWriter(screenshotsPath + curve.Key + ".csv"))
+                                string curveFilePath = path + string.Format("{0}_{1}_{2}_Curve.csv", openedProjectName, m_Scene.Name, curve.Key);
+                                ClassLoaderSaver.GenerateUniqueSavePath(ref curveFilePath);
+                                using (StreamWriter sw = new StreamWriter(curveFilePath))
                                 {
                                     sw.Write(curve.Value);
                                 }
                             }
                         }
-                        catch
+                        catch (Exception e)
                         {
+                            Debug.LogException(e);
                             ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                             yield break;
                         }
                     }
-                    if (!Mathf.Approximately(graphsGestion.GetComponent<ZoneResizer>().Ratio, 0.0f))
+                    if (!Mathf.Approximately(siteInformations.GetComponent<ZoneResizer>().Ratio, 0.0f))
                     {
-                        ScrollRect trialMatrixScrollRect = graphsGestion.transform.Find("TrialZone").Find("TrialMatrix").GetComponent<ScrollRect>();
-                        graphsGestion.ChangeOverlayState(false);
+                        ScrollRect trialMatrixScrollRect = siteInformations.transform.Find("TrialMatricesZone").Find("TrialMatrix").GetComponent<ScrollRect>();
+                        informations.ChangeOverlayState(false);
                         Sprite mask = trialMatrixScrollRect.viewport.GetComponent<Image>().sprite;
                         trialMatrixScrollRect.viewport.GetComponent<Image>().sprite = null;
                         Texture2D trialMatrixTexture;
@@ -224,32 +274,36 @@ namespace HBP.UI.Module3D
                         }
                         try
                         {
-                            trialMatrixTexture.SaveToPNG(screenshotsPath + "TrialMatrix.png");
+                            string trialMatrixFilePath = path + string.Format("{0}_{1}_TrialMatrix.png", openedProjectName, m_Scene.Name);
+                            ClassLoaderSaver.GenerateUniqueSavePath(ref trialMatrixFilePath);
+                            trialMatrixTexture.SaveToPNG(trialMatrixFilePath);
                         }
-                        catch
+                        catch (Exception e)
                         {
+                            Debug.LogException(e);
                             ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                             yield break;
                         }
-                        graphsGestion.ChangeOverlayState(true);
+                        informations.ChangeOverlayState(true);
                         trialMatrixScrollRect.viewport.GetComponent<Image>().sprite = mask;
                     }
                 }
                 // Feedback
-                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Screenshots saved", "Screenshots have been saved in " + screenshotsPath);
+                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Screenshots saved", "Screenshots have been saved in " + path);
             }
             else
             {
                 Rect sceneRect = GetComponent<RectTransform>().ToScreenSpace();
                 Texture2D sceneTexture = Texture2DExtension.ScreenRectToTexture(sceneRect);
-                string screenshotPath = path + m_Scene.Name + ".png";
+                string screenshotPath = path + string.Format("{0}_{1}_fullscene.png", openedProjectName, m_Scene.Name);
                 ClassLoaderSaver.GenerateUniqueSavePath(ref screenshotPath);
                 try
                 {
                     sceneTexture.SaveToPNG(screenshotPath);
                 }
-                catch
+                catch (Exception e)
                 {
+                    Debug.LogException(e);
                     ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                     yield break;
                 }

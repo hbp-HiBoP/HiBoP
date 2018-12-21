@@ -225,7 +225,7 @@ namespace HBP.Module3D.DLL
         /// <param name="mode"></param>
         /// <param name="degrees"></param>
         /// <returns></returns>
-        public Surface UpdateVisibilityMask(Vector3 rayDirection, Vector3 hitPoint, TriEraser.Mode mode, float degrees)
+        public Surface UpdateVisibilityMask(Vector3 rayDirection, Vector3 hitPoint, Data.Enums.TriEraserMode mode, float degrees)
         {
             float[] hitPointArray = new float[3], rayDirectionArray = new float[3];
             hitPointArray[0] = hitPoint.x;
@@ -267,15 +267,8 @@ namespace HBP.Module3D.DLL
                 }
             }
 
-            // removeFrontPlane construction
-            List<int> removeFrontPlane = new List<int>();
-            for (int i = 0; i < cutPlanes.Length; i++)
-            {
-                removeFrontPlane.Add(cutPlanes[i].RemoveFrontPlane);
-            }
-
             // do the cut            
-            HandleRef pCutMultiSurface = new HandleRef(this, cut_Surface(_handle, removeFrontPlane.ToArray(), planes, cutPlanes.Length, noHoles?1:0, strongCuts?1:0));
+            HandleRef pCutMultiSurface = new HandleRef(this, cut_Surface(_handle, planes, cutPlanes.Length, noHoles?1:0, strongCuts?1:0));
 
             // move data            
             int nbMultiSurface =nb_MultiSurface(pCutMultiSurface);
@@ -398,8 +391,9 @@ namespace HBP.Module3D.DLL
 
                 UnityEngine.Profiling.Profiler.EndSample();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
+                Debug.LogException(e);
                 Debug.LogError(e.Message);
             }
         }
@@ -438,6 +432,38 @@ namespace HBP.Module3D.DLL
             Surface surface = new Surface(this);
             simplify_mesh_Surface(surface.getHandle(), numberOfTriangles, agressiveness);
             return surface;
+        }
+        /// <summary>
+        /// Returns true if the point is inside the surface
+        /// </summary>
+        /// <param name="point"></param>
+        /// <returns></returns>
+        public bool IsPointInside(RawSiteList rawSiteList, int id)
+        {
+            return is_point_inside_Surface(_handle, rawSiteList.getHandle(), id);
+        }
+        /// <summary>
+        /// Returns a cube bbox around the mesh depending on the cuts used
+        /// </summary>
+        /// <param name="cuts"></param>
+        /// <returns></returns>
+        public BBox GetCubeBoundingBox(Cut[] cuts)
+        {
+            float[] planes = new float[cuts.Length * 6];
+            int planesCount = 0;
+            for (int ii = 0; ii < cuts.Length; ++ii)
+            {
+                if (cuts[ii].Orientation != Data.Enums.CutOrientation.Custom)
+                {
+                    for (int jj = 0; jj < 3; ++jj)
+                    {
+                        planes[ii * 6 + jj] = cuts[ii].Point[jj];
+                        planes[ii * 6 + jj + 3] = cuts[ii].Normal[jj];
+                    }
+                    planesCount++;
+                }
+            }
+            return new BBox(cube_bounding_box_Surface(_handle, planes, planesCount));
         }
         #endregion
 
@@ -531,7 +557,7 @@ namespace HBP.Module3D.DLL
         [DllImport("hbp_export", EntryPoint = "merge_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern void merge_Surface(HandleRef handleSurface, HandleRef handleSurfaceToAdd);
         [DllImport("hbp_export", EntryPoint = "cut_Surface", CallingConvention = CallingConvention.Cdecl)]
-        static private extern IntPtr cut_Surface(HandleRef handleSurface, int[] removeFrontPlane, float[] planes, int nbPlanes, int noHoles, int strongCuts);
+        static private extern IntPtr cut_Surface(HandleRef handleSurface, float[] planes, int nbPlanes, int noHoles, int strongCuts);
         [DllImport("hbp_export", EntryPoint = "split_to_surfaces_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr split_to_surfaces_Surface(HandleRef handleSurface, int nbSubSurfaces);
         [DllImport("hbp_export", EntryPoint = "middle_Surface", CallingConvention = CallingConvention.Cdecl)]
@@ -548,6 +574,8 @@ namespace HBP.Module3D.DLL
         static private extern void update_triangles_Surface(HandleRef handleSurface, IntPtr triangles);
         [DllImport("hbp_export", EntryPoint = "simplify_mesh_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern void simplify_mesh_Surface(HandleRef handleSurface, int triangleCount, int agressiveness);
+        [DllImport("hbp_export", EntryPoint = "is_point_inside_Surface", CallingConvention = CallingConvention.Cdecl)]
+        static private extern bool is_point_inside_Surface(HandleRef handleSurface, HandleRef handleRawSiteList, int id);
 
         [DllImport("hbp_export", EntryPoint = "update_visiblity_mask_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern void update_visiblity_mask_Surface(HandleRef handleSurface, HandleRef handleInvisiblePartSurface, int[] visibilityMask);
@@ -571,6 +599,8 @@ namespace HBP.Module3D.DLL
         static private extern void UV_Surface(HandleRef handleSurface, float[] texturesUVArray);
         [DllImport("hbp_export", EntryPoint = "bounding_box_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr bounding_box_Surface(HandleRef handleSurface);
+        [DllImport("hbp_export", EntryPoint = "cube_bounding_box_Surface", CallingConvention = CallingConvention.Cdecl)]
+        static private extern IntPtr cube_bounding_box_Surface(HandleRef handleSurface, float[] planes, int planesCount);
         [DllImport("hbp_export", EntryPoint = "size_offset_cut_plane_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern float size_offset_cut_plane_Surface(HandleRef handleSurface, float[] planeCut, int nbCuts);
 

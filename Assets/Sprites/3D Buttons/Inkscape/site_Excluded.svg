@@ -18,8 +18,8 @@
    inkscape:version="0.92.2 (5c3e80d, 2017-08-06)"
    sodipodi:docname="site_Excluded.svg"
    inkscape:export-filename="D:\HBP\HiBoP\Assets\Sprites\3D Buttons\Site\Excluded.png"
-   inkscape:export-xdpi="96"
-   inkscape:export-ydpi="96">
+   inkscape:export-xdpi="48"
+   inkscape:export-ydpi="48">
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
@@ -28,7 +28,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="2"
-     inkscape:cx="64"
+     inkscape:cx="-27.25"
      inkscape:cy="64"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -72,7 +72,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>

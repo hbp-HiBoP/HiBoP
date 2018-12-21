@@ -40,10 +40,10 @@ public class Selector : MonoBehaviour
     private void Update()
     {
 #if UNITY_EDITOR
-        if (Selected && Input.GetKeyDown(KeyCode.A))
-        {
-            StartCoroutine(c_SaveWindowScreenshot());
-        }
+        //if (Selected && Input.GetKeyDown(KeyCode.A))
+        //{
+        //    StartCoroutine(c_SaveWindowScreenshot());
+        //}
 #endif
     }
     private void OnDestroy()
@@ -58,6 +58,7 @@ public class Selector : MonoBehaviour
     {
         yield return new WaitForEndOfFrame();
         Rect rect = GetComponent<RectTransform>().ToScreenSpace();
+        rect = new Rect(rect.x + 1, rect.y + 1, rect.width - 1, rect.height - 1);
         Texture2D sceneTexture = Texture2DExtension.ScreenRectToTexture(rect);
         string screenshotPath = @"D:/HBP/HiBoP/Docs/LaTeX/Window.png";
         ClassLoaderSaver.GenerateUniqueSavePath(ref screenshotPath);

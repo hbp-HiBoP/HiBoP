@@ -29,6 +29,7 @@ namespace HBP.Data.Anatomy
                 m_File = value.ConvertToShortPath();
             }
         }
+        public string SavedFile { get { return m_File; } }
         [DataMember(Name = "MarsAtlas")] string m_MarsAtlas;
         public string MarsAtlas
         {
@@ -41,6 +42,7 @@ namespace HBP.Data.Anatomy
                 m_MarsAtlas = value.ConvertToShortPath();
             }
         }
+        public string SavedMarsAtlas { get { return m_MarsAtlas; } }
         [IgnoreDataMember] public List<Site> Sites { get; set; }
         [IgnoreDataMember] public Brain Brain { get; set; }
         protected bool m_WasUsable;
@@ -174,7 +176,7 @@ namespace HBP.Data.Anatomy
         #region Operators
         public object Clone()
         {
-            return new Implantation(Name, File, MarsAtlas);
+            return new Implantation(Name, m_File, m_MarsAtlas);
         }
         public void Copy(object copy)
         {
@@ -190,8 +192,6 @@ namespace HBP.Data.Anatomy
         [OnDeserialized()]
         public void OnDeserialized(StreamingContext context)
         {
-            File = File;
-            MarsAtlas = MarsAtlas;
             RecalculateUsable();
         }
         #endregion

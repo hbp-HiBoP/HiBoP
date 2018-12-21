@@ -7,8 +7,7 @@ namespace Tools.Unity.Graph
     public class Axe : MonoBehaviour
     {
         #region Attributs
-        [SerializeField]
-        GameObject MajorTickMarkPrefab;
+        [SerializeField] GameObject MajorTickMarkPrefab;
 
         Text labelText;
         RectTransform tickMarkRectTransform;

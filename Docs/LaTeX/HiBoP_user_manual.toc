@@ -8,86 +8,93 @@
 \contentsline {paragraph}{}{3}
 \contentsline {subsection}{\numberline {1.3}Groups}{4}
 \contentsline {paragraph}{}{4}
-\contentsline {subsection}{\numberline {1.4}Protocols}{4}
-\contentsline {paragraph}{}{4}
-\contentsline {subsection}{\numberline {1.5}Datasets}{5}
+\contentsline {subsection}{\numberline {1.4}Protocols}{5}
 \contentsline {paragraph}{}{5}
-\contentsline {subsection}{\numberline {1.6}Visualizations}{6}
+\contentsline {paragraph}{}{5}
+\contentsline {paragraph}{}{5}
+\contentsline {paragraph}{}{5}
+\contentsline {paragraph}{}{5}
+\contentsline {subsection}{\numberline {1.5}Datasets}{6}
 \contentsline {paragraph}{}{6}
-\contentsline {section}{\numberline {2}HiBoP description}{7}
+\contentsline {subsection}{\numberline {1.6}Visualizations}{7}
 \contentsline {paragraph}{}{7}
-\contentsline {subsection}{\numberline {2.1}Preferences}{7}
-\contentsline {paragraph}{}{7}
-\contentsline {subsection}{\numberline {2.2}Project management}{9}
-\contentsline {subsubsection}{\numberline {2.2.1}Creating, opening and saving a project}{9}
-\contentsline {paragraph}{}{9}
-\contentsline {paragraph}{}{9}
-\contentsline {paragraph}{}{10}
-\contentsline {paragraph}{}{10}
-\contentsline {subsubsection}{\numberline {2.2.2}Patients management}{10}
-\contentsline {paragraph}{}{10}
+\contentsline {section}{\numberline {2}HiBoP description}{8}
+\contentsline {paragraph}{}{8}
+\contentsline {subsection}{\numberline {2.1}User Preferences}{8}
+\contentsline {paragraph}{}{8}
+\contentsline {subsection}{\numberline {2.2}Project management}{11}
+\contentsline {subsubsection}{\numberline {2.2.1}Creating, opening and saving a project}{11}
+\contentsline {paragraph}{}{11}
 \contentsline {paragraph}{}{11}
 \contentsline {paragraph}{}{11}
 \contentsline {paragraph}{}{12}
-\contentsline {subsubsection}{\numberline {2.2.3}Data management}{13}
+\contentsline {subsubsection}{\numberline {2.2.2}Patients management}{12}
+\contentsline {paragraph}{}{12}
+\contentsline {paragraph}{}{12}
 \contentsline {paragraph}{}{13}
 \contentsline {paragraph}{}{13}
-\contentsline {paragraph}{}{13}
+\contentsline {subsubsection}{\numberline {2.2.3}Data management}{14}
 \contentsline {paragraph}{}{14}
 \contentsline {paragraph}{}{14}
 \contentsline {paragraph}{}{15}
-\contentsline {subsubsection}{\numberline {2.2.4}Visualizations management}{15}
-\contentsline {paragraph}{}{15}
 \contentsline {paragraph}{}{16}
 \contentsline {paragraph}{}{16}
-\contentsline {subsection}{\numberline {2.3}3D Visualization}{17}
 \contentsline {paragraph}{}{17}
-\contentsline {paragraph}{}{17}
+\contentsline {subsubsection}{\numberline {2.2.4}Visualizations management}{17}
 \contentsline {paragraph}{}{17}
 \contentsline {paragraph}{}{18}
-\contentsline {subsubsection}{\numberline {2.3.1}Cuts}{18}
+\contentsline {paragraph}{}{18}
+\contentsline {subsection}{\numberline {2.3}3D Visualization}{18}
 \contentsline {paragraph}{}{18}
 \contentsline {paragraph}{}{18}
-\contentsline {subsubsection}{\numberline {2.3.2}Scene settings}{18}
-\contentsline {subsubsection}{\numberline {2.3.3}Display settings}{19}
-\contentsline {subsubsection}{\numberline {2.3.4}iEEG settings}{19}
-\contentsline {subsubsection}{\numberline {2.3.5}Timeline}{20}
-\contentsline {subsubsection}{\numberline {2.3.6}Sites}{20}
-\contentsline {subsubsection}{\numberline {2.3.7}Regions of Interest}{20}
+\contentsline {paragraph}{}{19}
+\contentsline {paragraph}{}{19}
+\contentsline {subsubsection}{\numberline {2.3.1}Cuts}{19}
+\contentsline {paragraph}{}{19}
+\contentsline {subsubsection}{\numberline {2.3.2}Sites list}{20}
 \contentsline {paragraph}{}{20}
 \contentsline {paragraph}{}{21}
-\contentsline {subsubsection}{\numberline {2.3.8}CCEP}{21}
-\contentsline {paragraph}{}{21}
-\contentsline {subsubsection}{\numberline {2.3.9}fMRI}{21}
-\contentsline {subsubsection}{\numberline {2.3.10}Triangle eraser}{21}
-\contentsline {subsubsection}{\numberline {2.3.11}Configuration}{21}
-\contentsline {paragraph}{}{21}
-\contentsline {subsection}{\numberline {2.4}Graphs and Trial Matrices}{22}
 \contentsline {paragraph}{}{22}
-\contentsline {subsubsection}{\numberline {2.4.1}Graphs}{22}
-\contentsline {paragraph}{}{22}
-\contentsline {paragraph}{}{22}
-\contentsline {subsubsection}{\numberline {2.4.2}Trial matrices}{23}
-\contentsline {paragraph}{}{23}
-\contentsline {section}{\numberline {A}HiBoP Database Manager}{23}
-\contentsline {paragraph}{}{23}
-\contentsline {subsection}{\numberline {A.1}Anatomical data}{24}
+\contentsline {subsubsection}{\numberline {2.3.3}Scene settings}{22}
+\contentsline {subsubsection}{\numberline {2.3.4}Display settings}{23}
+\contentsline {subsubsection}{\numberline {2.3.5}iEEG settings}{23}
+\contentsline {subsubsection}{\numberline {2.3.6}Timeline}{23}
+\contentsline {subsubsection}{\numberline {2.3.7}Sites}{24}
+\contentsline {subsubsection}{\numberline {2.3.8}Regions of Interest}{24}
 \contentsline {paragraph}{}{24}
-\contentsline {subsection}{\numberline {A.2}Functional data}{25}
+\contentsline {paragraph}{}{24}
+\contentsline {subsubsection}{\numberline {2.3.9}CCEP}{25}
 \contentsline {paragraph}{}{25}
-\contentsline {subsection}{\numberline {A.3}Exporting data}{26}
+\contentsline {subsubsection}{\numberline {2.3.10}fMRI}{25}
+\contentsline {subsubsection}{\numberline {2.3.11}Triangle eraser}{25}
+\contentsline {subsubsection}{\numberline {2.3.12}Configuration}{25}
+\contentsline {paragraph}{}{25}
+\contentsline {subsection}{\numberline {2.4}Graphs and Trial Matrices}{25}
+\contentsline {paragraph}{}{25}
+\contentsline {subsubsection}{\numberline {2.4.1}Graphs}{26}
 \contentsline {paragraph}{}{26}
+\contentsline {paragraph}{}{26}
+\contentsline {subsubsection}{\numberline {2.4.2}Trial matrices}{27}
 \contentsline {paragraph}{}{27}
+\contentsline {section}{\numberline {A}HiBoP Database Manager}{27}
 \contentsline {paragraph}{}{27}
-\contentsline {subsubsection}{\numberline {A.3.1}Anatomical data}{27}
-\contentsline {paragraph}{}{27}
-\contentsline {subsubsection}{\numberline {A.3.2}Functional data}{28}
+\contentsline {subsection}{\numberline {A.1}Anatomical data}{28}
 \contentsline {paragraph}{}{28}
-\contentsline {subsection}{\numberline {A.4}Resources files}{29}
+\contentsline {subsection}{\numberline {A.2}Functional data}{29}
 \contentsline {paragraph}{}{29}
-\contentsline {section}{\numberline {B}HiBoP Database Hierarchy}{29}
-\contentsline {paragraph}{}{29}
-\contentsline {subsection}{\numberline {B.1}Anatomical database}{30}
+\contentsline {subsection}{\numberline {A.3}Exporting data}{30}
 \contentsline {paragraph}{}{30}
-\contentsline {subsection}{\numberline {B.2}Functional database}{31}
 \contentsline {paragraph}{}{31}
+\contentsline {paragraph}{}{31}
+\contentsline {subsubsection}{\numberline {A.3.1}Anatomical data}{31}
+\contentsline {paragraph}{}{31}
+\contentsline {subsubsection}{\numberline {A.3.2}Functional data}{32}
+\contentsline {paragraph}{}{32}
+\contentsline {subsection}{\numberline {A.4}Resources files}{32}
+\contentsline {paragraph}{}{32}
+\contentsline {section}{\numberline {B}HiBoP Database Hierarchy}{33}
+\contentsline {paragraph}{}{33}
+\contentsline {subsection}{\numberline {B.1}Anatomical database}{34}
+\contentsline {paragraph}{}{34}
+\contentsline {subsection}{\numberline {B.2}Functional database}{35}
+\contentsline {paragraph}{}{35}

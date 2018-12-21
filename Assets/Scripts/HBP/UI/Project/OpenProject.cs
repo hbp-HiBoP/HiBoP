@@ -1,4 +1,5 @@
-﻿using UnityEngine.UI;
+﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 using CielaSpike;
 using Tools.Unity;
@@ -10,9 +11,26 @@ namespace HBP.UI
 	public class OpenProject : Window 
 	{
 		#region Properties
-		FolderSelector m_LocationFolderSelector;
-		ProjectList m_ProjectList;
-        Button m_LoadingButton;
+		[SerializeField] FolderSelector m_LocationFolderSelector;
+		[SerializeField] ProjectList m_ProjectList;
+        [SerializeField] Button m_LoadingButton;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+
+                m_LocationFolderSelector.interactable = value;
+                m_ProjectList.Interactable = value;
+                m_LoadingButton.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -47,18 +65,31 @@ namespace HBP.UI
         #endregion
 
         #region Private Methods
-        protected override void SetWindow()
+        protected override void Initialize()
         {
-            m_LoadingButton = transform.Find("Content").Find("Buttons").Find("Open").GetComponent<Button>();
-            m_ProjectList = transform.Find("Content").Find("Projects").Find("List").Find("Display").GetComponent<ProjectList>();
-            m_ProjectList.OnSelectionChanged.AddListener((projectInfo,selected) => m_LoadingButton.interactable = true);
+            // Initialize project list.
+            m_ProjectList.Initialize();
+            m_ProjectList.OnSelectionChanged.AddListener(() => m_LoadingButton.interactable = m_ProjectList.ObjectsSelected.Length > 0);
             m_ProjectList.OnAction.AddListener((info, i) => Load(info));
 
-            m_LocationFolderSelector = transform.Find("Content").Find("Projects").Find("FolderSelector").GetComponent<FolderSelector>();
-            m_LocationFolderSelector.onValueChanged.AddListener((value) => this.StartCoroutineAsync(DisplayProjects(value)));
-            m_LocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultProjectLocation;
+            // Initialise location folder selector.
+            m_LocationFolderSelector.onValueChanged.AddListener((value) => this.StartCoroutineAsync(c_DisplayProjects(value)));
+
+            // Base method.
+            base.Initialize();
         }
-        IEnumerator DisplayProjects(string path)
+        protected override void SetFields()
+        {
+            // Base method.
+            base.SetFields();
+
+            // Set location folder selector.
+            m_LocationFolderSelector.Folder = ApplicationState.UserPreferences.General.Project.DefaultLocation;
+        }
+        #endregion
+
+        #region Coroutines
+        IEnumerator c_DisplayProjects(string path)
         {
             yield return Ninja.JumpToUnity;
             m_LoadingButton.interactable = false;

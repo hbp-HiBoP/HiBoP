@@ -8,7 +8,7 @@ using Tools.Unity;
 namespace HBP.Data.Anatomy
 {
     [DataContract]
-    public class Mesh : ICloneable, ICopiable
+    public class Mesh : ICloneable, ICopiable, IIdentifiable
     {
         #region Properties
         public const string EXTENSION = ".gii";
@@ -40,7 +40,7 @@ namespace HBP.Data.Anatomy
                 return !string.IsNullOrEmpty(Transformation) && File.Exists(Transformation) && (new FileInfo(Transformation).Extension == Anatomy.Transformation.EXTENSION || new FileInfo(Transformation).Extension == ".txt");
             }
         }
-        [DataMember(Order = 5, Name = "Transformation")] string m_Transformation;
+        [DataMember(Order = 5, Name = "Transformation")] protected string m_Transformation;
         public string Transformation
         {
             get
@@ -52,6 +52,7 @@ namespace HBP.Data.Anatomy
                 m_Transformation = value.ConvertToShortPath();
             }
         }
+        public string SavedTransformation { get { return m_Transformation; } }
         #endregion
 
         #region Constructor
@@ -198,7 +199,7 @@ namespace HBP.Data.Anatomy
         }
         public virtual object Clone()
         {
-            return new Mesh(Name, Transformation, ID);
+            return new Mesh(Name, m_Transformation, ID);
         }
         public virtual void Copy(object copy)
         {
@@ -213,7 +214,6 @@ namespace HBP.Data.Anatomy
         [OnDeserialized()]
         public void OnDeserialized(StreamingContext context)
         {
-            Transformation = Transformation;
             RecalculateUsable();
         }
         #endregion

@@ -14,6 +14,7 @@ namespace HBP.UI.Module3D
     public class Scene3DUI : MonoBehaviour
     {
         #region Properties
+        private const float MINIMIZED_THRESHOLD = 200.0f;
         /// <summary>
         /// Associated logical Base3DScene
         /// </summary>
@@ -22,27 +23,43 @@ namespace HBP.UI.Module3D
         /// Linked resizable grid
         /// </summary>
         private ResizableGrid m_ResizableGrid;
-        /// <summary>
-        /// Update circle when loading things
-        /// </summary>
-        private LoadingCircle m_LoadingCircle;
+        private RectTransform m_RectTransform;
+
+        [SerializeField] private ProgressBar m_ProgressBar;
         /// <summary>
         /// Feedback for when the iEEG are not up to date
         /// </summary>
         [SerializeField]
-        private GameObject m_IEEGOutdated;
+        private IEEGOutdated m_IEEGOutdated;
+        /// <summary>
+        /// GameObject to hide a minimized column
+        /// </summary>
+        [SerializeField]
+        private GameObject m_MinimizedGameObject;
+        /// <summary>
+        /// Is the scene minimzed ?
+        /// </summary>
+        public bool IsMinimized
+        {
+            get
+            {
+                return Mathf.Abs(m_RectTransform.rect.width - m_ResizableGrid.MinimumViewWidth) <= MINIMIZED_THRESHOLD;
+            }
+        }
         #endregion
 
         #region Private Methods
         private void Awake()
         {
+            m_RectTransform = GetComponent<RectTransform>();
             m_ResizableGrid = GetComponent<ResizableGrid>();
         }
-        private void OnDestroy()
+        private void Update()
         {
-            if (m_LoadingCircle)
+            if (m_RectTransform.hasChanged)
             {
-                m_LoadingCircle.Close();
+                m_MinimizedGameObject.SetActive(IsMinimized);
+                m_RectTransform.hasChanged = false;
             }
         }
         #endregion
@@ -55,21 +72,28 @@ namespace HBP.UI.Module3D
         public void Initialize(Base3DScene scene)
         {
             m_Scene = scene;
+            m_IEEGOutdated.Initialize();
             for (int i = 0; i < m_Scene.ColumnManager.Columns.Count; i++)
             {
                 m_ResizableGrid.AddColumn();
-                m_ResizableGrid.Columns.Last().GetComponent<Column3DUI>().Initialize(m_Scene, m_Scene.ColumnManager.Columns[i]);
+                Column3DUI columnUI = m_ResizableGrid.Columns.Last().GetComponent<Column3DUI>();
+                columnUI.Initialize(m_Scene, m_Scene.ColumnManager.Columns[i]);
+                columnUI.OnChangeColumnSize.AddListener(() =>
+                {
+                    columnUI.UpdateOverlayElementsPosition();
+                    UpdateOverlayElementsPosition();
+                });
             }
             m_ResizableGrid.AddViewLine();
             for (int i = 0; i < m_ResizableGrid.Columns.Count; i++)
             {
-                //m_ResizableGrid.Columns[i].Views.Last().GetComponent<View3DUI>().Initialize(m_Scene, m_Scene.ColumnManager.Columns[i], m_Scene.ColumnManager.Columns[i].Views.Last());
                 Column3DUI columnUI = m_ResizableGrid.Columns[i].GetComponent<Column3DUI>();
                 View3DUI viewUI = m_ResizableGrid.Columns[i].Views.Last().GetComponent<View3DUI>();
                 viewUI.Initialize(m_Scene, m_Scene.ColumnManager.Columns[i], m_Scene.ColumnManager.Columns[i].Views.Last());
                 viewUI.OnChangeViewSize.AddListener(() =>
                 {
-                    columnUI.UpdateLabelPosition();
+                    columnUI.UpdateOverlayElementsPosition();
+                    UpdateOverlayElementsPosition();
                 });
             }
 
@@ -101,7 +125,8 @@ namespace HBP.UI.Module3D
                     viewUI.Initialize(m_Scene, columnUI.Column, columnUI.Column.Views.Last());
                     viewUI.OnChangeViewSize.AddListener(() =>
                     {
-                        columnUI.UpdateLabelPosition();
+                        columnUI.UpdateOverlayElementsPosition();
+                        UpdateOverlayElementsPosition();
                     });
                 }
             });
@@ -121,32 +146,62 @@ namespace HBP.UI.Module3D
             {
                 if (value)
                 {
-                    if(m_LoadingCircle == null)
-                    {
-                        m_LoadingCircle = ApplicationState.LoadingManager.Open();
-                        RectTransform loadingCircleRectTransform = m_LoadingCircle.GetComponent<RectTransform>();
-                        loadingCircleRectTransform.anchorMin = new Vector2(0.5f, 0.5f);
-                        loadingCircleRectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-                        loadingCircleRectTransform.anchoredPosition = new Vector2(0f, 0f);
-                        m_LoadingCircle.ChangePercentage(0.0f, 99.0f, 1.0f);
-                    }        
+                    m_ProgressBar.Open();
                 }
                 else
                 {
-                    if(m_LoadingCircle != null)
-                    {
-                        m_LoadingCircle.Close();
-                    }
+                    m_ProgressBar.Close();
                 }
             });
-            m_Scene.OnProgressUpdateGenerator.AddListener((progress, duration, message) =>
+            m_Scene.OnProgressUpdateGenerator.AddListener((progress, message) =>
             {
-                if (m_LoadingCircle != null) m_LoadingCircle.ChangePercentage(progress, duration, message);
+                m_ProgressBar.Progress(progress, message);
             });
             m_Scene.OnIEEGOutdated.AddListener((state) =>
             {
-                m_IEEGOutdated.SetActive(state);
+                m_IEEGOutdated.gameObject.SetActive(state);
             });
+        }
+        /// <summary>
+        /// Update the position of the overlay
+        /// </summary>
+        public void UpdateOverlayElementsPosition()
+        {
+            if (m_ResizableGrid.ColumnNumber > 0)
+            {
+                // Vertical
+                Column gridColumn = m_ResizableGrid.Columns[0];
+                float verticalOffset = 0.0f;
+                for (int i = gridColumn.Views.Count - 1; i >= 0; --i)
+                {
+                    View3DUI view = gridColumn.Views[i].GetComponent<View3DUI>();
+                    if (view.IsViewMinimizedAndColumnNotMinimized)
+                    {
+                        verticalOffset += view.GetComponent<RectTransform>().rect.height;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                m_IEEGOutdated.SetVerticalOffset(verticalOffset);
+
+                // Horizontal
+                float horizontalOffset = 0.0f;
+                for (int i = m_ResizableGrid.Columns.Count - 1; i >= 0; --i)
+                {
+                    Column3DUI column = m_ResizableGrid.Columns[i].GetComponent<Column3DUI>();
+                    if (column.IsMinimized)
+                    {
+                        horizontalOffset -= column.GetComponent<RectTransform>().rect.width;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                m_IEEGOutdated.SetHorizontalOffset(horizontalOffset);
+            }
         }
         #endregion
     }

@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Runtime.Serialization;
+using Tools.Unity;
+using System.IO;
 
 namespace HBP.Data
 {
@@ -19,7 +20,7 @@ namespace HBP.Data
     *   - \a Patients.
     */
     [DataContract]
-    public class Group : ICloneable , ICopiable
+    public class Group : ICloneable , ICopiable, ILoadable, IIdentifiable
     {
         #region Properties
         public const string EXTENSION = ".group";
@@ -32,17 +33,10 @@ namespace HBP.Data
         /** Patients. */
         [DataMember(Name = "Patients",Order = 3)]
         private List<string> patientsID;
-        private List<Patient> patients
+        public List<Patient> Patients
         {
             get { return (from patient in ApplicationState.ProjectLoaded.Patients where patientsID.Contains(patient.ID) select patient).ToList(); }
             set { patientsID = (from patient in value select patient.ID).ToList(); }
-        }
-        /// <summary>
-        /// Patients in the group.
-        /// </summary>
-        public ReadOnlyCollection<Patient> Patients
-        {
-            get { return new ReadOnlyCollection<Patient>((from patient in ApplicationState.ProjectLoaded.Patients where patientsID.Contains(patient.ID) select patient).ToList()); }
         }
         #endregion
 
@@ -56,7 +50,7 @@ namespace HBP.Data
         public Group(string name, Patient[] patientsInTheGroup,string id)
         {
             Name = name;
-            patients = patientsInTheGroup.ToList();
+            Patients = patientsInTheGroup.ToList();
             ID = id;
         }
         /// <summary>
@@ -76,6 +70,24 @@ namespace HBP.Data
 		#endregion
 
 		#region Public Methods
+        public void Load(string path)
+        {
+            Group result;
+            try
+            {
+                result = ClassLoaderSaver.LoadFromJson<Group>(path);
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogException(e);
+                throw new CanNotReadGroupFileException(Path.GetFileNameWithoutExtension(path));
+            }
+            Copy(result);
+        }
+        public string GetExtension()
+        {
+            return EXTENSION;
+        }
         /// <summary>
         /// Add patient.
         /// </summary>
@@ -155,7 +167,7 @@ namespace HBP.Data
         {
             Group group = copy as Group;
             Name = group.Name;
-            patients = group.Patients.ToList();
+            Patients = group.Patients.ToList();
             ID = group.ID;
         }
         /// <summary>

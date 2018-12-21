@@ -1,6 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 
-namespace HBP.Data.Settings
+namespace HBP.Data.Preferences
 {
     /**
     * \class ProjectSettings
@@ -38,6 +39,10 @@ namespace HBP.Data.Settings
         /// Localizer database.
         /// </summary>
         public string LocalizerDatabase { get; set; }
+        /// <summary>
+        /// Aliases.
+        /// </summary>
+        public List<Alias> Aliases { get; set; }
         #endregion
 
         #region Constructors
@@ -53,18 +58,19 @@ namespace HBP.Data.Settings
             PatientDatabase = patientDatabase;
             LocalizerDatabase = localizerDatabase;
             ID = Guid.NewGuid().ToString();
+            Aliases = new List<Alias>();
         }
         /// <summary>
         /// Create a new project settings instance.
         /// </summary>
         /// <param name="name">Name of the project.</param>
-        public ProjectSettings(string name) : this(name, ApplicationState.GeneralSettings.DefaultPatientDatabaseLocation, ApplicationState.GeneralSettings.DefaultLocalizerDatabaseLocation)
+        public ProjectSettings(string name) : this(name, ApplicationState.UserPreferences.General.Project.DefaultPatientDatabase, ApplicationState.UserPreferences.General.Project.DefaultLocalizerDatabase)
         {
         }
         /// <summary>
         /// Create a new project settings instance with default value.
         /// </summary>
-        public ProjectSettings() : this(ApplicationState.GeneralSettings.DefaultProjectName, ApplicationState.GeneralSettings.DefaultPatientDatabaseLocation, ApplicationState.GeneralSettings.DefaultLocalizerDatabaseLocation)
+        public ProjectSettings() : this(ApplicationState.UserPreferences.General.Project.DefaultName)
         {
         }
         #endregion

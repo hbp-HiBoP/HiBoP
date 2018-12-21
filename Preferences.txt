@@ -1,0 +1,64 @@
+{
+  "General": {
+    "Project": {
+      "DefaultName": "New project",
+      "DefaultLocation": "D:\\HBPProjects",
+      "DefaultPatientDatabase": "Y:\\BrainVisaDB\\Epilepsy",
+      "DefaultLocalizerDatabase": "Y:\\LOCA_DATABASE",
+      "DefaultExportLocation": "D:/ScreenShot"
+    },
+    "Theme": {},
+    "Localization": {},
+    "System": {
+      "MultiThreading": true,
+      "MemoryCacheLimit": 16345
+    }
+  },
+  "Data": {
+    "EEG": {
+      "Averaging": 1,
+      "Normalization": 4
+    },
+    "Protocol": {
+      "PositionAveraging": 1,
+      "MinLimit": -1500.0,
+      "MaxLimit": 3500.0,
+      "Step": 100
+    },
+    "Anatomic": {
+      "SiteNameCorrection": true,
+      "MeshPreloading": true,
+      "MRIPreloading": true,
+      "ImplantationPreloading": true
+    }
+  },
+  "Visualization": {
+    "_3D": {
+      "AutomaticEEGUpdate": false,
+      "SiteInfluenceByDistance": 2,
+      "DefaultSelectedMRIInSinglePatientVisualization": "Preimplantation",
+      "DefaultSelectedMeshInSinglePatientVisualization": "Grey matter",
+      "DefaultSelectedImplantationInSinglePatientVisualization": "Patient",
+      "DefaultSelectedMRIInMultiPatientsVisualization": "MNI",
+      "DefaultSelectedMeshInMultiPatientsVisualization": "MNI Grey matter",
+      "DefaultSelectedImplantationInMultiPatientsVisualization": "MNI"
+    },
+    "TrialMatrix": {
+      "ShowWholeProtocol": true,
+      "TrialsSynchronization": true,
+      "TrialSmoothing": true,
+      "NumberOfIntermediateValues": 5,
+      "SubBlocFormat": 2,
+      "TrialHeight": 8,
+      "TrialRatio": 0.04981595,
+      "BlocRatio": 0.50460124
+    },
+    "Graph": {
+      "ShowCurvesOfMinimizedColumns": false
+    },
+    "Cut": {
+      "ShowCutLines": true,
+      "SimplifiedMeshes": true
+    }
+  }
+}

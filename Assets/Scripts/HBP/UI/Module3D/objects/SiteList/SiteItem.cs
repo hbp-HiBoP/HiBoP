@@ -11,6 +11,10 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private Button m_Site;
         [SerializeField]
+        private Image m_SelectedImage;
+        [SerializeField]
+        private Text m_Patient;
+        [SerializeField]
         private Toggle m_Excluded;
         [SerializeField]
         private Toggle m_Blacklisted;
@@ -18,6 +22,8 @@ namespace HBP.UI.Module3D
         private Toggle m_Marked;
         [SerializeField]
         private Toggle m_Highlighted;
+        [SerializeField]
+        private Toggle m_Suspicious;
 
         public override Site Object
         {
@@ -28,14 +34,11 @@ namespace HBP.UI.Module3D
             set
             {
                 base.Object = value;
-                m_Site.GetComponentInChildren<Text>().text = value.Information.Name + " (" + value.Information.Patient.Name + ")";
-                m_Site.interactable = value.IsActive;
-                m_Excluded.isOn = value.State.IsExcluded;
-                m_Blacklisted.isOn = value.State.IsBlackListed;
-                m_Marked.isOn = value.State.IsMarked;
-                m_Highlighted.isOn = value.State.IsHighlighted;
+                UpdateFields();
+                value.State.OnChangeState.AddListener(() => m_UpdateRequired = true);
             }
         }
+        private bool m_UpdateRequired;
         #endregion
 
         #region Private Methods
@@ -43,32 +46,53 @@ namespace HBP.UI.Module3D
         {
             m_Site.onClick.AddListener(() =>
             {
-                ApplicationState.Module3D.SelectedColumn.SelectedSiteID = Object.Information.GlobalID;
+                Object.IsSelected = true;
             });
 
             m_Excluded.onValueChanged.AddListener((isOn) =>
             {
-                ApplicationState.Module3D.SelectedScene.ChangeSiteState(isOn ? SiteAction.Exclude : SiteAction.Include, Object);
-                m_Site.interactable = Object.IsActive;
+                Object.State.IsExcluded = isOn;
             });
 
             m_Blacklisted.onValueChanged.AddListener((isOn) =>
             {
-                ApplicationState.Module3D.SelectedScene.ChangeSiteState(isOn ? SiteAction.Blacklist : SiteAction.Unblacklist, Object);
-                m_Site.interactable = Object.IsActive;
+                Object.State.IsBlackListed = isOn;
             });
 
             m_Marked.onValueChanged.AddListener((isOn) =>
             {
-                ApplicationState.Module3D.SelectedScene.ChangeSiteState(isOn ? SiteAction.Mark : SiteAction.Unmark, Object);
-                m_Site.interactable = Object.IsActive;
+                Object.State.IsMarked = isOn;
             });
 
             m_Highlighted.onValueChanged.AddListener((isOn) =>
             {
-                ApplicationState.Module3D.SelectedScene.ChangeSiteState(isOn ? SiteAction.Highlight : SiteAction.Unhighlight, Object);
-                m_Site.interactable = Object.IsActive;
+                Object.State.IsHighlighted = isOn;
             });
+
+            m_Suspicious.onValueChanged.AddListener((isOn) =>
+            {
+                Object.State.IsSuspicious = isOn;
+            });
+        }
+        private void Update()
+        {
+            if (m_UpdateRequired)
+            {
+                UpdateFields();
+            }
+        }
+        private void UpdateFields()
+        {
+            m_Site.GetComponentInChildren<Text>().text = Object.Information.ChannelName;
+            m_Site.interactable = Object.IsActive;
+            m_SelectedImage.gameObject.SetActive(Object.IsSelected);
+            m_Patient.text = Object.Information.Patient.Name;
+            m_Excluded.isOn = Object.State.IsExcluded;
+            m_Blacklisted.isOn = Object.State.IsBlackListed;
+            m_Marked.isOn = Object.State.IsMarked;
+            m_Highlighted.isOn = Object.State.IsHighlighted;
+            m_Suspicious.isOn = Object.State.IsSuspicious;
+            m_UpdateRequired = false;
         }
         #endregion
     }

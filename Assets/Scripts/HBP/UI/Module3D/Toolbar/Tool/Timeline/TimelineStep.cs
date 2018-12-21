@@ -49,15 +49,15 @@ namespace HBP.UI.Module3D.Tools
                 List<HBP.Module3D.Column3DIEEG> columns = new List<HBP.Module3D.Column3DIEEG>();
                 if (IsGlobal)
                 {
-                    columns = ApplicationState.Module3D.SelectedScene.ColumnManager.ColumnsIEEG.ToList();
+                    columns = SelectedScene.ColumnManager.ColumnsIEEG.ToList();
                 }
                 else
                 {
-                    columns.Add((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn);
+                    columns.Add((HBP.Module3D.Column3DIEEG)SelectedColumn);
                 }
                 foreach (HBP.Module3D.Column3DIEEG column in columns)
                 {
-                    column.CurrentTimeLineID -= column.TimelineStep;
+                    column.Timeline.CurrentIndex -= column.Timeline.Step;
                 }
             });
 
@@ -68,15 +68,15 @@ namespace HBP.UI.Module3D.Tools
                 List<HBP.Module3D.Column3DIEEG> columns = new List<HBP.Module3D.Column3DIEEG>();
                 if (IsGlobal)
                 {
-                    columns = ApplicationState.Module3D.SelectedScene.ColumnManager.ColumnsIEEG.ToList();
+                    columns = SelectedScene.ColumnManager.ColumnsIEEG.ToList();
                 }
                 else
                 {
-                    columns.Add((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn);
+                    columns.Add((HBP.Module3D.Column3DIEEG)SelectedColumn);
                 }
                 foreach (HBP.Module3D.Column3DIEEG column in columns)
                 {
-                    column.CurrentTimeLineID += column.TimelineStep;
+                    column.Timeline.CurrentIndex += column.Timeline.Step;
                 }
             });
 
@@ -101,16 +101,16 @@ namespace HBP.UI.Module3D.Tools
                 List<HBP.Module3D.Column3DIEEG> columns = new List<HBP.Module3D.Column3DIEEG>();
                 if (IsGlobal)
                 {
-                    columns = ApplicationState.Module3D.SelectedScene.ColumnManager.ColumnsIEEG.ToList();
+                    columns = SelectedScene.ColumnManager.ColumnsIEEG.ToList();
                 }
                 else
                 {
-                    columns.Add((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn);
+                    columns.Add((HBP.Module3D.Column3DIEEG)SelectedColumn);
                 }
 
                 foreach (HBP.Module3D.Column3DIEEG column in columns)
                 {
-                    column.TimelineStep = step;
+                    column.Timeline.Step = step;
                 }
             });
         }
@@ -125,26 +125,23 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isColumnIEEG = ApplicationState.Module3D.SelectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG;
-            bool areAmplitudesComputed = ApplicationState.Module3D.SelectedScene.SceneInformation.IsGeneratorUpToDate;
+            bool isColumnIEEG = SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
+            bool areAmplitudesComputed = SelectedScene.SceneInformation.IsGeneratorUpToDate;
 
             m_Minus.interactable = isColumnIEEG && areAmplitudesComputed;
             m_InputField.interactable = isColumnIEEG && areAmplitudesComputed;
             m_Plus.interactable = isColumnIEEG && areAmplitudesComputed;
         }
 
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Column)
+            if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
             {
-                if (ApplicationState.Module3D.SelectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG)
-                {
-                    m_InputField.text = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).TimelineStep.ToString();
-                }
-                else
-                {
-                    m_InputField.text = "1";
-                }
+                m_InputField.text = ((HBP.Module3D.Column3DIEEG)SelectedColumn).Timeline.Step.ToString();
+            }
+            else
+            {
+                m_InputField.text = "1";
             }
         }
         #endregion

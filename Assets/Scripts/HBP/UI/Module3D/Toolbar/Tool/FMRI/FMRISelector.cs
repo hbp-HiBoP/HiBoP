@@ -27,14 +27,14 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedScene.LoadFMRI();
+                SelectedScene.LoadFMRI();
                 OnChangeFMRI.Invoke();
             });
             m_RemoveFMRI.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedScene.UnloadFMRI();
+                SelectedScene.UnloadFMRI();
                 OnChangeFMRI.Invoke();
             });
         }
@@ -47,12 +47,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool hasFMRI = false;
-            Base3DScene scene = ApplicationState.Module3D.SelectedScene;
-            if (scene)
-            {
-                hasFMRI = scene.ColumnManager.FMRI != null;
-            }
+            bool hasFMRI = SelectedScene.ColumnManager.FMRI != null;
 
             m_AddFMRI.interactable = !hasFMRI;
             m_RemoveFMRI.interactable = hasFMRI;

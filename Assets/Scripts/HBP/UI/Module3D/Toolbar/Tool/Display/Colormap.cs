@@ -16,7 +16,7 @@ namespace HBP.UI.Module3D.Tools
         /// <summary>
         /// Correspondance between colormap dropdown options indices and color type
         /// </summary>
-        private List<ColorType> m_ColormapIndices = new List<ColorType>() { ColorType.Grayscale, ColorType.Hot, ColorType.Winter, ColorType.Warm, ColorType.Surface, ColorType.Cool, ColorType.RedYellow, ColorType.BlueGreen, ColorType.ACTC, ColorType.Bone, ColorType.GEColor, ColorType.Gold, ColorType.XRain, ColorType.MatLab };
+        private List<Data.Enums.ColorType> m_ColormapIndices = new List<Data.Enums.ColorType>() { Data.Enums.ColorType.Grayscale, Data.Enums.ColorType.Hot, Data.Enums.ColorType.Winter, Data.Enums.ColorType.Warm, Data.Enums.ColorType.Surface, Data.Enums.ColorType.Cool, Data.Enums.ColorType.RedYellow, Data.Enums.ColorType.BlueGreen, Data.Enums.ColorType.ACTC, Data.Enums.ColorType.Bone, Data.Enums.ColorType.GEColor, Data.Enums.ColorType.Gold, Data.Enums.ColorType.XRain, Data.Enums.ColorType.MatLab };
         #endregion
 
         #region Public Methods
@@ -24,8 +24,8 @@ namespace HBP.UI.Module3D.Tools
         {
             m_Dropdown.onValueChanged.AddListener((value) =>
             {
-                ColorType color = m_ColormapIndices[value];
-                ApplicationState.Module3D.SelectedScene.UpdateColormap(color);
+                Data.Enums.ColorType color = m_ColormapIndices[value];
+                SelectedScene.UpdateColormap(color);
             });
         }
 
@@ -40,12 +40,9 @@ namespace HBP.UI.Module3D.Tools
             m_Dropdown.interactable = true;
         }
 
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Scene)
-            {
-                m_Dropdown.value = m_ColormapIndices.FindIndex((c) => c == ApplicationState.Module3D.SelectedScene.ColumnManager.Colormap);
-            }
+            m_Dropdown.value = m_ColormapIndices.FindIndex((c) => c == SelectedScene.ColumnManager.Colormap);
         }
         #endregion
     }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NewTheme.Components;
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
@@ -16,6 +17,8 @@ namespace Tools.Unity.ResizableGrid
         /// Reference to parent resizable grid
         /// </summary>
         protected ResizableGrid m_ResizableGrid;
+
+        [SerializeField] protected ThemeElement m_ThemeElement;
 
         public UnityEvent OnChangePosition = new UnityEvent();
         #endregion
@@ -47,7 +50,7 @@ namespace Tools.Unity.ResizableGrid
         /// <param name="data">Data of the pointer when the event occurs</param>
         public void OnEndDrag(PointerEventData data)
         {
-            Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.Cursor.Texture, ApplicationState.GeneralSettings.Theme.General.Cursor.Offset, CursorMode.Auto);
+            m_ThemeElement.Set();
         }
         /// <summary>
         /// Callback event when clicking on the handler
@@ -80,7 +83,7 @@ namespace Tools.Unity.ResizableGrid
         {
             if (!m_ResizableGrid.IsHandlerClicked)
             {
-                Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.Cursor.Texture, ApplicationState.GeneralSettings.Theme.General.Cursor.Offset, CursorMode.Auto);
+                m_ThemeElement.Set();
             }
         }
         #endregion

@@ -1,13 +1,13 @@
-﻿namespace HBP.Data.Settings
+﻿namespace HBP.Data.Preferences
 {
     public class TrialMatrixSettings
     {
         #region Properties
         public enum TrialsSynchronizationType { Disable, Enable }
         public enum TrialMatrixType { Simplified, Complete }
-        public enum SmoothingType { None, Line }
+        public enum SmoothingType { None, Trial }
         public enum NormalizationType { None, Trial, Bloc, Protocol }
-        public enum BlocFormatType { ConstantLine, LineRatio, BlocRatio }
+        public enum BlocFormatType { ConstantTrial, TrialRatio, BlocRatio }
 
         /// <summary>
         /// Type of trial matrix smoothing.
@@ -53,7 +53,7 @@
         /// <param name="constantLineHeight">Constant height of a line in a trial matrix.</param>
         /// <param name="lineHeightByWidth">Ratio height by width of a line in a trial matrix.</param>
         /// <param name="heightByWidth">Ratio height by width of a bloc in a trial matrix.</param>
-        public TrialMatrixSettings(SmoothingType smoothing = SmoothingType.Line,NormalizationType baseline = NormalizationType.Protocol,BlocFormatType blocformat = BlocFormatType.LineRatio,int constantLineHeight = 3,float lineHeightByWidth = 0.05f,float heightByWidth = 0.3f, TrialsSynchronizationType trialsSynchronization = TrialsSynchronizationType.Enable, TrialMatrixType type = TrialMatrixType.Complete)
+        public TrialMatrixSettings(SmoothingType smoothing = SmoothingType.Trial,NormalizationType baseline = NormalizationType.Protocol,BlocFormatType blocformat = BlocFormatType.TrialRatio,int constantLineHeight = 3,float lineHeightByWidth = 0.05f,float heightByWidth = 0.3f, TrialsSynchronizationType trialsSynchronization = TrialsSynchronizationType.Enable, TrialMatrixType type = TrialMatrixType.Complete)
         {
             Smoothing = smoothing;
             Normalization = baseline;
@@ -71,12 +71,12 @@
         {
             if (Normalization != type)
             {
-                if (ApplicationState.Module3D.ScenesManager.Scenes.Count > 0)
+                if (ApplicationState.Module3D.Scenes.Count > 0)
                 {
                     ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Baseline settings changed", "You need to reload the open visualizations in order to apply the changes made to the baseline normalization.\n\nWould you like to reload ?", () =>
                     {
                         Normalization = type;
-                        Tools.Unity.ClassLoaderSaver.SaveToJSon(ApplicationState.GeneralSettings, GeneralSettings.PATH, true);
+                        Tools.Unity.ClassLoaderSaver.SaveToJSon(ApplicationState.UserPreferences, UserPreferences.PATH, true);
                         ApplicationState.Module3D.ReloadScenes();
                     });
                 }

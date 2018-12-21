@@ -16,7 +16,7 @@ namespace HBP.UI.Module3D.Tools
         /// <summary>
         /// Correspondance between brain color dropdown options indices and color type
         /// </summary>
-        private List<ColorType> m_BrainColorIndices = new List<ColorType>() { ColorType.BrainColor, ColorType.Default, ColorType.White, ColorType.Grayscale, ColorType.SoftGrayscale };
+        private List<Data.Enums.ColorType> m_BrainColorIndices = new List<Data.Enums.ColorType>() { Data.Enums.ColorType.BrainColor, Data.Enums.ColorType.Default, Data.Enums.ColorType.White, Data.Enums.ColorType.Grayscale, Data.Enums.ColorType.SoftGrayscale };
         #endregion
 
         #region Public Methods
@@ -26,8 +26,8 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ColorType color = m_BrainColorIndices[value];
-                ApplicationState.Module3D.SelectedScene.UpdateBrainSurfaceColor(color);
+                Data.Enums.ColorType color = m_BrainColorIndices[value];
+                SelectedScene.UpdateBrainSurfaceColor(color);
             });
         }
 
@@ -42,12 +42,9 @@ namespace HBP.UI.Module3D.Tools
             m_Dropdown.interactable = true;
         }
 
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Scene)
-            {
-                m_Dropdown.value = m_BrainColorIndices.FindIndex((c) => c == ApplicationState.Module3D.SelectedScene.ColumnManager.BrainColor);
-            }
+            m_Dropdown.value = m_BrainColorIndices.FindIndex((c) => c == SelectedScene.ColumnManager.BrainColor);
         }
         #endregion
     }

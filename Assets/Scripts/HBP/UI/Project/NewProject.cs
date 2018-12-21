@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using HBP.Data.General;
 using Tools.Unity;
 using System.Linq;
+using HBP.Data.Preferences;
 
 namespace HBP.UI
 {
@@ -12,14 +13,32 @@ namespace HBP.UI
     public class NewProject : Window
 	{
         #region Properties
-		InputField nameInputField;
-        FolderSelector projectFolderSelector;
-        FolderSelector patientsDatabaseFolderSelector;
-        FolderSelector localizerDatabaseFolderSelector;
+		[SerializeField] InputField m_NameInputField;
+        [SerializeField] FolderSelector m_ProjectLocationFolderSelector;
+        [SerializeField] FolderSelector m_PatientsDatabaseLocationFolderSelector;
+        [SerializeField] FolderSelector m_LocalizerDatabaseLocationFolderSelector;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+
+                m_NameInputField.interactable = value;
+                m_ProjectLocationFolderSelector.interactable = value;
+                m_PatientsDatabaseLocationFolderSelector.interactable = value;
+                m_LocalizerDatabaseLocationFolderSelector.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
-        public void CreateNewProject()
+        public void Create()
 		{
             if (ApplicationState.ProjectLoaded != null)
             {
@@ -28,43 +47,40 @@ namespace HBP.UI
                     ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Opened visualizations", "Some visualizations of the currently loaded project are opened. Loading another project will close any opened visualization.\n\nWould you like to load another project ?", () =>
                     {
                         ApplicationState.Module3D.RemoveAllScenes();
-                        CreateProject();
+                        CreateNewProject();
                     },
                     "Load project");
                 }
                 else
                 {
-                    CreateProject();
+                    CreateNewProject();
                 }
             }
             else
             {
-                CreateProject();
+                CreateNewProject();
             }
         }
         #endregion
 
         #region Private Methods
-        protected override void SetWindow()
+        protected override void SetFields()
 		{
-            nameInputField = transform.Find("Content").Find("General").Find("Name").GetComponentInChildren<InputField>();
-            projectFolderSelector = transform.Find("Content").Find("General").Find("Location").GetComponentInChildren<FolderSelector>();
-            patientsDatabaseFolderSelector = transform.Find("Content").Find("Database").Find("Patients").GetComponentInChildren<FolderSelector>();
-            localizerDatabaseFolderSelector = transform.Find("Content").Find("Database").Find("Localizers").GetComponentInChildren<FolderSelector>();
+            ProjectPreferences preferences = ApplicationState.UserPreferences.General.Project;
 
-            nameInputField.text = ApplicationState.GeneralSettings.DefaultProjectName;
-            projectFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultProjectLocation;
-            patientsDatabaseFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultPatientDatabaseLocation;
-            localizerDatabaseFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultLocalizerDatabaseLocation;
+            m_NameInputField.text = preferences.DefaultName;
+            m_ProjectLocationFolderSelector.Folder = preferences.DefaultLocation;
+            m_PatientsDatabaseLocationFolderSelector.Folder = preferences.DefaultPatientDatabase;
+            m_LocalizerDatabaseLocationFolderSelector.Folder = preferences.DefaultLocalizerDatabase;
         }
-        protected void CreateProject()
+        void CreateNewProject()
         {
-            Data.Settings.ProjectSettings l_settings = new Data.Settings.ProjectSettings(nameInputField.text, patientsDatabaseFolderSelector.Folder, localizerDatabaseFolderSelector.Folder);
-            ApplicationState.ProjectLoaded = new Project(l_settings);
-            ApplicationState.ProjectLoadedLocation = projectFolderSelector.Folder;
+            ProjectSettings settings = new ProjectSettings(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
+            ApplicationState.ProjectLoaded = new Project(settings);
+            ApplicationState.ProjectLoadedLocation = m_ProjectLocationFolderSelector.Folder;
             FindObjectOfType<ProjectLoaderSaver>().SaveAndReload();
             Close();
         }
         #endregion
-	}
+    }
 }

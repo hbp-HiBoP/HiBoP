@@ -5,25 +5,48 @@ using System.Collections.Generic;
 using HBP.Data;
 using HBP.UI.Anatomy;
 using HBP.Data.Visualization;
+using System.Collections.ObjectModel;
 
 namespace HBP.UI.Visualization
 {
     public class VisualizationModifier : ItemModifier<Data.Visualization.Visualization>
     {
         #region Properties
-        [SerializeField] GameObject m_RemoveGroupPrefab;
-        [SerializeField] GameObject m_AddGroupPrefab;
-        [SerializeField] GameObject m_PatientModifierPrefab;
+        [SerializeField] InputField m_NameInputField;
 
-        List<PatientModifier> m_PatientModifiers = new List<PatientModifier>();
-        List<GroupSelection> m_GroupSelectionModifiers = new List<GroupSelection>();
+        [SerializeField] PatientListGestion m_VisualizationPatientsListGestion, m_ProjectPatientsListGestion;
+        [SerializeField] Button m_AddPatientButton, m_RemovePatientButton, m_AddGroupButton, m_RemoveGroupButton;
 
-        InputField m_NameInputField;
-        TabGestion m_TabGestion;
-        ColumnModifier m_ColumnModifier;
-        PatientList m_VisualizationPatientsList;
-        PatientList m_ProjectPatientsList;
-        Button m_AddPatientButton, m_RemovePatientButton, m_AddGroupButton, m_SaveButton;
+        [SerializeField] TabManager m_TabGestion;
+        [SerializeField] ColumnModifier m_ColumnModifier;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+
+                // General.
+                m_NameInputField.interactable = value;
+
+                // Patients.
+                m_AddPatientButton.interactable = value;
+                m_RemovePatientButton.interactable = value;
+
+                m_AddGroupButton.interactable = value;
+                m_RemoveGroupButton.interactable = value;
+
+                m_VisualizationPatientsListGestion.Interactable = false;
+                m_ProjectPatientsListGestion.Interactable = false;
+
+                m_ColumnModifier.Interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -43,190 +66,128 @@ namespace HBP.UI.Visualization
                 base.Save();
             }
         }
-        public override void Close()
-        {
-            foreach (var modifier in m_PatientModifiers.ToArray()) modifier.Close();
-            m_PatientModifiers.Clear();
-            foreach (var modifier in m_GroupSelectionModifiers.ToArray()) modifier.Close();
-            m_GroupSelectionModifiers.Clear();
-            base.Close();
-        }
-        public void AddColumn()
-        { 
-            ItemTemp.Columns.Add(new Column(ItemTemp.Columns.Count + 1, ItemTemp.Patients, ApplicationState.ProjectLoaded.Datasets));
-            m_TabGestion.AddTab();
-        }
-        public void RemoveColumn()
-        {
-            Toggle toggle = new List<Toggle>(m_TabGestion.ToggleGroup.ActiveToggles())[0];
-            ItemTemp.Columns.RemoveAt(toggle.transform.GetSiblingIndex() - 1);
-            m_TabGestion.RemoveTab();
-        }
         public void AddPatients()
         {
-            Patient[] patientsToAdd = m_ProjectPatientsList.ObjectsSelected;
-            ItemTemp.AddPatient(patientsToAdd);
-            m_ProjectPatientsList.Remove(patientsToAdd);
-            m_VisualizationPatientsList.Add(patientsToAdd);
-            SelectColumn();
-        }
-        public void AddGroups(Group[] groups)
-        {
-            List<Patient> patientsToAdd = new List<Patient>();
-            foreach (Group group in groups)
-            {
-                foreach(Patient patient in group.Patients)
-                {
-                    if(!m_VisualizationPatientsList.Objects.Contains(patient))
-                    {
-                        patientsToAdd.Add(patient);
-                    }
-                }
-            }
-            ItemTemp.AddPatient(patientsToAdd.ToArray());
-            m_ProjectPatientsList.Remove(patientsToAdd.ToArray());
-            m_VisualizationPatientsList.Add(patientsToAdd.ToArray());
-            SelectColumn();
-        }
-        public void RemoveGroups(Group[] groups)
-        {
-            List<Patient> patientsToRemove = new List<Patient>();
-            foreach (Group group in groups)
-            {
-                foreach (Patient patient in group.Patients)
-                {
-                    if (m_VisualizationPatientsList.Objects.Contains(patient))
-                    {
-                        patientsToRemove.Add(patient);
-                    }
-                }
-            }
-            ItemTemp.RemovePatient(patientsToRemove.ToArray());
-            m_ProjectPatientsList.Add(patientsToRemove.ToArray());
-            m_VisualizationPatientsList.Remove(patientsToRemove.ToArray());
-            SelectColumn();
-        }
-        public void OpenPatientModifier(Patient patientToModify)
-        {
-            RectTransform obj = Instantiate(m_PatientModifierPrefab).GetComponent<RectTransform>();
-            obj.SetParent(GameObject.Find("Windows").transform);
-            obj.localPosition = new Vector3(0, 0, 0);
-            PatientModifier patientModifier = obj.GetComponent<PatientModifier>();
-            patientModifier.Open(patientToModify, false);
-            patientModifier.CloseEvent.AddListener(() => OnClosePatientModifier(patientModifier));
-            m_PatientModifiers.Add(patientModifier);
-        }
-        public void OpenAddGroupWindow()
-        {
-            SetInteractable(false);
-            Transform groupsSelectionTransform = Instantiate(m_AddGroupPrefab, GameObject.Find("Windows").transform).GetComponent<Transform>();
-            groupsSelectionTransform.localPosition = Vector3.zero;
-            GroupSelection groupSelection = groupsSelectionTransform.GetComponent<GroupSelection>();
-            groupSelection.Open();
-            groupSelection.GroupsSelectedEvent.AddListener((groups) => AddGroups(groups));
-            groupSelection.CloseEvent.AddListener(() => OnCloseGroupSelection(groupSelection));
-            m_GroupSelectionModifiers.Add(groupSelection);
-        }
-        public void OpenRemoveGroupWindow()
-        {
-            SetInteractable(false);
-            Transform groupsSelectionTransform = Instantiate(m_RemoveGroupPrefab, GameObject.Find("Windows").transform).GetComponent<Transform>();
-            groupsSelectionTransform.localPosition = Vector3.zero;
-            GroupSelection groupSelection = groupsSelectionTransform.GetComponent<GroupSelection>();
-            groupSelection.Open();
-            groupSelection.GroupsSelectedEvent.AddListener((groups) => RemoveGroups(groups));
-            groupSelection.CloseEvent.AddListener(() => OnCloseGroupSelection(groupSelection));
-            m_GroupSelectionModifiers.Add(groupSelection);
+            AddPatients(m_ProjectPatientsListGestion.List.ObjectsSelected);
         }
         public void RemovePatients()
         {
-            Data.Patient[] patientsToRemove = m_VisualizationPatientsList.ObjectsSelected;
-            ItemTemp.RemovePatient(patientsToRemove);
-            m_ProjectPatientsList.Add(patientsToRemove);
-            m_VisualizationPatientsList.Remove(patientsToRemove);
-            SelectColumn();
+            RemovePatients(m_VisualizationPatientsListGestion.List.ObjectsSelected);
+        }
+        public void AddGroups()
+        {
+            GroupSelection groupSelection = ApplicationState.WindowsManager.Open<GroupSelection>("Add Group window", Interactable);
+            groupSelection.OnSave.AddListener(() => AddGroups(groupSelection.SelectedGroups));
+            groupSelection.OnClose.AddListener(() => m_SubWindows.Remove(groupSelection));
+            m_SubWindows.Add(groupSelection);
+        }
+        public void RemoveGroups()
+        {
+            GroupSelection groupSelection = ApplicationState.WindowsManager.Open<GroupSelection>("Remove Group window", Interactable);
+            groupSelection.OnSave.AddListener(() => RemoveGroups(groupSelection.SelectedGroups));
+            groupSelection.OnClose.AddListener(() => m_SubWindows.Remove(groupSelection));
+            m_SubWindows.Add(groupSelection);
+        }
+        public void AddColumn()
+        {
+            BaseColumn column = new IEEGColumn("Column n°"+(ItemTemp.Columns.Count + 1), new BaseConfiguration(), ItemTemp.Patients);
+            ItemTemp.Columns.Add(column);
+            m_TabGestion.AddTab(column.Name);
+        }
+        public void RemoveColumn()
+        {
+            int index = m_TabGestion.ActiveTabIndex;
+            ItemTemp.Columns.RemoveAt(index);
+            m_TabGestion.RemoveTab(index);
         }
         #endregion
 
         #region Private Methods
-        protected void OnClosePatientModifier(PatientModifier modifier)
+        protected override void Initialize()
         {
-            m_PatientModifiers.Remove(modifier);
-        }
-        protected void OnCloseGroupSelection(GroupSelection groupSelection)
-        {
-            m_GroupSelectionModifiers.Remove(groupSelection);
-        }
-        protected void SwapColumns(int i1, int i2)
-        {
-            ItemTemp.SwapColumns(i1, i2);
+            base.Initialize();
+
+            // General.
+            m_NameInputField.onEndEdit.AddListener((value) => ItemTemp.Name = value);
+
+            // Patients.
+            m_VisualizationPatientsListGestion.Initialize(m_SubWindows);
+            m_ProjectPatientsListGestion.Initialize(m_SubWindows);
+
+            // Tabs.
+            m_TabGestion.OnSwapColumns.AddListener((column1, column2) => ItemTemp.SwapColumns(column1, column2));
+            m_TabGestion.OnActiveTabChanged.AddListener(SelectColumn);
+
+            // Column Modifier.
+            m_ColumnModifier.OnChangeName.AddListener(m_TabGestion.ChangeTabTitle);
+            m_ColumnModifier.OnChangeColumn.AddListener(column => ItemTemp.Columns[m_TabGestion.ActiveTabIndex] = column);
         }
         protected override void SetFields(Data.Visualization.Visualization objectToDisplay)
         {
-            SetName(objectToDisplay);
-            SetPatients(objectToDisplay);
-            SetTabs(objectToDisplay);
-            SetColumns(objectToDisplay);
+            m_NameInputField.text = ItemTemp.Name;
+
+            m_VisualizationPatientsListGestion.Objects = ItemTemp.Patients.ToList();
+
+            ReadOnlyCollection<Patient> visualizationPatients = objectToDisplay.Patients;
+            List<Patient> patients = new List<Patient>();
+            foreach (var patient in ApplicationState.ProjectLoaded.Patients)
+            {
+                if (!visualizationPatients.Contains(patient))
+                {
+                    patients.Add(patient);
+                }
+            }
+            m_ProjectPatientsListGestion.Objects = patients;
+
+            if (objectToDisplay.Columns.Count > 0)
+            {
+                for (int i = 0; i < objectToDisplay.Columns.Count; i++)
+                {
+                    m_TabGestion.AddTab(objectToDisplay.Columns[i].Name);
+                }
+            }
+        }
+
+
+        protected void AddPatients(IEnumerable<Patient> patients)
+        {
+            ItemTemp.AddPatient(patients.ToArray());
+            m_ProjectPatientsListGestion.Remove(patients.ToArray());
+            m_VisualizationPatientsListGestion.Add(patients.ToArray());
+            SelectColumn();
+        }
+        protected void RemovePatients(IEnumerable<Patient> patients)
+        {
+            ItemTemp.RemovePatient(patients.ToArray());
+            m_ProjectPatientsListGestion.Add(patients.ToArray());
+            m_VisualizationPatientsListGestion.Remove(patients.ToArray());
+            SelectColumn();
+        }
+        protected void AddGroups(IEnumerable<Group> groups)
+        {
+            AddPatients(groups.SelectMany(g => g.Patients).Distinct().Where(p => !m_VisualizationPatientsListGestion.Objects.Contains(p)));
+        }
+        protected void RemoveGroups(IEnumerable<Group> groups)
+        {
+            RemovePatients(groups.SelectMany(g => g.Patients).Distinct().Where(p => m_VisualizationPatientsListGestion.Objects.Contains(p)));
         }
         protected void SelectColumn()
         {
-            List<Toggle> ActiveToggles = new List<Toggle>(m_TabGestion.ToggleGroup.ActiveToggles());
-            if (ActiveToggles.Count > 0)
+            int index = m_TabGestion.ActiveTabIndex;
+            if (index >= 0)
             {
-                Column l_column = ItemTemp.Columns[ActiveToggles[0].transform.GetSiblingIndex() - 1];
-                m_ColumnModifier.SetTab(l_column, ItemTemp.Patients.ToArray());
+                if (!m_ColumnModifier.gameObject.activeSelf)
+                {
+                    m_ColumnModifier.gameObject.SetActive(true);
+                }
+                m_ColumnModifier.Set(ItemTemp.Columns[index], ItemTemp.Patients);
             }
-        }
-        protected override void SetWindow()
-        {
-            m_NameInputField = transform.Find("Content").Find("General").Find("Name").Find("InputField").GetComponent<InputField>();
-            m_TabGestion = transform.Find("Content").Find("Columns").Find("Fields").Find("Tabs").GetComponent<TabGestion>();
-            m_ColumnModifier = transform.Find("Content").Find("Columns").Find("Fields").Find("Column").GetComponent<ColumnModifier>();
-            m_SaveButton = transform.Find("Content").Find("Buttons").Find("OK").GetComponent<Button>();
-            m_VisualizationPatientsList = transform.Find("Content").Find("Patients").Find("Lists").Find("Visualization").Find("Display").GetComponent<PatientList>();
-            m_ProjectPatientsList = transform.Find("Content").Find("Patients").Find("Lists").Find("Project").Find("Display").GetComponent<PatientList>();
-            m_AddPatientButton = transform.Find("Content").Find("Patients").Find("Lists").Find("Buttons").Find("Add").GetComponent<Button>();
-            m_RemovePatientButton = transform.Find("Content").Find("Patients").Find("Lists").Find("Buttons").Find("Remove").GetComponent<Button>();
-            m_AddGroupButton = transform.Find("Content").Find("Patients").Find("Lists").Find("Buttons").Find("AddGroup").GetComponent<Button>();
-        }
-        protected override void SetInteractableFields(bool interactable)
-        {
-            m_AddPatientButton.interactable = interactable;
-            m_RemovePatientButton.interactable = interactable;
-            m_AddGroupButton.interactable = interactable;
-            m_NameInputField.interactable = interactable;
-            m_SaveButton.interactable = interactable;
-        }
-        protected void SetName(Data.Visualization.Visualization objectToDisplay)
-        {
-            m_NameInputField.text = objectToDisplay.Name;
-            m_NameInputField.onValueChanged.AddListener((value) => objectToDisplay.Name = value);
-        }
-        protected void SetPatients(Data.Visualization.Visualization objectToDisplay)
-        {
-            m_VisualizationPatientsList.Objects = objectToDisplay.Patients.ToArray();
-            m_VisualizationPatientsList.OnAction.AddListener((patient, i) => OpenPatientModifier(patient));
-            m_ProjectPatientsList.Objects = (from p in ApplicationState.ProjectLoaded.Patients where !objectToDisplay.Patients.Contains(p) select p).ToArray();
-            m_VisualizationPatientsList.OnAction.RemoveAllListeners();
-            m_VisualizationPatientsList.OnAction.AddListener((patient, action) => OpenPatientModifier(patient));
-            m_ProjectPatientsList.OnAction.RemoveAllListeners();
-            m_ProjectPatientsList.OnAction.AddListener((patient, action) => OpenPatientModifier(patient));
-        }
-        protected void SetTabs(Data.Visualization.Visualization objectToDisplay)
-        {
-            m_TabGestion.OnSwapColumnsEvent.AddListener((c1, c2) => SwapColumns(c1, c2));
-            m_TabGestion.OnChangeSelectedTabEvent.AddListener(() => SelectColumn());
-        }
-        protected void SetColumns(Data.Visualization.Visualization objectToDisplay)
-        {
-            // Columns.
-            if (objectToDisplay.Columns.Count == 0)
+            else
             {
-                objectToDisplay.Columns.Add(new Column(ItemTemp.Columns.Count + 1, ItemTemp.Patients, ApplicationState.ProjectLoaded.Datasets));
-            }
-            for (int i = 0; i < objectToDisplay.Columns.Count; i++)
-            {
-                m_TabGestion.AddTab();
+                if (m_ColumnModifier.gameObject.activeSelf)
+                {
+                    m_ColumnModifier.gameObject.SetActive(false);
+                }
             }
         }
         #endregion

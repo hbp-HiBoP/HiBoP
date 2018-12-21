@@ -26,8 +26,7 @@ namespace HBP.UI.Module3D
 
             m_FMRISelector.OnChangeFMRI.AddListener(() =>
             {
-                UpdateInteractableButtons();
-                UpdateButtonsStatus(UpdateToolbarType.Scene);
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             });
         }
         #endregion

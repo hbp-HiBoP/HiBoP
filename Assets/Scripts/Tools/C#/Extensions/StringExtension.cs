@@ -31,6 +31,11 @@ namespace Tools.CSharp
             result = char.ToUpper(result[0]) + result.Substring(1);
             return result;
         }
+        public static string CamelCaseToWords(this string camelCase)
+        {
+            return Regex.Replace(camelCase, @"\B[A-Z][a-z]", m => " " + m.ToString().ToLower());
+            //return Regex.Replace(camelCase, @"\B[A-Z]", m => " " + m.ToString().ToLower());
+        }
     }
 
 }

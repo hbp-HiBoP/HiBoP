@@ -21,6 +21,7 @@ namespace HBP.Data.Anatomy
                 m_LeftHemisphere = value.ConvertToShortPath();
             }
         }
+        public string SavedLeftHemisphere { get { return m_LeftHemisphere; } }
         [DataMember(Order = 2, Name = "RightHemisphere")] string m_RightHemisphere;
         public string RightHemisphere
         {
@@ -33,6 +34,7 @@ namespace HBP.Data.Anatomy
                 m_RightHemisphere = value.ConvertToShortPath();
             }
         }
+        public string SavedRightHemisphere { get { return m_RightHemisphere; } }
         [DataMember(Order = 3, Name = "LeftMarsAtlasHemisphere")] string m_LeftMarsAtlasHemisphere;
         public string LeftMarsAtlasHemisphere
         {
@@ -45,6 +47,7 @@ namespace HBP.Data.Anatomy
                 m_LeftMarsAtlasHemisphere = value.ConvertToShortPath();
             }
         }
+        public string SavedLeftMarsAtlasHemisphere { get { return m_LeftMarsAtlasHemisphere; } }
         [DataMember(Order = 4, Name = "RightMarsAtlasHemisphere")] string m_RightMarsAtlasHemisphere;
         public string RightMarsAtlasHemisphere
         {
@@ -57,6 +60,7 @@ namespace HBP.Data.Anatomy
                 m_RightMarsAtlasHemisphere = value.ConvertToShortPath();
             }
         }
+        public string SavedRightMarsAtlasHemisphere { get { return m_RightMarsAtlasHemisphere; } }
         public override bool HasMesh
         {
             get
@@ -96,7 +100,7 @@ namespace HBP.Data.Anatomy
         #region Operators
         public override object Clone()
         {
-            return new LeftRightMesh(Name,Transformation, ID, LeftHemisphere, RightHemisphere,LeftMarsAtlasHemisphere,RightMarsAtlasHemisphere);
+            return new LeftRightMesh(Name,m_Transformation, ID, m_LeftHemisphere, m_RightHemisphere,m_LeftMarsAtlasHemisphere,m_RightMarsAtlasHemisphere);
         }
         public override void Copy(object copy)
         {
@@ -107,18 +111,6 @@ namespace HBP.Data.Anatomy
             RightHemisphere = mesh.RightHemisphere;
             LeftMarsAtlasHemisphere = mesh.LeftMarsAtlasHemisphere;
             RightMarsAtlasHemisphere = mesh.RightMarsAtlasHemisphere;
-        }
-        #endregion
-
-        #region Serialization
-        [OnDeserialized()]
-        public new void OnDeserialized(StreamingContext context)
-        {
-            LeftHemisphere = LeftHemisphere;
-            RightHemisphere = RightHemisphere;
-            LeftMarsAtlasHemisphere = LeftMarsAtlasHemisphere;
-            RightMarsAtlasHemisphere = RightMarsAtlasHemisphere;
-            base.OnDeserialized(context);
         }
         #endregion
     }

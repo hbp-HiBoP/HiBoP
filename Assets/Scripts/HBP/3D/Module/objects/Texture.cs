@@ -203,7 +203,7 @@ namespace HBP.Module3D
             /// </summary>
             ~Texture()
             {
-                pixelsHandle2.Free();
+                if (pixelsHandle2.IsAllocated) pixelsHandle2.Free();
             }
             /// <summary>
             /// Init a texture by loading an image.
@@ -332,7 +332,7 @@ namespace HBP.Module3D
             /// </summary>
             /// <param name="idColor"></param>
             /// <returns></returns>
-            public static Texture Generate1DColorTexture(ColorType color)
+            public static Texture Generate1DColorTexture(Data.Enums.ColorType color)
             {
                 return new Texture(generate_1D_color_Texture((int)color));
             }
@@ -342,7 +342,7 @@ namespace HBP.Module3D
             /// <param name="idColor1"></param>
             /// <param name="idColor2"></param>
             /// <returns></returns>
-            public static Texture Generate2DColorTexture(ColorType color1, ColorType color2)
+            public static Texture Generate2DColorTexture(Data.Enums.ColorType color1, Data.Enums.ColorType color2)
             {
                 return new Texture(generate_2D_color_Texture((int)color1, (int)color2));
             }

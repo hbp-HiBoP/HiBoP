@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
-using HBP.Data.Settings;
+using HBP.Data.Preferences;
 using Tools.Unity;
+using System.IO;
+using HBP.UI;
 
 public class ApplicationManager : MonoBehaviour
 {
@@ -8,8 +10,15 @@ public class ApplicationManager : MonoBehaviour
     {
         ApplicationState.ProjectLoaded = null;
         ApplicationState.ProjectLoadedLocation = string.Empty;
-        ApplicationState.GeneralSettings = ClassLoaderSaver.LoadFromJson<GeneralSettings>(GeneralSettings.PATH);
-        ClassLoaderSaver.SaveToJSon(ApplicationState.GeneralSettings, GeneralSettings.PATH, true);
+        if (new FileInfo(UserPreferences.PATH).Exists)
+        {
+            ApplicationState.UserPreferences = ClassLoaderSaver.LoadFromJson<UserPreferences>(UserPreferences.PATH);
+        }
+        else
+        {
+            ApplicationState.UserPreferences = new UserPreferences();
+        }
+        ClassLoaderSaver.SaveToJSon(ApplicationState.UserPreferences, UserPreferences.PATH, true);
         ApplicationState.CoroutineManager = FindObjectOfType<CoroutineManager>();
         ApplicationState.Module3D = FindObjectOfType<HBP.Module3D.HBP3DModule>();
         ApplicationState.DLLDebugManager = FindObjectOfType<HBP.Module3D.DLL.DLLDebugManager>();
@@ -17,5 +26,27 @@ public class ApplicationManager : MonoBehaviour
         ApplicationState.LoadingManager = FindObjectOfType<LoadingManager>();
         ApplicationState.TooltipManager = FindObjectOfType<TooltipManager>();
         ApplicationState.MemoryManager = FindObjectOfType<MemoryManager>();
+        ApplicationState.WindowsManager = FindObjectOfType<WindowsManager>();
+        ApplicationState.ProjectTMPFolder = GetProjectTMPDirectory();
+    }
+
+    private void OnDestroy()
+    {
+        string tmpDir = ApplicationState.ProjectLoadedTMPFullPath;
+        if (Directory.Exists(tmpDir))
+        {
+            Directory.Delete(tmpDir, true);
+        }
+    }
+
+    private string GetProjectTMPDirectory()
+    {
+        string tmpDir = Application.dataPath + "/" + ".tmp";
+        if (!Directory.Exists(tmpDir))
+        {
+            DirectoryInfo di = Directory.CreateDirectory(tmpDir);
+            di.Attributes |= FileAttributes.Hidden;
+        }
+        return tmpDir;
     }
 }

@@ -166,8 +166,6 @@ namespace Tools.Unity.ResizableGrid
         /// </summary>
         public bool IsHandlerClicked { get; set; }
 
-        private bool m_RectTransformChanged;
-
         public GameObject ViewPrefab;
         public GameObject ColumnPrefab;
         public GameObject VerticalHandlerPrefab;
@@ -178,7 +176,7 @@ namespace Tools.Unity.ResizableGrid
         #region Private Methods
         private void Update()
         {
-            if (m_RectTransformChanged)
+            if (m_RectTransform.hasChanged)
             {
                 m_MinimumViewHeight = Mathf.Min(MINIMUM_VIEW_HEIGHT_DEFAULT, m_RectTransform.rect.height / ViewNumber);
                 m_MinimumViewWidth = Mathf.Min(MINIMUM_VIEW_WIDTH_DEFAULT, m_RectTransform.rect.width / ColumnNumber);
@@ -186,12 +184,8 @@ namespace Tools.Unity.ResizableGrid
                 SetVerticalHandlersPosition();
                 SetHorizontalHandlersPosition();
                 UpdateAnchors();
-                m_RectTransformChanged = false;
+                m_RectTransform.hasChanged = false;
             }
-        }
-        private void OnRectTransformDimensionsChange()
-        {
-            m_RectTransformChanged = true;
         }
         /// <summary>
         /// Update the position constraints on the handlers depending on the number of columns and views
@@ -318,9 +312,9 @@ namespace Tools.Unity.ResizableGrid
                 column.anchorMax = new Vector2((i == ColumnNumber - 1) ? 1 : m_VerticalHandlers[i].Position, column.anchorMax.y);
                 for (int j = 0; j < ViewNumber; j++)
                 {
-                    if (column.GetComponent<Column>().Views[j] != null)
+                    if (m_Columns[i].Views[j] != null)
                     {
-                        RectTransform view = column.GetComponent<Column>().Views[j].GetComponent<RectTransform>();
+                        RectTransform view = m_Columns[i].Views[j].GetComponent<RectTransform>();
                         view.anchorMin = new Vector2(view.anchorMin.x, (j == ViewNumber - 1) ? 0 : m_HorizontalHandlers[j].Position);
                         view.anchorMax = new Vector2(view.anchorMax.x, (j == 0) ? 1 : m_HorizontalHandlers[j - 1].Position);
                     }

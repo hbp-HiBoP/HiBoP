@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -27,21 +28,30 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                Base3DScene scene = ApplicationState.Module3D.ScenesManager.SelectedScene;
-                scene.SaveConfiguration();
-                ApplicationState.DialogBoxManager.Open(T.DialogBoxManager.AlertType.Informational, "Configuration saved", "The configuration of the selected scene has been saved in the visualization <color=#3080ffff>" + scene.Name + "</color>.\n\nPlease save the project to apply changes in the project files.");
+                SelectedScene.SaveConfiguration();
+                ApplicationState.DialogBoxManager.Open(T.DialogBoxManager.AlertType.Informational, "Configuration saved", "The configuration of the selected scene has been saved in the visualization <color=#3080ffff>" + SelectedScene.Name + "</color>.\n\nPlease save the project to apply changes in the project files.");
             });
             m_Load.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.ScenesManager.SelectedScene.LoadConfiguration();
+                ObjectSelector<Data.Visualization.Visualization> selector = ApplicationState.WindowsManager.OpenSelector<Data.Visualization.Visualization>();
+                selector.OnSave.AddListener(() =>
+                {
+                    if (selector.ObjectsSelected.Length > 0)
+                    {
+                        SelectedScene.Visualization.Configuration = selector.ObjectsSelected[0].Configuration.Clone() as Data.Visualization.VisualizationConfiguration;
+                        SelectedScene.LoadConfiguration();
+                    }
+                });
+                selector.Objects = ApplicationState.ProjectLoaded.Visualizations.ToArray();
+                selector.MultiSelection = false;
             });
             m_Reset.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.ScenesManager.SelectedScene.ResetConfiguration();
+                SelectedScene.ResetConfiguration();
             });
         }
         public override void DefaultState()

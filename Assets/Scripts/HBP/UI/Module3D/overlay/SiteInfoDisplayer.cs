@@ -9,20 +9,23 @@ namespace HBP.UI.Module3D
         [SerializeField] GameObject m_IEEG;
         [SerializeField] GameObject m_CCEP;
         [SerializeField] GameObject m_Atlas;
+        [SerializeField] GameObject m_States;
         [SerializeField] Text m_SiteNameText;
         [SerializeField] Image m_IsExcludedImage;
         [SerializeField] Image m_IsHighlightedImage;
         [SerializeField] Image m_IsBlackListedImage;
         [SerializeField] Image m_IsMarkedImage;
+        [SerializeField] Image m_IsSuspiciousImage;
         [SerializeField] Text m_PatientText;
         [SerializeField] Text m_IEEGAmplitudeText;
         [SerializeField] Text m_CCEPAmplitudeText;
         [SerializeField] Text m_CCEPLatencyText;
         [SerializeField] Text m_MarsAtlasText;
         [SerializeField] Text m_BroadmanText;
+        [SerializeField] Text m_FreesurferText;
         [SerializeField] RectTransform m_Canvas;
 
-        SiteInformationDisplayMode m_CurrentMode = SiteInformationDisplayMode.Anatomy;
+        Data.Enums.SiteInformationDisplayMode m_CurrentMode = Data.Enums.SiteInformationDisplayMode.Anatomy;
         RectTransform m_RectTransform;
         Color m_DisableColor = new Color(1.0f, 1.0f, 1.0f, 0.2f);
         #endregion
@@ -36,26 +39,35 @@ namespace HBP.UI.Module3D
             m_Atlas.SetActive(true);
             ApplicationState.Module3D.OnDisplaySiteInformation.AddListener((siteInfo) =>
             {
-                SiteInformationDisplayMode mode = siteInfo.Mode;
+                Data.Enums.SiteInformationDisplayMode mode = siteInfo.Mode;
                 if (mode != m_CurrentMode)
                 {
                     m_CurrentMode = mode;
                     switch (mode)
                     {
-                        case SiteInformationDisplayMode.Anatomy:
+                        case Data.Enums.SiteInformationDisplayMode.Anatomy:
                             m_IEEG.SetActive(false);
                             m_CCEP.SetActive(false);
                             m_Atlas.SetActive(true);
+                            m_States.SetActive(true);
                             break;
-                        case SiteInformationDisplayMode.IEEG:
+                        case Data.Enums.SiteInformationDisplayMode.IEEG:
                             m_IEEG.SetActive(true);
                             m_CCEP.SetActive(false);
                             m_Atlas.SetActive(true);
+                            m_States.SetActive(true);
                             break;
-                        case SiteInformationDisplayMode.CCEP:
+                        case Data.Enums.SiteInformationDisplayMode.CCEP:
                             m_IEEG.SetActive(false);
                             m_CCEP.SetActive(true);
                             m_Atlas.SetActive(false);
+                            m_States.SetActive(true);
+                            break;
+                        case Data.Enums.SiteInformationDisplayMode.Light:
+                            m_IEEG.SetActive(false);
+                            m_CCEP.SetActive(false);
+                            m_Atlas.SetActive(false);
+                            m_States.SetActive(false);
                             break;
                     }
                 }
@@ -66,15 +78,20 @@ namespace HBP.UI.Module3D
                     SetPatient(siteInfo.Site.Information.Patient);
                     switch (siteInfo.Mode)
                     {
-                        case SiteInformationDisplayMode.Anatomy:
+                        case Data.Enums.SiteInformationDisplayMode.Anatomy:
                             SetAtlas(siteInfo);
+                            SetStates(siteInfo.Site);
                             break;
-                        case SiteInformationDisplayMode.IEEG:
+                        case Data.Enums.SiteInformationDisplayMode.IEEG:
                             SetIEEG(siteInfo);
                             SetAtlas(siteInfo);
+                            SetStates(siteInfo.Site);
                             break;
-                        case SiteInformationDisplayMode.CCEP:
+                        case Data.Enums.SiteInformationDisplayMode.CCEP:
                             SetCCEP(siteInfo);
+                            SetStates(siteInfo.Site);
+                            break;
+                        case Data.Enums.SiteInformationDisplayMode.Light:
                             break;
                     }
                     ClampToCanvas();
@@ -106,14 +123,18 @@ namespace HBP.UI.Module3D
         void SetSite(HBP.Module3D.Site site)
         {
             m_SiteNameText.text = site.Information.ChannelName;
-            m_IsMarkedImage.color = site.State.IsMarked ? Color.white : m_DisableColor;
-            m_IsBlackListedImage.color = site.State.IsBlackListed ? Color.white : m_DisableColor;
-            m_IsHighlightedImage.color = site.State.IsHighlighted ? Color.white : m_DisableColor;
-            m_IsExcludedImage.color = site.State.IsExcluded ? Color.white : m_DisableColor;
         }
         void SetPatient(Data.Patient patient)
         {
             m_PatientText.text = patient.CompleteName;
+        }
+        void SetStates(HBP.Module3D.Site site)
+        {
+            m_IsMarkedImage.gameObject.SetActive(site.State.IsMarked);
+            m_IsBlackListedImage.gameObject.SetActive(site.State.IsBlackListed);
+            m_IsHighlightedImage.gameObject.SetActive(site.State.IsHighlighted);
+            m_IsSuspiciousImage.gameObject.SetActive(site.State.IsSuspicious);
+            m_IsExcludedImage.gameObject.SetActive(site.State.IsExcluded);
         }
         void SetCCEP(HBP.Module3D.SiteInfo siteInfo)
         {
@@ -131,8 +152,8 @@ namespace HBP.UI.Module3D
         {
             if (siteInfo.Site)
             {
-                string marsAtlasText = ApplicationState.Module3D.MarsAtlasIndex.FullName(siteInfo.Site.Information.MarsAtlasIndex);
-                if (marsAtlasText != "No_info" && marsAtlasText != "not found")
+                string marsAtlasText = siteInfo.Site.Information.MarsAtlasLabel;
+                if (!marsAtlasText.Contains("No info") && !marsAtlasText.Contains("not found"))
                 {
                     m_MarsAtlasText.transform.parent.gameObject.SetActive(true);
                     m_MarsAtlasText.text = marsAtlasText;
@@ -141,8 +162,8 @@ namespace HBP.UI.Module3D
                 {
                     m_MarsAtlasText.transform.parent.gameObject.SetActive(false);
                 }
-                string broadmanText = ApplicationState.Module3D.MarsAtlasIndex.BroadmanArea(siteInfo.Site.Information.MarsAtlasIndex);
-                if (broadmanText != "No_info" && broadmanText != "not found")
+                string broadmanText = siteInfo.Site.Information.BroadmanAreaName;
+                if (!broadmanText.Contains("No info") && !broadmanText.Contains("not found"))
                 {
                     m_BroadmanText.transform.parent.gameObject.SetActive(true);
                     m_BroadmanText.text = broadmanText;
@@ -150,6 +171,16 @@ namespace HBP.UI.Module3D
                 else
                 {
                     m_BroadmanText.transform.parent.gameObject.SetActive(false);
+                }
+                string freesurferText = siteInfo.Site.Information.FreesurferLabel;
+                if (!freesurferText.Contains("not in a freesurfer parcel"))
+                {
+                    m_FreesurferText.transform.parent.gameObject.SetActive(true);
+                    m_FreesurferText.text = freesurferText;
+                }
+                else
+                {
+                    m_FreesurferText.transform.parent.gameObject.SetActive(false);
                 }
             }
         }

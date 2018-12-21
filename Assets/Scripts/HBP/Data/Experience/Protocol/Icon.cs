@@ -75,7 +75,7 @@ namespace HBP.Data.Experience.Protocol
         /// <param name="label">Label of the icon.</param>
         /// <param name="path">Path of the icon illustration.</param>
         /// <param name="window">Window of the icon.</param>
-        public Icon(string label, string path, Vector2 window)
+        public Icon(string label, string path, Vector2Int window)
         {
             Name = label;
             IllustrationPath = path;
@@ -84,7 +84,7 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// Create a new instance of icon with default value.
         /// </summary>
-        public Icon() : this(string.Empty,string.Empty,Vector2.zero)
+        public Icon() : this(string.Empty,string.Empty, new Vector2Int(-300,300))
         {
         }
         #endregion
@@ -96,7 +96,7 @@ namespace HBP.Data.Experience.Protocol
         /// <returns>Icon clone.</returns>
         public object Clone()
         {
-            return new Icon(Name.Clone() as string, IllustrationPath.Clone() as string, new Vector2(Window.Start, Window.End));
+            return new Icon(Name.Clone() as string, IllustrationPath.Clone() as string, new Vector2Int(Window.Start, Window.End));
         }
 
         public void Copy(object copy)
@@ -105,14 +105,6 @@ namespace HBP.Data.Experience.Protocol
             Name = icon.Name;
             IllustrationPath = icon.IllustrationPath;
             Window = icon.Window;
-        }
-        #endregion
-
-        #region Serialization
-        [OnDeserialized()]
-        public void OnDeserialized(StreamingContext context)
-        {
-            IllustrationPath = IllustrationPath;
         }
         #endregion
     }

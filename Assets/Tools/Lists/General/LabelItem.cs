@@ -1,8 +1,11 @@
-﻿namespace Tools.Unity.Lists
+﻿using UnityEngine.UI;
+
+namespace Tools.Unity.Lists
 {
     public class LabelItem : Item<string>
     {
         #region Properties
+        public Text Text;
         public override string Object
         {
             get
@@ -12,11 +15,9 @@
             set
             {
                 base.Object = value;
-                GetComponent<UnityEngine.UI.Text>().text = value;
+                Text.text = value;
             }
         }
         #endregion
     }
 }
-
-

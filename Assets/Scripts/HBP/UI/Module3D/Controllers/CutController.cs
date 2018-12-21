@@ -7,12 +7,14 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Tools.Unity;
+using System;
 
 namespace HBP.UI.Module3D
 {
     public class CutController : MonoBehaviour
     {
         #region Properties
+        private const float MINIMIZED_THRESHOLD = 100.0f;
         /// <summary>
         /// Associated scene
         /// </summary>
@@ -46,8 +48,15 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private GameObject m_MinimizedGameObject;
         private List<CutParametersController> m_CutParametersControllers = new List<CutParametersController>();
-        private bool m_RectTransformChanged;
-        public Texture2D[] CutTextures { get { return (from cutParameterController in m_CutParametersControllers select cutParameterController.Texture).ToArray(); } }
+        public Tuple<Data.Enums.CutOrientation, Texture2D>[] CutTextures { get { return (from cutParameterController in m_CutParametersControllers select new Tuple<Data.Enums.CutOrientation, Texture2D>(cutParameterController.Cut.Orientation, cutParameterController.Texture)).ToArray(); } }
+        
+        public bool IsMinimized
+        {
+            get
+            {
+                return Mathf.Abs(m_RectTransform.rect.width - m_ParentGrid.MinimumViewWidth) <= MINIMIZED_THRESHOLD;
+            }
+        }
         #endregion
 
         #region Private Methods
@@ -58,17 +67,10 @@ namespace HBP.UI.Module3D
         }
         private void Update()
         {
-            if (m_RectTransformChanged)
+            if (m_RectTransform.hasChanged)
             {
-                if (GetComponent<RectTransform>().rect.width < 3 * m_ParentGrid.MinimumViewWidth)
-                {
-                    m_MinimizedGameObject.SetActive(true);
-                }
-                else
-                {
-                    m_MinimizedGameObject.SetActive(false);
-                }
-                m_RectTransformChanged = false;
+                m_MinimizedGameObject.SetActive(IsMinimized);
+                m_RectTransform.hasChanged = false;
             }
             if (Input.GetMouseButtonDown(0) && m_CutParametersControllers.Any(c => c.AreControlsOpen))
             {
@@ -92,17 +94,16 @@ namespace HBP.UI.Module3D
             {
                 if (m_CutParametersControllers.All(c => !c.AreControlsOpen))
                 {
-                    m_Scene.CuttingMesh = false;
+                    m_Scene.CuttingSimplifiedMesh = false;
                 }
             });
             cut.OnRemoveCut.AddListener(() =>
             {
                 m_CutParametersControllers.Remove(controller);
-                m_Scene.CuttingMesh = false;
+                m_Scene.CuttingSimplifiedMesh = false;
             });
             controller.OnOpenControls.AddListener(() =>
             {
-                m_Scene.IsSelected = true;
                 foreach (CutParametersController control in m_CutParametersControllers)
                 {
                     if (control != controller)
@@ -115,7 +116,7 @@ namespace HBP.UI.Module3D
             {
                 if (m_CutParametersControllers.All(c => !c.AreControlsOpen))
                 {
-                    m_Scene.CuttingMesh = false;
+                    m_Scene.CuttingSimplifiedMesh = false;
                 }
             });
             controller.CloseControls();
@@ -124,16 +125,11 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
-        public void OnRectTransformDimensionsChange()
-        {
-            m_RectTransformChanged = true;
-        }
         public void Initialize(Base3DScene scene)
         {
             m_Scene = scene;
             m_AddCutButton.GetComponent<Button>().onClick.AddListener(() =>
             {
-                m_Scene.IsSelected = true;
                 m_Scene.AddCutPlane();
                 m_CutParametersControllers.Last().OpenControls();
             });

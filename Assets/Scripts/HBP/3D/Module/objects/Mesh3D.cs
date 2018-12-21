@@ -67,7 +67,7 @@ namespace HBP.Module3D
         {
             m_Mesh = mesh;
             Name = mesh.Name;
-            if (ApplicationState.GeneralSettings.PreloadAnatomy)
+            if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
             {
                 Load();
             }
@@ -76,6 +76,10 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
+        public void Split(int number)
+        {
+            SplittedMeshes = new List<DLL.Surface>(m_Both.SplitToSurfaces(number));
+        }
         public abstract object Clone();
         public abstract void Load();
         #endregion

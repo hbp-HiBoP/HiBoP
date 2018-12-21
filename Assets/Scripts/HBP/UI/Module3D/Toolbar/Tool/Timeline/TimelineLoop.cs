@@ -38,12 +38,6 @@ namespace HBP.UI.Module3D.Tools
         #region Public Methods
         public override void Initialize()
         {
-            ApplicationState.Module3D.OnResetIEEG.AddListener(() =>
-            {
-                ListenerLock = true;
-                UpdateStatus(Toolbar.UpdateToolbarType.Column);
-                ListenerLock = false;
-            });
             m_Toggle.onValueChanged.AddListener((isOn) =>
             {
                 if (ListenerLock) return;
@@ -51,16 +45,16 @@ namespace HBP.UI.Module3D.Tools
                 List<HBP.Module3D.Column3DIEEG> columns = new List<HBP.Module3D.Column3DIEEG>();
                 if (IsGlobal)
                 {
-                    columns = ApplicationState.Module3D.SelectedScene.ColumnManager.ColumnsIEEG.ToList();
+                    columns = SelectedScene.ColumnManager.ColumnsIEEG.ToList();
                 }
                 else
                 {
-                    columns.Add((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn);
+                    columns.Add((HBP.Module3D.Column3DIEEG)SelectedColumn);
                 }
 
                 foreach (HBP.Module3D.Column3DIEEG column in columns)
                 {
-                    column.IsTimelineLooping = m_Toggle.isOn;
+                    column.Timeline.IsLooping = m_Toggle.isOn;
                 }
             });
         }
@@ -73,24 +67,21 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isColumnIEEG = ApplicationState.Module3D.SelectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG;
-            bool areAmplitudesComputed = ApplicationState.Module3D.SelectedScene.SceneInformation.IsGeneratorUpToDate;
+            bool isColumnIEEG = SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
+            bool areAmplitudesComputed = SelectedScene.SceneInformation.IsGeneratorUpToDate;
 
             m_Toggle.interactable = isColumnIEEG && areAmplitudesComputed;
         }
 
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Column)
+            if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
             {
-                if (ApplicationState.Module3D.SelectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG)
-                {
-                    m_Toggle.isOn = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).IsTimelineLooping;
-                }
-                else
-                {
-                    m_Toggle.isOn = false;
-                }
+                m_Toggle.isOn = ((HBP.Module3D.Column3DIEEG)SelectedColumn).Timeline.IsLooping;
+            }
+            else
+            {
+                m_Toggle.isOn = false;
             }
         }
         #endregion

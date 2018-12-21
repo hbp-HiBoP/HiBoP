@@ -1,9 +1,14 @@
-﻿using UnityEngine;
+﻿using NewTheme.Components;
+using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class ZoneResizer : MonoBehaviour
 {
     #region Properties
+    public State LeftRight;
+    public State TopBottom;
+    public ThemeElement ThemeElement;
+
     [SerializeField]
     RectTransform botRect;
     public RectTransform BotRect
@@ -42,7 +47,6 @@ public class ZoneResizer : MonoBehaviour
         set
         {
             direction = value;
-            SetCursor();
         }
     }
 
@@ -183,13 +187,21 @@ public class ZoneResizer : MonoBehaviour
     }
     void OnPointerEnterDelegate(PointerEventData data)
     {
-        Cursor.SetCursor(cursor, hotSpot, CursorMode.Auto);
+        switch (Direction)
+        {
+            case DirectionType.LeftToRight:
+                ThemeElement.Set(LeftRight);
+                break;
+            case DirectionType.BottomToTop:
+                ThemeElement.Set(TopBottom);
+                break;
+        }
     }
     void OnPointerExitDelegate(PointerEventData data)
     {
         if(!data.dragging)
         {
-            Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.Cursor.Texture, ApplicationState.GeneralSettings.Theme.General.Cursor.Offset, CursorMode.Auto);
+            ThemeElement.Set();
         }
     }
     void OnDragDelegate(PointerEventData data)
@@ -205,27 +217,11 @@ public class ZoneResizer : MonoBehaviour
     }
     void OnEndDragDelegate(PointerEventData data)
     {
-        Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.Cursor.Texture, ApplicationState.GeneralSettings.Theme.General.Cursor.Offset, CursorMode.Auto);
-    }
-    void SetCursor()
-    {
-        switch(Direction)
-        {
-            case DirectionType.BottomToTop:
-                cursor = ApplicationState.GeneralSettings.Theme.General.TopBottomCursor.Texture;
-                hotSpot = ApplicationState.GeneralSettings.Theme.General.TopBottomCursor.Offset;
-                break;
-
-            case DirectionType.LeftToRight:
-                cursor = ApplicationState.GeneralSettings.Theme.General.LeftRightCursor.Texture;
-                hotSpot = ApplicationState.GeneralSettings.Theme.General.LeftRightCursor.Offset;
-                break;
-        }
+        ThemeElement.Set();
     }
     void Start()
     {
         AddEvents();
-        SetCursor();
     }
     #endregion
 }

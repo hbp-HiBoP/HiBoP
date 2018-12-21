@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HBP.Module3D;
+using UnityEngine;
 
 namespace HBP.UI.Module3D.Tools
 {
@@ -8,8 +9,10 @@ namespace HBP.UI.Module3D.Tools
         /// <summary>
         /// Lock to prevent the calls to the listeners when only changing the selected scene / column / view
         /// </summary>
-        [HideInInspector]
-        public bool ListenerLock;
+        [HideInInspector] public bool ListenerLock;
+        public Base3DScene SelectedScene { protected get; set; }
+        public Column3D SelectedColumn { protected get; set; }
+        public View3D SelectedView { protected get; set; }
         #endregion
 
         #region Public Methods
@@ -28,7 +31,7 @@ namespace HBP.UI.Module3D.Tools
         /// <summary>
         /// Update the status of the tool
         /// </summary>
-        public virtual void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public virtual void UpdateStatus()
         {
 
         }

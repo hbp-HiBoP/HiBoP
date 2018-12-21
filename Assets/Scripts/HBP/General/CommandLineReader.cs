@@ -17,7 +17,7 @@ namespace HBP
         {
             string[] args = System.Environment.GetCommandLineArgs();
 #if UNITY_EDITOR
-            //args = new string[] { "HiBoP", "-p", "MarsAtlas", "-v", "Visu" };
+            args = new string[] { "HiBoP", "-p", "DEBUG", "-v", "Unknown"};
 #endif
             StartCoroutine(c_InterpreteCommandLineArguments(args));
         }
@@ -33,7 +33,12 @@ namespace HBP
                 for (int i = 1; i < args.Length; ++i)
                 {
                     string arg = args[i];
-                    if (arg.StartsWith("-"))
+                    if (i == 1 && new FileInfo(arg).Exists)
+                    {
+                        actions.Add("-pf");
+                        arguments.Add(new List<string>(1) { arg });
+                    }
+                    else if (arg.StartsWith("-"))
                     {
                         actions.Add(arg);
                         arguments.Add(new List<string>());
@@ -51,7 +56,7 @@ namespace HBP
         }
         private IEnumerator c_ApplyAction(string action, List<string> arguments)
         {
-            if (action == "-p")
+            if (action == "-p") // Project
             {
                 if (arguments.Count == 0)
                 {
@@ -60,14 +65,30 @@ namespace HBP
                 else
                 {
                     Task projectLoadingTask;
-                    yield return this.StartCoroutineAsync(FindObjectOfType<ProjectLoaderSaver>().c_Load(new Data.General.ProjectInfo(ApplicationState.GeneralSettings.DefaultProjectLocation + Path.DirectorySeparatorChar + arguments[0])), out projectLoadingTask);
+                    yield return this.StartCoroutineAsync(FindObjectOfType<ProjectLoaderSaver>().c_Load(new Data.General.ProjectInfo(ApplicationState.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0] + Data.General.Project.EXTENSION)), out projectLoadingTask);
                     if (projectLoadingTask.State == TaskState.Error)
                     {
-                        ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Couldn't open project", "No project named <color=red>" + arguments[0] + "</color> could be found in the default project directory (" + ApplicationState.GeneralSettings.DefaultProjectLocation + ").\n\nPlease verify the project name or your default project directory.");
+                        ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Couldn't open project", "No project named <color=red>" + arguments[0] + "</color> could be found in the default project directory (" + ApplicationState.UserPreferences.General.Project.DefaultLocation + ").\n\nPlease verify the project name or your default project directory.");
                     }
                 }
             }
-            else if (action == "-v")
+            else if (action == "-pf") // Project File
+            {
+                if (arguments.Count == 0)
+                {
+                    ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Couldn't open project", "The project name has not been specified.");
+                }
+                else
+                {
+                    Task projectLoadingTask;
+                    yield return this.StartCoroutineAsync(FindObjectOfType<ProjectLoaderSaver>().c_Load(new Data.General.ProjectInfo(arguments[0])), out projectLoadingTask);
+                    if (projectLoadingTask.State == TaskState.Error)
+                    {
+                        ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Couldn't open project", "The selected file <color=red>" + arguments[0] + "</color> is not a valid project.\n\nPlease verify the project file.");
+                    }
+                }
+            }
+            else if (action == "-v") // Visualization
             {
                 if (ApplicationState.ProjectLoaded == null)
                 {

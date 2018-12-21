@@ -8,6 +8,7 @@ namespace Tools.Unity
     public class TooltipManager : MonoBehaviour
     {
         #region Properties
+        private static Vector3 m_Offset = new Vector3(0, -20, 0);
         public const float TIME_TO_DISPLAY = 0.7f;
 
         private bool m_IsTooltipDisplayed = false;
@@ -28,6 +29,8 @@ namespace Tools.Unity
                 return m_TooltipHasBeenDisplayedRecently;
             }
         }
+
+        private bool m_FollowMouse = false;
 
         /// <summary>
         /// Canvas on which the tooltip is displayed
@@ -57,6 +60,10 @@ namespace Tools.Unity
             {
                 m_TooltipHasBeenDisplayedRecently = false;
             }
+            if(m_FollowMouse)
+            {
+                MoveAtMousePosition();
+            }
         }
         private void ClampToCanvas()
         {
@@ -72,15 +79,20 @@ namespace Tools.Unity
 
             m_Tooltip.localPosition = l_pos;
         }
+        private void MoveAtMousePosition()
+        {
+            m_Tooltip.position = Input.mousePosition + m_Offset;
+            ClampToCanvas();
+        }
         #endregion
 
         #region Public Methods
-        public void ShowTooltip(string text, Vector3 position)
+        public void ShowTooltip(string text, bool followMouse = false)
         {
+            m_FollowMouse = followMouse;
             m_Tooltip.gameObject.SetActive(true);
             m_TextField.text = text;
-            m_Tooltip.position = position;
-            ClampToCanvas();
+            MoveAtMousePosition();
 
             m_IsTooltipDisplayed = true;
             m_TooltipHasBeenDisplayedRecently = true;

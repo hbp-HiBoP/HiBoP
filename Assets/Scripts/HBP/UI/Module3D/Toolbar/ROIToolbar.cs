@@ -23,6 +23,11 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private Tools.ROIExport m_ROIExport;
+        /// <summary>
+        /// Export sites to a csv file
+        /// </summary>
+        [SerializeField]
+        private Tools.ExportSites m_ExportSites;
         #endregion
 
         #region Private Methods
@@ -31,20 +36,21 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_ROIManager);
             m_Tools.Add(m_ROICopy);
             m_Tools.Add(m_ROIExport);
+            m_Tools.Add(m_ExportSites);
         }
         #endregion
 
         #region Public Methods
         public override void ShowToolbarCallback()
         {
-            foreach (HBP.Module3D.Base3DScene scene in ApplicationState.Module3D.ScenesManager.Scenes)
+            foreach (HBP.Module3D.Base3DScene scene in ApplicationState.Module3D.Scenes)
             {
                 scene.ROICreation = true;
             }
         }
         public override void HideToolbarCallback()
         {
-            foreach (HBP.Module3D.Base3DScene scene in ApplicationState.Module3D.ScenesManager.Scenes)
+            foreach (HBP.Module3D.Base3DScene scene in ApplicationState.Module3D.Scenes)
             {
                 scene.ROICreation = false;
             }

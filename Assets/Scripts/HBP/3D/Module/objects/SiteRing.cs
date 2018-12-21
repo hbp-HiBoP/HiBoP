@@ -21,9 +21,9 @@ namespace HBP.Module3D
         private GameObject m_Ring = null;
 
         private float m_AnimationSpeed = 0.05f;
-        private float m_AnimationMin = 0.20f;
-        private float m_AnimationMax = 0.40f;
-        private float m_AnimationCurrentStep = 0.15f;
+        private float m_AnimationMin = 0.40f;
+        private float m_AnimationMax = 0.60f;
+        private float m_AnimationCurrentStep = 0.45f;
         private bool m_AnimationDirection = true;
         private float m_Scale = 1.0f;
 

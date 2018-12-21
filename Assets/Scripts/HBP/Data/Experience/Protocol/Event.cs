@@ -10,7 +10,7 @@ namespace HBP.Data.Experience.Protocol
     * \author Adrien Gannerie
     * \version 1.0
     * \date 09 janvier 2017
-    * \brief Protoocol Event.
+    * \brief Protocol Event.
     * 
     * \details Class which define a event in a protocol which contains :
     *     - \a Label.
@@ -24,17 +24,17 @@ namespace HBP.Data.Experience.Protocol
         private const char SEPARATOR = ',';
 
         /** Name of the code. */
-        [DataMember]
-		public string Name { get; set; }
+        [DataMember] public string Name { get; set; }
 
-        /** Codes of the event. */
-        [DataMember]
-		public List<int> Codes { get; set; }
+        /// <summary>
+        ///  Codes of the event.
+        /// </summary>
+        [DataMember] public List<int> Codes { get; set; }
 
-        public enum TypeEnum { Main, Secondary}
-        [DataMember]
-        /** Type of the event. */
-        public TypeEnum Type { get; set; }
+        /// <summary>
+        /// Type of event.
+        /// </summary>
+        [DataMember] public Enums.MainSecondaryEnum Type { get; set; }
 
         /** Codes of the event in a string with code separate with ','. */
         [IgnoreDataMember]
@@ -51,16 +51,20 @@ namespace HBP.Data.Experience.Protocol
         /// </summary>
         /// <param name="label">Label of the event.</param>
         /// <param name="codes">Codes of the event.</param>
-        public Event(string label, int[] codes, TypeEnum type)
+        public Event(string label, int[] codes, Enums.MainSecondaryEnum type)
         {
             Name = label;
             Codes = codes.ToList();
             Type = type;
         }
+        public Event(Enums.MainSecondaryEnum type) : this("",new int[0],type)
+        {
+
+        }
         /// <summary>
         /// Create a new instance with a empty label and no codes.
         /// </summary>
-        public Event() : this(string.Empty,new int[0],TypeEnum.Main)
+        public Event() : this(Enums.MainSecondaryEnum.Main)
 		{
 		}
         #endregion

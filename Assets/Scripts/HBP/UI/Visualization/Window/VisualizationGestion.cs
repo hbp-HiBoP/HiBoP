@@ -4,39 +4,59 @@ using System.Linq;
 
 namespace HBP.UI.Visualization
 {
-    public class VisualizationGestion : ItemGestion<Data.Visualization.Visualization>
+    public class VisualizationGestion : SavableWindow
     {
         #region Properties
-        Button displayButton;
+        [SerializeField] Button m_AddButton, m_RemoveButton, m_DisplayButton;
+        [SerializeField] VisualizationListGestion m_VisualizationListGestion;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+
+                m_AddButton.interactable = value;
+                m_RemoveButton.interactable = value;
+                m_VisualizationListGestion.Interactable = value;
+                SetDisplay();
+            }
+        }
         #endregion
 
         #region Public Methods
         public override void Save()
         {
-            ApplicationState.ProjectLoaded.SetVisualizations(Items.ToArray());
+            ApplicationState.ProjectLoaded.SetVisualizations(m_VisualizationListGestion.Objects);
             base.Save();
         }
         public void Display()
         {
-            ApplicationState.Module3D.LoadScenes(m_List.ObjectsSelected);
-            base.Close();
+            ApplicationState.Module3D.LoadScenes(m_VisualizationListGestion.List.ObjectsSelected);
+            Save();
         }
         #endregion
 
         #region Private Methods
-        protected override void SetWindow()
+        protected override void Initialize()
         {
-            displayButton = transform.Find("Content").Find("Buttons").Find("Display").GetComponent<Button>();
-            m_List = transform.Find("Content").Find("MultiPatientsVisualizations").Find("List").Find("Display").GetComponent<VisualizationList>();
-            (m_List as VisualizationList).OnAction.AddListener((visu, type) => OpenModifier(visu,true));
-            (m_List as VisualizationList).OnSelectionChanged.AddListener((visu,selected) => SetDisplay());
-            AddItem(ApplicationState.ProjectLoaded.Visualizations.ToArray());
+            m_VisualizationListGestion.Initialize(m_SubWindows);
+            m_VisualizationListGestion.Objects = ApplicationState.ProjectLoaded.Visualizations.ToList();
+            m_VisualizationListGestion.List.OnSelectionChanged.AddListener(() => SetDisplay());
+            SetDisplay();
+
+            base.Initialize();
         }
         void SetDisplay()
         {
-            Data.Visualization.Visualization[] visualizationsSelected = m_List.ObjectsSelected;
-            displayButton.interactable = (visualizationsSelected.Length > 0 && visualizationsSelected.All(v => v.IsVisualizable));
-        }
+            Data.Visualization.Visualization[] visualizationsSelected = m_VisualizationListGestion.List.ObjectsSelected;
+            m_DisplayButton.interactable = visualizationsSelected.Length > 0 && visualizationsSelected.All(v => v.IsVisualizable) && Interactable;
+        }   
         #endregion
     }
 }

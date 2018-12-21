@@ -1,24 +1,42 @@
-﻿using System.Linq;
-using Tools.CSharp;
-using d = HBP.Data.Experience.Protocol;
+﻿using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
 
 namespace HBP.UI.Experience.Protocol
 {
-	public class ProtocolGestion : ItemGestion<d.Protocol>
+	public class ProtocolGestion : SavableWindow
     {
         #region Properties
-        Text m_protocolsCounter;
+        [SerializeField] ProtocolListGestion m_ProtocolListGestion;
+        [SerializeField] Button m_CreateProtocolButton;
+        [SerializeField] Button m_RemoveProtocolButton;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+            set 
+            {
+                base.Interactable = value;
+
+                m_ProtocolListGestion.Interactable = value;
+                m_CreateProtocolButton.interactable = value;
+                m_RemoveProtocolButton.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
         public override void Save()
 		{
+            foreach (var modifier in m_ProtocolListGestion.SubWindows.ToArray()) modifier.Save();
             if (DataManager.HasData)
             {
                 ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
                 {
-                    ApplicationState.ProjectLoaded.SetProtocols(Items.ToArray());
+                    ApplicationState.ProjectLoaded.SetProtocols(m_ProtocolListGestion.Objects);
                     base.Save();
                     DataManager.Clear();
                     ApplicationState.Module3D.ReloadScenes();
@@ -26,46 +44,19 @@ namespace HBP.UI.Experience.Protocol
             }
             else
             {
-                ApplicationState.ProjectLoaded.SetProtocols(Items.ToArray());
+                ApplicationState.ProjectLoaded.SetProtocols((m_ProtocolListGestion.Objects));
                 base.Save();
             }
-        }
-        public override void Remove()
-        {
-            base.Remove();
-            m_protocolsCounter.text = m_List.ObjectsSelected.Count().ToString();
-        }
-        public void Import()
-        {
-            string l_resultStandalone = HBP.Module3D.DLL.QtGUI.GetExistingFileName(new string[] { "prov" }, "Please select the protocols file to import");
-            l_resultStandalone = l_resultStandalone.StandardizeToPath();
-            if (l_resultStandalone != string.Empty)
-            {
-                d.Protocol protocol = Tools.Unity.ClassLoaderSaver.LoadFromJson<d.Protocol>(l_resultStandalone);
-                if (protocol.ID == "xxxxxxxxxxxxxxxxxxxxxxxxx" || Items.Any(p => p.ID == protocol.ID))
-                {
-                    protocol.ID = System.Guid.NewGuid().ToString();
-                }
-                AddItem(protocol);
-            }
-        }
-        public override void Open()
-        {
-            base.Open();
-            (m_List as ProtocolList).SortByName(ProtocolList.Sorting.Descending);
         }
         #endregion
 
         #region Private Methods
-        protected override void SetWindow()
+        protected override void SetFields()
         {
-            m_List = transform.Find("Content").Find("Protocols").Find("List").Find("Display").GetComponent<ProtocolList>();
-            (m_List as ProtocolList).OnAction.AddListener((item, i) => OpenModifier(item, true));
-            AddItem(ApplicationState.ProjectLoaded.Protocols.ToArray());
-
-            m_protocolsCounter = transform.Find("Content").Find("Buttons").Find("ItemSelected").Find("Counter").GetComponent<Text>();
-            m_List.OnSelectionChanged.AddListener((g, b) => m_protocolsCounter.text = m_List.ObjectsSelected.Count().ToString());
+            m_ProtocolListGestion.Initialize(m_SubWindows);
+            m_ProtocolListGestion.Objects = ApplicationState.ProjectLoaded.Protocols.ToList();
+            base.SetFields();
         }
-		#endregion
-	}
+        #endregion
+    }
 }

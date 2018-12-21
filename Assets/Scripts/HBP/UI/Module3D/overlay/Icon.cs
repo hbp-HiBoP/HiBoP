@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
-    public class Icon : OverlayElement
+    public class Icon : ColumnOverlayElement
     {
         #region Properties
         [SerializeField]
@@ -22,15 +22,15 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
-        public override void Initialize(Base3DScene scene, Column3D column, Column3DUI columnUI)
+        public override void Setup(Base3DScene scene, Column3D column, Column3DUI columnUI)
         {
-            base.Initialize(scene, column, columnUI);
+            base.Setup(scene, column, columnUI);
             IsActive = false;
             m_DefaultSprite = m_Image.sprite;
 
             scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
-                if (column.Type == Column3D.ColumnType.IEEG)
+                if (column.Type == Data.Enums.ColumnType.iEEG)
                 {
                     IsActive = value;
                 }
@@ -39,21 +39,26 @@ namespace HBP.UI.Module3D
 
             switch (column.Type)
             {
-                case Column3D.ColumnType.Base:
+                case Data.Enums.ColumnType.Anatomic:
                     IsActive = false;
                     break;
-                case Column3D.ColumnType.IEEG:
+                case Data.Enums.ColumnType.iEEG:
                     Column3DIEEG col = (Column3DIEEG)column;
-                    m_Icons = col.ColumnData.IconicScenario.Icons.OrderByDescending((i) => i.StartPosition).ToList();
+                    m_Icons = col.ColumnIEEGData.Data.IconicScenario.Icons.OrderByDescending((i) => i.StartPosition).ToList();
 
                     col.OnUpdateCurrentTimelineID.AddListener(() =>
                     {
                         if (!scene.SceneInformation.IsGeneratorUpToDate) return;
 
-                        Data.Visualization.Icon icon = m_Icons.DefaultIfEmpty(null).FirstOrDefault((i) => i.StartPosition <= col.CurrentTimeLineID && i.EndPosition >= col.CurrentTimeLineID);
+                        Data.Visualization.Icon icon = m_Icons.FirstOrDefault((i) => i.StartPosition <= col.Timeline.CurrentIndex && i.EndPosition >= col.Timeline.CurrentIndex);
+                        if (icon == null)
+                        {
+                            IsActive = false;
+                            m_CurrentIcon = null;
+                        }
                         if (icon != m_CurrentIcon)
                         {
-                            if (icon == null || !icon.Usable)
+                            if (!icon.Usable)
                             {
                                 IsActive = false;
                                 m_Image.sprite = m_DefaultSprite;

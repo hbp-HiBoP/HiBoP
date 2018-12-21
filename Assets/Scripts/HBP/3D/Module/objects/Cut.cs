@@ -1,51 +1,65 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
+    /// <summary>
+    /// Class for the cut plane
+    /// </summary>
     public class Cut : Plane
     {
         #region Properties
-        public const CutOrientation DEFAULT_ORIENTATION = CutOrientation.Axial;
-        public const bool DEFAULT_FLIP = false;
-        public const int DEFAULT_REMOVE_FRONT_PLANE = 0;
-        public const int DEFAULT_NUMBER_OF_CUTS = 500;
-        public const float DEFAULT_POSITION = 0.5f;
-        
+        /// <summary>
+        /// ID of the cut
+        /// </summary>
         public int ID { get; set; }
-        public CutOrientation Orientation { get; set; }
+        /// <summary>
+        /// Orientation of the cut
+        /// </summary>
+        public Data.Enums.CutOrientation Orientation { get; set; }
+        /// <summary>
+        /// Is the cut flipped ?
+        /// </summary>
         public bool Flip { get; set; }
-        public int RemoveFrontPlane { get; set; }
+        /// <summary>
+        /// Number of cuts (levels in the MRI)
+        /// </summary>
         public int NumberOfCuts { get; set; }
+        /// <summary>
+        /// Position of the cut
+        /// </summary>
         public float Position { get; set; }
         #endregion
 
         #region Events
-        public GenericEvent<Texture2D> OnUpdateGUITextures = new GenericEvent<Texture2D>();
+        /// <summary>
+        /// Event called when the GUI textures are computed
+        /// </summary>
+        public GenericEvent<Column3D> OnUpdateGUITextures = new GenericEvent<Column3D>();
+        /// <summary>
+        /// Event called when the parameters of a cut are updated
+        /// </summary>
         public UnityEvent OnUpdateCut = new UnityEvent();
+        /// <summary>
+        /// Event called when a cut is removed
+        /// </summary>
         public UnityEvent OnRemoveCut = new UnityEvent();
         #endregion
 
         #region Constructors
         public Cut() : base()
         {
-            Orientation = DEFAULT_ORIENTATION;
-            Flip = DEFAULT_FLIP;
-            RemoveFrontPlane = DEFAULT_REMOVE_FRONT_PLANE;
-            NumberOfCuts = DEFAULT_NUMBER_OF_CUTS;
-            Position = DEFAULT_POSITION;
+            Orientation = Data.Enums.CutOrientation.Axial;
+            Flip = false;
+            NumberOfCuts = 500;
+            Position = 0.5f;
         }
-
         public Cut(Vector3 point, Vector3 normal) : base(point, normal)
         {
-            Orientation = DEFAULT_ORIENTATION;
-            Flip = DEFAULT_FLIP;
-            RemoveFrontPlane = DEFAULT_REMOVE_FRONT_PLANE;
-            NumberOfCuts = DEFAULT_NUMBER_OF_CUTS;
-            Position = DEFAULT_POSITION;
+            Orientation = Data.Enums.CutOrientation.Axial;
+            Flip = false;
+            NumberOfCuts = 500;
+            Position = 0.5f;
         }
         #endregion
     }

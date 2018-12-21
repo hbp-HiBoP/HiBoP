@@ -2,7 +2,6 @@
 using System.Linq;
 using System.IO;
 using System.Collections.Generic;
-using Eppy;
 
 namespace HBP.Data.Localizer
 {
@@ -11,60 +10,77 @@ namespace HBP.Data.Localizer
         #region Properties
         public const string EXTENSION = ".pos";
         public const string BIDS_EXTENSION = ".tsv";
-        Dictionary<int, List<Tuple<int,int>>> m_IndexByCode;
+        Dictionary<int, List<Occurence>> m_OccurencesByCode;
         #endregion
 
 		#region Constructor
-        public POS(Dictionary<int,List<Tuple<int,int>>> indexByCode)
+        public POS(Dictionary<int,List<Occurence>> occurencesByCode)
         {
-            m_IndexByCode = indexByCode;
+            m_OccurencesByCode = occurencesByCode;
         }
-		public POS(string path, float frequency = -1)
-		{
-            POS pos = Load(path, frequency);
-            m_IndexByCode = pos.m_IndexByCode;
-		}
-        public POS() : this(new Dictionary<int, List<Tuple<int,int>>>()) { }
-        #endregion
-
-        #region Public Methods
-        public static POS Load(string path, float frequency)
+        public POS(string path, Frequency frequency)
         {
             if (String.IsNullOrEmpty(path)) throw new EmptyFilePathException();
             FileInfo posFile = new FileInfo(path);
-            if(!posFile.Exists) throw new FileNotFoundException();
+            if (!posFile.Exists) throw new FileNotFoundException();
             if (posFile.Extension != EXTENSION && posFile.Extension != BIDS_EXTENSION) throw new Exception("Wrong extension");
 
-            Dictionary<int, List<Tuple<int,int>>> indexByCode = new Dictionary<int, List<Tuple<int,int>>>();
+            Dictionary<int, List<Occurence>> occurencesByCode = new Dictionary<int, List<Occurence>>();
             int code, index, state;
-            foreach (string line in File.ReadAllLines(path))
+            if(posFile.Extension == EXTENSION)
             {
-                if (posFile.Extension == EXTENSION)
+                foreach (string line in File.ReadAllLines(path))
                 {
                     if (ReadLine(line, out code, out index, out state))
                     {
-                        if (!indexByCode.ContainsKey(code)) indexByCode[code] = new List<Tuple<int, int>>();
-                        indexByCode[code].Add(new Tuple<int, int>(index, state));
-                    }
-                }
-                else if (posFile.Extension == BIDS_EXTENSION)
-                {
-                    if (ReadBIDSLine(line, frequency, out code, out index, out state))
-                    {
-                        if (!indexByCode.ContainsKey(code)) indexByCode[code] = new List<Tuple<int, int>>();
-                        indexByCode[code].Add(new Tuple<int, int>(index, state));
+                        if (!occurencesByCode.ContainsKey(code)) occurencesByCode[code] = new List<Occurence>();
+                        occurencesByCode[code].Add(new Occurence(code, index, state, frequency.ConvertNumberOfSamplesToRoundedMilliseconds(index)));
                     }
                 }
             }
-            return new POS(indexByCode);
+            else if(posFile.Extension == BIDS_EXTENSION)
+            {
+                foreach (string line in File.ReadAllLines(path))
+                {
+                    if (ReadBIDSLine(line, frequency, out code, out index, out state))
+                    {
+                        if (!occurencesByCode.ContainsKey(code)) occurencesByCode[code] = new List<Occurence>();
+                        occurencesByCode[code].Add(new Occurence(code, index, state, frequency.ConvertNumberOfSamplesToRoundedMilliseconds(index)));
+                    }
+                }
+            }
+            m_OccurencesByCode = occurencesByCode;
         }
+		public POS(string path)
+		{
+            if (String.IsNullOrEmpty(path)) throw new EmptyFilePathException();
+            FileInfo posFile = new FileInfo(path);
+            if (!posFile.Exists) throw new FileNotFoundException();
+            if (posFile.Extension != EXTENSION) throw new Exception("Wrong extension");
+
+            Dictionary<int, List<Occurence>> occurencesByCode = new Dictionary<int, List<Occurence>>();
+            int code, index, state;
+            foreach (string line in File.ReadAllLines(path))
+            {
+                if (ReadLine(line, out code, out index, out state))
+                {
+                    if (!occurencesByCode.ContainsKey(code)) occurencesByCode[code] = new List<Occurence>();
+                    occurencesByCode[code].Add(new Occurence(code, index, state));
+                }
+            }
+            m_OccurencesByCode = occurencesByCode;
+        }
+        public POS() : this(new Dictionary<int, List<Occurence>>()) { }
+        #endregion
+
+        #region Public Methods
         public void Save(string path)
         {
             if (String.IsNullOrEmpty(path)) throw new EmptyFilePathException();
             FileInfo posFile = new FileInfo(path);
             if (posFile.Extension != EXTENSION) throw new Exception("Wrong extension");
 
-            IEnumerable<Tuple<int,int,int>> lineInfo = from pair in m_IndexByCode from tuple in pair.Value select new Tuple<int, int,int>(pair.Key,tuple.Object1,tuple.Object2);
+            IEnumerable<Tuple<int,int,int>> lineInfo = from pair in m_OccurencesByCode from occurence in pair.Value select new Tuple<int, int,int>(pair.Key, occurence.Index, occurence.State);
             IOrderedEnumerable<Tuple<int,int,int>> sortedIndexAndCode = lineInfo.OrderBy((tuple) => tuple.Item2);
             IEnumerable<string> lines = sortedIndexAndCode.Select((tuple) => GenerateLine(tuple.Item1, tuple.Item2, tuple.Item3));
             using (StreamWriter streamWriter = new StreamWriter(posFile.FullName))
@@ -72,17 +88,17 @@ namespace HBP.Data.Localizer
                 foreach (var line in lines) streamWriter.WriteLine(line);
             }
         }
-		public IEnumerable<int> GetIndexes(IEnumerable<int> codes)
+		public IEnumerable<Occurence> GetOccurences(IEnumerable<int> codes)
 		{
-            return from code in codes from index in GetIndexes(code) select index;
+            return from code in codes from occurence in GetOccurences(code) select occurence;
         }
-		public IEnumerable<int> GetIndexes(int code)
+		public IEnumerable<Occurence> GetOccurences(int code)
 		{
-            return m_IndexByCode.ContainsKey(code) ? from tuple in m_IndexByCode[code] where tuple.Object2 == 0 select tuple.Object1 : new List<int>();
+            return m_OccurencesByCode.ContainsKey(code) ? from occurence in m_OccurencesByCode[code] where occurence.IsOk select occurence : new List<Occurence>();
 		}
         public bool IsCompatible(Experience.Protocol.Protocol protocol)
         {
-            return protocol.Blocs.All(bloc => bloc.MainEvent.Codes.Any(code => m_IndexByCode.ContainsKey(code)));
+            return protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => m_OccurencesByCode.ContainsKey(code)));
         }
         #endregion
 
@@ -95,7 +111,7 @@ namespace HBP.Data.Localizer
             bool format = elements.Length == 3;
             return parsing && format;
         }
-        static bool ReadBIDSLine(string line, float frequency, out int code, out int index, out int state)
+        static bool ReadBIDSLine(string line, Frequency frequency, out int code, out int index, out int state)
         {
             state = int.MinValue; code = int.MinValue; index = int.MinValue;
             string[] elements = line.Split(new char[] { '\t' });
@@ -104,7 +120,7 @@ namespace HBP.Data.Localizer
             if (parsing)
             {
                 state = 0;
-                index = (int)(seconds * frequency);
+                index = frequency.ConvertToRoundedNumberOfSamples(seconds);
             }
             bool format = elements.Length == 3;
             return parsing && format;
@@ -112,6 +128,29 @@ namespace HBP.Data.Localizer
         static string GenerateLine(int code,int index, int state)
         {
             return index + "\t" + code + "\t" + state;
+        }
+        #endregion
+
+        #region Struct
+        public struct Occurence
+        {
+            #region Properties
+            public int Code { get; set; }
+            public int Index { get; set; }
+            public int State { get; set; }
+            public bool IsOk { get { return State == 0; } }
+            public float Time { get; set; }
+            #endregion
+
+            #region Constructors
+            public Occurence(int code, int index, int state, float time = -1)
+            {
+                Code = code;
+                Index = index;
+                State = state;
+                Time = time;
+            }
+            #endregion
         }
         #endregion
     }

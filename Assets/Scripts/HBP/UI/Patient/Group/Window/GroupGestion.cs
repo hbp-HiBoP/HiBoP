@@ -1,42 +1,47 @@
-﻿using System.Linq;
-using HBP.Data;
+﻿using UnityEngine;
+using System.Linq;
 using UnityEngine.UI;
 
 namespace HBP.UI.Anatomy
 {
-    public class GroupGestion : ItemGestion<Group>
+    public class GroupGestion : SavableWindow
     {
         #region Properties
-        Text m_groupCounter;
+        [SerializeField] GroupListGestion m_GroupListGestion;
+        [SerializeField] Button m_AddButton;
+        [SerializeField] Button m_RemoveButton;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+            set
+            {
+                base.Interactable = value;
+
+                m_GroupListGestion.Interactable = value;
+                m_AddButton.interactable = value;
+                m_RemoveButton.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
         public override void Save()
         {
-            ApplicationState.ProjectLoaded.SetGroups(Items.ToArray());
+            ApplicationState.ProjectLoaded.SetGroups(m_GroupListGestion.Objects);
             base.Save();
-        }
-        public override void Remove()
-        {
-            base.Remove();
-            m_groupCounter.text = m_List.ObjectsSelected.Count().ToString();
-        }
-        public override void Open()
-        {
-            base.Open();
-            (m_List as GroupList).SortByName(GroupList.Sorting.Descending);
         }
         #endregion
 
-        #region Protected Methods
-        protected override void SetWindow()
+        #region Private Methods
+        protected override void SetFields()
         {
-            m_List = transform.Find("Content").Find("Groups").Find("List").Find("Display").GetComponent<GroupList>();
-            (m_List as GroupList).OnAction.AddListener((item,i) => OpenModifier(item,true));
-            AddItem(ApplicationState.ProjectLoaded.Groups.ToArray());
-
-            m_groupCounter = transform.Find("Content").Find("Buttons").Find("ItemSelected").Find("Counter").GetComponent<Text>();
-            m_List.OnSelectionChanged.AddListener((g,b) => m_groupCounter.text = m_List.ObjectsSelected.Count().ToString());
+            m_GroupListGestion.Initialize(m_SubWindows);
+            m_GroupListGestion.Objects = ApplicationState.ProjectLoaded.Groups.ToList();
+            base.SetFields();
         }
         #endregion
     }

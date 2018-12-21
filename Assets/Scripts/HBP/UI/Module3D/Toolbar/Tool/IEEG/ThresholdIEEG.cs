@@ -26,14 +26,15 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (IsGlobal)
                 {
-                    foreach (HBP.Module3D.Column3DIEEG column in ApplicationState.Module3D.SelectedScene.ColumnManager.ColumnsIEEG)
+                    foreach (HBP.Module3D.Column3DIEEG column in SelectedScene.ColumnManager.ColumnsIEEG)
                     {
-                        column.IEEGParameters.SetSpanValues(min, mid, max);
+                        column.IEEGParameters.SetSpanValues(min, mid, max, column);
                     }
                 }
                 else
                 {
-                    ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.SetSpanValues(min, mid, max);
+                    HBP.Module3D.Column3DIEEG column = (HBP.Module3D.Column3DIEEG)SelectedScene.ColumnManager.SelectedColumn;
+                    column.IEEGParameters.SetSpanValues(min, mid, max, column);
                 }
             });
         }
@@ -45,20 +46,16 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isColumnIEEG = ApplicationState.Module3D.SelectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG;
+            bool isColumnIEEG = SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
 
             m_Button.interactable = isColumnIEEG;
         }
 
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Column)
+            if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
             {
-                HBP.Module3D.Column3D selectedColumn = ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
-                if (selectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG)
-                {
-                    m_ThresholdIEEG.UpdateIEEGValues(((HBP.Module3D.Column3DIEEG)selectedColumn).IEEGParameters);
-                }
+                m_ThresholdIEEG.UpdateIEEGValues(((HBP.Module3D.Column3DIEEG)SelectedColumn).IEEGParameters);
             }
         }
         #endregion

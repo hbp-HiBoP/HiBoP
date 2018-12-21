@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Data.Experience.Dataset;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HBP.Data.TrialMatrix
@@ -6,45 +7,37 @@ namespace HBP.Data.TrialMatrix
     public class Bloc
     {
         #region Properties
-        /// <summary>
-        /// Bloc to display
-        /// </summary>
         public Experience.Protocol.Bloc ProtocolBloc { get; set; }
-
-        /// <summary>
-        /// Lines of the bloc.
-        /// </summary>
-        public Line[] Lines { get; set; }
-
-        public int SpacesBefore { get; set; }
-        public int SpacesAfter { get; set; }
+        public SubBloc[] SubBlocs { get; set; }
         #endregion
 
-        #region Constructor
-        public Bloc(Experience.Protocol.Bloc protocolBloc,Line[] lines)
+        #region Constructors
+        public Bloc(Experience.Protocol.Bloc protocolBloc,SubBloc[] subBlocs)
         {
             ProtocolBloc = protocolBloc;
-            Lines = lines;
+            SubBlocs = subBlocs;
         }
-        public Bloc(Experience.Protocol.Bloc protocolBloc, IEnumerable<Localizer.Bloc> blocs, Module3D.Site site)
+        public Bloc(Experience.Protocol.Bloc bloc, BlocChannelData blocChannelData)
         {
-            ProtocolBloc = protocolBloc;
-            Lines = Line.MakeLines(protocolBloc, blocs, site).ToArray();
-        }
-        public Bloc() : this(new Experience.Protocol.Bloc(),new Line[0])
-        {
-        }
-        #endregion
-
-        #region Public Methods
-        public Line[] GetLines(int[] lines)
-        {
-            Line[] result = new Line[lines.Length];
-            for (int i = 0; i < lines.Length; i++)
+            List<SubBloc> subBlocs = new List<SubBloc>(bloc.SubBlocs.Count);
+            IOrderedEnumerable<ChannelTrial> orderedTrials = SortTrials(bloc,blocChannelData.Trials.Where(t => t.IsValid)); // FIXME : Ajouter la gestion des trials non complets.
+            foreach (var subBloc in bloc.OrderedSubBlocs)
             {
-                result[i] = Lines[lines[i]];
+                IEnumerable<SubTrial> subTrials = orderedTrials.Select(trial => new SubTrial(trial.ChannelSubTrialBySubBloc[subBloc]));
+                SubBloc dataSubBloc = new SubBloc(subBloc, subTrials.ToArray());
+                subBlocs.Add(dataSubBloc);
             }
-            return result;
+            ProtocolBloc = bloc;
+            SubBlocs = subBlocs.ToArray();
+        }
+        #endregion
+
+        #region Private Methods
+        static IOrderedEnumerable<ChannelTrial> SortTrials(Experience.Protocol.Bloc bloc, IEnumerable<ChannelTrial> trials)
+        {
+            // TODO
+            IOrderedEnumerable<ChannelTrial> ordereredTrials = trials.OrderBy(t => t.IsValid);
+            return ordereredTrials;
         }
         #endregion
     }

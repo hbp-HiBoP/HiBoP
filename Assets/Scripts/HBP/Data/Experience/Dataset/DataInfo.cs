@@ -38,15 +38,16 @@ namespace HBP.Data.Experience.Dataset
             set { m_Name = value; m_NameErrors = GetNameErrors(); }
         }
 
-        [DataMember(Name = "Patient")] string m_Patient;
+        [DataMember(Name = "Patient")] string m_PatientID;
+        Patient m_Patient;
         /// <summary>
         /// Patient who has passed the experiment.
         /// </summary>
         ///
         public Patient Patient
         {
-            get { return ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == m_Patient); }
-            set { m_Patient = value.ID; m_PatientErrors = GetPatientErrors(); }
+            get { return m_Patient; }
+            set { m_PatientID = value.ID; m_Patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == m_PatientID); m_PatientErrors = GetPatientErrors(); }
         }
 
         [DataMember(Name = "Measure")] string m_Measure;
@@ -68,6 +69,14 @@ namespace HBP.Data.Experience.Dataset
             get { return m_EEG.ConvertToFullPath(); }
             set { m_EEG = value.ConvertToShortPath(); m_EEGErrors = GetEEGErrors(); }
         }
+        public string SavedEEG { get { return m_EEG; } }
+        public string EEGHeader
+        {
+            get
+            {
+                return EEG + Elan.EEG.HEADER_EXTENSION;
+            }
+        }
 
         [DataMember(Name = "POS")] string m_POS;
         /// <summary>
@@ -78,6 +87,7 @@ namespace HBP.Data.Experience.Dataset
             get { return m_POS.ConvertToFullPath(); }
             set { m_POS = value.ConvertToShortPath(); m_POSErrors = new ErrorType[0]; OnPOSChanged.Invoke(); }
         }
+        public string SavedPOS { get { return m_POS; } }
         public UnityEvent OnPOSChanged { get; set; }
         
         [DataMember(Name = "Normalization")]
@@ -99,7 +109,15 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         public enum NormalizationType
         {
-            None, Trial, Bloc, Protocol, Auto
+            None, SubTrial, Trial, SubBloc, Bloc, Protocol, Auto
+        }
+
+        public Dataset Dataset
+        {
+            get
+            {
+                return ApplicationState.ProjectLoaded.Datasets.FirstOrDefault((d) => d.Data.Contains(this));
+            }
         }
 
         ErrorType[] m_NameErrors;
@@ -131,6 +149,11 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Public Methods
+        public void SetPathsWithoutCheckingErrors(string eeg, string pos)
+        {
+            m_EEG = eeg.ConvertToShortPath();
+            m_POS = pos.ConvertToShortPath();
+        }
         public ErrorType[] GetErrors(Protocol.Protocol protocol)
         {
             GetNameErrors();
@@ -192,13 +215,13 @@ namespace HBP.Data.Experience.Dataset
                     }
                     else
                     {
-                        if (!File.Exists(EEGFile.FullName + Elan.EEG.HEADER_EXTENSION))
+                        if (!File.Exists(EEGHeader))
                         {
                             errors.Add(ErrorType.EEGHeaderNotExist);
                         }
                         else
                         {
-                            if (!(new FileInfo(EEGFile.FullName + Elan.EEG.HEADER_EXTENSION).Length > 0))
+                            if (!(new FileInfo(EEGHeader).Length > 0))
                             {
                                 errors.Add(ErrorType.EEGHeaderEmpty);
                             }
@@ -287,7 +310,7 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance.</returns>
         public object Clone()
         {
-            DataInfo dataInfo =  new DataInfo(Name.Clone() as string, Patient.Clone() as Patient, Measure.Clone() as string, EEG.Clone() as string, POS.Clone() as string, Normalization);
+            DataInfo dataInfo =  new DataInfo(Name.Clone() as string, Patient.Clone() as Patient, Measure.Clone() as string, m_EEG.Clone() as string, m_POS.Clone() as string, Normalization);
             dataInfo.OnPOSChanged = OnPOSChanged;
             return dataInfo;
         }
@@ -359,9 +382,7 @@ namespace HBP.Data.Experience.Dataset
         [OnDeserialized()]
         public void OnDeserialized(StreamingContext context)
         {
-            // Maybe FIXME
-            EEG = EEG;
-            POS = POS;
+            m_Patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == m_PatientID);
         }
         #endregion
     }

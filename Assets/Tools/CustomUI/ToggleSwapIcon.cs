@@ -10,12 +10,9 @@ namespace UnityEngine.UI
         #region Properties
         private Toggle m_Toggle;
         [SerializeField]
-        private Image m_Icon;
-
+        private Image m_OnIcon;
         [SerializeField]
-        private Sprite m_IsOnSprite;
-        [SerializeField]
-        private Sprite m_IsOffSprite;
+        private Image m_OffIcon;
         #endregion
 
         #region Private Methods
@@ -24,14 +21,8 @@ namespace UnityEngine.UI
             m_Toggle = GetComponent<Toggle>();
             m_Toggle.onValueChanged.AddListener((isOn) =>
             {
-                if (isOn)
-                {
-                    m_Icon.sprite = m_IsOnSprite;
-                }
-                else
-                {
-                    m_Icon.sprite = m_IsOffSprite;
-                }
+                m_OffIcon.gameObject.SetActive(!isOn);
+                m_OnIcon.gameObject.SetActive(isOn);
             });
         }
         #endregion
