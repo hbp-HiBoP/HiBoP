@@ -779,8 +779,8 @@ namespace HBP.Module3D
             if (m_ColumnManager.SelectedColumn.Type == Data.Enums.ColumnType.iEEG && !IsLatencyModeEnabled && site)
             {
                 List<Site> sites = new List<Site>();
-                sites.Add(site);
                 if (m_SiteToCompare) sites.Add(m_SiteToCompare);
+                sites.Add(site);
                 OnRequestSiteInformation.Invoke(sites);
             }
             SceneInformation.AreSitesUpdated = false;

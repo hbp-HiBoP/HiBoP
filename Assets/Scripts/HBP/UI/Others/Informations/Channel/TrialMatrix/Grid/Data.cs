@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using d = HBP.Data.TrialMatrix.Grid;
@@ -85,6 +87,17 @@ namespace HBP.UI.TrialMatrix.Grid
         }
         public Texture2DEvent OnChangeColormap;
 
+        public bool IsHovered
+        {
+            get
+            {
+                return Blocs.Any(b => b.IsHovered);
+            }
+        }
+        public BoolEvent OnChangeIsHovered;
+
+
+
         Color[] m_Colors;
         public Color[] Colors
         {
@@ -102,17 +115,30 @@ namespace HBP.UI.TrialMatrix.Grid
             }
         }
 
-
-        List<Bloc> m_Blocs = new List<Bloc>();
-        public Bloc[] Blocs
+        public Bloc BlocHovered
         {
             get
             {
-                return m_Blocs.ToArray();
+                return Blocs.FirstOrDefault(b => b.IsHovered);
+            }
+        }
+        List<Bloc> m_Blocs = new List<Bloc>();
+        public ReadOnlyCollection<Bloc> Blocs
+        {
+            get
+            {
+                return new ReadOnlyCollection<Bloc>(m_Blocs);
             }
         }
 
         d.Data m_Data;
+        public d.Data GridData
+        {
+            get
+            {
+                return m_Data;
+            }
+        }
 
         [SerializeField] GameObject m_BlocPrefab;
         [SerializeField] RectTransform m_BlocContainer;
@@ -173,6 +199,7 @@ namespace HBP.UI.TrialMatrix.Grid
         {
             Bloc bloc = (Instantiate(m_BlocPrefab, m_BlocContainer) as GameObject).GetComponent<Bloc>();
             bloc.Set(data, Colors, Limits);
+            bloc.OnChangeIsHovered.AddListener(() => OnChangeIsHovered.Invoke(IsHovered));
             m_Blocs.Add(bloc);
         }
         #endregion

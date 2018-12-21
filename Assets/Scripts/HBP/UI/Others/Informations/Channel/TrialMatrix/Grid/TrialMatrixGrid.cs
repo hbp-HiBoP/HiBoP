@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using data = HBP.Data.TrialMatrix.Grid;
 using HBP.Data.Informations;
+using System.Collections.ObjectModel;
+using System.Collections.Generic;
 
 namespace HBP.UI.TrialMatrix.Grid
 {
@@ -41,18 +43,26 @@ namespace HBP.UI.TrialMatrix.Grid
             }
         } 
 
-
         [SerializeField] RectTransform m_DataContainer;
         [SerializeField] GameObject m_DataPrefab;
 
         [SerializeField] RectTransform m_ChannelHeaderContainer;
         [SerializeField] GameObject m_ChannelHeaderPrefab;
 
-        Data[] m_Data;
+        List<Data> m_Data = new List<Data>();
+        public ReadOnlyCollection<Data> Data
+        {
+            get
+            {
+                return new ReadOnlyCollection<Data>(m_Data);
+            }
+        }
+
         data.TrialMatrixGrid m_TrialMatrixGridData;
         #endregion
 
         #region Public Methods
+
         public void Display(data.TrialMatrixGrid trialMatrixGridData, Texture2D colormap = null)
         {
             Clear();
@@ -76,6 +86,7 @@ namespace HBP.UI.TrialMatrix.Grid
         {
             Data data = Instantiate(m_DataPrefab, m_DataContainer).GetComponent<Data>();
             data.Set(d, m_Colormap, m_Colors);
+            m_Data.Add(data);
         }
         Color[] ExtractColormap(Texture2D colormap)
         {
@@ -96,7 +107,7 @@ namespace HBP.UI.TrialMatrix.Grid
             {
                 Destroy(child.gameObject);
             }
-            m_Data = new Data[0];
+            m_Data = new List<Data>();
         }
         #endregion
     }

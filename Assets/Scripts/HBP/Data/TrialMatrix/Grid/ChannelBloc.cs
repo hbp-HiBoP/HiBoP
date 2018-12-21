@@ -3,6 +3,7 @@ using HBP.Data.Informations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Events;
 using p = HBP.Data.Experience.Protocol;
 
 namespace HBP.Data.TrialMatrix.Grid
@@ -10,10 +11,25 @@ namespace HBP.Data.TrialMatrix.Grid
     public class ChannelBloc
     {
         #region Properties
-        public bool Found { get; set; }
+        public bool IsFound { get; set; }
         public ChannelStruct Channel { get; set; }
         public p.Bloc Bloc { get; set; }
         public SubBloc[] SubBlocs { get; set; }
+
+        bool m_IsHovered;
+        public bool IsHovered
+        {
+            get
+            {
+                return m_IsHovered;
+            }
+            set
+            {
+                m_IsHovered = value;
+                OnChangeIsHovered.Invoke(value);
+            }
+        }
+        public BoolEvent OnChangeIsHovered;
         #endregion
 
         #region Constructors
@@ -25,10 +41,10 @@ namespace HBP.Data.TrialMatrix.Grid
             BlocChannelData blocChannelData = DataManager.GetData(dataInfo, bloc, channel.Channel);
             UnityEngine.Profiling.Profiler.EndSample();
 
-            Found = blocChannelData != null;
+            IsFound = blocChannelData != null;
             Bloc = bloc;
             Channel = channel;
-            if (Found)
+            if (IsFound)
             {
                 List<SubBloc> subBlocs = new List<SubBloc>(bloc.SubBlocs.Count);
                 IOrderedEnumerable<ChannelTrial> orderedTrials = SortTrials(bloc, blocChannelData.Trials.Where(t => t.IsValid)); // FIXME : Ajouter la gestion des trials non complets.
@@ -42,7 +58,13 @@ namespace HBP.Data.TrialMatrix.Grid
             }
             else
             {
-                SubBlocs = new SubBloc[0];
+                List<SubBloc> subBlocs = new List<SubBloc>(bloc.SubBlocs.Count);
+                foreach (var subBloc in bloc.OrderedSubBlocs)
+                {
+                    SubBloc dataSubBloc = new SubBloc(subBloc, new SubTrial[0]);
+                    subBlocs.Add(dataSubBloc);
+                }
+                SubBlocs = subBlocs.ToArray();
             }
         }
         public void Standardize(Tuple<p.SubBloc[],Tools.CSharp.Window>[] subBlocsAndWindowByColumn)

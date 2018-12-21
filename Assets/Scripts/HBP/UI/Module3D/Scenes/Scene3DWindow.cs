@@ -66,9 +66,9 @@ namespace HBP.UI.Module3D
             grid.AddViewLine(SceneUIPrefab);
             grid.Columns.Last().Views.Last().GetComponent<Scene3DUI>().Initialize(scene);
             // Information
-            //grid.AddColumn(null, GraphsUIPrefab);
-            //Informations.Informations informations = grid.Columns.Last().Views.Last().GetComponent<Informations.Informations>();
-            //informations.Scene = scene;
+            grid.AddColumn(null, GraphsUIPrefab);
+            Informations.InformationsWrapper informations = grid.Columns.Last().Views.Last().GetComponent<Informations.InformationsWrapper>();
+            informations.Scene = scene;
             // Sites
             grid.AddColumn(null, SitesInformationsPrefab);
             grid.Columns.Last().Views.Last().GetComponent<SitesInformations>().Initialize(scene);
@@ -76,9 +76,9 @@ namespace HBP.UI.Module3D
             grid.AddColumn(null, CutUIPrefab);
             grid.Columns.Last().Views.Last().GetComponent<CutController>().Initialize(scene);
             // Positions
-            //grid.VerticalHandlers[0].MagneticPosition = 0.45f;
-            //grid.VerticalHandlers[1].MagneticPosition = 0.8f;
-            //grid.VerticalHandlers[2].MagneticPosition = 0.9f;
+            grid.VerticalHandlers[0].MagneticPosition = 0.45f;
+            grid.VerticalHandlers[1].MagneticPosition = 0.8f;
+            grid.VerticalHandlers[2].MagneticPosition = 0.9f;
             grid.VerticalHandlers[0].Position = 1.0f;
             grid.SetVerticalHandlersPosition(0);
 
@@ -111,18 +111,18 @@ namespace HBP.UI.Module3D
                 if (!Directory.Exists(screenshotsPath)) Directory.CreateDirectory(screenshotsPath);
                 SaveSceneToPNG(screenshotsPath, multipleFiles);
             });
-            //informations.OnOpenInformationsWindow.AddListener(() =>
-            //{
-            //    grid.VerticalHandlers[0].Position = grid.VerticalHandlers[0].MagneticPosition;
-            //    grid.SetVerticalHandlersPosition(1);
-            //    grid.UpdateAnchors();
-            //});
-            //informations.OnCloseInformationsWindow.AddListener(() =>
-            //{
-            //    grid.VerticalHandlers[0].Position = grid.VerticalHandlers[1].Position - (grid.MinimumViewWidth / grid.RectTransform.rect.width);
-            //    grid.SetVerticalHandlersPosition(1);
-            //    grid.UpdateAnchors();
-            //});
+            informations.OnOpenInformationsWindow.AddListener(() =>
+            {
+                grid.VerticalHandlers[0].Position = grid.VerticalHandlers[0].MagneticPosition;
+                grid.SetVerticalHandlersPosition(1);
+                grid.UpdateAnchors();
+            });
+            informations.OnCloseInformationsWindow.AddListener(() =>
+            {
+                grid.VerticalHandlers[0].Position = grid.VerticalHandlers[1].Position - (grid.MinimumViewWidth / grid.RectTransform.rect.width);
+                grid.SetVerticalHandlersPosition(1);
+                grid.UpdateAnchors();
+            });
         }
 
         public void SaveSceneToPNG(string path, bool multipleFiles = false)
@@ -186,7 +186,7 @@ namespace HBP.UI.Module3D
                     }
                 }
                 // Graph and Trial Matrix
-                Informations.InformationsWraper informations = GetComponentInChildren<Informations.InformationsWraper>();
+                Informations.InformationsWrapper informations = GetComponentInChildren<Informations.InformationsWrapper>();
                 Informations.ChannelInformations siteInformations = informations.GetComponentInChildren<Informations.ChannelInformations>();
                 if (!informations.IsMinimized)
                 {
