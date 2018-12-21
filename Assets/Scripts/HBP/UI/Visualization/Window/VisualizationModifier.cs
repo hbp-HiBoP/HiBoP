@@ -129,14 +129,15 @@ namespace HBP.UI.Visualization
             m_VisualizationPatientsListGestion.Objects = ItemTemp.Patients.ToList();
 
             ReadOnlyCollection<Patient> visualizationPatients = objectToDisplay.Patients;
-            m_ProjectPatientsListGestion.Objects = new List<Patient>();
+            List<Patient> patients = new List<Patient>();
             foreach (var patient in ApplicationState.ProjectLoaded.Patients)
             {
                 if (!visualizationPatients.Contains(patient))
                 {
-                    m_ProjectPatientsListGestion.Objects.Add(patient);
+                    patients.Add(patient);
                 }
             }
+            m_ProjectPatientsListGestion.Objects = patients;
 
             if (objectToDisplay.Columns.Count > 0)
             {
