@@ -147,7 +147,7 @@ namespace HBP.Data.Visualization
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {   
-            return new IEEGColumn(Name, BaseConfiguration.Clone() as BaseConfiguration, Dataset, DataName, Bloc, IEEGConfiguration.Clone() as IEEGConfiguration, Data);
+            return new IEEGColumn(Name, BaseConfiguration.Clone() as BaseConfiguration, Dataset, DataName, Bloc, IEEGConfiguration.Clone() as IEEGConfiguration, new IEEGData());
         }
         #endregion
     }
