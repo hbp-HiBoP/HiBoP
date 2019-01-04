@@ -82,10 +82,6 @@ namespace HBP.Data.TrialMatrix.Grid
             foreach (var tuple in subBlocsByColumns)
             {
                 Window window = new Window(tuple.Item2.Min(s => s.Window.Start), tuple.Item2.Max(s => s.Window.End));
-                //foreach (var subBloc in tuple.Item2)
-                //{
-                //    subBloc.Window = window;
-                //}
                 timeLimitsByColumns.Add( new Tuple<p.SubBloc[], Window>(tuple.Item2.ToArray(), window));
             }
             return timeLimitsByColumns.ToArray();
