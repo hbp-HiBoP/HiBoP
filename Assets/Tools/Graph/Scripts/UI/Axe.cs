@@ -1,99 +1,108 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.Profiling;
+using UnityEngine.Events;
 
 namespace Tools.Unity.Graph
 {
     public class Axe : MonoBehaviour
     {
-        #region Attributs
-        [SerializeField] GameObject MajorTickMarkPrefab;
-
-        Text labelText;
-        RectTransform tickMarkRectTransform;
-        RectTransform visualRectTransform;
-        MajorTickMark[] majorTickMarks = new MajorTickMark[10];
-
-        Color color;
-        public enum SideEnum { absciss, ordinate };
+        #region Properties
+        public enum SideEnum { abscissa, ordinate };
         public SideEnum Side;
-        public string Label { get { return labelText.text; } }
-        #endregion
 
-        #region Public Methods
-        public void SetLabel(string label)
+        Color m_Color;
+        public Color Color
         {
-            labelText.text = label;
-        }
-        public void SetColor(Color color)
-        {
-            // Save color.
-            this.color = color;
-
-            // Set color of the tickmarks.
-            foreach (MajorTickMark majorTickMark in majorTickMarks) majorTickMark.SetColor(color);
-
-            //Set color of the axe visual.
-            visualRectTransform.GetComponent<Image>().color = color;
-            visualRectTransform.GetChild(0).GetComponent<Image>().color = color;
-
-            //Set color of the label.
-            labelText.color = color;
-        }
-        public void SetLimits(Vector2 limits)
-        {
-            Profiler.BeginSample("Calculate axe value");
-            // Calculate the value of the axe.
-            float ratio,step,startIndex,value,position; int numberOfMajorTickMarksNeeded;
-            CalculateAxeValue(limits.y, limits.x, out ratio, out step, out numberOfMajorTickMarksNeeded, out startIndex);
-            Profiler.EndSample();
-
-            //// Add the graduations
-            Profiler.BeginSample("Set graduations");
-            for (int i = 0; i < majorTickMarks.Length; i++)
+            get
             {
-                if(i < numberOfMajorTickMarksNeeded)
+                return m_Color;
+            }
+            set
+            {
+                if(m_Color != value)
                 {
-                    value = (startIndex + i) * step;
-                    position = (value - limits.x) * ratio;
-                    SetMajorTickMarks(majorTickMarks[i], value.ToString(), position, Side, color);
-                }
-                else
-                {
-                    majorTickMarks[i].gameObject.SetActive(false);
+                    m_Color = value;
+                    foreach (MajorTickMark majorTickMark in m_TickMarks) majorTickMark.SetColor(value);
+                    OnChangeColor.Invoke(value);
                 }
             }
-            Profiler.EndSample();
         }
+        public ColorEvent OnChangeColor;
+
+        string m_Title;
+        public string Title
+        {
+            get
+            {
+                return m_Title;
+            }
+            set
+            {
+                if(m_Title != value)
+                {
+                    m_Title = value;
+                    OnChangeTitle.Invoke(value);
+                }
+            }
+        }
+        public StringEvent OnChangeTitle;
+
+        Vector2 m_Limits;
+        public Vector2 Limits
+        {
+            get
+            {
+                return m_Limits;
+            }
+            set
+            {
+                if(m_Limits != value)
+                {
+                    m_Limits = value;
+                    float ratio, step, startIndex, v, position; int numberOfMajorTickMarksNeeded;
+                    CalculateAxeValue(value, out ratio, out step, out numberOfMajorTickMarksNeeded, out startIndex);
+
+                    for (int i = 0; i < m_TickMarks.Length; i++)
+                    {
+                        if (i < numberOfMajorTickMarksNeeded)
+                        {
+                            v = (startIndex + i) * step;
+                            position = (v - value.x) * ratio;
+                            m_TickMarks[i].Set(v.ToString(), position, Side, m_Color);
+                        }
+                        else
+                        {
+                            m_TickMarks[i].gameObject.SetActive(false);
+                        }
+                    }
+                }
+            }
+        }
+
+        [SerializeField] GameObject m_TickMarkPrefab;
+        [SerializeField] RectTransform m_TickMarkContainer;
+
+        const int MAX_NUMBER_OF_TICK_MARK = 10;
+        MajorTickMark[] m_TickMarks = new MajorTickMark[MAX_NUMBER_OF_TICK_MARK];
         #endregion
 
         #region Private Methods
         void Awake()
         {
-            labelText = transform.Find("Label").GetComponentInChildren<Text>();
-            tickMarkRectTransform = transform.Find("Axe").Find("Graduations") as RectTransform;
-            visualRectTransform = transform.Find("Axe").Find("Visual") as RectTransform;
-
-            // Instante tick marks.
-            InstantiateMajorTickMarks();
+            CreatePool();
         }
-        void SetMajorTickMarks(MajorTickMark majorTickMark, string label, float position, SideEnum side, Color color)
+        void CreatePool()
         {
-            majorTickMark.Set(label, position, side, color);
-        }
-        void InstantiateMajorTickMarks()
-        {
-            for (int i = 0; i < majorTickMarks.Length; i++)
+            for (int i = 0; i < m_TickMarks.Length; i++)
             {
-                GameObject tickMarkGameObject = Instantiate(MajorTickMarkPrefab, tickMarkRectTransform);
+                GameObject tickMarkGameObject = Instantiate(m_TickMarkPrefab, m_TickMarkContainer);
                 MajorTickMark majorTickMark = tickMarkGameObject.GetComponent<MajorTickMark>();
-                majorTickMarks[i] = majorTickMark;
+                m_TickMarks[i] = majorTickMark;
             }
         }
-        void CalculateAxeValue(float max, float min, out float ratio, out float step, out int numberOfTrickMarkNeeded, out float startIndex)
+        void CalculateAxeValue(Vector2 limits, out float ratio, out float step, out int numberOfTickMarksNeeded, out float startIndex)
         {
-            // Calculate the range of the axe.
-            float lenght = max - min;         
+            // Calculate the lenght of the axe.
+            float lenght = limits.y - limits.x;         
 
             // Calculate the normalized range(1-10) of the axe.
             float normalizedLenght = lenght;
@@ -113,32 +122,32 @@ namespace Tools.Unity.Graph
                     break;
                 }
                 // Calculate the normalizedStep then the Step.
-                float normalizedStep = normalizedLenght / majorTickMarks.Length;
+                float normalizedStep = normalizedLenght / m_TickMarks.Length;
                 normalizedStep = (Mathf.Ceil(normalizedStep * 2.0f)) / 2.0f;
                 step = normalizedStep * coef;
 
                 // Calculate the firstScalePoint of the axe
-                if (min < 0.0f)
+                if (limits.x < 0.0f)
                 {
-                    startIndex = Mathf.CeilToInt(min / step);
+                    startIndex = Mathf.CeilToInt(limits.x / step);
                 }
                 else
                 {
-                    startIndex = Mathf.CeilToInt(min / step);
+                    startIndex = Mathf.CeilToInt(limits.y / step);
                 }
 
                 // Calculate the number of ScalePoint in the axe
-                numberOfTrickMarkNeeded = 0;
-                while ((numberOfTrickMarkNeeded + startIndex) * step <= max)
+                numberOfTickMarksNeeded = 0;
+                while ((numberOfTickMarksNeeded + startIndex) * step <= limits.y)
                 {
-                    numberOfTrickMarkNeeded += 1;
+                    numberOfTickMarksNeeded += 1;
                 }
 
                 float axeSize = 0;
                 switch (Side)
                 {
-                    case SideEnum.absciss: axeSize = transform.GetChild(0).GetComponent<RectTransform>().rect.width; break;
-                    case SideEnum.ordinate: axeSize = transform.GetChild(0).GetComponent<RectTransform>().rect.height; break;
+                    case SideEnum.abscissa: axeSize = m_TickMarkContainer.rect.width; break;
+                    case SideEnum.ordinate: axeSize = m_TickMarkContainer.rect.height; break;
                 }
                 // Find the value of the scalesPoints
                 ratio = axeSize / lenght;
@@ -147,7 +156,7 @@ namespace Tools.Unity.Graph
             {
                 ratio = 0;
                 step = 0;
-                numberOfTrickMarkNeeded = 0;
+                numberOfTickMarksNeeded = 0;
                 startIndex = 0;
             }
         }

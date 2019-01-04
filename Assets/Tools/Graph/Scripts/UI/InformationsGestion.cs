@@ -34,35 +34,35 @@ namespace Tools.Unity.Graph
         }
         public void SetAbscissaLabel(string abcissa)
         {
-            this.abscissa.SetLabel(abcissa);
+            this.abscissa.Title = abcissa;
         }
         public void SetOrdinateLabel(string ordinate)
         {
-            this.ordinate.SetLabel(ordinate);
+            this.ordinate.Title = ordinate;
         }
         public void SetLimits(Limits limits)
         {
             this.limits = limits;
-            abscissa.SetLimits(limits.Abscissa);
-            ordinate.SetLimits(limits.Ordinate);
+            abscissa.Limits = limits.Abscissa;
+            ordinate.Limits = limits.Ordinate;
         }
         public void SetAbscissaLimits(Vector2 limits)
         {
-            abscissa.SetLimits(limits);
+            abscissa.Limits =limits;
         }
         public void SetOrdinateLimits(Vector2 limits)
         {
-            ordinate.SetLimits(limits);
+            ordinate.Limits = limits;
         }
         public void SetColor(Color color)
         {
             titleText.color = color;
-            abscissa.SetColor(color);
-            ordinate.SetColor(color);
+            abscissa.Color = color;
+            ordinate.Color = color;
         }
         public void UpdateWindowValues()
         {
-            windowInputGestion.SetFields(abscissa.Label, ordinate.Label, limits);
+            windowInputGestion.SetFields(abscissa.Title, ordinate.Title, limits);
         }
         #endregion
 
@@ -84,7 +84,7 @@ namespace Tools.Unity.Graph
                 Toggle parentToggle = GetComponentInParent<Toggle>();
                 parentToggle.onValueChanged.RemoveAllListeners();
                 parentToggle.onValueChanged.AddListener((b) => windowInputGestion.gameObject.SetActive(b));
-                parentToggle.onValueChanged.AddListener((l) => windowInputGestion.SetFields(abscissa.Label,ordinate.Label,limits));
+                parentToggle.onValueChanged.AddListener((l) => windowInputGestion.SetFields(abscissa.Title,ordinate.Title,limits));
                 windowInputGestion.OnAutoLimits.RemoveAllListeners();
                 windowInputGestion.OnAutoLimits.AddListener(OnAutoLimits.Invoke);
             }

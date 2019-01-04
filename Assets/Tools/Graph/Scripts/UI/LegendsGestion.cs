@@ -7,7 +7,8 @@ namespace Tools.Unity.Graph
     public class LegendsGestion : MonoBehaviour
     {
         #region Properties
-        [SerializeField] GameObject groupLegendPrefab;
+        [SerializeField] GameObject m_GroupLegendPrefab;
+        [SerializeField] RectTransform m_GroupLegendContainer;
         public GenericEvent<GroupCurveData, bool> OnDisplayGroup = new GenericEvent<GroupCurveData, bool>();
         public GenericEvent<CurveData, bool> OnDisplayCurve = new GenericEvent<CurveData, bool>();
         #endregion
@@ -26,7 +27,7 @@ namespace Tools.Unity.Graph
         #region Private Methods
         void AddLegend(GroupCurveData group, bool active, Dictionary<CurveData,bool> stateByCurve)
         {
-            GameObject legendGameObject = Instantiate(groupLegendPrefab,transform);
+            GameObject legendGameObject = Instantiate(m_GroupLegendPrefab,transform);
             GroupLegend legend = legendGameObject.GetComponent<GroupLegend>();
             legend.Set(group,active, stateByCurve);
             legend.OnDisplayCurve.RemoveAllListeners();

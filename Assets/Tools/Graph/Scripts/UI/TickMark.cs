@@ -34,7 +34,7 @@ namespace Tools.Unity.Graph
         {
             switch (side)
             {
-                case Axe.SideEnum.absciss:
+                case Axe.SideEnum.abscissa:
                     rectTransform.anchorMin = new Vector2(0, 0);
                     rectTransform.anchorMax = new Vector2(0, 1);
                     rectTransform.pivot = new Vector2(0.5f, 1f);
@@ -55,7 +55,7 @@ namespace Tools.Unity.Graph
         {
             switch (side)
             {
-                case Axe.SideEnum.absciss:
+                case Axe.SideEnum.abscissa:
                     imageRectTransform.anchorMin = new Vector2(0.5f, 1f);
                     imageRectTransform.anchorMax = new Vector2(0.5f, 1f);
                     imageRectTransform.pivot = new Vector2(0.5f, 0.5f);

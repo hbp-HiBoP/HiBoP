@@ -113,7 +113,7 @@ namespace Tools.Unity.Graph
                 float axeSize = 0;
                 switch (Side)
                 {
-                    case Axe.SideEnum.absciss: axeSize = transform.GetChild(0).GetComponent<RectTransform>().rect.width; break;
+                    case Axe.SideEnum.abscissa: axeSize = transform.GetChild(0).GetComponent<RectTransform>().rect.width; break;
                     case Axe.SideEnum.ordinate: axeSize = transform.GetChild(0).GetComponent<RectTransform>().rect.height; break;
                 }
                 // Find the value of the scalesPoints

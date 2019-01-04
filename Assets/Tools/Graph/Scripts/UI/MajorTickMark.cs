@@ -28,7 +28,7 @@ namespace Tools.Unity.Graph
             labelRectTransform.GetComponent<Text>().text = label;
             switch (side)
             {
-                case Axe.SideEnum.absciss: labelRectTransform.offsetMax = new Vector2(0, - TICK_MARK_LENGHT / 2); break;
+                case Axe.SideEnum.abscissa: labelRectTransform.offsetMax = new Vector2(0, - TICK_MARK_LENGHT / 2); break;
                 case Axe.SideEnum.ordinate: labelRectTransform.offsetMax = new Vector2(- TICK_MARK_LENGHT / 2, 0); break;
             }
         }
