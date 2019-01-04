@@ -1,6 +1,6 @@
-﻿using HBP.Data.Experience.Dataset;
-using HBP.Data.Experience.Protocol;
-using HBP.Data.Visualization;
+﻿using HBP.Data.Experience.Protocol;
+using HBP.Data.Informations;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Tools.Unity.Graph;
@@ -11,15 +11,17 @@ namespace HBP.UI.Informations
     public class GraphZone : MonoBehaviour
     {
         #region Properties
-        [SerializeField] Graph m_Graph;
+        [SerializeField] GameObject m_GraphPrefab;
         [SerializeField] List<ColumnColor> m_Colors;
+
+        Graph[] m_Graphs;
         Dictionary<DataStruct, GroupCurveData> m_GroupCurveDataByData = new Dictionary<DataStruct, GroupCurveData>();
         DataStruct[] m_Data;
-        string[] m_Channels;
+        ChannelStruct[] m_Channels;
         #endregion
 
         #region Public Methods
-        public void Display(IEnumerable<DataStruct> data, IEnumerable<string> channels)
+        public void Display(IEnumerable<ChannelStruct> channels, IEnumerable<DataStruct> data)
         {
             m_Data = data.ToArray();
             m_Channels = channels.ToArray();
@@ -30,16 +32,52 @@ namespace HBP.UI.Informations
         #endregion
 
         #region Private Methods
+        void GenerateGraphs()
+        {
+            List<Tuple<int, List<SubBloc>>> subBlocs = new List<Tuple<int, List<SubBloc>>>();
+            foreach (var data in m_Data)
+            {
+                foreach (var bloc in data.Blocs)
+                {
+                    int mainSubBlocPosition = bloc.MainSubBlocPosition;
+                    SubBloc[] orderedSubBlocs = bloc.OrderedSubBlocs.ToArray();
+                    for (int i = 0; i < orderedSubBlocs.Length; i++)
+                    {
+                        int column = i - mainSubBlocPosition;
+                        if (!subBlocs.Any(t => t.Item1 == column)) subBlocs.Add(new Tuple<int, List<SubBloc>>(column, new List<SubBloc>()));
+                        subBlocs.Find(t => t.Item1 == column).Item2.Add(orderedSubBlocs[i]);
+                    }
+                }
+            }
+            subBlocs = subBlocs.OrderBy(t => t.Item1).ToList();
+            foreach (var tuple in subBlocs)
+            {
+                AddSubBlocGraph(tuple.Item1, tuple.Item2.ToArray());
+            }
+        }
+        void AddSubBlocGraph(int order, SubBloc[] subBlocs)
+        {
+            Debug.Log(order);
+            foreach (SubBloc subBloc in subBlocs)
+            {
+                Debug.Log(subBloc.Name);
+            }
+        }
         void GenerateCurves()
         {
-            //m_GroupCurveDataByData.Clear();
+            m_GroupCurveDataByData.Clear();
+
             //foreach (var data in m_Data)
             //{
+            //    foreach (var bloc in data.Blocs)
+            //    {
+
+            //    }
             //    m_GroupCurveDataByData[data] = new GroupCurveData(data.Label);
             //    foreach (var channel in m_Channels)
             //    {
+            //        BlocChannelStatistics blocChannelStatistics = DataManager.GetStatistics(data.DataInfo, channel);
             //        BlocChannelData blocChannelData = DataManager.GetData(data.DataInfo, data.Bloc, channel);
-            //        blocChannelData.Trials[]
             //        TrialMatrixData trialMatrixData = m_TrialMatrixByProtocolBySiteByDataInfo[column.Protocol][site][Scene.Visualization.GetDataInfo(site.Information.Patient, column)];
             //        TrialMatrix.TrialMatrix trialMatrix = m_TrialMatrixList.TrialMatrix.FirstOrDefault((t) => t.Data == trialMatrixData);
             //        if (trialMatrix == null) continue;
@@ -200,13 +238,5 @@ namespace HBP.UI.Informations
             }
         }
         #endregion
-
-        public struct DataStruct
-        {
-            public string Label { get; set; }
-            public DataInfo DataInfo { get; set; }
-            public Bloc Bloc { get; set; }
-        }
-          
     }
 }

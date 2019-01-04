@@ -44,6 +44,7 @@ namespace HBP.UI.Informations
                 }
             }
             m_TrialMatrixGridData = new data.TrialMatrixGrid(channelStructs, dataStructs);
+            m_TrialMatrixGrid.gameObject.SetActive(true);
             m_TrialMatrixGrid.Display(m_TrialMatrixGridData);
             ApplySettings();
         }
@@ -53,7 +54,7 @@ namespace HBP.UI.Informations
         void Awake()
         {
             m_SettingsByData = new Dictionary<Data, Settings>();
-
+            m_TrialMatrixGrid.gameObject.SetActive(false);
             //m_TrialMatrixList.OnAutoLimitsChanged.AddListener(OnChangeAutoLimits);
             //m_TrialMatrixList.OnLimitsChanged.AddListener(OnChangeLimits);
         }

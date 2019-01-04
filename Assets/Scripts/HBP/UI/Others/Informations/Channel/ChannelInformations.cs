@@ -33,6 +33,7 @@ namespace HBP.UI.Informations
             m_DataStructs = dataStructs;
 
             m_TrialMatrixZone.Display(channelStructs, dataStructs);
+            m_GraphZone.Display(channelStructs, dataStructs);
         }
         #endregion
     }
