@@ -82,7 +82,10 @@ namespace HBP.UI.Informations
 
         void DisplayChannels()
         {
-            ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
+            if(m_ChannelStructs != null && m_DataStructs != null && m_ChannelStructs.Length > 0 && m_DataStructs.Length > 0)
+            {
+                ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
+            }
         }
         void OnSiteInformationRequest(IEnumerable<Site> sites)
         {
