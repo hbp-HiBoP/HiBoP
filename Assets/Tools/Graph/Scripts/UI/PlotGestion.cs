@@ -153,4 +153,6 @@ namespace Tools.Unity.Graph
     public class OnChangeLimitsEvent : UnityEvent<Limits,bool>
     {
     }
+
+    public class LimitsEvent : UnityEvent<Limits> { }
 }

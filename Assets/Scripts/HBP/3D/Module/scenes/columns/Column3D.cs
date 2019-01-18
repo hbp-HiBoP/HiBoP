@@ -583,15 +583,15 @@ namespace HBP.Module3D
             }
 
             // Selected site
-            if (SelectedSiteID == -1)
-            {
-                m_SelectRing.SetSelectedSite(null, Vector3.zero);
-            }
-            else
-            {
-                Site selectedSite = SelectedSite;
-                m_SelectRing.SetSelectedSite(selectedSite, selectedSite.transform.localScale);
-            }
+            //if (SelectedSiteID == -1)
+            //{
+            //    m_SelectRing.SetSelectedSite(null, Vector3.zero);
+            //}
+            //else
+            //{
+            //    Site selectedSite = SelectedSite;
+            //    m_SelectRing.SetSelectedSite(selectedSite, selectedSite.transform.localScale);
+            //}
         }
         /// <summary>
         /// Save the states of the sites of this column to a file

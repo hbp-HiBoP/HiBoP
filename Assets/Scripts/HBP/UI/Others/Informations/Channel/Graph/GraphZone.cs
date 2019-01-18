@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Tools.Unity.Graph;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace HBP.UI.Informations
 {
@@ -12,10 +13,16 @@ namespace HBP.UI.Informations
     {
         #region Properties
         [SerializeField] GameObject m_GraphPrefab;
+        [SerializeField] RectTransform m_GraphContainer;
+
+        [SerializeField] GameObject m_TogglesPrefab;
+        [SerializeField] RectTransform m_ToggleContainer;
+
         [SerializeField] List<ColumnColor> m_Colors;
 
-        Graph[] m_Graphs;
-        Dictionary<DataStruct, GroupCurveData> m_GroupCurveDataByData = new Dictionary<DataStruct, GroupCurveData>();
+        Dictionary<int, Graph> m_GraphByColumn = new Dictionary<int, Graph>();
+        //Dictionary<DataStruct, GroupCurveData[]> m_GroupCurveDataByData = new Dictionary<DataStruct, GroupCurveData>();
+
         DataStruct[] m_Data;
         ChannelStruct[] m_Channels;
         #endregion
@@ -26,15 +33,20 @@ namespace HBP.UI.Informations
             m_Data = data.ToArray();
             m_Channels = channels.ToArray();
 
-            GenerateCurves();
-            DisplayCurves();
+            //GenerateCurves();
+            //DisplayCurves();
+            SetGraphs();
         }
         #endregion
 
         #region Private Methods
-        void GenerateGraphs()
+        void SetGraphs()
         {
-            List<Tuple<int, List<SubBloc>>> subBlocs = new List<Tuple<int, List<SubBloc>>>();
+            // Clear graphs
+            ClearGraphs();
+
+            // Subblocs
+            List<Tuple<int, List<SubBloc>>> Columns = new List<Tuple<int, List<SubBloc>>>();
             foreach (var data in m_Data)
             {
                 foreach (var bloc in data.Blocs)
@@ -44,28 +56,40 @@ namespace HBP.UI.Informations
                     for (int i = 0; i < orderedSubBlocs.Length; i++)
                     {
                         int column = i - mainSubBlocPosition;
-                        if (!subBlocs.Any(t => t.Item1 == column)) subBlocs.Add(new Tuple<int, List<SubBloc>>(column, new List<SubBloc>()));
-                        subBlocs.Find(t => t.Item1 == column).Item2.Add(orderedSubBlocs[i]);
+                        if (!Columns.Any(t => t.Item1 == column)) Columns.Add(new Tuple<int, List<SubBloc>>(column, new List<SubBloc>()));
+                        Columns.Find(t => t.Item1 == column).Item2.Add(orderedSubBlocs[i]);
                     }
                 }
             }
-            subBlocs = subBlocs.OrderBy(t => t.Item1).ToList();
-            foreach (var tuple in subBlocs)
-            {
-                AddSubBlocGraph(tuple.Item1, tuple.Item2.ToArray());
-            }
+            Columns = Columns.OrderBy(t => t.Item1).ToList();
+            foreach (var tuple in Columns) AddGraph(tuple.Item1, tuple.Item2.ToArray());
         }
-        void AddSubBlocGraph(int order, SubBloc[] subBlocs)
+        void AddGraph(int column, SubBloc[] subBlocs)
         {
-            Debug.Log(order);
-            foreach (SubBloc subBloc in subBlocs)
-            {
-                Debug.Log(subBloc.Name);
-            }
+            // Add Graph
+            GameObject graphGameObject = Instantiate(m_GraphPrefab, m_GraphContainer);
+            Graph graph = graphGameObject.GetComponent<Graph>();
+            graph.OnChangeLimits.AddListener(OnChangeLimitsHandler);
+            graphGameObject.SetActive(false);
+
+            // Add Toggle
+            GameObject toggleGameObject = Instantiate(m_TogglesPrefab, m_ToggleContainer);
+            Toggle toggle = toggleGameObject.GetComponent<Toggle>();
+            toggle.onValueChanged.AddListener(b => graph.gameObject.SetActive(b));
+            toggle.group = m_ToggleContainer.GetComponent<ToggleGroup>();
+            string name = subBlocs.All(s => s.Name == subBlocs.First().Name) ? subBlocs.First().Name : column.ToString();
+            toggleGameObject.name = name;
+            toggleGameObject.GetComponentInChildren<Text>().text = name;
+            toggle.isOn = column == 0;
+
+            m_GraphByColumn.Add(column, graph);
+            
+            GenerateCurves(subBlocs);
         }
-        void GenerateCurves()
+    
+        void GenerateCurves(SubBloc[] subBlocs)
         {
-            m_GroupCurveDataByData.Clear();
+            //m_GroupCurveDataByData.Clear();
 
             //foreach (var data in m_Data)
             //{
@@ -191,6 +215,7 @@ namespace HBP.UI.Informations
             //}
             //UnityEngine.Profiling.Profiler.EndSample();
         }
+
         void DisplayCurves()
         {
             //UnityEngine.Profiling.Profiler.BeginSample("DisplayCurves()");
@@ -235,6 +260,28 @@ namespace HBP.UI.Informations
             else
             {
                 return new Color();
+            }
+        }
+        void ClearGraphs()
+        {
+            // Destroy toggles.
+            foreach(Transform child in m_ToggleContainer)
+            {
+                Destroy(child.gameObject);
+            }
+
+            // Destroy graphs.
+            foreach (Transform child in m_GraphContainer)
+            {
+                Destroy(child.gameObject);
+            }
+            m_GraphByColumn = new Dictionary<int, Graph>();
+        }
+        void OnChangeLimitsHandler(Limits limits)
+        {
+            foreach (var graph in m_GraphByColumn.Values)
+            {
+                graph.SetLimits(new Limits(graph.Limits.AbscissaMin,graph.Limits.AbscissaMax, limits.OrdinateMin, limits.OrdinateMax));
             }
         }
         #endregion

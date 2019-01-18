@@ -44,7 +44,7 @@
       "DefaultSelectedImplantationInMultiPatientsVisualization": "MNI"
     },
     "TrialMatrix": {
-      "ShowWholeProtocol": true,
+      "ShowWholeProtocol": false,
       "TrialsSynchronization": true,
       "TrialSmoothing": true,
       "NumberOfIntermediateValues": 5,
