@@ -317,20 +317,7 @@ namespace HBP.UI.Module3D
             m_MaxText.text = m_MaxAmplitude.ToString("N2");
 
             // Non-fixed values
-
-            m_SpanMinFactor = (values.SpanMin - m_MinAmplitude) / m_Amplitude;
-            m_MiddleFactor = (values.Middle - m_MinAmplitude) / m_Amplitude;
-            m_SpanMaxFactor = (values.SpanMax - m_MinAmplitude) / m_Amplitude;
-
-            m_SpanMinInput.text = values.SpanMin.ToString("N2");
-            m_MiddleInput.text = values.Middle.ToString("N2");
-            m_SpanMaxInput.text = values.SpanMax.ToString("N2");
-            m_AmplitudeInput.text = ((values.SpanMax - values.SpanMin) / 2).ToString("N2");
-
-            m_MiddleInput.onEndEdit.Invoke(m_MiddleInput.text);
-            m_SpanMinInput.onEndEdit.Invoke(m_SpanMinInput.text);
-            m_SpanMaxInput.onEndEdit.Invoke(m_SpanMaxInput.text);
-            m_MiddleInput.onEndEdit.Invoke(m_MiddleInput.text);
+            SetValues((values.SpanMin - m_MinAmplitude) / m_Amplitude, (values.Middle - m_MinAmplitude) / m_Amplitude, (values.SpanMax - m_MinAmplitude) / m_Amplitude);
 
             UpdateIEEGHistogram();
 
