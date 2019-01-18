@@ -56,10 +56,9 @@ namespace HBP.Module3D
             }
             set
             {
-                bool wasSelected = m_IsSelected;
                 m_IsSelected = value;
                 OnChangeSelectedState.Invoke(value);
-                if (m_IsSelected && !wasSelected)
+                if (m_IsSelected)
                 {
                     ApplicationState.Module3D.OnSelectColumn.Invoke(this);
                 }

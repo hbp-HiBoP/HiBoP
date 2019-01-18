@@ -1,5 +1,6 @@
 ﻿using HBP.Module3D;
 using System.Collections.Generic;
+using Tools.Unity;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -127,6 +128,40 @@ namespace HBP.UI.Module3D
             m_Histogram.texture = m_IEEGHistogram;
             UnityEngine.Profiling.Profiler.EndSample();
         }
+        /// <summary>
+        /// Set the values of the threshold
+        /// </summary>
+        /// <param name="minFactor"></param>
+        /// <param name="middleFactor"></param>
+        /// <param name="maxFactor"></param>
+        private void SetValues(float minFactor, float middleFactor, float maxFactor)
+        {
+            // Logical values
+            m_SpanMinFactor = minFactor;
+            m_MiddleFactor = middleFactor;
+            m_SpanMaxFactor = maxFactor;
+
+            // Handlers
+            m_MinHandler.MaximumPosition = middleFactor;
+            m_MidHandler.MinimumPosition = minFactor;
+            m_MidHandler.MaximumPosition = maxFactor;
+            m_MaxHandler.MinimumPosition = middleFactor;
+            m_MinHandler.Position = minFactor;
+            m_MidHandler.Position = middleFactor;
+            m_MaxHandler.Position = maxFactor;
+
+            // Textfields
+            m_SpanMinInput.text = SpanMin.ToString("N2");
+            m_MiddleInput.text = Middle.ToString("N2");
+            m_SpanMaxInput.text = SpanMax.ToString("N2");
+            m_AmplitudeInput.text = ((SpanMax - SpanMin) / 2).ToString("N2");
+
+            // Event
+            if (m_Initialized)
+            {
+                OnChangeValues.Invoke(SpanMin, Middle, SpanMax);
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -143,115 +178,113 @@ namespace HBP.UI.Module3D
 
             m_SpanMinInput.onEndEdit.AddListener((value) =>
             {
-                float val = float.Parse(value);
-                if (val > Middle) val = Middle;
-                m_SpanMinInput.text = val.ToString("N2");
-                m_SpanMinFactor = (val - m_MinAmplitude) / m_Amplitude;
-
-                m_MinHandler.Position = m_SpanMinFactor;
-                m_MidHandler.MinimumPosition = m_SpanMinFactor;
-                m_MidHandler.ClampPosition();
-
-                if (m_Initialized)
+                if (NumberExtension.TryParseFloat(value, out float spanMinValue))
                 {
-                    OnChangeValues.Invoke(SpanMin, Middle, SpanMax);
+                    if (spanMinValue > Middle) spanMinValue = Middle;
+                    float spanMinFactor = (spanMinValue - m_MinAmplitude) / m_Amplitude;
+                    SetValues(spanMinFactor, m_MiddleFactor, m_SpanMaxFactor);
+                }
+                else
+                {
+                    SetValues(m_SpanMinFactor, m_MiddleFactor, m_SpanMaxFactor);
                 }
             });
 
             m_MiddleInput.onEndEdit.AddListener((value) =>
             {
-                float val = float.Parse(value);
-                val = Mathf.Clamp(val, SpanMin, SpanMax);
-                m_MiddleInput.text = val.ToString("N2");
-                m_MiddleFactor = (val - m_MinAmplitude) / m_Amplitude;
-
-                m_MidHandler.Position = m_MiddleFactor;
-                m_MinHandler.MaximumPosition = m_MiddleFactor;
-                m_MinHandler.ClampPosition();
-                m_MaxHandler.MinimumPosition = m_MiddleFactor;
-                m_MaxHandler.ClampPosition();
-
-                if (m_Initialized)
+                if (NumberExtension.TryParseFloat(value, out float middleValue))
                 {
-                    OnChangeValues.Invoke(SpanMin, Middle, SpanMax);
+                    if (m_SymmetryToggle.isOn)
+                    {
+                        float middleFactor = (middleValue - m_MinAmplitude) / m_Amplitude;
+                        float factorAmplitude = m_SpanMaxFactor - m_SpanMinFactor;
+                        float spanMinFactor = middleFactor - (factorAmplitude / 2);
+                        float spanMaxFactor = middleFactor + (factorAmplitude / 2);
+                        SetValues(spanMinFactor, middleFactor, spanMaxFactor);
+                    }
+                    else
+                    {
+                        middleValue = Mathf.Clamp(middleValue, SpanMin, SpanMax);
+                        float middleFactor = (middleValue - m_MinAmplitude) / m_Amplitude;
+                        SetValues(m_SpanMinFactor, middleFactor, m_SpanMaxFactor);
+                    }
+                }
+                else
+                {
+                    SetValues(m_SpanMinFactor, m_MiddleFactor, m_SpanMaxFactor);
                 }
             });
 
             m_SpanMaxInput.onEndEdit.AddListener((value) =>
             {
-                float val = float.Parse(value);
-                if (val < Middle) val = Middle;
-                m_SpanMaxInput.text = val.ToString("N2");
-                m_SpanMaxFactor = (val - m_MinAmplitude) / m_Amplitude;
-
-                m_MaxHandler.Position = m_SpanMaxFactor;
-                m_MidHandler.MaximumPosition = m_SpanMaxFactor;
-                m_MidHandler.ClampPosition();
-
-                if (m_Initialized)
+                if (NumberExtension.TryParseFloat(value, out float spanMaxValue))
                 {
-                    OnChangeValues.Invoke(SpanMin, Middle, SpanMax);
+                    if (spanMaxValue < Middle) spanMaxValue = Middle;
+                    float spanMaxFactor = (spanMaxValue - m_MinAmplitude) / m_Amplitude;
+                    SetValues(m_SpanMinFactor, m_MiddleFactor, spanMaxFactor);
+                }
+                else
+                {
+                    SetValues(m_SpanMinFactor, m_MiddleFactor, m_SpanMaxFactor);
                 }
             });
 
             m_AmplitudeInput.onEndEdit.AddListener((value) =>
             {
-                float val = float.Parse(value);
-                m_AmplitudeInput.text = val.ToString("N2");
-                float minVal = Middle - val;
-                float maxVal = Middle + val;
-                m_SpanMinInput.text = minVal.ToString("N2");
-                m_SpanMaxInput.text = maxVal.ToString("N2");
-                m_SpanMinInput.onEndEdit.Invoke(m_SpanMinInput.text);
-                m_SpanMaxInput.onEndEdit.Invoke(m_SpanMaxInput.text);
+                if (NumberExtension.TryParseFloat(value, out float amplitudeValue))
+                {
+                    float spanMinValue = Middle - amplitudeValue;
+                    float spanMaxValue = Middle + amplitudeValue;
+                    float spanMinFactor = (spanMinValue - m_MinAmplitude) / m_Amplitude;
+                    float spanMaxFactor = (spanMaxValue - m_MinAmplitude) / m_Amplitude;
+                    SetValues(spanMinFactor, m_MiddleFactor, spanMaxFactor);
+                }
+                else
+                {
+                    SetValues(m_SpanMinFactor, m_MiddleFactor, m_SpanMaxFactor);
+                }
             });
 
             m_MinHandler.OnChangePosition.AddListener((deplacement) =>
             {
-                m_SpanMinFactor = m_MinHandler.Position;
-                m_SpanMinInput.text = SpanMin.ToString("N2");
-                m_SpanMinInput.onEndEdit.Invoke(m_SpanMinInput.text);
+                float spanMinFactor = m_MinHandler.Position;
                 if (m_SymmetryToggle.isOn)
                 {
-                    m_MaxHandler.Position = m_MidHandler.Position + (m_MidHandler.Position - m_MinHandler.Position);
-                    m_SpanMaxFactor = m_MaxHandler.Position;
-                    m_SpanMaxInput.text = SpanMax.ToString("N2");
-                    m_SpanMaxInput.onEndEdit.Invoke(m_SpanMaxInput.text);
-                    m_AmplitudeInput.text = (SpanMax - SpanMin).ToString("N2");
+                    float spanMaxFactor = m_MiddleFactor + (m_MiddleFactor - spanMinFactor);
+                    SetValues(spanMinFactor, m_MiddleFactor, spanMaxFactor);
+                }
+                else
+                {
+                    SetValues(spanMinFactor, m_MiddleFactor, m_SpanMaxFactor);
                 }
             });
 
             m_MidHandler.OnChangePosition.AddListener((deplacement) =>
             {
-                m_MiddleFactor = m_MidHandler.Position;
-                m_MiddleInput.text = Middle.ToString("N2");
+                float middleFactor = m_MidHandler.Position;
                 if (m_SymmetryToggle.isOn)
                 {
-                    m_MinHandler.Position += deplacement;
-                    m_SpanMinFactor = m_MinHandler.Position;
-                    m_SpanMinInput.text = SpanMin.ToString("N2");
-                    m_SpanMinInput.onEndEdit.Invoke(m_SpanMinInput.text);
-
-                    m_MaxHandler.Position += deplacement;
-                    m_SpanMaxFactor = m_MaxHandler.Position;
-                    m_SpanMaxInput.text = SpanMax.ToString("N2");
-                    m_SpanMaxInput.onEndEdit.Invoke(m_SpanMaxInput.text);
+                    float spanMinFactor = m_SpanMinFactor + deplacement;
+                    float spanMaxFactor = m_SpanMaxFactor + deplacement;
+                    SetValues(spanMinFactor, middleFactor, spanMaxFactor);
                 }
-                m_MiddleInput.onEndEdit.Invoke(m_MiddleInput.text);
+                else
+                {
+                    SetValues(m_SpanMinFactor, middleFactor, m_SpanMaxFactor);
+                }
             });
 
             m_MaxHandler.OnChangePosition.AddListener((deplacement) =>
             {
-                m_SpanMaxFactor = m_MaxHandler.Position;
-                m_SpanMaxInput.text = SpanMax.ToString("N2");
-                m_SpanMaxInput.onEndEdit.Invoke(m_SpanMaxInput.text);
+                float spanMaxFactor = m_MaxHandler.Position;
                 if (m_SymmetryToggle.isOn)
                 {
-                    m_MinHandler.Position = m_MidHandler.Position - (m_MaxHandler.Position - m_MidHandler.Position);
-                    m_SpanMinFactor = m_MinHandler.Position;
-                    m_SpanMinInput.text = SpanMin.ToString("N2");
-                    m_SpanMinInput.onEndEdit.Invoke(m_SpanMinInput.text);
-                    m_AmplitudeInput.text = (SpanMax - SpanMin).ToString("N2");
+                    float spanMinFactor = m_MiddleFactor - (spanMaxFactor - m_MiddleFactor);
+                    SetValues(spanMinFactor, m_MiddleFactor, spanMaxFactor);
+                }
+                else
+                {
+                    SetValues(m_SpanMinFactor, m_MiddleFactor, spanMaxFactor);
                 }
             });
 
@@ -276,15 +309,19 @@ namespace HBP.UI.Module3D
         {
             m_Initialized = false;
 
+            // Fixed values
             m_MinAmplitude = values.MinimumAmplitude;
             m_MaxAmplitude = values.MaximumAmplitude;
             m_Amplitude = m_MaxAmplitude - m_MinAmplitude;
+            m_MinText.text = m_MinAmplitude.ToString("N2");
+            m_MaxText.text = m_MaxAmplitude.ToString("N2");
+
+            // Non-fixed values
+
             m_SpanMinFactor = (values.SpanMin - m_MinAmplitude) / m_Amplitude;
             m_MiddleFactor = (values.Middle - m_MinAmplitude) / m_Amplitude;
             m_SpanMaxFactor = (values.SpanMax - m_MinAmplitude) / m_Amplitude;
 
-            m_MinText.text = m_MinAmplitude.ToString("N2");
-            m_MaxText.text = m_MaxAmplitude.ToString("N2");
             m_SpanMinInput.text = values.SpanMin.ToString("N2");
             m_MiddleInput.text = values.Middle.ToString("N2");
             m_SpanMaxInput.text = values.SpanMax.ToString("N2");
