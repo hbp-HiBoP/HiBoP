@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace Tools.Unity.Graph
@@ -88,6 +89,7 @@ namespace Tools.Unity.Graph
                 m_InformationsGestion.SetLimits(value);
             }
         }
+        public LimitsEvent OnChangeLimits = new LimitsEvent();
 
         bool m_AutoLimits = true;
         #endregion
@@ -163,6 +165,11 @@ namespace Tools.Unity.Graph
         public Dictionary<string, string> ToCSV()
         {
             return m_Data.ToCSV();
+        }
+        public void SetLimits(Limits limits, bool sendEvent = false)
+        {
+            Limits = limits;
+            if (sendEvent) OnChangeLimits.Invoke(limits);
         }
         #endregion
 

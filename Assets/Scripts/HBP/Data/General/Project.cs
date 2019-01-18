@@ -49,15 +49,10 @@ namespace HBP.Data.General
             }
         }
 
-        ProjectSettings m_Settings = new ProjectSettings();
         /// <summary>
         /// Settings of the project.
         /// </summary>
-        public ProjectSettings Settings
-        {
-            get { return m_Settings; }
-            set { m_Settings = value; }
-        }
+        public ProjectSettings Settings { get; set; }
 
         List<Patient> m_Patients = new List<Patient>();
         /// <summary>
@@ -683,7 +678,7 @@ namespace HBP.Data.General
 
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(patient, patientDirectory.FullName + Path.DirectorySeparatorChar + patient.ID + "." + Patient.EXTENSION);
+                    ClassLoaderSaver.SaveToJSon(patient, patientDirectory.FullName + Path.DirectorySeparatorChar + patient.ID + Patient.EXTENSION);
                 }
                 catch (Exception e)
                 {
@@ -706,7 +701,7 @@ namespace HBP.Data.General
 
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(group, groupDirectory.FullName + Path.DirectorySeparatorChar + group.Name + "." + Group.EXTENSION);
+                    ClassLoaderSaver.SaveToJSon(group, groupDirectory.FullName + Path.DirectorySeparatorChar + group.Name + Group.EXTENSION);
                 }
                 catch (Exception e)
                 {
@@ -752,7 +747,7 @@ namespace HBP.Data.General
 
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(dataset, datasetDirectory.FullName + Path.DirectorySeparatorChar + dataset.Name + "." + Dataset.EXTENSION);
+                    ClassLoaderSaver.SaveToJSon(dataset, datasetDirectory.FullName + Path.DirectorySeparatorChar + dataset.Name + Dataset.EXTENSION);
                 }
                 catch (Exception e)
                 {
@@ -776,7 +771,7 @@ namespace HBP.Data.General
 
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(visualization, visualizationDirectory.FullName + Path.DirectorySeparatorChar + visualization.Name + "." + Visualization.Visualization.EXTENSION);
+                    ClassLoaderSaver.SaveToJSon(visualization, visualizationDirectory.FullName + Path.DirectorySeparatorChar + visualization.Name + Visualization.Visualization.EXTENSION);
                 }
                 catch (Exception e)
                 {

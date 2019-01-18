@@ -1,15 +1,12 @@
 ﻿using HBP.Module3D;
 using Tools.Unity.ResizableGrid;
 using Tools.Unity;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using System;
-using System.Linq;
 using UnityEngine.Events;
 using NewTheme.Components;
+using HBP.UI.Module3D;
 
 public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IEndDragHandler, IScrollHandler, IPointerEnterHandler, IPointerExitHandler
 {
@@ -18,6 +15,7 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
 
     [SerializeField] private ThemeElement m_ThemeElement;
     [SerializeField] private State m_MoveState;
+    [SerializeField] private SelectionRing m_SelectionRing;
 
     /// <summary>
     /// Associated logical scene 3D
@@ -303,6 +301,10 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         m_MinimizedGameObject = transform.Find("MinimizedImage").gameObject;
         m_MinimizedGameObject.GetComponentInChildren<Text>().text = "View " + view.LineID;
         m_MinimizedGameObject.SetActive(false);
+
+        m_SelectionRing.ViewCamera = view.Camera;
+        m_SelectionRing.Viewport = m_RectTransform;
+        m_Column.OnSelectSite.AddListener((site) => { m_SelectionRing.Site = site; });
     }
     /// <summary>
     /// Create a ray corresponding to the mouse position in the viewport of the view
