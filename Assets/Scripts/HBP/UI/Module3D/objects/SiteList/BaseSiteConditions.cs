@@ -130,7 +130,7 @@ public abstract class BaseSiteConditions : MonoBehaviour
     private bool CompareValue(float value, bool superior, string stringValueToCompare)
     {
         float valueToCompare = 0f;
-        if (float.TryParse(stringValueToCompare, out valueToCompare))
+        if (Tools.Unity.NumberExtension.TryParseFloat(stringValueToCompare, out valueToCompare))
         {
             return superior ? value > valueToCompare : value < valueToCompare;
         }

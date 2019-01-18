@@ -143,7 +143,8 @@ namespace HBP.UI.Module3D
 
             m_SpanMinInput.onEndEdit.AddListener((value) =>
             {
-                float val = float.Parse(value);
+                float val;
+                global::Tools.Unity.NumberExtension.TryParseFloat(value, out val);
                 if (val > Middle) val = Middle;
                 m_SpanMinInput.text = val.ToString("N2");
                 m_SpanMinFactor = (val - m_MinAmplitude) / m_Amplitude;
@@ -160,7 +161,8 @@ namespace HBP.UI.Module3D
 
             m_MiddleInput.onEndEdit.AddListener((value) =>
             {
-                float val = float.Parse(value);
+                float val;
+                global::Tools.Unity.NumberExtension.TryParseFloat(value, out val);
                 val = Mathf.Clamp(val, SpanMin, SpanMax);
                 m_MiddleInput.text = val.ToString("N2");
                 m_MiddleFactor = (val - m_MinAmplitude) / m_Amplitude;
@@ -179,7 +181,8 @@ namespace HBP.UI.Module3D
 
             m_SpanMaxInput.onEndEdit.AddListener((value) =>
             {
-                float val = float.Parse(value);
+                float val;
+                global::Tools.Unity.NumberExtension.TryParseFloat(value, out val);
                 if (val < Middle) val = Middle;
                 m_SpanMaxInput.text = val.ToString("N2");
                 m_SpanMaxFactor = (val - m_MinAmplitude) / m_Amplitude;
@@ -196,7 +199,8 @@ namespace HBP.UI.Module3D
 
             m_AmplitudeInput.onEndEdit.AddListener((value) =>
             {
-                float val = float.Parse(value);
+                float val;
+                global::Tools.Unity.NumberExtension.TryParseFloat(value, out val);
                 m_AmplitudeInput.text = val.ToString("N2");
                 float minVal = Middle - val;
                 float maxVal = Middle + val;

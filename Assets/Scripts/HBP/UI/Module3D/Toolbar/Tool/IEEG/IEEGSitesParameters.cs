@@ -43,7 +43,8 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                float val = float.Parse(value);
+                float val;
+                global::Tools.Unity.NumberExtension.TryParseFloat(value, out val);
                 HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)SelectedColumn;
                 if (IsGlobal)
                 {

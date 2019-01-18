@@ -41,7 +41,7 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
                 
                 float floatValue;
-                if (float.TryParse(value, out floatValue))
+                if (global::Tools.Unity.NumberExtension.TryParseFloat(value, out floatValue))
                 {
                     SelectedScene.ColumnManager.FMRICalMin = Mathf.Clamp(floatValue, SelectedScene.ColumnManager.FMRI.Volume.ExtremeValues.ComputedCalMin, SelectedScene.ColumnManager.FMRI.Volume.ExtremeValues.ComputedCalMax);
                     m_CalMinSlider.value = SelectedScene.ColumnManager.FMRICalMinFactor;
@@ -61,7 +61,7 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
                 
                 float floatValue;
-                if (float.TryParse(value, out floatValue))
+                if (global::Tools.Unity.NumberExtension.TryParseFloat(value, out floatValue))
                 {
                     SelectedScene.ColumnManager.FMRICalMax = Mathf.Clamp(floatValue, SelectedScene.ColumnManager.FMRI.Volume.ExtremeValues.ComputedCalMin, SelectedScene.ColumnManager.FMRI.Volume.ExtremeValues.ComputedCalMax);
                     m_CalMaxSlider.value = SelectedScene.ColumnManager.FMRICalMax;

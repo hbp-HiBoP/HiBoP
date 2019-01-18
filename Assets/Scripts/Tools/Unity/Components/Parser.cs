@@ -17,7 +17,7 @@ namespace Tools.Unity.Components
         public void ParseFromString(string value)
         {
             float floatResult;
-            if(float.TryParse(value,out floatResult))
+            if(NumberExtension.TryParseFloat(value, out floatResult))
             {
                 OnFloatResult.Invoke(floatResult);
             }
