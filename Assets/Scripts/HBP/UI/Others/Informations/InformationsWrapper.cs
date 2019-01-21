@@ -56,13 +56,6 @@ namespace HBP.UI.Informations
             if(open) OnOpenInformationsWindow.Invoke();
             else OnCloseInformationsWindow.Invoke();
         }
-        public void ChangeOverlayState(bool state)
-        {
-            transform.Find("Borders").Find("BotBorder").gameObject.SetActive(state);
-            transform.Find("Borders").Find("LeftBorder").gameObject.SetActive(state);
-            transform.Find("Borders").Find("RightBorder").gameObject.SetActive(state);
-            transform.Find("Borders").Find("TopBorder").gameObject.SetActive(state);
-        }
         #endregion
 
         #region Private Methods
