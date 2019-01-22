@@ -243,8 +243,7 @@ namespace HBP.UI.Module3D
                     }
                     if (!Mathf.Approximately(siteInformations.GetComponent<ZoneResizer>().Ratio, 0.0f))
                     {
-                        ScrollRect trialMatrixScrollRect = siteInformations.transform.Find("TrialMatricesZone").Find("TrialMatrix").GetComponent<ScrollRect>();
-                        informations.ChangeOverlayState(false);
+                        ScrollRect trialMatrixScrollRect = siteInformations.GetComponentInChildren<TrialMatrix.Grid.TrialMatrixGrid>().GetComponent<ScrollRect>();
                         Sprite mask = trialMatrixScrollRect.viewport.GetComponent<Image>().sprite;
                         trialMatrixScrollRect.viewport.GetComponent<Image>().sprite = null;
                         Texture2D trialMatrixTexture;
@@ -284,7 +283,6 @@ namespace HBP.UI.Module3D
                             ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                             yield break;
                         }
-                        informations.ChangeOverlayState(true);
                         trialMatrixScrollRect.viewport.GetComponent<Image>().sprite = mask;
                     }
                 }

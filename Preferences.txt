@@ -48,10 +48,10 @@
       "TrialsSynchronization": true,
       "TrialSmoothing": true,
       "NumberOfIntermediateValues": 5,
-      "SubBlocFormat": 2,
-      "TrialHeight": 8,
+      "SubBlocFormat": 0,
+      "TrialHeight": 5,
       "TrialRatio": 0.04981595,
-      "BlocRatio": 0.50460124
+      "BlocRatio": 0.166564465
     },
     "Graph": {
       "ShowCurvesOfMinimizedColumns": false
