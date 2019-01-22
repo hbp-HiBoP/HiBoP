@@ -2,161 +2,226 @@
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.UI;
 
 namespace Tools.Unity.Graph
 {
     public class Graph : MonoBehaviour
     {
         #region Properties
-        PlotGestion m_PlotGestion;
-        InformationsGestion m_InformationsGestion;
-
-        Dictionary<string, bool> m_StateByGroupCurveData = new Dictionary<string, bool>();
-        Dictionary<string, bool> m_StateByCurveData = new Dictionary<string, bool>();
-        GraphData m_Data = new GraphData();
-
+        private string title;
         public string Title
         {
-            get { return m_Data.Title; }
+            get
+            {
+                return title;
+            }
             set
             {
-                m_Data.Title = value;
-                m_InformationsGestion.SetTitle(value);
+                if(value != title)
+                {
+                    title = value;
+                    OnChangeTitle.Invoke(value);
+                }
             }
         }
+        public StringEvent OnChangeTitle;
+
+        private string abscissa;
         public string Abscissa
         {
-            get { return m_Data.Abscissa; }
+            get
+            {
+                return abscissa;
+            }
             set
             {
-                m_Data.Abscissa = value;
-                m_InformationsGestion.SetAbscissaLabel(value);
+                if(value != abscissa)
+                {
+                    abscissa = value;
+                    OnChangeAbscissa.Invoke(value);
+                }
             }
         }
+        public StringEvent OnChangeAbscissa;
+
+        private string ordinate;
         public string Ordinate
         {
-            get { return m_Data.Ordinate; }
+            get
+            {
+                return ordinate;
+            }
             set
             {
-                m_Data.Ordinate = value;
-                m_InformationsGestion.SetOrdinateLabel(value);
+                if(value != ordinate)
+                {
+                    ordinate = value;
+                    OnChangeOrdinate.Invoke(value);
+                }
             }
         }
+        public StringEvent OnChangeOrdinate;
+
+        private Color fontColor;
         public Color FontColor
         {
-            get { return m_Data.Font; }
+            get
+            {
+                return fontColor;
+            }
             set
             {
-                m_Data.Font = value;
-                m_InformationsGestion.SetColor(value);
-                m_PlotGestion.OriginAxeColor = value;
+                if(value != fontColor)
+                {
+                    fontColor = value;
+                    OnChangeFontColor.Invoke(value);
+                }
             }
         }
+        public ColorEvent OnChangeFontColor;
+
+        private Color backgroundColor;
         public Color BackgroundColor
         {
-            get { return m_Data.Background; }
+            get
+            {
+                return backgroundColor;
+            }
             set
             {
-                m_Data.Background = value;
-                m_PlotGestion.GetComponent<Image>().color = value;
-            }
-        }
-        public GroupCurveData[] GroupCurves
-        {
-            get { return m_Data.GroupCurveData; }
-            private set
-            {
-                m_Data.GroupCurveData = value;
-                Dictionary<GroupCurveData, bool> stateByGroupCurveData = new Dictionary<GroupCurveData, bool>();
-                Dictionary<CurveData, bool> stateByCurveData = new Dictionary<CurveData, bool>();
-                foreach (var group in value)
+                if(value != backgroundColor)
                 {
-                    stateByGroupCurveData.Add(group, m_StateByGroupCurveData[group.Name]);
-                    foreach (var curve in group.Curves) stateByCurveData.Add(curve, m_StateByCurveData[curve.ID]);
+                    backgroundColor = value;
+                    OnChangeBackgroundColor.Invoke(value);
                 }
-                m_InformationsGestion.SetLegends(stateByGroupCurveData, stateByCurveData);
             }
         }
+        public ColorEvent OnChangeBackgroundColor;
+
+
+        public CurveGroup[] Groups { get; set; }
+        //{
+        //    get { return m_Data.GroupCurveData; }
+        //    private set
+        //    {
+        //        m_Data.GroupCurveData = value;
+        //        Dictionary<CurveGroupData, bool> stateByGroupCurveData = new Dictionary<CurveGroupData, bool>();
+        //        Dictionary<CurveData, bool> stateByCurveData = new Dictionary<CurveData, bool>();
+        //        foreach (var group in value)
+        //        {
+        //            stateByGroupCurveData.Add(group, groupIsActive[group.Name]);
+        //            foreach (var curve in group.Curves) stateByCurveData.Add(curve, curveIsActive[curve.ID]);
+        //        }
+        //        m_InformationsGestion.SetLegends(stateByGroupCurveData, stateByCurveData);
+        //    }
+        //}
+
 
         Limits limits;
         public Limits Limits
         {
-            get { return limits; }
-            private set
+            get
             {
-                limits = value;
-                m_InformationsGestion.SetLimits(value);
+                return limits;
+            }
+            set
+            {
+                if(value != limits)
+                {
+                    limits = value;
+                    OnChangeLimits.Invoke(value);
+                }
             }
         }
-        public LimitsEvent OnChangeLimits = new LimitsEvent();
+        public LimitsEvent OnChangeLimits;
 
-        bool m_AutoLimits = true;
+        public Limits DefaultLimits { get; set; }
+
+        bool useDefaultLimits = true;
+        public bool UseDefaultLimits
+        {
+            get
+            {
+                return useDefaultLimits;
+            }
+            set
+            {
+                if(useDefaultLimits != value)
+                {
+                    useDefaultLimits = value;
+                    if(useDefaultLimits)
+                    {
+                        Limits = DefaultLimits;
+                    }
+                }
+            }
+        }
+
+        PlotGestion m_PlotGestion;
+        InformationsGestion m_InformationsGestion;
+
         #endregion
 
         #region Public Methods    
-        public void Plot(GraphData graph)
+        public void Plot(GraphData graph, bool useDefaultLimits = true)
         {
-            m_Data = graph;
+            Clear();
+
             Title = graph.Title;
             Abscissa = graph.Abscissa;
             Ordinate = graph.Ordinate;
-            BackgroundColor = graph.Background;
-            FontColor = graph.Font;
+            FontColor = graph.FontColor;
+            BackgroundColor = graph.BackgroundColor;
+            DefaultLimits = graph.Limits;
+            if (useDefaultLimits) Limits = graph.Limits;
+            
+
             List<string> curveToRemove = new List<string>();
             List<string> groupToRemove = new List<string>();
-            foreach (var ID in m_StateByCurveData.Keys)
-            {
-                bool found = false;
-                foreach (var group in graph.GroupCurveData)
-                {
-                    foreach (var curve in group.Curves)
-                    {
-                        if (curve.ID == ID)
-                        {
-                            found = true;
-                            goto Found;
-                        }
-                    }
-                }
-                Found:
-                if (!found) curveToRemove.Add(ID);
-            }
-            foreach (var name in m_StateByGroupCurveData.Keys)
-            {
-                if(!graph.GroupCurveData.Any(g => g.Name == name))
-                {
-                    groupToRemove.Add(name);
-                }
-            }
-            foreach (var curve in curveToRemove) m_StateByCurveData.Remove(curve);
-            foreach (var group in groupToRemove) m_StateByGroupCurveData.Remove(group);
+            //foreach (var ID in curveIsActive.Keys)
+            //{
+            //    bool found = false;
+            //    foreach (var group in graph.GroupCurveData)
+            //    {
+            //        foreach (var curve in group.Curves)
+            //        {
+            //            if (curve.ID == ID)
+            //            {
+            //                found = true;
+            //                goto Found;
+            //            }
+            //        }
+            //    }
+            //    Found:
+            //    if (!found) curveToRemove.Add(ID);
+            //}
+            //foreach (var name in groupIsActive.Keys)
+            //{
+            //    if(!graph.GroupCurveData.Any(g => g.Name == name))
+            //    {
+            //        groupToRemove.Add(name);
+            //    }
+            //}
+            //foreach (var curve in curveToRemove) curveIsActive.Remove(curve);
+            //foreach (var group in groupToRemove) groupIsActive.Remove(group);
 
 
-            foreach (var group in graph.GroupCurveData)
-            {
-                if(!m_StateByGroupCurveData.ContainsKey(group.Name))
-                {
-                    m_StateByGroupCurveData[group.Name] = true;
-                }
-                foreach (var curve in group.Curves)
-                {
-                    if (!m_StateByCurveData.ContainsKey(curve.ID))
-                    {
-                        m_StateByCurveData[curve.ID] = true;
-                    }
-                }
-            }
+            //foreach (var group in graph.GroupCurveData)
+            //{
+            //    if(!groupIsActive.ContainsKey(group.Name))
+            //    {
+            //        groupIsActive[group.Name] = true;
+            //    }
+            //    foreach (var curve in group.Curves)
+            //    {
+            //        if (!curveIsActive.ContainsKey(curve.ID))
+            //        {
+            //            curveIsActive[curve.ID] = true;
+            //        }
+            //    }
+            //}
 
-
-            if (m_AutoLimits)
-            {
-                Plot(graph.GroupCurveData, graph.Limits, false);
-            }
-            else
-            {
-                Plot(graph.GroupCurveData, Limits, false);
-            }
+            Plot(graph.GroupCurveData, Limits, false);
         }
         public string ToSVG()
         {
@@ -174,44 +239,61 @@ namespace Tools.Unity.Graph
         #endregion
 
         #region Private Methods
+        void Clear()
+        {
+
+        }
         void Awake()
         {
             m_PlotGestion = GetComponentInChildren<PlotGestion>();
             m_InformationsGestion = GetComponentInChildren<InformationsGestion>();
             m_InformationsGestion.OnAutoLimits.RemoveAllListeners();
-            m_InformationsGestion.OnAutoLimits.AddListener(() => { m_AutoLimits = true; Plot(m_Data); });
+            m_InformationsGestion.OnAutoLimits.AddListener(() => { useDefaultLimits = true; Plot(m_Data); });
             m_InformationsGestion.OnDisplayCurve.RemoveAllListeners();
             m_InformationsGestion.OnDisplayCurve.AddListener((curve, isOn) =>
             {
-                m_StateByCurveData[curve.ID] = isOn;
-                Plot(GroupCurves, Limits);
+                curveIsActive[curve.ID] = isOn;
+                Plot(Groups, Limits);
             });
             m_InformationsGestion.OnDisplayGroup.RemoveAllListeners();
             m_InformationsGestion.OnDisplayGroup.AddListener((group, isOn) =>
             {
-                m_StateByGroupCurveData[group.Name] = isOn;
-                Plot(GroupCurves, Limits);
+                groupIsActive[group.Name] = isOn;
+                Plot(Groups, Limits);
             });
             m_PlotGestion.OnChangeLimits.RemoveAllListeners();
-            m_PlotGestion.OnChangeLimits.AddListener((limits,ignore) => { if(!ignore) m_AutoLimits = false; Plot(GroupCurves, limits, true);});
+            m_PlotGestion.OnChangeLimits.AddListener((limits,ignore) => { if(!ignore) useDefaultLimits = false; Plot(Groups, limits, true);});
         }
-        void Plot (GroupCurveData[] groupCurves, Limits limits, bool onlyUpdate = false)
+        void Plot (CurveGroupData[] groupCurves, Limits limits, bool onlyUpdate = false)
         {
-            GroupCurves = groupCurves;
-            Limits = limits;
+            Groups = groupCurves;
+            SetLimits(limits,true);
             List<CurveData> curvesToDisplay = new List<CurveData>();
             foreach (var group in groupCurves)
             {
-                if(m_StateByGroupCurveData[group.Name])
+                if(groupIsActive[group.Name])
                 {
                     foreach (var curve in group.Curves)
                     {
-                        if (m_StateByCurveData[curve.ID]) curvesToDisplay.Add(curve);
+                        if (curveIsActive[curve.ID]) curvesToDisplay.Add(curve);
                     }
                 }
             }
             m_PlotGestion.Plot(curvesToDisplay.ToArray(), Limits, onlyUpdate);
-            m_InformationsGestion.UpdateWindowValues();
+        }
+        #endregion
+
+        #region Private Structs
+        public struct CurveGroup
+        {
+            public string Name { get; set; }
+            public bool IsActive { get; set; }
+            public Curve[] Curves { get; set; }
+        }
+        public struct Curve
+        {
+            public bool IsActive { get; set; }
+            public CurveData Data { get; set; }
         }
         #endregion
     }

@@ -29,10 +29,10 @@ namespace Tools.Unity.Graph
         public Graphic[] FontColorGraphics;
         public Color FontColor
         {
-            get { return m_Data.Font; }
+            get { return m_Data.FontColor; }
             set
             {
-                m_Data.Font = value;
+                m_Data.FontColor = value;
                 foreach (var graphic in FontColorGraphics) graphic.color = value;
                 PlotGestion.OriginAxeColor = value;
             }
@@ -41,15 +41,15 @@ namespace Tools.Unity.Graph
         public Graphic[] BackgroundColorGraphics;
         public Color BackgroundColor
         {
-            get { return m_Data.Background; }
+            get { return m_Data.BackgroundColor; }
             set
             {
-                m_Data.Background = value;
+                m_Data.BackgroundColor = value;
                 foreach (var graphic in BackgroundColorGraphics) graphic.color = value;
             }
         }
 
-        public GroupCurveData[] GroupCurves
+        public CurveGroupData[] GroupCurves
         {
             get { return m_Data.GroupCurveData; }
             private set
@@ -77,8 +77,8 @@ namespace Tools.Unity.Graph
             Profiler.BeginSample("Plot totezfz");
             m_Data = graph;
             Title = graph.Title;
-            BackgroundColor = graph.Background;
-            FontColor = graph.Font;
+            BackgroundColor = graph.BackgroundColor;
+            FontColor = graph.FontColor;
             if (m_AutoLimits) Plot(graph.GroupCurveData, graph.Limits, false);
             else Plot(graph.GroupCurveData, Limits, false);
             Profiler.EndSample();
@@ -100,7 +100,7 @@ namespace Tools.Unity.Graph
             PlotGestion.OnChangeLimits.RemoveAllListeners();
             PlotGestion.OnChangeLimits.AddListener((limits, ignore) => { if (!ignore) m_AutoLimits = false; Plot(GroupCurves, limits, true); });
         }
-        void Plot(GroupCurveData[] groupCurves, Limits limits, bool onlyUpdate = false)
+        void Plot(CurveGroupData[] groupCurves, Limits limits, bool onlyUpdate = false)
         {
             GroupCurves = groupCurves;
             Limits = limits;

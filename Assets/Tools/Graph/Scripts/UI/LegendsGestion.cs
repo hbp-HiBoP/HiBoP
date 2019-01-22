@@ -9,12 +9,12 @@ namespace Tools.Unity.Graph
         #region Properties
         [SerializeField] GameObject m_GroupLegendPrefab;
         [SerializeField] RectTransform m_GroupLegendContainer;
-        public GenericEvent<GroupCurveData, bool> OnDisplayGroup = new GenericEvent<GroupCurveData, bool>();
+        public GenericEvent<CurveGroupData, bool> OnDisplayGroup = new GenericEvent<CurveGroupData, bool>();
         public GenericEvent<CurveData, bool> OnDisplayCurve = new GenericEvent<CurveData, bool>();
         #endregion
 
         #region Public Methods
-        public void SetLegends(Dictionary<GroupCurveData, bool> stateByGroupCurve, Dictionary<CurveData, bool> stateByCurve)
+        public void SetLegends(Dictionary<CurveGroupData, bool> stateByGroupCurve, Dictionary<CurveData, bool> stateByCurve)
         {
             Clear();
             foreach (var group in stateByGroupCurve)
@@ -25,7 +25,7 @@ namespace Tools.Unity.Graph
         #endregion
 
         #region Private Methods
-        void AddLegend(GroupCurveData group, bool active, Dictionary<CurveData,bool> stateByCurve)
+        void AddLegend(CurveGroupData group, bool active, Dictionary<CurveData,bool> stateByCurve)
         {
             GameObject legendGameObject = Instantiate(m_GroupLegendPrefab,transform);
             GroupLegend legend = legendGameObject.GetComponent<GroupLegend>();

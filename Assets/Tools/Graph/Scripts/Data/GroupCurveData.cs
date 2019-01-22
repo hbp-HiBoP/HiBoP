@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Tools.Unity.Graph
 {
-    public class GroupCurveData
+    public class CurveGroupData
     {
         #region Properties
         public string Name { get; set; }
@@ -11,7 +11,7 @@ namespace Tools.Unity.Graph
         #endregion
 
         #region Constructors
-        public GroupCurveData(string name)
+        public CurveGroupData(string name)
         {
             Name = name;
             Curves = new List<CurveData>();

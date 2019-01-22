@@ -12,15 +12,15 @@ namespace Tools.Unity.Graph
         [SerializeField] Toggle m_Toggle;
         [SerializeField] RectTransform m_CurvesRectTransform;
         [SerializeField] GameObject m_CurvePrefab;
-        GroupCurveData m_Group;
+        CurveGroupData m_Group;
         static Color m_InactiveColor = Color.grey;
 
         public GenericEvent<CurveData, bool> OnDisplayCurve = new GenericEvent<CurveData,bool>();
-        public GenericEvent<GroupCurveData, bool> OnDisplayGroup = new GenericEvent<GroupCurveData, bool>();
+        public GenericEvent<CurveGroupData, bool> OnDisplayGroup = new GenericEvent<CurveGroupData, bool>();
         #endregion
 
         #region Public Methods
-        public void Set(GroupCurveData group, bool active, Dictionary<CurveData, bool> stateByCurve)
+        public void Set(CurveGroupData group, bool active, Dictionary<CurveData, bool> stateByCurve)
         {
             name = group.Name;
             m_Group = group;

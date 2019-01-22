@@ -9,30 +9,30 @@ namespace Tools.Unity.Graph
         public string Title { get; set; }
         public string Abscissa { get; set; }
         public string Ordinate { get; set; }
-        public Color Background { get; set; }
-        public Color Font { get; set; }
-        public GroupCurveData[] GroupCurveData { get; set; }
+        public Color BackgroundColor { get; set; }
+        public Color FontColor { get; set; }
+        public CurveGroupData[] GroupCurveData { get; set; }
         public Limits Limits { get; set; }
         #endregion
 
         #region Constructors
-        public GraphData(string title, string abscissa, string ordinate, Color background, Color font, GroupCurveData[] curves, Limits limits)
+        public GraphData(string title, string abscissa, string ordinate, Color background, Color font, CurveGroupData[] curves, Limits limits)
         {
             Title = title;
             Abscissa = abscissa;
             Ordinate = ordinate;
-            Background = background;
-            Font = font;
+            BackgroundColor = background;
+            FontColor = font;
             GroupCurveData = curves;
             Limits = limits;
         }
-        public GraphData(string title, string abscissa, string ordinate, Color background, Color font, GroupCurveData[] curves)
+        public GraphData(string title, string abscissa, string ordinate, Color background, Color font, CurveGroupData[] curves)
         {
             Title = title;
             Abscissa = abscissa;
             Ordinate = ordinate;
-            Background = background;
-            Font = font;
+            BackgroundColor = background;
+            FontColor = font;
             GroupCurveData = curves;
             Limits limits = new Limits();
 
@@ -79,7 +79,7 @@ namespace Tools.Unity.Graph
             }
             Limits = limits;
         }
-        public GraphData() : this("", "", "", Color.black, Color.white, new GroupCurveData[0], new Limits()) { }
+        public GraphData() : this("", "", "", Color.black, Color.white, new CurveGroupData[0], new Limits()) { }
         #endregion
 
         #region Private Methods
@@ -242,7 +242,7 @@ namespace Tools.Unity.Graph
             float x = curveViewport.x + curveViewport.width + 30.0f;
             for (int i = 0; i < GroupCurveData.Length; ++i, ++id)
             {
-                GroupCurveData group = GroupCurveData[i];
+                CurveGroupData group = GroupCurveData[i];
                 float y = curveViewport.y + (id * 40.0f);
                 svgBuilder.AppendLine("<g>");
                 svgBuilder.AppendLine("<text x=\"" + x + "\" y=\"" + y + "\" text-anchor=\"left\" dy=\".3em\" style=\"font-size:30\">" + group.Name + "</text>");
@@ -267,7 +267,7 @@ namespace Tools.Unity.Graph
             Dictionary<string, string> csv = new Dictionary<string, string>();
             for (int g = 0; g < GroupCurveData.Length; ++g)
             {
-                GroupCurveData group = GroupCurveData[g];
+                CurveGroupData group = GroupCurveData[g];
                 for (int c = 0; c < group.Curves.Count; ++c)
                 {
                     CurveData curve = group.Curves[c];

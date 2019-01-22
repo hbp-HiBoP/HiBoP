@@ -12,57 +12,21 @@ namespace Tools.Unity.Graph
         Axe abscissa;
         Axe ordinate;
         LegendsGestion legendsGestion;
-        WindowInputGestion windowInputGestion;
+        LimitsInput windowInputGestion;
         Limits limits;
         [HideInInspector] public UnityEvent OnAutoLimits = new UnityEvent();
         [HideInInspector] public GenericEvent<CurveData, bool> OnDisplayCurve = new GenericEvent<CurveData, bool>();
-        [HideInInspector] public GenericEvent<GroupCurveData, bool> OnDisplayGroup = new GenericEvent<GroupCurveData, bool>();
+        [HideInInspector] public GenericEvent<CurveGroupData, bool> OnDisplayGroup = new GenericEvent<CurveGroupData, bool>();
         #endregion
 
         #region Public Methods
-        public void SetLegends(Dictionary<GroupCurveData,bool> stateByGroupCurve, Dictionary<CurveData,bool> stateByCurve)
+        public void SetLegends(Dictionary<CurveGroupData,bool> stateByGroupCurve, Dictionary<CurveData,bool> stateByCurve)
         {
             if(legendsGestion != null) legendsGestion.SetLegends(stateByGroupCurve, stateByCurve);
             legendsGestion.OnDisplayCurve.RemoveAllListeners();
             legendsGestion.OnDisplayCurve.AddListener(OnDisplayCurve.Invoke);
             legendsGestion.OnDisplayGroup.RemoveAllListeners();
             legendsGestion.OnDisplayGroup.AddListener(OnDisplayGroup.Invoke);
-        }
-        public void SetTitle(string title)
-        {
-            titleText.text = title;
-        }
-        public void SetAbscissaLabel(string abcissa)
-        {
-            this.abscissa.Title = abcissa;
-        }
-        public void SetOrdinateLabel(string ordinate)
-        {
-            this.ordinate.Title = ordinate;
-        }
-        public void SetLimits(Limits limits)
-        {
-            this.limits = limits;
-            abscissa.Limits = limits.Abscissa;
-            ordinate.Limits = limits.Ordinate;
-        }
-        public void SetAbscissaLimits(Vector2 limits)
-        {
-            abscissa.Limits =limits;
-        }
-        public void SetOrdinateLimits(Vector2 limits)
-        {
-            ordinate.Limits = limits;
-        }
-        public void SetColor(Color color)
-        {
-            titleText.color = color;
-            abscissa.Color = color;
-            ordinate.Color = color;
-        }
-        public void UpdateWindowValues()
-        {
-            windowInputGestion.SetFields(abscissa.Title, ordinate.Title, limits);
         }
         #endregion
 
@@ -80,13 +44,16 @@ namespace Tools.Unity.Graph
             Transform window = transform.Find("Window");
             if(window != null)
             {
-                windowInputGestion = transform.Find("Window").GetComponent<WindowInputGestion>();
+                windowInputGestion = transform.Find("Window").GetComponent<LimitsInput>();
                 Toggle parentToggle = GetComponentInParent<Toggle>();
                 parentToggle.onValueChanged.RemoveAllListeners();
                 parentToggle.onValueChanged.AddListener((b) => windowInputGestion.gameObject.SetActive(b));
-                parentToggle.onValueChanged.AddListener((l) => windowInputGestion.SetFields(abscissa.Title,ordinate.Title,limits));
-                windowInputGestion.OnAutoLimits.RemoveAllListeners();
-                windowInputGestion.OnAutoLimits.AddListener(OnAutoLimits.Invoke);
+                parentToggle.onValueChanged.AddListener(delegate
+                {
+                    windowInputGestion.Abscissa = abscissa.Title;
+                    windowInputGestion.Ordinate = ordinate.Title;
+                    windowInputGestion.Limits = limits;
+                });
             }
         }
         #endregion

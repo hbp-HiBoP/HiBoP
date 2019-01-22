@@ -2,6 +2,7 @@
 using UnityEngine.Events;
 using System.Linq;
 using System.Collections.Generic;
+using System;
 
 namespace Tools.Unity.Graph
 {
@@ -154,5 +155,5 @@ namespace Tools.Unity.Graph
     {
     }
 
-    public class LimitsEvent : UnityEvent<Limits> { }
+    [Serializable] public class LimitsEvent : UnityEvent<Limits> { }
 }
