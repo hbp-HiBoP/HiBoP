@@ -1,15 +1,32 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
+using UnityEngine.UI.Extensions;
 
 namespace Tools.Unity.Graph
 {
+    [ExecuteInEditMode]
     public class Axe : MonoBehaviour
     {
         #region Properties
         public enum SideEnum { abscissa, ordinate };
-        public SideEnum Side;
+        [SerializeField] SideEnum m_Type;
+        public SideEnum Type
+        {
+            get
+            {
+                return m_Type;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_Type, value))
+                {
+                    SetType();
+                }
+            }
+        }
 
-        Color m_Color;
+        [SerializeField] Color m_Color;
         public Color Color
         {
             get
@@ -18,17 +35,15 @@ namespace Tools.Unity.Graph
             }
             set
             {
-                if(m_Color != value)
+                if (SetPropertyUtility.SetColor(ref m_Color, value))
                 {
-                    m_Color = value;
-                    foreach (MajorTickMark majorTickMark in m_TickMarks) majorTickMark.SetColor(value);
-                    OnChangeColor.Invoke(value);
+                    SetColor();
                 }
             }
         }
-        public ColorEvent OnChangeColor;
 
-        string m_Unit;
+        [SerializeField] Text m_UnitText;
+        [SerializeField] string m_Unit;
         public string Unit
         {
             get
@@ -37,16 +52,15 @@ namespace Tools.Unity.Graph
             }
             set
             {
-                if (m_Unit != value)
+                if (SetPropertyUtility.SetClass(ref m_Unit, value))
                 {
-                    m_Unit = value;
-                    OnChangeUnit.Invoke(value);
+                    SetUnit();
                 }
             }
         }
-        public StringEvent OnChangeUnit;
 
-        string m_Label;
+        [SerializeField] Text m_LabelText;
+        [SerializeField] string m_Label;
         public string Label
         {
             get
@@ -55,16 +69,14 @@ namespace Tools.Unity.Graph
             }
             set
             {
-                if(m_Label != value)
+                if (SetPropertyUtility.SetClass(ref m_Label, value))
                 {
-                    m_Label = value;
-                    OnChangeLabel.Invoke(value);
+                    SetLabel();
                 }
             }
         }
-        public StringEvent OnChangeLabel;
 
-        Vector2 m_DisplayRange;
+        [SerializeField] Vector2 m_DisplayRange;
         public Vector2 DisplayRange
         {
             get
@@ -73,59 +85,46 @@ namespace Tools.Unity.Graph
             }
             set
             {
-                if(m_DisplayRange != value)
+                if (m_DisplayRange != value)
                 {
                     m_DisplayRange = value;
                     float ratio, step, startIndex, v, position; int numberOfMajorTickMarksNeeded;
                     CalculateAxeValue(value, out ratio, out step, out numberOfMajorTickMarksNeeded, out startIndex);
 
-                    for (int i = 0; i < m_TickMarks.Length; i++)
+                    for (int i = 0; i < m_UsedTickMarks.Length; i++)
                     {
                         if (i < numberOfMajorTickMarksNeeded)
                         {
                             v = (startIndex + i) * step;
                             position = (v - value.x) * ratio;
-                            m_TickMarks[i].Set(v.ToString(), position, Side, m_Color);
+                            m_UsedTickMarks[i].Set(v.ToString(), position, Type, m_Color);
                         }
                         else
                         {
-                            m_TickMarks[i].gameObject.SetActive(false);
+                            m_UsedTickMarks[i].gameObject.SetActive(false);
                         }
                     }
                 }
             }
         }
 
-        [SerializeField] GameObject m_TickMarkPrefab;
         [SerializeField] RectTransform m_TickMarkContainer;
 
-        const int MAX_NUMBER_OF_TICK_MARK = 10;
-        MajorTickMark[] m_TickMarks = new MajorTickMark[MAX_NUMBER_OF_TICK_MARK];
+        [SerializeField] MajorTickMark[] m_TickMarkPool;
+        [SerializeField] MajorTickMark[] m_UsedTickMarks;
+        [SerializeField] MajorTickMark m_IndependentTickMark;
         #endregion
 
         #region Private Methods
-        void Awake()
-        {
-            CreatePool();
-        }
-        void CreatePool()
-        {
-            for (int i = 0; i < m_TickMarks.Length; i++)
-            {
-                GameObject tickMarkGameObject = Instantiate(m_TickMarkPrefab, m_TickMarkContainer);
-                MajorTickMark majorTickMark = tickMarkGameObject.GetComponent<MajorTickMark>();
-                m_TickMarks[i] = majorTickMark;
-            }
-        }
         void CalculateAxeValue(Vector2 limits, out float ratio, out float step, out int numberOfTickMarksNeeded, out float startIndex)
         {
             // Calculate the lenght of the axe.
-            float lenght = limits.y - limits.x;         
+            float lenght = limits.y - limits.x;
 
             // Calculate the normalized range(1-10) of the axe.
             float normalizedLenght = lenght;
             float coef = 1f;
-            if(normalizedLenght > 0)
+            if (normalizedLenght > 0)
             {
                 while (normalizedLenght >= 10.0f)
                 {
@@ -140,7 +139,7 @@ namespace Tools.Unity.Graph
                     break;
                 }
                 // Calculate the normalizedStep then the Step.
-                float normalizedStep = normalizedLenght / m_TickMarks.Length;
+                float normalizedStep = normalizedLenght / m_TickMarkPool.Length;
                 normalizedStep = (Mathf.Ceil(normalizedStep * 2.0f)) / 2.0f;
                 step = normalizedStep * coef;
 
@@ -162,7 +161,7 @@ namespace Tools.Unity.Graph
                 }
 
                 float axeSize = 0;
-                switch (Side)
+                switch (Type)
                 {
                     case SideEnum.abscissa: axeSize = m_TickMarkContainer.rect.width; break;
                     case SideEnum.ordinate: axeSize = m_TickMarkContainer.rect.height; break;
@@ -177,6 +176,29 @@ namespace Tools.Unity.Graph
                 numberOfTickMarksNeeded = 0;
                 startIndex = 0;
             }
+        }
+        void SetColor()
+        {
+            foreach (var tickMark in m_UsedTickMarks) tickMark.SetColor(m_Color);
+            foreach (var tickMark in m_TickMarkPool) tickMark.SetColor(m_Color);
+            if (m_IndependentTickMark != null) m_IndependentTickMark.SetColor(m_Color);
+        }
+        void SetLabel()
+        {
+            m_LabelText.text = m_Label;
+        }
+        void SetUnit()
+        {
+            m_UnitText.text = m_Unit;
+        }
+        void SetType()
+        {
+
+        }
+        void OnValidate()
+        {
+            SetLabel();
+            SetUnit();
         }
         #endregion
     }

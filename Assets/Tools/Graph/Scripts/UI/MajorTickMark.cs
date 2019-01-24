@@ -18,6 +18,7 @@ namespace Tools.Unity.Graph
         }
         public override void SetColor(Color color)
         {
+            base.SetColor(color);
             labelRectTransform.GetComponent<Text>().color = color;
         }
         #endregion
