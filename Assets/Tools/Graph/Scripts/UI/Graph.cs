@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
@@ -26,41 +27,77 @@ namespace Tools.Unity.Graph
         }
         public StringEvent OnChangeTitle;
 
-        private string abscissa;
-        public string Abscissa
+        private string abscissaUnit;
+        public string AbscissaUnit
         {
             get
             {
-                return abscissa;
+                return abscissaUnit;
             }
             set
             {
-                if(value != abscissa)
+                if (value != abscissaUnit)
                 {
-                    abscissa = value;
-                    OnChangeAbscissa.Invoke(value);
+                    abscissaUnit = value;
+                    OnChangeAbscissaUnit.Invoke(value);
                 }
             }
         }
-        public StringEvent OnChangeAbscissa;
+        public StringEvent OnChangeAbscissaUnit;
 
-        private string ordinate;
-        public string Ordinate
+        private string abscissaLabel;
+        public string AbscissaLabel
         {
             get
             {
-                return ordinate;
+                return abscissaLabel;
             }
             set
             {
-                if(value != ordinate)
+                if(value != abscissaLabel)
                 {
-                    ordinate = value;
-                    OnChangeOrdinate.Invoke(value);
+                    abscissaLabel = value;
+                    OnChangeAbscissaLabel.Invoke(value);
                 }
             }
         }
-        public StringEvent OnChangeOrdinate;
+        public StringEvent OnChangeAbscissaLabel;
+
+        private string ordinateUnit;
+        public string OrdinateUnit
+        {
+            get
+            {
+                return ordinateUnit;
+            }
+            set
+            {
+                if (value != ordinateUnit)
+                {
+                    ordinateUnit = value;
+                    OnChangeOrdinateUnit.Invoke(value);
+                }
+            }
+        }
+        public StringEvent OnChangeOrdinateUnit;
+
+        private string ordinateLabel;
+        public string OrdinateLabel
+        {
+            get
+            {
+                return ordinateLabel;
+            }
+            set
+            {
+                if(value != ordinateLabel)
+                {
+                    ordinateLabel = value;
+                    OnChangeOrdinateLabel.Invoke(value);
+                }
+            }
+        }
+        public StringEvent OnChangeOrdinateLabel;
 
         private Color fontColor;
         public Color FontColor
@@ -98,8 +135,23 @@ namespace Tools.Unity.Graph
         }
         public ColorEvent OnChangeBackgroundColor;
 
+        List<CurveGroup> groups = new List<CurveGroup>();
+        public ReadOnlyCollection<CurveGroup> Groups
+        {
+            get
+            {
+                return new ReadOnlyCollection<CurveGroup>(groups);
+            }
+        }
+        List<Curve> curves = new List<Curve>();
+        public ReadOnlyCollection<Curve> Curves
+        {
+            get
+            {
+                return new ReadOnlyCollection<Curve>(curves);
+            }
+        }
 
-        public CurveGroup[] Groups { get; set; }
         //{
         //    get { return m_Data.GroupCurveData; }
         //    private set
@@ -116,42 +168,60 @@ namespace Tools.Unity.Graph
         //    }
         //}
 
-
-        Limits limits;
-        public Limits Limits
+        Vector2 ordinateDisplayRange;
+        public Vector2 OrdinateDisplayRange
         {
             get
             {
-                return limits;
+                return ordinateDisplayRange;
             }
             set
             {
-                if(value != limits)
+                if(value != ordinateDisplayRange)
                 {
-                    limits = value;
-                    OnChangeLimits.Invoke(value);
+                    ordinateDisplayRange = value;
+                    OnChangeOrdinateDisplayRange.Invoke(value);
                 }
             }
         }
-        public LimitsEvent OnChangeLimits;
+        public Vector2 DefaultOrdinateDisplayRange { get; set; }
+        public Vector2Event OnChangeOrdinateDisplayRange;
 
-        public Limits DefaultLimits { get; set; }
-
-        bool useDefaultLimits = true;
-        public bool UseDefaultLimits
+        Vector2 abscissaDisplayRange;
+        public Vector2 AbscissaDisplayRange
         {
             get
             {
-                return useDefaultLimits;
+                return abscissaDisplayRange;
             }
             set
             {
-                if(useDefaultLimits != value)
+                if(value != abscissaDisplayRange)
                 {
-                    useDefaultLimits = value;
-                    if(useDefaultLimits)
+                    abscissaDisplayRange = value;
+                    OnChangeAbscissaDisplayRange.Invoke(value);
+                }
+            }
+        }
+        public Vector2 DefaultAbscissaDisplayRange { get; set; }
+        public Vector2Event OnChangeAbscissaDisplayRange;
+
+        bool useDefaultDisplayRange = true;
+        public bool UseDefaultDisplayRange
+        {
+            get
+            {
+                return useDefaultDisplayRange;
+            }
+            set
+            {
+                if(useDefaultDisplayRange != value)
+                {
+                    useDefaultDisplayRange = value;
+                    if(useDefaultDisplayRange)
                     {
-                        Limits = DefaultLimits;
+                        AbscissaDisplayRange = DefaultAbscissaDisplayRange;
+                        OrdinateDisplayRange = DefaultOrdinateDisplayRange;
                     }
                 }
             }
@@ -159,21 +229,57 @@ namespace Tools.Unity.Graph
 
         PlotGestion m_PlotGestion;
         InformationsGestion m_InformationsGestion;
-
         #endregion
 
         #region Public Methods    
+        public void AddGroup(CurveGroup group)
+        {
+            groups.Add(group);
+        }
+        public void RemoveGroup(CurveGroup group)
+        {
+            groups.Remove(group);
+        }
+        public void AddCurve(CurveData curve, CurveGroup group = null, bool isActive = true)
+        {
+            CurveGroup groupToAddCurve = groups.Find(g => g == group);
+            if(groupToAddCurve != null)
+            {
+                groupToAddCurve.Curves.Add(new Curve(curve,isActive));
+            }
+            else
+            {
+                curves.Add(new Curve(curve, isActive));
+            }
+        }
+        public void RemoveCurve(Curve curve)
+        {
+            //if(curves.Exists(c => c == curve))
+            //{
+            //    curves.Remove(curve);
+            //}
+            //CurveGroup groupToAddCurve = groups.Find(g => g == group);
+            //if (groupToAddCurve != null)
+            //{
+            //    groupToAddCurve.Curves.Add(new Curve(curve, isActive));
+            //}
+            //else
+            //{
+            //    curves.Add(new Curve(curve, isActive));
+            //}
+        }
+
         public void Plot(GraphData graph, bool useDefaultLimits = true)
         {
             Clear();
 
             Title = graph.Title;
-            Abscissa = graph.Abscissa;
-            Ordinate = graph.Ordinate;
+            AbscissaLabel = graph.Abscissa;
+            OrdinateLabel = graph.Ordinate;
             FontColor = graph.FontColor;
             BackgroundColor = graph.BackgroundColor;
-            DefaultLimits = graph.Limits;
-            if (useDefaultLimits) Limits = graph.Limits;
+            //DefaultLimits = graph.Limits;
+            //if (useDefaultLimits) Limits = graph.Limits;
             
 
             List<string> curveToRemove = new List<string>();
@@ -221,20 +327,17 @@ namespace Tools.Unity.Graph
             //    }
             //}
 
-            Plot(graph.GroupCurveData, Limits, false);
+            //Plot(graph.GroupCurveData, Limits, false);
         }
         public string ToSVG()
         {
-            return m_Data.ToSVG();
+            return "";
+            //return m_Data.ToSVG();
         }
         public Dictionary<string, string> ToCSV()
         {
-            return m_Data.ToCSV();
-        }
-        public void SetLimits(Limits limits, bool sendEvent = false)
-        {
-            Limits = limits;
-            if (sendEvent) OnChangeLimits.Invoke(limits);
+            return new Dictionary<string, string>();
+            //return m_Data.ToCSV();
         }
         #endregion
 
@@ -245,55 +348,59 @@ namespace Tools.Unity.Graph
         }
         void Awake()
         {
-            m_PlotGestion = GetComponentInChildren<PlotGestion>();
-            m_InformationsGestion = GetComponentInChildren<InformationsGestion>();
-            m_InformationsGestion.OnAutoLimits.RemoveAllListeners();
-            m_InformationsGestion.OnAutoLimits.AddListener(() => { useDefaultLimits = true; Plot(m_Data); });
-            m_InformationsGestion.OnDisplayCurve.RemoveAllListeners();
-            m_InformationsGestion.OnDisplayCurve.AddListener((curve, isOn) =>
-            {
-                curveIsActive[curve.ID] = isOn;
-                Plot(Groups, Limits);
-            });
-            m_InformationsGestion.OnDisplayGroup.RemoveAllListeners();
-            m_InformationsGestion.OnDisplayGroup.AddListener((group, isOn) =>
-            {
-                groupIsActive[group.Name] = isOn;
-                Plot(Groups, Limits);
-            });
-            m_PlotGestion.OnChangeLimits.RemoveAllListeners();
-            m_PlotGestion.OnChangeLimits.AddListener((limits,ignore) => { if(!ignore) useDefaultLimits = false; Plot(Groups, limits, true);});
+            //m_PlotGestion = GetComponentInChildren<PlotGestion>();
+            //m_InformationsGestion = GetComponentInChildren<InformationsGestion>();
+            //m_InformationsGestion.OnDisplayCurve.RemoveAllListeners();
+            //m_InformationsGestion.OnDisplayCurve.AddListener((curve, isOn) =>
+            //{
+            //    curveIsActive[curve.ID] = isOn;
+            //    Plot(Groups, Limits);
+            //});
+            //m_InformationsGestion.OnDisplayGroup.RemoveAllListeners();
+            //m_InformationsGestion.OnDisplayGroup.AddListener((group, isOn) =>
+            //{
+            //    groupIsActive[group.Name] = isOn;
+            //    Plot(Groups, Limits);
+            //});
+            //m_PlotGestion.OnChangeLimits.RemoveAllListeners();
+            //m_PlotGestion.OnChangeLimits.AddListener((limits,ignore) => { if(!ignore) useDefaultDisplayRange = false; Plot(Groups, limits, true);});
         }
         void Plot (CurveGroupData[] groupCurves, Limits limits, bool onlyUpdate = false)
         {
-            Groups = groupCurves;
-            SetLimits(limits,true);
-            List<CurveData> curvesToDisplay = new List<CurveData>();
-            foreach (var group in groupCurves)
-            {
-                if(groupIsActive[group.Name])
-                {
-                    foreach (var curve in group.Curves)
-                    {
-                        if (curveIsActive[curve.ID]) curvesToDisplay.Add(curve);
-                    }
-                }
-            }
-            m_PlotGestion.Plot(curvesToDisplay.ToArray(), Limits, onlyUpdate);
+            //Groups = groupCurves;
+            //SetLimits(limits,true);
+            //List<CurveData> curvesToDisplay = new List<CurveData>();
+            //foreach (var group in groupCurves)
+            //{
+            //    if(groupIsActive[group.Name])
+            //    {
+            //        foreach (var curve in group.Curves)
+            //        {
+            //            if (curveIsActive[curve.ID]) curvesToDisplay.Add(curve);
+            //        }
+            //    }
+            //}
+            //m_PlotGestion.Plot(curvesToDisplay.ToArray(), Limits, onlyUpdate);
         }
         #endregion
 
-        #region Private Structs
-        public struct CurveGroup
+        #region Public Structs
+        public class CurveGroup
         {
             public string Name { get; set; }
             public bool IsActive { get; set; }
-            public Curve[] Curves { get; set; }
+            public List<Curve> Curves { get; set; }
         }
-        public struct Curve
+        public class Curve
         {
             public bool IsActive { get; set; }
             public CurveData Data { get; set; }
+
+            public Curve(CurveData data, bool isActive)
+            {
+                IsActive = isActive;
+                Data = data;
+            }
         }
         #endregion
     }

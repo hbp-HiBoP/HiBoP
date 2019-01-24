@@ -25,6 +25,7 @@ namespace HBP.UI.Informations
 
         DataStruct[] m_Data;
         ChannelStruct[] m_Channels;
+        bool isLock;
         #endregion
 
         #region Public Methods
@@ -69,7 +70,8 @@ namespace HBP.UI.Informations
             // Add Graph
             GameObject graphGameObject = Instantiate(m_GraphPrefab, m_GraphContainer);
             Graph graph = graphGameObject.GetComponent<Graph>();
-            graph.OnChangeLimits.AddListener(OnChangeLimitsHandler);
+            graph.OnChangeOrdinateDisplayRange.AddListener(OnChangeOrdinateDisplayRangeHandler);
+            graph.OnChangeAbscissaDisplayRange.AddListener(OnChangeAbscissaDisplayRangeHandler);
             graphGameObject.SetActive(false);
 
             // Add Toggle
@@ -277,11 +279,28 @@ namespace HBP.UI.Informations
             }
             m_GraphByColumn = new Dictionary<int, Graph>();
         }
-        void OnChangeLimitsHandler(Limits limits)
+        void OnChangeAbscissaDisplayRangeHandler(Vector2 abscissaDisplayRange)
         {
-            foreach (var graph in m_GraphByColumn.Values)
+            if (!isLock)
             {
-                graph.SetLimits(new Limits(graph.Limits.AbscissaMin,graph.Limits.AbscissaMax, limits.OrdinateMin, limits.OrdinateMax));
+                isLock = true;
+                foreach (var graph in m_GraphByColumn.Values)
+                {
+                    graph.OrdinateDisplayRange = abscissaDisplayRange;
+                }
+                isLock = false;
+            }
+        }
+        void OnChangeOrdinateDisplayRangeHandler(Vector2 ordinateDisplayRange)
+        {
+            if(!isLock)
+            {
+                isLock = true;
+                foreach (var graph in m_GraphByColumn.Values)
+                {
+                    graph.OrdinateDisplayRange = ordinateDisplayRange;
+                }
+                isLock = false;
             }
         }
         #endregion

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Globalization;
+using UnityEngine.Events;
 
 namespace Tools.Unity.Graph
 {
@@ -37,34 +38,60 @@ namespace Tools.Unity.Graph
         public InputField MaxAbscissaInputField;
         public InputField MinOrdinateInputField;
         public InputField MaxOrdinateInputField;
-        public Limits Limits
+
+        public Vector2 OrdinateDisplayRange
         {
             get
             {
-                if(NumberExtension.TryParseFloat(MinAbscissaInputField.text, out float abscissaMin) &&
-                   NumberExtension.TryParseFloat(MaxAbscissaInputField.text, out float abscissaMax) &&
-                   NumberExtension.TryParseFloat(MinOrdinateInputField.text, out float ordinateMin) &&
-                   NumberExtension.TryParseFloat(MaxOrdinateInputField.text, out float ordinateMax))
+                Vector2 displayRange = new Vector2();
+                if (NumberExtension.TryParseFloat(MinOrdinateInputField.text, out float min))
                 {
-                    return new Limits(abscissaMin, abscissaMax, ordinateMin, ordinateMax);
+                    displayRange.x = min;
                 }
-                else
+                else Debug.LogError("Can't parse ordinate min value");
+                if (NumberExtension.TryParseFloat(MaxOrdinateInputField.text, out float max))
                 {
-                    Debug.LogError("Can't parse the limits");
-                    return new Limits();
+                    displayRange.y = max;
                 }
+                else Debug.LogError("Can't parse ordinate max value");
+                return displayRange;
             }
             set
             {
                 CultureInfo cultureInfo = System.Globalization.CultureInfo.GetCultureInfo(CultureInfo);
-                MinAbscissaInputField.text = value.AbscissaMin.ToString(Format, cultureInfo);
-                MaxAbscissaInputField.text = value.AbscissaMax.ToString(Format, cultureInfo);
-                MinOrdinateInputField.text = value.OrdinateMin.ToString(Format, cultureInfo);
-                MaxOrdinateInputField.text = value.OrdinateMax.ToString(Format, cultureInfo);
-                OnChangeLimits.Invoke(value);
+                MinOrdinateInputField.text = value.x.ToString(Format, cultureInfo);
+                MaxOrdinateInputField.text = value.y.ToString(Format, cultureInfo);
+                OnChangeAbscissaDisplayRange.Invoke(value);
             }
         }
-        public LimitsEvent OnChangeLimits;
+        public Vector2Event OnChangeOrdinateDisplayRange;
+
+        public Vector2 AbscissaDisplayRange
+        {
+            get
+            {
+                Vector2 displayRange = new Vector2();
+                if (NumberExtension.TryParseFloat(MinAbscissaInputField.text, out float abscissaMin))
+                {
+                    displayRange.x = abscissaMin;
+                }
+                else Debug.LogError("Can't parse abscissa min value");
+                if (NumberExtension.TryParseFloat(MaxAbscissaInputField.text, out float abscissaMax))
+                {
+                    displayRange.y = abscissaMax;
+                }
+                else Debug.LogError("Can't parse abscissa max value");
+                return displayRange;
+            }
+            set
+            {
+                CultureInfo cultureInfo = System.Globalization.CultureInfo.GetCultureInfo(CultureInfo);
+                MinAbscissaInputField.text = value.x.ToString(Format, cultureInfo);
+                MaxAbscissaInputField.text = value.y.ToString(Format, cultureInfo);
+                OnChangeAbscissaDisplayRange.Invoke(value);
+            }
+        }
+        public Vector2Event OnChangeAbscissaDisplayRange;
 
         public string Format = "N2";
         public string CultureInfo = "en-US";

@@ -96,9 +96,9 @@ namespace Tools.Unity.Graph
         #region Private Methods
         void Awake()
         {
-            PlotGestion = GetComponentInChildren<PlotGestion>();
-            PlotGestion.OnChangeLimits.RemoveAllListeners();
-            PlotGestion.OnChangeLimits.AddListener((limits, ignore) => { if (!ignore) m_AutoLimits = false; Plot(GroupCurves, limits, true); });
+            //PlotGestion = GetComponentInChildren<PlotGestion>();
+            //PlotGestion.OnChangeLimits.RemoveAllListeners();
+            //PlotGestion.OnChangeLimits.AddListener((limits, ignore) => { if (!ignore) m_AutoLimits = false; Plot(GroupCurves, limits, true); });
         }
         void Plot(CurveGroupData[] groupCurves, Limits limits, bool onlyUpdate = false)
         {

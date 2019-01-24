@@ -41,20 +41,21 @@ namespace Tools.Unity.Graph
             {
                 legendsGestion = legend.GetComponentInChildren<LegendsGestion>();
             }
-            Transform window = transform.Find("Window");
-            if(window != null)
-            {
-                windowInputGestion = transform.Find("Window").GetComponent<LimitsInput>();
-                Toggle parentToggle = GetComponentInParent<Toggle>();
-                parentToggle.onValueChanged.RemoveAllListeners();
-                parentToggle.onValueChanged.AddListener((b) => windowInputGestion.gameObject.SetActive(b));
-                parentToggle.onValueChanged.AddListener(delegate
-                {
-                    windowInputGestion.Abscissa = abscissa.Title;
-                    windowInputGestion.Ordinate = ordinate.Title;
-                    windowInputGestion.Limits = limits;
-                });
-            }
+            //Transform window = transform.Find("Window");
+            //if(window != null)
+            //{
+            //    windowInputGestion = transform.Find("Window").GetComponent<LimitsInput>();
+            //    Toggle parentToggle = GetComponentInParent<Toggle>();
+            //    parentToggle.onValueChanged.RemoveAllListeners();
+            //    parentToggle.onValueChanged.AddListener((b) => windowInputGestion.gameObject.SetActive(b));
+            //    parentToggle.onValueChanged.AddListener(delegate
+            //    {
+            //        windowInputGestion.Abscissa = abscissa.Title;
+            //        windowInputGestion.Ordinate = ordinate.Title;
+            //        windowInputGestion.AbscissaDisplayRange = limits;
+            //        windowInputGestion.OrdinateDisplayRange = ordinate
+            //    });
+            //}
         }
         #endregion
     }

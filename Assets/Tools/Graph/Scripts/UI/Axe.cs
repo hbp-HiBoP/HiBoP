@@ -28,36 +28,54 @@ namespace Tools.Unity.Graph
         }
         public ColorEvent OnChangeColor;
 
-        string m_Title;
-        public string Title
+        string m_Unit;
+        public string Unit
         {
             get
             {
-                return m_Title;
+                return m_Unit;
             }
             set
             {
-                if(m_Title != value)
+                if (m_Unit != value)
                 {
-                    m_Title = value;
-                    OnChangeTitle.Invoke(value);
+                    m_Unit = value;
+                    OnChangeUnit.Invoke(value);
                 }
             }
         }
-        public StringEvent OnChangeTitle;
+        public StringEvent OnChangeUnit;
 
-        Vector2 m_Limits;
-        public Vector2 Limits
+        string m_Label;
+        public string Label
         {
             get
             {
-                return m_Limits;
+                return m_Label;
             }
             set
             {
-                if(m_Limits != value)
+                if(m_Label != value)
                 {
-                    m_Limits = value;
+                    m_Label = value;
+                    OnChangeLabel.Invoke(value);
+                }
+            }
+        }
+        public StringEvent OnChangeLabel;
+
+        Vector2 m_DisplayRange;
+        public Vector2 DisplayRange
+        {
+            get
+            {
+                return m_DisplayRange;
+            }
+            set
+            {
+                if(m_DisplayRange != value)
+                {
+                    m_DisplayRange = value;
                     float ratio, step, startIndex, v, position; int numberOfMajorTickMarksNeeded;
                     CalculateAxeValue(value, out ratio, out step, out numberOfMajorTickMarksNeeded, out startIndex);
 

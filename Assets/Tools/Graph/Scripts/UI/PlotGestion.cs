@@ -23,7 +23,7 @@ namespace Tools.Unity.Graph
             get { return axeColor; }
             set { axeColor = value; }
         }
-        public OnChangeLimitsEvent OnChangeLimits = new OnChangeLimitsEvent();
+        //public OnChangeLimitsEvent OnChangeLimits = new OnChangeLimitsEvent();
         OriginAxe OrdinateOriginAxe;
         OriginAxe AbscissaOriginAxe;
 
@@ -70,7 +70,7 @@ namespace Tools.Unity.Graph
             limits.AbscissaMax += abscissa;
             limits.OrdinateMin += ordinate;
             limits.OrdinateMax += ordinate;
-            OnChangeLimits.Invoke(limits,false);
+            //OnChangeLimits.Invoke(limits,false);
         }
         public void Zoom()
         {
@@ -81,7 +81,7 @@ namespace Tools.Unity.Graph
             limits.AbscissaMax -= abscissa;
             limits.OrdinateMin += ordinate;
             limits.OrdinateMax -= ordinate;
-            OnChangeLimits.Invoke(limits,false);
+            //OnChangeLimits.Invoke(limits,false);
         }
         public void Dezoom()
         {
@@ -92,11 +92,11 @@ namespace Tools.Unity.Graph
             limits.AbscissaMax += abscissa;
             limits.OrdinateMin -= ordinate;
             limits.OrdinateMax += ordinate;
-            OnChangeLimits.Invoke(limits,false);
+           // OnChangeLimits.Invoke(limits,false);
         }
         public void ChangeRectSize(Vector2 command)
         {
-            OnChangeLimits.Invoke(Limits,true);
+            //OnChangeLimits.Invoke(Limits,true);
         }
         #endregion
 
@@ -150,10 +150,4 @@ namespace Tools.Unity.Graph
         }
         #endregion
     }
-
-    public class OnChangeLimitsEvent : UnityEvent<Limits,bool>
-    {
-    }
-
-    [Serializable] public class LimitsEvent : UnityEvent<Limits> { }
 }
