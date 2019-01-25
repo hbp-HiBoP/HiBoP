@@ -11,7 +11,7 @@ namespace Tools.Unity.Graph
 
         public Graphic[] Graphics;
         public RectTransform VisualRectTransform;
-        public Axe.SideEnum Side;
+        public Axe.DirectionEnum Direction;
 
         MajorTickMark[] m_Graduations = new MajorTickMark[10];
         Color m_Color;
@@ -21,7 +21,7 @@ namespace Tools.Unity.Graph
         public void SetColor(Color color)
         {
             m_Color = color;
-            foreach (MajorTickMark majorTickMark in m_Graduations) majorTickMark.SetColor(color);
+            foreach (MajorTickMark majorTickMark in m_Graduations) majorTickMark.Color = color;
             foreach (Graphic graphic in Graphics) graphic.color = color;
         }
         public void SetLimits(Vector2 limits)
@@ -53,9 +53,12 @@ namespace Tools.Unity.Graph
             // Instantiate tick marks.
             InstantiateGraduations();
         }
-        void SetGraduations(MajorTickMark majorTickMark, string label, float position, Axe.SideEnum side, Color color)
+        void SetGraduations(MajorTickMark majorTickMark, string label, float position, Axe.DirectionEnum direction, Color color)
         {
-            majorTickMark.Set(label, position, side, color);
+            majorTickMark.Label = label;
+            majorTickMark.Position = position;
+            majorTickMark.Direction = direction;
+            majorTickMark.Color = color;
         }
         void InstantiateGraduations()
         {
@@ -111,10 +114,16 @@ namespace Tools.Unity.Graph
                 }
 
                 float axeSize = 0;
-                switch (Side)
+                switch (Direction)
                 {
-                    case Axe.SideEnum.abscissa: axeSize = transform.GetChild(0).GetComponent<RectTransform>().rect.width; break;
-                    case Axe.SideEnum.ordinate: axeSize = transform.GetChild(0).GetComponent<RectTransform>().rect.height; break;
+                    case Axe.DirectionEnum.LeftToRight:
+                    case Axe.DirectionEnum.RightToLeft:
+                        axeSize = transform.GetChild(0).GetComponent<RectTransform>().rect.width;
+                        break;
+                    case Axe.DirectionEnum.TopToBottom:
+                    case Axe.DirectionEnum.BottomToTop:
+                        axeSize = transform.GetChild(0).GetComponent<RectTransform>().rect.height;
+                        break;
                 }
                 // Find the value of the scalesPoints
                 ratio = axeSize / lenght;

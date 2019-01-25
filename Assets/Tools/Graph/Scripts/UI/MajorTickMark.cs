@@ -1,37 +1,60 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.UI.Extensions;
 
 namespace Tools.Unity.Graph
 {
     public class MajorTickMark : TickMark
     {
         #region Parameters
-        [SerializeField]
-        protected RectTransform labelRectTransform;
-        #endregion
+        [SerializeField] protected RectTransform m_LabelRectTransform;
 
-        #region Public Methods
-        public virtual void Set(string label, float position, Axe.SideEnum side, Color color)
+        [SerializeField] string m_Label;
+        public string Label
         {
-            base.Set(position, side, color);
-            SetLabel(label,side);
-        }
-        public override void SetColor(Color color)
-        {
-            base.SetColor(color);
-            labelRectTransform.GetComponent<Text>().color = color;
-        }
-        #endregion
-
-        #region Private Methods
-        protected virtual void SetLabel(string label, Axe.SideEnum side)
-        {
-            labelRectTransform.GetComponent<Text>().text = label;
-            switch (side)
+            get
             {
-                case Axe.SideEnum.abscissa: labelRectTransform.offsetMax = new Vector2(0, - TICK_MARK_LENGHT / 2); break;
-                case Axe.SideEnum.ordinate: labelRectTransform.offsetMax = new Vector2(- TICK_MARK_LENGHT / 2, 0); break;
+                return m_Label;
             }
+            set
+            {
+                if(SetPropertyUtility.SetClass(ref m_Label, value))
+                {
+                    SetLabel();
+                }
+            }
+        }
+        #endregion
+
+        #region Protected Setters
+        protected override void OnValidate()
+        {
+            base.OnValidate();
+            SetLabel();
+        }
+        protected override void SetLenghtThicknessDirection()
+        {
+            base.SetLenghtThicknessDirection();
+            switch (m_Direction)
+            {
+                case Axe.DirectionEnum.LeftToRight:
+                case Axe.DirectionEnum.RightToLeft:
+                    m_LabelRectTransform.offsetMax = new Vector2(0, -m_Lenght / 2);
+                    break;
+                case Axe.DirectionEnum.BottomToTop:
+                case Axe.DirectionEnum.TopToBottom:
+                    m_LabelRectTransform.offsetMax = new Vector2(-m_Lenght / 2, 0);
+                    break;
+            }
+        }
+        protected void SetLabel()
+        {
+            m_LabelRectTransform.GetComponent<Text>().text = m_Label;
+        }
+        protected override void SetColor()
+        {
+            base.SetColor();
+            m_LabelRectTransform.GetComponent<Text>().color = m_Color;
         }
         #endregion
     }

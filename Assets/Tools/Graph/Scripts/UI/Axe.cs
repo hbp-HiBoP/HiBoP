@@ -9,17 +9,17 @@ namespace Tools.Unity.Graph
     public class Axe : MonoBehaviour
     {
         #region Properties
-        public enum SideEnum { abscissa, ordinate };
-        [SerializeField] SideEnum m_Type;
-        public SideEnum Type
+        public enum DirectionEnum { LeftToRight, RightToLeft, BottomToTop, TopToBottom}
+        [SerializeField] DirectionEnum m_Direction;
+        public DirectionEnum Direction
         {
             get
             {
-                return m_Type;
+                return m_Direction;
             }
             set
             {
-                if (SetPropertyUtility.SetStruct(ref m_Type, value))
+                if (SetPropertyUtility.SetStruct(ref m_Direction, value))
                 {
                     SetType();
                 }
@@ -97,7 +97,11 @@ namespace Tools.Unity.Graph
                         {
                             v = (startIndex + i) * step;
                             position = (v - value.x) * ratio;
-                            m_UsedTickMarks[i].Set(v.ToString(), position, Type, m_Color);
+                            MajorTickMark tickMark = m_UsedTickMarks[i];
+                            tickMark.Label = v.ToString();
+                            tickMark.Position = position;
+                            tickMark.Direction = Direction;
+                            tickMark.Color = m_Color;
                         }
                         else
                         {
@@ -109,7 +113,6 @@ namespace Tools.Unity.Graph
         }
 
         [SerializeField] RectTransform m_TickMarkContainer;
-
         [SerializeField] MajorTickMark[] m_TickMarkPool;
         [SerializeField] MajorTickMark[] m_UsedTickMarks;
         [SerializeField] MajorTickMark m_IndependentTickMark;
@@ -161,10 +164,16 @@ namespace Tools.Unity.Graph
                 }
 
                 float axeSize = 0;
-                switch (Type)
+                switch (Direction)
                 {
-                    case SideEnum.abscissa: axeSize = m_TickMarkContainer.rect.width; break;
-                    case SideEnum.ordinate: axeSize = m_TickMarkContainer.rect.height; break;
+                    case DirectionEnum.LeftToRight:
+                    case DirectionEnum.RightToLeft:
+                        axeSize = m_TickMarkContainer.rect.width;
+                        break;
+                    case DirectionEnum.TopToBottom:
+                    case DirectionEnum.BottomToTop:
+                        axeSize = m_TickMarkContainer.rect.height;
+                        break;
                 }
                 // Find the value of the scalesPoints
                 ratio = axeSize / lenght;
@@ -177,19 +186,25 @@ namespace Tools.Unity.Graph
                 startIndex = 0;
             }
         }
+        #endregion
+
+        #region Private Setter
         void SetColor()
         {
-            foreach (var tickMark in m_UsedTickMarks) tickMark.SetColor(m_Color);
-            foreach (var tickMark in m_TickMarkPool) tickMark.SetColor(m_Color);
-            if (m_IndependentTickMark != null) m_IndependentTickMark.SetColor(m_Color);
+            if (m_Color != null)
+            {
+                foreach (var tickMark in m_UsedTickMarks) tickMark.Color = m_Color;
+                foreach (var tickMark in m_TickMarkPool) tickMark.Color = m_Color;
+                if (m_IndependentTickMark != null) m_IndependentTickMark.Color = m_Color;
+            }
         }
         void SetLabel()
         {
-            m_LabelText.text = m_Label;
+            if (m_LabelText != null && m_Label != null) m_LabelText.text = m_Label;
         }
         void SetUnit()
         {
-            m_UnitText.text = m_Unit;
+            if (m_UnitText != null && m_Unit != null) m_UnitText.text = string.Format("({0})", m_Unit);
         }
         void SetType()
         {

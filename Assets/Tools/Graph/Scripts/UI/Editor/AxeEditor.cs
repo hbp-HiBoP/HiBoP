@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 
 namespace Tools.Unity.Graph
@@ -9,8 +7,10 @@ namespace Tools.Unity.Graph
     public class AxeEditor : UnityEditor.Editor
     {
         #region Properties
-        bool showTickMarks = true;
-        SerializedProperty m_Type;
+        bool m_ShowTickMarks = false;
+        bool m_ShowGraphics = false;
+        bool m_ShowEvents = false;
+        SerializedProperty m_Direction;
         SerializedProperty m_Label;
         SerializedProperty m_Unit;
         SerializedProperty m_UnitText;
@@ -25,7 +25,7 @@ namespace Tools.Unity.Graph
 
         public void OnEnable()
         {
-            m_Type = serializedObject.FindProperty("m_Type");
+            m_Direction = serializedObject.FindProperty("m_Direction");
             m_LabelText = serializedObject.FindProperty("m_LabelText");
             m_Label = serializedObject.FindProperty("m_Label");
 
@@ -37,38 +37,42 @@ namespace Tools.Unity.Graph
             m_DisplayRange = serializedObject.FindProperty("m_DisplayRange");
 
             m_TickMarkContainer = serializedObject.FindProperty("m_TickMarkContainer");
-            m_UsedTickMarks = serializedObject.FindProperty("UsedTickMarks");
-            m_IndependantTickMark = serializedObject.FindProperty("IndependentTickMark");
-            m_TickMarkPool = serializedObject.FindProperty("TickMarkPool");
+            m_UsedTickMarks = serializedObject.FindProperty("m_UsedTickMarks");
+            m_IndependantTickMark = serializedObject.FindProperty("m_IndependentTickMark");
+            m_TickMarkPool = serializedObject.FindProperty("m_TickMarkPool");
         }
 
         public override void OnInspectorGUI()
         {
-            EditorGUILayout.PropertyField(m_Type);
-
+            EditorGUILayout.PrefixLabel(new GUIContent("General"));
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(m_Direction);
             EditorGUILayout.PropertyField(m_Label);
-            EditorGUILayout.PropertyField(m_LabelText);
-
             EditorGUILayout.PropertyField(m_Unit);
-            EditorGUILayout.PropertyField(m_UnitText);
-
-            EditorGUILayout.PropertyField(m_Color);
-
             EditorGUILayout.PropertyField(m_DisplayRange);
+            EditorGUILayout.PropertyField(m_Color);
+            EditorGUI.indentLevel--;
 
-
-            SerializedProperty UsedTickMarks = serializedObject.FindProperty("UsedTickMarks");
-            SerializedProperty IndependantTickMark = serializedObject.FindProperty("IndependentTickMark");
-            SerializedProperty TickMarkPool = serializedObject.FindProperty("TickMarkPool");
-            showTickMarks = EditorGUILayout.Foldout(showTickMarks, "TickMarks");
-            if(showTickMarks)
+            m_ShowGraphics = EditorGUILayout.Foldout(m_ShowGraphics, "Graphics");
+            if (m_ShowGraphics)
             {
                 EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_LabelText);
+                EditorGUILayout.PropertyField(m_UnitText);
+                EditorGUI.indentLevel--;
+            }
+
+            m_ShowTickMarks = EditorGUILayout.Foldout(m_ShowTickMarks, "TickMarks");
+            if(m_ShowTickMarks)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_TickMarkContainer, new GUIContent("Container"));
+
                 GUI.enabled = false;
-                EditorGUILayout.PropertyField(IndependantTickMark, new GUIContent("Independant"), true);
-                EditorGUILayout.PropertyField(UsedTickMarks, new GUIContent("Used"), true);
+                EditorGUILayout.PropertyField(m_IndependantTickMark, new GUIContent("Independent"), true);
+                EditorGUILayout.PropertyField(m_UsedTickMarks, new GUIContent("Used"), true);
                 GUI.enabled = true;
-                EditorGUILayout.PropertyField(TickMarkPool, new GUIContent("Pool"), true);
+                EditorGUILayout.PropertyField(m_TickMarkPool, new GUIContent("Pool"), true);
                 EditorGUI.indentLevel--;
             }
             serializedObject.ApplyModifiedProperties();

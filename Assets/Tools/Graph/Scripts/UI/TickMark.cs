@@ -1,76 +1,215 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.UI.Extensions;
 
 namespace Tools.Unity.Graph
 {
     public class TickMark : MonoBehaviour
     {
-        #region Parameters
-        [SerializeField]
-        protected RectTransform imageRectTransform;
-        [SerializeField]
-        protected RectTransform rectTransform;
+        #region Properties
+        [SerializeField] protected RectTransform m_ImageRectTransform;
 
-        protected const float TICK_MARK_LENGHT = 12.0f;
-        protected const float TICK_MARK_THICKNESS = 2.0f;
-        #endregion
-
-        #region Public Methods
-        public virtual void Set(float position, Axe.SideEnum side, Color color)
+        [SerializeField] protected float m_Lenght = 12.0f;
+        public float Lenght
         {
-            gameObject.SetActive(true);
-            SetPosition(position, side);
-            SetImage(side);
-            SetColor(color);
-        }
-        public virtual void SetColor(Color color)
-        {
-            imageRectTransform.GetComponent<Image>().color = color;
-        }
-        #endregion
-
-        #region Private Methods
-        protected virtual void SetPosition(float position, Axe.SideEnum side)
-        {
-            switch (side)
+            get
             {
-                case Axe.SideEnum.abscissa:
+                return m_Lenght;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_Lenght, value))
+                {
+                    SetLenghtThicknessDirection();
+                }
+            }
+        }
+
+        [SerializeField] protected float m_Thickness = 2.0f;
+        public float Thickness
+        {
+            get
+            {
+                return m_Thickness;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_Thickness, value))
+                {
+                    SetLenghtThicknessDirection();
+                }
+            }
+        }
+
+        [SerializeField] protected Axe.DirectionEnum m_Direction;
+        public Axe.DirectionEnum Direction
+        {
+            get
+            {
+                return m_Direction;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_Direction, value))
+                {
+                    SetLenghtThicknessDirection();
+                }
+            }
+        }
+
+        [SerializeField] protected Color m_Color;
+        public Color Color
+        {
+            get
+            {
+                return m_Color;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_Color, value))
+                {
+                    SetColor();
+                }
+            }
+        }
+
+        [SerializeField,Range(0,1)] protected float m_Position;
+        public float Position
+        {
+            get
+            {
+                return m_Position;
+            }
+            set
+            {
+                if(SetPropertyUtility.SetStruct(ref m_Position, value))
+                {
+                    m_Position = Mathf.Clamp(m_Position, 0, 1);
+                    SetPosition();
+                }
+            }
+        }
+        #endregion
+
+        #region Setters
+        protected virtual void OnValidate()
+        {
+            SetLenghtThicknessDirection();
+            SetColor();
+            SetPosition();
+        }
+        protected virtual void SetLenghtThicknessDirection()
+        {
+            RectTransform rectTransform = transform as RectTransform;
+            switch (m_Direction)
+            {
+                case Axe.DirectionEnum.LeftToRight:
+                case Axe.DirectionEnum.RightToLeft:
+                    m_ImageRectTransform.anchorMin = new Vector2(0.5f, 1f);
+                    m_ImageRectTransform.anchorMax = new Vector2(0.5f, 1f);
+                    m_ImageRectTransform.pivot = new Vector2(0.5f, 0.5f);
+                    m_ImageRectTransform.sizeDelta = new Vector2(m_Thickness, m_Lenght);
+                    m_ImageRectTransform.localPosition = Vector3.zero;
+
                     rectTransform.anchorMin = new Vector2(0, 0);
                     rectTransform.anchorMax = new Vector2(0, 1);
                     rectTransform.pivot = new Vector2(0.5f, 1f);
                     rectTransform.sizeDelta = new Vector2(rectTransform.parent.GetComponent<RectTransform>().rect.width / 11.0f, 0);
-                    rectTransform.localPosition = position * Vector3.right;
                     break;
+                case Axe.DirectionEnum.TopToBottom:
+                case Axe.DirectionEnum.BottomToTop:
+                    m_ImageRectTransform.anchorMin = new Vector2(1f, 0.5f);
+                    m_ImageRectTransform.anchorMax = new Vector2(1f, 0.5f);
+                    m_ImageRectTransform.pivot = new Vector2(0.5f, 0.5f);
+                    m_ImageRectTransform.sizeDelta = new Vector2(m_Lenght, m_Thickness);
+                    m_ImageRectTransform.localPosition = Vector3.zero;
 
-                case Axe.SideEnum.ordinate:
                     rectTransform.anchorMin = new Vector2(0, 0);
                     rectTransform.anchorMax = new Vector2(1, 0);
                     rectTransform.pivot = new Vector2(1f, 0.5f);
                     rectTransform.sizeDelta = new Vector2(0, rectTransform.parent.GetComponent<RectTransform>().rect.height / 11.0f);
-                    rectTransform.localPosition = position * Vector3.up;
                     break;
             }
         }
-        protected virtual void SetImage(Axe.SideEnum side)
+        protected virtual void SetDirection()
         {
-            switch (side)
+            RectTransform rectTransform = transform as RectTransform;
+            switch (m_Direction)
             {
-                case Axe.SideEnum.abscissa:
-                    imageRectTransform.anchorMin = new Vector2(0.5f, 1f);
-                    imageRectTransform.anchorMax = new Vector2(0.5f, 1f);
-                    imageRectTransform.pivot = new Vector2(0.5f, 0.5f);
-                    imageRectTransform.sizeDelta = new Vector2(TICK_MARK_THICKNESS, TICK_MARK_LENGHT);
-                    imageRectTransform.localPosition = Vector3.zero;
-                    break;
+                case Axe.DirectionEnum.LeftToRight:
+                case Axe.DirectionEnum.RightToLeft:
+                    m_ImageRectTransform.anchorMin = new Vector2(0.5f, 1f);
+                    m_ImageRectTransform.anchorMax = new Vector2(0.5f, 1f);
+                    m_ImageRectTransform.pivot = new Vector2(0.5f, 0.5f);
+                    m_ImageRectTransform.localPosition = Vector3.zero;
 
-                case Axe.SideEnum.ordinate:
-                    imageRectTransform.anchorMin = new Vector2(1f, 0.5f);
-                    imageRectTransform.anchorMax = new Vector2(1f, 0.5f);
-                    imageRectTransform.pivot = new Vector2(0.5f, 0.5f);
-                    imageRectTransform.sizeDelta = new Vector2(TICK_MARK_LENGHT, TICK_MARK_THICKNESS);
-                    imageRectTransform.localPosition = Vector3.zero;
+                    rectTransform.anchorMin = new Vector2(0, 0);
+                    rectTransform.anchorMax = new Vector2(0, 1);
+                    rectTransform.pivot = new Vector2(0.5f, 1f);
+                    rectTransform.sizeDelta = new Vector2(rectTransform.parent.GetComponent<RectTransform>().rect.width / 11.0f, 0);
+                    break;
+                case Axe.DirectionEnum.TopToBottom:
+                case Axe.DirectionEnum.BottomToTop:
+                    m_ImageRectTransform.anchorMin = new Vector2(1f, 0.5f);
+                    m_ImageRectTransform.anchorMax = new Vector2(1f, 0.5f);
+                    m_ImageRectTransform.pivot = new Vector2(0.5f, 0.5f);
+                    m_ImageRectTransform.localPosition = Vector3.zero;
+
+                    rectTransform.anchorMin = new Vector2(0, 0);
+                    rectTransform.anchorMax = new Vector2(1, 0);
+                    rectTransform.pivot = new Vector2(1f, 0.5f);
+                    rectTransform.sizeDelta = new Vector2(0, rectTransform.parent.GetComponent<RectTransform>().rect.height / 11.0f);
                     break;
             }
+            SetLenght();
+            SetPosition();
+        }
+        protected virtual void SetLenght()
+        {
+            switch (m_Direction)
+            {
+                case Axe.DirectionEnum.LeftToRight:
+                case Axe.DirectionEnum.RightToLeft:
+                    m_ImageRectTransform.sizeDelta = new Vector2(m_ImageRectTransform.sizeDelta.x, m_Lenght);
+                    break;
+                case Axe.DirectionEnum.BottomToTop:
+                case Axe.DirectionEnum.TopToBottom:
+                    m_ImageRectTransform.sizeDelta = new Vector2(m_Lenght, m_ImageRectTransform.sizeDelta.y);
+                    break;
+            }
+        }
+        protected virtual void SetThickness()
+        {
+            switch (m_Direction)
+            {
+                case Axe.DirectionEnum.LeftToRight:
+                case Axe.DirectionEnum.RightToLeft:
+                    m_ImageRectTransform.sizeDelta = new Vector2(m_Thickness, m_ImageRectTransform.sizeDelta.y);
+                    break;
+                case Axe.DirectionEnum.BottomToTop:
+                case Axe.DirectionEnum.TopToBottom:
+                    m_ImageRectTransform.sizeDelta = new Vector2(m_ImageRectTransform.sizeDelta.x, m_Thickness);
+                    break;
+            }
+        }
+        protected virtual void SetPosition()
+        {
+            RectTransform rectTransform = transform as RectTransform;
+            switch (m_Direction)
+            {
+                case Axe.DirectionEnum.LeftToRight:
+                case Axe.DirectionEnum.RightToLeft:
+                    rectTransform.localPosition = m_Position * Vector3.right;
+                    break;
+                case Axe.DirectionEnum.BottomToTop:
+                case Axe.DirectionEnum.TopToBottom:
+                    rectTransform.localPosition = m_Position * Vector3.up;
+                    break;
+            }
+        }
+        protected virtual void SetColor()
+        {
+            m_ImageRectTransform.GetComponent<Image>().color = m_Color;
         }
         #endregion
     }
