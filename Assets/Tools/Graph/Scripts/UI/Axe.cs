@@ -1,5 +1,6 @@
-﻿using UnityEngine;
-using UnityEngine.Events;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UI.Extensions;
 
@@ -9,7 +10,7 @@ namespace Tools.Unity.Graph
     public class Axe : MonoBehaviour
     {
         #region Properties
-        public enum DirectionEnum { LeftToRight, RightToLeft, BottomToTop, TopToBottom}
+        public enum DirectionEnum { LeftToRight, RightToLeft, BottomToTop, TopToBottom }
         [SerializeField] DirectionEnum m_Direction;
         public DirectionEnum Direction
         {
@@ -85,107 +86,17 @@ namespace Tools.Unity.Graph
             }
             set
             {
-                if (m_DisplayRange != value)
+                if (SetPropertyUtility.SetStruct(ref m_DisplayRange, value))
                 {
-                    m_DisplayRange = value;
-                    float ratio, step, startIndex, v, position; int numberOfMajorTickMarksNeeded;
-                    CalculateAxeValue(value, out ratio, out step, out numberOfMajorTickMarksNeeded, out startIndex);
-
-                    for (int i = 0; i < m_UsedTickMarks.Length; i++)
-                    {
-                        if (i < numberOfMajorTickMarksNeeded)
-                        {
-                            v = (startIndex + i) * step;
-                            position = (v - value.x) * ratio;
-                            MajorTickMark tickMark = m_UsedTickMarks[i];
-                            tickMark.Label = v.ToString();
-                            tickMark.Position = position;
-                            tickMark.Direction = Direction;
-                            tickMark.Color = m_Color;
-                        }
-                        else
-                        {
-                            m_UsedTickMarks[i].gameObject.SetActive(false);
-                        }
-                    }
+                    SetDisplayRange();
                 }
             }
         }
 
         [SerializeField] RectTransform m_TickMarkContainer;
-        [SerializeField] MajorTickMark[] m_TickMarkPool;
-        [SerializeField] MajorTickMark[] m_UsedTickMarks;
+        [SerializeField] List<MajorTickMark> m_TickMarkPool;
+        [SerializeField] List<MajorTickMark> m_UsedTickMarks;
         [SerializeField] MajorTickMark m_IndependentTickMark;
-        #endregion
-
-        #region Private Methods
-        void CalculateAxeValue(Vector2 limits, out float ratio, out float step, out int numberOfTickMarksNeeded, out float startIndex)
-        {
-            // Calculate the lenght of the axe.
-            float lenght = limits.y - limits.x;
-
-            // Calculate the normalized range(1-10) of the axe.
-            float normalizedLenght = lenght;
-            float coef = 1f;
-            if (normalizedLenght > 0)
-            {
-                while (normalizedLenght >= 10.0f)
-                {
-                    coef *= 10.0f;
-                    normalizedLenght /= 10.0f;
-                    break;
-                }
-                while (normalizedLenght < 1.0f)
-                {
-                    coef /= 10.0f;
-                    normalizedLenght *= 10.0f;
-                    break;
-                }
-                // Calculate the normalizedStep then the Step.
-                float normalizedStep = normalizedLenght / m_TickMarkPool.Length;
-                normalizedStep = (Mathf.Ceil(normalizedStep * 2.0f)) / 2.0f;
-                step = normalizedStep * coef;
-
-                // Calculate the firstScalePoint of the axe
-                if (limits.x < 0.0f)
-                {
-                    startIndex = Mathf.CeilToInt(limits.x / step);
-                }
-                else
-                {
-                    startIndex = Mathf.CeilToInt(limits.y / step);
-                }
-
-                // Calculate the number of ScalePoint in the axe
-                numberOfTickMarksNeeded = 0;
-                while ((numberOfTickMarksNeeded + startIndex) * step <= limits.y)
-                {
-                    numberOfTickMarksNeeded += 1;
-                }
-
-                float axeSize = 0;
-                switch (Direction)
-                {
-                    case DirectionEnum.LeftToRight:
-                    case DirectionEnum.RightToLeft:
-                        axeSize = m_TickMarkContainer.rect.width;
-                        break;
-                    case DirectionEnum.TopToBottom:
-                    case DirectionEnum.BottomToTop:
-                        axeSize = m_TickMarkContainer.rect.height;
-                        break;
-                }
-                // Find the value of the scalesPoints
-                ratio = axeSize / lenght;
-            }
-            else
-            {
-                ratio = 0;
-                step = 0;
-                numberOfTickMarksNeeded = 0;
-                startIndex = 0;
-            }
-        }
         #endregion
 
         #region Private Setter
@@ -210,10 +121,75 @@ namespace Tools.Unity.Graph
         {
 
         }
+        void SetDisplayRange()
+        {
+            m_UsedTickMarks.ForEach(tickMark => { m_TickMarkPool.Add(tickMark); tickMark.gameObject.SetActive(false); });
+            m_UsedTickMarks.Clear();
+
+            float range = m_DisplayRange.y - m_DisplayRange.x;
+            float step = range / (m_TickMarkPool.Count - 1);
+            // Calculate the normalized range(1-10) of the axe.
+            float normalizedRange = m_DisplayRange.y - m_DisplayRange.x;
+            float coef = 1f;
+
+            while (normalizedRange > 10.0f)
+            {
+                coef *= 10.0f;
+                normalizedRange /= 10.0f;
+                break;
+            }
+            while (normalizedRange < 1.0f)
+            {
+                coef /= 10.0f;
+                normalizedRange *= 10.0f;
+                break;
+            }
+
+            // Calculate the normalizedStep then the Step.
+            float normalizedStep = normalizedRange / (m_TickMarkPool.Count);
+            normalizedStep = (Mathf.Ceil(normalizedStep * 2.0f)) / 2.0f;
+            float step = normalizedStep * coef;
+
+            //float lenght;
+            //switch (m_Direction)
+            //{
+            //    case DirectionEnum.LeftToRight:
+            //    case DirectionEnum.RightToLeft:
+            //        lenght = m_TickMarkContainer.rect.width;
+            //        break;
+            //    case DirectionEnum.BottomToTop:
+            //    case DirectionEnum.TopToBottom:
+            //        lenght = m_TickMarkContainer.rect.height;
+            //        break;
+            //}
+
+            if(m_DisplayRange.y > m_DisplayRange.x)
+            {
+               Debug.Log(Mathf.FloorToInt((m_DisplayRange.y - m_DisplayRange.x) / step));
+            }
+            else
+            {
+
+            }
+
+            //for (int i = 0; i < tickMarks.Length; i++)
+            //{
+            //    MajorTickMark tickMark = m_TickMarkPool.First();
+
+            //    tickMark.Label = tickMarks[i].ToString();
+            //    tickMark.Position = (tickMarks[i] - m_DisplayRange.x) * ( m_DisplayRange.y - m_DisplayRange.x );
+            //    tickMark.Direction = m_Direction;
+            //    tickMark.Color = m_Color;
+            //    tickMark.gameObject.SetActive(true);
+            //    m_TickMarkPool.Remove(tickMark);
+            //    m_UsedTickMarks.Add(tickMark);
+            //}
+        }
         void OnValidate()
         {
             SetLabel();
             SetUnit();
+            SetDisplayRange();
         }
         #endregion
     }

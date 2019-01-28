@@ -6,10 +6,11 @@ namespace Tools.Unity.Graph
 {
     public class MajorTickMark : TickMark
     {
-        #region Parameters
+        #region Properties
         [SerializeField] protected RectTransform m_LabelRectTransform;
 
-        [SerializeField] string m_Label;
+        [SerializeField] protected Text m_Text;
+        [SerializeField] protected string m_Label;
         public string Label
         {
             get
@@ -39,22 +40,22 @@ namespace Tools.Unity.Graph
             {
                 case Axe.DirectionEnum.LeftToRight:
                 case Axe.DirectionEnum.RightToLeft:
-                    m_LabelRectTransform.offsetMax = new Vector2(0, -m_Lenght / 2);
+                    m_Text.rectTransform.offsetMax = new Vector2(0, -m_Lenght / 2);
                     break;
                 case Axe.DirectionEnum.BottomToTop:
                 case Axe.DirectionEnum.TopToBottom:
-                    m_LabelRectTransform.offsetMax = new Vector2(-m_Lenght / 2, 0);
+                    m_Text.rectTransform.offsetMax = new Vector2(-m_Lenght / 2, 0);
                     break;
             }
         }
         protected void SetLabel()
         {
-            m_LabelRectTransform.GetComponent<Text>().text = m_Label;
+            m_Text.text = m_Label;
         }
         protected override void SetColor()
         {
             base.SetColor();
-            m_LabelRectTransform.GetComponent<Text>().color = m_Color;
+            m_Text.color = m_Color;
         }
         #endregion
     }
