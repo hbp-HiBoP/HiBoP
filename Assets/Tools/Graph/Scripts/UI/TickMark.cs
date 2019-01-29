@@ -199,11 +199,13 @@ namespace Tools.Unity.Graph
             {
                 case Axe.DirectionEnum.LeftToRight:
                 case Axe.DirectionEnum.RightToLeft:
-                    rectTransform.localPosition = m_Position * Vector3.right;
+                    rectTransform.anchorMin = new Vector2(m_Position, rectTransform.anchorMin.y);
+                    rectTransform.anchorMax = new Vector2(m_Position, rectTransform.anchorMax.y);
                     break;
                 case Axe.DirectionEnum.BottomToTop:
                 case Axe.DirectionEnum.TopToBottom:
-                    rectTransform.localPosition = m_Position * Vector3.up;
+                    rectTransform.anchorMin = new Vector2(rectTransform.anchorMin.x, m_Position);
+                    rectTransform.anchorMax = new Vector2(rectTransform.anchorMax.x, m_Position);
                     break;
             }
         }

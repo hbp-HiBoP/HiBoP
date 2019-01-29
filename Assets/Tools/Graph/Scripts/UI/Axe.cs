@@ -88,7 +88,7 @@ namespace Tools.Unity.Graph
             {
                 if (SetPropertyUtility.SetStruct(ref m_DisplayRange, value))
                 {
-                    SetDisplayRange();
+                    //SetDisplayRange();
                 }
             }
         }
@@ -126,64 +126,82 @@ namespace Tools.Unity.Graph
             m_UsedTickMarks.ForEach(tickMark => { m_TickMarkPool.Add(tickMark); tickMark.gameObject.SetActive(false); });
             m_UsedTickMarks.Clear();
 
-            float range = m_DisplayRange.y - m_DisplayRange.x;
-            float step = range / (m_TickMarkPool.Count - 1);
-            // Calculate the normalized range(1-10) of the axe.
-            float normalizedRange = m_DisplayRange.y - m_DisplayRange.x;
-            float coef = 1f;
-
-            while (normalizedRange > 10.0f)
+            double range = m_DisplayRange.y - m_DisplayRange.x;
+            if(m_TickMarkPool.Count > 1 && range > 0)
             {
-                coef *= 10.0f;
-                normalizedRange /= 10.0f;
-                break;
+                double normalizedStep = range / (m_TickMarkPool.Count - 1);
+                double coef = 1;
+
+                if (normalizedStep < 1)
+                {
+                    coef /= 10;
+                    normalizedStep *= 10;
+                }
+                while (normalizedStep > 10)
+                {
+                    double tempResult;
+                    tempResult = normalizedStep / 2;
+                    if (tempResult >= 1 && tempResult <= 10)
+                    {
+                        coef *= 2;
+                        normalizedStep = tempResult;
+                        break;
+                    }
+
+                    tempResult = normalizedStep / 5;
+                    if (tempResult >= 1 && tempResult <= 10)
+                    {
+                        normalizedStep = tempResult;
+                        coef *= 5;
+                        break;
+                    }
+
+                    tempResult = normalizedStep / 10;
+                    if (normalizedStep >= 1 && normalizedStep <= 10)
+                    {
+                        normalizedStep = tempResult;
+                        coef *= 10;
+                        break;
+                    }
+
+                    coef *= 10;
+                    normalizedStep /= 10;
+                }
+                if (normalizedStep > 1 && normalizedStep <= 5)
+                {
+                    normalizedStep = 5;
+                }
+                else if (normalizedStep > 5 && normalizedStep <= 10)
+                {
+                    normalizedStep = 10;
+                }
+                double step = normalizedStep * coef;
+
+                List<double> tickMarks = new List<double>();
+                int division = Mathf.FloorToInt((float)(m_DisplayRange.x / step));
+                double rest = m_DisplayRange.x % step;
+                if (rest != 0) division++;
+                double value = division * step;
+                while (value <= m_DisplayRange.y)
+                {
+                    tickMarks.Add(value);
+                    value += step;
+                }
+
+                for (int i = 0; i < tickMarks.Count; i++)
+                {
+                    MajorTickMark tickMark = m_TickMarkPool.First();
+
+                    tickMark.Label = tickMarks[i].ToString();
+                    tickMark.Position = ((float)tickMarks[i] - m_DisplayRange.x) / (m_DisplayRange.y - m_DisplayRange.x);
+                    tickMark.Direction = m_Direction;
+                    tickMark.Color = m_Color;
+                    tickMark.gameObject.SetActive(true);
+                    m_TickMarkPool.Remove(tickMark);
+                    m_UsedTickMarks.Add(tickMark);
+                }
             }
-            while (normalizedRange < 1.0f)
-            {
-                coef /= 10.0f;
-                normalizedRange *= 10.0f;
-                break;
-            }
-
-            // Calculate the normalizedStep then the Step.
-            float normalizedStep = normalizedRange / (m_TickMarkPool.Count);
-            normalizedStep = (Mathf.Ceil(normalizedStep * 2.0f)) / 2.0f;
-            float step = normalizedStep * coef;
-
-            //float lenght;
-            //switch (m_Direction)
-            //{
-            //    case DirectionEnum.LeftToRight:
-            //    case DirectionEnum.RightToLeft:
-            //        lenght = m_TickMarkContainer.rect.width;
-            //        break;
-            //    case DirectionEnum.BottomToTop:
-            //    case DirectionEnum.TopToBottom:
-            //        lenght = m_TickMarkContainer.rect.height;
-            //        break;
-            //}
-
-            if(m_DisplayRange.y > m_DisplayRange.x)
-            {
-               Debug.Log(Mathf.FloorToInt((m_DisplayRange.y - m_DisplayRange.x) / step));
-            }
-            else
-            {
-
-            }
-
-            //for (int i = 0; i < tickMarks.Length; i++)
-            //{
-            //    MajorTickMark tickMark = m_TickMarkPool.First();
-
-            //    tickMark.Label = tickMarks[i].ToString();
-            //    tickMark.Position = (tickMarks[i] - m_DisplayRange.x) * ( m_DisplayRange.y - m_DisplayRange.x );
-            //    tickMark.Direction = m_Direction;
-            //    tickMark.Color = m_Color;
-            //    tickMark.gameObject.SetActive(true);
-            //    m_TickMarkPool.Remove(tickMark);
-            //    m_UsedTickMarks.Add(tickMark);
-            //}
+  
         }
         void OnValidate()
         {
