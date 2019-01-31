@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.IO;
 using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
@@ -117,7 +118,7 @@ public class LoadingCircle : MonoBehaviour
         m_Sprites = new Sprite[101];
         for (int i = 0; i < 101; ++i)
         {
-            string path = "BrainAnim" + System.IO.Path.DirectorySeparatorChar + i;
+            string path = Path.Combine("BrainAnim", i.ToString());
             m_Sprites[i] = Resources.Load<Sprite>(path) as Sprite;
         }
     }

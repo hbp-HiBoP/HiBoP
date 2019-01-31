@@ -123,7 +123,7 @@ namespace Tools.Unity
                 alias.ConvertKeyToValue(ref localPath);
             }
 
-            return localPath;
+            return localPath.ToPath();
         }
         public static string ConvertToShortPath(this string path)
         {
@@ -138,8 +138,15 @@ namespace Tools.Unity
             {
                 alias.ConvertValueToKey(ref localPath);
             }
-
-            return localPath;
+            
+            return localPath.ToPath();
+        }
+        public static string ToPath(this string path)
+        {
+            string result = path;
+            path.Replace('\\', Path.DirectorySeparatorChar);
+            path.Replace('/', Path.DirectorySeparatorChar);
+            return result;
         }
     }
 

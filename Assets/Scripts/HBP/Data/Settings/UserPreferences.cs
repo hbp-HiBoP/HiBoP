@@ -21,7 +21,7 @@ namespace HBP.Data.Preferences
     public class UserPreferences
     {
         #region Properties
-        public static string PATH = Directory.GetParent(Application.dataPath).FullName + Path.DirectorySeparatorChar + "Preferences.txt";
+        public static string PATH = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "Preferences.txt");
         public Theme Theme;
         [DataMember] public GeneralPreferences General { get; set; }
         [DataMember] public DataPreferences Data { get; set; }

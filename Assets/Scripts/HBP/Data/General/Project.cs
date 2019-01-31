@@ -429,7 +429,7 @@ namespace HBP.Data.General
             yield return c_SaveProtocols(tmpProjectDirectory, progress, progressStep, OnChangeProgress, outPut);
             yield return c_SaveDatasets(tmpProjectDirectory, progress, progressStep, OnChangeProgress, outPut);
             yield return c_SaveVisualizations(tmpProjectDirectory, progress, progressStep, OnChangeProgress, outPut);
-            CopyIcons(oldTMPProjectDirectory + Path.DirectorySeparatorChar + "Protocols" + Path.DirectorySeparatorChar + "Icons", tmpProjectDirectory.FullName + Path.DirectorySeparatorChar + "Protocols" + Path.DirectorySeparatorChar + "Icons");
+            CopyIcons(Path.Combine(oldTMPProjectDirectory, "Protocols", "Icons"), Path.Combine(tmpProjectDirectory.FullName, "Protocols", "Icons"));
 
             // Deleting old directories.
             yield return Ninja.JumpToUnity;
@@ -462,7 +462,7 @@ namespace HBP.Data.General
             progress += progressStep;
 
             // Zipping
-            string filePath = path + Path.DirectorySeparatorChar + FileName;
+            string filePath = Path.Combine(path, FileName);
             if (File.Exists(filePath)) File.Delete(filePath);
             using (ZipFile zip = new ZipFile(filePath))
             {
@@ -656,7 +656,7 @@ namespace HBP.Data.General
 
             try
             {
-                ClassLoaderSaver.SaveToJSon(Settings, projectDirectory.FullName + Path.DirectorySeparatorChar + Settings.Name + ProjectSettings.EXTENSION);
+                ClassLoaderSaver.SaveToJSon(Settings, Path.Combine(projectDirectory.FullName, Settings.Name + ProjectSettings.EXTENSION));
             }
             catch (Exception e)
             {
@@ -668,7 +668,7 @@ namespace HBP.Data.General
         }
         IEnumerator c_SavePatients(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
-            DirectoryInfo patientDirectory = Directory.CreateDirectory(projectDirectory.FullName + Path.DirectorySeparatorChar + "Patients");
+            DirectoryInfo patientDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Patients"));
             // Save patients
             foreach (Patient patient in Patients)
             {
@@ -678,7 +678,7 @@ namespace HBP.Data.General
 
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(patient, patientDirectory.FullName + Path.DirectorySeparatorChar + patient.ID + Patient.EXTENSION);
+                    ClassLoaderSaver.SaveToJSon(patient, Path.Combine(patientDirectory.FullName, patient.ID + Patient.EXTENSION));
                 }
                 catch (Exception e)
                 {
@@ -692,7 +692,7 @@ namespace HBP.Data.General
         IEnumerator c_SaveGroups(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             // Save groups
-            DirectoryInfo groupDirectory = Directory.CreateDirectory(projectDirectory.FullName + Path.DirectorySeparatorChar + "Groups");
+            DirectoryInfo groupDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Groups"));
             foreach (Group group in Groups)
             {
                 yield return Ninja.JumpToUnity;
@@ -701,7 +701,7 @@ namespace HBP.Data.General
 
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(group, groupDirectory.FullName + Path.DirectorySeparatorChar + group.Name + Group.EXTENSION);
+                    ClassLoaderSaver.SaveToJSon(group, Path.Combine(groupDirectory.FullName, group.Name + Group.EXTENSION));
                 }
                 catch (Exception e)
                 {
@@ -715,7 +715,7 @@ namespace HBP.Data.General
         IEnumerator c_SaveProtocols(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             // Save protocols
-            DirectoryInfo protocolDirectory = Directory.CreateDirectory(projectDirectory.FullName + Path.DirectorySeparatorChar + "Protocols");
+            DirectoryInfo protocolDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Protocols"));
             foreach (Protocol protocol in Protocols)
             {
                 yield return Ninja.JumpToUnity;
@@ -724,7 +724,7 @@ namespace HBP.Data.General
 
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(protocol, protocolDirectory.FullName + Path.DirectorySeparatorChar + protocol.Name + Protocol.EXTENSION);
+                    ClassLoaderSaver.SaveToJSon(protocol, Path.Combine(protocolDirectory.FullName, protocol.Name + Protocol.EXTENSION));
                 }
                 catch (Exception e)
                 {
@@ -738,7 +738,7 @@ namespace HBP.Data.General
         IEnumerator c_SaveDatasets(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             //Save datasets
-            DirectoryInfo datasetDirectory = Directory.CreateDirectory(projectDirectory.FullName + Path.DirectorySeparatorChar + "Datasets");
+            DirectoryInfo datasetDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Datasets"));
             foreach (Dataset dataset in Datasets)
             {
                 yield return Ninja.JumpToUnity;
@@ -747,7 +747,7 @@ namespace HBP.Data.General
 
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(dataset, datasetDirectory.FullName + Path.DirectorySeparatorChar + dataset.Name + Dataset.EXTENSION);
+                    ClassLoaderSaver.SaveToJSon(dataset, Path.Combine(datasetDirectory.FullName, dataset.Name + Dataset.EXTENSION));
                 }
                 catch (Exception e)
                 {
@@ -760,7 +760,7 @@ namespace HBP.Data.General
         }
         IEnumerator c_SaveVisualizations(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
-            DirectoryInfo visualizationDirectory = Directory.CreateDirectory(projectDirectory.FullName + Path.DirectorySeparatorChar + "Visualizations");
+            DirectoryInfo visualizationDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Visualizations"));
 
             //Save singleVisualizations
             foreach (Visualization.Visualization visualization in Visualizations)
@@ -771,7 +771,7 @@ namespace HBP.Data.General
 
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(visualization, visualizationDirectory.FullName + Path.DirectorySeparatorChar + visualization.Name + Visualization.Visualization.EXTENSION);
+                    ClassLoaderSaver.SaveToJSon(visualization, Path.Combine(visualizationDirectory.FullName, visualization.Name + Visualization.Visualization.EXTENSION));
                 }
                 catch (Exception e)
                 {

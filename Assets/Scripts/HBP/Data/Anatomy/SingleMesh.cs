@@ -70,7 +70,7 @@ namespace HBP.Data.Anatomy
         #region Operators
         public override object Clone()
         {
-            return new SingleMesh(Name, m_Transformation, ID, m_Path, m_MarsAtlasPath);
+            return new SingleMesh(Name, Transformation, ID, Path, MarsAtlasPath);
         }
         public override void Copy(object copy)
         {
@@ -79,6 +79,15 @@ namespace HBP.Data.Anatomy
             SingleMesh mesh = copy as SingleMesh;
             Path = mesh.Path;
             MarsAtlasPath = mesh.MarsAtlasPath;
+        }
+        #endregion
+
+        #region Serialization
+        protected override void OnDeserializedOperation(StreamingContext context)
+        {
+            m_Path = m_Path.ToPath();
+            m_MarsAtlasPath = m_MarsAtlasPath.ToPath();
+            base.OnDeserializedOperation(context);
         }
         #endregion
     }

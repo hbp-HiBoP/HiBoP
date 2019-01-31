@@ -223,5 +223,13 @@ namespace HBP.Data.Experience.Protocol
             return !(a == b);
         }
         #endregion
+
+        #region Serialization
+        [OnDeserialized()]
+        public void OnDeserialized(StreamingContext context)
+        {
+            m_IllustrationPath = m_IllustrationPath.ToPath();
+        }
+        #endregion
     }
 }
