@@ -144,8 +144,8 @@ namespace Tools.Unity
         public static string ToPath(this string path)
         {
             string result = path;
-            path.Replace('\\', Path.DirectorySeparatorChar);
-            path.Replace('/', Path.DirectorySeparatorChar);
+            result = result.Replace('\\', Path.DirectorySeparatorChar);
+            result = result.Replace('/', Path.DirectorySeparatorChar);
             return result;
         }
     }
