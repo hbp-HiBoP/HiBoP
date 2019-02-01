@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UI.Extensions;
@@ -77,6 +76,54 @@ namespace Tools.Unity.Graph
             }
         }
 
+        [SerializeField] bool m_UseIndependentTickMark;
+        public bool UseIndependentTickMark
+        {
+            get
+            {
+                return m_UseIndependentTickMark;
+            }
+            set
+            {
+                if(SetPropertyUtility.SetStruct(ref m_UseIndependentTickMark, value))
+                {
+                    SetUseIndependentTickMark();
+                }
+            }
+        }
+
+        [SerializeField] float m_IndependentTickMarkValue;
+        public float IndependentTickMarkValue
+        {
+            get
+            {
+                return m_IndependentTickMarkValue;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_IndependentTickMarkValue, value))
+                {
+                    SetIndependentValue();
+                }
+            }
+        }
+        
+        public float IndependantTickMarkValueRatio
+        {
+            get
+            {
+                return (m_IndependentTickMarkValue - m_DisplayRange.x) / (m_DisplayRange.y - m_DisplayRange.x);
+            }
+            set
+            {
+                float independentValue = value * (m_DisplayRange.y - m_DisplayRange.x) + m_DisplayRange.x;
+                IndependentTickMarkValue = independentValue;
+            }
+        }
+
+        [SerializeField] Image m_VisualImage;
+        [SerializeField] Image m_VisualArrowImage;
+
         [SerializeField] Vector2 m_DisplayRange;
         public Vector2 DisplayRange
         {
@@ -93,20 +140,37 @@ namespace Tools.Unity.Graph
             }
         }
 
-        [SerializeField] RectTransform m_TickMarkContainer;
-        [SerializeField] List<MajorTickMark> m_TickMarkPool;
-        [SerializeField] List<MajorTickMark> m_UsedTickMarks;
+        [SerializeField] List<MajorTickMark> m_TickMarks = new List<MajorTickMark>();
         [SerializeField] MajorTickMark m_IndependentTickMark;
         #endregion
 
         #region Private Setter
+        void SetIndependentValue()
+        {
+            if(m_IndependentTickMark)
+            {
+                m_IndependentTickMark.Label = m_IndependentTickMarkValue.ToString();
+                m_IndependentTickMark.Position = ((float)m_IndependentTickMarkValue - m_DisplayRange.x) / (m_DisplayRange.y - m_DisplayRange.x);
+                m_IndependentTickMark.Direction = m_Direction;
+                m_IndependentTickMark.Color = m_Color;
+            }
+        }
         void SetColor()
         {
             if (m_Color != null)
             {
-                foreach (var tickMark in m_UsedTickMarks) tickMark.Color = m_Color;
-                foreach (var tickMark in m_TickMarkPool) tickMark.Color = m_Color;
+                if (m_TickMarks != null)
+                {
+                    foreach (var tickMark in m_TickMarks)
+                    {
+                        if (tickMark != null) tickMark.Color = m_Color;
+                    }
+                }
                 if (m_IndependentTickMark != null) m_IndependentTickMark.Color = m_Color;
+                if (m_VisualArrowImage != null) m_VisualArrowImage.color = m_Color;
+                if (m_VisualImage != null) m_VisualImage.color = m_Color;
+                if (m_LabelText != null) m_LabelText.color = m_Color;
+                if (m_UnitText != null) m_UnitText.color = m_Color;
             }
         }
         void SetLabel()
@@ -123,13 +187,10 @@ namespace Tools.Unity.Graph
         }
         void SetDisplayRange()
         {
-            m_UsedTickMarks.ForEach(tickMark => { m_TickMarkPool.Add(tickMark); tickMark.gameObject.SetActive(false); });
-            m_UsedTickMarks.Clear();
-
             double range = m_DisplayRange.y - m_DisplayRange.x;
-            if(m_TickMarkPool.Count > 1 && range > 0)
+            if (range > 0 && m_TickMarks.Count > 1)
             {
-                double normalizedStep = range / (m_TickMarkPool.Count - 1);
+                double normalizedStep = range / (m_TickMarks.Count - 1);
                 double coef = 1;
 
                 if (normalizedStep < 1)
@@ -188,26 +249,40 @@ namespace Tools.Unity.Graph
                     value += step;
                 }
 
-                for (int i = 0; i < tickMarks.Count; i++)
+                for (int i = 0; i < m_TickMarks.Count; i++)
                 {
-                    MajorTickMark tickMark = m_TickMarkPool.First();
+                    MajorTickMark tickMark = m_TickMarks[i];
 
-                    tickMark.Label = tickMarks[i].ToString();
-                    tickMark.Position = ((float)tickMarks[i] - m_DisplayRange.x) / (m_DisplayRange.y - m_DisplayRange.x);
-                    tickMark.Direction = m_Direction;
-                    tickMark.Color = m_Color;
-                    tickMark.gameObject.SetActive(true);
-                    m_TickMarkPool.Remove(tickMark);
-                    m_UsedTickMarks.Add(tickMark);
+                    if (i < tickMarks.Count)
+                    {
+                        tickMark.Label = tickMarks[i].ToString();
+                        tickMark.Position = ((float)tickMarks[i] - m_DisplayRange.x) / (m_DisplayRange.y - m_DisplayRange.x);
+                        tickMark.Direction = m_Direction;
+                        tickMark.Color = m_Color;
+                        tickMark.gameObject.SetActive(true);
+                    }
+                    else
+                    {
+                        tickMark.gameObject.SetActive(false);
+                    }
+
                 }
             }
-  
+
+        }
+        void SetUseIndependentTickMark()
+        {
+            m_IndependentTickMark.gameObject.SetActive(m_UseIndependentTickMark);
         }
         void OnValidate()
         {
+            SetType();
+            SetColor();
             SetLabel();
             SetUnit();
             SetDisplayRange();
+            SetUseIndependentTickMark();
+            SetIndependentValue();
         }
         #endregion
     }

@@ -24,8 +24,6 @@ namespace Tools.Unity.Graph
             set { axeColor = value; }
         }
         //public OnChangeLimitsEvent OnChangeLimits = new OnChangeLimitsEvent();
-        OriginAxe OrdinateOriginAxe;
-        OriginAxe AbscissaOriginAxe;
 
         Limits Limits { get; set; }
         List<Curve> curvesDisplayed = new List<Curve>();
@@ -38,9 +36,6 @@ namespace Tools.Unity.Graph
 
             // Calculate ratio between rect and limits.
             Vector2 ratio = (transform as RectTransform).rect.GetRatio(limits);
-            // Add Origin Axe if not already displayed
-            if (!OrdinateOriginAxe || !AbscissaOriginAxe) AddOriginAxes();
-            UpdateOriginAxes(limits, ratio);
 
             if(onlyUpdate)
             {
@@ -133,20 +128,6 @@ namespace Tools.Unity.Graph
         {
             curvesDisplayed.Remove(curve);
             Destroy(curve.gameObject);
-        }
-        void AddOriginAxes()
-        {
-            GameObject OrdinateOrigin = Instantiate(OriginAxePrefab, transform.Find("OriginAxes"));
-            OrdinateOriginAxe = OrdinateOrigin.GetComponent<OriginAxe>();
-            OrdinateOriginAxe.Set(OriginAxe.TypeEnum.Ordinate, OriginAxeColor);
-            GameObject AbscissaOrigin = Instantiate(OriginAxePrefab, transform.Find("OriginAxes"));
-            AbscissaOriginAxe = AbscissaOrigin.GetComponent<OriginAxe>();
-            AbscissaOriginAxe.Set(OriginAxe.TypeEnum.Abscissa, OriginAxeColor);
-        }
-        void UpdateOriginAxes(Limits limits, Vector2 ratio)
-        {
-            OrdinateOriginAxe.UpdatePosition(limits, ratio);
-            AbscissaOriginAxe.UpdatePosition(limits, ratio);
         }
         #endregion
     }

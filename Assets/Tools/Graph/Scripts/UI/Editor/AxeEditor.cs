@@ -4,7 +4,7 @@ using UnityEditor;
 namespace Tools.Unity.Graph
 {
     [CustomEditor(typeof(Axe))]
-    public class AxeEditor : UnityEditor.Editor
+    public class AxeEditor : Editor
     {
         #region Properties
         bool m_ShowTickMarks = false;
@@ -15,12 +15,14 @@ namespace Tools.Unity.Graph
         SerializedProperty m_Unit;
         SerializedProperty m_UnitText;
         SerializedProperty m_LabelText;
+        SerializedProperty m_VisualImage;
+        SerializedProperty m_VisualArrowImage;
         SerializedProperty m_Color;
         SerializedProperty m_DisplayRange;
-        SerializedProperty m_TickMarkContainer;
-        SerializedProperty m_UsedTickMarks;
-        SerializedProperty m_IndependantTickMark;
-        SerializedProperty m_TickMarkPool;
+        SerializedProperty m_TickMarks;
+        SerializedProperty m_IndependentTickMarkValue;
+        SerializedProperty m_IndependentTickMark;
+        SerializedProperty m_UseIndependentTickMark;
         #endregion
 
         public void OnEnable()
@@ -31,15 +33,16 @@ namespace Tools.Unity.Graph
 
             m_UnitText = serializedObject.FindProperty("m_UnitText");
             m_Unit = serializedObject.FindProperty("m_Unit");
+            m_VisualImage = serializedObject.FindProperty("m_VisualImage");
+            m_VisualArrowImage = serializedObject.FindProperty("m_VisualArrowImage");
 
             m_Color = serializedObject.FindProperty("m_Color");
 
             m_DisplayRange = serializedObject.FindProperty("m_DisplayRange");
-
-            m_TickMarkContainer = serializedObject.FindProperty("m_TickMarkContainer");
-            m_UsedTickMarks = serializedObject.FindProperty("m_UsedTickMarks");
-            m_IndependantTickMark = serializedObject.FindProperty("m_IndependentTickMark");
-            m_TickMarkPool = serializedObject.FindProperty("m_TickMarkPool");
+            m_TickMarks = serializedObject.FindProperty("m_TickMarks");
+            m_IndependentTickMarkValue = serializedObject.FindProperty("m_IndependentTickMarkValue");
+            m_IndependentTickMark = serializedObject.FindProperty("m_IndependentTickMark");
+            m_UseIndependentTickMark = serializedObject.FindProperty("m_UseIndependentTickMark");
         }
 
         public override void OnInspectorGUI()
@@ -59,6 +62,8 @@ namespace Tools.Unity.Graph
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_LabelText);
                 EditorGUILayout.PropertyField(m_UnitText);
+                EditorGUILayout.PropertyField(m_VisualImage);
+                EditorGUILayout.PropertyField(m_VisualArrowImage);
                 EditorGUI.indentLevel--;
             }
 
@@ -66,13 +71,10 @@ namespace Tools.Unity.Graph
             if(m_ShowTickMarks)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(m_TickMarkContainer, new GUIContent("Container"));
-
-                GUI.enabled = false;
-                EditorGUILayout.PropertyField(m_IndependantTickMark, new GUIContent("Independent"), true);
-                EditorGUILayout.PropertyField(m_UsedTickMarks, new GUIContent("Used"), true);
-                GUI.enabled = true;
-                EditorGUILayout.PropertyField(m_TickMarkPool, new GUIContent("Pool"), true);
+                EditorGUILayout.PropertyField(m_UseIndependentTickMark);     
+                EditorGUILayout.PropertyField(m_IndependentTickMarkValue);
+                EditorGUILayout.PropertyField(m_IndependentTickMark);
+                EditorGUILayout.PropertyField(m_TickMarks, true);
                 EditorGUI.indentLevel--;
             }
             serializedObject.ApplyModifiedProperties();

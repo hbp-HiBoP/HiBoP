@@ -3,137 +3,207 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI.Extensions;
 
 namespace Tools.Unity.Graph
 {
     public class Graph : MonoBehaviour
     {
         #region Properties
-        private string title;
+        [SerializeField] private string m_Title;
         public string Title
         {
             get
             {
-                return title;
+                return m_Title;
             }
             set
             {
-                if(value != title)
+                if (SetPropertyUtility.SetClass(ref m_Title, value))
                 {
-                    title = value;
-                    OnChangeTitle.Invoke(value);
+                    SetTitle();
                 }
             }
         }
-        public StringEvent OnChangeTitle;
 
-        private string abscissaUnit;
+        [SerializeField] private string m_AbscissaUnit;
         public string AbscissaUnit
         {
             get
             {
-                return abscissaUnit;
+                return m_AbscissaUnit;
             }
             set
             {
-                if (value != abscissaUnit)
+                if (SetPropertyUtility.SetClass(ref m_AbscissaUnit, value))
                 {
-                    abscissaUnit = value;
-                    OnChangeAbscissaUnit.Invoke(value);
+
                 }
             }
         }
-        public StringEvent OnChangeAbscissaUnit;
 
-        private string abscissaLabel;
+        [SerializeField] private string m_AbscissaLabel;
         public string AbscissaLabel
         {
             get
             {
-                return abscissaLabel;
+                return m_AbscissaLabel;
             }
             set
             {
-                if(value != abscissaLabel)
+                if (SetPropertyUtility.SetClass(ref m_AbscissaLabel, value))
                 {
-                    abscissaLabel = value;
-                    OnChangeAbscissaLabel.Invoke(value);
+                    SetAbscissaLabel();
                 }
             }
         }
-        public StringEvent OnChangeAbscissaLabel;
 
-        private string ordinateUnit;
+        [SerializeField] private string m_OrdinateUnit;
         public string OrdinateUnit
         {
             get
             {
-                return ordinateUnit;
+                return m_OrdinateUnit;
             }
             set
             {
-                if (value != ordinateUnit)
+                if(SetPropertyUtility.SetClass(ref m_OrdinateUnit, value))
                 {
-                    ordinateUnit = value;
-                    OnChangeOrdinateUnit.Invoke(value);
+                    SetOrdinateUnit();
                 }
             }
         }
-        public StringEvent OnChangeOrdinateUnit;
 
-        private string ordinateLabel;
+        [SerializeField] private string m_OrdinateLabel;
         public string OrdinateLabel
         {
             get
             {
-                return ordinateLabel;
+                return m_OrdinateLabel;
             }
             set
             {
-                if(value != ordinateLabel)
+                if(SetPropertyUtility.SetClass(ref m_OrdinateLabel, value))
                 {
-                    ordinateLabel = value;
                     OnChangeOrdinateLabel.Invoke(value);
                 }
             }
         }
-        public StringEvent OnChangeOrdinateLabel;
 
-        private Color fontColor;
+        [SerializeField] private Color m_FontColor;
         public Color FontColor
         {
             get
             {
-                return fontColor;
+                return m_FontColor;
             }
             set
             {
-                if(value != fontColor)
+                if(SetPropertyUtility.SetColor(ref m_FontColor, value))
                 {
-                    fontColor = value;
-                    OnChangeFontColor.Invoke(value);
+                    SetFontColor();
                 }
             }
         }
-        public ColorEvent OnChangeFontColor;
 
-        private Color backgroundColor;
+        [SerializeField] private Color m_BackgroundColor;
         public Color BackgroundColor
         {
             get
             {
-                return backgroundColor;
+                return m_BackgroundColor;
             }
             set
             {
-                if(value != backgroundColor)
+                if(SetPropertyUtility.SetColor(ref m_BackgroundColor, value))
                 {
-                    backgroundColor = value;
-                    OnChangeBackgroundColor.Invoke(value);
+                    SetBackgroundColor();
                 }
             }
         }
-        public ColorEvent OnChangeBackgroundColor;
+
+        [SerializeField] private Vector2 m_OrdinateDisplayRange;
+        public Vector2 OrdinateDisplayRange
+        {
+            get
+            {
+                return m_OrdinateDisplayRange;
+            }
+            set
+            {
+                if(SetPropertyUtility.SetStruct(ref m_OrdinateDisplayRange, value))
+                {
+                    SetOrdinateDisplayRange();
+                }
+            }
+        }
+
+        [SerializeField] private Vector2 m_DefaultOrdinateDisplayRange;
+        public Vector2 DefaultOrdinateDisplayRange
+        {
+            get
+            {
+                return m_DefaultOrdinateDisplayRange;
+            }
+            set
+            {
+                if(SetPropertyUtility.SetStruct(ref m_DefaultOrdinateDisplayRange, value))
+                {
+                    SetDefaultOrdinateDisplayRange();
+                }
+            }
+        }
+
+        [SerializeField] private Vector2 m_AbscissaDisplayRange;
+        public Vector2 AbscissaDisplayRange
+        {
+            get
+            {
+                return m_AbscissaDisplayRange;
+            }
+            set
+            {
+                if(SetPropertyUtility.SetStruct(ref m_AbscissaDisplayRange, value))
+                {
+                    SetAbscissaDisplayRange();
+                }
+            }
+        }
+
+        [SerializeField] private Vector2 m_DefaultAbscissaDisplayRange;
+        public Vector2 DefaultAbscissaDisplayRange
+        {
+            get
+            {
+                return m_DefaultAbscissaDisplayRange;
+            }
+            set
+            {
+                if(SetPropertyUtility.SetStruct(ref m_DefaultAbscissaDisplayRange, value))
+                {
+                    SetDefaultAbscissaDisplayRange();
+                }
+            }
+        }
+
+        [SerializeField] bool m_UseDefaultDisplayRange = true;
+        public bool UseDefaultDisplayRange
+        {
+            get
+            {
+                return m_UseDefaultDisplayRange;
+            }
+            set
+            {
+                if(SetPropertyUtility.SetStruct(ref m_UseDefaultDisplayRange, value))
+                {
+                    SetUseDefaultDisplayRange();
+                }
+            }
+        }
+
+        PlotGestion m_PlotGestion;
+        InformationsGestion m_InformationsGestion;
 
         List<CurveGroup> groups = new List<CurveGroup>();
         public ReadOnlyCollection<CurveGroup> Groups
@@ -168,67 +238,89 @@ namespace Tools.Unity.Graph
         //    }
         //}
 
-        Vector2 ordinateDisplayRange;
-        public Vector2 OrdinateDisplayRange
+        #region Events
+        [SerializeField] private StringEvent m_OnChangeTitle;
+        public StringEvent OnChangeTitle
         {
             get
             {
-                return ordinateDisplayRange;
-            }
-            set
-            {
-                if(value != ordinateDisplayRange)
-                {
-                    ordinateDisplayRange = value;
-                    OnChangeOrdinateDisplayRange.Invoke(value);
-                }
+                return m_OnChangeTitle;
             }
         }
-        public Vector2 DefaultOrdinateDisplayRange { get; set; }
-        public Vector2Event OnChangeOrdinateDisplayRange;
 
-        Vector2 abscissaDisplayRange;
-        public Vector2 AbscissaDisplayRange
+        [SerializeField] private StringEvent m_OnChangeAbscissaUnit;
+        public StringEvent OnChangeAbscissaUnit
         {
             get
             {
-                return abscissaDisplayRange;
-            }
-            set
-            {
-                if(value != abscissaDisplayRange)
-                {
-                    abscissaDisplayRange = value;
-                    OnChangeAbscissaDisplayRange.Invoke(value);
-                }
+                return m_OnChangeAbscissaUnit;
             }
         }
-        public Vector2 DefaultAbscissaDisplayRange { get; set; }
-        public Vector2Event OnChangeAbscissaDisplayRange;
 
-        bool useDefaultDisplayRange = true;
-        public bool UseDefaultDisplayRange
+        [SerializeField] private StringEvent m_OnChangeAbscissaLabel;
+        public StringEvent OnChangeAbscissaLabel
         {
             get
             {
-                return useDefaultDisplayRange;
-            }
-            set
-            {
-                if(useDefaultDisplayRange != value)
-                {
-                    useDefaultDisplayRange = value;
-                    if(useDefaultDisplayRange)
-                    {
-                        AbscissaDisplayRange = DefaultAbscissaDisplayRange;
-                        OrdinateDisplayRange = DefaultOrdinateDisplayRange;
-                    }
-                }
+                return m_OnChangeAbscissaLabel;
             }
         }
 
-        PlotGestion m_PlotGestion;
-        InformationsGestion m_InformationsGestion;
+        [SerializeField] private StringEvent m_OnChangeOrdinateUnit;
+        public StringEvent OnChangeOrdinateUnit
+        {
+            get
+            {
+                return m_OnChangeOrdinateUnit;
+            }
+        }
+
+        [SerializeField] private StringEvent m_OnChangeOrdinateLabel;
+        public StringEvent OnChangeOrdinateLabel
+        {
+            get
+            {
+                return m_OnChangeOrdinateLabel;
+            }
+        }
+
+        [SerializeField] private ColorEvent m_OnChangeFontColor;
+        public ColorEvent OnChangeFontColor
+        {
+            get
+            {
+                return m_OnChangeFontColor;
+            }
+        }
+
+        [SerializeField] private ColorEvent m_OnChangeBackgroundColor;
+        public ColorEvent OnChangeBackgroundColor
+        {
+            get
+            {
+                return m_OnChangeBackgroundColor;
+            }
+        }
+
+        [SerializeField] private Vector2Event m_OnChangeOrdinateDisplayRange;
+        public Vector2Event OnChangeOrdinateDisplayRange
+        {
+            get
+            {
+                return m_OnChangeOrdinateDisplayRange;
+            }
+        }
+
+        [SerializeField] private Vector2Event m_OnChangeAbscissaDisplayRange;
+        public Vector2Event OnChangeAbscissaDisplayRange
+        {
+            get
+            {
+                return m_OnChangeAbscissaDisplayRange;
+            }
+        }
+        #endregion
+
         #endregion
 
         #region Public Methods    
@@ -243,9 +335,9 @@ namespace Tools.Unity.Graph
         public void AddCurve(CurveData curve, CurveGroup group = null, bool isActive = true)
         {
             CurveGroup groupToAddCurve = groups.Find(g => g == group);
-            if(groupToAddCurve != null)
+            if (groupToAddCurve != null)
             {
-                groupToAddCurve.Curves.Add(new Curve(curve,isActive));
+                groupToAddCurve.Curves.Add(new Curve(curve, isActive));
             }
             else
             {
@@ -280,7 +372,7 @@ namespace Tools.Unity.Graph
             BackgroundColor = graph.BackgroundColor;
             //DefaultLimits = graph.Limits;
             //if (useDefaultLimits) Limits = graph.Limits;
-            
+
 
             List<string> curveToRemove = new List<string>();
             List<string> groupToRemove = new List<string>();
@@ -365,7 +457,7 @@ namespace Tools.Unity.Graph
             //m_PlotGestion.OnChangeLimits.RemoveAllListeners();
             //m_PlotGestion.OnChangeLimits.AddListener((limits,ignore) => { if(!ignore) useDefaultDisplayRange = false; Plot(Groups, limits, true);});
         }
-        void Plot (CurveGroupData[] groupCurves, Limits limits, bool onlyUpdate = false)
+        void Plot(CurveGroupData[] groupCurves, Limits limits, bool onlyUpdate = false)
         {
             //Groups = groupCurves;
             //SetLimits(limits,true);
@@ -381,6 +473,73 @@ namespace Tools.Unity.Graph
             //    }
             //}
             //m_PlotGestion.Plot(curvesToDisplay.ToArray(), Limits, onlyUpdate);
+        }
+        #endregion
+
+        #region Setters
+        private void OnValidate()
+        {
+            SetTitle();
+            SetAbscissaUnit();
+            SetAbscissaLabel();
+            SetOrdinateUnit();
+            SetOrdinateLabel();
+            SetFontColor();
+            SetBackgroundColor();
+            SetOrdinateDisplayRange();
+            SetAbscissaDisplayRange();
+        }
+        void SetTitle()
+        {
+            m_OnChangeTitle.Invoke(m_Title);
+        }
+        void SetAbscissaUnit()
+        {
+            m_OnChangeAbscissaUnit.Invoke(m_AbscissaUnit);
+        }
+        void SetAbscissaLabel()
+        {
+            m_OnChangeAbscissaLabel.Invoke(m_AbscissaLabel);
+        }
+        void SetOrdinateUnit()
+        {
+            m_OnChangeOrdinateUnit.Invoke(m_OrdinateUnit);
+        }
+        void SetOrdinateLabel()
+        {
+            m_OnChangeOrdinateLabel.Invoke(m_OrdinateLabel);
+        }
+        void SetFontColor()
+        {
+            m_OnChangeFontColor.Invoke(m_FontColor);
+        }
+        void SetBackgroundColor()
+        {
+            m_OnChangeBackgroundColor.Invoke(m_BackgroundColor);
+        }
+        void SetOrdinateDisplayRange()
+        {
+            m_OnChangeOrdinateDisplayRange.Invoke(m_OrdinateDisplayRange);
+        }
+        void SetAbscissaDisplayRange()
+        {
+            m_OnChangeAbscissaDisplayRange.Invoke(m_AbscissaDisplayRange);
+        }
+        void SetDefaultAbscissaDisplayRange()
+        {
+
+        }
+        void SetDefaultOrdinateDisplayRange()
+        {
+
+        }
+        void SetUseDefaultDisplayRange()
+        {
+            if (m_UseDefaultDisplayRange)
+            {
+                AbscissaDisplayRange = DefaultAbscissaDisplayRange;
+                OrdinateDisplayRange = DefaultOrdinateDisplayRange;
+            }
         }
         #endregion
 

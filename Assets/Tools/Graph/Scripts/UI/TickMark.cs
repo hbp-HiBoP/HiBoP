@@ -20,7 +20,7 @@ namespace Tools.Unity.Graph
             {
                 if (SetPropertyUtility.SetStruct(ref m_Lenght, value))
                 {
-                    SetLenghtThicknessDirection();
+                    SetLenght();
                 }
             }
         }
@@ -36,7 +36,7 @@ namespace Tools.Unity.Graph
             {
                 if (SetPropertyUtility.SetStruct(ref m_Thickness, value))
                 {
-                    SetLenghtThicknessDirection();
+                    SetThickness();
                 }
             }
         }
@@ -52,7 +52,7 @@ namespace Tools.Unity.Graph
             {
                 if (SetPropertyUtility.SetStruct(ref m_Direction, value))
                 {
-                    SetLenghtThicknessDirection();
+                    SetDirection();
                 }
             }
         }
@@ -94,42 +94,11 @@ namespace Tools.Unity.Graph
         #region Setters
         protected virtual void OnValidate()
         {
-            SetLenghtThicknessDirection();
+            SetDirection();
+            SetLenght();
+            SetThickness();
             SetColor();
             SetPosition();
-        }
-        protected virtual void SetLenghtThicknessDirection()
-        {
-            RectTransform rectTransform = transform as RectTransform;
-            switch (m_Direction)
-            {
-                case Axe.DirectionEnum.LeftToRight:
-                case Axe.DirectionEnum.RightToLeft:
-                    m_ImageRectTransform.anchorMin = new Vector2(0.5f, 1f);
-                    m_ImageRectTransform.anchorMax = new Vector2(0.5f, 1f);
-                    m_ImageRectTransform.pivot = new Vector2(0.5f, 0.5f);
-                    m_ImageRectTransform.sizeDelta = new Vector2(m_Thickness, m_Lenght);
-                    m_ImageRectTransform.localPosition = Vector3.zero;
-
-                    rectTransform.anchorMin = new Vector2(0, 0);
-                    rectTransform.anchorMax = new Vector2(0, 1);
-                    rectTransform.pivot = new Vector2(0.5f, 1f);
-                    rectTransform.sizeDelta = new Vector2(rectTransform.parent.GetComponent<RectTransform>().rect.width / 11.0f, 0);
-                    break;
-                case Axe.DirectionEnum.TopToBottom:
-                case Axe.DirectionEnum.BottomToTop:
-                    m_ImageRectTransform.anchorMin = new Vector2(1f, 0.5f);
-                    m_ImageRectTransform.anchorMax = new Vector2(1f, 0.5f);
-                    m_ImageRectTransform.pivot = new Vector2(0.5f, 0.5f);
-                    m_ImageRectTransform.sizeDelta = new Vector2(m_Lenght, m_Thickness);
-                    m_ImageRectTransform.localPosition = Vector3.zero;
-
-                    rectTransform.anchorMin = new Vector2(0, 0);
-                    rectTransform.anchorMax = new Vector2(1, 0);
-                    rectTransform.pivot = new Vector2(1f, 0.5f);
-                    rectTransform.sizeDelta = new Vector2(0, rectTransform.parent.GetComponent<RectTransform>().rect.height / 11.0f);
-                    break;
-            }
         }
         protected virtual void SetDirection()
         {
@@ -201,17 +170,41 @@ namespace Tools.Unity.Graph
                 case Axe.DirectionEnum.RightToLeft:
                     rectTransform.anchorMin = new Vector2(m_Position, rectTransform.anchorMin.y);
                     rectTransform.anchorMax = new Vector2(m_Position, rectTransform.anchorMax.y);
+                    rectTransform.offsetMin = new Vector2(0, 0);
+                    rectTransform.offsetMax = new Vector2(0, 0);
+                    rectTransform.sizeDelta = new Vector2(rectTransform.parent.GetComponent<RectTransform>().rect.width / 11.0f, 0);
+                    rectTransform.anchoredPosition = new Vector3();
                     break;
                 case Axe.DirectionEnum.BottomToTop:
                 case Axe.DirectionEnum.TopToBottom:
                     rectTransform.anchorMin = new Vector2(rectTransform.anchorMin.x, m_Position);
                     rectTransform.anchorMax = new Vector2(rectTransform.anchorMax.x, m_Position);
+                    rectTransform.offsetMin = new Vector2(0, 0);
+                    rectTransform.offsetMax = new Vector2(0, 0);
+                    rectTransform.sizeDelta = new Vector2(0, rectTransform.parent.GetComponent<RectTransform>().rect.height / 11.0f);
+                    rectTransform.anchoredPosition = new Vector3();
                     break;
             }
         }
         protected virtual void SetColor()
         {
             m_ImageRectTransform.GetComponent<Image>().color = m_Color;
+        }
+        private void OnRectTransformDimensionsChange()
+        {
+            Debug.Log("OnRectTransformDImensionsChange()");
+            RectTransform rectTransform = transform as RectTransform;
+            switch (m_Direction)
+            {
+                case Axe.DirectionEnum.LeftToRight:
+                case Axe.DirectionEnum.RightToLeft:
+                    rectTransform.sizeDelta = new Vector2(rectTransform.parent.GetComponent<RectTransform>().rect.width / 11.0f, 0);
+                    break;
+                case Axe.DirectionEnum.TopToBottom:
+                case Axe.DirectionEnum.BottomToTop:
+                    rectTransform.sizeDelta = new Vector2(0, rectTransform.parent.GetComponent<RectTransform>().rect.height / 11.0f);
+                    break;
+            }
         }
         #endregion
     }

@@ -33,9 +33,9 @@ namespace Tools.Unity.Graph
             base.OnValidate();
             SetLabel();
         }
-        protected override void SetLenghtThicknessDirection()
+        protected override void SetLenght()
         {
-            base.SetLenghtThicknessDirection();
+            base.SetLenght();
             switch (m_Direction)
             {
                 case Axe.DirectionEnum.LeftToRight:
