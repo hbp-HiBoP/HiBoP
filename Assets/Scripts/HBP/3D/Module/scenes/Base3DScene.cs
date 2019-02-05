@@ -286,7 +286,7 @@ namespace HBP.Module3D
             set
             {
                 SceneInformation.MarsAtlasModeEnabled = value;
-                m_DisplayedObjects.BrainSurfaceMeshes[0].GetComponent<Renderer>().sharedMaterial.SetInt("_MarsAtlas", SceneInformation.MarsAtlasModeEnabled ? 1 : 0);
+                SharedMaterials.Brain.BrainMaterials[this].SetInt("_MarsAtlas", SceneInformation.MarsAtlasModeEnabled ? 1 : 0);
             }
         }
 
@@ -326,6 +326,7 @@ namespace HBP.Module3D
             set
             {
                 m_StrongCuts = value;
+                SharedMaterials.Brain.BrainMaterials[this].SetInt("_StrongCuts", m_StrongCuts ? 1 : 0);
                 ResetIEEG();
                 SceneInformation.MeshGeometryNeedsUpdate = true;
             }
@@ -965,6 +966,99 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
+        /// Compute the cuts of the regular meshes
+        /// </summary>
+        private void ComputeMeshesCut2()
+        {
+            if (SceneInformation.MeshToDisplay == null) return;
+
+            List<DLL.Surface> cuts;
+            if (Cuts.Count > 0)
+                cuts = new List<DLL.Surface>(SceneInformation.MeshToDisplay.Cut(Cuts.ToArray(), !SceneInformation.CutHolesEnabled, StrongCuts));
+            else
+                cuts = new List<DLL.Surface>() { (DLL.Surface)SceneInformation.MeshToDisplay.Clone() };
+
+            cuts[0] = (DLL.Surface)SceneInformation.MeshToDisplay.Clone();
+
+            if (m_ColumnManager.DLLCutsList.Count != cuts.Count)
+                m_ColumnManager.DLLCutsList = cuts;
+            else
+            {
+                // swap DLL pointer
+                for (int ii = 0; ii < cuts.Count; ++ii)
+                    m_ColumnManager.DLLCutsList[ii].SwapDLLHandle(cuts[ii]);
+            }
+
+            // FILL CUT ARRAYS IN SHADER
+            Material material = SharedMaterials.Brain.BrainMaterials[this];
+            material.SetInt("_CutCount", Cuts.Count);
+            if (Cuts.Count > 0)
+            {
+                List<Vector4> cutPoints = new List<Vector4>(20);
+                for (int i = 0; i < 20; ++i)
+                {
+                    if (i < Cuts.Count)
+                    {
+                        cutPoints.Add(new Vector4(-Cuts[i].Point.x, Cuts[i].Point.y, Cuts[i].Point.z));
+                    }
+                    else
+                    {
+                        cutPoints.Add(Vector4.zero);
+                    }
+                }
+                material.SetVectorArray("_CutPoints", cutPoints);
+                List<Vector4> cutNormals = new List<Vector4>(20);
+                for (int i = 0; i < 20; ++i)
+                {
+                    if (i < Cuts.Count)
+                    {
+                        cutNormals.Add(new Vector4(-Cuts[i].Normal.x, Cuts[i].Normal.y, Cuts[i].Normal.z));
+                    }
+                    else
+                    {
+                        cutNormals.Add(Vector4.zero);
+                    }
+                }
+                material.SetVectorArray("_CutNormals", cutNormals);
+            }
+
+            m_ColumnManager.SelectedMesh.SplittedMeshes = new List<DLL.Surface>(m_ColumnManager.DLLCutsList[0].SplitToSurfaces(m_ColumnManager.MeshSplitNumber));
+            for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
+            {
+                m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].Reset(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.SelectedMRI.Volume);
+                m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.SelectedMRI.Volume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
+            }
+            UpdateMeshesFromDLL();
+
+            for (int ii = 0; ii < Cuts.Count; ++ii)
+            {
+                m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_ColumnManager.SelectedMRI.Volume, Cuts[ii]);
+                m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].UpdateCutMeshUV(ColumnManager.DLLCutsList[ii + 1]);
+                m_ColumnManager.DLLCutsList[ii + 1].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
+            }
+
+            m_ColumnManager.UVNull = new List<Vector2[]>(m_ColumnManager.MeshSplitNumber);
+            for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
+            {
+                m_ColumnManager.UVNull.Add(new Vector2[m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.vertexCount]);
+                m_ColumnManager.UVNull[ii].Fill(new Vector2(0.01f, 1f));
+            }
+
+            for (int ii = 0; ii < Cuts.Count; ++ii)
+                m_DisplayedObjects.BrainCutMeshes[ii].SetActive(true);
+
+            SceneInformation.CollidersNeedUpdate = true;
+
+            foreach (Column3D column in m_ColumnManager.Columns)
+            {
+                column.ChangeMeshesLayer(LayerMask.NameToLayer(column.Layer));
+            }
+            if (SceneInformation.UseSimplifiedMeshes)
+            {
+                m_DisplayedObjects.SimplifiedBrain.layer = LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
+            }
+        }
+        /// <summary>
         /// Compute the cuts of the simplified meshes
         /// </summary>
         private void ComputeSimplifyMeshCut()
@@ -1025,7 +1119,7 @@ namespace HBP.Module3D
             }
             if (!CuttingSimplifiedMesh)
             {
-                ComputeMeshesCut();
+                ComputeMeshesCut2();
             }
             m_ColumnManager.UpdateCubeBoundingBox(Cuts);
             ResetTriangleErasing(false);

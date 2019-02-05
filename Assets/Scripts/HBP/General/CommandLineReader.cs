@@ -17,7 +17,7 @@ namespace HBP
         {
             string[] args = System.Environment.GetCommandLineArgs();
 #if UNITY_EDITOR
-            args = new string[] { "HiBoP", "-p", "DEBUG", "-v", "Unknown"};
+            args = new string[] { "HiBoP", "-p", "debug", "-v", "Unknown"};
 #endif
             StartCoroutine(c_InterpreteCommandLineArguments(args));
         }

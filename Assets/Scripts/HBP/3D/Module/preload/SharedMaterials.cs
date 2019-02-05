@@ -25,10 +25,6 @@ namespace HBP.Module3D
 
             public static void Initialize()
             {
-                ApplicationState.Module3D.OnAddScene.AddListener((scene) =>
-                {
-                    AddSceneMaterials(scene);
-                });
                 ApplicationState.Module3D.OnRemoveScene.AddListener((scene) =>
                 {
                     RemoveSceneMaterials(scene);

@@ -1,5 +1,4 @@
-﻿
-Shader "Custom/MeshShader"
+﻿Shader "Custom/Brain"
 {
 	Properties
 	{
@@ -14,24 +13,25 @@ Shader "Custom/MeshShader"
 
 	SubShader
 	{
-		//Tags{ "RenderType" = "Transparent" }
 		Tags{ "RenderType" = "Opaque" }
-		//Tags{ "Queue" = "Transparent" "IgnoreProjector" = "True" "RenderType" = "Transparent" }
-		//LOD 200
-
 
 		CGPROGRAM
-
-			// Physically based Standard lighting model, and enable shadows on all light types
-			//#pragma surface surf Standard fullforwardshadows alpha:blend decal:add 
 			#pragma surface surf Standard
-
-			// Use shader model 3.0 target, to get nicer looking lighting
 			#pragma target 3.0
 
 			sampler2D _MainTex;
 			sampler2D _AoTex;
 			sampler2D _ColorTex;
+
+			int _MarsAtlas;
+			half _Glossiness;
+			half _Metallic;
+			fixed4 _Color;
+
+			uniform int _StrongCuts;
+			uniform int _CutCount;
+			uniform float3 _CutPoints[20];
+			uniform float3 _CutNormals[20];
 
 			struct Input
 			{
@@ -40,18 +40,39 @@ Shader "Custom/MeshShader"
 				float2 uv2_AoTex :   TEXCOORD1;
 				float2 uv3_ColorTex :   TEXCOORD2;
 				float3 vertex_col : COLOR;
+				float3 worldPos;
 			};
 
-			int _MarsAtlas;
-			half _Glossiness;
-			half _Metallic;
-			fixed4 _Color;
 
 			void surf(Input IN, inout SurfaceOutputStandard o)
 			{
+				float3 localPos = IN.worldPos - mul(unity_ObjectToWorld, float4(0, 0, 0, 1)).xyz;
+				float clipping = 1;
+				if (!_StrongCuts)
+				{
+					for (int i = 0; i < _CutCount && i < 20; ++i)
+					{
+						int value = sign(dot(_CutNormals[i], _CutPoints[i] - localPos));
+						if (value < 0)
+						{
+							clipping = -1;
+						}
+						else
+						{
+							clipping = 1;
+							break;
+						}
+					} 
+				}
+				else
+				{
+
+				}
+				clip(clipping);
+
 				fixed4 ao = tex2D(_AoTex, IN.uv2_AoTex.xy);
 				float color = ao.r;
-
+				
 				// boost alpha (because of low tri mesh density compated to cuts textures)
 				color *= 2.5;
 				if (color > 1)
@@ -67,12 +88,11 @@ Shader "Custom/MeshShader"
 					col = (1 - color) * tex2D(_MainTex, IN.uv_MainTex.xy) + (color)* tex2D(_ColorTex, IN.uv3_ColorTex.xy);
 					col *= _Color;
 					o.Albedo = col.rgb;
-					o.Alpha = 0.f;
-				}	
-				
+					o.Alpha = 1.f;
+				}
+
 				o.Metallic =  _Metallic;
 				o.Smoothness = _Glossiness;
-				
 			}
 
 		ENDCG
