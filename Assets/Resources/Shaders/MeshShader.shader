@@ -62,11 +62,19 @@
 							clipping = 1;
 							break;
 						}
-					} 
+					}
 				}
 				else
 				{
-
+					for (int i = 0; i < _CutCount && i < 20; ++i)
+					{
+						int value = sign(dot(_CutNormals[i], _CutPoints[i] - localPos));
+						if (value < 0)
+						{
+							clipping = -1;
+							break;
+						}
+					}
 				}
 				clip(clipping);
 

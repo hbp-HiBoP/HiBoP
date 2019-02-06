@@ -271,7 +271,41 @@ namespace HBP.Module3D.DLL
             HandleRef pCutMultiSurface = new HandleRef(this, cut_Surface(_handle, planes, cutPlanes.Length, noHoles?1:0, strongCuts?1:0));
 
             // move data            
-            int nbMultiSurface =nb_MultiSurface(pCutMultiSurface);
+            int nbMultiSurface = nb_MultiSurface(pCutMultiSurface);
+            Surface[] cuts = new Surface[nbMultiSurface];
+            for (int ii = 0; ii < nbMultiSurface; ++ii)
+                cuts[ii] = new Surface(move_MultiSurface(pCutMultiSurface, ii));
+
+            // clean the multi surface
+            delete_MultiSurface(pCutMultiSurface);
+            return cuts;
+        }
+        public Surface[] GenerateCutSurfaces(Cut[] cutPlanes, bool noHoles = false, bool strongCuts = true)
+        {
+            // check planes
+            if (cutPlanes.Length <= 0)
+            {
+                Debug.LogError("-ERROR : Surface::cutSurface -> nb of planes <= 0. ");
+                Surface[] returnError = new Surface[1];
+                return returnError;
+            }
+
+            // init plane
+            float[] planes = new float[cutPlanes.Length * 6];
+            for (int ii = 0; ii < cutPlanes.Length; ++ii)
+            {
+                for (int jj = 0; jj < 3; ++jj)
+                {
+                    planes[ii * 6 + jj] = cutPlanes[ii].Point[jj];
+                    planes[ii * 6 + jj + 3] = cutPlanes[ii].Normal[jj];
+                }
+            }
+
+            // do the cut            
+            HandleRef pCutMultiSurface = new HandleRef(this, generate_cuts_Surface(_handle, planes, cutPlanes.Length, noHoles ? 1 : 0, strongCuts ? 1 : 0));
+
+            // move data            
+            int nbMultiSurface = nb_MultiSurface(pCutMultiSurface);
             Surface[] cuts = new Surface[nbMultiSurface];
             for (int ii = 0; ii < nbMultiSurface; ++ii)
                 cuts[ii] = new Surface(move_MultiSurface(pCutMultiSurface, ii));
@@ -558,6 +592,8 @@ namespace HBP.Module3D.DLL
         static private extern void merge_Surface(HandleRef handleSurface, HandleRef handleSurfaceToAdd);
         [DllImport("hbp_export", EntryPoint = "cut_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr cut_Surface(HandleRef handleSurface, float[] planes, int nbPlanes, int noHoles, int strongCuts);
+        [DllImport("hbp_export", EntryPoint = "generate_cuts_Surface", CallingConvention = CallingConvention.Cdecl)]
+        static private extern IntPtr generate_cuts_Surface(HandleRef handleSurface, float[] planes, int nbPlanes, int noHoles, int strongCuts);
         [DllImport("hbp_export", EntryPoint = "split_to_surfaces_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr split_to_surfaces_Surface(HandleRef handleSurface, int nbSubSurfaces);
         [DllImport("hbp_export", EntryPoint = "middle_Surface", CallingConvention = CallingConvention.Cdecl)]

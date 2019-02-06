@@ -87,6 +87,10 @@ namespace HBP.Module3D
         /// Does the mesh geometry need an update (cut, changing the mesh etc.)
         /// </summary>
         public bool MeshGeometryNeedsUpdate = true;
+        /// <summary>
+        /// Do the cuts need a update ?
+        /// </summary>
+        public bool CutsNeedUpdate = true;
         private bool m_IsGeneratorUpToDate = false;
         /// <summary>
         /// Is the iEEG generator up to date ?
