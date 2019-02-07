@@ -1,12 +1,11 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
+using static Tools.Unity.Graph.Graph;
 
 namespace Tools.Unity.Graph
 {
     [CustomEditor(typeof(Graph))]
-    public class GraphEditor : UnityEditor.Editor
+    public class GraphEditor : Editor
     {
         #region Properties
         // General
@@ -27,6 +26,9 @@ namespace Tools.Unity.Graph
         SerializedProperty m_OrdinateDisplayRange;
         SerializedProperty m_DefaultOrdinateDisplayRange;
 
+        // Curves
+        SerializedProperty m_Groups;
+
         // Eventss
         bool m_ShowEvents = false;
         SerializedProperty m_OnChangeTitle;
@@ -38,6 +40,7 @@ namespace Tools.Unity.Graph
         SerializedProperty m_OnChangeBackgroundColor;
         SerializedProperty m_OnChangeOrdinateDisplayRange;
         SerializedProperty m_OnChangeAbscissaDisplayRange;
+        SerializedProperty m_OnChangeUseDefaultRange;
         #endregion
 
         #region Public Methods
@@ -56,6 +59,7 @@ namespace Tools.Unity.Graph
             m_DefaultOrdinateDisplayRange = serializedObject.FindProperty("m_DefaultOrdinateDisplayRange");
             m_DefaultAbscissaDisplayRange = serializedObject.FindProperty("m_DefaultAbscissaDisplayRange");
             m_UseDefaultDisplayRange = serializedObject.FindProperty("m_UseDefaultDisplayRange");
+            m_Groups = serializedObject.FindProperty("m_Groups");
 
             // Events
             m_OnChangeTitle = serializedObject.FindProperty("m_OnChangeTitle");
@@ -67,8 +71,8 @@ namespace Tools.Unity.Graph
             m_OnChangeBackgroundColor = serializedObject.FindProperty("m_OnChangeBackgroundColor");
             m_OnChangeAbscissaDisplayRange = serializedObject.FindProperty("m_OnChangeAbscissaDisplayRange");
             m_OnChangeOrdinateDisplayRange = serializedObject.FindProperty("m_OnChangeOrdinateDisplayRange");
+            m_OnChangeUseDefaultRange = serializedObject.FindProperty("m_OnChangeUseDefaultRange");
         }
-
         public override void OnInspectorGUI()
         {
             // General
@@ -95,6 +99,8 @@ namespace Tools.Unity.Graph
             EditorGUILayout.PropertyField(m_OrdinateDisplayRange, new GUIContent("Range"));
             EditorGUILayout.PropertyField(m_DefaultOrdinateDisplayRange, new GUIContent("Default Range"));
             EditorGUI.indentLevel--;
+        
+            EditorGUILayout.PropertyField(m_Groups, true);
 
             // Events
             m_ShowEvents = EditorGUILayout.Foldout(m_ShowEvents, "Events");
@@ -109,10 +115,87 @@ namespace Tools.Unity.Graph
                 EditorGUILayout.PropertyField(m_OnChangeBackgroundColor);
                 EditorGUILayout.PropertyField(m_OnChangeAbscissaDisplayRange);
                 EditorGUILayout.PropertyField(m_OnChangeOrdinateDisplayRange);
+                EditorGUILayout.PropertyField(m_OnChangeUseDefaultRange);
             }
 
             serializedObject.ApplyModifiedProperties();
         }
         #endregion
     }
+
+    //[CustomPropertyDrawer(typeof(CurveGroup))]
+    //public class CurveGroupEditor : PropertyDrawer
+    //{
+    //    #region Properties
+    //    // General
+    //    SerializedProperty m_Name;
+    //    SerializedProperty m_Enabled;
+    //    SerializedProperty m_Curves;
+
+    //    // Events
+    //    bool m_ShowEvents = false;
+    //    SerializedProperty m_OnChangeEnabledValue;
+    //    SerializedProperty m_OnAddCurve;
+    //    SerializedProperty m_OnRemoveCurve;
+    //    #endregion
+
+    //    #region Public Methods
+    //    public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+    //    {
+    //        float singleLineHeight = EditorGUIUtility.singleLineHeight;
+    //        return 3 * singleLineHeight;
+    //    }
+    //    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+    //    {
+    //        EditorGUI.BeginProperty(position, label, property);
+    //        EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), new GUIContent("Group"));
+    //        float singleLineHeight = EditorGUIUtility.singleLineHeight;
+
+    //        // Calculate rects
+    //        Rect nameRect = new Rect(position.x, position.y + singleLineHeight, position.width, singleLineHeight);
+    //        Rect enabledRect = new Rect(position.x, nameRect.y + singleLineHeight, position.width, singleLineHeight);
+    //        //Rect nameRect = new Rect(position.x + 90, position.y, position.width - 90, position.height);
+
+    //        m_Name = property.FindPropertyRelative("m_Name");
+    //        EditorGUI.PropertyField(nameRect, m_Name);
+    //        m_Enabled = property.FindPropertyRelative("m_Enabled");
+    //        EditorGUI.PropertyField(enabledRect, m_Enabled);
+
+    //        EditorGUI.EndProperty();
+
+    //    }
+    //    //public void OnEnable()
+    //    //{
+    //    //    // General
+    //    //    m_Name = serializedObject.FindProperty("m_Name");
+    //    //    m_Enabled = serializedObject.FindProperty("m_Enabled");
+    //    //    m_Curves = serializedObject.FindProperty("m_Curves");
+
+    //    //    // Events
+    //    //    m_OnChangeEnabledValue = serializedObject.FindProperty("m_OnChangeEnabledValue");
+    //    //    m_OnAddCurve = serializedObject.FindProperty("m_OnAddCurve");
+    //    //    m_OnRemoveCurve = serializedObject.FindProperty("m_OnRemoveCurve");
+    //    //}
+    //    //public override void OnInspectorGUI()
+    //    //{
+    //    //    // General
+    //    //    EditorGUILayout.PrefixLabel(new GUIContent("General"));
+    //    //    EditorGUI.indentLevel++;
+    //    //    EditorGUILayout.PropertyField(m_Name);
+    //    //    EditorGUILayout.PropertyField(m_Enabled);
+    //    //    EditorGUILayout.PropertyField(m_Curves);
+    //    //    EditorGUI.indentLevel--;
+
+    //    //    // Events
+    //    //    m_ShowEvents = EditorGUILayout.Foldout(m_ShowEvents, "Events");
+    //    //    if (m_ShowEvents)
+    //    //    {
+    //    //        EditorGUILayout.PropertyField(m_OnChangeEnabledValue);
+    //    //        EditorGUILayout.PropertyField(m_OnAddCurve);
+    //    //        EditorGUILayout.PropertyField(m_OnRemoveCurve);
+    //    //    }
+    //    //    serializedObject.ApplyModifiedProperties();
+    //    //}
+    //    #endregion
+    //}
 }

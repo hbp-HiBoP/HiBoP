@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -9,8 +10,24 @@ namespace Tools.Unity.Graph
         #region Properties
         [SerializeField] GameObject m_GroupLegendPrefab;
         [SerializeField] RectTransform m_GroupLegendContainer;
-        public GenericEvent<CurveGroupData, bool> OnDisplayGroup = new GenericEvent<CurveGroupData, bool>();
-        public GenericEvent<CurveData, bool> OnDisplayCurve = new GenericEvent<CurveData, bool>();
+
+        [SerializeField] CurveGroupDataEvent m_OnDisplayGroup = new CurveGroupDataEvent();
+        public CurveGroupDataEvent OnDisplayGroup
+        {
+            get
+            {
+                return m_OnDisplayGroup;
+            }
+        }
+
+        [SerializeField] CurveDataEvent m_OnDisplayCurve = new CurveDataEvent();
+        public CurveDataEvent OnDisplayCurve
+        {
+            get
+            {
+                return m_OnDisplayCurve;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -31,9 +48,9 @@ namespace Tools.Unity.Graph
             GroupLegend legend = legendGameObject.GetComponent<GroupLegend>();
             legend.Set(group,active, stateByCurve);
             legend.OnDisplayCurve.RemoveAllListeners();
-            legend.OnDisplayCurve.AddListener(OnDisplayCurve.Invoke);
+            legend.OnDisplayCurve.AddListener(m_OnDisplayCurve.Invoke);
             legend.OnDisplayGroup.RemoveAllListeners();
-            legend.OnDisplayGroup.AddListener(OnDisplayGroup.Invoke);
+            legend.OnDisplayGroup.AddListener(m_OnDisplayGroup.Invoke);
         }
         void Clear()
         {
@@ -43,6 +60,11 @@ namespace Tools.Unity.Graph
                 Destroy(transform.GetChild(i).gameObject);
             }
         }
+        #endregion
+
+        #region Events
+        [Serializable] public class CurveGroupDataEvent : UnityEvent<CurveGroupData, bool> { }
+        [Serializable] public class CurveDataEvent : UnityEvent<CurveData, bool> { }
         #endregion
     }
 }

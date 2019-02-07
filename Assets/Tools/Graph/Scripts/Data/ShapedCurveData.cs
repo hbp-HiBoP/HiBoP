@@ -3,14 +3,26 @@ using System.Collections.Generic;
 
 namespace Tools.Unity.Graph
 {
+    [CreateAssetMenu(fileName = "ShapedCurve", menuName = "Graph/Data/ShapedCurve", order = 1)]
     public class ShapedCurveData : CurveData
     {
         #region Properties
-        public float[] Shapes { get; set; }
+        [SerializeField] float[] m_Shapes;
+        public float[] Shapes
+        {
+            get
+            {
+                return m_Shapes;
+            }
+            set
+            {
+                m_Shapes = value;
+            }
+        }
         #endregion
 
         #region Constructor
-        public ShapedCurveData(string label, string id, IEnumerable<Vector2> points, IEnumerable<float> shapes, Color color , float width = 3.0f) : base(label, id, points, color, width)
+        public ShapedCurveData(IEnumerable<Vector2> points, IEnumerable<float> shapes, Color color , float width = 3.0f) : base(points, color, width)
         {
             float[] shapeArray = shapes as float[];
             if(shapeArray.Length == Points.Length)

@@ -185,7 +185,7 @@ namespace Tools.Unity.Graph
                         localPoint = new Vector2(localPoint.x + curveViewport.x, localPoint.y - curveViewport.y);
                         builder.Append(localPoint.x + "," + (curveViewport.height - localPoint.y).ToString() + " ");
                     }
-                    svgBuilder.AppendLine("<path d=\"M " + builder.ToString() + "\" style=\"" + "fill:none;stroke:" + curve.Color.ToHexString() + ";stroke-width:" + curve.Width + "\"/>");
+                    svgBuilder.AppendLine("<path d=\"M " + builder.ToString() + "\" style=\"" + "fill:none;stroke:" + curve.Color.ToHexString() + ";stroke-width:" + curve.Thickness + "\"/>");
                 }
             }
 
@@ -254,7 +254,7 @@ namespace Tools.Unity.Graph
                     y = curveViewport.y + (id * 40.0f);
                     svgBuilder.AppendLine("<g>");
                     svgBuilder.AppendLine("<path d=\"M " + x + "," + y + " " + (x + 30.0f).ToString() + "," + y + "\" style=\"stroke:" + curve.Color.ToHexString() + ";stroke-width:10;fill:none\"/>");
-                    svgBuilder.AppendLine("<text x=\"" + (x + 40.0f).ToString() + "\" y=\"" + y + "\" text-anchor=\"left\" dy=\".3em\" style=\"font-size:30\">" + curve.Name + "</text>");
+                    svgBuilder.AppendLine("<text x=\"" + (x + 40.0f).ToString() + "\" y=\"" + y + "\" text-anchor=\"left\" dy=\".3em\" style=\"font-size:30\">" + curve.name + "</text>");
                     svgBuilder.AppendLine("</g>");
                 }
             }
@@ -290,13 +290,13 @@ namespace Tools.Unity.Graph
                             csvBuilder.AppendLine(string.Format("{0},{1},{2}", point.x, point.y, 0));
                         }
                     }
-                    if (csv.ContainsKey(group.Name + " " + curve.Name))
+                    if (csv.ContainsKey(group.Name + " " + curve.name))
                     {
-                        csv.Add(group.Name + " " + curve.Name + " (" + g + "-" + c + ")", csvBuilder.ToString());
+                        csv.Add(group.Name + " " + curve.name + " (" + g + "-" + c + ")", csvBuilder.ToString());
                     }
                     else
                     {
-                        csv.Add(group.Name + " " + curve.Name, csvBuilder.ToString());
+                        csv.Add(group.Name + " " + curve.name, csvBuilder.ToString());
                     }
                 }
             }

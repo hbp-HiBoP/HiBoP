@@ -21,11 +21,7 @@ namespace Tools.Unity.Graph
         #region Public Methods
         public CurveData GetCurveByName(string name)
         {
-            return Curves.FirstOrDefault(c => c.Name == name);
-        }
-        public CurveData GetCurveByID(string ID)
-        {
-            return Curves.FirstOrDefault(c => c.ID == ID);
+            return Curves.FirstOrDefault(c => c.name == name);
         }
         #endregion
     }

@@ -23,6 +23,8 @@ namespace Tools.Unity.Graph
         SerializedProperty m_IndependentTickMarkValue;
         SerializedProperty m_IndependentTickMark;
         SerializedProperty m_UseIndependentTickMark;
+        SerializedProperty m_Format;
+        SerializedProperty m_CultureInfo;
         #endregion
 
         public void OnEnable()
@@ -43,6 +45,9 @@ namespace Tools.Unity.Graph
             m_IndependentTickMarkValue = serializedObject.FindProperty("m_IndependentTickMarkValue");
             m_IndependentTickMark = serializedObject.FindProperty("m_IndependentTickMark");
             m_UseIndependentTickMark = serializedObject.FindProperty("m_UseIndependentTickMark");
+
+            m_Format = serializedObject.FindProperty("m_Format");
+            m_CultureInfo = serializedObject.FindProperty("m_CultureInfo");
         }
 
         public override void OnInspectorGUI()
@@ -71,6 +76,8 @@ namespace Tools.Unity.Graph
             if(m_ShowTickMarks)
             {
                 EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_Format);
+                EditorGUILayout.PropertyField(m_CultureInfo);
                 EditorGUILayout.PropertyField(m_UseIndependentTickMark);     
                 EditorGUILayout.PropertyField(m_IndependentTickMarkValue);
                 EditorGUILayout.PropertyField(m_IndependentTickMark);

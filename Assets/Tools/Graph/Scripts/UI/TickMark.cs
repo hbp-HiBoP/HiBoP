@@ -192,7 +192,6 @@ namespace Tools.Unity.Graph
         }
         private void OnRectTransformDimensionsChange()
         {
-            Debug.Log("OnRectTransformDImensionsChange()");
             RectTransform rectTransform = transform as RectTransform;
             switch (m_Direction)
             {

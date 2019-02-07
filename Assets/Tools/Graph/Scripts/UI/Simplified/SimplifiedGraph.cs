@@ -34,7 +34,6 @@ namespace Tools.Unity.Graph
             {
                 m_Data.FontColor = value;
                 foreach (var graphic in FontColorGraphics) graphic.color = value;
-                PlotGestion.OriginAxeColor = value;
             }
         }
 
@@ -112,7 +111,7 @@ namespace Tools.Unity.Graph
                     curvesToDisplay.Add(curve);
                 }
             }
-            PlotGestion.Plot(curvesToDisplay.ToArray(), Limits, onlyUpdate);
+            //PlotGestion.Plot(curvesToDisplay.ToArray(), Limits, onlyUpdate);
         }
         #endregion
     }

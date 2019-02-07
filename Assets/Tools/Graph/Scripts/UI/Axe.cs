@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UI.Extensions;
@@ -21,7 +22,7 @@ namespace Tools.Unity.Graph
             {
                 if (SetPropertyUtility.SetStruct(ref m_Direction, value))
                 {
-                    SetType();
+                    SetDirection();
                 }
             }
         }
@@ -135,10 +136,38 @@ namespace Tools.Unity.Graph
             {
                 if (SetPropertyUtility.SetStruct(ref m_DisplayRange, value))
                 {
-                    //SetDisplayRange();
+                    SetDisplayRange();
                 }
             }
         }
+
+        [SerializeField] string m_Format ="N2";
+        public string Format
+        {
+            get
+            {
+                return m_Format;
+            }
+            set
+            {
+                SetPropertyUtility.SetClass(ref m_Format, value);
+            }
+        }
+
+        [SerializeField] string m_CultureInfo = "en-US";
+        public string CultureInfo
+        {
+            get
+            {
+                return m_CultureInfo;
+            }
+            set
+            {
+                SetPropertyUtility.SetClass(ref m_CultureInfo, value);
+            }
+        }
+
+        [SerializeField] string m_Region;
 
         [SerializeField] List<MajorTickMark> m_TickMarks = new List<MajorTickMark>();
         [SerializeField] MajorTickMark m_IndependentTickMark;
@@ -149,10 +178,28 @@ namespace Tools.Unity.Graph
         {
             if(m_IndependentTickMark)
             {
-                m_IndependentTickMark.Label = m_IndependentTickMarkValue.ToString();
+                CultureInfo cultureInfo = System.Globalization.CultureInfo.GetCultureInfo(CultureInfo);
+                m_IndependentTickMark.Label = m_IndependentTickMarkValue.ToString(Format, cultureInfo);
                 m_IndependentTickMark.Position = ((float)m_IndependentTickMarkValue - m_DisplayRange.x) / (m_DisplayRange.y - m_DisplayRange.x);
-                m_IndependentTickMark.Direction = m_Direction;
-                m_IndependentTickMark.Color = m_Color;
+
+                float marge = 0.04f;
+                foreach (var tickMark in m_TickMarks)
+                {
+                    if(tickMark.Hidden)
+                    {
+                        if(tickMark.Position > m_IndependentTickMark.Position + marge || tickMark.Position < m_IndependentTickMark.Position - marge)
+                        {
+                            tickMark.Hidden = false;
+                        }
+                    }
+                    else
+                    {
+                        if (tickMark.Position <= m_IndependentTickMark.Position + marge && tickMark.Position >= m_IndependentTickMark.Position - marge)
+                        {
+                            tickMark.Hidden = true;
+                        }
+                    }
+                }
             }
         }
         void SetColor()
@@ -181,9 +228,13 @@ namespace Tools.Unity.Graph
         {
             if (m_UnitText != null && m_Unit != null) m_UnitText.text = string.Format("({0})", m_Unit);
         }
-        void SetType()
+        void SetDirection()
         {
-
+            if(m_IndependentTickMark != null) m_IndependentTickMark.Direction = m_Direction;
+            foreach (var tickMark in m_TickMarks)
+            {
+                if (tickMark != null) tickMark.Direction = m_Direction;
+            }
         }
         void SetDisplayRange()
         {
@@ -249,13 +300,14 @@ namespace Tools.Unity.Graph
                     value += step;
                 }
 
+                CultureInfo cultureInfo = System.Globalization.CultureInfo.GetCultureInfo(CultureInfo);
                 for (int i = 0; i < m_TickMarks.Count; i++)
                 {
                     MajorTickMark tickMark = m_TickMarks[i];
 
                     if (i < tickMarks.Count)
                     {
-                        tickMark.Label = tickMarks[i].ToString();
+                        tickMark.Label = tickMarks[i].ToString(Format, cultureInfo);
                         tickMark.Position = ((float)tickMarks[i] - m_DisplayRange.x) / (m_DisplayRange.y - m_DisplayRange.x);
                         tickMark.Direction = m_Direction;
                         tickMark.Color = m_Color;
@@ -276,7 +328,7 @@ namespace Tools.Unity.Graph
         }
         void OnValidate()
         {
-            SetType();
+            SetDirection();
             SetColor();
             SetLabel();
             SetUnit();

@@ -20,9 +20,9 @@ namespace Tools.Unity.Graph
         #region Public Methods
         public void Set(CurveData curve, bool active)
         {
-            name = curve.Name;
+            name = curve.name;
             m_Curve = curve;
-            m_Text.text = curve.Name;
+            m_Text.text = curve.name;
 
             m_Toggle.isOn = active;
             ChangeColor(active);

@@ -46,7 +46,7 @@ namespace Tools.Unity.Graph
         void AddLegend(CurveData curve, bool active)
         {
             Legend legend = Instantiate(m_CurvePrefab, m_CurvesRectTransform).GetComponent<Legend>();
-            legend.name = curve.Name;
+            legend.name = curve.name;
             legend.Set(curve, active);
             legend.OnDisplayCurve.RemoveAllListeners();
             legend.OnDisplayCurve.AddListener(OnDisplayCurve.Invoke);

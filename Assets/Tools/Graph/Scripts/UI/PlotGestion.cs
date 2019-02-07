@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
-using UnityEngine.Events;
 using System.Linq;
 using System.Collections.Generic;
-using System;
+using UnityEngine.UI.Extensions;
+using UnityEngine.Events;
+using System.Collections.ObjectModel;
 
 namespace Tools.Unity.Graph
 {
@@ -10,84 +11,129 @@ namespace Tools.Unity.Graph
     public class PlotGestion : MonoBehaviour
     {
         #region Properties
-        [SerializeField]
-        GameObject CurvePrefab;
-        [SerializeField]
-        GameObject ShapedCurvePrefab;
-        [SerializeField]
-        GameObject OriginAxePrefab;
-
-        Color axeColor;
-        public Color OriginAxeColor
+        [SerializeField] Vector2 m_AbscissaDisplayRange;
+        public Vector2 AbscissaDisplayRange
         {
-            get { return axeColor; }
-            set { axeColor = value; }
+            get
+            {
+                return m_AbscissaDisplayRange;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_AbscissaDisplayRange, value))
+                {
+                    SetAbscissaDisplayRange();
+                }
+            }
         }
-        //public OnChangeLimitsEvent OnChangeLimits = new OnChangeLimitsEvent();
 
-        Limits Limits { get; set; }
-        List<Curve> curvesDisplayed = new List<Curve>();
+        [SerializeField] Vector2 m_OrdinateDisplayRange;
+        public Vector2 OrdinateDisplayRange
+        {
+            get
+            {
+                return m_OrdinateDisplayRange;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_OrdinateDisplayRange, value))
+                {
+                    SetOrdinateDisplayRange();
+                }
+            }
+        }
+
+        [SerializeField] List<CurveData> m_Curves = new List<CurveData>();
+        public ReadOnlyCollection<CurveData> Curves
+        {
+            get
+            {
+                return new ReadOnlyCollection<CurveData>(m_Curves);
+            }
+        }
+
+        [SerializeField] List<Curve> m_DisplayedCurves = new List<Curve>();
+        [SerializeField] GameObject m_CurvePrefab;
+        [SerializeField] GameObject m_ShapedCurvePrefab;
+
+        //#region Events
+        //[SerializeField] private Vector2Event m_OnChangeOrdinateDisplayRange;
+        //public Vector2Event OnChangeOrdinateDisplayRange
+        //{
+        //    get
+        //    {
+        //        return m_OnChangeOrdinateDisplayRange;
+        //    }
+        //}
+
+        //[SerializeField] private Vector2Event m_OnChangeAbscissaDisplayRange;
+        //public Vector2Event OnChangeAbscissaDisplayRange
+        //{
+        //    get
+        //    {
+        //        return m_OnChangeAbscissaDisplayRange;
+        //    }
+        //}
+        //#endregion
         #endregion
 
         #region Public Methods
-        public void Plot(CurveData[] curves, Limits limits, bool onlyUpdate = false)
+        public void UpdateCurve(Curve curve)
         {
-            Limits = limits;
-
-            // Calculate ratio between rect and limits.
-            Vector2 ratio = (transform as RectTransform).rect.GetRatio(limits);
-
-            if(onlyUpdate)
+            curve.Data = curve.Data;
+        }
+        public void AddCurve(CurveData curveData)
+        {
+            Curve curve;
+            if (curveData is ShapedCurveData)
             {
-                // Update curves
-                foreach (Curve curve in curvesDisplayed) UpdateCurve(curve, limits, ratio);
+                ShapedCurve shapedCurve = Instantiate(m_ShapedCurvePrefab, transform.Find("Curves")).GetComponent<ShapedCurve>();
+                curve = shapedCurve;
+                shapedCurve.OrdinateDisplayRange = m_OrdinateDisplayRange;
+                shapedCurve.AbscissaDisplayRange = m_AbscissaDisplayRange;
+                shapedCurve.Data = curveData as ShapedCurveData;
             }
             else
             {
-                // Curves to remove
-                List<Curve> curvesToRemove = new List<Curve>(from curve in curvesDisplayed where !curves.Contains(curve.Data) select curve);
-                List<CurveData> curvesToAdd = new List<CurveData>(from curve in curves where !(from curveDisplayer in curvesDisplayed select curveDisplayer.Data).ToArray().Contains(curve) select curve);
-
-                // Remove curves
-                foreach (Curve curve in curvesToRemove) RemoveCurve(curve);
-                // Update curves
-                foreach (Curve curve in curvesDisplayed) UpdateCurve(curve, limits, ratio);
-                // Add curves
-                foreach (CurveData curve in curvesToAdd) AddCurve(curve, limits, ratio);
+                curve = Instantiate(m_CurvePrefab, transform.Find("Curves")).GetComponent<Curve>();
+                curve.OrdinateDisplayRange = m_OrdinateDisplayRange;
+                curve.AbscissaDisplayRange = m_AbscissaDisplayRange;
+                curve.Data = curveData;
             }
+            m_DisplayedCurves.Add(curve);
+            m_Curves.Add(curveData);
         }
+        public void RemoveCurve(Curve curve)
+        {
+            m_Curves.Remove(curve.Data);
+            m_DisplayedCurves.Remove(curve);
+            Destroy(curve.gameObject);
+        }
+
         public void Move(Vector2 command)
         {
-            Limits limits = Limits;
-            float abscissa = (Limits.AbscissaMin - Limits.AbscissaMax) * command.x;
-            float ordinate = (Limits.OrdinateMin - Limits.OrdinateMax) * command.y;
-            limits.AbscissaMin += abscissa;
-            limits.AbscissaMax += abscissa;
-            limits.OrdinateMin += ordinate;
-            limits.OrdinateMax += ordinate;
+            float abscissa = (m_AbscissaDisplayRange.x - m_AbscissaDisplayRange.y) * command.x;
+            float ordinate = (m_OrdinateDisplayRange.x - m_OrdinateDisplayRange.y) * command.y;
+            m_AbscissaDisplayRange += abscissa * Vector2.one;
+            m_OrdinateDisplayRange += ordinate * Vector2.one;
             //OnChangeLimits.Invoke(limits,false);
         }
         public void Zoom()
         {
-            Limits limits = Limits;
-            float abscissa = (Limits.AbscissaMax - Limits.AbscissaMin) * 0.05f;
-            float ordinate = (Limits.OrdinateMax - Limits.OrdinateMin) * 0.05f;
-            limits.AbscissaMin += abscissa;
-            limits.AbscissaMax -= abscissa;
-            limits.OrdinateMin += ordinate;
-            limits.OrdinateMax -= ordinate;
+            float abscissa = (m_AbscissaDisplayRange.y - m_AbscissaDisplayRange.x) * 0.05f;
+            float ordinate = (m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x) * 0.05f;
+            m_AbscissaDisplayRange += abscissa * new Vector2(-1, 1);
+            m_OrdinateDisplayRange += ordinate * new Vector2(-1, 1);
             //OnChangeLimits.Invoke(limits,false);
         }
         public void Dezoom()
         {
-            Limits limits = Limits;
-            float abscissa = (Limits.AbscissaMax - Limits.AbscissaMin) * 0.05f;
-            float ordinate = (Limits.OrdinateMax - Limits.OrdinateMin) * 0.05f;
-            limits.AbscissaMin -= abscissa;
-            limits.AbscissaMax += abscissa;
-            limits.OrdinateMin -= ordinate;
-            limits.OrdinateMax += ordinate;
-           // OnChangeLimits.Invoke(limits,false);
+            float abscissa = (m_AbscissaDisplayRange.y - m_AbscissaDisplayRange.x) * 0.05f;
+            float ordinate = (m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x) * 0.05f;
+            m_AbscissaDisplayRange += abscissa * new Vector2(-1, 1);
+            m_OrdinateDisplayRange += ordinate * new Vector2(-1, 1);
+
+            // OnChangeLimits.Invoke(limits,false);
         }
         public void ChangeRectSize(Vector2 command)
         {
@@ -95,39 +141,32 @@ namespace Tools.Unity.Graph
         }
         #endregion
 
-        #region Private Methods
-        void AddCurve(CurveData curveData, Limits limits, Vector2 ratio)
+        #region Setters
+        void OnValidate()
         {
-            Curve curve;
-            if (curveData is ShapedCurveData)
-            {
-                curve = Instantiate(ShapedCurvePrefab, transform.Find("Curves")).GetComponent<ShapedCurve>();
-                curve.SetFields();
-                (curve as ShapedCurve).Plot(curveData as ShapedCurveData, limits, ratio);
-            }
-            else
-            {
-                curve = Instantiate(CurvePrefab, transform.Find("Curves")).GetComponent<Curve>();
-                curve.SetFields();
-                curve.Plot(curveData, limits, ratio);
-            }
-            curvesDisplayed.Add(curve);
+            SetCurves();
         }
-        void UpdateCurve(Curve curve, Limits limits, Vector2 ratio)
+        void SetAbscissaDisplayRange()
         {
-            if (curve.Data is ShapedCurveData)
+            foreach (var curve in m_DisplayedCurves)
             {
-                (curve as ShapedCurve).Plot(curve.Data as ShapedCurveData, limits, ratio);
-            }
-            else
-            {
-                curve.Plot(curve.Data, limits, ratio);
+                curve.AbscissaDisplayRange = m_AbscissaDisplayRange;
             }
         }
-        void RemoveCurve(Curve curve)
+        void SetOrdinateDisplayRange()
         {
-            curvesDisplayed.Remove(curve);
-            Destroy(curve.gameObject);
+            foreach (var curve in m_DisplayedCurves)
+            {
+                curve.OrdinateDisplayRange = m_OrdinateDisplayRange;
+            }
+        }
+        void SetCurves()
+        {
+            IEnumerable<Curve> curvesToRemove = m_DisplayedCurves.Where(curve => !m_Curves.Any(c => c == curve.Data));
+            foreach (var curve in curvesToRemove) RemoveCurve(curve);
+
+            IEnumerable<CurveData> curvesToAdd = m_Curves.Where(curve => !m_DisplayedCurves.Any(c => c.Data == curve));
+            foreach (var curve in curvesToAdd) AddCurve(curve);
         }
         #endregion
     }

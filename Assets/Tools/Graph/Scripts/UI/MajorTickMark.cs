@@ -25,6 +25,23 @@ namespace Tools.Unity.Graph
                 }
             }
         }
+
+        bool m_Hidden;
+        public bool Hidden
+        {
+            get
+            {
+                return m_Hidden;
+            }
+            set
+            {
+
+                if (SetPropertyUtility.SetStruct(ref m_Hidden, value))
+                {
+                    SetHidden();
+                }
+            }
+        }
         #endregion
 
         #region Protected Setters
@@ -32,6 +49,7 @@ namespace Tools.Unity.Graph
         {
             base.OnValidate();
             SetLabel();
+            SetHidden();
         }
         protected override void SetLenght()
         {
@@ -56,6 +74,10 @@ namespace Tools.Unity.Graph
         {
             base.SetColor();
             m_Text.color = m_Color;
+        }
+        void SetHidden()
+        {
+            m_Text.enabled = ! m_Hidden;
         }
         #endregion
     }
