@@ -6,7 +6,7 @@ namespace Tools.Unity.Graph
     public class Curve : MonoBehaviour
     {
         #region Properties
-        [SerializeField] CurveData m_Data;
+        [SerializeField] protected CurveData m_Data;
         public CurveData Data
         {
             get

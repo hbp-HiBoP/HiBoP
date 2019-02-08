@@ -56,6 +56,8 @@ namespace UnityEngine.UI.Extensions
         internal bool lineCaps;
         [SerializeField, Tooltip("Resolution of the Bezier curve, different to line Resolution")]
         internal int bezierSegmentsPerCurve = 10;
+        [SerializeField]
+        internal bool verticalLimits;    
 
         public float LineThickness
         {
@@ -79,6 +81,12 @@ namespace UnityEngine.UI.Extensions
         {
             get { return lineCaps; }
             set { lineCaps = value; SetAllDirty(); }
+        }
+
+        public bool VerticalLimits
+        {
+            get { return verticalLimits; }
+            set { verticalLimits = value; SetAllDirty(); }
         }
 
         [Tooltip("The type of Join used between lines, Square/Mitre or Curved/Bevel")]
@@ -193,27 +201,57 @@ namespace UnityEngine.UI.Extensions
 			}
 			else
 			{
-				for (var i = 1; i < pointsToDraw.Length; i++)
-				{
-					var start = pointsToDraw[i - 1];
-					var end = pointsToDraw[i];
-					start = new Vector2(start.x * sizeX + offsetX, start.y * sizeY + offsetY);
-					end = new Vector2(end.x * sizeX + offsetX, end.y * sizeY + offsetY);
+                if(pointsToDraw.Length == 2)
+                {
+                    var start = pointsToDraw[0];
+                    var end = pointsToDraw[1];
+                    start = new Vector2(start.x * sizeX + offsetX, start.y * sizeY + offsetY);
+                    end = new Vector2(end.x * sizeX + offsetX, end.y * sizeY + offsetY);
+                    segments.Add(CreateLineSegment(start, end, SegmentType.Full));
+                }
+                else
+                {
+                    for (var i = 1; i < pointsToDraw.Length; i++)
+                    {
+                        var start = pointsToDraw[i - 1];
+                        var end = pointsToDraw[i];
+                        start = new Vector2(start.x * sizeX + offsetX, start.y * sizeY + offsetY);
+                        end = new Vector2(end.x * sizeX + offsetX, end.y * sizeY + offsetY);
 
-					if (lineCaps && i == 1)
-					{
-						segments.Add(CreateLineCap(start, end, SegmentType.Start));
-					}
+                        if (i == 1)
+                        {
+                            if (lineCaps)
+                            {
+                                segments.Add(CreateLineCap(start, end, SegmentType.Start));
+                            }
+                            else if (verticalLimits)
+                            {
+                                segments.Add(CreateLineSegment(start, end, SegmentType.Start));
+                            }
+                        }
 
-					segments.Add(CreateLineSegment(start, end, SegmentType.Middle));
-					//segments.Add(CreateLineSegment(start, end, SegmentType.Full));
 
-					if (lineCaps && i == pointsToDraw.Length - 1)
-					{
-						segments.Add(CreateLineCap(start, end, SegmentType.End));
-					}
-				}
-			}
+
+                        else if (i == pointsToDraw.Length - 1)
+                        {
+                            if (lineCaps)
+                            {
+                                segments.Add(CreateLineCap(start, end, SegmentType.End));
+                            }
+                            else if (verticalLimits)
+                            {
+                                segments.Add(CreateLineSegment(start, end, SegmentType.End));
+                            }
+                        }
+                        else
+                        {
+                            segments.Add(CreateLineSegment(start, end, SegmentType.Middle));
+                        }
+                    }
+                }
+            }
+
+
 
 			// Add the line segments to the vertex helper, creating any joins as needed
             for (var i = 0; i < segments.Count; i++)
@@ -284,40 +322,49 @@ namespace UnityEngine.UI.Extensions
 		{
 			if (type == SegmentType.Start)
 			{
-				var capStart = start - ((end - start).normalized * lineThickness / 2);
-				return CreateLineSegment(capStart, start, SegmentType.Start);
+				Vector2 capStart = start - ((end - start).normalized * lineThickness / 2);
+                return CreateLineSegment(capStart, start, SegmentType.Start);
 			}
 			else if (type == SegmentType.End)
-			{
-				var capEnd = end + ((end - start).normalized * lineThickness / 2);
+            {
+                Vector2 capEnd = end + ((end - start).normalized * lineThickness / 2);
 				return CreateLineSegment(end, capEnd, SegmentType.End);
 			}
-
 			Debug.LogError("Bad SegmentType passed in to CreateLineCap. Must be SegmentType.Start or SegmentType.End");
 			return null;
 		}
 
 		private UIVertex[] CreateLineSegment(Vector2 start, Vector2 end, SegmentType type)
 		{
-			Vector2 offset = new Vector2((start.y - end.y), end.x - start.x).normalized * lineThickness / 2;
-
-			var v1 = start - offset;
-			var v2 = start + offset;
-			var v3 = end + offset;
-			var v4 = end - offset;
-            //Return the VDO with the correct uvs
+            Vector2 startOffset, endOffset;
+            Vector2[] uvs;
+            startOffset = new Vector2(start.y - end.y, end.x - start.x).normalized * lineThickness / 2;
+            endOffset = new Vector2(start.y - end.y, end.x - start.x).normalized * lineThickness / 2;
             switch (type)
             {
                 case SegmentType.Start:
-                    return SetVbo(new[] { v1, v2, v3, v4 }, startUvs);
+                    if (verticalLimits) startOffset = startOffset.magnitude * Vector2.up;
+                    uvs = startUvs;
+                    break;
                 case SegmentType.End:
-                    return SetVbo(new[] { v1, v2, v3, v4 }, endUvs);
+                    if(verticalLimits) endOffset = endOffset.magnitude * Vector2.up;
+                    uvs = endUvs;
+                    break;
                 case SegmentType.Full:
-                    return SetVbo(new[] { v1, v2, v3, v4 }, fullUvs);
+                    if (verticalLimits)
+                    {
+                        startOffset = startOffset.magnitude * Vector2.up;
+                        endOffset = endOffset.magnitude * Vector2.up;
+                    }
+                    uvs = fullUvs;
+                    break;
                 default:
-                    return SetVbo(new[] { v1, v2, v3, v4 }, middleUvs);
+                    uvs = middleUvs;
+                    break;
             }
-		}
+
+            return SetVbo(new[] { start - startOffset, start + startOffset, end + endOffset, end - endOffset }, uvs);
+        }
 
         protected override void GeneratedUVs()
         {

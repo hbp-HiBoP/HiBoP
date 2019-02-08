@@ -6,14 +6,13 @@ namespace Tools.Unity.Graph
     public class ShapedCurve : Curve
     {
         #region Properties
-        [SerializeField] UIShapeRenderer m_ShapeRenderer;
+        [SerializeField] UIVerticalShapeRenderer m_ShapeRenderer;
 
-        [SerializeField] ShapedCurveData m_Data;
         public new ShapedCurveData Data
         {
             get
             {
-                return m_Data;
+                return m_Data as ShapedCurveData;
             }
             set
             {
@@ -28,25 +27,44 @@ namespace Tools.Unity.Graph
         #region Setters
         protected override void SetData()
         {
-            base.SetData();
-            m_ShapeRenderer.color = new Color(m_Data.Color.r, m_Data.Color.g, m_Data.Color.b, 0.5f);
-
-            RectTransform rectTransform = transform as RectTransform;
-            float[] shapes = new float[m_Data.Shapes.Length];
-            for (int i = 0; i < m_Data.Shapes[i]; i++)
+            if(m_Data != null)
             {
-                shapes[i] = m_Data.Shapes[i] * rectTransform.rect.height / (m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x);
-            }
+                base.SetData();
+                if (m_Data is ShapedCurveData)
+                {
+                    m_ShapeRenderer.color = new Color(m_Data.Color.r, m_Data.Color.g, m_Data.Color.b, 0.5f);
 
-            m_ShapeRenderer.Points = m_LineRenderer.Points;
-            m_ShapeRenderer.ShapeThickness = shapes;
+                    RectTransform rectTransform = transform as RectTransform;
+                    float[] shapes = new float[Data.Shapes.Length];
+                    for (int i = 0; i < Data.Shapes.Length; i++)
+                    {
+                        shapes[i] = Data.Shapes[i] * rectTransform.rect.height / (m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x);
+                    }
+
+                    m_ShapeRenderer.Points = m_LineRenderer.Points;
+                    m_ShapeRenderer.ShapeThickness = shapes;
+                }
+                else
+                {
+                    m_ShapeRenderer.Points = new Vector2[0];
+                    m_ShapeRenderer.ShapeThickness = new float[0];
+                }
+            }
         }
         protected override void SetAbscissaDisplayRange()
         {
             if(m_Data != null)
             {
                 base.SetAbscissaDisplayRange();
-                m_ShapeRenderer.Points = m_LineRenderer.Points;
+                if(m_Data is ShapedCurveData)
+                {
+                    m_ShapeRenderer.Points = m_LineRenderer.Points;
+                }
+                else
+                {
+                    m_ShapeRenderer.Points = new Vector2[0];
+                    m_ShapeRenderer.ShapeThickness = new float[0];
+                }
             }
         }
         protected override void SetOrdinateDisplayRange()
@@ -54,15 +72,24 @@ namespace Tools.Unity.Graph
             if(m_Data != null)
             {
                 base.SetOrdinateDisplayRange();
-                RectTransform rectTransform = transform as RectTransform;
-                float[] shapes = new float[m_Data.Shapes.Length];
-                for (int i = 0; i < m_Data.Shapes[i]; i++)
+                if(m_Data is ShapedCurveData)
                 {
-                    shapes[i] = m_Data.Shapes[i] * rectTransform.rect.height / (m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x);
+                    RectTransform rectTransform = transform as RectTransform;
+                    float[] shapes = new float[Data.Shapes.Length];
+                    for (int i = 0; i < Data.Shapes[i]; i++)
+                    {
+                        shapes[i] = Data.Shapes[i] * rectTransform.rect.height / (m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x);
+                    }
+
+                    m_ShapeRenderer.Points = m_LineRenderer.Points;
+                    m_ShapeRenderer.ShapeThickness = shapes;
+                }
+                else
+                {
+                    m_ShapeRenderer.Points = new Vector2[0];
+                    m_ShapeRenderer.ShapeThickness = new float[0];
                 }
 
-                m_ShapeRenderer.Points = m_LineRenderer.Points;
-                m_ShapeRenderer.ShapeThickness = shapes;
             }
         }
         #endregion
