@@ -8,7 +8,7 @@ namespace Tools.Unity.Graph
     public class SimplifiedGraph : MonoBehaviour
     {
         #region Properties
-        public PlotGestion PlotGestion;
+        public CurvesDisplayer PlotGestion;
 
         GraphData m_Data = new GraphData();
 

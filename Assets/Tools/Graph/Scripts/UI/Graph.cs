@@ -212,7 +212,7 @@ namespace Tools.Unity.Graph
             }
         }
 
-        PlotGestion m_PlotGestion;
+        CurvesDisplayer m_PlotGestion;
 
         #region Events
         [SerializeField] private StringEvent m_OnChangeTitle;
@@ -478,7 +478,7 @@ namespace Tools.Unity.Graph
         }
         void SetGroups()
         {
-            Debug.Log("SetGroups");
+            //Debug.Log("SetGroups");
 
         }
         #endregion

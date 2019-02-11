@@ -54,7 +54,7 @@ namespace Tools.Unity.Graph
             }
         }
 
-        [SerializeField] protected UILineRenderer m_LineRenderer;
+        [SerializeField] protected CurveRenderer m_CurveRenderer;
         #endregion
        
         #region Private Methods
@@ -69,8 +69,8 @@ namespace Tools.Unity.Graph
         {
             if(m_Data != null)
             {
-                m_LineRenderer.color = m_Data.Color;
-                m_LineRenderer.LineThickness = m_Data.Thickness;
+                m_CurveRenderer.color = m_Data.Color;
+                m_CurveRenderer.LineThickness = m_Data.Thickness;
 
                 RectTransform rectTransform = transform as RectTransform;
                 Vector2[] points = new Vector2[m_Data.Points.Length];
@@ -81,7 +81,7 @@ namespace Tools.Unity.Graph
                     float y = rectTransform.rect.height * (point.y - m_OrdinateDisplayRange.x) / (m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x);
                     points[i] = new Vector2(x, y);
                 }
-                m_LineRenderer.Points = points;
+                m_CurveRenderer.Points = points;
             }
         }
         protected virtual void SetAbscissaDisplayRange()
@@ -93,9 +93,9 @@ namespace Tools.Unity.Graph
                 for (int i = 0; i < m_Data.Points.Length; i++)
                 {
                     float x = rectTransform.rect.width * (m_Data.Points[i].x - m_AbscissaDisplayRange.x) / (m_AbscissaDisplayRange.y - m_AbscissaDisplayRange.x);
-                    points[i] = new Vector2(x, m_LineRenderer.Points[i].y);
+                    points[i] = new Vector2(x, m_CurveRenderer.Points[i].y);
                 }
-                m_LineRenderer.Points = points;
+                m_CurveRenderer.Points = points;
             }
         }
         protected virtual void SetOrdinateDisplayRange()
@@ -107,9 +107,9 @@ namespace Tools.Unity.Graph
                 for (int i = 0; i < m_Data.Points.Length; i++)
                 {
                     float y = rectTransform.rect.height * (m_Data.Points[i].y - m_OrdinateDisplayRange.x) / (m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x);
-                    points[i] = new Vector2(m_LineRenderer.Points[i].x, y);
+                    points[i] = new Vector2(m_CurveRenderer.Points[i].x, y);
                 }
-                m_LineRenderer.Points = points;
+                m_CurveRenderer.Points = points;
             }
         }
         #endregion

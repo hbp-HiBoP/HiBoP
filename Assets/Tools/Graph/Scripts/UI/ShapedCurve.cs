@@ -41,7 +41,7 @@ namespace Tools.Unity.Graph
                         shapes[i] = Data.Shapes[i] * rectTransform.rect.height / (m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x);
                     }
 
-                    m_ShapeRenderer.Points = m_LineRenderer.Points;
+                    m_ShapeRenderer.Points = m_CurveRenderer.Points;
                     m_ShapeRenderer.ShapeThickness = shapes;
                 }
                 else
@@ -58,7 +58,7 @@ namespace Tools.Unity.Graph
                 base.SetAbscissaDisplayRange();
                 if(m_Data is ShapedCurveData)
                 {
-                    m_ShapeRenderer.Points = m_LineRenderer.Points;
+                    m_ShapeRenderer.Points = m_CurveRenderer.Points;
                 }
                 else
                 {
@@ -76,12 +76,12 @@ namespace Tools.Unity.Graph
                 {
                     RectTransform rectTransform = transform as RectTransform;
                     float[] shapes = new float[Data.Shapes.Length];
-                    for (int i = 0; i < Data.Shapes[i]; i++)
+                    for (int i = 0; i < Data.Shapes.Length; i++)
                     {
                         shapes[i] = Data.Shapes[i] * rectTransform.rect.height / (m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x);
                     }
 
-                    m_ShapeRenderer.Points = m_LineRenderer.Points;
+                    m_ShapeRenderer.Points = m_CurveRenderer.Points;
                     m_ShapeRenderer.ShapeThickness = shapes;
                 }
                 else
