@@ -183,21 +183,25 @@ namespace UnityEngine.UI.Extensions
         {
             Vector2 startOffset, endOffset;
             Vector2[] uvs;
+            Vector2 normal = new Vector2(start.y - end.y, end.x - start.x).normalized;
+            float dot = Vector2.Dot(normal, Vector2.up);
+            float vertical = (m_LineThickness / 2) / dot;
+
             startOffset = new Vector2(start.y - end.y, end.x - start.x).normalized * m_LineThickness / 2;
             endOffset = new Vector2(start.y - end.y, end.x - start.x).normalized * m_LineThickness / 2;
             switch (type)
             {
                 case SegmentType.Start:
-                    startOffset = startOffset.magnitude * Vector2.up;
+                    startOffset = vertical * Vector2.up;
                     uvs = startUvs;
                     break;
                 case SegmentType.End:
-                    endOffset = endOffset.magnitude * Vector2.up;
+                    endOffset = vertical * Vector2.up;
                     uvs = endUvs;
                     break;
                 case SegmentType.Full:
-                    startOffset = startOffset.magnitude * Vector2.up;
-                    endOffset = endOffset.magnitude * Vector2.up;
+                    startOffset = vertical * Vector2.up;
+                    endOffset = vertical * Vector2.up;
                     uvs = fullUvs;
                     break;
                 default:

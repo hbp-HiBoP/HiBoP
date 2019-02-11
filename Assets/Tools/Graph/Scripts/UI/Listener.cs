@@ -94,15 +94,9 @@ namespace Tools.Unity.Graph
         }
         public void OnScroll()
         {
-            float l_scroll = Input.mouseScrollDelta.y;
-            if (l_scroll > 0)
-            {
-                Zoom();
-            }
-            else if (l_scroll < 0)
-            {
-                Dezoom();
-            }
+            float delta = Input.mouseScrollDelta.y;
+            if (delta > 0) Zoom();
+            else if(delta < 0) Dezoom();
         }
         #endregion
 
@@ -147,12 +141,12 @@ namespace Tools.Unity.Graph
                 }
                 else
                 {
-                    Vector2 l_command = Vector2.zero;
-                    l_command.x = (rect.width - m_LastWidth) / m_LastWidth;
-                    l_command.y = (rect.height - m_LastHeight) / m_LastHeight;
+                    Vector2 command = Vector2.zero;
+                    command.x = (rect.width - m_LastWidth) / m_LastWidth;
+                    command.y = (rect.height - m_LastHeight) / m_LastHeight;
                     m_LastHeight = rect.height;
                     m_LastWidth = rect.width;
-                    ChangeRectSize(l_command);
+                    ChangeRectSize(command);
                 }
             }
         }
@@ -172,57 +166,29 @@ namespace Tools.Unity.Graph
         }
         void Zoom()
         {
-            Vector2 mousePosition = Input.mousePosition;
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(m_RectTransform, mousePosition, null, out Vector2 localPoint);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(m_RectTransform, Input.mousePosition, null, out Vector2 localPoint);
             Vector2 ratio = localPoint / m_RectTransform.rect.size + m_RectTransform.pivot;
-            Vector2 offsetRatio = ratio - new Vector2(0.5f, 0.5f);
-            Vector2 offset = new Vector2(offsetRatio.x * (m_AbscissaDisplayRange.y - m_AbscissaDisplayRange.x), offsetRatio.y * (m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x));
             Vector2 zoom = m_ZoomSpeed * new Vector2(m_AbscissaDisplayRange.y - m_AbscissaDisplayRange.x, m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x);
-            Debug.Log(offset);
-            if(offset.x > 0)
-            {
-                float offsetZoom = Mathf.Min( 2 * offset.x, zoom.x);
-                float restZoom = zoom.x - offsetZoom;
-                float leftZoom = offsetZoom + restZoom / 2;
-                float rightZoom = restZoom / 2;
-                m_AbscissaDisplayRange.x += leftZoom;
-                m_AbscissaDisplayRange.y -= rightZoom;
-            }
-            else
-            {
-                float offsetZoom = Mathf.Min(2 * Mathf.Abs(offset.x), zoom.x);
-                float restZoom = zoom.x - offsetZoom;
-                float leftZoom = restZoom / 2;
-                float rightZoom = offsetZoom + restZoom / 2;
-                m_AbscissaDisplayRange.x += leftZoom;
-                m_AbscissaDisplayRange.y -= rightZoom;
-            }
 
-            if (offset.y > 0)
-            {
-                float offsetZoom = Mathf.Min(2 * offset.y, zoom.y);
-                float restZoom = zoom.y - offsetZoom;
-                float leftZoom = offsetZoom + restZoom / 2;
-                float rightZoom = restZoom / 2;
-                m_OrdinateDisplayRange.x += leftZoom;
-                m_OrdinateDisplayRange.y -= rightZoom;
-            }
-            else
-            {
-                float offsetZoom = Mathf.Min(2 * Mathf.Abs(offset.y), zoom.y);
-                float restZoom = zoom.y - offsetZoom;
-                float leftZoom = restZoom / 2;
-                float rightZoom = offsetZoom + restZoom / 2;
-                m_OrdinateDisplayRange.x += leftZoom;
-                m_OrdinateDisplayRange.y -= rightZoom;
-            }
+            m_AbscissaDisplayRange.x += ratio.x * zoom.x;
+            m_AbscissaDisplayRange.y -= (1 - ratio.x) * zoom.x;
+            m_OrdinateDisplayRange.x += ratio.y * zoom.y;
+            m_OrdinateDisplayRange.y -= (1 - ratio.y) * zoom.y;
+
             OnChangeAbscissaDisplayRange.Invoke(m_AbscissaDisplayRange);
             OnChangeOrdinateDisplayRange.Invoke(m_OrdinateDisplayRange);
         }
         void Dezoom()
         {
-            m_AbscissaDisplayRange += (m_AbscissaDisplayRange.y - m_AbscissaDisplayRange.x) * m_ZoomSpeed * new Vector2(-0.5f, 0.5f);
-            m_OrdinateDisplayRange += (m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x) * m_ZoomSpeed * new Vector2(-0.5f, 0.5f);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(m_RectTransform, Input.mousePosition, null, out Vector2 localPoint);
+            Vector2 ratio = localPoint / m_RectTransform.rect.size + m_RectTransform.pivot;
+            Vector2 dezoom = new Vector2(m_AbscissaDisplayRange.y - m_AbscissaDisplayRange.x, m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x) * (m_ZoomSpeed / (1 - m_ZoomSpeed));
+
+            m_AbscissaDisplayRange.x -= ratio.x * dezoom.x;
+            m_AbscissaDisplayRange.y += (1 - ratio.x) * dezoom.x;
+            m_OrdinateDisplayRange.x -= ratio.y * dezoom.y;
+            m_OrdinateDisplayRange.y += (1 - ratio.y) * dezoom.y;
+
             OnChangeAbscissaDisplayRange.Invoke(m_AbscissaDisplayRange);
             OnChangeOrdinateDisplayRange.Invoke(m_OrdinateDisplayRange);
         }

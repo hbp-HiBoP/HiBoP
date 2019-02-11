@@ -5,7 +5,7 @@ using UnityEngine.UI.Extensions;
 
 namespace Tools.Unity.Graph
 {
-    [CreateAssetMenu(fileName = "Curve", menuName = "Graph/Data/Curve", order = 1)]
+    [CreateAssetMenu(fileName = "Curve", menuName = "Graph/Data/Curve/Empty", order = 1)]
     public class CurveData : ScriptableObject
     {
         #region Properties
