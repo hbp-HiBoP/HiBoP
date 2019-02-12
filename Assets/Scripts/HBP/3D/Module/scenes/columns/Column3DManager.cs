@@ -604,11 +604,11 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="meshes">Parent of the meshes</param>
         /// <param name="useSimplifiedMeshes">Are we using simplified meshes ?</param>
-        public void InitializeColumnsMeshes(GameObject meshes, bool useSimplifiedMeshes)
+        public void InitializeColumnsMeshes(GameObject meshes)
         {
             foreach (Column3D column in m_Columns)
             {
-                column.InitializeColumnMeshes(meshes, useSimplifiedMeshes);
+                column.InitializeColumnMeshes(meshes);
             }
         }
         /// <summary>
