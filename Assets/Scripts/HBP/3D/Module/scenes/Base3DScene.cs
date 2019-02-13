@@ -2408,7 +2408,7 @@ namespace HBP.Module3D
         private IEnumerator c_LoadIEEG()
         {
             yield return Ninja.JumpToUnity;
-            float totalProgress = m_ColumnManager.ColumnsIEEG.Count * (m_ColumnManager.MeshSplitNumber + Cuts.Count + 1);
+            float totalProgress = m_ColumnManager.ColumnsIEEG.Count * (m_ColumnManager.MeshSplitNumber + Cuts.Count + 2);
             float currentProgress = 0.0f;
             OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Initializing");
             yield return Ninja.JumpBack;
@@ -2469,6 +2469,34 @@ namespace HBP.Module3D
                         m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf = currentMaxInfluence;
 
                 }
+
+                // volume
+                yield return Ninja.JumpToUnity;
+                OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label);
+                yield return Ninja.JumpBack;
+                DLL.MRIVolumeGenerator volumeGenerator = new DLL.MRIVolumeGenerator();
+                if (m_GeneratorNeedsUpdate) yield break;
+                volumeGenerator.Reset(SceneInformation.MeshToDisplay.GetSurfaceFromBoundingBox(50));
+                if (m_GeneratorNeedsUpdate) yield break;
+                volumeGenerator.InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
+                if (m_GeneratorNeedsUpdate) yield break;
+                volumeGenerator.ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
+                if (m_GeneratorNeedsUpdate) yield break;
+                volumeGenerator.ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                if (m_GeneratorNeedsUpdate) yield break;
+
+                currentMaxDensity = volumeGenerator.MaximumDensity;
+                currentMinInfluence = volumeGenerator.MinimumInfluence;
+                currentMaxInfluence = volumeGenerator.MaximumInfluence;
+
+                if (currentMaxDensity > maxDensity)
+                    maxDensity = currentMaxDensity;
+
+                if (currentMinInfluence < m_ColumnManager.ColumnsIEEG[ii].SharedMinInf)
+                    m_ColumnManager.ColumnsIEEG[ii].SharedMinInf = currentMinInfluence;
+
+                if (currentMaxInfluence > m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf)
+                    m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf = currentMaxInfluence;
 
                 // cuts
                 for (int jj = 0; jj < Cuts.Count; ++jj)
