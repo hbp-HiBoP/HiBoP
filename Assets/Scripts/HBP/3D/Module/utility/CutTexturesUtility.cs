@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using HBP.Module3D.DLL;
 using UnityEngine;
 
 namespace HBP.Module3D
@@ -196,6 +197,14 @@ namespace HBP.Module3D
         {
             DLLCutColorScheme = DLL.Texture.Generate2DColorTexture(colorBrainCut, colormap);
             DLLCutFMRIColorScheme = DLL.Texture.Generate2DColorTexture(colorBrainCut, colormap);
+        }
+
+        internal void SetMRIVolumeGenerator(MRIVolumeGenerator dllMRIVolumeGenerator)
+        {
+            foreach (var dllMRITextureCutGenerator in DLLMRITextureCutGenerators)
+            {
+                dllMRITextureCutGenerator.SetMRIVolumeGenerator(dllMRIVolumeGenerator);
+            }
         }
         #endregion
     }

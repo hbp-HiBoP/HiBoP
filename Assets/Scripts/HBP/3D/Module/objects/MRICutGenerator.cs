@@ -273,6 +273,14 @@ namespace HBP.Module3D
             {
                 synchronize_with_others_generators__MRITextureCutGenerator(_handle, sharedMaxDensity, sharedMinInf, sharedMaxInf);
             }
+            /// <summary>
+            /// Set the MRI Volume Generator (for the volumic computation of the iEEG values)
+            /// </summary>
+            /// <param name="generator"></param>
+            public void SetMRIVolumeGenerator(MRIVolumeGenerator generator)
+            {
+                set_MRI_volume_generator__MRITextureCutGenerator(_handle, generator.getHandle());
+            }
             #endregion
 
             #region Memory Management
@@ -336,6 +344,8 @@ namespace HBP.Module3D
             static private extern void ajust_influences_to_colormap__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, float middle, float min, float max);
             [DllImport("hbp_export", EntryPoint = "synchronize_with_others_generators__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern void synchronize_with_others_generators__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, float sharedMaxDensity, float sharedMinInf, float sharedMaxInf);
+            [DllImport("hbp_export", EntryPoint = "set_MRI_volume_generator__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
+            static private extern void set_MRI_volume_generator__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, HandleRef handleMRIVolumeGenerator);
 
             #endregion
         }

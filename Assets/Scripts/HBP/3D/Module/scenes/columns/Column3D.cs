@@ -247,6 +247,10 @@ namespace HBP.Module3D
         /// </summary>
         public List<MRIBrainGenerator> DLLBrainTextureGenerators = new List<MRIBrainGenerator>();
         /// <summary>
+        /// Volume generator for cut textures
+        /// </summary>
+        public MRIVolumeGenerator DLLMRIVolumeGenerator = new MRIVolumeGenerator();
+        /// <summary>
         /// Cut Textures Utility
         /// </summary>
         public CutTexturesUtility CutTextures { get; } = new CutTexturesUtility();
@@ -465,6 +469,7 @@ namespace HBP.Module3D
         public void UpdateCutsPlanesNumber(int nbCuts)
         {
             CutTextures.Resize(nbCuts);
+            CutTextures.SetMRIVolumeGenerator(DLLMRIVolumeGenerator);
             IsRenderingUpToDate = false;
         }
         /// <summary>

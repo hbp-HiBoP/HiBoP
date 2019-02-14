@@ -55,9 +55,9 @@ namespace HBP.Module3D
             /// </summary>
             /// <param name="surface"></param>
             /// <param name="volume"></param>
-            public void Reset(DLL.Surface surface)
+            public void Reset(Surface surface, int precision)
             {
-                reset_MRIVolumeGenerator(_handle, surface.getHandle());
+                reset_MRIVolumeGenerator(_handle, surface.getHandle(), precision);
                 ApplicationState.DLLDebugManager.check_error();
             }
             /// <summary>
@@ -169,7 +169,7 @@ namespace HBP.Module3D
 
             // actions
             [DllImport("hbp_export", EntryPoint = "reset_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void reset_MRIVolumeGenerator(HandleRef handleBrainSurfaceTextureGenerator, HandleRef handleSurface);
+            static private extern void reset_MRIVolumeGenerator(HandleRef handleBrainSurfaceTextureGenerator, HandleRef handleSurface, int precision);
             [DllImport("hbp_export", EntryPoint = "initOctree_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern void initOctree_MRIVolumeGenerator(HandleRef handleBrainSurfaceTextureGenerator, HandleRef handleRawPlotList);
             [DllImport("hbp_export", EntryPoint = "computeDistances_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]

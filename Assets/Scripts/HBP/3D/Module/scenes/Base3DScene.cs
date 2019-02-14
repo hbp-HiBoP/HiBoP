@@ -109,7 +109,7 @@ namespace HBP.Module3D
             {
                 SceneInformation.CutHolesEnabled = value;
                 SceneInformation.CutsNeedUpdate = true;
-                ResetIEEG();
+                //ResetIEEG();
                 foreach (Column3D column in m_ColumnManager.Columns)
                 {
                     column.IsRenderingUpToDate = false;
@@ -327,7 +327,7 @@ namespace HBP.Module3D
             {
                 m_StrongCuts = value;
                 SharedMaterials.Brain.BrainMaterials[this].SetInt("_StrongCuts", m_StrongCuts ? 1 : 0);
-                ResetIEEG();
+                //ResetIEEG();
                 SceneInformation.CutsNeedUpdate = true;
             }
         }
@@ -1028,6 +1028,7 @@ namespace HBP.Module3D
             m_ColumnManager.UpdateCubeBoundingBox(Cuts);
 
             ComputeMRITextures();
+            ComputeIEEGTextures();
             ComputeGUITextures();
 
             SceneInformation.CutsNeedUpdate = false;
@@ -1038,6 +1039,10 @@ namespace HBP.Module3D
             {
                 m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].Reset(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.SelectedMRI.Volume);
                 m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.SelectedMRI.Volume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
+            }
+            foreach (var column in m_ColumnManager.ColumnsIEEG)
+            {
+                column.DLLMRIVolumeGenerator.Reset(SceneInformation.MeshToDisplay, 150);
             }
             UpdateMeshesFromDLL();
             m_ColumnManager.UVNull = new List<Vector2[]>(m_ColumnManager.MeshSplitNumber);
@@ -1380,7 +1385,7 @@ namespace HBP.Module3D
             m_ColumnManager.UpdateCutNumber(m_DisplayedObjects.BrainCutMeshes.Count);
 
             SceneInformation.CutsNeedUpdate = true;
-            ResetIEEG();
+            //ResetIEEG();
 
             OnAddCut.Invoke(cut);
             UpdateCutPlane(cut);
@@ -1406,7 +1411,7 @@ namespace HBP.Module3D
             m_ColumnManager.UpdateCutNumber(m_DisplayedObjects.BrainCutMeshes.Count);
 
             SceneInformation.CutsNeedUpdate = true;
-            ResetIEEG();
+            //ResetIEEG();
 
             cut.OnRemoveCut.Invoke();
         }
@@ -1448,7 +1453,7 @@ namespace HBP.Module3D
             cut.Point = SceneInformation.MeshCenter + cut.Normal.normalized * (cut.Position - 0.5f) * offset * cut.NumberOfCuts;
 
             SceneInformation.CutsNeedUpdate = true;
-            ResetIEEG();
+            //ResetIEEG();
 
             // update cameras cuts display
             OnModifyPlanesCuts.Invoke();
@@ -2408,7 +2413,7 @@ namespace HBP.Module3D
         private IEnumerator c_LoadIEEG()
         {
             yield return Ninja.JumpToUnity;
-            float totalProgress = m_ColumnManager.ColumnsIEEG.Count * (m_ColumnManager.MeshSplitNumber + Cuts.Count + 2);
+            float totalProgress = m_ColumnManager.ColumnsIEEG.Count * (1 + m_ColumnManager.MeshSplitNumber + 10);
             float currentProgress = 0.0f;
             OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Initializing");
             yield return Ninja.JumpBack;
@@ -2472,22 +2477,20 @@ namespace HBP.Module3D
 
                 // volume
                 yield return Ninja.JumpToUnity;
-                OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label);
+                currentProgress += 10;
+                OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label);
                 yield return Ninja.JumpBack;
-                DLL.MRIVolumeGenerator volumeGenerator = new DLL.MRIVolumeGenerator();
                 if (m_GeneratorNeedsUpdate) yield break;
-                volumeGenerator.Reset(SceneInformation.MeshToDisplay.GetSurfaceFromBoundingBox(50));
+                m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
                 if (m_GeneratorNeedsUpdate) yield break;
-                volumeGenerator.InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
+                m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
                 if (m_GeneratorNeedsUpdate) yield break;
-                volumeGenerator.ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
-                if (m_GeneratorNeedsUpdate) yield break;
-                volumeGenerator.ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                 if (m_GeneratorNeedsUpdate) yield break;
 
-                currentMaxDensity = volumeGenerator.MaximumDensity;
-                currentMinInfluence = volumeGenerator.MinimumInfluence;
-                currentMaxInfluence = volumeGenerator.MaximumInfluence;
+                currentMaxDensity = m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.MaximumDensity;
+                currentMinInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.MinimumInfluence;
+                currentMaxInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.MaximumInfluence;
 
                 if (currentMaxDensity > maxDensity)
                     maxDensity = currentMaxDensity;
@@ -2498,56 +2501,22 @@ namespace HBP.Module3D
                 if (currentMaxInfluence > m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf)
                     m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf = currentMaxInfluence;
 
-                // cuts
-                for (int jj = 0; jj < Cuts.Count; ++jj)
-                {
-                    yield return Ninja.JumpToUnity;
-                    OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label);
-                    yield return Ninja.JumpBack;
-                    if (m_GeneratorNeedsUpdate) yield break;
-                    m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
-                    if (m_GeneratorNeedsUpdate) yield break;
-                    m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
-                    if (m_GeneratorNeedsUpdate) yield break;
-                    m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
-                    if (m_GeneratorNeedsUpdate) yield break;
-
-                    currentMaxDensity = m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].MaximumDensity;
-                    currentMinInfluence = m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].MinimumInfluence;
-                    currentMaxInfluence = m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].MaximumInfluence;
-
-                    if (currentMaxDensity > maxDensity)
-                        maxDensity = currentMaxDensity;
-
-                    if (currentMinInfluence < m_ColumnManager.ColumnsIEEG[ii].SharedMinInf)
-                        m_ColumnManager.ColumnsIEEG[ii].SharedMinInf = currentMinInfluence;
-
-                    if (currentMaxInfluence > m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf)
-                        m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf = currentMaxInfluence;
-                }
-
                 // synchronize max density
                 for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                 {
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, m_ColumnManager.ColumnsIEEG[ii].SharedMinInf, m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
                     if (m_GeneratorNeedsUpdate) yield break;
                 }
-                for (int jj = 0; jj < Cuts.Count; ++jj)
-                {
-                    m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, m_ColumnManager.ColumnsIEEG[ii].SharedMinInf, m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
-                    if (m_GeneratorNeedsUpdate) yield break;
-                }
+                m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.SynchronizeWithOthersGenerators(maxDensity, m_ColumnManager.ColumnsIEEG[ii].SharedMinInf, m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
+                if (m_GeneratorNeedsUpdate) yield break;
 
                 for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                 {
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap(m_ColumnManager.ColumnsIEEG[ii]);
                     if (m_GeneratorNeedsUpdate) yield break;
                 }
-                for (int jj = 0; jj < Cuts.Count; ++jj)
-                {
-                    m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].AdjustInfluencesToColormap(m_ColumnManager.ColumnsIEEG[ii]);
-                    if (m_GeneratorNeedsUpdate) yield break;
-                }
+                m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.AdjustInfluencesToColormap(m_ColumnManager.ColumnsIEEG[ii]);
+                if (m_GeneratorNeedsUpdate) yield break;
             }
             yield return Ninja.JumpToUnity;
             OnProgressUpdateGenerator.Invoke(1.0f, "Finalizing");
