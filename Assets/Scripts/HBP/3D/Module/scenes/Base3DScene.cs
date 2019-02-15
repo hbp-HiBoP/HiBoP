@@ -539,7 +539,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when progressing in updating generator
         /// </summary>
-        [HideInInspector] public GenericEvent<float, string> OnProgressUpdateGenerator = new GenericEvent<float, string>();
+        [HideInInspector] public GenericEvent<float, string, float> OnProgressUpdateGenerator = new GenericEvent<float, string, float>();
         /// <summary>
         /// Event for updating the planes cuts display in the cameras
         /// </summary>
@@ -1042,7 +1042,7 @@ namespace HBP.Module3D
             }
             foreach (var column in m_ColumnManager.ColumnsIEEG)
             {
-                column.DLLMRIVolumeGenerator.Reset(SceneInformation.MeshToDisplay, 150);
+                column.DLLMRIVolumeGenerator.Reset(SceneInformation.MeshToDisplay, 150); 
             }
             UpdateMeshesFromDLL();
             m_ColumnManager.UVNull = new List<Vector2[]>(m_ColumnManager.MeshSplitNumber);
@@ -2415,7 +2415,7 @@ namespace HBP.Module3D
             yield return Ninja.JumpToUnity;
             float totalProgress = m_ColumnManager.ColumnsIEEG.Count * (1 + m_ColumnManager.MeshSplitNumber + 10);
             float currentProgress = 0.0f;
-            OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Initializing");
+            OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Initializing", 3);
             yield return Ninja.JumpBack;
             bool addValues = false;
 
@@ -2434,7 +2434,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
             {
                 yield return Ninja.JumpToUnity;
-                OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label);
+                OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label, 3);
                 yield return Ninja.JumpBack;
 
                 float currentMaxDensity, currentMinInfluence, currentMaxInfluence;
@@ -2450,7 +2450,7 @@ namespace HBP.Module3D
                 for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                 {
                     yield return Ninja.JumpToUnity;
-                    OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label);
+                    OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label, 3);
                     yield return Ninja.JumpBack;
                     if (m_GeneratorNeedsUpdate) yield break;
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
@@ -2478,7 +2478,7 @@ namespace HBP.Module3D
                 // volume
                 yield return Ninja.JumpToUnity;
                 currentProgress += 10;
-                OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label);
+                OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label, 0.3f);
                 yield return Ninja.JumpBack;
                 if (m_GeneratorNeedsUpdate) yield break;
                 m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
@@ -2519,7 +2519,7 @@ namespace HBP.Module3D
                 if (m_GeneratorNeedsUpdate) yield break;
             }
             yield return Ninja.JumpToUnity;
-            OnProgressUpdateGenerator.Invoke(1.0f, "Finalizing");
+            OnProgressUpdateGenerator.Invoke(1.0f, "Finalizing", 3);
             yield return Ninja.JumpBack;
             yield return new WaitForSeconds(0.1f);
         }
