@@ -881,10 +881,10 @@ namespace HBP.Module3D
 
             // Create the cuts
             UnityEngine.Profiling.Profiler.BeginSample("cut_generator Create cut");
-            List<DLL.Surface> cuts = new List<DLL.Surface>(Cuts.Count + 1);
-            cuts.Add((DLL.Surface)SceneInformation.MeshToDisplay.Clone());
+            List<DLL.Surface> cuts = new List<DLL.Surface>(Cuts.Count);
+            //cuts.Add((DLL.Surface)SceneInformation.MeshToDisplay.Clone());
             if (Cuts.Count > 0)
-                cuts.AddRange(SceneInformation.MeshToDisplay.GenerateCutSurfaces(Cuts.ToArray(), !SceneInformation.CutHolesEnabled, StrongCuts));
+                cuts.AddRange(SceneInformation.MeshToDisplay.GenerateCutSurfaces(Cuts, !SceneInformation.CutHolesEnabled, StrongCuts));
 
             if (m_ColumnManager.DLLCutsList.Count != cuts.Count)
                 m_ColumnManager.DLLCutsList = cuts;
@@ -935,8 +935,8 @@ namespace HBP.Module3D
             for (int ii = 0; ii < Cuts.Count; ++ii)
             {
                 m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_ColumnManager.SelectedMRI.Volume, Cuts[ii]);
-                m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].UpdateCutMeshUV(ColumnManager.DLLCutsList[ii + 1]);
-                m_ColumnManager.DLLCutsList[ii + 1].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
+                m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].UpdateCutMeshUV(ColumnManager.DLLCutsList[ii]);
+                m_ColumnManager.DLLCutsList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
             }
             UnityEngine.Profiling.Profiler.EndSample();
 
@@ -1533,7 +1533,7 @@ namespace HBP.Module3D
                 m_DisplayedObjects.InvisibleBrainSurfaceMeshes.Add(invisibleBrainPart);
             }
 
-            m_TriEraser.Reset(m_DisplayedObjects.InvisibleBrainSurfaceMeshes, m_ColumnManager.DLLCutsList[0], m_ColumnManager.SelectedMesh.SplittedMeshes);
+            m_TriEraser.Reset(m_DisplayedObjects.InvisibleBrainSurfaceMeshes, SceneInformation.MeshToDisplay, m_ColumnManager.SelectedMesh.SplittedMeshes);
             if (SceneInformation.UseSimplifiedMeshes) m_TriEraser.ResetSimplified(m_ColumnManager.DLLCutsListSimplified[0]);
 
             UpdateMeshesFromDLL();

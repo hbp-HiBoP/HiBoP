@@ -287,19 +287,19 @@ namespace HBP.Module3D.DLL
         /// <param name="noHoles"></param>
         /// <param name="strongCuts"></param>
         /// <returns></returns>
-        public Surface[] GenerateCutSurfaces(Cut[] cutPlanes, bool noHoles = false, bool strongCuts = true)
+        public List<Surface> GenerateCutSurfaces(List<Cut> cutPlanes, bool noHoles = false, bool strongCuts = true)
         {
             // check planes
-            if (cutPlanes.Length <= 0)
+            if (cutPlanes.Count <= 0)
             {
                 Debug.LogError("-ERROR : Surface::cutSurface -> nb of planes <= 0. ");
-                Surface[] returnError = new Surface[1];
+                List<Surface> returnError = new List<Surface>();
                 return returnError;
             }
 
             // init plane
-            float[] planes = new float[cutPlanes.Length * 6];
-            for (int ii = 0; ii < cutPlanes.Length; ++ii)
+            float[] planes = new float[cutPlanes.Count * 6];
+            for (int ii = 0; ii < cutPlanes.Count; ++ii)
             {
                 for (int jj = 0; jj < 3; ++jj)
                 {
@@ -309,13 +309,13 @@ namespace HBP.Module3D.DLL
             }
 
             // do the cut            
-            HandleRef pCutMultiSurface = new HandleRef(this, generate_cuts_Surface(_handle, planes, cutPlanes.Length, noHoles ? 1 : 0, strongCuts ? 1 : 0));
+            HandleRef pCutMultiSurface = new HandleRef(this, generate_cuts_Surface(_handle, planes, cutPlanes.Count, noHoles ? 1 : 0, strongCuts ? 1 : 0));
 
             // move data            
             int nbMultiSurface = nb_MultiSurface(pCutMultiSurface);
-            Surface[] cuts = new Surface[nbMultiSurface];
+            List<Surface> cuts = new List<Surface>();
             for (int ii = 0; ii < nbMultiSurface; ++ii)
-                cuts[ii] = new Surface(move_MultiSurface(pCutMultiSurface, ii));
+                cuts.Add(new Surface(move_MultiSurface(pCutMultiSurface, ii)));
 
             // clean the multi surface
             delete_MultiSurface(pCutMultiSurface);
