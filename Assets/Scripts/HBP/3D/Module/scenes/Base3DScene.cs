@@ -2413,9 +2413,11 @@ namespace HBP.Module3D
         private IEnumerator c_LoadIEEG()
         {
             yield return Ninja.JumpToUnity;
+            float totalTime = 0.003f * Patients.Count * Patients.Count + 0.3f * Patients.Count + 8.7f; // Calculated by Quadradic Regression
             float totalProgress = m_ColumnManager.ColumnsIEEG.Count * (1 + m_ColumnManager.MeshSplitNumber + 10);
+            float timeByProgress = totalTime / totalProgress;
             float currentProgress = 0.0f;
-            OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Initializing", 3);
+            OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Initializing", timeByProgress);
             yield return Ninja.JumpBack;
             bool addValues = false;
 
@@ -2434,7 +2436,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
             {
                 yield return Ninja.JumpToUnity;
-                OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label, 3);
+                OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label, timeByProgress);
                 yield return Ninja.JumpBack;
 
                 float currentMaxDensity, currentMinInfluence, currentMaxInfluence;
@@ -2450,7 +2452,7 @@ namespace HBP.Module3D
                 for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                 {
                     yield return Ninja.JumpToUnity;
-                    OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label, 3);
+                    OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label, timeByProgress);
                     yield return Ninja.JumpBack;
                     if (m_GeneratorNeedsUpdate) yield break;
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
@@ -2478,7 +2480,7 @@ namespace HBP.Module3D
                 // volume
                 yield return Ninja.JumpToUnity;
                 currentProgress += 10;
-                OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label, 0.3f);
+                OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label, timeByProgress * 10);
                 yield return Ninja.JumpBack;
                 if (m_GeneratorNeedsUpdate) yield break;
                 m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
@@ -2519,7 +2521,7 @@ namespace HBP.Module3D
                 if (m_GeneratorNeedsUpdate) yield break;
             }
             yield return Ninja.JumpToUnity;
-            OnProgressUpdateGenerator.Invoke(1.0f, "Finalizing", 3);
+            OnProgressUpdateGenerator.Invoke(1.0f, "Finalizing", timeByProgress);
             yield return Ninja.JumpBack;
             yield return new WaitForSeconds(0.1f);
         }
