@@ -636,7 +636,16 @@ namespace HBP.Module3D
             });
             m_ColumnManager.OnUpdateIEEGSpan.AddListener((column) =>
             {
-                ResetIEEG(); // TODO: il doit y avoir un moyen pour faire en sorte de ne pas reset les eeg ici
+                for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
+                {
+                    for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
+                    {
+                        m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap(m_ColumnManager.ColumnsIEEG[ii]);
+                    }
+                    m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.AdjustInfluencesToColormap(m_ColumnManager.ColumnsIEEG[ii]);
+                }
+                ComputeMRITextures();
+                ComputeGUITextures();
             });
             m_ColumnManager.OnUpdateIEEGAlpha.AddListener((column) =>
             {
