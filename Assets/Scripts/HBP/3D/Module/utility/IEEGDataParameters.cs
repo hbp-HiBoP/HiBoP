@@ -36,7 +36,7 @@ namespace HBP.Module3D
                 if (m_InfluenceDistance != val)
                 {
                     m_InfluenceDistance = val;
-                    OnUpdateMaximumInfluence.Invoke();
+                    OnUpdateInfluenceDistance.Invoke();
                 }
             }
         }
@@ -138,7 +138,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when updating the maximum influence
         /// </summary>
-        public UnityEvent OnUpdateMaximumInfluence = new UnityEvent();
+        public UnityEvent OnUpdateInfluenceDistance = new UnityEvent();
         #endregion
 
         #region Public Methods

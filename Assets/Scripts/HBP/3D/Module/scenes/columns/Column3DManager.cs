@@ -425,7 +425,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when changing the influence of each site on the texture
         /// </summary>
-        [HideInInspector] public GenericEvent<Column3DIEEG> OnUpdateIEEGMaximumInfluence = new GenericEvent<Column3DIEEG>();
+        [HideInInspector] public GenericEvent<Column3DIEEG> OnUpdateInfluenceDistance = new GenericEvent<Column3DIEEG>();
         /// <summary>
         /// Event called when changing the timeline ID of a column
         /// </summary>
@@ -539,9 +539,9 @@ namespace HBP.Module3D
                     OnUpdateIEEGGain.Invoke(columnIEEG);
                     column.IsRenderingUpToDate = false;
                 });
-                columnIEEG.IEEGParameters.OnUpdateMaximumInfluence.AddListener(() =>
+                columnIEEG.IEEGParameters.OnUpdateInfluenceDistance.AddListener(() =>
                 {
-                    OnUpdateIEEGMaximumInfluence.Invoke(columnIEEG);
+                    OnUpdateInfluenceDistance.Invoke(columnIEEG);
                     column.IsRenderingUpToDate = false;
                 });
                 columnIEEG.OnUpdateCurrentTimelineID.AddListener(() =>

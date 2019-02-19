@@ -631,11 +631,12 @@ namespace HBP.Module3D
             });
             m_ColumnManager.OnUpdateMRICalValues.AddListener(() =>
             {
-                ResetIEEG();
+                ComputeMRITextures();
+                ComputeGUITextures();
             });
             m_ColumnManager.OnUpdateIEEGSpan.AddListener((column) =>
             {
-                ResetIEEG();
+                ResetIEEG(); // TODO: il doit y avoir un moyen pour faire en sorte de ne pas reset les eeg ici
             });
             m_ColumnManager.OnUpdateIEEGAlpha.AddListener((column) =>
             {
@@ -649,7 +650,7 @@ namespace HBP.Module3D
             {
                 SceneInformation.AreSitesUpdated = false;
             });
-            m_ColumnManager.OnUpdateIEEGMaximumInfluence.AddListener((column) =>
+            m_ColumnManager.OnUpdateInfluenceDistance.AddListener((column) =>
             {
                 ResetIEEG();
             });
@@ -716,6 +717,7 @@ namespace HBP.Module3D
                     m_ColumnManager.CreateMRITexture(column, cut.ID);
                 }
             }
+            ComputeIEEGTextures();
         }
         /// <summary>
         /// Compute the textures for the MRI (3D) with the iEEG activity
@@ -882,10 +884,13 @@ namespace HBP.Module3D
             // Create the cuts
             UnityEngine.Profiling.Profiler.BeginSample("cut_generator Create cut");
             List<DLL.Surface> cuts = new List<DLL.Surface>(Cuts.Count);
-            //cuts.Add((DLL.Surface)SceneInformation.MeshToDisplay.Clone());
-            if (Cuts.Count > 0)
-                cuts.AddRange(SceneInformation.MeshToDisplay.GenerateCutSurfaces(Cuts, !SceneInformation.CutHolesEnabled, StrongCuts));
 
+            UnityEngine.Profiling.Profiler.BeginSample("cut_generator Cut");
+            if (Cuts.Count > 0)
+                cuts = SceneInformation.MeshToDisplay.GenerateCutSurfaces(Cuts, !SceneInformation.CutHolesEnabled, StrongCuts);
+            UnityEngine.Profiling.Profiler.EndSample();
+            
+            UnityEngine.Profiling.Profiler.BeginSample("cut_generator Swap pointers");
             if (m_ColumnManager.DLLCutsList.Count != cuts.Count)
                 m_ColumnManager.DLLCutsList = cuts;
             else
@@ -893,6 +898,8 @@ namespace HBP.Module3D
                 for (int ii = 0; ii < cuts.Count; ++ii)
                     m_ColumnManager.DLLCutsList[ii].SwapDLLHandle(cuts[ii]);
             }
+            UnityEngine.Profiling.Profiler.EndSample();
+
             UnityEngine.Profiling.Profiler.EndSample();
 
             // Fill parameters in shader
@@ -941,6 +948,7 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.EndSample();
 
             // Display cuts
+            UnityEngine.Profiling.Profiler.BeginSample("cut_generator misc");
             for (int ii = 0; ii < Cuts.Count; ++ii)
                 m_DisplayedObjects.BrainCutMeshes[ii].SetActive(true);
 
@@ -954,6 +962,7 @@ namespace HBP.Module3D
             {
                 m_DisplayedObjects.SimplifiedBrain.layer = LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
             }
+            UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
         /// Compute the cuts of the simplified meshes
@@ -1015,6 +1024,9 @@ namespace HBP.Module3D
 
             SceneInformation.MeshGeometryNeedsUpdate = false;
         }
+        /// <summary>
+        /// Update the cuts of the scene
+        /// </summary>
         private void UpdateCuts()
         {
             if (SceneInformation.UseSimplifiedMeshes)
@@ -1028,11 +1040,13 @@ namespace HBP.Module3D
             m_ColumnManager.UpdateCubeBoundingBox(Cuts);
 
             ComputeMRITextures();
-            ComputeIEEGTextures();
             ComputeGUITextures();
 
             SceneInformation.CutsNeedUpdate = false;
         }
+        /// <summary>
+        /// Update the generators for iEEG and the UV of the meshes
+        /// </summary>
         private void UpdateGeneratorsAndUV()
         {
             for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
@@ -1113,7 +1127,8 @@ namespace HBP.Module3D
                 ColumnManager.ResetColors();
 
             SceneInformation.CutsNeedUpdate = true;
-            ResetIEEG();
+            ComputeMRITextures();
+            ComputeGUITextures();
             foreach (Column3D column in m_ColumnManager.Columns)
             {
                 column.IsRenderingUpToDate = false;
