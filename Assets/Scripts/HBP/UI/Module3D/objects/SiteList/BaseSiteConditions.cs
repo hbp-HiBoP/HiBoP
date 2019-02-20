@@ -131,8 +131,7 @@ namespace HBP.UI.Module3D
         }
         private bool CompareValue(float value, bool superior, string stringValueToCompare)
         {
-            float valueToCompare = 0f;
-            if (global::Tools.Unity.NumberExtension.TryParseFloat(stringValueToCompare, out valueToCompare))
+            if (global::Tools.Unity.NumberExtension.TryParseFloat(stringValueToCompare, out float valueToCompare))
             {
                 return superior ? value > valueToCompare : value < valueToCompare;
             }
@@ -155,13 +154,14 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Coroutines
-        public IEnumerator c_FindSitesAndRequestAction(List<Site> sites, UnityEvent onBegin, EndApplyEvent onEnd, UnityEvent<float> onProgress)
+        public IEnumerator c_FindSitesAndRequestAction(List<Site> sites, UnityEvent onBegin, EndApplyEvent onEnd, UnityEvent<float> onProgress, int maxAtATime = int.MaxValue)
         {
             yield return Ninja.JumpToUnity;
             onBegin.Invoke();
             yield return Ninja.JumpBack;
             int length = sites.Count;
             Exception exception = null;
+            int counter = 0;
             for (int i = 0; i < length; ++i)
             {
                 try
@@ -171,6 +171,7 @@ namespace HBP.UI.Module3D
                     if (match)
                     {
                         m_MatchingSites.Enqueue(site);
+                        counter++;
                     }
                 }
                 catch (Exception e)
@@ -182,7 +183,7 @@ namespace HBP.UI.Module3D
                 {
                     break;
                 }
-                if (m_UpdateUI || i == length - 1)
+                if (m_UpdateUI || i == length - 1 || counter >= maxAtATime)
                 {
                     yield return Ninja.JumpToUnity;
                     while (m_MatchingSites.Count > 0)
@@ -192,6 +193,7 @@ namespace HBP.UI.Module3D
                     }
                     onProgress.Invoke((float)(i + 1) / length);
                     m_UpdateUI = false;
+                    counter = 0;
                     yield return Ninja.JumpBack;
                 }
             }

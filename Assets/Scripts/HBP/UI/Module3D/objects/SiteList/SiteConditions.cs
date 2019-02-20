@@ -38,6 +38,7 @@ namespace HBP.UI.Module3D
         // Export specific variables
         private System.Text.StringBuilder m_CSVBuilder;
         private string m_SavePath;
+        private Dictionary<Data.Patient, Data.Experience.Dataset.DataInfo> m_DataInfoByPatient;
         #endregion
 
         #region Events
@@ -101,16 +102,32 @@ namespace HBP.UI.Module3D
                     sites.AddRange(m_Scene.ColumnManager.SelectedColumn.Sites);
                 }
 
+                if (m_ActionType == ActionType.Export)
+                {
+                    m_DataInfoByPatient = new Dictionary<Data.Patient, Data.Experience.Dataset.DataInfo>();
+                    foreach (var site in sites)
+                    {
+                        if (!m_DataInfoByPatient.ContainsKey(site.Information.Patient))
+                        {
+                            if (m_Scene.ColumnManager.SelectedColumn is Column3DIEEG columnIEEG)
+                            {
+                                Data.Experience.Dataset.DataInfo dataInfo = m_Scene.Visualization.GetDataInfo(site.Information.Patient, columnIEEG.ColumnIEEGData);
+                                m_DataInfoByPatient.Add(site.Information.Patient, dataInfo);
+                            }
+                        }
+                    }
+                }
+
                 try
                 {
                     if (UseAdvanced)
                     {
                         m_AdvancedSiteConditions.ParseConditions();
-                        m_Coroutine = this.StartCoroutineAsync(m_AdvancedSiteConditions.c_FindSitesAndRequestAction(sites, OnBeginApply, OnEndApply, OnApplyingActions));
+                        m_Coroutine = this.StartCoroutineAsync(m_AdvancedSiteConditions.c_FindSitesAndRequestAction(sites, OnBeginApply, OnEndApply, OnApplyingActions, m_ActionType == ActionType.Export ? 100 : int.MaxValue));
                     }
                     else
                     {
-                        m_Coroutine = this.StartCoroutineAsync(m_BasicSiteConditions.c_FindSitesAndRequestAction(sites, OnBeginApply, OnEndApply, OnApplyingActions));
+                        m_Coroutine = this.StartCoroutineAsync(m_BasicSiteConditions.c_FindSitesAndRequestAction(sites, OnBeginApply, OnEndApply, OnApplyingActions, m_ActionType == ActionType.Export ? 100 : int.MaxValue));
                     }
                 }
                 catch (Exception e)
@@ -159,7 +176,7 @@ namespace HBP.UI.Module3D
             Data.Experience.Dataset.DataInfo dataInfo = null;
             if (m_Scene.ColumnManager.SelectedColumn is Column3DIEEG columnIEEG)
             {
-                dataInfo = m_Scene.Visualization.GetDataInfo(site.Information.Patient, columnIEEG.ColumnIEEGData);
+                dataInfo = m_DataInfoByPatient[site.Information.Patient];
             }
             string EEG = "", POS = "";
             if (dataInfo != null)
