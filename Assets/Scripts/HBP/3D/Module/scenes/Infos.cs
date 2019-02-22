@@ -54,7 +54,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Are we cutting the holes ?
         /// </summary>
-        public bool CutHolesEnabled = false;
+        public bool CutHolesEnabled = true;
         /// <summary>
         /// Last modified plane (used to display the cut circles)
         /// </summary>
