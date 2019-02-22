@@ -615,23 +615,28 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Blacklisted : a blacklisted site is barely visible and not included in any calculation
 \item Suspicious : a suspicious site appears orange in the scene
 \end{itemize}
+\paragraph{} This panel also allows you to change the states of some sites directly by clicking on the corresponding dots.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{SitesList.png}
 \end{center}
 \caption{\label{sitesListPanel}Sites list panel}
 \end{figure}
-\paragraph{} This panel also allows you to change the states of some sites directly. You can achieve this in 3 different ways :
+\paragraph{} This panel also contains a submenu called "Apply action on sites" which allows you to filter the sites using various criteria. There are two ways of filtering the sites:
 \begin{itemize}
-\item You can click on the dots to set or unset the state of a specific site in the list.
-\item You can use the submenu "Apply state on sites". There, you can filter sites using specific conditions concerning their current states, their location, information about them or their EEG signal, and apply states by selecting the icons of the states and clicking on the apply button. This process correspond to the "Basic" way of setting multiple states at once (Figure \ref{basicStates}).
+\item You can filter sites using specific conditions concerning their current states, their location, information about them or their EEG signal, and apply states by selecting the icons of the states and clicking on the apply button. This process correspond to the "Basic" way of setting multiple states at once (Figure \ref{basicStates}).
 \item The "Advanced" way can be accessed through the Advanced tab of the aforementioned submenu. While the Basic tab can only filter sites with a global AND between all conditions (which means that all conditions must be fulfilled for a site in order to apply the states), the Advanced tab can be used to create more complex conditions. You can click on the "?" icon to have a detailed description on how it works, alongside examples.
+\end{itemize}
+\paragraph{} Once you have filtered the sites you want to apply an action on, you have multiple actions available:
+\begin{itemize}
+\item You can set the states of the filtered sites. This allows you to set the states of multiple sites at once, which is conveniant compared to setting the states one by one.
+\item You can export a list of the filtered sites as a csv file. This file contains the name, the patient name, place and date, the coordinates of the site and the coordinate system used, and the related eeg and pos files for each site.
 \end{itemize}
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{BasicStates.png}
 \end{center}
-\caption{\label{basicStates}Apply state on sites submenu (in this example, sites that are in the selected ROI (Section \ref{roi}) and which values have a mean above 110 will be marked suspicious)}
+\caption{\label{basicStates}Apply action on sites submenu (in this example, sites that are in the selected ROI (Section \ref{roi}) and which values have a mean above 110 will be marked suspicious)}
 \end{figure}
 \paragraph{} The following sections will explain the different functionalities of each toolbar.
 \subsubsection{Scene settings}
@@ -731,7 +736,6 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Copy the selected ROI to other columns.
 \item Save the selected ROI to a .roi file.
 \item Load a .roi file to the selected column.
-\item Export information about each site in the selected ROI (.csv file).
 \end{itemize}
 \paragraph{} After adding a ROI to the selected column, you can left click on the mesh to add spheres to this ROI. You can select a sphere using either the toolbar or by left clicking on it. You can change the position of the selected sphere by draging and droping it and its size using the scroll wheel.
 \subsubsection{CCEP}
