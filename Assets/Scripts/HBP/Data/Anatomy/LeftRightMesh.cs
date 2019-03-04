@@ -100,7 +100,7 @@ namespace HBP.Data.Anatomy
         #region Operators
         public override object Clone()
         {
-            return new LeftRightMesh(Name,m_Transformation, ID, m_LeftHemisphere, m_RightHemisphere,m_LeftMarsAtlasHemisphere,m_RightMarsAtlasHemisphere);
+            return new LeftRightMesh(Name, Transformation, ID, LeftHemisphere, RightHemisphere, LeftMarsAtlasHemisphere, RightMarsAtlasHemisphere);
         }
         public override void Copy(object copy)
         {
@@ -111,6 +111,17 @@ namespace HBP.Data.Anatomy
             RightHemisphere = mesh.RightHemisphere;
             LeftMarsAtlasHemisphere = mesh.LeftMarsAtlasHemisphere;
             RightMarsAtlasHemisphere = mesh.RightMarsAtlasHemisphere;
+        }
+        #endregion
+
+        #region Serialization
+        protected override void OnDeserializedOperation(StreamingContext context)
+        {
+            m_LeftHemisphere = m_LeftHemisphere.ToPath();
+            m_RightHemisphere = m_RightHemisphere.ToPath();
+            m_LeftMarsAtlasHemisphere = m_LeftMarsAtlasHemisphere.ToPath();
+            m_RightMarsAtlasHemisphere = m_RightMarsAtlasHemisphere.ToPath();
+            base.OnDeserializedOperation(context);
         }
         #endregion
     }

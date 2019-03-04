@@ -8,6 +8,7 @@ namespace Tools.Unity
 {
     public class MemoryManager : MonoBehaviour
     {
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR
         #region Properties
         const float DELAY = 5.0f; // in s.
         const long MEMORY_LIMIT = 1000; // in MB
@@ -94,5 +95,6 @@ namespace Tools.Unity
             }
         }
         #endregion
+#endif
     }
 }
