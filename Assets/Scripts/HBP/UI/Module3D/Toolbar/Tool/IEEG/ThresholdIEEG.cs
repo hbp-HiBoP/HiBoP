@@ -13,6 +13,8 @@ namespace HBP.UI.Module3D.Tools
         [SerializeField]
         private Button m_Button;
         [SerializeField]
+        private Button m_Auto;
+        [SerializeField]
         private Module3D.ThresholdIEEG m_ThresholdIEEG;
         
         public bool IsGlobal { get; set; }
@@ -33,9 +35,15 @@ namespace HBP.UI.Module3D.Tools
                 }
                 else
                 {
-                    HBP.Module3D.Column3DIEEG column = (HBP.Module3D.Column3DIEEG)SelectedScene.ColumnManager.SelectedColumn;
+                    HBP.Module3D.Column3DIEEG column = (HBP.Module3D.Column3DIEEG)SelectedColumn;
                     column.IEEGParameters.SetSpanValues(min, mid, max, column);
                 }
+            });
+            m_Auto.onClick.AddListener(() =>
+            {
+                HBP.Module3D.Column3DIEEG column = (HBP.Module3D.Column3DIEEG)SelectedColumn;
+                column.IEEGParameters.SetSpanValues(0, 0, 0, column);
+                m_ThresholdIEEG.UpdateIEEGValues(((HBP.Module3D.Column3DIEEG)SelectedColumn).IEEGParameters);
             });
         }
 

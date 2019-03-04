@@ -271,10 +271,51 @@ namespace HBP.Module3D.DLL
             HandleRef pCutMultiSurface = new HandleRef(this, cut_Surface(_handle, planes, cutPlanes.Length, noHoles?1:0, strongCuts?1:0));
 
             // move data            
-            int nbMultiSurface =nb_MultiSurface(pCutMultiSurface);
+            int nbMultiSurface = nb_MultiSurface(pCutMultiSurface);
             Surface[] cuts = new Surface[nbMultiSurface];
             for (int ii = 0; ii < nbMultiSurface; ++ii)
                 cuts[ii] = new Surface(move_MultiSurface(pCutMultiSurface, ii));
+
+            // clean the multi surface
+            delete_MultiSurface(pCutMultiSurface);
+            return cuts;
+        }
+        /// <summary>
+        /// Only generate the cut surfaces (without cutting the mesh)
+        /// </summary>
+        /// <param name="cutPlanes"></param>
+        /// <param name="noHoles"></param>
+        /// <param name="strongCuts"></param>
+        /// <returns></returns>
+        public List<Surface> GenerateCutSurfaces(List<Cut> cutPlanes, bool noHoles = false, bool strongCuts = true)
+        {
+            // check planes
+            if (cutPlanes.Count <= 0)
+            {
+                Debug.LogError("-ERROR : Surface::cutSurface -> nb of planes <= 0. ");
+                List<Surface> returnError = new List<Surface>();
+                return returnError;
+            }
+
+            // init plane
+            float[] planes = new float[cutPlanes.Count * 6];
+            for (int ii = 0; ii < cutPlanes.Count; ++ii)
+            {
+                for (int jj = 0; jj < 3; ++jj)
+                {
+                    planes[ii * 6 + jj] = cutPlanes[ii].Point[jj];
+                    planes[ii * 6 + jj + 3] = cutPlanes[ii].Normal[jj];
+                }
+            }
+
+            // do the cut            
+            HandleRef pCutMultiSurface = new HandleRef(this, generate_cuts_Surface(_handle, planes, cutPlanes.Count, noHoles ? 1 : 0, strongCuts ? 1 : 0));
+
+            // move data            
+            int nbMultiSurface = nb_MultiSurface(pCutMultiSurface);
+            List<Surface> cuts = new List<Surface>();
+            for (int ii = 0; ii < nbMultiSurface; ++ii)
+                cuts.Add(new Surface(move_MultiSurface(pCutMultiSurface, ii)));
 
             // clean the multi surface
             delete_MultiSurface(pCutMultiSurface);
@@ -465,6 +506,15 @@ namespace HBP.Module3D.DLL
             }
             return new BBox(cube_bounding_box_Surface(_handle, planes, planesCount));
         }
+        /// <summary>
+        /// Get the surface made of precision * precision * precision vertices inside the bounding box
+        /// </summary>
+        /// <param name="precision"></param>
+        /// <returns></returns>
+        public Surface GetSurfaceFromBoundingBox(int precision)
+        {
+            return new Surface(get_mesh_from_bounding_box_Surface(_handle, precision));
+        }
         #endregion
 
         #region Memory Management
@@ -558,6 +608,8 @@ namespace HBP.Module3D.DLL
         static private extern void merge_Surface(HandleRef handleSurface, HandleRef handleSurfaceToAdd);
         [DllImport("hbp_export", EntryPoint = "cut_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr cut_Surface(HandleRef handleSurface, float[] planes, int nbPlanes, int noHoles, int strongCuts);
+        [DllImport("hbp_export", EntryPoint = "generate_cuts_Surface", CallingConvention = CallingConvention.Cdecl)]
+        static private extern IntPtr generate_cuts_Surface(HandleRef handleSurface, float[] planes, int nbPlanes, int noHoles, int strongCuts);
         [DllImport("hbp_export", EntryPoint = "split_to_surfaces_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr split_to_surfaces_Surface(HandleRef handleSurface, int nbSubSurfaces);
         [DllImport("hbp_export", EntryPoint = "middle_Surface", CallingConvention = CallingConvention.Cdecl)]
@@ -603,6 +655,8 @@ namespace HBP.Module3D.DLL
         static private extern IntPtr cube_bounding_box_Surface(HandleRef handleSurface, float[] planes, int planesCount);
         [DllImport("hbp_export", EntryPoint = "size_offset_cut_plane_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern float size_offset_cut_plane_Surface(HandleRef handleSurface, float[] planeCut, int nbCuts);
+        [DllImport("hbp_export", EntryPoint = "get_mesh_from_bounding_box_Surface", CallingConvention = CallingConvention.Cdecl)]
+        static private extern IntPtr get_mesh_from_bounding_box_Surface(HandleRef handleSurface, int precision);
 
 
         #endregion

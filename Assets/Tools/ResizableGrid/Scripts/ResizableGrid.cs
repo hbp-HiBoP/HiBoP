@@ -174,6 +174,14 @@ namespace Tools.Unity.ResizableGrid
         #endregion
 
         #region Private Methods
+        private void Awake()
+        {
+            m_RectTransform.anchorMin = Vector2.zero;
+            m_RectTransform.anchorMax = Vector2.one;
+            m_RectTransform.anchoredPosition = Vector2.zero;
+            m_RectTransform.sizeDelta = Vector2.zero;
+            m_RectTransform.pivot = new Vector2(0.5f, 0.5f);
+        }
         private void Update()
         {
             if (m_RectTransform.hasChanged)

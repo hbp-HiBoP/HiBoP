@@ -247,6 +247,10 @@ namespace HBP.Module3D
         /// </summary>
         public List<MRIBrainGenerator> DLLBrainTextureGenerators = new List<MRIBrainGenerator>();
         /// <summary>
+        /// Volume generator for cut textures
+        /// </summary>
+        public MRIVolumeGenerator DLLMRIVolumeGenerator = new MRIVolumeGenerator();
+        /// <summary>
         /// Cut Textures Utility
         /// </summary>
         public CutTexturesUtility CutTextures { get; } = new CutTexturesUtility();
@@ -403,12 +407,12 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="brainMeshesParent">Parent of the main meshes</param>
         /// <param name="useSimplifiedMeshes">Are we using simplified meshes ?</param>
-        public void InitializeColumnMeshes(GameObject brainMeshesParent, bool useSimplifiedMeshes)
+        public void InitializeColumnMeshes(GameObject brainMeshesParent)
         {
             BrainSurfaceMeshes = new List<GameObject>();
             foreach (Transform meshPart in brainMeshesParent.transform)
             {
-                if (meshPart.GetComponent<MeshCollider>() == null || !useSimplifiedMeshes) // if the gameobject does not have mesh collider
+                if (meshPart.GetComponent<MeshCollider>() == null) // if the gameobject does not have mesh collider
                 {
                     GameObject brainPart = Instantiate(m_BrainPrefab, m_BrainSurfaceMeshesParent);
                     brainPart.GetComponent<Renderer>().sharedMaterial = meshPart.GetComponent<Renderer>().sharedMaterial;
@@ -426,11 +430,11 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="brainMeshes">Parent of the main meshes</param>
         /// <param name="useSimplifiedMeshes">Are we using simplified meshes ?</param>
-        public void UpdateColumnMeshes(List<GameObject> brainMeshes, bool useSimplifiedMeshes)
+        public void UpdateColumnMeshes(List<GameObject> brainMeshes)
         {
             for (int i = 0; i < brainMeshes.Count; i++)
             {
-                if (brainMeshes[i].GetComponent<MeshCollider>() == null || !useSimplifiedMeshes) // if the gameobject does not have mesh collider
+                if (brainMeshes[i].GetComponent<MeshCollider>() == null) // if the gameobject does not have mesh collider
                 {
                     DestroyImmediate(BrainSurfaceMeshes[i].GetComponent<MeshFilter>().sharedMesh);
                     BrainSurfaceMeshes[i].GetComponent<MeshFilter>().sharedMesh = Instantiate(brainMeshes[i].GetComponent<MeshFilter>().mesh);
@@ -465,6 +469,7 @@ namespace HBP.Module3D
         public void UpdateCutsPlanesNumber(int nbCuts)
         {
             CutTextures.Resize(nbCuts);
+            CutTextures.SetMRIVolumeGenerator(DLLMRIVolumeGenerator);
             IsRenderingUpToDate = false;
         }
         /// <summary>

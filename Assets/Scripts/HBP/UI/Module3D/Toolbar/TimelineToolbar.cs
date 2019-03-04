@@ -8,6 +8,22 @@ namespace HBP.UI.Module3D
     public class TimelineToolbar : Toolbar
     {
         #region Properties
+        private bool m_IsGlobal = false;
+        public bool IsGlobal
+        {
+            get
+            {
+                return m_IsGlobal;
+            }
+            set
+            {
+                m_IsGlobal = value;
+                m_TimelineLoop.IsGlobal = value;
+                m_TimelineSlider.IsGlobal = value;
+                m_TimelineStep.IsGlobal = value;
+                m_TimelinePlay.IsGlobal = value;
+            }
+        }
         /// <summary>
         /// Timeline loop parameters
         /// </summary>
@@ -44,18 +60,21 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_TimelineStep);
             m_Tools.Add(m_TimelinePlay);
         }
-
         protected override void AddListeners()
         {
             base.AddListeners();
 
             m_TimelineGlobal.OnChangeValue.AddListener((global) =>
             {
-                m_TimelineLoop.IsGlobal = global;
-                m_TimelineSlider.IsGlobal = global;
-                m_TimelineStep.IsGlobal = global;
-                m_TimelinePlay.IsGlobal = global;
+                IsGlobal = global;
             });
+        }
+        #endregion
+
+        #region Public Methods
+        public override void ShowToolbarCallback()
+        {
+            m_TimelineGlobal.Set(m_ToolbarMenu.IEEGSettingsToolbar.IsGlobal);
         }
         #endregion
     }

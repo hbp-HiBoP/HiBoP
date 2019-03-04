@@ -39,6 +39,11 @@ namespace HBP.UI.Module3D.Tools
 
             m_Toggle.interactable = isColumnIEEG && areAmplitudesComputed;
         }
+
+        public void Set(bool isOn)
+        {
+            m_Toggle.isOn = isOn;
+        }
         #endregion
     }
 }

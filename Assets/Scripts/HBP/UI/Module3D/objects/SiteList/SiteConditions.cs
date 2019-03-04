@@ -21,6 +21,9 @@ namespace HBP.UI.Module3D
         public bool UseAdvanced { get; set; }
         public bool AllColumns { get; set; }
 
+        private enum ActionType { ChangeState, Export };
+        private ActionType m_ActionType;
+
         [SerializeField] Toggle m_Exclude;
         [SerializeField] Toggle m_Unexclude;
         [SerializeField] Toggle m_Highlight;
@@ -31,13 +34,18 @@ namespace HBP.UI.Module3D
         [SerializeField] Toggle m_Unmark;
         [SerializeField] Toggle m_Suspect;
         [SerializeField] Toggle m_Unsuspect;
+
+        // Export specific variables
+        private System.Text.StringBuilder m_CSVBuilder;
+        private string m_SavePath;
+        private Dictionary<Data.Patient, Data.Experience.Dataset.DataInfo> m_DataInfoByPatient;
         #endregion
 
         #region Events
         public UnityEvent OnBeginApply = new UnityEvent();
         public ApplyingActionEvent OnApplyingActions = new ApplyingActionEvent();
         public UnityEvent OnSiteFound = new UnityEvent();
-        public UnityEvent OnEndApply = new UnityEvent();
+        public EndApplyEvent OnEndApply = new EndApplyEvent();
         #endregion
 
         #region Public Methods
@@ -48,9 +56,17 @@ namespace HBP.UI.Module3D
             m_BasicSiteConditions.OnApplyActionOnSite.AddListener(Apply);
             m_AdvancedSiteConditions.Initialize(scene);
             m_AdvancedSiteConditions.OnApplyActionOnSite.AddListener(Apply);
-            OnEndApply.AddListener(() =>
+            OnEndApply.AddListener((finished) =>
             {
                 m_Coroutine = null;
+                if (finished && m_ActionType == ActionType.Export)
+                {
+                    using (System.IO.StreamWriter sw = new System.IO.StreamWriter(m_SavePath))
+                    {
+                        sw.Write(m_CSVBuilder.ToString());
+                    }
+                    ApplicationState.DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Informational, "Sites exported", "The filtered sites have been sucessfully exported to " + m_SavePath);
+                }
             });
         }
         public void OnClickApply()
@@ -58,13 +74,23 @@ namespace HBP.UI.Module3D
             if (m_Coroutine != null)
             {
                 StopCoroutine(m_Coroutine);
-                OnEndApply.Invoke();
+                OnEndApply.Invoke(false);
             }
             else
             {
+                if (m_ActionType == ActionType.Export)
+                {
+                    m_SavePath = "";
+                    m_SavePath = FileBrowser.GetSavedFileName(new string[] { "csv" }, "Save sites to", Application.dataPath);
+                    if (string.IsNullOrEmpty(m_SavePath)) return;
+
+                    m_CSVBuilder = new System.Text.StringBuilder();
+                    m_CSVBuilder.AppendLine("Site,Patient,Place,Date,X,Y,Z,CoordSystem,EEG,POS");
+                }
+
                 List<Site> sites = new List<Site>();
 
-                if (AllColumns)
+                if (AllColumns && m_ActionType == ActionType.ChangeState)
                 {
                     foreach (var column in m_Scene.ColumnManager.Columns)
                     {
@@ -76,16 +102,32 @@ namespace HBP.UI.Module3D
                     sites.AddRange(m_Scene.ColumnManager.SelectedColumn.Sites);
                 }
 
+                if (m_ActionType == ActionType.Export)
+                {
+                    m_DataInfoByPatient = new Dictionary<Data.Patient, Data.Experience.Dataset.DataInfo>();
+                    foreach (var site in sites)
+                    {
+                        if (!m_DataInfoByPatient.ContainsKey(site.Information.Patient))
+                        {
+                            if (m_Scene.ColumnManager.SelectedColumn is Column3DIEEG columnIEEG)
+                            {
+                                Data.Experience.Dataset.DataInfo dataInfo = m_Scene.Visualization.GetDataInfo(site.Information.Patient, columnIEEG.ColumnIEEGData);
+                                m_DataInfoByPatient.Add(site.Information.Patient, dataInfo);
+                            }
+                        }
+                    }
+                }
+
                 try
                 {
                     if (UseAdvanced)
                     {
                         m_AdvancedSiteConditions.ParseConditions();
-                        m_Coroutine = this.StartCoroutineAsync(m_AdvancedSiteConditions.c_FindSites(sites, OnBeginApply, OnEndApply, OnApplyingActions));
+                        m_Coroutine = this.StartCoroutineAsync(m_AdvancedSiteConditions.c_FindSitesAndRequestAction(sites, OnBeginApply, OnEndApply, OnApplyingActions, m_ActionType == ActionType.Export ? 100 : int.MaxValue));
                     }
                     else
                     {
-                        m_Coroutine = this.StartCoroutineAsync(m_BasicSiteConditions.c_FindSites(sites, OnBeginApply, OnEndApply, OnApplyingActions));
+                        m_Coroutine = this.StartCoroutineAsync(m_BasicSiteConditions.c_FindSitesAndRequestAction(sites, OnBeginApply, OnEndApply, OnApplyingActions, m_ActionType == ActionType.Export ? 100 : int.MaxValue));
                     }
                 }
                 catch (Exception e)
@@ -95,10 +137,27 @@ namespace HBP.UI.Module3D
                 }
             }
         }
+        public void ChangeActionType(int type)
+        {
+            m_ActionType = (ActionType)type;
+        }
         #endregion
 
         #region Private Methods
         private void Apply(Site site)
+        {
+            switch (m_ActionType)
+            {
+                case ActionType.ChangeState:
+                    ApplyChangeState(site);
+                    break;
+                case ActionType.Export:
+                    ApplyExport(site);
+                    break;
+            }
+            OnSiteFound.Invoke();
+        }
+        private void ApplyChangeState(Site site)
         {
             if (m_Exclude.isOn) site.State.IsExcluded = true;
             if (m_Unexclude.isOn) site.State.IsExcluded = false;
@@ -110,11 +169,38 @@ namespace HBP.UI.Module3D
             if (m_Unmark.isOn) site.State.IsMarked = false;
             if (m_Suspect.isOn) site.State.IsSuspicious = true;
             if (m_Unsuspect.isOn) site.State.IsSuspicious = false;
-            OnSiteFound.Invoke();
+        }
+        private void ApplyExport(Site site)
+        {
+            Vector3 sitePosition = site.transform.localPosition;
+            Data.Experience.Dataset.DataInfo dataInfo = null;
+            if (m_Scene.ColumnManager.SelectedColumn is Column3DIEEG columnIEEG)
+            {
+                dataInfo = m_DataInfoByPatient[site.Information.Patient];
+            }
+            string EEG = "", POS = "";
+            if (dataInfo != null)
+            {
+                EEG = dataInfo.EEG;
+                POS = dataInfo.POS;
+            }
+            m_CSVBuilder.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9}",
+                    site.Information.ChannelName,
+                    site.Information.Patient.Name,
+                    site.Information.Patient.Place,
+                    site.Information.Patient.Date,
+                    sitePosition.x.ToString("N2"),
+                    sitePosition.y.ToString("N2"),
+                    sitePosition.z.ToString("N2"),
+                    m_Scene.ColumnManager.SelectedImplantation.Name,
+                    EEG,
+                    POS));
         }
         #endregion
     }
 
     [Serializable]
     public class ApplyingActionEvent : UnityEvent<float> { }
+    [Serializable]
+    public class EndApplyEvent : UnityEvent<bool> { }
 }
