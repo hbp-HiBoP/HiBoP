@@ -1,6 +1,5 @@
 ﻿using UnityEditor;
 using UnityEngine;
-using static Tools.Unity.Graph.Graph;
 
 namespace Tools.Unity.Graph
 {
@@ -27,7 +26,7 @@ namespace Tools.Unity.Graph
         SerializedProperty m_DefaultOrdinateDisplayRange;
 
         // Curves
-        SerializedProperty m_Groups;
+        SerializedProperty m_Curves;
 
         // Eventss
         bool m_ShowEvents = false;
@@ -41,6 +40,7 @@ namespace Tools.Unity.Graph
         SerializedProperty m_OnChangeOrdinateDisplayRange;
         SerializedProperty m_OnChangeAbscissaDisplayRange;
         SerializedProperty m_OnChangeUseDefaultRange;
+        SerializedProperty m_OnChangeCurves;
         #endregion
 
         #region Public Methods
@@ -59,7 +59,7 @@ namespace Tools.Unity.Graph
             m_DefaultOrdinateDisplayRange = serializedObject.FindProperty("m_DefaultOrdinateDisplayRange");
             m_DefaultAbscissaDisplayRange = serializedObject.FindProperty("m_DefaultAbscissaDisplayRange");
             m_UseDefaultDisplayRange = serializedObject.FindProperty("m_UseDefaultDisplayRange");
-            m_Groups = serializedObject.FindProperty("m_Groups");
+            m_Curves = serializedObject.FindProperty("m_Curves");
 
             // Events
             m_OnChangeTitle = serializedObject.FindProperty("m_OnChangeTitle");
@@ -72,6 +72,7 @@ namespace Tools.Unity.Graph
             m_OnChangeAbscissaDisplayRange = serializedObject.FindProperty("m_OnChangeAbscissaDisplayRange");
             m_OnChangeOrdinateDisplayRange = serializedObject.FindProperty("m_OnChangeOrdinateDisplayRange");
             m_OnChangeUseDefaultRange = serializedObject.FindProperty("m_OnChangeUseDefaultRange");
+            m_OnChangeCurves = serializedObject.FindProperty("m_OnChangeCurves");
         }
         public override void OnInspectorGUI()
         {
@@ -100,7 +101,7 @@ namespace Tools.Unity.Graph
             EditorGUILayout.PropertyField(m_DefaultOrdinateDisplayRange, new GUIContent("Default Range"));
             EditorGUI.indentLevel--;
         
-            EditorGUILayout.PropertyField(m_Groups, true);
+            EditorGUILayout.PropertyField(m_Curves, true);
 
             // Events
             m_ShowEvents = EditorGUILayout.Foldout(m_ShowEvents, "Events");
@@ -116,6 +117,7 @@ namespace Tools.Unity.Graph
                 EditorGUILayout.PropertyField(m_OnChangeAbscissaDisplayRange);
                 EditorGUILayout.PropertyField(m_OnChangeOrdinateDisplayRange);
                 EditorGUILayout.PropertyField(m_OnChangeUseDefaultRange);
+                EditorGUILayout.PropertyField(m_OnChangeCurves);
             }
 
             serializedObject.ApplyModifiedProperties();

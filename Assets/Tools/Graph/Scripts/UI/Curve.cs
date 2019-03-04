@@ -1,4 +1,8 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using UnityEngine.Profiling;
 using UnityEngine.UI.Extensions;
 
 namespace Tools.Unity.Graph
@@ -55,11 +59,33 @@ namespace Tools.Unity.Graph
         }
 
         [SerializeField] protected CurveRenderer m_CurveRenderer;
+
+        [SerializeField] protected int m_NumberOfPixelsByPoint;
+        public int NumberOfPixelsByPoint
+        {
+            get
+            {
+                return m_NumberOfPixelsByPoint;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_NumberOfPixelsByPoint, value))
+                {
+                    SetNumberOfPixelsByPoint();
+                }
+            }
+        }
+
+        [SerializeField, HideInInspector] protected float m_xRatio;
+        [SerializeField, HideInInspector] protected float m_yRatio;
+        [SerializeField, HideInInspector] protected RectTransform m_RectTransform;
+        protected bool m_NeedSetPoints;
         #endregion
        
         #region Private Methods
         protected void OnValidate()
         {
+            m_RectTransform = transform as RectTransform;
             SetData();
         }
         #endregion
@@ -67,50 +93,123 @@ namespace Tools.Unity.Graph
         #region Setters
         protected virtual void SetData()
         {
-            if(m_Data != null)
+            m_xRatio = m_RectTransform.rect.width / (m_AbscissaDisplayRange.y - m_AbscissaDisplayRange.x);
+            m_yRatio = m_RectTransform.rect.height / (m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x);
+            if (m_Data != null)
             {
                 m_CurveRenderer.color = m_Data.Color;
                 m_CurveRenderer.LineThickness = m_Data.Thickness;
-
-                RectTransform rectTransform = transform as RectTransform;
-                Vector2[] points = new Vector2[m_Data.Points.Length];
-                for (int i = 0; i < m_Data.Points.Length; i++)
-                {
-                    Vector2 point = m_Data.Points[i];
-                    float x = rectTransform.rect.width * (point.x - m_AbscissaDisplayRange.x) / (m_AbscissaDisplayRange.y - m_AbscissaDisplayRange.x);
-                    float y = rectTransform.rect.height * (point.y - m_OrdinateDisplayRange.x) / (m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x);
-                    points[i] = new Vector2(x, y);
-                }
-                m_CurveRenderer.Points = points;
+                if(Application.isPlaying) m_NeedSetPoints = true;
+                else SetPoints();
             }
         }
         protected virtual void SetAbscissaDisplayRange()
         {
-            if(m_Data != null)
-            {
-                RectTransform rectTransform = transform as RectTransform;
-                Vector2[] points = new Vector2[m_Data.Points.Length];
-                for (int i = 0; i < m_Data.Points.Length; i++)
-                {
-                    float x = rectTransform.rect.width * (m_Data.Points[i].x - m_AbscissaDisplayRange.x) / (m_AbscissaDisplayRange.y - m_AbscissaDisplayRange.x);
-                    points[i] = new Vector2(x, m_CurveRenderer.Points[i].y);
-                }
-                m_CurveRenderer.Points = points;
-            }
+            m_xRatio = m_RectTransform.rect.width / (m_AbscissaDisplayRange.y - m_AbscissaDisplayRange.x);
+            if (Application.isPlaying) m_NeedSetPoints = true;
+            else SetPoints();
         }
         protected virtual void SetOrdinateDisplayRange()
         {
-            if(m_Data != null)
+            m_yRatio = m_RectTransform.rect.height / (m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x);
+            if (Application.isPlaying) m_NeedSetPoints = true;
+            else SetPoints();
+        }
+        protected virtual void SetNumberOfPixelsByPoint()
+        {
+            if (Application.isPlaying) m_NeedSetPoints = true;
+            else SetPoints();
+        }
+
+        protected virtual void SetPoints()
+        {
+            Profiler.BeginSample("SetPoints");
+            if (m_Data != null)
             {
-                RectTransform rectTransform = transform as RectTransform;
-                Vector2[] points = new Vector2[m_Data.Points.Length];
-                for (int i = 0; i < m_Data.Points.Length; i++)
+                float x, y;
+
+                Profiler.BeginSample("Points");
+                Profiler.BeginSample("First-Last");
+
+                int startIndex = 0;
+                int endIndex = m_Data.Points.Length - 1;
+                if (m_Data.Points[startIndex].x < m_AbscissaDisplayRange.x)
                 {
-                    float y = rectTransform.rect.height * (m_Data.Points[i].y - m_OrdinateDisplayRange.x) / (m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x);
-                    points[i] = new Vector2(m_CurveRenderer.Points[i].x, y);
+                    int min = startIndex;
+                    int max = endIndex;
+                    int i = 0;
+                    while(min + 1 != max && i < 20)
+                    {
+                        i++;
+                        int medium = (max + min)/2;
+                        float xValue = m_Data.Points[medium].x;
+                        if(xValue < m_AbscissaDisplayRange.x)
+                        {
+                            min = medium;
+                        }
+                        else if(xValue > m_AbscissaDisplayRange.x)
+                        {
+                            max = medium;
+                        }
+                        else
+                        {
+                            startIndex = medium;
+                            break;
+                        }
+                    }
+                    startIndex = min;
                 }
+
+                if (m_Data.Points[endIndex].x > m_AbscissaDisplayRange.y)
+                {
+                    int min = startIndex;
+                    int max = endIndex;
+                    int i = 0;
+                    while (min + 1 != max && i < 100)
+                    {
+                        i++;
+                        int medium = (max + min) / 2;
+                        float xValue = m_Data.Points[medium].x;
+                        if (xValue < m_AbscissaDisplayRange.y)
+                        {
+                            min = medium;
+                        }
+                        else if (xValue > m_AbscissaDisplayRange.y)
+                        {
+                            max = medium;
+                        }
+                        else
+                        {
+                            max = medium;
+                            break;
+                        }
+                    }
+                    endIndex = max;
+                }
+                Profiler.EndSample();
+
+                Profiler.BeginSample("DownSampling");
+                int lenght = endIndex + 1 - startIndex;
+                int downSampling = Mathf.CeilToInt(m_NumberOfPixelsByPoint * lenght / (m_RectTransform.rect.width));
+                Vector2[] points = new Vector2[lenght / downSampling];
+                for (int i = 0; i < points.Length; i++)
+                {
+                    int v = i * downSampling + startIndex;
+                    points[i] = new Vector2(m_xRatio * (m_Data.Points[v].x - m_AbscissaDisplayRange.x), m_yRatio * (m_Data.Points[v].y - m_OrdinateDisplayRange.x));
+                }
+                Profiler.EndSample();
+            
+                Profiler.EndSample();
                 m_CurveRenderer.Points = points;
+
             }
+            m_NeedSetPoints = false;
+            Profiler.EndSample();
+        }
+
+        private void Update()
+        {
+            if(m_NeedSetPoints) SetPoints();
         }
         #endregion
     }

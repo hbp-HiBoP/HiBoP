@@ -111,15 +111,16 @@ namespace HBP.UI.Module3D
                 if (!Directory.Exists(screenshotsPath)) Directory.CreateDirectory(screenshotsPath);
                 SaveSceneToPNG(screenshotsPath, multipleFiles);
             });
-            informations.OnOpenInformationsWindow.AddListener(() =>
+            informations.OnChangeMinimized.AddListener((value) =>
             {
-                grid.VerticalHandlers[0].Position = grid.VerticalHandlers[0].MagneticPosition;
-                grid.SetVerticalHandlersPosition(1);
-                grid.UpdateAnchors();
-            });
-            informations.OnCloseInformationsWindow.AddListener(() =>
-            {
-                grid.VerticalHandlers[0].Position = grid.VerticalHandlers[1].Position - (grid.MinimumViewWidth / grid.RectTransform.rect.width);
+                if(value)
+                {
+                    grid.VerticalHandlers[0].Position = grid.VerticalHandlers[0].MagneticPosition;
+                }
+                else
+                {
+                    grid.VerticalHandlers[0].Position = grid.VerticalHandlers[1].Position - (grid.MinimumViewWidth / grid.RectTransform.rect.width);
+                }
                 grid.SetVerticalHandlersPosition(1);
                 grid.UpdateAnchors();
             });
@@ -188,7 +189,7 @@ namespace HBP.UI.Module3D
                 // Graph and Trial Matrix
                 Informations.InformationsWrapper informations = GetComponentInChildren<Informations.InformationsWrapper>();
                 Informations.ChannelInformations siteInformations = informations.GetComponentInChildren<Informations.ChannelInformations>();
-                if (!informations.IsMinimized)
+                if (!informations.Minimized)
                 {
                     if (!Mathf.Approximately(siteInformations.GetComponent<ZoneResizer>().Ratio, 1.0f))
                     {

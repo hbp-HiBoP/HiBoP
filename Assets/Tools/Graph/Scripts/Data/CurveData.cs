@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine.UI.Extensions;
+using UnityEngine.Events;
+using System;
 
 namespace Tools.Unity.Graph
 {
@@ -9,31 +11,18 @@ namespace Tools.Unity.Graph
     public class CurveData : ScriptableObject
     {
         #region Properties
-        //[SerializeField, ReadOnly] string m_ID;
-        //public string ID
-        //{
-        //    get
-        //    {
-        //        return m_ID;
-        //    }
-        //    protected set
-        //    {
-        //        SetPropertyUtility.SetClass(ref m_ID,value);
-        //    }
-        //}
-
-        //[SerializeField] string m_Label;
-        //public string Label
-        //{
-        //    get
-        //    {
-        //        return m_Label;
-        //    }
-        //    set
-        //    {
-        //        SetPropertyUtility.SetClass(ref m_Label, value);
-        //    }
-        //}
+        [SerializeField] string m_Label;
+        public string Label
+        {
+            get
+            {
+                return m_Label;
+            }
+            set
+            {
+                SetPropertyUtility.SetClass(ref m_Label, value);
+            }
+        }
 
         [SerializeField] Color m_Color;
         public Color Color
@@ -84,4 +73,7 @@ namespace Tools.Unity.Graph
         }
         #endregion
     }
+
+    [Serializable]
+    public class CurvesDataEvent : UnityEvent<CurveData[]> { }
 }

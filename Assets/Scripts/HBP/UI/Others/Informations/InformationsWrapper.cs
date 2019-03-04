@@ -1,78 +1,85 @@
 ﻿using UnityEngine;
-using UnityEngine.Events;
-using Tools.Unity.ResizableGrid;
 using HBP.Module3D;
 using System.Collections.Generic;
 using System.Linq;
 using HBP.Data.Informations;
+using UnityEngine.UI.Extensions;
+using UnityEngine.Events;
 
 namespace HBP.UI.Informations
 {
     public class InformationsWrapper : MonoBehaviour
     {
         #region Properties
-        Base3DScene m_Scene;
+        [SerializeField] Base3DScene m_Scene;
         public Base3DScene Scene
         {
-            get { return m_Scene; }
+            get
+            {
+                return m_Scene;
+            }
             set
             {
-                m_Scene = value;
-                GenerateDataStructs();
-                UpdateColormap();
-                m_Scene.OnRequestSiteInformation.AddListener(sites => OnSiteInformationRequest(sites));
-                m_Scene.ColumnManager.OnChangeColumnMinimizedState.AddListener(OnChangeColumnMinimizedState);
-                m_Scene.OnChangeColormap.AddListener((t) => UpdateColormap());
+                if(SetPropertyUtility.SetClass(ref m_Scene, value))
+                {
+                    SetBase3DScene();
+                }
+            }
+        }
+
+        [SerializeField] bool m_Minimized;
+        public bool Minimized
+        {
+            get
+            {
+                return m_Minimized;
+            }
+            set
+            {
+                if(SetPropertyUtility.SetStruct(ref m_Minimized, value))
+                {
+                    SetMinimized();
+                }
+            }
+        }
+
+        [SerializeField] BoolEvent m_OnChangeMinimized;
+        public BoolEvent OnChangeMinimized
+        {
+            get
+            {
+                return m_OnChangeMinimized;
             }
         }
 
         public ChannelInformations ChannelInformations;
-        public ROIInformations ROIInformations;
+        //public ROIInformations ROIInformations;
 
-        public float MinimumWidth = 200.0f;
-        public bool IsMinimized
+        [SerializeField, ReadOnly] Texture2D m_ColorMap;
+        [SerializeField] Texture2DEvent m_OnChangeColorMap;
+        public Texture2DEvent OnChangeColorMap
         {
             get
             {
-                return Mathf.Abs(m_RectTransform.rect.width - m_ResizableGrid.MinimumViewWidth) <= MinimumWidth;
+                return m_OnChangeColorMap;
             }
         }
 
-        [HideInInspector] public UnityEvent OnOpenInformationsWindow = new UnityEvent();
-        [HideInInspector] public UnityEvent OnCloseInformationsWindow = new UnityEvent();
-
-        [SerializeField] RectTransform m_RectTransform;
-        [SerializeField] GameObject m_MinimizedGameObject;
-        ResizableGrid m_ResizableGrid;
-
-        DataStruct[] m_DataStructs;
-        ChannelStruct[] m_ChannelStructs;
+        [SerializeField, ReadOnly] DataStruct[] m_DataStructs;
+        [SerializeField, ReadOnly] ChannelStruct[] m_ChannelStructs;
         bool m_ShowWholeProtocolLastState;
         #endregion
 
-        #region Public Methods
-        public void Open(bool open)
-        {
-            if(open) OnOpenInformationsWindow.Invoke();
-            else OnCloseInformationsWindow.Invoke();
-        }
-        #endregion
-
         #region Private Methods
+        void OnValidate()
+        {
+            SetBase3DScene();
+            SetMinimized();
+        }
         void Awake()
         {
-            m_ResizableGrid = GetComponentInParent<ResizableGrid>();
             m_ShowWholeProtocolLastState = ApplicationState.UserPreferences.Visualization.TrialMatrix.ShowWholeProtocol;
         }
-        void Update()
-        {
-            if (m_RectTransform.hasChanged)
-            {
-                m_MinimizedGameObject.SetActive(IsMinimized);
-                m_RectTransform.hasChanged = false;
-            }
-        }
-
         void DisplayChannels()
         {
             if(m_ChannelStructs != null && m_DataStructs != null && m_ChannelStructs.Length > 0 && m_DataStructs.Length > 0)
@@ -82,7 +89,6 @@ namespace HBP.UI.Informations
         }
         void OnSiteInformationRequest(IEnumerable<Site> sites)
         {
-            if (IsMinimized) Open(true);
             m_ChannelStructs = sites.Select(s => new ChannelStruct(s.Information.ChannelName, s.Information.Patient)).ToArray();
             if (m_ShowWholeProtocolLastState != ApplicationState.UserPreferences.Visualization.TrialMatrix.ShowWholeProtocol) GenerateDataStructs();
             DisplayChannels();
@@ -122,9 +128,28 @@ namespace HBP.UI.Informations
             }
             m_DataStructs = dataStructs.ToArray();
         }
-        void UpdateColormap()
+        #endregion
+
+        #region Setters
+        void SetBase3DScene()
         {
-            ChannelInformations.Colormap = m_Scene.ColumnManager.BrainColorMapTexture;
+            if(m_Scene != null)
+            {
+                GenerateDataStructs();
+                SetColorMap();
+                m_Scene.OnRequestSiteInformation.AddListener(sites => OnSiteInformationRequest(sites));
+                m_Scene.ColumnManager.OnChangeColumnMinimizedState.AddListener(OnChangeColumnMinimizedState);
+                m_Scene.OnChangeColormap.AddListener((t) => SetColorMap());
+            }
+        }
+        void SetColorMap()
+        {
+            m_ColorMap = m_Scene.ColumnManager.BrainColorMapTexture;
+            OnChangeColorMap.Invoke(m_ColorMap);
+        }
+        void SetMinimized()
+        {
+            m_OnChangeMinimized.Invoke(m_Minimized);
         }
         #endregion
     }

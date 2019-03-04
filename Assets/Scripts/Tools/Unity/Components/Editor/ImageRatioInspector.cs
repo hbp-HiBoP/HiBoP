@@ -6,7 +6,7 @@ using UnityEditor;
 namespace Tools.Unity.Components
 {
     [CustomEditor(typeof(ImageRatio))]
-    public class ImageRatioInspector : Editor
+    public class ImageRatioInspector : UnityEditor.Editor
     {
         #region Properties
         SerializedProperty m_TypeProperty;

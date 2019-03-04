@@ -197,6 +197,18 @@ namespace Tools.Unity.Graph
             OnChangeAbscissaDisplayRange.Invoke(m_AbscissaDisplayRange);
             OnChangeOrdinateDisplayRange.Invoke(m_OrdinateDisplayRange);
         }
+
+        private void Update()
+        {
+            if(Input.GetKey(KeyCode.A))
+            {
+                Zoom();
+            }
+            else if(Input.GetKey(KeyCode.E))
+            {
+                Dezoom();
+            }
+        }
         #endregion
     }
 }

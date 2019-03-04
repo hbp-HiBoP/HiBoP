@@ -203,12 +203,12 @@ namespace Tools.Unity.Graph
             }
         }
 
-        [SerializeField] List<CurveGroup> m_Groups = new List<CurveGroup>();
-        public ReadOnlyCollection<CurveGroup> Groups
+        [SerializeField] List<Curve> m_Curves = new List<Curve>();
+        public ReadOnlyCollection<Curve> Curves
         {
             get
             {
-                return new ReadOnlyCollection<CurveGroup>(m_Groups);
+                return new ReadOnlyCollection<Curve>(m_Curves);
             }
         }
 
@@ -304,86 +304,37 @@ namespace Tools.Unity.Graph
                 return m_OnChangeUseDefaultRange;
             }
         }
+
+        [SerializeField] private CurvesEvent m_OnChangeCurves;
+        public CurvesEvent OnChangeCurves
+        {
+            get
+            {
+                return m_OnChangeCurves;
+            }
+        }
         #endregion
         #endregion
 
         #region Public Methods
-        public void SetEnabled(CurveGroupData data, bool enabled)
+        public void SetEnabled(string id, bool enabled)
         {
-            CurveGroup group = new CurveGroup(data, enabled);
-            m_Groups.Add(group);
+            Curve curveFound = FindCurve(id);
+            if (curveFound != null)
+            {
+                curveFound.Enabled = enabled;
+            }
+            SetCurves();
         }
-        public void AddGroup(CurveGroupData data, bool enabled)
+        public void AddCurve(Curve data, bool enabled)
         {
-            CurveGroup group = new CurveGroup(data, enabled);
-            m_Groups.Add(group);
-            SetGroups();
+            m_Curves.Add(data);
+            SetCurves();
         }
-        public void RemoveGroup(CurveGroup group)
-        {      
-            m_Groups.Remove(group);
-            SetGroups();
-        }
-
-        public void Plot(GraphData graph, bool useDefaultLimits = true)
+        public void RemoveCurve(Curve curve)
         {
-            Clear();
-
-            Title = graph.Title;
-            AbscissaLabel = graph.Abscissa;
-            OrdinateLabel = graph.Ordinate;
-            FontColor = graph.FontColor;
-            BackgroundColor = graph.BackgroundColor;
-            //DefaultLimits = graph.Limits;
-            //if (useDefaultLimits) Limits = graph.Limits;
-
-
-            List<string> curveToRemove = new List<string>();
-            List<string> groupToRemove = new List<string>();
-            //foreach (var ID in curveIsActive.Keys)
-            //{
-            //    bool found = false;
-            //    foreach (var group in graph.GroupCurveData)
-            //    {
-            //        foreach (var curve in group.Curves)
-            //        {
-            //            if (curve.ID == ID)
-            //            {
-            //                found = true;
-            //                goto Found;
-            //            }
-            //        }
-            //    }
-            //    Found:
-            //    if (!found) curveToRemove.Add(ID);
-            //}
-            //foreach (var name in groupIsActive.Keys)
-            //{
-            //    if(!graph.GroupCurveData.Any(g => g.Name == name))
-            //    {
-            //        groupToRemove.Add(name);
-            //    }
-            //}
-            //foreach (var curve in curveToRemove) curveIsActive.Remove(curve);
-            //foreach (var group in groupToRemove) groupIsActive.Remove(group);
-
-
-            //foreach (var group in graph.GroupCurveData)
-            //{
-            //    if(!groupIsActive.ContainsKey(group.Name))
-            //    {
-            //        groupIsActive[group.Name] = true;
-            //    }
-            //    foreach (var curve in group.Curves)
-            //    {
-            //        if (!curveIsActive.ContainsKey(curve.ID))
-            //        {
-            //            curveIsActive[curve.ID] = true;
-            //        }
-            //    }
-            //}
-
-            //Plot(graph.GroupCurveData, Limits, false);
+            m_Curves.Remove(curve);
+            SetCurves();
         }
         public string ToSVG()
         {
@@ -416,7 +367,7 @@ namespace Tools.Unity.Graph
             SetBackgroundColor();
             SetOrdinateDisplayRange();
             SetAbscissaDisplayRange();
-            SetGroups();
+            SetCurves();
         }
         void SetTitle()
         {
@@ -463,7 +414,7 @@ namespace Tools.Unity.Graph
         }
         void SetDefaultOrdinateDisplayRange()
         {
-            if(m_UseDefaultDisplayRange)
+            if (m_UseDefaultDisplayRange)
             {
                 OrdinateDisplayRange = m_DefaultOrdinateDisplayRange;
             }
@@ -476,126 +427,40 @@ namespace Tools.Unity.Graph
                 OrdinateDisplayRange = DefaultOrdinateDisplayRange;
             }
         }
-        void SetGroups()
+        void SetCurves()
         {
-            //Debug.Log("SetGroups");
-
+            m_OnChangeCurves.Invoke(m_Curves.ToArray());
+        }
+        Curve FindCurve(string ID)
+        {
+            Curve result = null;
+            foreach (var curve in m_Curves)
+            {
+                result = FindCurve(curve, ID);
+                if (result != null) break;
+            }
+            return result;
+        }
+        Curve FindCurve(Curve curve, string ID)
+        {
+            Curve result = null;
+            if(curve.ID == ID)
+            {
+                result = curve;
+            }
+            else
+            {
+                foreach (var subCurve in curve.SubCurves)
+                {
+                    result = FindCurve(subCurve, ID);
+                    if (result != null) break;
+                }
+            }
+            return result;
         }
         #endregion
 
-        #region Public Structs
-        [Serializable]
-        public class CurveGroup
-        {
-            #region Properties
-            [SerializeField] string m_Name;
-            public string Name
-            {
-                get
-                {
-                    return m_Name;
-                }
-                set
-                {
-                    SetPropertyUtility.SetClass(ref m_Name, value);
-                }
-            }
-
-            [SerializeField] bool m_Enabled;
-            public bool Enabled
-            {
-                get
-                {
-                    return m_Enabled;
-                }
-                set
-                {
-                    if (SetPropertyUtility.SetStruct(ref m_Enabled, value))
-                    {
-                        SetEnabled();
-                    }
-                }
-            }
-
-            [SerializeField] List<Curve> m_Curves = new List<Curve>();
-            public ReadOnlyCollection<Curve> Curves
-            {
-                get
-                {
-                    return new ReadOnlyCollection<Curve>(m_Curves);
-                }
-            }
-
-            #region Event
-            [SerializeField] StringEvent m_OnChangeName = new StringEvent();
-            public StringEvent OnChangeName
-            {
-                get
-                {
-                    return m_OnChangeName;
-                }
-            }
-            
-            [SerializeField] BoolEvent m_OnChangeEnabledValue = new BoolEvent();
-            public BoolEvent OnChangeEnabledValue
-            {
-                get
-                {
-                    return m_OnChangeEnabledValue;
-                }
-            }
-
-            [SerializeField] Curve.CurveEvent m_OnAddCurve = new Curve.CurveEvent();
-            public Curve.CurveEvent OnAddCurve
-            {
-                get
-                {
-                    return m_OnAddCurve;
-                }
-            }
-
-            [SerializeField] Curve.CurveEvent m_OnRemoveCurve = new Curve.CurveEvent();
-            public Curve.CurveEvent OnRemoveCurve
-            {
-                get
-                {
-                    return m_OnRemoveCurve;
-                }
-            }
-            #endregion
-            #endregion
-
-            #region Construtor
-            public CurveGroup(CurveGroupData data, bool enabled)
-            {
-                Name = data.Name;
-                Enabled = enabled;
-                m_Curves = data.Curves.Select(c => new Curve(c,enabled)).ToList();
-            }
-            #endregion
-
-            #region Public Methods
-            public void AddCurve(Curve curve)
-            {
-                m_Curves.Add(curve);
-                m_OnAddCurve.Invoke(curve);
-            }
-            public void RemoveCurve(Curve curve)
-            {
-                if (m_Curves.Remove(curve))
-                {
-                    m_OnRemoveCurve.Invoke(curve);
-                }
-            }
-            #endregion
-
-            #region Private Methods
-            void SetEnabled()
-            {
-                m_OnChangeEnabledValue.Invoke(m_Enabled);
-            }
-            #endregion
-        }
+        #region Public Class
         [Serializable]
         public class Curve
         {
@@ -625,48 +490,117 @@ namespace Tools.Unity.Graph
                 }
                 set
                 {
-                    if(SetPropertyUtility.SetClass(ref m_Data, value))
+                    if (SetPropertyUtility.SetClass(ref m_Data, value))
                     {
                         SetData();
                     }
                 }
             }
 
-            #region Events
-            [SerializeField] BoolEvent m_OnChangeEnabledValue = new BoolEvent();
-            public BoolEvent OnChangeEnabledValue
+            [SerializeField] Color m_DefaultColor;
+            public Color DefaultColor
             {
                 get
                 {
-                    return m_OnChangeEnabledValue;
+                    return m_DefaultColor;
+                }
+            }
+
+            public Color Color
+            {
+                get
+                {
+                    if(m_Data != null)
+                    {
+                        return m_Data.Color;
+                    }
+                    else
+                    {
+                        return m_DefaultColor;
+                    }
+                }
+            }
+
+            [SerializeField] string m_Name;
+            public string Name
+            {
+                get
+                {
+                    return m_Name;
+                }
+                set
+                {
+                    SetPropertyUtility.SetClass(ref m_Name, value);
+                }
+            }
+
+            [SerializeField] string m_ID;
+            public string ID
+            {
+                get
+                {
+                    return m_ID;
+                }
+                set
+                {
+                    SetPropertyUtility.SetClass(ref m_ID, value);
+                }
+            }
+
+            [SerializeField] List<Curve> m_SubCurves;
+            public ReadOnlyCollection<Curve> SubCurves
+            {
+                get
+                {
+                    return new ReadOnlyCollection<Curve>(m_SubCurves);
+                }
+            }
+
+            [SerializeField] BoolEvent m_OnChangeIsActive = new BoolEvent();
+            public BoolEvent OnChangeIsActive
+            {
+                get
+                {
+                    return m_OnChangeIsActive;
                 }
             }
             #endregion
-            #endregion
 
             #region Constructor
-            public Curve(CurveData data, bool enabled)
+            public Curve(string name, CurveData data, bool isActive, string id, Curve[] subCurves)
             {
-                Enabled = enabled;
+                Name = name;
                 Data = data;
+                Enabled = isActive;
+                ID = id;
+                m_SubCurves = subCurves.ToList();
+            }
+            #endregion
+
+            #region Public Methods
+            public void AddSubCurve(Curve curve)
+            {
+                m_SubCurves.Add(curve);
+            }
+            public void RemoveSubCurve(Curve curve)
+            {
+                m_SubCurves.Remove(curve);
             }
             #endregion
 
             #region Private Methods
             void SetEnabled()
             {
-                m_OnChangeEnabledValue.Invoke(m_Enabled);
+                m_OnChangeIsActive.Invoke(m_Enabled);
             }
             void SetData()
             {
 
             }
             #endregion
-
-            #region Event
-            [SerializeField] public class CurveEvent : UnityEvent<Curve> { }
-            #endregion
         }
+        [Serializable] public class CurveEvent : UnityEvent<Curve> { }
+        [Serializable] public class CurvesEvent : UnityEvent<Curve[]> { }
         #endregion
     }
 }

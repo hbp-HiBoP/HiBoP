@@ -42,7 +42,7 @@ namespace Tools.Unity.Graph
             }
         }
 
-        [SerializeField] List<CurveData> m_Curves = new List<CurveData>();
+        [SerializeField] List<CurveData> m_Curves;
         public ReadOnlyCollection<CurveData> Curves
         {
             get
@@ -51,19 +51,24 @@ namespace Tools.Unity.Graph
             }
         }
 
-        [SerializeField] List<Curve> m_DisplayedCurves = new List<Curve>();
+        [SerializeField] List<Curve> m_DisplayedCurves;
         [SerializeField] GameObject m_CurvePrefab;
         [SerializeField] GameObject m_ShapedCurvePrefab;
         #endregion
 
         #region Public Methods
+        public void SetCurves(CurveData[] curveDatas)
+        {
+            m_Curves = new List<CurveData>(curveDatas);
+            SetCurves(false);
+        }
         public void AddCurve(CurveData curveData)
         {
-            AddCurve(curveData, false);
+            SetCurves(false);
         }
         public void RemoveCurve(CurveData curveData)
         {
-            RemoveCurve(curveData, false);
+            SetCurves(false);
         }
         #endregion
 
@@ -91,23 +96,25 @@ namespace Tools.Unity.Graph
                 curve.Data = curveData;
             }
             m_DisplayedCurves.Add(curve);
-            if (!onValidate) m_Curves.Add(curveData);
         }
         void RemoveCurve(CurveData curveData, bool onValidate = false)
         {
             if (!onValidate) m_Curves.Remove(curveData);
-            List<Curve>  curvesToRemove = m_DisplayedCurves.FindAll(c => c.Data = curveData);
+            List<Curve> curvesToRemove = m_DisplayedCurves.FindAll(c => c.Data == curveData);
             foreach (var curveToRemove in curvesToRemove)
             {
-                if (Application.isPlaying || onValidate)
+                m_DisplayedCurves.Remove(curveToRemove);
+                if (Application.isPlaying)
                 {
                     Destroy(curveToRemove.gameObject);
                 }
                 else
                 {
-                    DestroyImmediate(curveToRemove.gameObject);
+                    UnityEditor.EditorApplication.delayCall += () =>
+                    {
+                        DestroyImmediate(curveToRemove.gameObject);
+                    };
                 }
-                m_DisplayedCurves.Remove(curveToRemove);
             }
         }
         void SetAbscissaDisplayRange()
