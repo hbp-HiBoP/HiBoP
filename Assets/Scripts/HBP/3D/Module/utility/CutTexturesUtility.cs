@@ -125,6 +125,21 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
+        /// Draw the sites on the gui texture
+        /// </summary>
+        /// <param name="cuts"></param>
+        /// <param name="rawList"></param>
+        public void DrawSitesOnGUIMRITextures(List<Cut> cuts, RawSiteList rawList)
+        {
+            foreach (Cut cut in cuts)
+            {
+                if (DLLBrainCutTextures[cut.ID].TextureSize[0] > 0)
+                {
+                    DLLGUIBrainCutTextures[cut.ID].DrawSites(cut, rawList, 1, DLLMRITextureCutGenerators[cut.ID]);
+                }
+            }
+        }
+        /// <summary>
         /// Resize the MRI textures for the GUI to squares
         /// </summary>
         /// <param name="cuts">Cuts of these textures</param>
