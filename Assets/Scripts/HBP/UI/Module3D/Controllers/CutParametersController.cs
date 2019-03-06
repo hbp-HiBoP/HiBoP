@@ -233,22 +233,6 @@ namespace HBP.UI.Module3D
 
                 m_Flip.gameObject.SetActive(Cut.Orientation != Data.Enums.CutOrientation.Custom);
                 m_CustomValues.gameObject.SetActive(Cut.Orientation == Data.Enums.CutOrientation.Custom);
-                m_PositionInformation.SetActive(Cut.Orientation != Data.Enums.CutOrientation.Custom);
-                switch (Cut.Orientation)
-                {
-                    case Data.Enums.CutOrientation.Axial:
-                        m_PositionTitle.text = "Z";
-                        m_PositionValue.text = Mathf.RoundToInt(Cut.Point.z).ToString();
-                        break;
-                    case Data.Enums.CutOrientation.Coronal:
-                        m_PositionTitle.text = "Y";
-                        m_PositionValue.text = Mathf.RoundToInt(Cut.Point.y).ToString();
-                        break;
-                    case Data.Enums.CutOrientation.Sagital:
-                        m_PositionTitle.text = "X";
-                        m_PositionValue.text = Mathf.RoundToInt(Cut.Point.x).ToString();
-                        break;
-                }
             }
             else
             {
@@ -257,6 +241,22 @@ namespace HBP.UI.Module3D
                 m_Position.transform.parent.gameObject.SetActive(false);
                 m_Flip.gameObject.SetActive(false);
                 m_CustomValues.gameObject.SetActive(false);
+            }
+            m_PositionInformation.SetActive(Cut.Orientation != Data.Enums.CutOrientation.Custom);
+            switch (Cut.Orientation)
+            {
+                case Data.Enums.CutOrientation.Axial:
+                    m_PositionTitle.text = "Z";
+                    m_PositionValue.text = Mathf.RoundToInt(Cut.Point.z).ToString();
+                    break;
+                case Data.Enums.CutOrientation.Coronal:
+                    m_PositionTitle.text = "Y";
+                    m_PositionValue.text = Mathf.RoundToInt(Cut.Point.y).ToString();
+                    break;
+                case Data.Enums.CutOrientation.Sagital:
+                    m_PositionTitle.text = "X";
+                    m_PositionValue.text = Mathf.RoundToInt(Cut.Point.x).ToString();
+                    break;
             }
             m_IsUIUpdating = false;
         }

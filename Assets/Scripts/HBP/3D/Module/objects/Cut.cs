@@ -29,6 +29,10 @@ namespace HBP.Module3D
         /// Position of the cut
         /// </summary>
         public float Position { get; set; }
+        /// <summary>
+        /// True if the cut has been modified recently
+        /// </summary>
+        public bool HasBeenModified { get; set; } = true;
         #endregion
 
         #region Events

@@ -759,6 +759,7 @@ namespace HBP.Module3D
             if (column)
             {
                 column.CutTextures.CreateGUIMRITextures(Cuts);
+                column.CutTextures.DrawSitesOnGUIMRITextures(Cuts, m_ColumnManager.SelectedImplantation.RawSiteList);
                 column.CutTextures.ResizeGUIMRITextures(Cuts);
                 foreach (Cut cut in Cuts)
                 {
@@ -1053,7 +1054,11 @@ namespace HBP.Module3D
 
             foreach (var cut in Cuts)
             {
-                cut.OnUpdateCut.Invoke();
+                if (cut.HasBeenModified)
+                {
+                    cut.OnUpdateCut.Invoke();
+                    cut.HasBeenModified = false;
+                }
             }
             SceneInformation.CutsNeedUpdate = false;
         }
@@ -1485,6 +1490,8 @@ namespace HBP.Module3D
 
             // update cameras cuts display
             OnModifyPlanesCuts.Invoke();
+
+            cut.HasBeenModified = true;
         }
         /// <summary>
         /// Update the values of all the cut planes

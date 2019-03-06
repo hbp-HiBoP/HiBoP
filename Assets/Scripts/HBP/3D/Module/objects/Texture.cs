@@ -259,11 +259,12 @@ namespace HBP.Module3D
             public void DrawSites(Cut cut, RawSiteList rawList, float precision, MRITextureCutGenerator generator)
             {
                 float[] plane = new float[6];
-                for (int i = 0; i < 3; ++i)
-                {
-                    plane[i] = cut.Point[i];
-                    plane[i + 3] = cut.Normal[i];
-                }
+                plane[0] = cut.Point.x;
+                plane[1] = cut.Point.y;
+                plane[2] = cut.Point.z;
+                plane[3] = cut.Normal.x;
+                plane[4] = cut.Normal.y;
+                plane[5] = cut.Normal.z;
                 draw_sites_Texture(_handle, plane, rawList.getHandle(), precision, generator.getHandle());
             }
             /// <summary>
