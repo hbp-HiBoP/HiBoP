@@ -86,6 +86,12 @@ namespace HBP.UI.Module3D
         /// Prefab for the sites
         /// </summary>
         [SerializeField] private GameObject m_SitePrefab;
+
+        [SerializeField] private RectTransform m_CutLinesRectTransform;
+        /// <summary>
+        /// Prefab for the cut lines
+        /// </summary>
+        [SerializeField] private GameObject m_CutLinePrefab;
         #endregion
 
         #region Events
@@ -133,6 +139,7 @@ namespace HBP.UI.Module3D
             {
                 UpdateUI();
                 ShowSites();
+                DrawLines();
             });
             Cut.OnRemoveCut.AddListener(() =>
             {
@@ -379,6 +386,70 @@ namespace HBP.UI.Module3D
                     }
                     CutSite cutSite = Instantiate(m_SitePrefab, m_SitesRectTransform).GetComponent<CutSite>();
                     cutSite.Initialize(m_Scene, site, new Vector2(horizontalRatio, verticalRatio));
+                }
+            }
+        }
+        public void DrawLines()
+        {
+            foreach (Transform child in m_CutLinesRectTransform) Destroy(child.gameObject);
+            if (Cut.Orientation == Data.Enums.CutOrientation.Custom || !ApplicationState.UserPreferences.Visualization.Cut.ShowCutLines) return;
+
+            HBP.Module3D.DLL.BBox boundingBox = m_Scene.ColumnManager.CubeBoundingBox;
+            if (boundingBox != null)
+            {
+                List<Vector3> intersections = boundingBox.IntersectionPointsWithPlane(Cut);
+                float xMax = float.MinValue, yMax = float.MinValue, zMax = float.MinValue;
+                float xMin = float.MaxValue, yMin = float.MaxValue, zMin = float.MaxValue;
+                foreach (var point in intersections)
+                {
+                    if (point.x > xMax) xMax = point.x;
+                    if (point.y > yMax) yMax = point.y;
+                    if (point.z > zMax) zMax = point.z;
+                    if (point.x < xMin) xMin = point.x;
+                    if (point.y < yMin) yMin = point.y;
+                    if (point.z < zMin) zMin = point.z;
+                }
+                float xRange = xMax - xMin;
+                float yRange = yMax - yMin;
+                float zRange = zMax - zMin;
+
+                foreach (var cut in m_Scene.Cuts)
+                {
+                    if (cut == Cut) continue;
+
+                    List<Vector3> points = boundingBox.IntersectionPointsWithPlane(cut);
+                    List<Vector2> linePoints = new List<Vector2>();
+                    foreach (var point in points)
+                    {
+                        float horizontalRatio = 0, verticalRatio = 0;
+                        switch (Cut.Orientation)
+                        {
+                            case Data.Enums.CutOrientation.Axial:
+                                horizontalRatio = 1 - ((-point.x - xMin) / xRange);
+                                verticalRatio = (point.y - yMin) / yRange;
+                                break;
+                            case Data.Enums.CutOrientation.Coronal:
+                                horizontalRatio = 1 - ((-point.x - xMin) / xRange);
+                                verticalRatio = (point.z - zMin) / zRange;
+                                break;
+                            case Data.Enums.CutOrientation.Sagital:
+                                horizontalRatio = (point.y - yMin) / yRange;
+                                verticalRatio = (point.z - zMin) / zRange;
+                                break;
+                        }
+                        if (Cut.Flip)
+                        {
+                            horizontalRatio = 1 - horizontalRatio;
+                        }
+                        linePoints.Add(new Vector2(horizontalRatio, verticalRatio));
+                    }
+                    UnityEngine.UI.Extensions.UILineRenderer lineRenderer = Instantiate(m_CutLinePrefab, m_CutLinesRectTransform).GetComponent<UnityEngine.UI.Extensions.UILineRenderer>();
+                    RectTransform lineRectTransform = lineRenderer.GetComponent<RectTransform>();
+                    lineRectTransform.anchorMin = Vector2.zero;
+                    lineRectTransform.anchorMax = Vector2.one;
+                    lineRectTransform.anchoredPosition = Vector2.zero;
+                    lineRectTransform.sizeDelta = Vector2.zero;
+                    lineRenderer.Points = linePoints.ToArray();
                 }
             }
         }

@@ -681,6 +681,10 @@ namespace HBP.Module3D
             {
                 IsSelected = selected;
                 ComputeGUITextures();
+                foreach (var cut in Cuts)
+                {
+                    cut.OnUpdateCut.Invoke();
+                }
             });
             m_ColumnManager.OnSelectSite.AddListener(ClickOnSiteCallback);
             m_ColumnManager.OnChangeSiteState.AddListener((site) =>
