@@ -19,6 +19,11 @@ namespace HBP.UI.Module3D
         public bool AreControlsOpen { get; set; }
         public Texture2D Texture { get { return m_Image.sprite.texture; } }
 
+        private bool m_ClickedOnMinus = false;
+        private bool m_ClickedOnPlus = false;
+        private float m_TimeSinceLastUpdate = 0.0f;
+        private float m_TimeBetweenTwoUpdates = 0.2f;
+
         /// <summary>
         /// Image of the cut
         /// </summary>
@@ -89,6 +94,31 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
+        private void Update()
+        {
+            if (!Input.GetMouseButton(0))
+            {
+                m_ClickedOnMinus = false;
+                m_ClickedOnPlus = false;
+            }
+            else if (m_ClickedOnPlus || m_ClickedOnMinus)
+            {
+                m_TimeSinceLastUpdate += Time.deltaTime;
+                if (m_TimeSinceLastUpdate > m_TimeBetweenTwoUpdates)
+                {
+                    m_TimeSinceLastUpdate = 0;
+                    if (m_ClickedOnPlus)
+                    {
+                        m_Position.value += 1.0f / Cut.NumberOfCuts;
+                    }
+                    else if (m_ClickedOnMinus)
+                    {
+                        m_Position.value -= 1.0f / Cut.NumberOfCuts;
+                    }
+                }
+            }
+            
+        }
         private void AddListeners()
         {
             Cut.OnUpdateGUITextures.AddListener((column) =>
@@ -121,12 +151,14 @@ namespace HBP.UI.Module3D
                 if (m_IsUIUpdating) return;
 
                 m_Position.value -= 1.0f / Cut.NumberOfCuts;
+                m_ClickedOnMinus = true;
             });
             m_PlusPosition.onClick.AddListener(() =>
             {
                 if (m_IsUIUpdating) return;
 
                 m_Position.value += 1.0f / Cut.NumberOfCuts;
+                m_ClickedOnPlus = true;
             });
             m_Orientation.onValueChanged.AddListener((value) =>
             {
@@ -303,11 +335,11 @@ namespace HBP.UI.Module3D
                     sites.Add(site);
                 }
             }
-
-            HBP.Module3D.DLL.BBox cube = m_Scene.ColumnManager.CubeBoundingBox;
-            if (cube != null)
+            
+            HBP.Module3D.DLL.BBox boundingBox = m_Scene.ColumnManager.CubeBoundingBox;
+            if (boundingBox != null)
             {
-                List<Vector3> intersections = cube.IntersectionPointsWithPlane(Cut);
+                List<Vector3> intersections = boundingBox.IntersectionPointsWithPlane(Cut);
                 float xMax = float.MinValue, yMax = float.MinValue, zMax = float.MinValue;
                 float xMin = float.MaxValue, yMin = float.MaxValue, zMin = float.MaxValue;
                 foreach (var point in intersections)

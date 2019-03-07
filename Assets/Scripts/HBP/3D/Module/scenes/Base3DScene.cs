@@ -759,8 +759,8 @@ namespace HBP.Module3D
             if (column)
             {
                 column.CutTextures.CreateGUIMRITextures(Cuts);
-                column.CutTextures.DrawSitesOnGUIMRITextures(Cuts, m_ColumnManager.SelectedImplantation.RawSiteList);
                 column.CutTextures.ResizeGUIMRITextures(Cuts);
+                column.CutTextures.UpdateTextures2D();
                 foreach (Cut cut in Cuts)
                 {
                     cut.OnUpdateGUITextures.Invoke(column);

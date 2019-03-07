@@ -129,13 +129,13 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="cuts"></param>
         /// <param name="rawList"></param>
-        public void DrawSitesOnGUIMRITextures(List<Cut> cuts, RawSiteList rawList)
+        public void DrawSitesOnMRITextures(List<Cut> cuts, RawSiteList rawList)
         {
             foreach (Cut cut in cuts)
             {
                 if (DLLBrainCutTextures[cut.ID].TextureSize[0] > 0)
                 {
-                    DLLGUIBrainCutTextures[cut.ID].DrawSites(cut, rawList, 1, DLLMRITextureCutGenerators[cut.ID]);
+                    DLLBrainCutTextures[cut.ID].DrawSites(cut, rawList, 1, DLLMRITextureCutGenerators[cut.ID]);
                 }
             }
         }
@@ -160,6 +160,15 @@ namespace HBP.Module3D
             for (int i = 0; i < DLLGUIBrainCutTextures.Count; ++i)
             {
                 DLLGUIBrainCutTextures[i].ResizeToSquare(max);
+            }
+        }
+        /// <summary>
+        /// Update the Unity Textures from DLL textures
+        /// </summary>
+        public void UpdateTextures2D()
+        {
+            for (int i = 0; i < DLLGUIBrainCutTextures.Count; ++i)
+            {
                 DLLGUIBrainCutTextures[i].UpdateTexture2D(GUIBrainCutTextures[i]);
             }
         }
