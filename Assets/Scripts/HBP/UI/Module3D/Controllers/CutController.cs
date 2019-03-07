@@ -90,7 +90,7 @@ namespace HBP.UI.Module3D
             CutParametersController controller = Instantiate(m_CutControlPrefab, m_Content).GetComponent<CutParametersController>();
             controller.Initialize(m_Scene, cut);
             m_CutParametersControllers.Add(controller);
-            cut.OnUpdateCut.AddListener(() =>
+            m_Scene.OnUpdateCuts.AddListener(() =>
             {
                 if (m_CutParametersControllers.All(c => !c.AreControlsOpen))
                 {

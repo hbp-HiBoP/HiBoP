@@ -135,7 +135,7 @@ namespace HBP.UI.Module3D
                 m_Image.sprite.texture.filterMode = FilterMode.Trilinear;
                 m_Image.sprite.texture.anisoLevel = 9;
             });
-            Cut.OnUpdateCut.AddListener(() =>
+            m_Scene.OnUpdateCuts.AddListener(() =>
             {
                 UpdateUI();
                 ShowSites();

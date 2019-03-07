@@ -29,10 +29,6 @@ namespace HBP.Module3D
         /// Position of the cut
         /// </summary>
         public float Position { get; set; }
-        /// <summary>
-        /// True if the cut has been modified recently
-        /// </summary>
-        public bool HasBeenModified { get; set; } = true;
         #endregion
 
         #region Events
@@ -40,10 +36,6 @@ namespace HBP.Module3D
         /// Event called when the GUI textures are computed
         /// </summary>
         public GenericEvent<Column3D> OnUpdateGUITextures = new GenericEvent<Column3D>();
-        /// <summary>
-        /// Event called when the parameters of a cut are updated
-        /// </summary>
-        public UnityEvent OnUpdateCut = new UnityEvent();
         /// <summary>
         /// Event called when a cut is removed
         /// </summary>

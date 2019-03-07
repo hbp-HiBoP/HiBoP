@@ -549,6 +549,10 @@ namespace HBP.Module3D
         /// </summary>
         [HideInInspector] public GenericEvent<Cut> OnAddCut = new GenericEvent<Cut>();
         /// <summary>
+        /// Event called when cuts are updated
+        /// </summary>
+        [HideInInspector] public UnityEvent OnUpdateCuts = new UnityEvent();
+        /// <summary>
         /// Event called when updating the sites rendering
         /// </summary>
         [HideInInspector] public UnityEvent OnSitesRenderingUpdated = new UnityEvent();
@@ -681,10 +685,7 @@ namespace HBP.Module3D
             {
                 IsSelected = selected;
                 ComputeGUITextures();
-                foreach (var cut in Cuts)
-                {
-                    cut.OnUpdateCut.Invoke();
-                }
+                OnUpdateCuts.Invoke();
             });
             m_ColumnManager.OnSelectSite.AddListener(ClickOnSiteCallback);
             m_ColumnManager.OnChangeSiteState.AddListener((site) =>
@@ -1056,14 +1057,7 @@ namespace HBP.Module3D
             ComputeMRITextures();
             ComputeGUITextures();
 
-            foreach (var cut in Cuts)
-            {
-                if (cut.HasBeenModified)
-                {
-                    cut.OnUpdateCut.Invoke();
-                    cut.HasBeenModified = false;
-                }
-            }
+            OnUpdateCuts.Invoke();
             SceneInformation.CutsNeedUpdate = false;
         }
         /// <summary>
@@ -1494,8 +1488,6 @@ namespace HBP.Module3D
 
             // update cameras cuts display
             OnModifyPlanesCuts.Invoke();
-
-            cut.HasBeenModified = true;
         }
         /// <summary>
         /// Update the values of all the cut planes
