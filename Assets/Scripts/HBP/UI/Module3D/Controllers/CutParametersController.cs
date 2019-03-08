@@ -415,9 +415,9 @@ namespace HBP.UI.Module3D
 
                 foreach (var cut in m_Scene.Cuts)
                 {
-                    if (cut == Cut) continue;
+                    if (cut == Cut || cut.Orientation == Data.Enums.CutOrientation.Custom) continue;
 
-                    List<Vector3> points = boundingBox.IntersectionPointsWithPlane(cut);
+                    List<Vector3> points = boundingBox.IntersectionSegmentBetweenTwoPlanes(Cut, cut);
                     List<Vector2> linePoints = new List<Vector2>();
                     foreach (var point in points)
                     {

@@ -163,6 +163,23 @@ namespace HBP.Module3D.DLL
 
             return intersecLines;
         }
+
+        public List<Vector3> IntersectionSegmentBetweenTwoPlanes(Plane planeA, Plane planeB)
+        {
+            float[] result = new float[6];
+            bool isOk = find_intersection_segment_BBox(_handle, planeA.ConvertToArray(), planeB.ConvertToArray(), result);
+            if (!isOk)
+            {
+                return new List<Vector3>();
+            }
+            else
+            {
+                List<Vector3> intersectionSegment = new List<Vector3>();
+                intersectionSegment.Add(new Vector3(result[0], result[1], result[2]));
+                intersectionSegment.Add(new Vector3(result[3], result[4], result[5]));
+                return intersectionSegment;
+            }
+        }
         #endregion
 
         #region Memory Management
@@ -224,6 +241,9 @@ namespace HBP.Module3D.DLL
 
         [DllImport("hbp_export", EntryPoint = "getLinesIntersectionsWithPlane_BBox", CallingConvention = CallingConvention.Cdecl)]
         static private extern void getLinesIntersectionsWithPlane_BBox(HandleRef handleBBox, float[] plane, float[] interPoints);
+
+        [DllImport("hbp_export", EntryPoint = "find_intersection_segment_BBox", CallingConvention = CallingConvention.Cdecl)]
+        static private extern bool find_intersection_segment_BBox(HandleRef handleBBox, float[] planeA, float[] planeB, float[] interPoints);
 
         [DllImport("hbp_export", EntryPoint = "getCenter_BBox", CallingConvention = CallingConvention.Cdecl)]
         static private extern void getCenter_BBox(HandleRef handleBBox, float[] center);
