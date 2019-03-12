@@ -14,7 +14,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Generate UV for brain volume
         /// </summary>
-        public class MRIVolumeGenerator : CppDLLImportBase, ICloneable
+        public class MRIVolumeGenerator : Tools.DLL.CppDLLImportBase, ICloneable
         {
             #region Properties
             /// <summary>

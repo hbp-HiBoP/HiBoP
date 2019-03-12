@@ -10,7 +10,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace HBP.Module3D.DLL
+namespace Tools.DLL
 {
     /// <summary>
     /// Base class for creating C++ Dll import classes
@@ -30,6 +30,9 @@ namespace HBP.Module3D.DLL
         /// </summary>
         public CppDLLImportBase()
         {
+#if UNITY_EDITOR
+            ApplicationState.DLLDebugManager.AddDLLObject(ToString(), GetHashCode());
+#endif
             create_DLL_class();
         }
         /// <summary>
@@ -38,6 +41,9 @@ namespace HBP.Module3D.DLL
         /// <param name="ptr"></param>
         public CppDLLImportBase(IntPtr ptr)
         {
+#if UNITY_EDITOR
+            ApplicationState.DLLDebugManager.AddDLLObject(ToString(), GetHashCode());
+#endif
             _handle = new HandleRef(this, ptr);
         }
         /// <summary>
@@ -45,6 +51,9 @@ namespace HBP.Module3D.DLL
         /// </summary>
         ~CppDLLImportBase()
         {
+#if UNITY_EDITOR
+            ApplicationState.DLLDebugManager.RemoveDLLOBject(ToString(), GetHashCode(), HBP.Module3D.DLL.DLLDebugManager.CleanedBy.GC);
+#endif
             Cleanup();
         }
         /// <summary>
@@ -60,6 +69,9 @@ namespace HBP.Module3D.DLL
         /// </summary>
         public virtual void Dispose()
         {
+#if UNITY_EDITOR
+            ApplicationState.DLLDebugManager.RemoveDLLOBject(ToString(), GetHashCode(), HBP.Module3D.DLL.DLLDebugManager.CleanedBy.Dispose);
+#endif
             Cleanup();
             GC.SuppressFinalize(this);
         }

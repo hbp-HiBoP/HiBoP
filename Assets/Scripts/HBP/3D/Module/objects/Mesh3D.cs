@@ -11,7 +11,7 @@ namespace HBP.Module3D
         #region Properties
         public string Name { get; set; }
 
-        protected DLL.Surface m_Both = new DLL.Surface();
+        protected DLL.Surface m_Both;
         public DLL.Surface Both
         {
             get
@@ -58,6 +58,7 @@ namespace HBP.Module3D
             }
         }
         protected bool m_IsLoading = false;
+        public bool HasBeenLoadedOutside { get; protected set; }
 
         protected Data.Anatomy.Mesh m_Mesh;
         #endregion
@@ -71,6 +72,7 @@ namespace HBP.Module3D
             {
                 Load();
             }
+            HasBeenLoadedOutside = false;
         }
         public Mesh3D() { }
         #endregion
@@ -82,6 +84,15 @@ namespace HBP.Module3D
         }
         public abstract object Clone();
         public abstract void Load();
+        public virtual void Clean()
+        {
+            m_Both?.Dispose();
+            m_SimplifiedBoth?.Dispose();
+            foreach (var mesh in SplittedMeshes)
+            {
+                mesh?.Dispose();
+            }
+        }
         #endregion
     }
 
@@ -95,11 +106,14 @@ namespace HBP.Module3D
         #region Public Methods
         public override object Clone()
         {
-            SingleMesh3D mesh = new SingleMesh3D();
-            mesh.Name = Name;
-            mesh.Both = Both;
-            mesh.SimplifiedBoth = SimplifiedBoth;
-            mesh.m_Mesh = m_Mesh;
+            SingleMesh3D mesh = new SingleMesh3D
+            {
+                Name = Name,
+                Both = Both,
+                SimplifiedBoth = SimplifiedBoth,
+                m_Mesh = m_Mesh,
+                HasBeenLoadedOutside = HasBeenLoadedOutside
+            };
             return mesh;
         }
         public override void Load()
@@ -122,7 +136,7 @@ namespace HBP.Module3D
     public class LeftRightMesh3D : Mesh3D
     {
         #region Properties
-        protected DLL.Surface m_Left = new DLL.Surface();
+        protected DLL.Surface m_Left;
         public DLL.Surface Left
         {
             get
@@ -137,7 +151,7 @@ namespace HBP.Module3D
             }
         }
 
-        protected DLL.Surface m_Right = new DLL.Surface();
+        protected DLL.Surface m_Right;
         public DLL.Surface Right
         {
             get
@@ -194,6 +208,7 @@ namespace HBP.Module3D
             SimplifiedLeft = left.Simplify();
             SimplifiedRight = right.Simplify();
             SimplifiedBoth = both.Simplify();
+            HasBeenLoadedOutside = true;
         }
         public LeftRightMesh3D() { }
         #endregion
@@ -201,15 +216,18 @@ namespace HBP.Module3D
         #region Public Methods
         public override object Clone()
         {
-            LeftRightMesh3D mesh = new LeftRightMesh3D();
-            mesh.Name = Name;
-            mesh.Both = Both;
-            mesh.SimplifiedBoth = SimplifiedBoth;
-            mesh.Left = Left;
-            mesh.Right = Right;
-            mesh.SimplifiedLeft = SimplifiedLeft;
-            mesh.SimplifiedRight = SimplifiedRight;
-            mesh.m_Mesh = m_Mesh;
+            LeftRightMesh3D mesh = new LeftRightMesh3D
+            {
+                Name = Name,
+                Both = Both,
+                SimplifiedBoth = SimplifiedBoth,
+                Left = Left,
+                Right = Right,
+                SimplifiedLeft = SimplifiedLeft,
+                SimplifiedRight = SimplifiedRight,
+                m_Mesh = m_Mesh,
+                HasBeenLoadedOutside = HasBeenLoadedOutside
+            };
             return mesh;
         }
         public override void Load()
@@ -239,6 +257,14 @@ namespace HBP.Module3D
                 SimplifiedBoth = m_Both.Simplify();
             }
             m_IsLoading = false;
+        }
+        public override void Clean()
+        {
+            base.Clean();
+            m_Left?.Dispose();
+            m_Right?.Dispose();
+            m_SimplifiedLeft?.Dispose();
+            m_SimplifiedRight?.Dispose();
         }
         #endregion
     }

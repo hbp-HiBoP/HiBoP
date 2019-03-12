@@ -19,7 +19,7 @@ namespace HBP.Module3D.DLL
     /// <summary>
     /// A DLL bounding box class
     /// </summary>
-    public class BBox : CppDLLImportBase
+    public class BBox : Tools.DLL.CppDLLImportBase
     {
         #region Properties
         /// <summary>
@@ -267,7 +267,7 @@ namespace HBP.Module3D.DLL
     /// <summary>
     /// A DLL volume class converted from NII files
     /// </summary>
-    public class Volume : CppDLLImportBase
+    public class Volume : Tools.DLL.CppDLLImportBase
     {
         #region Properties
         /// <summary>

@@ -178,7 +178,7 @@ namespace HBP.Module3D
         /// <summary>
         /// A DLL texture, based on opencv. 
         /// </summary>
-        public class Texture : CppDLLImportBase, ICloneable
+        public class Texture : Tools.DLL.CppDLLImportBase, ICloneable
         {
             #region Properties
             private bool m_IsPinned = false;

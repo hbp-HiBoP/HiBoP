@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Elan
 {
-    public class ElanFile : Tools.CppDLLImportBase
+    public class ElanFile : Tools.DLL.CppDLLImportBase
     {
         #region Properties
         const int COMMENT_SIZE = 512;
@@ -292,11 +292,11 @@ namespace Elan
         #endregion
 
         #region Memory Management
-        protected override void createDLLClass()
+        protected override void create_DLL_class()
         {
             _handle = new HandleRef(this, CreateElanStruct());
         }
-        protected override void deleteDLLClass()
+        protected override void delete_DLL_class()
         {
             DeleteElanStruct(_handle, dataArrayAllocated);
         }

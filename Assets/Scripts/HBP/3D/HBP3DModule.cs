@@ -195,6 +195,7 @@ namespace HBP.Module3D
         }
         void OnDestroy()
         {
+            MarsAtlasIndex?.Dispose();
             ApplicationState.DLLDebugManager.clean();
         }
         #endregion

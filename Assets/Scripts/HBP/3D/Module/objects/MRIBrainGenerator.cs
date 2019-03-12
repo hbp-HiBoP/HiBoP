@@ -23,7 +23,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Generate UV for brain surfaces
         /// </summary>
-        public class MRIBrainGenerator : CppDLLImportBase, ICloneable
+        public class MRIBrainGenerator : Tools.DLL.CppDLLImportBase, ICloneable
         {
             #region Properties
             private Vector2[] m_UVAmplitudesV = new Vector2[0];

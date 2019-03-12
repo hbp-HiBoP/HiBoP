@@ -623,6 +623,12 @@ namespace HBP.Module3D
                 SceneInformation.IsSceneCompletelyLoaded = true;
             }
         }
+        private void OnDestroy()
+        {
+            SceneInformation.MeshToDisplay?.Dispose();
+            SceneInformation.SimplifiedMeshToUse?.Dispose();
+            m_TriEraser.Clean();
+        }
         /// <summary>
         /// Add every listeners required for the scene
         /// </summary>
@@ -859,15 +865,15 @@ namespace HBP.Module3D
         {
             if (m_ColumnManager.MeshSplitNumber == nbSplits) return;
 
-            m_ColumnManager.MeshSplitNumber = nbSplits;
+            m_ColumnManager.ResetSplitsNumber(nbSplits);
 
             if (m_DisplayedObjects.BrainSurfaceMeshes.Count > 0)
                 for (int ii = 0; ii < m_DisplayedObjects.BrainSurfaceMeshes.Count; ++ii)
                     Destroy(m_DisplayedObjects.BrainSurfaceMeshes[ii]);
 
             // reset meshes
-            m_DisplayedObjects.BrainSurfaceMeshes = new List<GameObject>(m_ColumnManager.MeshSplitNumber);
-            for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
+            m_DisplayedObjects.BrainSurfaceMeshes = new List<GameObject>(nbSplits);
+            for (int ii = 0; ii < nbSplits; ++ii)
             {
                 m_DisplayedObjects.BrainSurfaceMeshes.Add(Instantiate(m_BrainPrefab));
                 m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.BrainMaterials[this];
@@ -886,8 +892,6 @@ namespace HBP.Module3D
             m_DisplayedObjects.SimplifiedBrain.layer = LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
             m_DisplayedObjects.SimplifiedBrain.AddComponent<MeshCollider>();
             m_DisplayedObjects.SimplifiedBrain.SetActive(true);
-
-            m_ColumnManager.ResetSplitsNumber(nbSplits);
         }
         /// <summary>
         /// Compute the cuts of the regular meshes
@@ -1181,7 +1185,7 @@ namespace HBP.Module3D
                 column.IsRenderingUpToDate = false;
             }
 
-            OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
+            OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.Center);
         }
         /// <summary>
         /// Set the MRI to be used
@@ -1342,7 +1346,7 @@ namespace HBP.Module3D
                 SceneInformation.MeshToDisplay = m_ColumnManager.SelectedMesh.Both;
             }
             // get the middle
-            SceneInformation.MeshCenter = SceneInformation.MeshToDisplay.BoundingBox.Center;
+            SceneInformation.MeshCenter = SceneInformation.MeshToDisplay.Center;
 
             UpdateAllCutPlanes();
         }
@@ -2186,7 +2190,7 @@ namespace HBP.Module3D
 
             // Finalization
             m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent);
-            OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
+            OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.Center);
             outPut(exception);
         }
         /// <summary>

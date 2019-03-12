@@ -66,6 +66,14 @@ namespace HBP.Module3D
                 AreLatenciesLoaded = true;
             }
         }
+        /// <summary>
+        /// Clean the implantation
+        /// </summary>
+        public void Clean()
+        {
+            PatientElectrodesList?.Dispose();
+            RawSiteList?.Dispose();
+        }
         #endregion
     }
 }

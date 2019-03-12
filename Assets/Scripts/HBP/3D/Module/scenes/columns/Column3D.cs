@@ -148,7 +148,7 @@ namespace HBP.Module3D
         /// </summary>
         public int SelectedPatientID { get { return SelectedSite != null ? SelectedSite.Information.PatientNumber : -1; } }
 
-        protected RawSiteList m_RawElectrodes = new RawSiteList();
+        protected RawSiteList m_RawElectrodes;
         /// <summary>
         /// Raw site list
         /// </summary>
@@ -249,11 +249,11 @@ namespace HBP.Module3D
         /// <summary>
         /// Volume generator for cut textures
         /// </summary>
-        public MRIVolumeGenerator DLLMRIVolumeGenerator = new MRIVolumeGenerator();
+        public MRIVolumeGenerator DLLMRIVolumeGenerator;
         /// <summary>
         /// Cut Textures Utility
         /// </summary>
-        public CutTexturesUtility CutTextures { get; } = new CutTexturesUtility();
+        public CutTexturesUtility CutTextures { get; private set; }
 
         /// <summary>
         /// Is a source defined ?
@@ -308,6 +308,16 @@ namespace HBP.Module3D
         [HideInInspector] public UnityEvent OnChangeCCEPParameters = new UnityEvent();
         #endregion
 
+        #region Private Methods
+        private void OnDestroy()
+        {
+            m_RawElectrodes?.Dispose();
+            foreach (var dllBrainTextureGenerator in DLLBrainTextureGenerators) dllBrainTextureGenerator?.Dispose();
+            DLLMRIVolumeGenerator?.Dispose();
+            CutTextures.Clean();
+        }
+        #endregion
+
         #region Public Methods
         /// <summary>
         /// Initialize the column
@@ -320,6 +330,9 @@ namespace HBP.Module3D
         {
             Layer = "Column" + idColumn;
             ColumnData = baseColumn;
+            CutTextures = new CutTexturesUtility();
+            DLLMRIVolumeGenerator = new MRIVolumeGenerator();
+            m_RawElectrodes = new RawSiteList();
             m_SelectRing.SetLayer(Layer);
             UpdateSites(sites, sitesPatientParent, siteList);
             AddView();

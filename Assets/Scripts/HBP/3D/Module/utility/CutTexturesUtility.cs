@@ -48,8 +48,6 @@ namespace HBP.Module3D
         #region Constructors
         public CutTexturesUtility(int size = 0)
         {
-            DLLCutColorScheme = new DLL.Texture();
-            DLLCutFMRIColorScheme = new DLL.Texture();
             Resize(size);
         }
         #endregion
@@ -76,7 +74,9 @@ namespace HBP.Module3D
                 BrainCutTextures.RemoveAt(BrainCutTextures.Count - 1);
                 Object.Destroy(GUIBrainCutTextures[GUIBrainCutTextures.Count - 1]);
                 GUIBrainCutTextures.RemoveAt(GUIBrainCutTextures.Count - 1);
+                DLLBrainCutTextures[DLLBrainCutTextures.Count - 1].Dispose();
                 DLLBrainCutTextures.RemoveAt(DLLBrainCutTextures.Count - 1);
+                DLLGUIBrainCutTextures[DLLGUIBrainCutTextures.Count - 1].Dispose();
                 DLLGUIBrainCutTextures.RemoveAt(DLLGUIBrainCutTextures.Count - 1);
                 DLLMRITextureCutGenerators[DLLMRITextureCutGenerators.Count - 1].Dispose();
                 DLLMRITextureCutGenerators.RemoveAt(DLLMRITextureCutGenerators.Count - 1);
@@ -219,16 +219,32 @@ namespace HBP.Module3D
         /// <param name="colorBrainCut">Cut color to be used</param>
         public void ResetColorSchemes(Data.Enums.ColorType colormap, Data.Enums.ColorType colorBrainCut)
         {
+            DLLCutColorScheme?.Dispose();
             DLLCutColorScheme = DLL.Texture.Generate2DColorTexture(colorBrainCut, colormap);
+            DLLCutFMRIColorScheme?.Dispose();
             DLLCutFMRIColorScheme = DLL.Texture.Generate2DColorTexture(colorBrainCut, colormap);
         }
-
-        internal void SetMRIVolumeGenerator(MRIVolumeGenerator dllMRIVolumeGenerator)
+        /// <summary>
+        /// Set the DLL MRI Volume Generator
+        /// </summary>
+        /// <param name="dllMRIVolumeGenerator"></param>
+        public void SetMRIVolumeGenerator(MRIVolumeGenerator dllMRIVolumeGenerator)
         {
             foreach (var dllMRITextureCutGenerator in DLLMRITextureCutGenerators)
             {
                 dllMRITextureCutGenerator.SetMRIVolumeGenerator(dllMRIVolumeGenerator);
             }
+        }
+        /// <summary>
+        /// Clean the Cut Textures Utility class
+        /// </summary>
+        public void Clean()
+        {
+            foreach (var dllMRITextureCutGenerator in DLLMRITextureCutGenerators) dllMRITextureCutGenerator?.Dispose();
+            DLLCutColorScheme?.Dispose();
+            DLLCutFMRIColorScheme?.Dispose();
+            foreach (var texture in DLLBrainCutTextures) texture?.Dispose();
+            foreach (var texture in DLLGUIBrainCutTextures) texture?.Dispose();
         }
         #endregion
     }

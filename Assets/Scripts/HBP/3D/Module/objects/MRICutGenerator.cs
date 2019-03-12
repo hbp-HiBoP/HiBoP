@@ -21,7 +21,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Geometry generator of a MRI cut, one generator is defined for all columns, all columns share the same geometry
         /// </summary>
-        public class MRIGeometryCutGenerator : CppDLLImportBase
+        public class MRIGeometryCutGenerator : Tools.DLL.CppDLLImportBase
         {
             #region Public Methods 
             /// <summary>
@@ -94,7 +94,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Texture generator for MRI cuts, or each column a generator is defined, all columns have differents textures
         /// </summary>
-        public class MRITextureCutGenerator : CppDLLImportBase
+        public class MRITextureCutGenerator : Tools.DLL.CppDLLImportBase
         {
             #region Properties
             /// <summary>

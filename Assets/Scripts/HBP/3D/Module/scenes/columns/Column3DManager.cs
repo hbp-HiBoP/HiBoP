@@ -454,6 +454,29 @@ namespace HBP.Module3D
             BrainColorMapTexture = Texture2Dutility.GenerateColorScheme();
             BrainColorTexture = Texture2Dutility.GenerateColorScheme();
         }
+        private void OnDestroy()
+        {
+            foreach (var mesh in Meshes)
+            {
+                if (!mesh.HasBeenLoadedOutside)
+                {
+                    mesh.Clean();
+                }
+            }
+            foreach (var mri in MRIs)
+            {
+                if (!mri.HasBeenLoadedOutside)
+                {
+                    mri.Clean();
+                }
+            }
+            foreach (var implantation in Implantations) implantation.Clean();
+            foreach (var dllCommonBrainTextureGenerator in DLLCommonBrainTextureGeneratorList) dllCommonBrainTextureGenerator.Dispose();
+            foreach (var dllMRIGeometryCutGenerator in DLLMRIGeometryCutGeneratorList) dllMRIGeometryCutGenerator.Dispose();
+            foreach (var dllCutSurface in DLLCutsList) dllCutSurface.Dispose();
+            foreach (var dllCutSurface in DLLCutsListSimplified) dllCutSurface.Dispose();
+            CubeBoundingBox.Dispose();
+        }
         /// <summary>
         /// Add a column to the scene
         /// </summary>
@@ -593,6 +616,8 @@ namespace HBP.Module3D
         /// <param name="nbSplits">Number of splits</param>
         public void ResetSplitsNumber(int nbSplits)
         {
+            MeshSplitNumber = nbSplits;
+
             foreach (Mesh3D mesh in Meshes)
             {
                 mesh.Split(MeshSplitNumber);
@@ -634,7 +659,6 @@ namespace HBP.Module3D
         /// <summary>
         /// Initialize the columns for the scene
         /// </summary>
-
         /// <param name="type"></param>
         /// <param name="number"></param>
         public void InitializeColumns(IEnumerable<Data.Visualization.BaseColumn> columns)
@@ -733,6 +757,7 @@ namespace HBP.Module3D
         /// <param name="cuts">Cuts used for the cube bounding box</param>
         public void UpdateCubeBoundingBox(List<Cut> cuts)
         {
+            CubeBoundingBox?.Dispose();
             CubeBoundingBox = SelectedMRI.Volume.GetCubeBoundingBox(cuts);
         }
         #endregion
