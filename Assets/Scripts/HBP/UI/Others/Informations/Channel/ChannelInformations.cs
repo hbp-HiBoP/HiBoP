@@ -19,8 +19,13 @@ namespace HBP.UI.Informations
             m_ChannelStructs = channelStructs;
             m_DataStructs = dataStructs;
 
+            UnityEngine.Profiling.Profiler.BeginSample("TrialMatrixZone");
             m_TrialMatrixZone.Display(channelStructs, dataStructs);
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            UnityEngine.Profiling.Profiler.BeginSample("GraphZone");
             m_GraphZone.Display(channelStructs, dataStructs);
+            UnityEngine.Profiling.Profiler.EndSample();
         }
         #endregion
     }
