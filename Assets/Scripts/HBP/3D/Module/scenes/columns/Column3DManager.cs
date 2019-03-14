@@ -25,7 +25,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_Columns.FindIndex((c) => c.IsSelected);
+                return Columns.FindIndex((c) => c.IsSelected);
             }
         }
         /// <summary>
@@ -35,26 +35,25 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_Columns.Find((c) => c.IsSelected);
+                return Columns.Find((c) => c.IsSelected);
             }
         }
-        
-        List<Column3D> m_Columns = new List<Column3D>();
+
         /// <summary>
         /// Columns of the scene
         /// </summary>
-        public List<Column3D> Columns { get { return m_Columns; } }
+        public List<Column3D> Columns { get; } = new List<Column3D>();
         /// <summary>
         /// IEEG Columns of the scene
         /// </summary>
-        public List<Column3DIEEG> ColumnsIEEG { get { return (from column in m_Columns where column.Type == Data.Enums.ColumnType.iEEG select (Column3DIEEG)column).ToList(); } }
+        public List<Column3DIEEG> ColumnsIEEG { get { return (from column in Columns where column.Type == Data.Enums.ColumnType.iEEG select (Column3DIEEG)column).ToList(); } }
 
         public ReadOnlyCollection<View3D> Views
         {
             get
             {
-                if (m_Columns.Count == 0) return new ReadOnlyCollection<View3D>(new List<View3D>());
-                else return m_Columns[0].Views;
+                if (Columns.Count == 0) return new ReadOnlyCollection<View3D>(new List<View3D>());
+                else return Columns[0].Views;
             }
         }
         /// <summary>
@@ -65,7 +64,7 @@ namespace HBP.Module3D
             get
             {
                 int viewNumber = 0;
-                foreach (Column3D column in m_Columns)
+                foreach (Column3D column in Columns)
                 {
                     if (column.Views.Count > viewNumber)
                     {
@@ -181,7 +180,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Geometry generator for cuts
         /// </summary>
-        public List<DLL.MRIGeometryCutGenerator> DLLMRIGeometryCutGeneratorList = new List<DLL.MRIGeometryCutGenerator>();      
+        public List<DLL.MRIGeometryCutGenerator> DLLMRIGeometryCutGeneratorList = new List<DLL.MRIGeometryCutGenerator>();
         
         private float m_MRICalMinFactor = 0.0f;
         /// <summary>
@@ -327,38 +326,15 @@ namespace HBP.Module3D
                 FMRICalMaxFactor = (value - FMRI.Volume.ExtremeValues.ComputedCalMin) / (FMRI.Volume.ExtremeValues.ComputedCalMax - FMRI.Volume.ExtremeValues.ComputedCalMin);
             }
         }
-        
-        private Data.Enums.ColorType m_BrainColor = Data.Enums.ColorType.BrainColor;
+
         /// <summary>
         /// Brain surface color
         /// </summary>
-        public Data.Enums.ColorType BrainColor
-        {
-            get
-            {
-                return m_BrainColor;
-            }
-            set
-            {
-                m_BrainColor = value;
-            }
-        }
-
-        private Data.Enums.ColorType m_BrainCutColor = Data.Enums.ColorType.Default;
+        public Data.Enums.ColorType BrainColor { get; set; } = Data.Enums.ColorType.BrainColor;
         /// <summary>
         /// Brain cut color
         /// </summary>
-        public Data.Enums.ColorType BrainCutColor
-        {
-            get
-            {
-                return m_BrainCutColor;
-            }
-            set
-            {
-                m_BrainCutColor = value;
-            }
-        }
+        public Data.Enums.ColorType BrainCutColor { get; set; } = Data.Enums.ColorType.Default;
 
         private Data.Enums.ColorType m_Colormap = Data.Enums.ColorType.MatLab;
         /// <summary>
@@ -449,7 +425,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when changing the influence of each site on the texture
         /// </summary>
-        [HideInInspector] public GenericEvent<Column3DIEEG> OnUpdateIEEGMaximumInfluence = new GenericEvent<Column3DIEEG>();
+        [HideInInspector] public GenericEvent<Column3DIEEG> OnUpdateInfluenceDistance = new GenericEvent<Column3DIEEG>();
         /// <summary>
         /// Event called when changing the timeline ID of a column
         /// </summary>
@@ -500,7 +476,7 @@ namespace HBP.Module3D
             {
                 if (selected)
                 {
-                    foreach (Column3D c in m_Columns)
+                    foreach (Column3D c in Columns)
                     {
                         if (c != column)
                         {
@@ -533,7 +509,7 @@ namespace HBP.Module3D
             column.OnSelectSite.AddListener((site) =>
             {
                 OnSelectSite.Invoke(site);
-                foreach (Column3D c in m_Columns)
+                foreach (Column3D c in Columns)
                 {
                     if (!c.IsSelected)
                     {
@@ -563,9 +539,9 @@ namespace HBP.Module3D
                     OnUpdateIEEGGain.Invoke(columnIEEG);
                     column.IsRenderingUpToDate = false;
                 });
-                columnIEEG.IEEGParameters.OnUpdateMaximumInfluence.AddListener(() =>
+                columnIEEG.IEEGParameters.OnUpdateInfluenceDistance.AddListener(() =>
                 {
-                    OnUpdateIEEGMaximumInfluence.Invoke(columnIEEG);
+                    OnUpdateInfluenceDistance.Invoke(columnIEEG);
                     column.IsRenderingUpToDate = false;
                 });
                 columnIEEG.OnUpdateCurrentTimelineID.AddListener(() =>
@@ -574,9 +550,9 @@ namespace HBP.Module3D
                     column.IsRenderingUpToDate = false;
                 });
             }
-            column.Initialize(m_Columns.Count, baseColumn, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
+            column.Initialize(Columns.Count, baseColumn, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
             column.ResetSplitsNumber(MeshSplitNumber);
-            m_Columns.Add(column);
+            Columns.Add(column);
             OnAddColumn.Invoke();
         }
         /// <summary>
@@ -604,11 +580,11 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="meshes">Parent of the meshes</param>
         /// <param name="useSimplifiedMeshes">Are we using simplified meshes ?</param>
-        public void InitializeColumnsMeshes(GameObject meshes, bool useSimplifiedMeshes)
+        public void InitializeColumnsMeshes(GameObject meshes)
         {
-            foreach (Column3D column in m_Columns)
+            foreach (Column3D column in Columns)
             {
-                column.InitializeColumnMeshes(meshes, useSimplifiedMeshes);
+                column.InitializeColumnMeshes(meshes);
             }
         }
         /// <summary>
@@ -631,7 +607,7 @@ namespace HBP.Module3D
         /// </summary>
         public void ResetColors()
         {
-            for (int ii = 0; ii < m_Columns.Count; ++ii)
+            for (int ii = 0; ii < Columns.Count; ++ii)
                 Columns[ii].CutTextures.ResetColorSchemes(Colormap, BrainCutColor);
         }
         /// <summary>
@@ -650,9 +626,9 @@ namespace HBP.Module3D
                 DLLMRIGeometryCutGeneratorList.RemoveAt(DLLMRIGeometryCutGeneratorList.Count - 1);
             }
 
-            for (int c = 0; c < m_Columns.Count; c++)
+            for (int c = 0; c < Columns.Count; c++)
             {
-                m_Columns[c].UpdateCutsPlanesNumber(nbCuts);
+                Columns[c].UpdateCutsPlanesNumber(nbCuts);
             }
         }
         /// <summary>
@@ -726,7 +702,7 @@ namespace HBP.Module3D
         /// </summary>
         public void AddViewLine()
         {
-            foreach (Column3D column in m_Columns)
+            foreach (Column3D column in Columns)
             {
                 column.AddView();
             }
@@ -740,7 +716,7 @@ namespace HBP.Module3D
         {
             if (lineID == -1) lineID = Views.Count - 1;
             bool wasSelected = false;
-            foreach (Column3D column in m_Columns)
+            foreach (Column3D column in Columns)
             {
                 wasSelected |= column.Views[lineID].IsSelected;
                 column.RemoveView(lineID);

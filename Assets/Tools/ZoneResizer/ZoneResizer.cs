@@ -8,148 +8,142 @@ public class ZoneResizer : MonoBehaviour
     public State LeftRight;
     public State TopBottom;
     public ThemeElement ThemeElement;
+    public float MarginWidth;
 
     [SerializeField]
-    RectTransform botRect;
+    RectTransform m_BotRect;
     public RectTransform BotRect
     {
-        get { return botRect; }
-        set { botRect = value; }
+        get { return m_BotRect; }
+        set { m_BotRect = value; }
     }
 
     [SerializeField]
-    RectTransform topRect;
+    RectTransform m_TopRect;
     public RectTransform TopRect
     {
-        get { return topRect; }
-        set { topRect = value; }
+        get { return m_TopRect; }
+        set { m_TopRect = value; }
     }
 
     [SerializeField]
-    RectTransform handleRect;
+    RectTransform m_HandleRect;
     public RectTransform HandleRect
     {
-        get { return handleRect; }
+        get { return m_HandleRect; }
         set
         {
             RemoveEvents();
-            handleRect = value;
+            m_HandleRect = value;
             AddEvents();
         }
     }
 
     public enum DirectionType { LeftToRight,BottomToTop};
     [SerializeField]
-    DirectionType direction;
+    DirectionType m_Direction;
     public DirectionType Direction
     {
-        get { return direction; }
+        get { return m_Direction; }
         set
         {
-            direction = value;
+            m_Direction = value;
         }
     }
 
     [SerializeField]
-    float ratio;
+    float m_Ratio;
     public float Ratio
     {
-        get { return ratio; }
+        get { return m_Ratio; }
         set
         {
-            if(value < min)
+            if(value < m_Min)
             {
-                ratio = 0;
+                m_Ratio = 0;
             }
-            else if(value > max)
+            else if(value > m_Max)
             {
-                ratio = 1;
+                m_Ratio = 1;
             }
             else
             {
-                ratio = value;
+                m_Ratio = value;
             }
-            Move(ratio);
+            Move(m_Ratio);
         }
     }
 
     [SerializeField]
-    float min;
+    float m_Min;
     public float Min
     {
-        get { return min; }
-        set { min = value; Ratio = Ratio; }
+        get { return m_Min; }
+        set { m_Min = value; Ratio = Ratio; }
     }
 
     [SerializeField]
-    float max;
+    float m_Max;
     public float Max
     {
-        get { return max; }
-        set { max = value; Ratio = Ratio; }
+        get { return m_Max; }
+        set { m_Max = value; Ratio = Ratio; }
     }
 
     [SerializeField]
-    Texture2D cursor;
-    Vector2 hotSpot;
+    Texture2D m_Cursor;
     #endregion
-    #region private Methods
+
+    #region Private Methods
+    void Start()
+    {
+        AddEvents();
+        TestIfRectIsActive();
+    }
     void Move(float ratio)
     {
-        if(direction == DirectionType.LeftToRight)
+        if(m_Direction == DirectionType.LeftToRight)
         {
-            if(botRect)
+            if(m_BotRect)
             {
-                botRect.anchorMax = new Vector2(ratio, botRect.anchorMax.y);
+                m_BotRect.anchorMax = new Vector2(ratio, m_BotRect.anchorMax.y);
             }
-            if(topRect)
+            if(m_TopRect)
             {
-                topRect.anchorMin = new Vector2(ratio, topRect.anchorMin.y);
+                m_TopRect.anchorMin = new Vector2(ratio, m_TopRect.anchorMin.y);
             }
-            if(handleRect)
+            if(m_HandleRect)
             {
-                handleRect.anchorMin = new Vector2(ratio, handleRect.anchorMin.y);
-                handleRect.anchorMax = new Vector2(ratio, handleRect.anchorMax.y);
+                m_HandleRect.anchorMin = new Vector2(ratio, m_HandleRect.anchorMin.y);
+                m_HandleRect.anchorMax = new Vector2(ratio, m_HandleRect.anchorMax.y);
             }
         }
         else
         {
-            if(botRect)
+            if(m_BotRect)
             {
-                botRect.anchorMax = new Vector2(botRect.anchorMax.x, ratio);
+                m_BotRect.anchorMax = new Vector2(m_BotRect.anchorMax.x, ratio);
             }
-            if (topRect)
+            if (m_TopRect)
             {
-                topRect.anchorMin = new Vector2(topRect.anchorMin.x, ratio);
+                m_TopRect.anchorMin = new Vector2(m_TopRect.anchorMin.x, ratio);
             }
-            if (handleRect)
+            if (m_HandleRect)
             {
-                handleRect.anchorMin = new Vector2(handleRect.anchorMin.x, ratio);
-                handleRect.anchorMax = new Vector2(handleRect.anchorMax.x, ratio);
+                m_HandleRect.anchorMin = new Vector2(m_HandleRect.anchorMin.x, ratio);
+                m_HandleRect.anchorMax = new Vector2(m_HandleRect.anchorMax.x, ratio);
             }
         }
-        if(ratio == 0)
-        {
-            botRect.gameObject.SetActive(false);
-        }
-        else if(ratio == 1)
-        {
-            topRect.gameObject.SetActive(false);
-        }
-        else
-        {
-            botRect.gameObject.SetActive(true);
-            topRect.gameObject.SetActive(true);
-        }
+        TestIfRectIsActive();
     }
     void AddEvents()
     {
-        if(handleRect)
+        if(m_HandleRect)
         {
-            EventTrigger eventTrigger = handleRect.GetComponent<EventTrigger>();
+            EventTrigger eventTrigger = m_HandleRect.GetComponent<EventTrigger>();
             if (!eventTrigger)
             {
-                eventTrigger = handleRect.gameObject.AddComponent<EventTrigger>();
+                eventTrigger = m_HandleRect.gameObject.AddComponent<EventTrigger>();
             }
             eventTrigger.hideFlags = HideFlags.HideInInspector;
 
@@ -176,9 +170,9 @@ public class ZoneResizer : MonoBehaviour
     }
     void RemoveEvents()
     {
-        if(handleRect)
+        if(m_HandleRect)
         {
-            EventTrigger eventTrigger = handleRect.GetComponent<EventTrigger>();
+            EventTrigger eventTrigger = m_HandleRect.GetComponent<EventTrigger>();
             if (eventTrigger)
             {
                 DestroyImmediate(eventTrigger);
@@ -219,9 +213,47 @@ public class ZoneResizer : MonoBehaviour
     {
         ThemeElement.Set();
     }
-    void Start()
+    void TestIfRectIsActive()
     {
-        AddEvents();
+        if (m_Ratio == 0)
+        {
+            m_BotRect.gameObject.SetActive(false);
+            if (Direction == DirectionType.BottomToTop)
+            {
+                m_TopRect.offsetMin = new Vector2(m_TopRect.offsetMin.x, 0);
+            }
+            else
+            {
+                m_TopRect.offsetMin = new Vector2(0, m_TopRect.offsetMin.y);
+            }
+        }
+        else if (m_Ratio == 1)
+        {
+            m_TopRect.gameObject.SetActive(false);
+            if (Direction == DirectionType.BottomToTop)
+            {
+                m_BotRect.offsetMax = new Vector2(m_BotRect.offsetMax.x, 0);
+            }
+            else
+            {
+                m_BotRect.offsetMax = new Vector2(0, m_BotRect.offsetMax.y);
+            }
+        }
+        else
+        {
+            m_BotRect.gameObject.SetActive(true);
+            m_TopRect.gameObject.SetActive(true);
+            if (Direction == DirectionType.BottomToTop)
+            {
+                m_BotRect.offsetMax = new Vector2(m_BotRect.offsetMax.x, -MarginWidth / 2);
+                m_TopRect.offsetMin = new Vector2(m_TopRect.offsetMin.x, MarginWidth / 2);
+            }
+            else
+            {
+                m_BotRect.offsetMax = new Vector2(MarginWidth / 2, -m_BotRect.offsetMax.y);
+                m_TopRect.offsetMin = new Vector2(MarginWidth / 2, m_TopRect.offsetMin.y);
+            }
+        }
     }
     #endregion
 }

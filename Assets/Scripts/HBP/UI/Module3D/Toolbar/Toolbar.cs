@@ -10,6 +10,7 @@ namespace HBP.UI.Module3D
     public abstract class Toolbar : MonoBehaviour
     {
         #region Properties
+        protected ToolbarMenu m_ToolbarMenu;
         /// <summary>
         /// List of the tools of the toolbar
         /// </summary>
@@ -17,6 +18,10 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
+        private void Awake()
+        {
+            m_ToolbarMenu = FindObjectOfType<ToolbarMenu>();
+        }
         /// <summary>
         /// Link elements to the toolbar
         /// </summary>

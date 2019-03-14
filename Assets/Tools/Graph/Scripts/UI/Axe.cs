@@ -1,155 +1,382 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Globalization;
+using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Profiling;
+using UnityEngine.UI.Extensions;
 
 namespace Tools.Unity.Graph
 {
+    [ExecuteInEditMode]
     public class Axe : MonoBehaviour
     {
-        #region Attributs
-        [SerializeField] GameObject MajorTickMarkPrefab;
-
-        Text labelText;
-        RectTransform tickMarkRectTransform;
-        RectTransform visualRectTransform;
-        MajorTickMark[] majorTickMarks = new MajorTickMark[10];
-
-        Color color;
-        public enum SideEnum { absciss, ordinate };
-        public SideEnum Side;
-        public string Label { get { return labelText.text; } }
-        #endregion
-
-        #region Public Methods
-        public void SetLabel(string label)
+        #region Properties
+        public enum DirectionEnum { LeftToRight, RightToLeft, BottomToTop, TopToBottom }
+        [SerializeField] DirectionEnum m_Direction;
+        public DirectionEnum Direction
         {
-            labelText.text = label;
-        }
-        public void SetColor(Color color)
-        {
-            // Save color.
-            this.color = color;
-
-            // Set color of the tickmarks.
-            foreach (MajorTickMark majorTickMark in majorTickMarks) majorTickMark.SetColor(color);
-
-            //Set color of the axe visual.
-            visualRectTransform.GetComponent<Image>().color = color;
-            visualRectTransform.GetChild(0).GetComponent<Image>().color = color;
-
-            //Set color of the label.
-            labelText.color = color;
-        }
-        public void SetLimits(Vector2 limits)
-        {
-            Profiler.BeginSample("Calculate axe value");
-            // Calculate the value of the axe.
-            float ratio,step,startIndex,value,position; int numberOfMajorTickMarksNeeded;
-            CalculateAxeValue(limits.y, limits.x, out ratio, out step, out numberOfMajorTickMarksNeeded, out startIndex);
-            Profiler.EndSample();
-
-            //// Add the graduations
-            Profiler.BeginSample("Set graduations");
-            for (int i = 0; i < majorTickMarks.Length; i++)
+            get
             {
-                if(i < numberOfMajorTickMarksNeeded)
+                return m_Direction;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_Direction, value))
                 {
-                    value = (startIndex + i) * step;
-                    position = (value - limits.x) * ratio;
-                    SetMajorTickMarks(majorTickMarks[i], value.ToString(), position, Side, color);
-                }
-                else
-                {
-                    majorTickMarks[i].gameObject.SetActive(false);
+                    SetDirection();
                 }
             }
-            Profiler.EndSample();
         }
-        #endregion
 
-        #region Private Methods
-        void Awake()
+        [SerializeField] Color m_Color;
+        public Color Color
         {
-            labelText = transform.Find("Label").GetComponentInChildren<Text>();
-            tickMarkRectTransform = transform.Find("Axe").Find("Graduations") as RectTransform;
-            visualRectTransform = transform.Find("Axe").Find("Visual") as RectTransform;
-
-            // Instante tick marks.
-            InstantiateMajorTickMarks();
-        }
-        void SetMajorTickMarks(MajorTickMark majorTickMark, string label, float position, SideEnum side, Color color)
-        {
-            majorTickMark.Set(label, position, side, color);
-        }
-        void InstantiateMajorTickMarks()
-        {
-            for (int i = 0; i < majorTickMarks.Length; i++)
+            get
             {
-                GameObject tickMarkGameObject = Instantiate(MajorTickMarkPrefab, tickMarkRectTransform);
-                MajorTickMark majorTickMark = tickMarkGameObject.GetComponent<MajorTickMark>();
-                majorTickMarks[i] = majorTickMark;
+                return m_Color;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetColor(ref m_Color, value))
+                {
+                    SetColor();
+                }
             }
         }
-        void CalculateAxeValue(float max, float min, out float ratio, out float step, out int numberOfTrickMarkNeeded, out float startIndex)
+
+        [SerializeField] Text m_UnitText;
+        [SerializeField] string m_Unit;
+        public string Unit
         {
-            // Calculate the range of the axe.
-            float lenght = max - min;         
-
-            // Calculate the normalized range(1-10) of the axe.
-            float normalizedLenght = lenght;
-            float coef = 1f;
-            if(normalizedLenght > 0)
+            get
             {
-                while (normalizedLenght >= 10.0f)
+                return m_Unit;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetClass(ref m_Unit, value))
                 {
-                    coef *= 10.0f;
-                    normalizedLenght /= 10.0f;
+                    SetUnit();
+                }
+            }
+        }
+
+        [SerializeField] Text m_LabelText;
+        [SerializeField] string m_Label;
+        public string Label
+        {
+            get
+            {
+                return m_Label;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetClass(ref m_Label, value))
+                {
+                    SetLabel();
+                }
+            }
+        }
+
+        [SerializeField] bool m_UseIndependantTickMark;
+        public bool UseIndependantTickMark
+        {
+            get
+            {
+                return m_UseIndependantTickMark;
+            }
+            set
+            {
+                if(SetPropertyUtility.SetStruct(ref m_UseIndependantTickMark, value))
+                {
+                    SetUseIndependentTickMark();
+                }
+            }
+        }
+
+        [SerializeField] float m_IndependantValue;
+        public float IndependantValue
+        {
+            get
+            {
+                return m_IndependantValue;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_IndependantValue, value))
+                {
+                    SetIndependentValue();
+                }
+            }
+        }
+
+        public float IndependantNormalizedValue
+        {
+            get
+            {
+                return ValueToNormalizedValue(m_IndependantValue);
+            }
+            set
+            {
+                IndependantValue = NormalizedValueToValue(value);
+            }
+        }
+        
+        [SerializeField] Image m_VisualImage;
+        [SerializeField] Image m_VisualArrowImage;
+
+        [SerializeField] Vector2 m_DisplayRange;
+        public Vector2 DisplayRange
+        {
+            get
+            {
+                return m_DisplayRange;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_DisplayRange, value))
+                {
+                    SetDisplayRange();
+                }
+            }
+        }
+
+        [SerializeField] string m_Format ="N2";
+        public string Format
+        {
+            get
+            {
+                return m_Format;
+            }
+            set
+            {
+                SetPropertyUtility.SetClass(ref m_Format, value);
+            }
+        }
+
+        [SerializeField] string m_CultureInfo = "en-US";
+        public string CultureInfo
+        {
+            get
+            {
+                return m_CultureInfo;
+            }
+            set
+            {
+                SetPropertyUtility.SetClass(ref m_CultureInfo, value);
+            }
+        }
+
+        [SerializeField] float[] m_Values;
+        Dictionary<float, MajorTickMark> m_TickMarkByValue = new Dictionary<float, MajorTickMark>();
+        [SerializeField] List<MajorTickMark> m_TickMarks = new List<MajorTickMark>();
+        [SerializeField] MajorTickMark m_IndependantTickMark;
+        #endregion
+
+        #region Private Setter
+        void SetPosition(TickMark tickMark, float value)
+        {
+            float position = (value - m_DisplayRange.x) / (m_DisplayRange.y - m_DisplayRange.x);
+            RectTransform tickMarkRectTransform = tickMark.transform as RectTransform;
+            RectTransform rectTransform = transform as RectTransform;
+            switch (m_Direction)
+            {
+                case DirectionEnum.LeftToRight:
+                case DirectionEnum.RightToLeft:
+                    tickMarkRectTransform.localPosition = new Vector3(position * rectTransform.rect.width, tickMarkRectTransform.localPosition.y, tickMarkRectTransform.localPosition.z);
                     break;
-                }
-                while (normalizedLenght < 1.0f)
-                {
-                    coef /= 10.0f;
-                    normalizedLenght *= 10.0f;
+                case DirectionEnum.BottomToTop:
+                case DirectionEnum.TopToBottom:
+                    tickMarkRectTransform.localPosition = new Vector3(tickMarkRectTransform.localPosition.x, position * rectTransform.rect.height, tickMarkRectTransform.localPosition.z);
                     break;
+                default:
+                    break;
+            }
+        }
+        void SetIndependentValue()
+        {
+            SetIndependantTickMark();
+        }
+        void SetColor()
+        {
+            if (m_Color != null)
+            {
+                if (m_TickMarks != null)
+                {
+                    foreach (var tickMark in m_TickMarks)
+                    {
+                        if (tickMark != null) tickMark.Color = m_Color;
+                    }
                 }
-                // Calculate the normalizedStep then the Step.
-                float normalizedStep = normalizedLenght / majorTickMarks.Length;
-                normalizedStep = (Mathf.Ceil(normalizedStep * 2.0f)) / 2.0f;
-                step = normalizedStep * coef;
+                if (m_IndependantTickMark != null) m_IndependantTickMark.Color = m_Color;
+                if (m_VisualArrowImage != null) m_VisualArrowImage.color = m_Color;
+                if (m_VisualImage != null) m_VisualImage.color = m_Color;
+                if (m_LabelText != null) m_LabelText.color = m_Color;
+                if (m_UnitText != null) m_UnitText.color = m_Color;
+            }
+        }
+        void SetLabel()
+        {
+            if (m_LabelText != null && m_Label != null) m_LabelText.text = m_Label;
+        }
+        void SetUnit()
+        {
+            if (m_UnitText != null && m_Unit != null) m_UnitText.text = string.Format("({0})", m_Unit);
+        }
+        void SetDirection()
+        {
+            SetTickMarks();
+        }
+        void SetDisplayRange()
+        {
+            float range = m_DisplayRange.y - m_DisplayRange.x;
+            if (range > 0 && m_TickMarks.Count > 1)
+            {
+                float normalizedStep = range / (m_TickMarks.Count - 1);
+                float coef = 1;
 
-                // Calculate the firstScalePoint of the axe
-                if (min < 0.0f)
+                if (normalizedStep < 1)
                 {
-                    startIndex = Mathf.CeilToInt(min / step);
+                    coef /= 10;
+                    normalizedStep *= 10;
                 }
-                else
+                while (normalizedStep > 10)
                 {
-                    startIndex = Mathf.CeilToInt(min / step);
-                }
+                    float tempResult;
+                    tempResult = normalizedStep / 2;
+                    if (tempResult >= 1 && tempResult <= 10)
+                    {
+                        coef *= 2;
+                        normalizedStep = tempResult;
+                        break;
+                    }
 
-                // Calculate the number of ScalePoint in the axe
-                numberOfTrickMarkNeeded = 0;
-                while ((numberOfTrickMarkNeeded + startIndex) * step <= max)
-                {
-                    numberOfTrickMarkNeeded += 1;
-                }
+                    tempResult = normalizedStep / 5;
+                    if (tempResult >= 1 && tempResult <= 10)
+                    {
+                        normalizedStep = tempResult;
+                        coef *= 5;
+                        break;
+                    }
 
-                float axeSize = 0;
-                switch (Side)
-                {
-                    case SideEnum.absciss: axeSize = transform.GetChild(0).GetComponent<RectTransform>().rect.width; break;
-                    case SideEnum.ordinate: axeSize = transform.GetChild(0).GetComponent<RectTransform>().rect.height; break;
+                    tempResult = normalizedStep / 10;
+                    if (normalizedStep >= 1 && normalizedStep <= 10)
+                    {
+                        normalizedStep = tempResult;
+                        coef *= 10;
+                        break;
+                    }
+
+                    coef *= 10;
+                    normalizedStep /= 10;
                 }
-                // Find the value of the scalesPoints
-                ratio = axeSize / lenght;
+                if (normalizedStep > 1 && normalizedStep <= 5)
+                {
+                    normalizedStep = 5;
+                }
+                else if (normalizedStep > 5 && normalizedStep <= 10)
+                {
+                    normalizedStep = 10;
+                }
+                float step = normalizedStep * coef;
+
+                List<float> values = new List<float>();
+                int division = Mathf.FloorToInt(m_DisplayRange.x / step);
+                float rest = m_DisplayRange.x % step;
+                if (rest != 0) division++;
+                float value = division * step;
+                while (value <= m_DisplayRange.y)
+                {
+                    values.Add(value);
+                    value += step;
+                }
+                m_Values = values.ToArray();
+                SetTickMarks();
+                SetIndependantTickMark();
+            }
+        }
+        void SetUseIndependentTickMark()
+        {
+            if(m_IndependantTickMark != null) m_IndependantTickMark.gameObject.SetActive(m_UseIndependantTickMark);
+            if(!m_UseIndependantTickMark)
+            {
+                foreach (var tickMark in m_TickMarks)
+                {
+                    tickMark.ShowLabel = true;
+                }
             }
             else
             {
-                ratio = 0;
-                step = 0;
-                numberOfTrickMarkNeeded = 0;
-                startIndex = 0;
+                SetIndependantTickMark();
             }
+        }
+        void SetIndependantTickMark()
+        {
+            if (m_IndependantTickMark && m_UseIndependantTickMark)
+            {
+                CultureInfo cultureInfo = System.Globalization.CultureInfo.GetCultureInfo(CultureInfo);
+                m_IndependantTickMark.Label = m_IndependantValue.ToString(Format, cultureInfo);
+                SetPosition(m_IndependantTickMark, m_IndependantValue);
+
+                float marge = 0.04f;
+                float independentTickMarkNormalizedValue = ValueToNormalizedValue(m_IndependantValue);
+                foreach (var value in m_Values)
+                {
+                    float normalizedValue = ValueToNormalizedValue(value);
+                    if (normalizedValue > independentTickMarkNormalizedValue + marge || normalizedValue < independentTickMarkNormalizedValue - marge)
+                    {
+                        m_TickMarkByValue[value].ShowLabel = true;
+                    }
+                    else
+                    {
+                        m_TickMarkByValue[value].ShowLabel = false;
+                    }
+                }
+            }
+        }
+        void SetTickMarks()
+        {
+            m_TickMarkByValue = new Dictionary<float, MajorTickMark>();
+            CultureInfo cultureInfo = System.Globalization.CultureInfo.GetCultureInfo(CultureInfo);
+            for (int i = 0; i < m_TickMarks.Count; i++)
+            {
+                MajorTickMark tickMark = m_TickMarks[i];
+
+                if (i < m_Values.Length)
+                {
+                    tickMark.Label = m_Values[i].ToString(Format, cultureInfo);
+                    SetPosition(tickMark, m_Values[i]);
+                    tickMark.Color = m_Color;
+                    tickMark.gameObject.SetActive(true);
+                    m_TickMarkByValue.Add(m_Values[i], tickMark);
+                }
+                else
+                {
+                    tickMark.gameObject.SetActive(false);
+                }
+            }
+        }
+        float ValueToNormalizedValue(float value)
+        {
+            return (value - m_DisplayRange.x) / (m_DisplayRange.y - m_DisplayRange.x);
+        }
+        float NormalizedValueToValue(float normalizedValue)
+        {
+            return normalizedValue * (m_DisplayRange.y - m_DisplayRange.x) + m_DisplayRange.x;
+        }
+        void OnValidate()
+        {
+            SetDirection();
+            SetColor();
+            SetLabel();
+            SetUnit();
+            SetDisplayRange();
+            SetUseIndependentTickMark();
+            SetIndependentValue();
+        }
+        private void OnRectTransformDimensionsChange()
+        {
+            SetTickMarks();
+            SetIndependantTickMark();
         }
         #endregion
     }

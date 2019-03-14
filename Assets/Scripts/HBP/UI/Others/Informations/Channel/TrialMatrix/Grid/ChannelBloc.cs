@@ -58,6 +58,16 @@ namespace HBP.UI.TrialMatrix.Grid
 
         public dg.ChannelBloc Data { private set; get; }
 
+        public bool[] TrialIsSelected
+        {
+            get
+            {
+                
+                return Enumerable.Repeat(true, SubBlocs.First(s => s.Data.SubBlocProtocol == Data.Bloc.MainSubBloc).Data.SubTrials.Length).ToArray();
+            }
+        }
+
+
         public SubBloc SubBlocHovered
         {
             get
@@ -107,10 +117,10 @@ namespace HBP.UI.TrialMatrix.Grid
                 switch (ApplicationState.UserPreferences.Visualization.TrialMatrix.SubBlocFormat)
                 {
                     case HBP.Data.Enums.BlocFormatType.TrialHeight:
-                        m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialHeight * Data.SubBlocs[0].SubTrials.Length;
+                        m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialHeight * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length;
                         break;
                     case HBP.Data.Enums.BlocFormatType.TrialRatio:
-                        m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * Data.SubBlocs[0].SubTrials.Length;
+                        m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length;
                         break;
                     case HBP.Data.Enums.BlocFormatType.BlocRatio:
                         m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width;

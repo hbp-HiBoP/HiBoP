@@ -111,13 +111,13 @@ namespace HBP.UI.Module3D
                 if (!Directory.Exists(screenshotsPath)) Directory.CreateDirectory(screenshotsPath);
                 SaveSceneToPNG(screenshotsPath, multipleFiles);
             });
-            informations.OnOpenInformationsWindow.AddListener(() =>
+            informations.OnExpand.AddListener(() =>
             {
                 grid.VerticalHandlers[0].Position = grid.VerticalHandlers[0].MagneticPosition;
                 grid.SetVerticalHandlersPosition(1);
                 grid.UpdateAnchors();
             });
-            informations.OnCloseInformationsWindow.AddListener(() =>
+            informations.OnMinimize.AddListener(() =>
             {
                 grid.VerticalHandlers[0].Position = grid.VerticalHandlers[1].Position - (grid.MinimumViewWidth / grid.RectTransform.rect.width);
                 grid.SetVerticalHandlersPosition(1);
@@ -188,7 +188,7 @@ namespace HBP.UI.Module3D
                 // Graph and Trial Matrix
                 Informations.InformationsWrapper informations = GetComponentInChildren<Informations.InformationsWrapper>();
                 Informations.ChannelInformations siteInformations = informations.GetComponentInChildren<Informations.ChannelInformations>();
-                if (!informations.IsMinimized)
+                if (!informations.Minimized)
                 {
                     if (!Mathf.Approximately(siteInformations.GetComponent<ZoneResizer>().Ratio, 1.0f))
                     {
@@ -243,8 +243,7 @@ namespace HBP.UI.Module3D
                     }
                     if (!Mathf.Approximately(siteInformations.GetComponent<ZoneResizer>().Ratio, 0.0f))
                     {
-                        ScrollRect trialMatrixScrollRect = siteInformations.transform.Find("TrialMatricesZone").Find("TrialMatrix").GetComponent<ScrollRect>();
-                        informations.ChangeOverlayState(false);
+                        ScrollRect trialMatrixScrollRect = siteInformations.GetComponentInChildren<TrialMatrix.Grid.TrialMatrixGrid>().GetComponent<ScrollRect>();
                         Sprite mask = trialMatrixScrollRect.viewport.GetComponent<Image>().sprite;
                         trialMatrixScrollRect.viewport.GetComponent<Image>().sprite = null;
                         Texture2D trialMatrixTexture;
@@ -284,7 +283,6 @@ namespace HBP.UI.Module3D
                             ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                             yield break;
                         }
-                        informations.ChangeOverlayState(true);
                         trialMatrixScrollRect.viewport.GetComponent<Image>().sprite = mask;
                     }
                 }

@@ -30,7 +30,7 @@ public class ZoneResizerEditor : Editor
                 break;
         }
         instance.HandleRect = (RectTransform)EditorGUILayout.ObjectField("Handle Rect", instance.HandleRect, typeof(RectTransform), true);
-
+        instance.MarginWidth = EditorGUILayout.FloatField("Margin Width", instance.MarginWidth);
         EditorGUILayout.BeginHorizontal();
         float min = instance.Min;
         float max = instance.Max;

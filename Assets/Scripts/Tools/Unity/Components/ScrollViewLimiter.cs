@@ -20,8 +20,7 @@ public class ScrollViewLimiter : MonoBehaviour
 
     private void Update()
     {
-        m_LayoutElement.preferredHeight = Mathf.Min(m_ScrollRect.content.rect.height,Max);
+        m_LayoutElement.preferredHeight = Mathf.Min(m_ScrollRect.content.rect.height, Max);
     }
     #endregion
-
 }

@@ -8,6 +8,21 @@ namespace HBP.UI.Module3D
     public class IEEGSettingsToolbar : Toolbar
     {
         #region Properties
+        private bool m_IsGlobal = false;
+        public bool IsGlobal
+        {
+            get
+            {
+                return m_IsGlobal;
+            }
+            set
+            {
+                m_IsGlobal = value;
+                m_ThresholdIEEG.IsGlobal = value;
+                m_IEEGTransparency.IsGlobal = value;
+                m_IEEGSitesParameters.IsGlobal = value;
+            }
+        }
         /// <summary>
         /// IEEG Global setter
         /// </summary>
@@ -48,11 +63,17 @@ namespace HBP.UI.Module3D
         {
             base.AddListeners();
 
-            m_IEEGGlobal.OnChangeValue.AddListener((value) => {
-                m_ThresholdIEEG.IsGlobal = value;
-                m_IEEGTransparency.IsGlobal = value;
-                m_IEEGSitesParameters.IsGlobal = value;
+            m_IEEGGlobal.OnChangeValue.AddListener((global) =>
+            {
+                IsGlobal = global;
             });
+        }
+        #endregion
+
+        #region Public Methods
+        public override void ShowToolbarCallback()
+        {
+            m_IEEGGlobal.Set(m_ToolbarMenu.TimelineToolbar.IsGlobal);
         }
         #endregion
     }

@@ -116,7 +116,7 @@ namespace HBP.Data.Localizer
             state = int.MinValue; code = int.MinValue; index = int.MinValue;
             string[] elements = line.Split(new char[] { '\t' });
             float seconds;
-            bool parsing = float.TryParse(elements[0], out seconds) && int.TryParse(elements[2], out code);
+            bool parsing = Tools.Unity.NumberExtension.TryParseFloat(elements[0], out seconds) && int.TryParse(elements[2], out code);
             if (parsing)
             {
                 state = 0;

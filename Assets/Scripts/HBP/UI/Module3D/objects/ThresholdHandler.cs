@@ -37,7 +37,6 @@ namespace HBP.UI.Module3D
                 m_Position = Mathf.Clamp(value, MinimumPosition, MaximumPosition);
                 m_RectTransform.anchorMin = new Vector2(m_Position, m_RectTransform.anchorMin.y);
                 m_RectTransform.anchorMax = new Vector2(m_Position, m_RectTransform.anchorMax.y);
-                //Debug.Log(gameObject.name + " " + m_Position);
             }
         }
         /// <summary>

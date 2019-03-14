@@ -1,100 +1,117 @@
 ﻿using UnityEngine;
-using UnityEngine.Events;
-using Tools.Unity.ResizableGrid;
 using HBP.Module3D;
 using System.Collections.Generic;
 using System.Linq;
 using HBP.Data.Informations;
+using UnityEngine.UI.Extensions;
+using UnityEngine.Events;
 
 namespace HBP.UI.Informations
 {
     public class InformationsWrapper : MonoBehaviour
     {
         #region Properties
-        Base3DScene m_Scene;
+        [SerializeField] Base3DScene m_Scene;
         public Base3DScene Scene
         {
-            get { return m_Scene; }
+            get
+            {
+                return m_Scene;
+            }
             set
             {
-                m_Scene = value;
-                GenerateDataStructs();
-                UpdateColormap();
-                m_Scene.OnRequestSiteInformation.AddListener(sites => OnSiteInformationRequest(sites));
-                m_Scene.ColumnManager.OnChangeColumnMinimizedState.AddListener(OnChangeColumnMinimizedState);
-                m_Scene.OnChangeColormap.AddListener((t) => UpdateColormap());
+                if(SetPropertyUtility.SetClass(ref m_Scene, value))
+                {
+                    SetBase3DScene();
+                }
+            }
+        }
+
+        [SerializeField] bool m_Minimized;
+        public bool Minimized
+        {
+            get
+            {
+                return m_Minimized;
+            }
+            set
+            {
+                if(SetPropertyUtility.SetStruct(ref m_Minimized, value))
+                {
+                    SetMinimized();
+                }
+            }
+        }
+
+        [SerializeField] UnityEvent m_OnExpand;
+        public UnityEvent OnExpand
+        {
+            get
+            {
+                return m_OnExpand;
+            }
+        }
+        [SerializeField] UnityEvent m_OnMinimize;
+        public UnityEvent OnMinimize
+        {
+            get
+            {
+                return m_OnMinimize;
+            }
+        }
+
+        [SerializeField] BoolEvent m_OnChangeMinimized;
+        public BoolEvent OnChangeMinimized
+        {
+            get
+            {
+                return m_OnChangeMinimized;
             }
         }
 
         public ChannelInformations ChannelInformations;
-        public ROIInformations ROIInformations;
+        //public ROIInformations ROIInformations;
 
-        public float MinimumWidth = 200.0f;
-        public bool IsMinimized
+        [SerializeField] Texture2D m_ColorMap;
+        [SerializeField] Texture2DEvent m_OnChangeColorMap;
+        public Texture2DEvent OnChangeColorMap
         {
             get
             {
-                return Mathf.Abs(m_RectTransform.rect.width - m_ResizableGrid.MinimumViewWidth) <= MinimumWidth;
+                return m_OnChangeColorMap;
             }
         }
 
-        [HideInInspector] public UnityEvent OnOpenInformationsWindow = new UnityEvent();
-        [HideInInspector] public UnityEvent OnCloseInformationsWindow = new UnityEvent();
-
-        [SerializeField] RectTransform m_RectTransform;
-        [SerializeField] GameObject m_MinimizedGameObject;
-        ResizableGrid m_ResizableGrid;
-
-        DataStruct[] m_DataStructs;
-        ChannelStruct[] m_ChannelStructs;
-        bool m_ShowWholeProtocolLastState;
+        [SerializeField] DataStruct[] m_DataStructs;
+        [SerializeField] ChannelStruct[] m_ChannelStructs;
         #endregion
 
         #region Public Methods
-        public void Open(bool open)
+        public void OnExpandHandler()
         {
-            if(open) OnOpenInformationsWindow.Invoke();
-            else OnCloseInformationsWindow.Invoke();
+            m_OnExpand.Invoke();
         }
-        public void ChangeOverlayState(bool state)
+        public void OnMinimizeHandler()
         {
-            transform.Find("Borders").Find("BotBorder").gameObject.SetActive(state);
-            transform.Find("Borders").Find("LeftBorder").gameObject.SetActive(state);
-            transform.Find("Borders").Find("RightBorder").gameObject.SetActive(state);
-            transform.Find("Borders").Find("TopBorder").gameObject.SetActive(state);
+            m_OnMinimize.Invoke();
         }
         #endregion
 
         #region Private Methods
-        void Awake()
+        void OnValidate()
         {
-            m_ResizableGrid = GetComponentInParent<ResizableGrid>();
-            m_ShowWholeProtocolLastState = ApplicationState.UserPreferences.Visualization.TrialMatrix.ShowWholeProtocol;
+            SetBase3DScene();
+            SetMinimized();
         }
-        void Update()
+        void SiteInformationRequestHandler(IEnumerable<Site> sites)
         {
-            if (m_RectTransform.hasChanged)
-            {
-                m_MinimizedGameObject.SetActive(IsMinimized);
-                m_RectTransform.hasChanged = false;
-            }
-        }
-
-        void DisplayChannels()
-        {
+            GenerateChannelStructs(sites);
             ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
         }
-        void OnSiteInformationRequest(IEnumerable<Site> sites)
-        {
-            if (IsMinimized) Open(true);
-            m_ChannelStructs = sites.Select(s => new ChannelStruct(s.Information.ChannelName, s.Information.Patient)).ToArray();
-            if (m_ShowWholeProtocolLastState != ApplicationState.UserPreferences.Visualization.TrialMatrix.ShowWholeProtocol) GenerateDataStructs();
-            DisplayChannels();
-        }
-        void OnChangeColumnMinimizedState()
+        void OnMinimizeColumnHandler()
         {
             GenerateDataStructs();
-            DisplayChannels();
+            ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
         }
         void GenerateDataStructs()
         {
@@ -114,21 +131,37 @@ namespace HBP.UI.Informations
                         data = new DataStruct(columnData.Dataset, columnData.DataName, new List<Data.Experience.Protocol.Bloc>());
                         dataStructs.Add(data);
                     }
-                    data.Blocs.Add(columnData.Bloc);
-                }
-            }
-            if(ApplicationState.UserPreferences.Visualization.TrialMatrix.ShowWholeProtocol)
-            {
-                for (int d = 0; d < dataStructs.Count; d++)
-                {
-                    dataStructs[d] = new DataStruct(dataStructs[d].Dataset, dataStructs[d].Data, dataStructs[d].Dataset.Protocol.Blocs.ToList());
+                    data.AddBloc(columnData.Bloc);
                 }
             }
             m_DataStructs = dataStructs.ToArray();
         }
-        void UpdateColormap()
+        void GenerateChannelStructs(IEnumerable<Site> sites)
         {
-            ChannelInformations.Colormap = m_Scene.ColumnManager.BrainColorMapTexture;
+            m_ChannelStructs = sites.Select(s => new ChannelStruct(s.Information.ChannelName, s.Information.Patient)).ToArray();
+        }
+        #endregion
+
+        #region Setters
+        void SetBase3DScene()
+        {
+            if(m_Scene != null)
+            {
+                GenerateDataStructs();
+                SetColorMap();
+                m_Scene.OnRequestSiteInformation.AddListener(sites => SiteInformationRequestHandler(sites));
+                m_Scene.ColumnManager.OnChangeColumnMinimizedState.AddListener(OnMinimizeColumnHandler);
+                m_Scene.OnChangeColormap.AddListener((t) => SetColorMap());
+            }
+        }
+        void SetColorMap()
+        {
+            m_ColorMap = m_Scene.ColumnManager.BrainColorMapTexture;
+            OnChangeColorMap.Invoke(m_ColorMap);
+        }
+        void SetMinimized()
+        {
+            m_OnChangeMinimized.Invoke(m_Minimized);
         }
         #endregion
     }

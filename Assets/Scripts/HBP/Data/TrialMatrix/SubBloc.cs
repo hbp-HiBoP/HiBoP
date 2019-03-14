@@ -24,8 +24,6 @@
         }
         public SubBloc(Experience.Protocol.SubBloc subBlocProtocol, SubTrial[] subTrials) : this(subBlocProtocol, subTrials, default(Tools.CSharp.Window))
         {
-            SubBlocProtocol = subBlocProtocol;
-            SubTrials = subTrials;
         }
         public SubBloc(Tools.CSharp.Window window) : this(null, new SubTrial[0], window)
         {

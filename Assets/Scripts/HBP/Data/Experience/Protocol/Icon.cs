@@ -107,5 +107,13 @@ namespace HBP.Data.Experience.Protocol
             Window = icon.Window;
         }
         #endregion
+
+        #region Serialization
+        [OnDeserialized()]
+        public void OnDeserialized(StreamingContext context)
+        {
+            m_IllustrationPath = m_IllustrationPath.ToPath();
+        }
+        #endregion
     }
 }

@@ -4,7 +4,7 @@ using UnityEditor;
 namespace Tools.Unity.Components
 {
     [CustomEditor(typeof(OldRangeSlider))]
-    public class OldRangeSliderEditor : Editor
+    public class OldRangeSliderEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {

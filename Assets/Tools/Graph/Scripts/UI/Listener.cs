@@ -1,59 +1,112 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.Events;
+using UnityEngine.UI.Extensions;
 
- namespace Tools.Unity.Graph
+namespace Tools.Unity.Graph
 {
-    [RequireComponent(typeof(PlotGestion))]
+    [RequireComponent(typeof(RectTransform))]
     public class Listener : MonoBehaviour
     {
         #region Properties
-        PlotGestion plotGestion;
-        RectTransform rectTransform;
+        [SerializeField] Vector2 m_AbscissaDisplayRange;
+        public Vector2 AbscissaDisplayRange
+        {
+            get
+            {
+                return m_AbscissaDisplayRange;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_AbscissaDisplayRange, value))
+                {
+                    SetAbscissaDisplayRange();
+                }
+            }
+        }
 
-        float lastHeight;
-        float lastWidth;
-        Vector2 mouseLastPosition;
-        bool firstUse = true;
+        [SerializeField] Vector2 m_OrdinateDisplayRange;
+        public Vector2 OrdinateDisplayRange
+        {
+            get
+            {
+                return m_OrdinateDisplayRange;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_OrdinateDisplayRange, value))
+                {
+                    SetOrdinateDisplayRange();
+                }
+            }
+        }
+
+        RectTransform m_RectTransform;
+        float m_LastHeight, m_LastWidth;
+        Vector2 m_MouseLastPosition;
+        bool m_FirstUse = true;
+
+        [SerializeField] float m_ZoomSpeed = 0.05f;
+        public float ZoomSpeed
+        {
+            get
+            {
+                return m_ZoomSpeed;
+            }
+            set
+            {
+                SetPropertyUtility.SetStruct(ref m_ZoomSpeed, value);
+            }
+        }
+
+        #region Events
+        [SerializeField] private Vector2Event m_OnChangeAbscissaDisplayRange;
+        public Vector2Event OnChangeAbscissaDisplayRange
+        {
+            get
+            {
+                return m_OnChangeAbscissaDisplayRange;
+            }
+        }
+        [SerializeField] private Vector2Event m_OnChangeOrdinateDisplayRange;
+        public Vector2Event OnChangeOrdinateDisplayRange
+        {
+            get
+            {
+                return m_OnChangeOrdinateDisplayRange;
+            }
+        }
+        #endregion
         #endregion
 
         #region Public Methods
         public void OnBeginDrag()
         {
-            mouseLastPosition = Input.mousePosition;
+            m_MouseLastPosition = Input.mousePosition;
         }
-
         public void OnDrag()
         {
             Vector2 mouseActualPosition = Input.mousePosition;
-            Vector2 displacement = mouseActualPosition - mouseLastPosition;
-            Vector2 proportionnalDisplacement = new Vector2(displacement.x / rectTransform.rect.width, displacement.y / rectTransform.rect.height);
-            plotGestion.Move(proportionnalDisplacement);
-            mouseLastPosition = mouseActualPosition;
+            Vector2 displacement = mouseActualPosition - m_MouseLastPosition;
+            Vector2 proportionnalDisplacement = new Vector2(displacement.x / m_RectTransform.rect.width, displacement.y / m_RectTransform.rect.height);
+            Move(proportionnalDisplacement);
+            m_MouseLastPosition = mouseActualPosition;
         }
-
         public void OnScroll()
         {
-            float l_scroll = Input.mouseScrollDelta.y;
-            if(l_scroll > 0)
-            {
-                plotGestion.Zoom();
-            }
-            else if(l_scroll < 0)
-            {
-                plotGestion.Dezoom();
-            }
+            float delta = Input.mouseScrollDelta.y;
+            if (delta > 0) Zoom();
+            else if(delta < 0) Dezoom();
         }
         #endregion
 
         #region Private Methods
         void Awake()
         {
-            plotGestion = GetComponent<PlotGestion>();
-            rectTransform = GetComponent<RectTransform>();
-            lastHeight = rectTransform.rect.height;
-            lastWidth = rectTransform.rect.width;
+            m_RectTransform = GetComponent<RectTransform>();
+            m_LastHeight = m_RectTransform.rect.height;
+            m_LastWidth = m_RectTransform.rect.width;
         }
-
         void OnRectTransformDimensionsChange()
         {
             if (gameObject.activeInHierarchy)
@@ -61,33 +114,99 @@ using System.Collections;
                 StartCoroutine(c_OnRect());
             }
         }
+        void SetOrdinateDisplayRange()
+        {
+            OnChangeOrdinateDisplayRange.Invoke(m_OrdinateDisplayRange);
+        }
+        void SetAbscissaDisplayRange()
+        {
+            OnChangeAbscissaDisplayRange.Invoke(m_AbscissaDisplayRange);
+        }
 
         IEnumerator c_OnRect()
         {
             yield return new WaitForEndOfFrame();
             OnRect();
         }
-
         void OnRect()
         {
-            Rect l_actualRect = rectTransform.rect;
-            if (lastHeight != l_actualRect.height || lastWidth != l_actualRect.width)
+            Rect rect = m_RectTransform.rect;
+            if (m_LastHeight != rect.height || m_LastWidth != rect.width)
             {
-                if (firstUse)
+                if (m_FirstUse)
                 {
-                    lastHeight = l_actualRect.height;
-                    lastWidth = l_actualRect.width;
-                    firstUse = false;
+                    m_LastHeight = rect.height;
+                    m_LastWidth = rect.width;
+                    m_FirstUse = false;
                 }
                 else
                 {
-                    Vector2 l_command = Vector2.zero;
-                    l_command.x = (l_actualRect.width - lastWidth) / lastWidth;
-                    l_command.y = (l_actualRect.height - lastHeight) / lastHeight;
-                    lastHeight = l_actualRect.height;
-                    lastWidth = l_actualRect.width;
-                    plotGestion.ChangeRectSize(l_command);
+                    Vector2 command = Vector2.zero;
+                    command.x = (rect.width - m_LastWidth) / m_LastWidth;
+                    command.y = (rect.height - m_LastHeight) / m_LastHeight;
+                    m_LastHeight = rect.height;
+                    m_LastWidth = rect.width;
+                    ChangeRectSize(command);
                 }
+            }
+        }
+
+        void Move(Vector2 command)
+        {
+            if(command.x != 0)
+            {
+                m_AbscissaDisplayRange += (m_AbscissaDisplayRange.x - m_AbscissaDisplayRange.y) * command.x * Vector2.one;
+                OnChangeAbscissaDisplayRange.Invoke(m_AbscissaDisplayRange);
+            }
+            if (command.y != 0)
+            {
+                m_OrdinateDisplayRange += (m_OrdinateDisplayRange.x - m_OrdinateDisplayRange.y) * command.y * Vector2.one;
+                OnChangeOrdinateDisplayRange.Invoke(m_OrdinateDisplayRange);
+            }
+        }
+        void Zoom()
+        {
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(m_RectTransform, Input.mousePosition, null, out Vector2 localPoint);
+            Vector2 ratio = localPoint / m_RectTransform.rect.size + m_RectTransform.pivot;
+            Vector2 zoom = m_ZoomSpeed * new Vector2(m_AbscissaDisplayRange.y - m_AbscissaDisplayRange.x, m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x);
+
+            m_AbscissaDisplayRange.x += ratio.x * zoom.x;
+            m_AbscissaDisplayRange.y -= (1 - ratio.x) * zoom.x;
+            m_OrdinateDisplayRange.x += ratio.y * zoom.y;
+            m_OrdinateDisplayRange.y -= (1 - ratio.y) * zoom.y;
+
+            OnChangeAbscissaDisplayRange.Invoke(m_AbscissaDisplayRange);
+            OnChangeOrdinateDisplayRange.Invoke(m_OrdinateDisplayRange);
+        }
+        void Dezoom()
+        {
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(m_RectTransform, Input.mousePosition, null, out Vector2 localPoint);
+            Vector2 ratio = localPoint / m_RectTransform.rect.size + m_RectTransform.pivot;
+            Vector2 dezoom = new Vector2(m_AbscissaDisplayRange.y - m_AbscissaDisplayRange.x, m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x) * (m_ZoomSpeed / (1 - m_ZoomSpeed));
+
+            m_AbscissaDisplayRange.x -= ratio.x * dezoom.x;
+            m_AbscissaDisplayRange.y += (1 - ratio.x) * dezoom.x;
+            m_OrdinateDisplayRange.x -= ratio.y * dezoom.y;
+            m_OrdinateDisplayRange.y += (1 - ratio.y) * dezoom.y;
+
+            OnChangeAbscissaDisplayRange.Invoke(m_AbscissaDisplayRange);
+            OnChangeOrdinateDisplayRange.Invoke(m_OrdinateDisplayRange);
+        }
+        void ChangeRectSize(Vector2 command)
+        {
+            OnChangeAbscissaDisplayRange.Invoke(m_AbscissaDisplayRange);
+            OnChangeOrdinateDisplayRange.Invoke(m_OrdinateDisplayRange);
+        }
+
+        private void Update()
+        {
+            if(Input.GetKey(KeyCode.A))
+            {
+                Zoom();
+            }
+            else if(Input.GetKey(KeyCode.E))
+            {
+                Dezoom();
             }
         }
         #endregion

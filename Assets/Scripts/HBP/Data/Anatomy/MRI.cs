@@ -105,7 +105,7 @@ namespace HBP.Data.Anatomy
         #region Operators
         public object Clone()
         {
-            return new MRI(Name, m_File);
+            return new MRI(Name, File);
         }
         public void Copy(object copy)
         {
@@ -120,6 +120,7 @@ namespace HBP.Data.Anatomy
         [OnDeserialized()]
         public void OnDeserialized(StreamingContext context)
         {
+            m_File = m_File.ToPath();
             RecalculateUsable();
         }
         #endregion

@@ -152,7 +152,7 @@ This document is the user manual of the Human Intracranial Brain Observations Pl
 \paragraph{} In addition, information about the events of the experimental paradigm is stored in .pos files: event codes occurred at specific samples (e.g. an event of type 10 occurred at sample 134567).
 \paragraph{} The .prov file instructs HiBoP on how to epoch the data based on the .pos file. It consists of blocs which contain a list of subblocs. Each bloc or subbloc will be sorted using first their respective order and then alphabetically using their respective names.
 \paragraph{} Each subbloc is centered around a specific event, called \textbf{main event}, for a specific time window (for instance, consider all events with code 10 and extract for each of them a window ranging from 200ms before to 700ms after that event). You can specify secondary events which do not interfere in the epoching. You can also set a baseline window, which is used for the baseline correction (described in more details in Section \ref{preferences}). 
-\paragraph{} Each bloc also has a sorting method, which is used to sort the trials obtained from the epoching according to specific conditions (code of the main event, latency of the secondary event...). The rest of the .prov file is straightforward : you can ask HiBoP to show images (.png or .jpg) at specific time windows, or to associate an image to a bloc.
+\paragraph{} Each bloc also has a sorting method, which is used to sort the trials obtained from the epoching according to specific conditions (code of the main event, latency of the secondary event...). The syntax used here for a condition is \textit{SUBBLOC\_EVENT\_COMMAND} where SUBBLOC is the name of the sub-bloc, EVENT the name of the event and COMMAND the sorting parameter (which can be LATENCY or CODE). You can specify multiple conditions which are separated by a semi-colon, each of which are interpreted in the order they have been written. The rest of the .prov file is straightforward: you can ask HiBoP to show images (.png or .jpg) at specific time windows, or to associate an image to a bloc.
 \begin{figure}[H]
 \begin{lstlisting}
 {
@@ -164,7 +164,7 @@ This document is the user manual of the Human Intracranial Brain Observations Pl
       "ID": "7aebbbee-e2d1-4b65-9337-b2ce67322ae6",
       "Name": "FRUIT",
       "Order": 0,
-      "Sort": "C0L1",
+      "Sort": "FRUIT_RESPONSE_LATENCY",
       "SubBlocs": [
         {
           "ID": "32a8f1c1-de0d-4c10-86e2-427f82cdceb7",
@@ -615,23 +615,28 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Blacklisted : a blacklisted site is barely visible and not included in any calculation
 \item Suspicious : a suspicious site appears orange in the scene
 \end{itemize}
+\paragraph{} This panel also allows you to change the states of some sites directly by clicking on the corresponding dots.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{SitesList.png}
 \end{center}
 \caption{\label{sitesListPanel}Sites list panel}
 \end{figure}
-\paragraph{} This panel also allows you to change the states of some sites directly. You can achieve this in 3 different ways :
+\paragraph{} This panel also contains a submenu called "Apply action on sites" which allows you to filter the sites using various criteria. There are two ways of filtering the sites:
 \begin{itemize}
-\item You can click on the dots to set or unset the state of a specific site in the list.
-\item You can use the submenu "Apply state on sites". There, you can filter sites using specific conditions concerning their current states, their location, information about them or their EEG signal, and apply states by selecting the icons of the states and clicking on the apply button. This process correspond to the "Basic" way of setting multiple states at once (Figure \ref{basicStates}).
+\item You can filter sites using specific conditions concerning their current states, their location, information about them or their EEG signal, and apply states by selecting the icons of the states and clicking on the apply button. This process correspond to the "Basic" way of setting multiple states at once (Figure \ref{basicStates}).
 \item The "Advanced" way can be accessed through the Advanced tab of the aforementioned submenu. While the Basic tab can only filter sites with a global AND between all conditions (which means that all conditions must be fulfilled for a site in order to apply the states), the Advanced tab can be used to create more complex conditions. You can click on the "?" icon to have a detailed description on how it works, alongside examples.
+\end{itemize}
+\paragraph{} Once you have filtered the sites you want to apply an action on, you have multiple actions available:
+\begin{itemize}
+\item You can set the states of the filtered sites. This allows you to set the states of multiple sites at once, which is conveniant compared to setting the states one by one.
+\item You can export a list of the filtered sites as a csv file. This file contains the name, the patient name, place and date, the coordinates of the site and the coordinate system used, and the related eeg and pos files for each site.
 \end{itemize}
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{BasicStates.png}
 \end{center}
-\caption{\label{basicStates}Apply state on sites submenu (in this example, sites that are in the selected ROI (Section \ref{roi}) and which values have a mean above 110 will be marked suspicious)}
+\caption{\label{basicStates}Apply action on sites submenu (in this example, sites that are in the selected ROI (Section \ref{roi}) and which values have a mean above 110 will be marked suspicious)}
 \end{figure}
 \paragraph{} The following sections will explain the different functionalities of each toolbar.
 \subsubsection{Scene settings}
@@ -731,7 +736,6 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Copy the selected ROI to other columns.
 \item Save the selected ROI to a .roi file.
 \item Load a .roi file to the selected column.
-\item Export information about each site in the selected ROI (.csv file).
 \end{itemize}
 \paragraph{} After adding a ROI to the selected column, you can left click on the mesh to add spheres to this ROI. You can select a sphere using either the toolbar or by left clicking on it. You can change the position of the selected sphere by draging and droping it and its size using the scroll wheel.
 \subsubsection{CCEP}

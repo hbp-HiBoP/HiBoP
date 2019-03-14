@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI.Extensions;
 using d = HBP.Data.TrialMatrix.Grid;
 
 namespace HBP.UI.TrialMatrix.Grid
@@ -10,7 +11,7 @@ namespace HBP.UI.TrialMatrix.Grid
     public class Data : MonoBehaviour
     {
         #region Properties
-        string m_Title;
+        [SerializeField] string m_Title;
         public string Title
         {
             get
@@ -19,37 +20,35 @@ namespace HBP.UI.TrialMatrix.Grid
             }
             set
             {
-                if (value != null && value != m_Title)
+                if(SetPropertyUtility.SetClass(ref m_Title, value))
                 {
-                    m_Title = value;
                     OnChangeTitle.Invoke(value);
                 }
             }
         }
         public StringEvent OnChangeTitle;
 
-        bool m_UsePrecalculatedLimits;
-        public bool UsePrecalculatedLimits
+        [SerializeField] bool m_UseDefaultLimits;
+        public bool UseDefaultLimits
         {
             get
             {
-                return m_UsePrecalculatedLimits;
+                return m_UseDefaultLimits;
             }
             set
             {
-                if (value != m_UsePrecalculatedLimits)
-                {
-                    m_UsePrecalculatedLimits = value;
-                    OnChangeUsePrecalculatedLimits.Invoke(value);
+                if(SetPropertyUtility.SetStruct(ref m_UseDefaultLimits, value))
+                { 
+                    OnChangeUseDefaultLimits.Invoke(value);
                     if (value) Limits = m_Data.Limits;
                     else Limits = m_Limits;
                 }
             }
 
         }
-        public BoolEvent OnChangeUsePrecalculatedLimits;
+        public BoolEvent OnChangeUseDefaultLimits;
 
-        Vector2 m_Limits;
+        [SerializeField] Vector2 m_Limits;
         public Vector2 Limits
         {
             get
@@ -58,21 +57,20 @@ namespace HBP.UI.TrialMatrix.Grid
             }
             set
             {
-                m_Limits = value;
-                OnChangeLimits.Invoke(value);
-                foreach (Bloc bloc in Blocs)
+                if(SetPropertyUtility.SetStruct(ref m_Limits,value))
                 {
-                    bloc.Limits = value;
-                }
-                if(value != m_Data.Limits)
-                {
-                    m_UsePrecalculatedLimits = false;
+                    OnChangeLimits.Invoke(value);
+                    foreach (Bloc bloc in Blocs)
+                    {
+                        bloc.Limits = value;
+                    }
+                    m_UseDefaultLimits = value == m_Data.Limits;
                 }
             }
         }
         public Vector2Event OnChangeLimits;
 
-        Texture2D m_Colormap;
+        [SerializeField] Texture2D m_Colormap;
         public Texture2D Colormap
         {
             get
@@ -81,8 +79,10 @@ namespace HBP.UI.TrialMatrix.Grid
             }
             set
             {
-                m_Colormap = value;
-                OnChangeColormap.Invoke(value);
+                if(SetPropertyUtility.SetClass(ref m_Colormap, value))
+                {
+                    OnChangeColormap.Invoke(value);
+                }
             }
         }
         public Texture2DEvent OnChangeColormap;
@@ -96,8 +96,6 @@ namespace HBP.UI.TrialMatrix.Grid
         }
         public BoolEvent OnChangeIsHovered;
 
-
-
         Color[] m_Colors;
         public Color[] Colors
         {
@@ -107,11 +105,13 @@ namespace HBP.UI.TrialMatrix.Grid
             }
             set
             {
-                m_Colors = value;
-                foreach (var bloc in Blocs)
+                if(SetPropertyUtility.SetClass(ref m_Colors, value))
                 {
-                    bloc.Colors = value;
-                }
+                    foreach (var bloc in Blocs)
+                    {
+                        bloc.Colors = value;
+                    }
+                } 
             }
         }
 

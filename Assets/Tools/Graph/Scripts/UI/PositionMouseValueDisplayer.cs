@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace Tools.Unity.Graph
@@ -89,8 +87,10 @@ namespace Tools.Unity.Graph
             Vector2 localPosition = Vector2.zero;
             RectTransformUtility.ScreenPointToLocalPointInRectangle(GraphRectTransform, mousePosition, null, out localPosition);
             Vector2 ratioPosition = new Vector2(localPosition.x / GraphRectTransform.rect.width, localPosition.y / GraphRectTransform.rect.height) + GraphRectTransform.pivot;
-            Limits limits = Graph.Limits;
-            Vector2 values = new Vector2(limits.AbscissaMin + ratioPosition.x * (limits.AbscissaMax - limits.AbscissaMin), limits.OrdinateMin + ratioPosition.y * (limits.OrdinateMax - limits.OrdinateMin));
+            Vector2 ordinateDisplayRange = Graph.OrdinateDisplayRange;
+            Vector2 abscissaDisplayRange = Graph.AbscissaDisplayRange;
+
+            Vector2 values = new Vector2(abscissaDisplayRange.x + ratioPosition.x * (abscissaDisplayRange.y - abscissaDisplayRange.x), ordinateDisplayRange.x + ratioPosition.y * (ordinateDisplayRange.y - ordinateDisplayRange.x));
             m_Text.text = "(" + values.x.ToString("F2") + ", " + values.y.ToString("F2") + ")";
         }
         #endregion

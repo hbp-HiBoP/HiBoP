@@ -1,76 +1,46 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
+using UnityEngine.UI.Extensions;
 
 namespace Tools.Unity.Graph
 {
     public class TickMark : MonoBehaviour
     {
-        #region Parameters
-        [SerializeField]
-        protected RectTransform imageRectTransform;
-        [SerializeField]
-        protected RectTransform rectTransform;
-
-        protected const float TICK_MARK_LENGHT = 12.0f;
-        protected const float TICK_MARK_THICKNESS = 2.0f;
-        #endregion
-
-        #region Public Methods
-        public virtual void Set(float position, Axe.SideEnum side, Color color)
+        #region Properties
+        [SerializeField] protected Color m_Color;
+        public Color Color
         {
-            gameObject.SetActive(true);
-            SetPosition(position, side);
-            SetImage(side);
-            SetColor(color);
-        }
-        public virtual void SetColor(Color color)
-        {
-            imageRectTransform.GetComponent<Image>().color = color;
-        }
-        #endregion
-
-        #region Private Methods
-        protected virtual void SetPosition(float position, Axe.SideEnum side)
-        {
-            switch (side)
+            get
             {
-                case Axe.SideEnum.absciss:
-                    rectTransform.anchorMin = new Vector2(0, 0);
-                    rectTransform.anchorMax = new Vector2(0, 1);
-                    rectTransform.pivot = new Vector2(0.5f, 1f);
-                    rectTransform.sizeDelta = new Vector2(rectTransform.parent.GetComponent<RectTransform>().rect.width / 11.0f, 0);
-                    rectTransform.localPosition = position * Vector3.right;
-                    break;
-
-                case Axe.SideEnum.ordinate:
-                    rectTransform.anchorMin = new Vector2(0, 0);
-                    rectTransform.anchorMax = new Vector2(1, 0);
-                    rectTransform.pivot = new Vector2(1f, 0.5f);
-                    rectTransform.sizeDelta = new Vector2(0, rectTransform.parent.GetComponent<RectTransform>().rect.height / 11.0f);
-                    rectTransform.localPosition = position * Vector3.up;
-                    break;
+                return m_Color;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_Color, value))
+                {
+                    SetColor();
+                }
             }
         }
-        protected virtual void SetImage(Axe.SideEnum side)
+        [SerializeField] protected ColorEvent m_OnChangeColor;
+        public ColorEvent OnChangeColor
         {
-            switch (side)
+            get
             {
-                case Axe.SideEnum.absciss:
-                    imageRectTransform.anchorMin = new Vector2(0.5f, 1f);
-                    imageRectTransform.anchorMax = new Vector2(0.5f, 1f);
-                    imageRectTransform.pivot = new Vector2(0.5f, 0.5f);
-                    imageRectTransform.sizeDelta = new Vector2(TICK_MARK_THICKNESS, TICK_MARK_LENGHT);
-                    imageRectTransform.localPosition = Vector3.zero;
-                    break;
-
-                case Axe.SideEnum.ordinate:
-                    imageRectTransform.anchorMin = new Vector2(1f, 0.5f);
-                    imageRectTransform.anchorMax = new Vector2(1f, 0.5f);
-                    imageRectTransform.pivot = new Vector2(0.5f, 0.5f);
-                    imageRectTransform.sizeDelta = new Vector2(TICK_MARK_LENGHT, TICK_MARK_THICKNESS);
-                    imageRectTransform.localPosition = Vector3.zero;
-                    break;
+                return m_OnChangeColor;
             }
+        }
+        #endregion
+
+        #region Setters
+        protected virtual void OnValidate()
+        {
+            SetColor();
+        }
+        protected virtual void SetColor()
+        {
+            m_OnChangeColor.Invoke(m_Color);
         }
         #endregion
     }

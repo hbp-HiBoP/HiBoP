@@ -87,7 +87,7 @@ namespace Tools.Unity
                     logFile = "~/Library/Logs/Unity/Player.log";
                     break;
                 case RuntimePlatform.WindowsPlayer:
-                    logFile = "./HiBoP_Data/output_log.txt";
+                    logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),"LocalLow/HiBoP_Data/output_log.txt");
                     break;
                 case RuntimePlatform.LinuxPlayer:
                     logFile = "~/.config/unity3d/CRNL/HiBoP/Player.log";

@@ -25,7 +25,7 @@ namespace HBP.UI.TrialMatrix.Grid
                 }
             }
         }
-        Texture2D m_Colormap;
+        [SerializeField] Texture2D m_Colormap;
         public Texture2D Colormap
         {
             get
@@ -62,7 +62,6 @@ namespace HBP.UI.TrialMatrix.Grid
         #endregion
 
         #region Public Methods
-
         public void Display(data.TrialMatrixGrid trialMatrixGridData, Texture2D colormap = null)
         {
             Clear();

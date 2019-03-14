@@ -63,21 +63,18 @@ namespace Tools.Unity
 
             string projectPath = Application.dataPath;
             projectPath = projectPath.Remove(projectPath.Length - 6);
-            /*
-            switch (target)
+
+            DirectoryInfo dataDirectoryInfo = new DirectoryInfo(dataDirectory + m_DataBuild);
+            new DirectoryInfo(projectPath + m_Data).CopyFilesRecursively(dataDirectoryInfo);
+            foreach (var file in dataDirectoryInfo.GetFiles("*.meta", SearchOption.AllDirectories))
             {
-                case BuildTarget.StandaloneWindows64:
-                    new DirectoryInfo(projectPath + m_Tools + "windows/").CopyFilesRecursively(new DirectoryInfo(buildDirectory + m_Tools));
-                    break;
-                case BuildTarget.StandaloneLinux64:
-                    new DirectoryInfo(projectPath + m_Tools + "linux/").CopyFilesRecursively(new DirectoryInfo(buildDirectory + m_Tools));
-                    break;
-                case BuildTarget.StandaloneOSX:
-                    new DirectoryInfo(projectPath + m_Tools + "macos/").CopyFilesRecursively(new DirectoryInfo(buildDirectory));
-                    break;
+                file.Delete();
             }
-            */
-            new DirectoryInfo(projectPath + m_Data).CopyFilesRecursively(new DirectoryInfo(dataDirectory + m_DataBuild));
+            foreach (var file in dataDirectoryInfo.GetFiles("*.obj", SearchOption.AllDirectories))
+            {
+                file.Delete();
+            }
+
             if (target == BuildTarget.StandaloneOSX)
             {
                 DirectoryInfo pluginsDirectory = new DirectoryInfo(Application.dataPath + "/Plugins/x86_64/MacOS");

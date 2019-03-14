@@ -1,6 +1,7 @@
-﻿///Credit judah4
+﻿
+using UnityEngine.Events;
+///Credit judah4
 ///Sourced from - http://forum.unity3d.com/threads/color-picker.267043/
-
 namespace UnityEngine.UI.Extensions.ColorPicker
 {
 
@@ -16,7 +17,7 @@ namespace UnityEngine.UI.Extensions.ColorPicker
 
     private float _alpha = 1;
 
-    public ColorChangedEvent onValueChanged = new ColorChangedEvent();
+    public ColorEvent onValueChanged = new ColorEvent();
     public HSVChangedEvent onHSVChanged = new HSVChangedEvent();
 
     public Color CurrentColor

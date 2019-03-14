@@ -28,13 +28,13 @@ namespace Tools.Unity.Graph
             {
                 GameObject gameObject = Instantiate(graphPrefab, container);
                 yield return true;
-                gameObject.GetComponent<Graph>().Plot(graph);
+                //gameObject.GetComponent<Graph>().Plot(graph);
             }
         }
         void Plot(GraphData graph)
         {
             GameObject gameObject = Instantiate(graphPrefab, container);
-            gameObject.GetComponent<Graph>().Plot(graph);
+            //gameObject.GetComponent<Graph>().Plot(graph);
         }
         void Clear()
         {

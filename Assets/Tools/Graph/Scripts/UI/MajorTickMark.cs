@@ -1,36 +1,79 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
+using UnityEngine.UI.Extensions;
 
 namespace Tools.Unity.Graph
 {
     public class MajorTickMark : TickMark
     {
-        #region Parameters
-        [SerializeField]
-        protected RectTransform labelRectTransform;
-        #endregion
-
-        #region Public Methods
-        public virtual void Set(string label, float position, Axe.SideEnum side, Color color)
+        #region Properties
+        [SerializeField] protected string m_Label;
+        public virtual string Label
         {
-            base.Set(position, side, color);
-            SetLabel(label,side);
-        }
-        public override void SetColor(Color color)
-        {
-            labelRectTransform.GetComponent<Text>().color = color;
-        }
-        #endregion
-
-        #region Private Methods
-        protected virtual void SetLabel(string label, Axe.SideEnum side)
-        {
-            labelRectTransform.GetComponent<Text>().text = label;
-            switch (side)
+            get
             {
-                case Axe.SideEnum.absciss: labelRectTransform.offsetMax = new Vector2(0, - TICK_MARK_LENGHT / 2); break;
-                case Axe.SideEnum.ordinate: labelRectTransform.offsetMax = new Vector2(- TICK_MARK_LENGHT / 2, 0); break;
+                return m_Label;
             }
+            set
+            {
+                if(SetPropertyUtility.SetClass(ref m_Label, value))
+                {
+                    SetLabel();
+                }
+            }
+        }
+
+        [SerializeField] protected StringEvent m_OnChangeLabel;
+        public StringEvent OnChangeLabel
+        {
+            get
+            {
+                return m_OnChangeLabel;
+            }
+        }
+
+        [SerializeField] protected bool m_ShowLabel;
+        public bool ShowLabel
+        {
+            get
+            {
+                return m_ShowLabel;
+            }
+            set
+            {
+
+                if (SetPropertyUtility.SetStruct(ref m_ShowLabel, value))
+                {
+                    SetHidden();
+                }
+            }
+        }
+
+        [SerializeField] protected BoolEvent m_OnChangeShowLabel;
+        public BoolEvent OnChangeShowLabel
+        {
+            get
+            {
+                return m_OnChangeShowLabel;
+            }
+        }
+        #endregion
+
+        #region Protected Setters
+        protected override void OnValidate()
+        {
+            base.OnValidate();
+            SetLabel();
+            SetHidden();
+        }
+        protected void SetLabel()
+        {
+            m_OnChangeLabel.Invoke(m_Label);
+        }
+        protected void SetHidden()
+        {
+            m_OnChangeShowLabel.Invoke(m_ShowLabel);
         }
         #endregion
     }

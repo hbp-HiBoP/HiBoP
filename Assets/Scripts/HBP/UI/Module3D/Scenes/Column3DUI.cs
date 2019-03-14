@@ -64,6 +64,7 @@ namespace HBP.UI.Module3D
         [SerializeField] private RectTransform m_LeftBorder;
         [SerializeField] private RectTransform m_RightBorder;
 
+
         /// <summary>
         /// Does the column UI have enough space to display the overlay ?
         /// </summary>

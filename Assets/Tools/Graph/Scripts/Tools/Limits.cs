@@ -15,7 +15,7 @@ namespace Tools.Unity.Graph
         #endregion
 
         #region Constructor
-        public Limits(float abscissaMin = 0,float abscissaMax = 0,float ordinateMin = 0,float ordinateMax = 0)
+        public Limits(float abscissaMin = 0, float abscissaMax = 0, float ordinateMin = 0, float ordinateMax = 0)
         {
             AbscissaMin = abscissaMin;
             AbscissaMax = abscissaMax;
@@ -25,11 +25,31 @@ namespace Tools.Unity.Graph
         #endregion
 
         #region Public Methods
-        public bool ContainsPoint(Vector2 point,bool inclusive = true)
+
+        public bool ContainsPoint(Vector2 point, bool inclusive = true)
         {
             return inclusive ?
                 point.x >= AbscissaMin && point.x <= AbscissaMax && point.y >= OrdinateMin && point.y <= OrdinateMax :
                 point.x > AbscissaMin && point.x < AbscissaMax && point.y > OrdinateMin && point.y < OrdinateMax;
+        }
+        #endregion
+
+        #region Public Static Methods
+        public static bool operator ==(Limits obj1, Limits obj2)
+        {
+            return
+                (obj1.AbscissaMin == obj2.AbscissaMin
+                && obj1.AbscissaMax == obj2.AbscissaMax
+                && obj1.OrdinateMin == obj2.OrdinateMin
+                && obj1.OrdinateMax == obj2.OrdinateMax);
+        }
+        public static bool operator !=(Limits obj1, Limits obj2)
+        {
+            return
+                !(obj1.AbscissaMin == obj2.AbscissaMin
+                && obj1.AbscissaMax == obj2.AbscissaMax
+                && obj1.OrdinateMin == obj2.OrdinateMin
+                && obj1.OrdinateMax == obj2.OrdinateMax);
         }
         #endregion
     }

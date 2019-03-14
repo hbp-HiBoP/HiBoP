@@ -1,211 +1,632 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.Events;
+using UnityEngine.UI.Extensions;
 
 namespace Tools.Unity.Graph
 {
     public class Graph : MonoBehaviour
     {
         #region Properties
-        PlotGestion m_PlotGestion;
-        InformationsGestion m_InformationsGestion;
-
-        Dictionary<string, bool> m_StateByGroupCurveData = new Dictionary<string, bool>();
-        Dictionary<string, bool> m_StateByCurveData = new Dictionary<string, bool>();
-        GraphData m_Data = new GraphData();
-
+        [SerializeField] private string m_Title;
         public string Title
         {
-            get { return m_Data.Title; }
+            get
+            {
+                return m_Title;
+            }
             set
             {
-                m_Data.Title = value;
-                m_InformationsGestion.SetTitle(value);
+                if (SetPropertyUtility.SetClass(ref m_Title, value))
+                {
+                    SetTitle();
+                }
             }
         }
-        public string Abscissa
+
+        [SerializeField] private string m_AbscissaUnit;
+        public string AbscissaUnit
         {
-            get { return m_Data.Abscissa; }
+            get
+            {
+                return m_AbscissaUnit;
+            }
             set
             {
-                m_Data.Abscissa = value;
-                m_InformationsGestion.SetAbscissaLabel(value);
+                if (SetPropertyUtility.SetClass(ref m_AbscissaUnit, value))
+                {
+
+                }
             }
         }
-        public string Ordinate
+
+        [SerializeField] private string m_AbscissaLabel;
+        public string AbscissaLabel
         {
-            get { return m_Data.Ordinate; }
+            get
+            {
+                return m_AbscissaLabel;
+            }
             set
             {
-                m_Data.Ordinate = value;
-                m_InformationsGestion.SetOrdinateLabel(value);
+                if (SetPropertyUtility.SetClass(ref m_AbscissaLabel, value))
+                {
+                    SetAbscissaLabel();
+                }
             }
         }
+
+        [SerializeField] private string m_OrdinateUnit;
+        public string OrdinateUnit
+        {
+            get
+            {
+                return m_OrdinateUnit;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetClass(ref m_OrdinateUnit, value))
+                {
+                    SetOrdinateUnit();
+                }
+            }
+        }
+
+        [SerializeField] private string m_OrdinateLabel;
+        public string OrdinateLabel
+        {
+            get
+            {
+                return m_OrdinateLabel;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetClass(ref m_OrdinateLabel, value))
+                {
+                    OnChangeOrdinateLabel.Invoke(value);
+                }
+            }
+        }
+
+        [SerializeField] private Color m_FontColor;
         public Color FontColor
         {
-            get { return m_Data.Font; }
+            get
+            {
+                return m_FontColor;
+            }
             set
             {
-                m_Data.Font = value;
-                m_InformationsGestion.SetColor(value);
-                m_PlotGestion.OriginAxeColor = value;
+                if (SetPropertyUtility.SetColor(ref m_FontColor, value))
+                {
+                    SetFontColor();
+                }
             }
         }
+
+        [SerializeField] private Color m_BackgroundColor;
         public Color BackgroundColor
         {
-            get { return m_Data.Background; }
+            get
+            {
+                return m_BackgroundColor;
+            }
             set
             {
-                m_Data.Background = value;
-                m_PlotGestion.GetComponent<Image>().color = value;
-            }
-        }
-        public GroupCurveData[] GroupCurves
-        {
-            get { return m_Data.GroupCurveData; }
-            private set
-            {
-                m_Data.GroupCurveData = value;
-                Dictionary<GroupCurveData, bool> stateByGroupCurveData = new Dictionary<GroupCurveData, bool>();
-                Dictionary<CurveData, bool> stateByCurveData = new Dictionary<CurveData, bool>();
-                foreach (var group in value)
+                if (SetPropertyUtility.SetColor(ref m_BackgroundColor, value))
                 {
-                    stateByGroupCurveData.Add(group, m_StateByGroupCurveData[group.Name]);
-                    foreach (var curve in group.Curves) stateByCurveData.Add(curve, m_StateByCurveData[curve.ID]);
+                    SetBackgroundColor();
                 }
-                m_InformationsGestion.SetLegends(stateByGroupCurveData, stateByCurveData);
             }
         }
 
-        Limits limits;
-        public Limits Limits
+        [SerializeField] private Vector2 m_OrdinateDisplayRange;
+        public Vector2 OrdinateDisplayRange
         {
-            get { return limits; }
-            private set
+            get
             {
-                limits = value;
-                m_InformationsGestion.SetLimits(value);
+                return m_OrdinateDisplayRange;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_OrdinateDisplayRange, value))
+                {
+                    SetOrdinateDisplayRange();
+                }
             }
         }
 
-        bool m_AutoLimits = true;
+        [SerializeField] private Vector2 m_DefaultOrdinateDisplayRange;
+        public Vector2 DefaultOrdinateDisplayRange
+        {
+            get
+            {
+                return m_DefaultOrdinateDisplayRange;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_DefaultOrdinateDisplayRange, value))
+                {
+                    SetDefaultOrdinateDisplayRange();
+                }
+            }
+        }
+
+        [SerializeField] private Vector2 m_AbscissaDisplayRange;
+        public Vector2 AbscissaDisplayRange
+        {
+            get
+            {
+                return m_AbscissaDisplayRange;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_AbscissaDisplayRange, value))
+                {
+                    SetAbscissaDisplayRange();
+                }
+            }
+        }
+
+        [SerializeField] private Vector2 m_DefaultAbscissaDisplayRange;
+        public Vector2 DefaultAbscissaDisplayRange
+        {
+            get
+            {
+                return m_DefaultAbscissaDisplayRange;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_DefaultAbscissaDisplayRange, value))
+                {
+                    SetDefaultAbscissaDisplayRange();
+                }
+            }
+        }
+
+        [SerializeField] bool m_UseDefaultDisplayRange = true;
+        public bool UseDefaultDisplayRange
+        {
+            get
+            {
+                return m_UseDefaultDisplayRange;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_UseDefaultDisplayRange, value))
+                {
+                    SetUseDefaultDisplayRange();
+                }
+            }
+        }
+
+        [SerializeField] List<Curve> m_Curves = new List<Curve>();
+        public ReadOnlyCollection<Curve> Curves
+        {
+            get
+            {
+                return new ReadOnlyCollection<Curve>(m_Curves);
+            }
+        }
+
+        #region Events
+        [SerializeField] private StringEvent m_OnChangeTitle;
+        public StringEvent OnChangeTitle
+        {
+            get
+            {
+                return m_OnChangeTitle;
+            }
+        }
+
+        [SerializeField] private StringEvent m_OnChangeAbscissaUnit;
+        public StringEvent OnChangeAbscissaUnit
+        {
+            get
+            {
+                return m_OnChangeAbscissaUnit;
+            }
+        }
+
+        [SerializeField] private StringEvent m_OnChangeAbscissaLabel;
+        public StringEvent OnChangeAbscissaLabel
+        {
+            get
+            {
+                return m_OnChangeAbscissaLabel;
+            }
+        }
+
+        [SerializeField] private StringEvent m_OnChangeOrdinateUnit;
+        public StringEvent OnChangeOrdinateUnit
+        {
+            get
+            {
+                return m_OnChangeOrdinateUnit;
+            }
+        }
+
+        [SerializeField] private StringEvent m_OnChangeOrdinateLabel;
+        public StringEvent OnChangeOrdinateLabel
+        {
+            get
+            {
+                return m_OnChangeOrdinateLabel;
+            }
+        }
+
+        [SerializeField] private ColorEvent m_OnChangeFontColor;
+        public ColorEvent OnChangeFontColor
+        {
+            get
+            {
+                return m_OnChangeFontColor;
+            }
+        }
+
+        [SerializeField] private ColorEvent m_OnChangeBackgroundColor;
+        public ColorEvent OnChangeBackgroundColor
+        {
+            get
+            {
+                return m_OnChangeBackgroundColor;
+            }
+        }
+
+        [SerializeField] private Vector2Event m_OnChangeOrdinateDisplayRange;
+        public Vector2Event OnChangeOrdinateDisplayRange
+        {
+            get
+            {
+                return m_OnChangeOrdinateDisplayRange;
+            }
+        }
+
+        [SerializeField] private Vector2Event m_OnChangeAbscissaDisplayRange;
+        public Vector2Event OnChangeAbscissaDisplayRange
+        {
+            get
+            {
+                return m_OnChangeAbscissaDisplayRange;
+            }
+        }
+
+        [SerializeField] private BoolEvent m_OnChangeUseDefaultRange;
+        public BoolEvent OnChangeUseDefaultRange
+        {
+            get
+            {
+                return m_OnChangeUseDefaultRange;
+            }
+        }
+
+        [SerializeField] private CurvesEvent m_OnChangeCurves;
+        public CurvesEvent OnChangeCurves
+        {
+            get
+            {
+                return m_OnChangeCurves;
+            }
+        }
+        #endregion
         #endregion
 
-        #region Public Methods    
-        public void Plot(GraphData graph)
+        #region Public Methods
+        public void SetEnabled(string id, bool enabled)
         {
-            m_Data = graph;
-            Title = graph.Title;
-            Abscissa = graph.Abscissa;
-            Ordinate = graph.Ordinate;
-            BackgroundColor = graph.Background;
-            FontColor = graph.Font;
-            List<string> curveToRemove = new List<string>();
-            List<string> groupToRemove = new List<string>();
-            foreach (var ID in m_StateByCurveData.Keys)
+            Curve curveFound = FindCurve(id);
+            if (curveFound != null)
             {
-                bool found = false;
-                foreach (var group in graph.GroupCurveData)
-                {
-                    foreach (var curve in group.Curves)
-                    {
-                        if (curve.ID == ID)
-                        {
-                            found = true;
-                            goto Found;
-                        }
-                    }
-                }
-                Found:
-                if (!found) curveToRemove.Add(ID);
+                curveFound.Enabled = enabled;
             }
-            foreach (var name in m_StateByGroupCurveData.Keys)
-            {
-                if(!graph.GroupCurveData.Any(g => g.Name == name))
-                {
-                    groupToRemove.Add(name);
-                }
-            }
-            foreach (var curve in curveToRemove) m_StateByCurveData.Remove(curve);
-            foreach (var group in groupToRemove) m_StateByGroupCurveData.Remove(group);
-
-
-            foreach (var group in graph.GroupCurveData)
-            {
-                if(!m_StateByGroupCurveData.ContainsKey(group.Name))
-                {
-                    m_StateByGroupCurveData[group.Name] = true;
-                }
-                foreach (var curve in group.Curves)
-                {
-                    if (!m_StateByCurveData.ContainsKey(curve.ID))
-                    {
-                        m_StateByCurveData[curve.ID] = true;
-                    }
-                }
-            }
-
-
-            if (m_AutoLimits)
-            {
-                Plot(graph.GroupCurveData, graph.Limits, false);
-            }
-            else
-            {
-                Plot(graph.GroupCurveData, Limits, false);
-            }
+            SetCurves();
+        }
+        public void AddCurve(Curve data)
+        {
+            m_Curves.Add(data);
+            SetCurves();
+        }
+        public void RemoveCurve(Curve curve)
+        {
+            m_Curves.Remove(curve);
+            SetCurves();
         }
         public string ToSVG()
         {
-            return m_Data.ToSVG();
+            return "";
+            //return m_Data.ToSVG();
         }
         public Dictionary<string, string> ToCSV()
         {
-            return m_Data.ToCSV();
+            return new Dictionary<string, string>();
+            //return m_Data.ToCSV();
         }
         #endregion
 
         #region Private Methods
-        void Awake()
+        void Clear()
         {
-            m_PlotGestion = GetComponentInChildren<PlotGestion>();
-            m_InformationsGestion = GetComponentInChildren<InformationsGestion>();
-            m_InformationsGestion.OnAutoLimits.RemoveAllListeners();
-            m_InformationsGestion.OnAutoLimits.AddListener(() => { m_AutoLimits = true; Plot(m_Data); });
-            m_InformationsGestion.OnDisplayCurve.RemoveAllListeners();
-            m_InformationsGestion.OnDisplayCurve.AddListener((curve, isOn) =>
-            {
-                m_StateByCurveData[curve.ID] = isOn;
-                Plot(GroupCurves, Limits);
-            });
-            m_InformationsGestion.OnDisplayGroup.RemoveAllListeners();
-            m_InformationsGestion.OnDisplayGroup.AddListener((group, isOn) =>
-            {
-                m_StateByGroupCurveData[group.Name] = isOn;
-                Plot(GroupCurves, Limits);
-            });
-            m_PlotGestion.OnChangeLimits.RemoveAllListeners();
-            m_PlotGestion.OnChangeLimits.AddListener((limits,ignore) => { if(!ignore) m_AutoLimits = false; Plot(GroupCurves, limits, true);});
+
         }
-        void Plot (GroupCurveData[] groupCurves, Limits limits, bool onlyUpdate = false)
+        private void Start()
         {
-            GroupCurves = groupCurves;
-            Limits = limits;
-            List<CurveData> curvesToDisplay = new List<CurveData>();
-            foreach (var group in groupCurves)
+            OnValidate();
+        }
+        #endregion
+
+        #region Setters
+        void OnValidate()
+        {
+            SetTitle();
+            SetAbscissaUnit();
+            SetAbscissaLabel();
+            SetOrdinateUnit();
+            SetOrdinateLabel();
+            SetFontColor();
+            SetBackgroundColor();
+            SetUseDefaultDisplayRange();
+            SetOrdinateDisplayRange();
+            SetAbscissaDisplayRange();
+            SetCurves();
+        }
+        void SetTitle()
+        {
+            m_OnChangeTitle.Invoke(m_Title);
+        }
+        void SetAbscissaUnit()
+        {
+            m_OnChangeAbscissaUnit.Invoke(m_AbscissaUnit);
+        }
+        void SetAbscissaLabel()
+        {
+            m_OnChangeAbscissaLabel.Invoke(m_AbscissaLabel);
+        }
+        void SetOrdinateUnit()
+        {
+            m_OnChangeOrdinateUnit.Invoke(m_OrdinateUnit);
+        }
+        void SetOrdinateLabel()
+        {
+            m_OnChangeOrdinateLabel.Invoke(m_OrdinateLabel);
+        }
+        void SetFontColor()
+        {
+            m_OnChangeFontColor.Invoke(m_FontColor);
+        }
+        void SetBackgroundColor()
+        {
+            m_OnChangeBackgroundColor.Invoke(m_BackgroundColor);
+        }
+        void SetOrdinateDisplayRange()
+        {
+            m_OnChangeOrdinateDisplayRange.Invoke(m_OrdinateDisplayRange);
+            if (m_OrdinateDisplayRange != m_DefaultOrdinateDisplayRange && m_UseDefaultDisplayRange)
             {
-                if(m_StateByGroupCurveData[group.Name])
+                m_UseDefaultDisplayRange = false;
+                m_OnChangeUseDefaultRange.Invoke(m_UseDefaultDisplayRange);
+            }
+            else if (m_OrdinateDisplayRange == m_DefaultOrdinateDisplayRange && m_OrdinateDisplayRange == m_DefaultOrdinateDisplayRange && !m_UseDefaultDisplayRange)
+            {
+                m_UseDefaultDisplayRange = true;
+                m_OnChangeUseDefaultRange.Invoke(m_UseDefaultDisplayRange);
+
+            }
+        }
+        void SetAbscissaDisplayRange()
+        {
+            m_OnChangeAbscissaDisplayRange.Invoke(m_AbscissaDisplayRange);
+            if (m_AbscissaDisplayRange != m_DefaultAbscissaDisplayRange && m_UseDefaultDisplayRange)
+            {
+                m_UseDefaultDisplayRange = false;
+                m_OnChangeUseDefaultRange.Invoke(m_UseDefaultDisplayRange);
+            }
+            else if (m_AbscissaDisplayRange == m_DefaultAbscissaDisplayRange && m_OrdinateDisplayRange == m_DefaultOrdinateDisplayRange && !m_UseDefaultDisplayRange)
+            {
+                m_UseDefaultDisplayRange = true;
+                m_OnChangeUseDefaultRange.Invoke(m_UseDefaultDisplayRange);
+            }
+        }
+        void SetDefaultAbscissaDisplayRange()
+        {
+            if (m_UseDefaultDisplayRange)
+            {
+                AbscissaDisplayRange = m_DefaultAbscissaDisplayRange;
+            }
+        }
+        void SetDefaultOrdinateDisplayRange()
+        {
+            if (m_UseDefaultDisplayRange)
+            {
+                OrdinateDisplayRange = m_DefaultOrdinateDisplayRange;
+            }
+        }
+        void SetUseDefaultDisplayRange()
+        {
+            if (m_UseDefaultDisplayRange)
+            {
+                AbscissaDisplayRange = DefaultAbscissaDisplayRange;
+                OrdinateDisplayRange = DefaultOrdinateDisplayRange;
+            }
+            m_OnChangeUseDefaultRange.Invoke(m_UseDefaultDisplayRange);
+        }
+        void SetCurves()
+        {
+            m_OnChangeCurves.Invoke(m_Curves.ToArray());
+        }
+        Curve FindCurve(string ID)
+        {
+            Curve result = null;
+            foreach (var curve in m_Curves)
+            {
+                result = FindCurve(curve, ID);
+                if (result != null) break;
+            }
+            return result;
+        }
+        Curve FindCurve(Curve curve, string ID)
+        {
+            Curve result = null;
+            if (curve.ID == ID)
+            {
+                result = curve;
+            }
+            else
+            {
+                foreach (var subCurve in curve.SubCurves)
                 {
-                    foreach (var curve in group.Curves)
+                    result = FindCurve(subCurve, ID);
+                    if (result != null) break;
+                }
+            }
+            return result;
+        }
+        #endregion
+
+        #region Public Class
+        [Serializable]
+        public class Curve
+        {
+            #region Properties
+            [SerializeField] bool m_Enabled;
+            public bool Enabled
+            {
+                get
+                {
+                    return m_Enabled;
+                }
+                set
+                {
+                    if (SetPropertyUtility.SetStruct(ref m_Enabled, value))
                     {
-                        if (m_StateByCurveData[curve.ID]) curvesToDisplay.Add(curve);
+                        SetEnabled();
                     }
                 }
             }
-            m_PlotGestion.Plot(curvesToDisplay.ToArray(), Limits, onlyUpdate);
-            m_InformationsGestion.UpdateWindowValues();
+
+            [SerializeField] CurveData m_Data;
+            public CurveData Data
+            {
+                get
+                {
+                    return m_Data;
+                }
+                set
+                {
+                    if (SetPropertyUtility.SetClass(ref m_Data, value))
+                    {
+                        SetData();
+                    }
+                }
+            }
+
+            [SerializeField] Color m_DefaultColor;
+            public Color DefaultColor
+            {
+                get
+                {
+                    return m_DefaultColor;
+                }
+            }
+
+            public Color Color
+            {
+                get
+                {
+                    if (m_Data != null)
+                    {
+                        return m_Data.Color;
+                    }
+                    else
+                    {
+                        return m_DefaultColor;
+                    }
+                }
+            }
+
+            [SerializeField] string m_Name;
+            public string Name
+            {
+                get
+                {
+                    return m_Name;
+                }
+                set
+                {
+                    SetPropertyUtility.SetClass(ref m_Name, value);
+                }
+            }
+
+            [SerializeField] string m_ID;
+            public string ID
+            {
+                get
+                {
+                    return m_ID;
+                }
+                set
+                {
+                    SetPropertyUtility.SetClass(ref m_ID, value);
+                }
+            }
+
+            [SerializeField] List<Curve> m_SubCurves;
+            public ReadOnlyCollection<Curve> SubCurves
+            {
+                get
+                {
+                    return new ReadOnlyCollection<Curve>(m_SubCurves);
+                }
+            }
+
+            [SerializeField] BoolEvent m_OnChangeIsActive = new BoolEvent();
+            public BoolEvent OnChangeIsActive
+            {
+                get
+                {
+                    return m_OnChangeIsActive;
+                }
+            }
+            #endregion
+
+            #region Constructor
+            public Curve(string name, CurveData data, bool isActive, string id, Curve[] subCurves, Color defaultColor)
+            {
+                Name = name;
+                Data = data;
+                Enabled = isActive;
+                ID = id;
+                m_SubCurves = subCurves.ToList();
+                m_DefaultColor = defaultColor;
+            }
+            #endregion
+
+            #region Public Methods
+            public void AddSubCurve(Curve curve)
+            {
+                m_SubCurves.Add(curve);
+            }
+            public void RemoveSubCurve(Curve curve)
+            {
+                m_SubCurves.Remove(curve);
+            }
+            #endregion
+
+            #region Private Methods
+            void SetEnabled()
+            {
+                m_OnChangeIsActive.Invoke(m_Enabled);
+            }
+            void SetData()
+            {
+
+            }
+            #endregion
         }
+        [Serializable] public class CurveEvent : UnityEvent<Curve> { }
+        [Serializable] public class CurvesEvent : UnityEvent<Curve[]> { }
         #endregion
     }
 }

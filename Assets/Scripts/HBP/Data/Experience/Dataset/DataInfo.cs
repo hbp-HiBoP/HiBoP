@@ -310,7 +310,7 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance.</returns>
         public object Clone()
         {
-            DataInfo dataInfo =  new DataInfo(Name.Clone() as string, Patient.Clone() as Patient, Measure.Clone() as string, m_EEG.Clone() as string, m_POS.Clone() as string, Normalization);
+            DataInfo dataInfo =  new DataInfo(Name.Clone() as string, Patient.Clone() as Patient, Measure.Clone() as string, EEG.Clone() as string, POS.Clone() as string, Normalization);
             dataInfo.OnPOSChanged = OnPOSChanged;
             return dataInfo;
         }
@@ -382,6 +382,8 @@ namespace HBP.Data.Experience.Dataset
         [OnDeserialized()]
         public void OnDeserialized(StreamingContext context)
         {
+            m_EEG = m_EEG.ToPath();
+            m_POS = m_POS.ToPath();
             m_Patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == m_PatientID);
         }
         #endregion

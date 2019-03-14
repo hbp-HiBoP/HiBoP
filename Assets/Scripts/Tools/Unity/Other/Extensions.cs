@@ -20,9 +20,8 @@ namespace Tools.Unity
         }
         public static Vector2 GetRatioPosition(this RectTransform rectTransform,Vector2 position)
         {
-            Vector2 localPosition = Input.mousePosition - rectTransform.position - (Vector3)rectTransform.rect.min;
+            Vector2 localPosition = position - (Vector2)rectTransform.position - rectTransform.rect.min;
             Vector2 ratio = new Vector2(localPosition.x / rectTransform.rect.width, localPosition.y / rectTransform.rect.height);
-            //Vector2 clampedRatio = new Vector2(Mathf.Clamp01(ratio.x, Mathf.Clamp01(ratio.y));
             return ratio;
         }
     }
@@ -76,6 +75,33 @@ namespace Tools.Unity
         {
             return b == 0 ? a : GCD(b, a % b);
         }
+
+        public static bool TryParseFloat(string text, out float result)
+        {
+            System.Globalization.CultureInfo[] cultures = new System.Globalization.CultureInfo[]
+            {
+                System.Globalization.CultureInfo.CreateSpecificCulture("fr-FR"),
+                System.Globalization.CultureInfo.CreateSpecificCulture("en-GB"),
+                System.Globalization.CultureInfo.CreateSpecificCulture("en-US"),
+                System.Globalization.CultureInfo.InvariantCulture
+            };
+            foreach (var culture in cultures)
+            {
+                try
+                {
+                    if (float.TryParse(text, System.Globalization.NumberStyles.Float, culture, out result))
+                    {
+                        return true;
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+            result = 0;
+            return false;
+        }
     }
 
     public static class PathExtension
@@ -97,7 +123,7 @@ namespace Tools.Unity
                 alias.ConvertKeyToValue(ref localPath);
             }
 
-            return localPath;
+            return localPath.ToPath();
         }
         public static string ConvertToShortPath(this string path)
         {
@@ -112,8 +138,15 @@ namespace Tools.Unity
             {
                 alias.ConvertValueToKey(ref localPath);
             }
-
-            return localPath;
+            
+            return localPath.ToPath();
+        }
+        public static string ToPath(this string path)
+        {
+            string result = path;
+            result = result.Replace('\\', Path.DirectorySeparatorChar);
+            result = result.Replace('/', Path.DirectorySeparatorChar);
+            return result;
         }
     }
 
