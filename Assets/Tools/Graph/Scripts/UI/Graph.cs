@@ -212,8 +212,6 @@ namespace Tools.Unity.Graph
             }
         }
 
-        CurvesDisplayer m_PlotGestion;
-
         #region Events
         [SerializeField] private StringEvent m_OnChangeTitle;
         public StringEvent OnChangeTitle
@@ -326,7 +324,7 @@ namespace Tools.Unity.Graph
             }
             SetCurves();
         }
-        public void AddCurve(Curve data, bool enabled)
+        public void AddCurve(Curve data)
         {
             m_Curves.Add(data);
             SetCurves();
@@ -353,6 +351,10 @@ namespace Tools.Unity.Graph
         {
 
         }
+        private void Start()
+        {
+            OnValidate();
+        }
         #endregion
 
         #region Setters
@@ -365,6 +367,7 @@ namespace Tools.Unity.Graph
             SetOrdinateLabel();
             SetFontColor();
             SetBackgroundColor();
+            SetUseDefaultDisplayRange();
             SetOrdinateDisplayRange();
             SetAbscissaDisplayRange();
             SetCurves();
@@ -400,10 +403,31 @@ namespace Tools.Unity.Graph
         void SetOrdinateDisplayRange()
         {
             m_OnChangeOrdinateDisplayRange.Invoke(m_OrdinateDisplayRange);
+            if (m_OrdinateDisplayRange != m_DefaultOrdinateDisplayRange && m_UseDefaultDisplayRange)
+            {
+                m_UseDefaultDisplayRange = false;
+                m_OnChangeUseDefaultRange.Invoke(m_UseDefaultDisplayRange);
+            }
+            else if (m_OrdinateDisplayRange == m_DefaultOrdinateDisplayRange && m_OrdinateDisplayRange == m_DefaultOrdinateDisplayRange && !m_UseDefaultDisplayRange)
+            {
+                m_UseDefaultDisplayRange = true;
+                m_OnChangeUseDefaultRange.Invoke(m_UseDefaultDisplayRange);
+
+            }
         }
         void SetAbscissaDisplayRange()
         {
             m_OnChangeAbscissaDisplayRange.Invoke(m_AbscissaDisplayRange);
+            if (m_AbscissaDisplayRange != m_DefaultAbscissaDisplayRange && m_UseDefaultDisplayRange)
+            {
+                m_UseDefaultDisplayRange = false;
+                m_OnChangeUseDefaultRange.Invoke(m_UseDefaultDisplayRange);
+            }
+            else if (m_AbscissaDisplayRange == m_DefaultAbscissaDisplayRange && m_OrdinateDisplayRange == m_DefaultOrdinateDisplayRange && !m_UseDefaultDisplayRange)
+            {
+                m_UseDefaultDisplayRange = true;
+                m_OnChangeUseDefaultRange.Invoke(m_UseDefaultDisplayRange);
+            }
         }
         void SetDefaultAbscissaDisplayRange()
         {
@@ -426,6 +450,7 @@ namespace Tools.Unity.Graph
                 AbscissaDisplayRange = DefaultAbscissaDisplayRange;
                 OrdinateDisplayRange = DefaultOrdinateDisplayRange;
             }
+            m_OnChangeUseDefaultRange.Invoke(m_UseDefaultDisplayRange);
         }
         void SetCurves()
         {
@@ -444,7 +469,7 @@ namespace Tools.Unity.Graph
         Curve FindCurve(Curve curve, string ID)
         {
             Curve result = null;
-            if(curve.ID == ID)
+            if (curve.ID == ID)
             {
                 result = curve;
             }
@@ -510,7 +535,7 @@ namespace Tools.Unity.Graph
             {
                 get
                 {
-                    if(m_Data != null)
+                    if (m_Data != null)
                     {
                         return m_Data.Color;
                     }
@@ -567,13 +592,14 @@ namespace Tools.Unity.Graph
             #endregion
 
             #region Constructor
-            public Curve(string name, CurveData data, bool isActive, string id, Curve[] subCurves)
+            public Curve(string name, CurveData data, bool isActive, string id, Curve[] subCurves, Color defaultColor)
             {
                 Name = name;
                 Data = data;
                 Enabled = isActive;
                 ID = id;
                 m_SubCurves = subCurves.ToList();
+                m_DefaultColor = defaultColor;
             }
             #endregion
 

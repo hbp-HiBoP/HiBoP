@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 using UnityEngine.UI.Extensions;
 
@@ -7,11 +8,8 @@ namespace Tools.Unity.Graph
     public class MajorTickMark : TickMark
     {
         #region Properties
-        [SerializeField] protected RectTransform m_LabelRectTransform;
-
-        [SerializeField] protected Text m_Text;
         [SerializeField] protected string m_Label;
-        public string Label
+        public virtual string Label
         {
             get
             {
@@ -26,20 +24,38 @@ namespace Tools.Unity.Graph
             }
         }
 
-        bool m_Hidden;
-        public bool Hidden
+        [SerializeField] protected StringEvent m_OnChangeLabel;
+        public StringEvent OnChangeLabel
         {
             get
             {
-                return m_Hidden;
+                return m_OnChangeLabel;
+            }
+        }
+
+        [SerializeField] protected bool m_ShowLabel;
+        public bool ShowLabel
+        {
+            get
+            {
+                return m_ShowLabel;
             }
             set
             {
 
-                if (SetPropertyUtility.SetStruct(ref m_Hidden, value))
+                if (SetPropertyUtility.SetStruct(ref m_ShowLabel, value))
                 {
                     SetHidden();
                 }
+            }
+        }
+
+        [SerializeField] protected BoolEvent m_OnChangeShowLabel;
+        public BoolEvent OnChangeShowLabel
+        {
+            get
+            {
+                return m_OnChangeShowLabel;
             }
         }
         #endregion
@@ -51,33 +67,13 @@ namespace Tools.Unity.Graph
             SetLabel();
             SetHidden();
         }
-        protected override void SetLenght()
-        {
-            base.SetLenght();
-            switch (m_Direction)
-            {
-                case Axe.DirectionEnum.LeftToRight:
-                case Axe.DirectionEnum.RightToLeft:
-                    m_Text.rectTransform.offsetMax = new Vector2(0, -m_Lenght / 2);
-                    break;
-                case Axe.DirectionEnum.BottomToTop:
-                case Axe.DirectionEnum.TopToBottom:
-                    m_Text.rectTransform.offsetMax = new Vector2(-m_Lenght / 2, 0);
-                    break;
-            }
-        }
         protected void SetLabel()
         {
-            m_Text.text = m_Label;
+            m_OnChangeLabel.Invoke(m_Label);
         }
-        protected override void SetColor()
+        protected void SetHidden()
         {
-            base.SetColor();
-            m_Text.color = m_Color;
-        }
-        void SetHidden()
-        {
-            m_Text.enabled = ! m_Hidden;
+            m_OnChangeShowLabel.Invoke(m_ShowLabel);
         }
         #endregion
     }

@@ -77,51 +77,50 @@ namespace Tools.Unity.Graph
             }
         }
 
-        [SerializeField] bool m_UseIndependentTickMark;
-        public bool UseIndependentTickMark
+        [SerializeField] bool m_UseIndependantTickMark;
+        public bool UseIndependantTickMark
         {
             get
             {
-                return m_UseIndependentTickMark;
+                return m_UseIndependantTickMark;
             }
             set
             {
-                if(SetPropertyUtility.SetStruct(ref m_UseIndependentTickMark, value))
+                if(SetPropertyUtility.SetStruct(ref m_UseIndependantTickMark, value))
                 {
                     SetUseIndependentTickMark();
                 }
             }
         }
 
-        [SerializeField] float m_IndependentTickMarkValue;
-        public float IndependentTickMarkValue
+        [SerializeField] float m_IndependantValue;
+        public float IndependantValue
         {
             get
             {
-                return m_IndependentTickMarkValue;
+                return m_IndependantValue;
             }
             set
             {
-                if (SetPropertyUtility.SetStruct(ref m_IndependentTickMarkValue, value))
+                if (SetPropertyUtility.SetStruct(ref m_IndependantValue, value))
                 {
                     SetIndependentValue();
                 }
             }
         }
-        
-        public float IndependantTickMarkValueRatio
+
+        public float IndependantNormalizedValue
         {
             get
             {
-                return (m_IndependentTickMarkValue - m_DisplayRange.x) / (m_DisplayRange.y - m_DisplayRange.x);
+                return ValueToNormalizedValue(m_IndependantValue);
             }
             set
             {
-                float independentValue = value * (m_DisplayRange.y - m_DisplayRange.x) + m_DisplayRange.x;
-                IndependentTickMarkValue = independentValue;
+                IndependantValue = NormalizedValueToValue(value);
             }
         }
-
+        
         [SerializeField] Image m_VisualImage;
         [SerializeField] Image m_VisualArrowImage;
 
@@ -167,40 +166,35 @@ namespace Tools.Unity.Graph
             }
         }
 
-        [SerializeField] string m_Region;
-
+        [SerializeField] float[] m_Values;
+        Dictionary<float, MajorTickMark> m_TickMarkByValue = new Dictionary<float, MajorTickMark>();
         [SerializeField] List<MajorTickMark> m_TickMarks = new List<MajorTickMark>();
-        [SerializeField] MajorTickMark m_IndependentTickMark;
+        [SerializeField] MajorTickMark m_IndependantTickMark;
         #endregion
 
         #region Private Setter
+        void SetPosition(TickMark tickMark, float value)
+        {
+            float position = (value - m_DisplayRange.x) / (m_DisplayRange.y - m_DisplayRange.x);
+            RectTransform tickMarkRectTransform = tickMark.transform as RectTransform;
+            RectTransform rectTransform = transform as RectTransform;
+            switch (m_Direction)
+            {
+                case DirectionEnum.LeftToRight:
+                case DirectionEnum.RightToLeft:
+                    tickMarkRectTransform.localPosition = new Vector3(position * rectTransform.rect.width, tickMarkRectTransform.localPosition.y, tickMarkRectTransform.localPosition.z);
+                    break;
+                case DirectionEnum.BottomToTop:
+                case DirectionEnum.TopToBottom:
+                    tickMarkRectTransform.localPosition = new Vector3(tickMarkRectTransform.localPosition.x, position * rectTransform.rect.height, tickMarkRectTransform.localPosition.z);
+                    break;
+                default:
+                    break;
+            }
+        }
         void SetIndependentValue()
         {
-            if(m_IndependentTickMark)
-            {
-                CultureInfo cultureInfo = System.Globalization.CultureInfo.GetCultureInfo(CultureInfo);
-                m_IndependentTickMark.Label = m_IndependentTickMarkValue.ToString(Format, cultureInfo);
-                m_IndependentTickMark.Position = ((float)m_IndependentTickMarkValue - m_DisplayRange.x) / (m_DisplayRange.y - m_DisplayRange.x);
-
-                float marge = 0.04f;
-                foreach (var tickMark in m_TickMarks)
-                {
-                    if(tickMark.Hidden)
-                    {
-                        if(tickMark.Position > m_IndependentTickMark.Position + marge || tickMark.Position < m_IndependentTickMark.Position - marge)
-                        {
-                            tickMark.Hidden = false;
-                        }
-                    }
-                    else
-                    {
-                        if (tickMark.Position <= m_IndependentTickMark.Position + marge && tickMark.Position >= m_IndependentTickMark.Position - marge)
-                        {
-                            tickMark.Hidden = true;
-                        }
-                    }
-                }
-            }
+            SetIndependantTickMark();
         }
         void SetColor()
         {
@@ -213,7 +207,7 @@ namespace Tools.Unity.Graph
                         if (tickMark != null) tickMark.Color = m_Color;
                     }
                 }
-                if (m_IndependentTickMark != null) m_IndependentTickMark.Color = m_Color;
+                if (m_IndependantTickMark != null) m_IndependantTickMark.Color = m_Color;
                 if (m_VisualArrowImage != null) m_VisualArrowImage.color = m_Color;
                 if (m_VisualImage != null) m_VisualImage.color = m_Color;
                 if (m_LabelText != null) m_LabelText.color = m_Color;
@@ -230,19 +224,15 @@ namespace Tools.Unity.Graph
         }
         void SetDirection()
         {
-            if(m_IndependentTickMark != null) m_IndependentTickMark.Direction = m_Direction;
-            foreach (var tickMark in m_TickMarks)
-            {
-                if (tickMark != null) tickMark.Direction = m_Direction;
-            }
+            SetTickMarks();
         }
         void SetDisplayRange()
         {
-            double range = m_DisplayRange.y - m_DisplayRange.x;
+            float range = m_DisplayRange.y - m_DisplayRange.x;
             if (range > 0 && m_TickMarks.Count > 1)
             {
-                double normalizedStep = range / (m_TickMarks.Count - 1);
-                double coef = 1;
+                float normalizedStep = range / (m_TickMarks.Count - 1);
+                float coef = 1;
 
                 if (normalizedStep < 1)
                 {
@@ -251,7 +241,7 @@ namespace Tools.Unity.Graph
                 }
                 while (normalizedStep > 10)
                 {
-                    double tempResult;
+                    float tempResult;
                     tempResult = normalizedStep / 2;
                     if (tempResult >= 1 && tempResult <= 10)
                     {
@@ -287,44 +277,91 @@ namespace Tools.Unity.Graph
                 {
                     normalizedStep = 10;
                 }
-                double step = normalizedStep * coef;
+                float step = normalizedStep * coef;
 
-                List<double> tickMarks = new List<double>();
-                int division = Mathf.FloorToInt((float)(m_DisplayRange.x / step));
-                double rest = m_DisplayRange.x % step;
+                List<float> values = new List<float>();
+                int division = Mathf.FloorToInt(m_DisplayRange.x / step);
+                float rest = m_DisplayRange.x % step;
                 if (rest != 0) division++;
-                double value = division * step;
+                float value = division * step;
                 while (value <= m_DisplayRange.y)
                 {
-                    tickMarks.Add(value);
+                    values.Add(value);
                     value += step;
                 }
-
-                CultureInfo cultureInfo = System.Globalization.CultureInfo.GetCultureInfo(CultureInfo);
-                for (int i = 0; i < m_TickMarks.Count; i++)
-                {
-                    MajorTickMark tickMark = m_TickMarks[i];
-
-                    if (i < tickMarks.Count)
-                    {
-                        tickMark.Label = tickMarks[i].ToString(Format, cultureInfo);
-                        tickMark.Position = ((float)tickMarks[i] - m_DisplayRange.x) / (m_DisplayRange.y - m_DisplayRange.x);
-                        tickMark.Direction = m_Direction;
-                        tickMark.Color = m_Color;
-                        tickMark.gameObject.SetActive(true);
-                    }
-                    else
-                    {
-                        tickMark.gameObject.SetActive(false);
-                    }
-
-                }
+                m_Values = values.ToArray();
+                SetTickMarks();
+                SetIndependantTickMark();
             }
-
         }
         void SetUseIndependentTickMark()
         {
-            m_IndependentTickMark.gameObject.SetActive(m_UseIndependentTickMark);
+            if(m_IndependantTickMark != null) m_IndependantTickMark.gameObject.SetActive(m_UseIndependantTickMark);
+            if(!m_UseIndependantTickMark)
+            {
+                foreach (var tickMark in m_TickMarks)
+                {
+                    tickMark.ShowLabel = true;
+                }
+            }
+            else
+            {
+                SetIndependantTickMark();
+            }
+        }
+        void SetIndependantTickMark()
+        {
+            if (m_IndependantTickMark && m_UseIndependantTickMark)
+            {
+                CultureInfo cultureInfo = System.Globalization.CultureInfo.GetCultureInfo(CultureInfo);
+                m_IndependantTickMark.Label = m_IndependantValue.ToString(Format, cultureInfo);
+                SetPosition(m_IndependantTickMark, m_IndependantValue);
+
+                float marge = 0.04f;
+                float independentTickMarkNormalizedValue = ValueToNormalizedValue(m_IndependantValue);
+                foreach (var value in m_Values)
+                {
+                    float normalizedValue = ValueToNormalizedValue(value);
+                    if (normalizedValue > independentTickMarkNormalizedValue + marge || normalizedValue < independentTickMarkNormalizedValue - marge)
+                    {
+                        m_TickMarkByValue[value].ShowLabel = true;
+                    }
+                    else
+                    {
+                        m_TickMarkByValue[value].ShowLabel = false;
+                    }
+                }
+            }
+        }
+        void SetTickMarks()
+        {
+            m_TickMarkByValue = new Dictionary<float, MajorTickMark>();
+            CultureInfo cultureInfo = System.Globalization.CultureInfo.GetCultureInfo(CultureInfo);
+            for (int i = 0; i < m_TickMarks.Count; i++)
+            {
+                MajorTickMark tickMark = m_TickMarks[i];
+
+                if (i < m_Values.Length)
+                {
+                    tickMark.Label = m_Values[i].ToString(Format, cultureInfo);
+                    SetPosition(tickMark, m_Values[i]);
+                    tickMark.Color = m_Color;
+                    tickMark.gameObject.SetActive(true);
+                    m_TickMarkByValue.Add(m_Values[i], tickMark);
+                }
+                else
+                {
+                    tickMark.gameObject.SetActive(false);
+                }
+            }
+        }
+        float ValueToNormalizedValue(float value)
+        {
+            return (value - m_DisplayRange.x) / (m_DisplayRange.y - m_DisplayRange.x);
+        }
+        float NormalizedValueToValue(float normalizedValue)
+        {
+            return normalizedValue * (m_DisplayRange.y - m_DisplayRange.x) + m_DisplayRange.x;
         }
         void OnValidate()
         {
@@ -335,6 +372,11 @@ namespace Tools.Unity.Graph
             SetDisplayRange();
             SetUseIndependentTickMark();
             SetIndependentValue();
+        }
+        private void OnRectTransformDimensionsChange()
+        {
+            SetTickMarks();
+            SetIndependantTickMark();
         }
         #endregion
     }

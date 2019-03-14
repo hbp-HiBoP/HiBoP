@@ -55,10 +55,10 @@ namespace Tools.Unity.Graph
         }
         void SetGraduations(MajorTickMark majorTickMark, string label, float position, Axe.DirectionEnum direction, Color color)
         {
-            majorTickMark.Label = label;
-            majorTickMark.Position = position;
-            majorTickMark.Direction = direction;
-            majorTickMark.Color = color;
+            //majorTickMark.Label = label;
+            //majorTickMark.Position = position;
+            //majorTickMark.Direction = direction;
+            //majorTickMark.Color = color;
         }
         void InstantiateGraduations()
         {

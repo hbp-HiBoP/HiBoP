@@ -20,9 +20,9 @@ namespace Tools.Unity.Graph
         SerializedProperty m_Color;
         SerializedProperty m_DisplayRange;
         SerializedProperty m_TickMarks;
-        SerializedProperty m_IndependentTickMarkValue;
-        SerializedProperty m_IndependentTickMark;
-        SerializedProperty m_UseIndependentTickMark;
+        SerializedProperty m_IndependantValue;
+        SerializedProperty m_IndependantTickMark;
+        SerializedProperty m_UseIndependantTickMark;
         SerializedProperty m_Format;
         SerializedProperty m_CultureInfo;
         #endregion
@@ -42,9 +42,9 @@ namespace Tools.Unity.Graph
 
             m_DisplayRange = serializedObject.FindProperty("m_DisplayRange");
             m_TickMarks = serializedObject.FindProperty("m_TickMarks");
-            m_IndependentTickMarkValue = serializedObject.FindProperty("m_IndependentTickMarkValue");
-            m_IndependentTickMark = serializedObject.FindProperty("m_IndependentTickMark");
-            m_UseIndependentTickMark = serializedObject.FindProperty("m_UseIndependentTickMark");
+            m_IndependantValue = serializedObject.FindProperty("m_IndependantValue");
+            m_IndependantTickMark = serializedObject.FindProperty("m_IndependantTickMark");
+            m_UseIndependantTickMark = serializedObject.FindProperty("m_UseIndependantTickMark");
 
             m_Format = serializedObject.FindProperty("m_Format");
             m_CultureInfo = serializedObject.FindProperty("m_CultureInfo");
@@ -78,9 +78,9 @@ namespace Tools.Unity.Graph
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_Format);
                 EditorGUILayout.PropertyField(m_CultureInfo);
-                EditorGUILayout.PropertyField(m_UseIndependentTickMark);     
-                EditorGUILayout.PropertyField(m_IndependentTickMarkValue);
-                EditorGUILayout.PropertyField(m_IndependentTickMark);
+                EditorGUILayout.PropertyField(m_UseIndependantTickMark);     
+                EditorGUILayout.PropertyField(m_IndependantValue);
+                EditorGUILayout.PropertyField(m_IndependantTickMark);
                 EditorGUILayout.PropertyField(m_TickMarks, true);
                 EditorGUI.indentLevel--;
             }

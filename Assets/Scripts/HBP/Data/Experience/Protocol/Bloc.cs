@@ -231,5 +231,32 @@ namespace HBP.Data.Experience.Protocol
             m_IllustrationPath = m_IllustrationPath.ToPath();
         }
         #endregion
+
+        #region Public Methods
+        public static Tuple<SubBloc[], Window>[] GetSubBlocsAndWindowByColumn(IEnumerable<Bloc> blocs)
+        {
+            List<Tuple<int, List<SubBloc>>> subBlocsByColumns = new List<Tuple<int, List<SubBloc>>>();
+            foreach (var bloc in blocs)
+            {
+                int mainSubBlocPosition = bloc.MainSubBlocPosition;
+                SubBloc[] orderedSubBlocs = bloc.OrderedSubBlocs.ToArray();
+                for (int i = 0; i < orderedSubBlocs.Length; i++)
+                {
+                    int column = i - mainSubBlocPosition;
+                    if (!subBlocsByColumns.Any(t => t.Item1 == column)) subBlocsByColumns.Add(new Tuple<int, List<SubBloc>>(column, new List<SubBloc>()));
+                    subBlocsByColumns.Find(t => t.Item1 == column).Item2.Add(orderedSubBlocs[i]);
+                }
+            }
+            subBlocsByColumns = subBlocsByColumns.OrderBy(t => t.Item1).ToList();
+
+            List<Tuple<SubBloc[], Tools.CSharp.Window>> timeLimitsByColumns = new List<Tuple<SubBloc[], Window>>();
+            foreach (var tuple in subBlocsByColumns)
+            {
+                Window window = new Window(tuple.Item2.Min(s => s.Window.Start), tuple.Item2.Max(s => s.Window.End));
+                timeLimitsByColumns.Add(new Tuple<SubBloc[], Window>(tuple.Item2.ToArray(), window));
+            }
+            return timeLimitsByColumns.ToArray();
+        }
+        #endregion
     }
 }

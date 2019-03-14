@@ -57,9 +57,9 @@ namespace Tools.Unity.Graph
         CurveData[] GraphCurveToCurveData(Graph.Curve curve)
         {
             List<CurveData> curveDatas = new List<CurveData>();
-            if(curve.Enabled && curve.Data != null)
+            if(curve.Enabled)
             {
-                curveDatas.Add(curve.Data);
+                if(curve.Data != null) curveDatas.Add(curve.Data);
                 foreach (var subCurve in curve.SubCurves)
                 {
                     curveDatas.AddRange(GraphCurveToCurveData(subCurve));

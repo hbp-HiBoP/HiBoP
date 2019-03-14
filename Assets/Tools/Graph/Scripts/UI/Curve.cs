@@ -207,9 +207,23 @@ namespace Tools.Unity.Graph
             Profiler.EndSample();
         }
 
-        private void Update()
+        private void LateUpdate()
         {
+            //RectTransform rectTransform = GetComponent<RectTransform>();
+            //if(rectTransform.hasChanged)
+            //{
+            //    SetAbscissaDisplayRange();
+            //    SetOrdinateDisplayRange();
+            //    rectTransform.hasChanged = false;
+            //}
             if(m_NeedSetPoints) SetPoints();
+        }
+        
+        private void OnRectTransformDimensionsChange()
+        {
+            m_xRatio = m_RectTransform.rect.width / (m_AbscissaDisplayRange.y - m_AbscissaDisplayRange.x);
+            m_yRatio = m_RectTransform.rect.height / (m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x);
+            SetPoints();
         }
         #endregion
     }

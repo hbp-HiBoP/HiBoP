@@ -43,6 +43,23 @@ namespace HBP.UI.Informations
             }
         }
 
+        [SerializeField] UnityEvent m_OnExpand;
+        public UnityEvent OnExpand
+        {
+            get
+            {
+                return m_OnExpand;
+            }
+        }
+        [SerializeField] UnityEvent m_OnMinimize;
+        public UnityEvent OnMinimize
+        {
+            get
+            {
+                return m_OnMinimize;
+            }
+        }
+
         [SerializeField] BoolEvent m_OnChangeMinimized;
         public BoolEvent OnChangeMinimized
         {
@@ -55,7 +72,7 @@ namespace HBP.UI.Informations
         public ChannelInformations ChannelInformations;
         //public ROIInformations ROIInformations;
 
-        [SerializeField, ReadOnly] Texture2D m_ColorMap;
+        [SerializeField] Texture2D m_ColorMap;
         [SerializeField] Texture2DEvent m_OnChangeColorMap;
         public Texture2DEvent OnChangeColorMap
         {
@@ -65,9 +82,19 @@ namespace HBP.UI.Informations
             }
         }
 
-        [SerializeField, ReadOnly] DataStruct[] m_DataStructs;
-        [SerializeField, ReadOnly] ChannelStruct[] m_ChannelStructs;
-        bool m_ShowWholeProtocolLastState;
+        [SerializeField] DataStruct[] m_DataStructs;
+        [SerializeField] ChannelStruct[] m_ChannelStructs;
+        #endregion
+
+        #region Public Methods
+        public void OnExpandHandler()
+        {
+            m_OnExpand.Invoke();
+        }
+        public void OnMinimizeHandler()
+        {
+            m_OnMinimize.Invoke();
+        }
         #endregion
 
         #region Private Methods
@@ -76,27 +103,15 @@ namespace HBP.UI.Informations
             SetBase3DScene();
             SetMinimized();
         }
-        void Awake()
+        void SiteInformationRequestHandler(IEnumerable<Site> sites)
         {
-            m_ShowWholeProtocolLastState = ApplicationState.UserPreferences.Visualization.TrialMatrix.ShowWholeProtocol;
+            GenerateChannelStructs(sites);
+            ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
         }
-        void DisplayChannels()
-        {
-            if(m_ChannelStructs != null && m_DataStructs != null && m_ChannelStructs.Length > 0 && m_DataStructs.Length > 0)
-            {
-                ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
-            }
-        }
-        void OnSiteInformationRequest(IEnumerable<Site> sites)
-        {
-            m_ChannelStructs = sites.Select(s => new ChannelStruct(s.Information.ChannelName, s.Information.Patient)).ToArray();
-            if (m_ShowWholeProtocolLastState != ApplicationState.UserPreferences.Visualization.TrialMatrix.ShowWholeProtocol) GenerateDataStructs();
-            DisplayChannels();
-        }
-        void OnChangeColumnMinimizedState()
+        void OnMinimizeColumnHandler()
         {
             GenerateDataStructs();
-            DisplayChannels();
+            ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
         }
         void GenerateDataStructs()
         {
@@ -116,17 +131,14 @@ namespace HBP.UI.Informations
                         data = new DataStruct(columnData.Dataset, columnData.DataName, new List<Data.Experience.Protocol.Bloc>());
                         dataStructs.Add(data);
                     }
-                    data.Blocs.Add(columnData.Bloc);
-                }
-            }
-            if(ApplicationState.UserPreferences.Visualization.TrialMatrix.ShowWholeProtocol)
-            {
-                for (int d = 0; d < dataStructs.Count; d++)
-                {
-                    dataStructs[d] = new DataStruct(dataStructs[d].Dataset, dataStructs[d].Data, dataStructs[d].Dataset.Protocol.Blocs.ToList());
+                    data.AddBloc(columnData.Bloc);
                 }
             }
             m_DataStructs = dataStructs.ToArray();
+        }
+        void GenerateChannelStructs(IEnumerable<Site> sites)
+        {
+            m_ChannelStructs = sites.Select(s => new ChannelStruct(s.Information.ChannelName, s.Information.Patient)).ToArray();
         }
         #endregion
 
@@ -137,8 +149,8 @@ namespace HBP.UI.Informations
             {
                 GenerateDataStructs();
                 SetColorMap();
-                m_Scene.OnRequestSiteInformation.AddListener(sites => OnSiteInformationRequest(sites));
-                m_Scene.ColumnManager.OnChangeColumnMinimizedState.AddListener(OnChangeColumnMinimizedState);
+                m_Scene.OnRequestSiteInformation.AddListener(sites => SiteInformationRequestHandler(sites));
+                m_Scene.ColumnManager.OnChangeColumnMinimizedState.AddListener(OnMinimizeColumnHandler);
                 m_Scene.OnChangeColormap.AddListener((t) => SetColorMap());
             }
         }

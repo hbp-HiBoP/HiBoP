@@ -111,16 +111,15 @@ namespace HBP.UI.Module3D
                 if (!Directory.Exists(screenshotsPath)) Directory.CreateDirectory(screenshotsPath);
                 SaveSceneToPNG(screenshotsPath, multipleFiles);
             });
-            informations.OnChangeMinimized.AddListener((value) =>
+            informations.OnExpand.AddListener(() =>
             {
-                if(value)
-                {
-                    grid.VerticalHandlers[0].Position = grid.VerticalHandlers[0].MagneticPosition;
-                }
-                else
-                {
-                    grid.VerticalHandlers[0].Position = grid.VerticalHandlers[1].Position - (grid.MinimumViewWidth / grid.RectTransform.rect.width);
-                }
+                grid.VerticalHandlers[0].Position = grid.VerticalHandlers[0].MagneticPosition;
+                grid.SetVerticalHandlersPosition(1);
+                grid.UpdateAnchors();
+            });
+            informations.OnMinimize.AddListener(() =>
+            {
+                grid.VerticalHandlers[0].Position = grid.VerticalHandlers[1].Position - (grid.MinimumViewWidth / grid.RectTransform.rect.width);
                 grid.SetVerticalHandlersPosition(1);
                 grid.UpdateAnchors();
             });

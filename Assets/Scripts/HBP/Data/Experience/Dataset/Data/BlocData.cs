@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using HBP.Data.Experience.Protocol;
 using HBP.Data.Localizer;
 
 namespace HBP.Data.Experience.Dataset
@@ -38,7 +40,75 @@ namespace HBP.Data.Experience.Dataset
                 endIndex = (i + 1 >= MainSubBlocMainEventOccurences.Length) ? int.MaxValue : MainSubBlocMainEventOccurences[i + 1].Index;
                 trials.Add(new Trial(valuesByChannel, unitByChannel, startIndex, MainSubBlocMainEventOccurences[i] , endIndex, occurencesByEvent, bloc, frequency));
             }
-            Trials = trials.ToArray();
+            Trials = SortTrials(bloc, trials).ToArray();
+        }
+        #endregion
+
+        #region Private Methods
+        static IOrderedEnumerable<Trial> SortTrials(Bloc bloc, IEnumerable<Trial> trials)
+        {
+            IOrderedEnumerable<Trial> ordereredTrials = trials.OrderBy(t => t.IsValid);
+            string[] orders = bloc.Sort.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = orders.Length - 1; i >= 0; i--)
+            {
+                string order = orders[i];
+                string[] parts = order.Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length == 3)
+                {
+                    string subBlocName = parts[0];
+                    string eventName = parts[1];
+                    string command = parts[2];
+                    SubBloc subBloc = bloc.SubBlocs.FirstOrDefault(s => s.Name == subBlocName);
+                    Event @event = subBloc.Events.FirstOrDefault(e => e.Name == eventName);
+                    if (command == "LATENCY")
+                    {
+                        List<Trial> trialsFound = new List<Trial>();
+                        List<Trial> trialsNotFound = new List<Trial>();
+                        foreach (var trial in ordereredTrials)
+                        {
+                            if (trial.SubTrialBySubBloc[subBloc].InformationsByEvent[@event].IsFound)
+                            {
+                                trialsFound.Add(trial);
+                            }
+                            else
+                            {
+                                trialsNotFound.Add(trial);
+                            }
+                        }
+                        ordereredTrials = trialsFound.OrderBy(t => t.SubTrialBySubBloc[subBloc].InformationsByEvent[@event].Occurences.First().TimeFromMainEvent);
+                        foreach (var trial in trialsNotFound)
+                        {
+                            ordereredTrials.Append(trial);
+                        }
+                    }
+                    else if (command == "CODE")
+                    {
+                        List<Trial> trialsFound = new List<Trial>();
+                        List<Trial> trialsNotFound = new List<Trial>();
+                        foreach (var trial in ordereredTrials)
+                        {
+                            if (trial.SubTrialBySubBloc[subBloc].InformationsByEvent[@event].IsFound)
+                            {
+                                trialsFound.Add(trial);
+                            }
+                            else
+                            {
+                                trialsNotFound.Add(trial);
+                            }
+                        }
+                        ordereredTrials = trialsFound.OrderBy(t => t.SubTrialBySubBloc[subBloc].InformationsByEvent[@event].Occurences.First().Code);
+                        foreach (var trial in trialsNotFound)
+                        {
+                            ordereredTrials.Append(trial);
+                        }
+                    }
+                    else
+                    {
+
+                    }
+                }
+            }
+            return ordereredTrials;
         }
         #endregion
 

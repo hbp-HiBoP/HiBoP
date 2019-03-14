@@ -9,31 +9,22 @@ namespace HBP.UI.Informations
     public class TrialMatrixZone : MonoBehaviour
     {
         #region Properties
-        Texture2D m_Colormap;
-        public Texture2D Colormap
-        {
-            get
-            {
-                return m_Colormap;
-            }
-            set
-            {
-                if(m_Colormap != value)
-                {
-                    m_Colormap = value;
-                    m_TrialMatrixGrid.Colormap = value;
-                }
-            }
-        }
-
         [SerializeField] TrialMatrix.Grid.TrialMatrixGrid m_TrialMatrixGrid;
         data.TrialMatrixGrid m_TrialMatrixGridData;
         Dictionary<Data, Settings> m_SettingsByData;
+        bool m_ShowWholeProtocolLastState;
         #endregion
 
         #region Public Methods
         public void Display(ChannelStruct[] channelStructs, DataStruct[] dataStructs)
         {
+            if (ApplicationState.UserPreferences.Visualization.TrialMatrix.ShowWholeProtocol)
+            {
+                for (int d = 0; d < dataStructs.Length; d++)
+                {
+                    dataStructs[d] = new DataStruct(dataStructs[d].Dataset, dataStructs[d].Data, dataStructs[d].Dataset.Protocol.Blocs);
+                }
+            }
             SaveSettings();
             foreach (var data in dataStructs)
             {
@@ -64,8 +55,8 @@ namespace HBP.UI.Informations
             {
                 Data key = new Data(data.GridData.DataStruct.Dataset, data.GridData.DataStruct.Data);
                 var settings = m_SettingsByData[key];
-                settings.UsePrecalculatedLimits = data.UsePrecalculatedLimits;
-                if(!settings.UsePrecalculatedLimits)
+                settings.UseDefaultLimit = data.UseDefaultLimits;
+                if(!settings.UseDefaultLimit)
                 {
                     settings.Limits = data.Limits;
                 }
@@ -78,7 +69,7 @@ namespace HBP.UI.Informations
             {
                 Data key = new Data(data.GridData.DataStruct.Dataset, data.GridData.DataStruct.Data);
                 Settings settings = m_SettingsByData[key];
-                if(!settings.UsePrecalculatedLimits)
+                if(!settings.UseDefaultLimit)
                 {
                     data.Limits = settings.Limits;
                 }
@@ -87,22 +78,21 @@ namespace HBP.UI.Informations
         #endregion
 
         #region Structs
-        public struct Settings
+        struct Settings
         {
             #region Properties
             public Vector2 Limits { get; set; }
-            public bool UsePrecalculatedLimits { get; set; }
+            public bool UseDefaultLimit { get; set; }
             #endregion
 
             #region Constructors
-            public Settings(Vector2 limits, bool useAutoLimits)
+            public Settings(Vector2 limits, bool useDefaultLimits)
             {
                 Limits = limits;
-                UsePrecalculatedLimits = useAutoLimits;
+                UseDefaultLimit = useDefaultLimits;
             }
             #endregion
         }
-
         struct Data
         {
             #region Properties

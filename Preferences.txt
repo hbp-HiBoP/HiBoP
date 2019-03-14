@@ -11,7 +11,7 @@
     "Localization": {},
     "System": {
       "MultiThreading": true,
-      "MemoryCacheLimit": 16345
+      "MemoryCacheLimit": 32692
     }
   },
   "Data": {
@@ -47,11 +47,11 @@
       "ShowWholeProtocol": false,
       "TrialsSynchronization": true,
       "TrialSmoothing": true,
-      "NumberOfIntermediateValues": 5,
-      "SubBlocFormat": 0,
-      "TrialHeight": 5,
-      "TrialRatio": 0.04981595,
-      "BlocRatio": 0.166564465
+      "NumberOfIntermediateValues": 4,
+      "SubBlocFormat": 2,
+      "TrialHeight": 19,
+      "TrialRatio": 0.06969325,
+      "BlocRatio": 0.213190228
     },
     "Graph": {
       "ShowCurvesOfMinimizedColumns": false

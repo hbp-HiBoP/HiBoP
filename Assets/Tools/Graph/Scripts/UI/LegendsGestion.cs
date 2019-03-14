@@ -120,29 +120,31 @@ namespace Tools.Unity.Graph
         {
             // Update legends.
             List<Unity.Graph.Legend> subLegends = new List<Unity.Graph.Legend>();
-            foreach (Transform item in m_Container)
+            if(m_Container != null)
             {
-                Unity.Graph.Legend subLegend = item.GetComponent<Unity.Graph.Legend>();
-                if (subLegend != null)
+                foreach (Transform item in m_Container)
                 {
-                    Legend subStruct = m_LegendStructs.FirstOrDefault(l => l.ID == subLegend.ID);
-                    if (subStruct != null)
+                    Unity.Graph.Legend subLegend = item.GetComponent<Unity.Graph.Legend>();
+                    if (subLegend != null)
                     {
-                        UpdateLegend(subLegend, subStruct);
+                        Legend subStruct = m_LegendStructs.FirstOrDefault(l => l.ID == subLegend.ID);
+                        if (subStruct != null)
+                        {
+                            UpdateLegend(subLegend, subStruct);
+                        }
+                        else
+                        {
+                            RemoveLegend(subLegend);
+                        }
+                        subLegends.Add(subLegend);
                     }
-                    else
-                    {
-                        RemoveLegend(subLegend);
-                    }
-                    subLegends.Add(subLegend);
                 }
-            }
-
-            foreach (var subStruct in m_LegendStructs)
-            {
-                if (!subLegends.Any(s => s.ID == subStruct.ID))
+                foreach (var subStruct in m_LegendStructs)
                 {
-                    AddLegend(subStruct, m_Container);
+                    if (!subLegends.Any(s => s.ID == subStruct.ID))
+                    {
+                        AddLegend(subStruct, m_Container);
+                    }
                 }
             }
         }
