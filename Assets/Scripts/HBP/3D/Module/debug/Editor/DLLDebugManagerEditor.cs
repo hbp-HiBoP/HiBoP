@@ -8,6 +8,7 @@ namespace HBP.Module3D.DLL
     public class DLLDebugManagerEditor : Editor
     {
         private bool m_DLLObjectsPanelOpen = false;
+        private DLLDebugManager.DLLObject m_LastClickedObject = null;
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
@@ -15,7 +16,7 @@ namespace HBP.Module3D.DLL
             if (m_DLLObjectsPanelOpen)
             {
                 DLLDebugManager manager = (DLLDebugManager)target;
-                var list = manager.DLLObjects.OrderBy(t => t.Item1).ThenBy(t => t.Item3).ToList();
+                var list = manager.DLLObjects.OrderBy(t => t.Type).ThenBy(t => t.CleanedBy).ToList();
                 GUIStyle normalStyle = new GUIStyle(EditorStyles.textField);
                 GUIStyle cleanedByGCStyle = new GUIStyle(EditorStyles.textField);
                 cleanedByGCStyle.normal.textColor = new Color(1, 0, 0);
@@ -25,7 +26,7 @@ namespace HBP.Module3D.DLL
                 foreach (var item in list)
                 {
                     GUIStyle styleToUse;
-                    switch (item.Item3)
+                    switch (item.CleanedBy)
                     {
                         case DLLDebugManager.CleanedBy.NotCleaned:
                             styleToUse = normalStyle;
@@ -41,8 +42,13 @@ namespace HBP.Module3D.DLL
                             break;
                     }
                     EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField(item.Item1, styleToUse);
-                    EditorGUILayout.LabelField(item.Item2.ToString(), styleToUse);
+                    GUILayout.Label(item.Type, styleToUse);
+                    GUILayout.Label(item.ID.ToString(), styleToUse, GUILayout.MaxWidth(100));
+                    if (GUILayout.Button(m_LastClickedObject != item ? "StackTrace" : "", GUILayout.Width(80)))
+                    {
+                        m_LastClickedObject = item;
+                        Debug.Log(item.StackTrace);
+                    }
                     EditorGUILayout.EndHorizontal();
                 }
                 EditorGUILayout.EndVertical();

@@ -89,8 +89,10 @@ namespace HBP.Module3D
         public void Load()
         {
             m_IsLoading = true;
+            m_NII = new DLL.NIFTI();
             if (m_NII.LoadNIIFile(m_MRI.File))
             {
+                m_Volume = new DLL.Volume();
                 m_NII.ConvertToVolume(m_Volume);
             }
             m_IsLoading = false;

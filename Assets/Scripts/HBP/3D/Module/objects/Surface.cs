@@ -223,7 +223,7 @@ namespace HBP.Module3D.DLL
         /// <returns></returns>
         public Surface UpdateVisibilityMask(int[] visibilityMask)
         {
-            DLL.Surface invisiblePartMesh = new DLL.Surface();
+            Surface invisiblePartMesh = new Surface();
             update_visiblity_mask_Surface(_handle, invisiblePartMesh.getHandle(), visibilityMask);
             return invisiblePartMesh;
         }

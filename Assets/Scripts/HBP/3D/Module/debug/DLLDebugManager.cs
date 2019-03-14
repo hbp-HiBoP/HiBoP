@@ -24,6 +24,16 @@ namespace HBP.Module3D.DLL
     public class DLLDebugManager : MonoBehaviour
     {
 
+        #region Internal Classes
+        public class DLLObject
+        {
+            public string Type;
+            public string StackTrace;
+            public int ID;
+            public CleanedBy CleanedBy;
+        }
+        #endregion
+
         #region Properties
 
         static System.Threading.Thread mainThread; /**< main thread */
@@ -36,7 +46,7 @@ namespace HBP.Module3D.DLL
         public bool GetInformationAboutDLLObjects = true;
 
         public enum CleanedBy { NotCleaned, GC, Dispose }
-        public List<Tuple<string, int, CleanedBy>> DLLObjects = new List<Tuple<string, int, CleanedBy>>();
+        public List<DLLObject> DLLObjects = new List<DLLObject>();
 
         #endregion;
 
@@ -169,20 +179,21 @@ namespace HBP.Module3D.DLL
         {
             if (GetInformationAboutDLLObjects)
             {
-                Debug.Log(hashCode);
-                DLLObjects.Add(new Tuple<string, int, CleanedBy>(typeString, hashCode, CleanedBy.NotCleaned));
+                DLLObjects.Add(new DLLObject()
+                {
+                    Type = typeString,
+                    StackTrace = Environment.StackTrace,
+                    ID = hashCode,
+                    CleanedBy = CleanedBy.NotCleaned
+                });
             }
         }
         public void RemoveDLLOBject(string typeString, int hashCode, CleanedBy cleanedBy)
         {
             if (GetInformationAboutDLLObjects)
             {
-                var objectToRemove = DLLObjects.Find(d => d.Item1 == typeString && d.Item2 == hashCode);
-                if (objectToRemove != null)
-                {
-                    DLLObjects.Remove(objectToRemove);
-                    DLLObjects.Add(new Tuple<string, int, CleanedBy>(objectToRemove.Item1, objectToRemove.Item2, cleanedBy));
-                }
+                var objectToRemove = DLLObjects.Find(d => d.Type == typeString && d.ID == hashCode);
+                if (objectToRemove != null) objectToRemove.CleanedBy = cleanedBy;
             }
         }
 

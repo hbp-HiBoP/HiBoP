@@ -623,12 +623,6 @@ namespace HBP.Module3D
                 SceneInformation.IsSceneCompletelyLoaded = true;
             }
         }
-        private void OnDestroy()
-        {
-            SceneInformation.MeshToDisplay?.Dispose();
-            SceneInformation.SimplifiedMeshToUse?.Dispose();
-            m_TriEraser.Clean();
-        }
         /// <summary>
         /// Add every listeners required for the scene
         /// </summary>
@@ -902,23 +896,9 @@ namespace HBP.Module3D
 
             // Create the cuts
             UnityEngine.Profiling.Profiler.BeginSample("cut_generator Create cut");
-            List<DLL.Surface> cuts = new List<DLL.Surface>(Cuts.Count);
-
-            UnityEngine.Profiling.Profiler.BeginSample("cut_generator Cut");
+            List<DLL.Surface> generatedCutMeshes = new List<DLL.Surface>(Cuts.Count);
             if (Cuts.Count > 0)
-                cuts = SceneInformation.MeshToDisplay.GenerateCutSurfaces(Cuts, !SceneInformation.CutHolesEnabled, StrongCuts);
-            UnityEngine.Profiling.Profiler.EndSample();
-            
-            UnityEngine.Profiling.Profiler.BeginSample("cut_generator Swap pointers");
-            if (m_ColumnManager.DLLCutsList.Count != cuts.Count)
-                m_ColumnManager.DLLCutsList = cuts;
-            else
-            {
-                for (int ii = 0; ii < cuts.Count; ++ii)
-                    m_ColumnManager.DLLCutsList[ii].SwapDLLHandle(cuts[ii]);
-            }
-            UnityEngine.Profiling.Profiler.EndSample();
-
+                generatedCutMeshes = SceneInformation.MeshToDisplay.GenerateCutSurfaces(Cuts, !SceneInformation.CutHolesEnabled, StrongCuts);
             UnityEngine.Profiling.Profiler.EndSample();
 
             // Fill parameters in shader
@@ -961,17 +941,22 @@ namespace HBP.Module3D
             for (int ii = 0; ii < Cuts.Count; ++ii)
             {
                 m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_ColumnManager.SelectedMRI.Volume, Cuts[ii]);
-                m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].UpdateCutMeshUV(ColumnManager.DLLCutsList[ii]);
-                m_ColumnManager.DLLCutsList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
+                m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].UpdateCutMeshUV(generatedCutMeshes[ii]);
+                generatedCutMeshes[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
             }
             UnityEngine.Profiling.Profiler.EndSample();
 
             // Display cuts
-            UnityEngine.Profiling.Profiler.BeginSample("cut_generator misc");
+            UnityEngine.Profiling.Profiler.BeginSample("cut_generator Misc");
             for (int ii = 0; ii < Cuts.Count; ++ii)
                 m_DisplayedObjects.BrainCutMeshes[ii].SetActive(true);
 
             SceneInformation.CollidersNeedUpdate = true;
+
+            foreach (var cut in generatedCutMeshes)
+            {
+                cut.Dispose();
+            }
 
             foreach (Column3D column in m_ColumnManager.Columns)
             {
@@ -1132,6 +1117,7 @@ namespace HBP.Module3D
             ColumnManager.BrainColor = color;
             DLL.Texture tex = DLL.Texture.Generate1DColorTexture(ColumnManager.BrainColor);
             tex.UpdateTexture2D(ColumnManager.BrainColorTexture);
+            tex.Dispose();
 
             SharedMaterials.Brain.BrainMaterials[this].SetTexture("_MainTex", ColumnManager.BrainColorTexture);
         }
@@ -2578,6 +2564,12 @@ namespace HBP.Module3D
             yield return Ninja.JumpToUnity;
 
             cuts[0].UpdateMeshFromDLL(m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().mesh);
+            yield return Ninja.JumpBack;
+            foreach (var cut in cuts)
+            {
+                cut.Dispose();
+            }
+            yield return Ninja.JumpToUnity;
             m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = null;
             m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().sharedMesh;
 

@@ -225,13 +225,6 @@ namespace HBP.Module3D
             MeshHasInvisibleTriangles = m_BrainMeshDLL.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
             OnModifyInvisiblePart.Invoke();
         }
-
-        public void Clean()
-        {
-            m_BrainMeshDLL?.Dispose();
-            foreach (var brainMesh in m_BrainMeshesSplittedDLL) brainMesh?.Dispose();
-            m_SimplifiedBrainMeshDLL?.Dispose();
-        }
         #endregion
     }
 }

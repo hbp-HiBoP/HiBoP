@@ -40,8 +40,8 @@ namespace HBP.Module3D
                 m_SimplifiedBoth = value;
             }
         }
-        
-        public List<DLL.Surface> SplittedMeshes { get; set; }
+
+        public List<DLL.Surface> SplittedMeshes { get; set; } = new List<DLL.Surface>();
 
         public bool IsLoaded
         {
@@ -121,6 +121,7 @@ namespace HBP.Module3D
             m_IsLoading = true;
             Data.Anatomy.SingleMesh mesh = m_Mesh as Data.Anatomy.SingleMesh;
 
+            m_Both = new DLL.Surface();
             if (m_Both.LoadGIIFile(mesh.Path, true, mesh.Transformation))
             {
                 m_Both.FlipTriangles();
@@ -234,6 +235,7 @@ namespace HBP.Module3D
         {
             m_IsLoading = true;
             Data.Anatomy.LeftRightMesh mesh = m_Mesh as Data.Anatomy.LeftRightMesh;
+            m_Left = new DLL.Surface();
             if (m_Left.LoadGIIFile(mesh.LeftHemisphere, true, mesh.Transformation))
             {
                 m_Left.FlipTriangles();
@@ -242,6 +244,7 @@ namespace HBP.Module3D
                 SimplifiedLeft = m_Left.Simplify();
             }
 
+            m_Right = new DLL.Surface();
             if (m_Right.LoadGIIFile(mesh.RightHemisphere, true, mesh.Transformation))
             {
                 m_Right.FlipTriangles();

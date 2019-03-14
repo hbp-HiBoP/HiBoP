@@ -133,10 +133,6 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// List of the surfaces for the cuts
-        /// </summary>
-        public List<DLL.Surface> DLLCutsList = new List<DLL.Surface>();
-        /// <summary>
         /// List of the surfaces for the cuts of the simplified mesh
         /// </summary>
         public List<DLL.Surface> DLLCutsListSimplified = new List<DLL.Surface>();
@@ -351,6 +347,7 @@ namespace HBP.Module3D
                 m_Colormap = value;
                 DLL.Texture tex = DLL.Texture.Generate1DColorTexture(Colormap);
                 tex.UpdateTexture2D(BrainColorMapTexture);
+                tex.Dispose();
             }
         }
 
@@ -473,7 +470,6 @@ namespace HBP.Module3D
             foreach (var implantation in Implantations) implantation.Clean();
             foreach (var dllCommonBrainTextureGenerator in DLLCommonBrainTextureGeneratorList) dllCommonBrainTextureGenerator.Dispose();
             foreach (var dllMRIGeometryCutGenerator in DLLMRIGeometryCutGeneratorList) dllMRIGeometryCutGenerator.Dispose();
-            foreach (var dllCutSurface in DLLCutsList) dllCutSurface.Dispose();
             foreach (var dllCutSurface in DLLCutsListSimplified) dllCutSurface.Dispose();
             CubeBoundingBox.Dispose();
         }
