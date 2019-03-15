@@ -741,6 +741,7 @@ namespace HBP.Module3D
         {
             if (!SceneInformation.IsGeneratorUpToDate) return;
 
+            UnityEngine.Profiling.Profiler.BeginSample("Compute IEEG Textures");
             if (column)
             {
                 m_ColumnManager.ComputeSurfaceBrainUVWithIEEG(column);
@@ -754,6 +755,7 @@ namespace HBP.Module3D
                     col.CutTextures.ColorCutsTexturesWithIEEG(col);
                 }
             }
+            UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
         /// Compute the texture for the MRI (GUI)
@@ -1029,6 +1031,43 @@ namespace HBP.Module3D
             SceneInformation.MeshGeometryNeedsUpdate = false;
         }
         /// <summary>
+        /// Update meshes to display
+        /// </summary>
+        public void UpdateMeshesInformation()
+        {
+            if (m_ColumnManager.SelectedMesh is LeftRightMesh3D selectedMesh)
+            {
+                switch (SceneInformation.MeshPartToDisplay)
+                {
+                    case Data.Enums.MeshPart.Left:
+                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedLeft;
+                        SceneInformation.MeshToDisplay = selectedMesh.Left;
+                        break;
+                    case Data.Enums.MeshPart.Right:
+                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedRight;
+                        SceneInformation.MeshToDisplay = selectedMesh.Right;
+                        break;
+                    case Data.Enums.MeshPart.Both:
+                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
+                        SceneInformation.MeshToDisplay = selectedMesh.Both;
+                        break;
+                    default:
+                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
+                        SceneInformation.MeshToDisplay = selectedMesh.Both;
+                        break;
+                }
+            }
+            else
+            {
+                SceneInformation.SimplifiedMeshToUse = m_ColumnManager.SelectedMesh.SimplifiedBoth;
+                SceneInformation.MeshToDisplay = m_ColumnManager.SelectedMesh.Both;
+            }
+            // get the middle
+            SceneInformation.MeshCenter = SceneInformation.MeshToDisplay.Center;
+
+            UpdateAllCutPlanes();
+        }
+        /// <summary>
         /// Update the cuts of the scene
         /// </summary>
         private void UpdateCuts()
@@ -1059,10 +1098,12 @@ namespace HBP.Module3D
                 m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].Reset(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.SelectedMRI.Volume);
                 m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.SelectedMRI.Volume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
             }
+            
             foreach (var column in m_ColumnManager.ColumnsIEEG)
             {
-                column.DLLMRIVolumeGenerator.Reset(SceneInformation.MeshToDisplay, 150); 
+                column.DLLMRIVolumeGenerator.Reset(m_ColumnManager.SelectedMRI.Volume, 0.7f);
             }
+
             UpdateMeshesFromDLL();
             m_ColumnManager.UVNull = new List<Vector2[]>(m_ColumnManager.MeshSplitNumber);
             for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
@@ -1298,43 +1339,6 @@ namespace HBP.Module3D
                 column.IsRenderingUpToDate = false;
             }
             OnUpdateSites.Invoke();
-        }
-        /// <summary>
-        /// Update meshes to display
-        /// </summary>
-        public void UpdateMeshesInformation()
-        {
-            if (m_ColumnManager.SelectedMesh is LeftRightMesh3D selectedMesh)
-            {
-                switch (SceneInformation.MeshPartToDisplay)
-                {
-                    case Data.Enums.MeshPart.Left:
-                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedLeft;
-                        SceneInformation.MeshToDisplay = selectedMesh.Left;
-                        break;
-                    case Data.Enums.MeshPart.Right:
-                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedRight;
-                        SceneInformation.MeshToDisplay = selectedMesh.Right;
-                        break;
-                    case Data.Enums.MeshPart.Both:
-                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
-                        SceneInformation.MeshToDisplay = selectedMesh.Both;
-                        break;
-                    default:
-                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
-                        SceneInformation.MeshToDisplay = selectedMesh.Both;
-                        break;
-                }
-            }
-            else
-            {
-                SceneInformation.SimplifiedMeshToUse = m_ColumnManager.SelectedMesh.SimplifiedBoth;
-                SceneInformation.MeshToDisplay = m_ColumnManager.SelectedMesh.Both;
-            }
-            // get the middle
-            SceneInformation.MeshCenter = SceneInformation.MeshToDisplay.Center;
-
-            UpdateAllCutPlanes();
         }
         /// <summary>
         /// Update the visible state of the scene
