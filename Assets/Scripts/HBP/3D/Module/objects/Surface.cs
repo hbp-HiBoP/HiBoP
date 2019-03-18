@@ -204,14 +204,14 @@ namespace HBP.Module3D.DLL
         /// </summary>
         /// <param name="nbSubSurfaces"></param>
         /// <returns></returns>
-        public Surface[] SplitToSurfaces(int nbSubSurfaces)
+        public List<Surface> SplitToSurfaces(int nbSubSurfaces)
         {            
             HandleRef pSubSurfaces = new HandleRef(this, split_to_surfaces_Surface(_handle, nbSubSurfaces));
 
             int nbMultiSurface = nb_MultiSurface(pSubSurfaces);
-            Surface[] splits = new Surface[nbMultiSurface];
+            List<Surface> splits = new List<Surface>(nbMultiSurface);
             for (int ii = 0; ii < nbMultiSurface; ++ii)               
-                splits[ii] = new Surface(move_MultiSurface(pSubSurfaces, ii));
+                splits.Add(new Surface(move_MultiSurface(pSubSurfaces, ii)));
 
             delete_MultiSurface(pSubSurfaces);
             return splits;

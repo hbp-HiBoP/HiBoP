@@ -41,8 +41,6 @@ namespace HBP.Module3D
             }
         }
 
-        public List<DLL.Surface> SplittedMeshes { get; set; } = new List<DLL.Surface>();
-
         public bool IsLoaded
         {
             get
@@ -78,20 +76,12 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
-        public void Split(int number)
-        {
-            SplittedMeshes = new List<DLL.Surface>(m_Both.SplitToSurfaces(number));
-        }
         public abstract object Clone();
         public abstract void Load();
         public virtual void Clean()
         {
             m_Both?.Dispose();
             m_SimplifiedBoth?.Dispose();
-            foreach (var mesh in SplittedMeshes)
-            {
-                mesh?.Dispose();
-            }
         }
         #endregion
     }

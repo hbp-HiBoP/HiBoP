@@ -133,9 +133,9 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// List of the surfaces for the cuts of the simplified mesh
+        /// List of splitted meshes
         /// </summary>
-        public List<DLL.Surface> DLLCutsListSimplified = new List<DLL.Surface>();
+        public List<DLL.Surface> SplittedMeshes;
         
         /// <summary>
         /// List of the MRIs of the scene
@@ -468,9 +468,12 @@ namespace HBP.Module3D
                 }
             }
             foreach (var implantation in Implantations) implantation.Clean();
+            foreach (var mesh in SplittedMeshes)
+            {
+                mesh?.Dispose();
+            }
             foreach (var dllCommonBrainTextureGenerator in DLLCommonBrainTextureGeneratorList) dllCommonBrainTextureGenerator.Dispose();
             foreach (var dllMRIGeometryCutGenerator in DLLMRIGeometryCutGeneratorList) dllMRIGeometryCutGenerator.Dispose();
-            foreach (var dllCutSurface in DLLCutsListSimplified) dllCutSurface.Dispose();
             CubeBoundingBox.Dispose();
         }
         /// <summary>
@@ -613,15 +616,17 @@ namespace HBP.Module3D
         public void ResetSplitsNumber(int nbSplits)
         {
             MeshSplitNumber = nbSplits;
-
-            foreach (Mesh3D mesh in Meshes)
-            {
-                mesh.Split(MeshSplitNumber);
-            }
-
             DLLCommonBrainTextureGeneratorList = new List<DLL.MRIBrainGenerator>(MeshSplitNumber);
             for (int ii = 0; ii < MeshSplitNumber; ++ii)
                 DLLCommonBrainTextureGeneratorList.Add(new DLL.MRIBrainGenerator());
+        }
+        /// <summary>
+        /// Generate the splits for the mesh
+        /// </summary>
+        /// <param name="meshToDisplay"></param>
+        public void GenerateSplits(DLL.Surface meshToDisplay)
+        {
+            SplittedMeshes = meshToDisplay.SplitToSurfaces(MeshSplitNumber);
         }
         /// <summary>
         /// Reset color schemes of every columns
@@ -684,7 +689,7 @@ namespace HBP.Module3D
         public void ComputeSurfaceBrainUVWithIEEG(Column3DIEEG column)
         {
             for (int ii = 0; ii < MeshSplitNumber; ++ii)
-                column.DLLBrainTextureGenerators[ii].ComputeSurfaceUVIEEG(SelectedMesh.SplittedMeshes[ii], column);
+                column.DLLBrainTextureGenerators[ii].ComputeSurfaceUVIEEG(SplittedMeshes[ii], column);
         }
         /// <summary>
         /// Update the sites rendering for all columns
