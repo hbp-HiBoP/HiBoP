@@ -11,7 +11,8 @@ namespace Tools.Unity.Graph
     public class LegendsGestion : MonoBehaviour
     {
         #region Properties
-        [SerializeField] List<Legend> m_LegendStructs = new List<Legend>();
+        [SerializeField] List<Legend> m_Data = new List<Legend>();
+        [SerializeField] List<Unity.Graph.Legend> m_Legends = new List<Unity.Graph.Legend>();
 
         [SerializeField] GameObject m_LegendPrefab;
         [SerializeField] RectTransform m_Container;
@@ -24,36 +25,43 @@ namespace Tools.Unity.Graph
                 return m_OnChangeEnabled;
             }
         }
-
         #endregion
 
         #region Public Methods
-        public void SetLegends(Legend[] legendsStruct)
+        public void SetLegends(Legend[] data)
         {
-            m_LegendStructs = legendsStruct.ToList();
+            m_Data = data.ToList();
             SetLegends();
         }
         #endregion
 
         #region Private Methods
-        private void Start()
+        void Start()
         {
             OnValidate();
         }
         void OnValidate()
         {
-            foreach (var item in m_LegendStructs)
+            foreach (var item in m_Data)
             {
                 item.OnValidate();
             }
             SetLegends();
-
         }
 
-        void AddLegend(Legend legendStruct, RectTransform container)
+        void AddLegend(Legend data, RectTransform container)
         {
             Unity.Graph.Legend legend = Instantiate(m_LegendPrefab, container).GetComponent<Unity.Graph.Legend>();
-            UpdateLegend(legend, legendStruct);
+            legend.OnChangeIsActive.AddListener((enabled) => {data.Enabled = enabled;});
+            legend.ID = data.ID;
+            legend.Color = data.Color;
+            legend.Label = data.Label;
+            legend.IsActive = data.Enabled;
+
+            data.OnChangeEnabled.AddListener((enabled) => {m_OnChangeEnabled.Invoke(data.ID, data.Enabled);});
+            m_Legends.Add(legend);
+
+            foreach (var subLegend in data.SubLegends) AddLegend(subLegend, legend.Container);
         }
         void RemoveLegend(Unity.Graph.Legend legend)
         {
@@ -63,96 +71,96 @@ namespace Tools.Unity.Graph
             }
             else
             {
-
+#if UNITY_EDITOR
                 UnityEditor.EditorApplication.delayCall += () =>
                 {
                     DestroyImmediate(legend.gameObject);
                 };
+#endif
+            }
+            m_Legends.Remove(legend);
+            Unity.Graph.Legend[] subLegends = legend.Container.GetComponentsInChildren<Unity.Graph.Legend>();
+            foreach (var subLegend in subLegends)
+            {
+                RemoveLegend(subLegend);
             }
         }
-        void UpdateLegend(Unity.Graph.Legend legend, Legend legendStruct)
+        void UpdateLegend(Legend data)
         {
-            legend.OnChangeIsActive.RemoveAllListeners();
-            legend.OnChangeIsActive.AddListener((enabled) =>
-            {
-                legendStruct.Enabled = enabled;
-            });
+            Unity.Graph.Legend legend = m_Legends.FirstOrDefault(l => l.ID == data.ID);
 
-            legendStruct.OnChangeEnabled.RemoveAllListeners();
-            legendStruct.OnChangeEnabled.AddListener((enabled) =>
+            if(legend != null)
             {
-                m_OnChangeEnabled.Invoke(legendStruct.ID, legendStruct.Enabled);
-            });
+                legend.ID = data.ID;
+                legend.Color = data.Color;
+                legend.Label = data.Label;
+                legend.IsActive = data.Enabled;
 
-            legend.ID = legendStruct.ID;
-            legend.Color = legendStruct.Color;
-            legend.Label = legendStruct.Label;
-            legend.IsActive = legendStruct.Enabled;
-
-            List<Unity.Graph.Legend> subLegends = new List<Unity.Graph.Legend>();
-            foreach (Transform item in legend.Container)
-            {
-                Unity.Graph.Legend subLegend = item.GetComponent<Unity.Graph.Legend>();
-                if (subLegend != null)
+                foreach (var subLegend in data.SubLegends)
                 {
-                    Legend subStruct = legendStruct.SubLegends.FirstOrDefault(l => l.ID == subLegend.ID);
-                    if (subStruct != null)
-                    {
-                        UpdateLegend(subLegend, subStruct);
-                    }
-                    else
-                    {
-                        RemoveLegend(subLegend);
-                    }
-                    subLegends.Add(subLegend);
-                }
-            }
-
-            foreach (var subStruct in legendStruct.SubLegends)
-            {
-                if (!subLegends.Any(s => s.ID == subStruct.ID))
-                {
-                    AddLegend(subStruct, legend.Container);
+                    UpdateLegend(subLegend);
                 }
             }
         }
         void SetLegends()
         {
-            // Update legends.
-            List<Unity.Graph.Legend> subLegends = new List<Unity.Graph.Legend>();
-            if(m_Container != null)
+            Unity.Graph.Legend[] legendsToRemove = m_Legends.Where(l => FindLegendByID(l.ID) == null).ToArray();
+            foreach (var legend in legendsToRemove)
             {
-                foreach (Transform item in m_Container)
+                RemoveLegend(legend);
+            }
+            foreach (var data in m_Data)
+            {
+                if(!m_Legends.Any(l => l.ID == data.ID))
                 {
-                    Unity.Graph.Legend subLegend = item.GetComponent<Unity.Graph.Legend>();
-                    if (subLegend != null)
-                    {
-                        Legend subStruct = m_LegendStructs.FirstOrDefault(l => l.ID == subLegend.ID);
-                        if (subStruct != null)
-                        {
-                            UpdateLegend(subLegend, subStruct);
-                        }
-                        else
-                        {
-                            RemoveLegend(subLegend);
-                        }
-                        subLegends.Add(subLegend);
-                    }
+                    AddLegend(data, m_Container);
                 }
-                foreach (var subStruct in m_LegendStructs)
+                else
                 {
-                    if (!subLegends.Any(s => s.ID == subStruct.ID))
+                    UpdateLegend(data);
+                }
+            }
+        }
+        Legend FindLegendByID(string ID)
+        {
+            Legend result = null;
+            foreach (var legend in m_Data)
+            {
+                Legend subResult = FindLegendByID(ID, legend);
+                if(subResult != null)
+                {
+                    result = subResult;
+                    break;
+                }
+            }
+            return result;
+        }
+        Legend FindLegendByID(string ID, Legend legend)
+        {
+            Legend result = null;
+            foreach (var subLegend in legend.SubLegends)
+            {
+                if (subLegend.ID == ID)
+                {
+                    result = subLegend;
+                    break;
+                }
+                else
+                {
+                    Legend SubResult = FindLegendByID(ID, subLegend);
+                    if (SubResult != null)
                     {
-                        AddLegend(subStruct, m_Container);
+                        result = SubResult;
+                        break;
                     }
                 }
             }
+            return result;
         }
         #endregion
 
         #region Classes
-        [Serializable]
-        public class Legend
+        [Serializable] public class Legend
         {
             #region Properties
             [SerializeField] string m_Label;
