@@ -17,6 +17,10 @@ namespace HBP.UI
         {
             ApplicationState.WindowsManager.Open("Save project as window");
         }
+        public void Quit()
+        {
+            Application.Quit();
+        }
         #endregion
     }
 }
