@@ -110,10 +110,12 @@ namespace Tools.Unity.Graph
                 }
                 else
                 {
+#if UNITY_EDITOR
                     UnityEditor.EditorApplication.delayCall += () =>
                     {
                         DestroyImmediate(curveToRemove.gameObject);
                     };
+#endif
                 }
             }
         }
