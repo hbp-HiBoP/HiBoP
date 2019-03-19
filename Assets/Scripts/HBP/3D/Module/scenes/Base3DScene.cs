@@ -826,7 +826,7 @@ namespace HBP.Module3D
             {
                 m_ColumnManager.SelectedMesh.SplittedMeshes[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
             }
-            if (SceneInformation.UseSimplifiedMeshes) m_ColumnManager.DLLCutsListSimplified[0].UpdateMeshFromDLL(m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().mesh);
+            //if (SceneInformation.UseSimplifiedMeshes) m_ColumnManager.DLLCutsListSimplified[0].UpdateMeshFromDLL(m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().mesh);
             UnityEngine.Profiling.Profiler.BeginSample("Update Columns Meshes");
             foreach (Column3D column in m_ColumnManager.Columns)
             {
@@ -967,10 +967,10 @@ namespace HBP.Module3D
             {
                 column.ChangeMeshesLayer(LayerMask.NameToLayer(column.Layer));
             }
-            if (SceneInformation.UseSimplifiedMeshes)
-            {
-                m_DisplayedObjects.SimplifiedBrain.layer = LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
-            }
+            //if (SceneInformation.UseSimplifiedMeshes)
+            //{
+            //    m_DisplayedObjects.SimplifiedBrain.layer = LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
+            //}
             UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
@@ -1038,14 +1038,15 @@ namespace HBP.Module3D
         /// </summary>
         private void UpdateCuts()
         {
-            if (SceneInformation.UseSimplifiedMeshes)
-            {
-                ComputeSimplifyMeshCut();
-            }
-            if (!CuttingSimplifiedMesh)
-            {
-                ComputeMeshesCut();
-            }
+            //if (SceneInformation.UseSimplifiedMeshes)
+            //{
+            //    ComputeSimplifyMeshCut();
+            //}
+            //if (!CuttingSimplifiedMesh)
+            //{
+            //    ComputeMeshesCut();
+            //}
+            ComputeMeshesCut();
             m_ColumnManager.UpdateCubeBoundingBox(Cuts);
 
             ComputeMRITextures();
@@ -1446,8 +1447,7 @@ namespace HBP.Module3D
         /// <param name="changedByUser">Has the cut been updated by the user or programatically ?</param>
         public void UpdateCutPlane(Cut cut, bool changedByUser = false)
         {
-            if (!CuttingSimplifiedMesh && SceneInformation.UseSimplifiedMeshes) CuttingSimplifiedMesh = true;
-
+            //if (!CuttingSimplifiedMesh /*&& SceneInformation.UseSimplifiedMeshes*/) CuttingSimplifiedMesh = true;
             if (cut.Orientation == Data.Enums.CutOrientation.Custom)
             {
                 if (cut.Normal.x == 0 && cut.Normal.y == 0 && cut.Normal.z == 0)
@@ -1558,7 +1558,7 @@ namespace HBP.Module3D
             }
 
             m_TriEraser.Reset(m_DisplayedObjects.InvisibleBrainSurfaceMeshes, SceneInformation.MeshToDisplay, m_ColumnManager.SelectedMesh.SplittedMeshes);
-            if (SceneInformation.UseSimplifiedMeshes) m_TriEraser.ResetSimplified(m_ColumnManager.DLLCutsListSimplified[0]);
+            //if (SceneInformation.UseSimplifiedMeshes) m_TriEraser.ResetSimplified(m_ColumnManager.DLLCutsListSimplified[0]);
 
             UpdateMeshesFromDLL();
         }
@@ -1590,7 +1590,7 @@ namespace HBP.Module3D
             // Set default SceneInformation values
             SceneInformation.MeshesLayerName = HBP3DModule.DEFAULT_MESHES_LAYER;
             SceneInformation.HiddenMeshesLayerName = HBP3DModule.HIDDEN_MESHES_LAYER;
-            SceneInformation.UseSimplifiedMeshes = ApplicationState.UserPreferences.Visualization.Cut.SimplifiedMeshes;
+            //SceneInformation.UseSimplifiedMeshes = ApplicationState.UserPreferences.Visualization.Cut.SimplifiedMeshes;
 
             AddListeners();
             InitializeParameters();

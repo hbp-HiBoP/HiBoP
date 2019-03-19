@@ -77,6 +77,6 @@ namespace HBP.Data.Preferences
     public class CutPreferences
     {
         [DataMember] public bool ShowCutLines { get; set; }
-        [DataMember] public bool SimplifiedMeshes { get; set; }
+        //[DataMember] public bool SimplifiedMeshes { get; set; }
     }
 }
