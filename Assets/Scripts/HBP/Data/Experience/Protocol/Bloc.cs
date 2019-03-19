@@ -233,6 +233,18 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Public Methods
+        public static int GetNumberOfColumns(IEnumerable<Bloc> blocs)
+        {
+            int before = 0;
+            int after = 0;
+            foreach (var bloc in blocs)
+            {
+                int mainPosition = bloc.MainSubBlocPosition;
+                before = Mathf.Max(before, mainPosition);
+                after = Mathf.Max(after, bloc.SubBlocs.Count - 1 - mainPosition);
+            }
+            return before + 1 + after;
+        }
         public static Tuple<SubBloc[], Window>[] GetSubBlocsAndWindowByColumn(IEnumerable<Bloc> blocs)
         {
             List<Tuple<int, List<SubBloc>>> subBlocsByColumns = new List<Tuple<int, List<SubBloc>>>();

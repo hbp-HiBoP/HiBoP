@@ -11,9 +11,14 @@ namespace HBP.UI.Informations
 
         [SerializeField] GraphZone m_GraphZone;
         [SerializeField] TrialMatrixZone m_TrialMatrixZone;
+
         #endregion
 
         #region Public Methods
+        public void SetMaxNumberOfTrialMatrixColumn(int max)
+        {
+            m_GraphZone.CreateGraphPool(max);
+        }
         public void Display(data.ChannelStruct[] channelStructs, data.DataStruct[] dataStructs)
         {
             m_ChannelStructs = channelStructs;
