@@ -125,7 +125,7 @@ namespace HBP.Data
         }
         public string GetExtension()
         {
-            return EXTENSION;
+            return EXTENSION[0] == '.'? EXTENSION.Substring(1) : EXTENSION;
         }
         /// <summary>
         /// Get patient directories in the directory.

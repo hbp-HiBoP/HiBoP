@@ -94,7 +94,7 @@ namespace HBP.Data.Experience.Protocol
         }
         public string GetExtension()
         {
-            return EXTENSION;
+            return EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION;
         }
         #endregion
 

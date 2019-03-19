@@ -86,7 +86,7 @@ namespace HBP.Data
         }
         public string GetExtension()
         {
-            return EXTENSION;
+            return EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION;
         }
         /// <summary>
         /// Add patient.

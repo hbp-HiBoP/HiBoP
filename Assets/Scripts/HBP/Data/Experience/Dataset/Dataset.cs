@@ -100,7 +100,7 @@ namespace HBP.Data.Experience.Dataset
         }
         public string GetExtension()
         {
-            return EXTENSION;
+            return EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION;
         }
         public bool AddData(DataInfo data)
         {
