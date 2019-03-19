@@ -57,6 +57,7 @@ namespace HBP.Module3D
             /// <param name="volume"></param>
             public void Reset(Volume volume, float precision)
             {
+                precision = Mathf.Clamp(precision, 0.1f, 1.0f);
                 reset_MRIVolumeGenerator(_handle, volume.getHandle(), precision);
                 ApplicationState.DLLDebugManager.check_error();
             }

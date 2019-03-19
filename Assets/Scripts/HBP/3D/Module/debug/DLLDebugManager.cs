@@ -29,7 +29,7 @@ namespace HBP.Module3D.DLL
         {
             public string Type;
             public string StackTrace;
-            public int ID;
+            public Guid ID;
             public CleanedBy CleanedBy;
         }
         #endregion
@@ -175,7 +175,7 @@ namespace HBP.Module3D.DLL
             clean_DLLDebugManagerContainer();
         }
 
-        public void AddDLLObject(string typeString, int hashCode)
+        public void AddDLLObject(string typeString, Guid id)
         {
             if (GetInformationAboutDLLObjects)
             {
@@ -183,16 +183,16 @@ namespace HBP.Module3D.DLL
                 {
                     Type = typeString,
                     StackTrace = Environment.StackTrace,
-                    ID = hashCode,
+                    ID = id,
                     CleanedBy = CleanedBy.NotCleaned
                 });
             }
         }
-        public void RemoveDLLOBject(string typeString, int hashCode, CleanedBy cleanedBy)
+        public void RemoveDLLOBject(string typeString, Guid id, CleanedBy cleanedBy)
         {
             if (GetInformationAboutDLLObjects)
             {
-                var objectToRemove = DLLObjects.Find(d => d.Type == typeString && d.ID == hashCode);
+                var objectToRemove = DLLObjects.Find(d => d.Type == typeString && d.ID == id);
                 if (objectToRemove != null) objectToRemove.CleanedBy = cleanedBy;
             }
         }

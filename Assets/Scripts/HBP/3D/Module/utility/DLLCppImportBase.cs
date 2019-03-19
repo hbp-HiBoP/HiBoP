@@ -10,6 +10,7 @@
 using System;
 using System.Runtime.InteropServices;
 
+
 namespace Tools.DLL
 {
     /// <summary>
@@ -22,6 +23,9 @@ namespace Tools.DLL
         /// pointer to C+ dll class
         /// </summary>
         protected HandleRef _handle;
+#if UNITY_EDITOR
+        private readonly Guid m_ID = Guid.NewGuid();
+#endif
         #endregion
 
         #region Memory Management
@@ -30,10 +34,10 @@ namespace Tools.DLL
         /// </summary>
         public CppDLLImportBase()
         {
-#if UNITY_EDITOR
-            ApplicationState.DLLDebugManager.AddDLLObject(ToString(), GetHashCode());
-#endif
             create_DLL_class();
+#if UNITY_EDITOR
+            ApplicationState.DLLDebugManager.AddDLLObject(ToString(), m_ID);
+#endif
         }
         /// <summary>
         /// CppDLLImportBase constructor with an already allocated dll class
@@ -41,10 +45,10 @@ namespace Tools.DLL
         /// <param name="ptr"></param>
         public CppDLLImportBase(IntPtr ptr)
         {
-#if UNITY_EDITOR
-            ApplicationState.DLLDebugManager.AddDLLObject(ToString(), GetHashCode());
-#endif
             _handle = new HandleRef(this, ptr);
+#if UNITY_EDITOR
+            ApplicationState.DLLDebugManager.AddDLLObject(ToString(), m_ID);
+#endif
         }
         /// <summary>
         /// CppDLLImportBase Destructor
@@ -52,7 +56,7 @@ namespace Tools.DLL
         ~CppDLLImportBase()
         {
 #if UNITY_EDITOR
-            ApplicationState.DLLDebugManager.RemoveDLLOBject(ToString(), GetHashCode(), HBP.Module3D.DLL.DLLDebugManager.CleanedBy.GC);
+            ApplicationState.DLLDebugManager.RemoveDLLOBject(ToString(), m_ID, HBP.Module3D.DLL.DLLDebugManager.CleanedBy.GC);
 #endif
             Cleanup();
         }
@@ -70,7 +74,7 @@ namespace Tools.DLL
         public virtual void Dispose()
         {
 #if UNITY_EDITOR
-            ApplicationState.DLLDebugManager.RemoveDLLOBject(ToString(), GetHashCode(), HBP.Module3D.DLL.DLLDebugManager.CleanedBy.Dispose);
+            ApplicationState.DLLDebugManager.RemoveDLLOBject(ToString(), m_ID, HBP.Module3D.DLL.DLLDebugManager.CleanedBy.Dispose);
 #endif
             Cleanup();
             GC.SuppressFinalize(this);

@@ -1050,7 +1050,7 @@ namespace HBP.Module3D
             
             foreach (var column in m_ColumnManager.ColumnsIEEG)
             {
-                column.DLLMRIVolumeGenerator.Reset(m_ColumnManager.SelectedMRI.Volume, 0.7f);
+                column.DLLMRIVolumeGenerator.Reset(m_ColumnManager.SelectedMRI.Volume, 0.68f);
             }
 
             UpdateMeshesFromDLL();
