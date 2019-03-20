@@ -53,12 +53,14 @@ namespace Tools.Unity
                     break;
             }
 
-            BuildPlayerOptions buildPlayerOptions = new BuildPlayerOptions();
-            buildPlayerOptions.locationPathName = buildDirectory + hibopName;
-            buildPlayerOptions.target = target;
-            buildPlayerOptions.scenes = new string[] { "Assets/_Scenes/HiBoP.unity" };
             BuildOptions buildOptions = development ? BuildOptions.Development : BuildOptions.None;
-            buildPlayerOptions.options = buildOptions;
+            BuildPlayerOptions buildPlayerOptions = new BuildPlayerOptions
+            {
+                locationPathName = buildDirectory + hibopName,
+                target = target,
+                scenes = new string[] { "Assets/_Scenes/HiBoP.unity" },
+                options = buildOptions
+            };
             BuildPipeline.BuildPlayer(buildPlayerOptions);
 
             string projectPath = Application.dataPath;

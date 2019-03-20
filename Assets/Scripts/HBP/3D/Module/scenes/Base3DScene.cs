@@ -728,7 +728,7 @@ namespace HBP.Module3D
             {
                 foreach (Cut cut in Cuts)
                 {
-                    m_ColumnManager.CreateMRITexture(column, cut.ID);
+                    m_ColumnManager.CreateMRITexture(column, cut.ID, 3);
                 }
             }
             ComputeIEEGTextures();
@@ -1050,7 +1050,7 @@ namespace HBP.Module3D
             
             foreach (var column in m_ColumnManager.ColumnsIEEG)
             {
-                column.DLLMRIVolumeGenerator.Reset(m_ColumnManager.SelectedMRI.Volume, 0.68f);
+                column.DLLMRIVolumeGenerator.Reset(m_ColumnManager.SelectedMRI.Volume, 0.40f);
             }
 
             UpdateMeshesFromDLL();

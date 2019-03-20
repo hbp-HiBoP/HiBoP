@@ -91,11 +91,11 @@ namespace HBP.Module3D
         /// <param name="indexCut">Index of the cut</param>
         /// <param name="MRICalMinFactor">Cal Min Factor</param>
         /// <param name="MRICalMaxFactor">Cal Max Factor</param>
-        public void CreateMRITexture(DLL.MRIGeometryCutGenerator geometryGenerator, DLL.Volume volume, int indexCut, float MRICalMinFactor, float MRICalMaxFactor)
+        public void CreateMRITexture(DLL.MRIGeometryCutGenerator geometryGenerator, DLL.Volume volume, int indexCut, float MRICalMinFactor, float MRICalMaxFactor, int blurFactor)
         {
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Column3DView create_MRI_texture reset 0  ");
             DLL.MRITextureCutGenerator textureGenerator = DLLMRITextureCutGenerators[indexCut];
-            textureGenerator.Reset(geometryGenerator);
+            textureGenerator.Reset(geometryGenerator, blurFactor);
             UnityEngine.Profiling.Profiler.EndSample();
 
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Column3DView create_MRI_texture fill_texture_with_volume 1  ");

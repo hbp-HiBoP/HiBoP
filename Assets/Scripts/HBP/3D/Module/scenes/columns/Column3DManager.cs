@@ -674,9 +674,9 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="column">Column for which the texture will be created</param>
         /// <param name="cutID">ID of the cut used to create the texture</param>
-        public void CreateMRITexture(Column3D column, int cutID)
+        public void CreateMRITexture(Column3D column, int cutID, int blurFactor)
         {
-            column.CutTextures.CreateMRITexture(DLLMRIGeometryCutGeneratorList[cutID], SelectedMRI.Volume, cutID, MRICalMinFactor, MRICalMaxFactor);
+            column.CutTextures.CreateMRITexture(DLLMRIGeometryCutGeneratorList[cutID], SelectedMRI.Volume, cutID, MRICalMinFactor, MRICalMaxFactor, blurFactor);
             if (FMRI != null)
             {
                 column.CutTextures.ColorCutsTexturesWithFMRI(FMRI.Volume, cutID, m_FMRICalMinFactor, m_FMRICalMaxFactor, m_FMRIAlpha);
