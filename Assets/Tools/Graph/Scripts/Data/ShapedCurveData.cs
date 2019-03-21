@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.UI.Extensions;
 
 namespace Tools.Unity.Graph
 {
@@ -16,16 +17,17 @@ namespace Tools.Unity.Graph
             }
             set
             {
-                m_Shapes = value;
+                SetPropertyUtility.SetClass(ref m_Shapes, value);
             }
         }
         #endregion
 
-        #region Constructor
-        public ShapedCurveData(IEnumerable<Vector2> points, IEnumerable<float> shapes, Color color , float width = 3.0f) : base(points, color, width)
+        #region Public Methods
+        public virtual void Init(IEnumerable<Vector2> points, IEnumerable<float> shapes, Color color, float width)
         {
+            base.Init(points, color, width);
             float[] shapeArray = shapes as float[];
-            if(shapeArray.Length == Points.Length)
+            if (shapeArray.Length == Points.Length)
             {
                 Shapes = shapeArray;
             }
@@ -34,6 +36,12 @@ namespace Tools.Unity.Graph
                 Debug.LogWarning("Wrong shape array lenght");
                 Shapes = new float[Points.Length];
             }
+        }
+        public static ShapedCurveData CreateInstance(IEnumerable<Vector2> points, IEnumerable<float> shapes, Color color, float width = 3.0f)
+        {
+            ShapedCurveData result = CreateInstance<ShapedCurveData>();
+            result.Init(points, shapes, color, width);
+            return result;
         }
         #endregion
     }

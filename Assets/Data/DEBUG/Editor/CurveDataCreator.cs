@@ -2,12 +2,16 @@
 using System.Collections.Generic;
 using System.IO;
 using Tools.Unity.Graph;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 
 public class CurveDataCreator
 {
+#if UNITY_EDITOR
     [MenuItem("Assets/Create/Graph/Data/Curve/Cos")]
+#endif
     public static void CreateCos()
     {
         int numberOfPoints = 10000;
@@ -17,7 +21,7 @@ public class CurveDataCreator
             float x = 10 * Mathf.PI * ((float) i / (numberOfPoints - 1));
             points[i] = new Vector2(x, Mathf.Cos(x));
         }
-        CurveData curve = new CurveData(points, Color.red);
+        CurveData curve = CurveData.CreateInstance(points, Color.red);
 
         string path = AssetDatabase.GetAssetPath(Selection.activeObject);
         if (path == "")
@@ -36,7 +40,9 @@ public class CurveDataCreator
         Selection.activeObject = curve;
     }
 
+#if UNITY_EDITOR
     [MenuItem("Assets/Create/Graph/Data/Curve/ComplicatedCurve")]
+#endif
     public static void CreateComplicatedCurve()
     {
         int numberOfPoints = 1000000;
@@ -47,7 +53,7 @@ public class CurveDataCreator
             float y = Mathf.Cos(x) + 0.1f * Mathf.Cos(x * 10) + 0.01f * Mathf.Cos(x * 100) + 0.001f * Mathf.Cos(x * 1000) + 0.0001f * Mathf.Cos(x * 10000) + 0.00005f * Mathf.Cos(x * 100000) + 0.000005f * Mathf.Cos(x * 1000000);
             points[i] = new Vector2(x, y);
         }
-        CurveData curve = new CurveData(points, Color.red);
+        CurveData curve = CurveData.CreateInstance(points, Color.red);
 
         string path = AssetDatabase.GetAssetPath(Selection.activeObject);
         if (path == "")
@@ -66,7 +72,9 @@ public class CurveDataCreator
         Selection.activeObject = curve;
     }
 
+#if UNITY_EDITOR
     [MenuItem("Assets/Create/Graph/Data/Curve/ShapedCos")]
+#endif
     public static void CreateShapedCos()
     {
         int numberOfPoints = 100;
@@ -78,7 +86,7 @@ public class CurveDataCreator
             points[i] = new Vector2(x, Mathf.Cos(x) + 0.5f * Mathf.Sin(0.3f * x));
             shapes[i] = 0.1f;
         }
-        ShapedCurveData curve = new ShapedCurveData(points, shapes, Color.red);
+        ShapedCurveData curve = ShapedCurveData.CreateInstance(points, shapes, Color.red);
 
         string path = AssetDatabase.GetAssetPath(Selection.activeObject);
         if (path == "")

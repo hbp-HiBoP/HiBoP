@@ -352,13 +352,7 @@ namespace HBP.UI.Informations
                     float ordinate = values[i];
                     points[i] = new Vector2(abscissa, ordinate);
                 }
-                float[] shapes = standardDeviations;
-                ShapedCurveData shapedCurveData = ScriptableObject.CreateInstance<ShapedCurveData>();
-                shapedCurveData.Points = points;
-                shapedCurveData.Shapes = shapes;
-                shapedCurveData.Color = color;
-                shapedCurveData.Thickness = 3.0f;
-                result = shapedCurveData; 
+                result = ShapedCurveData.CreateInstance(points, standardDeviations, color);
             }
             else if (trialsToUse.Count == 1)
             {
@@ -375,7 +369,7 @@ namespace HBP.UI.Informations
                     float ordinate = values[i];
                     points[i] = new Vector2(abscissa, ordinate);
                 }
-                result = new CurveData(points, color);
+                result = CurveData.CreateInstance(points, color);
             }
             return result;
         }
