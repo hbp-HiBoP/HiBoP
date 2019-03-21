@@ -365,7 +365,7 @@ namespace HBP.UI.Informations
                 Vector2[] points = new Vector2[values.Length];
                 for (int i = 0; i < points.Length; i++)
                 {
-                    float abscissa = start + (i / (points.Length - 1)) * (end - start);
+                    float abscissa = start + ((float)i / (points.Length - 1)) * (end - start);
                     float ordinate = values[i];
                     points[i] = new Vector2(abscissa, ordinate);
                 }
