@@ -9,7 +9,7 @@ namespace HBP.UI
     {
         private void Awake()
         {
-            GetComponent<Text>().text = Application.productName;
+            GetComponent<Text>().text = string.Format("{0} {1}", Application.productName, Application.version);
         }
     }
 }
