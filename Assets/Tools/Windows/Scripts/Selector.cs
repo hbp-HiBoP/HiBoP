@@ -7,7 +7,7 @@ using UnityEngine.UI;
 public class Selector : MonoBehaviour
 {
     #region Properties
-    [SerializeField, Candlelight.PropertyBackingField]
+    [SerializeField]
     private bool m_Selected;
     public bool Selected
     {
@@ -22,7 +22,7 @@ public class Selector : MonoBehaviour
     }
     public GenericEvent<bool> OnChangeValue = new GenericEvent<bool>();
 
-    [SerializeField, Candlelight.PropertyBackingField]
+    [SerializeField]
     private Graphic m_TargetGraphic;
     public Graphic TargetGraphic
     {

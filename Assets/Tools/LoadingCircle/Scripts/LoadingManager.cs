@@ -3,7 +3,7 @@
 public class LoadingManager : MonoBehaviour
 {
     #region Properties
-    [SerializeField, Candlelight.PropertyBackingField]
+    [SerializeField]
     private Canvas m_Canvas;
     public Canvas Canvas
     {
