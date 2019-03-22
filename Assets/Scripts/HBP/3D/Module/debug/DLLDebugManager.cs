@@ -12,6 +12,9 @@ using System.Runtime.InteropServices;
 
 // unity
 using UnityEngine;
+using System.Collections.Generic;
+using System;
+using System.Linq;
 
 namespace HBP.Module3D.DLL
 {
@@ -19,7 +22,18 @@ namespace HBP.Module3D.DLL
     /// A class for managing the debugging  of the DLL
     /// </summary>
     public class DLLDebugManager : MonoBehaviour
-    {               
+    {
+
+        #region Internal Classes
+        public class DLLObject
+        {
+            public string Type;
+            public string StackTrace;
+            public Guid ID;
+            public CleanedBy CleanedBy;
+        }
+        #endregion
+
         #region Properties
 
         static System.Threading.Thread mainThread; /**< main thread */
@@ -29,6 +43,10 @@ namespace HBP.Module3D.DLL
 
         public bool retrieveDLLOutput = true;   /**< retrieve the output of the DLL */
         public bool writeOutputInLogFile = true; /**< write the log in a file */
+        public bool GetInformationAboutDLLObjects = true;
+
+        public enum CleanedBy { NotCleaned, GC, Dispose }
+        public List<DLLObject> DLLObjects = new List<DLLObject>();
 
         #endregion;
 
@@ -155,6 +173,28 @@ namespace HBP.Module3D.DLL
         public void clean()
         {
             clean_DLLDebugManagerContainer();
+        }
+
+        public void AddDLLObject(string typeString, Guid id)
+        {
+            if (GetInformationAboutDLLObjects)
+            {
+                DLLObjects.Add(new DLLObject()
+                {
+                    Type = typeString,
+                    StackTrace = Environment.StackTrace,
+                    ID = id,
+                    CleanedBy = CleanedBy.NotCleaned
+                });
+            }
+        }
+        public void RemoveDLLOBject(string typeString, Guid id, CleanedBy cleanedBy)
+        {
+            if (GetInformationAboutDLLObjects)
+            {
+                var objectToRemove = DLLObjects.Find(d => d.Type == typeString && d.ID == id);
+                if (objectToRemove != null) objectToRemove.CleanedBy = cleanedBy;
+            }
         }
 
         #endregion

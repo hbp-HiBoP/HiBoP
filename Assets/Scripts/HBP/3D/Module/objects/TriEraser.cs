@@ -127,7 +127,7 @@ namespace HBP.Module3D
             int[] fullMask = new int[m_BrainMeshDLL.NumberOfTriangles];
             for (int ii = 0; ii < fullMask.Length; ++ii)
                 fullMask[ii] = 1;
-            m_BrainMeshDLL.UpdateVisibilityMask(fullMask);
+            m_BrainMeshDLL.UpdateVisibilityMask(fullMask).Dispose();
 
             m_FullMasksStack.Clear();
 
@@ -137,7 +137,7 @@ namespace HBP.Module3D
                 for (int jj = 0; jj < mask.Length; ++jj)
                     mask[jj] = 1;
 
-                m_BrainMeshesSplittedDLL[ii].UpdateVisibilityMask(mask); // return an empty mesh
+                m_BrainMeshesSplittedDLL[ii].UpdateVisibilityMask(mask).Dispose(); // return an empty mesh
             }
             m_SplittedMasksStack.Clear();
 
@@ -201,6 +201,7 @@ namespace HBP.Module3D
             {
                 DLL.Surface brainInvisibleMeshesDLL = m_BrainMeshesSplittedDLL[ii].UpdateVisibilityMask(newSplittedMasks[ii]);
                 brainInvisibleMeshesDLL.UpdateMeshFromDLL(m_BrainInvisibleMeshesGO[ii].GetComponent<MeshFilter>().mesh);
+                brainInvisibleMeshesDLL.Dispose();
             }
 
             MeshHasInvisibleTriangles = m_BrainMeshDLL.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;

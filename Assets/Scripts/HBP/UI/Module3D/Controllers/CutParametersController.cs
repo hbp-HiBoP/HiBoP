@@ -19,6 +19,11 @@ namespace HBP.UI.Module3D
         public bool AreControlsOpen { get; set; }
         public Texture2D Texture { get { return m_Image.sprite.texture; } }
 
+        private bool m_ClickedOnMinus = false;
+        private bool m_ClickedOnPlus = false;
+        private float m_TimeSinceLastUpdate = 0.0f;
+        private float m_TimeBetweenTwoUpdates = 0.2f;
+
         /// <summary>
         /// Image of the cut
         /// </summary>
@@ -81,6 +86,12 @@ namespace HBP.UI.Module3D
         /// Prefab for the sites
         /// </summary>
         [SerializeField] private GameObject m_SitePrefab;
+
+        [SerializeField] private RectTransform m_CutLinesRectTransform;
+        /// <summary>
+        /// Prefab for the cut lines
+        /// </summary>
+        [SerializeField] private GameObject m_CutLinePrefab;
         #endregion
 
         #region Events
@@ -89,6 +100,31 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
+        private void Update()
+        {
+            if (!Input.GetMouseButton(0))
+            {
+                m_ClickedOnMinus = false;
+                m_ClickedOnPlus = false;
+            }
+            else if (m_ClickedOnPlus || m_ClickedOnMinus)
+            {
+                m_TimeSinceLastUpdate += Time.deltaTime;
+                if (m_TimeSinceLastUpdate > m_TimeBetweenTwoUpdates)
+                {
+                    m_TimeSinceLastUpdate = 0;
+                    if (m_ClickedOnPlus)
+                    {
+                        m_Position.value += 1.0f / Cut.NumberOfCuts;
+                    }
+                    else if (m_ClickedOnMinus)
+                    {
+                        m_Position.value -= 1.0f / Cut.NumberOfCuts;
+                    }
+                }
+            }
+            
+        }
         private void AddListeners()
         {
             Cut.OnUpdateGUITextures.AddListener((column) =>
@@ -99,10 +135,11 @@ namespace HBP.UI.Module3D
                 m_Image.sprite.texture.filterMode = FilterMode.Trilinear;
                 m_Image.sprite.texture.anisoLevel = 9;
             });
-            Cut.OnUpdateCut.AddListener(() =>
+            m_Scene.OnUpdateCuts.AddListener(() =>
             {
                 UpdateUI();
                 ShowSites();
+                DrawLines();
             });
             Cut.OnRemoveCut.AddListener(() =>
             {
@@ -121,12 +158,14 @@ namespace HBP.UI.Module3D
                 if (m_IsUIUpdating) return;
 
                 m_Position.value -= 1.0f / Cut.NumberOfCuts;
+                m_ClickedOnMinus = true;
             });
             m_PlusPosition.onClick.AddListener(() =>
             {
                 if (m_IsUIUpdating) return;
 
                 m_Position.value += 1.0f / Cut.NumberOfCuts;
+                m_ClickedOnPlus = true;
             });
             m_Orientation.onValueChanged.AddListener((value) =>
             {
@@ -233,22 +272,6 @@ namespace HBP.UI.Module3D
 
                 m_Flip.gameObject.SetActive(Cut.Orientation != Data.Enums.CutOrientation.Custom);
                 m_CustomValues.gameObject.SetActive(Cut.Orientation == Data.Enums.CutOrientation.Custom);
-                m_PositionInformation.SetActive(Cut.Orientation != Data.Enums.CutOrientation.Custom);
-                switch (Cut.Orientation)
-                {
-                    case Data.Enums.CutOrientation.Axial:
-                        m_PositionTitle.text = "Z";
-                        m_PositionValue.text = Mathf.RoundToInt(Cut.Point.z).ToString();
-                        break;
-                    case Data.Enums.CutOrientation.Coronal:
-                        m_PositionTitle.text = "Y";
-                        m_PositionValue.text = Mathf.RoundToInt(Cut.Point.y).ToString();
-                        break;
-                    case Data.Enums.CutOrientation.Sagital:
-                        m_PositionTitle.text = "X";
-                        m_PositionValue.text = Mathf.RoundToInt(Cut.Point.x).ToString();
-                        break;
-                }
             }
             else
             {
@@ -257,6 +280,22 @@ namespace HBP.UI.Module3D
                 m_Position.transform.parent.gameObject.SetActive(false);
                 m_Flip.gameObject.SetActive(false);
                 m_CustomValues.gameObject.SetActive(false);
+            }
+            m_PositionInformation.SetActive(Cut.Orientation != Data.Enums.CutOrientation.Custom);
+            switch (Cut.Orientation)
+            {
+                case Data.Enums.CutOrientation.Axial:
+                    m_PositionTitle.text = "Z";
+                    m_PositionValue.text = Mathf.RoundToInt(Cut.Point.z).ToString();
+                    break;
+                case Data.Enums.CutOrientation.Coronal:
+                    m_PositionTitle.text = "Y";
+                    m_PositionValue.text = Mathf.RoundToInt(Cut.Point.y).ToString();
+                    break;
+                case Data.Enums.CutOrientation.Sagital:
+                    m_PositionTitle.text = "X";
+                    m_PositionValue.text = Mathf.RoundToInt(Cut.Point.x).ToString();
+                    break;
             }
             m_IsUIUpdating = false;
         }
@@ -303,11 +342,11 @@ namespace HBP.UI.Module3D
                     sites.Add(site);
                 }
             }
-
-            HBP.Module3D.DLL.BBox cube = m_Scene.ColumnManager.CubeBoundingBox;
-            if (cube != null)
+            
+            HBP.Module3D.DLL.BBox boundingBox = m_Scene.ColumnManager.CubeBoundingBox;
+            if (boundingBox != null)
             {
-                List<Vector3> intersections = cube.IntersectionPointsWithPlane(Cut);
+                List<Vector3> intersections = boundingBox.IntersectionPointsWithPlane(Cut);
                 float xMax = float.MinValue, yMax = float.MinValue, zMax = float.MinValue;
                 float xMin = float.MaxValue, yMin = float.MaxValue, zMin = float.MaxValue;
                 foreach (var point in intersections)
@@ -347,6 +386,70 @@ namespace HBP.UI.Module3D
                     }
                     CutSite cutSite = Instantiate(m_SitePrefab, m_SitesRectTransform).GetComponent<CutSite>();
                     cutSite.Initialize(m_Scene, site, new Vector2(horizontalRatio, verticalRatio));
+                }
+            }
+        }
+        public void DrawLines()
+        {
+            foreach (Transform child in m_CutLinesRectTransform) Destroy(child.gameObject);
+            if (Cut.Orientation == Data.Enums.CutOrientation.Custom || !ApplicationState.UserPreferences.Visualization.Cut.ShowCutLines) return;
+
+            HBP.Module3D.DLL.BBox boundingBox = m_Scene.ColumnManager.CubeBoundingBox;
+            if (boundingBox != null)
+            {
+                List<Vector3> intersections = boundingBox.IntersectionPointsWithPlane(Cut);
+                float xMax = float.MinValue, yMax = float.MinValue, zMax = float.MinValue;
+                float xMin = float.MaxValue, yMin = float.MaxValue, zMin = float.MaxValue;
+                foreach (var point in intersections)
+                {
+                    if (point.x > xMax) xMax = point.x;
+                    if (point.y > yMax) yMax = point.y;
+                    if (point.z > zMax) zMax = point.z;
+                    if (point.x < xMin) xMin = point.x;
+                    if (point.y < yMin) yMin = point.y;
+                    if (point.z < zMin) zMin = point.z;
+                }
+                float xRange = xMax - xMin;
+                float yRange = yMax - yMin;
+                float zRange = zMax - zMin;
+
+                foreach (var cut in m_Scene.Cuts)
+                {
+                    if (cut == Cut || cut.Orientation == Data.Enums.CutOrientation.Custom) continue;
+
+                    List<Vector3> points = boundingBox.IntersectionSegmentBetweenTwoPlanes(Cut, cut);
+                    List<Vector2> linePoints = new List<Vector2>();
+                    foreach (var point in points)
+                    {
+                        float horizontalRatio = 0, verticalRatio = 0;
+                        switch (Cut.Orientation)
+                        {
+                            case Data.Enums.CutOrientation.Axial:
+                                horizontalRatio = 1 - ((-point.x - xMin) / xRange);
+                                verticalRatio = (point.y - yMin) / yRange;
+                                break;
+                            case Data.Enums.CutOrientation.Coronal:
+                                horizontalRatio = 1 - ((-point.x - xMin) / xRange);
+                                verticalRatio = (point.z - zMin) / zRange;
+                                break;
+                            case Data.Enums.CutOrientation.Sagital:
+                                horizontalRatio = (point.y - yMin) / yRange;
+                                verticalRatio = (point.z - zMin) / zRange;
+                                break;
+                        }
+                        if (Cut.Flip)
+                        {
+                            horizontalRatio = 1 - horizontalRatio;
+                        }
+                        linePoints.Add(new Vector2(horizontalRatio, verticalRatio));
+                    }
+                    UnityEngine.UI.Extensions.UILineRenderer lineRenderer = Instantiate(m_CutLinePrefab, m_CutLinesRectTransform).GetComponent<UnityEngine.UI.Extensions.UILineRenderer>();
+                    RectTransform lineRectTransform = lineRenderer.GetComponent<RectTransform>();
+                    lineRectTransform.anchorMin = Vector2.zero;
+                    lineRectTransform.anchorMax = Vector2.one;
+                    lineRectTransform.anchoredPosition = Vector2.zero;
+                    lineRectTransform.sizeDelta = Vector2.zero;
+                    lineRenderer.Points = linePoints.ToArray();
                 }
             }
         }

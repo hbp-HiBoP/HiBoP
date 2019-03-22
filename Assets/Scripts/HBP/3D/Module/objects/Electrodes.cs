@@ -182,7 +182,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Mars atlas index, used to identify sites mars IDs
         /// </summary>
-        public class MarsAtlasIndex : CppDLLImportBase
+        public class MarsAtlasIndex : Tools.DLL.CppDLLImportBase
         {
             #region Constructors
             public MarsAtlasIndex(string path) : base()
@@ -325,7 +325,7 @@ namespace HBP.Module3D
         /// <summary>
         ///  A raw version of PatientElectrodesList, means to be used in the C++ DLL
         /// </summary>
-        public class RawSiteList : CppDLLImportBase
+        public class RawSiteList : Tools.DLL.CppDLLImportBase
         {
             #region Properties
             /// <summary>
@@ -505,7 +505,7 @@ namespace HBP.Module3D
         /// <summary>
         ///  A PatientElectrodes container, for managing severals patients, more useful for data visualization, means to be used with unity scripts
         /// </summary>
-        public class PatientElectrodesList : CppDLLImportBase, ICloneable
+        public class PatientElectrodesList : Tools.DLL.CppDLLImportBase, ICloneable
         {
             #region Properties
             /// <summary>

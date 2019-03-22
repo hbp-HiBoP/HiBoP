@@ -117,7 +117,9 @@ namespace HBP.UI.Module3D
                 }
                 if (iEEGValues.Length > 0)
                 {
-                    HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(iEEGValues, 4 * 110, 4 * 110, m_MinAmplitude, m_MaxAmplitude).UpdateTexture2D(m_IEEGHistogram);
+                    HBP.Module3D.DLL.Texture texture = HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(iEEGValues, 4 * 110, 4 * 110, m_MinAmplitude, m_MaxAmplitude);
+                    texture.UpdateTexture2D(m_IEEGHistogram);
+                    texture.Dispose();
                 }
                 else
                 {

@@ -27,18 +27,7 @@ namespace HBP.Module3D
     {
         #region Properties
         public const string DEFAULT_ROI_NAME = "ROI";
-        private string m_Name = DEFAULT_ROI_NAME;
-        public string Name
-        {
-            get
-            {
-                return m_Name;
-            }
-            set
-            {
-                m_Name = value;
-            }
-        }
+        public string Name { get; set; } = DEFAULT_ROI_NAME;
         private int m_Layer;
 
         public int SelectedSphereID { get; set; }
@@ -83,6 +72,10 @@ namespace HBP.Module3D
         {
             m_DLLROI = new DLL.ROI();
             SelectedSphereID = -1;
+        }
+        private void OnDestroy()
+        {
+            m_DLLROI?.Dispose();
         }
         /// <summary>
         /// 

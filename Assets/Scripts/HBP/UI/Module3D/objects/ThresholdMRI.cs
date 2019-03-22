@@ -79,7 +79,7 @@ namespace HBP.UI.Module3D
             {
                 foreach (var mri in s.ColumnManager.MRIs)
                 {
-                    Texture2D texture;
+                    Texture2D texture; 
                     if (m_HistogramByMRI.TryGetValue(mri, out texture))
                     {
                         Destroy(texture);
@@ -101,7 +101,9 @@ namespace HBP.UI.Module3D
                 {
                     m_MRIHistogram = new Texture2D(1, 1);
                 }
-                HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(mri3D.Volume, 4 * 110, 4 * 110, m_MRICalMin, m_MRICalMax).UpdateTexture2D(m_MRIHistogram);
+                HBP.Module3D.DLL.Texture texture = HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(mri3D.Volume, 4 * 110, 4 * 110, m_MRICalMin, m_MRICalMax);
+                texture.UpdateTexture2D(m_MRIHistogram);
+                texture.Dispose();
                 m_HistogramByMRI.Add(mri3D, m_MRIHistogram);
             }
             m_Histogram.texture = m_MRIHistogram;

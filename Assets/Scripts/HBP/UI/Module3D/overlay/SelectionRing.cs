@@ -43,7 +43,7 @@ namespace HBP.UI.Module3D
         {
             if(m_Site != null)
             {
-                Vector3 centerPosition = m_Site.transform.localPosition;
+                Vector3 centerPosition = m_Site.transform.position;
                 Vector3 borderPosition = centerPosition + m_Site.transform.localScale.x * ViewCamera.transform.right;
                 Vector3 centerScreenPosition = ViewCamera.WorldToScreenPoint(centerPosition);
                 Vector3 borderScreenPosition = ViewCamera.WorldToScreenPoint(borderPosition);

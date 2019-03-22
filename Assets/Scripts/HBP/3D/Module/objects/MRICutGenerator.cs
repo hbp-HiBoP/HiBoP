@@ -21,7 +21,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Geometry generator of a MRI cut, one generator is defined for all columns, all columns share the same geometry
         /// </summary>
-        public class MRIGeometryCutGenerator : CppDLLImportBase
+        public class MRIGeometryCutGenerator : Tools.DLL.CppDLLImportBase
         {
             #region Public Methods 
             /// <summary>
@@ -94,7 +94,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Texture generator for MRI cuts, or each column a generator is defined, all columns have differents textures
         /// </summary>
-        public class MRITextureCutGenerator : CppDLLImportBase
+        public class MRITextureCutGenerator : Tools.DLL.CppDLLImportBase
         {
             #region Properties
             /// <summary>
@@ -137,9 +137,9 @@ namespace HBP.Module3D
             /// 
             /// </summary>
             /// <param name="geometryGenerator"></param>
-            public void Reset(MRIGeometryCutGenerator geometryGenerator)
+            public void Reset(MRIGeometryCutGenerator geometryGenerator, int blurFactor)
             {
-                reset__MRITextureCutGenerator(_handle, geometryGenerator.getHandle());
+                reset__MRITextureCutGenerator(_handle, geometryGenerator.getHandle(), blurFactor);
             }
             /// <summary>
             /// Will create the cut texture with colors defined with the volume voxels [0f , 1f] and the colorscheme (Gradient of colors)
@@ -311,7 +311,7 @@ namespace HBP.Module3D
             [DllImport("hbp_export", EntryPoint = "delete__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern void delete__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator);
             [DllImport("hbp_export", EntryPoint = "reset__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void reset__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, HandleRef handleMRIGeometryCutGenerator);
+            static private extern void reset__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, HandleRef handleMRIGeometryCutGenerator, int blurFactor);
             [DllImport("hbp_export", EntryPoint = "fill_texture_with_volume__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern void fill_texture_with_volume__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, HandleRef handleVolume, HandleRef handleColorSchemeTexture,
                                                                 float calMin, float calMax);
