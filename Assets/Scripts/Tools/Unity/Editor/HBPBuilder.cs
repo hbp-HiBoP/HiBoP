@@ -23,7 +23,7 @@ namespace Tools.Unity
 
         public static void BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target)
         {
-            string buildName = Application.productName;
+            string buildName = string.Format("{0} {1}", Application.productName, Application.version);
             switch (target)
             {
                 case BuildTarget.StandaloneWindows64:

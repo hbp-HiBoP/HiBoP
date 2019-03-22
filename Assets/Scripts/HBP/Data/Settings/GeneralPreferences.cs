@@ -40,7 +40,7 @@ namespace HBP.Data.Preferences
             DefaultLocation = string.Empty;
             DefaultPatientDatabase = string.Empty;
             DefaultLocalizerDatabase = string.Empty;
-            DefaultExportLocation = string.Empty;
+            DefaultExportLocation = System.IO.Path.Combine(UnityEngine.Application.dataPath, "..", "Export");
         }
         #endregion
     }
