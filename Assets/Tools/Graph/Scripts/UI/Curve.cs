@@ -190,7 +190,7 @@ namespace Tools.Unity.Graph
 
                 Profiler.BeginSample("DownSampling");
                 int lenght = endIndex + 1 - startIndex;
-                int downSampling = Mathf.CeilToInt(m_NumberOfPixelsByPoint * lenght / (m_RectTransform.rect.width));
+                int downSampling = Mathf.Max(1,Mathf.CeilToInt(m_NumberOfPixelsByPoint * lenght / (m_RectTransform.rect.width)));
                 Vector2[] points = new Vector2[lenght / downSampling];
                 for (int i = 0; i < points.Length; i++)
                 {

@@ -47,6 +47,7 @@ namespace HBP.UI.Experience.Protocol
                 ApplicationState.ProjectLoaded.SetProtocols((m_ProtocolListGestion.Objects));
                 base.Save();
             }
+            FindObjectOfType<MenuButtonState>().SetInteractables();
         }
         #endregion
 

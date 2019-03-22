@@ -133,13 +133,9 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// List of the surfaces for the cuts
+        /// List of splitted meshes
         /// </summary>
-        public List<DLL.Surface> DLLCutsList = new List<DLL.Surface>();
-        /// <summary>
-        /// List of the surfaces for the cuts of the simplified mesh
-        /// </summary>
-        public List<DLL.Surface> DLLCutsListSimplified = new List<DLL.Surface>();
+        public List<DLL.Surface> SplittedMeshes;
         
         /// <summary>
         /// List of the MRIs of the scene
@@ -351,6 +347,7 @@ namespace HBP.Module3D
                 m_Colormap = value;
                 DLL.Texture tex = DLL.Texture.Generate1DColorTexture(Colormap);
                 tex.UpdateTexture2D(BrainColorMapTexture);
+                tex.Dispose();
             }
         }
 
@@ -453,6 +450,31 @@ namespace HBP.Module3D
         {
             BrainColorMapTexture = Texture2Dutility.GenerateColorScheme();
             BrainColorTexture = Texture2Dutility.GenerateColorScheme();
+        }
+        private void OnDestroy()
+        {
+            foreach (var mesh in Meshes)
+            {
+                if (!mesh.HasBeenLoadedOutside)
+                {
+                    mesh.Clean();
+                }
+            }
+            foreach (var mri in MRIs)
+            {
+                if (!mri.HasBeenLoadedOutside)
+                {
+                    mri.Clean();
+                }
+            }
+            foreach (var implantation in Implantations) implantation.Clean();
+            foreach (var mesh in SplittedMeshes)
+            {
+                mesh?.Dispose();
+            }
+            foreach (var dllCommonBrainTextureGenerator in DLLCommonBrainTextureGeneratorList) dllCommonBrainTextureGenerator.Dispose();
+            foreach (var dllMRIGeometryCutGenerator in DLLMRIGeometryCutGeneratorList) dllMRIGeometryCutGenerator.Dispose();
+            CubeBoundingBox.Dispose();
         }
         /// <summary>
         /// Add a column to the scene
@@ -593,14 +615,18 @@ namespace HBP.Module3D
         /// <param name="nbSplits">Number of splits</param>
         public void ResetSplitsNumber(int nbSplits)
         {
-            foreach (Mesh3D mesh in Meshes)
-            {
-                mesh.Split(MeshSplitNumber);
-            }
-
+            MeshSplitNumber = nbSplits;
             DLLCommonBrainTextureGeneratorList = new List<DLL.MRIBrainGenerator>(MeshSplitNumber);
             for (int ii = 0; ii < MeshSplitNumber; ++ii)
                 DLLCommonBrainTextureGeneratorList.Add(new DLL.MRIBrainGenerator());
+        }
+        /// <summary>
+        /// Generate the splits for the mesh
+        /// </summary>
+        /// <param name="meshToDisplay"></param>
+        public void GenerateSplits(DLL.Surface meshToDisplay)
+        {
+            SplittedMeshes = meshToDisplay.SplitToSurfaces(MeshSplitNumber);
         }
         /// <summary>
         /// Reset color schemes of every columns
@@ -634,7 +660,6 @@ namespace HBP.Module3D
         /// <summary>
         /// Initialize the columns for the scene
         /// </summary>
-
         /// <param name="type"></param>
         /// <param name="number"></param>
         public void InitializeColumns(IEnumerable<Data.Visualization.BaseColumn> columns)
@@ -649,9 +674,9 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="column">Column for which the texture will be created</param>
         /// <param name="cutID">ID of the cut used to create the texture</param>
-        public void CreateMRITexture(Column3D column, int cutID)
+        public void CreateMRITexture(Column3D column, int cutID, int blurFactor)
         {
-            column.CutTextures.CreateMRITexture(DLLMRIGeometryCutGeneratorList[cutID], SelectedMRI.Volume, cutID, MRICalMinFactor, MRICalMaxFactor);
+            column.CutTextures.CreateMRITexture(DLLMRIGeometryCutGeneratorList[cutID], SelectedMRI.Volume, cutID, MRICalMinFactor, MRICalMaxFactor, blurFactor);
             if (FMRI != null)
             {
                 column.CutTextures.ColorCutsTexturesWithFMRI(FMRI.Volume, cutID, m_FMRICalMinFactor, m_FMRICalMaxFactor, m_FMRIAlpha);
@@ -664,7 +689,7 @@ namespace HBP.Module3D
         public void ComputeSurfaceBrainUVWithIEEG(Column3DIEEG column)
         {
             for (int ii = 0; ii < MeshSplitNumber; ++ii)
-                column.DLLBrainTextureGenerators[ii].ComputeSurfaceUVIEEG(SelectedMesh.SplittedMeshes[ii], column);
+                column.DLLBrainTextureGenerators[ii].ComputeSurfaceUVIEEG(SplittedMeshes[ii], column);
         }
         /// <summary>
         /// Update the sites rendering for all columns
@@ -733,6 +758,7 @@ namespace HBP.Module3D
         /// <param name="cuts">Cuts used for the cube bounding box</param>
         public void UpdateCubeBoundingBox(List<Cut> cuts)
         {
+            CubeBoundingBox?.Dispose();
             CubeBoundingBox = SelectedMRI.Volume.GetCubeBoundingBox(cuts);
         }
         #endregion

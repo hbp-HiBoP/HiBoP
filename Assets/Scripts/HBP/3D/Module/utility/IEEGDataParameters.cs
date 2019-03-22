@@ -121,7 +121,7 @@ namespace HBP.Module3D
         /// </summary>
         public float SpanMax { get; private set; } = 0.0f;
         #endregion
-
+        
         #region Events
         /// <summary>
         /// Event called when updating the span values (min, mid or max)

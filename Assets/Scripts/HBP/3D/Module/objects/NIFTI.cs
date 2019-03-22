@@ -15,7 +15,7 @@ namespace HBP.Module3D.DLL
     /// <summary>
     /// A DLL wrapper NIFTI class, use to convert nii files into volumes
     /// </summary>
-    public class NIFTI : CppDLLImportBase
+    public class NIFTI : Tools.DLL.CppDLLImportBase
     {
         #region Properties
         public bool IsLoaded { get; private set; }

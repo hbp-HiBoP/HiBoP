@@ -51,7 +51,7 @@ namespace HBP.Data.Preferences
         #endregion
 
         #region Constructors
-        public ProtocolPreferences() : this(AveragingType.Median, -1500, 1500, 50)
+        public ProtocolPreferences() : this(AveragingType.Median, -3000, 3000, 100)
         {
         }
         public ProtocolPreferences(AveragingType positionAveraging, float minLimit, float maxLimit, int step)
@@ -82,7 +82,7 @@ namespace HBP.Data.Preferences
             MRIPreloading = mRIPreloading;
             ImplantationPreloading = implantationPreloading;
         }
-        public AnatomicPreferences() : this(true,false,false,false)
+        public AnatomicPreferences() : this(true, false, false, false)
         {
         }
         #endregion

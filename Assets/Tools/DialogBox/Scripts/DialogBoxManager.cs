@@ -9,7 +9,7 @@ namespace Tools.Unity
     public class DialogBoxManager : MonoBehaviour
     {
         #region Properties
-        [SerializeField, Candlelight.PropertyBackingField]
+        [SerializeField]
         private GameObject m_InformationAlertPrefab;
         public GameObject InformationAlertPrefab
         {
@@ -17,7 +17,7 @@ namespace Tools.Unity
             set { m_InformationAlertPrefab = value; }
         }
 
-        [SerializeField, Candlelight.PropertyBackingField]
+        [SerializeField]
         private GameObject m_WarningAlertPrefab;
         public GameObject WarningAlertPrefab
         {
@@ -25,7 +25,7 @@ namespace Tools.Unity
             set { m_WarningAlertPrefab = value; }
         }
 
-        [SerializeField, Candlelight.PropertyBackingField]
+        [SerializeField]
         private GameObject m_ErrorAlertPrefab;
         public GameObject ErrorAlertPrefab
         {
@@ -33,7 +33,7 @@ namespace Tools.Unity
             set { m_ErrorAlertPrefab = value; }
         }
 
-        [SerializeField, Candlelight.PropertyBackingField]
+        [SerializeField]
         private GameObject m_WarningAlertMultiOptionsPrefab;
         public GameObject WarningAlertMultiOptionsPrefab
         {
@@ -41,7 +41,7 @@ namespace Tools.Unity
             set { m_WarningAlertMultiOptionsPrefab = value; }
         }
 
-        [SerializeField, Candlelight.PropertyBackingField]
+        [SerializeField]
         private Canvas m_Canvas;
         public Canvas Canvas
         {

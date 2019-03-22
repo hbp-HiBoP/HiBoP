@@ -37,10 +37,6 @@ namespace HBP.Module3D
         /// </summary>
         public GenericEvent<Column3D> OnUpdateGUITextures = new GenericEvent<Column3D>();
         /// <summary>
-        /// Event called when the parameters of a cut are updated
-        /// </summary>
-        public UnityEvent OnUpdateCut = new UnityEvent();
-        /// <summary>
         /// Event called when a cut is removed
         /// </summary>
         public UnityEvent OnRemoveCut = new UnityEvent();

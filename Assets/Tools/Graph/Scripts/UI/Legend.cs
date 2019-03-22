@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
 
@@ -18,7 +20,7 @@ namespace Tools.Unity.Graph
             {
                 if (SetPropertyUtility.SetClass(ref m_Label, value))
                 {
-                    SetName();
+                    SetLabel();
                 }
             }
         }
@@ -84,6 +86,15 @@ namespace Tools.Unity.Graph
             }
         }
 
+        //[SerializeField] List<Legend> m_SubLegends;
+        //public List<Legend> SubLegends
+        //{
+        //    get
+        //    {
+        //        return new ReadOnlyCollection<Legend>(m_SubLegends);
+        //    }
+        //}
+
         [SerializeField] RectTransform m_Container;
         public RectTransform Container
         {
@@ -128,10 +139,25 @@ namespace Tools.Unity.Graph
         }
         #endregion
 
+        #region Public Methods
+        //public void AddSubLegend(Legend subLegend)
+        //{
+        //    m_SubLegends.Add(subLegend);
+        //    subLegend.transform.SetParent(Container);
+        //}
+        //public void RemoveSubLegend(Legend subLegend)
+        //{
+        //    if (m_SubLegends.Remove(subLegend))
+        //    {
+        //        Destroy(subLegend.gameObject);
+        //    }
+        //}
+        #endregion
+
         #region Private Methods
         private void OnValidate()
         {
-            SetName();
+            SetLabel();
             SetIsActive();
             SetColor();
         }
@@ -142,7 +168,7 @@ namespace Tools.Unity.Graph
         {
             m_OnChangeColor.Invoke(m_IsActive ? m_Color : m_DisabledColor);
         }
-        void SetName()
+        void SetLabel()
         {
             m_OnChangeLabel.Invoke(m_Label);
         }

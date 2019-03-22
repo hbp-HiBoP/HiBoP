@@ -10,7 +10,8 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace HBP.Module3D.DLL
+
+namespace Tools.DLL
 {
     /// <summary>
     /// Base class for creating C++ Dll import classes
@@ -22,6 +23,9 @@ namespace HBP.Module3D.DLL
         /// pointer to C+ dll class
         /// </summary>
         protected HandleRef _handle;
+#if UNITY_EDITOR
+        private readonly Guid m_ID = Guid.NewGuid();
+#endif
         #endregion
 
         #region Memory Management
@@ -31,6 +35,9 @@ namespace HBP.Module3D.DLL
         public CppDLLImportBase()
         {
             create_DLL_class();
+#if UNITY_EDITOR
+            ApplicationState.DLLDebugManager.AddDLLObject(ToString(), m_ID);
+#endif
         }
         /// <summary>
         /// CppDLLImportBase constructor with an already allocated dll class
@@ -39,12 +46,18 @@ namespace HBP.Module3D.DLL
         public CppDLLImportBase(IntPtr ptr)
         {
             _handle = new HandleRef(this, ptr);
+#if UNITY_EDITOR
+            ApplicationState.DLLDebugManager.AddDLLObject(ToString(), m_ID);
+#endif
         }
         /// <summary>
         /// CppDLLImportBase Destructor
         /// </summary>
         ~CppDLLImportBase()
         {
+#if UNITY_EDITOR
+            ApplicationState.DLLDebugManager.RemoveDLLOBject(ToString(), m_ID, HBP.Module3D.DLL.DLLDebugManager.CleanedBy.GC);
+#endif
             Cleanup();
         }
         /// <summary>
@@ -60,6 +73,9 @@ namespace HBP.Module3D.DLL
         /// </summary>
         public virtual void Dispose()
         {
+#if UNITY_EDITOR
+            ApplicationState.DLLDebugManager.RemoveDLLOBject(ToString(), m_ID, HBP.Module3D.DLL.DLLDebugManager.CleanedBy.Dispose);
+#endif
             Cleanup();
             GC.SuppressFinalize(this);
         }

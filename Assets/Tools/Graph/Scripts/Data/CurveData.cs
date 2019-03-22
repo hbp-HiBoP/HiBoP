@@ -64,12 +64,18 @@ namespace Tools.Unity.Graph
         }
         #endregion
 
-        #region Constructor
-        public CurveData(IEnumerable<Vector2> points, Color color, float width = 3.0f)
+        #region Public Methods
+        public virtual void Init(IEnumerable<Vector2> points, Color color, float width = 3.0f)
         {
             m_Points = points.ToArray();
             m_Color = color;
             m_Width = width;
+        }
+        public static CurveData CreateInstance(IEnumerable<Vector2> points, Color color, float width = 3.0f)
+        {
+            CurveData result = CreateInstance<CurveData>();
+            result.Init(points, color, width);
+            return result;
         }
         #endregion
     }

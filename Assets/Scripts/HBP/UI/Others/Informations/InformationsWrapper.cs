@@ -5,6 +5,7 @@ using System.Linq;
 using HBP.Data.Informations;
 using UnityEngine.UI.Extensions;
 using UnityEngine.Events;
+using HBP.Data.Experience.Protocol;
 
 namespace HBP.UI.Informations
 {
@@ -118,7 +119,7 @@ namespace HBP.UI.Informations
             List<DataStruct> dataStructs = new List<DataStruct>();
             foreach (var column in m_Scene.ColumnManager.ColumnsIEEG)
             {
-                if (!column.IsMinimized)
+                if (!column.IsMinimized || ApplicationState.UserPreferences.Visualization.Graph.ShowCurvesOfMinimizedColumns)
                 {
                     Data.Visualization.IEEGColumn columnData = column.ColumnIEEGData;
                     DataStruct data;
@@ -128,7 +129,7 @@ namespace HBP.UI.Informations
                     }
                     else
                     {
-                        data = new DataStruct(columnData.Dataset, columnData.DataName, new List<Data.Experience.Protocol.Bloc>());
+                        data = new DataStruct(columnData.Dataset, columnData.DataName, new List<Bloc>());
                         dataStructs.Add(data);
                     }
                     data.AddBloc(columnData.Bloc);
@@ -140,6 +141,20 @@ namespace HBP.UI.Informations
         {
             m_ChannelStructs = sites.Select(s => new ChannelStruct(s.Information.ChannelName, s.Information.Patient)).ToArray();
         }
+        void SetGraphZone()
+        {
+            List<Bloc> blocs = new List<Bloc>();
+            foreach (var column in m_Scene.ColumnManager.ColumnsIEEG)
+            {
+                Bloc bloc = column.ColumnIEEGData.Bloc;
+                if(!blocs.Contains(bloc))
+                {
+                    blocs.Add(bloc);
+                }
+            }
+            int numberOfGraphs = Bloc.GetNumberOfColumns(blocs);
+            ChannelInformations.SetMaxNumberOfTrialMatrixColumn(numberOfGraphs);
+        }
         #endregion
 
         #region Setters
@@ -147,6 +162,7 @@ namespace HBP.UI.Informations
         {
             if(m_Scene != null)
             {
+                SetGraphZone();
                 GenerateDataStructs();
                 SetColorMap();
                 m_Scene.OnRequestSiteInformation.AddListener(sites => SiteInformationRequestHandler(sites));

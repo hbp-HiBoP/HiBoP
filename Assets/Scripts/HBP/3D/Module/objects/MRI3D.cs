@@ -10,7 +10,7 @@ namespace HBP.Module3D
         #region Properties
         public string Name { get; set; }
 
-        private DLL.NIFTI m_NII = new DLL.NIFTI();
+        private DLL.NIFTI m_NII;
         public DLL.NIFTI NII
         {
             get
@@ -25,7 +25,7 @@ namespace HBP.Module3D
             }
         }
 
-        private DLL.Volume m_Volume = new DLL.Volume();
+        private DLL.Volume m_Volume;
         public DLL.Volume Volume
         {
             get
@@ -48,6 +48,7 @@ namespace HBP.Module3D
         }
 
         protected bool m_IsLoading = false;
+        public bool HasBeenLoadedOutside { get; protected set; }
 
         protected Data.Anatomy.MRI m_MRI;
         #endregion
@@ -61,12 +62,14 @@ namespace HBP.Module3D
             {
                 Load();
             }
+            HasBeenLoadedOutside = false;
         }
         public MRI3D(string name, DLL.NIFTI nii, DLL.Volume volume)
         {
             Name = name;
             NII = nii;
             Volume = volume;
+            HasBeenLoadedOutside = true;
         }
         public MRI3D() { }
         #endregion
@@ -74,20 +77,30 @@ namespace HBP.Module3D
         #region Public Methods
         public object Clone()
         {
-            MRI3D mri = new MRI3D();
-            mri.Name = Name;
-            mri.NII = NII;
-            mri.Volume = Volume;
+            MRI3D mri = new MRI3D
+            {
+                Name = Name,
+                NII = NII,
+                Volume = Volume,
+                HasBeenLoadedOutside = HasBeenLoadedOutside
+            };
             return mri;
         }
         public void Load()
         {
             m_IsLoading = true;
+            m_NII = new DLL.NIFTI();
             if (m_NII.LoadNIIFile(m_MRI.File))
             {
+                m_Volume = new DLL.Volume();
                 m_NII.ConvertToVolume(m_Volume);
             }
             m_IsLoading = false;
+        }
+        public void Clean()
+        {
+            m_NII?.Dispose();
+            m_Volume?.Dispose();
         }
         #endregion
     }

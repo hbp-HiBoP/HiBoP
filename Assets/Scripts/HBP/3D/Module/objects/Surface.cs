@@ -19,7 +19,7 @@ namespace HBP.Module3D.DLL
     /// <summary>
     /// A DLL mesh class, for geometry computing purposes, can be converted to a Mesh
     /// </summary>
-    public class Surface : CppDLLImportBase, ICloneable
+    public class Surface : Tools.DLL.CppDLLImportBase, ICloneable
     {
         #region Properties
         private int[] m_TriangleID = new int[0];             /**< raw array of triangles id */
@@ -33,6 +33,16 @@ namespace HBP.Module3D.DLL
         public bool IsLoaded { get; private set; }
         public bool IsMarsAtlasLoaded { get; private set; }
 
+        public Vector3 Center
+        {
+            get
+            {
+                BBox bbox = new BBox(bounding_box_Surface(_handle));
+                Vector3 center = bbox.Center;
+                bbox.Dispose();
+                return center;
+            }
+        }
         /// <summary>
         /// Bounding Box of this surface
         /// </summary>
@@ -194,14 +204,14 @@ namespace HBP.Module3D.DLL
         /// </summary>
         /// <param name="nbSubSurfaces"></param>
         /// <returns></returns>
-        public Surface[] SplitToSurfaces(int nbSubSurfaces)
+        public List<Surface> SplitToSurfaces(int nbSubSurfaces)
         {            
             HandleRef pSubSurfaces = new HandleRef(this, split_to_surfaces_Surface(_handle, nbSubSurfaces));
 
             int nbMultiSurface = nb_MultiSurface(pSubSurfaces);
-            Surface[] splits = new Surface[nbMultiSurface];
+            List<Surface> splits = new List<Surface>(nbMultiSurface);
             for (int ii = 0; ii < nbMultiSurface; ++ii)               
-                splits[ii] = new Surface(move_MultiSurface(pSubSurfaces, ii));
+                splits.Add(new Surface(move_MultiSurface(pSubSurfaces, ii)));
 
             delete_MultiSurface(pSubSurfaces);
             return splits;
@@ -213,7 +223,7 @@ namespace HBP.Module3D.DLL
         /// <returns></returns>
         public Surface UpdateVisibilityMask(int[] visibilityMask)
         {
-            DLL.Surface invisiblePartMesh = new DLL.Surface();
+            Surface invisiblePartMesh = new Surface();
             update_visiblity_mask_Surface(_handle, invisiblePartMesh.getHandle(), visibilityMask);
             return invisiblePartMesh;
         }
@@ -521,8 +531,7 @@ namespace HBP.Module3D.DLL
         /// <summary>
         /// Surface default constructor
         /// </summary>
-        public Surface() : base()
-        { }
+        public Surface() : base() { }
         /// <summary>
         /// Surface constructor with an already  allocated dll surface
         /// </summary>

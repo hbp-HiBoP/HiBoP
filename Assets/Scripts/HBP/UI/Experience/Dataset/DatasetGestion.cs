@@ -46,6 +46,7 @@ namespace HBP.UI.Experience.Dataset
                 ApplicationState.ProjectLoaded.SetDatasets(m_datasetListGestion.Objects);
                 base.Save();
             }
+            FindObjectOfType<MenuButtonState>().SetInteractables();
         }
         #endregion
 

@@ -33,6 +33,7 @@ namespace HBP.UI.Anatomy
         {
             ApplicationState.ProjectLoaded.SetGroups(m_GroupListGestion.Objects);
             base.Save();
+            FindObjectOfType<MenuButtonState>().SetInteractables();
         }
         #endregion
 

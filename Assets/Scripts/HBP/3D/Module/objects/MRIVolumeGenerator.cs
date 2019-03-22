@@ -14,7 +14,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Generate UV for brain volume
         /// </summary>
-        public class MRIVolumeGenerator : CppDLLImportBase, ICloneable
+        public class MRIVolumeGenerator : Tools.DLL.CppDLLImportBase, ICloneable
         {
             #region Properties
             /// <summary>
@@ -53,11 +53,11 @@ namespace HBP.Module3D
             /// <summary>
             /// 
             /// </summary>
-            /// <param name="surface"></param>
             /// <param name="volume"></param>
-            public void Reset(Surface surface, int precision)
+            /// <param name="volume"></param>
+            public void Reset(Volume volume, int dimension)
             {
-                reset_MRIVolumeGenerator(_handle, surface.getHandle(), precision);
+                reset_MRIVolumeGenerator(_handle, volume.getHandle(), dimension);
                 ApplicationState.DLLDebugManager.check_error();
             }
             /// <summary>
@@ -169,7 +169,7 @@ namespace HBP.Module3D
 
             // actions
             [DllImport("hbp_export", EntryPoint = "reset_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void reset_MRIVolumeGenerator(HandleRef handleBrainSurfaceTextureGenerator, HandleRef handleSurface, int precision);
+            static private extern void reset_MRIVolumeGenerator(HandleRef handleBrainVolumeTextureGenerator, HandleRef handleSurface, int dimension);
             [DllImport("hbp_export", EntryPoint = "initOctree_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern void initOctree_MRIVolumeGenerator(HandleRef handleBrainSurfaceTextureGenerator, HandleRef handleRawPlotList);
             [DllImport("hbp_export", EntryPoint = "computeDistances_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]

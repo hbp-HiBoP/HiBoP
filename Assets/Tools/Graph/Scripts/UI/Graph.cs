@@ -334,6 +334,16 @@ namespace Tools.Unity.Graph
             m_Curves.Remove(curve);
             SetCurves();
         }
+        public void SetCurves(Curve[] curves)
+        {
+            m_Curves = new List<Curve>(curves);
+            SetCurves();
+        }
+        public void ClearCurves()
+        {
+            m_Curves = new List<Curve>();
+            SetCurves();
+        }
         public string ToSVG()
         {
             return "";
@@ -347,10 +357,6 @@ namespace Tools.Unity.Graph
         #endregion
 
         #region Private Methods
-        void Clear()
-        {
-
-        }
         private void Start()
         {
             OnValidate();

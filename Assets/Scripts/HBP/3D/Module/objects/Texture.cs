@@ -178,7 +178,7 @@ namespace HBP.Module3D
         /// <summary>
         /// A DLL texture, based on opencv. 
         /// </summary>
-        public class Texture : CppDLLImportBase, ICloneable
+        public class Texture : Tools.DLL.CppDLLImportBase, ICloneable
         {
             #region Properties
             private bool m_IsPinned = false;
@@ -252,6 +252,20 @@ namespace HBP.Module3D
             {
                 resize_to_square_Texture(_handle, size);
                 UpdateSizes();
+            }
+            /// <summary>
+            /// Display sites on the texture
+            /// </summary>
+            public void DrawSites(Cut cut, RawSiteList rawList, float precision, MRITextureCutGenerator generator)
+            {
+                float[] plane = new float[6];
+                plane[0] = cut.Point.x;
+                plane[1] = cut.Point.y;
+                plane[2] = cut.Point.z;
+                plane[3] = cut.Normal.x;
+                plane[4] = cut.Normal.y;
+                plane[5] = cut.Normal.z;
+                draw_sites_Texture(_handle, plane, rawList.getHandle(), precision, generator.getHandle());
             }
             /// <summary>
             /// Save the texture to a PNG file
@@ -425,6 +439,8 @@ namespace HBP.Module3D
                 int displayLines, int nbPlanes, float[] planes, HandleRef MRIGenerator);
             [DllImport("hbp_export", EntryPoint = "resize_to_square_Texture", CallingConvention = CallingConvention.Cdecl)]
             static private extern void resize_to_square_Texture(HandleRef handleTexture, int size);
+            [DllImport("hbp_export", EntryPoint = "draw_sites_Texture", CallingConvention = CallingConvention.Cdecl)]
+            static private extern void draw_sites_Texture(HandleRef handleTexture, float[] planeArray, HandleRef rawListHandle, float precision, HandleRef generatorHandle);
 
             [DllImport("hbp_export", EntryPoint = "generate_1D_color_Texture", CallingConvention = CallingConvention.Cdecl)]
             static private extern IntPtr generate_1D_color_Texture(int idColor);

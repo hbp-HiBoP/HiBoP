@@ -26,6 +26,7 @@ namespace HBP.UI.Informations
         [SerializeField] List<Color> m_Colors;
         Dictionary<Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color> m_ColorsByData;
 
+        [SerializeField] Queue<Graph> m_GraphPool = new Queue<Graph>();
         [SerializeField] List<Graph> m_Graphs = new List<Graph>();
         [SerializeField] Vector2 m_OrdinateDisplayRange;
         [SerializeField] bool m_useDefaultDisplayRange = true;
@@ -36,6 +37,26 @@ namespace HBP.UI.Informations
         #endregion
 
         #region Public Methods
+        public void CreateGraphPool(int maxNumberOfColumn)
+        {
+            for (int i = 0; i < maxNumberOfColumn; i++)
+            {
+                GameObject graphGameObject = Instantiate(m_GraphPrefab, m_GraphContainer);
+                graphGameObject.SetActive(false);
+
+                RectTransform rectTransform = graphGameObject.GetComponent<RectTransform>();
+                rectTransform.anchorMin = Vector2.zero;
+                rectTransform.anchorMax = Vector2.one;
+                rectTransform.offsetMin = Vector2.zero;
+                rectTransform.offsetMax = Vector2.zero;
+
+                Graph graph = graphGameObject.GetComponent<Graph>();
+                graph.OnChangeOrdinateDisplayRange.AddListener(OnChangeOrdinateDisplayRangeHandler);
+                graph.OnChangeUseDefaultRange.AddListener(OnUseDefaultDisplayRangeHandler);
+
+                m_GraphPool.Enqueue(graph);
+            }
+        }
         public void Display(ChannelStruct[] channels, DataStruct[] data)
         {
             m_Data = data.ToArray();
@@ -55,28 +76,32 @@ namespace HBP.UI.Informations
                 Destroy(child.gameObject);
             }
 
-            // Destroy graphs.
-            foreach (Transform child in m_GraphContainer)
+            foreach (Graph graph in m_Graphs)
             {
-                Destroy(child.gameObject);
+                graph.ClearCurves();
+                graph.gameObject.SetActive(false);
+                m_GraphPool.Enqueue(graph);
             }
             m_Graphs = new List<Graph>();
         }
         void SetGraphs()
         {
-            Graph graph = m_Graphs.FirstOrDefault();
-            if(graph != null)
-            {
-                m_useDefaultDisplayRange = graph.UseDefaultDisplayRange;
-                m_OrdinateDisplayRange = graph.OrdinateDisplayRange;
-            }
+            UnityEngine.Profiling.Profiler.BeginSample("SaveSettings");
+            SaveSettings();
+            UnityEngine.Profiling.Profiler.EndSample();
+
 
             // Clear graphs
+            UnityEngine.Profiling.Profiler.BeginSample("ClearGraphs");
             ClearGraphs();
+            UnityEngine.Profiling.Profiler.EndSample();
 
             // Subblocs
+            UnityEngine.Profiling.Profiler.BeginSample("GenerateDataCurve");
             Tuple<Graph.Curve[], Tools.CSharp.Window, bool>[] columns = GenerateDataCurve(m_Data, m_Channels);
+            UnityEngine.Profiling.Profiler.EndSample();
 
+            UnityEngine.Profiling.Profiler.BeginSample("FindMinMax");
             Vector2 minMax = new Vector2(float.MaxValue, float.MinValue);
             foreach (var column in columns)
             {
@@ -100,6 +125,9 @@ namespace HBP.UI.Informations
             {
                 ordinateDisplayRange = m_OrdinateDisplayRange;
             }
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            UnityEngine.Profiling.Profiler.BeginSample("AddGraphs");
             // Generate settings by columns
             foreach (var column in columns)
             {
@@ -107,26 +135,24 @@ namespace HBP.UI.Informations
    
                 AddGraph(column.Item1, defaultAbscissaDisplayRange, defaultOrdinateDisplayRange, defaultAbscissaDisplayRange, ordinateDisplayRange, column.Item3);
             }
+            UnityEngine.Profiling.Profiler.EndSample();
         }
+
         void AddGraph(Graph.Curve[] curves,Vector2 defaultAbscissaDisplayRange, Vector2 defaultOrdinateDisplayRange, Vector2 abscissaDisplayRange, Vector2 ordinateDisplayRange, bool isMain)
         {
+            UnityEngine.Profiling.Profiler.BeginSample("Instantiate graph");
             string name = "";
 
             // Add Graph
-            GameObject graphGameObject = Instantiate(m_GraphPrefab, m_GraphContainer);
-            RectTransform graphRectTransform = graphGameObject.GetComponent<RectTransform>();
-            graphRectTransform.anchorMin = Vector2.zero;
-            graphRectTransform.anchorMax = Vector2.one;
-            graphRectTransform.offsetMin = Vector2.zero;
-            graphRectTransform.offsetMax = Vector2.zero;
-            Graph graph = graphGameObject.GetComponent<Graph>();
-            graph.OnChangeOrdinateDisplayRange.AddListener(OnChangeOrdinateDisplayRangeHandler);
-            graph.OnChangeUseDefaultRange.AddListener(OnUseDefaultDisplayRangeHandler);
-            graph.Title = name;
+            Graph graph = m_GraphPool.Dequeue();
             graph.DefaultAbscissaDisplayRange = defaultAbscissaDisplayRange;
             graph.DefaultOrdinateDisplayRange = defaultOrdinateDisplayRange;
             graph.AbscissaDisplayRange = abscissaDisplayRange;
             graph.OrdinateDisplayRange = ordinateDisplayRange;
+
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            UnityEngine.Profiling.Profiler.BeginSample("AddCurves");
             Queue<Graph.Curve> curveQueue = new Queue<Graph.Curve>();
             foreach (var curve in curves)
             {
@@ -142,7 +168,7 @@ namespace HBP.UI.Informations
                     curveQueue.Enqueue(subCurve);
                 }
             }
-            graphGameObject.SetActive(false);
+            UnityEngine.Profiling.Profiler.EndSample();
 
             // Add Toggle
             GameObject toggleGameObject = Instantiate(m_TogglesPrefab, m_ToggleContainer);
@@ -154,6 +180,17 @@ namespace HBP.UI.Informations
             toggle.isOn = isMain;
 
             m_Graphs.Add(graph);
+        }
+
+        void SaveSettings()
+        {
+            Graph graph = m_Graphs.FirstOrDefault();
+            if (graph != null)
+            {
+                m_useDefaultDisplayRange = graph.UseDefaultDisplayRange;
+                m_OrdinateDisplayRange = graph.OrdinateDisplayRange;
+            }
+
         }
 
         void OnChangeOrdinateDisplayRangeHandler(Vector2 ordinateDisplayRange)
@@ -315,13 +352,7 @@ namespace HBP.UI.Informations
                     float ordinate = values[i];
                     points[i] = new Vector2(abscissa, ordinate);
                 }
-                float[] shapes = standardDeviations;
-                ShapedCurveData shapedCurveData = ScriptableObject.CreateInstance<ShapedCurveData>();
-                shapedCurveData.Points = points;
-                shapedCurveData.Shapes = shapes;
-                shapedCurveData.Color = color;
-                shapedCurveData.Thickness = 3.0f;
-                result = shapedCurveData; 
+                result = ShapedCurveData.CreateInstance(points, standardDeviations, color);
             }
             else if (trialsToUse.Count == 1)
             {
@@ -334,11 +365,11 @@ namespace HBP.UI.Informations
                 Vector2[] points = new Vector2[values.Length];
                 for (int i = 0; i < points.Length; i++)
                 {
-                    float abscissa = start + (i / (points.Length - 1)) * (end - start);
+                    float abscissa = start + ((float)i / (points.Length - 1)) * (end - start);
                     float ordinate = values[i];
                     points[i] = new Vector2(abscissa, ordinate);
                 }
-                result = new CurveData(points, color);
+                result = CurveData.CreateInstance(points, color);
             }
             return result;
         }
@@ -369,7 +400,7 @@ namespace HBP.UI.Informations
 
         Vector2 GetMinMax(Graph.Curve curve)
         {
-            Vector2 result = new Vector2();
+            Vector2 result = new Vector2(float.MaxValue, float.MinValue);
             if(curve.Data != null)
             {
                 result = new Vector2(curve.Data.Points.Min(p => p.y), curve.Data.Points.Max(p => p.y));
