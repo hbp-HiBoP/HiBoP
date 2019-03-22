@@ -1050,7 +1050,7 @@ namespace HBP.Module3D
             
             foreach (var column in m_ColumnManager.ColumnsIEEG)
             {
-                column.DLLMRIVolumeGenerator.Reset(m_ColumnManager.SelectedMRI.Volume, 0.40f);
+                column.DLLMRIVolumeGenerator.Reset(m_ColumnManager.SelectedMRI.Volume, 120);
             }
 
             UpdateMeshesFromDLL();
@@ -2384,7 +2384,7 @@ namespace HBP.Module3D
         private IEnumerator c_LoadIEEG()
         {
             yield return Ninja.JumpToUnity;
-            float totalTime = 0.003f * Patients.Count * Patients.Count + 0.3f * Patients.Count + 8.7f; // Calculated by Quadradic Regression
+            float totalTime = 0.075f * Patients.Count + 1.5f; // Calculated by Linear Regression is 0.0593f * Patients.Count + 1.0956f
             float totalProgress = m_ColumnManager.ColumnsIEEG.Count * (1 + m_ColumnManager.MeshSplitNumber + 10);
             float timeByProgress = totalTime / totalProgress;
             float currentProgress = 0.0f;

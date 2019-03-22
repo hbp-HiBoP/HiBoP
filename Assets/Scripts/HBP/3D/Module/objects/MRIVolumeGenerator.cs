@@ -55,10 +55,9 @@ namespace HBP.Module3D
             /// </summary>
             /// <param name="volume"></param>
             /// <param name="volume"></param>
-            public void Reset(Volume volume, float precision)
+            public void Reset(Volume volume, int dimension)
             {
-                precision = Mathf.Clamp(precision, 0.1f, 1.0f);
-                reset_MRIVolumeGenerator(_handle, volume.getHandle(), precision);
+                reset_MRIVolumeGenerator(_handle, volume.getHandle(), dimension);
                 ApplicationState.DLLDebugManager.check_error();
             }
             /// <summary>
@@ -170,7 +169,7 @@ namespace HBP.Module3D
 
             // actions
             [DllImport("hbp_export", EntryPoint = "reset_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void reset_MRIVolumeGenerator(HandleRef handleBrainVolumeTextureGenerator, HandleRef handleSurface, float precision);
+            static private extern void reset_MRIVolumeGenerator(HandleRef handleBrainVolumeTextureGenerator, HandleRef handleSurface, int dimension);
             [DllImport("hbp_export", EntryPoint = "initOctree_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern void initOctree_MRIVolumeGenerator(HandleRef handleBrainSurfaceTextureGenerator, HandleRef handleRawPlotList);
             [DllImport("hbp_export", EntryPoint = "computeDistances_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
