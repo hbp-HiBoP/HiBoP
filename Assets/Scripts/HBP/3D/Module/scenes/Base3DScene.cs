@@ -1263,12 +1263,13 @@ namespace HBP.Module3D
         /// <param name="state">Visible or not visible</param>
         public void UpdateVisibleState(bool state)
         {
+            gameObject.SetActive(state);
             OnChangeVisibleState.Invoke(state);
             if (!state)
             {
                 ApplicationState.Module3D.OnMinimizeScene.Invoke(this);
-                IsSelected = false;
             }
+            IsSelected = state;
         }
         #endregion
 
