@@ -78,7 +78,7 @@ namespace HBP.Data.Experience.Dataset
                         ordereredTrials = trialsFound.OrderBy(t => t.SubTrialBySubBloc[subBloc].InformationsByEvent[@event].Occurences.First().TimeFromMainEvent);
                         foreach (var trial in trialsNotFound)
                         {
-                            ordereredTrials.Append(trial);
+                            ordereredTrials = ordereredTrials.Append(trial).OrderBy(a => 1); // Trick to convert IEnumerable to IOrderedEnumerable
                         }
                     }
                     else if (command == "CODE")
@@ -99,7 +99,7 @@ namespace HBP.Data.Experience.Dataset
                         ordereredTrials = trialsFound.OrderBy(t => t.SubTrialBySubBloc[subBloc].InformationsByEvent[@event].Occurences.First().Code);
                         foreach (var trial in trialsNotFound)
                         {
-                            ordereredTrials.Append(trial);
+                            ordereredTrials = ordereredTrials.Append(trial).OrderBy(a => 1); // Trick to convert IEnumerable to IOrderedEnumerable
                         }
                     }
                     else
