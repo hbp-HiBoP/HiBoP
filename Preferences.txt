@@ -11,7 +11,7 @@
     "Localization": {},
     "System": {
       "MultiThreading": true,
-      "MemoryCacheLimit": 32692
+      "MemoryCacheLimit": 32659
     }
   },
   "Data": {
@@ -27,14 +27,14 @@
     },
     "Anatomic": {
       "SiteNameCorrection": true,
-      "MeshPreloading": true,
-      "MRIPreloading": true,
-      "ImplantationPreloading": true
+      "MeshPreloading": false,
+      "MRIPreloading": false,
+      "ImplantationPreloading": false
     }
   },
   "Visualization": {
     "_3D": {
-      "AutomaticEEGUpdate": true,
+      "AutomaticEEGUpdate": false,
       "SiteInfluenceByDistance": 2,
       "DefaultSelectedMRIInSinglePatientVisualization": "Preimplantation",
       "DefaultSelectedMeshInSinglePatientVisualization": "Grey matter",

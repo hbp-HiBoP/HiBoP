@@ -45,14 +45,14 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_Both.IsLoaded;
+                return m_Both != null ? m_Both.IsLoaded : false;
             }
         }
         public bool IsMarsAtlasLoaded
         {
             get
             {
-                return m_Both.IsMarsAtlasLoaded;
+                return m_Both != null ? m_Both.IsMarsAtlasLoaded : false;
             }
         }
         protected bool m_IsLoading = false;

@@ -43,7 +43,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_NII.IsLoaded;
+                return m_NII != null ? m_NII.IsLoaded : false;
             }
         }
 
