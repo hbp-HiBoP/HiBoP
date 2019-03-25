@@ -107,12 +107,18 @@ namespace HBP.UI.Informations
         void SiteInformationRequestHandler(IEnumerable<Site> sites)
         {
             GenerateChannelStructs(sites);
-            ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
+            if (m_ChannelStructs.Length != 0 && m_DataStructs.Length != 0)
+            {
+                ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
+            }
         }
         void OnMinimizeColumnHandler()
         {
             GenerateDataStructs();
-            ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
+            if (m_ChannelStructs.Length != 0 && m_DataStructs.Length != 0)
+            {
+                ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
+            }
         }
         void GenerateDataStructs()
         {
