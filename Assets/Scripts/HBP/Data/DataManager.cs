@@ -73,6 +73,8 @@ public static class DataManager
         m_BlocEventsStatisticsByRequest.Clear();
 
         m_NormalizeByRequest.Clear();
+
+        GC.Collect();
     }
 
     // Data.
