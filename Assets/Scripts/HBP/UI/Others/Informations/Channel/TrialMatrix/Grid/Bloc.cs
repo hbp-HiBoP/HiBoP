@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Data.Informations;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
@@ -108,6 +109,8 @@ namespace HBP.UI.TrialMatrix.Grid
 
         [SerializeField] GameObject m_ChannelBlocPrefab;
         [SerializeField] RectTransform m_ChannelBlocContainer;
+
+        bool m_Lock;
         #endregion
 
         #region Public Methods
@@ -130,6 +133,7 @@ namespace HBP.UI.TrialMatrix.Grid
             ChannelBloc channelBloc = gameObject.GetComponent<ChannelBloc>();
             channelBloc.Set(data, colors, limits);
             channelBloc.OnChangeHovered.AddListener(() => OnChangeIsHovered.Invoke());
+            channelBloc.OnChangeTrialSelected.AddListener(() => OnChannelBlocTrialSelectionHandle(channelBloc));
             m_ChannelBlocs.Add(channelBloc);
         }
         void Clear()
@@ -139,6 +143,22 @@ namespace HBP.UI.TrialMatrix.Grid
                 Destroy(child.gameObject);
             }
             m_ChannelBlocs = new List<ChannelBloc>();
+        }
+        void OnChannelBlocTrialSelectionHandle(ChannelBloc channelBloc)
+        {
+            if(!m_Lock)
+            {
+                m_Lock = true;
+                foreach (var c in ChannelBlocs)
+                {
+                    if(c != channelBloc && c.Data.Channel.Patient == channelBloc.Data.Channel.Patient)
+                    {
+                        c.TrialIsSelected = channelBloc.TrialIsSelected;
+                    }
+                }
+                m_Lock = false;
+            }
+
         }
         #endregion
     }
