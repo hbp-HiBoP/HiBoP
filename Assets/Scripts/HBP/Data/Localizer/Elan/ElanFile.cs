@@ -115,7 +115,7 @@ namespace Elan
             {
                 if (HasEEG)
                 {
-                    return new EEG(readed, _handle);
+                    return new EEG(Readed, _handle);
                 }
                 else
                 {
@@ -144,7 +144,7 @@ namespace Elan
             {
                 if (HasEP)
                 {
-                    return new EP(readed, _handle);
+                    return new EP(Readed, _handle);
                 }
                 else
                 {
@@ -173,7 +173,7 @@ namespace Elan
             {
                 if (HasTF)
                 {
-                    return new TF(readed,_handle);
+                    return new TF(Readed,_handle);
                 }
                 else
                 {
@@ -186,21 +186,10 @@ namespace Elan
         {
             get { return new Option(_handle); }
         }
+        public string Path { get; private set; }
 
-        string path;
-        public string Path
-        {
-            get { return path; }
-            private set { path = value; }
-        }
-
-        bool dataArrayAllocated;
-        bool[,] readed;
-        public bool[,] Readed
-        {
-            get { return readed; }
-            private set { readed = value; }
-        }
+        bool m_DataArrayAllocated;
+        public bool[,] Readed { get; private set; }
         #endregion
 
         #region Constructor
@@ -222,7 +211,7 @@ namespace Elan
         #region Public Methods
         public bool ReadChannel(Track[] tracks)
         {
-            if (!dataArrayAllocated) AllocDataArray();
+            if (!m_DataArrayAllocated) AllocDataArray();
             foreach(Track track in tracks)
             {
                 if (ReadChannel(track))
@@ -234,13 +223,13 @@ namespace Elan
         }
         public bool ReadChannel(Track track)
         {
-            if (!dataArrayAllocated) AllocDataArray();
-            if (!readed[track.Measure,track.Channel])
+            if (!m_DataArrayAllocated) AllocDataArray();
+            if (!Readed[track.Measure,track.Channel])
             {
-                int err = ReadChannel(new StringBuilder(path), track.Measure, track.Channel, _handle);
+                int err = ReadChannel(new StringBuilder(Path), track.Measure, track.Channel, _handle);
                 if (err == 0)
                 {
-                    readed[track.Measure, track.Channel] = true;
+                    Readed[track.Measure, track.Channel] = true;
                     return false;
                 }
                 else
@@ -255,15 +244,15 @@ namespace Elan
         }
         public bool ReadChannel()
         {
-            if (!dataArrayAllocated) AllocDataArray();
-            int err = ReadAllChannels(new StringBuilder(path), _handle);
+            if (!m_DataArrayAllocated) AllocDataArray();
+            int err = ReadAllChannels(new StringBuilder(Path), _handle);
             if (err == 0)
             {
-                for (int m = 0; m < readed.GetLength(0); m++)
+                for (int m = 0; m < Readed.GetLength(0); m++)
                 {
-                    for (int c = 0; c < readed.GetLength(1); c++)
+                    for (int c = 0; c < Readed.GetLength(1); c++)
                     {
-                        readed[m,c] = true;
+                        Readed[m,c] = true;
                     }
                 }
                 return false;
@@ -286,7 +275,7 @@ namespace Elan
         #region Private Methods
         void AllocDataArray()
         {
-            dataArrayAllocated = true;
+            m_DataArrayAllocated = true;
             AllocDataArray(_handle);
         }
         #endregion
@@ -298,7 +287,7 @@ namespace Elan
         }
         protected override void delete_DLL_class()
         {
-            DeleteElanStruct(_handle, dataArrayAllocated);
+            DeleteElanStruct(_handle, m_DataArrayAllocated);
         }
         #endregion
 

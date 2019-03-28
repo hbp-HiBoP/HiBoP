@@ -56,6 +56,34 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Public Methods
+        public void Clear()
+        {
+            foreach (var eventInformation in InformationsByEvent.Values)
+            {
+                eventInformation.Clear();
+            }
+            InformationsByEvent.Clear();
+            InformationsByEvent = new Dictionary<Event, EventInformation>();
+
+            UnitByChannel.Clear();
+            UnitByChannel = new Dictionary<string, string>();
+
+            foreach (var channel in UnitByChannel.Keys)
+            {
+                RawValuesByChannel[channel] = new float[0];
+                BaselineValuesByChannel[channel] = new float[0];
+                ValuesByChannel[channel] = new float[0];
+            }
+
+            RawValuesByChannel.Clear();
+            RawValuesByChannel = new Dictionary<string, float[]>();
+
+            BaselineValuesByChannel.Clear();
+            BaselineValuesByChannel = new Dictionary<string, float[]>();
+
+            ValuesByChannel.Clear();
+            ValuesByChannel = new Dictionary<string, float[]>();
+        }
         public void Normalize(float average, float standardDeviation)
         {
             foreach (var channel in RawValuesByChannel.Keys)

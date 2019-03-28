@@ -34,5 +34,22 @@ namespace HBP.Data.Experience.Dataset
             }
         }
         #endregion
+
+        #region Public Methods
+        public void Clear()
+        {
+            foreach (var blocData in DataByBloc.Values)
+            {
+                blocData.Clear();
+            }
+            DataByBloc.Clear();
+            DataByBloc = new Dictionary<Protocol.Bloc, BlocData>();
+
+            UnitByChannel.Clear();
+            UnitByChannel = new Dictionary<string, string>();
+
+            Frequency = new Localizer.Frequency();
+        }
+        #endregion
     }
 }

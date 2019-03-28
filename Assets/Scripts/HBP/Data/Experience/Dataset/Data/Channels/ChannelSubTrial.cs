@@ -37,5 +37,21 @@ namespace HBP.Data.Experience.Dataset
 
         }
         #endregion
+
+        #region Public Methods
+        public void Clear()
+        {
+            foreach (var eventInformation in InformationsByEvent.Values)
+            {
+                eventInformation.Clear();
+            }
+            InformationsByEvent.Clear();
+            InformationsByEvent = new Dictionary<Event, EventInformation>();
+
+            Unit = "";
+            Values = new float[0];
+            Found = false;
+        }
+        #endregion
     }
 }

@@ -27,6 +27,13 @@
         }
         #endregion
 
+        #region Public Methods
+        public void Clear()
+        {
+            Occurences = new EventOccurence[0];
+        }
+        #endregion
+
         #region Structs
         public struct EventOccurence
         {

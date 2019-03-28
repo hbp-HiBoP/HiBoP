@@ -9,22 +9,22 @@ namespace Elan
         {
             get
             {
-                return GetLabel(_handle);
+                return GetLabel(m_HandleOfParentObject);
             }
             set
             {
-                SetLabel(value, _handle);
+                SetLabel(value, m_HandleOfParentObject);
             }
         }
         public int ValueNumber
         {
             get
             {
-                return GetValueNumber( _handle);
+                return GetValueNumber( m_HandleOfParentObject);
             }
             private set
             {
-                SetValueNumber(value, _handle);
+                SetValueNumber(value, m_HandleOfParentObject);
             }
         }
         public float[] Values
@@ -32,25 +32,25 @@ namespace Elan
             get
             {
                 float[] values = new float[ValueNumber];
-                GetValues(values, channel, _handle);
+                GetValues(values, m_ChannelID, m_HandleOfParentObject);
                 return values;
             }
             set
             {
                 ValueNumber = value.Length;
-                SetValues(value, channel, _handle);
+                SetValues(value, m_ChannelID, m_HandleOfParentObject);
             }
         }
 
-        HandleRef _handle;
-        int channel;
+        HandleRef m_HandleOfParentObject;
+        int m_ChannelID;
         #endregion
 
         #region Constructor
-        public Coordinate(HandleRef _handle, int channel, int property)
+        public Coordinate(HandleRef handle, int channel, int property)
         {
-            this._handle = _handle;
-            this.channel = channel;
+            m_HandleOfParentObject = handle;
+            m_ChannelID = channel;
         }
         #endregion
 
