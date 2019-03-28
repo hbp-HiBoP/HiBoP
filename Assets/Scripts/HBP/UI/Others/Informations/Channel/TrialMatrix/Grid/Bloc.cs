@@ -85,7 +85,7 @@ namespace HBP.UI.TrialMatrix.Grid
         {
             get
             {
-                return ChannelBlocs.Any(channelBloc => channelBloc.IsHovered);
+                return ChannelBlocs.Any(channelBloc => channelBloc.Hovered);
             }
         }
         public UnityEvent OnChangeIsHovered;
@@ -94,7 +94,7 @@ namespace HBP.UI.TrialMatrix.Grid
         {
             get
             {
-                return ChannelBlocs.FirstOrDefault(c => c.IsHovered);
+                return ChannelBlocs.FirstOrDefault(c => c.Hovered);
             }
         }
         List<ChannelBloc> m_ChannelBlocs = new List<ChannelBloc>();
@@ -129,7 +129,7 @@ namespace HBP.UI.TrialMatrix.Grid
             GameObject gameObject = Instantiate(m_ChannelBlocPrefab, m_ChannelBlocContainer);
             ChannelBloc channelBloc = gameObject.GetComponent<ChannelBloc>();
             channelBloc.Set(data, colors, limits);
-            channelBloc.OnChangeIsHovered.AddListener(() => OnChangeIsHovered.Invoke());
+            channelBloc.OnChangeHovered.AddListener(() => OnChangeIsHovered.Invoke());
             m_ChannelBlocs.Add(channelBloc);
         }
         void Clear()

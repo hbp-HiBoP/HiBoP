@@ -137,7 +137,6 @@ namespace HBP.UI.Informations
             }
             UnityEngine.Profiling.Profiler.EndSample();
         }
-
         void AddGraph(Graph.Curve[] curves,Vector2 defaultAbscissaDisplayRange, Vector2 defaultOrdinateDisplayRange, Vector2 abscissaDisplayRange, Vector2 ordinateDisplayRange, bool isMain)
         {
             UnityEngine.Profiling.Profiler.BeginSample("Instantiate graph");
@@ -181,7 +180,6 @@ namespace HBP.UI.Informations
 
             m_Graphs.Add(graph);
         }
-
         void SaveSettings()
         {
             Graph graph = m_Graphs.FirstOrDefault();
@@ -301,24 +299,27 @@ namespace HBP.UI.Informations
         }
         Graph.Curve GenerateChannelCurve(ChannelStruct channel, DataStruct data, Data.Experience.Protocol.Bloc bloc, SubBloc subBloc)
         {
-            CurveData curveData = GetCurveData(channel, data, bloc, subBloc);
-            Graph.Curve result = new Graph.Curve(channel.Channel, curveData, true, data.Data + "_" + bloc.Name + "_" + channel.Patient.Name + "_" + channel.Channel, new Graph.Curve[0], new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1));
+            string ID = data.Data + "_" + bloc.Name + "_" + channel.Patient.Name + "_" + channel.Channel;
+            ChannelBloc channelBloc = m_TrialMatrixGrid.Data.First(d => d.GridData.DataStruct == data).Blocs.First(b => b.Data.Data == bloc).ChannelBlocs.First(c => c.Data.Channel == channel);
+
+            CurveData curveData = GetCurveData(channel, data, bloc, subBloc, channelBloc.TrialIsSelected);
+            Graph.Curve result = new Graph.Curve(channel.Channel, curveData, true, ID, new Graph.Curve[0], new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1));
+
+            channelBloc.OnChangeTrialSelected.AddListener(() => { result.Data = GetCurveData(channel, data, bloc, subBloc, channelBloc.TrialIsSelected); });
             return result;
         }
-        CurveData GetCurveData(ChannelStruct channel, DataStruct data, Data.Experience.Protocol.Bloc bloc, SubBloc subBloc)
+        CurveData GetCurveData(ChannelStruct channel, DataStruct data, Data.Experience.Protocol.Bloc bloc, SubBloc subBloc, bool[] selected)
         {
             CurveData result = null;
             DataInfo dataInfo = data.Dataset.Data.First(d => (d.Patient == channel.Patient && d.Name == data.Data));
             BlocChannelData blocChannelData = DataManager.GetData(dataInfo, bloc, channel.Channel);
             Color color = m_ColorsByData[new Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>(channel, data, bloc)]; 
 
-            ChannelBloc channelBloc = m_TrialMatrixGrid.Data.First(d => d.GridData.DataStruct == data).Blocs.First(b => b.Data.Data == bloc).ChannelBlocs.First(c => c.Data.Channel == channel);
             ChannelTrial[] validTrials = blocChannelData.Trials.Where(t => t.IsValid).ToArray();
-            bool[] trialIsSelected = channelBloc.TrialIsSelected;
             List<ChannelTrial> trialsToUse = new List<ChannelTrial>(blocChannelData.Trials.Length);
             for (int i = 0; i < validTrials.Length; i++)
             {
-                if (trialIsSelected[i])
+                if (selected[i])
                 {
                     trialsToUse.Add(validTrials[i]);
                 }
@@ -412,6 +413,67 @@ namespace HBP.UI.Informations
                 if (curveResult.y > result.y) result.y = curveResult.y;
             }
             return result;
+        }
+        void UpdateCurveData(ref CurveData curveData, ChannelBloc channelBloc, BlocChannelData blocChannelData, SubBloc subBloc)
+        {
+            Debug.Log("UpdateCurveData");
+            bool[] trialIsSelected = channelBloc.TrialIsSelected;
+            ChannelTrial[] validTrials = blocChannelData.Trials.Where(t => t.IsValid).ToArray();
+            List<ChannelTrial> trialsToUse = new List<ChannelTrial>(blocChannelData.Trials.Length);
+            for (int i = 0; i < validTrials.Length; i++)
+            {
+                if (trialIsSelected[i])
+                {
+                    trialsToUse.Add(validTrials[i]);
+                }
+            }
+
+            if (trialsToUse.Count > 1)
+            {
+                ChannelSubTrial[] channelSubTrials = trialsToUse.Select(t => t.ChannelSubTrialBySubBloc[subBloc]).ToArray();
+
+                float[] values = new float[channelSubTrials[0].Values.Length];
+                float[] standardDeviations = new float[values.Length];
+                for (int i = 0; i < values.Length; i++)
+                {
+                    List<float> sum = new List<float>();
+                    for (int l = 0; l < trialsToUse.Count; l++)
+                    {
+                        sum.Add(channelSubTrials[l].Values[i]);
+                    }
+                    values[i] = sum.ToArray().Mean();
+                    standardDeviations[i] = sum.ToArray().SEM();
+                }
+
+                // Generate points.
+                int start = subBloc.Window.Start;
+                int end = subBloc.Window.End;
+                Vector2[] points = new Vector2[values.Length];
+                for (int i = 0; i < points.Length; i++)
+                {
+                    float abscissa = start + ((float)i / (points.Length - 1)) * (end - start);
+                    float ordinate = values[i];
+                    points[i] = new Vector2(abscissa, ordinate);
+                }
+                curveData = ShapedCurveData.CreateInstance(points, standardDeviations, curveData.Color, 30);
+            }
+            else if (trialsToUse.Count == 1)
+            {
+                ChannelSubTrial channelSubTrial = trialsToUse[0].ChannelSubTrialBySubBloc[subBloc];
+                float[] values = channelSubTrial.Values;
+
+                // Generate points.
+                int start = subBloc.Window.Start;
+                int end = subBloc.Window.End;
+                Vector2[] points = new Vector2[values.Length];
+                for (int i = 0; i < points.Length; i++)
+                {
+                    float abscissa = start + ((float)i / (points.Length - 1)) * (end - start);
+                    float ordinate = values[i];
+                    points[i] = new Vector2(abscissa, ordinate);
+                }
+                curveData = CurveData.CreateInstance(points, curveData.Color, 30);
+            }
         }
         #endregion
 
