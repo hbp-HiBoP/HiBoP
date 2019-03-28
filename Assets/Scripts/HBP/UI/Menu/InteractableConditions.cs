@@ -29,7 +29,7 @@ namespace HBP.UI
             }
         }
 
-        [SerializeField, Candlelight.PropertyBackingField]
+        [SerializeField]
         private bool m_NeedProject;
         public bool NeedProject
         {
@@ -37,7 +37,7 @@ namespace HBP.UI
             set { m_NeedProject = value; }
         }
 
-        [SerializeField, Candlelight.PropertyBackingField]
+        [SerializeField]
         private bool m_NeedPatient;
         public bool NeedPatient
         {
@@ -45,7 +45,7 @@ namespace HBP.UI
             set { m_NeedPatient = value; }
         }
 
-        [SerializeField, Candlelight.PropertyBackingField]
+        [SerializeField]
         private bool m_NeedGroup;
         public bool NeedGroup
         {
@@ -53,7 +53,7 @@ namespace HBP.UI
             set { m_NeedGroup = value; }
         }
 
-        [SerializeField, Candlelight.PropertyBackingField]
+        [SerializeField]
         private bool m_NeedProtocol;
         public bool NeedProtocol
         {
@@ -61,7 +61,7 @@ namespace HBP.UI
             set { m_NeedProtocol = value; }
         }
 
-        [SerializeField, Candlelight.PropertyBackingField]
+        [SerializeField]
         private bool m_NeedDataset;
         public bool NeedDataset
         {

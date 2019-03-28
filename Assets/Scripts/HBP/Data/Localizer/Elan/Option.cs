@@ -12,7 +12,7 @@ namespace Elan
         {
             get
             {
-                if (GetCompressed(_handle) == 1)
+                if (GetCompressed(m_HandleOfParentObject) == 1)
                 {
                     return true;
                 }
@@ -25,11 +25,11 @@ namespace Elan
             {
                 if (value)
                 {
-                    SetCompressed(1, _handle);
+                    SetCompressed(1, m_HandleOfParentObject);
                 }
                 else
                 {
-                    SetCompressed(0, _handle);
+                    SetCompressed(0, m_HandleOfParentObject);
                 }
             }
         }
@@ -37,38 +37,38 @@ namespace Elan
         {
             get
             {
-                return (CompressionTypeEnum)GetCompressionType(_handle);
+                return (CompressionTypeEnum)GetCompressionType(m_HandleOfParentObject);
             }
             private set
             {
-                SetCompressionType((int)value, _handle);
+                SetCompressionType((int)value, m_HandleOfParentObject);
             }
         }
         public DataTypeEnum DataType
         {
             get
             {
-                return (DataTypeEnum)GetDataType(_handle);
+                return (DataTypeEnum)GetDataType(m_HandleOfParentObject);
             }
             private set
             {
-                SetDataType((int)value, _handle);
+                SetDataType((int)value, m_HandleOfParentObject);
             }
         }
-        HandleRef _handle;
+        HandleRef m_HandleOfParentObject;
         #endregion
 
         #region Constructor
-        public Option(HandleRef _handle)
+        public Option(HandleRef handle)
         {
-            this._handle = _handle;
+            m_HandleOfParentObject = handle;
         }
         #endregion
 
         #region Methods
         public void Init()
         {
-            InitOptions(_handle);
+            InitOptions(m_HandleOfParentObject);
         }
         #endregion
 

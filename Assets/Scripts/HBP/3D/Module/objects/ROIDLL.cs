@@ -8,50 +8,16 @@ namespace HBP.Module3D.DLL
     /// <summary>
     ///  A ROI_dll interface class (see C++ documentation for more details)
     /// </summary>
-    public class ROI : IDisposable
+    public class ROI : Tools.DLL.CppDLLImportBase, IDisposable
     {
         #region Memory Management
-        /// <summary>
-        /// pointer to C+ dll class
-        /// </summary>
-        private HandleRef _handle;
-        /// <summary>
-        /// ROI_dll constructor
-        /// </summary>
-        public ROI()
+        protected override void create_DLL_class()
         {
             _handle = new HandleRef(this, create_ROI());
         }
-        /// <summary>
-        /// delete_ROI Destructor
-        /// </summary>
-        ~ROI()
-        {
-            Cleanup();
-        }
-        /// <summary>
-        /// Force delete C++ DLL data (remove GC for this object)
-        /// </summary>
-        public void Dispose()
-        {
-            Cleanup();
-            GC.SuppressFinalize(this);
-        }
-        /// <summary>
-        /// Delete C+ DLL data, and set handle to IntPtr.Zero
-        /// </summary>
-        private void Cleanup()
+        protected override void delete_DLL_class()
         {
             delete_ROI(_handle);
-            _handle = new HandleRef(this, IntPtr.Zero);
-        }
-        /// <summary>
-        /// Return pointer to C++ DLL
-        /// </summary>
-        /// <returns></returns>
-        public HandleRef getHandle()
-        {
-            return _handle;
         }
         #endregion
 
@@ -131,7 +97,6 @@ namespace HBP.Module3D.DLL
 
         [DllImport("hbp_export", EntryPoint = "isInside_ROI", CallingConvention = CallingConvention.Cdecl)]
         static private extern int isInside_ROI(HandleRef handleROI, HandleRef handleRawList, int id);
-
         #endregion
     }
 }

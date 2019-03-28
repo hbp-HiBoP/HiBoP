@@ -7,7 +7,7 @@ namespace HBP.UI.Module3D
     public class ToolbarMenu : MonoBehaviour
     {
         #region Properties
-        [SerializeField, Candlelight.PropertyBackingField]
+        [SerializeField]
         private ConfigurationToolbar m_ConfigurationToolbar;
         /// <summary>
         /// Toolbar for the scene settings
@@ -24,7 +24,7 @@ namespace HBP.UI.Module3D
             }
         }
 
-        [SerializeField, Candlelight.PropertyBackingField]
+        [SerializeField]
         private SceneSettingsToolbar m_SceneSettingsToolbar;
         /// <summary>
         /// Toolbar for the scene settings
@@ -41,7 +41,7 @@ namespace HBP.UI.Module3D
             }
         }
 
-        [SerializeField, Candlelight.PropertyBackingField]
+        [SerializeField]
         private DisplaySettingsToolbar m_DisplaySettingsToolbar;
         /// <summary>
         /// Toolbar for the display settings
@@ -58,7 +58,7 @@ namespace HBP.UI.Module3D
             }
         }
 
-        [SerializeField, Candlelight.PropertyBackingField]
+        [SerializeField]
         private IEEGSettingsToolbar m_IEEGSettingsToolbar;
         /// <summary>
         /// Toolbar for the IEEG settings
@@ -75,7 +75,7 @@ namespace HBP.UI.Module3D
             }
         }
 
-        [SerializeField, Candlelight.PropertyBackingField]
+        [SerializeField]
         private TimelineToolbar m_TimelineToolbar;
         /// <summary>
         /// Toolbar for the Timeline control
@@ -92,7 +92,7 @@ namespace HBP.UI.Module3D
             }
         }
 
-        [SerializeField, Candlelight.PropertyBackingField]
+        [SerializeField]
         private SiteToolbar m_SiteToolbar;
         /// <summary>
         /// Toolbar for the sites settings
@@ -109,7 +109,7 @@ namespace HBP.UI.Module3D
             }
         }
 
-        [SerializeField, Candlelight.PropertyBackingField]
+        [SerializeField]
         private CCEPToolbar m_CCEPToolbar;
         /// <summary>
         /// Toolbar for the sites settings
@@ -126,7 +126,7 @@ namespace HBP.UI.Module3D
             }
         }
 
-        [SerializeField, Candlelight.PropertyBackingField]
+        [SerializeField]
         private FMRIToolbar m_FMRIToolbar;
         /// <summary>
         /// Toolbar for the sites settings
@@ -143,7 +143,7 @@ namespace HBP.UI.Module3D
             }
         }
 
-        [SerializeField, Candlelight.PropertyBackingField]
+        [SerializeField]
         private ROIToolbar m_ROIToolbar;
         /// <summary>
         /// Toolbar for the regions of interest settings
@@ -160,7 +160,7 @@ namespace HBP.UI.Module3D
             }
         }
 
-        [SerializeField, Candlelight.PropertyBackingField]
+        [SerializeField]
         private TriangleErasingToolbar m_TriangleToolbar;
         /// <summary>
         /// Toolbar to erase triangles

@@ -60,10 +60,6 @@ namespace HBP.Module3D
         /// </summary>
         public int LastPlaneModifiedID = 0;
         /// <summary>
-        /// Does this scene use simplified meshes ?
-        /// </summary>
-        public bool UseSimplifiedMeshes { get; set; }
-        /// <summary>
         /// Mesh part to be displayed in the scene
         /// </summary>
         public Data.Enums.MeshPart MeshPartToDisplay = Data.Enums.MeshPart.Both;

@@ -195,6 +195,7 @@ namespace HBP.Module3D
         }
         void OnDestroy()
         {
+            MarsAtlasIndex?.Dispose();
             ApplicationState.DLLDebugManager.clean();
         }
         #endregion
@@ -226,10 +227,9 @@ namespace HBP.Module3D
         /// <param name="scene">Scene to be removed</param>
         public void RemoveScene(Base3DScene scene)
         {
-            ApplicationState.Module3D.OnRemoveScene.Invoke(scene);
-            Destroy(scene.gameObject);
+            OnRemoveScene.Invoke(scene);
             m_Scenes.Remove(scene);
-            scene.Visualization.Unload();
+            this.StartCoroutine(scene.c_Destroy());
         }
         /// <summary>
         /// Load a single patient scene extracted from a visualization

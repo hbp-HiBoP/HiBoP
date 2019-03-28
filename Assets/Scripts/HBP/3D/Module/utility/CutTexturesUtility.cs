@@ -48,8 +48,6 @@ namespace HBP.Module3D
         #region Constructors
         public CutTexturesUtility(int size = 0)
         {
-            DLLCutColorScheme = new DLL.Texture();
-            DLLCutFMRIColorScheme = new DLL.Texture();
             Resize(size);
         }
         #endregion
@@ -76,7 +74,9 @@ namespace HBP.Module3D
                 BrainCutTextures.RemoveAt(BrainCutTextures.Count - 1);
                 Object.Destroy(GUIBrainCutTextures[GUIBrainCutTextures.Count - 1]);
                 GUIBrainCutTextures.RemoveAt(GUIBrainCutTextures.Count - 1);
+                DLLBrainCutTextures[DLLBrainCutTextures.Count - 1].Dispose();
                 DLLBrainCutTextures.RemoveAt(DLLBrainCutTextures.Count - 1);
+                DLLGUIBrainCutTextures[DLLGUIBrainCutTextures.Count - 1].Dispose();
                 DLLGUIBrainCutTextures.RemoveAt(DLLGUIBrainCutTextures.Count - 1);
                 DLLMRITextureCutGenerators[DLLMRITextureCutGenerators.Count - 1].Dispose();
                 DLLMRITextureCutGenerators.RemoveAt(DLLMRITextureCutGenerators.Count - 1);
@@ -91,11 +91,11 @@ namespace HBP.Module3D
         /// <param name="indexCut">Index of the cut</param>
         /// <param name="MRICalMinFactor">Cal Min Factor</param>
         /// <param name="MRICalMaxFactor">Cal Max Factor</param>
-        public void CreateMRITexture(DLL.MRIGeometryCutGenerator geometryGenerator, DLL.Volume volume, int indexCut, float MRICalMinFactor, float MRICalMaxFactor)
+        public void CreateMRITexture(DLL.MRIGeometryCutGenerator geometryGenerator, DLL.Volume volume, int indexCut, float MRICalMinFactor, float MRICalMaxFactor, int blurFactor)
         {
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Column3DView create_MRI_texture reset 0  ");
             DLL.MRITextureCutGenerator textureGenerator = DLLMRITextureCutGenerators[indexCut];
-            textureGenerator.Reset(geometryGenerator);
+            textureGenerator.Reset(geometryGenerator, blurFactor);
             UnityEngine.Profiling.Profiler.EndSample();
 
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Column3DView create_MRI_texture fill_texture_with_volume 1  ");
@@ -120,7 +120,22 @@ namespace HBP.Module3D
             {
                 if (DLLBrainCutTextures[cut.ID].TextureSize[0] > 0)
                 {
-                    DLLGUIBrainCutTextures[cut.ID].CopyAndRotate(DLLBrainCutTextures[cut.ID], cut.Orientation.ToString(), cut.Flip, ApplicationState.UserPreferences.Visualization.Cut.ShowCutLines && cut.Orientation != Data.Enums.CutOrientation.Custom, cut.ID, cuts, DLLMRITextureCutGenerators[cut.ID]);
+                    DLLGUIBrainCutTextures[cut.ID].CopyAndRotate(DLLBrainCutTextures[cut.ID], cut.Orientation.ToString(), cut.Flip, false, cut.ID, cuts, DLLMRITextureCutGenerators[cut.ID]);
+                }
+            }
+        }
+        /// <summary>
+        /// Draw the sites on the gui texture
+        /// </summary>
+        /// <param name="cuts"></param>
+        /// <param name="rawList"></param>
+        public void DrawSitesOnMRITextures(List<Cut> cuts, RawSiteList rawList)
+        {
+            foreach (Cut cut in cuts)
+            {
+                if (DLLBrainCutTextures[cut.ID].TextureSize[0] > 0)
+                {
+                    DLLBrainCutTextures[cut.ID].DrawSites(cut, rawList, 1, DLLMRITextureCutGenerators[cut.ID]);
                 }
             }
         }
@@ -145,6 +160,15 @@ namespace HBP.Module3D
             for (int i = 0; i < DLLGUIBrainCutTextures.Count; ++i)
             {
                 DLLGUIBrainCutTextures[i].ResizeToSquare(max);
+            }
+        }
+        /// <summary>
+        /// Update the Unity Textures from DLL textures
+        /// </summary>
+        public void UpdateTextures2D()
+        {
+            for (int i = 0; i < DLLGUIBrainCutTextures.Count; ++i)
+            {
                 DLLGUIBrainCutTextures[i].UpdateTexture2D(GUIBrainCutTextures[i]);
             }
         }
@@ -195,16 +219,32 @@ namespace HBP.Module3D
         /// <param name="colorBrainCut">Cut color to be used</param>
         public void ResetColorSchemes(Data.Enums.ColorType colormap, Data.Enums.ColorType colorBrainCut)
         {
+            DLLCutColorScheme?.Dispose();
             DLLCutColorScheme = DLL.Texture.Generate2DColorTexture(colorBrainCut, colormap);
+            DLLCutFMRIColorScheme?.Dispose();
             DLLCutFMRIColorScheme = DLL.Texture.Generate2DColorTexture(colorBrainCut, colormap);
         }
-
-        internal void SetMRIVolumeGenerator(MRIVolumeGenerator dllMRIVolumeGenerator)
+        /// <summary>
+        /// Set the DLL MRI Volume Generator
+        /// </summary>
+        /// <param name="dllMRIVolumeGenerator"></param>
+        public void SetMRIVolumeGenerator(MRIVolumeGenerator dllMRIVolumeGenerator)
         {
             foreach (var dllMRITextureCutGenerator in DLLMRITextureCutGenerators)
             {
                 dllMRITextureCutGenerator.SetMRIVolumeGenerator(dllMRIVolumeGenerator);
             }
+        }
+        /// <summary>
+        /// Clean the Cut Textures Utility class
+        /// </summary>
+        public void Clean()
+        {
+            foreach (var dllMRITextureCutGenerator in DLLMRITextureCutGenerators) dllMRITextureCutGenerator?.Dispose();
+            DLLCutColorScheme?.Dispose();
+            DLLCutFMRIColorScheme?.Dispose();
+            foreach (var texture in DLLBrainCutTextures) texture?.Dispose();
+            foreach (var texture in DLLGUIBrainCutTextures) texture?.Dispose();
         }
         #endregion
     }

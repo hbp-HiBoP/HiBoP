@@ -14,75 +14,75 @@ namespace Elan
         {
             get
             {
-                return (DataTypeEnum)GetDataType(_handle);
+                return (DataTypeEnum)GetDataType(m_HandleOfParentObject);
             }
             private set
             {
-                SetDataType((int)value, _handle);
+                SetDataType((int)value, m_HandleOfParentObject);
             }
         }
         public int SampleNumber
         {
-            get { return GetSampleNumber(_handle); }
-            private set { SetSampleNumber(value, _handle); }
+            get { return GetSampleNumber(m_HandleOfParentObject); }
+            private set { SetSampleNumber(value, m_HandleOfParentObject); }
         }
         public float SamplingFrequency
         {
-            get { return GetSamplingFrequency(_handle); }
-            private set { SetSamplingFrequency(value, _handle); }
+            get { return GetSamplingFrequency(m_HandleOfParentObject); }
+            private set { SetSamplingFrequency(value, m_HandleOfParentObject); }
         }
         public int PreStimSampleNumber
         {
-            get { return GetPreStimSampleNumber(_handle); }
-            private set { SetPreStimSampleNumber(value, _handle); }
+            get { return GetPreStimSampleNumber(m_HandleOfParentObject); }
+            private set { SetPreStimSampleNumber(value, m_HandleOfParentObject); }
         }
         public int EventCode
         {
-            get { return GetEventCode(_handle); }
-            private set { GetEventCode(value, _handle); }
+            get { return GetEventCode(m_HandleOfParentObject); }
+            private set { GetEventCode(value, m_HandleOfParentObject); }
         }
         public int EventNumber
         {
             get
             {
-                return GetEventNumber(_handle);
+                return GetEventNumber(m_HandleOfParentObject);
             }
             private set
             {
-                SetEventNumber(value, _handle);
+                SetEventNumber(value, m_HandleOfParentObject);
             }
         }
         public WaveletTypeEnum WaveletType
         {
             get
             {
-                return (WaveletTypeEnum)GetWaveletType(_handle);
+                return (WaveletTypeEnum)GetWaveletType(m_HandleOfParentObject);
             }
             private set
             {
-                SetWaveletType((int)value, _handle);
+                SetWaveletType((int)value, m_HandleOfParentObject);
             }
         }
         public int BlackmanWindow
         {
             get
             {
-                return GetBlackmanWindow(_handle);
+                return GetBlackmanWindow(m_HandleOfParentObject);
             }
             private set
             {
-                SetBlackmanWindow(value, _handle);
+                SetBlackmanWindow(value, m_HandleOfParentObject);
             }
         }
         public int FrequencyNumber
         {
             get
             {
-                return GetFrequencyNumber(_handle);
+                return GetFrequencyNumber(m_HandleOfParentObject);
             }
             private set
             {
-                SetFrequencyNumber(value, _handle);
+                SetFrequencyNumber(value, m_HandleOfParentObject);
             }
         }
         public float[] Frequencies
@@ -90,13 +90,13 @@ namespace Elan
             get
             {
                 float[] frequencies = new float[FrequencyNumber];
-                GetFrenquencies(frequencies, _handle);
+                GetFrenquencies(frequencies, m_HandleOfParentObject);
                 return frequencies;
             }
             private set
             {
                 FrequencyNumber = value.Length;
-                SetFrenquencies(value, _handle);
+                SetFrenquencies(value, m_HandleOfParentObject);
             }
         }
         public float[] WaveletCharacteristic
@@ -104,14 +104,14 @@ namespace Elan
             get
             {
                 float[] waveletCharacteristic = new float[FrequencyNumber];
-                GetWaveletCharacteristic(waveletCharacteristic, _handle);
+                GetWaveletCharacteristic(waveletCharacteristic, m_HandleOfParentObject);
                 return waveletCharacteristic;
             }
             private set
             {
                 if (value.Length == FrequencyNumber)
                 {
-                    SetWaveletCharacteristic(value, _handle);
+                    SetWaveletCharacteristic(value, m_HandleOfParentObject);
                 }
                 else
                 {
@@ -123,15 +123,15 @@ namespace Elan
         {
             get
             {
-                int[] eventNumberByMeasure = new int[readed.GetLength(0)];
-                GetOtherEventNumberByMeasure(eventNumberByMeasure, _handle);
+                int[] eventNumberByMeasure = new int[Readed.GetLength(0)];
+                GetOtherEventNumberByMeasure(eventNumberByMeasure, m_HandleOfParentObject);
                 return eventNumberByMeasure;
             }
             private set
             {
-                if (value.Length == readed.GetLength(0))
+                if (value.Length == Readed.GetLength(0))
                 {
-                    SetOtherEventNumberByMeasure(value, _handle);
+                    SetOtherEventNumberByMeasure(value, m_HandleOfParentObject);
                 }
                 else
                 {
@@ -143,11 +143,11 @@ namespace Elan
         {
             get
             {
-                int[][] otherEventByMeasure = new int[readed.GetLength(0)][];
+                int[][] otherEventByMeasure = new int[Readed.GetLength(0)][];
                 for (int m = 0; m < otherEventByMeasure.Length; m++)
                 {
                     int[] otherEvent = new int[OtherEventNumberByMeasure[m]];
-                    GetOtherEventByMeasure(otherEvent, m, _handle);
+                    GetOtherEventByMeasure(otherEvent, m, m_HandleOfParentObject);
                     otherEventByMeasure[m] = otherEvent;
                 }
                 return otherEventByMeasure;
@@ -156,28 +156,22 @@ namespace Elan
             {
                 if (CanBeusedForOtherEventByMeasure(value))
                 {
-                    for (int m = 0; m < readed.GetLength(0); m++)
+                    for (int m = 0; m < Readed.GetLength(0); m++)
                     {
-                        SetOtherEventByMeasure(value[m], m, _handle);
+                        SetOtherEventByMeasure(value[m], m, m_HandleOfParentObject);
                     }
                 }
             }
         }
 
-        HandleRef _handle;
-
-        bool[,] readed;
-        public bool[,] Readed
-        {
-            get { return readed; }
-            private set { readed = value; }
-        }
+        HandleRef m_HandleOfParentObject;
+        public bool[,] Readed { get; private set; }
         #endregion
 
         #region Constructor
-        public TF(bool[,] readed, HandleRef _handle)
+        public TF(bool[,] readed, HandleRef handle)
         {
-            this._handle = _handle;
+            m_HandleOfParentObject = handle;
             Readed = readed;
         }
         #endregion
@@ -185,7 +179,7 @@ namespace Elan
         #region Public Methods
         public float[,,][] GetFloatData()
         {
-            float[,,][] data = new float[readed.GetLength(0), readed.GetLength(1), readed.GetLength(2)][];
+            float[,,][] data = new float[Readed.GetLength(0), Readed.GetLength(1), Readed.GetLength(2)][];
             for (int m = 0; m < data.GetLength(0); m++)
             {
                 for (int c = 0; c < data.GetLength(1); c++)
@@ -212,9 +206,9 @@ namespace Elan
             float[] data = new float[SampleNumber];
             if (DataType == DataTypeEnum.Float)
             {
-                if (readed[track.Measure, track.Channel])
+                if (Readed[track.Measure, track.Channel])
                 {
-                    GetFloatData(data, track.Measure, track.Channel, track.Frequency, _handle);
+                    GetFloatData(data, track.Measure, track.Channel, track.Frequency, m_HandleOfParentObject);
                 }
             }
             return data;
@@ -222,7 +216,7 @@ namespace Elan
 
         public double[,,][] GetDoubleData()
         {
-            double[,,][] data = new double[readed.GetLength(0), readed.GetLength(1), readed.GetLength(2)][];
+            double[,,][] data = new double[Readed.GetLength(0), Readed.GetLength(1), Readed.GetLength(2)][];
             for (int m = 0; m < data.GetLength(0); m++)
             {
                 for (int c = 0; c < data.GetLength(1); c++)
@@ -249,9 +243,9 @@ namespace Elan
             double[] data = new double[SampleNumber];
             if (DataType == DataTypeEnum.Double)
             {
-                if (readed[track.Measure, track.Channel])
+                if (Readed[track.Measure, track.Channel])
                 {
-                    GetDoubleData(data, track.Measure, track.Channel, track.Frequency, _handle);
+                    GetDoubleData(data, track.Measure, track.Channel, track.Frequency, m_HandleOfParentObject);
                 }
             }
             return data;
@@ -263,8 +257,8 @@ namespace Elan
         {
             if (DataType == DataTypeEnum.Float)
             {
-                int measureNumber = readed.GetLength(0);
-                int channelNumber = readed.GetLength(1);
+                int measureNumber = Readed.GetLength(0);
+                int channelNumber = Readed.GetLength(1);
                 if (flatData.Length == SampleNumber * channelNumber * measureNumber)
                 {
                     return true;
@@ -286,8 +280,8 @@ namespace Elan
         {
             if (DataType == DataTypeEnum.Double)
             {
-                int measureNumber = readed.GetLength(0);
-                int channelNumber = readed.GetLength(1);
+                int measureNumber = Readed.GetLength(0);
+                int channelNumber = Readed.GetLength(1);
                 if (flatData.Length == SampleNumber * channelNumber * measureNumber)
                 {
                     return true;
@@ -309,8 +303,8 @@ namespace Elan
         {
             int frequencyNumber = FrequencyNumber;
             int sampleNumber = SampleNumber;
-            int measureNumber = readed.GetLength(0);
-            int channelNumber = readed.GetLength(1);
+            int measureNumber = Readed.GetLength(0);
+            int channelNumber = Readed.GetLength(1);
             if (data.Length != measureNumber)
             {
                 return false;
@@ -349,8 +343,8 @@ namespace Elan
         }
         bool CanBeUsed(double[][][][] data)
         {
-            int measureNumber = readed.GetLength(0);
-            int channelNumber = readed.GetLength(1);
+            int measureNumber = Readed.GetLength(0);
+            int channelNumber = Readed.GetLength(1);
             int frequencyNumber = FrequencyNumber;
             int sampleNumber = SampleNumber;
             if (data.Length != measureNumber)
@@ -391,8 +385,8 @@ namespace Elan
         }
         bool CanBeusedForOtherEventByMeasure(int[][] otherEventByMeasure)
         {
-            int measureNumber = readed.GetLength(0);
-            int channelNumber = readed.GetLength(1);
+            int measureNumber = Readed.GetLength(0);
+            int channelNumber = Readed.GetLength(1);
             if (otherEventByMeasure.GetLength(0) == measureNumber)
             {
                 for (int m = 0; m < measureNumber; m++)

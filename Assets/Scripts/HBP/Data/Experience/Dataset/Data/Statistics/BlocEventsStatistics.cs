@@ -17,5 +17,17 @@ namespace HBP.Data.Experience.Dataset
             EventsStatisticsBySubBloc = bloc.SubBlocs.ToDictionary(s => s, s => new SubBlocEventsStatistics(blocData, s));
         }
         #endregion
+
+        #region Public Methods
+        public void Clear()
+        {
+            foreach (var subBlocEventsStatistics in EventsStatisticsBySubBloc.Values)
+            {
+                subBlocEventsStatistics.Clear();
+            }
+            EventsStatisticsBySubBloc.Clear();
+            EventsStatisticsBySubBloc = new Dictionary<SubBloc, SubBlocEventsStatistics>();
+        }
+        #endregion
     }
 }

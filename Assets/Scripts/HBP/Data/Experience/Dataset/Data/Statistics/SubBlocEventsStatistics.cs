@@ -18,5 +18,13 @@ namespace HBP.Data.Experience.Dataset
             StatisticsByEvent = informationsByEvent.ToDictionary(kv => kv.Key, kv => new EventStatistics(kv.Value, ApplicationState.UserPreferences.Data.Protocol.PositionAveraging));
         }
         #endregion
+
+        #region Public Methods
+        public void Clear()
+        {
+            StatisticsByEvent.Clear();
+            StatisticsByEvent = new Dictionary<Protocol.Event, EventStatistics>();
+        }
+        #endregion
     }
 }

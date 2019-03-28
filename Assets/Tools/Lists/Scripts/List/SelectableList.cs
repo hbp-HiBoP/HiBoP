@@ -29,8 +29,7 @@ namespace Tools.Unity.Lists
             }
         }
         protected Dictionary<T, bool> m_SelectedStateByObject;
-        [SerializeField, Candlelight.PropertyBackingField]
-        protected bool m_MultiSelection;
+        [SerializeField] protected bool m_MultiSelection;
         public virtual bool MultiSelection
         {
             get

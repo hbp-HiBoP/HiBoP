@@ -16,28 +16,28 @@ namespace Elan
         {
             get
             {
-                return (DataTypeEnum)GetDataType(_handle);
+                return (DataTypeEnum)GetDataType(m_HandleOfParentObject);
             }
             set
             {
-                SetDataType((int)value, _handle);
+                SetDataType((int)value, m_HandleOfParentObject);
             }
         }
         public int SampleNumber
         {
-            get { return GetSampleNumber(_handle); }
-            set { SetSampleNumber(value, _handle); }
+            get { return GetSampleNumber(m_HandleOfParentObject); }
+            set { SetSampleNumber(value, m_HandleOfParentObject); }
         }
         public float SamplingFrequency
         {
-            get { return GetSamplingFrequency(_handle); }
-            set { SetSamplingFrequency(value, _handle); }
+            get { return GetSamplingFrequency(m_HandleOfParentObject); }
+            set { SetSamplingFrequency(value, m_HandleOfParentObject); }
         }
         public bool Epoched
         {
             get
             {
-                if (GetEpoched(_handle) == 1)
+                if (GetEpoched(m_HandleOfParentObject) == 1)
                 {
                     return true;
                 }
@@ -50,11 +50,11 @@ namespace Elan
             {
                 if (value)
                 {
-                    SetEpoched(1, _handle);
+                    SetEpoched(1, m_HandleOfParentObject);
                 }
                 else
                 {
-                    SetEpoched(0, _handle);
+                    SetEpoched(0, m_HandleOfParentObject);
                 }
             }
         }
@@ -66,7 +66,7 @@ namespace Elan
             {
                 if (Epoched)
                 {
-                    return GetPreStimSampleNumber(_handle);
+                    return GetPreStimSampleNumber(m_HandleOfParentObject);
                 }
                 else
                 {
@@ -78,7 +78,7 @@ namespace Elan
             {
                 if (Epoched)
                 {
-                    SetPreStimSampleNumber(value, _handle);
+                    SetPreStimSampleNumber(value, m_HandleOfParentObject);
                 }
                 {
                     Console.WriteLine("EEG is continuous : PreStimSampleNumber can't be set.");
@@ -91,7 +91,7 @@ namespace Elan
             {
                 if (Epoched)
                 {
-                    return GetPostStimSampleNumber(_handle);
+                    return GetPostStimSampleNumber(m_HandleOfParentObject);
                 }
                 else
                 {
@@ -103,7 +103,7 @@ namespace Elan
             {
                 if (Epoched)
                 {
-                    SetPostStimSampleNumber(value, _handle);
+                    SetPostStimSampleNumber(value, m_HandleOfParentObject);
                 }
                 {
                     Console.WriteLine("EEG is continuous : PostStimSampleNumber can't be set.");
@@ -116,7 +116,7 @@ namespace Elan
             {
                 if (Epoched)
                 {
-                    return GetEpochedEventCode(_handle);
+                    return GetEpochedEventCode(m_HandleOfParentObject);
                 }
                 else
                 {
@@ -128,7 +128,7 @@ namespace Elan
             {
                 if (Epoched)
                 {
-                    SetEpochedEventCode(value, _handle);
+                    SetEpochedEventCode(value, m_HandleOfParentObject);
                 }
                 {
                     Console.WriteLine("EEG is continuous : EpochedEventCode can't be set.");
@@ -141,7 +141,7 @@ namespace Elan
             {
                 if (Epoched)
                 {
-                    return GetEpochNumber(_handle);
+                    return GetEpochNumber(m_HandleOfParentObject);
                 }
                 else
                 {
@@ -153,7 +153,7 @@ namespace Elan
             {
                 if (Epoched)
                 {
-                    SetEpochNumber(value, _handle);
+                    SetEpochNumber(value, m_HandleOfParentObject);
                 }
                 {
                     Console.WriteLine("EEG is continuous : EpochNumber can't be set.");
@@ -168,7 +168,7 @@ namespace Elan
             {
                 if (!Epoched)
                 {
-                    return GetEventNumber(_handle);
+                    return GetEventNumber(m_HandleOfParentObject);
                 }
                 else
                 {
@@ -180,7 +180,7 @@ namespace Elan
             {
                 if (!Epoched)
                 {
-                    SetEventNumber(value, _handle);
+                    SetEventNumber(value, m_HandleOfParentObject);
                 }
                 else
                 {
@@ -195,7 +195,7 @@ namespace Elan
                 if (!Epoched)
                 {
                     int[] codes = new int[EventNumber];
-                    GetContinuousEventCode(codes, _handle);
+                    GetContinuousEventCode(codes, m_HandleOfParentObject);
                     return codes;
                 }
                 else
@@ -209,7 +209,7 @@ namespace Elan
                 if (!Epoched)
                 {
                     EventNumber = value.Length;
-                    SetContinuousEventCode(value, _handle);
+                    SetContinuousEventCode(value, m_HandleOfParentObject);
                 }
                 else
                 {
@@ -224,7 +224,7 @@ namespace Elan
                 if (!Epoched)
                 {
                     int[] samples = new int[EventNumber];
-                    GetEventSample(samples, _handle);
+                    GetEventSample(samples, m_HandleOfParentObject);
                     return samples;
                 }
                 else
@@ -238,7 +238,7 @@ namespace Elan
                 if (!Epoched)
                 {
                     EventNumber = value.Length;
-                    SetEventSample(value, _handle);
+                    SetEventSample(value, m_HandleOfParentObject);
                 }
                 else
                 {
@@ -247,22 +247,22 @@ namespace Elan
             }
         }
 
-        HandleRef _handle;
-        bool[,] readed;
+        HandleRef m_HandleOfParentObject;
+        bool[,] m_Readed;
         #endregion
 
         #region Constructor
-        public EEG(bool[,] readed, HandleRef _handle)
+        public EEG(bool[,] readed, HandleRef handle)
         {
-            this._handle = _handle;
-            this.readed = readed;
+            m_HandleOfParentObject = handle;
+            m_Readed = readed;
         }
         #endregion
 
         #region Public Methods
         public float[,][] GetFloatData()
         {
-            float[,][] data = new float[readed.GetLength(0),readed.GetLength(1)][];
+            float[,][] data = new float[m_Readed.GetLength(0),m_Readed.GetLength(1)][];
             for (int m = 0; m < data.GetLength(0); m++)
             {
                 for (int c = 0; c < data.GetLength(1); c++)
@@ -286,9 +286,9 @@ namespace Elan
             float[] data = new float[SampleNumber];
             if(DataType == DataTypeEnum.Float)
             { 
-                if (readed[track.Measure, track.Channel])
+                if (m_Readed[track.Measure, track.Channel])
                 {
-                    GetFloatData(data, track.Measure, track.Channel, _handle);
+                    GetFloatData(data, track.Measure, track.Channel, m_HandleOfParentObject);
                 }
             }
             return data;
@@ -296,7 +296,7 @@ namespace Elan
 
         public double[,][] GetDoubleData()
         {
-            double[,][] data = new double[readed.GetLength(0), readed.GetLength(1)][];
+            double[,][] data = new double[m_Readed.GetLength(0), m_Readed.GetLength(1)][];
             for (int m = 0; m < data.GetLength(0); m++)
             {
                 for (int c = 0; c < data.GetLength(1); c++)
@@ -320,9 +320,9 @@ namespace Elan
             double[] data = new double[SampleNumber];
             if (DataType == DataTypeEnum.Double)
             {
-                if (readed[track.Measure, track.Channel])
+                if (m_Readed[track.Measure, track.Channel])
                 {
-                    GetDoubleData(data, track.Measure, track.Channel, _handle);
+                    GetDoubleData(data, track.Measure, track.Channel, m_HandleOfParentObject);
                 }
             }
             return data;

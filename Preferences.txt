@@ -11,7 +11,7 @@
     "Localization": {},
     "System": {
       "MultiThreading": true,
-      "MemoryCacheLimit": 32692
+      "MemoryCacheLimit": 32659
     }
   },
   "Data": {
@@ -27,9 +27,9 @@
     },
     "Anatomic": {
       "SiteNameCorrection": true,
-      "MeshPreloading": true,
-      "MRIPreloading": true,
-      "ImplantationPreloading": true
+      "MeshPreloading": false,
+      "MRIPreloading": false,
+      "ImplantationPreloading": false
     }
   },
   "Visualization": {
@@ -51,14 +51,13 @@
       "SubBlocFormat": 2,
       "TrialHeight": 19,
       "TrialRatio": 0.06969325,
-      "BlocRatio": 0.213190228
+      "BlocRatio": 0.184049129
     },
     "Graph": {
       "ShowCurvesOfMinimizedColumns": false
     },
     "Cut": {
-      "ShowCutLines": true,
-      "SimplifiedMeshes": false
+      "ShowCutLines": true
     }
   }
 }

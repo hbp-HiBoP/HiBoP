@@ -65,18 +65,39 @@ namespace HBP.Data.Preferences
         [DataMember] public int TrialHeight { get; set; }
         [DataMember] public float TrialRatio { get; set; }
         [DataMember] public float BlocRatio { get; set; }
+
+        public TrialMatrixPreferences()
+        {
+            ShowWholeProtocol = false;
+            TrialsSynchronization = true;
+            TrialSmoothing = true;
+            NumberOfIntermediateValues = 3;
+            SubBlocFormat = Enums.BlocFormatType.BlocRatio;
+            TrialHeight = (int)(0.3f * (MAXIMUM_TRIAL_HEIGHT - MINIMUM_TRIAL_HEIGHT));
+            TrialRatio = 0.3f * (MAXIMUM_TRIAL_RATIO - MINIMUM_TRIAL_RATIO);
+            BlocRatio = 0.3f * (MAXIMUM_BLOC_RATIO - MINIMUM_BLOC_RATIO);
+        }
     }
 
     [DataContract]
     public class GraphPreferences
     {
         [DataMember] public bool ShowCurvesOfMinimizedColumns { get; set; }
+
+        public GraphPreferences()
+        {
+            ShowCurvesOfMinimizedColumns = false;
+        }
     }
 
     [DataContract]
     public class CutPreferences
     {
         [DataMember] public bool ShowCutLines { get; set; }
-        //[DataMember] public bool SimplifiedMeshes { get; set; }
+
+        public CutPreferences()
+        {
+            ShowCutLines = true;
+        }
     }
 }

@@ -12,7 +12,7 @@ public class VerticalUIFitter : MonoBehaviour, ILayoutSelfController
     [SerializeField, HideInInspector]
     RectTransform m_parentRectTransform;
 
-    [SerializeField, Candlelight.PropertyBackingField]
+    [SerializeField]
     private DirectionEnum m_direction;
     public DirectionEnum direction
     {

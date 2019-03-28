@@ -21,5 +21,19 @@ namespace HBP.Data.Experience.Dataset
             Unit = unit;
         }
         #endregion
+
+        #region Public Methods
+        public void Clear()
+        {
+            Unit = "";
+
+            foreach (var blocChannelData in DataByBloc.Values)
+            {
+                blocChannelData.Clear();
+            }
+            DataByBloc.Clear();
+            DataByBloc = new Dictionary<Protocol.Bloc, BlocChannelData>();
+        }
+        #endregion
     }
 }

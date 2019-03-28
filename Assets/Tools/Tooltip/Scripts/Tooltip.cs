@@ -27,7 +27,7 @@ namespace Tools.Unity
             }
         }
 
-        [SerializeField, Candlelight.PropertyBackingField]
+        [SerializeField]
         private bool m_FollowMouse;
         public bool FollowMouse
         {

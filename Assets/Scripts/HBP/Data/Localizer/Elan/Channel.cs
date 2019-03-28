@@ -6,49 +6,49 @@ namespace Elan
     public class Channel
     {
         #region Properties
-        int channel;
+        int m_ChannelID;
         public string Label
         {
-            get { return Marshal.PtrToStringAnsi(GetLabel(channel, _handle)); }
-            set { SetLabel(value, channel, _handle); }
+            get { return Marshal.PtrToStringAnsi(GetLabel(m_ChannelID, m_HandleOfParentObject)); }
+            set { SetLabel(value, m_ChannelID, m_HandleOfParentObject); }
         }
         public string Type
         {
-            get { return Marshal.PtrToStringAnsi(GetType(channel, _handle)); }
-            set { SetType(value, channel, _handle); }
+            get { return Marshal.PtrToStringAnsi(GetType(m_ChannelID, m_HandleOfParentObject)); }
+            set { SetType(value, m_ChannelID, m_HandleOfParentObject); }
         }
         public string Unit
         {
-            get { return Marshal.PtrToStringAnsi(GetUnit(channel, _handle)); }
-            set { SetUnit(value, channel, _handle); }
+            get { return Marshal.PtrToStringAnsi(GetUnit(m_ChannelID, m_HandleOfParentObject)); }
+            set { SetUnit(value, m_ChannelID, m_HandleOfParentObject); }
         }
         public int CoordinatesNumber
         {
-            get { return GetCoordinateNumber(channel, _handle); }
-            set { SetCoordinateNumber(value, channel, _handle); }
+            get { return GetCoordinateNumber(m_ChannelID, m_HandleOfParentObject); }
+            set { SetCoordinateNumber(value, m_ChannelID, m_HandleOfParentObject); }
         }
         public Coordinate[] Coordinates
         {
             get
             {
                 Coordinate[] coordinates = new Coordinate[CoordinatesNumber];
-                GetCoordinate(coordinates, channel, _handle);
+                GetCoordinate(coordinates, m_ChannelID, m_HandleOfParentObject);
                 return coordinates;
             }
             set
             {
                 CoordinatesNumber = value.Length;
-                SetCoordinate(value, channel, _handle);
+                SetCoordinate(value, m_ChannelID, m_HandleOfParentObject);
             }
         }
-        HandleRef _handle;
+        HandleRef m_HandleOfParentObject;
         #endregion
 
         #region Constructor
-        public Channel(HandleRef _handle, int channel)
+        public Channel(HandleRef handle, int channel)
         {
-            this._handle = _handle;
-            this.channel = channel;
+            m_HandleOfParentObject = handle;
+            m_ChannelID = channel;
         }
         #endregion
 
