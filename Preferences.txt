@@ -34,7 +34,7 @@
   },
   "Visualization": {
     "_3D": {
-      "AutomaticEEGUpdate": true,
+      "AutomaticEEGUpdate": false,
       "SiteInfluenceByDistance": 2,
       "DefaultSelectedMRIInSinglePatientVisualization": "Preimplantation",
       "DefaultSelectedMeshInSinglePatientVisualization": "Grey matter",
@@ -51,7 +51,7 @@
       "SubBlocFormat": 2,
       "TrialHeight": 19,
       "TrialRatio": 0.06969325,
-      "BlocRatio": 0.213190228
+      "BlocRatio": 0.184049129
     },
     "Graph": {
       "ShowCurvesOfMinimizedColumns": false

@@ -10,7 +10,7 @@
 \usepackage{float}
 \usepackage[english]{babel}
 \usepackage[margin=1.1in]{geometry}
-\title{Human Intracranial Brain Observations Player \\ User Manual}
+\title{Human Intracranial Brain Observation Player \\ User Manual}
 \author{\textsc{BONTEMPS Benjamin} \\ \textsc{CHATARD Benoît} \\ \textsc{GANNERIE Adrien}}
 \lstset{
 	frame = single,
@@ -20,7 +20,7 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-This document is the user manual of the Human Intracranial Brain Observations Player (HiBoP). HiBoP is being developed by the Centre de Recherche en Neurosciences de Lyon (CRNL), with funds from the Human Brain Project (HBP) to visualize large datasets of intracranial electroencephalography (iEEG) data. This document was written for the 2.1.0 version of HiBoP.
+This document is the user manual of the Human Intracranial Brain Observation Player (HiBoP). HiBoP is being developed by the Centre de Recherche en Neurosciences de Lyon (CRNL), with funds from the Human Brain Project (HBP) to visualize large datasets of intracranial electroencephalography (iEEG) data. This document has been written for the 2.1.2 version of HiBoP.
 \end{abstract}
 \tableofcontents
 \section{HiBoP project} \label{data}
@@ -553,7 +553,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \paragraph{}
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.7]{GlobalUI.png}
+\includegraphics[scale=0.22]{GlobalUI.png}
 \end{center}
 \caption{\label{globalUI}HiBoP user interface}
 \end{figure}
@@ -564,8 +564,9 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item \textbf{3} - Toolbar selector (to select which toolbar you want to use)
 \item \textbf{4} - 3D visualization (main visualization window)
 \item \textbf{5} - Graphs and trial matrices (precise information of iEEG data, see section \ref{graphs})
-\item \textbf{6} - Cut panel (manage cuts, see section \ref{cuts})
-\item \textbf{7} - Opened visualizations (used to minimize or close opened visualizations)
+\item \textbf{6} - Sites list (manage site states, see section \ref{sitesList})
+\item \textbf{7} - Cut panel (manage cuts, see section \ref{cuts})
+\item \textbf{8} - Opened visualizations (used to minimize or close opened visualizations)
 \end{itemize}
 \paragraph{} Elements in parts 4, 5 and 6 can be resized using the black handlers betweens them. Columns of the 3D vizualisations can be moved by drag and dropping their labels at the top of the column. You can interact with the scene in many ways :
 \begin{itemize}
@@ -771,15 +772,15 @@ A dataset is a list of data information, each of them connecting one patient (an
 \subsubsection{Graphs}
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.35]{Graph.png}
+\includegraphics[scale=0.5]{Graph.png}
 \end{center}
-\caption{\label{graph}Graph for a protocol and two blocs (site D4 and ROI)}
+\caption{\label{graph}Graph for a protocol and two blocs (site G8)}
 \end{figure}
 \paragraph{} Curves are generated for each column (or not minimized columns, depending on the chosen preferences) :
 \begin{itemize}
 \item One curve for the last selected site (the column in which the site has been selected does not matter)
 \item One curve for the compared site if you are comparing two sites using the "Compare Site" tool in the site toolbar
-\item One curve for the ROI if it exists. The ROI is considered as a single site which has the combined activity of all sites (excluding excluded or blacklisted sites) within it.
+\item One curve for the ROI if it exists. The ROI is considered as a single site which has the combined activity of all sites (excluding excluded or blacklisted sites) within it. (WARNING: this is not yet reimplemented)
 \end{itemize}
 \paragraph{} An example of graph can be found at Figure \ref{graph}. A curve is the mean or median (depending on global preferences) of the iEEG activity of a site. The shapes around the single site curves correspond to the standard error of the mean (SEM). You can interact with the graph in order to get the most of it :
 \begin{itemize}
@@ -798,7 +799,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \paragraph{} Trial matrices are usefull to inspect iEEG activity of a site trial by trial. Trials are sorted according to the sorting method of a protocol bloc. You can change the color scale by clicking on it (same process as changing the viewport of the graph). Again, you can hover the matrix to get precise information about the hovered section (like in graphs). You can also select specific trials; only the selected trials will be taken into account when computing the values of the corresponding curve. To select trials, you can :
 \begin{itemize}
 \item Select a single trial by left clicking on it
-\item Select multiple trials by either shift left clicking on the trials you want to select, or by pressing the left click button dragging the mouse and releasing the button.
+\item Select multiple trials by either shift/ctrl left clicking on the trials you want to select, or by pressing the left click button dragging the mouse and releasing the button.
 \item Move the selection with the scroll wheel
 \end{itemize}
 \appendix
