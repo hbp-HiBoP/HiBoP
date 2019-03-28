@@ -461,6 +461,11 @@ namespace HBP.Module3D
         private bool m_UpdatingColliders = false;
 
         /// <summary>
+        /// True if the coroutine c_Destroy has been called
+        /// </summary>
+        private bool m_DestroyRequested = false;
+
+        /// <summary>
         /// Weight of the mesh loading step
         /// </summary>
         private const int LOADING_MESH_WEIGHT = 2500;
@@ -569,7 +574,7 @@ namespace HBP.Module3D
         #region Private Methods
         private void Update()
         {
-            if (!SceneInformation.IsSceneInitialized) return;
+            if (!SceneInformation.IsSceneInitialized || m_DestroyRequested) return;
 
             if (SceneInformation.MeshGeometryNeedsUpdate)
             {
@@ -2501,6 +2506,18 @@ namespace HBP.Module3D
             }
 
             m_UpdatingColliders = false;
+        }
+        /// <summary>
+        /// Destroy the scene
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerator c_Destroy()
+        {
+            m_GeneratorNeedsUpdate = true;
+            m_DestroyRequested = true;
+            yield return new WaitUntil(delegate { return !m_UpdatingGenerator; });
+            Visualization.Unload();
+            Destroy(gameObject);
         }
         #endregion
     }
