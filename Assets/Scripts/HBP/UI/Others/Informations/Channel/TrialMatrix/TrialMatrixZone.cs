@@ -1,6 +1,7 @@
 ﻿using HBP.Data.Experience.Dataset;
 using HBP.Data.Informations;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using data = HBP.Data.TrialMatrix.Grid;
 
@@ -18,15 +19,23 @@ namespace HBP.UI.Informations
         #region Public Methods
         public void Display(ChannelStruct[] channelStructs, DataStruct[] dataStructs)
         {
+            DataStruct[] dataToDisplay = new DataStruct[dataStructs.Length];
             if (ApplicationState.UserPreferences.Visualization.TrialMatrix.ShowWholeProtocol)
             {
                 for (int d = 0; d < dataStructs.Length; d++)
                 {
-                    dataStructs[d] = new DataStruct(dataStructs[d].Dataset, dataStructs[d].Data, dataStructs[d].Dataset.Protocol.Blocs);
+                    dataToDisplay[d] = new DataStruct(dataStructs[d].Dataset, dataStructs[d].Data, dataStructs[d].Dataset.Protocol.Blocs);
+                }
+            }
+            else
+            {
+                for (int d = 0; d < dataStructs.Length; d++)
+                {
+                    dataToDisplay[d] = new DataStruct(dataStructs[d].Dataset, dataStructs[d].Data, dataStructs[d].Blocs.ToList());
                 }
             }
             SaveSettings();
-            foreach (var data in dataStructs)
+            foreach (var data in dataToDisplay)
             {
                 Data key = new Data(data.Dataset, data.Data);
                 if (!m_SettingsByData.ContainsKey(key))
@@ -34,7 +43,7 @@ namespace HBP.UI.Informations
                     m_SettingsByData.Add(key, new Settings(new Vector2(), true));
                 }
             }
-            m_TrialMatrixGridData = new data.TrialMatrixGrid(channelStructs, dataStructs);
+            m_TrialMatrixGridData = new data.TrialMatrixGrid(channelStructs, dataToDisplay);
             m_TrialMatrixGrid.gameObject.SetActive(true);
             m_TrialMatrixGrid.Display(m_TrialMatrixGridData);
             ApplySettings();
