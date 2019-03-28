@@ -44,6 +44,17 @@ namespace HBP.Data.Experience.Dataset
         }
         #endregion
 
+        #region Public Methods
+        public void Clear()
+        {
+            foreach (var trial in Trials)
+            {
+                trial.Clear();
+            }
+            Trials = new Trial[0];
+        }
+        #endregion
+
         #region Private Methods
         static IOrderedEnumerable<Trial> SortTrials(Bloc bloc, IEnumerable<Trial> trials)
         {

@@ -8,13 +8,24 @@ namespace HBP.Data.Experience.Dataset
         public ChannelTrial[] Trials { get; set; }
         #endregion
 
-        #region constructors
+        #region Constructors
         public BlocChannelData(BlocData data, string channel) : this(data.Trials.Select(trial => new ChannelTrial(trial, channel)).ToArray())
         {
         }
         public BlocChannelData(ChannelTrial[] trials)
         {
             Trials = trials;
+        }
+        #endregion
+
+        #region Public Methods
+        public void Clear()
+        {
+            foreach (var channelTrial in Trials)
+            {
+                channelTrial.Clear();
+            }
+            Trials = new ChannelTrial[0];
         }
         #endregion
     }

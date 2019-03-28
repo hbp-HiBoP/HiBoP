@@ -20,5 +20,17 @@ namespace HBP.Data.Experience.Dataset
             }
         }
         #endregion
+
+        #region Public Methods
+        public void Clear()
+        {
+            foreach (var blocEventsStatistics in EventsStatisticsByBloc.Values)
+            {
+                blocEventsStatistics.Clear();
+            }
+            EventsStatisticsByBloc.Clear();
+            EventsStatisticsByBloc = new Dictionary<Protocol.Bloc, BlocEventsStatistics>();
+        }
+        #endregion
     }
 }

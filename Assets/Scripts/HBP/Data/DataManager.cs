@@ -60,20 +60,65 @@ public static class DataManager
     }
     public static void Clear()
     {
+        foreach (var data in m_DataByRequest.Values)
+        {
+            data.Clear();
+        }
         m_DataByRequest.Clear();
+        m_DataByRequest = new Dictionary<Request, Data>();
+
+        foreach (var blocData in m_BlocDataByRequest.Values)
+        {
+            blocData.Clear();
+        }
         m_BlocDataByRequest.Clear();
+        m_BlocDataByRequest = new Dictionary<BlocRequest, BlocData>();
 
+        foreach (var channelData in m_ChannelDataByRequest.Values)
+        {
+            channelData.Clear();
+        }
         m_ChannelDataByRequest.Clear();
+        m_ChannelDataByRequest = new Dictionary<ChannelRequest, ChannelData>();
+
+        foreach (var blocChannelData in m_BlocChannelDataByRequest.Values)
+        {
+            blocChannelData.Clear();
+        }
         m_BlocChannelDataByRequest.Clear();
+        m_BlocChannelDataByRequest = new Dictionary<BlocChannelRequest, BlocChannelData>();
 
+        foreach (var channelStatistics in m_ChannelStatisticsByRequest.Values)
+        {
+            channelStatistics.Clear();
+        }
         m_ChannelStatisticsByRequest.Clear();
-        m_BlocChannelStatisticsByRequest.Clear();
+        m_ChannelStatisticsByRequest = new Dictionary<ChannelRequest, ChannelStatistics>();
 
+        foreach (var blocChannelStatistics in m_BlocChannelStatisticsByRequest.Values)
+        {
+            blocChannelStatistics.Clear();
+        }
+        m_BlocChannelStatisticsByRequest.Clear();
+        m_BlocChannelStatisticsByRequest = new Dictionary<BlocChannelRequest, BlocChannelStatistics>();
+
+        foreach (var eventStatistics in m_EventsStatisticsByRequest.Values)
+        {
+            eventStatistics.Clear();
+        }
         m_EventsStatisticsByRequest.Clear();
+        m_EventsStatisticsByRequest = new Dictionary<Request, EventsStatistics>();
+
+        foreach (var blocEventsStatistics in m_BlocEventsStatisticsByRequest.Values)
+        {
+            blocEventsStatistics.Clear();
+        }
         m_BlocEventsStatisticsByRequest.Clear();
+        m_BlocEventsStatisticsByRequest = new Dictionary<BlocRequest, BlocEventsStatistics>();
 
         m_NormalizeByRequest.Clear();
-
+        m_NormalizeByRequest = new Dictionary<BlocRequest, HBP.Data.Enums.NormalizationType>();
+        
         GC.Collect();
     }
 

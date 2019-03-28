@@ -26,5 +26,19 @@ namespace HBP.Data.Experience.Dataset
         {
         }
         #endregion
+
+        #region Public Methods
+        public void Clear()
+        {
+            foreach (var channelSubTrial in ChannelSubTrialBySubBloc.Values)
+            {
+                channelSubTrial.Clear();
+            }
+            ChannelSubTrialBySubBloc.Clear();
+            ChannelSubTrialBySubBloc = new Dictionary<SubBloc, ChannelSubTrial>();
+
+            IsValid = false;
+        }
+        #endregion
     }
 }

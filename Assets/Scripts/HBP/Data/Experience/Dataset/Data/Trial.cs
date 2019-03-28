@@ -76,5 +76,17 @@ namespace HBP.Data.Experience.Dataset
             }
         }
         #endregion
+
+        #region Public Methods
+        public void Clear()
+        {
+            foreach (var subTrial in SubTrialBySubBloc.Values)
+            {
+                subTrial.Clear();
+            }
+            SubTrialBySubBloc.Clear();
+            SubTrialBySubBloc = new Dictionary<SubBloc, SubTrial>();
+        }
+        #endregion
     }
 }
