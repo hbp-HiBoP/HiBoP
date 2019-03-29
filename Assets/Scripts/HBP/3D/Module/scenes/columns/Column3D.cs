@@ -853,6 +853,25 @@ namespace HBP.Module3D
                 SelectedSite.IsSelected = false;
             }
         }
+        /// <summary>
+        /// Select the first unmasked site
+        /// </summary>
+        public void SelectFirstSite(string siteName = "")
+        {
+            Site site;
+            if (!string.IsNullOrEmpty(siteName))
+            {
+                site = Sites.FirstOrDefault(s => s.Information.ChannelName == siteName);
+            }
+            else
+            {
+                site = Sites.FirstOrDefault(s => !s.State.IsMasked);
+            }
+            if (site != null)
+            {
+                site.IsSelected = true;
+            }
+        }
         #endregion
     }
 }
