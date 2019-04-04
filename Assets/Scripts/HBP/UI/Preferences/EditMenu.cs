@@ -13,6 +13,10 @@ namespace HBP.UI.Preferences
         {
             ApplicationState.WindowsManager.Open("Project preferences window");
         }
+        public void OpenTags()
+        {
+            ApplicationState.WindowsManager.Open("Tags gestion window");
+        }
         #endregion
     }
 
