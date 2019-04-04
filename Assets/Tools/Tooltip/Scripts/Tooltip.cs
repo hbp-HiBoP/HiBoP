@@ -43,7 +43,7 @@ namespace Tools.Unity
         #region Private Methods
         private void Update()
         {
-            if (m_Entered)
+            if (m_Entered && ApplicationState.TooltipManager != null)
             {
                 m_TimeSinceEntered += Time.deltaTime;
                 if ((m_TimeSinceEntered > TooltipManager.TIME_TO_DISPLAY || (ApplicationState.TooltipManager.TooltipHasBeenDisplayedRecently && m_TimeSinceEntered > TooltipManager.TIME_TO_DISPLAY/3)) && !ApplicationState.TooltipManager.IsTooltipDisplayed)
@@ -65,7 +65,7 @@ namespace Tools.Unity
         }
         public void OnPointerExit(PointerEventData data)
         {
-            if(Application.isPlaying) ApplicationState.TooltipManager.HideTooltip();
+            if(Application.isPlaying && ApplicationState.TooltipManager != null) ApplicationState.TooltipManager.HideTooltip();
             m_Entered = false;
             m_TimeSinceEntered = 0.0f;
         }
