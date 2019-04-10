@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace HBP.Data.Tags
 {
     public class EnumTag : Tag
     {
         #region Properties
-        public string[] PossibleValues { get; set; }
+        [DataMember] public string[] PossibleValues { get; set; }
         #endregion
 
         #region Constructors

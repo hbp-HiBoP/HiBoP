@@ -15,7 +15,7 @@ namespace HBP.UI.Preferences
         }
         public void OpenTags()
         {
-            ApplicationState.WindowsManager.Open("Tags gestion window");
+            ApplicationState.WindowsManager.Open("Tag gestion window");
         }
         #endregion
     }

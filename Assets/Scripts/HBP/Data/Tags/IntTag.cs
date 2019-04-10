@@ -1,13 +1,14 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace HBP.Data.Tags
 {
     public class IntTag : Tag
     {
         #region Properties
-        public bool Limited { get; set; }
-        public int Min { get; set; }
-        public int Max { get; set; }
+        [DataMember] public bool Limited { get; set; }
+        [DataMember] public int Min { get; set; }
+        [DataMember] public int Max { get; set; }
         #endregion
 
         #region Constructors
