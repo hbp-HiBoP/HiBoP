@@ -24,6 +24,12 @@ namespace HBP.Data.Tags
             Min = min;
             Max = max;
         }
+        public FloatTag(string name, bool limited, float min, float max, string ID) : base(name,ID)
+        {
+            Limited = limited;
+            Min = min;
+            Max = max;
+        }
         #endregion
 
         #region Public Methods

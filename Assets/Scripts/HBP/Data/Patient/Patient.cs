@@ -3,7 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using HBP.Data.Anatomy;
+using HBP.Data.Tags;
 using Tools.Unity;
+using System.Collections.Generic;
 
 namespace HBP.Data
 {
@@ -50,6 +52,10 @@ namespace HBP.Data
         /// Patient brain.
         /// </summary>
         [DataMember] public Brain Brain { get; set; }
+        /// <summary>
+        /// Tag values.
+        /// </summary>
+        [DataMember] public List<TagValue> TagValues = new List<TagValue>();
 
         [IgnoreDataMember] public string CompleteName { get { return Name + " (" + Place + " - " + Date + ")"; } }
         #endregion

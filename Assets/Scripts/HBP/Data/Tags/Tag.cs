@@ -14,7 +14,7 @@ namespace HBP.Data.Tags
         /// <summary>
         /// Tag Name.
         /// </summary>
-        [DataMember]
+        [DataMember(Order = 0)]
         public string Name { get; set; }
 
         /// <summary>

@@ -19,7 +19,17 @@ namespace HBP.Data.Tags
         {
 
         }
+        public IntTag(string name, string ID) : base(name, ID)
+        {
+
+        }
         public IntTag(string name, bool limited, int min, int max) : base(name)
+        {
+            Limited = limited;
+            Min = min;
+            Max = max;
+        }
+        public IntTag(string name, bool limited, int min, int max, string ID) : base(name, ID)
         {
             Limited = limited;
             Min = min;

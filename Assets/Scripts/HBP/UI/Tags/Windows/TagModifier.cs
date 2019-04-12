@@ -1,7 +1,6 @@
 ﻿using HBP.Data.Tags;
 using System;
 using System.Globalization;
-using System.Text;
 using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,7 +14,7 @@ namespace HBP.UI.Tags
 
         // General.
         [SerializeField] InputField m_NameInputField;
-        [SerializeField] Dropdown m_TypeDropDown;
+        [SerializeField] Dropdown m_TypeDropdown;
 
         // EmptyTag.
         [SerializeField] GameObject m_EmptyTagOptions;
@@ -61,7 +60,7 @@ namespace HBP.UI.Tags
                 base.Interactable = value;
 
                 m_NameInputField.interactable = value;
-                m_TypeDropDown.interactable = value;
+                m_TypeDropdown.interactable = value;
             }
         }
         #endregion
@@ -69,7 +68,36 @@ namespace HBP.UI.Tags
         #region Public Methods
         public override void Save()
         {
-            Item = ItemTemp;
+            if(ItemTemp is EmptyTag)
+            {
+                EmptyTag tag = (EmptyTag)ItemTemp;
+                Item = new EmptyTag(tag.Name, Item.ID);
+            }
+            else if(ItemTemp is BoolTag)
+            {
+                BoolTag tag = (BoolTag)ItemTemp;
+                Item = new BoolTag(tag.Name, Item.ID);
+            }
+            else if(ItemTemp is IntTag)
+            {
+                IntTag tag = (IntTag)ItemTemp;
+                Item = new IntTag(tag.Name, tag.Limited, tag.Min, tag.Max, Item.ID);
+            }
+            else if(ItemTemp is FloatTag)
+            {
+                FloatTag tag = (FloatTag)ItemTemp;
+                Item = new FloatTag(tag.Name, tag.Limited, tag.Min, tag.Max, Item.ID);
+            }
+            else if(ItemTemp is EnumTag)
+            {
+                EnumTag tag = (EnumTag)ItemTemp;
+                Item = new EnumTag(tag.Name, tag.PossibleValues, Item.ID);
+            }
+            else if(ItemTemp is StringTag)
+            {
+                StringTag tag = (StringTag)ItemTemp;
+                Item = new StringTag(tag.Name, Item.ID);
+            }
             OnSave.Invoke();
             base.Close();
         }
@@ -82,7 +110,7 @@ namespace HBP.UI.Tags
 
             // General.
             m_NameInputField.onValueChanged.AddListener(OnChangeNameHandler);
-            m_TypeDropDown.onValueChanged.AddListener(OnChangeTypeHandler);
+            m_TypeDropdown.onValueChanged.AddListener(OnChangeTypeHandler);
 
             // Enum.
             m_EnumValuesInputField.onValueChanged.AddListener(OnChangeEnumHandler);
@@ -97,7 +125,6 @@ namespace HBP.UI.Tags
             m_IntMinInputField.onValueChanged.AddListener(OnChangeIntMinHandler);
             m_IntMaxInputField.onValueChanged.AddListener(OnChangeIntMaxHandler);
         }
-
         protected override void SetFields(Tag objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
@@ -138,9 +165,8 @@ namespace HBP.UI.Tags
             {
                 value = 5;
             }
-            DropdownExtension.Set(m_TypeDropDown, typeof(Type), value);
+            DropdownExtension.Set(m_TypeDropdown, typeof(Type), value);
         }
-
         protected void OnChangeNameHandler(string value)
         {
             ItemTemp.Name = value;
@@ -153,171 +179,170 @@ namespace HBP.UI.Tags
                 case Type.Empty:
                     if (ItemTemp is BoolTag)
                     {
-                        m_BoolTagOptions.SetActive(false);
                         ItemTemp = new EmptyTag(ItemTemp.Name);
                     }
                     else if (ItemTemp is EnumTag)
                     {
-                        m_EnumTagOptions.SetActive(false);
                         ItemTemp = new EmptyTag(ItemTemp.Name);
                     }
                     else if (ItemTemp is FloatTag)
                     {
-                        m_FloatTagOptions.SetActive(false);
                         ItemTemp = new EmptyTag(ItemTemp.Name);
                     }
                     else if (ItemTemp is IntTag)
                     {
-                        m_IntTagOptions.SetActive(false);
                         ItemTemp = new EmptyTag(ItemTemp.Name);
                     }
                     else if (ItemTemp is StringTag)
                     {
-                        m_StringTagOptions.SetActive(false);
                         ItemTemp = new EmptyTag(ItemTemp.Name);
                     }
+                    m_BoolTagOptions.SetActive(false);
+                    m_EnumTagOptions.SetActive(false);
+                    m_FloatTagOptions.SetActive(false);
+                    m_IntTagOptions.SetActive(false);
+                    m_StringTagOptions.SetActive(false);
                     m_EmptyTagOptions.SetActive(true);
                     break;
                 case Type.Boolean:
                     if (ItemTemp is EmptyTag)
                     {
-                        m_EmptyTagOptions.SetActive(false);
                         ItemTemp = new BoolTag(ItemTemp.Name);
                     }
                     else if (ItemTemp is EnumTag)
                     {
-                        m_EnumTagOptions.SetActive(false);
                         ItemTemp = new BoolTag(ItemTemp.Name);
                     }
                     else if (ItemTemp is FloatTag)
                     {
-                        m_FloatTagOptions.SetActive(false);
                         ItemTemp = new BoolTag(ItemTemp.Name);
                     }
                     else if (ItemTemp is IntTag)
                     {
-                        m_IntTagOptions.SetActive(false);
                         ItemTemp = new BoolTag(ItemTemp.Name);
                     }
                     else if (ItemTemp is StringTag)
                     {
-                        m_StringTagOptions.SetActive(false);
                         ItemTemp = new BoolTag(ItemTemp.Name);
                     }
+                    m_EmptyTagOptions.SetActive(false);
+                    m_EnumTagOptions.SetActive(false);
+                    m_FloatTagOptions.SetActive(false);
+                    m_IntTagOptions.SetActive(false);
+                    m_StringTagOptions.SetActive(false);
                     m_BoolTagOptions.SetActive(true);
                     break;
                 case Type.Enumeration:
                     if (ItemTemp is EmptyTag)
                     {
-                        m_EmptyTagOptions.SetActive(false);
                         ItemTemp = new EnumTag(ItemTemp.Name, m_LastEnumValues);
                     }
                     else if (ItemTemp is BoolTag)
                     {
-                        m_BoolTagOptions.SetActive(false);
                         ItemTemp = new EnumTag(ItemTemp.Name, m_LastEnumValues);
                     }
                     else if (ItemTemp is FloatTag)
                     {
-                        m_FloatTagOptions.SetActive(false);
                         ItemTemp = new EnumTag(ItemTemp.Name, m_LastEnumValues);
                     }
                     else if (ItemTemp is IntTag)
                     {
-                        m_IntTagOptions.SetActive(false);
                         ItemTemp = new EnumTag(ItemTemp.Name, m_LastEnumValues);
                     }
                     else if (ItemTemp is StringTag)
                     {
-                        m_StringTagOptions.SetActive(false);
                         ItemTemp = new EnumTag(ItemTemp.Name, m_LastEnumValues);
                     }
+                    m_EmptyTagOptions.SetActive(false);
+                    m_BoolTagOptions.SetActive(false);
+                    m_FloatTagOptions.SetActive(false);
+                    m_IntTagOptions.SetActive(false);
+                    m_StringTagOptions.SetActive(false);
                     m_EnumTagOptions.SetActive(true);
                     break;
                 case Type.Decimal:
                     if (ItemTemp is EmptyTag)
                     {
-                        m_EmptyTagOptions.SetActive(false);
                         ItemTemp = new FloatTag(ItemTemp.Name, m_LastFloatLimited, m_LastFloatMin, m_LastFloatMax);
                     }
                     else if (ItemTemp is BoolTag)
                     {
-                        m_BoolTagOptions.SetActive(false);
                         ItemTemp = new FloatTag(ItemTemp.Name, m_LastFloatLimited, m_LastFloatMin, m_LastFloatMax);
                     }
                     else if (ItemTemp is EnumTag)
                     {
-                        m_EnumTagOptions.SetActive(false);
                         ItemTemp = new FloatTag(ItemTemp.Name, m_LastFloatLimited, m_LastFloatMin, m_LastFloatMax);
                     }
                     else if (ItemTemp is IntTag)
                     {
-                        m_IntTagOptions.SetActive(false);
                         IntTag intTag = ItemTemp as IntTag;
                         ItemTemp = new FloatTag(ItemTemp.Name, intTag.Limited, intTag.Min, intTag.Max);
                     }
                     else if (ItemTemp is StringTag)
                     {
-                        m_StringTagOptions.SetActive(false);
                         ItemTemp = new FloatTag(ItemTemp.Name, m_LastFloatLimited, m_LastFloatMin, m_LastFloatMax);
                     }
+                    m_EmptyTagOptions.SetActive(false);
+                    m_BoolTagOptions.SetActive(false);
+                    m_EnumTagOptions.SetActive(false);
+                    m_IntTagOptions.SetActive(false);
                     m_FloatTagOptions.SetActive(true);
                     break;
                 case Type.Integer:
                     if (ItemTemp is EmptyTag)
                     {
-                        m_EmptyTagOptions.SetActive(false);
                         ItemTemp = new IntTag(ItemTemp.Name, m_LastIntLimited, m_LastIntMin, m_LastIntMax);
                     }
                     else if (ItemTemp is BoolTag)
                     {
-                        m_BoolTagOptions.SetActive(false);
                         ItemTemp = new IntTag(ItemTemp.Name, m_LastIntLimited, m_LastIntMin, m_LastIntMax);
                     }
                     else if (ItemTemp is EnumTag)
                     {
-                        m_EnumTagOptions.SetActive(false);
                         ItemTemp = new IntTag(ItemTemp.Name, m_LastIntLimited, m_LastIntMin, m_LastIntMax);
                     }
                     else if (ItemTemp is FloatTag)
                     {
-                        m_FloatTagOptions.SetActive(false);
                         FloatTag floatTag = ItemTemp as FloatTag;
                         ItemTemp = new IntTag(ItemTemp.Name, floatTag.Limited, Convert.ToInt32(floatTag.Min), Convert.ToInt32(floatTag.Max));
                     }
                     else if (ItemTemp is StringTag)
                     {
-                        m_StringTagOptions.SetActive(false);
                         ItemTemp = new IntTag(ItemTemp.Name, m_LastIntLimited, m_LastIntMin, m_LastIntMax);
                     }
+                    m_EmptyTagOptions.SetActive(false);
+                    m_BoolTagOptions.SetActive(false);
+                    m_EnumTagOptions.SetActive(false);
+                    m_FloatTagOptions.SetActive(false);
+                    m_StringTagOptions.SetActive(false);
                     m_IntTagOptions.SetActive(true);
                     break;
                 case Type.Text:
                     if (ItemTemp is EmptyTag)
                     {
-                        m_EmptyTagOptions.SetActive(false);
                         ItemTemp = new StringTag(ItemTemp.Name);
                     }
                     else if (ItemTemp is BoolTag)
                     {
-                        m_BoolTagOptions.SetActive(false);
                         ItemTemp = new StringTag(ItemTemp.Name);
                     }
                     else if (ItemTemp is EnumTag)
                     {
-                        m_EnumTagOptions.SetActive(false);
                         ItemTemp = new StringTag(ItemTemp.Name);
                     }
                     else if (ItemTemp is FloatTag)
                     {
-                        m_FloatTagOptions.SetActive(false);
                         ItemTemp = new StringTag(ItemTemp.Name);
                     }
                     else if (ItemTemp is IntTag)
                     {
-                        m_IntTagOptions.SetActive(false);
                         ItemTemp = new StringTag(ItemTemp.Name);
                     }
+                    m_EmptyTagOptions.SetActive(false);
+                    m_BoolTagOptions.SetActive(false);
+                    m_EnumTagOptions.SetActive(false);
+                    m_FloatTagOptions.SetActive(false);
+                    m_IntTagOptions.SetActive(false);
                     m_StringTagOptions.SetActive(true);
                     break;
                 default:

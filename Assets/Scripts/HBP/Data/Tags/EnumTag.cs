@@ -20,6 +20,10 @@ namespace HBP.Data.Tags
         {
             PossibleValues = possibleValues;
         }
+        public EnumTag(string name, string[] possibleValues, string ID) : base(name, ID)
+        {
+            PossibleValues = possibleValues;
+        }
         #endregion
 
         #region Public Methods

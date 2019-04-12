@@ -133,6 +133,8 @@ namespace Tools.Unity.Components
             }
             else
             {
+                int index = Objects.FindIndex(t => t.Equals(modifier.Item));
+                Objects[index] = modifier.Item;
                 List.UpdateObject(modifier.Item);
             }
             OnCloseSavableWindow.Invoke(modifier);

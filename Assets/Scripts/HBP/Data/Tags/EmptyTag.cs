@@ -12,6 +12,10 @@
         public EmptyTag(string name) : base(name)
         {
         }
+        public EmptyTag(string name, string ID) : base(name, ID)
+        {
+
+        }
         #endregion
 
         #region Public Methods

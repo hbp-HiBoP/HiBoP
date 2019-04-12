@@ -98,6 +98,15 @@ namespace HBP.Data.General
         {
             get { return new ReadOnlyCollection<Visualization.Visualization>(m_Visualizations); }
         }
+
+        List<Tags.Tag> m_Tags = new List<Tags.Tag>();
+        /// <summary>
+        /// Tags of the project.
+        /// </summary>
+        public ReadOnlyCollection<Tags.Tag> Tags
+        {
+            get { return new ReadOnlyCollection<Tags.Tag>(m_Tags); }
+        }
         #endregion
 
         #region Constructors
@@ -111,7 +120,7 @@ namespace HBP.Data.General
         /// <param name="datasets">Datasets of the project.</param>
         /// <param name="visualizations">Single patient visualizations of the project.</param>
         /// <param name="multiVisualizations">Multi patients visualizations of the project.</param>
-        public Project(ProjectSettings settings, IEnumerable<Patient> patients, IEnumerable<Group> groups, IEnumerable<Protocol> protocols, IEnumerable<Dataset> datasets, IEnumerable<Visualization.Visualization> visualizations)
+        public Project(ProjectSettings settings, IEnumerable<Patient> patients, IEnumerable<Group> groups, IEnumerable<Protocol> protocols, IEnumerable<Dataset> datasets, IEnumerable<Visualization.Visualization> visualizations, IEnumerable<Tags.Tag> tags)
         {
             Settings = settings;
             SetPatients(patients);
@@ -119,12 +128,13 @@ namespace HBP.Data.General
             SetProtocols(protocols);
             SetDatasets(datasets);
             SetVisualizations(visualizations);
+            SetTags(tags);
         }
         /// <summary>
         /// Create a new project with only the settings.
         /// </summary>
         /// <param name="settings">Settings of the project.</param>
-        public Project(ProjectSettings settings) : this(settings, new Patient[0], new Group[0], new Protocol[0], new Dataset[0] , new Visualization.Visualization[0])
+        public Project(ProjectSettings settings) : this(settings, new Patient[0], new Group[0], new Protocol[0], new Dataset[0] , new Visualization.Visualization[0], new Tags.Tag[0])
         {
         }
         /// <summary>
@@ -337,6 +347,34 @@ namespace HBP.Data.General
                 RemoveVisualization(visualization);
             }
         }
+        // Tags.
+        public void SetTags(IEnumerable<Tags.Tag> tags)
+        {
+            this.m_Tags = new List<Tags.Tag>();
+            AddTag(tags);
+        }
+        public void AddTag(Tags.Tag tag)
+        {
+            m_Tags.Add(tag);
+        }
+        public void AddTag(IEnumerable<Tags.Tag> tags)
+        {
+            foreach (Tags.Tag tag in tags)
+            {
+                AddTag(tag);
+            }
+        }
+        public void RemoveTag(Tags.Tag tag)
+        {
+            m_Tags.Remove(tag);
+        }
+        public void RemoveTag(IEnumerable<Tags.Tag> tags)
+        {
+            foreach (Tags.Tag tag in tags)
+            {
+                RemoveTag(tag);
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -370,7 +408,7 @@ namespace HBP.Data.General
         {
             // Initialize progress.
             float progress = 0.0f;
-            float progressStep = 1.0f / ( 1 + projectInfo.Patients + projectInfo.Groups + projectInfo.Protocols + projectInfo.Datasets + projectInfo.Visualizations);
+            float progressStep = 1.0f / ( 1 + projectInfo.Tags + projectInfo.Patients + projectInfo.Groups + projectInfo.Protocols + projectInfo.Datasets + projectInfo.Visualizations);
             if (OnChangeProgress == null) OnChangeProgress = new GenericEvent<float, float, LoadingText>();
             Action<float> outPut = (value) => progress = value;
 
@@ -391,6 +429,7 @@ namespace HBP.Data.General
 
             yield return Ninja.JumpToUnity;
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadSettings(projectDirectory, progress, progressStep, OnChangeProgress, outPut));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadTags(projectDirectory, progress, progressStep, OnChangeProgress, outPut));
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadPatients(projectDirectory, progress, progressStep, OnChangeProgress, outPut));
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadGroups(projectDirectory, progress, progressStep, OnChangeProgress, outPut));
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadProtocols(projectDirectory, progress, progressStep, OnChangeProgress, outPut));
@@ -404,7 +443,7 @@ namespace HBP.Data.General
         public IEnumerator c_Save(string path, GenericEvent<float, float, LoadingText> OnChangeProgress = null)
         {
             float progress = 0.0f;
-            float progressStep = 1.0f / ( 4 + Patients.Count + Groups.Count + Protocols.Count + Datasets.Count + Visualizations.Count);
+            float progressStep = 1.0f / ( 4 + Tags.Count + Patients.Count + Groups.Count + Protocols.Count + Datasets.Count + Visualizations.Count);
             if (OnChangeProgress == null) OnChangeProgress = new GenericEvent<float, float, LoadingText>();
             Action<float> outPut = (value) => progress = value;
 
@@ -424,6 +463,7 @@ namespace HBP.Data.General
 
             //yield return c_EmbedDataIntoProjectFile(tmpProjectDirectory, oldTMPProjectDirectory, OnChangeProgress);
             yield return c_SaveSettings(tmpProjectDirectory, progress, progressStep, OnChangeProgress, outPut);
+            yield return c_SaveTags(tmpProjectDirectory, progress, progressStep, OnChangeProgress, outPut);
             yield return c_SavePatients(tmpProjectDirectory, progress, progressStep, OnChangeProgress, outPut);
             yield return c_SaveGroups(tmpProjectDirectory, progress, progressStep, OnChangeProgress, outPut);
             yield return c_SaveProtocols(tmpProjectDirectory, progress, progressStep, OnChangeProgress, outPut);
@@ -495,6 +535,36 @@ namespace HBP.Data.General
                 throw new CanNotReadSettingsFileException(settingsFiles[0].Name);
             }
             progress += progressStep;
+            outPut(progress);
+        }
+        IEnumerator c_LoadTags(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
+        {
+            yield return Ninja.JumpBack;
+            // Load tags.
+            List<Tags.Tag> tags = new List<Tags.Tag>();
+            DirectoryInfo tagDirectory = projectDirectory.GetDirectories("Tags", SearchOption.TopDirectoryOnly).FirstOrDefault();
+            if(tagDirectory != null)
+            {
+                FileInfo[] tagFiles = tagDirectory.GetFiles("*" + Data.Tags.Tag.EXTENSION, SearchOption.TopDirectoryOnly);
+                for (int i = 0; i < tagFiles.Length; ++i)
+                {
+                    FileInfo tagFile = tagFiles[i];
+                    OnChangeProgress.Invoke(progress, 0, new LoadingText("Loading tag ", Path.GetFileNameWithoutExtension(tagFile.Name), " [" + (i + 1).ToString() + "/" + tagFiles.Length + "]"));
+                    tags.Add(ClassLoaderSaver.LoadFromJson<Tags.Tag>(tagFile.FullName));
+                    try
+                    {
+
+                    }
+                    catch (Exception e)
+                    {
+                        UnityEngine.Debug.LogException(e);
+                        throw new CanNotReadTagFileException(Path.GetFileNameWithoutExtension(tagFile.Name));
+                    }
+                    progress += progressStep;
+                }
+            }
+
+            SetTags(tags.ToArray());
             outPut(progress);
         }
         IEnumerator c_LoadPatients(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
@@ -664,6 +734,29 @@ namespace HBP.Data.General
                 throw new CanNotSaveSettingsException();
             }
             progress += progressStep;
+            outPut(progress);
+        }
+        IEnumerator c_SaveTags(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
+        {
+            DirectoryInfo tagDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Tags"));
+            // Save tags
+            foreach (var tag in Tags)
+            {
+                yield return Ninja.JumpToUnity;
+                OnChangeProgress.Invoke(progress, 0, new LoadingText("Saving tag ", tag.ID));
+                yield return Ninja.JumpBack;
+
+                try
+                {
+                    ClassLoaderSaver.SaveToJSon(tag, Path.Combine(tagDirectory.FullName, tag.Name + Data.Tags.Tag.EXTENSION));
+                }
+                catch (Exception e)
+                {
+                    UnityEngine.Debug.LogException(e);
+                    throw new CanNotSaveTagException();
+                }
+                progress += progressStep;
+            }
             outPut(progress);
         }
         IEnumerator c_SavePatients(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)

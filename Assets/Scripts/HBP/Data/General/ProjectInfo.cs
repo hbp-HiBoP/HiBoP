@@ -9,6 +9,7 @@ namespace HBP.Data.General
     {
         #region Properties
         public ProjectSettings Settings { get; set; }
+        public int Tags { get; set; }
         public int Patients { get; set; }
         public int Groups { get; set; }
         public int Protocols { get; set; }
@@ -21,6 +22,7 @@ namespace HBP.Data.General
         public ProjectInfo()
         {
             Settings = new ProjectSettings();
+            Tags = 0;
             Patients = 0;
             Groups = 0;
             Protocols = 0;
@@ -40,6 +42,10 @@ namespace HBP.Data.General
                         if (entry.FileName.EndsWith(Patient.EXTENSION))
                         {
                             Patients++;
+                        }
+                        if (entry.FileName.EndsWith(Data.Tags.Tag.EXTENSION))
+                        {
+                            Tags++;
                         }
                         else if(entry.FileName.EndsWith(Group.EXTENSION))
                         {

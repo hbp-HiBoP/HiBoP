@@ -14,6 +14,10 @@ namespace HBP.Data.Tags
         public StringTag(string name) : base(name)
         {
         }
+        public StringTag(string name, string ID) : base (name,ID)
+        {
+
+        }
         #endregion
 
         #region Public Methods

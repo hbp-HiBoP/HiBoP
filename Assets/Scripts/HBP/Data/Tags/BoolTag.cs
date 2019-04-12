@@ -13,6 +13,10 @@ namespace HBP.Data.Tags
         }
         public BoolTag(string name) : base(name)
         {
+
+        }
+        public BoolTag(string name, string ID) : base(name, ID)
+        {
         }
         #endregion
 
