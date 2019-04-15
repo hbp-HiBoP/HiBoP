@@ -78,6 +78,7 @@ namespace HBP.Data.Anatomy
             List<Mesh> meshes = new List<Mesh>();
             DirectoryInfo parent = new DirectoryInfo(path);
             DirectoryInfo t1mr1 = new DirectoryInfo(Path.Combine(path, "t1mri"));
+
             // Pre
             DirectoryInfo preimplantationDirectory = null, preTransformationsDirectory = null;
             FileInfo preTransformation = null;
