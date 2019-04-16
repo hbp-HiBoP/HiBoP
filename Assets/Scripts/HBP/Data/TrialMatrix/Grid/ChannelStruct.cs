@@ -124,7 +124,10 @@ namespace HBP.Data.Informations
         #region Public Methods
         public void AddBloc(Experience.Protocol.Bloc bloc)
         {
-            m_Blocs.Add(bloc);
+            if(!m_Blocs.Contains(bloc))
+            {
+                m_Blocs.Add(bloc);
+            }
         }
         public void RemoveBloc(Experience.Protocol.Bloc bloc)
         {

@@ -24,7 +24,7 @@ namespace HBP.UI.Informations
         [SerializeField] RectTransform m_ToggleContainer;
 
         [SerializeField] List<Color> m_Colors;
-        Dictionary<Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color> m_ColorsByData;
+        Dictionary<Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color> m_ColorsByData = new Dictionary<Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color>();
 
         [SerializeField] Queue<Graph> m_GraphPool = new Queue<Graph>();
         [SerializeField] List<Graph> m_Graphs = new List<Graph>();
@@ -377,21 +377,25 @@ namespace HBP.UI.Informations
         Dictionary<Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color> GenerateColors(ChannelStruct[] channels, DataStruct[] data)
         {
             Dictionary<Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color> result = new Dictionary<Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color>();
-            int colorIndex = 0;
             foreach (var channel in channels)
             {
                 foreach (var d in data)
                 {
                     foreach (var bloc in d.Blocs)
                     {
-                        if (colorIndex < m_Colors.Count)
+                        Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc> key = new Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>(channel, d, bloc);
+                        if(!result.ContainsKey(key))
                         {
-                            result.Add(new Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>(channel, d, bloc), m_Colors[colorIndex]);
-                            colorIndex++;
-                        }
-                        else
-                        {
-                            result.Add(new Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>(channel, d, bloc), Color.white);
+                            if(m_ColorsByData.ContainsKey(key))
+                            {
+                                result.Add(key, m_ColorsByData[key]);
+                            }
+                            else
+                            {
+                                Color color = m_Colors.FirstOrDefault(c => !result.ContainsValue(c));
+                                if (color == null) color = Color.white;
+                                result.Add(key, color);
+                            }
                         }
                     }
                 }
@@ -416,7 +420,6 @@ namespace HBP.UI.Informations
         }
         void UpdateCurveData(ref CurveData curveData, ChannelBloc channelBloc, BlocChannelData blocChannelData, SubBloc subBloc)
         {
-            Debug.Log("UpdateCurveData");
             bool[] trialIsSelected = channelBloc.TrialIsSelected;
             ChannelTrial[] validTrials = blocChannelData.Trials.Where(t => t.IsValid).ToArray();
             List<ChannelTrial> trialsToUse = new List<ChannelTrial>(blocChannelData.Trials.Length);
