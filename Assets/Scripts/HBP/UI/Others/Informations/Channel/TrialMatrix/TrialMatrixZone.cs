@@ -24,7 +24,7 @@ namespace HBP.UI.Informations
             {
                 for (int d = 0; d < dataStructs.Length; d++)
                 {
-                    dataToDisplay[d] = new DataStruct(dataStructs[d].Dataset, dataStructs[d].Data, dataStructs[d].Dataset.Protocol.Blocs);
+                    dataToDisplay[d] = new DataStruct(dataStructs[d].Dataset, dataStructs[d].Data, dataStructs[d].Dataset.Protocol.Blocs.Select(b => new BlocStruct(b)));
                 }
             }
             else

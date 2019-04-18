@@ -25,6 +25,8 @@ namespace HBP.UI.Informations
 
         [SerializeField] List<Color> m_Colors;
         Dictionary<Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color> m_ColorsByData = new Dictionary<Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color>();
+        Dictionary<Tuple<ROIStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color> m_ColorsByROI = new Dictionary<Tuple<ROIStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color>();
+        Dictionary<string, bool> m_StatesByCurves = new Dictionary<string, bool>();
 
         [SerializeField] Queue<Graph> m_GraphPool = new Queue<Graph>();
         [SerializeField] List<Graph> m_Graphs = new List<Graph>();
@@ -61,7 +63,7 @@ namespace HBP.UI.Informations
         {
             m_Data = data.ToArray();
             m_Channels = channels.ToArray();
-            m_ColorsByData = GenerateColors(channels, data);
+            GenerateColors(channels, data);
 
             SetGraphs();
         }
@@ -169,6 +171,12 @@ namespace HBP.UI.Informations
             }
             UnityEngine.Profiling.Profiler.EndSample();
 
+            Dictionary<string, bool> dico = m_StatesByCurves.ToDictionary((t) => t.Key, (t) => t.Value);
+            foreach (var pair in dico)
+            {
+                graph.SetEnabled(pair.Key, pair.Value);
+            }
+
             // Add Toggle
             GameObject toggleGameObject = Instantiate(m_TogglesPrefab, m_ToggleContainer);
             Toggle toggle = toggleGameObject.GetComponent<Toggle>();
@@ -207,6 +215,7 @@ namespace HBP.UI.Informations
         {
             if (!m_isLock)
             {
+                m_StatesByCurves[ID] = isActive;
                 m_isLock = true;
                 foreach (var graph in m_Graphs)
                 {
@@ -235,9 +244,9 @@ namespace HBP.UI.Informations
             {
                 foreach (var bloc in d.Blocs)
                 {
-                    if (!blocs.Contains(bloc))
+                    if (!blocs.Contains(bloc.Bloc))
                     {
-                        blocs.Add(bloc);
+                        blocs.Add(bloc.Bloc);
                     }
                 }
             }
@@ -261,10 +270,10 @@ namespace HBP.UI.Informations
             Graph.Curve result = new Graph.Curve(data.Data, null, true, data.Data, new Graph.Curve[0], new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1));
             foreach (var bloc in data.Blocs)
             {
-                SubBloc subBloc = bloc.SubBlocs.FirstOrDefault(s => subBlocs.Contains(s));
+                SubBloc subBloc = bloc.Bloc.SubBlocs.FirstOrDefault(s => subBlocs.Contains(s));
                 if (subBloc != null)
                 {
-                    result.AddSubCurve(GenerateBlocCurve(channels, data, bloc, subBloc));
+                    result.AddSubCurve(GenerateBlocCurve(channels, data, bloc.Bloc, subBloc));
                 }
             }
             if (result.SubCurves.Count == 0) return null;
@@ -273,6 +282,8 @@ namespace HBP.UI.Informations
         Graph.Curve GenerateBlocCurve(ChannelStruct[] channels, DataStruct data, Data.Experience.Protocol.Bloc bloc, SubBloc subBloc)
         {
             Graph.Curve result = new Graph.Curve(bloc.Name, null, true, data.Data + "_" + bloc.Name, new Graph.Curve[0], new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1));
+
+            // Patients
             Dictionary<Patient, List<ChannelStruct>> channelsByPatients = new Dictionary<Patient, List<ChannelStruct>>();
             foreach (var channel in channels)
             {
@@ -286,6 +297,13 @@ namespace HBP.UI.Informations
             {
                 result.AddSubCurve(GeneratePatientCurve(pair.Value.ToArray(), data, bloc, subBloc));
             }
+
+            // ROIs
+            if(data.Blocs.First(b => b.Bloc == bloc).ROIs.Count > 0)
+            {
+                result.AddSubCurve(GenerateROIsCurve(data, bloc, subBloc));
+            }
+
             return result;
         }
         Graph.Curve GeneratePatientCurve(ChannelStruct[] channels, DataStruct data, Data.Experience.Protocol.Bloc bloc, SubBloc subBloc)
@@ -295,6 +313,94 @@ namespace HBP.UI.Informations
             {
                 result.AddSubCurve(GenerateChannelCurve(channel, data, bloc, subBloc));
             }
+            return result;
+        }
+        Graph.Curve GenerateROIsCurve(DataStruct data, Data.Experience.Protocol.Bloc bloc, SubBloc subBloc)
+        {
+            Graph.Curve result = new Graph.Curve("ROI", null, true, data.Data + "_" + bloc.Name + "_ROI", new Graph.Curve[0], new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1));
+            BlocStruct blocStruct = data.Blocs.First(b => b.Bloc == bloc);
+            foreach (var ROI in blocStruct.ROIs)
+            {
+                result.AddSubCurve(GenerateROICurve(data, ROI, bloc, subBloc));
+            }
+            return result;
+        }
+        Graph.Curve GenerateROICurve(DataStruct data, ROIStruct ROI, Data.Experience.Protocol.Bloc bloc, SubBloc subBloc)
+        {
+            string ID = data.Data + "_" + bloc.Name + "_ROI_" + ROI.Name;
+
+            
+            CurveData curveData = null;
+            Dictionary<Patient, List<string>> ChannelsByPatient = new Dictionary<Patient, List<string>>();
+            foreach (var channel in ROI.Channels)
+            {
+                if(!ChannelsByPatient.ContainsKey(channel.Patient))
+                {
+                    ChannelsByPatient.Add(channel.Patient, new List<string>());
+                }
+                ChannelsByPatient[channel.Patient].Add(channel.Channel);
+            }
+            Dictionary<Patient, DataInfo> DataInfoByPatient = new Dictionary<Patient, DataInfo>(ChannelsByPatient.Count);
+            foreach (var patient in ChannelsByPatient.Keys)
+            {
+                DataInfoByPatient.Add(patient, data.Dataset.Data.First(d => d.Patient == patient && d.Name == data.Data));
+            }
+
+            Dictionary<ChannelStruct, BlocChannelStatistics> StatsByChannel = new Dictionary<ChannelStruct, BlocChannelStatistics>(ROI.Channels.Count);
+            foreach (var channel in ROI.Channels)
+            {
+                StatsByChannel.Add(channel, DataManager.GetStatistics(DataInfoByPatient[channel.Patient], bloc, channel.Channel));
+            }
+
+            Color color = m_ColorsByROI[new Tuple<ROIStruct, DataStruct, Data.Experience.Protocol.Bloc>(ROI, data, bloc)];
+            if (ROI.Channels.Count > 1)
+            {
+
+                float[] values = new float[StatsByChannel[ROI.Channels.First()].Trial.ChannelSubTrialBySubBloc[subBloc].Values.Length];
+                float[] standardDeviations = new float[values.Length];
+                for (int i = 0; i < values.Length; i++)
+                {
+                    List<float> sum = new List<float>();
+                    foreach (var channel in ROI.Channels)
+                    {
+                        sum.Add(StatsByChannel[channel].Trial.ChannelSubTrialBySubBloc[subBloc].Values[i]);
+
+                    }
+                    values[i] = sum.ToArray().Mean();
+                    standardDeviations[i] = sum.ToArray().SEM();
+                }
+
+                // Generate points.
+                int start = subBloc.Window.Start;
+                int end = subBloc.Window.End;
+                Vector2[] points = new Vector2[values.Length];
+                for (int i = 0; i < points.Length; i++)
+                {
+                    float abscissa = start + ((float)i / (points.Length - 1)) * (end - start);
+                    float ordinate = values[i];
+                    points[i] = new Vector2(abscissa, ordinate);
+                }
+                curveData = ShapedCurveData.CreateInstance(points, standardDeviations, color);
+            }
+            else if (ROI.Channels.Count == 1)
+            {
+                ChannelSubTrialStat stat = StatsByChannel[ROI.Channels.First()].Trial.ChannelSubTrialBySubBloc[subBloc];
+                float[] values = stat.Values;
+
+                // Generate points.
+                int start = subBloc.Window.Start;
+                int end = subBloc.Window.End;
+                Vector2[] points = new Vector2[values.Length];
+                for (int i = 0; i < points.Length; i++)
+                {
+                    float abscissa = start + ((float)i / (points.Length - 1)) * (end - start);
+                    float ordinate = values[i];
+                    points[i] = new Vector2(abscissa, ordinate);
+                }
+                curveData = CurveData.CreateInstance(points, color);
+            }
+
+            Graph.Curve result = new Graph.Curve(ROI.Name, curveData, true, ID, new Graph.Curve[0], new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1));
             return result;
         }
         Graph.Curve GenerateChannelCurve(ChannelStruct channel, DataStruct data, Data.Experience.Protocol.Bloc bloc, SubBloc subBloc)
@@ -374,33 +480,60 @@ namespace HBP.UI.Informations
             }
             return result;
         }
-        Dictionary<Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color> GenerateColors(ChannelStruct[] channels, DataStruct[] data)
+        void GenerateColors(ChannelStruct[] channels, DataStruct[] data)
         {
-            Dictionary<Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color> result = new Dictionary<Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color>();
+            Dictionary<Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color> channelColor = new Dictionary<Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color>();
             foreach (var channel in channels)
             {
                 foreach (var d in data)
                 {
                     foreach (var bloc in d.Blocs)
                     {
-                        Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc> key = new Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>(channel, d, bloc);
-                        if(!result.ContainsKey(key))
+                        Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc> key = new Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>(channel, d, bloc.Bloc);
+                        if(!channelColor.ContainsKey(key))
                         {
                             if(m_ColorsByData.ContainsKey(key))
                             {
-                                result.Add(key, m_ColorsByData[key]);
+                                channelColor.Add(key, m_ColorsByData[key]);
                             }
                             else
                             {
-                                Color color = m_Colors.FirstOrDefault(c => !result.ContainsValue(c));
+                                Color color = m_Colors.FirstOrDefault(c => !channelColor.ContainsValue(c));
                                 if (color == null) color = Color.white;
-                                result.Add(key, color);
+                                channelColor.Add(key, color);
                             }
                         }
                     }
                 }
             }
-            return result;
+            m_ColorsByData = channelColor;
+
+            Dictionary<Tuple<ROIStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color> ROIColor = new Dictionary<Tuple<ROIStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color>();
+            foreach (var d in data)
+            {
+                foreach (var bloc in d.Blocs)
+                {
+                    foreach (var ROI in bloc.ROIs)
+                    {
+                        Tuple<ROIStruct, DataStruct, Data.Experience.Protocol.Bloc> key = new Tuple<ROIStruct, DataStruct, Data.Experience.Protocol.Bloc>(ROI, d, bloc.Bloc);
+                        if (!ROIColor.ContainsKey(key))
+                        {
+                            if (m_ColorsByROI.ContainsKey(key))
+                            {
+                                ROIColor.Add(key, m_ColorsByROI[key]);
+                            }
+                            else
+                            {
+                                Color color = m_Colors.FirstOrDefault(c => !channelColor.ContainsValue(c) && !ROIColor.ContainsValue(c));
+                                if (color == null) color = Color.white;
+                                ROIColor.Add(key, color);
+                            }
+                        }
+                    }
+                }
+            }
+            m_ColorsByROI = ROIColor;
+
         }
 
         Vector2 GetMinMax(Graph.Curve curve)
@@ -477,15 +610,6 @@ namespace HBP.UI.Informations
                 }
                 curveData = CurveData.CreateInstance(points, curveData.Color, 30);
             }
-        }
-        #endregion
-
-        #region Struct
-        struct Settings
-        {
-            public Vector2 OrdinateDisplayRange;
-            public Vector2 AbscissaDisplayRange;
-            public Graph.Curve[] Curves;
         }
         #endregion
     }

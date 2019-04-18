@@ -120,6 +120,15 @@ namespace HBP.UI.Informations
                 ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
             }
         }
+        void OnChangeROIHandler()
+        {
+            GenerateDataStructs();
+            if (m_ChannelStructs.Length != 0 && m_DataStructs.Length != 0)
+            {
+                ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
+            }
+        }
+
         void GenerateDataStructs()
         {
             List<DataStruct> dataStructs = new List<DataStruct>();
@@ -135,10 +144,18 @@ namespace HBP.UI.Informations
                     }
                     else
                     {
-                        data = new DataStruct(columnData.Dataset, columnData.DataName, new List<Bloc>());
+                        data = new DataStruct(columnData.Dataset, columnData.DataName, new List<BlocStruct>());
                         dataStructs.Add(data);
                     }
-                    data.AddBloc(columnData.Bloc);
+                    if(!data.Blocs.Any(b => b.Bloc == columnData.Bloc))
+                    {
+                        data.AddBloc(new BlocStruct(columnData.Bloc));
+                    }
+                    if(column.SelectedROI != null)
+                    {
+                        ROIStruct ROI = new ROIStruct(column.SelectedROI.Name, column.Sites.Where(s => !s.State.IsOutOfROI && !s.State.IsMasked).Select(s => new ChannelStruct(s.Information.ChannelName, s.Information.Patient)));
+                        data.Blocs.First(b => b.Bloc == columnData.Bloc).AddROI(ROI);
+                    }
                 }
             }
             m_DataStructs = dataStructs.ToArray();
@@ -173,6 +190,7 @@ namespace HBP.UI.Informations
                 SetColorMap();
                 m_Scene.OnRequestSiteInformation.AddListener(sites => SiteInformationRequestHandler(sites));
                 m_Scene.ColumnManager.OnChangeColumnMinimizedState.AddListener(OnMinimizeColumnHandler);
+                m_Scene.ColumnManager.OnUpdateROIMask.AddListener(OnChangeROIHandler);
                 m_Scene.OnChangeColormap.AddListener((t) => SetColorMap());
             }
         }

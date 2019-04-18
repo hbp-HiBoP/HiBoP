@@ -4,6 +4,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI.Extensions;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace HBP.Data.Informations
 {
@@ -102,43 +103,46 @@ namespace HBP.Data.Informations
             }
         }
 
-        [SerializeField] List<Experience.Protocol.Bloc> m_Blocs;
-        public ReadOnlyCollection<Experience.Protocol.Bloc> Blocs
+        [SerializeField] List<BlocStruct> m_Blocs = new List<BlocStruct>();
+        public ReadOnlyCollection<BlocStruct> Blocs
         {
             get
             {
-                return new ReadOnlyCollection<Experience.Protocol.Bloc>(m_Blocs);
+                return new ReadOnlyCollection<BlocStruct>(m_Blocs);
             }
         }
         #endregion
 
         #region Constructors
-        public DataStruct(Dataset dataset, string data, List<Experience.Protocol.Bloc> blocs = null)
+        public DataStruct(Dataset dataset, string data, IEnumerable<BlocStruct> blocs = null)
         {
             m_Dataset = dataset;
             m_Data = data;
-            m_Blocs = blocs;
+            if(blocs != null)
+            {
+                SetBlocs(blocs);
+            }
         }
         #endregion
 
         #region Public Methods
-        public void AddBloc(Experience.Protocol.Bloc bloc)
+        public void AddBloc(BlocStruct bloc)
         {
             if(!m_Blocs.Contains(bloc))
             {
                 m_Blocs.Add(bloc);
             }
         }
-        public void RemoveBloc(Experience.Protocol.Bloc bloc)
+        public void RemoveBloc(BlocStruct bloc)
         {
             m_Blocs.Remove(bloc);
         }
-        public void SetBlocs(Experience.Protocol.Bloc[] blocs)
+        public void SetBlocs(IEnumerable<BlocStruct> blocs)
         {
-            m_Blocs = new List<Experience.Protocol.Bloc>(blocs);
+            m_Blocs = blocs.ToList();
         }
 
-        public override bool Equals(object obj)
+        public override bool  Equals(object obj)
         {
             return Equals(obj as DataStruct);
         }
@@ -160,6 +164,147 @@ namespace HBP.Data.Informations
             return EqualityComparer<DataStruct>.Default.Equals(struct1, struct2);
         }
         public static bool operator !=(DataStruct struct1, DataStruct struct2)
+        {
+            return !(struct1 == struct2);
+        }
+        #endregion
+    }
+
+    [Serializable]
+    public class ROIStruct : IEquatable<ROIStruct>
+    {
+        #region Properties
+        public string Name { get; set; }
+        public List<ChannelStruct> Channels { get; set; }
+        //public ReadOnlyCollection<ChannelStruct> Channels
+        //{
+        //    get
+        //    {
+        //        return new ReadOnlyCollection<ChannelStruct>(m_Channels);
+        //    }
+        //}
+        #endregion
+
+        #region Constructors
+        public ROIStruct(string name, IEnumerable<ChannelStruct> channels)
+        {
+            Name = name;
+            Channels = new List<ChannelStruct>(channels);
+        }
+        #endregion
+
+        #region Public Methods
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as ROIStruct);
+        }
+        public bool Equals(ROIStruct other)
+        {
+            bool notNull = other != null;
+            if(notNull)
+            {
+                bool sameName = Name == other.Name;
+                bool collection = EqualityComparer<List<ChannelStruct>>.Default.Equals(Channels, other.Channels);
+            }
+            return other != null &&
+                   Name == other.Name &&
+                   EqualityComparer<List<ChannelStruct>>.Default.Equals(Channels, other.Channels);
+        }
+        public override int GetHashCode()
+        {
+            var hashCode = 252110562;
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
+            hashCode = hashCode * -1521134295 + EqualityComparer<List<ChannelStruct>>.Default.GetHashCode(Channels);
+            return hashCode;
+        }
+        public static bool operator ==(ROIStruct struct1, ROIStruct struct2)
+        {
+            return EqualityComparer<ROIStruct>.Default.Equals(struct1, struct2);
+        } 
+        public static bool operator !=(ROIStruct struct1, ROIStruct struct2)
+        {
+            return !(struct1 == struct2);
+        }
+        #endregion
+    }
+
+    [Serializable]
+    public class BlocStruct : IEquatable<BlocStruct>
+    {
+        #region Properties
+        [SerializeField] Experience.Protocol.Bloc m_Bloc;
+        public Experience.Protocol.Bloc Bloc
+        {
+            get
+            {
+                return m_Bloc;
+            }
+            set
+            {
+                SetPropertyUtility.SetClass(ref m_Bloc, value);
+            }
+        }
+
+        [SerializeField] List<ROIStruct> m_ROIs = new List<ROIStruct>();
+        public ReadOnlyCollection<ROIStruct> ROIs
+        {
+            get
+            {
+                return new ReadOnlyCollection<ROIStruct>(m_ROIs);
+            }
+        }
+        #endregion
+
+        #region Constructors
+        public BlocStruct(Experience.Protocol.Bloc bloc, IEnumerable<ROIStruct> ROI = null)
+        {
+            Bloc = bloc;
+            if(ROI != null)
+            {
+                SetROIs(ROI);
+            }
+        }
+        #endregion
+
+        #region Public Methods
+        public void AddROI(ROIStruct ROI)
+        {
+            if (!m_ROIs.Contains(ROI))
+            {
+                m_ROIs.Add(ROI);
+            }
+        }
+        public void RemoveROI(ROIStruct ROI)
+        {
+            m_ROIs.Remove(ROI);
+        }
+        public void SetROIs(IEnumerable<ROIStruct> ROIs)
+        {
+            m_ROIs = ROIs.ToList();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as BlocStruct);
+        }
+        public bool Equals(BlocStruct other)
+        {
+            return other != null &&
+                   Bloc == other.Bloc &&
+                   EqualityComparer<ReadOnlyCollection<ROIStruct>>.Default.Equals(ROIs, other.ROIs);
+        }
+        public override int GetHashCode()
+        {
+            var hashCode = 252110562;
+            hashCode = hashCode * -1521134295 + EqualityComparer<Experience.Protocol.Bloc>.Default.GetHashCode(Bloc);
+            hashCode = hashCode * -1521134295 + EqualityComparer<IEnumerable<ROIStruct>>.Default.GetHashCode(ROIs);
+            return hashCode;
+        }
+        public static bool operator ==(BlocStruct struct1, BlocStruct struct2)
+        {
+            return EqualityComparer<BlocStruct>.Default.Equals(struct1, struct2);
+        }
+        public static bool operator !=(BlocStruct struct1, BlocStruct struct2)
         {
             return !(struct1 == struct2);
         }
