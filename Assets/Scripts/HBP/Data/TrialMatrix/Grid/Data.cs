@@ -23,10 +23,10 @@ namespace HBP.Data.TrialMatrix.Grid
         public Data(DataStruct dataStruct, ChannelStruct[] channelStructs)
         {
             Title = dataStruct.Dataset.Name + " " + dataStruct.Data;
-            Blocs = dataStruct.Blocs.Select(bloc => new Bloc(bloc, dataStruct, channelStructs)).ToArray();
+            Blocs = dataStruct.Blocs.Select(bloc => new Bloc(bloc.Bloc, dataStruct, channelStructs)).ToArray();
 
             Limits = CalculateLimits(Blocs);
-            SubBlocsAndWindowByColumn = p.Bloc.GetSubBlocsAndWindowByColumn(dataStruct.Blocs);
+            SubBlocsAndWindowByColumn = p.Bloc.GetSubBlocsAndWindowByColumn(dataStruct.Blocs.Select(b => b.Bloc));
             foreach (var bloc in Blocs)
             {
                 foreach (var channelBloc in bloc.ChannelBlocs)

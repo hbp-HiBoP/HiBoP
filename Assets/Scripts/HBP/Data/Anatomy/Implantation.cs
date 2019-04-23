@@ -124,24 +124,30 @@ namespace HBP.Data.Anatomy
         }
         public static Implantation[] GetImplantations(string path)
         {
-            //UnityEngine.Profiling.Profiler.BeginSample("GetImplantations");
             List<Implantation> implantations = new List<Implantation>();
             DirectoryInfo patientDirectory = new DirectoryInfo(path);
-            DirectoryInfo implantationDirectory = new DirectoryInfo(Path.Combine(path, "implantation"));
-            if (implantationDirectory.Exists)
+            if(patientDirectory != null && patientDirectory.Exists)
             {
-                FileInfo marsAtlasFile = new FileInfo(Path.Combine(implantationDirectory.FullName, patientDirectory.Name + MARS_ATLAS_EXTENSION));
-                string marsAtlas = marsAtlasFile.Exists ? marsAtlasFile.FullName : string.Empty;
-                FileInfo patientImplantation = new FileInfo(Path.Combine(implantationDirectory.FullName, patientDirectory.Name + EXTENSION));
-                if(patientImplantation.Exists) implantations.Add(new Implantation("Patient", patientImplantation.FullName, marsAtlas));
-                FileInfo MNIImplantation = new FileInfo(Path.Combine(implantationDirectory.FullName, patientDirectory.Name + "_MNI" + EXTENSION));
-                if(MNIImplantation.Exists) implantations.Add(new Implantation("MNI", MNIImplantation.FullName, marsAtlas));
-                FileInfo ACPCImplantation = new FileInfo(Path.Combine(implantationDirectory.FullName, patientDirectory.Name + "_ACPC" + EXTENSION));
-                if (ACPCImplantation != null) implantations.Add(new Implantation("ACPC", ACPCImplantation.FullName, marsAtlas));
-                FileInfo postImplantation = implantationDirectory.GetFiles(patientDirectory.Name + "_T1Post*" + EXTENSION).FirstOrDefault();
-                if (postImplantation != null) implantations.Add(new Implantation("Post", postImplantation.FullName, marsAtlas));
+                DirectoryInfo implantationDirectory = new DirectoryInfo(Path.Combine(path, "implantation"));
+                if (implantationDirectory != null && implantationDirectory.Exists)
+                {
+                    FileInfo marsAtlasFile = new FileInfo(Path.Combine(implantationDirectory.FullName, patientDirectory.Name + MARS_ATLAS_EXTENSION));
+                    string marsAtlas = marsAtlasFile.Exists ? marsAtlasFile.FullName : string.Empty;
+
+                    FileInfo patientImplantation = new FileInfo(Path.Combine(implantationDirectory.FullName, patientDirectory.Name + EXTENSION));
+                    if (patientImplantation != null && patientImplantation.Exists) implantations.Add(new Implantation("Patient", patientImplantation.FullName, marsAtlas));
+
+                    FileInfo MNIImplantation = new FileInfo(Path.Combine(implantationDirectory.FullName, patientDirectory.Name + "_MNI" + EXTENSION));
+                    if (MNIImplantation != null && MNIImplantation.Exists) implantations.Add(new Implantation("MNI", MNIImplantation.FullName, marsAtlas));
+
+                    FileInfo ACPCImplantation = new FileInfo(Path.Combine(implantationDirectory.FullName, patientDirectory.Name + "_ACPC" + EXTENSION));
+                    if (ACPCImplantation != null && ACPCImplantation.Exists) implantations.Add(new Implantation("ACPC", ACPCImplantation.FullName, marsAtlas));
+
+                    FileInfo postImplantation = implantationDirectory.GetFiles(patientDirectory.Name + "_T1Post*" + EXTENSION).FirstOrDefault();
+                    if (postImplantation != null && postImplantation.Exists) implantations.Add(new Implantation("Post", postImplantation.FullName, marsAtlas));
+                }
             }
-            //UnityEngine.Profiling.Profiler.EndSample();
+
             return implantations.ToArray();
         }
         #endregion

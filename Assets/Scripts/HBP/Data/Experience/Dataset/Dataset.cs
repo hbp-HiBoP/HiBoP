@@ -23,7 +23,7 @@ namespace HBP.Data.Experience.Dataset
     [DataContract]
 	public class Dataset : ICloneable, ICopiable, ILoadable, IIdentifiable
 	{
-        #region Attributs
+        #region Properties
         public const string EXTENSION = ".dataset";
 
         /// <summary>
@@ -229,6 +229,7 @@ namespace HBP.Data.Experience.Dataset
         [OnDeserialized()]
         void SetListeners(StreamingContext context)
         {
+            if (Protocol == null) Protocol = ApplicationState.ProjectLoaded.Protocols.First();
             foreach (var data in m_Data)
             {
                 UnityAction action = new UnityAction(() => data.GetPOSErrors(Protocol));

@@ -4,7 +4,8 @@ using d = HBP.Data.Experience.Protocol;
 using Tools.Unity.Lists;
 using NewTheme.Components;
 using System.Linq;
-using System.Collections.Generic;
+using Tools.Unity;
+using System.Text;
 
 namespace HBP.UI.Experience.Protocol
 {
@@ -12,8 +13,9 @@ namespace HBP.UI.Experience.Protocol
 	{
 		#region Properties
 		[SerializeField] Text m_NameText;
+
         [SerializeField] Text m_BlocsText;
-        [SerializeField] LabelList m_BlocsList;
+        [SerializeField] Tooltip m_BlocsTooltip;
 
         [SerializeField] State m_ErrorState;
 
@@ -23,27 +25,30 @@ namespace HBP.UI.Experience.Protocol
             {
                 return base.Object;
             }
-
             set
             {
                 base.Object = value;
                 m_NameText.text = value.Name;
 
-                int nbBlocs = value.Blocs.Count;
-                m_BlocsText.text = nbBlocs.ToString();
-                if (nbBlocs == 0) m_BlocsText.GetComponent<ThemeElement>().Set(m_ErrorState);
-                else m_BlocsText.GetComponent<ThemeElement>().Set();
+                StringBuilder stringBuilder = new StringBuilder();
+                string[] blocs = value.Blocs.Select(b => b.Name).ToArray();
+                for (int i = 0; i < blocs.Length; i++)
+                {
+                    if (i < blocs.Length - 1) stringBuilder.AppendLine(" \u2022 " + blocs[i]);
+                    else stringBuilder.Append(" \u2022 " + blocs[i]);
+                }
+                if (blocs.Length == 0)
+                {
+                    m_BlocsText.GetComponent<ThemeElement>().Set(m_ErrorState);
+                    m_BlocsTooltip.Text = " \u2022 None";
+                }
+                else
+                {
+                    m_BlocsText.GetComponent<ThemeElement>().Set();
+                    m_BlocsTooltip.Text = stringBuilder.ToString();
+                }
+                m_BlocsText.text = blocs.Length.ToString();
             }
-        }
-        #endregion
-
-        #region Public Methods
-        public void SetBlocs()
-        {
-            m_BlocsList.Initialize();
-            IEnumerable<string> labels = from bloc in m_Object.Blocs select bloc.Name;
-            if (labels.Count() == 0) labels = new string[] { "No Bloc" };
-            m_BlocsList.Objects = labels.ToArray();
         }
         #endregion
     }
