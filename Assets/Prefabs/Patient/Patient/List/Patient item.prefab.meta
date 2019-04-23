@@ -1,8 +1,7 @@
 fileFormatVersion: 2
 guid: 42bf0608af84a7b47807861c5ea56668
-timeCreated: 1428583104
-licenseType: Pro
-NativeFormatImporter:
+PrefabImporter:
+  externalObjects: {}
   userData: 
-  assetBundleName: ui/patient_panel
+  assetBundleName: 
   assetBundleVariant: 

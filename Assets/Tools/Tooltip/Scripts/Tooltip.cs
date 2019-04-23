@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 namespace Tools.Unity
 {
     public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         #region Properties
-        [SerializeField]
+        [Multiline(10), SerializeField]
         private string m_Text;
         /// <summary>
         /// Text to be displayed

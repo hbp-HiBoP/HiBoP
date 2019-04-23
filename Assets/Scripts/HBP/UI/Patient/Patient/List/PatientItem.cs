@@ -4,25 +4,29 @@ using UnityEngine.UI;
 using Tools.Unity.Lists;
 using System.Linq;
 using NewTheme.Components;
-using System.Collections.Generic;
+using Tools.Unity;
+using System.Text;
 
 namespace HBP.UI.Anatomy
 {
-	public class PatientItem : ActionnableItem<Data.Patient>
-	{
-		#region Properties
-		[SerializeField] Text m_NameText;		
-		[SerializeField] Text m_PlaceText;
-		[SerializeField] Text m_DateText;
+    public class PatientItem : ActionnableItem<Data.Patient>
+    {
+        #region Properties
+        [SerializeField] Text m_NameText;
+        [SerializeField] Text m_PlaceText;
+        [SerializeField] Text m_DateText;
 
-		[SerializeField] Text m_MeshText;
-        [SerializeField] LabelList m_MeshList;
-		[SerializeField] Text m_MRIText;
-        [SerializeField] LabelList m_MRIList;
+        [SerializeField] Text m_MeshText;
+        [SerializeField] Tooltip m_MeshTooltip;
+
+        [SerializeField] Text m_MRIText;
+        [SerializeField] Tooltip m_MRITooltip;
+
         [SerializeField] Text m_ImplantationText;
-        [SerializeField] LabelList m_ImplantationList;
+        [SerializeField] Tooltip m_ImplantationTooltip;
+
         [SerializeField] Text m_ConnectivityText;
-        [SerializeField] LabelList m_ConnectivityList;
+        [SerializeField] Tooltip m_ConnectivityTooltip;
 
         [SerializeField] State m_ErrorState;
 
@@ -38,59 +42,83 @@ namespace HBP.UI.Anatomy
                 m_NameText.text = value.Name;
                 m_PlaceText.text = value.Place;
                 m_DateText.text = value.Date.ToString();
-                
-                int nbMesh = value.Brain.Meshes.Count((m) => m.WasUsable);
-                m_MeshText.text = nbMesh.ToString();
-                if (nbMesh == 0) m_MeshText.GetComponent<ThemeElement>().Set(m_ErrorState);
-                else m_MeshText.GetComponent<ThemeElement>().Set();
 
-                int nbMRI = value.Brain.MRIs.Count((m) => m.WasUsable);
-                m_MRIText.text = nbMRI.ToString();
-                if (nbMRI == 0) m_MRIText.GetComponent<ThemeElement>().Set(m_ErrorState);
-                else m_MRIText.GetComponent<ThemeElement>().Set();
+                StringBuilder stringBuilder = new StringBuilder();
+                string[] meshes = (from mesh in m_Object.Brain.Meshes where mesh.WasUsable select mesh.Name).ToArray();
+                for (int i = 0; i < meshes.Length; i++)
+                {
+                    if (i < meshes.Length - 1) stringBuilder.AppendLine(" \u2022 " + meshes[i]);
+                    else stringBuilder.Append(" \u2022 " + meshes[i]);
+                }
+                if (meshes.Length == 0)
+                {
+                    m_MeshText.GetComponent<ThemeElement>().Set(m_ErrorState);
+                    m_MeshTooltip.Text = " \u2022 None";
+                }
+                else
+                {
+                    m_MeshText.GetComponent<ThemeElement>().Set();
+                    m_MeshTooltip.Text = stringBuilder.ToString();
+                }
+                m_MeshText.text = meshes.Length.ToString();
 
-                int nbImplantation = value.Brain.Implantations.Count((i) => i.WasUsable);
-                m_ImplantationText.text = nbImplantation.ToString();
-                if (nbImplantation == 0) m_ImplantationText.GetComponent<ThemeElement>().Set(m_ErrorState);
-                else m_ImplantationText.GetComponent<ThemeElement>().Set();
-                
-                int nbConnectivity = value.Brain.Connectivities.Count(c => c.WasUsable);
-                m_ConnectivityText.text = nbConnectivity.ToString();
-                if (nbConnectivity == 0) m_ConnectivityText.GetComponent<ThemeElement>().Set(m_ErrorState);
-                else m_ConnectivityText.GetComponent<ThemeElement>().Set();
+                stringBuilder = new StringBuilder();
+                string[] MRIs = (from MRI in m_Object.Brain.MRIs where MRI.WasUsable select MRI.Name).ToArray();
+                for (int i = 0; i < MRIs.Length; i++)
+                {
+                    if (i < MRIs.Length - 1) stringBuilder.AppendLine(" \u2022 " + MRIs[i]);
+                    else stringBuilder.Append(" \u2022 " + MRIs[i]);
+                }
+                if (MRIs.Length == 0)
+                {
+                    m_MRIText.GetComponent<ThemeElement>().Set(m_ErrorState);
+                    m_MRITooltip.Text = " \u2022 None";
+                }
+                else
+                {
+                    m_MRIText.GetComponent<ThemeElement>().Set();
+                    m_MRITooltip.Text = stringBuilder.ToString();
+                }
+                m_MRIText.text = MRIs.Length.ToString();
+
+                stringBuilder = new StringBuilder();
+                string[] implantations = (from implantation in m_Object.Brain.Implantations where implantation.WasUsable select implantation.Name).ToArray();
+                for (int i = 0; i < implantations.Length; i++)
+                {
+                    if (i < implantations.Length - 1) stringBuilder.AppendLine(" \u2022 " + implantations[i]);
+                    else stringBuilder.Append(" \u2022 " + implantations[i]);
+                }
+                if (implantations.Length == 0)
+                {
+                    m_ImplantationText.GetComponent<ThemeElement>().Set(m_ErrorState);
+                    m_ImplantationTooltip.Text = " \u2022 None";
+                }
+                else
+                {
+                    m_ImplantationText.GetComponent<ThemeElement>().Set();
+                    m_ImplantationTooltip.Text = stringBuilder.ToString();
+                }
+                m_ImplantationText.text = implantations.Length.ToString();
+
+                stringBuilder = new StringBuilder();
+                string[] connectivities = (from connectivity in m_Object.Brain.Connectivities where connectivity.WasUsable select connectivity.Name).ToArray();
+                for (int i = 0; i < connectivities.Length; i++)
+                {
+                    if (i < connectivities.Length - 1) stringBuilder.AppendLine(" \u2022 " + connectivities[i]);
+                    else stringBuilder.Append(" \u2022 " + connectivities[i]);
+                }
+                if (connectivities.Length == 0)
+                {
+                    m_ConnectivityText.GetComponent<ThemeElement>().Set(m_ErrorState);
+                    m_ConnectivityTooltip.Text = " \u2022 None";
+                }
+                else
+                {
+                    m_ConnectivityText.GetComponent<ThemeElement>().Set();
+                    m_ConnectivityTooltip.Text = stringBuilder.ToString();
+                }
+                m_ConnectivityText.text = connectivities.Length.ToString();
             }
-        }
-        #endregion
-
-
-        #region Public Methods
-        public void SetMeshes()
-        {
-            m_MeshList.Initialize();
-            IEnumerable<string> labels = from mesh in m_Object.Brain.Meshes where mesh.WasUsable select mesh.Name;
-            if (labels.Count() == 0) labels = new string[] { "No Mesh" };
-            m_MeshList.Objects = labels.ToArray();
-        }
-        public void SetMRIs()
-        {
-            m_MRIList.Initialize();
-            IEnumerable<string> labels = from mri in m_Object.Brain.MRIs where mri.WasUsable select mri.Name;
-            if (labels.Count() == 0) labels = new string[] { "No MRI" };
-            m_MRIList.Objects = labels.ToArray();
-        }
-        public void SetImplantations()
-        {
-            m_ImplantationList.Initialize();
-            IEnumerable<string> labels = from implantation in m_Object.Brain.Implantations where implantation.WasUsable select implantation.Name;
-            if (labels.Count() == 0) labels = new string[] { "No Implantation" };
-            m_ImplantationList.Objects = labels.ToArray();
-        }
-        public void SetConnectivities()
-        {
-            m_ConnectivityList.Initialize();
-            IEnumerable<string> labels = from connectivity in m_Object.Brain.Connectivities where connectivity.WasUsable select connectivity.Name;
-            if (labels.Count() == 0) labels = new string[] { "No Connectivity" };
-            m_ConnectivityList.Objects = labels.ToArray();
         }
         #endregion
     }
