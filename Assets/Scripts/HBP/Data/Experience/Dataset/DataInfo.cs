@@ -74,7 +74,7 @@ namespace HBP.Data.Experience.Dataset
         {
             get
             {
-                return EEG + Elan.EEG.HEADER_EXTENSION;
+                return EEG + ".ent";
             }
         }
 
@@ -174,15 +174,15 @@ namespace HBP.Data.Experience.Dataset
         {
             List<ErrorType> errors = new List<ErrorType>();
             if(string.IsNullOrEmpty(Measure)) errors.Add(ErrorType.MeasureEmpty);
-            if(m_EEGErrors != null && m_EEGErrors.Length == 0)
-            {
-                Elan.ElanFile elanFile = new Elan.ElanFile(EEG, false);
-                if (!elanFile.MeasureLabels.Contains(Measure))
-                {
-                    errors.Add(ErrorType.EEGDoNotContainsMeasure);
-                }
-                elanFile.Dispose();
-            }
+            //if(m_EEGErrors != null && m_EEGErrors.Length == 0)
+            //{
+            //    Elan.ElanFile elanFile = new Elan.ElanFile(EEG, false);
+            //    if (!elanFile.MeasureLabels.Contains(Measure))
+            //    {
+            //        errors.Add(ErrorType.EEGDoNotContainsMeasure);
+            //    }
+            //    elanFile.Dispose();
+            //}
             m_MeasureErrors = errors.ToArray();
             return m_MeasureErrors;
         }
@@ -196,66 +196,66 @@ namespace HBP.Data.Experience.Dataset
         public ErrorType[] GetEEGErrors()
         {
             List<ErrorType> errors = new List<ErrorType>();
-            if (string.IsNullOrEmpty(EEG))
-            {
-                errors.Add(ErrorType.EEGEmpty);
-            }
-            else
-            {
-                FileInfo EEGFile = new FileInfo(EEG);
-                if (!EEGFile.Exists)
-                {
-                    errors.Add(ErrorType.EEGFileNotExist);
-                }
-                else
-                {
-                    if (EEGFile.Extension != Elan.EEG.EXTENSION)
-                    {
-                        errors.Add(ErrorType.EEGFileNotAGoodFile);
-                    }
-                    else
-                    {
-                        if (!File.Exists(EEGHeader))
-                        {
-                            errors.Add(ErrorType.EEGHeaderNotExist);
-                        }
-                        else
-                        {
-                            if (!(new FileInfo(EEGHeader).Length > 0))
-                            {
-                                errors.Add(ErrorType.EEGHeaderEmpty);
-                            }
-                            else
-                            {
-                                Elan.ElanFile elanFile = new Elan.ElanFile(EEGFile.FullName, false);
-                                if (!elanFile.MeasureLabels.Contains(Measure)) errors.Add(ErrorType.EEGDoNotContainsMeasure);
-                                elanFile.Dispose();
-                            }
-                        }
-                    }
-                }
-            }
+            //if (string.IsNullOrEmpty(EEG))
+            //{
+            //    errors.Add(ErrorType.EEGEmpty);
+            //}
+            //else
+            //{
+            //    FileInfo EEGFile = new FileInfo(EEG);
+            //    if (!EEGFile.Exists)
+            //    {
+            //        errors.Add(ErrorType.EEGFileNotExist);
+            //    }
+            //    else
+            //    {
+            //        if (EEGFile.Extension != Elan.EEG.EXTENSION)
+            //        {
+            //            errors.Add(ErrorType.EEGFileNotAGoodFile);
+            //        }
+            //        else
+            //        {
+            //            if (!File.Exists(EEGHeader))
+            //            {
+            //                errors.Add(ErrorType.EEGHeaderNotExist);
+            //            }
+            //            else
+            //            {
+            //                if (!(new FileInfo(EEGHeader).Length > 0))
+            //                {
+            //                    errors.Add(ErrorType.EEGHeaderEmpty);
+            //                }
+            //                else
+            //                {
+            //                    Elan.ElanFile elanFile = new Elan.ElanFile(EEGFile.FullName, false);
+            //                    if (!elanFile.MeasureLabels.Contains(Measure)) errors.Add(ErrorType.EEGDoNotContainsMeasure);
+            //                    elanFile.Dispose();
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
             m_EEGErrors = errors.ToArray();
             return m_EEGErrors;
         }
         public ErrorType[] GetPOSErrors(Protocol.Protocol protocol)
         {
             List<ErrorType> errors = new List<ErrorType>();
-            if (string.IsNullOrEmpty(POS)) errors.Add(ErrorType.POSEmpty);
-            else
-            {
-                FileInfo POSFile = new FileInfo(POS);
-                if (!POSFile.Exists) errors.Add(ErrorType.POSFileNotExist);
-                else
-                {
-                    if (POSFile.Extension != Localizer.POS.EXTENSION && POSFile.Extension != Localizer.POS.BIDS_EXTENSION) errors.Add(ErrorType.POSFileNotAGoodFile);
-                    else
-                    {
-                        Localizer.POS pos = new Localizer.POS(POS);
-                        if (!pos.IsCompatible(protocol)) errors.Add(ErrorType.POSNotCompatible);
-                    }
-                }
-            }
+            //if (string.IsNullOrEmpty(POS)) errors.Add(ErrorType.POSEmpty);
+            //else
+            //{
+            //    FileInfo POSFile = new FileInfo(POS);
+            //    if (!POSFile.Exists) errors.Add(ErrorType.POSFileNotExist);
+            //    else
+            //    {
+            //        if (POSFile.Extension != Localizer.POS.EXTENSION && POSFile.Extension != Localizer.POS.BIDS_EXTENSION) errors.Add(ErrorType.POSFileNotAGoodFile);
+            //        else
+            //        {
+            //            Localizer.POS pos = new Localizer.POS(POS);
+            //            if (!pos.IsCompatible(protocol)) errors.Add(ErrorType.POSNotCompatible);
+            //        }
+            //    }
+            //}
             m_POSErrors = errors.ToArray();
             return m_POSErrors;
         }

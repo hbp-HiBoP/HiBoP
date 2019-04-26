@@ -8,7 +8,7 @@ namespace HBP.Data.Experience.Dataset
         #region Properties
         public Dictionary<Protocol.Bloc, BlocData> DataByBloc { get; set; }
         public Dictionary<string, string> UnitByChannel { get; set; }
-        public Localizer.Frequency Frequency { get; set; }
+        public Tools.CSharp.EEG.Frequency Frequency { get; set; }
         #endregion
 
         #region Constructors
@@ -48,7 +48,7 @@ namespace HBP.Data.Experience.Dataset
             UnitByChannel.Clear();
             UnitByChannel = new Dictionary<string, string>();
 
-            Frequency = new Localizer.Frequency();
+            Frequency = new Tools.CSharp.EEG.Frequency();
         }
         #endregion
     }

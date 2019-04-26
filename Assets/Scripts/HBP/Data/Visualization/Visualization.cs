@@ -8,7 +8,6 @@ using System.Runtime.Serialization;
 using CielaSpike;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience;
-using HBP.Data.Localizer;
 using Tools.Unity;
 using System.IO;
 
@@ -484,7 +483,7 @@ namespace HBP.Data.Visualization
                     yield break;
                 }
             }
-            Frequency maxFrequency = new Frequency(columns.Max(column => column.Data.Frequencies.Max(f => f.RawValue)));
+            Tools.CSharp.EEG.Frequency maxFrequency = new Tools.CSharp.EEG.Frequency(columns.Max(column => column.Data.Frequencies.Max(f => f.RawValue)));
             for (int i = 0; i < columnsLength; ++i)
             {
                 IEEGColumn column = columns[i];

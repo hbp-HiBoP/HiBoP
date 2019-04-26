@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using Tools.Unity;
 using System.IO;
-using HBP.Data.Localizer;
 
 namespace HBP.Data.Visualization
 {
@@ -86,7 +85,7 @@ namespace HBP.Data.Visualization
         /// <param name="icon">Icon.</param>
         /// <param name="frequency">Frequency of the data.</param>
         /// <param name="timeLine">Time line of the bloc.</param>
-        public Icon(Experience.Protocol.Icon icon, Frequency frequency, int mainEventPosition, int timelineLength)
+        public Icon(Experience.Protocol.Icon icon, Tools.CSharp.EEG.Frequency frequency, int mainEventPosition, int timelineLength)
         {
             Label = icon.Name;
             IllustrationPath = icon.IllustrationPath;
@@ -97,7 +96,7 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Create a new icon instance with default value;
         /// </summary>
-        public Icon() : this(new Experience.Protocol.Icon(), new Frequency(0), 0, 0)
+        public Icon() : this(new Experience.Protocol.Icon(), new Tools.CSharp.EEG.Frequency(0), 0, 0)
         {
         }
 

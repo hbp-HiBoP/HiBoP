@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Linq;
 
 namespace Tools.CSharp.EEG
 {
@@ -192,7 +193,6 @@ namespace Tools.CSharp.EEG
         /// </summary>
         protected override void create_DLL_class()
         {
-            throw new Exception("EEG File can not be created without specifying a path");
         }
         /// <summary>
         /// Clean DLL memory
