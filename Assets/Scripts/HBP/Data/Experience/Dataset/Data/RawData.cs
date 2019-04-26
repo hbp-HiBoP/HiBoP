@@ -83,6 +83,10 @@ namespace HBP.Data.Experience.Dataset
         public RawData(DataInfo info) : this()
         {
             // Read Data.
+            // DEBUG: Test methods
+            //Tools.CSharp.EEG.File file = new Tools.CSharp.EEG.File(Tools.CSharp.EEG.File.FileType.ELAN, true, @"D:\HBP\BDD\EEGFormat\LYONNEURO_2014_BLAP_VISU.eeg", @"D:\HBP\BDD\EEGFormat\LYONNEURO_2014_BLAP_VISU.pos"); // ELAN
+            //Tools.CSharp.EEG.File file = new Tools.CSharp.EEG.File(Tools.CSharp.EEG.File.FileType.Micromed, true, @"D:\HBP\BDD\EEGFormat\LYONNEURO_2014_BLAP_VISU.TRC"); // TRC
+            //Tools.CSharp.EEG.File file = new Tools.CSharp.EEG.File(Tools.CSharp.EEG.File.FileType.BrainVision, true, @"D:\HBP\BDD\EEGFormat\LYONNEURO_2014_BLAP_VISU_bv.vhdr"); // BrainVision
             Tools.CSharp.EEG.File file = new Tools.CSharp.EEG.File(Tools.CSharp.EEG.File.FileType.ELAN, true, info.EEG, info.POS);
             List<Tools.CSharp.EEG.Electrode> channels = file.Electrodes;
             foreach (var channel in channels)
