@@ -28,6 +28,7 @@ namespace HBP.UI.Anatomy
         #region Public Methods
         public override void Initialize()
         {
+            List.OnUpdateObject.AddListener((mesh, index) => m_Objects[index] = mesh);
             base.List = List;
             base.Initialize();
         }

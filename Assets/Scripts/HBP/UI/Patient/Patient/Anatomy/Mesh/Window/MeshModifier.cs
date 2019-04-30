@@ -59,7 +59,7 @@ namespace HBP.UI.Anatomy
         protected override void SetFields(Data.Anatomy.Mesh objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
-            DropdownExtension.Set(m_TypeDropdown, typeof(Type), objectToDisplay is LeftRightMesh ? 1 : 0);
+            m_TypeDropdown.Set(typeof(Type), objectToDisplay is LeftRightMesh ? 1 : 0);
             m_TransformationFileSelector.File = objectToDisplay.SavedTransformation;
         }
         protected override void Initialize()

@@ -85,7 +85,7 @@ namespace HBP.UI.Module3D
                     if (string.IsNullOrEmpty(m_SavePath)) return;
 
                     m_CSVBuilder = new System.Text.StringBuilder();
-                    m_CSVBuilder.AppendLine("Site,Patient,Place,Date,X,Y,Z,CoordSystem,EEG,POS");
+                    m_CSVBuilder.AppendLine("Site,Patient,Place,Date,X,Y,Z,CoordSystem,DataType,DataFiles");
                 }
 
                 List<Site> sites = new List<Site>();
@@ -178,11 +178,11 @@ namespace HBP.UI.Module3D
             {
                 dataInfo = m_DataInfoByPatient[site.Information.Patient];
             }
-            string EEG = "", POS = "";
+            string dataType = "", dataFiles = "";
             if (dataInfo != null)
             {
-                EEG = dataInfo.EEG;
-                POS = dataInfo.POS;
+                dataType = dataInfo.DataTypeString;
+                dataFiles = dataInfo.DataFilesString;
             }
             m_CSVBuilder.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9}",
                     site.Information.ChannelName,
@@ -193,8 +193,8 @@ namespace HBP.UI.Module3D
                     sitePosition.y.ToString("N2"),
                     sitePosition.z.ToString("N2"),
                     m_Scene.ColumnManager.SelectedImplantation.Name,
-                    EEG,
-                    POS));
+                    dataType,
+                    dataFiles));
         }
         #endregion
     }

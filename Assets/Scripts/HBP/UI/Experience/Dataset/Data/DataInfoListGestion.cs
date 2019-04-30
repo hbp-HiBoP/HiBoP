@@ -29,12 +29,12 @@ namespace HBP.UI.Experience.Dataset
         #region Public Methods
         public override void Initialize()
         {
+            List.OnUpdateObject.AddListener((dataInfo, index) => m_Objects[index] = dataInfo);
             base.List = List;
             base.Initialize();
         }
         #endregion
-
-
+        
         #region Propected Methods
         protected override void OpenModifier(DataInfo item, bool interactable)
         {
@@ -48,6 +48,26 @@ namespace HBP.UI.Experience.Dataset
         protected void OnCanSaveModifier(DataInfoModifier modifier)
         {
             modifier.CanSave = !Objects.Any(data => data.Patient == modifier.ItemTemp.Patient && data.Name == modifier.ItemTemp.Name && data != modifier.Item);
+        }
+        protected override void OnSaveCreator(CreatorWindow creatorWindow)
+        {
+            Data.Enums.CreationType type = creatorWindow.Type;
+            DataInfo item = new ElanDataInfo();
+            switch (type)
+            {
+                case Data.Enums.CreationType.FromScratch:
+                    OpenModifier(item, Interactable);
+                    break;
+                case Data.Enums.CreationType.FromExistingItem:
+                    OpenSelector();
+                    break;
+                case Data.Enums.CreationType.FromFile:
+                    if (LoadFromFile(out item))
+                    {
+                        OpenModifier(item, Interactable);
+                    }
+                    break;
+            }
         }
         #endregion
     }

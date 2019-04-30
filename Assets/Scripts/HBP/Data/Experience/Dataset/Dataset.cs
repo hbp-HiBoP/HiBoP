@@ -49,10 +49,7 @@ namespace HBP.Data.Experience.Dataset
             set
             {
                 m_ProtocolID = value.ID;
-                if(m_Data != null)
-                {
-                    foreach (var data in m_Data) data.GetPOSErrors(Protocol);
-                }
+                UpdateDataStates();
             }
         }
 
@@ -107,9 +104,9 @@ namespace HBP.Data.Experience.Dataset
             if (!m_Data.Contains(data))
             {
                 m_Data.Add(data);
-                UnityAction action = new UnityAction(() => { data.GetPOSErrors(Protocol); });
+                UnityAction action = new UnityAction(() => { data.GetDataErrors(Protocol); });
                 m_ActionByDataInfo.Add(data, action);
-                data.OnPOSChanged.AddListener(action);
+                data.OnRequestErrorCheck.AddListener(action);
                 return true;
             }
             else return false;
@@ -123,7 +120,7 @@ namespace HBP.Data.Experience.Dataset
             if (m_Data.Contains(data))
             {
                 m_Data.Remove(data);
-                data.OnPOSChanged.RemoveListener(m_ActionByDataInfo[data]);
+                data.OnRequestErrorCheck.RemoveListener(m_ActionByDataInfo[data]);
                 return true;
             }
             else return false;
@@ -143,11 +140,14 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         public void UpdateDataStates()
         {
-            foreach (DataInfo dataInfo in Data) dataInfo.GetErrors(Protocol);
+            if (m_Data != null)
+            {
+                foreach (DataInfo dataInfo in m_Data) dataInfo.GetErrors(Protocol);
+            }
         }
         #endregion
 
-        #region Operrators
+        #region Operators
         /// <summary>
         /// Clone this instance.
         /// </summary>
@@ -232,9 +232,9 @@ namespace HBP.Data.Experience.Dataset
             if (Protocol == null) Protocol = ApplicationState.ProjectLoaded.Protocols.First();
             foreach (var data in m_Data)
             {
-                UnityAction action = new UnityAction(() => data.GetPOSErrors(Protocol));
+                UnityAction action = new UnityAction(() => data.GetDataErrors(Protocol));
                 m_ActionByDataInfo.Add(data, action);
-                data.OnPOSChanged.AddListener(action);
+                data.OnRequestErrorCheck.AddListener(action);
             }
         }
         #endregion

@@ -25,7 +25,7 @@ namespace HBP.Data.Experience.Dataset
     *     - Protocol.
     */
     [DataContract]
-    public class DataInfo : ICloneable, ICopiable
+    public class DataInfo : ICloneable, ICopiable, IIdentifiable
     {
         #region Properties
         [DataMember(Name = "Name")] string m_Name;
@@ -38,6 +38,8 @@ namespace HBP.Data.Experience.Dataset
             set { m_Name = value; m_NameErrors = GetNameErrors(); }
         }
 
+        [DataMember] public string ID { get; set; }
+
         [DataMember(Name = "Patient")] string m_PatientID;
         Patient m_Patient;
         /// <summary>
@@ -49,46 +51,6 @@ namespace HBP.Data.Experience.Dataset
             get { return m_Patient; }
             set { m_PatientID = value.ID; m_Patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == m_PatientID); m_PatientErrors = GetPatientErrors(); }
         }
-
-        [DataMember(Name = "Measure")] string m_Measure;
-        /// <summary>
-        /// Name of the measure in the EEG file : "EGG data" by default.
-        /// </summary>
-        public string Measure
-        {
-            get { return m_Measure; }
-            set { m_Measure = value; m_MeasureErrors = GetMeasureErrors(); }
-        }
-
-        [DataMember(Name = "EEG")] string m_EEG;
-        /// <summary>
-        /// Path of the EEG file.
-        /// </summary>
-        public string EEG
-        {
-            get { return m_EEG.ConvertToFullPath(); }
-            set { m_EEG = value.ConvertToShortPath(); m_EEGErrors = GetEEGErrors(); }
-        }
-        public string SavedEEG { get { return m_EEG; } }
-        public string EEGHeader
-        {
-            get
-            {
-                return EEG + ".ent";
-            }
-        }
-
-        [DataMember(Name = "POS")] string m_POS;
-        /// <summary>
-        /// Path of the POS file.
-        /// </summary>
-        public string POS
-        {
-            get { return m_POS.ConvertToFullPath(); }
-            set { m_POS = value.ConvertToShortPath(); m_POSErrors = new ErrorType[0]; OnPOSChanged.Invoke(); }
-        }
-        public string SavedPOS { get { return m_POS; } }
-        public UnityEvent OnPOSChanged { get; set; }
         
         [DataMember(Name = "Normalization")]
         /// <summary>
@@ -101,8 +63,7 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         public enum ErrorType
         {
-            LabelEmpty, PatientEmpty, MeasureEmpty, EEGEmpty, POSEmpty, EEGFileNotExist, POSFileNotExist,
-            EEGFileNotAGoodFile, EEGDoNotContainsMeasure, POSFileNotAGoodFile, POSNotCompatible, EEGHeaderNotExist, EEGHeaderEmpty
+            LabelEmpty, PatientEmpty, RequiredFieldEmpty, FileDoesNotExist, WrongExtension, BlocsCantBeEpoched, NotEnoughInformation
         }
         /// <summary>
         /// Normalization Type.
@@ -119,12 +80,10 @@ namespace HBP.Data.Experience.Dataset
                 return ApplicationState.ProjectLoaded.Datasets.FirstOrDefault((d) => d.Data.Contains(this));
             }
         }
-
-        ErrorType[] m_NameErrors;
-        ErrorType[] m_PatientErrors;
-        ErrorType[] m_MeasureErrors;
-        ErrorType[] m_EEGErrors;
-        ErrorType[] m_POSErrors;
+        
+        protected ErrorType[] m_NameErrors = new ErrorType[0];
+        protected ErrorType[] m_PatientErrors = new ErrorType[0];
+        protected ErrorType[] m_DataErrors = new ErrorType[0];
 
         public bool isOk
         {
@@ -139,28 +98,43 @@ namespace HBP.Data.Experience.Dataset
             {
                 List<ErrorType> errors = new List<ErrorType>();
                 errors.AddRange(m_NameErrors);
-                errors.AddRange(m_MeasureErrors);
-                errors.AddRange(m_EEGErrors);
-                errors.AddRange(m_POSErrors);
                 errors.AddRange(m_PatientErrors);
+                errors.AddRange(m_DataErrors);
                 return errors.Distinct().ToArray();
+            }
+        }
+
+        public UnityEvent OnRequestErrorCheck = new UnityEvent();
+
+        public virtual string DataTypeString
+        {
+            get
+            {
+                return "None";
+            }
+        }
+        public virtual string DataFilesString
+        {
+            get
+            {
+                return "";
+            }
+        }
+        public virtual Tools.CSharp.EEG.File.FileType Type
+        {
+            get
+            {
+                throw new Exception("Invalid file type");
             }
         }
         #endregion
 
         #region Public Methods
-        public void SetPathsWithoutCheckingErrors(string eeg, string pos)
-        {
-            m_EEG = eeg.ConvertToShortPath();
-            m_POS = pos.ConvertToShortPath();
-        }
         public ErrorType[] GetErrors(Protocol.Protocol protocol)
         {
             GetNameErrors();
             GetPatientErrors();
-            GetMeasureErrors();
-            GetEEGErrors();
-            GetPOSErrors(protocol);
+            GetDataErrors(protocol);
             return Errors;
         }
         public ErrorType[] GetNameErrors()
@@ -170,13 +144,6 @@ namespace HBP.Data.Experience.Dataset
             m_NameErrors = errors.ToArray();
             return m_NameErrors;
         }
-        public ErrorType[] GetMeasureErrors()
-        {
-            List<ErrorType> errors = new List<ErrorType>();
-            if(string.IsNullOrEmpty(Measure)) errors.Add(ErrorType.MeasureEmpty);
-            m_MeasureErrors = errors.ToArray();
-            return m_MeasureErrors;
-        }
         public ErrorType[] GetPatientErrors()
         {
             List<ErrorType> errors = new List<ErrorType>();
@@ -184,81 +151,29 @@ namespace HBP.Data.Experience.Dataset
             m_PatientErrors = errors.ToArray();
             return m_PatientErrors;
         }
-        public ErrorType[] GetEEGErrors()
+        public virtual ErrorType[] GetDataErrors(Protocol.Protocol protocol)
         {
             List<ErrorType> errors = new List<ErrorType>();
-            if (string.IsNullOrEmpty(EEG))
-            {
-                errors.Add(ErrorType.EEGEmpty);
-            }
-            else
-            {
-                FileInfo EEGFile = new FileInfo(EEG);
-                if (!EEGFile.Exists)
-                {
-                    errors.Add(ErrorType.EEGFileNotExist);
-                }
-                else
-                {
-                    if (EEGFile.Extension != ".eeg")
-                    {
-                        errors.Add(ErrorType.EEGFileNotAGoodFile);
-                    }
-                    else
-                    {
-                        if (!File.Exists(EEGHeader))
-                        {
-                            errors.Add(ErrorType.EEGHeaderNotExist);
-                        }
-                        else
-                        {
-                            if (!(new FileInfo(EEGHeader).Length > 0))
-                            {
-                                errors.Add(ErrorType.EEGHeaderEmpty);
-                            }
-                        }
-                    }
-                }
-            }
-            m_EEGErrors = errors.ToArray();
-            return m_EEGErrors;
-        }
-        public ErrorType[] GetPOSErrors(Protocol.Protocol protocol)
-        {
-            List<ErrorType> errors = new List<ErrorType>();
-            if (string.IsNullOrEmpty(POS)) errors.Add(ErrorType.POSEmpty);
-            else
-            {
-                FileInfo POSFile = new FileInfo(POS);
-                if (!POSFile.Exists) errors.Add(ErrorType.POSFileNotExist);
-                else
-                {
-                    if (POSFile.Extension != ".pos") errors.Add(ErrorType.POSFileNotAGoodFile);
-                    else
-                    {
-                        Tools.CSharp.EEG.File file = new Tools.CSharp.EEG.File(Tools.CSharp.EEG.File.FileType.ELAN, false, EEG, POS);
-                        List<Tools.CSharp.EEG.Trigger> triggers = file.Triggers;
-                        if (!protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code)))) errors.Add(ErrorType.POSNotCompatible);
-                    }
-                }
-            }
-            m_POSErrors = errors.ToArray();
-            return m_POSErrors;
+            m_DataErrors = errors.ToArray();
+            return m_DataErrors;
         }
         public string GetErrorsMessage()
         {
             ErrorType[] errors = Errors;
             StringBuilder stringBuilder = new StringBuilder();
-            if (errors.Length == 0) stringBuilder.Append("• No error detected.");
+            if (errors.Length == 0) stringBuilder.Append(string.Format("• {0}", "No error detected."));
             else
             {
                 for (int i = 0; i < errors.Length - 1; i++)
                 {
-                    stringBuilder.AppendLine(GetErrorMessage(errors[i]));
+                    stringBuilder.AppendLine(string.Format("• {0}", GetErrorMessage(errors[i])));
                 }
-                stringBuilder.Append(GetErrorMessage(errors.Last()));
+                stringBuilder.Append(string.Format("• {0}", GetErrorMessage(errors.Last())));
             }
             return stringBuilder.ToString();
+        }
+        public virtual void CopyDataToDirectory(DirectoryInfo dataInfoDirectory, string projectDirectory, string oldProjectDirectory)
+        {
         }
         #endregion
 
@@ -271,96 +186,117 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="measure">Name of the measure in the EEG file.</param>
         /// <param name="eeg">EEG file path.</param>
         /// <param name="pos">POS file path.</param>
-        public DataInfo(string name, Patient patient, string measure, string eeg, string pos, NormalizationType normalization)
+        public DataInfo(string name, Patient patient, NormalizationType normalization, string id)
         {
-            OnPOSChanged = new UnityEvent();
             Name = name;
             Patient = patient;
-            Measure = measure;
-            EEG = eeg;
-            POS = pos;
             Normalization = normalization;
+            ID = id;
         }
         /// <summary>
         /// Create a new DataInfo instance with default value.
         /// </summary>
-        public DataInfo() : this("Data", ApplicationState.ProjectLoaded.Patients.FirstOrDefault(),"EEG data", string.Empty, string.Empty, NormalizationType.Auto)
+        public DataInfo() : this("Data", ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), NormalizationType.Auto, Guid.NewGuid().ToString())
         {
         }
         #endregion
 
         #region Operators
         /// <summary>
+        /// Operator Equals.
+        /// </summary>
+        /// <param name="obj">Object to test.</param>
+        /// <returns>\a True if equals and \a false otherwise.</returns>
+        public override bool Equals(object obj)
+        {
+            DataInfo dataInfo = obj as DataInfo;
+            if (dataInfo != null && dataInfo.ID == ID)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        /// <summary>
+        /// Get hash code.
+        /// </summary>
+        /// <returns>HashCode.</returns>
+        public override int GetHashCode()
+        {
+            return ID.GetHashCode();
+        }
+        /// <summary>
+        /// Operator equals.
+        /// </summary>
+        /// <param name="a">First mesh to compare.</param>
+        /// <param name="b">Second mesh to compare.</param>
+        /// <returns>\a True if equals and \a false otherwise.</returns>
+        public static bool operator ==(DataInfo a, DataInfo b)
+        {
+            if (ReferenceEquals(a, b))
+            {
+                return true;
+            }
+
+            if (((object)a == null) || ((object)b == null))
+            {
+                return false;
+            }
+
+            return a.Equals(b);
+        }
+        /// <summary>
+        /// Operator not equals.
+        /// </summary>
+        /// <param name="a">First mesh to compare.</param>
+        /// <param name="b">Second mesh to compare.</param>
+        /// <returns>\a True if not equals and \a false otherwise.</returns>
+        public static bool operator !=(DataInfo a, DataInfo b)
+        {
+            return !(a == b);
+        }
+        /// <summary>
         /// Clone this instance.
         /// </summary>
         /// <returns>Clone of this instance.</returns>
-        public object Clone()
+        public virtual object Clone()
         {
-            DataInfo dataInfo =  new DataInfo(Name.Clone() as string, Patient.Clone() as Patient, Measure.Clone() as string, EEG.Clone() as string, POS.Clone() as string, Normalization);
-            dataInfo.OnPOSChanged = OnPOSChanged;
-            return dataInfo;
+            return new DataInfo(Name, Patient, Normalization, ID);
         }
-        public void Copy(object copy)
+        public virtual void Copy(object copy)
         {
             DataInfo dataInfo = copy as DataInfo;
             Name = dataInfo.Name;
             Patient = dataInfo.Patient;
-            Measure = dataInfo.Measure;
-            EEG = dataInfo.EEG;
-            POS = dataInfo.POS;
             Normalization = dataInfo.Normalization;
+            ID = dataInfo.ID;
         }
         #endregion
 
         #region Private Methods
         string GetErrorMessage(ErrorType error)
         {
-            string message = string.Empty;
             switch (error)
             {
                 case ErrorType.LabelEmpty:
-                    message = "• The label field is empty.";
-                    break;
+                    return "The label field is empty.";
                 case ErrorType.PatientEmpty:
-                    message = "• The patient field is empty.";
-                    break;
-                case ErrorType.MeasureEmpty:
-                    message = "• The measure field is empty.";
-                    break;
-                case ErrorType.EEGEmpty:
-                    message = "• The EEG field is empty.";
-                    break;
-                case ErrorType.POSEmpty:
-                    message = "• The POS field is empty.";
-                    break;
-                case ErrorType.EEGFileNotExist:
-                    message = "• The EEG file does not exist.";
-                    break;
-                case ErrorType.POSFileNotExist:
-                    message = "• The POS file does not exist.";
-                    break;
-                case ErrorType.EEGFileNotAGoodFile:
-                    message = "• The EEG file is incorrect.";
-                    break;
-                case ErrorType.EEGDoNotContainsMeasure:
-                    message = "• The EEG file does not contains the measure.";
-                    break;
-                case ErrorType.POSFileNotAGoodFile:  
-                    message = "• The POS file is incorrect.";
-                    break;
-                case ErrorType.POSNotCompatible:
-                    message = "• The POS file is not compatible with the protocol.";
-                    break;
-                case ErrorType.EEGHeaderNotExist:
-                    message = "• The header of the EEG file is missing.";
-                    break;
-                case ErrorType.EEGHeaderEmpty:
-                    message = "• The header of the EEG file is empty.";
-                    break;
+                    return "The patient field is empty.";
+                case ErrorType.RequiredFieldEmpty:
+                    return "One of the required fields is empty.";
+                case ErrorType.FileDoesNotExist:
+                    return "One of the files does not exist.";
+                case ErrorType.WrongExtension:
+                    return "One of the files has a wrong extension.";
+                case ErrorType.BlocsCantBeEpoched:
+                    return "One of the blocs of the protocol can't be epoched.";
+                case ErrorType.NotEnoughInformation:
+                    return "One of the files does not contain enough information.";
                 default:
-                    break;
+                    return "Unknown error.";
             }
-            return message;
         }
         #endregion
 
@@ -368,8 +304,10 @@ namespace HBP.Data.Experience.Dataset
         [OnDeserialized()]
         public void OnDeserialized(StreamingContext context)
         {
-            m_EEG = m_EEG.ToPath();
-            m_POS = m_POS.ToPath();
+            OnDeserializedOperation(context);
+        }
+        public virtual void OnDeserializedOperation(StreamingContext context)
+        {
             m_Patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == m_PatientID);
         }
         #endregion

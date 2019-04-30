@@ -10,7 +10,7 @@ namespace Tools.Unity
         public static void Set(this Dropdown dropdown, Type enumType, int enumValue)
         {
             dropdown.options = Enum.GetNames(enumType).Select((name) => new Dropdown.OptionData(StringExtension.CamelCaseToWords(name))).ToList();
-            dropdown.value = enumValue;
+            dropdown.SetValue(enumValue);
             dropdown.RefreshShownValue();
         }
 

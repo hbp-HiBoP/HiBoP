@@ -876,10 +876,7 @@ namespace HBP.Data.General
                         {
                             DirectoryInfo dataInfoDirectory = new DirectoryInfo(Path.Combine(datasetDirectory.FullName, data.Name));
                             if (!dataInfoDirectory.Exists) dataInfoDirectory = Directory.CreateDirectory(dataInfoDirectory.FullName);
-                            data.EEGHeader.CopyToDirectory(dataInfoDirectory);
-                            string eeg = data.EEG.CopyToDirectory(dataInfoDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
-                            string pos = data.POS.CopyToDirectory(dataInfoDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
-                            data.SetPathsWithoutCheckingErrors(eeg, pos);
+                            data.CopyDataToDirectory(dataInfoDirectory, projectDirectory.FullName, oldProjectDirectory);
                         }
                     }
                 }
