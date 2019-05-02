@@ -159,12 +159,8 @@ namespace HBP.Module3D.DLL
         /// <returns></returns>
         public string retrieve_error_message()
         {
-            int length = 200;
-            StringBuilder str = new StringBuilder();
-            str.Append('?', length);
-            retrieve_error_message_DLLDebugManagerContainer(str, length);
-
-            return str.ToString().Replace("?", string.Empty);
+            IntPtr result = retrieve_error_message_DLLDebugManagerContainer();
+            return Marshal.PtrToStringAnsi(result);
         }
 
         /// <summary>
@@ -211,7 +207,7 @@ namespace HBP.Module3D.DLL
         static private extern void reset_DLLDebugManagerContainer(int enable, int useLog, int unityEditor);
 
         [DllImport("hbp_export", EntryPoint = "retrieve_error_message_DLLDebugManagerContainer", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void retrieve_error_message_DLLDebugManagerContainer(StringBuilder errorMessage, int length);
+        static private extern IntPtr retrieve_error_message_DLLDebugManagerContainer();
 
         #endregion
     }

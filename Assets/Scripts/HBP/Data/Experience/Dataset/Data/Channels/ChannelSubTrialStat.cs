@@ -71,5 +71,15 @@ namespace HBP.Data.Experience.Dataset
             }
         }
         #endregion
+
+        #region Public Methods
+        public void Clear()
+        {
+            Values = new float[0];
+            SEM = new float[0];
+            TotalNumberOfSubTrials = 0;
+            NumberOfFoundSubTrials = 0;
+        }
+        #endregion
     }
 }

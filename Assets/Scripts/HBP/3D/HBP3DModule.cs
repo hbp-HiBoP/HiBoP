@@ -130,6 +130,11 @@ namespace HBP.Module3D
         /// Prefab corresponding to a scene
         /// </summary>
         [SerializeField] private GameObject m_ScenePrefab;
+
+
+        // FIXME : improve this
+        private string m_FirstSiteToSelectName;
+        private int m_FirstSiteToSelectColumnNumber;
         #endregion
 
         #region Events
@@ -227,10 +232,9 @@ namespace HBP.Module3D
         /// <param name="scene">Scene to be removed</param>
         public void RemoveScene(Base3DScene scene)
         {
-            ApplicationState.Module3D.OnRemoveScene.Invoke(scene);
-            Destroy(scene.gameObject);
+            OnRemoveScene.Invoke(scene);
             m_Scenes.Remove(scene);
-            scene.Visualization.Unload();
+            this.StartCoroutine(scene.c_Destroy());
         }
         /// <summary>
         /// Load a single patient scene extracted from a visualization
@@ -239,7 +243,10 @@ namespace HBP.Module3D
         /// <param name="patient">Patient of the new visualization</param>
         public void LoadSinglePatientSceneFromMultiPatientScene(Data.Visualization.Visualization visualization, Data.Patient patient)
         {
-            Scenes.FirstOrDefault(s => s.Visualization == visualization).SaveConfiguration();
+            Base3DScene scene = Scenes.FirstOrDefault(s => s.Visualization == visualization);
+            scene.SaveConfiguration();
+            m_FirstSiteToSelectName = scene.ColumnManager.SelectedColumn.SelectedSite.Information.ChannelName;
+            m_FirstSiteToSelectColumnNumber = scene.ColumnManager.Columns.FindIndex(c => c = scene.ColumnManager.SelectedColumn);
             Data.Visualization.Visualization visualizationToLoad = visualization.Clone() as Data.Visualization.Visualization;
             visualizationToLoad.Name = patient.Name;
             visualizationToLoad.RemoveAllPatients();
@@ -394,6 +401,9 @@ namespace HBP.Module3D
                     scene.FinalizeInitialization();
                     ApplicationState.Module3D.OnAddScene.Invoke(scene);
                     scene.LoadConfiguration();
+                    scene.SelectFirstSite(m_FirstSiteToSelectName, m_FirstSiteToSelectColumnNumber);
+                    m_FirstSiteToSelectColumnNumber = 0;
+                    m_FirstSiteToSelectName = "";
                 }
                 catch (Exception e)
                 {

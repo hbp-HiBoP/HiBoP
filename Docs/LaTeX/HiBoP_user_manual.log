@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (MiKTeX 2.9.6600 64-bit) (preloaded format=pdflatex 2018.2.27)  22 FEB 2019 10:14
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (MiKTeX 2.9.6600 64-bit) (preloaded format=pdflatex 2018.2.27)  28 MAR 2019 14:32
 entering extended mode
 **./HiBoP_user_manual.tex
 (HiBoP_user_manual.tex
@@ -818,131 +818,131 @@ Package pdftex.def Info: VisualizationModifier.png  used on input line 547.
 (pdftex.def)             Requested size: 284.56532pt x 180.37526pt.
  [17 <./DatasetModifier.png> <./DataInfoModifier.png> <./VisualizationGestion.p
 ng>]
-<GlobalUI.png, id=109, 479.54156pt x 260.47313pt>
+<GlobalUI.png, id=109, 1985.016pt x 1023.825pt>
 File: GlobalUI.png Graphic file (type png)
 <use GlobalUI.png>
 Package pdftex.def Info: GlobalUI.png  used on input line 556.
-(pdftex.def)             Requested size: 335.6768pt x 182.32994pt.
+(pdftex.def)             Requested size: 436.70488pt x 225.24219pt.
  [18 <./VisualizationModifier.png> <./GlobalUI.png>]
 <ToolbarSelector.png, id=115, 25.59563pt x 258.9675pt>
 File: ToolbarSelector.png Graphic file (type png)
 <use ToolbarSelector.png>
-Package pdftex.def Info: ToolbarSelector.png  used on input line 583.
+Package pdftex.def Info: ToolbarSelector.png  used on input line 584.
 (pdftex.def)             Requested size: 19.19666pt x 194.22513pt.
-<Cut.png, id=116, 190.46156pt x 269.50688pt>
+<Cut.png, id=116, 202.50656pt x 272.51813pt>
 File: Cut.png Graphic file (type png)
 <use Cut.png>
-Package pdftex.def Info: Cut.png  used on input line 605.
-(pdftex.def)             Requested size: 95.23053pt x 134.7531pt.
+Package pdftex.def Info: Cut.png  used on input line 606.
+(pdftex.def)             Requested size: 101.25302pt x 136.25873pt.
 [19 <./ToolbarSelector.png>]
 <SitesList.png, id=122, 303.38344pt x 708.39656pt>
 File: SitesList.png Graphic file (type png)
 <use SitesList.png>
-Package pdftex.def Info: SitesList.png  used on input line 621.
+Package pdftex.def Info: SitesList.png  used on input line 622.
 (pdftex.def)             Requested size: 151.69135pt x 354.1974pt.
  [20 <./Cut.png>]
 <BasicStates.png, id=127, 357.58594pt x 545.78906pt>
 File: BasicStates.png Graphic file (type png)
 <use BasicStates.png>
-Package pdftex.def Info: BasicStates.png  used on input line 637.
+Package pdftex.def Info: BasicStates.png  used on input line 638.
 (pdftex.def)             Requested size: 178.79253pt x 272.89386pt.
  [21 <./SitesList.png>]
 <SceneSettings.png, id=132, 938.75719pt x 25.59563pt>
 File: SceneSettings.png Graphic file (type png)
 <use SceneSettings.png>
-Package pdftex.def Info: SceneSettings.png  used on input line 645.
+Package pdftex.def Info: SceneSettings.png  used on input line 646.
 (pdftex.def)             Requested size: 422.43683pt x 11.51791pt.
 <DisplaySettings.png, id=133, 237.13594pt x 27.85406pt>
 File: DisplaySettings.png Graphic file (type png)
 <use DisplaySettings.png>
-Package pdftex.def Info: DisplaySettings.png  used on input line 664.
+Package pdftex.def Info: DisplaySettings.png  used on input line 665.
 (pdftex.def)             Requested size: 106.71017pt x 12.5342pt.
  [22 <./BasicStates.png> <./SceneSettings.png>]
 <iEEGSettings.png, id=139, 334.24875pt x 27.85406pt>
 File: iEEGSettings.png Graphic file (type png)
 <use iEEGSettings.png>
-Package pdftex.def Info: iEEGSettings.png  used on input line 680.
+Package pdftex.def Info: iEEGSettings.png  used on input line 681.
 (pdftex.def)             Requested size: 150.41054pt x 12.5342pt.
 <Timeline.png, id=140, 515.67656pt x 25.59563pt>
 File: Timeline.png Graphic file (type png)
 <use Timeline.png>
-Package pdftex.def Info: Timeline.png  used on input line 694.
+Package pdftex.def Info: Timeline.png  used on input line 695.
 (pdftex.def)             Requested size: 232.0523pt x 11.51791pt.
 <Sites.png, id=141, 427.5975pt x 28.60687pt>
 File: Sites.png Graphic file (type png)
 <use Sites.png>
-Package pdftex.def Info: Sites.png  used on input line 707.
+Package pdftex.def Info: Sites.png  used on input line 708.
 (pdftex.def)             Requested size: 192.41708pt x 12.87297pt.
  [23 <./DisplaySettings.png> <./iEEGSettings.png> <./Timeline.png>]
 <ROI.png, id=148, 556.32843pt x 27.85406pt>
 File: ROI.png Graphic file (type png)
 <use ROI.png>
-Package pdftex.def Info: ROI.png  used on input line 726.
+Package pdftex.def Info: ROI.png  used on input line 727.
 (pdftex.def)             Requested size: 250.34547pt x 12.5342pt.
 <fMRI.png, id=149, 534.49687pt x 27.85406pt>
 File: fMRI.png Graphic file (type png)
 <use fMRI.png>
-Package pdftex.def Info: fMRI.png  used on input line 746.
+Package pdftex.def Info: fMRI.png  used on input line 747.
 (pdftex.def)             Requested size: 240.52136pt x 12.5342pt.
  [24 <./Sites.png> <./ROI.png>]
 <TriEraser.png, id=155, 130.23656pt x 25.59563pt>
 File: TriEraser.png Graphic file (type png)
 <use TriEraser.png>
-Package pdftex.def Info: TriEraser.png  used on input line 757.
+Package pdftex.def Info: TriEraser.png  used on input line 758.
 (pdftex.def)             Requested size: 58.6059pt x 11.51791pt.
-<Graph.png, id=156, 921.4425pt x 455.7025pt>
+<Graph.png, id=156, 586.44093pt x 344.03531pt>
 File: Graph.png Graphic file (type png)
 <use Graph.png>
-Package pdftex.def Info: Graph.png  used on input line 774.
-(pdftex.def)             Requested size: 322.5097pt x 159.49826pt.
+Package pdftex.def Info: Graph.png  used on input line 775.
+(pdftex.def)             Requested size: 293.21974pt x 172.01723pt.
  [25 <./fMRI.png> <./TriEraser.png> <./Graph.png>]
 <TrialMatrix.png, id=164, 891.33pt x 908.39375pt>
 File: TrialMatrix.png Graphic file (type png)
 <use TrialMatrix.png>
-Package pdftex.def Info: TrialMatrix.png  used on input line 794.
+Package pdftex.def Info: TrialMatrix.png  used on input line 795.
 (pdftex.def)             Requested size: 311.97017pt x 317.94258pt.
  [26 <./TrialMatrix.png>]
 <DBManagerMain.png, id=169, 782.925pt x 670.75594pt>
 File: DBManagerMain.png Graphic file (type png)
 <use DBManagerMain.png>
-Package pdftex.def Info: DBManagerMain.png  used on input line 809.
+Package pdftex.def Info: DBManagerMain.png  used on input line 810.
 (pdftex.def)             Requested size: 234.8793pt x 201.22833pt.
 <DBManagerPatient.png, id=170, 457.71pt x 688.82344pt>
 File: DBManagerPatient.png Graphic file (type png)
 <use DBManagerPatient.png>
-Package pdftex.def Info: DBManagerPatient.png  used on input line 817.
+Package pdftex.def Info: DBManagerPatient.png  used on input line 818.
 (pdftex.def)             Requested size: 228.85445pt x 344.41087pt.
  [27 <./DBManagerMain.png>]
 <DBManagerLoca.png, id=175, 456.20438pt x 688.07062pt>
 File: DBManagerLoca.png Graphic file (type png)
 <use DBManagerLoca.png>
-Package pdftex.def Info: DBManagerLoca.png  used on input line 825.
+Package pdftex.def Info: DBManagerLoca.png  used on input line 826.
 (pdftex.def)             Requested size: 228.10162pt x 344.03447pt.
 
 [28 <./DBManagerPatient.png>]
 <DBManagerFilters.png, id=180, 358.33875pt x 683.55376pt>
 File: DBManagerFilters.png Graphic file (type png)
 <use DBManagerFilters.png>
-Package pdftex.def Info: DBManagerFilters.png  used on input line 833.
+Package pdftex.def Info: DBManagerFilters.png  used on input line 834.
 (pdftex.def)             Requested size: 179.16893pt x 341.77605pt.
  [29 <./DBManagerLoca.png>]
 <ExportPatient.png, id=185, 366.61969pt x 420.06938pt>
 File: ExportPatient.png Graphic file (type png)
 <use ExportPatient.png>
-Package pdftex.def Info: ExportPatient.png  used on input line 851.
+Package pdftex.def Info: ExportPatient.png  used on input line 852.
 (pdftex.def)             Requested size: 183.30939pt x 210.03418pt.
  [30 <./DBManagerFilters.png>]
 <ExportLoca.png, id=190, 475.02469pt x 453.19313pt>
 File: ExportLoca.png Graphic file (type png)
 <use ExportLoca.png>
-Package pdftex.def Info: ExportLoca.png  used on input line 859.
+Package pdftex.def Info: ExportLoca.png  used on input line 860.
 (pdftex.def)             Requested size: 237.51175pt x 226.59601pt.
  [31 <./ExportPatient.png> <./ExportLoca.png>] [32] [33] [34]
 (HiBoP_user_manual.aux) ) 
 Here is how much of TeX's memory you used:
  6255 strings out of 493303
  90190 string characters out of 3138818
- 197234 words of memory out of 3000000
+ 197233 words of memory out of 3000000
  9644 multiletter control sequences out of 15000+200000
  69871 words of font info for 50 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -964,7 +964,7 @@ am Files/MiKTeX 2.9/fonts/type1/public/lm/lmr8.pfb><C:/Program Files/MiKTeX 2.9
 /lm/lmri10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmsy10.pfb><C
 :/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmtt10.pfb><C:/Program Files/M
 iKTeX 2.9/fonts/type1/public/lm/lmtt8.pfb>
-Output written on HiBoP_user_manual.pdf (34 pages, 1410586 bytes).
+Output written on HiBoP_user_manual.pdf (34 pages, 2851266 bytes).
 PDF statistics:
  264 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)

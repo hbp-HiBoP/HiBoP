@@ -429,6 +429,9 @@ namespace HBP.Module3D
             }
         }
 
+        private string m_FirstSiteToSelectName = "";
+        private int m_FirstSiteToSelectColumnNumber = 0;
+
         /// <summary>
         /// Is ROI creation mode activated ?
         /// </summary>
@@ -459,6 +462,11 @@ namespace HBP.Module3D
         /// Lock when updating colliders
         /// </summary>
         private bool m_UpdatingColliders = false;
+
+        /// <summary>
+        /// True if the coroutine c_Destroy has been called
+        /// </summary>
+        private bool m_DestroyRequested = false;
 
         /// <summary>
         /// Weight of the mesh loading step
@@ -569,7 +577,7 @@ namespace HBP.Module3D
         #region Private Methods
         private void Update()
         {
-            if (!SceneInformation.IsSceneInitialized) return;
+            if (!SceneInformation.IsSceneInitialized || m_DestroyRequested) return;
 
             if (SceneInformation.MeshGeometryNeedsUpdate)
             {
@@ -600,6 +608,10 @@ namespace HBP.Module3D
             if (!SceneInformation.IsSceneCompletelyLoaded)
             {
                 UpdateVisibleState(true);
+                if (m_FirstSiteToSelectColumnNumber < m_ColumnManager.Columns.Count)
+                {
+                    m_ColumnManager.Columns[m_FirstSiteToSelectColumnNumber].SelectFirstSite(m_FirstSiteToSelectName);
+                }
                 SceneInformation.IsSceneCompletelyLoaded = true;
             }
         }
@@ -1263,12 +1275,13 @@ namespace HBP.Module3D
         /// <param name="state">Visible or not visible</param>
         public void UpdateVisibleState(bool state)
         {
+            gameObject.SetActive(state);
             OnChangeVisibleState.Invoke(state);
             if (!state)
             {
                 ApplicationState.Module3D.OnMinimizeScene.Invoke(this);
-                IsSelected = false;
             }
+            IsSelected = state;
         }
         #endregion
 
@@ -1513,6 +1526,7 @@ namespace HBP.Module3D
         public void FinalizeInitialization()
         {
             m_ColumnManager.Columns[0].Views[0].IsSelected = true; // Select default view
+            m_ColumnManager.Columns[0].SelectFirstSite();
             SceneInformation.IsSceneInitialized = true;
             this.StartCoroutineAsync(c_LoadMissingAnatomy());
         }
@@ -1709,6 +1723,15 @@ namespace HBP.Module3D
                 }
             }
             ResetIEEG(false);
+        }
+        /// <summary>
+        /// Select a site on a column given its name
+        /// </summary>
+        /// <param name="siteName"></param>
+        public void SelectFirstSite(string siteName = "", int columnNumber = 0)
+        {
+            m_FirstSiteToSelectName = siteName;
+            m_FirstSiteToSelectColumnNumber = 0;
         }
         /// <summary>
         /// Update the data rendering for a column
@@ -2500,6 +2523,18 @@ namespace HBP.Module3D
             }
 
             m_UpdatingColliders = false;
+        }
+        /// <summary>
+        /// Destroy the scene
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerator c_Destroy()
+        {
+            m_GeneratorNeedsUpdate = true;
+            m_DestroyRequested = true;
+            yield return new WaitUntil(delegate { return !m_UpdatingGenerator; });
+            Visualization.Unload();
+            Destroy(gameObject);
         }
         #endregion
     }

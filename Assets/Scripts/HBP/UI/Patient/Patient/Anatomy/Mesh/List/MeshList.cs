@@ -14,6 +14,8 @@ namespace HBP.UI.Anatomy
         [SerializeField] SortingDisplayer m_MeshSortingDisplayer;
         [SerializeField] SortingDisplayer m_MarsAtlasSortingDisplayer;
         [SerializeField] SortingDisplayer m_TransformationSortingDisplayer;
+
+        public UnityEngine.Events.GenericEvent<Data.Anatomy.Mesh, int> OnUpdateObject = new UnityEngine.Events.GenericEvent<Data.Anatomy.Mesh, int>();
         #endregion
 
         #region Public Methods
@@ -28,13 +30,12 @@ namespace HBP.UI.Anatomy
         }
         public override bool UpdateObject(Data.Anatomy.Mesh objectToUpdate)
         {
-
             int index = m_Objects.FindIndex(obj => obj == objectToUpdate);
             if (index != -1)
             {
                 m_Objects[index] = objectToUpdate;
-                Item<Data.Anatomy.Mesh> item;
-                if (GetItemFromObject(objectToUpdate, out item))
+                OnUpdateObject.Invoke(objectToUpdate, index);
+                if (GetItemFromObject(objectToUpdate, out Item<Data.Anatomy.Mesh> item))
                 {
                     ActionnableItem<Data.Anatomy.Mesh> actionnableItem = item as ActionnableItem<Data.Anatomy.Mesh>;
                     actionnableItem.Object = objectToUpdate;

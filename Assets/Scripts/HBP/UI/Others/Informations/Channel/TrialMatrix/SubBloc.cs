@@ -4,13 +4,15 @@ using Tools.CSharp;
 using data = HBP.Data.TrialMatrix;
 using HBP.Data.Experience.Dataset;
 using UnityEngine.Events;
+using UnityEngine.UI.Extensions;
+using UnityEngine.EventSystems;
 
 namespace HBP.UI.TrialMatrix
 {
     public class SubBloc : MonoBehaviour
     {
         #region Properties
-        data.SubBloc m_Data;
+        [SerializeField] data.SubBloc m_Data;
         public data.SubBloc Data
         {
             get
@@ -19,7 +21,10 @@ namespace HBP.UI.TrialMatrix
             }
             set
             {
-                Set(value, Colors, Limits);
+                if(SetPropertyUtility.SetClass(ref m_Data, value))
+                {
+                    SetData();
+                }
             }
         }
 
@@ -32,39 +37,62 @@ namespace HBP.UI.TrialMatrix
             }
             set
             {
-                m_Colors = value;
-                SetTexture();
-            }
-        }
-
-        Vector2 m_Limits;
-        public Vector2 Limits
-        {
-            get { return m_Limits; }
-            set
-            {
-                m_Limits = value;
-                SetTexture();
-            }
-        }
-
-        bool m_IsHovered = false;
-        public bool IsHovered
-        {
-            get
-            {
-                return m_IsHovered;
-            }
-            set
-            {
-                if (m_IsHovered != value)
+                if(SetPropertyUtility.SetClass(ref m_Colors, value))
                 {
-                    m_IsHovered = value;
-                    OnChangeIsHovered.Invoke();
+                    SetColors();
                 }
             }
         }
-        public UnityEvent OnChangeIsHovered;
+
+        [SerializeField] Vector2 m_Limits;
+        public Vector2 Limits
+        {
+            get
+            {
+                return m_Limits;
+            }
+            set
+            {
+                if(SetPropertyUtility.SetStruct(ref m_Limits, value))
+                {
+                    SetLimits();
+                }
+            }
+        }
+
+        [SerializeField] bool m_Hovered = false;
+        public bool Hovered
+        {
+            get
+            {
+                return m_Hovered;
+            }
+            set
+            {
+                if(SetPropertyUtility.SetStruct(ref m_Hovered, value))
+                {
+                    SetHovered();
+                }
+            }
+        }
+
+        [SerializeField] UnityEvent m_OnChangeHovered;
+        public UnityEvent OnChangeHovered
+        {
+            get
+            {
+                return m_OnChangeHovered;
+            }
+        }
+
+        [SerializeField] BaseEventData m_OnPointerDown;
+        public BaseEventData OnPointerDown
+        {
+            get
+            {
+                return m_OnPointerDown;
+            }
+        }
 
         [SerializeField] RawImage m_RawImage;
         [SerializeField] LayoutElement m_MainTextureLayoutElement;
@@ -79,21 +107,24 @@ namespace HBP.UI.TrialMatrix
         public void Set(data.SubBloc data, Color[] colors, Vector2 limits)
         {
             m_Data = data;
-            m_Colors = colors;
-            m_Limits = limits;
-            m_LayoutElement.flexibleWidth = data.Window.Lenght;
+            if(m_Data != null)
+            {
+                m_Colors = colors;
+                m_Limits = limits;
+                m_LayoutElement.flexibleWidth = data.Window.Lenght;
 
-            if (data.IsFiller)
-            {
-                gameObject.name = "Filler";
+                if (data.IsFiller)
+                {
+                    gameObject.name = "Filler";
+                }
+                else
+                {
+                    gameObject.name = data.SubBlocProtocol.Name;
+                    SetTexture();
+                    GenerateEventIndicators(data);
+                }
+                SetFillers();
             }
-            else
-            {
-                gameObject.name = data.SubBlocProtocol.Name;
-                SetTexture();
-                GenerateEventIndicators(data);
-            }
-            SetFillers();
         }
         #endregion
 
@@ -102,18 +133,29 @@ namespace HBP.UI.TrialMatrix
         {
             m_LayoutElement = GetComponent<LayoutElement>();
         }
+        void OnValidate()
+        {
+            SetColors();
+            SetHovered();
+            SetLimits();
+            SetData();
+        }
+
         void SetTexture()
         {
-            float[][] trials = ExtractDataTrials(m_Data.SubTrials);
-            if (ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialSmoothing)
+            if(m_Data != null)
             {
-                trials = SmoothTrials(trials, ApplicationState.UserPreferences.Visualization.TrialMatrix.NumberOfIntermediateValues);
-            }
+                float[][] trials = ExtractDataTrials(m_Data.SubTrials);
+                if (ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialSmoothing)
+                {
+                    trials = SmoothTrials(trials, ApplicationState.UserPreferences.Visualization.TrialMatrix.NumberOfIntermediateValues);
+                }
 
-            Texture2D texture = GenerateTexture(trials, m_Limits, m_Colors);
-            texture.mipMapBias = -5;
-            texture.wrapMode = TextureWrapMode.Clamp;
-            m_RawImage.texture = texture;
+                Texture2D texture = GenerateTexture(trials, m_Limits, m_Colors);
+                texture.mipMapBias = -5;
+                texture.wrapMode = TextureWrapMode.Clamp;
+                m_RawImage.texture = texture;
+            }
         }
         void SetFillers()
         {
@@ -231,6 +273,25 @@ namespace HBP.UI.TrialMatrix
                 }
             }
         }
+
+        void SetColors()
+        {
+            SetTexture();
+        }
+        void SetHovered()
+        {
+            m_OnChangeHovered.Invoke();
+        }
+        void SetLimits()
+        {
+            SetTexture();
+        }
+        void SetData()
+        {
+            Set(m_Data, m_Colors, m_Limits);
+        }
         #endregion
+
+
     }
 }

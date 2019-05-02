@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
 using HBP.Data.Experience.Protocol;
-using HBP.Data.Localizer;
 
 namespace HBP.Data.Experience.Dataset
 {
@@ -23,7 +22,7 @@ namespace HBP.Data.Experience.Dataset
         {
             SubTrialBySubBloc = subTrialBySubBloc;
         }
-        public Trial(Dictionary<string,float[]> valuesByChannel, Dictionary<string, string> unitByChannel,  int startIndex, POS.Occurence mainEventOccurence, int endIndex, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Protocol.Bloc bloc, Frequency frequency) : this()
+        public Trial(Dictionary<string,float[]> valuesByChannel, Dictionary<string, string> unitByChannel,  int startIndex, RawData.Occurence mainEventOccurence, int endIndex, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Bloc bloc, Tools.CSharp.EEG.Frequency frequency) : this()
         {
             SubTrialBySubBloc = new Dictionary<SubBloc, SubTrial>(bloc.SubBlocs.Count); // Initialize dictionary
 
@@ -39,11 +38,11 @@ namespace HBP.Data.Experience.Dataset
             for (int i = mainSubBlocIndex - 1; i >= 0; i--)
             {
                 SubBloc subBloc = orderedSubBlocs[i];
-                POS.Occurence[] occurences = occurencesByEvent[subBloc.MainEvent].GetOccurences(start, end).OrderBy(o => o.Index).ToArray();
+                RawData.Occurence[] occurences = occurencesByEvent[subBloc.MainEvent].GetOccurences(start, end).OrderBy(o => o.Index).ToArray();
                 SubTrial subTrial;
                 if (occurences.Length > 0)
                 {
-                    POS.Occurence mainEventOccurenceOfSecondaryBloc = occurences.LastOrDefault();
+                    RawData.Occurence mainEventOccurenceOfSecondaryBloc = occurences.LastOrDefault();
                     subTrial = new SubTrial(valuesByChannel, unitByChannel, mainEventOccurenceOfSecondaryBloc, subBloc, occurencesByEvent, frequency);
                 }
                 else
@@ -60,11 +59,11 @@ namespace HBP.Data.Experience.Dataset
             for (int i = mainSubBlocIndex + 1; i < orderedSubBlocs.Count; i++)
             {
                 SubBloc subBloc = orderedSubBlocs[i];
-                POS.Occurence[] occurences = occurencesByEvent[subBloc.MainEvent].GetOccurences(start, end).OrderBy(o => o.Index).ToArray();
+                RawData.Occurence[] occurences = occurencesByEvent[subBloc.MainEvent].GetOccurences(start, end).OrderBy(o => o.Index).ToArray();
                 SubTrial subTrial;
                 if (occurences.Length > 0)
                 {
-                    POS.Occurence mainEventOccurenceOfSecondaryBloc = occurences.FirstOrDefault();
+                    RawData.Occurence mainEventOccurenceOfSecondaryBloc = occurences.FirstOrDefault();
                     subTrial = new SubTrial(valuesByChannel, unitByChannel, mainEventOccurenceOfSecondaryBloc, subBloc, occurencesByEvent, frequency);
                 }
                 else
@@ -74,6 +73,18 @@ namespace HBP.Data.Experience.Dataset
                 SubTrialBySubBloc.Add(subBloc, subTrial);
                 if (subTrial.Found) start = subTrial.InformationsByEvent[subBloc.MainEvent].Occurences[0].Index;
             }
+        }
+        #endregion
+
+        #region Public Methods
+        public void Clear()
+        {
+            foreach (var subTrial in SubTrialBySubBloc.Values)
+            {
+                subTrial.Clear();
+            }
+            SubTrialBySubBloc.Clear();
+            SubTrialBySubBloc = new Dictionary<SubBloc, SubTrial>();
         }
         #endregion
     }

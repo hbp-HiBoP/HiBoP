@@ -5,7 +5,6 @@ using HBP.Data.Experience.Dataset;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
-using HBP.Data.Localizer;
 
 namespace HBP.Data.Visualization
 {
@@ -103,7 +102,7 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public Timeline(Bloc bloc, Dictionary<SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc, Dictionary<SubBloc, int> indexBySubBloc, Frequency frequency)
+        public Timeline(Bloc bloc, Dictionary<SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc, Dictionary<SubBloc, int> indexBySubBloc, Tools.CSharp.EEG.Frequency frequency)
         {
             Unit = "ms";
             int startIndex = 0;
@@ -241,7 +240,7 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public SubTimeline(SubBloc subBloc, int startIndex, List<SubBlocEventsStatistics> eventStatistics, int maxBefore, int maxAfter, Frequency frequency)
+        public SubTimeline(SubBloc subBloc, int startIndex, List<SubBlocEventsStatistics> eventStatistics, int maxBefore, int maxAfter, Tools.CSharp.EEG.Frequency frequency)
         {
             // Events
             StatisticsByEvent = new Dictionary<Experience.Protocol.Event, EventStatistics>();

@@ -5,6 +5,8 @@ using System.Linq;
 using Tools.Unity.Lists;
 using NewTheme.Components;
 using System.Collections.Generic;
+using Tools.Unity;
+using System.Text;
 
 namespace HBP.UI.Anatomy
 {
@@ -14,9 +16,9 @@ namespace HBP.UI.Anatomy
 		[SerializeField] Text m_NameText;
 
 		[SerializeField] Text m_PatientsText;
-        [SerializeField] LabelList m_PatientsList;
+        [SerializeField] Tooltip m_PatientTooltip;
 
-        [SerializeField] State Error;
+        [SerializeField] State m_ErrorState;
 
         public override Group Object
         {
@@ -29,21 +31,25 @@ namespace HBP.UI.Anatomy
                 base.Object = value;
                 m_NameText.text = value.Name;
 
-                int numberOfPatients = value.Patients.Count;
-                m_PatientsText.text = numberOfPatients.ToString();
-                if (numberOfPatients == 0) m_PatientsText.GetComponent<ThemeElement>().Set(Error);
-                else m_PatientsText.GetComponent<ThemeElement>().Set();
+                StringBuilder stringBuilder = new StringBuilder();
+                string[] patients = m_Object.Patients.Select(p => p.Name).ToArray();
+                for (int i = 0; i < patients.Length; i++)
+                {
+                    if (i < patients.Length - 1) stringBuilder.AppendLine(" \u2022 " + patients[i]);
+                    else stringBuilder.Append(" \u2022 " + patients[i]);
+                }
+                if (patients.Length == 0)
+                {
+                    m_PatientsText.GetComponent<ThemeElement>().Set(m_ErrorState);
+                    m_PatientTooltip.Text = " \u2022 None";
+                }
+                else
+                {
+                    m_PatientsText.GetComponent<ThemeElement>().Set();
+                    m_PatientTooltip.Text = stringBuilder.ToString();
+                }
+                m_PatientsText.text = patients.Length.ToString();
             }
-        }
-        #endregion
-
-        #region Public Methods
-        public void SetPatients()
-        {
-            m_PatientsList.Initialize();
-            IEnumerable<string> labels = from patient in m_Object.Patients.ToArray() select patient.Name;
-            if (labels.Count() == 0) labels = new string[] { "No Patient" };
-            m_PatientsList.Objects = labels.ToArray();
         }
         #endregion
     }

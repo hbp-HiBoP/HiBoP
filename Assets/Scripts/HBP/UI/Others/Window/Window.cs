@@ -28,7 +28,6 @@ namespace HBP.UI
         }
 
         protected List<Window> m_SubWindows = new List<Window>();
-        [SerializeField] protected Button m_CloseButton;
         #endregion
 
         #region Public Methods
@@ -47,7 +46,6 @@ namespace HBP.UI
         }
         protected virtual void Initialize()
         {
-            m_CloseButton.onClick.AddListener(Close);
             SetFields();
         }
         protected virtual void SetFields()

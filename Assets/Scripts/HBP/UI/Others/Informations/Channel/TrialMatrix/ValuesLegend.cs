@@ -51,14 +51,17 @@ namespace HBP.UI.TrialMatrix
             if( position == 0)
             {
                 rectTransform.pivot = new Vector2(0, 0);
+                text.alignment = TextAnchor.LowerLeft;
             }
             else if( position == maxPosition)
             {
                 rectTransform.pivot = new Vector2(0, 1);
+                text.alignment = TextAnchor.UpperLeft;
             }
             else
             {
                 rectTransform.pivot = new Vector2(0, 0.5f);
+                text.alignment = TextAnchor.MiddleLeft;
             }
 
             // SetText

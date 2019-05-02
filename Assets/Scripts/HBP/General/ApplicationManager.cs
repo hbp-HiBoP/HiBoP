@@ -32,6 +32,7 @@ public class ApplicationManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        DataManager.Clear();
         string tmpDir = ApplicationState.ProjectLoadedTMPFullPath;
         if (Directory.Exists(tmpDir))
         {

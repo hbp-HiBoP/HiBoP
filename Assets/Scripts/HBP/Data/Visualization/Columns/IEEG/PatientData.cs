@@ -1,6 +1,5 @@
 ﻿using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
-using HBP.Data.Localizer;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -9,7 +8,7 @@ namespace HBP.Data.Visualization
     public class PatientData
     {
         #region Properties
-        public Frequency Frequency { get; set; }
+        public Tools.CSharp.EEG.Frequency Frequency { get; set; }
         public Dictionary<SubBloc, SubBlocEventsStatistics> EventDataBySubBloc { get; set; }
         #endregion
 
@@ -28,12 +27,12 @@ namespace HBP.Data.Visualization
             //}
             //Frequency = blocData.Frequency;
         }
-        public PatientData(Dictionary<SubBloc, SubBlocEventsStatistics> eventDataBySubBloc, Frequency frequency)
+        public PatientData(Dictionary<SubBloc, SubBlocEventsStatistics> eventDataBySubBloc, Tools.CSharp.EEG.Frequency frequency)
         {
             EventDataBySubBloc = eventDataBySubBloc;
             Frequency = frequency;
         }
-        public PatientData() : this(new Dictionary<SubBloc, SubBlocEventsStatistics>(), new Frequency())
+        public PatientData() : this(new Dictionary<SubBloc, SubBlocEventsStatistics>(), new Tools.CSharp.EEG.Frequency())
         {
         }
         #endregion

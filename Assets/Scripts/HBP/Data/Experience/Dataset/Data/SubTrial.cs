@@ -1,5 +1,4 @@
 ﻿using HBP.Data.Experience.Protocol;
-using HBP.Data.Localizer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +29,7 @@ namespace HBP.Data.Experience.Dataset
             BaselineValuesByChannel = baselineValuesByChannel;
             Found = found;
         }
-        public SubTrial(Dictionary<string, float[]> valuesByChannel, Dictionary<string, string> unitByChannel, POS.Occurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Frequency frequency)
+        public SubTrial(Dictionary<string, float[]> valuesByChannel, Dictionary<string, string> unitByChannel, RawData.Occurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Tools.CSharp.EEG.Frequency frequency)
         {
             int startIndex = mainEventOccurence.Index + frequency.ConvertToCeiledNumberOfSamples(subBloc.Window.Start);
             int endIndex = mainEventOccurence.Index + frequency.ConvertToFlooredNumberOfSamples(subBloc.Window.End);
@@ -56,6 +55,34 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Public Methods
+        public void Clear()
+        {
+            foreach (var eventInformation in InformationsByEvent.Values)
+            {
+                eventInformation.Clear();
+            }
+            InformationsByEvent.Clear();
+            InformationsByEvent = new Dictionary<Event, EventInformation>();
+
+            UnitByChannel.Clear();
+            UnitByChannel = new Dictionary<string, string>();
+
+            foreach (var channel in UnitByChannel.Keys)
+            {
+                RawValuesByChannel[channel] = new float[0];
+                BaselineValuesByChannel[channel] = new float[0];
+                ValuesByChannel[channel] = new float[0];
+            }
+
+            RawValuesByChannel.Clear();
+            RawValuesByChannel = new Dictionary<string, float[]>();
+
+            BaselineValuesByChannel.Clear();
+            BaselineValuesByChannel = new Dictionary<string, float[]>();
+
+            ValuesByChannel?.Clear();
+            ValuesByChannel = new Dictionary<string, float[]>();
+        }
         public void Normalize(float average, float standardDeviation)
         {
             foreach (var channel in RawValuesByChannel.Keys)
@@ -89,7 +116,7 @@ namespace HBP.Data.Experience.Dataset
             }
             return result;
         }
-        Dictionary<Event,EventInformation> FindEvents(POS.Occurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Frequency frequency)
+        Dictionary<Event,EventInformation> FindEvents(RawData.Occurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Tools.CSharp.EEG.Frequency frequency)
         {
             // Initialize
             Dictionary<Event, EventInformation> result = new Dictionary<Event, EventInformation>(subBloc.Events.Count);
@@ -103,7 +130,7 @@ namespace HBP.Data.Experience.Dataset
 
             foreach (var _event in subBloc.SecondaryEvents)
             {
-                POS.Occurence[] occurences = occurencesByEvent[_event].GetOccurences(startIndex, endIndex);
+                RawData.Occurence[] occurences = occurencesByEvent[_event].GetOccurences(startIndex, endIndex);
                 List<EventInformation.EventOccurence> eventOccurences = new List<EventInformation.EventOccurence>(occurences.Length);
                 foreach (var occurence in occurences)
                 {

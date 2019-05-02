@@ -324,9 +324,15 @@ namespace Tools.Unity.Graph
             }
             SetCurves();
         }
-        public void AddCurve(Curve data)
+        public void UpdateCurve(string id)
         {
-            m_Curves.Add(data);
+            Curve curveFound = FindCurve(id);
+            Debug.Log(curveFound.Data.Thickness);
+        }
+        public void AddCurve(Curve curve)
+        {
+            m_Curves.Add(curve);
+            AddListenerOnChangeDataEvent(curve);
             SetCurves();
         }
         public void RemoveCurve(Curve curve)
@@ -337,6 +343,10 @@ namespace Tools.Unity.Graph
         public void SetCurves(Curve[] curves)
         {
             m_Curves = new List<Curve>(curves);
+            foreach (var curve in curves)
+            {
+                AddListenerOnChangeDataEvent(curve);
+            }
             SetCurves();
         }
         public void ClearCurves()
@@ -489,6 +499,14 @@ namespace Tools.Unity.Graph
             }
             return result;
         }
+        void AddListenerOnChangeDataEvent(Curve curve)
+        {
+            curve.OnChangeData.AddListener(SetCurves);
+            foreach (var subCurve in curve.SubCurves)
+            {
+                AddListenerOnChangeDataEvent(subCurve);
+            }
+        }
         #endregion
 
         #region Public Class
@@ -525,6 +543,14 @@ namespace Tools.Unity.Graph
                     {
                         SetData();
                     }
+                }
+            }
+            [SerializeField] UnityEvent m_OnChangeData = new UnityEvent();
+            public UnityEvent OnChangeData
+            {
+                get
+                {
+                    return m_OnChangeData;
                 }
             }
 
@@ -627,7 +653,7 @@ namespace Tools.Unity.Graph
             }
             void SetData()
             {
-
+                m_OnChangeData.Invoke();
             }
             #endregion
         }

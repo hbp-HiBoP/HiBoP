@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.Data.Localizer
+namespace Tools.CSharp.EEG
 {
     public class Frequency
     {

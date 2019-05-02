@@ -14,6 +14,7 @@ namespace HBP.UI.Experience.Dataset
         #region Properties
         [SerializeField] Text m_NameText;
         [SerializeField] Text m_PatientText;
+        [SerializeField] Text m_TypeText;
 		[SerializeField] ThemeElement m_StateThemeElement;
         [SerializeField] Tooltip m_ErrorText;
 
@@ -31,6 +32,7 @@ namespace HBP.UI.Experience.Dataset
                 base.Object = value;
                 m_NameText.text = value.Name;
                 m_PatientText.text = value.Patient.Name;
+                m_TypeText.text = value.DataTypeString;
                 m_ErrorText.Text = Object.GetErrorsMessage();
                 m_StateThemeElement.Set(value.isOk? m_OKState : m_ErrorState);
             }

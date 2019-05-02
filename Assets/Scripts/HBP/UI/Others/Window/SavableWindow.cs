@@ -38,7 +38,6 @@ namespace HBP.UI
         protected override void Initialize()
         {
             OnSave = new UnityEvent();
-            m_SaveButton.onClick.AddListener(Save);
             base.Initialize();
         }
         #endregion

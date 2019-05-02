@@ -68,7 +68,7 @@ namespace HBP.UI.Module3D.Tools
             yield return Ninja.JumpBack;
 
             System.Text.StringBuilder csvBuilder = new System.Text.StringBuilder();
-            csvBuilder.AppendLine("Site,Patient,Place,Date,X,Y,Z,CoordSystem,EEG,POS");
+            csvBuilder.AppendLine("Site,Patient,Place,Date,X,Y,Z,CoordSystem,DataType,DataFiles");
             
             List<Site> sites = SelectedColumn.Sites;
             int length = sites.Count;
@@ -98,13 +98,13 @@ namespace HBP.UI.Module3D.Tools
                 if (!(site.State.IsExcluded || site.State.IsBlackListed || site.State.IsMasked || site.State.IsOutOfROI))
                 {
                     Vector3 sitePosition = sitePositions[i];
-                    string EEG = "", POS = "";
+                    string dataType = "", dataFiles = "";
                     if (SelectedColumn is Column3DIEEG)
                     {
                         Column3DIEEG columnIEEG = (Column3DIEEG)SelectedColumn;
                         DataInfo dataInfo = dataInfoByPatient[site.Information.Patient];
-                        EEG = dataInfo.EEG;
-                        POS = dataInfo.POS;
+                        dataType = dataInfo.DataTypeString;
+                        dataFiles = dataInfo.DataFilesString;
                     }
                     csvBuilder.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9}",
                             site.Information.ChannelName,
@@ -115,8 +115,8 @@ namespace HBP.UI.Module3D.Tools
                             sitePosition.y.ToString("N2"),
                             sitePosition.z.ToString("N2"),
                             SelectedScene.ColumnManager.SelectedImplantation.Name,
-                            EEG,
-                            POS));
+                            dataType,
+                            dataFiles));
                 }
             }
 
