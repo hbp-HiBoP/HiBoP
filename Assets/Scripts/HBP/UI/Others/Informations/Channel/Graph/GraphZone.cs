@@ -112,7 +112,6 @@ namespace HBP.UI.Informations
                     Vector2 curveMinMax = GetMinMax(curve);
                     if (curveMinMax.x < minMax.x) minMax.x = curveMinMax.x;
                     if (curveMinMax.y > minMax.y) minMax.y = curveMinMax.y;
-                    minMax = GetMinMax(curve);
                 }
             }
             float lenght = minMax.y - minMax.x;

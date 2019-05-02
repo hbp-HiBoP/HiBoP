@@ -158,17 +158,25 @@ namespace HBP.UI.Informations
         void OnSiteInformationRequestHandler(IEnumerable<Site> sites)
         {
             m_ChannelStructs = sites.Select(s => new ChannelStruct(s.Information.ChannelName, s.Information.Patient)).ToArray();
-            ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
+            if (m_ChannelStructs.Length != 0 && m_DataStructs.Length != 0)
+            {
+                ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
+            }
+
         }
         void OnMinimizeColumnHandler()
         {
-            GenerateDataStructs();
-            ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
+            GenerateDataStructs(); if (m_ChannelStructs.Length != 0 && m_DataStructs.Length != 0)
+            {
+                ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
+            }
         }
         void OnChangeROIHandler()
         {
-            GenerateDataStructs();
-            ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
+            GenerateDataStructs(); if (m_ChannelStructs.Length != 0 && m_DataStructs.Length != 0)
+            {
+                ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
+            }
         }
         void OnChangeColorMapHandler()
         {
