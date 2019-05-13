@@ -23,17 +23,11 @@ namespace HBP.UI.Module3D
 
         private enum ActionType { ChangeState, Export };
         private ActionType m_ActionType;
-
-        [SerializeField] Toggle m_Exclude;
-        [SerializeField] Toggle m_Unexclude;
+        
         [SerializeField] Toggle m_Highlight;
         [SerializeField] Toggle m_Unhighlight;
         [SerializeField] Toggle m_Blacklist;
         [SerializeField] Toggle m_Unblacklist;
-        [SerializeField] Toggle m_Mark;
-        [SerializeField] Toggle m_Unmark;
-        [SerializeField] Toggle m_Suspect;
-        [SerializeField] Toggle m_Unsuspect;
 
         // Export specific variables
         private System.Text.StringBuilder m_CSVBuilder;
@@ -159,16 +153,10 @@ namespace HBP.UI.Module3D
         }
         private void ApplyChangeState(Site site)
         {
-            if (m_Exclude.isOn) site.State.IsExcluded = true;
-            if (m_Unexclude.isOn) site.State.IsExcluded = false;
             if (m_Highlight.isOn) site.State.IsHighlighted = true;
             if (m_Unhighlight.isOn) site.State.IsHighlighted = false;
             if (m_Blacklist.isOn) site.State.IsBlackListed = true;
             if (m_Unblacklist.isOn) site.State.IsBlackListed = false;
-            if (m_Mark.isOn) site.State.IsMarked = true;
-            if (m_Unmark.isOn) site.State.IsMarked = false;
-            if (m_Suspect.isOn) site.State.IsSuspicious = true;
-            if (m_Unsuspect.isOn) site.State.IsSuspicious = false;
         }
         private void ApplyExport(Site site)
         {

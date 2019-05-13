@@ -65,16 +65,10 @@ namespace HBP.UI.Module3D
         private bool CheckState(Site site)
         {
             bool result = true;
-            if (m_Excluded.isOn) result &= CheckExcluded(site);
-            if (m_NotExcluded.isOn) result &= !CheckExcluded(site);
             if (m_Highlighted.isOn) result &= CheckHighlighted(site);
             if (m_NotHighlighted.isOn) result &= !CheckHighlighted(site);
             if (m_Blacklisted.isOn) result &= CheckBlacklisted(site);
             if (m_NotBlacklisted.isOn) result &= !CheckBlacklisted(site);
-            if (m_Marked.isOn) result &= CheckMarked(site);
-            if (m_NotMarked.isOn) result &= !CheckMarked(site);
-            if (m_Suspicious.isOn) result &= CheckSuspicious(site);
-            if (m_NotSuspicious.isOn) result &= !CheckSuspicious(site);
             return result;
         }
         private bool CheckPosition(Site site)

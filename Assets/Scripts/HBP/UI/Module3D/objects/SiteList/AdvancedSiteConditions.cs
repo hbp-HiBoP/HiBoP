@@ -16,11 +16,8 @@ namespace HBP.UI.Module3D
         #region Properties
         public const string TRUE = "TRUE";
         public const string FALSE = "FALSE";
-        public const string EXCLUDED = "E";
         public const string HIGHLIGHTED = "H";
         public const string BLACKLISTED = "B";
-        public const string MARKED = "M";
-        public const string SUSPICIOUS = "S";
         public const string IN_ROI = "ROI";
         public const string IN_MESH = "MESH";
         public const string ON_PLANE = "CUT";
@@ -60,10 +57,6 @@ namespace HBP.UI.Module3D
             {
                 return false;
             }
-            else if (s == EXCLUDED)
-            {
-                return CheckExcluded(site);
-            }
             else if (s == HIGHLIGHTED)
             {
                 return CheckHighlighted(site);
@@ -71,14 +64,6 @@ namespace HBP.UI.Module3D
             else if (s == BLACKLISTED)
             {
                 return CheckBlacklisted(site);
-            }
-            else if (s == MARKED)
-            {
-                return CheckMarked(site);
-            }
-            else if (s == SUSPICIOUS)
-            {
-                return CheckSuspicious(site);
             }
             else if (s == IN_ROI)
             {

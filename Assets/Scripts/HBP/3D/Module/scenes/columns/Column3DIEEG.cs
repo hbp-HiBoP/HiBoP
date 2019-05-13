@@ -357,7 +357,7 @@ namespace HBP.Module3D
             bool isROI = m_ROIs.Count > 0;
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
-                m_RawElectrodes.UpdateMask(ii, (Sites[ii].State.IsMasked || Sites[ii].State.IsBlackListed || Sites[ii].State.IsExcluded || (Sites[ii].State.IsOutOfROI && isROI)));
+                m_RawElectrodes.UpdateMask(ii, (Sites[ii].State.IsMasked || Sites[ii].State.IsBlackListed || (Sites[ii].State.IsOutOfROI && isROI)));
             }
         }
         /// <summary>
@@ -403,11 +403,6 @@ namespace HBP.Module3D
                             continue;
                         }
                     }
-                    else if (site.State.IsExcluded)
-                    {
-                        site.transform.localScale = Vector3.one;
-                        siteType = SiteType.Excluded;
-                    }
                     else if (latenciesFile != null)
                     {
                         if (SelectedSiteID == -1)
@@ -438,10 +433,10 @@ namespace HBP.Module3D
                     else
                     {
                         site.transform.localScale = Vector3.one;
-                        siteType = site.State.IsMarked ? SiteType.Marked : SiteType.Normal;
+                        siteType = SiteType.Normal;
                     }
                     if (!activity) site.IsActive = true;
-                    Material siteMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType);
+                    Material siteMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
                     if (alpha > 0.0f)
                     {
                         Color materialColor = siteMaterial.color;
@@ -474,16 +469,6 @@ namespace HBP.Module3D
                             continue;
                         }
                     }
-                    else if (site.State.IsExcluded)
-                    {
-                        site.transform.localScale = Vector3.one;
-                        siteType = SiteType.Excluded;
-                    }
-                    else if (site.State.IsSuspicious)
-                    {
-                        site.transform.localScale = Vector3.one;
-                        siteType = SiteType.Suspicious;
-                    }
                     else if (data.IsGeneratorUpToDate)
                     {
                         site.transform.localScale = m_ElectrodesSizeScale[i];
@@ -492,24 +477,13 @@ namespace HBP.Module3D
                     else
                     {
                         site.transform.localScale = Vector3.one;
-                        siteType = site.State.IsMarked ? SiteType.Marked : SiteType.Normal;
+                        siteType = SiteType.Normal;
                     }
                     if (!activity) site.IsActive = true;
-                    site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType);
+                    site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
                     site.transform.localScale *= IEEGParameters.Gain;
                 }
             }
-
-            // Selected site
-            //if (SelectedSiteID == -1)
-            //{
-            //    m_SelectRing.SetSelectedSite(null, Vector3.zero);
-            //}
-            //else
-            //{
-            //    Site selectedSite = SelectedSite;
-            //    m_SelectRing.SetSelectedSite(selectedSite, selectedSite.transform.localScale);
-            //}
         }
         #endregion
     }

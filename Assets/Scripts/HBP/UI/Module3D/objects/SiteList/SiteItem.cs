@@ -1,4 +1,5 @@
 ﻿using HBP.Module3D;
+using Tools.Unity;
 using Tools.Unity.Lists;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,15 +16,15 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private Text m_Patient;
         [SerializeField]
-        private Toggle m_Excluded;
-        [SerializeField]
         private Toggle m_Blacklisted;
-        [SerializeField]
-        private Toggle m_Marked;
         [SerializeField]
         private Toggle m_Highlighted;
         [SerializeField]
-        private Toggle m_Suspicious;
+        private Button m_Color;
+        [SerializeField]
+        private Image m_ColorImage;
+        [SerializeField]
+        private GameObject m_ColorPickerPrefab;
 
         public override Site Object
         {
@@ -49,19 +50,9 @@ namespace HBP.UI.Module3D
                 Object.IsSelected = true;
             });
 
-            m_Excluded.onValueChanged.AddListener((isOn) =>
-            {
-                Object.State.IsExcluded = isOn;
-            });
-
             m_Blacklisted.onValueChanged.AddListener((isOn) =>
             {
                 Object.State.IsBlackListed = isOn;
-            });
-
-            m_Marked.onValueChanged.AddListener((isOn) =>
-            {
-                Object.State.IsMarked = isOn;
             });
 
             m_Highlighted.onValueChanged.AddListener((isOn) =>
@@ -69,9 +60,9 @@ namespace HBP.UI.Module3D
                 Object.State.IsHighlighted = isOn;
             });
 
-            m_Suspicious.onValueChanged.AddListener((isOn) =>
+            m_Color.onClick.AddListener(() =>
             {
-                Object.State.IsSuspicious = isOn;
+                ApplicationState.Module3DUI.ColorPicker.Open(Object.State.Color, (c) => Object.State.Color = c);
             });
         }
         private void Update()
@@ -87,11 +78,9 @@ namespace HBP.UI.Module3D
             m_Site.interactable = Object.IsActive;
             m_SelectedImage.gameObject.SetActive(Object.IsSelected);
             m_Patient.text = Object.Information.Patient.Name;
-            m_Excluded.isOn = Object.State.IsExcluded;
             m_Blacklisted.isOn = Object.State.IsBlackListed;
-            m_Marked.isOn = Object.State.IsMarked;
             m_Highlighted.isOn = Object.State.IsHighlighted;
-            m_Suspicious.isOn = Object.State.IsSuspicious;
+            m_ColorImage.color = Object.State.Color;
             m_UpdateRequired = false;
         }
         #endregion

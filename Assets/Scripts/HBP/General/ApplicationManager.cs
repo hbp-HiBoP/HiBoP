@@ -27,6 +27,7 @@ public class ApplicationManager : MonoBehaviour
         ApplicationState.TooltipManager = FindObjectOfType<TooltipManager>();
         ApplicationState.MemoryManager = FindObjectOfType<MemoryManager>();
         ApplicationState.WindowsManager = FindObjectOfType<WindowsManager>();
+        ApplicationState.Module3DUI = FindObjectOfType<HBP.UI.Module3D.Module3DUI>();
         ApplicationState.ProjectTMPFolder = GetProjectTMPDirectory();
     }
 

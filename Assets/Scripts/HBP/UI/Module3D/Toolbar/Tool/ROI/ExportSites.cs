@@ -95,7 +95,7 @@ namespace HBP.UI.Module3D.Tools
                 Site site = sites[i];
                 m_Progress = (float)i / (length - 1);
                 m_Message = new LoadingText("Exporting ", site.Information.FullCorrectedID);
-                if (!(site.State.IsExcluded || site.State.IsBlackListed || site.State.IsMasked || site.State.IsOutOfROI))
+                if (!(site.State.IsBlackListed || site.State.IsMasked || site.State.IsOutOfROI))
                 {
                     Vector3 sitePosition = sitePositions[i];
                     string dataType = "", dataFiles = "";

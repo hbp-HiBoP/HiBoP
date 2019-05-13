@@ -48,20 +48,6 @@ namespace HBP.UI.Module3D
             }
         }
 
-        private bool m_Excluded;
-        public bool Excluded
-        {
-            get
-            {
-                return m_Excluded;
-            }
-            set
-            {
-                m_Excluded = value;
-                UpdateList();
-            }
-        }
-
         private bool m_Blacklisted;
         public bool Blacklisted
         {
@@ -86,34 +72,6 @@ namespace HBP.UI.Module3D
             set
             {
                 m_Highlighted = value;
-                UpdateList();
-            }
-        }
-
-        private bool m_Marked;
-        public bool Marked
-        {
-            get
-            {
-                return m_Marked;
-            }
-            set
-            {
-                m_Marked = value;
-                UpdateList();
-            }
-        }
-
-        private bool m_Suspicious;
-        public bool Suspicious
-        {
-            get
-            {
-                return m_Suspicious;
-            }
-            set
-            {
-                m_Suspicious = value;
                 UpdateList();
             }
         }
@@ -164,10 +122,6 @@ namespace HBP.UI.Module3D
             {
                 sites.RemoveAll(s => !s.Information.Patient.Name.ToUpper().Contains(m_Patient.ToUpper()));
             }
-            if (m_Excluded)
-            {
-                sites.RemoveAll(s => !s.State.IsExcluded);
-            }
             if (m_Blacklisted)
             {
                 sites.RemoveAll(s => !s.State.IsBlackListed);
@@ -175,14 +129,6 @@ namespace HBP.UI.Module3D
             if (m_Highlighted)
             {
                 sites.RemoveAll(s => !s.State.IsHighlighted);
-            }
-            if (m_Marked)
-            {
-                sites.RemoveAll(s => !s.State.IsMarked);
-            }
-            if (m_Suspicious)
-            {
-                sites.RemoveAll(s => !s.State.IsSuspicious);
             }
             m_SiteList.ObjectsList = sites;
         }
