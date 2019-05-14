@@ -13,7 +13,7 @@
 
 	SubShader
 	{
-		Tags{ "RenderType" = "Opaque" }
+		Tags{ "Queue" = "Transparent" }
 
 		CGPROGRAM
 			#pragma surface surf Standard

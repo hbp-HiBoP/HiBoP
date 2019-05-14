@@ -28,6 +28,9 @@ namespace HBP.UI.Module3D
         [SerializeField] Toggle m_Unhighlight;
         [SerializeField] Toggle m_Blacklist;
         [SerializeField] Toggle m_Unblacklist;
+        [SerializeField] Toggle m_ColorToggle;
+        [SerializeField] Button m_ColorPickerButton;
+        [SerializeField] Image m_ColorPickedImage;
 
         // Export specific variables
         private System.Text.StringBuilder m_CSVBuilder;
@@ -138,6 +141,13 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
+        private void Awake()
+        {
+            m_ColorPickerButton.onClick.AddListener(() =>
+            {
+                ApplicationState.Module3DUI.ColorPicker.Open(m_ColorPickedImage.color, (c) => m_ColorPickedImage.color = c);
+            });
+        }
         private void Apply(Site site)
         {
             switch (m_ActionType)
@@ -157,6 +167,7 @@ namespace HBP.UI.Module3D
             if (m_Unhighlight.isOn) site.State.IsHighlighted = false;
             if (m_Blacklist.isOn) site.State.IsBlackListed = true;
             if (m_Unblacklist.isOn) site.State.IsBlackListed = false;
+            if (m_ColorToggle.isOn) site.State.Color = m_ColorPickedImage.color;
         }
         private void ApplyExport(Site site)
         {

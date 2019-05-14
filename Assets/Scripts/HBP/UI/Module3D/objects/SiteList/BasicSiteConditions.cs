@@ -14,16 +14,10 @@ namespace HBP.UI.Module3D
     {
         #region Properties
         // State
-        [SerializeField] Toggle m_Excluded;
-        [SerializeField] Toggle m_NotExcluded;
         [SerializeField] Toggle m_Highlighted;
         [SerializeField] Toggle m_NotHighlighted;
         [SerializeField] Toggle m_Blacklisted;
         [SerializeField] Toggle m_NotBlacklisted;
-        [SerializeField] Toggle m_Marked;
-        [SerializeField] Toggle m_NotMarked;
-        [SerializeField] Toggle m_Suspicious;
-        [SerializeField] Toggle m_NotSuspicious;
 
         // Position
         [SerializeField] Toggle m_InROI;

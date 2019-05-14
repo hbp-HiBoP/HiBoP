@@ -11,7 +11,7 @@ namespace HBP.UI.Module3D
     public class SitesInformations : MonoBehaviour
     {
         #region Properties
-        private const float MINIMIZED_THRESHOLD = 270.0f;
+        private const float MINIMIZED_THRESHOLD = 230.0f;
         private Base3DScene m_Scene;
         private RectTransform m_RectTransform;
         private ResizableGrid m_ParentGrid;
