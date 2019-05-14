@@ -25,6 +25,7 @@ namespace HBP.UI.Module3D
         public const string PATIENT = "PAT";
         public const string MARS_ATLAS = "MA";
         public const string BROADMAN = "BA";
+        public const string FREESURFER = "FS";
         public const string MEAN = "MEAN";
         public const string MEDIAN = "MEDIAN";
         public const string MAX = "MAX";
@@ -107,6 +108,14 @@ namespace HBP.UI.Module3D
                 if (array.Length == 2)
                 {
                     return CheckBroadmanAreaName(site, array[1].Replace("\"", ""));
+                }
+            }
+            else if (s.Contains(FREESURFER))
+            {
+                string[] array = s.Split('=');
+                if (array.Length == 2)
+                {
+                    return CheckFreesurferName(site, array[1].Replace("\"", ""));
                 }
             }
             else if (s.Contains(MEAN))

@@ -36,6 +36,8 @@ namespace HBP.UI.Module3D
         [SerializeField] InputField m_MarsAtlasFilter;
         [SerializeField] Toggle m_Broadman;
         [SerializeField] InputField m_BroadmanFilter;
+        [SerializeField] Toggle m_Freesurfer;
+        [SerializeField] InputField m_FreesurferFilter;
 
         // Values
         [SerializeField] Toggle m_Mean;
@@ -83,6 +85,7 @@ namespace HBP.UI.Module3D
             if (m_Patient.isOn) result &= CheckPatientName(site, m_PatientFilter.text);
             if (m_MarsAtlas.isOn) result &= CheckMarsAtlasName(site, m_MarsAtlasFilter.text);
             if (m_Broadman.isOn) result &= CheckBroadmanAreaName(site, m_BroadmanFilter.text);
+            if (m_Freesurfer.isOn) result &= CheckFreesurferName(site, m_FreesurferFilter.text);
             return result;
         }
         private bool CheckValues(Site site)

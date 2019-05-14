@@ -58,6 +58,10 @@ namespace HBP.UI.Module3D
         {
             return site.Information.BroadmanAreaName.ToLower().Contains(broadmanAreaName.ToLower());
         }
+        protected bool CheckFreesurferName(Site site, string freesurferName)
+        {
+            return site.Information.FreesurferLabel.ToLower().Contains(freesurferName.ToLower());
+        }
         protected bool CheckMean(Site site, bool superior, string stringValue)
         {
             if (site.Statistics != null)
