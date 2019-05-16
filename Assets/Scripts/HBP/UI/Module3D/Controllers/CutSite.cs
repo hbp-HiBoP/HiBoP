@@ -37,7 +37,7 @@ namespace HBP.UI.Module3D
             m_RectTransform.anchorMin = position;
             m_RectTransform.anchorMax = position;
             m_RectTransform.anchoredPosition = Vector2.zero;
-            Color color = m_Site.GetComponent<MeshRenderer>().sharedMaterial.color; // FIXME : Use ThemeElements after the merge
+            Color color = m_Site.GetComponent<MeshRenderer>().sharedMaterial.color;
             m_Image.color = color;
             if (site.IsSelected)
             {

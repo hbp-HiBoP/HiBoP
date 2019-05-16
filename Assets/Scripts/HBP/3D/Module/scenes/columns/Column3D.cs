@@ -382,15 +382,14 @@ namespace HBP.Module3D
                         Site site = Sites[id];
                         site.Information = baseSite.Information;
                         // State
-                        if (!SiteStateBySiteID.ContainsKey(baseSite.Information.FullID))
+                        if (!SiteStateBySiteID.ContainsKey(baseSite.Information.FullCorrectedID))
                         {
-                            SiteStateBySiteID.Add(baseSite.Information.FullID, new SiteState(baseSite.State));
+                            SiteStateBySiteID.Add(baseSite.Information.FullCorrectedID, new SiteState(baseSite.State));
                         }
-                        site.State = SiteStateBySiteID[baseSite.Information.FullID];
+                        site.State = SiteStateBySiteID[baseSite.Information.FullCorrectedID];
                         site.State.OnChangeState.AddListener(() => OnChangeSiteState.Invoke(site));
                         // Configuration
-                        Data.Visualization.SiteConfiguration siteConfiguration;
-                        if (ColumnData.BaseConfiguration.ConfigurationBySite.TryGetValue(site.Information.FullCorrectedID, out siteConfiguration))
+                        if (ColumnData.BaseConfiguration.ConfigurationBySite.TryGetValue(site.Information.FullCorrectedID, out Data.Visualization.SiteConfiguration siteConfiguration))
                         {
                             site.Configuration = siteConfiguration;
                         }
