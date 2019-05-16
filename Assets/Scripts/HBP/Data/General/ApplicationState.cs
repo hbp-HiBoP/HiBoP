@@ -58,6 +58,11 @@ public static class ApplicationState
     public static HBP.Module3D.HBP3DModule Module3D { get; set; }
 
     /// <summary>
+    /// UI for the 3D Module manager.
+    /// </summary>
+    public static HBP.UI.Module3D.Module3DUI Module3DUI { get; set; }
+
+    /// <summary>
     /// 3D DLL Debug Manager.
     /// </summary>
     public static HBP.Module3D.DLL.DLLDebugManager DLLDebugManager { get; set; }

@@ -1240,11 +1240,9 @@ namespace HBP.Module3D
                         site.Information.FreesurferLabel = electrodesList.FreesurferLabelOfSite(ii, jj, kk).Replace('_', ' ');
                         site.State.IsBlackListed = false;
                         site.State.IsHighlighted = false;
-                        site.State.IsExcluded = false;
                         site.State.IsOutOfROI = true;
-                        site.State.IsMarked = false;
                         site.State.IsMasked = false;
-                        site.State.IsSuspicious = false;
+                        site.State.Color = SiteState.DefaultColor;
                         site.IsActive = true;
 
                         m_ColumnManager.SitesList.Add(siteGameObject);

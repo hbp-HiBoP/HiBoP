@@ -1,12 +1,13 @@
-﻿using UnityEngine;
+﻿using Tools.Unity;
+using UnityEngine;
 
 namespace HBP.UI.Module3D
 {
     public class Module3DUI : MonoBehaviour
     {
         #region Properties
-        [SerializeField]
-        private SiteInfoDisplayer m_SiteInfoDisplayer;
+        [SerializeField] private SiteInfoDisplayer m_SiteInfoDisplayer;
+        public ColorPicker ColorPicker;
 
         public GameObject SceneWindowPrefab;
         #endregion

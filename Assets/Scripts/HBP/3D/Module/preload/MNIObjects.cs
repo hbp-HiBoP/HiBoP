@@ -45,10 +45,10 @@ namespace HBP.Module3D
         }
         private void OnDestroy()
         {
-            GreyMatter.Clean();
-            WhiteMatter.Clean();
-            InflatedWhiteMatter.Clean();
-            MRI.Clean();
+            GreyMatter?.Clean();
+            WhiteMatter?.Clean();
+            InflatedWhiteMatter?.Clean();
+            MRI?.Clean();
         }
         /// <summary>
         /// 

@@ -21,10 +21,7 @@ namespace HBP.UI.Module3D
 
         #region Private Methods
         protected abstract bool CheckConditions(Site site);
-        protected bool CheckExcluded(Site site)
-        {
-            return site.State.IsExcluded;
-        }
+
         protected bool CheckHighlighted(Site site)
         {
             return site.State.IsHighlighted;
@@ -32,14 +29,6 @@ namespace HBP.UI.Module3D
         protected bool CheckBlacklisted(Site site)
         {
             return site.State.IsBlackListed;
-        }
-        protected bool CheckMarked(Site site)
-        {
-            return site.State.IsMarked;
-        }
-        protected bool CheckSuspicious(Site site)
-        {
-            return site.State.IsSuspicious;
         }
         protected bool CheckInROI(Site site)
         {
@@ -68,6 +57,10 @@ namespace HBP.UI.Module3D
         protected bool CheckBroadmanAreaName(Site site, string broadmanAreaName)
         {
             return site.Information.BroadmanAreaName.ToLower().Contains(broadmanAreaName.ToLower());
+        }
+        protected bool CheckFreesurferName(Site site, string freesurferName)
+        {
+            return site.Information.FreesurferLabel.ToLower().Contains(freesurferName.ToLower());
         }
         protected bool CheckMean(Site site, bool superior, string stringValue)
         {

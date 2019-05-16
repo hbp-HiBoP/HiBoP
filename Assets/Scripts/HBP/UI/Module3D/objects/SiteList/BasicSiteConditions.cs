@@ -14,16 +14,10 @@ namespace HBP.UI.Module3D
     {
         #region Properties
         // State
-        [SerializeField] Toggle m_Excluded;
-        [SerializeField] Toggle m_NotExcluded;
         [SerializeField] Toggle m_Highlighted;
         [SerializeField] Toggle m_NotHighlighted;
         [SerializeField] Toggle m_Blacklisted;
         [SerializeField] Toggle m_NotBlacklisted;
-        [SerializeField] Toggle m_Marked;
-        [SerializeField] Toggle m_NotMarked;
-        [SerializeField] Toggle m_Suspicious;
-        [SerializeField] Toggle m_NotSuspicious;
 
         // Position
         [SerializeField] Toggle m_InROI;
@@ -42,6 +36,8 @@ namespace HBP.UI.Module3D
         [SerializeField] InputField m_MarsAtlasFilter;
         [SerializeField] Toggle m_Broadman;
         [SerializeField] InputField m_BroadmanFilter;
+        [SerializeField] Toggle m_Freesurfer;
+        [SerializeField] InputField m_FreesurferFilter;
 
         // Values
         [SerializeField] Toggle m_Mean;
@@ -65,16 +61,10 @@ namespace HBP.UI.Module3D
         private bool CheckState(Site site)
         {
             bool result = true;
-            if (m_Excluded.isOn) result &= CheckExcluded(site);
-            if (m_NotExcluded.isOn) result &= !CheckExcluded(site);
             if (m_Highlighted.isOn) result &= CheckHighlighted(site);
             if (m_NotHighlighted.isOn) result &= !CheckHighlighted(site);
             if (m_Blacklisted.isOn) result &= CheckBlacklisted(site);
             if (m_NotBlacklisted.isOn) result &= !CheckBlacklisted(site);
-            if (m_Marked.isOn) result &= CheckMarked(site);
-            if (m_NotMarked.isOn) result &= !CheckMarked(site);
-            if (m_Suspicious.isOn) result &= CheckSuspicious(site);
-            if (m_NotSuspicious.isOn) result &= !CheckSuspicious(site);
             return result;
         }
         private bool CheckPosition(Site site)
@@ -95,6 +85,7 @@ namespace HBP.UI.Module3D
             if (m_Patient.isOn) result &= CheckPatientName(site, m_PatientFilter.text);
             if (m_MarsAtlas.isOn) result &= CheckMarsAtlasName(site, m_MarsAtlasFilter.text);
             if (m_Broadman.isOn) result &= CheckBroadmanAreaName(site, m_BroadmanFilter.text);
+            if (m_Freesurfer.isOn) result &= CheckFreesurferName(site, m_FreesurferFilter.text);
             return result;
         }
         private bool CheckValues(Site site)
