@@ -9,22 +9,16 @@ namespace HBP.UI.Module3D
     public class SiteItem : Item<Site>
     {
         #region Properties
-        [SerializeField]
-        private Button m_Site;
-        [SerializeField]
-        private Image m_SelectedImage;
-        [SerializeField]
-        private Text m_Patient;
-        [SerializeField]
-        private Toggle m_Blacklisted;
-        [SerializeField]
-        private Toggle m_Highlighted;
-        [SerializeField]
-        private Button m_Color;
-        [SerializeField]
-        private Image m_ColorImage;
-        [SerializeField]
-        private GameObject m_ColorPickerPrefab;
+        [SerializeField] private Button m_Site;
+        [SerializeField] private Image m_SelectedImage;
+        [SerializeField] private Button m_LabelsButton;
+        [SerializeField] private Text m_LabelsText;
+        [SerializeField] private Text m_Patient;
+        [SerializeField] private Toggle m_Blacklisted;
+        [SerializeField] private Toggle m_Highlighted;
+        [SerializeField] private Button m_Color;
+        [SerializeField] private Image m_ColorImage;
+        [SerializeField] private GameObject m_ColorPickerPrefab;
 
         public override Site Object
         {
@@ -77,6 +71,7 @@ namespace HBP.UI.Module3D
             m_Site.GetComponentInChildren<Text>().text = Object.Information.ChannelName;
             m_Site.interactable = Object.IsActive;
             m_SelectedImage.gameObject.SetActive(Object.IsSelected);
+            m_LabelsText.text = Object.State.Labels.Count.ToString();
             m_Patient.text = Object.Information.Patient.Name;
             m_Blacklisted.isOn = Object.State.IsBlackListed;
             m_Highlighted.isOn = Object.State.IsHighlighted;

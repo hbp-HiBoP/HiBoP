@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 using UnityEngine;
 
@@ -47,24 +49,26 @@ namespace HBP.Data.Visualization
                 m_Color = new SerializableColor(value);
             }
         }
+        [DataMember] public string[] Labels { get; set; }
         #endregion
 
         #region Constructors
-        public SiteConfiguration() : this(false, false, Module3D.SiteState.DefaultColor)
+        public SiteConfiguration() : this(false, false, Module3D.SiteState.DefaultColor, new string[0])
         {
         }
-        public SiteConfiguration(bool isBlacklisted, bool isHighlighted, Color color)
+        public SiteConfiguration(bool isBlacklisted, bool isHighlighted, Color color, string[] labels)
         {
             IsBlacklisted = isBlacklisted;
             IsHighlighted = isHighlighted;
             Color = color;
+            Labels = labels;
         }
         #endregion
 
         #region Public Methods
         public object Clone()
         {
-            return new SiteConfiguration(IsBlacklisted, IsHighlighted, Color);
+            return new SiteConfiguration(IsBlacklisted, IsHighlighted, Color, Labels);
         }
         #endregion
     }

@@ -165,22 +165,15 @@ namespace HBP.Module3D
                 OnChangeState.Invoke();
             }
         }
-        private List<string> m_Labels = new List<string>();
-        public List<string> Labels
-        {
-            get
-            {
-                return m_Labels;
-            }
-        }
+        public List<string> Labels { get; set; } = new List<string>();
         public void AddLabel(string label)
         {
-            m_Labels.Add(label);
+            Labels.Add(label);
             OnChangeState.Invoke();
         }
         public void RemoveLabel(string label)
         {
-            m_Labels.Remove(label);
+            Labels.Remove(label);
             OnChangeState.Invoke();
         }
         public void ApplyState(SiteState state)
@@ -192,7 +185,7 @@ namespace HBP.Module3D
             m_IsBlackListed = blacklisted;
             m_IsHighlighted = highlighted;
             m_Color = color;
-            m_Labels = labels.ToList();
+            Labels = labels.ToList();
             OnChangeState.Invoke();
         }
     }
@@ -283,6 +276,7 @@ namespace HBP.Module3D
             State.IsBlackListed = Configuration.IsBlacklisted;
             State.IsHighlighted = Configuration.IsHighlighted;
             State.Color = Configuration.Color;
+            State.Labels = Configuration.Labels.ToList();
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         public void SaveConfiguration()
@@ -290,12 +284,14 @@ namespace HBP.Module3D
             Configuration.IsBlacklisted = State.IsBlackListed;
             Configuration.IsHighlighted = State.IsHighlighted;
             Configuration.Color = State.Color;
+            Configuration.Labels = State.Labels.ToArray();
         }
         public void ResetConfiguration(bool firstCall = true)
         {
             State.IsBlackListed = false;
             State.IsHighlighted = false;
             State.Color = SiteState.DefaultColor;
+            State.Labels = new List<string>();
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion

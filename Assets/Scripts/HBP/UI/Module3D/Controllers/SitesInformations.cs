@@ -11,7 +11,7 @@ namespace HBP.UI.Module3D
     public class SitesInformations : MonoBehaviour
     {
         #region Properties
-        private const float MINIMIZED_THRESHOLD = 230.0f;
+        private const float MINIMIZED_THRESHOLD = 320.0f;
         private Base3DScene m_Scene;
         private RectTransform m_RectTransform;
         private ResizableGrid m_ParentGrid;
@@ -30,6 +30,20 @@ namespace HBP.UI.Module3D
             set
             {
                 m_Name = value;
+                UpdateList();
+            }
+        }
+
+        private string m_Label;
+        public string Label
+        {
+            get
+            {
+                return m_Label;
+            }
+            set
+            {
+                m_Label = value;
                 UpdateList();
             }
         }
@@ -117,6 +131,10 @@ namespace HBP.UI.Module3D
             if (!string.IsNullOrEmpty(m_Name))
             {
                 sites.RemoveAll(s => !s.Information.ChannelName.ToUpper().Contains(m_Name.ToUpper()));
+            }
+            if (!string.IsNullOrEmpty(m_Label))
+            {
+                sites.RemoveAll(s => !s.State.Labels.Any(l => l.ToLower().Contains(m_Label.ToLower())));
             }
             if (!string.IsNullOrEmpty(m_Patient))
             {
