@@ -188,9 +188,9 @@ namespace HBP.UI.Module3D
                     site.Information.Patient.Name,
                     site.Information.Patient.Place,
                     site.Information.Patient.Date,
-                    sitePosition.x.ToString("N2"),
-                    sitePosition.y.ToString("N2"),
-                    sitePosition.z.ToString("N2"),
+                    sitePosition.x.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
+                    sitePosition.y.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
+                    sitePosition.z.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
                     m_Scene.ColumnManager.SelectedImplantation.Name,
                     dataType,
                     dataFiles));
