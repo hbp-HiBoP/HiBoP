@@ -18,6 +18,7 @@ namespace HBP.UI.Module3D
         public const string FALSE = "FALSE";
         public const string HIGHLIGHTED = "H";
         public const string BLACKLISTED = "B";
+        public const string LABEL = "LABEL";
         public const string IN_ROI = "ROI";
         public const string IN_MESH = "MESH";
         public const string ON_PLANE = "CUT";
@@ -65,6 +66,14 @@ namespace HBP.UI.Module3D
             else if (s == BLACKLISTED)
             {
                 return CheckBlacklisted(site);
+            }
+            else if (s.Contains(LABEL))
+            {
+                string[] array = s.Split('=');
+                if (array.Length == 2)
+                {
+                    return CheckLabel(site, array[1].Replace("\"", ""));
+                }
             }
             else if (s == IN_ROI)
             {

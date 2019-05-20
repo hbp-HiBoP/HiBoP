@@ -1717,7 +1717,7 @@ namespace HBP.Module3D
                 if (column == selectedColumn) continue;
                 foreach (Site site in column.Sites)
                 {
-                    site.State.ApplyState(selectedColumn.SiteStateBySiteID[site.Information.FullID]);
+                    site.State.ApplyState(selectedColumn.SiteStateBySiteID[site.Information.FullCorrectedID]);
                 }
             }
             ResetIEEG(false);

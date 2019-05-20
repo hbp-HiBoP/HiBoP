@@ -5,6 +5,9 @@
 // unity
 using HBP.Data.Enums;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 /**
 * \file    Site.cs
 * \author  Lance Florian
@@ -162,15 +165,34 @@ namespace HBP.Module3D
                 OnChangeState.Invoke();
             }
         }
+        private List<string> m_Labels = new List<string>();
+        public List<string> Labels
+        {
+            get
+            {
+                return m_Labels;
+            }
+        }
+        public void AddLabel(string label)
+        {
+            m_Labels.Add(label);
+            OnChangeState.Invoke();
+        }
+        public void RemoveLabel(string label)
+        {
+            m_Labels.Remove(label);
+            OnChangeState.Invoke();
+        }
         public void ApplyState(SiteState state)
         {
-            ApplyState(state.IsBlackListed, state.IsHighlighted, state.Color);
+            ApplyState(state.IsBlackListed, state.IsHighlighted, state.Color, state.Labels);
         }
-        public void ApplyState(bool blacklisted, bool highlighted, Color color)
+        public void ApplyState(bool blacklisted, bool highlighted, Color color, IEnumerable<string> labels)
         {
             m_IsBlackListed = blacklisted;
             m_IsHighlighted = highlighted;
             m_Color = color;
+            m_Labels = labels.ToList();
             OnChangeState.Invoke();
         }
     }

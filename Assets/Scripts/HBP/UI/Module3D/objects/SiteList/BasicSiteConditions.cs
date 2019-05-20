@@ -18,6 +18,8 @@ namespace HBP.UI.Module3D
         [SerializeField] Toggle m_NotHighlighted;
         [SerializeField] Toggle m_Blacklisted;
         [SerializeField] Toggle m_NotBlacklisted;
+        [SerializeField] Toggle m_Label;
+        [SerializeField] InputField m_LabelFilter;
 
         // Position
         [SerializeField] Toggle m_InROI;
@@ -65,6 +67,7 @@ namespace HBP.UI.Module3D
             if (m_NotHighlighted.isOn) result &= !CheckHighlighted(site);
             if (m_Blacklisted.isOn) result &= CheckBlacklisted(site);
             if (m_NotBlacklisted.isOn) result &= !CheckBlacklisted(site);
+            if (m_Label.isOn) result &= CheckLabel(site, m_LabelFilter.text);
             return result;
         }
         private bool CheckPosition(Site site)

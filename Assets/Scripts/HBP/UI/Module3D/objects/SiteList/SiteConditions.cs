@@ -31,6 +31,9 @@ namespace HBP.UI.Module3D
         [SerializeField] Toggle m_ColorToggle;
         [SerializeField] Button m_ColorPickerButton;
         [SerializeField] Image m_ColorPickedImage;
+        [SerializeField] Toggle m_AddLabelToggle;
+        [SerializeField] Toggle m_RemoveLabelToggle;
+        [SerializeField] InputField m_LabelInputField;
 
         // Export specific variables
         private System.Text.StringBuilder m_CSVBuilder;
@@ -168,6 +171,8 @@ namespace HBP.UI.Module3D
             if (m_Blacklist.isOn) site.State.IsBlackListed = true;
             if (m_Unblacklist.isOn) site.State.IsBlackListed = false;
             if (m_ColorToggle.isOn) site.State.Color = m_ColorPickedImage.color;
+            if (m_AddLabelToggle.isOn) site.State.AddLabel(m_LabelInputField.text);
+            if (m_RemoveLabelToggle.isOn) site.State.RemoveLabel(m_LabelInputField.text);
         }
         private void ApplyExport(Site site)
         {

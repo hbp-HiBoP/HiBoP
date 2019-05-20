@@ -30,6 +30,10 @@ namespace HBP.UI.Module3D
         {
             return site.State.IsBlackListed;
         }
+        protected bool CheckLabel(Site site, string label)
+        {
+            return site.State.Labels.Any(l => l.ToLower().Contains(label.ToLower()));
+        }
         protected bool CheckInROI(Site site)
         {
             return !site.State.IsOutOfROI;
