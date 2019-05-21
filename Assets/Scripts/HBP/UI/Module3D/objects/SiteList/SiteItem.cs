@@ -11,7 +11,7 @@ namespace HBP.UI.Module3D
         #region Properties
         [SerializeField] private Button m_Site;
         [SerializeField] private Image m_SelectedImage;
-        [SerializeField] private Button m_LabelsButton;
+        [SerializeField] private SiteLabels m_Labels;
         [SerializeField] private Text m_LabelsText;
         [SerializeField] private Text m_Patient;
         [SerializeField] private Toggle m_Blacklisted;
@@ -76,6 +76,7 @@ namespace HBP.UI.Module3D
             m_Blacklisted.isOn = Object.State.IsBlackListed;
             m_Highlighted.isOn = Object.State.IsHighlighted;
             m_ColorImage.color = Object.State.Color;
+            m_Labels.Initialize(Object);
             m_UpdateRequired = false;
         }
         #endregion

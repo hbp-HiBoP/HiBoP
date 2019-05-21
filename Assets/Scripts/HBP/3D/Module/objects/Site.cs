@@ -168,8 +168,11 @@ namespace HBP.Module3D
         public List<string> Labels { get; set; } = new List<string>();
         public void AddLabel(string label)
         {
-            Labels.Add(label);
-            OnChangeState.Invoke();
+            if (!Labels.Contains(label))
+            {
+                Labels.Add(label);
+                OnChangeState.Invoke();
+            }
         }
         public void RemoveLabel(string label)
         {
