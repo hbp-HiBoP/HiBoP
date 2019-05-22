@@ -136,6 +136,27 @@ namespace Tools.Unity.Lists
             }
             return false;
         }
+        public void ScrollToObject(T objectToScroll)
+        {
+            GetLimits(out int min, out int max);
+            int index = m_Objects.IndexOf(objectToScroll);
+            if (index == -1) return;
+
+            if (index > max - 2)
+            {
+                float bottomOfTargetItem = ItemHeight * (index + 1);
+                float position = 1.0f - ((bottomOfTargetItem - m_ScrollRect.viewport.sizeDelta.y) / (m_ScrollRect.content.sizeDelta.y - m_ScrollRect.viewport.sizeDelta.y));
+                m_ScrollRect.verticalNormalizedPosition = Mathf.Clamp(position, 0f, 1f);
+                m_ScrollRect.content.hasChanged = true;
+            }
+            else if (index < min + 1)
+            {
+                float topOfTargetItem = ItemHeight * index;
+                float position = 1.0f - (topOfTargetItem / (m_ScrollRect.content.sizeDelta.y - m_ScrollRect.viewport.sizeDelta.y));
+                m_ScrollRect.verticalNormalizedPosition = Mathf.Clamp(position, 0f, 1f);
+                m_ScrollRect.content.hasChanged = true;
+            }
+        }
         #endregion
 
         #region Private Methods
