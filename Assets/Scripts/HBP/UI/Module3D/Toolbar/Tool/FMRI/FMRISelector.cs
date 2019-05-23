@@ -11,11 +11,9 @@ namespace HBP.UI.Module3D.Tools
     public class FMRISelector : Tool
     {
         #region Properties
-        [SerializeField]
-        private Button m_AddFMRI;
-
-        [SerializeField]
-        private Button m_RemoveFMRI;
+        [SerializeField] private Button m_AddFMRI;
+        [SerializeField] private Button m_RemoveFMRI;
+        private string m_LastFMRIPath;
 
         public UnityEvent OnChangeFMRI = new UnityEvent();
         #endregion
@@ -27,7 +25,12 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedScene.LoadFMRI();
+                string path = FileBrowser.GetExistingFileName(new string[] { "nii", "img" }, "Select an fMRI file", m_LastFMRIPath);
+                if (!string.IsNullOrEmpty(path))
+                {
+                    m_LastFMRIPath = path;
+                    SelectedScene.LoadFMRI(new MRI3D(new Data.Anatomy.MRI("FMRI", path)));
+                }
                 OnChangeFMRI.Invoke();
             });
             m_RemoveFMRI.onClick.AddListener(() =>
@@ -43,6 +46,7 @@ namespace HBP.UI.Module3D.Tools
         {
             m_AddFMRI.interactable = false;
             m_RemoveFMRI.interactable = false;
+            m_LastFMRIPath = "";
         }
 
         public override void UpdateInteractable()

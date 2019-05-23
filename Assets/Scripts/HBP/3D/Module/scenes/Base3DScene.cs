@@ -1686,17 +1686,10 @@ namespace HBP.Module3D
         /// <summary>
         /// Load a FMRI to this scene
         /// </summary>
-        public bool LoadFMRI()
+        public void LoadFMRI(MRI3D fmri)
         {
-            string[] filters = new string[] { "nii", "img" };
-            string path = UI.FileBrowser.GetExistingFileName(filters, "Select an fMRI file");
-            if (!string.IsNullOrEmpty(path))
-            {
-                m_ColumnManager.FMRI = new MRI3D(new Data.Anatomy.MRI("FMRI", path));
-                ResetIEEG();
-                return true;
-            }
-            return false;
+            m_ColumnManager.FMRI = fmri;
+            ResetIEEG();
         }
         /// <summary>
         /// Unload the FMRI of this scene
