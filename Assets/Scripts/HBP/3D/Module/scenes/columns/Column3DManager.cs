@@ -135,7 +135,7 @@ namespace HBP.Module3D
         /// <summary>
         /// List of splitted meshes
         /// </summary>
-        public List<DLL.Surface> SplittedMeshes;
+        public List<DLL.Surface> SplittedMeshes = new List<DLL.Surface>();
         
         /// <summary>
         /// List of the MRIs of the scene
