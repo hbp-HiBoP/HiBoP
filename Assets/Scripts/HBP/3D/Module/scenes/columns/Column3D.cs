@@ -139,7 +139,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Currently selected site
         /// </summary>
-        public Site SelectedSite { get; protected set; }
+        public Site SelectedSite { get; private set; }
         /// <summary>
         /// Currently selected site ID
         /// </summary>

@@ -17,8 +17,10 @@ namespace HBP.UI.Module3D
             }
             set
             {
-                m_Site = value;
-                m_Image.enabled = value != null;
+                Site site = value;
+                if (site != null && !site.IsActive) site = null;
+                m_Site = site;
+                m_Image.enabled = site != null;
             }
         }
         public Camera ViewCamera { get; set; }
