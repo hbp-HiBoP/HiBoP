@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
-    public class SiteConditions : MonoBehaviour
+    public class SiteActions : MonoBehaviour
     {
         #region Properties
         Base3DScene m_Scene;
@@ -118,23 +118,23 @@ namespace HBP.UI.Module3D
                     }
                 }
 
-                try
-                {
-                    if (UseAdvanced)
-                    {
-                        m_AdvancedSiteConditions.ParseConditions();
-                        m_Coroutine = this.StartCoroutineAsync(m_AdvancedSiteConditions.c_FindSitesAndRequestAction(sites, OnBeginApply, OnEndApply, OnApplyingActions, m_ActionType == ActionType.Export ? 100 : int.MaxValue));
-                    }
-                    else
-                    {
-                        m_Coroutine = this.StartCoroutineAsync(m_BasicSiteConditions.c_FindSitesAndRequestAction(sites, OnBeginApply, OnEndApply, OnApplyingActions, m_ActionType == ActionType.Export ? 100 : int.MaxValue));
-                    }
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    ApplicationState.DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
-                }
+                //try
+                //{
+                //    if (UseAdvanced)
+                //    {
+                //        m_AdvancedSiteConditions.ParseConditions();
+                //        m_Coroutine = this.StartCoroutineAsync(m_AdvancedSiteConditions.c_FindSitesAndRequestAction(sites, OnBeginApply, OnEndApply, OnApplyingActions, m_ActionType == ActionType.Export ? 100 : int.MaxValue));
+                //    }
+                //    else
+                //    {
+                //        m_Coroutine = this.StartCoroutineAsync(m_BasicSiteConditions.c_FindSitesAndRequestAction(sites, OnBeginApply, OnEndApply, OnApplyingActions, m_ActionType == ActionType.Export ? 100 : int.MaxValue));
+                //    }
+                //}
+                //catch (Exception e)
+                //{
+                //    Debug.LogException(e);
+                //    ApplicationState.DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
+                //}
             }
         }
         public void ChangeActionType(int type)

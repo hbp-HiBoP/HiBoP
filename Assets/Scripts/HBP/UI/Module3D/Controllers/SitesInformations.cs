@@ -16,7 +16,8 @@ namespace HBP.UI.Module3D
         private RectTransform m_RectTransform;
         private ResizableGrid m_ParentGrid;
         [SerializeField] private SiteList m_SiteList;
-        [SerializeField] private SiteConditions m_SiteConditions;
+        [SerializeField] private SiteFilters m_SiteFilters;
+        [SerializeField] private SiteActions m_SiteActions;
         [SerializeField] private GameObject m_MinimizedGameObject;
         private bool m_RectTransformChanged;
 
@@ -120,7 +121,11 @@ namespace HBP.UI.Module3D
         {
             m_Scene = scene;
             m_SiteList.Initialize();
-            m_SiteConditions.Initialize(scene);
+            m_SiteFilters.Initialize(scene);
+            m_SiteFilters.OnEndFilter.AddListener((finished) =>
+            {
+                UpdateList();
+            });
             m_Scene.OnUpdateSites.AddListener(UpdateList);
             m_Scene.ColumnManager.OnSelectColumn.AddListener((c) => UpdateList());
             m_Scene.OnSitesRenderingUpdated.AddListener(() =>
@@ -131,7 +136,7 @@ namespace HBP.UI.Module3D
         }
         public void UpdateList()
         {
-            List<Site> sites = m_Scene.ColumnManager.SelectedColumn.Sites.ToList();
+            List<Site> sites = m_Scene.ColumnManager.SelectedColumn.Sites.Where(s => s.State.IsFiltered && !s.State.IsMasked).ToList();
             if (!string.IsNullOrEmpty(m_Name))
             {
                 sites.RemoveAll(s => !s.Information.ChannelName.ToUpper().Contains(m_Name.ToUpper()));
