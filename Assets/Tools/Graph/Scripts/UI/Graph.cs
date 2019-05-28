@@ -534,8 +534,33 @@ namespace Tools.Unity.Graph
         }
         public Dictionary<string, string> ToCSV()
         {
-            return new Dictionary<string, string>();
-            //return m_Data.ToCSV();
+            Dictionary<string, string> csv = new Dictionary<string, string>();
+            foreach (var curve in GetAllCurves(m_Curves))
+            {
+                if (curve.Data == null) continue;
+
+                CurveData curveData = curve.Data;
+                System.Text.StringBuilder csvBuilder = new System.Text.StringBuilder();
+                csvBuilder.AppendLine("X\tY\tSEM");
+                if (curveData is ShapedCurveData shapedCurveData)
+                {
+                    for (int i = 0; i < shapedCurveData.Points.Length; ++i)
+                    {
+                        Vector2 point = shapedCurveData.Points[i];
+                        csvBuilder.AppendLine(string.Format("{0}\t{1}\t{2}", point.x, point.y, shapedCurveData.Shapes[i]));
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < curveData.Points.Length; ++i)
+                    {
+                        Vector2 point = curveData.Points[i];
+                        csvBuilder.AppendLine(string.Format("{0}\t{1}\t{2}", point.x, point.y, 0));
+                    }
+                }
+                csv.Add(curve.ID, csvBuilder.ToString());
+            }
+            return csv;
         }
         #endregion
 
