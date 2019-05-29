@@ -8,21 +8,7 @@ namespace HBP.UI.Module3D
     public class SelectionRing : MonoBehaviour
     {
         #region Properties
-        Site m_Site;
-        public Site Site
-        {
-            get
-            {
-                return m_Site;
-            }
-            set
-            {
-                Site site = value;
-                if (site != null && !site.IsActive) site = null;
-                m_Site = site;
-                m_Image.enabled = site != null;
-            }
-        }
+        public Site Site { get; set; }
         public Camera ViewCamera { get; set; }
         public RectTransform Viewport { get; set; }
         RectTransform m_RectTransform;
@@ -43,10 +29,19 @@ namespace HBP.UI.Module3D
         }
         void Display()
         {
-            if(m_Site != null)
+            if (Site == null)
             {
-                Vector3 centerPosition = m_Site.transform.position;
-                Vector3 borderPosition = centerPosition + m_Site.transform.localScale.x * ViewCamera.transform.right;
+                m_Image.enabled = false;
+            }
+            else if (!Site.IsActive)
+            {
+                m_Image.enabled = false;
+            }
+            else
+            {
+                m_Image.enabled = true;
+                Vector3 centerPosition = Site.transform.position;
+                Vector3 borderPosition = centerPosition + Site.transform.localScale.x * ViewCamera.transform.right;
                 Vector3 centerScreenPosition = ViewCamera.WorldToScreenPoint(centerPosition);
                 Vector3 borderScreenPosition = ViewCamera.WorldToScreenPoint(borderPosition);
                 float size = 2 * (borderScreenPosition.x - centerScreenPosition.x);
