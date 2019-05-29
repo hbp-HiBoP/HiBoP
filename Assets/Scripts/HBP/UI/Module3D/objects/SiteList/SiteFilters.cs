@@ -19,7 +19,7 @@ namespace HBP.UI.Module3D
         [SerializeField] private AdvancedSiteConditions m_AdvancedSiteConditions;
         [SerializeField] private SiteConditionsProgressBar m_ProgressBar;
 
-        [SerializeField] private Toggle m_OnOffButton;
+        [SerializeField] private Toggle m_OnOffToggle;
         [SerializeField] private GameObject m_FiltersPanel;
         [SerializeField] private Toggle m_BasicToggle;
         [SerializeField] private Toggle m_AdvancedToggle;
@@ -30,8 +30,7 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Events
-        public GenericEvent<float> OnFilter = new GenericEvent<float>();
-        public GenericEvent<bool> OnEndFilter = new GenericEvent<bool>();
+        public UnityEvent OnRequestListUpdate = new UnityEvent();
         #endregion
 
         #region Public Methods
@@ -39,7 +38,11 @@ namespace HBP.UI.Module3D
         {
             m_Scene = scene;
             m_BasicSiteConditions.Initialize(scene);
+            m_BasicSiteConditions.OnEndFilter.AddListener(StopFiltering);
+            m_BasicSiteConditions.OnFilter.AddListener(m_ProgressBar.Progress);
             m_AdvancedSiteConditions.Initialize(scene);
+            m_AdvancedSiteConditions.OnEndFilter.AddListener(StopFiltering);
+            m_AdvancedSiteConditions.OnFilter.AddListener(m_ProgressBar.Progress);
         }
         public void ApplyFilters()
         {
@@ -63,11 +66,11 @@ namespace HBP.UI.Module3D
                 if (m_AdvancedToggle.isOn)
                 {
                     m_AdvancedSiteConditions.ParseConditions();
-                    m_Coroutine = this.StartCoroutineAsync(m_AdvancedSiteConditions.c_FilterSitesWithConditions(sites, OnFilter, OnEndFilter));
+                    m_Coroutine = this.StartCoroutineAsync(m_AdvancedSiteConditions.c_FilterSitesWithConditions(sites));
                 }
                 else
                 {
-                    m_Coroutine = this.StartCoroutineAsync(m_BasicSiteConditions.c_FilterSitesWithConditions(sites, OnFilter, OnEndFilter));
+                    m_Coroutine = this.StartCoroutineAsync(m_BasicSiteConditions.c_FilterSitesWithConditions(sites));
                 }
             }
             catch (Exception e)
@@ -91,53 +94,43 @@ namespace HBP.UI.Module3D
         #region Private Methods
         private void Awake()
         {
-            m_OnOffButton.onValueChanged.AddListener((isOn) =>
+            m_OnOffToggle.onValueChanged.AddListener(m_FiltersPanel.gameObject.SetActive);
+            m_BasicToggle.onValueChanged.AddListener(m_BasicSiteConditions.gameObject.SetActive);
+            m_AdvancedToggle.onValueChanged.AddListener(m_AdvancedSiteConditions.gameObject.SetActive);
+            m_ApplyButton.onClick.AddListener(ApplyButtonClicked);
+            m_ResetButton.onClick.AddListener(ResetButtonClicked);
+        }
+        private void StopFiltering(bool filterCompleted)
+        {
+            m_Coroutine = null;
+            m_ProgressBar.End();
+            if (!filterCompleted) ResetFilters();
+            OnRequestListUpdate.Invoke();
+        }
+        private void ApplyButtonClicked()
+        {
+            if (m_Coroutine != null)
             {
-                m_FiltersPanel.gameObject.SetActive(isOn);
-            });
-            m_BasicToggle.onValueChanged.AddListener((isOn) =>
+                StopCoroutine(m_Coroutine);
+                StopFiltering(false);
+            }
+            else
             {
-                m_BasicSiteConditions.gameObject.SetActive(isOn);
-            });
-            m_AdvancedToggle.onValueChanged.AddListener((isOn) =>
+                ApplyFilters();
+            }
+        }
+        private void ResetButtonClicked()
+        {
+            if (m_Coroutine != null)
             {
-                m_AdvancedSiteConditions.gameObject.SetActive(isOn);
-            });
-            m_ApplyButton.onClick.AddListener(() =>
+                StopCoroutine(m_Coroutine);
+                StopFiltering(false);
+            }
+            else
             {
-                if (m_Coroutine != null)
-                {
-                    StopCoroutine(m_Coroutine);
-                    OnEndFilter.Invoke(false);
-                }
-                else
-                {
-                    ApplyFilters();
-                }
-            });
-            m_ResetButton.onClick.AddListener(() =>
-            {
-                if (m_Coroutine != null)
-                {
-                    StopCoroutine(m_Coroutine);
-                    OnEndFilter.Invoke(false);
-                }
-                else
-                {
-                    ResetFilters();
-                    OnEndFilter.Invoke(true);
-                }
-            });
-            OnFilter.AddListener((progress) =>
-            {
-                m_ProgressBar.Progress(progress);
-            });
-            OnEndFilter.AddListener((finished) =>
-            {
-                m_Coroutine = null;
-                m_ProgressBar.End();
-                if (!finished) ResetFilters();
-            });
+                ResetFilters();
+                StopFiltering(true);
+            }
         }
         #endregion
     }

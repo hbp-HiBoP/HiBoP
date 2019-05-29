@@ -16,7 +16,11 @@ namespace HBP.UI.Module3D
         protected Base3DScene m_Scene;
         private Queue<Site> m_MatchingSites = new Queue<Site>();
         private bool m_UpdateUI;
-        public GenericEvent<Site> OnApplyActionOnSite = new GenericEvent<Site>();
+        #endregion
+
+        #region Events
+        public GenericEvent<float> OnFilter = new GenericEvent<float>();
+        public GenericEvent<bool> OnEndFilter = new GenericEvent<bool>();
         #endregion
 
         #region Private Methods
@@ -151,7 +155,7 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Coroutines
-        public IEnumerator c_FilterSitesWithConditions(List<Site> sites, UnityEvent<float> onProgress, GenericEvent<bool> onEnd)
+        public IEnumerator c_FilterSitesWithConditions(List<Site> sites)
         {
             int length = sites.Count;
             Exception exception = null;
@@ -183,7 +187,7 @@ namespace HBP.UI.Module3D
                         Site filteredSite = m_MatchingSites.Dequeue();
                         filteredSite.State.IsFiltered = true;
                     }
-                    onProgress.Invoke((float)(i + 1) / length);
+                    OnFilter.Invoke((float)(i + 1) / length);
                     m_UpdateUI = false;
                     yield return Ninja.JumpBack;
                 }
@@ -192,11 +196,11 @@ namespace HBP.UI.Module3D
             if (exception != null)
             {
                 ApplicationState.DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Warning, exception.ToString(), exception.Message);
-                onEnd.Invoke(false);
+                OnEndFilter.Invoke(false);
             }
             else
             {
-                onEnd.Invoke(true);
+                OnEndFilter.Invoke(true);
             }
         }
         #endregion

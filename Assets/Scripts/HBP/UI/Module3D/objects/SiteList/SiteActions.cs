@@ -13,198 +13,232 @@ namespace HBP.UI.Module3D
     public class SiteActions : MonoBehaviour
     {
         #region Properties
-        Base3DScene m_Scene;
-        [SerializeField] BasicSiteConditions m_BasicSiteConditions;
-        [SerializeField] AdvancedSiteConditions m_AdvancedSiteConditions;
-        Coroutine m_Coroutine;
+        private Base3DScene m_Scene;
+        private Coroutine m_Coroutine;
 
-        public bool UseAdvanced { get; set; }
-        public bool AllColumns { get; set; }
+        [SerializeField] private SiteConditionsProgressBar m_ProgressBar;
 
-        private enum ActionType { ChangeState, Export };
-        private ActionType m_ActionType;
-        
-        [SerializeField] Toggle m_Highlight;
-        [SerializeField] Toggle m_Unhighlight;
-        [SerializeField] Toggle m_Blacklist;
-        [SerializeField] Toggle m_Unblacklist;
-        [SerializeField] Toggle m_ColorToggle;
-        [SerializeField] Button m_ColorPickerButton;
-        [SerializeField] Image m_ColorPickedImage;
-        [SerializeField] Toggle m_AddLabelToggle;
-        [SerializeField] Toggle m_RemoveLabelToggle;
-        [SerializeField] InputField m_LabelInputField;
+        [SerializeField] private Toggle m_OnOffToggle;
+        [SerializeField] private GameObject m_ActionsPanel;
 
-        // Export specific variables
-        private System.Text.StringBuilder m_CSVBuilder;
-        private string m_SavePath;
-        private Dictionary<Data.Patient, Data.Experience.Dataset.DataInfo> m_DataInfoByPatient;
+        [SerializeField] private Toggle m_ExportSitesToggle;
+        [SerializeField] private GameObject m_ExportSitesPanel;
+        [SerializeField] private Toggle m_ChangeStateToggle;
+        [SerializeField] private GameObject m_ChangeStatePanel;
+
+        [SerializeField] private Toggle m_Highlight;
+        [SerializeField] private Toggle m_Unhighlight;
+        [SerializeField] private Toggle m_Blacklist;
+        [SerializeField] private Toggle m_Unblacklist;
+        [SerializeField] private Toggle m_ColorToggle;
+        [SerializeField] private Button m_ColorPickerButton;
+        [SerializeField] private Image m_ColorPickedImage;
+        [SerializeField] private Toggle m_AddLabelToggle;
+        [SerializeField] private Toggle m_RemoveLabelToggle;
+        [SerializeField] private InputField m_LabelInputField;
+        [SerializeField] private Toggle m_AllColumnsToggle;
+
+        [SerializeField] private Button m_ApplyButton;
+
+        private bool m_UpdateUI = true;
         #endregion
 
         #region Events
-        public UnityEvent OnBeginApply = new UnityEvent();
-        public ApplyingActionEvent OnApplyingActions = new ApplyingActionEvent();
-        public UnityEvent OnSiteFound = new UnityEvent();
-        public EndApplyEvent OnEndApply = new EndApplyEvent();
+        public UnityEvent OnRequestListUpdate = new UnityEvent();
         #endregion
 
         #region Public Methods
         public void Initialize(Base3DScene scene)
         {
             m_Scene = scene;
-            m_BasicSiteConditions.Initialize(scene);
-            m_BasicSiteConditions.OnApplyActionOnSite.AddListener(Apply);
-            m_AdvancedSiteConditions.Initialize(scene);
-            m_AdvancedSiteConditions.OnApplyActionOnSite.AddListener(Apply);
-            OnEndApply.AddListener((finished) =>
-            {
-                m_Coroutine = null;
-                if (finished && m_ActionType == ActionType.Export)
-                {
-                    using (System.IO.StreamWriter sw = new System.IO.StreamWriter(m_SavePath))
-                    {
-                        sw.Write(m_CSVBuilder.ToString());
-                    }
-                    ApplicationState.DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Informational, "Sites exported", "The filtered sites have been sucessfully exported to " + m_SavePath);
-                }
-            });
         }
-        public void OnClickApply()
+        public void ApplyAction()
         {
-            if (m_Coroutine != null)
+            try
             {
-                StopCoroutine(m_Coroutine);
-                OnEndApply.Invoke(false);
-            }
-            else
-            {
-                if (m_ActionType == ActionType.Export)
+                if (m_ChangeStateToggle.isOn)
                 {
-                    m_SavePath = "";
-                    m_SavePath = FileBrowser.GetSavedFileName(new string[] { "csv" }, "Save sites to", Application.dataPath);
-                    if (string.IsNullOrEmpty(m_SavePath)) return;
-
-                    m_CSVBuilder = new System.Text.StringBuilder();
-                    m_CSVBuilder.AppendLine("Site,Patient,Place,Date,X,Y,Z,CoordSystem,DataType,DataFiles");
+                    ChangeSitesStates();
                 }
-
-                List<Site> sites = new List<Site>();
-
-                if (AllColumns && m_ActionType == ActionType.ChangeState)
+                else if (m_ExportSitesToggle.isOn)
                 {
-                    foreach (var column in m_Scene.ColumnManager.Columns)
+                    if (m_Coroutine != null)
                     {
-                        sites.AddRange(column.Sites);
+                        StopCoroutine(m_Coroutine);
+                        StopExport();
+                    }
+                    else
+                    {
+                        ExportSites();
                     }
                 }
-                else
-                {
-                    sites.AddRange(m_Scene.ColumnManager.SelectedColumn.Sites);
-                }
-
-                if (m_ActionType == ActionType.Export)
-                {
-                    m_DataInfoByPatient = new Dictionary<Data.Patient, Data.Experience.Dataset.DataInfo>();
-                    foreach (var site in sites)
-                    {
-                        if (!m_DataInfoByPatient.ContainsKey(site.Information.Patient))
-                        {
-                            if (m_Scene.ColumnManager.SelectedColumn is Column3DIEEG columnIEEG)
-                            {
-                                Data.Experience.Dataset.DataInfo dataInfo = m_Scene.Visualization.GetDataInfo(site.Information.Patient, columnIEEG.ColumnIEEGData);
-                                m_DataInfoByPatient.Add(site.Information.Patient, dataInfo);
-                            }
-                        }
-                    }
-                }
-
-                //try
-                //{
-                //    if (UseAdvanced)
-                //    {
-                //        m_AdvancedSiteConditions.ParseConditions();
-                //        m_Coroutine = this.StartCoroutineAsync(m_AdvancedSiteConditions.c_FindSitesAndRequestAction(sites, OnBeginApply, OnEndApply, OnApplyingActions, m_ActionType == ActionType.Export ? 100 : int.MaxValue));
-                //    }
-                //    else
-                //    {
-                //        m_Coroutine = this.StartCoroutineAsync(m_BasicSiteConditions.c_FindSitesAndRequestAction(sites, OnBeginApply, OnEndApply, OnApplyingActions, m_ActionType == ActionType.Export ? 100 : int.MaxValue));
-                //    }
-                //}
-                //catch (Exception e)
-                //{
-                //    Debug.LogException(e);
-                //    ApplicationState.DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
-                //}
             }
-        }
-        public void ChangeActionType(int type)
-        {
-            m_ActionType = (ActionType)type;
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                ApplicationState.DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
+            }
         }
         #endregion
 
         #region Private Methods
         private void Awake()
         {
+            m_OnOffToggle.onValueChanged.AddListener(m_ActionsPanel.gameObject.SetActive);
+            m_ExportSitesToggle.onValueChanged.AddListener(m_ExportSitesPanel.SetActive);
+            m_ChangeStateToggle.onValueChanged.AddListener(m_ChangeStatePanel.SetActive);
+            m_ApplyButton.onClick.AddListener(ApplyAction);
             m_ColorPickerButton.onClick.AddListener(() =>
             {
                 ApplicationState.Module3DUI.ColorPicker.Open(m_ColorPickedImage.color, (c) => m_ColorPickedImage.color = c);
             });
         }
-        private void Apply(Site site)
+        private void Update()
         {
-            switch (m_ActionType)
-            {
-                case ActionType.ChangeState:
-                    ApplyChangeState(site);
-                    break;
-                case ActionType.Export:
-                    ApplyExport(site);
-                    break;
-            }
-            OnSiteFound.Invoke();
+            m_UpdateUI = true;
         }
-        private void ApplyChangeState(Site site)
+        private void ChangeSitesStates()
         {
-            if (m_Highlight.isOn) site.State.IsHighlighted = true;
-            if (m_Unhighlight.isOn) site.State.IsHighlighted = false;
-            if (m_Blacklist.isOn) site.State.IsBlackListed = true;
-            if (m_Unblacklist.isOn) site.State.IsBlackListed = false;
-            if (m_ColorToggle.isOn) site.State.Color = m_ColorPickedImage.color;
-            if (m_AddLabelToggle.isOn) site.State.AddLabel(m_LabelInputField.text);
-            if (m_RemoveLabelToggle.isOn) site.State.RemoveLabel(m_LabelInputField.text);
+            List<Site> sites = new List<Site>();
+            if (m_AllColumnsToggle.isOn)
+            {
+                foreach (var column in m_Scene.ColumnManager.Columns)
+                {
+                    sites.AddRange(column.Sites.Where(s => s.State.IsFiltered));
+                }
+            }
+            else
+            {
+                sites.AddRange(m_Scene.ColumnManager.SelectedColumn.Sites.Where(s => s.State.IsFiltered));
+            }
+
+            foreach (var site in sites)
+            {
+                if (m_Highlight.isOn) site.State.IsHighlighted = true;
+                if (m_Unhighlight.isOn) site.State.IsHighlighted = false;
+                if (m_Blacklist.isOn) site.State.IsBlackListed = true;
+                if (m_Unblacklist.isOn) site.State.IsBlackListed = false;
+                if (m_ColorToggle.isOn) site.State.Color = m_ColorPickedImage.color;
+                if (m_AddLabelToggle.isOn) site.State.AddLabel(m_LabelInputField.text);
+                if (m_RemoveLabelToggle.isOn) site.State.RemoveLabel(m_LabelInputField.text);
+            }
+
+            OnRequestListUpdate.Invoke();
         }
-        private void ApplyExport(Site site)
+        private void ExportSites()
         {
-            Vector3 sitePosition = site.transform.localPosition;
-            Data.Experience.Dataset.DataInfo dataInfo = null;
-            if (m_Scene.ColumnManager.SelectedColumn is Column3DIEEG columnIEEG)
+            string csvPath = "";
+            csvPath = FileBrowser.GetSavedFileName(new string[] { "csv" }, "Save sites to", Application.dataPath);
+            if (string.IsNullOrEmpty(csvPath)) return;
+
+            m_ProgressBar.Begin();
+            List<Site> sites = m_Scene.ColumnManager.SelectedColumn.Sites.Where(s => s.State.IsFiltered).ToList();
+            m_Coroutine = this.StartCoroutineAsync(c_ExportSites(sites, csvPath));
+        }
+        private void StopExport()
+        {
+            m_Coroutine = null;
+            m_ProgressBar.End();
+        }
+        #endregion
+
+        #region Coroutines
+        private IEnumerator c_ExportSites(List<Site> sites, string csvPath)
+        {
+            int length = sites.Count;
+
+            // Prepare DataInfo by Patient for performance increase
+            Dictionary<Data.Patient, Data.Experience.Dataset.DataInfo>  dataInfoByPatient = new Dictionary<Data.Patient, Data.Experience.Dataset.DataInfo>();
+            for (int i = 0; i < length; i++)
             {
-                dataInfo = m_DataInfoByPatient[site.Information.Patient];
+                Site site = sites[i];
+                if (!dataInfoByPatient.ContainsKey(site.Information.Patient))
+                {
+                    if (m_Scene.ColumnManager.SelectedColumn is Column3DIEEG columnIEEG)
+                    {
+                        Data.Experience.Dataset.DataInfo dataInfo = m_Scene.Visualization.GetDataInfo(site.Information.Patient, columnIEEG.ColumnIEEGData);
+                        dataInfoByPatient.Add(site.Information.Patient, dataInfo);
+                    }
+                }
+                // Update progressbar
+                if (m_UpdateUI || i == length - 1)
+                {
+                    yield return Ninja.JumpToUnity;
+                    m_ProgressBar.Progress(0.5f * ((float)(i + 1) / length));
+                    m_UpdateUI = false;
+                    yield return Ninja.JumpBack;
+                }
             }
-            string dataType = "", dataFiles = "";
-            if (dataInfo != null)
+
+            // Create string builder
+            System.Text.StringBuilder csvBuilder = new System.Text.StringBuilder();
+            csvBuilder.AppendLine("Site,Patient,Place,Date,X,Y,Z,CoordSystem,DataType,DataFiles");
+
+            // Prepare sites positions for performance increase
+            yield return Ninja.JumpToUnity;
+            List<Vector3> sitePositions = sites.Select(s => s.transform.localPosition).ToList();
+            yield return Ninja.JumpBack;
+
+            for (int i = 0; i < length; i++)
             {
-                dataType = dataInfo.DataTypeString;
-                dataFiles = dataInfo.DataFilesString;
+                // Get required values
+                Site site = sites[i];
+                Vector3 sitePosition = sitePositions[i];
+                Data.Experience.Dataset.DataInfo dataInfo = null;
+                if (m_Scene.ColumnManager.SelectedColumn is Column3DIEEG columnIEEG)
+                {
+                    dataInfo = dataInfoByPatient[site.Information.Patient];
+                }
+                string dataType = "", dataFiles = "";
+                if (dataInfo != null)
+                {
+                    dataType = dataInfo.DataTypeString;
+                    dataFiles = dataInfo.DataFilesString;
+                }
+                // Write in string builder
+                csvBuilder.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9}",
+                        site.Information.ChannelName,
+                        site.Information.Patient.Name,
+                        site.Information.Patient.Place,
+                        site.Information.Patient.Date,
+                        sitePosition.x.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
+                        sitePosition.y.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
+                        sitePosition.z.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
+                        m_Scene.ColumnManager.SelectedImplantation.Name,
+                        dataType,
+                        dataFiles));
+                // Update progressbar
+                if (m_UpdateUI || i == length - 1)
+                {
+                    yield return Ninja.JumpToUnity;
+                    m_ProgressBar.Progress(0.5f * (1 + (float)(i + 1) / length));
+                    m_UpdateUI = false;
+                    yield return Ninja.JumpBack;
+                }
             }
-            m_CSVBuilder.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9}",
-                    site.Information.ChannelName,
-                    site.Information.Patient.Name,
-                    site.Information.Patient.Place,
-                    site.Information.Patient.Date,
-                    sitePosition.x.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
-                    sitePosition.y.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
-                    sitePosition.z.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
-                    m_Scene.ColumnManager.SelectedImplantation.Name,
-                    dataType,
-                    dataFiles));
+
+            // Write csv file
+            yield return Ninja.JumpBack;
+            try
+            {
+                using (System.IO.StreamWriter sw = new System.IO.StreamWriter(csvPath))
+                {
+                    sw.Write(csvBuilder.ToString());
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                ApplicationState.DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
+                yield break;
+            }
+            yield return Ninja.JumpToUnity;
+
+            // End
+            StopExport();
+            ApplicationState.DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Informational, "Sites exported", "The filtered sites have been sucessfully exported to " + csvPath);
+            OnRequestListUpdate.Invoke();
         }
         #endregion
     }
-
-    [Serializable]
-    public class ApplyingActionEvent : UnityEvent<float> { }
-    [Serializable]
-    public class EndApplyEvent : UnityEvent<bool> { }
 }
