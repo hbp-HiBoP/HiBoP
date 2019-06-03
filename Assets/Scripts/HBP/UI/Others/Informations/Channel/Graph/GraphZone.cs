@@ -118,13 +118,20 @@ namespace HBP.UI.Informations
 
             Vector2 defaultOrdinateDisplayRange = new Vector2(minMax.x - 0.1f * lenght, minMax.y + 0.1f * lenght);
             Vector2 ordinateDisplayRange;
-            if (m_useDefaultDisplayRange)
+            if (lenght != 0)
             {
-                ordinateDisplayRange = defaultOrdinateDisplayRange;
+                if (m_useDefaultDisplayRange)
+                {
+                    ordinateDisplayRange = defaultOrdinateDisplayRange;
+                }
+                else
+                {
+                    ordinateDisplayRange = m_OrdinateDisplayRange;
+                }
             }
             else
             {
-                ordinateDisplayRange = m_OrdinateDisplayRange;
+                ordinateDisplayRange = new Vector2(minMax.x - Mathf.Abs(minMax.x), minMax.y + Mathf.Abs(minMax.y));
             }
             UnityEngine.Profiling.Profiler.EndSample();
 

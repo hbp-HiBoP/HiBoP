@@ -356,13 +356,211 @@ namespace Tools.Unity.Graph
         }
         public string ToSVG()
         {
-            return "";
-            //return m_Data.ToSVG();
+            System.Globalization.CultureInfo oldCulture = System.Globalization.CultureInfo.CurrentCulture;
+            System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
+            System.Text.StringBuilder svgBuilder = new System.Text.StringBuilder();
+            Rect curveViewport = new Rect(130, 60, 1600, 900);
+            Limits limits = new Limits(m_AbscissaDisplayRange.x, m_AbscissaDisplayRange.y, m_OrdinateDisplayRange.x, m_OrdinateDisplayRange.y);
+            Vector2 ratio = curveViewport.GetRatio(limits);
+            svgBuilder.AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+            svgBuilder.AppendLine("<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" width=\"" + (curveViewport.x + curveViewport.width + 300.0f).ToString() + "\" height=\"" + (curveViewport.y + curveViewport.height + 150.0f).ToString() + "\">");
+            List<Curve> curves = GetAllCurves(m_Curves);
+            foreach (var curve in curves.Where(c => c.Data != null).Select(c => c.Data))
+            {
+                svgBuilder.AppendLine("<g>");
+                System.Text.StringBuilder builder = new System.Text.StringBuilder();
+
+                // Write shape
+                if (curve is ShapedCurveData shapedCurve)
+                {
+                    builder = new System.Text.StringBuilder();
+                    for (int i = 0; i < shapedCurve.Points.Length; ++i)
+                    {
+                        Vector2 point = shapedCurve.Points[i];
+                        Vector2 localPoint = point.GetLocalPosition(limits.Origin, ratio);
+                        localPoint = new Vector2(localPoint.x + curveViewport.x, localPoint.y - curveViewport.y + (shapedCurve.Shapes[i] * ratio.y) / 2);
+                        builder.Append(localPoint.x + "," + (curveViewport.height - localPoint.y).ToString() + " ");
+                    }
+                    for (int i = shapedCurve.Points.Length - 1; i >= 0; --i)
+                    {
+                        Vector2 point = shapedCurve.Points[i];
+                        Vector2 localPoint = point.GetLocalPosition(limits.Origin, ratio);
+                        localPoint = new Vector2(localPoint.x + curveViewport.x, localPoint.y - curveViewport.y - (shapedCurve.Shapes[i] * ratio.y) / 2);
+                        builder.Append(localPoint.x + "," + (curveViewport.height - localPoint.y).ToString() + " ");
+                    }
+                    svgBuilder.AppendLine("<path d=\"M " + builder.ToString() + "\" style=\"" + "fill:" + curve.Color.ToHexString() + ";stroke-width:0;fill-opacity:0.5\"/>");
+                }
+
+                // Write curve
+                builder = new System.Text.StringBuilder();
+                foreach (var point in curve.Points)
+                {
+                    Vector2 localPoint = point.GetLocalPosition(limits.Origin, ratio);
+                    localPoint = new Vector2(localPoint.x + curveViewport.x, localPoint.y - curveViewport.y);
+                    builder.Append(localPoint.x + "," + (curveViewport.height - localPoint.y).ToString() + " ");
+                }
+                svgBuilder.AppendLine("<path d=\"M " + builder.ToString() + "\" style=\"" + "fill:none;stroke:" + curve.Color.ToHexString() + ";stroke-width:" + curve.Thickness + "\"/>");
+                svgBuilder.AppendLine("</g>");
+            }
+
+            // Write axis
+            List<float> GetAxisValues(float min, float max)
+            {
+                List<float> values = new List<float>();
+                float range = max - min;
+                if (range > 0)
+                {
+                    float normalizedStep = range / 10;
+                    float coef = 1;
+
+                    if (normalizedStep < 1)
+                    {
+                        coef /= 10;
+                        normalizedStep *= 10;
+                    }
+                    while (normalizedStep > 10)
+                    {
+                        float tempResult;
+                        tempResult = normalizedStep / 2;
+                        if (tempResult >= 1 && tempResult <= 10)
+                        {
+                            coef *= 2;
+                            normalizedStep = tempResult;
+                            break;
+                        }
+
+                        tempResult = normalizedStep / 5;
+                        if (tempResult >= 1 && tempResult <= 10)
+                        {
+                            normalizedStep = tempResult;
+                            coef *= 5;
+                            break;
+                        }
+
+                        tempResult = normalizedStep / 10;
+                        if (normalizedStep >= 1 && normalizedStep <= 10)
+                        {
+                            normalizedStep = tempResult;
+                            coef *= 10;
+                            break;
+                        }
+
+                        coef *= 10;
+                        normalizedStep /= 10;
+                    }
+                    if (normalizedStep > 1 && normalizedStep <= 5)
+                    {
+                        normalizedStep = 5;
+                    }
+                    else if (normalizedStep > 5 && normalizedStep <= 10)
+                    {
+                        normalizedStep = 10;
+                    }
+                    float step = normalizedStep * coef;
+
+                    int division = Mathf.FloorToInt(min / step);
+                    float rest = min % step;
+                    if (rest != 0) division++;
+                    float value = division * step;
+                    while (value <= max)
+                    {
+                        values.Add(value);
+                        value += step;
+                    }
+                }
+                return values;
+            }
+            // Title
+            svgBuilder.AppendLine("<g>");
+            svgBuilder.AppendLine("<text x=\"" + (curveViewport.x + (curveViewport.width / 2)).ToString() + "\" y=\"" + (curveViewport.y / 2).ToString() + "\" text-anchor=\"middle\" dy=\".3em\" style=\"font-size:50\">" + Title + "</text>");
+            svgBuilder.AppendLine("</g>");
+            // Ordinate
+            svgBuilder.AppendLine("<g>");
+            svgBuilder.AppendLine("<g>");
+            svgBuilder.AppendLine("<path d=\"M " + curveViewport.x + "," + curveViewport.y + " " + curveViewport.x + "," + (curveViewport.y + curveViewport.height).ToString() + "\" style=\"stroke:#000000;stroke-width:5;fill:none\"/>");
+            svgBuilder.AppendLine("<path d=\"M " + curveViewport.x + "," + (curveViewport.y - 25.0f).ToString() + " " + (curveViewport.x + 10.0f).ToString() + "," + curveViewport.y + " " + (curveViewport.x - 10.0f).ToString() + "," + curveViewport.y + "\" style=\"stroke:#000000;stroke-width:0;fill:#000000\"/>");
+            foreach (var value in GetAxisValues(limits.OrdinateMin, limits.OrdinateMax))
+            {
+                float axisRatio = curveViewport.height / (limits.OrdinateMax - limits.OrdinateMin);
+                float position = curveViewport.y + (curveViewport.height - ((value - limits.OrdinateMin) * axisRatio));
+                svgBuilder.AppendLine("<g>");
+                svgBuilder.AppendLine("<path d=\"M " + (curveViewport.x - 10).ToString() + "," + position + " " + (curveViewport.x + 10).ToString() + "," + position + "\" style=\"stroke:#000000;stroke-width:5;fill:none\"/>");
+                svgBuilder.AppendLine("<text x=\"" + (curveViewport.x - 40).ToString() + "\" y=\"" + position + "\" text-anchor=\"middle\" dy=\".3em\" style=\"font-size:30\">" + value + "</text>");
+                svgBuilder.AppendLine("</g>");
+            }
+            svgBuilder.AppendLine("<g>");
+            svgBuilder.AppendLine("</g>");
+            svgBuilder.AppendLine("<text x=\"" + (curveViewport.x - 100).ToString() + "\" y=\"" + (curveViewport.y + (curveViewport.height / 2)).ToString() + "\" text-anchor=\"middle\" dy=\".3em\" transform=\"rotate(-90 " + (curveViewport.x - 100).ToString() + "," + (curveViewport.y + (curveViewport.height / 2)).ToString() + ")\" style=\"font-size:30\">" + string.Format("{0} ({1})", m_OrdinateLabel, m_OrdinateUnit) + "</text>");
+            svgBuilder.AppendLine("</g>");
+            svgBuilder.AppendLine("</g>");
+            // Abscissa
+            svgBuilder.AppendLine("<g>");
+            svgBuilder.AppendLine("<g>");
+            svgBuilder.AppendLine("<path d=\"M " + curveViewport.x + "," + (curveViewport.y + curveViewport.height).ToString() + " " + (curveViewport.x + curveViewport.width).ToString() + "," + (curveViewport.y + curveViewport.height).ToString() + "\" style=\"stroke:#000000;stroke-width:5;fill:none\"/>");
+            svgBuilder.AppendLine("<path d=\"M " + (curveViewport.x + curveViewport.width + 25.0f).ToString() + "," + (curveViewport.y + curveViewport.height).ToString() + " " + (curveViewport.x + curveViewport.width).ToString() + "," + (curveViewport.y + curveViewport.height + 10.0f).ToString() + " " + (curveViewport.x + curveViewport.width).ToString() + "," + (curveViewport.y + curveViewport.height - 10.0f).ToString() + "\" style=\"stroke:#000000;stroke-width:0;fill:#000000\"/>");
+            foreach (var value in GetAxisValues(limits.AbscissaMin, limits.AbscissaMax))
+            {
+                float axisRatio = curveViewport.width / (limits.AbscissaMax - limits.AbscissaMin);
+                float position = curveViewport.x + (value - limits.AbscissaMin) * axisRatio;
+                svgBuilder.AppendLine("<g>");
+                svgBuilder.AppendLine("<path d=\"M " + position + "," + (curveViewport.y + curveViewport.height - 10).ToString() + " " + position + "," + (curveViewport.y + curveViewport.height + 10).ToString() + "\" style=\"stroke:#000000;stroke-width:5;fill:none\"/>");
+                svgBuilder.AppendLine("<text x=\"" + position + "\" y=\"" + (curveViewport.y + curveViewport.height + 30).ToString() + "\" text-anchor=\"middle\" dy=\".3em\" style=\"font-size:30\">" + value + "</text>");
+                svgBuilder.AppendLine("</g>");
+            }
+            svgBuilder.AppendLine("</g>");
+            svgBuilder.AppendLine("<g>");
+            svgBuilder.AppendLine("<text x=\"" + (curveViewport.x + (curveViewport.width / 2)).ToString() + "\" y=\"" + (curveViewport.y + curveViewport.height + 70).ToString() + "\" text-anchor=\"middle\" dy=\".3em\" style=\"font-size:30\">" + string.Format("{0} ({1})", m_AbscissaLabel, m_AbscissaUnit) + "</text>");
+            svgBuilder.AppendLine("</g>");
+            svgBuilder.AppendLine("</g>");
+            // Write Legend
+            svgBuilder.AppendLine("<g>");
+            int id = 0;
+            float x = curveViewport.x + curveViewport.width + 30.0f;
+            foreach (var curve in curves)
+            {
+                if (curve.Data == null) continue;
+
+                float y = curveViewport.y + (id * 40.0f);
+                svgBuilder.AppendLine("<g>");
+                svgBuilder.AppendLine("<path d=\"M " + x + "," + y + " " + (x + 30.0f).ToString() + "," + y + "\" style=\"stroke:" + curve.Color.ToHexString() + ";stroke-width:10;fill:none\"/>");
+                svgBuilder.AppendLine("<text x=\"" + (x + 40.0f).ToString() + "\" y=\"" + y + "\" text-anchor=\"left\" dy=\".3em\" style=\"font-size:30\">" + curve.ID + "</text>");
+                svgBuilder.AppendLine("</g>");
+                id++;
+            }
+            svgBuilder.AppendLine("</g>");
+            svgBuilder.AppendLine("</svg>");
+            System.Globalization.CultureInfo.CurrentCulture = oldCulture;
+            return svgBuilder.ToString();
         }
         public Dictionary<string, string> ToCSV()
         {
-            return new Dictionary<string, string>();
-            //return m_Data.ToCSV();
+            Dictionary<string, string> csv = new Dictionary<string, string>();
+            foreach (var curve in GetAllCurves(m_Curves))
+            {
+                if (curve.Data == null) continue;
+
+                CurveData curveData = curve.Data;
+                System.Text.StringBuilder csvBuilder = new System.Text.StringBuilder();
+                csvBuilder.AppendLine("X\tY\tSEM");
+                if (curveData is ShapedCurveData shapedCurveData)
+                {
+                    for (int i = 0; i < shapedCurveData.Points.Length; ++i)
+                    {
+                        Vector2 point = shapedCurveData.Points[i];
+                        csvBuilder.AppendLine(string.Format("{0}\t{1}\t{2}", point.x, point.y, shapedCurveData.Shapes[i]));
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < curveData.Points.Length; ++i)
+                    {
+                        Vector2 point = curveData.Points[i];
+                        csvBuilder.AppendLine(string.Format("{0}\t{1}\t{2}", point.x, point.y, 0));
+                    }
+                }
+                csv.Add(curve.ID, csvBuilder.ToString());
+            }
+            return csv;
         }
         #endregion
 
@@ -471,6 +669,18 @@ namespace Tools.Unity.Graph
         void SetCurves()
         {
             m_OnChangeCurves.Invoke(m_Curves.ToArray());
+        }
+        List<Curve> GetAllCurves(IEnumerable<Curve> curves)
+        {
+            if (curves.Count() == 0) return new List<Curve>();
+
+            List<Curve> result = new List<Curve>();
+            foreach (var curve in curves)
+            {
+                result.Add(curve);
+                result.AddRange(GetAllCurves(curve.SubCurves));
+            }
+            return result;
         }
         Curve FindCurve(string ID)
         {

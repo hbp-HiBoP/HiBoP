@@ -6,6 +6,7 @@ using System.Linq;
 using System.IO;
 using HBP.Module3D.DLL;
 using HBP.Data.Enums;
+using Tools.Unity;
 
 namespace HBP.Module3D
 {
@@ -138,7 +139,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Currently selected site
         /// </summary>
-        public Site SelectedSite { get; protected set; }
+        public Site SelectedSite { get; private set; }
         /// <summary>
         /// Currently selected site ID
         /// </summary>
@@ -381,15 +382,14 @@ namespace HBP.Module3D
                         Site site = Sites[id];
                         site.Information = baseSite.Information;
                         // State
-                        if (!SiteStateBySiteID.ContainsKey(baseSite.Information.FullID))
+                        if (!SiteStateBySiteID.ContainsKey(baseSite.Information.FullCorrectedID))
                         {
-                            SiteStateBySiteID.Add(baseSite.Information.FullID, new SiteState(baseSite.State));
+                            SiteStateBySiteID.Add(baseSite.Information.FullCorrectedID, new SiteState(baseSite.State));
                         }
-                        site.State = SiteStateBySiteID[baseSite.Information.FullID];
+                        site.State = SiteStateBySiteID[baseSite.Information.FullCorrectedID];
                         site.State.OnChangeState.AddListener(() => OnChangeSiteState.Invoke(site));
                         // Configuration
-                        Data.Visualization.SiteConfiguration siteConfiguration;
-                        if (ColumnData.BaseConfiguration.ConfigurationBySite.TryGetValue(site.Information.FullCorrectedID, out siteConfiguration))
+                        if (ColumnData.BaseConfiguration.ConfigurationBySite.TryGetValue(site.Information.FullCorrectedID, out Data.Visualization.SiteConfiguration siteConfiguration))
                         {
                             site.Configuration = siteConfiguration;
                         }
@@ -489,7 +489,12 @@ namespace HBP.Module3D
                     bool activity = site.IsActive;
                     SiteType siteType;
                     float alpha = -1.0f;
-                    if (site.State.IsBlackListed)
+                    if (!site.State.IsFiltered)
+                    {
+                        if (activity) site.IsActive = false;
+                        continue;
+                    }
+                    else if (site.State.IsBlackListed)
                     {
                         site.transform.localScale = Vector3.one;
                         siteType = SiteType.BlackListed;
@@ -498,11 +503,6 @@ namespace HBP.Module3D
                             if (activity) site.IsActive = false;
                             continue;
                         }
-                    }
-                    else if (site.State.IsExcluded)
-                    {
-                        site.transform.localScale = Vector3.one;
-                        siteType = SiteType.Excluded;
                     }
                     else if (latenciesFile != null)
                     {
@@ -534,10 +534,10 @@ namespace HBP.Module3D
                     else
                     {
                         site.transform.localScale = Vector3.one;
-                        siteType = site.State.IsMarked ? SiteType.Marked : SiteType.Normal;
+                        siteType = SiteType.Normal;
                     }
                     if (!activity) site.IsActive = true;
-                    Material siteMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType);
+                    Material siteMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
                     if (alpha > 0.0f)
                     {
                         Color materialColor = siteMaterial.color;
@@ -554,7 +554,7 @@ namespace HBP.Module3D
                     Site site = Sites[i];
                     bool activity = site.IsActive;
                     SiteType siteType;
-                    if (site.State.IsMasked || (site.State.IsOutOfROI && !data.ShowAllSites))
+                    if (site.State.IsMasked || (site.State.IsOutOfROI && !data.ShowAllSites) || !site.State.IsFiltered)
                     {
                         if (activity) site.IsActive = false;
                         continue;
@@ -569,36 +569,15 @@ namespace HBP.Module3D
                             continue;
                         }
                     }
-                    else if (site.State.IsExcluded)
-                    {
-                        site.transform.localScale = Vector3.one;
-                        siteType = SiteType.Excluded;
-                    }
-                    else if (site.State.IsSuspicious)
-                    {
-                        site.transform.localScale = Vector3.one;
-                        siteType = SiteType.Suspicious;
-                    }
                     else
                     {
                         site.transform.localScale = Vector3.one;
-                        siteType = site.State.IsMarked ? SiteType.Marked : SiteType.Normal;
+                        siteType = SiteType.Normal;
                     }
                     if (!activity) site.IsActive = true;
-                    site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType);
+                    site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
                 }
             }
-
-            // Selected site
-            //if (SelectedSiteID == -1)
-            //{
-            //    m_SelectRing.SetSelectedSite(null, Vector3.zero);
-            //}
-            //else
-            //{
-            //    Site selectedSite = SelectedSite;
-            //    m_SelectRing.SetSelectedSite(selectedSite, selectedSite.transform.localScale);
-            //}
         }
         /// <summary>
         /// Save the states of the sites of this column to a file
@@ -610,10 +589,10 @@ namespace HBP.Module3D
             {
                 using (StreamWriter sw = new StreamWriter(path))
                 {
-                    sw.WriteLine("ID,Excluded,Blacklisted,Highlighted,Marked,Suspicious");
+                    sw.WriteLine("ID,Blacklisted,Highlighted,Color");
                     foreach (var site in SiteStateBySiteID)
                     {
-                        sw.WriteLine("{0},{1},{2},{3},{4},{5}", site.Key, site.Value.IsExcluded, site.Value.IsBlackListed, site.Value.IsHighlighted, site.Value.IsMarked, site.Value.IsSuspicious);
+                        sw.WriteLine("{0},{1},{2},{3}", site.Key, site.Value.IsBlackListed, site.Value.IsHighlighted, site.Value.Color.ToHexString());
                     }
                 }
             }
@@ -636,11 +615,11 @@ namespace HBP.Module3D
                     // Find which column of the csv corresponds to which argument
                     string firstLine = sr.ReadLine();
                     string[] firstLineSplits = firstLine.Split(',');
-                    int[] indices = new int[6];
-                    for (int i = 0; i < 6; ++i)
+                    int[] indices = new int[4];
+                    for (int i = 0; i < indices.Length; ++i)
                     {
                         string split = firstLineSplits[i];
-                        indices[i] = split == "ID" ? 0 : split == "Excluded" ? 1 : split == "Blacklisted" ? 2 : split == "Highlighted" ? 3 : split == "Marked" ? 4 : split == "Suspicious" ? 5 : i;
+                        indices[i] = split == "ID" ? 0 : split == "Blacklisted" ? 1 : split == "Highlighted" ? 2 : split == "Color" ? 3 : i;
                     }
                     // Fill states
                     string line;
@@ -648,16 +627,7 @@ namespace HBP.Module3D
                     {
                         string[] args = line.Split(',');
                         SiteState state = new SiteState();
-                        bool stateValue;
-                        if (bool.TryParse(args[indices[1]], out stateValue))
-                        {
-                            state.IsExcluded = stateValue;
-                        }
-                        else
-                        {
-                            state.IsExcluded = false;
-                        }
-                        if (bool.TryParse(args[indices[2]], out stateValue))
+                        if (bool.TryParse(args[indices[1]], out bool stateValue))
                         {
                             state.IsBlackListed = stateValue;
                         }
@@ -665,7 +635,7 @@ namespace HBP.Module3D
                         {
                             state.IsBlackListed = false;
                         }
-                        if (bool.TryParse(args[indices[3]], out stateValue))
+                        if (bool.TryParse(args[indices[2]], out stateValue))
                         {
                             state.IsHighlighted = stateValue;
                         }
@@ -673,21 +643,13 @@ namespace HBP.Module3D
                         {
                             state.IsHighlighted = false;
                         }
-                        if (bool.TryParse(args[indices[4]], out stateValue))
+                        if (ColorUtility.TryParseHtmlString(args[indices[3]], out Color color))
                         {
-                            state.IsMarked = stateValue;
+                            state.Color = color;
                         }
                         else
                         {
-                            state.IsMarked = false;
-                        }
-                        if (bool.TryParse(args[indices[5]], out stateValue))
-                        {
-                            state.IsSuspicious = stateValue;
-                        }
-                        else
-                        {
-                            state.IsSuspicious = false;
+                            state.Color = SiteState.DefaultColor;
                         }
                         SiteState existingState;
                         if (SiteStateBySiteID.TryGetValue(args[indices[0]], out existingState))

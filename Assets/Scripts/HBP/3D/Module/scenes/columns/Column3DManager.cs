@@ -135,7 +135,7 @@ namespace HBP.Module3D
         /// <summary>
         /// List of splitted meshes
         /// </summary>
-        public List<DLL.Surface> SplittedMeshes;
+        public List<DLL.Surface> SplittedMeshes = new List<DLL.Surface>();
         
         /// <summary>
         /// List of the MRIs of the scene
@@ -697,18 +697,6 @@ namespace HBP.Module3D
         /// <param name="data">Information about the scene</param>
         public void UpdateAllColumnsSitesRendering(SceneStatesInfo data)
         {
-            foreach (Column3D column in Columns) // unselect hidden sites
-            {
-                if (column.SelectedSite)
-                {
-                    if ((column.SelectedSite.State.IsBlackListed && data.HideBlacklistedSites) ||
-                        (column.SelectedSite.State.IsOutOfROI && !data.ShowAllSites && !data.DisplayCCEPMode) ||
-                        (column.SelectedSite.State.IsMasked && !data.DisplayCCEPMode))
-                    {
-                        column.UnselectSite();
-                    }
-                }
-            }
 
             foreach (Column3D column in Columns)
             {

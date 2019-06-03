@@ -1240,11 +1240,9 @@ namespace HBP.Module3D
                         site.Information.FreesurferLabel = electrodesList.FreesurferLabelOfSite(ii, jj, kk).Replace('_', ' ');
                         site.State.IsBlackListed = false;
                         site.State.IsHighlighted = false;
-                        site.State.IsExcluded = false;
                         site.State.IsOutOfROI = true;
-                        site.State.IsMarked = false;
                         site.State.IsMasked = false;
-                        site.State.IsSuspicious = false;
+                        site.State.Color = SiteState.DefaultColor;
                         site.IsActive = true;
 
                         m_ColumnManager.SitesList.Add(siteGameObject);
@@ -1688,17 +1686,10 @@ namespace HBP.Module3D
         /// <summary>
         /// Load a FMRI to this scene
         /// </summary>
-        public bool LoadFMRI()
+        public void LoadFMRI(MRI3D fmri)
         {
-            string[] filters = new string[] { "nii", "img" };
-            string path = UI.FileBrowser.GetExistingFileName(filters, "Select an fMRI file");
-            if (!string.IsNullOrEmpty(path))
-            {
-                m_ColumnManager.FMRI = new MRI3D(new Data.Anatomy.MRI("FMRI", path));
-                ResetIEEG();
-                return true;
-            }
-            return false;
+            m_ColumnManager.FMRI = fmri;
+            ResetIEEG();
         }
         /// <summary>
         /// Unload the FMRI of this scene
@@ -1719,7 +1710,7 @@ namespace HBP.Module3D
                 if (column == selectedColumn) continue;
                 foreach (Site site in column.Sites)
                 {
-                    site.State.ApplyState(selectedColumn.SiteStateBySiteID[site.Information.FullID]);
+                    site.State.ApplyState(selectedColumn.SiteStateBySiteID[site.Information.FullCorrectedID]);
                 }
             }
             ResetIEEG(false);

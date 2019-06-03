@@ -56,7 +56,7 @@ public class ShortcutManager : MonoBehaviour
                     }
                     site = selectedColumn.Sites[id];
                 }
-                while ((!site.IsActive || site.State.IsBlackListed) && ++count <= selectedColumn.Sites.Count);
+                while ((!site.State.IsFiltered || site.State.IsMasked) && ++count < selectedColumn.Sites.Count);
                 site.IsSelected = true;
             }
         }
@@ -97,28 +97,13 @@ public class ShortcutManager : MonoBehaviour
                     }
                     if (Input.GetKeyDown(KeyCode.Alpha1))
                     {
-                        bool allExcluded = sites.All(s => s.State.IsExcluded);
-                        foreach (var site in sites) site.State.IsExcluded = !allExcluded;
-                    }
-                    else if (Input.GetKeyDown(KeyCode.Alpha2))
-                    {
                         bool allHighlighted = sites.All(s => s.State.IsHighlighted);
                         foreach (var site in sites) site.State.IsHighlighted = !allHighlighted;
                     }
-                    else if (Input.GetKeyDown(KeyCode.Alpha3))
+                    else if (Input.GetKeyDown(KeyCode.Alpha2))
                     {
                         bool allBlacklisted = sites.All(s => s.State.IsBlackListed);
                         foreach (var site in sites) site.State.IsBlackListed = !allBlacklisted;
-                    }
-                    else if (Input.GetKeyDown(KeyCode.Alpha4))
-                    {
-                        bool allMarked = sites.All(s => s.State.IsMarked);
-                        foreach (var site in sites) site.State.IsMarked = !allMarked;
-                    }
-                    else if (Input.GetKeyDown(KeyCode.Alpha5))
-                    {
-                        bool allSuspicious = sites.All(s => s.State.IsSuspicious);
-                        foreach (var site in sites) site.State.IsSuspicious = !allSuspicious;
                     }
                 }
             }

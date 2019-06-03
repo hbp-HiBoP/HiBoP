@@ -206,6 +206,8 @@ namespace UnityEngine.UI.Extensions.ColorPicker
                     throw new System.NotImplementedException("");
             }
             texture.SetPixels32(colors);
+            texture.wrapMode = TextureWrapMode.Clamp;
+            texture.filterMode = FilterMode.Trilinear;
             texture.Apply();
 
             if (image.texture != null)

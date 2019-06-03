@@ -16,11 +16,9 @@ namespace HBP.UI.Module3D
         #region Properties
         public const string TRUE = "TRUE";
         public const string FALSE = "FALSE";
-        public const string EXCLUDED = "E";
         public const string HIGHLIGHTED = "H";
         public const string BLACKLISTED = "B";
-        public const string MARKED = "M";
-        public const string SUSPICIOUS = "S";
+        public const string LABEL = "LABEL";
         public const string IN_ROI = "ROI";
         public const string IN_MESH = "MESH";
         public const string ON_PLANE = "CUT";
@@ -28,6 +26,7 @@ namespace HBP.UI.Module3D
         public const string PATIENT = "PAT";
         public const string MARS_ATLAS = "MA";
         public const string BROADMAN = "BA";
+        public const string FREESURFER = "FS";
         public const string MEAN = "MEAN";
         public const string MEDIAN = "MEDIAN";
         public const string MAX = "MAX";
@@ -60,10 +59,6 @@ namespace HBP.UI.Module3D
             {
                 return false;
             }
-            else if (s == EXCLUDED)
-            {
-                return CheckExcluded(site);
-            }
             else if (s == HIGHLIGHTED)
             {
                 return CheckHighlighted(site);
@@ -72,13 +67,13 @@ namespace HBP.UI.Module3D
             {
                 return CheckBlacklisted(site);
             }
-            else if (s == MARKED)
+            else if (s.Contains(LABEL))
             {
-                return CheckMarked(site);
-            }
-            else if (s == SUSPICIOUS)
-            {
-                return CheckSuspicious(site);
+                string[] array = s.Split('=');
+                if (array.Length == 2)
+                {
+                    return CheckLabel(site, array[1].Replace("\"", ""));
+                }
             }
             else if (s == IN_ROI)
             {
@@ -122,6 +117,14 @@ namespace HBP.UI.Module3D
                 if (array.Length == 2)
                 {
                     return CheckBroadmanAreaName(site, array[1].Replace("\"", ""));
+                }
+            }
+            else if (s.Contains(FREESURFER))
+            {
+                string[] array = s.Split('=');
+                if (array.Length == 2)
+                {
+                    return CheckFreesurferName(site, array[1].Replace("\"", ""));
                 }
             }
             else if (s.Contains(MEAN))
