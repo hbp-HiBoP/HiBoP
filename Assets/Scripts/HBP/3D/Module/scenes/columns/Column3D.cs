@@ -139,7 +139,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Currently selected site
         /// </summary>
-        public Site SelectedSite { get; protected set; }
+        public Site SelectedSite { get; private set; }
         /// <summary>
         /// Currently selected site ID
         /// </summary>
@@ -489,7 +489,12 @@ namespace HBP.Module3D
                     bool activity = site.IsActive;
                     SiteType siteType;
                     float alpha = -1.0f;
-                    if (site.State.IsBlackListed)
+                    if (!site.State.IsFiltered)
+                    {
+                        if (activity) site.IsActive = false;
+                        continue;
+                    }
+                    else if (site.State.IsBlackListed)
                     {
                         site.transform.localScale = Vector3.one;
                         siteType = SiteType.BlackListed;
@@ -549,7 +554,7 @@ namespace HBP.Module3D
                     Site site = Sites[i];
                     bool activity = site.IsActive;
                     SiteType siteType;
-                    if (site.State.IsMasked || (site.State.IsOutOfROI && !data.ShowAllSites))
+                    if (site.State.IsMasked || (site.State.IsOutOfROI && !data.ShowAllSites) || !site.State.IsFiltered)
                     {
                         if (activity) site.IsActive = false;
                         continue;

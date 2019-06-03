@@ -16,7 +16,11 @@ namespace HBP.UI.Module3D
         protected Base3DScene m_Scene;
         private Queue<Site> m_MatchingSites = new Queue<Site>();
         private bool m_UpdateUI;
-        public GenericEvent<Site> OnApplyActionOnSite = new GenericEvent<Site>();
+        #endregion
+
+        #region Events
+        public GenericEvent<float> OnFilter = new GenericEvent<float>();
+        public GenericEvent<bool> OnEndFilter = new GenericEvent<bool>();
         #endregion
 
         #region Private Methods
@@ -151,14 +155,10 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Coroutines
-        public IEnumerator c_FindSitesAndRequestAction(List<Site> sites, UnityEvent onBegin, EndApplyEvent onEnd, UnityEvent<float> onProgress, int maxAtATime = int.MaxValue)
+        public IEnumerator c_FilterSitesWithConditions(List<Site> sites)
         {
-            yield return Ninja.JumpToUnity;
-            onBegin.Invoke();
-            yield return Ninja.JumpBack;
             int length = sites.Count;
             Exception exception = null;
-            int counter = 0;
             for (int i = 0; i < length; ++i)
             {
                 try
@@ -168,7 +168,6 @@ namespace HBP.UI.Module3D
                     if (match)
                     {
                         m_MatchingSites.Enqueue(site);
-                        counter++;
                     }
                 }
                 catch (Exception e)
@@ -180,17 +179,16 @@ namespace HBP.UI.Module3D
                 {
                     break;
                 }
-                if (m_UpdateUI || i == length - 1 || counter >= maxAtATime)
+                if (m_UpdateUI || i == length - 1)
                 {
                     yield return Ninja.JumpToUnity;
                     while (m_MatchingSites.Count > 0)
                     {
-                        Site siteToApply = m_MatchingSites.Dequeue();
-                        OnApplyActionOnSite.Invoke(siteToApply);
+                        Site filteredSite = m_MatchingSites.Dequeue();
+                        filteredSite.State.IsFiltered = true;
                     }
-                    onProgress.Invoke((float)(i + 1) / length);
+                    OnFilter.Invoke((float)(i + 1) / length);
                     m_UpdateUI = false;
-                    counter = 0;
                     yield return Ninja.JumpBack;
                 }
             }
@@ -198,8 +196,12 @@ namespace HBP.UI.Module3D
             if (exception != null)
             {
                 ApplicationState.DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Warning, exception.ToString(), exception.Message);
+                OnEndFilter.Invoke(false);
             }
-            onEnd.Invoke(true);
+            else
+            {
+                OnEndFilter.Invoke(true);
+            }
         }
         #endregion
     }

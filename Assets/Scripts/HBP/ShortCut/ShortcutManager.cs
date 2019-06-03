@@ -56,7 +56,7 @@ public class ShortcutManager : MonoBehaviour
                     }
                     site = selectedColumn.Sites[id];
                 }
-                while ((!site.IsActive || site.State.IsBlackListed) && ++count <= selectedColumn.Sites.Count);
+                while ((!site.State.IsFiltered || site.State.IsMasked) && ++count < selectedColumn.Sites.Count);
                 site.IsSelected = true;
             }
         }

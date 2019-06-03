@@ -157,7 +157,7 @@ namespace HBP.UI.Informations
         #region Handlers
         void OnSiteInformationRequestHandler(IEnumerable<Site> sites)
         {
-            m_ChannelStructs = sites.Select(s => new ChannelStruct(s.Information.ChannelName, s.Information.Patient)).ToArray();
+            m_ChannelStructs = sites.Where(s => !s.State.IsMasked).Select(s => new ChannelStruct(s.Information.ChannelName, s.Information.Patient)).ToArray(); // FIXME: it is better to show a "No data for site X" message instead of filtering by IsMasked
             if (m_ChannelStructs.Length != 0 && m_DataStructs.Length != 0)
             {
                 ChannelInformations.Display(m_ChannelStructs, m_DataStructs);

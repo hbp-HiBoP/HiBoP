@@ -11,12 +11,15 @@ namespace HBP.UI.Module3D
     public class SitesInformations : MonoBehaviour
     {
         #region Properties
-        private const float MINIMIZED_THRESHOLD = 320.0f;
+        private const float MINIMIZED_THRESHOLD = 260.0f;
         private Base3DScene m_Scene;
         private RectTransform m_RectTransform;
         private ResizableGrid m_ParentGrid;
         [SerializeField] private SiteList m_SiteList;
-        [SerializeField] private SiteConditions m_SiteConditions;
+        [SerializeField] private Toggle m_SiteFiltersToggle;
+        [SerializeField] private SiteFilters m_SiteFilters;
+        [SerializeField] private Toggle m_SiteActionsToggle;
+        [SerializeField] private SiteActions m_SiteActions;
         [SerializeField] private GameObject m_MinimizedGameObject;
         private bool m_RectTransformChanged;
 
@@ -120,7 +123,24 @@ namespace HBP.UI.Module3D
         {
             m_Scene = scene;
             m_SiteList.Initialize();
-            m_SiteConditions.Initialize(scene);
+            m_SiteFilters.Initialize(scene);
+            m_SiteFilters.OnRequestListUpdate.AddListener(UpdateList);
+            m_SiteFiltersToggle.onValueChanged.AddListener((isOn) =>
+            {
+                if (isOn)
+                {
+                    m_SiteActionsToggle.isOn = false;
+                }
+            });
+            m_SiteActions.Initialize(scene);
+            m_SiteActions.OnRequestListUpdate.AddListener(UpdateList);
+            m_SiteActionsToggle.onValueChanged.AddListener((isOn) =>
+            {
+                if (isOn)
+                {
+                    m_SiteFiltersToggle.isOn = false;
+                }
+            });
             m_Scene.OnUpdateSites.AddListener(UpdateList);
             m_Scene.ColumnManager.OnSelectColumn.AddListener((c) => UpdateList());
             m_Scene.OnSitesRenderingUpdated.AddListener(() =>
@@ -131,7 +151,7 @@ namespace HBP.UI.Module3D
         }
         public void UpdateList()
         {
-            List<Site> sites = m_Scene.ColumnManager.SelectedColumn.Sites.ToList();
+            List<Site> sites = m_Scene.ColumnManager.SelectedColumn.Sites.Where(s => s.State.IsFiltered && !s.State.IsMasked).ToList();
             if (!string.IsNullOrEmpty(m_Name))
             {
                 sites.RemoveAll(s => !s.Information.ChannelName.ToUpper().Contains(m_Name.ToUpper()));

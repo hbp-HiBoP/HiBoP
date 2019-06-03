@@ -69,7 +69,6 @@ namespace HBP.UI.Module3D
         private void UpdateFields()
         {
             m_Site.GetComponentInChildren<Text>().text = Object.Information.ChannelName;
-            m_Site.interactable = Object.IsActive;
             m_SelectedImage.gameObject.SetActive(Object.IsSelected);
             m_LabelsText.text = Object.State.Labels.Count.ToString();
             m_Patient.text = Object.Information.Patient.Name;

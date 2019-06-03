@@ -126,6 +126,19 @@ namespace HBP.Module3D
         public SiteState() { }
         public bool IsMasked { get; set; }
         public bool IsOutOfROI { get; set; }
+        private bool m_IsFiltered = true;
+        public bool IsFiltered
+        {
+            get
+            {
+                return m_IsFiltered;
+            }
+            set
+            {
+                m_IsFiltered = value;
+                OnChangeState.Invoke();
+            }
+        }
         private bool m_IsBlackListed;
         public bool IsBlackListed
         {
