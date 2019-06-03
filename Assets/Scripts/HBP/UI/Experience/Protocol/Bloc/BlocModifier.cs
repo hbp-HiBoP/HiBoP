@@ -2,6 +2,7 @@
 using d = HBP.Data.Experience.Protocol;
 using Tools.Unity;
 using UnityEngine;
+using NewTheme.Components;
 
 namespace HBP.UI.Experience.Protocol
 {
@@ -12,6 +13,11 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] SubBlocListGestion m_SubBlocListGestion;
         [SerializeField] ImageSelector m_ImageFileSelector;
         [SerializeField] Button m_AddSubBloc, m_RemoveSubBloc;
+
+        [SerializeField] ThemeElement m_SortStateThemeElement;
+        [SerializeField] Tooltip m_SortErrorText;
+        [SerializeField] State m_OKState;
+        [SerializeField] State m_ErrorState;
 
         public override bool Interactable
         {
@@ -47,7 +53,11 @@ namespace HBP.UI.Experience.Protocol
             m_ImageFileSelector.onValueChanged.AddListener(() => ItemTemp.IllustrationPath = m_ImageFileSelector.Path);
 
             m_SortInputField.text = objectToDisplay.Sort;
-            m_SortInputField.onEndEdit.AddListener((value) => ItemTemp.Sort = value);
+            m_SortInputField.onEndEdit.AddListener((value) =>
+            {
+                ItemTemp.Sort = value;
+                SetError();
+            });
 
             m_OrderInputField.text = objectToDisplay.Order.ToString();
             m_OrderInputField.onEndEdit.AddListener((value) => objectToDisplay.Order = int.Parse(value));
@@ -55,7 +65,15 @@ namespace HBP.UI.Experience.Protocol
             m_SubBlocListGestion.Initialize(m_SubWindows);
             m_SubBlocListGestion.Objects = objectToDisplay.SubBlocs;
 
+            SetError();
+
             base.SetFields();
+        }
+        protected void SetError()
+        {
+            d.Bloc.SortingMethodError error = ItemTemp.GetSortingMethodError();
+            m_SortErrorText.Text = ItemTemp.GetSortingMethodErrorMessage(error);
+            m_SortStateThemeElement.Set(error == d.Bloc.SortingMethodError.NoError ? m_OKState : m_ErrorState);
         }
         #endregion
     }

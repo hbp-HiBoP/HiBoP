@@ -25,6 +25,10 @@ namespace HBP.Data.Experience.Protocol
     [DataContract]
     public class Bloc : ICloneable, ICopiable, IIdentifiable
 	{
+        #region Enums
+        public enum SortingMethodError { NoError, NoSortingConditionFound, InvalidNumberOfElements, SubBlocNotFound, EventNotFound, InvalidCommand }
+        #endregion
+
         #region Properties
         /// <summary>
         /// Unique ID of the bloc.
@@ -233,6 +237,70 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Public Methods
+        public SortingMethodError GetSortingMethodError()
+        {
+            string[] orders = Sort.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < orders.Length; i++)
+            {
+                string order = orders[i];
+                string[] parts = order.Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length == 3)
+                {
+                    string subBlocName = parts[0];
+                    string eventName = parts[1];
+                    string command = parts[2];
+                    SubBloc subBloc = SubBlocs.FirstOrDefault(s => s.Name == subBlocName);
+                    if (subBloc != null)
+                    {
+                        Event @event = subBloc.Events.FirstOrDefault(e => e.Name == eventName);
+                        if (@event != null)
+                        {
+                            if (command == "LATENCY" || command == "CODE")
+                            {
+                                return SortingMethodError.NoError;
+                            }
+                            else
+                            {
+                                return SortingMethodError.InvalidCommand;
+                            }
+                        }
+                        else
+                        {
+                            return SortingMethodError.EventNotFound;
+                        }
+                    }
+                    else
+                    {
+                        return SortingMethodError.SubBlocNotFound;
+                    }
+                }
+                else
+                {
+                    return SortingMethodError.InvalidNumberOfElements;
+                }
+            }
+            return SortingMethodError.NoSortingConditionFound;
+        }
+        public string GetSortingMethodErrorMessage(SortingMethodError error)
+        {
+            switch (error)
+            {
+                case SortingMethodError.NoError:
+                    return "No error detected.";
+                case SortingMethodError.NoSortingConditionFound:
+                    return "No sorting condition found.";
+                case SortingMethodError.InvalidNumberOfElements:
+                    return "Invalid number of elements (must be 3 elements per condition).";
+                case SortingMethodError.SubBlocNotFound:
+                    return "Sub bloc not found.";
+                case SortingMethodError.EventNotFound:
+                    return "Event not found within sub bloc.";
+                case SortingMethodError.InvalidCommand:
+                    return "Command is invalid (must be \"CODE\" or \"LATENCY\").";
+                default:
+                    return "Unknown error.";
+            }
+        }
         public static int GetNumberOfColumns(IEnumerable<Bloc> blocs)
         {
             int before = 0;
