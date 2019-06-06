@@ -167,7 +167,7 @@ namespace HBP.UI.Module3D
                     m_BroadmanText.transform.parent.gameObject.SetActive(false);
                 }
                 string freesurferText = siteInfo.Site.Information.FreesurferLabel;
-                if (!freesurferText.Contains("not in a freesurfer parcel"))
+                if (!string.IsNullOrEmpty(freesurferText) && !freesurferText.Contains("not in a freesurfer parcel"))
                 {
                     m_FreesurferText.transform.parent.gameObject.SetActive(true);
                     m_FreesurferText.text = freesurferText;

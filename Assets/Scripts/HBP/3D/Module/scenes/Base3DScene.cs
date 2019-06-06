@@ -1819,66 +1819,74 @@ namespace HBP.Module3D
                 return;
             }
 
-            switch (column.Type)
+            // Compute each required variable
+            int siteID = site.Information.GlobalID;
+            string CCEPLatency = "none", CCEPAmplitude = "none";
+            float iEEGActivity = -1;
+            string iEEGUnit = "";
+            // CCEP
+            if (SceneInformation.DisplayCCEPMode)
             {
-                case Data.Enums.ColumnType.Anatomic:
-                    ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, Data.Enums.SiteInformationDisplayMode.Anatomy));
-                    break;
-                case Data.Enums.ColumnType.iEEG:
-                    Column3DIEEG columnIEEG = column as Column3DIEEG;
-                    int siteID = site.Information.GlobalID;
+                if (column.CurrentLatencyFile != -1)
+                {
+                    Latencies latencyFile = m_ColumnManager.SelectedImplantation.Latencies[column.CurrentLatencyFile];
 
-                    float iEEGActivity = -1;
-                    string iEEGUnit = columnIEEG.IEEGUnitsBySiteID[siteID];
-                    if (columnIEEG.IEEGValuesBySiteID.Length > 0)
+                    if (column.SelectedSiteID == -1) // no source selected
                     {
-                        iEEGActivity = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.Timeline.CurrentIndex];
+                        CCEPLatency = "...";
+                        CCEPAmplitude = "no source selected";
                     }
-                    bool amplitudesComputed = SceneInformation.IsGeneratorUpToDate;
-                    switch (Type)
+                    else if (column.SelectedSiteID == siteID) // site is the source
                     {
-                        case Data.Enums.SceneType.SinglePatient:
-                            string CCEPLatency = "none", CCEPAmplitude = "none";
-                            if (columnIEEG.CurrentLatencyFile != -1)
-                            {
-                                Latencies latencyFile = m_ColumnManager.SelectedImplantation.Latencies[columnIEEG.CurrentLatencyFile];
-
-                                if (columnIEEG.SelectedSiteID == -1) // no source selected
-                                {
-                                    CCEPLatency = "...";
-                                    CCEPAmplitude = "no source selected";
-                                }
-                                else if (columnIEEG.SelectedSiteID == siteID) // site is the source
-                                {
-                                    CCEPLatency = "0";
-                                    CCEPAmplitude = "source";
-                                }
-                                else
-                                {
-                                    if (latencyFile.IsSiteResponsiveForSource(siteID, columnIEEG.SelectedSiteID))
-                                    {
-                                        CCEPLatency = "" + latencyFile.LatenciesValues[columnIEEG.SelectedSiteID][siteID];
-                                        CCEPAmplitude = "" + latencyFile.LatenciesValues[columnIEEG.SelectedSiteID][siteID];
-                                    }
-                                    else
-                                    {
-                                        CCEPLatency = "No data";
-                                        CCEPAmplitude = "No data";
-                                    }
-                                }
-                            }
-                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SceneInformation.DisplayCCEPMode ? Data.Enums.SiteInformationDisplayMode.CCEP : amplitudesComputed ? Data.Enums.SiteInformationDisplayMode.IEEG : Data.Enums.SiteInformationDisplayMode.Anatomy, iEEGActivity.ToString("0.00"), iEEGUnit, CCEPAmplitude, CCEPLatency));
-                            break;
-                        case Data.Enums.SceneType.MultiPatients:
-                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, amplitudesComputed ? Data.Enums.SiteInformationDisplayMode.IEEG : Data.Enums.SiteInformationDisplayMode.Anatomy, iEEGActivity.ToString("0.00"), iEEGUnit));
-                            break;
-                        default:
-                            break;
+                        CCEPLatency = "0";
+                        CCEPAmplitude = "source";
                     }
-                    break;
-                default:
-                    break;
+                    else
+                    {
+                        if (latencyFile.IsSiteResponsiveForSource(siteID, column.SelectedSiteID))
+                        {
+                            CCEPLatency = "" + latencyFile.LatenciesValues[column.SelectedSiteID][siteID];
+                            CCEPAmplitude = "" + latencyFile.Heights[column.SelectedSiteID][siteID];
+                        }
+                        else
+                        {
+                            CCEPLatency = "No data";
+                            CCEPAmplitude = "No data";
+                        }
+                    }
+                }
             }
+            // iEEG
+            if (column is Column3DIEEG columnIEEG)
+            {
+                iEEGUnit = columnIEEG.IEEGUnitsBySiteID[siteID];
+                iEEGActivity = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.Timeline.CurrentIndex];
+            }
+            // Send Event
+            Data.Enums.SiteInformationDisplayMode displayMode;
+            if (SceneInformation.DisplayCCEPMode)
+            {
+                if (SceneInformation.IsGeneratorUpToDate)
+                {
+                    displayMode = Data.Enums.SiteInformationDisplayMode.IEEGCCEP;
+                }
+                else
+                {
+                    displayMode = Data.Enums.SiteInformationDisplayMode.CCEP;
+                }
+            }
+            else
+            {
+                if (SceneInformation.IsGeneratorUpToDate)
+                {
+                    displayMode = Data.Enums.SiteInformationDisplayMode.IEEG;
+                }
+                else
+                {
+                    displayMode = Data.Enums.SiteInformationDisplayMode.Anatomy;
+                }
+            }
+            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, displayMode, iEEGActivity.ToString("0.00"), iEEGUnit, CCEPAmplitude, CCEPLatency));
         }
         /// <summary>
         /// Manage the clicks on the scene

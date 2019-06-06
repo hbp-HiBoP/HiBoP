@@ -32,7 +32,7 @@ namespace HBP.Data.Enums
         SoftGrayscale = 17
     }
     public enum CutOrientation { Axial = 0, Coronal = 1, Sagital = 2, Custom = 3 } // Same as above
-    public enum SiteInformationDisplayMode { Anatomy, IEEG, CCEP, Light }
+    public enum SiteInformationDisplayMode { Anatomy, IEEG, CCEP, IEEGCCEP, Light }
     public enum MeshPart { Left, Right, Both, None };
     public enum TriEraserMode { OneTri, Cylinder, Zone, Invert, Expand };
     public enum SiteNavigationDirection { Left, Right }
