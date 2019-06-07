@@ -89,6 +89,11 @@ namespace HBP.UI.Module3D.Tools
                 if (int.TryParse(value, out val))
                 {
                     step = val;
+                    if (step < 1)
+                    {
+                        step = 1;
+                        val = 1;
+                    }
                     m_InputField.text = val.ToString();
                 }
                 else

@@ -424,14 +424,14 @@ namespace HBP.Module3D
                             }
                             else if (latenciesFile.IsSiteResponsiveForSource(i, SelectedSiteID))
                             {
-                                siteType = latenciesFile.PositiveHeight[SelectedSiteID][i] ? SiteType.NonePos : SiteType.NoneNeg;
-                                alpha = site.State.IsHighlighted ? 1.0f : latenciesFile.Transparencies[SelectedSiteID][i] - 0.25f;
+                                siteType = latenciesFile.PositiveHeight[SelectedSiteID][i] ? SiteType.Positive : SiteType.Negative;
+                                alpha = site.State.IsHighlighted ? 1.0f : latenciesFile.Transparencies[SelectedSiteID][i];
                                 site.transform.localScale = Vector3.one * latenciesFile.Sizes[SelectedSiteID][i];
                             }
                             else
                             {
-                                site.transform.localScale = Vector3.one;
-                                siteType = SiteType.NoLatencyData;
+                                if (activity) site.IsActive = false;
+                                continue;
                             }
                         }
                     }

@@ -36,7 +36,7 @@ namespace HBP.Data.Enums
     public enum MeshPart { Left, Right, Both, None };
     public enum TriEraserMode { OneTri, Cylinder, Zone, Invert, Expand };
     public enum SiteNavigationDirection { Left, Right }
-    public enum SiteType { Normal, Positive, Negative, Source, NotASource, NoLatencyData, BlackListed, NonePos, NoneNeg };
+    public enum SiteType { Normal, Positive, Negative, Source, NotASource, BlackListed, NonePos, NoneNeg };
     public enum MainSecondaryEnum { Main, Secondary }
     public enum CreationType { FromScratch, FromExistingItem, FromFile }
 }

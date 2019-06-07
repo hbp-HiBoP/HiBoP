@@ -125,8 +125,6 @@ namespace HBP.Module3D
             public static Material SourceHighlighted = null;
             public static Material NotASource = null;
             public static Material NotASourceHighlighted = null;
-            public static Material NoLatencyData = null;
-            public static Material NoLatencyDataHighlighted = null;
         }
         #endregion
 
@@ -149,8 +147,6 @@ namespace HBP.Module3D
             Site.SourceHighlighted = Instantiate(Resources.Load("Materials/Sites/SourceHighlighted", typeof(Material))) as Material;
             Site.NotASource = Instantiate(Resources.Load("Materials/Sites/NotASource", typeof(Material))) as Material;
             Site.NotASourceHighlighted = Instantiate(Resources.Load("Materials/Sites/NotASourceHighlighted", typeof(Material))) as Material;
-            Site.NoLatencyData = Instantiate(Resources.Load("Materials/Sites/NoLatencyData", typeof(Material))) as Material;
-            Site.NoLatencyDataHighlighted = Instantiate(Resources.Load("Materials/Sites/NoLatencyDataHighlighted", typeof(Material))) as Material;
 
             // Ring
             Ring.Selected = Instantiate(Resources.Load("Materials/Rings/Selected", typeof(Material))) as Material;
@@ -166,17 +162,13 @@ namespace HBP.Module3D
             switch (siteType)
             {
                 case SiteType.Positive:
-                case SiteType.NonePos:
                     return highlighted ? Site.PositiveHighlighted : Site.Positive;
                 case SiteType.Negative:
-                case SiteType.NoneNeg:
                     return highlighted ? Site.NegativeHighlighted : Site.Negative;
                 case SiteType.Source:
                     return highlighted ? Site.SourceHighlighted : Site.Source;
                 case SiteType.NotASource:
                     return highlighted ? Site.NotASourceHighlighted : Site.NotASource;
-                case SiteType.NoLatencyData:
-                    return highlighted ? Site.NoLatencyDataHighlighted : Site.NoLatencyData;
                 case SiteType.BlackListed:
                     return highlighted ? Site.BlackListedHighlighted : Site.BlackListed;
                 case SiteType.Normal:
