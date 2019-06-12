@@ -1279,6 +1279,12 @@ namespace HBP.Module3D
             {
                 ApplicationState.Module3D.OnMinimizeScene.Invoke(this);
             }
+            else
+            {
+                ApplicationState.Module3D.OnSelectScene.Invoke(this);
+                ApplicationState.Module3D.OnSelectColumn.Invoke(m_ColumnManager.SelectedColumn);
+                ApplicationState.Module3D.OnSelectView.Invoke(m_ColumnManager.SelectedColumn.SelectedView);
+            }
             IsSelected = state;
         }
         #endregion
