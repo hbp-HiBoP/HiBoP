@@ -3,6 +3,7 @@ using HBP.Data.Experience.Dataset;
 using Tools.Unity.Components;
 using UnityEngine;
 using System.Linq;
+using UnityEngine.Events;
 
 namespace HBP.UI.Experience.Dataset
 {
@@ -24,6 +25,11 @@ namespace HBP.UI.Experience.Dataset
                 List.SortByName(DataInfoList.Sorting.Descending);
             }
         }
+
+        public GenericEvent<DataInfo> OnDataInfoNeedCheckErrors { get; } = new GenericEvent<DataInfo>();
+        public GenericEvent<DataInfo> OnAddDataInfo { get; } = new GenericEvent<DataInfo>();
+        public GenericEvent<DataInfo> OnRemoveDataInfo { get; } = new GenericEvent<DataInfo>();
+        public GenericEvent<DataInfo> OnUpdateDataInfo { get; } = new GenericEvent<DataInfo>();
         #endregion
 
         #region Public Methods
@@ -33,8 +39,21 @@ namespace HBP.UI.Experience.Dataset
             base.List = List;
             base.Initialize();
         }
+        public void UpdateAllObjects()
+        {
+            List<DataInfo> objects = m_Objects.ToList();
+            foreach (var _object in objects)
+            {
+                List.UpdateObject(_object);
+            }
+        }
+        public override void Remove(DataInfo item)
+        {
+            base.Remove(item);
+            OnRemoveDataInfo.Invoke(item);
+        }
         #endregion
-        
+
         #region Propected Methods
         protected override void OpenModifier(DataInfo item, bool interactable)
         {
@@ -75,6 +94,22 @@ namespace HBP.UI.Experience.Dataset
                     }
                     break;
             }
+        }
+        protected override void OnSaveModifier(ItemModifier<DataInfo> modifier)
+        {
+            OnDataInfoNeedCheckErrors.Invoke(modifier.Item);
+            if (!Objects.Contains(modifier.Item))
+            {
+                Add(modifier.Item);
+                OnAddDataInfo.Invoke(modifier.Item);
+            }
+            else
+            {
+                List.UpdateObject(modifier.Item);
+                OnUpdateDataInfo.Invoke(modifier.Item);
+            }
+            OnCloseSavableWindow.Invoke(modifier);
+            SubWindows.Remove(modifier);
         }
         #endregion
     }

@@ -45,10 +45,8 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         public enum ErrorType
         {
-            LabelEmpty, PatientEmpty, RequiredFieldEmpty, FileDoesNotExist, WrongExtension, BlocsCantBeEpoched, NotEnoughInformation
+            LabelEmpty, PatientEmpty, RequiredFieldEmpty, FileDoesNotExist, WrongExtension, BlocsCantBeEpoched, NotEnoughInformation, ChannelNotFound
         }
-
-
 
         public Dataset Dataset
         {
@@ -226,6 +224,8 @@ namespace HBP.Data.Experience.Dataset
                     return "One of the blocs of the protocol can't be epoched.";
                 case ErrorType.NotEnoughInformation:
                     return "One of the files does not contain enough information.";
+                case ErrorType.ChannelNotFound:
+                    return "The specified channel could not be found in the data container.";
                 default:
                     return "Unknown error.";
             }

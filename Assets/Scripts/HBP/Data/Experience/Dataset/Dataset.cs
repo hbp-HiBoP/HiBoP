@@ -134,6 +134,7 @@ namespace HBP.Data.Experience.Dataset
             {
                 m_Data.Remove(data);
                 data.OnRequestErrorCheck.RemoveListener(m_ActionByDataInfo[data]);
+                m_ActionByDataInfo.Remove(data);
                 return true;
             }
             else return false;

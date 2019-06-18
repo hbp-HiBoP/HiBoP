@@ -6,43 +6,31 @@ using System.Runtime.Serialization;
 namespace HBP.Data.Experience.Dataset
 {
     [DataContract]
-    public class iEEGDataInfo : PatientDataInfo
+    public class CCEPDataInfo : PatientDataInfo
     {
         #region Properties
-        /// <summary>
-        /// Normalization Type.
-        /// </summary>
-        public enum NormalizationType
-        {
-            None, SubTrial, Trial, SubBloc, Bloc, Protocol, Auto
-        }
+        [DataMember] public string Channel { get; set; }
 
-        [DataMember(Name = "Normalization")]
-        /// <summary>
-        /// Normalization of the Data.
-        /// </summary>
-        public NormalizationType Normalization { get; set; }
-
-        protected ErrorType[] m_iEEGErrors = new ErrorType[0];
-
+        protected ErrorType[] m_CCEPErrors = new ErrorType[0];
         public override ErrorType[] Errors
         {
             get
             {
                 List<ErrorType> errors = new List<ErrorType>(base.Errors);
-                errors.AddRange(m_iEEGErrors);
+                errors.AddRange(m_CCEPErrors);
                 return errors.Distinct().ToArray();
             }
         }
         #endregion
 
-        #region Constructors
-        public  iEEGDataInfo(string name, DataContainer dataContainer, Patient patient, NormalizationType normalization, string id) : base(name, dataContainer, patient,id)
+        #region Contructors
+        public CCEPDataInfo(string name, DataContainer dataContainer, Patient patient, string channel, string id) : base(name, dataContainer, patient, id)
         {
-            Normalization = normalization;
+            Channel = channel;
         }
-        public iEEGDataInfo() : this("Data", new ElanDataContainer(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), NormalizationType.Auto, Guid.NewGuid().ToString())
+        public CCEPDataInfo() : this("Data", new ElanDataContainer(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), "", Guid.NewGuid().ToString())
         {
+
         }
         #endregion
 
@@ -53,13 +41,13 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new iEEGDataInfo(Name, DataContainer, Patient, Normalization, ID);
+            return new CCEPDataInfo(Name, DataContainer, Patient, Channel, ID);
         }
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            iEEGDataInfo dataInfo = copy as iEEGDataInfo;
-            Normalization = dataInfo.Normalization;
+            CCEPDataInfo dataInfo = copy as CCEPDataInfo;
+            Channel = dataInfo.Channel;
         }
         #endregion
 
@@ -67,11 +55,10 @@ namespace HBP.Data.Experience.Dataset
         public override ErrorType[] GetErrors(Protocol.Protocol protocol)
         {
             List<ErrorType> errors = new List<ErrorType>(base.GetErrors(protocol));
-            errors.AddRange(GetiEEGErrors(protocol));
+            errors.AddRange(GetCCEPErrors(protocol));
             return errors.Distinct().ToArray();
         }
-
-        public virtual ErrorType[] GetiEEGErrors(Protocol.Protocol protocol)
+        public virtual ErrorType[] GetCCEPErrors(Protocol.Protocol protocol)
         {
             List<ErrorType> errors = new List<ErrorType>();
             if (m_DataContainer.IsOk)
@@ -82,11 +69,15 @@ namespace HBP.Data.Experience.Dataset
                 {
                     errors.Add(ErrorType.BlocsCantBeEpoched);
                 }
+                List<Tools.CSharp.EEG.Electrode> electrodes = file.Electrodes;
+                if (electrodes.All(e => e.Label != Channel))
+                {
+                    errors.Add(ErrorType.ChannelNotFound);
+                }
             }
-            m_iEEGErrors = errors.ToArray();
-            return m_iEEGErrors;
+            m_CCEPErrors = errors.ToArray();
+            return m_CCEPErrors;
         }
         #endregion
-
     }
 }
