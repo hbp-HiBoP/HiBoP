@@ -8,7 +8,7 @@ using Tools.Unity;
 namespace HBP.Data.Experience.Dataset
 {
     [DataContract]
-    public class EdfDataInfo : DataInfo
+    public class EdfDataContainer : DataContainer
     {
         #region Properties
         const string EDF_EXTENSION = ".edf";
@@ -20,15 +20,15 @@ namespace HBP.Data.Experience.Dataset
         public string EDF
         {
             get { return m_EDF?.ConvertToFullPath(); }
-            set { m_EDF = value?.ConvertToShortPath(); OnRequestErrorCheck.Invoke(); }
+            set { m_EDF = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
         }
         public string SavedEDF { get { return m_EDF; } }
 
-        public override string DataFilesString
+        public override string[] DataFilesPaths
         {
             get
             {
-                return string.Format("{0}", EDF);
+                return new string[] { EDF };
             }
         }
         public override string DataTypeString
@@ -48,36 +48,30 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Public Methods
-        public override ErrorType[] GetDataErrors(Protocol.Protocol protocol)
+        public override DataInfo.ErrorType[] GetErrors()
         {
-            List<ErrorType> errors = new List<ErrorType>();
+            List<DataInfo.ErrorType> errors = new List<DataInfo.ErrorType>(base.GetErrors());
             if (string.IsNullOrEmpty(EDF))
             {
-                errors.Add(ErrorType.RequiredFieldEmpty);
+                errors.Add(DataInfo.ErrorType.RequiredFieldEmpty);
             }
             else
             {
                 FileInfo headerFile = new FileInfo(EDF);
                 if (!headerFile.Exists)
                 {
-                    errors.Add(ErrorType.FileDoesNotExist);
+                    errors.Add(DataInfo.ErrorType.FileDoesNotExist);
                 }
                 else
                 {
                     if (headerFile.Extension != EDF_EXTENSION)
                     {
-                        errors.Add(ErrorType.WrongExtension);
-                    }
-                    else
-                    {
-                        Tools.CSharp.EEG.File file = new Tools.CSharp.EEG.File(Tools.CSharp.EEG.File.FileType.EDF, false, EDF);
-                        List<Tools.CSharp.EEG.Trigger> triggers = file.Triggers;
-                        if (!protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code)))) errors.Add(ErrorType.BlocsCantBeEpoched);
+                        errors.Add(DataInfo.ErrorType.WrongExtension);
                     }
                 }
             }
-            m_DataErrors = errors.ToArray();
-            return m_DataErrors;
+            m_Errors = errors.ToArray();
+            return m_Errors;
         }
         public override void CopyDataToDirectory(DirectoryInfo dataInfoDirectory, string projectDirectory, string oldProjectDirectory)
         {
@@ -94,18 +88,15 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="measure">Name of the measure in the EEG file.</param>
         /// <param name="edf">EEG file path.</param>
         /// <param name="pos">POS file path.</param>
-        public EdfDataInfo(string name, Patient patient, NormalizationType normalization, string edf, string id)
+        public EdfDataContainer(string edf, string id)
         {
-            Name = name;
-            Patient = patient;
-            Normalization = normalization;
             EDF = edf;
             ID = id;
         }
         /// <summary>
         /// Create a new DataInfo instance with default value.
         /// </summary>
-        public EdfDataInfo() : this("Data", ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), NormalizationType.Auto, string.Empty, Guid.NewGuid().ToString())
+        public EdfDataContainer() : this(string.Empty, Guid.NewGuid().ToString())
         {
         }
         #endregion
@@ -117,14 +108,11 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new EdfDataInfo(Name, Patient, Normalization, EDF, ID);
+            return new EdfDataContainer(EDF, ID);
         }
         public override void Copy(object copy)
         {
-            EdfDataInfo dataInfo = copy as EdfDataInfo;
-            Name = dataInfo.Name;
-            Patient = dataInfo.Patient;
-            Normalization = dataInfo.Normalization;
+            EdfDataContainer dataInfo = copy as EdfDataContainer;
             EDF = dataInfo.EDF;
             ID = dataInfo.ID;
         }

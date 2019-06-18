@@ -1,16 +1,14 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using Tools.Unity;
-using UnityEngine;
 
 namespace HBP.Data.Experience.Dataset
 {
     [DataContract]
-    public class BrainVisionDataInfo : DataInfo
+    public class BrainVisionDataContainer : DataContainer
     {
         #region Properties
         const string HEADER_EXTENSION = ".vhdr";
@@ -22,15 +20,15 @@ namespace HBP.Data.Experience.Dataset
         public string Header
         {
             get { return m_Header?.ConvertToFullPath(); }
-            set { m_Header = value?.ConvertToShortPath(); OnRequestErrorCheck.Invoke(); }
+            set { m_Header = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
         }
         public string SavedHeader { get { return m_Header; } }
 
-        public override string DataFilesString
+        public override string[] DataFilesPaths
         {
             get
             {
-                return string.Format("{0}", Header);
+                return new string[] { Header };
             }
         }
         public override string DataTypeString
@@ -50,36 +48,30 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Public Methods
-        public override ErrorType[] GetDataErrors(Protocol.Protocol protocol)
+        public override DataInfo.ErrorType[] GetErrors()
         {
-            List<ErrorType> errors = new List<ErrorType>();
+            List<DataInfo.ErrorType> errors = new List<DataInfo.ErrorType>(base.GetErrors());
             if (string.IsNullOrEmpty(Header))
             {
-                errors.Add(ErrorType.RequiredFieldEmpty);
+                errors.Add(DataInfo.ErrorType.RequiredFieldEmpty);
             }
             else
             {
                 FileInfo headerFile = new FileInfo(Header);
                 if (!headerFile.Exists)
                 {
-                    errors.Add(ErrorType.FileDoesNotExist);
+                    errors.Add(DataInfo.ErrorType.FileDoesNotExist);
                 }
                 else
                 {
                     if (headerFile.Extension != HEADER_EXTENSION)
                     {
-                        errors.Add(ErrorType.WrongExtension);
-                    }
-                    else
-                    {
-                        Tools.CSharp.EEG.File file = new Tools.CSharp.EEG.File(Tools.CSharp.EEG.File.FileType.BrainVision, false, Header);
-                        List<Tools.CSharp.EEG.Trigger> triggers = file.Triggers;
-                        if (!protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code)))) errors.Add(ErrorType.BlocsCantBeEpoched);
+                        errors.Add(DataInfo.ErrorType.WrongExtension);
                     }
                 }
             }
-            m_DataErrors = errors.ToArray();
-            return m_DataErrors;
+            m_Errors = errors.ToArray();
+            return m_Errors;
         }
         public override void CopyDataToDirectory(DirectoryInfo dataInfoDirectory, string projectDirectory, string oldProjectDirectory)
         {
@@ -88,26 +80,12 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Constructors
-        /// <summary>
-        /// Create a new DataInfo instance.
-        /// </summary>
-        /// <param name="name">Name of the dataInfo.</param>
-        /// <param name="patient">Patient who passed the experiment.</param>
-        /// <param name="measure">Name of the measure in the EEG file.</param>
-        /// <param name="header">EEG file path.</param>
-        /// <param name="pos">POS file path.</param>
-        public BrainVisionDataInfo(string name, Patient patient, NormalizationType normalization, string header, string id)
+        public BrainVisionDataContainer(string header, string id)
         {
-            Name = name;
-            Patient = patient;
-            Normalization = normalization;
             Header = header;
             ID = id;
         }
-        /// <summary>
-        /// Create a new DataInfo instance with default value.
-        /// </summary>
-        public BrainVisionDataInfo() : this("Data", ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), NormalizationType.Auto, string.Empty, Guid.NewGuid().ToString())
+        public BrainVisionDataContainer() : this(string.Empty, Guid.NewGuid().ToString())
         {
         }
         #endregion
@@ -119,14 +97,11 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new BrainVisionDataInfo(Name, Patient, Normalization, Header, ID);
+            return new BrainVisionDataContainer(Header, ID);
         }
         public override void Copy(object copy)
         {
-            BrainVisionDataInfo dataInfo = copy as BrainVisionDataInfo;
-            Name = dataInfo.Name;
-            Patient = dataInfo.Patient;
-            Normalization = dataInfo.Normalization;
+            BrainVisionDataContainer dataInfo = copy as BrainVisionDataContainer;
             Header = dataInfo.Header;
             ID = dataInfo.ID;
         }

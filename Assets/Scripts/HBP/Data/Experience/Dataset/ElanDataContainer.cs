@@ -10,7 +10,7 @@ using UnityEngine;
 namespace HBP.Data.Experience.Dataset
 {
     [DataContract]
-    public class ElanDataInfo : DataInfo
+    public class ElanDataContainer : DataContainer
     {
         #region Properties
         const string EEG_EXTENSION = ".eeg";
@@ -42,7 +42,7 @@ namespace HBP.Data.Experience.Dataset
         public string POS
         {
             get { return m_POS?.ConvertToFullPath(); }
-            set { m_POS = value?.ConvertToShortPath(); OnRequestErrorCheck.Invoke(); }
+            set { m_POS = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
         }
         public string SavedPOS { get { return m_POS; } }
 
@@ -53,15 +53,15 @@ namespace HBP.Data.Experience.Dataset
         public string Notes
         {
             get { return m_Notes?.ConvertToFullPath(); }
-            set { m_Notes = value?.ConvertToShortPath(); OnRequestErrorCheck.Invoke(); }
+            set { m_Notes = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
         }
         public string SavedNotes { get { return m_Notes; } }
 
-        public override string DataFilesString
+        public override string[] DataFilesPaths
         {
             get
             {
-                return string.Format("{0};{1};{2}", EEG, POS, Notes);
+                return new string[] { EEG, POS, Notes };
             }
         }
         public override string DataTypeString
@@ -81,60 +81,54 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Public Methods
-        public override ErrorType[] GetDataErrors(Protocol.Protocol protocol)
+        public override DataInfo.ErrorType[] GetErrors()
         {
-            List<ErrorType> errors = new List<ErrorType>();
+            List<DataInfo.ErrorType> errors = new List<DataInfo.ErrorType>(base.GetErrors());
             if (string.IsNullOrEmpty(EEG))
             {
-                errors.Add(ErrorType.RequiredFieldEmpty);
+                errors.Add(DataInfo.ErrorType.RequiredFieldEmpty);
             }
             else
             {
                 FileInfo EEGFile = new FileInfo(EEG);
                 if (!EEGFile.Exists)
                 {
-                    errors.Add(ErrorType.FileDoesNotExist);
+                    errors.Add(DataInfo.ErrorType.FileDoesNotExist);
                 }
                 else
                 {
                     if (EEGFile.Extension != EEG_EXTENSION)
                     {
-                        errors.Add(ErrorType.WrongExtension);
+                        errors.Add(DataInfo.ErrorType.WrongExtension);
                     }
                     else
                     {
                         if (!File.Exists(EEGHeader))
                         {
-                            errors.Add(ErrorType.RequiredFieldEmpty);
+                            errors.Add(DataInfo.ErrorType.RequiredFieldEmpty);
                         }
                         else
                         {
                             if (!(new FileInfo(EEGHeader).Length > 0))
                             {
-                                errors.Add(ErrorType.NotEnoughInformation);
+                                errors.Add(DataInfo.ErrorType.NotEnoughInformation);
                             }
                         }
                     }
                 }
             }
-            if (string.IsNullOrEmpty(POS)) errors.Add(ErrorType.RequiredFieldEmpty);
+            if (string.IsNullOrEmpty(POS)) errors.Add(DataInfo.ErrorType.RequiredFieldEmpty);
             else
             {
                 FileInfo POSFile = new FileInfo(POS);
-                if (!POSFile.Exists) errors.Add(ErrorType.FileDoesNotExist);
+                if (!POSFile.Exists) errors.Add(DataInfo.ErrorType.FileDoesNotExist);
                 else
                 {
-                    if (POSFile.Extension != POS_EXTENSION) errors.Add(ErrorType.WrongExtension);
-                    else
-                    {
-                        Tools.CSharp.EEG.File file = new Tools.CSharp.EEG.File(Tools.CSharp.EEG.File.FileType.ELAN, false, EEG, POS);
-                        List<Tools.CSharp.EEG.Trigger> triggers = file.Triggers;
-                        if (!protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code)))) errors.Add(ErrorType.BlocsCantBeEpoched);
-                    }
+                    if (POSFile.Extension != POS_EXTENSION) errors.Add(DataInfo.ErrorType.WrongExtension);
                 }
             }
-            m_DataErrors = errors.ToArray();
-            return m_DataErrors;
+            m_Errors = errors.ToArray();
+            return m_Errors;
         }
         public override void CopyDataToDirectory(DirectoryInfo dataInfoDirectory, string projectDirectory, string oldProjectDirectory)
         {
@@ -154,11 +148,8 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="measure">Name of the measure in the EEG file.</param>
         /// <param name="eeg">EEG file path.</param>
         /// <param name="pos">POS file path.</param>
-        public ElanDataInfo(string name, Patient patient, NormalizationType normalization, string eeg, string pos, string notes, string id)
+        public ElanDataContainer(string eeg, string pos, string notes, string id)
         {
-            Name = name;
-            Patient = patient;
-            Normalization = normalization;
             EEG = eeg;
             POS = pos;
             Notes = notes;
@@ -167,7 +158,7 @@ namespace HBP.Data.Experience.Dataset
         /// <summary>
         /// Create a new DataInfo instance with default value.
         /// </summary>
-        public ElanDataInfo() : this("Data", ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), NormalizationType.Auto, string.Empty, string.Empty, string.Empty, Guid.NewGuid().ToString())
+        public ElanDataContainer() : this(string.Empty, string.Empty, string.Empty, Guid.NewGuid().ToString())
         {
         }
         #endregion
@@ -179,14 +170,11 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new ElanDataInfo(Name, Patient, Normalization, EEG, POS, Notes, ID);
+            return new ElanDataContainer(EEG, POS, Notes, ID);
         }
         public override void Copy(object copy)
         {
-            ElanDataInfo dataInfo = copy as ElanDataInfo;
-            Name = dataInfo.Name;
-            Patient = dataInfo.Patient;
-            Normalization = dataInfo.Normalization;
+            ElanDataContainer dataInfo = copy as ElanDataContainer;
             EEG = dataInfo.EEG;
             POS = dataInfo.POS;
             Notes = dataInfo.Notes;

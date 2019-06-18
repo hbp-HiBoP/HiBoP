@@ -250,9 +250,9 @@ namespace HBP.Data.Visualization
         /// </summary>
         /// <param name="column">Column</param>
         /// <returns>DataInfo of the column.</returns>
-        public IEnumerable<DataInfo> GetDataInfo(IEEGColumn column)
+        public IEnumerable<iEEGDataInfo> GetDataInfo(IEEGColumn column)
         {
-            return column.Dataset.Data.Where((data) => (column.DataName == data.Name && Patients.Contains(data.Patient)));
+            return column.Dataset.GetIEEGDataInfos().Where((data) => (column.DataName == data.Name && Patients.Contains(data.Patient)));
         }
         /// <summary>
         /// Get the DataInfo used by the column for a specific Patient.
@@ -343,7 +343,7 @@ namespace HBP.Data.Visualization
             Exception exception = null;
 
             // Find dataInfo.
-            Dictionary<IEEGColumn, IEnumerable<DataInfo>> dataInfoByColumn = new Dictionary<IEEGColumn, IEnumerable<DataInfo>>();
+            Dictionary<IEEGColumn, IEnumerable<iEEGDataInfo>> dataInfoByColumn = new Dictionary<IEEGColumn, IEnumerable<iEEGDataInfo>>();
             yield return Ninja.JumpToUnity;
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_FindDataInfoToRead(progress, onChangeProgress, (value, progressValue, e) => { dataInfoByColumn = value; progress = progressValue; exception = e; }));
             yield return Ninja.JumpBack;
@@ -375,11 +375,11 @@ namespace HBP.Data.Visualization
                 outPut(exception);
             }
         }
-        IEnumerator c_FindDataInfoToRead(float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<Dictionary<IEEGColumn, IEnumerable<DataInfo>>, float, Exception> outPut)
+        IEnumerator c_FindDataInfoToRead(float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<Dictionary<IEEGColumn, IEnumerable<iEEGDataInfo>>, float, Exception> outPut)
         {
             Exception exception = null;
             // Find files to read.
-            Dictionary<IEEGColumn, IEnumerable<DataInfo>> dataInfoByColumn = new Dictionary<IEEGColumn, IEnumerable<DataInfo>>();
+            Dictionary<IEEGColumn, IEnumerable<iEEGDataInfo>> dataInfoByColumn = new Dictionary<IEEGColumn, IEnumerable<iEEGDataInfo>>();
             float progressStep = FIND_FILES_TO_READ_PROGRESS / (IEEGColumns.Count);
             foreach (var column in IEEGColumns)
             {
@@ -391,7 +391,7 @@ namespace HBP.Data.Visualization
 
                 try
                 {
-                    IEnumerable<DataInfo> dataInfoForThisColumn = GetDataInfo(column);
+                    IEnumerable<iEEGDataInfo> dataInfoForThisColumn = GetDataInfo(column);
                     if (dataInfoForThisColumn.Select(d => d.Patient).Distinct().Count() != Patients.Count)
                     {
                         foreach (Patient patient in Patients)
@@ -412,12 +412,12 @@ namespace HBP.Data.Visualization
             }
             outPut(dataInfoByColumn, progress, exception);
         }
-        IEnumerator c_LoadData(Dictionary<IEEGColumn, IEnumerable<DataInfo>> dataInfoByColumn, float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<float, Exception> outPut)
+        IEnumerator c_LoadData(Dictionary<IEEGColumn, IEnumerable<iEEGDataInfo>> dataInfoByColumn, float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<float, Exception> outPut)
         {
             Exception exception = null;
             string additionalInformation = "";
             yield return Ninja.JumpBack;
-            IEnumerable<DataInfo> dataInfoCollection = dataInfoByColumn.SelectMany(d => d.Value).Distinct();
+            IEnumerable<iEEGDataInfo> dataInfoCollection = dataInfoByColumn.SelectMany(d => d.Value).Distinct();
             int i = 0;
             int dataInfoCollectionLength = dataInfoCollection.Count();
             float progressStep = LOAD_DATA_PROGRESS / (dataInfoCollectionLength + 1);
@@ -429,7 +429,7 @@ namespace HBP.Data.Visualization
                 yield return Ninja.JumpBack;
                 try
                 {
-                    Experience.Dataset.Data data = DataManager.GetData(dataInfo);
+                    Experience.Dataset.iEEGData data = DataManager.GetData(dataInfo);
                     foreach (var column in dataInfoByColumn.Keys)
                     {
                         if (data.DataByBloc.ContainsKey(column.Bloc) && !data.DataByBloc[column.Bloc].IsValid)
@@ -453,11 +453,11 @@ namespace HBP.Data.Visualization
             yield return Ninja.JumpBack;
             if (exception == null)
             {
-                DataManager.NormalizeData();
+                DataManager.NormalizeiEEGData();
             }
             outPut(progress, exception);
         }
-        IEnumerator c_LoadColumns(Dictionary<IEEGColumn, IEnumerable<DataInfo>> dataInfoByColumn, float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<float, Exception> outPut)
+        IEnumerator c_LoadColumns(Dictionary<IEEGColumn, IEnumerable<iEEGDataInfo>> dataInfoByColumn, float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<float, Exception> outPut)
         {
             Exception exception = null;
             ReadOnlyCollection<IEEGColumn> columns = IEEGColumns;

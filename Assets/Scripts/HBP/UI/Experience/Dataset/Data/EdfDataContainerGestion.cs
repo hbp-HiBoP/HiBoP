@@ -1,11 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Tools.Unity;
+﻿using Tools.Unity;
 using UnityEngine;
 
 namespace HBP.UI.Experience.Dataset
 {
-    public class EdfDataInfoGestion : MonoBehaviour
+    public class EdfDataContainerGestion : MonoBehaviour
     {
         #region Properties
         [SerializeField] FileSelector m_FileSelector;
@@ -27,14 +25,14 @@ namespace HBP.UI.Experience.Dataset
         {
             gameObject.SetActive(active);
         }
-        public void Set(Data.Experience.Dataset.EdfDataInfo dataInfo)
+        public void Set(Data.Experience.Dataset.EdfDataContainer dataContainer)
         {
             m_FileSelector.DefaultDirectory = ApplicationState.ProjectLoaded.Settings.LocalizerDatabase;
-            m_FileSelector.File = dataInfo.SavedEDF;
+            m_FileSelector.File = dataContainer.SavedEDF;
             m_FileSelector.onValueChanged.RemoveAllListeners();
             m_FileSelector.onValueChanged.AddListener((edf) =>
             {
-                dataInfo.EDF = edf;
+                dataContainer.EDF = edf;
             });
         }
         #endregion

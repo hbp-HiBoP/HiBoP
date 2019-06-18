@@ -10,7 +10,7 @@ using UnityEngine;
 namespace HBP.Data.Experience.Dataset
 {
     [DataContract]
-    public class MicromedDataInfo : DataInfo
+    public class MicromedDataContainer : DataContainer
     {
         #region Properties
         const string MICROMED_EXTENSION = ".TRC";
@@ -22,15 +22,15 @@ namespace HBP.Data.Experience.Dataset
         public string TRC
         {
             get { return m_TRC?.ConvertToFullPath(); }
-            set { m_TRC = value?.ConvertToShortPath(); OnRequestErrorCheck.Invoke(); }
+            set { m_TRC = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
         }
         public string SavedTRC { get { return m_TRC; } }
 
-        public override string DataFilesString
+        public override string[] DataFilesPaths
         {
             get
             {
-                return string.Format("{0}", TRC);
+                return new string[] { TRC };
             }
         }
         public override string DataTypeString
@@ -50,36 +50,30 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Public Methods
-        public override ErrorType[] GetDataErrors(Protocol.Protocol protocol)
+        public override DataInfo.ErrorType[] GetErrors()
         {
-            List<ErrorType> errors = new List<ErrorType>();
+            List<DataInfo.ErrorType> errors = new List<DataInfo.ErrorType>();
             if (string.IsNullOrEmpty(TRC))
             {
-                errors.Add(ErrorType.RequiredFieldEmpty);
+                errors.Add(DataInfo.ErrorType.RequiredFieldEmpty);
             }
             else
             {
                 FileInfo headerFile = new FileInfo(TRC);
                 if (!headerFile.Exists)
                 {
-                    errors.Add(ErrorType.FileDoesNotExist);
+                    errors.Add(DataInfo.ErrorType.FileDoesNotExist);
                 }
                 else
                 {
                     if (headerFile.Extension != MICROMED_EXTENSION)
                     {
-                        errors.Add(ErrorType.WrongExtension);
-                    }
-                    else
-                    {
-                        Tools.CSharp.EEG.File file = new Tools.CSharp.EEG.File(Tools.CSharp.EEG.File.FileType.Micromed, false, TRC);
-                        List<Tools.CSharp.EEG.Trigger> triggers = file.Triggers;
-                        if (!protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code)))) errors.Add(ErrorType.BlocsCantBeEpoched);
+                        errors.Add(DataInfo.ErrorType.WrongExtension);
                     }
                 }
             }
-            m_DataErrors = errors.ToArray();
-            return m_DataErrors;
+            m_Errors = errors.ToArray();
+            return m_Errors;
         }
         public override void CopyDataToDirectory(DirectoryInfo dataInfoDirectory, string projectDirectory, string oldProjectDirectory)
         {
@@ -96,18 +90,15 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="measure">Name of the measure in the EEG file.</param>
         /// <param name="trc">EEG file path.</param>
         /// <param name="pos">POS file path.</param>
-        public MicromedDataInfo(string name, Patient patient, NormalizationType normalization, string trc, string id)
+        public MicromedDataContainer(string trc, string id)
         {
-            Name = name;
-            Patient = patient;
-            Normalization = normalization;
             TRC = trc;
             ID = id;
         }
         /// <summary>
         /// Create a new DataInfo instance with default value.
         /// </summary>
-        public MicromedDataInfo() : this("Data", ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), NormalizationType.Auto, string.Empty, Guid.NewGuid().ToString())
+        public MicromedDataContainer() : this(string.Empty, Guid.NewGuid().ToString())
         {
         }
         #endregion
@@ -119,14 +110,11 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new MicromedDataInfo(Name, Patient, Normalization, TRC, ID);
+            return new MicromedDataContainer(TRC, ID);
         }
         public override void Copy(object copy)
         {
-            MicromedDataInfo dataInfo = copy as MicromedDataInfo;
-            Name = dataInfo.Name;
-            Patient = dataInfo.Patient;
-            Normalization = dataInfo.Normalization;
+            MicromedDataContainer dataInfo = copy as MicromedDataContainer;
             TRC = dataInfo.TRC;
             ID = dataInfo.ID;
         }

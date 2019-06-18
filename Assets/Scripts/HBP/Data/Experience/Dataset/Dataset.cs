@@ -81,6 +81,19 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Public Methods
+        public PatientDataInfo[] GetPatientDataInfos()
+        {
+            return m_Data.OfType<PatientDataInfo>().ToArray();
+        }
+        public PatientDataInfo[] GetPatientDataInfos(Patient patient)
+        {
+            return m_Data.OfType<PatientDataInfo>().Where(d => d.Patient == patient).ToArray();
+        }
+        public iEEGDataInfo[] GetIEEGDataInfos()
+        {
+            return m_Data.OfType<iEEGDataInfo>().ToArray();
+        }
+
         public void Load(string path)
         {
             Dataset result;
@@ -104,7 +117,7 @@ namespace HBP.Data.Experience.Dataset
             if (!m_Data.Contains(data))
             {
                 m_Data.Add(data);
-                UnityAction action = new UnityAction(() => { data.GetDataErrors(Protocol); });
+                UnityAction action = new UnityAction(() => { data.GetErrors(Protocol); });
                 m_ActionByDataInfo.Add(data, action);
                 data.OnRequestErrorCheck.AddListener(action);
                 return true;
@@ -232,7 +245,7 @@ namespace HBP.Data.Experience.Dataset
             if (Protocol == null) Protocol = ApplicationState.ProjectLoaded.Protocols.First();
             foreach (var data in m_Data)
             {
-                UnityAction action = new UnityAction(() => data.GetDataErrors(Protocol));
+                UnityAction action = new UnityAction(() => data.GetErrors(Protocol));
                 m_ActionByDataInfo.Add(data, action);
                 data.OnRequestErrorCheck.AddListener(action);
             }

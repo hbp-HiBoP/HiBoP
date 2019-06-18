@@ -29,7 +29,7 @@ namespace HBP.UI.Experience.Dataset
                 m_NameText.text = value.Name;
                 m_ProtocolText.text = value.Protocol.Name;
 
-                int nbData = value.Data.Count((d) => d.isOk);
+                int nbData = value.Data.Count((d) => d.IsOk);
                 m_DataInfosText.text = nbData.ToString();
                 if (nbData == 0) m_DataInfosText.GetComponent<ThemeElement>().Set(m_ErrorState);
                 else m_DataInfosText.GetComponent<ThemeElement>().Set();

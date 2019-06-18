@@ -10,7 +10,7 @@ public static class DataManager
 {
     #region Properties
     // Data.
-    static Dictionary<Request, Data> m_DataByRequest = new Dictionary<Request, Data>();
+    static Dictionary<Request, iEEGData> m_DataByRequest = new Dictionary<Request, iEEGData>();
     static Dictionary<BlocRequest, BlocData> m_BlocDataByRequest = new Dictionary<BlocRequest, BlocData>();
 
     static Dictionary<ChannelRequest, ChannelData> m_ChannelDataByRequest = new Dictionary<ChannelRequest, ChannelData>();
@@ -65,7 +65,7 @@ public static class DataManager
             data.Clear();
         }
         m_DataByRequest.Clear();
-        m_DataByRequest = new Dictionary<Request, Data>();
+        m_DataByRequest = new Dictionary<Request, iEEGData>();
 
         foreach (var blocData in m_BlocDataByRequest.Values)
         {
@@ -123,7 +123,7 @@ public static class DataManager
     }
 
     // Data.
-    public static Data GetData(DataInfo dataInfo)
+    public static iEEGData GetData(DataInfo dataInfo)
     {
         return GetData(new Request(dataInfo));
     }
@@ -158,37 +158,37 @@ public static class DataManager
         return GetEventsStatistics(new BlocRequest(dataInfo, bloc));
     }
 
-    public static void NormalizeData()
+    public static void NormalizeiEEGData()
     {
-        IEnumerable<DataInfo> dataInfoCollection = m_DataByRequest.Select((d) => d.Key.DataInfo).Distinct();
+        IEnumerable<iEEGDataInfo> dataInfoCollection = m_DataByRequest.Select((d) => d.Key.DataInfo).OfType<iEEGDataInfo>().Distinct();
         foreach (var dataInfo in dataInfoCollection)
         {
             IEnumerable<BlocRequest> dataRequestCollection = m_BlocDataByRequest.Where((d) => d.Key.DataInfo == dataInfo).Select((d) => d.Key);
             switch (dataInfo.Normalization)
             {
-                case DataInfo.NormalizationType.None:
+                case iEEGDataInfo.NormalizationType.None:
                     foreach (var request in dataRequestCollection) if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.None) NormalizeByNone(request);
                     break;
-                case DataInfo.NormalizationType.SubTrial:
+                case iEEGDataInfo.NormalizationType.SubTrial:
                     foreach (var request in dataRequestCollection) if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.SubTrial) NormalizeBySubTrial(request);
                     break;
-                case DataInfo.NormalizationType.Trial:
+                case iEEGDataInfo.NormalizationType.Trial:
                     foreach (var request in dataRequestCollection) if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.Trial) NormalizeByTrial(request);
                     break;
-                case DataInfo.NormalizationType.SubBloc:
+                case iEEGDataInfo.NormalizationType.SubBloc:
                     foreach (var request in dataRequestCollection) if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.SubBloc) NormalizeBySubBloc(request);
                     break;
-                case DataInfo.NormalizationType.Bloc:
+                case iEEGDataInfo.NormalizationType.Bloc:
                     foreach (var request in dataRequestCollection) if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.Bloc) NormalizeByBloc(request);
                     break;
-                case DataInfo.NormalizationType.Protocol:
+                case iEEGDataInfo.NormalizationType.Protocol:
                     IEnumerable<Tuple<BlocRequest, bool>> dataRequestAndNeedToNormalize = from request in dataRequestCollection select new Tuple<BlocRequest, bool>(request, m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.Protocol);
                     if (dataRequestAndNeedToNormalize.Any((tuple) => tuple.Item2))
                     {
                         NormalizeByProtocol(dataRequestAndNeedToNormalize);
                     }
                     break;
-                case DataInfo.NormalizationType.Auto:
+                case iEEGDataInfo.NormalizationType.Auto:
                     switch (ApplicationState.UserPreferences.Data.EEG.Normalization)
                     {
                         case HBP.Data.Enums.NormalizationType.None:
@@ -229,7 +229,7 @@ public static class DataManager
     {
         if (request.IsValid && !m_DataByRequest.ContainsKey(request))
         {
-            Data data = new Data(request.DataInfo);
+            iEEGData data = new iEEGData(request.DataInfo as iEEGDataInfo); // FIXME : gérer plusieurs types de data  
             m_DataByRequest.Add(request, data);
 
             Protocol protocol = request.DataInfo.Dataset.Protocol;
@@ -294,11 +294,11 @@ public static class DataManager
         }
     }
     
-    static Data GetData(Request request)
+    static iEEGData GetData(Request request)
     {
         if (request.IsValid)
         {
-            Data result;
+            iEEGData result;
             if (m_DataByRequest.TryGetValue(request, out result))
             {
                 return result;
@@ -372,7 +372,7 @@ public static class DataManager
             else
             {
                 Request dataRequest = new Request(request.DataInfo);
-                Data data = GetData(dataRequest);
+                iEEGData data = GetData(dataRequest);
                 if (data != null)
                 {
                     if(data.UnitByChannel.ContainsKey(request.Channel))
@@ -664,7 +664,7 @@ public static class DataManager
         {
             get
             {
-                return DataInfo != null && DataInfo.isOk;
+                return DataInfo != null && DataInfo.IsOk;
             }
         }
 
@@ -699,7 +699,7 @@ public static class DataManager
         {
             get
             {
-                return DataInfo != null && DataInfo.isOk; // AddTestOnChannel
+                return DataInfo != null && DataInfo.IsOk; // AddTestOnChannel
             }
         }
 

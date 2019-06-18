@@ -346,10 +346,11 @@ namespace HBP.UI.Informations
                 }
                 ChannelsByPatient[channel.Patient].Add(channel.Channel);
             }
-            Dictionary<Patient, DataInfo> DataInfoByPatient = new Dictionary<Patient, DataInfo>(ChannelsByPatient.Count);
+            Dictionary<Patient, PatientDataInfo> DataInfoByPatient = new Dictionary<Patient, PatientDataInfo>(ChannelsByPatient.Count);
+            PatientDataInfo[] patientDataInfos = data.Dataset.GetPatientDataInfos();
             foreach (var patient in ChannelsByPatient.Keys)
             {
-                DataInfoByPatient.Add(patient, data.Dataset.Data.First(d => d.Patient == patient && d.Name == data.Data));
+                DataInfoByPatient.Add(patient, patientDataInfos.First(d => d.Patient == patient && d.Name == data.Data));
             }
 
             Dictionary<ChannelStruct, BlocChannelStatistics> StatsByChannel = new Dictionary<ChannelStruct, BlocChannelStatistics>(ROI.Channels.Count);
@@ -423,7 +424,7 @@ namespace HBP.UI.Informations
         CurveData GetCurveData(ChannelStruct channel, DataStruct data, Data.Experience.Protocol.Bloc bloc, SubBloc subBloc, bool[] selected)
         {
             CurveData result = null;
-            DataInfo dataInfo = data.Dataset.Data.First(d => (d.Patient == channel.Patient && d.Name == data.Data));
+            PatientDataInfo dataInfo = data.Dataset.GetPatientDataInfos().First(d => (d.Patient == channel.Patient && d.Name == data.Data));
             BlocChannelData blocChannelData = DataManager.GetData(dataInfo, bloc, channel.Channel);
             Color color = m_ColorsByData[new Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>(channel, data, bloc)]; 
 

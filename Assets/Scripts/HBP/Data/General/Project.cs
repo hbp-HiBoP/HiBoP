@@ -154,7 +154,7 @@ namespace HBP.Data.General
             AddPatient(patients);
             foreach (Dataset dataset in m_Datasets)
             {
-                dataset.RemoveData(from data in dataset.Data where !m_Patients.Any(p => p == data.Patient) select data);
+                dataset.RemoveData(from data in dataset.GetPatientDataInfos() where !m_Patients.Any(p => p == data.Patient) select data);
             }
             foreach (Visualization.Visualization visualization in m_Visualizations)
             {
@@ -184,7 +184,7 @@ namespace HBP.Data.General
             }
             foreach (Dataset dataset in m_Datasets)
             {
-                dataset.RemoveData(from data in dataset.Data where data.Patient == patient select data);
+                dataset.RemoveData(from data in dataset.GetPatientDataInfos() where data.Patient == patient select data);
             }
             foreach(Visualization.Visualization visualization in m_Visualizations)
             {
@@ -640,9 +640,18 @@ namespace HBP.Data.General
                     data.GetErrors(dataset.Protocol);
                     progress += progressStep;
 
+                    string message ="";
+                    if(data is PatientDataInfo patientDataInfo)
+                    {
+                        message = patientDataInfo.Name + " | " + dataset.Protocol.Name + " | " + patientDataInfo.Patient.Name;
+                    }
+                    else
+                    {
+                        message = data.Name + " | " + dataset.Protocol.Name;
+                    }
                     // DEBUG
                     yield return Ninja.JumpToUnity;
-                    OnChangeProgress.Invoke(progress, 0, new LoadingText("Checking ", data.Name + " | " + dataset.Protocol.Name + " | " + data.Patient.Name, " [" + count + "/" + length + "]"));
+                    OnChangeProgress.Invoke(progress, 0, new LoadingText("Checking ", message, " [" + count + "/" + length + "]"));
                     yield return Ninja.JumpBack;
                 }
             }
@@ -876,7 +885,7 @@ namespace HBP.Data.General
                         {
                             DirectoryInfo dataInfoDirectory = new DirectoryInfo(Path.Combine(datasetDirectory.FullName, data.Name));
                             if (!dataInfoDirectory.Exists) dataInfoDirectory = Directory.CreateDirectory(dataInfoDirectory.FullName);
-                            data.CopyDataToDirectory(dataInfoDirectory, projectDirectory.FullName, oldProjectDirectory);
+                            data.DataContainer.CopyDataToDirectory(dataInfoDirectory, projectDirectory.FullName, oldProjectDirectory);
                         }
                     }
                 }

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
 using UnityEngine.Events;
-using Tools.Unity;
 
 namespace HBP.Data.Experience.Dataset
 {
@@ -18,17 +17,12 @@ namespace HBP.Data.Experience.Dataset
     * 
     * \details Class which define a DataInfo which contains : 
     *     - Name.
-    *     - Patient.
-    *     - Measure.
-    *     - EEG file.
-    *     - POS file.
-    *     - Protocol.
     */
     [DataContract]
     public class DataInfo : ICloneable, ICopiable, IIdentifiable
     {
         #region Properties
-        [DataMember(Name = "Name")] string m_Name;
+        [DataMember(Name = "Name")] protected string m_Name;
         /// <summary>
         /// Name of the data.
         /// </summary>
@@ -40,24 +34,12 @@ namespace HBP.Data.Experience.Dataset
 
         [DataMember] public string ID { get; set; }
 
-        [DataMember(Name = "Patient")] string m_PatientID;
-        Patient m_Patient;
-        /// <summary>
-        /// Patient who has passed the experiment.
-        /// </summary>
-        ///
-        public Patient Patient
+        [DataMember] protected DataContainer m_DataContainer;
+        public DataContainer DataContainer
         {
-            get { return m_Patient; }
-            set { m_PatientID = value.ID; m_Patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == m_PatientID); m_PatientErrors = GetPatientErrors(); }
+            get { return m_DataContainer; }
+            set { m_DataContainer = value;  m_DataContainer.GetErrors(); m_DataContainer.OnRequestErrorCheck.AddListener(OnRequestErrorCheck.Invoke); }
         }
-        
-        [DataMember(Name = "Normalization")]
-        /// <summary>
-        /// Normalization of the Data.
-        /// </summary>
-        public NormalizationType Normalization { get; set; }
-
         /// <summary>
         /// Error type of the DataInfo.
         /// </summary>
@@ -65,13 +47,8 @@ namespace HBP.Data.Experience.Dataset
         {
             LabelEmpty, PatientEmpty, RequiredFieldEmpty, FileDoesNotExist, WrongExtension, BlocsCantBeEpoched, NotEnoughInformation
         }
-        /// <summary>
-        /// Normalization Type.
-        /// </summary>
-        public enum NormalizationType
-        {
-            None, SubTrial, Trial, SubBloc, Bloc, Protocol, Auto
-        }
+
+
 
         public Dataset Dataset
         {
@@ -82,60 +59,34 @@ namespace HBP.Data.Experience.Dataset
         }
         
         protected ErrorType[] m_NameErrors = new ErrorType[0];
-        protected ErrorType[] m_PatientErrors = new ErrorType[0];
-        protected ErrorType[] m_DataErrors = new ErrorType[0];
 
-        public bool isOk
+        public bool IsOk
         {
             get
             {
                 return Errors.Length == 0;
             }
         }
-        public ErrorType[] Errors
+        public virtual ErrorType[] Errors
         {
             get
             {
                 List<ErrorType> errors = new List<ErrorType>();
                 errors.AddRange(m_NameErrors);
-                errors.AddRange(m_PatientErrors);
-                errors.AddRange(m_DataErrors);
+                errors.AddRange(m_DataContainer.Errors);
                 return errors.Distinct().ToArray();
             }
         }
 
-        public UnityEvent OnRequestErrorCheck = new UnityEvent();
-
-        public virtual string DataTypeString
-        {
-            get
-            {
-                return "None";
-            }
-        }
-        public virtual string DataFilesString
-        {
-            get
-            {
-                return "";
-            }
-        }
-        public virtual Tools.CSharp.EEG.File.FileType Type
-        {
-            get
-            {
-                throw new Exception("Invalid file type");
-            }
-        }
+        public UnityEvent OnRequestErrorCheck { get; set; } = new UnityEvent();
         #endregion
 
         #region Public Methods
-        public ErrorType[] GetErrors(Protocol.Protocol protocol)
+        public virtual ErrorType[] GetErrors(Protocol.Protocol protocol)
         {
-            GetNameErrors();
-            GetPatientErrors();
-            GetDataErrors(protocol);
-            return Errors;
+            List<ErrorType> errors = new List<ErrorType>(GetNameErrors());
+            errors.AddRange(m_DataContainer.GetErrors());
+            return errors.Distinct().ToArray();
         }
         public ErrorType[] GetNameErrors()
         {
@@ -143,19 +94,6 @@ namespace HBP.Data.Experience.Dataset
             if(string.IsNullOrEmpty(Name)) errors.Add(ErrorType.LabelEmpty);
             m_NameErrors = errors.ToArray();
             return m_NameErrors;
-        }
-        public ErrorType[] GetPatientErrors()
-        {
-            List<ErrorType> errors = new List<ErrorType>();
-            if (Patient == null) errors.Add(ErrorType.PatientEmpty);
-            m_PatientErrors = errors.ToArray();
-            return m_PatientErrors;
-        }
-        public virtual ErrorType[] GetDataErrors(Protocol.Protocol protocol)
-        {
-            List<ErrorType> errors = new List<ErrorType>();
-            m_DataErrors = errors.ToArray();
-            return m_DataErrors;
         }
         public string GetErrorsMessage()
         {
@@ -172,9 +110,6 @@ namespace HBP.Data.Experience.Dataset
             }
             return stringBuilder.ToString();
         }
-        public virtual void CopyDataToDirectory(DirectoryInfo dataInfoDirectory, string projectDirectory, string oldProjectDirectory)
-        {
-        }
         #endregion
 
         #region Constructors
@@ -182,21 +117,19 @@ namespace HBP.Data.Experience.Dataset
         /// Create a new DataInfo instance.
         /// </summary>
         /// <param name="name">Name of the dataInfo.</param>
-        /// <param name="patient">Patient who passed the experiment.</param>
         /// <param name="measure">Name of the measure in the EEG file.</param>
         /// <param name="eeg">EEG file path.</param>
         /// <param name="pos">POS file path.</param>
-        public DataInfo(string name, Patient patient, NormalizationType normalization, string id)
+        public DataInfo(string name, DataContainer dataContainer, string id)
         {
             Name = name;
-            Patient = patient;
-            Normalization = normalization;
             ID = id;
+            DataContainer = dataContainer;
         }
         /// <summary>
         /// Create a new DataInfo instance with default value.
         /// </summary>
-        public DataInfo() : this("Data", ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), NormalizationType.Auto, Guid.NewGuid().ToString())
+        public DataInfo() : this("Data", new DataContainer(), Guid.NewGuid().ToString())
         {
         }
         #endregion
@@ -263,14 +196,13 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance.</returns>
         public virtual object Clone()
         {
-            return new DataInfo(Name, Patient, Normalization, ID);
+            return new DataInfo(Name, DataContainer, ID);
         }
         public virtual void Copy(object copy)
         {
             DataInfo dataInfo = copy as DataInfo;
             Name = dataInfo.Name;
-            Patient = dataInfo.Patient;
-            Normalization = dataInfo.Normalization;
+            DataContainer = dataInfo.DataContainer;
             ID = dataInfo.ID;
         }
         #endregion
@@ -308,7 +240,6 @@ namespace HBP.Data.Experience.Dataset
         }
         public virtual void OnDeserializedOperation(StreamingContext context)
         {
-            m_Patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == m_PatientID);
         }
         #endregion
     }

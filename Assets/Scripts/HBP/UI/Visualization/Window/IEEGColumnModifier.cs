@@ -173,7 +173,7 @@ namespace HBP.UI.Visualization
         {
             if(m_Column.Dataset != null)
             {
-                m_DataNames = (from data in m_Column.Dataset.Data select data.Name).Distinct().Where((name) => m_Patients.All((patient) => m_Column.Dataset.Data.Any((dataInfo) => dataInfo.isOk && dataInfo.Name == name && dataInfo.Patient == patient))).ToList();
+                m_DataNames = (from data in m_Column.Dataset.Data select data.Name).Distinct().Where((name) => m_Patients.All((patient) => m_Column.Dataset.GetIEEGDataInfos().Any((dataInfo) => dataInfo.IsOk && dataInfo.Name == name && dataInfo.Patient == patient))).ToList();
             }
             else
             {

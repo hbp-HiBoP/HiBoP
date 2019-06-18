@@ -21,11 +21,11 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Public Methods
-        public void Load(IEnumerable<DataInfo> columnData, Experience.Protocol.Bloc bloc)
+        public void Load(IEnumerable<iEEGDataInfo> columnData, Experience.Protocol.Bloc bloc)
         {
-            foreach (DataInfo dataInfo in columnData)
+            foreach (iEEGDataInfo dataInfo in columnData)
             {
-                Experience.Dataset.Data data = DataManager.GetData(dataInfo);
+                Experience.Dataset.iEEGData data = DataManager.GetData(dataInfo);
                 // Values
                 foreach (var channel in data.UnitByChannel.Keys) 
                 {

@@ -34,7 +34,7 @@ namespace HBP.Data.TrialMatrix.Grid
         #region Constructors
         public ChannelBloc(p.Bloc bloc, DataStruct data, ChannelStruct channel)
         {
-            DataInfo dataInfo = data.Dataset.Data.FirstOrDefault(d => d.Name == data.Data && d.Patient == channel.Patient);
+            DataInfo dataInfo = data.Dataset.GetIEEGDataInfos().FirstOrDefault(d => d.Name == data.Data && d.Patient == channel.Patient);
 
             UnityEngine.Profiling.Profiler.BeginSample("GetData");
             BlocChannelData blocChannelData = DataManager.GetData(dataInfo, bloc, channel.Channel);

@@ -11,7 +11,7 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Constructors
-        public ChannelData(Data data, string channel) : this(data.DataByBloc.ToDictionary(kv => kv.Key,kv => new BlocChannelData(kv.Value,channel)),data.UnitByChannel[channel])
+        public ChannelData(iEEGData data, string channel) : this(data.DataByBloc.ToDictionary(kv => kv.Key,kv => new BlocChannelData(kv.Value,channel)),data.UnitByChannel[channel])
         {
 
         }

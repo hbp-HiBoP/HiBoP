@@ -93,23 +93,23 @@ namespace HBP.UI.Experience.Dataset
         /// <param name="sorting">Sorting</param>
         public void SortByPatient(Sorting sorting)
         {
-            switch (sorting)
-            {
-                case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Patient.Name).ToList();
-                    m_OrderBy = OrderBy.Patient;
-                    m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
-                    break;
-                case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Patient.Name).ToList();
-                    m_OrderBy = OrderBy.DescendingPatient;
-                    m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
-                    break;
-            }
-            Refresh();
-            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            //switch (sorting)
+            //{
+            //    case Sorting.Ascending:
+            //        m_Objects = m_Objects.OrderByDescending((elt) => elt.Patient.Name).ToList();
+            //        m_OrderBy = OrderBy.Patient;
+            //        m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
+            //        break;
+            //    case Sorting.Descending:
+            //        m_Objects = m_Objects.OrderBy((elt) => elt.Patient.Name).ToList();
+            //        m_OrderBy = OrderBy.DescendingPatient;
+            //        m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
+            //        break;
+            //}
+            //Refresh();
+            //m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            //m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            //m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
         /// Sort by patient.
@@ -132,12 +132,12 @@ namespace HBP.UI.Experience.Dataset
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.isOk).ToList();
+                    m_Objects = m_Objects.OrderBy((elt) => elt.IsOk).ToList();
                     m_OrderBy = OrderBy.State;
                     m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.isOk).ToList();
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.IsOk).ToList();
                     m_OrderBy = OrderBy.DescendingState;
                     m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -165,23 +165,23 @@ namespace HBP.UI.Experience.Dataset
         /// <param name="sorting">Sorting</param>
         public void SortByType(Sorting sorting)
         {
-            switch (sorting)
-            {
-                case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Type).ToList();
-                    m_OrderBy = OrderBy.Type;
-                    m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
-                    break;
-                case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Type).ToList();
-                    m_OrderBy = OrderBy.DescendingType;
-                    m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
-                    break;
-            }
-            Refresh();
-            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            //switch (sorting)
+            //{
+            //    case Sorting.Ascending:
+            //        m_Objects = m_Objects.OrderBy((elt) => elt.Type).ToList();
+            //        m_OrderBy = OrderBy.Type;
+            //        m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
+            //        break;
+            //    case Sorting.Descending:
+            //        m_Objects = m_Objects.OrderByDescending((elt) => elt.Type).ToList();
+            //        m_OrderBy = OrderBy.DescendingType;
+            //        m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
+            //        break;
+            //}
+            //Refresh();
+            //m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            //m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            //m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
         /// Sort by sate.

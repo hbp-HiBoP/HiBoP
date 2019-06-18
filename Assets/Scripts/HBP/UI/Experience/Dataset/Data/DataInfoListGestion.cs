@@ -47,12 +47,19 @@ namespace HBP.UI.Experience.Dataset
         }
         protected void OnCanSaveModifier(DataInfoModifier modifier)
         {
-            modifier.CanSave = !Objects.Any(data => data.Patient == modifier.ItemTemp.Patient && data.Name == modifier.ItemTemp.Name && data != modifier.Item);
+            if(modifier.ItemTemp is PatientDataInfo patientDataInfo)
+            {
+                modifier.CanSave = !Objects.OfType<PatientDataInfo>().Any(data => data.Patient == patientDataInfo.Patient && data.Name == patientDataInfo.Name && data != modifier.Item);
+            }
+            else
+            {
+                modifier.CanSave = !Objects.Any(data => data.Name == modifier.ItemTemp.Name && data != modifier.Item); // FIXME
+            }
         }
         protected override void OnSaveCreator(CreatorWindow creatorWindow)
         {
             Data.Enums.CreationType type = creatorWindow.Type;
-            DataInfo item = new ElanDataInfo();
+            DataInfo item = new iEEGDataInfo();
             switch (type)
             {
                 case Data.Enums.CreationType.FromScratch:

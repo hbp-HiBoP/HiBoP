@@ -17,7 +17,7 @@ namespace HBP.Data.Experience.Dataset
     *   - \a EEG frequency.
     *   - \a Patient.
     */
-    public class RawData
+    public class iEEGRawData
     {
         #region Properties
         /// <summary>
@@ -57,7 +57,7 @@ namespace HBP.Data.Experience.Dataset
         /// <summary>
         /// Create a new Data instance with default values.
         /// </summary>
-        public RawData(): this(new Dictionary < string, float[] >(), new Dictionary<string, string>(), new Tools.CSharp.EEG.Frequency(), new Patient())
+        public iEEGRawData(): this(new Dictionary < string, float[] >(), new Dictionary<string, string>(), new Tools.CSharp.EEG.Frequency(), new Patient())
         {
         }
         /// <summary>
@@ -68,7 +68,7 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="pos">POS file.</param>
         /// <param name="frequency">Values frequency.</param>
         /// <param name="patient">Patient.</param>
-        public RawData(Dictionary<string,float[]> valuesBySite, Dictionary<string,string> unitBySite, Tools.CSharp.EEG.Frequency frequency, Patient patient)
+        public iEEGRawData(Dictionary<string,float[]> valuesBySite, Dictionary<string,string> unitBySite, Tools.CSharp.EEG.Frequency frequency, Patient patient)
         {
             ValuesByChannel = valuesBySite;
             UnitByChannel = unitBySite;
@@ -80,30 +80,10 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         /// <param name="info">DataInfo to read.</param>
         /// <param name="MNI">\a True if MNI and \a false otherwise.</param>
-        public RawData(DataInfo info) : this()
+        public iEEGRawData(iEEGDataInfo info) : this()
         {
             // Read Data.
-            Tools.CSharp.EEG.File file = null;
-            if (info is ElanDataInfo elanDataInfo)
-            {
-                file = new Tools.CSharp.EEG.File(Tools.CSharp.EEG.File.FileType.ELAN, true, elanDataInfo.EEG, elanDataInfo.POS, elanDataInfo.Notes);
-            }
-            else if (info is EdfDataInfo edfDataInfo)
-            {
-                file = new Tools.CSharp.EEG.File(Tools.CSharp.EEG.File.FileType.EDF, true, edfDataInfo.EDF);
-            }
-            else if (info is BrainVisionDataInfo brainVisionDataInfo)
-            {
-                file = new Tools.CSharp.EEG.File(Tools.CSharp.EEG.File.FileType.BrainVision, true, brainVisionDataInfo.Header);
-            }
-            else if (info is MicromedDataInfo micromedDataInfo)
-            {
-                file = new Tools.CSharp.EEG.File(Tools.CSharp.EEG.File.FileType.Micromed, true, micromedDataInfo.TRC);
-            }
-            else
-            {
-                throw new System.Exception("Invalid file format");
-            }
+            Tools.CSharp.EEG.File file = new Tools.CSharp.EEG.File(info.DataContainer.Type, true, info.DataContainer.DataFilesPaths);
             List<Tools.CSharp.EEG.Electrode> channels = file.Electrodes;
             foreach (var channel in channels)
             {

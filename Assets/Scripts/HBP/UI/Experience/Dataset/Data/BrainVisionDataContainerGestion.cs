@@ -1,11 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Tools.Unity;
+﻿using Tools.Unity;
 using UnityEngine;
 
 namespace HBP.UI.Experience.Dataset
 {
-    public class MicromedDataInfoGestion : MonoBehaviour
+    public class BrainVisionDataContainerGestion : MonoBehaviour
     {
         #region Properties
         [SerializeField] FileSelector m_FileSelector;
@@ -27,14 +25,14 @@ namespace HBP.UI.Experience.Dataset
         {
             gameObject.SetActive(active);
         }
-        public void Set(Data.Experience.Dataset.MicromedDataInfo dataInfo)
+        public void Set(Data.Experience.Dataset.BrainVisionDataContainer dataContainer)
         {
             m_FileSelector.DefaultDirectory = ApplicationState.ProjectLoaded.Settings.LocalizerDatabase;
-            m_FileSelector.File = dataInfo.SavedTRC;
+            m_FileSelector.File = dataContainer.SavedHeader;
             m_FileSelector.onValueChanged.RemoveAllListeners();
-            m_FileSelector.onValueChanged.AddListener((trc) =>
+            m_FileSelector.onValueChanged.AddListener((header) =>
             {
-                dataInfo.TRC = trc;
+                dataContainer.Header = header;
             });
         }
         #endregion

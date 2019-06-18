@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace HBP.Data.Experience.Dataset
 {
-    public class Data
+    public class iEEGData
     {
         #region Properties
         public Dictionary<Protocol.Bloc, BlocData> DataByBloc { get; set; }
@@ -12,9 +11,9 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Constructors
-        public Data(DataInfo dataInfo)
+        public iEEGData(iEEGDataInfo dataInfo)
         {
-            RawData rawData = new RawData(dataInfo);
+            iEEGRawData rawData = new iEEGRawData(dataInfo);
 
             // Get UnitByChannel.
             UnitByChannel = rawData.UnitByChannel;
