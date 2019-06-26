@@ -15,7 +15,7 @@ namespace HBP.UI.Anatomy
         [SerializeField] FolderSelector m_DatabaseFolderSelector;
         [SerializeField] PatientListGestion m_DatabaseListGestion;
         [SerializeField] PatientListGestion m_ProjectListGestion;
-        Queue<Patient> m_PatientToAdd;
+        Queue<Patient> m_PatientToAdd = new Queue<Patient>();
 
         public override bool Interactable
         {
