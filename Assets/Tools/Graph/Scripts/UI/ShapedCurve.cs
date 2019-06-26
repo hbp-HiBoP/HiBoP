@@ -114,7 +114,10 @@ namespace Tools.Unity.Graph
                             y = m_yRatio * (point.y - m_OrdinateDisplayRange.x);
                             shapes.Add(m_yRatio * shapedData.Shapes[i]);
                             points.Add(new Vector2(x, y));
-                            if (point.x > m_AbscissaDisplayRange.y) break;
+                        }
+                        if(point.x > m_AbscissaDisplayRange.y)
+                        {
+                            break;
                         }
                     }
 
