@@ -30,7 +30,9 @@ namespace HBP.UI.Informations
 
         [SerializeField] Queue<Graph> m_GraphPool = new Queue<Graph>();
         [SerializeField] List<Graph> m_Graphs = new List<Graph>();
+        [SerializeField] int m_SelectedColumn;
         [SerializeField] Vector2 m_OrdinateDisplayRange;
+        [SerializeField] Vector2[] m_AbscissaDisplayRange;
         [SerializeField] bool m_useDefaultDisplayRange = true;
 
         [SerializeField] DataStruct[] m_Data;
@@ -88,22 +90,12 @@ namespace HBP.UI.Informations
         }
         void SetGraphs()
         {
-            UnityEngine.Profiling.Profiler.BeginSample("SaveSettings");
             SaveSettings();
-            UnityEngine.Profiling.Profiler.EndSample();
 
-
-            // Clear graphs
-            UnityEngine.Profiling.Profiler.BeginSample("ClearGraphs");
             ClearGraphs();
-            UnityEngine.Profiling.Profiler.EndSample();
 
-            // Subblocs
-            UnityEngine.Profiling.Profiler.BeginSample("GenerateDataCurve");
             Tuple<Graph.Curve[], Tools.CSharp.Window, bool>[] columns = GenerateDataCurve(m_Data, m_Channels);
-            UnityEngine.Profiling.Profiler.EndSample();
 
-            UnityEngine.Profiling.Profiler.BeginSample("FindMinMax");
             Vector2 minMax = new Vector2(float.MaxValue, float.MinValue);
             foreach (var column in columns)
             {
@@ -133,19 +125,29 @@ namespace HBP.UI.Informations
             {
                 ordinateDisplayRange = new Vector2(minMax.x - Mathf.Abs(minMax.x), minMax.y + Mathf.Abs(minMax.y));
             }
-            UnityEngine.Profiling.Profiler.EndSample();
 
-            UnityEngine.Profiling.Profiler.BeginSample("AddGraphs");
-            // Generate settings by columns
-            foreach (var column in columns)
+            Vector2[] abscissaDisplayRange = new Vector2[columns.Length];
+            for (int c = 0; c < abscissaDisplayRange.Length; c++)
             {
-                Vector2 defaultAbscissaDisplayRange = new Vector2(column.Item2.Start, column.Item2.End);
-   
-                AddGraph(column.Item1, defaultAbscissaDisplayRange, defaultOrdinateDisplayRange, defaultAbscissaDisplayRange, ordinateDisplayRange, column.Item3);
+                if(m_useDefaultDisplayRange || c >= m_AbscissaDisplayRange.Length)
+                {
+                    abscissaDisplayRange[c] = columns[c].Item2.ToVector2();
+                }
+                else
+                {
+                    abscissaDisplayRange[c] = m_AbscissaDisplayRange[c];
+                }
             }
-            UnityEngine.Profiling.Profiler.EndSample();
+
+            // Generate settings by columns
+            for (int c = 0; c < columns.Length; c++)
+            {
+                var column = columns[c];
+                bool selected = c == m_SelectedColumn;
+                AddGraph(column.Item1, column.Item2.ToVector2(), defaultOrdinateDisplayRange, abscissaDisplayRange[c], ordinateDisplayRange, selected);
+            }
         }
-        void AddGraph(Graph.Curve[] curves,Vector2 defaultAbscissaDisplayRange, Vector2 defaultOrdinateDisplayRange, Vector2 abscissaDisplayRange, Vector2 ordinateDisplayRange, bool isMain)
+        void AddGraph(Graph.Curve[] curves,Vector2 defaultAbscissaDisplayRange, Vector2 defaultOrdinateDisplayRange, Vector2 abscissaDisplayRange, Vector2 ordinateDisplayRange, bool selected)
         {
             UnityEngine.Profiling.Profiler.BeginSample("Instantiate graph");
             string name = "";
@@ -190,19 +192,21 @@ namespace HBP.UI.Informations
             toggle.group = m_ToggleContainer.GetComponent<ToggleGroup>();
             toggleGameObject.name = name;
             toggleGameObject.GetComponentInChildren<Text>().text = name;
-            toggle.isOn = isMain;
+            toggle.isOn = selected;
 
             m_Graphs.Add(graph);
         }
         void SaveSettings()
         {
-            Graph graph = m_Graphs.FirstOrDefault();
-            if (graph != null)
+            m_AbscissaDisplayRange = new Vector2[m_Graphs.Count];
+            for (int g = 0; g < m_Graphs.Count; g++)
             {
+                Graph graph = m_Graphs[g];
+                if (graph.isActiveAndEnabled) m_SelectedColumn = g;
                 m_useDefaultDisplayRange = graph.UseDefaultDisplayRange;
                 m_OrdinateDisplayRange = graph.OrdinateDisplayRange;
+                m_AbscissaDisplayRange[g] = graph.AbscissaDisplayRange;
             }
-
         }
 
         void OnChangeOrdinateDisplayRangeHandler(Vector2 ordinateDisplayRange)
