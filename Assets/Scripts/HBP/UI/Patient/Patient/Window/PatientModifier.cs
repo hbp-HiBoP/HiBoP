@@ -81,11 +81,8 @@ namespace HBP.UI.Anatomy
             m_MRIListGestion.Initialize(m_SubWindows);
             m_ConnectivityListGestion.Initialize(m_SubWindows);
 
-            m_NameInputField.onValueChanged.RemoveAllListeners();
             m_NameInputField.onValueChanged.AddListener((value) => ItemTemp.Name = value);
-            m_PlaceInputField.onValueChanged.RemoveAllListeners();
             m_PlaceInputField.onValueChanged.AddListener((value) => ItemTemp.Place = value);
-            m_DateInputField.onValueChanged.RemoveAllListeners();
             m_DateInputField.onValueChanged.AddListener((value) => ItemTemp.Date = int.Parse(value));
 
             m_OthersGestion.Initialize();

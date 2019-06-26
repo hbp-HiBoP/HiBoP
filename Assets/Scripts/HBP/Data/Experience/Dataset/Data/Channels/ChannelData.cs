@@ -11,7 +11,7 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Constructors
-        public ChannelData(iEEGData data, string channel) : this(data.DataByBloc.ToDictionary(kv => kv.Key,kv => new BlocChannelData(kv.Value,channel)),data.UnitByChannel[channel])
+        public ChannelData(EpochedData data, string channel) : this(data.DataByBloc.ToDictionary(kv => kv.Key,kv => new BlocChannelData(kv.Value,channel)),data.UnitByChannel[channel])
         {
 
         }
@@ -26,13 +26,11 @@ namespace HBP.Data.Experience.Dataset
         public void Clear()
         {
             Unit = "";
-
             foreach (var blocChannelData in DataByBloc.Values)
             {
                 blocChannelData.Clear();
             }
             DataByBloc.Clear();
-            DataByBloc = new Dictionary<Protocol.Bloc, BlocChannelData>();
         }
         #endregion
     }

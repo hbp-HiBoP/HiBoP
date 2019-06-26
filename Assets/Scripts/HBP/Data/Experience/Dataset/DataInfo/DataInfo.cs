@@ -1,10 +1,10 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
 using UnityEngine.Events;
+using HBP.Errors;
 
 namespace HBP.Data.Experience.Dataset
 {
@@ -34,18 +34,11 @@ namespace HBP.Data.Experience.Dataset
 
         [DataMember] public string ID { get; set; }
 
-        [DataMember] protected DataContainer m_DataContainer;
-        public DataContainer DataContainer
+        [DataMember] protected Container.DataContainer m_DataContainer;
+        public Container.DataContainer DataContainer
         {
             get { return m_DataContainer; }
-            set { m_DataContainer = value;  m_DataContainer.GetErrors(); m_DataContainer.OnRequestErrorCheck.AddListener(OnRequestErrorCheck.Invoke); }
-        }
-        /// <summary>
-        /// Error type of the DataInfo.
-        /// </summary>
-        public enum ErrorType
-        {
-            LabelEmpty, PatientEmpty, RequiredFieldEmpty, FileDoesNotExist, WrongExtension, BlocsCantBeEpoched, NotEnoughInformation, ChannelNotFound
+            set { m_DataContainer = value; m_DataContainer.GetErrors(); m_DataContainer.OnRequestErrorCheck.AddListener(OnRequestErrorCheck.Invoke); }
         }
 
         public Dataset Dataset
@@ -55,8 +48,8 @@ namespace HBP.Data.Experience.Dataset
                 return ApplicationState.ProjectLoaded.Datasets.FirstOrDefault((d) => d.Data.Contains(this));
             }
         }
-        
-        protected ErrorType[] m_NameErrors = new ErrorType[0];
+
+        protected Error[] m_NameErrors = new Error[0];
 
         public bool IsOk
         {
@@ -65,11 +58,11 @@ namespace HBP.Data.Experience.Dataset
                 return Errors.Length == 0;
             }
         }
-        public virtual ErrorType[] Errors
+        public virtual Error[] Errors
         {
             get
             {
-                List<ErrorType> errors = new List<ErrorType>();
+                List<Error> errors = new List<Error>();
                 errors.AddRange(m_NameErrors);
                 errors.AddRange(m_DataContainer.Errors);
                 return errors.Distinct().ToArray();
@@ -80,31 +73,31 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Public Methods
-        public virtual ErrorType[] GetErrors(Protocol.Protocol protocol)
+        public virtual Error[] GetErrors(Protocol.Protocol protocol)
         {
-            List<ErrorType> errors = new List<ErrorType>(GetNameErrors());
+            List<Error> errors = new List<Error>(GetNameErrors());
             errors.AddRange(m_DataContainer.GetErrors());
             return errors.Distinct().ToArray();
         }
-        public ErrorType[] GetNameErrors()
+        public virtual Error[] GetNameErrors()
         {
-            List<ErrorType> errors = new List<ErrorType>();
-            if(string.IsNullOrEmpty(Name)) errors.Add(ErrorType.LabelEmpty);
+            List<Error> errors = new List<Error>();
+            if (string.IsNullOrEmpty(Name)) errors.Add(new LabelEmptyError());
             m_NameErrors = errors.ToArray();
             return m_NameErrors;
         }
-        public string GetErrorsMessage()
+        public virtual string GetErrorsMessage()
         {
-            ErrorType[] errors = Errors;
+            Error[] errors = Errors;
             StringBuilder stringBuilder = new StringBuilder();
             if (errors.Length == 0) stringBuilder.Append(string.Format("• {0}", "No error detected."));
             else
             {
                 for (int i = 0; i < errors.Length - 1; i++)
                 {
-                    stringBuilder.AppendLine(string.Format("• {0}", GetErrorMessage(errors[i])));
+                    stringBuilder.AppendLine(string.Format("• {0}", errors[i].Message));
                 }
-                stringBuilder.Append(string.Format("• {0}", GetErrorMessage(errors.Last())));
+                stringBuilder.Append(string.Format("• {0}", errors.Last().Message));
             }
             return stringBuilder.ToString();
         }
@@ -118,7 +111,7 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="measure">Name of the measure in the EEG file.</param>
         /// <param name="eeg">EEG file path.</param>
         /// <param name="pos">POS file path.</param>
-        public DataInfo(string name, DataContainer dataContainer, string id)
+        public DataInfo(string name, Container.DataContainer dataContainer, string id)
         {
             Name = name;
             ID = id;
@@ -127,7 +120,7 @@ namespace HBP.Data.Experience.Dataset
         /// <summary>
         /// Create a new DataInfo instance with default value.
         /// </summary>
-        public DataInfo() : this("Data", new DataContainer(), Guid.NewGuid().ToString())
+        public DataInfo() : this("Data", new Container.DataContainer(), Guid.NewGuid().ToString())
         {
         }
         #endregion
@@ -205,33 +198,6 @@ namespace HBP.Data.Experience.Dataset
         }
         #endregion
 
-        #region Private Methods
-        string GetErrorMessage(ErrorType error)
-        {
-            switch (error)
-            {
-                case ErrorType.LabelEmpty:
-                    return "The label field is empty.";
-                case ErrorType.PatientEmpty:
-                    return "The patient field is empty.";
-                case ErrorType.RequiredFieldEmpty:
-                    return "One of the required fields is empty.";
-                case ErrorType.FileDoesNotExist:
-                    return "One of the files does not exist.";
-                case ErrorType.WrongExtension:
-                    return "One of the files has a wrong extension.";
-                case ErrorType.BlocsCantBeEpoched:
-                    return "One of the blocs of the protocol can't be epoched.";
-                case ErrorType.NotEnoughInformation:
-                    return "One of the files does not contain enough information.";
-                case ErrorType.ChannelNotFound:
-                    return "The specified channel could not be found in the data container.";
-                default:
-                    return "Unknown error.";
-            }
-        }
-        #endregion
-
         #region Serialization
         [OnDeserialized()]
         public void OnDeserialized(StreamingContext context)
@@ -240,6 +206,20 @@ namespace HBP.Data.Experience.Dataset
         }
         public virtual void OnDeserializedOperation(StreamingContext context)
         {
+        }
+        #endregion
+
+        #region Errors
+        public class LabelEmptyError : Error
+        {
+            #region Properties
+            public LabelEmptyError() : this("")
+            {
+            }
+            public LabelEmptyError(string message) : base("The label field is empty", message)
+            {
+            }
+            #endregion
         }
         #endregion
     }

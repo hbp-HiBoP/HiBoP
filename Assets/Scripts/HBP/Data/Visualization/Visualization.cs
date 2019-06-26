@@ -64,7 +64,7 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Columns of the visualization.
         /// </summary>
-        [DataMember(Order = 5)] public List<BaseColumn> Columns { get; set; }
+        [DataMember(Order = 5)] public List<Column> Columns { get; set; }
         /// <summary>
         /// EEG Columns of the visualization.
         /// </summary>
@@ -105,7 +105,7 @@ namespace HBP.Data.Visualization
         /// <param name="name">Name of the visualization.</param>
         /// <param name="columns">Columns of the visualization.</param>
         /// <param name="id">Unique ID.</param>
-        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<BaseColumn> columns, string id, VisualizationConfiguration configuration)
+        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, string id, VisualizationConfiguration configuration)
         {
             Name = name;
             Columns = columns.ToList();
@@ -119,7 +119,7 @@ namespace HBP.Data.Visualization
         /// <param name="name">Name of the visualization.</param>
         /// <param name="columns">Columns of the visualization.</param>
         /// <param name="id">Unique ID.</param>
-        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<BaseColumn> columns, string id) : this(name, patients, columns, id, new VisualizationConfiguration())
+        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, string id) : this(name, patients, columns, id, new VisualizationConfiguration())
         {
         }
         /// <summary>
@@ -127,13 +127,13 @@ namespace HBP.Data.Visualization
         /// </summary>
         /// <param name="name">Name of the visualization.</param>
         /// <param name="columns">Columns of the visualization.</param>
-        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<BaseColumn> columns) : this(name, patients, columns, Guid.NewGuid().ToString())
+        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns) : this(name, patients, columns, Guid.NewGuid().ToString())
         {
         }
         /// <summary>
         /// Create a new visualization instance with default value.
         /// </summary>
-        public Visualization() : this("Unknown", new Patient[0], new BaseColumn[0])
+        public Visualization() : this("Unknown", new Patient[0], new Column[0])
         {
 
         }
@@ -241,7 +241,7 @@ namespace HBP.Data.Visualization
         /// <param name="index2">Index of the second column to swap.</param>
         public void SwapColumns(int index1,int index2)
         {
-            BaseColumn tmp = Columns[index1];
+            Column tmp = Columns[index1];
             Columns[index1] = Columns[index2];
             Columns[index2] = tmp;
         }
@@ -319,7 +319,7 @@ namespace HBP.Data.Visualization
         /// <returns>Clone of this instance.</returns>
         public object Clone()
         {
-            BaseColumn[] columns = (from column in Columns select column.Clone() as BaseColumn).ToArray();
+            Column[] columns = (from column in Columns select column.Clone() as Column).ToArray();
             return new Visualization(Name, Patients, columns, ID, Configuration.Clone() as VisualizationConfiguration);
         }
         /// <summary>
@@ -429,7 +429,7 @@ namespace HBP.Data.Visualization
                 yield return Ninja.JumpBack;
                 try
                 {
-                    Experience.Dataset.iEEGData data = DataManager.GetData(dataInfo);
+                    Experience.Dataset.IEEGData data = DataManager.GetData(dataInfo) as Experience.Dataset.IEEGData;
                     foreach (var column in dataInfoByColumn.Keys)
                     {
                         if (data.DataByBloc.ContainsKey(column.Bloc) && !data.DataByBloc[column.Bloc].IsValid)

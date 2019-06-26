@@ -1,22 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.Serialization;
+using HBP.Errors;
 
 namespace HBP.Data.Experience.Dataset
 {
-    [DataContract]
-    public class CCEPDataInfo : PatientDataInfo
+    [DataContract, DisplayName("CCEP")]
+    public class CCEPDataInfo : PatientDataInfo, IEpochable
     {
         #region Properties
-        [DataMember] public string Channel { get; set; }
+        [DataMember] public string StimulatedChannel { get; set; }
 
-        protected ErrorType[] m_CCEPErrors = new ErrorType[0];
-        public override ErrorType[] Errors
+        protected Error[] m_CCEPErrors = new Error[0];
+        public override Error[] Errors
         {
             get
             {
-                List<ErrorType> errors = new List<ErrorType>(base.Errors);
+                List<Error> errors = new List<Error>(base.Errors);
                 errors.AddRange(m_CCEPErrors);
                 return errors.Distinct().ToArray();
             }
@@ -24,11 +26,11 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Contructors
-        public CCEPDataInfo(string name, DataContainer dataContainer, Patient patient, string channel, string id) : base(name, dataContainer, patient, id)
+        public CCEPDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string channel, string id) : base(name, dataContainer, patient, id)
         {
-            Channel = channel;
+            StimulatedChannel = channel;
         }
-        public CCEPDataInfo() : this("Data", new ElanDataContainer(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), "", Guid.NewGuid().ToString())
+        public CCEPDataInfo() : this("Data", new Container.Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), "", Guid.NewGuid().ToString())
         {
 
         }
@@ -41,42 +43,97 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new CCEPDataInfo(Name, DataContainer, Patient, Channel, ID);
+            return new CCEPDataInfo(Name, DataContainer, Patient, StimulatedChannel, ID);
         }
         public override void Copy(object copy)
         {
             base.Copy(copy);
             CCEPDataInfo dataInfo = copy as CCEPDataInfo;
-            Channel = dataInfo.Channel;
+            StimulatedChannel = dataInfo.StimulatedChannel;
         }
         #endregion
 
         #region Public Methods
-        public override ErrorType[] GetErrors(Protocol.Protocol protocol)
+        public override Error[] GetErrors(Protocol.Protocol protocol)
         {
-            List<ErrorType> errors = new List<ErrorType>(base.GetErrors(protocol));
+            List<Error> errors = new List<Error>(base.GetErrors(protocol));
             errors.AddRange(GetCCEPErrors(protocol));
             return errors.Distinct().ToArray();
         }
-        public virtual ErrorType[] GetCCEPErrors(Protocol.Protocol protocol)
+        public virtual Error[] GetCCEPErrors(Protocol.Protocol protocol)
         {
-            List<ErrorType> errors = new List<ErrorType>();
+            List<Error> errors = new List<Error>();
             if (m_DataContainer.IsOk)
             {
-                Tools.CSharp.EEG.File file = new Tools.CSharp.EEG.File(m_DataContainer.Type, false, m_DataContainer.DataFilesPaths);
+                Tools.CSharp.EEG.File.FileType type;
+                string[] files;
+                if (m_DataContainer is Container.BrainVision brainVisionDataContainer)
+                {
+                    type = Tools.CSharp.EEG.File.FileType.BrainVision;
+                    files = new string[] { brainVisionDataContainer.Header };
+                }
+                else if (m_DataContainer is Container.EDF edfDataContainer)
+                {
+                    type = Tools.CSharp.EEG.File.FileType.EDF;
+                    files = new string[] { edfDataContainer.Path };
+                }
+                else if (m_DataContainer is Container.Elan elanDataContainer)
+                {
+                    type = Tools.CSharp.EEG.File.FileType.ELAN;
+                    files = new string[] { elanDataContainer.EEG, elanDataContainer.POS, elanDataContainer.Notes };
+                }
+                else if (m_DataContainer is Container.Micromed micromedDataContainer)
+                {
+                    type = Tools.CSharp.EEG.File.FileType.Micromed;
+                    files = new string[] { micromedDataContainer.Path };
+                }
+                else
+                {
+                    throw new Exception("Invalid data container type");
+                }
+                Tools.CSharp.EEG.File file = new Tools.CSharp.EEG.File(type, false, files);
                 List<Tools.CSharp.EEG.Trigger> triggers = file.Triggers;
                 if (!protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))))
                 {
-                    errors.Add(ErrorType.BlocsCantBeEpoched);
+                    errors.Add(new BlocsCantBeEpochedError());
                 }
                 List<Tools.CSharp.EEG.Electrode> electrodes = file.Electrodes;
-                if (electrodes.All(e => e.Label != Channel))
+                if (electrodes.All(e => e.Label != StimulatedChannel))
                 {
-                    errors.Add(ErrorType.ChannelNotFound);
+                    errors.Add(new ChannelNotFoundError());
                 }
             }
             m_CCEPErrors = errors.ToArray();
             return m_CCEPErrors;
+        }
+        #endregion
+
+        #region Errors
+        public class BlocsCantBeEpochedError : Error
+        {
+            #region Constructors
+            public BlocsCantBeEpochedError() : this("")
+            {
+
+            }
+            public BlocsCantBeEpochedError(string message) : base("One of the blocs of the protocol can't be epoched", message)
+            {
+
+            }
+            #endregion
+        }
+        public class ChannelNotFoundError : Error
+        {
+            #region Constructors
+            public ChannelNotFoundError() : this("")
+            {
+
+            }
+            public ChannelNotFoundError(string message): base("The specified channel could not be found in the data container", message)
+            {
+
+            }
+            #endregion
         }
         #endregion
     }

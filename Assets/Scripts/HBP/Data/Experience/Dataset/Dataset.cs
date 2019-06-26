@@ -93,6 +93,10 @@ namespace HBP.Data.Experience.Dataset
         {
             return m_Data.OfType<iEEGDataInfo>().ToArray();
         }
+        public CCEPDataInfo[] GetCCEPDataInfos()
+        {
+            return m_Data.OfType<CCEPDataInfo>().ToArray();
+        }
 
         public void Load(string path)
         {

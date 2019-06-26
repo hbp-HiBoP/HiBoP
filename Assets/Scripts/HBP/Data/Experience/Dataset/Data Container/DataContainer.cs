@@ -4,8 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using UnityEngine.Events;
+using HBP.Errors;
 
-namespace HBP.Data.Experience.Dataset
+namespace HBP.Data.Container
 {
     [DataContract]
     public class DataContainer : ICloneable, ICopiable, IIdentifiable
@@ -13,34 +14,12 @@ namespace HBP.Data.Experience.Dataset
         #region Properties
         [DataMember] public string ID { get; set; }
 
-        public virtual string DataTypeString
+        protected Error[] m_Errors = new Error[0];
+        public virtual Error[] Errors
         {
             get
             {
-                return "None";
-            }
-        }
-        public virtual string[] DataFilesPaths
-        {
-            get
-            {
-                return new string[0];
-            }
-        }
-        public virtual Tools.CSharp.EEG.File.FileType Type
-        {
-            get
-            {
-                throw new Exception("Invalid file type");
-            }
-        }
-
-        protected DataInfo.ErrorType[] m_Errors = new DataInfo.ErrorType[0];
-        public virtual DataInfo.ErrorType[] Errors
-        {
-            get
-            {
-                List<DataInfo.ErrorType> errors = new List<DataInfo.ErrorType>();
+                List<Error> errors = new List<Error>();
                 errors.AddRange(m_Errors);
                 return errors.Distinct().ToArray();
             }
@@ -53,7 +32,7 @@ namespace HBP.Data.Experience.Dataset
             }
         }
 
-        public UnityEvent OnRequestErrorCheck { get; set; } = new UnityEvent();
+        public UnityEvent OnRequestErrorCheck { get; } = new UnityEvent();
         #endregion
 
         #region Constructors
@@ -71,9 +50,9 @@ namespace HBP.Data.Experience.Dataset
         public virtual void CopyDataToDirectory(DirectoryInfo dataInfoDirectory, string projectDirectory, string oldProjectDirectory)
         {
         }
-        public virtual DataInfo.ErrorType[] GetErrors()
+        public virtual Error[] GetErrors()
         {
-            return new DataInfo.ErrorType[0];
+            return new Error[0];
         }
         #endregion
 
@@ -158,5 +137,55 @@ namespace HBP.Data.Experience.Dataset
         {
         }
         #endregion
+
+        public class RequieredFieldEmptyError : Error
+        {
+            #region Constructors
+            public RequieredFieldEmptyError() : this("")
+            {
+
+            }
+            public RequieredFieldEmptyError(string informations) : base("One of the required fields is empty", informations)
+            {
+
+            }
+            #endregion
+        }
+        public class FileDoesNotExistError : Error
+        {
+            #region Constructors
+            public FileDoesNotExistError() : this("")
+            {
+            }
+            public FileDoesNotExistError(string informations) : base("One of the files does not exist", informations)
+            {
+
+            }
+            #endregion
+        }
+        public class WrongExtensionError : Error
+        {
+            #region Constructors
+            public WrongExtensionError() : this("")
+            {
+            }
+            public WrongExtensionError(string informations) : base("One of the files has a wrong extension", informations)
+            {
+
+            }
+            #endregion
+        }
+        public class NotEnoughInformationError : Error
+        {
+            #region Constructors
+            public NotEnoughInformationError() : this("")
+            {
+            }
+            public NotEnoughInformationError(string informations) : base("One of the files does not contain enough information", informations)
+            {
+
+            }
+            #endregion
+        }
     }
 }

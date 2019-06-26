@@ -1,74 +1,51 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.Serialization;
 using Tools.Unity;
-using UnityEngine;
+using HBP.Errors;
+using System.ComponentModel;
 
-namespace HBP.Data.Experience.Dataset
+namespace HBP.Data.Container
 {
-    [DataContract]
-    public class MicromedDataContainer : DataContainer
+    [DataContract, DisplayName("Micromed"), iEEG, CCEP]
+    public class Micromed : DataContainer
     {
         #region Properties
         const string MICROMED_EXTENSION = ".TRC";
 
-        [DataMember(Name = "TRC")] string m_TRC;
+        [DataMember(Name = "TRC")] string m_Path;
         /// <summary>
         /// Path of the EEG file.
         /// </summary>
-        public string TRC
+        public string Path
         {
-            get { return m_TRC?.ConvertToFullPath(); }
-            set { m_TRC = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
+            get { return m_Path?.ConvertToFullPath(); }
+            set { m_Path = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
         }
-        public string SavedTRC { get { return m_TRC; } }
-
-        public override string[] DataFilesPaths
-        {
-            get
-            {
-                return new string[] { TRC };
-            }
-        }
-        public override string DataTypeString
-        {
-            get
-            {
-                return "Micromed";
-            }
-        }
-        public override Tools.CSharp.EEG.File.FileType Type
-        {
-            get
-            {
-                return Tools.CSharp.EEG.File.FileType.Micromed;
-            }
-        }
+        public string SavedPath { get { return m_Path; } }
         #endregion
 
         #region Public Methods
-        public override DataInfo.ErrorType[] GetErrors()
+        public override Error[] GetErrors()
         {
-            List<DataInfo.ErrorType> errors = new List<DataInfo.ErrorType>();
-            if (string.IsNullOrEmpty(TRC))
+            List<Error> errors = new List<Error>();
+            if (string.IsNullOrEmpty(Path))
             {
-                errors.Add(DataInfo.ErrorType.RequiredFieldEmpty);
+                errors.Add(new RequieredFieldEmptyError("TRC file path is empty"));
             }
             else
             {
-                FileInfo headerFile = new FileInfo(TRC);
+                FileInfo headerFile = new FileInfo(Path);
                 if (!headerFile.Exists)
                 {
-                    errors.Add(DataInfo.ErrorType.FileDoesNotExist);
+                    errors.Add(new FileDoesNotExistError("TRC file does not exist"));
                 }
                 else
                 {
                     if (headerFile.Extension != MICROMED_EXTENSION)
                     {
-                        errors.Add(DataInfo.ErrorType.WrongExtension);
+                        errors.Add(new WrongExtensionError("TRC file has a wrong extension"));
                     }
                 }
             }
@@ -77,7 +54,7 @@ namespace HBP.Data.Experience.Dataset
         }
         public override void CopyDataToDirectory(DirectoryInfo dataInfoDirectory, string projectDirectory, string oldProjectDirectory)
         {
-            m_TRC = TRC.CopyToDirectory(dataInfoDirectory).Replace(projectDirectory, oldProjectDirectory);
+            m_Path = Path.CopyToDirectory(dataInfoDirectory).Replace(projectDirectory, oldProjectDirectory);
         }
         #endregion
 
@@ -90,15 +67,15 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="measure">Name of the measure in the EEG file.</param>
         /// <param name="trc">EEG file path.</param>
         /// <param name="pos">POS file path.</param>
-        public MicromedDataContainer(string trc, string id)
+        public Micromed(string trc, string id)
         {
-            TRC = trc;
+            Path = trc;
             ID = id;
         }
         /// <summary>
         /// Create a new DataInfo instance with default value.
         /// </summary>
-        public MicromedDataContainer() : this(string.Empty, Guid.NewGuid().ToString())
+        public Micromed() : this(string.Empty, Guid.NewGuid().ToString())
         {
         }
         #endregion
@@ -110,12 +87,12 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new MicromedDataContainer(TRC, ID);
+            return new Micromed(Path, ID);
         }
         public override void Copy(object copy)
         {
-            MicromedDataContainer dataInfo = copy as MicromedDataContainer;
-            TRC = dataInfo.TRC;
+            Micromed dataInfo = copy as Micromed;
+            Path = dataInfo.Path;
             ID = dataInfo.ID;
         }
         #endregion
@@ -123,7 +100,7 @@ namespace HBP.Data.Experience.Dataset
         #region Serialization
         public override void OnDeserializedOperation(StreamingContext context)
         {
-            m_TRC = m_TRC.ToPath();
+            m_Path = m_Path.ToPath();
             base.OnDeserializedOperation(context);
         }
         #endregion

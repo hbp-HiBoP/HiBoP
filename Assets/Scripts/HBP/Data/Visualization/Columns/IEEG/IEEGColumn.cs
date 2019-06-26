@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
 using Tools.CSharp;
-
+using System.ComponentModel;
 
 namespace HBP.Data.Visualization
 {
@@ -22,8 +22,8 @@ namespace HBP.Data.Visualization
     *   - \a Protocol.
     *   - \a Bloc.
     */
-    [DataContract]
-    public class IEEGColumn : BaseColumn
+    [DataContract, DisplayName("iEEG")]
+    public class IEEGColumn : Column
     {
         #region Properties
         [DataMember(Name = "Dataset")] string datasetID;

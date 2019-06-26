@@ -29,7 +29,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Column data of this column 3D
         /// </summary>
-        public Data.Visualization.BaseColumn ColumnData { get; private set; }
+        public Data.Visualization.Column ColumnData { get; private set; }
         /// <summary>
         /// Name of the column
         /// </summary>
@@ -327,7 +327,7 @@ namespace HBP.Module3D
         /// <param name="sites">List of sites (DLL)</param>
         /// <param name="sitesPatientParent">List of the gameobjects for the sites corresponding to the patients</param>
         /// <param name="siteList">List of the sites gameobjects</param>
-        public void Initialize(int idColumn, Data.Visualization.BaseColumn baseColumn, PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
+        public void Initialize(int idColumn, Data.Visualization.Column baseColumn, PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
         {
             Layer = "Column" + idColumn;
             ColumnData = baseColumn;

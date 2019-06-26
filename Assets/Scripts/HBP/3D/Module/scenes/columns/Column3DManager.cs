@@ -480,7 +480,7 @@ namespace HBP.Module3D
         /// Add a column to the scene
         /// </summary>
         /// <param name="type">Type of the column</param>
-        private void AddColumn(Data.Visualization.BaseColumn baseColumn)
+        private void AddColumn(Data.Visualization.Column baseColumn)
         {
             Column3D column = null;
             Data.Enums.ColumnType type = baseColumn is Data.Visualization.IEEGColumn ? Data.Enums.ColumnType.iEEG : Data.Enums.ColumnType.Anatomic;
@@ -662,9 +662,9 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="type"></param>
         /// <param name="number"></param>
-        public void InitializeColumns(IEnumerable<Data.Visualization.BaseColumn> columns)
+        public void InitializeColumns(IEnumerable<Data.Visualization.Column> columns)
         {
-            foreach (Data.Visualization.BaseColumn column in columns)
+            foreach (Data.Visualization.Column column in columns)
             {
                 AddColumn(column);
             }

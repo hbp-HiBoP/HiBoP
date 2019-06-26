@@ -90,7 +90,7 @@ namespace HBP.UI.Visualization
         }
         public void AddColumn()
         {
-            BaseColumn column = new IEEGColumn("Column n°"+(ItemTemp.Columns.Count + 1), new BaseConfiguration(), ItemTemp.Patients);
+            Column column = new IEEGColumn("Column n°"+(ItemTemp.Columns.Count + 1), new BaseConfiguration(), ItemTemp.Patients);
             ItemTemp.Columns.Add(column);
             m_TabGestion.AddTab(column.Name);
         }
@@ -148,7 +148,6 @@ namespace HBP.UI.Visualization
             }
         }
 
-
         protected void AddPatients(IEnumerable<Patient> patients)
         {
             ItemTemp.AddPatient(patients.ToArray());
@@ -180,7 +179,8 @@ namespace HBP.UI.Visualization
                 {
                     m_ColumnModifier.gameObject.SetActive(true);
                 }
-                m_ColumnModifier.Set(ItemTemp.Columns[index], ItemTemp.Patients);
+                m_ColumnModifier.Patients = ItemTemp.Patients.ToArray();
+                m_ColumnModifier.Object = ItemTemp.Columns[index];
             }
             else
             {

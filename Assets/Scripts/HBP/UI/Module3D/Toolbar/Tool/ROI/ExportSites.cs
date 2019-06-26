@@ -103,8 +103,30 @@ namespace HBP.UI.Module3D.Tools
                     {
                         Column3DIEEG columnIEEG = (Column3DIEEG)SelectedColumn;
                         DataInfo dataInfo = dataInfoByPatient[site.Information.Patient];
-                        dataType = dataInfo.DataContainer.DataTypeString;
-                        dataFiles = string.Join(";", dataInfo.DataContainer.DataFilesPaths);
+                        if (dataInfo.DataContainer is Data.Container.BrainVision brainVisionDataContainer)
+                        {
+                            dataType = "BrainVision";
+                            dataFiles = string.Join(";", new string[] { brainVisionDataContainer.Header });
+                        }
+                        else if (dataInfo.DataContainer is Data.Container.EDF edfDataContainer)
+                        {
+                            dataType = "EDF";
+                            dataFiles = string.Join(";", new string[] { edfDataContainer.Path });
+                        }
+                        else if (dataInfo.DataContainer is Data.Container.Elan elanDataContainer)
+                        {
+                            dataType = "ELAN";
+                            dataFiles = string.Join(";", new string[] { elanDataContainer.EEG, elanDataContainer.POS, elanDataContainer.Notes });
+                        }
+                        else if (dataInfo.DataContainer is Data.Container.Micromed micromedDataContainer)
+                        {
+                            dataType = "Micromed";
+                            dataFiles = string.Join(";", new string[] { micromedDataContainer.Path });
+                        }
+                        else
+                        {
+                            throw new Exception("Invalid data container type");
+                        }
                     }
                     csvBuilder.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9}",
                             site.Information.ChannelName,

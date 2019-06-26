@@ -1,16 +1,15 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.Serialization;
 using Tools.Unity;
-using UnityEngine;
+using HBP.Errors;
+using System.ComponentModel;
 
-namespace HBP.Data.Experience.Dataset
+namespace HBP.Data.Container
 {
-    [DataContract]
-    public class ElanDataContainer : DataContainer
+    [DataContract, DisplayName("Elan"), iEEG, CCEP]
+    public class Elan : DataContainer
     {
         #region Properties
         const string EEG_EXTENSION = ".eeg";
@@ -56,75 +55,62 @@ namespace HBP.Data.Experience.Dataset
             set { m_Notes = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
         }
         public string SavedNotes { get { return m_Notes; } }
-
-        public override string[] DataFilesPaths
-        {
-            get
-            {
-                return new string[] { EEG, POS, Notes };
-            }
-        }
-        public override string DataTypeString
-        {
-            get
-            {
-                return "ELAN";
-            }
-        }
-        public override Tools.CSharp.EEG.File.FileType Type
-        {
-            get
-            {
-                return Tools.CSharp.EEG.File.FileType.ELAN;
-            }
-        }
         #endregion
 
         #region Public Methods
-        public override DataInfo.ErrorType[] GetErrors()
+        public override Error[] GetErrors()
         {
-            List<DataInfo.ErrorType> errors = new List<DataInfo.ErrorType>(base.GetErrors());
+            List<Error> errors = new List<Error>(base.GetErrors());
             if (string.IsNullOrEmpty(EEG))
             {
-                errors.Add(DataInfo.ErrorType.RequiredFieldEmpty);
+                errors.Add(new RequieredFieldEmptyError("EEG file path is empty"));
             }
             else
             {
                 FileInfo EEGFile = new FileInfo(EEG);
                 if (!EEGFile.Exists)
                 {
-                    errors.Add(DataInfo.ErrorType.FileDoesNotExist);
+                    errors.Add(new FileDoesNotExistError("EEG file does not exist"));
                 }
                 else
                 {
                     if (EEGFile.Extension != EEG_EXTENSION)
                     {
-                        errors.Add(DataInfo.ErrorType.WrongExtension);
+                        errors.Add(new WrongExtensionError("EEG file has a wrong extension"));
                     }
                     else
                     {
                         if (!File.Exists(EEGHeader))
                         {
-                            errors.Add(DataInfo.ErrorType.RequiredFieldEmpty);
+                            errors.Add(new RequieredFieldEmptyError("EEG header file path is empty"));
                         }
                         else
                         {
                             if (!(new FileInfo(EEGHeader).Length > 0))
                             {
-                                errors.Add(DataInfo.ErrorType.NotEnoughInformation);
+                                errors.Add(new NotEnoughInformationError("EEG header file does not contain enough information"));
                             }
                         }
                     }
                 }
             }
-            if (string.IsNullOrEmpty(POS)) errors.Add(DataInfo.ErrorType.RequiredFieldEmpty);
+            if (string.IsNullOrEmpty(POS))
+            {
+                errors.Add(new RequieredFieldEmptyError("POS file path is empty"));
+            }
             else
             {
                 FileInfo POSFile = new FileInfo(POS);
-                if (!POSFile.Exists) errors.Add(DataInfo.ErrorType.FileDoesNotExist);
+                if (!POSFile.Exists)
+                {
+                    errors.Add(new FileDoesNotExistError("POS file does not exist"));
+                }
                 else
                 {
-                    if (POSFile.Extension != POS_EXTENSION) errors.Add(DataInfo.ErrorType.WrongExtension);
+                    if (POSFile.Extension != POS_EXTENSION)
+                    {
+                        errors.Add(new WrongExtensionError("POS file has a wrong extension"));
+                    }
                 }
             }
             m_Errors = errors.ToArray();
@@ -148,7 +134,7 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="measure">Name of the measure in the EEG file.</param>
         /// <param name="eeg">EEG file path.</param>
         /// <param name="pos">POS file path.</param>
-        public ElanDataContainer(string eeg, string pos, string notes, string id)
+        public Elan(string eeg, string pos, string notes, string id)
         {
             EEG = eeg;
             POS = pos;
@@ -158,7 +144,7 @@ namespace HBP.Data.Experience.Dataset
         /// <summary>
         /// Create a new DataInfo instance with default value.
         /// </summary>
-        public ElanDataContainer() : this(string.Empty, string.Empty, string.Empty, Guid.NewGuid().ToString())
+        public Elan() : this(string.Empty, string.Empty, string.Empty, Guid.NewGuid().ToString())
         {
         }
         #endregion
@@ -170,11 +156,11 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new ElanDataContainer(EEG, POS, Notes, ID);
+            return new Elan(EEG, POS, Notes, ID);
         }
         public override void Copy(object copy)
         {
-            ElanDataContainer dataInfo = copy as ElanDataContainer;
+            Elan dataInfo = copy as Elan;
             EEG = dataInfo.EEG;
             POS = dataInfo.POS;
             Notes = dataInfo.Notes;

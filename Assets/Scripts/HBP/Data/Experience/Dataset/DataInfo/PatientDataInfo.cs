@@ -1,11 +1,12 @@
-﻿using System;
+﻿using HBP.Errors;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 
 namespace HBP.Data.Experience.Dataset
 {
-    [DataContract]
+    [DataContract, Hide]
     public class PatientDataInfo : DataInfo
     {
         #region Properties
@@ -21,12 +22,12 @@ namespace HBP.Data.Experience.Dataset
             set { m_PatientID = value.ID; m_Patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == m_PatientID); m_PatientErrors = GetPatientErrors(); }
         }
 
-        protected ErrorType[] m_PatientErrors = new ErrorType[0];
-        public override ErrorType[] Errors
+        protected Error[] m_PatientErrors = new Error[0];
+        public override Error[] Errors
         {
             get
             {
-                List<ErrorType> errors = new List<ErrorType>(base.Errors);
+                List<Error> errors = new List<Error>(base.Errors);
                 errors.AddRange(m_PatientErrors);
                 return errors.Distinct().ToArray();
             }
@@ -34,11 +35,11 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Contructors
-        public PatientDataInfo(string name, DataContainer dataContainer, Patient patient, string id) : base(name, dataContainer, id)
+        public PatientDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string id) : base(name, dataContainer, id)
         {
             Patient = patient;
         }
-        public PatientDataInfo() : this("Data", new DataContainer(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), Guid.NewGuid().ToString())
+        public PatientDataInfo() : this("Data", new Container.DataContainer(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), Guid.NewGuid().ToString())
         {
 
         }
@@ -62,16 +63,16 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Public Methods
-        public override ErrorType[] GetErrors(Protocol.Protocol protocol)
+        public override Error[] GetErrors(Protocol.Protocol protocol)
         {
-            List<ErrorType> errors = new List<ErrorType>(base.GetErrors(protocol));
+            List<Error> errors = new List<Error>(base.GetErrors(protocol));
             errors.AddRange(GetPatientErrors());
             return errors.Distinct().ToArray();
         }
-        public ErrorType[] GetPatientErrors()
+        public Error[] GetPatientErrors()
         {
-            List<ErrorType> errors = new List<ErrorType>();
-            if (Patient == null) errors.Add(ErrorType.PatientEmpty);
+            List<Error> errors = new List<Error>();
+            if (Patient == null) errors.Add(new PatientEmptyError());
             m_PatientErrors = errors.ToArray();
             return m_PatientErrors;
         }
@@ -82,6 +83,22 @@ namespace HBP.Data.Experience.Dataset
         {
             base.OnDeserializedOperation(context);
             m_Patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == m_PatientID);
+        }
+        #endregion
+
+        #region Errors
+        public class PatientEmptyError : Error
+        {
+            #region Properties
+            public PatientEmptyError() : this("")
+            {
+
+            }
+            public PatientEmptyError(string message) : base("The patient field is empty.", message)
+            {
+
+            }
+            #endregion
         }
         #endregion
     }

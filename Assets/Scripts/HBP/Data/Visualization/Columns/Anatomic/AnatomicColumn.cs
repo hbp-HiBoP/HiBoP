@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.Serialization;
 
 namespace HBP.Data.Visualization
 {
-    [DataContract]
-    public class AnatomicColumn : BaseColumn
+    [DataContract, DisplayName("Anatomic")]
+    public class AnatomicColumn : Column
     {
         #region Properties
         [DataMember] public AnantomicConfiguration AnantomicConfiguration { get; set; }

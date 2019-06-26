@@ -19,13 +19,13 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Constructors
-        public BlocData(iEEGRawData data, Bloc bloc)
+        public BlocData(DynamicData data, Bloc bloc)
         {
             // Find all occurences for each event.
             Dictionary<Event, EventOccurences> occurencesByEvent = bloc.SubBlocs.SelectMany((s) => s.Events).ToDictionary((e) => e, (e) => new EventOccurences(e.Codes.ToDictionary((c) => c, (c) => data.GetOccurences(c).ToArray())));
 
             // Get all occurences for the mainEvent of the mainSubBloc.
-            iEEGRawData.Occurence[] MainSubBlocMainEventOccurences = occurencesByEvent[bloc.MainSubBloc.MainEvent].GetOccurences();
+            EventOccurence[] MainSubBlocMainEventOccurences = occurencesByEvent[bloc.MainSubBloc.MainEvent].GetOccurences();
 
             // Initialize loop.
             List<Trial> trials = new List<Trial>(MainSubBlocMainEventOccurences.Length);
@@ -127,26 +127,26 @@ namespace HBP.Data.Experience.Dataset
         public struct EventOccurences
         {
             #region Properties
-            Dictionary<int, iEEGRawData.Occurence[]> m_OccurencesByCode;
+            Dictionary<int, EventOccurence[]> m_OccurencesByCode;
             #endregion
 
             #region Constructors
-            public EventOccurences(Dictionary<int, iEEGRawData.Occurence[]> occurencesByCode)
+            public EventOccurences(Dictionary<int, EventOccurence[]> occurencesByCode)
             {
                 m_OccurencesByCode = occurencesByCode;
             }
             #endregion
 
             #region Public Methods
-            public iEEGRawData.Occurence[] GetOccurences()
+            public EventOccurence[] GetOccurences()
             {
                 return m_OccurencesByCode.SelectMany((kv) => kv.Value).ToArray();
             }
-            public iEEGRawData.Occurence[] GetOccurences(int code)
+            public EventOccurence[] GetOccurences(int code)
             {
                 return m_OccurencesByCode[code];
             }
-            public iEEGRawData.Occurence[] GetOccurences(int start, int end)
+            public EventOccurence[] GetOccurences(int start, int end)
             {
                 return m_OccurencesByCode.SelectMany((kv) => kv.Value.Where(o => o.Index >= start && o.Index <= end)).ToArray();
             }

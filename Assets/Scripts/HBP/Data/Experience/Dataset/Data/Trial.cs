@@ -22,7 +22,7 @@ namespace HBP.Data.Experience.Dataset
         {
             SubTrialBySubBloc = subTrialBySubBloc;
         }
-        public Trial(Dictionary<string,float[]> valuesByChannel, Dictionary<string, string> unitByChannel,  int startIndex, iEEGRawData.Occurence mainEventOccurence, int endIndex, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Bloc bloc, Tools.CSharp.EEG.Frequency frequency) : this()
+        public Trial(Dictionary<string,float[]> valuesByChannel, Dictionary<string, string> unitByChannel,  int startIndex, EventOccurence mainEventOccurence, int endIndex, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Bloc bloc, Tools.CSharp.EEG.Frequency frequency) : this()
         {
             SubTrialBySubBloc = new Dictionary<SubBloc, SubTrial>(bloc.SubBlocs.Count); // Initialize dictionary
 
@@ -38,11 +38,11 @@ namespace HBP.Data.Experience.Dataset
             for (int i = mainSubBlocIndex - 1; i >= 0; i--)
             {
                 SubBloc subBloc = orderedSubBlocs[i];
-                iEEGRawData.Occurence[] occurences = occurencesByEvent[subBloc.MainEvent].GetOccurences(start, end).OrderBy(o => o.Index).ToArray();
+                EventOccurence[] occurences = occurencesByEvent[subBloc.MainEvent].GetOccurences(start, end).OrderBy(o => o.Index).ToArray();
                 SubTrial subTrial;
                 if (occurences.Length > 0)
                 {
-                    iEEGRawData.Occurence mainEventOccurenceOfSecondaryBloc = occurences.LastOrDefault();
+                    EventOccurence mainEventOccurenceOfSecondaryBloc = occurences.LastOrDefault();
                     subTrial = new SubTrial(valuesByChannel, unitByChannel, mainEventOccurenceOfSecondaryBloc, subBloc, occurencesByEvent, frequency);
                 }
                 else
@@ -59,11 +59,11 @@ namespace HBP.Data.Experience.Dataset
             for (int i = mainSubBlocIndex + 1; i < orderedSubBlocs.Count; i++)
             {
                 SubBloc subBloc = orderedSubBlocs[i];
-                iEEGRawData.Occurence[] occurences = occurencesByEvent[subBloc.MainEvent].GetOccurences(start, end).OrderBy(o => o.Index).ToArray();
+                EventOccurence[] occurences = occurencesByEvent[subBloc.MainEvent].GetOccurences(start, end).OrderBy(o => o.Index).ToArray();
                 SubTrial subTrial;
                 if (occurences.Length > 0)
                 {
-                    iEEGRawData.Occurence mainEventOccurenceOfSecondaryBloc = occurences.FirstOrDefault();
+                    EventOccurence mainEventOccurenceOfSecondaryBloc = occurences.FirstOrDefault();
                     subTrial = new SubTrial(valuesByChannel, unitByChannel, mainEventOccurenceOfSecondaryBloc, subBloc, occurencesByEvent, frequency);
                 }
                 else

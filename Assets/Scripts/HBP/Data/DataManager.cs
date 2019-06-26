@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using HBP.Data.Experience;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
 using System.Linq;
@@ -9,8 +8,10 @@ using System;
 public static class DataManager
 {
     #region Properties
-    // Data.
-    static Dictionary<Request, iEEGData> m_DataByRequest = new Dictionary<Request, iEEGData>();
+    // General.
+    static Dictionary<Request, Data> m_DataByRequest = new Dictionary<Request, Data>();
+
+    // iEEG
     static Dictionary<BlocRequest, BlocData> m_BlocDataByRequest = new Dictionary<BlocRequest, BlocData>();
 
     static Dictionary<ChannelRequest, ChannelData> m_ChannelDataByRequest = new Dictionary<ChannelRequest, ChannelData>();
@@ -65,7 +66,7 @@ public static class DataManager
             data.Clear();
         }
         m_DataByRequest.Clear();
-        m_DataByRequest = new Dictionary<Request, iEEGData>();
+        m_DataByRequest = new Dictionary<Request, Data>();
 
         foreach (var blocData in m_BlocDataByRequest.Values)
         {
@@ -122,8 +123,7 @@ public static class DataManager
         GC.Collect();
     }
 
-    // Data.
-    public static iEEGData GetData(DataInfo dataInfo)
+    public static Data GetData(DataInfo dataInfo)
     {
         return GetData(new Request(dataInfo));
     }
@@ -222,6 +222,9 @@ public static class DataManager
             UnloadStatistics(m_BlocRequestsRequiringStatisticsReset.Pop());
         }
     }
+
+    // CCEP
+    //public static 
     #endregion
 
     #region Private Methods
@@ -229,14 +232,29 @@ public static class DataManager
     {
         if (request.IsValid && !m_DataByRequest.ContainsKey(request))
         {
-            iEEGData data = new iEEGData(request.DataInfo as iEEGDataInfo); // FIXME : gérer plusieurs types de data  
-            m_DataByRequest.Add(request, data);
-
-            Protocol protocol = request.DataInfo.Dataset.Protocol;
-            foreach (var bloc in protocol.Blocs)
+            if(request.DataInfo is iEEGDataInfo iEEGDataInfo)
             {
-                m_BlocDataByRequest.Add(new BlocRequest(request.DataInfo, bloc), data.DataByBloc[bloc]);
-                m_NormalizeByRequest.Add(new BlocRequest(request.DataInfo, bloc), HBP.Data.Enums.NormalizationType.None);
+                IEEGData data = new IEEGData(iEEGDataInfo);
+                m_DataByRequest.Add(request, data);
+
+                Protocol protocol = request.DataInfo.Dataset.Protocol;
+                foreach (var bloc in protocol.Blocs)
+                {
+                    m_BlocDataByRequest.Add(new BlocRequest(request.DataInfo, bloc), data.DataByBloc[bloc]);
+                    m_NormalizeByRequest.Add(new BlocRequest(request.DataInfo, bloc), HBP.Data.Enums.NormalizationType.None);
+                }
+            }
+            else if(request.DataInfo is CCEPDataInfo CCEPDataInfo)
+            {
+                CCEPData data = new CCEPData(CCEPDataInfo);
+                m_DataByRequest.Add(request, data);
+
+                Protocol protocol = request.DataInfo.Dataset.Protocol;
+                foreach (var bloc in protocol.Blocs)
+                {
+                    m_BlocDataByRequest.Add(new BlocRequest(request.DataInfo, bloc), data.DataByBloc[bloc]);
+                    m_NormalizeByRequest.Add(new BlocRequest(request.DataInfo, bloc), HBP.Data.Enums.NormalizationType.None);
+                }
             }
         }
     }
@@ -294,11 +312,11 @@ public static class DataManager
         }
     }
     
-    static iEEGData GetData(Request request)
+    static Data GetData(Request request)
     {
         if (request.IsValid)
         {
-            iEEGData result;
+            Data result;
             if (m_DataByRequest.TryGetValue(request, out result))
             {
                 return result;
@@ -350,7 +368,7 @@ public static class DataManager
                 {
                     Load(dataRequest);
                 }
-                ChannelData channelData = new ChannelData(m_DataByRequest[dataRequest], request.Channel);
+                ChannelData channelData = new ChannelData(m_DataByRequest[dataRequest] as EpochedData, request.Channel);
                 m_ChannelDataByRequest.Add(request, channelData);
                 return channelData;
             }
@@ -372,7 +390,7 @@ public static class DataManager
             else
             {
                 Request dataRequest = new Request(request.DataInfo);
-                iEEGData data = GetData(dataRequest);
+                EpochedData data = GetData(dataRequest) as EpochedData;
                 if (data != null)
                 {
                     if(data.UnitByChannel.ContainsKey(request.Channel))
@@ -657,77 +675,174 @@ public static class DataManager
     #endregion
 
     #region Private struct
-    struct Request
+    class Request
     {
-        public DataInfo DataInfo { get; set; }
-        public bool IsValid
+        #region Properties
+        public virtual DataInfo DataInfo { get; set; }
+        public virtual bool IsValid
         {
             get
             {
                 return DataInfo != null && DataInfo.IsOk;
             }
         }
+        #endregion
 
+        #region Constructors
         public Request(DataInfo dataInfo)
         {
             DataInfo = dataInfo;
         }
+        #endregion
+
+        #region Public Methods
+        public override bool Equals(object obj)
+        {
+            //Check for null and compare run-time types.
+            if ((obj == null) || !GetType().Equals(obj.GetType()))
+            {
+                return false;
+            }
+            else
+            {
+                Request request = (Request)obj;
+                return (DataInfo == request.DataInfo);
+            }
+        }
+        public override int GetHashCode()
+        {
+            return DataInfo.GetHashCode();
+        }
+        public static bool operator ==(Request left, Request right)
+        {
+            return left.Equals(right);
+        }
+        public static bool operator !=(Request left, Request right)
+        {
+            return !left.Equals(right);
+        }
+        #endregion
     }
-    struct BlocRequest
+    class BlocRequest : Request
     {
-        public DataInfo DataInfo { get; set; }
-        public Bloc Bloc { get; set; }
-        public bool IsValid
+        #region Properties
+        public virtual Bloc Bloc { get; set; }
+        public override bool IsValid
         {
             get
             {
-                return DataInfo.Dataset.Protocol.Blocs.Contains(Bloc);
+                return base.IsValid && DataInfo.Dataset.Protocol.Blocs.Contains(Bloc) && DataInfo is IEpochable;
             }
         }
+        #endregion
 
-        public BlocRequest(DataInfo dataInfo, Bloc bloc)
+        #region Constructors
+        public BlocRequest(DataInfo dataInfo, Bloc bloc) : base(dataInfo)
         {
-            DataInfo = dataInfo;
             Bloc = bloc;
         }
+        #endregion
+
+        #region Public Methods
+        public override bool Equals(object obj)
+        {
+            //Check for null and compare run-time types.
+            if ((obj == null) || !GetType().Equals(obj.GetType()))
+            {
+                return false;
+            }
+            else
+            {
+                BlocRequest request = (BlocRequest)obj;
+                return base.Equals(obj) && request.Bloc == Bloc;
+            }
+        }
+        public override int GetHashCode()
+        {
+            return base.GetHashCode() * Bloc.GetHashCode();
+        }
+        #endregion
     }
-    struct ChannelRequest
+    class ChannelRequest : Request
     {
-        public DataInfo DataInfo { get; set; }
-        public string Channel { get; set; }
-        public bool IsValid
+        #region Properties
+        public virtual string Channel { get; set; }
+        public override bool IsValid
         {
             get
             {
-                return DataInfo != null && DataInfo.IsOk; // AddTestOnChannel
+                return base.IsValid && DataInfo is IEpochable /*&& AddTestOnChannel */;
             }
         }
+        #endregion
 
-        public ChannelRequest(DataInfo dataInfo, string channel)
+        #region Constructors
+        public ChannelRequest(DataInfo dataInfo, string channel) : base (dataInfo)
         {
             DataInfo = dataInfo;
             Channel = channel;
         }
+        #endregion
+
+        #region Public Methods
+        public override bool Equals(object obj)
+        {
+            //Check for null and compare run-time types.
+            if ((obj == null) || !GetType().Equals(obj.GetType()))
+            {
+                return false;
+            }
+            else
+            {
+                ChannelRequest request = (ChannelRequest)obj;
+                return base.Equals(obj) && request.Channel == Channel;
+            }
+        }
+        public override int GetHashCode()
+        {
+            return base.GetHashCode() * Channel.GetHashCode();
+        }
+        #endregion
     }
-    struct BlocChannelRequest
+    class BlocChannelRequest : BlocRequest
     {
-        public DataInfo DataInfo { get; set; }
-        public Bloc Bloc { get; set; }
-        public string Channel { get; set; }
-        public bool IsValid
+        #region Properties
+        public virtual string Channel { get; set; }
+        public override bool IsValid
         {
             get
             {
-                return DataInfo.Dataset.Protocol.Blocs.Contains(Bloc); // AddTestOnChannel
+                return base.IsValid && DataInfo.Dataset.Protocol.Blocs.Contains(Bloc); // AddTestOnChannel
             }
         }
+        #endregion
 
-        public BlocChannelRequest(DataInfo dataInfo, Bloc bloc, string channel)
+        #region Constructors
+        public BlocChannelRequest(DataInfo dataInfo, Bloc bloc, string channel) : base(dataInfo, bloc)
         {
-            DataInfo = dataInfo;
-            Bloc = bloc;
             Channel = channel;
         }
+        #endregion
+
+        #region Public Methods
+        public override bool Equals(object obj)
+        {
+            //Check for null and compare run-time types.
+            if ((obj == null) || !GetType().Equals(obj.GetType()))
+            {
+                return false;
+            }
+            else
+            {
+                BlocChannelRequest request = (BlocChannelRequest)obj;
+                return base.Equals(obj) && request.Channel == Channel;
+            }
+        }
+        public override int GetHashCode()
+        {
+            return base.GetHashCode() * Channel.GetHashCode();
+        }
+        #endregion
     }
     #endregion
 }
