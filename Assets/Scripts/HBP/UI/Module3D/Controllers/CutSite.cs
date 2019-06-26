@@ -24,7 +24,7 @@ namespace HBP.UI.Module3D
         {
             if (m_IsInside)
             {
-                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(m_Site, true, Input.mousePosition, Data.Enums.SiteInformationDisplayMode.Light));
+                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(m_Site, true, Input.mousePosition, Data.Enums.SiteInformationDisplayMode.Anatomy));
             }
         }
         #endregion
