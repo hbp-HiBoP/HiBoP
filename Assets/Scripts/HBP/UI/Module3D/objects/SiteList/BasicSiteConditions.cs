@@ -26,6 +26,8 @@ namespace HBP.UI.Module3D
         [SerializeField] Toggle m_OutOfROI;
         [SerializeField] Toggle m_InMesh;
         [SerializeField] Toggle m_OutOfMesh;
+        [SerializeField] Toggle m_LeftHemisphere;
+        [SerializeField] Toggle m_RightHemisphere;
         [SerializeField] Toggle m_OnPlane;
         [SerializeField] Toggle m_NotOnPlane;
 
@@ -77,6 +79,8 @@ namespace HBP.UI.Module3D
             if (m_OutOfROI.isOn) result &= !CheckInROI(site);
             if (m_InMesh.isOn) result &= CheckInMesh(site);
             if (m_OutOfMesh.isOn) result &= !CheckInMesh(site);
+            if (m_LeftHemisphere.isOn) result &= CheckInLeftHemisphere(site);
+            if (m_RightHemisphere.isOn) result &= CheckInRightHemisphere(site);
             if (m_OnPlane.isOn) result &= CheckOnPlane(site);
             if (m_NotOnPlane.isOn) result &= !CheckOnPlane(site);
             return result;

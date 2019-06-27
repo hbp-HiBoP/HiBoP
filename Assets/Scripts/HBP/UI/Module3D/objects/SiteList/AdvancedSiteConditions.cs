@@ -21,6 +21,8 @@ namespace HBP.UI.Module3D
         public const string LABEL = "LABEL";
         public const string IN_ROI = "ROI";
         public const string IN_MESH = "MESH";
+        public const string IN_LEFT_HEMISPHERE = "L";
+        public const string IN_RIGHT_HEMISPHERE = "R";
         public const string ON_PLANE = "CUT";
         public const string NAME = "NAME";
         public const string PATIENT = "PAT";
@@ -82,6 +84,14 @@ namespace HBP.UI.Module3D
             else if (s == IN_MESH)
             {
                 return CheckInMesh(site);
+            }
+            else if (s == IN_LEFT_HEMISPHERE)
+            {
+                return CheckInLeftHemisphere(site);
+            }
+            else if (s == IN_RIGHT_HEMISPHERE)
+            {
+                return CheckInRightHemisphere(site);
             }
             else if (s == ON_PLANE)
             {
@@ -222,7 +232,7 @@ namespace HBP.UI.Module3D
                     }
                 }
             }
-            throw new InvalidConditionException(s);
+            throw new InvalidAdvancedConditionException(s);
         }
         #endregion
 
