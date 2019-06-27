@@ -82,7 +82,8 @@ namespace HBP.UI.Experience.Dataset
             }
 
             m_NameInputField.text = objectToDisplay.Name;
-            m_TypeDropdown.value = Array.IndexOf(m_Types, itemTemp);
+            int value = Array.IndexOf(m_Types, objectToDisplay.GetType());
+            m_TypeDropdown.value = value;
         }
         protected override void Initialize()
         {

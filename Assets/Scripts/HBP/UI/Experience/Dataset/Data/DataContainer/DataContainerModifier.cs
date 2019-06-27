@@ -53,7 +53,7 @@ namespace HBP.UI.Experience.Dataset
                 {
                     m_BrainVisionDataContainerTemp = value as container.BrainVision;
                 }
-                ChangeDataInfoType(m_ContainerTypeDropdown.value);
+                m_ContainerTypeDropdown.value = Array.IndexOf(m_Types, m_Object.GetType());
             }
         }
 
