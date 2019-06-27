@@ -13,8 +13,6 @@
 
 	SubShader
 	{
-		Tags{ "Queue" = "Transparent" }
-
 		CGPROGRAM
 			#pragma surface surf Standard
 			#pragma target 3.0
