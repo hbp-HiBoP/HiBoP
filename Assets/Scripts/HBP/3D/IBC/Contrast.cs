@@ -55,7 +55,6 @@ namespace HBP.Module3D.IBC
                     Volume = new DLL.Volume();
                     NIFTI.ConvertToVolume(Volume);
                     Loaded = true;
-                    Debug.Log(Name);
                 }
             }
         }

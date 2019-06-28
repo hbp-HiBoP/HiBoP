@@ -132,14 +132,15 @@ namespace HBP.UI.Module3D
         {
 
         }
-
+        /// <summary>
+        /// Update all the tools
+        /// </summary>
         public void UpdateToolbar()
         {
             m_Tools.ForEach((t) => t.ListenerLock = true);
             foreach (Tools.Tool tool in m_Tools)
             {
-                tool.UpdateInteractable();
-                tool.UpdateStatus();
+                tool.UpdateTool();
             }
             m_Tools.ForEach((t) => t.ListenerLock = false);
         }

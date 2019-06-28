@@ -127,6 +127,23 @@ namespace HBP.UI.Module3D
         }
 
         [SerializeField]
+        private IBCToolbar m_IBCToolbar;
+        /// <summary>
+        /// Toolbar for the sites settings
+        /// </summary>
+        public IBCToolbar IBCToolbar
+        {
+            get
+            {
+                return m_IBCToolbar;
+            }
+            set
+            {
+                m_IBCToolbar = value;
+            }
+        }
+
+        [SerializeField]
         private FMRIToolbar m_FMRIToolbar;
         /// <summary>
         /// Toolbar for the sites settings
@@ -203,6 +220,7 @@ namespace HBP.UI.Module3D
                 m_TriangleToolbar.UpdateToolbar();
                 m_ConfigurationToolbar.UpdateToolbar();
                 m_CCEPToolbar.UpdateToolbar();
+                m_IBCToolbar.UpdateToolbar();
                 m_FMRIToolbar.UpdateToolbar();
                 m_UpdateRequired = false;
             }
@@ -230,6 +248,7 @@ namespace HBP.UI.Module3D
             m_TriangleToolbar.Initialize();
             m_ConfigurationToolbar.Initialize();
             m_CCEPToolbar.Initialize();
+            m_IBCToolbar.Initialize();
             m_FMRIToolbar.Initialize();
 
             CurrentToolbar = m_SceneSettingsToolbar;
@@ -243,6 +262,7 @@ namespace HBP.UI.Module3D
             m_TriangleToolbar.gameObject.SetActive(false);
             m_ConfigurationToolbar.gameObject.SetActive(false);
             m_CCEPToolbar.gameObject.SetActive(false);
+            m_IBCToolbar.gameObject.SetActive(false);
             m_FMRIToolbar.gameObject.SetActive(false);
         }
         #endregion

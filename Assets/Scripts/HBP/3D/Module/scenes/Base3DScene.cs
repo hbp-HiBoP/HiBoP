@@ -655,10 +655,6 @@ namespace HBP.Module3D
             {
                 SceneInformation.AreSitesUpdated = false;
             });
-            m_ColumnManager.OnUpdateInfluenceDistance.AddListener((column) =>
-            {
-                ResetIEEG();
-            });
             m_ColumnManager.OnUpdateColumnTimelineID.AddListener((column) =>
             {
                 ComputeIEEGTextures(column);
@@ -689,7 +685,7 @@ namespace HBP.Module3D
                 SceneInformation.AreSitesUpdated = false;
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             });
-            m_ColumnManager.OnUpdateFMRIParameters.AddListener(() =>
+            m_ColumnManager.OnRequestResetIEEG.AddListener(() =>
             {
                 ResetIEEG();
             });

@@ -112,6 +112,10 @@ namespace HBP.Module3D
         /// MNI Objects (Mesh and MRI)
         /// </summary>
         public MNIObjects MNIObjects;
+        /// <summary>
+        /// IBC Objects
+        /// </summary>
+        public IBC.IBCObjects IBCObjects;
         
         /// <summary>
         /// Shared directional light between all scenes

@@ -17,10 +17,18 @@ namespace HBP.Module3D.IBC
         /// List of the contrasts of the IBC
         /// </summary>
         public List<Contrast> Contrasts { get; private set; }
+
+        private bool m_Loaded = false;
         /// <summary>
         /// Are the constrats loaded ?
         /// </summary>
-        public bool Loaded { get; private set; }
+        public bool Loaded
+        {
+            get
+            {
+                return m_Loaded && Contrasts.Count > 0;
+            }
+        }
         #endregion
 
         #region Private Methods
@@ -56,7 +64,8 @@ namespace HBP.Module3D.IBC
             }
 
             yield return Ninja.JumpToUnity;
-            Loaded = true;
+            m_Loaded = true;
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
     }

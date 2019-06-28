@@ -35,6 +35,21 @@ namespace HBP.UI.Module3D.Tools
         {
 
         }
+        /// <summary>
+        /// Update the tool
+        /// </summary>
+        public void UpdateTool()
+        {
+            if (SelectedScene != null && SelectedColumn != null && SelectedView != null)
+            {
+                UpdateInteractable();
+                UpdateStatus();
+            }
+            else
+            {
+                DefaultState();
+            }
+        }
         #endregion
     }
 }
