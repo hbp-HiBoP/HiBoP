@@ -238,7 +238,7 @@ namespace HBP.Module3D
                 if (m_FMRIAlpha != value)
                 {
                     m_FMRIAlpha = value;
-                    OnUpdateFMRIParameters.Invoke();
+                    OnRequestResetIEEG.Invoke();
                 }
             }
         }
@@ -258,7 +258,7 @@ namespace HBP.Module3D
                 if (m_FMRICalMinFactor != value)
                 {
                     m_FMRICalMinFactor = value;
-                    OnUpdateFMRIParameters.Invoke();
+                    OnRequestResetIEEG.Invoke();
                 }
             }
         }
@@ -298,7 +298,7 @@ namespace HBP.Module3D
                 if (m_FMRICalMaxFactor != value)
                 {
                     m_FMRICalMaxFactor = value;
-                    OnUpdateFMRIParameters.Invoke();
+                    OnRequestResetIEEG.Invoke();
                 }
             }
         }
@@ -320,6 +320,149 @@ namespace HBP.Module3D
                     return;
                 }
                 FMRICalMaxFactor = (value - FMRI.Volume.ExtremeValues.ComputedCalMin) / (FMRI.Volume.ExtremeValues.ComputedCalMax - FMRI.Volume.ExtremeValues.ComputedCalMin);
+            }
+        }
+
+        // FIXME : do something similar for FMRI and IBC
+        private bool m_DisplayIBCContrasts;
+        public bool DisplayIBCContrasts
+        {
+            get
+            {
+                return m_DisplayIBCContrasts;
+            }
+            set
+            {
+                if (m_DisplayIBCContrasts != value)
+                {
+                    m_DisplayIBCContrasts = value;
+                    OnRequestResetIEEG.Invoke();
+                    ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+                }
+            }
+        }
+        private int m_SelectedIBCContrastID;
+        public int SelectedIBCContrastID
+        {
+            get
+            {
+                return m_SelectedIBCContrastID;
+            }
+            set
+            {
+                if (m_SelectedIBCContrastID != value)
+                {
+                    m_SelectedIBCContrastID = value;
+                    OnRequestResetIEEG.Invoke();
+                    ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+                }
+            }
+        }
+        public IBC.Contrast SelectedIBCContrast
+        {
+            get
+            {
+                return ApplicationState.Module3D.IBCObjects.Contrasts[m_SelectedIBCContrastID];
+            }
+        }
+        
+        private float m_IBCAlpha = 0.5f;
+        /// <summary>
+        /// Alpha of the IBC
+        /// </summary>
+        public float IBCAlpha
+        {
+            get
+            {
+                return m_IBCAlpha;
+            }
+            set
+            {
+                if (m_IBCAlpha != value)
+                {
+                    m_IBCAlpha = value;
+                    OnRequestResetIEEG.Invoke();
+                }
+            }
+        }
+
+        private float m_IBCCalMinFactor = 0.4f;
+        /// <summary>
+        /// Cal min factor of the IBC
+        /// </summary>
+        public float IBCCalMinFactor
+        {
+            get
+            {
+                return m_IBCCalMinFactor;
+            }
+            set
+            {
+                if (m_IBCCalMinFactor != value)
+                {
+                    m_IBCCalMinFactor = value;
+                    OnRequestResetIEEG.Invoke();
+                }
+            }
+        }
+        /// <summary>
+        /// Cal min value of the IBC
+        /// </summary>
+        public float IBCCalMin
+        {
+            get
+            {
+                if (SelectedIBCContrast == null) return 0;
+                return m_IBCCalMinFactor * (SelectedIBCContrast.Volume.ExtremeValues.ComputedCalMax - SelectedIBCContrast.Volume.ExtremeValues.ComputedCalMin) + SelectedIBCContrast.Volume.ExtremeValues.ComputedCalMin;
+            }
+            set
+            {
+                if (SelectedIBCContrast == null)
+                {
+                    IBCCalMinFactor = 0;
+                    return;
+                }
+                IBCCalMinFactor = (value - SelectedIBCContrast.Volume.ExtremeValues.ComputedCalMin) / (SelectedIBCContrast.Volume.ExtremeValues.ComputedCalMax - SelectedIBCContrast.Volume.ExtremeValues.ComputedCalMin);
+            }
+        }
+
+        private float m_IBCCalMaxFactor = 0.6f;
+        /// <summary>
+        /// Cal max factor of the IBC
+        /// </summary>
+        public float IBCCalMaxFactor
+        {
+            get
+            {
+                return m_IBCCalMaxFactor;
+            }
+            set
+            {
+                if (m_IBCCalMaxFactor != value)
+                {
+                    m_IBCCalMaxFactor = value;
+                    OnRequestResetIEEG.Invoke();
+                }
+            }
+        }
+        /// <summary>
+        /// Cal max value of the IBC
+        /// </summary>
+        public float IBCCalMax
+        {
+            get
+            {
+                if (SelectedIBCContrast == null) return 0;
+                return m_IBCCalMaxFactor * (SelectedIBCContrast.Volume.ExtremeValues.ComputedCalMax - SelectedIBCContrast.Volume.ExtremeValues.ComputedCalMin) + SelectedIBCContrast.Volume.ExtremeValues.ComputedCalMin;
+            }
+            set
+            {
+                if (SelectedIBCContrast == null)
+                {
+                    IBCCalMaxFactor = 1.0f;
+                    return;
+                }
+                IBCCalMaxFactor = (value - SelectedIBCContrast.Volume.ExtremeValues.ComputedCalMin) / (SelectedIBCContrast.Volume.ExtremeValues.ComputedCalMax - SelectedIBCContrast.Volume.ExtremeValues.ComputedCalMin);
             }
         }
 
@@ -402,7 +545,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when updating the alpha or cal values of the FMRI
         /// </summary>
-        [HideInInspector] public UnityEvent OnUpdateFMRIParameters = new UnityEvent();
+        [HideInInspector] public UnityEvent OnRequestResetIEEG = new UnityEvent();
         /// <summary>
         /// Event called when updating the ROI mask for this column
         /// </summary>
@@ -419,10 +562,6 @@ namespace HBP.Module3D
         /// Event called when changing the gain of the sphere representing the sites
         /// </summary>
         [HideInInspector] public GenericEvent<Column3DIEEG> OnUpdateIEEGGain = new GenericEvent<Column3DIEEG>();
-        /// <summary>
-        /// Event called when changing the influence of each site on the texture
-        /// </summary>
-        [HideInInspector] public GenericEvent<Column3DIEEG> OnUpdateInfluenceDistance = new GenericEvent<Column3DIEEG>();
         /// <summary>
         /// Event called when changing the timeline ID of a column
         /// </summary>
@@ -563,7 +702,7 @@ namespace HBP.Module3D
                 });
                 columnIEEG.IEEGParameters.OnUpdateInfluenceDistance.AddListener(() =>
                 {
-                    OnUpdateInfluenceDistance.Invoke(columnIEEG);
+                    OnRequestResetIEEG.Invoke();
                     column.IsRenderingUpToDate = false;
                 });
                 columnIEEG.OnUpdateCurrentTimelineID.AddListener(() =>
@@ -680,6 +819,10 @@ namespace HBP.Module3D
             if (FMRI != null)
             {
                 column.CutTextures.ColorCutsTexturesWithFMRI(FMRI.Volume, cutID, m_FMRICalMinFactor, m_FMRICalMaxFactor, m_FMRIAlpha);
+            }
+            else if (m_DisplayIBCContrasts)
+            {
+                column.CutTextures.ColorCutsTexturesWithFMRI(SelectedIBCContrast.Volume, cutID, m_IBCCalMinFactor, m_IBCCalMaxFactor, m_IBCAlpha);
             }
         }
         /// <summary>

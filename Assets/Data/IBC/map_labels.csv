@@ -1,0 +1,52 @@
+,contrast,pretty name,control condition,target condition
+0,left-right_button_press,left vs. right hand button press,right hand,left hand
+1,reading-listening,sentence reading vs. sentence listening,sentence listening,sentence reading
+2,motor-cognitive,button presses vs. sentence/computation,cognitive tasks,button presses
+3,reading-checkerboard,sentence reading vs. checkerboard,checkerboard,sentence reading
+4,computation-sentences,mental subtraction vs. sentence reading,sentence reading,mental subtraction
+5,horizontal-vertical,horizontal vs. vertical checkerboard,vertical checkerboard,horizontal checkerboard
+6,saccades,saccades vs. fixation,fixation,saccades
+7,hand-side,left or right hand vs. hand palm or back,hand palm or back,left or right hand
+8,grasp-orientation,object grasping vs. image orientation judgment,orientation judgment,object grasping
+9,rotation_side,hand palm or back vs. fixation,fixation,hand palm or back
+10,object_orientation,image orientation judgment vs. fixation,fixation,orientation judgment
+11,triangle_mental-random,social-interaction motion vs. random motion,random motion,social-interaction motion
+12,false_belief-mechanistic_audio,false-belief tale vs. mechanistic tale,mechanistic tale,false-belief tale
+13,triangle_random,random motion vs. fixation,fixation,random motion
+14,mechanistic_audio,listening to a mechanistic tale vs. baseline,baseline,mechanistic tale
+15,mechanistic_video,reading a mechanistic story vs. baseline,baseline,mechanistic story
+16,non_speech_sound,listen to natural sound vs. baseline,silence,natural sound
+17,false_belief-mechanistic_video,false-belief story vs. mechanistic story,mechanistic story,false-belief story
+18,speech-non_speech,listen to voice sound vs. natural sound,natural sound,voice sound
+19,expression_gender-control,assess gender from eyes' expression vs. visual pattern,visual pattern,gender assessment
+20,expression_intention-gender,assess intention vs. gender from eyes' expression,gender assessment,expression intention
+21,face_gender-control,assess gender of face vs. visual pattern,visual pattern,gender assessment
+22,face_trusty-gender,assess face trustfulness vs. gender of face,gender assessment,face trusty
+23,story-math,listening to story vs. mental additions,math,story
+24,math,mental additions vs. fixation,fixation,mental addition
+25,mental-random,social-interaction motion vs. random motion,random motion,social-interaction motion
+26,random,random motion vs. fixation,fixation,any motion
+27,punishment-reward,negative vs. positive gambling outcome,reward,punishement
+28,reward,positive gambling outcome vs. fixation,fixation,reward
+29,left_hand-avg,"move left hand vs. right hand, feet and tongue",any motion,left hand
+30,right_hand-avg,"move right hand vs. left hand, feet and tongue",any motion,right hand
+31,left_foot-avg,"move left foot vs. right foot, hands and tongue",any motion,left foot
+32,right_foot-avg,"move right foot vs. left foot, hands and tongue",any motion,right foot
+33,tongue-avg,move tongue vs. hands and feet,any motion,tongue
+34,shape,shape comparison vs. fixation,fixation cross,shape outline
+35,face-shape,emotional face comparison vs. shape comparison,shape outline,face image
+36,relational-match,relational comparison vs. visual feature matching,visual matching,relational processing
+37,match,visual feature matching vs. fixation,fixation,visual matching
+38,2back-0back,2-back vs. 0-back,0-back,2-back
+39,body-avg,"body image n-back vs. face, place, tool  n-back",any image,body image
+40,face-avg,"face image n-back vs. body, place, tool  n-back",any image,face image
+41,place-avg,"place image n-back vs. face, body, tool  n-back",any image,place image
+42,tools-avg,"tool image  n-back vs. face, place, body  n-back",any image,tool image
+43,complex-simple,complex- vs. simple-syntax sentence reading,simple sentence,complex sentence
+44,sentence-jabberwocky,reading sentence vs. jabberwocky,read jabberwocky,read sentence
+45,sentence-word,reading sentence vs. words,read words,read sentence
+46,word-consonant_string,reading words vs. consonant strings,consonant strings,read words
+47,jabberworcky-pseudo,reading jabberwocky vs. pseudowords,read pseudowords,read jabberwocky
+48,word-pseudo,reading words vs. pseudowords,read pseudowords,read words
+49,pseudo-consonant_string,reading pseudowords vs. consonant strings,consonant strings,read pseudowords
+50,consonant_string,consonant strings' encoding vs. fixation,fixation,consonant strings

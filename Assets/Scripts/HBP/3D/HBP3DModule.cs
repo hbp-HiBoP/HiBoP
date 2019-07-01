@@ -112,6 +112,10 @@ namespace HBP.Module3D
         /// MNI Objects (Mesh and MRI)
         /// </summary>
         public MNIObjects MNIObjects;
+        /// <summary>
+        /// IBC Objects
+        /// </summary>
+        public IBC.IBCObjects IBCObjects;
         
         /// <summary>
         /// Shared directional light between all scenes
@@ -130,11 +134,6 @@ namespace HBP.Module3D
         /// Prefab corresponding to a scene
         /// </summary>
         [SerializeField] private GameObject m_ScenePrefab;
-
-
-        // FIXME : improve this
-        private string m_FirstSiteToSelectName;
-        private int m_FirstSiteToSelectColumnNumber;
         #endregion
 
         #region Events
@@ -245,8 +244,6 @@ namespace HBP.Module3D
         {
             Base3DScene scene = Scenes.FirstOrDefault(s => s.Visualization == visualization);
             scene.SaveConfiguration();
-            m_FirstSiteToSelectName = scene.ColumnManager.SelectedColumn.SelectedSite.Information.ChannelName;
-            m_FirstSiteToSelectColumnNumber = scene.ColumnManager.Columns.FindIndex(c => c = scene.ColumnManager.SelectedColumn);
             Data.Visualization.Visualization visualizationToLoad = visualization.Clone() as Data.Visualization.Visualization;
             visualizationToLoad.Name = patient.Name;
             visualizationToLoad.RemoveAllPatients();
@@ -401,9 +398,6 @@ namespace HBP.Module3D
                     scene.FinalizeInitialization();
                     ApplicationState.Module3D.OnAddScene.Invoke(scene);
                     scene.LoadConfiguration();
-                    scene.SelectFirstSite(m_FirstSiteToSelectName, m_FirstSiteToSelectColumnNumber);
-                    m_FirstSiteToSelectColumnNumber = 0;
-                    m_FirstSiteToSelectName = "";
                 }
                 catch (Exception e)
                 {

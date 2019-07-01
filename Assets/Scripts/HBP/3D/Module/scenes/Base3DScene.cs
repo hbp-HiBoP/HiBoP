@@ -429,9 +429,6 @@ namespace HBP.Module3D
             }
         }
 
-        private string m_FirstSiteToSelectName = "";
-        private int m_FirstSiteToSelectColumnNumber = 0;
-
         /// <summary>
         /// Is ROI creation mode activated ?
         /// </summary>
@@ -608,9 +605,9 @@ namespace HBP.Module3D
             if (!SceneInformation.IsSceneCompletelyLoaded)
             {
                 UpdateVisibleState(true);
-                if (m_FirstSiteToSelectColumnNumber < m_ColumnManager.Columns.Count)
+                if (Visualization.Configuration.FirstColumnToSelect < m_ColumnManager.Columns.Count)
                 {
-                    m_ColumnManager.Columns[m_FirstSiteToSelectColumnNumber].SelectFirstSite(m_FirstSiteToSelectName);
+                    m_ColumnManager.Columns[Visualization.Configuration.FirstColumnToSelect].SelectFirstSite(Visualization.Configuration.FirstSiteToSelect);
                 }
                 SceneInformation.IsSceneCompletelyLoaded = true;
             }
@@ -655,10 +652,6 @@ namespace HBP.Module3D
             {
                 SceneInformation.AreSitesUpdated = false;
             });
-            m_ColumnManager.OnUpdateInfluenceDistance.AddListener((column) =>
-            {
-                ResetIEEG();
-            });
             m_ColumnManager.OnUpdateColumnTimelineID.AddListener((column) =>
             {
                 ComputeIEEGTextures(column);
@@ -689,7 +682,7 @@ namespace HBP.Module3D
                 SceneInformation.AreSitesUpdated = false;
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             });
-            m_ColumnManager.OnUpdateFMRIParameters.AddListener(() =>
+            m_ColumnManager.OnRequestResetIEEG.AddListener(() =>
             {
                 ResetIEEG();
             });
@@ -1586,7 +1579,7 @@ namespace HBP.Module3D
                 column.LoadConfiguration(false);
             }
             ROICreation = !ROICreation;
-
+            
             SceneInformation.AreSitesUpdated = false;
 
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
@@ -1629,6 +1622,9 @@ namespace HBP.Module3D
             {
                 column.SaveConfiguration();
             }
+
+            Visualization.Configuration.FirstSiteToSelect = m_ColumnManager.SelectedColumn.SelectedSite.Information.ChannelName;
+            Visualization.Configuration.FirstColumnToSelect = m_ColumnManager.Columns.FindIndex(c => c = m_ColumnManager.SelectedColumn);
         }
         /// <summary>
         /// Reset the settings of the loaded scene
@@ -1720,15 +1716,6 @@ namespace HBP.Module3D
                 }
             }
             ResetIEEG(false);
-        }
-        /// <summary>
-        /// Select a site on a column given its name
-        /// </summary>
-        /// <param name="siteName"></param>
-        public void SelectFirstSite(string siteName = "", int columnNumber = 0)
-        {
-            m_FirstSiteToSelectName = siteName;
-            m_FirstSiteToSelectColumnNumber = 0;
         }
         /// <summary>
         /// Update the data rendering for a column
