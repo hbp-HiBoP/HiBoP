@@ -43,18 +43,20 @@ namespace HBP.UI.Module3D.Tools
                 float floatValue;
                 if (global::Tools.Unity.NumberExtension.TryParseFloat(value, out floatValue))
                 {
-                    SelectedScene.ColumnManager.IBCCalMin = Mathf.Clamp(floatValue, SelectedScene.ColumnManager.SelectedIBCContrast.Volume.ExtremeValues.ComputedCalMin, SelectedScene.ColumnManager.SelectedIBCContrast.Volume.ExtremeValues.ComputedCalMax);
-                    m_CalMinSlider.value = SelectedScene.ColumnManager.IBCCalMin;
+                    SelectedScene.ColumnManager.FMRIManager.FMRICalMin = floatValue;
                 }
+                ListenerLock = true;
                 UpdateStatus();
+                ListenerLock = false;
             });
             m_CalMinSlider.onValueChanged.AddListener((value) =>
             {
                 if (ListenerLock) return;
 
-                SelectedScene.ColumnManager.IBCCalMinFactor = value;
-                m_CalMinInputField.text = SelectedScene.ColumnManager.IBCCalMin.ToString("N2");
+                SelectedScene.ColumnManager.FMRIManager.FMRICalMinFactor = value;
+                ListenerLock = true;
                 UpdateStatus();
+                ListenerLock = false;
             });
             m_CalMaxInputField.onEndEdit.AddListener((value) =>
             {
@@ -63,24 +65,29 @@ namespace HBP.UI.Module3D.Tools
                 float floatValue;
                 if (global::Tools.Unity.NumberExtension.TryParseFloat(value, out floatValue))
                 {
-                    SelectedScene.ColumnManager.IBCCalMax = Mathf.Clamp(floatValue, SelectedScene.ColumnManager.SelectedIBCContrast.Volume.ExtremeValues.ComputedCalMin, SelectedScene.ColumnManager.SelectedIBCContrast.Volume.ExtremeValues.ComputedCalMax);
-                    m_CalMaxSlider.value = SelectedScene.ColumnManager.IBCCalMax;
+                    SelectedScene.ColumnManager.FMRIManager.FMRICalMax = floatValue;
                 }
+                ListenerLock = true;
                 UpdateStatus();
+                ListenerLock = false;
             });
             m_CalMaxSlider.onValueChanged.AddListener((value) =>
             {
                 if (ListenerLock) return;
 
-                SelectedScene.ColumnManager.IBCCalMaxFactor = value;
-                m_CalMaxInputField.text = SelectedScene.ColumnManager.IBCCalMax.ToString("N2");
+                SelectedScene.ColumnManager.FMRIManager.FMRICalMaxFactor = value;
+                ListenerLock = true;
                 UpdateStatus();
+                ListenerLock = false;
             });
             m_AlphaSlider.onValueChanged.AddListener((value) =>
             {
                 if (ListenerLock) return;
 
-                SelectedScene.ColumnManager.IBCAlpha = value;
+                SelectedScene.ColumnManager.FMRIManager.FMRIAlpha = value;
+                ListenerLock = true;
+                UpdateStatus();
+                ListenerLock = false;
             });
         }
 
@@ -91,24 +98,24 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isIBC = SelectedScene.ColumnManager.DisplayIBCContrasts;
+            bool isIBC = SelectedScene.ColumnManager.FMRIManager.DisplayIBCContrasts;
 
             gameObject.SetActive(isIBC);
         }
 
         public override void UpdateStatus()
         {
-            bool hasIBC = SelectedScene.ColumnManager.SelectedIBCContrast != null;
+            bool hasIBC = SelectedScene.ColumnManager.FMRIManager.SelectedIBCContrast != null;
             if (hasIBC)
             {
-                MRICalValues calValues = SelectedScene.ColumnManager.SelectedIBCContrast.Volume.ExtremeValues;
+                MRICalValues calValues = SelectedScene.ColumnManager.FMRIManager.SelectedIBCContrast.Volume.ExtremeValues;
                 m_MinText.text = calValues.ComputedCalMin.ToString("N2");
                 m_MaxText.text = calValues.ComputedCalMax.ToString("N2");
-                m_CalMinInputField.text = SelectedScene.ColumnManager.IBCCalMin.ToString("N2");
-                m_CalMaxInputField.text = SelectedScene.ColumnManager.IBCCalMax.ToString("N2");
-                m_CalMinSlider.value = SelectedScene.ColumnManager.IBCCalMinFactor;
-                m_CalMaxSlider.value = SelectedScene.ColumnManager.IBCCalMaxFactor;
-                m_AlphaSlider.value = SelectedScene.ColumnManager.IBCAlpha;
+                m_CalMinInputField.text = SelectedScene.ColumnManager.FMRIManager.FMRICalMin.ToString("N2");
+                m_CalMaxInputField.text = SelectedScene.ColumnManager.FMRIManager.FMRICalMax.ToString("N2");
+                m_CalMinSlider.value = SelectedScene.ColumnManager.FMRIManager.FMRICalMinFactor;
+                m_CalMaxSlider.value = SelectedScene.ColumnManager.FMRIManager.FMRICalMaxFactor;
+                m_AlphaSlider.value = SelectedScene.ColumnManager.FMRIManager.FMRIAlpha;
             }
         }
         #endregion

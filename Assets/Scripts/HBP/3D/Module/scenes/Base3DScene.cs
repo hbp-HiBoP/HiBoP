@@ -686,6 +686,11 @@ namespace HBP.Module3D
             {
                 ResetIEEG();
             });
+            m_ColumnManager.FMRIManager.OnChangeFMRIParameters.AddListener(() =>
+            {
+                ResetIEEG();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            });
             SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
                 if (!value)
@@ -1684,23 +1689,7 @@ namespace HBP.Module3D
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
-
-        /// <summary>
-        /// Load a FMRI to this scene
-        /// </summary>
-        public void LoadFMRI(MRI3D fmri)
-        {
-            m_ColumnManager.FMRI = fmri;
-            ResetIEEG();
-        }
-        /// <summary>
-        /// Unload the FMRI of this scene
-        /// </summary>
-        public void UnloadFMRI()
-        {
-            m_ColumnManager.FMRI = null;
-            ResetIEEG();
-        }
+        
         /// <summary>
         /// Copy the states of the sites of the selected column to all other columns
         /// </summary>

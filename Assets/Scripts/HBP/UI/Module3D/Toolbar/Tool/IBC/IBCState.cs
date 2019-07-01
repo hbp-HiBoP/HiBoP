@@ -25,7 +25,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedScene.ColumnManager.DisplayIBCContrasts = isOn;
+                SelectedScene.ColumnManager.FMRIManager.DisplayIBCContrasts = isOn;
                 OnChangeState.Invoke(isOn);
             });
         }
@@ -45,7 +45,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateStatus()
         {
-            m_Toggle.isOn = SelectedScene.ColumnManager.DisplayIBCContrasts;
+            m_Toggle.isOn = SelectedScene.ColumnManager.FMRIManager.DisplayIBCContrasts;
         }
         #endregion
     }
