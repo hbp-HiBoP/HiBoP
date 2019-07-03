@@ -23,6 +23,16 @@ namespace HBP.Module3D
         /// </summary>
         public class MRIGeometryCutGenerator : Tools.DLL.CppDLLImportBase
         {
+            #region Properties
+            public BBox BoundingBox
+            {
+                get
+                {
+                    return new BBox(bounding_box_MRIGeometryCutGenerator(_handle));
+                }
+            }
+            #endregion
+
             #region Public Methods 
             /// <summary>
             /// 
@@ -86,6 +96,9 @@ namespace HBP.Module3D
 
             [DllImport("hbp_export", EntryPoint = "update_cut_mesh_UV__MRIGeometryCutGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern void update_cut_mesh_UV__MRIGeometryCutGenerator(HandleRef handleMRIGeometryCutGenerator, HandleRef handleSurface);
+
+            [DllImport("hbp_export", EntryPoint = "bounding_box_MRIGeometryCutGenerator", CallingConvention = CallingConvention.Cdecl)]
+            static private extern IntPtr bounding_box_MRIGeometryCutGenerator(HandleRef handleMRIGeometryCutGenerator);
 
 
             #endregion

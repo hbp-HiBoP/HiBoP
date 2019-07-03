@@ -23,6 +23,7 @@ namespace HBP.UI.Module3D
         private bool m_ClickedOnPlus = false;
         private float m_TimeSinceLastUpdate = 0.0f;
         private float m_TimeBetweenTwoUpdates = 0.2f;
+        private bool m_Destroyed = false;
 
         /// <summary>
         /// Image of the cut
@@ -137,6 +138,8 @@ namespace HBP.UI.Module3D
             });
             m_Scene.OnUpdateCuts.AddListener(() =>
             {
+                if (m_Destroyed) return;
+
                 UpdateUI();
                 ShowSites();
                 DrawLines();
@@ -144,6 +147,7 @@ namespace HBP.UI.Module3D
             Cut.OnRemoveCut.AddListener(() =>
             {
                 Destroy(gameObject);
+                m_Destroyed = true;
             });
 
             m_Position.onValueChanged.AddListener((value) =>
@@ -174,10 +178,9 @@ namespace HBP.UI.Module3D
                 Cut.Orientation = (Data.Enums.CutOrientation)value;
                 if (Cut.Orientation == Data.Enums.CutOrientation.Custom)
                 {
-                    float x = 1, y = 0, z = 0;
-                    global::Tools.Unity.NumberExtension.TryParseFloat(m_CustomX.text, out x);
-                    global::Tools.Unity.NumberExtension.TryParseFloat(m_CustomY.text, out y);
-                    global::Tools.Unity.NumberExtension.TryParseFloat(m_CustomZ.text, out z);
+                    global::Tools.Unity.NumberExtension.TryParseFloat(m_CustomX.text, out float x);
+                    global::Tools.Unity.NumberExtension.TryParseFloat(m_CustomY.text, out float y);
+                    global::Tools.Unity.NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
                     Cut.Normal = new Vector3(x, y, z);
                 }
                 m_Scene.UpdateCutPlane(Cut, true);
@@ -202,10 +205,9 @@ namespace HBP.UI.Module3D
 
                 if (Cut.Orientation == Data.Enums.CutOrientation.Custom)
                 {
-                    float x = 1, y = 0, z = 0;
-                    global::Tools.Unity.NumberExtension.TryParseFloat(m_CustomX.text, out x);
-                    global::Tools.Unity.NumberExtension.TryParseFloat(m_CustomY.text, out y);
-                    global::Tools.Unity.NumberExtension.TryParseFloat(m_CustomZ.text, out z);
+                    global::Tools.Unity.NumberExtension.TryParseFloat(m_CustomX.text, out float x);
+                    global::Tools.Unity.NumberExtension.TryParseFloat(m_CustomY.text, out float y);
+                    global::Tools.Unity.NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
                     Cut.Normal = new Vector3(x, y, z);
                 }
                 m_Scene.UpdateCutPlane(Cut, true);
@@ -216,10 +218,9 @@ namespace HBP.UI.Module3D
 
                 if (Cut.Orientation == Data.Enums.CutOrientation.Custom)
                 {
-                    float x = 1, y = 0, z = 0;
-                    global::Tools.Unity.NumberExtension.TryParseFloat(m_CustomX.text, out x);
-                    global::Tools.Unity.NumberExtension.TryParseFloat(m_CustomY.text, out y);
-                    global::Tools.Unity.NumberExtension.TryParseFloat(m_CustomZ.text, out z);
+                    global::Tools.Unity.NumberExtension.TryParseFloat(m_CustomX.text, out float x);
+                    global::Tools.Unity.NumberExtension.TryParseFloat(m_CustomY.text, out float y);
+                    global::Tools.Unity.NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
                     Cut.Normal = new Vector3(x, y, z);
                 }
                 m_Scene.UpdateCutPlane(Cut, true);
@@ -251,6 +252,8 @@ namespace HBP.UI.Module3D
             });
             m_Scene.OnSitesRenderingUpdated.AddListener(() =>
             {
+                if (m_Destroyed) return;
+
                 ShowSites();
             });
         }
@@ -343,24 +346,11 @@ namespace HBP.UI.Module3D
                 }
             }
             
-            HBP.Module3D.DLL.BBox boundingBox = m_Scene.ColumnManager.CubeBoundingBox;
+            HBP.Module3D.DLL.BBox boundingBox = m_Scene.ColumnManager.DLLMRIGeometryCutGeneratorList[Cut.ID].BoundingBox;
             if (boundingBox != null)
             {
-                List<Vector3> intersections = boundingBox.IntersectionPointsWithPlane(Cut);
-                float xMax = float.MinValue, yMax = float.MinValue, zMax = float.MinValue;
-                float xMin = float.MaxValue, yMin = float.MaxValue, zMin = float.MaxValue;
-                foreach (var point in intersections)
-                {
-                    if (point.x > xMax) xMax = point.x;
-                    if (point.y > yMax) yMax = point.y;
-                    if (point.z > zMax) zMax = point.z;
-                    if (point.x < xMin) xMin = point.x;
-                    if (point.y < yMin) yMin = point.y;
-                    if (point.z < zMin) zMin = point.z;
-                }
-                float xRange = xMax - xMin;
-                float yRange = yMax - yMin;
-                float zRange = zMax - zMin;
+                Vector3 min = new Vector3(-boundingBox.Min.x, boundingBox.Min.y, boundingBox.Min.z);
+                Vector3 max = new Vector3(-boundingBox.Max.x, boundingBox.Max.y, boundingBox.Max.z);
 
                 foreach (var site in sites)
                 {
@@ -368,16 +358,16 @@ namespace HBP.UI.Module3D
                     switch (Cut.Orientation)
                     {
                         case Data.Enums.CutOrientation.Axial:
-                            horizontalRatio = 1 - ((site.transform.localPosition.x - xMin) / xRange);
-                            verticalRatio = (site.transform.localPosition.y - yMin) / yRange;
+                            horizontalRatio = (site.transform.localPosition.x - min.x) / (max.x - min.x);
+                            verticalRatio = (site.transform.localPosition.y - min.y) / (max.y - min.y);
                             break;
                         case Data.Enums.CutOrientation.Coronal:
-                            horizontalRatio = 1 - ((site.transform.localPosition.x - xMin) / xRange);
-                            verticalRatio = (site.transform.localPosition.z - zMin) / zRange;
+                            horizontalRatio = (site.transform.localPosition.x - min.x) / (max.x - min.x);
+                            verticalRatio = (site.transform.localPosition.z - min.z) / (max.z - min.z);
                             break;
                         case Data.Enums.CutOrientation.Sagital:
-                            horizontalRatio = (site.transform.localPosition.y - yMin) / yRange;
-                            verticalRatio = (site.transform.localPosition.z - zMin) / zRange;
+                            horizontalRatio = (site.transform.localPosition.y - min.y) / (max.y - min.y);
+                            verticalRatio = (site.transform.localPosition.z - min.z) / (max.z - min.z);
                             break;
                     }
                     if (Cut.Flip)
@@ -394,24 +384,11 @@ namespace HBP.UI.Module3D
             foreach (Transform child in m_CutLinesRectTransform) Destroy(child.gameObject);
             if (Cut.Orientation == Data.Enums.CutOrientation.Custom || !ApplicationState.UserPreferences.Visualization.Cut.ShowCutLines) return;
 
-            HBP.Module3D.DLL.BBox boundingBox = m_Scene.ColumnManager.CubeBoundingBox;
+            HBP.Module3D.DLL.BBox boundingBox = m_Scene.ColumnManager.DLLMRIGeometryCutGeneratorList[Cut.ID].BoundingBox;
             if (boundingBox != null)
             {
-                List<Vector3> intersections = boundingBox.IntersectionPointsWithPlane(Cut);
-                float xMax = float.MinValue, yMax = float.MinValue, zMax = float.MinValue;
-                float xMin = float.MaxValue, yMin = float.MaxValue, zMin = float.MaxValue;
-                foreach (var point in intersections)
-                {
-                    if (point.x > xMax) xMax = point.x;
-                    if (point.y > yMax) yMax = point.y;
-                    if (point.z > zMax) zMax = point.z;
-                    if (point.x < xMin) xMin = point.x;
-                    if (point.y < yMin) yMin = point.y;
-                    if (point.z < zMin) zMin = point.z;
-                }
-                float xRange = xMax - xMin;
-                float yRange = yMax - yMin;
-                float zRange = zMax - zMin;
+                Vector3 min = boundingBox.Min;
+                Vector3 max = boundingBox.Max;
 
                 foreach (var cut in m_Scene.Cuts)
                 {
@@ -425,16 +402,16 @@ namespace HBP.UI.Module3D
                         switch (Cut.Orientation)
                         {
                             case Data.Enums.CutOrientation.Axial:
-                                horizontalRatio = 1 - ((-point.x - xMin) / xRange);
-                                verticalRatio = (point.y - yMin) / yRange;
+                                horizontalRatio = (point.x - min.x) / (max.x - min.x);
+                                verticalRatio = (point.y - min.y) / (max.y - min.y);
                                 break;
                             case Data.Enums.CutOrientation.Coronal:
-                                horizontalRatio = 1 - ((-point.x - xMin) / xRange);
-                                verticalRatio = (point.z - zMin) / zRange;
+                                horizontalRatio = (point.x - min.x) / (max.x - min.x);
+                                verticalRatio = (point.z - min.z) / (max.z - min.z);
                                 break;
                             case Data.Enums.CutOrientation.Sagital:
-                                horizontalRatio = (point.y - yMin) / yRange;
-                                verticalRatio = (point.z - zMin) / zRange;
+                                horizontalRatio = (point.y - min.y) / (max.y - min.y);
+                                verticalRatio = (point.z - min.z) / (max.z - min.z);
                                 break;
                         }
                         if (Cut.Flip)
