@@ -345,38 +345,62 @@ namespace HBP.UI.Module3D
                     sites.Add(site);
                 }
             }
-            
-            HBP.Module3D.DLL.BBox boundingBox = m_Scene.ColumnManager.DLLMRIGeometryCutGeneratorList[Cut.ID].BoundingBox;
-            if (boundingBox != null)
-            {
-                Vector3 min = new Vector3(-boundingBox.Min.x, boundingBox.Min.y, boundingBox.Min.z);
-                Vector3 max = new Vector3(-boundingBox.Max.x, boundingBox.Max.y, boundingBox.Max.z);
 
-                foreach (var site in sites)
+            //HBP.Module3D.DLL.BBox boundingBox = m_Scene.ColumnManager.DLLMRIGeometryCutGeneratorList[Cut.ID].BoundingBox;
+            //if (boundingBox != null)
+            //{
+            //    Vector3 min = new Vector3(-boundingBox.Min.x, boundingBox.Min.y, boundingBox.Min.z);
+            //    Vector3 max = new Vector3(-boundingBox.Max.x, boundingBox.Max.y, boundingBox.Max.z);
+
+            //    foreach (var site in sites)
+            //    {
+            //        Vector3 sitePosition = m_Scene.ColumnManager.SelectedMRI.Volume.GetPointCoordinatesInVolume(site.transform.localPosition);
+            //        float horizontalRatio = 0, verticalRatio = 0;
+            //        switch (Cut.Orientation)
+            //        {
+            //            case Data.Enums.CutOrientation.Axial:
+            //                horizontalRatio = (sitePosition.x - min.x) / (max.x - min.x);
+            //                verticalRatio = (sitePosition.y - min.y) / (max.y - min.y);
+            //                break;
+            //            case Data.Enums.CutOrientation.Coronal:
+            //                horizontalRatio = (sitePosition.x - min.x) / (max.x - min.x);
+            //                verticalRatio = (sitePosition.z - min.z) / (max.z - min.z);
+            //                break;
+            //            case Data.Enums.CutOrientation.Sagital:
+            //                horizontalRatio = (sitePosition.y - min.y) / (max.y - min.y);
+            //                verticalRatio = (sitePosition.z - min.z) / (max.z - min.z);
+            //                break;
+            //        }
+            //        if (Cut.Flip)
+            //        {
+            //            horizontalRatio = 1 - horizontalRatio;
+            //        }
+            //        CutSite cutSite = Instantiate(m_SitePrefab, m_SitesRectTransform).GetComponent<CutSite>();
+            //        cutSite.Initialize(m_Scene, site, new Vector2(horizontalRatio, verticalRatio));
+            //    }
+            //}
+            foreach (var site in sites)
+            {
+                Vector2 ratio = m_Scene.ColumnManager.DLLMRIGeometryCutGeneratorList[Cut.ID].GetPositionRatioOnTexture(site.transform.localPosition);
+                float horizontalRatio = 0, verticalRatio = 0;
+                switch (Cut.Orientation)
                 {
-                    float horizontalRatio = 0, verticalRatio = 0;
-                    switch (Cut.Orientation)
-                    {
-                        case Data.Enums.CutOrientation.Axial:
-                            horizontalRatio = (site.transform.localPosition.x - min.x) / (max.x - min.x);
-                            verticalRatio = (site.transform.localPosition.y - min.y) / (max.y - min.y);
-                            break;
-                        case Data.Enums.CutOrientation.Coronal:
-                            horizontalRatio = (site.transform.localPosition.x - min.x) / (max.x - min.x);
-                            verticalRatio = (site.transform.localPosition.z - min.z) / (max.z - min.z);
-                            break;
-                        case Data.Enums.CutOrientation.Sagital:
-                            horizontalRatio = (site.transform.localPosition.y - min.y) / (max.y - min.y);
-                            verticalRatio = (site.transform.localPosition.z - min.z) / (max.z - min.z);
-                            break;
-                    }
-                    if (Cut.Flip)
-                    {
-                        horizontalRatio = 1 - horizontalRatio;
-                    }
-                    CutSite cutSite = Instantiate(m_SitePrefab, m_SitesRectTransform).GetComponent<CutSite>();
-                    cutSite.Initialize(m_Scene, site, new Vector2(horizontalRatio, verticalRatio));
+                    case Data.Enums.CutOrientation.Axial:
+                        horizontalRatio = Cut.Flip ? 1.0f - ratio.x : ratio.x;
+                        verticalRatio = ratio.y;
+                        break;
+                    case Data.Enums.CutOrientation.Coronal:
+                        horizontalRatio = Cut.Flip ? 1.0f - ratio.x : ratio.x;
+                        verticalRatio = Cut.Flip ? 1.0f - ratio.y : ratio.y;
+                        break;
+                    case Data.Enums.CutOrientation.Sagital:
+                        horizontalRatio = Cut.Flip ? 1.0f - ratio.y : ratio.y;
+                        verticalRatio = Cut.Flip ? ratio.x : 1.0f - ratio.x;
+                        break;
                 }
+
+                CutSite cutSite = Instantiate(m_SitePrefab, m_SitesRectTransform).GetComponent<CutSite>();
+                cutSite.Initialize(m_Scene, site, new Vector2(horizontalRatio, verticalRatio));
             }
         }
         public void DrawLines()

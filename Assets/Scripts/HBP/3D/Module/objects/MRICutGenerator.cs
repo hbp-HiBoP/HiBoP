@@ -60,6 +60,14 @@ namespace HBP.Module3D
                 update_cut_mesh_UV__MRIGeometryCutGenerator(_handle, mesh.getHandle());
                 ApplicationState.DLLDebugManager.check_error();
             }
+
+            public Vector2 GetPositionRatioOnTexture(Vector3 point)
+            {
+                float[] pointArray = new float[3] { -point.x, point.y, point.z };
+                float[] resultArray = new float[2];
+                get_position_ratio_on_texture_MRIGeometryCutGenerator(_handle, pointArray, resultArray);
+                return new Vector2(resultArray[0], resultArray[1]);
+            }
             #endregion
 
             #region Memory Management
@@ -99,6 +107,9 @@ namespace HBP.Module3D
 
             [DllImport("hbp_export", EntryPoint = "bounding_box_MRIGeometryCutGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern IntPtr bounding_box_MRIGeometryCutGenerator(HandleRef handleMRIGeometryCutGenerator);
+
+            [DllImport("hbp_export", EntryPoint = "get_position_ratio_on_texture_MRIGeometryCutGenerator", CallingConvention = CallingConvention.Cdecl)]
+            static private extern IntPtr get_position_ratio_on_texture_MRIGeometryCutGenerator(HandleRef handleMRIGeometryCutGenerator, float[] point, float[] result);
 
 
             #endregion

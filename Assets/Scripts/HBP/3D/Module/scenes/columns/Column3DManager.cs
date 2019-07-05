@@ -159,10 +159,6 @@ namespace HBP.Module3D
                 return MRIs[SelectedMRIID];
             }
         }
-        /// <summary>
-        /// Cube bounding box around the mesh, depending on the cuts
-        /// </summary>
-        public DLL.BBox CubeBoundingBox { get; private set; }
 
         /// <summary>
         /// Null UV vector
@@ -370,7 +366,6 @@ namespace HBP.Module3D
             }
             foreach (var dllCommonBrainTextureGenerator in DLLCommonBrainTextureGeneratorList) dllCommonBrainTextureGenerator.Dispose();
             foreach (var dllMRIGeometryCutGenerator in DLLMRIGeometryCutGeneratorList) dllMRIGeometryCutGenerator.Dispose();
-            CubeBoundingBox.Dispose();
         }
         /// <summary>
         /// Add a column to the scene
@@ -635,15 +630,6 @@ namespace HBP.Module3D
             {
                 SelectedColumn.Views.First().IsSelected = true;
             }
-        }
-        /// <summary>
-        /// Update the cube bounding box
-        /// </summary>
-        /// <param name="cuts">Cuts used for the cube bounding box</param>
-        public void UpdateCubeBoundingBox(List<Cut> cuts)
-        {
-            CubeBoundingBox?.Dispose();
-            CubeBoundingBox = SelectedMRI.Volume.GetCubeBoundingBox(cuts);
         }
         #endregion
     }
