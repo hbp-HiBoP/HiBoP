@@ -80,6 +80,21 @@ namespace HBP.UI.Module3D
         {
             return site.Information.Patient.Name.ToUpper().Contains(patientName.ToUpper());
         }
+        protected bool CheckPatientPlace(Site site, string patientPlace)
+        {
+            return site.Information.Patient.Place.ToUpper().Contains(patientPlace.ToUpper());
+        }
+        protected bool CheckPatientDate(Site site, string patientDateString)
+        {
+            if (global::Tools.Unity.NumberExtension.TryParseFloat(patientDateString, out float patientDate))
+            {
+                return site.Information.Patient.Date == patientDate;
+            }
+            else
+            {
+                throw new ParsingValueException(patientDateString);
+            }
+        }
         protected bool CheckMarsAtlasName(Site site, string marsAtlasName)
         {
             return site.Information.MarsAtlasLabel.ToLower().Contains(marsAtlasName.ToLower());
