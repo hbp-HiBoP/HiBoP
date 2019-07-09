@@ -135,9 +135,9 @@ namespace HBP.UI.Visualization
         {
             if (m_Object != null)
             {
-                m_Object.Name = name;
+                m_Object.Name = value;
             }
-            OnChangeName.Invoke(name);
+            OnChangeName.Invoke(value);
         }
         #endregion
     }
