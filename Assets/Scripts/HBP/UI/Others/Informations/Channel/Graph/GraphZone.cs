@@ -25,6 +25,13 @@ namespace HBP.UI.Informations
 
         [SerializeField] List<Color> m_Colors;
         Dictionary<Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color> m_ColorsByData = new Dictionary<Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color>();
+        public Dictionary<Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color> ColorsByData
+        {
+            get
+            {
+                return m_ColorsByData;
+            }
+        }
         Dictionary<Tuple<ROIStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color> m_ColorsByROI = new Dictionary<Tuple<ROIStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color>();
         Dictionary<string, bool> m_StatesByCurves = new Dictionary<string, bool>();
 
@@ -129,7 +136,7 @@ namespace HBP.UI.Informations
             Vector2[] abscissaDisplayRange = new Vector2[columns.Length];
             for (int c = 0; c < abscissaDisplayRange.Length; c++)
             {
-                if(m_useDefaultDisplayRange || c >= m_AbscissaDisplayRange.Length)
+                if (m_useDefaultDisplayRange || c >= m_AbscissaDisplayRange.Length)
                 {
                     abscissaDisplayRange[c] = columns[c].Item2.ToVector2();
                 }
@@ -147,7 +154,7 @@ namespace HBP.UI.Informations
                 AddGraph(column.Item1, column.Item2.ToVector2(), defaultOrdinateDisplayRange, abscissaDisplayRange[c], ordinateDisplayRange, selected);
             }
         }
-        void AddGraph(Graph.Curve[] curves,Vector2 defaultAbscissaDisplayRange, Vector2 defaultOrdinateDisplayRange, Vector2 abscissaDisplayRange, Vector2 ordinateDisplayRange, bool selected)
+        void AddGraph(Graph.Curve[] curves, Vector2 defaultAbscissaDisplayRange, Vector2 defaultOrdinateDisplayRange, Vector2 abscissaDisplayRange, Vector2 ordinateDisplayRange, bool selected)
         {
             UnityEngine.Profiling.Profiler.BeginSample("Instantiate graph");
             string name = "";
@@ -309,7 +316,7 @@ namespace HBP.UI.Informations
             }
 
             // ROIs
-            if(data.Blocs.First(b => b.Bloc == bloc).ROIs.Count > 0)
+            if (data.Blocs.First(b => b.Bloc == bloc).ROIs.Count > 0)
             {
                 result.AddSubCurve(GenerateROIsCurve(data, bloc, subBloc));
             }
@@ -339,12 +346,12 @@ namespace HBP.UI.Informations
         {
             string ID = data.Data + "_" + bloc.Name + "_ROI_" + ROI.Name;
 
-            
+
             CurveData curveData = null;
             Dictionary<Patient, List<string>> ChannelsByPatient = new Dictionary<Patient, List<string>>();
             foreach (var channel in ROI.Channels)
             {
-                if(!ChannelsByPatient.ContainsKey(channel.Patient))
+                if (!ChannelsByPatient.ContainsKey(channel.Patient))
                 {
                     ChannelsByPatient.Add(channel.Patient, new List<string>());
                 }
@@ -430,7 +437,7 @@ namespace HBP.UI.Informations
             CurveData result = null;
             PatientDataInfo dataInfo = data.Dataset.GetPatientDataInfos().First(d => (d.Patient == channel.Patient && d.Name == data.Data));
             BlocChannelData blocChannelData = DataManager.GetData(dataInfo, bloc, channel.Channel);
-            Color color = m_ColorsByData[new Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>(channel, data, bloc)]; 
+            Color color = m_ColorsByData[new Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>(channel, data, bloc)];
 
             ChannelTrial[] validTrials = blocChannelData.Trials.Where(t => t.IsValid).ToArray();
             List<ChannelTrial> trialsToUse = new List<ChannelTrial>(blocChannelData.Trials.Length);
@@ -501,9 +508,9 @@ namespace HBP.UI.Informations
                     foreach (var bloc in d.Blocs)
                     {
                         Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc> key = new Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>(channel, d, bloc.Bloc);
-                        if(!channelColor.ContainsKey(key))
+                        if (!channelColor.ContainsKey(key))
                         {
-                            if(m_ColorsByData.ContainsKey(key))
+                            if (m_ColorsByData.ContainsKey(key))
                             {
                                 channelColor.Add(key, m_ColorsByData[key]);
                             }
@@ -550,7 +557,7 @@ namespace HBP.UI.Informations
         Vector2 GetMinMax(Graph.Curve curve)
         {
             Vector2 result = new Vector2(float.MaxValue, float.MinValue);
-            if(curve.Data != null)
+            if (curve.Data != null)
             {
                 result = new Vector2(curve.Data.Points.Min(p => p.y), curve.Data.Points.Max(p => p.y));
             }
