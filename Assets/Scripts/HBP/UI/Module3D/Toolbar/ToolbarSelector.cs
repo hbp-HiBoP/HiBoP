@@ -51,10 +51,16 @@ namespace HBP.UI.Module3D
         private Toggle m_SiteToggle;
 
         /// <summary>
-        /// Site toggle
+        /// CCEP toggle
         /// </summary>
         [SerializeField]
         private Toggle m_CCEPToggle;
+
+        /// <summary>
+        /// IBC toggle
+        /// </summary>
+        [SerializeField]
+        private Toggle m_IBCToggle;
 
         /// <summary>
         /// ROI Toggle
@@ -99,6 +105,7 @@ namespace HBP.UI.Module3D
             m_Toolbars.Add(m_ROIToggle, m_ToolbarMenu.ROIToolbar);
             m_Toolbars.Add(m_TriangleToggle, m_ToolbarMenu.TriangleToolbar);
             m_Toolbars.Add(m_CCEPToggle, m_ToolbarMenu.CCEPToolbar);
+            m_Toolbars.Add(m_IBCToggle, m_ToolbarMenu.IBCToolbar);
             m_Toolbars.Add(m_FMRIToggle, m_ToolbarMenu.FMRIToolbar);
 
             AddListeners();
@@ -169,6 +176,13 @@ namespace HBP.UI.Module3D
                 if (isOn)
                 {
                     ChangeToolbar(m_CCEPToggle);
+                }
+            });
+            m_IBCToggle.onValueChanged.AddListener((isOn) =>
+            {
+                if (isOn)
+                {
+                    ChangeToolbar(m_IBCToggle);
                 }
             });
             m_FMRIToggle.onValueChanged.AddListener((isOn) =>

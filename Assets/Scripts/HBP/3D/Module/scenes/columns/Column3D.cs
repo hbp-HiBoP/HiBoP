@@ -589,17 +589,17 @@ namespace HBP.Module3D
             {
                 using (StreamWriter sw = new StreamWriter(path))
                 {
-                    sw.WriteLine("ID,Blacklisted,Highlighted,Color");
+                    sw.WriteLine("ID,Blacklisted,Highlighted,Color,Labels");
                     foreach (var site in SiteStateBySiteID)
                     {
-                        sw.WriteLine("{0},{1},{2},{3}", site.Key, site.Value.IsBlackListed, site.Value.IsHighlighted, site.Value.Color.ToHexString());
+                        sw.WriteLine("{0},{1},{2},{3},{4}", site.Key, site.Value.IsBlackListed, site.Value.IsHighlighted, site.Value.Color.ToHexString(), string.Join(";", site.Value.Labels));
                     }
                 }
             }
             catch (System.Exception e)
             {
                 Debug.LogException(e);
-                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Can not save site states", "Please verify your rights.");
+                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Can not save site states", "Please verify your rights.");
             }
         }
         /// <summary>
@@ -615,11 +615,11 @@ namespace HBP.Module3D
                     // Find which column of the csv corresponds to which argument
                     string firstLine = sr.ReadLine();
                     string[] firstLineSplits = firstLine.Split(',');
-                    int[] indices = new int[4];
+                    int[] indices = new int[5];
                     for (int i = 0; i < indices.Length; ++i)
                     {
                         string split = firstLineSplits[i];
-                        indices[i] = split == "ID" ? 0 : split == "Blacklisted" ? 1 : split == "Highlighted" ? 2 : split == "Color" ? 3 : i;
+                        indices[i] = split == "ID" ? 0 : split == "Blacklisted" ? 1 : split == "Highlighted" ? 2 : split == "Color" ? 3 : split == "Labels" ? 4 : i;
                     }
                     // Fill states
                     string line;
@@ -627,6 +627,7 @@ namespace HBP.Module3D
                     {
                         string[] args = line.Split(',');
                         SiteState state = new SiteState();
+
                         if (bool.TryParse(args[indices[1]], out bool stateValue))
                         {
                             state.IsBlackListed = stateValue;
@@ -635,6 +636,7 @@ namespace HBP.Module3D
                         {
                             state.IsBlackListed = false;
                         }
+
                         if (bool.TryParse(args[indices[2]], out stateValue))
                         {
                             state.IsHighlighted = stateValue;
@@ -643,6 +645,7 @@ namespace HBP.Module3D
                         {
                             state.IsHighlighted = false;
                         }
+
                         if (ColorUtility.TryParseHtmlString(args[indices[3]], out Color color))
                         {
                             state.Color = color;
@@ -651,8 +654,14 @@ namespace HBP.Module3D
                         {
                             state.Color = SiteState.DefaultColor;
                         }
-                        SiteState existingState;
-                        if (SiteStateBySiteID.TryGetValue(args[indices[0]], out existingState))
+
+                        string[] labels = args[indices[4]].Split(new char[] { ';' }, System.StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var label in labels)
+                        {
+                            state.AddLabel(label);
+                        }
+
+                        if (SiteStateBySiteID.TryGetValue(args[indices[0]], out SiteState existingState))
                         {
                             existingState.ApplyState(state);
                         }

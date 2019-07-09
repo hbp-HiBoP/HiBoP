@@ -243,13 +243,18 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="bbox">Bounding box to display</param>
         /// <param name="offset">Offset for the center of the bouding box</param>
-        public static void DisplayBBoxDebug(DLL.BBox bbox, Vector3 offset)
+        public static void DisplayBBoxDebug(DLL.BBox bbox, Vector3 offset, Color color, float duration = 50)
         {
-            List<Vector3> linesPoints = bbox.LinesPairPoints;
+            List<Vector3> rawLinesPoints = bbox.LinesPairPoints;
+            List<Vector3> linesPoints = new List<Vector3>(rawLinesPoints.Count);
+            foreach (var p in rawLinesPoints)
+            {
+                linesPoints.Add(new Vector3(-p.x, p.y, p.z));
+            }
 
             for (int ii = 0; ii < linesPoints.Count; ii += 2)
             {
-                Debug.DrawRay(offset + linesPoints[ii], linesPoints[ii + 1] - linesPoints[ii], Color.red, 50);
+                Debug.DrawRay(offset + linesPoints[ii], linesPoints[ii + 1] - linesPoints[ii], color, duration);
             }
         }
         /// <summary>

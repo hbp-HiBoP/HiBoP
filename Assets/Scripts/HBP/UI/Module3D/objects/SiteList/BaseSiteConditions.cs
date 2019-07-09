@@ -46,6 +46,28 @@ namespace HBP.UI.Module3D
         {
             return m_Scene.ColumnManager.SelectedMesh.SimplifiedBoth.IsPointInside(m_Scene.ColumnManager.SelectedImplantation.RawSiteList, site.Information.GlobalID);
         }
+        protected bool CheckInLeftHemisphere(Site site)
+        {
+            if (m_Scene.ColumnManager.SelectedMesh is LeftRightMesh3D mesh)
+            {
+                return mesh.SimplifiedLeft.IsPointInside(m_Scene.ColumnManager.SelectedImplantation.RawSiteList, site.Information.GlobalID);
+            }
+            else
+            {
+                throw new InvalidBasicConditionException("The selected mesh is a single file mesh.\nYou can not filter by hemisphere.");
+            }
+        }
+        protected bool CheckInRightHemisphere(Site site)
+        {
+            if (m_Scene.ColumnManager.SelectedMesh is LeftRightMesh3D mesh)
+            {
+                return mesh.SimplifiedRight.IsPointInside(m_Scene.ColumnManager.SelectedImplantation.RawSiteList, site.Information.GlobalID);
+            }
+            else
+            {
+                throw new InvalidBasicConditionException("The selected mesh is a single file mesh.\nYou can not filter by hemisphere.");
+            }
+        }
         protected bool CheckOnPlane(Site site)
         {
             return m_Scene.ColumnManager.SelectedImplantation.RawSiteList.IsSiteOnAnyPlane(site, from cut in m_Scene.Cuts select cut as HBP.Module3D.Plane, 1.0f);
@@ -57,6 +79,21 @@ namespace HBP.UI.Module3D
         protected bool CheckPatientName(Site site, string patientName)
         {
             return site.Information.Patient.Name.ToUpper().Contains(patientName.ToUpper());
+        }
+        protected bool CheckPatientPlace(Site site, string patientPlace)
+        {
+            return site.Information.Patient.Place.ToUpper().Contains(patientPlace.ToUpper());
+        }
+        protected bool CheckPatientDate(Site site, string patientDateString)
+        {
+            if (global::Tools.Unity.NumberExtension.TryParseFloat(patientDateString, out float patientDate))
+            {
+                return site.Information.Patient.Date == patientDate;
+            }
+            else
+            {
+                throw new ParsingValueException(patientDateString);
+            }
         }
         protected bool CheckMarsAtlasName(Site site, string marsAtlasName)
         {

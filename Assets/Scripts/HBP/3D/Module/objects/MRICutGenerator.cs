@@ -23,6 +23,16 @@ namespace HBP.Module3D
         /// </summary>
         public class MRIGeometryCutGenerator : Tools.DLL.CppDLLImportBase
         {
+            #region Properties
+            public BBox BoundingBox
+            {
+                get
+                {
+                    return new BBox(bounding_box_MRIGeometryCutGenerator(_handle));
+                }
+            }
+            #endregion
+
             #region Public Methods 
             /// <summary>
             /// 
@@ -49,6 +59,14 @@ namespace HBP.Module3D
             {
                 update_cut_mesh_UV__MRIGeometryCutGenerator(_handle, mesh.getHandle());
                 ApplicationState.DLLDebugManager.check_error();
+            }
+
+            public Vector2 GetPositionRatioOnTexture(Vector3 point)
+            {
+                float[] pointArray = new float[3] { -point.x, point.y, point.z };
+                float[] resultArray = new float[2];
+                get_position_ratio_on_texture_MRIGeometryCutGenerator(_handle, pointArray, resultArray);
+                return new Vector2(resultArray[0], resultArray[1]);
             }
             #endregion
 
@@ -86,6 +104,12 @@ namespace HBP.Module3D
 
             [DllImport("hbp_export", EntryPoint = "update_cut_mesh_UV__MRIGeometryCutGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern void update_cut_mesh_UV__MRIGeometryCutGenerator(HandleRef handleMRIGeometryCutGenerator, HandleRef handleSurface);
+
+            [DllImport("hbp_export", EntryPoint = "bounding_box_MRIGeometryCutGenerator", CallingConvention = CallingConvention.Cdecl)]
+            static private extern IntPtr bounding_box_MRIGeometryCutGenerator(HandleRef handleMRIGeometryCutGenerator);
+
+            [DllImport("hbp_export", EntryPoint = "get_position_ratio_on_texture_MRIGeometryCutGenerator", CallingConvention = CallingConvention.Cdecl)]
+            static private extern IntPtr get_position_ratio_on_texture_MRIGeometryCutGenerator(HandleRef handleMRIGeometryCutGenerator, float[] point, float[] result);
 
 
             #endregion

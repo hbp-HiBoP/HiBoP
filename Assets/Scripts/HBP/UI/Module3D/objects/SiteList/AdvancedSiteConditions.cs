@@ -21,9 +21,13 @@ namespace HBP.UI.Module3D
         public const string LABEL = "LABEL";
         public const string IN_ROI = "ROI";
         public const string IN_MESH = "MESH";
+        public const string IN_LEFT_HEMISPHERE = "L";
+        public const string IN_RIGHT_HEMISPHERE = "R";
         public const string ON_PLANE = "CUT";
         public const string NAME = "NAME";
-        public const string PATIENT = "PAT";
+        public const string PATIENT_NAME = "PAT_NAME";
+        public const string PATIENT_PLACE = "PAT_PLACE";
+        public const string PATIENT_DATE = "PAT_DATE";
         public const string MARS_ATLAS = "MA";
         public const string BROADMAN = "BA";
         public const string FREESURFER = "FS";
@@ -83,6 +87,14 @@ namespace HBP.UI.Module3D
             {
                 return CheckInMesh(site);
             }
+            else if (s == IN_LEFT_HEMISPHERE)
+            {
+                return CheckInLeftHemisphere(site);
+            }
+            else if (s == IN_RIGHT_HEMISPHERE)
+            {
+                return CheckInRightHemisphere(site);
+            }
             else if (s == ON_PLANE)
             {
                 return CheckOnPlane(site);
@@ -95,12 +107,28 @@ namespace HBP.UI.Module3D
                     return CheckName(site, array[1].Replace("\"", ""));
                 }
             }
-            else if (s.Contains(PATIENT))
+            else if (s.Contains(PATIENT_NAME))
             {
                 string[] array = s.Split('=');
                 if (array.Length == 2)
                 {
                     return CheckPatientName(site, array[1].Replace("\"", ""));
+                }
+            }
+            else if (s.Contains(PATIENT_PLACE))
+            {
+                string[] array = s.Split('=');
+                if (array.Length == 2)
+                {
+                    return CheckPatientPlace(site, array[1].Replace("\"", ""));
+                }
+            }
+            else if (s.Contains(PATIENT_DATE))
+            {
+                string[] array = s.Split('=');
+                if (array.Length == 2)
+                {
+                    return CheckPatientDate(site, array[1].Replace("\"", ""));
                 }
             }
             else if (s.Contains(MARS_ATLAS))
@@ -222,7 +250,7 @@ namespace HBP.UI.Module3D
                     }
                 }
             }
-            throw new InvalidConditionException(s);
+            throw new InvalidAdvancedConditionException(s);
         }
         #endregion
 

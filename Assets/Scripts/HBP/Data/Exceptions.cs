@@ -440,15 +440,29 @@ public class FrequencyException : HBPException
 }
 
 [Serializable]
-public class InvalidConditionException : HBPException
+public class InvalidBasicConditionException : HBPException
 {
-    public InvalidConditionException() { }
-    public InvalidConditionException(string condition) : base("One of your conditions is not valid: \" " + condition + " \". Please fix it.")
+    public InvalidBasicConditionException() { }
+    public InvalidBasicConditionException(string condition) : base(condition)
     {
         Title = "Invalid condition";
     }
-    public InvalidConditionException(string message, Exception inner) : base(message, inner) { }
-    protected InvalidConditionException(
+    public InvalidBasicConditionException(string message, Exception inner) : base(message, inner) { }
+    protected InvalidBasicConditionException(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
+[Serializable]
+public class InvalidAdvancedConditionException : HBPException
+{
+    public InvalidAdvancedConditionException() { }
+    public InvalidAdvancedConditionException(string condition) : base("One of your conditions is not valid: \" " + condition + " \". Please fix it.")
+    {
+        Title = "Invalid condition";
+    }
+    public InvalidAdvancedConditionException(string message, Exception inner) : base(message, inner) { }
+    protected InvalidAdvancedConditionException(
       System.Runtime.Serialization.SerializationInfo info,
       System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 }

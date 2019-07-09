@@ -159,10 +159,6 @@ namespace HBP.Module3D
                 return MRIs[SelectedMRIID];
             }
         }
-        /// <summary>
-        /// Cube bounding box around the mesh, depending on the cuts
-        /// </summary>
-        public DLL.BBox CubeBoundingBox { get; private set; }
 
         /// <summary>
         /// Null UV vector
@@ -217,112 +213,12 @@ namespace HBP.Module3D
                 }
             }
         }
+
+        /// <summary>
+        /// Manage everything concerning the FMRIs
+        /// </summary>
+        public FMRIManager FMRIManager { get; } = new FMRIManager();
         
-        /// <summary>
-        /// FMRI associated to this scene
-        /// </summary>
-        public MRI3D FMRI = null;
-        
-        private float m_FMRIAlpha = 0.5f;
-        /// <summary>
-        /// Alpha of the FMRI
-        /// </summary>
-        public float FMRIAlpha
-        {
-            get
-            {
-                return m_FMRIAlpha;
-            }
-            set
-            {
-                if (m_FMRIAlpha != value)
-                {
-                    m_FMRIAlpha = value;
-                    OnUpdateFMRIParameters.Invoke();
-                }
-            }
-        }
-
-        private float m_FMRICalMinFactor = 0.4f;
-        /// <summary>
-        /// Cal min factor of the FMRI
-        /// </summary>
-        public float FMRICalMinFactor
-        {
-            get
-            {
-                return m_FMRICalMinFactor;
-            }
-            set
-            {
-                if (m_FMRICalMinFactor != value)
-                {
-                    m_FMRICalMinFactor = value;
-                    OnUpdateFMRIParameters.Invoke();
-                }
-            }
-        }
-        /// <summary>
-        /// Cal min value of the FMRI
-        /// </summary>
-        public float FMRICalMin
-        {
-            get
-            {
-                if (FMRI == null) return 0;
-                return m_FMRICalMinFactor * (FMRI.Volume.ExtremeValues.ComputedCalMax - FMRI.Volume.ExtremeValues.ComputedCalMin) + FMRI.Volume.ExtremeValues.ComputedCalMin;
-            }
-            set
-            {
-                if (FMRI == null)
-                {
-                    FMRICalMinFactor = 0;
-                    return;
-                }
-                FMRICalMinFactor = (value - FMRI.Volume.ExtremeValues.ComputedCalMin) / (FMRI.Volume.ExtremeValues.ComputedCalMax - FMRI.Volume.ExtremeValues.ComputedCalMin);
-            }
-        }
-
-        private float m_FMRICalMaxFactor = 0.6f;
-        /// <summary>
-        /// Cal max factor of the FMRI
-        /// </summary>
-        public float FMRICalMaxFactor
-        {
-            get
-            {
-                return m_FMRICalMaxFactor;
-            }
-            set
-            {
-                if (m_FMRICalMaxFactor != value)
-                {
-                    m_FMRICalMaxFactor = value;
-                    OnUpdateFMRIParameters.Invoke();
-                }
-            }
-        }
-        /// <summary>
-        /// Cal max value of the FMRI
-        /// </summary>
-        public float FMRICalMax
-        {
-            get
-            {
-                if (FMRI == null) return 0;
-                return m_FMRICalMaxFactor * (FMRI.Volume.ExtremeValues.ComputedCalMax - FMRI.Volume.ExtremeValues.ComputedCalMin) + FMRI.Volume.ExtremeValues.ComputedCalMin;
-            }
-            set
-            {
-                if (FMRI == null)
-                {
-                    FMRICalMaxFactor = 1.0f;
-                    return;
-                }
-                FMRICalMaxFactor = (value - FMRI.Volume.ExtremeValues.ComputedCalMin) / (FMRI.Volume.ExtremeValues.ComputedCalMax - FMRI.Volume.ExtremeValues.ComputedCalMin);
-            }
-        }
-
         /// <summary>
         /// Brain surface color
         /// </summary>
@@ -402,7 +298,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when updating the alpha or cal values of the FMRI
         /// </summary>
-        [HideInInspector] public UnityEvent OnUpdateFMRIParameters = new UnityEvent();
+        [HideInInspector] public UnityEvent OnRequestResetIEEG = new UnityEvent();
         /// <summary>
         /// Event called when updating the ROI mask for this column
         /// </summary>
@@ -419,10 +315,6 @@ namespace HBP.Module3D
         /// Event called when changing the gain of the sphere representing the sites
         /// </summary>
         [HideInInspector] public GenericEvent<Column3DIEEG> OnUpdateIEEGGain = new GenericEvent<Column3DIEEG>();
-        /// <summary>
-        /// Event called when changing the influence of each site on the texture
-        /// </summary>
-        [HideInInspector] public GenericEvent<Column3DIEEG> OnUpdateInfluenceDistance = new GenericEvent<Column3DIEEG>();
         /// <summary>
         /// Event called when changing the timeline ID of a column
         /// </summary>
@@ -474,7 +366,6 @@ namespace HBP.Module3D
             }
             foreach (var dllCommonBrainTextureGenerator in DLLCommonBrainTextureGeneratorList) dllCommonBrainTextureGenerator.Dispose();
             foreach (var dllMRIGeometryCutGenerator in DLLMRIGeometryCutGeneratorList) dllMRIGeometryCutGenerator.Dispose();
-            CubeBoundingBox.Dispose();
         }
         /// <summary>
         /// Add a column to the scene
@@ -563,7 +454,7 @@ namespace HBP.Module3D
                 });
                 columnIEEG.IEEGParameters.OnUpdateInfluenceDistance.AddListener(() =>
                 {
-                    OnUpdateInfluenceDistance.Invoke(columnIEEG);
+                    OnRequestResetIEEG.Invoke();
                     column.IsRenderingUpToDate = false;
                 });
                 columnIEEG.OnUpdateCurrentTimelineID.AddListener(() =>
@@ -677,9 +568,9 @@ namespace HBP.Module3D
         public void CreateMRITexture(Column3D column, int cutID, int blurFactor)
         {
             column.CutTextures.CreateMRITexture(DLLMRIGeometryCutGeneratorList[cutID], SelectedMRI.Volume, cutID, MRICalMinFactor, MRICalMaxFactor, blurFactor);
-            if (FMRI != null)
+            if (FMRIManager.DisplayFMRI)
             {
-                column.CutTextures.ColorCutsTexturesWithFMRI(FMRI.Volume, cutID, m_FMRICalMinFactor, m_FMRICalMaxFactor, m_FMRIAlpha);
+                FMRIManager.ColorCutTexture(column, cutID, blurFactor);
             }
         }
         /// <summary>
@@ -739,15 +630,6 @@ namespace HBP.Module3D
             {
                 SelectedColumn.Views.First().IsSelected = true;
             }
-        }
-        /// <summary>
-        /// Update the cube bounding box
-        /// </summary>
-        /// <param name="cuts">Cuts used for the cube bounding box</param>
-        public void UpdateCubeBoundingBox(List<Cut> cuts)
-        {
-            CubeBoundingBox?.Dispose();
-            CubeBoundingBox = SelectedMRI.Volume.GetCubeBoundingBox(cuts);
         }
         #endregion
     }

@@ -429,9 +429,6 @@ namespace HBP.Module3D
             }
         }
 
-        private string m_FirstSiteToSelectName = "";
-        private int m_FirstSiteToSelectColumnNumber = 0;
-
         /// <summary>
         /// Is ROI creation mode activated ?
         /// </summary>
@@ -608,9 +605,9 @@ namespace HBP.Module3D
             if (!SceneInformation.IsSceneCompletelyLoaded)
             {
                 UpdateVisibleState(true);
-                if (m_FirstSiteToSelectColumnNumber < m_ColumnManager.Columns.Count)
+                if (Visualization.Configuration.FirstColumnToSelect < m_ColumnManager.Columns.Count)
                 {
-                    m_ColumnManager.Columns[m_FirstSiteToSelectColumnNumber].SelectFirstSite(m_FirstSiteToSelectName);
+                    m_ColumnManager.Columns[Visualization.Configuration.FirstColumnToSelect].SelectFirstSite(Visualization.Configuration.FirstSiteToSelect);
                 }
                 SceneInformation.IsSceneCompletelyLoaded = true;
             }
@@ -655,10 +652,6 @@ namespace HBP.Module3D
             {
                 SceneInformation.AreSitesUpdated = false;
             });
-            m_ColumnManager.OnUpdateInfluenceDistance.AddListener((column) =>
-            {
-                ResetIEEG();
-            });
             m_ColumnManager.OnUpdateColumnTimelineID.AddListener((column) =>
             {
                 ComputeIEEGTextures(column);
@@ -689,9 +682,14 @@ namespace HBP.Module3D
                 SceneInformation.AreSitesUpdated = false;
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             });
-            m_ColumnManager.OnUpdateFMRIParameters.AddListener(() =>
+            m_ColumnManager.OnRequestResetIEEG.AddListener(() =>
             {
                 ResetIEEG();
+            });
+            m_ColumnManager.FMRIManager.OnChangeFMRIParameters.AddListener(() =>
+            {
+                ResetIEEG();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             });
             SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
@@ -757,8 +755,9 @@ namespace HBP.Module3D
             Column3D column = m_ColumnManager.SelectedColumn;
             if (column)
             {
+                //column.CutTextures.DrawSitesOnMRITextures(Cuts, ColumnManager.SelectedImplantation.RawSiteList);
                 column.CutTextures.CreateGUIMRITextures(Cuts);
-                column.CutTextures.ResizeGUIMRITextures(Cuts);
+                //column.CutTextures.ResizeGUIMRITextures(Cuts);
                 column.CutTextures.UpdateTextures2D();
                 foreach (Cut cut in Cuts)
                 {
@@ -1009,7 +1008,6 @@ namespace HBP.Module3D
         private void UpdateCuts()
         {
             ComputeMeshesCut();
-            m_ColumnManager.UpdateCubeBoundingBox(Cuts);
 
             ComputeMRITextures();
             ComputeGUITextures();
@@ -1438,26 +1436,27 @@ namespace HBP.Module3D
                 RemoveCutPlane(cut);
             }
 
+            Vector3 sitePosition = new Vector3(-site.transform.localPosition.x, site.transform.localPosition.y, site.transform.localPosition.z);
+
             Cut axialCut = AddCutPlane();
+            Vector3 axialPoint = SceneInformation.MeshCenter + (Vector3.Dot(sitePosition - SceneInformation.MeshCenter, axialCut.Normal) / Vector3.Dot(axialCut.Normal, axialCut.Normal)) * axialCut.Normal;
             float axialOffset = SceneInformation.MeshToDisplay.SizeOffsetCutPlane(axialCut, axialCut.NumberOfCuts) * 1.05f;
-            Vector3 axialMin = SceneInformation.MeshCenter + axialCut.Normal * (-0.5f) * axialOffset * axialCut.NumberOfCuts;
-            Vector3 axialMax = SceneInformation.MeshCenter + axialCut.Normal * 0.5f * axialOffset * axialCut.NumberOfCuts;
-            axialCut.Position = (site.transform.localPosition.z - axialMin.z) / (axialMax.z - axialMin.z);
+            axialCut.Position = ((axialPoint.z - SceneInformation.MeshCenter.z) / (axialCut.Normal.z * axialOffset * axialCut.NumberOfCuts)) + 0.5f;
             UpdateCutPlane(axialCut);
 
             Cut coronalCut = AddCutPlane();
+            Vector3 coronalPoint = SceneInformation.MeshCenter + (Vector3.Dot(sitePosition - SceneInformation.MeshCenter, coronalCut.Normal) / Vector3.Dot(coronalCut.Normal, coronalCut.Normal)) * coronalCut.Normal;
             float coronalOffset = SceneInformation.MeshToDisplay.SizeOffsetCutPlane(coronalCut, coronalCut.NumberOfCuts) * 1.05f;
-            Vector3 coronalMin = SceneInformation.MeshCenter + coronalCut.Normal * (-0.5f) * coronalOffset * coronalCut.NumberOfCuts;
-            Vector3 coronalMax = SceneInformation.MeshCenter + coronalCut.Normal * 0.5f * coronalOffset * coronalCut.NumberOfCuts;
-            coronalCut.Position = (site.transform.localPosition.y - coronalMin.y) / (coronalMax.y - coronalMin.y);
+            coronalCut.Position = ((coronalPoint.y - SceneInformation.MeshCenter.y) / (coronalCut.Normal.y * coronalOffset * coronalCut.NumberOfCuts)) + 0.5f;
             UpdateCutPlane(coronalCut);
 
             Cut sagitalCut = AddCutPlane();
+            Vector3 sagitalPoint = SceneInformation.MeshCenter + (Vector3.Dot(sitePosition - SceneInformation.MeshCenter, sagitalCut.Normal) / Vector3.Dot(sagitalCut.Normal, sagitalCut.Normal)) * sagitalCut.Normal;
             float sagitalOffset = SceneInformation.MeshToDisplay.SizeOffsetCutPlane(sagitalCut, sagitalCut.NumberOfCuts) * 1.05f;
-            Vector3 sagitalMin = SceneInformation.MeshCenter + sagitalCut.Normal * (-0.5f) * sagitalOffset * sagitalCut.NumberOfCuts;
-            Vector3 sagitalMax = SceneInformation.MeshCenter + sagitalCut.Normal * 0.5f * sagitalOffset * sagitalCut.NumberOfCuts;
-            sagitalCut.Position = (-site.transform.localPosition.x - sagitalMin.x) / (sagitalMax.x - sagitalMin.x);
+            sagitalCut.Position = ((sagitalPoint.x - SceneInformation.MeshCenter.x) / (sagitalCut.Normal.x * sagitalOffset * sagitalCut.NumberOfCuts)) + 0.5f;
             UpdateCutPlane(sagitalCut);
+
+            SceneInformation.CutsNeedUpdate = true;
         }
         #endregion
 
@@ -1586,7 +1585,7 @@ namespace HBP.Module3D
                 column.LoadConfiguration(false);
             }
             ROICreation = !ROICreation;
-
+            
             SceneInformation.AreSitesUpdated = false;
 
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
@@ -1629,6 +1628,9 @@ namespace HBP.Module3D
             {
                 column.SaveConfiguration();
             }
+
+            Visualization.Configuration.FirstSiteToSelect = m_ColumnManager.SelectedColumn.SelectedSite.Information.ChannelName;
+            Visualization.Configuration.FirstColumnToSelect = m_ColumnManager.Columns.FindIndex(c => c = m_ColumnManager.SelectedColumn);
         }
         /// <summary>
         /// Reset the settings of the loaded scene
@@ -1688,23 +1690,7 @@ namespace HBP.Module3D
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
-
-        /// <summary>
-        /// Load a FMRI to this scene
-        /// </summary>
-        public void LoadFMRI(MRI3D fmri)
-        {
-            m_ColumnManager.FMRI = fmri;
-            ResetIEEG();
-        }
-        /// <summary>
-        /// Unload the FMRI of this scene
-        /// </summary>
-        public void UnloadFMRI()
-        {
-            m_ColumnManager.FMRI = null;
-            ResetIEEG();
-        }
+        
         /// <summary>
         /// Copy the states of the sites of the selected column to all other columns
         /// </summary>
@@ -1720,15 +1706,6 @@ namespace HBP.Module3D
                 }
             }
             ResetIEEG(false);
-        }
-        /// <summary>
-        /// Select a site on a column given its name
-        /// </summary>
-        /// <param name="siteName"></param>
-        public void SelectFirstSite(string siteName = "", int columnNumber = 0)
-        {
-            m_FirstSiteToSelectName = siteName;
-            m_FirstSiteToSelectColumnNumber = 0;
         }
         /// <summary>
         /// Update the data rendering for a column
