@@ -27,7 +27,6 @@ namespace HBP.UI.Anatomy
         [SerializeField] ConnectivityListGestion m_ConnectivityListGestion;
         [SerializeField] Button m_AddConnectivityButton, m_RemoveConnectivityButton;
 
-        [SerializeField] OthersGestion m_OthersGestion;
 
         public override bool Interactable
         {
@@ -65,8 +64,7 @@ namespace HBP.UI.Anatomy
                 m_AddConnectivityButton.interactable = value;
                 m_RemoveConnectivityButton.interactable = value;
 
-                // Others.
-                m_OthersGestion.Interactable = value;
+                // Tags.
             }
         }
         #endregion
@@ -85,7 +83,6 @@ namespace HBP.UI.Anatomy
             m_PlaceInputField.onValueChanged.AddListener((value) => ItemTemp.Place = value);
             m_DateInputField.onValueChanged.AddListener((value) => ItemTemp.Date = int.Parse(value));
 
-            m_OthersGestion.Initialize();
         }
         protected override void SetFields(Data.Patient objectToDisplay)
         {
@@ -99,7 +96,6 @@ namespace HBP.UI.Anatomy
             m_MRIListGestion.Objects = objectToDisplay.Brain.MRIs;
             m_ConnectivityListGestion.Objects = objectToDisplay.Brain.Connectivities;
 
-            m_OthersGestion.Set(objectToDisplay);
         }
         #endregion
     }
