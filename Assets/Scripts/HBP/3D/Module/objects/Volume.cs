@@ -377,14 +377,6 @@ namespace HBP.Module3D.DLL
             }
             return new BBox(cube_bounding_box_Volume(_handle, planes, planesCount));
         }
-
-        public Vector3 GetPointCoordinatesInVolume(Vector3 point)
-        {
-            float[] pointArray = new float[3] { -point.x, point.y, point.z };
-            float[] resultArray = new float[3];
-            getPointCoordinatesInVolume_Volume(_handle, pointArray, resultArray);
-            return new Vector3(-resultArray[0], resultArray[1], resultArray[2]);
-        }
         #endregion
 
         #region Memory Management
@@ -440,9 +432,6 @@ namespace HBP.Module3D.DLL
 
         [DllImport("hbp_export", EntryPoint = "cube_bounding_box_Volume", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr cube_bounding_box_Volume(HandleRef handleSurface, float[] planes, int planesCount);
-
-        [DllImport("hbp_export", EntryPoint = "getPointCoordinatesInVolume_Volume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern IntPtr getPointCoordinatesInVolume_Volume(HandleRef handleVolume, float[] pointArray, float[] resultArray);
 
         
 
