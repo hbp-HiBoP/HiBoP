@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Runtime.Serialization;
+using UnityEngine;
 
 namespace Tools.CSharp
 {
@@ -7,7 +8,7 @@ namespace Tools.CSharp
         #region Properties
         public int Start { get; set; }
         public int End { get; set; }
-        public int Lenght
+        [IgnoreDataMember] public int Lenght
         {
             get
             {

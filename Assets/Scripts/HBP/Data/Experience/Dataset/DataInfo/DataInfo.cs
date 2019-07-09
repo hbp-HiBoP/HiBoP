@@ -34,7 +34,7 @@ namespace HBP.Data.Experience.Dataset
 
         [DataMember] public string ID { get; set; }
 
-        [DataMember] protected Container.DataContainer m_DataContainer;
+        [DataMember(Name = "DataContainer")] protected Container.DataContainer m_DataContainer;
         public Container.DataContainer DataContainer
         {
             get { return m_DataContainer; }
