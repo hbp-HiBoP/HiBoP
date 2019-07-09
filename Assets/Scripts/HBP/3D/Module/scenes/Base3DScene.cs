@@ -1436,31 +1436,27 @@ namespace HBP.Module3D
                 RemoveCutPlane(cut);
             }
 
-            Vector3 sitePosition = site.transform.localPosition;
-            
+            Vector3 sitePosition = new Vector3(-site.transform.localPosition.x, site.transform.localPosition.y, site.transform.localPosition.z);
+
             Cut axialCut = AddCutPlane();
+            Vector3 axialPoint = SceneInformation.MeshCenter + (Vector3.Dot(sitePosition - SceneInformation.MeshCenter, axialCut.Normal) / Vector3.Dot(axialCut.Normal, axialCut.Normal)) * axialCut.Normal;
             float axialOffset = SceneInformation.MeshToDisplay.SizeOffsetCutPlane(axialCut, axialCut.NumberOfCuts) * 1.05f;
-            Vector3 axialMin = SceneInformation.MeshCenter + axialCut.Normal * (-0.5f) * axialOffset * axialCut.NumberOfCuts;
-            Vector3 axialMax = SceneInformation.MeshCenter + axialCut.Normal * 0.5f * axialOffset * axialCut.NumberOfCuts;
-            float zPos = sitePosition.z;
-            axialCut.Position = (zPos - axialMin.z) / (axialMax.z - axialMin.z);
+            axialCut.Position = ((axialPoint.z - SceneInformation.MeshCenter.z) / (axialCut.Normal.z * axialOffset * axialCut.NumberOfCuts)) + 0.5f;
             UpdateCutPlane(axialCut);
 
             Cut coronalCut = AddCutPlane();
+            Vector3 coronalPoint = SceneInformation.MeshCenter + (Vector3.Dot(sitePosition - SceneInformation.MeshCenter, coronalCut.Normal) / Vector3.Dot(coronalCut.Normal, coronalCut.Normal)) * coronalCut.Normal;
             float coronalOffset = SceneInformation.MeshToDisplay.SizeOffsetCutPlane(coronalCut, coronalCut.NumberOfCuts) * 1.05f;
-            Vector3 coronalMin = SceneInformation.MeshCenter + coronalCut.Normal * (-0.5f) * coronalOffset * coronalCut.NumberOfCuts;
-            Vector3 coronalMax = SceneInformation.MeshCenter + coronalCut.Normal * 0.5f * coronalOffset * coronalCut.NumberOfCuts;
-            float yPos = sitePosition.y;
-            coronalCut.Position = (yPos - coronalMin.y) / (coronalMax.y - coronalMin.y);
+            coronalCut.Position = ((coronalPoint.y - SceneInformation.MeshCenter.y) / (coronalCut.Normal.y * coronalOffset * coronalCut.NumberOfCuts)) + 0.5f;
             UpdateCutPlane(coronalCut);
 
             Cut sagitalCut = AddCutPlane();
+            Vector3 sagitalPoint = SceneInformation.MeshCenter + (Vector3.Dot(sitePosition - SceneInformation.MeshCenter, sagitalCut.Normal) / Vector3.Dot(sagitalCut.Normal, sagitalCut.Normal)) * sagitalCut.Normal;
             float sagitalOffset = SceneInformation.MeshToDisplay.SizeOffsetCutPlane(sagitalCut, sagitalCut.NumberOfCuts) * 1.05f;
-            Vector3 sagitalMin = SceneInformation.MeshCenter + sagitalCut.Normal * (-0.5f) * sagitalOffset * sagitalCut.NumberOfCuts;
-            Vector3 sagitalMax = SceneInformation.MeshCenter + sagitalCut.Normal * 0.5f * sagitalOffset * sagitalCut.NumberOfCuts;
-            float xPos = -sitePosition.x;
-            sagitalCut.Position = (xPos - sagitalMin.x) / (sagitalMax.x - sagitalMin.x);
+            sagitalCut.Position = ((sagitalPoint.x - SceneInformation.MeshCenter.x) / (sagitalCut.Normal.x * sagitalOffset * sagitalCut.NumberOfCuts)) + 0.5f;
             UpdateCutPlane(sagitalCut);
+
+            SceneInformation.CutsNeedUpdate = true;
         }
         #endregion
 
