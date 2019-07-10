@@ -150,7 +150,7 @@ namespace HBP.Module3D
                     site.State.IsMasked = true;
                 }
                 string unit;
-                if (ColumnIEEGData.Data.UnitByChannel.TryGetValue(site.Information.FullCorrectedID, out unit))
+                if (ColumnIEEGData.Data.UnitByChannelID.TryGetValue(site.Information.FullCorrectedID, out unit))
                 {
                     IEEGUnitsBySiteID[site.Information.GlobalID] = unit;
                 }

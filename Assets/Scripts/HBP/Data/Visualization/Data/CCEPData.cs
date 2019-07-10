@@ -8,39 +8,64 @@ namespace HBP.Data.Visualization
     public class CCEPData : DynamicData
     {
         #region Properties
-        public BlocEventsStatistics BlocEventsStatistics { get; set; }
-        public Dictionary<string, BlocChannelData> DataByChannelID { get; set; } = new Dictionary<string, BlocChannelData>();
-        public Dictionary<string, BlocChannelStatistics> StatisticsByChannelID { get; set; } = new Dictionary<string, BlocChannelStatistics>();
-        public Dictionary<string, float[]> ProcessedValuesByChannel { get; set; } = new Dictionary<string, float[]>();
-        public Tools.CSharp.EEG.Frequency Frequency { get; set; }
+        public List<BlocEventsStatistics> EventStatistics { get; set; } = new List<BlocEventsStatistics>();
+        public Dictionary<string, Dictionary<string, BlocChannelData>> DataByChannelIDByStimulatedChannelID { get; set; } = new Dictionary<string, Dictionary<string, BlocChannelData>>();
+        public Dictionary<string, Dictionary<string, BlocChannelStatistics>> StatisticsByChannelIDByStimulatedChannelID { get; set; } = new Dictionary<string, Dictionary<string, BlocChannelStatistics>>();
+        public Dictionary<string, Dictionary<string, float[]>> ProcessedValuesByChannelIDByStimulatedChannelID { get; set; } = new Dictionary<string, Dictionary<string, float[]>>();
+        public Dictionary<string, Dictionary<string, string>> UnityByChannelIDByStimulatedChannelID { get; set; } = new Dictionary<string, Dictionary<string, string>>();
+
+        private Dictionary<string, Dictionary<string, Tools.CSharp.EEG.Frequency>> m_FrequencyByChannelIDByStimulatedChannelID = new Dictionary<string, Dictionary<string, Tools.CSharp.EEG.Frequency>>();
+        public List<Tools.CSharp.EEG.Frequency> Frequencies = new List<Tools.CSharp.EEG.Frequency>();
         #endregion
 
         #region Public Methods
-        public void Load(CCEPDataInfo dataInfo, Experience.Protocol.Bloc bloc)
+        public void Load(IEnumerable<CCEPDataInfo> columnData, Experience.Protocol.Bloc bloc)
         {
-            Experience.Dataset.CCEPData data = DataManager.GetData(dataInfo) as Experience.Dataset.CCEPData;
-
-            // Values
-            foreach (var channel in data.UnitByChannel.Keys)
+            foreach (CCEPDataInfo dataInfo in columnData)
             {
-                string channelID = dataInfo.Patient.ID + "_" + channel;
-                if (!DataByChannelID.ContainsKey(channelID)) DataByChannelID.Add(channelID, DataManager.GetData(dataInfo, bloc, channel));
-                if (!StatisticsByChannelID.ContainsKey(channelID)) StatisticsByChannelID.Add(channelID, DataManager.GetStatistics(dataInfo, bloc, channel));
-                if (!UnitByChannel.ContainsKey(channelID)) UnitByChannel.Add(channelID, data.UnitByChannel[channel]);
+                Experience.Dataset.CCEPData data = DataManager.GetData(dataInfo) as Experience.Dataset.CCEPData;
+                string stimulatedChannelID = dataInfo.Patient.ID + "_" + data.StimulatedChannel;
+
+                // Values
+                Dictionary<string, BlocChannelData> dataByChannelID = new Dictionary<string, BlocChannelData>();
+                Dictionary<string, BlocChannelStatistics> statisticsByChannelID = new Dictionary<string, BlocChannelStatistics>();
+                Dictionary<string, Tools.CSharp.EEG.Frequency> frequencyByChannelID = new Dictionary<string, Tools.CSharp.EEG.Frequency>();
+                Dictionary<string, string> unitByChannelID = new Dictionary<string, string>();
+                foreach (var channel in data.UnitByChannel.Keys)
+                {
+                    string channelID = dataInfo.Patient.ID + "_" + channel;
+                    if (!dataByChannelID.ContainsKey(channelID)) dataByChannelID.Add(channelID, DataManager.GetData(dataInfo, bloc, channel));
+                    if (!statisticsByChannelID.ContainsKey(channelID)) statisticsByChannelID.Add(channelID, DataManager.GetStatistics(dataInfo, bloc, channel));
+                    if (!frequencyByChannelID.ContainsKey(channelID)) frequencyByChannelID.Add(channelID, data.Frequency);
+                    if (!unitByChannelID.ContainsKey(channelID)) unitByChannelID.Add(channelID, data.UnitByChannel[channel]);
+                }
+                if (!DataByChannelIDByStimulatedChannelID.ContainsKey(stimulatedChannelID)) DataByChannelIDByStimulatedChannelID.Add(stimulatedChannelID, dataByChannelID);
+                if (!StatisticsByChannelIDByStimulatedChannelID.ContainsKey(stimulatedChannelID)) StatisticsByChannelIDByStimulatedChannelID.Add(stimulatedChannelID, statisticsByChannelID);
+                if (!m_FrequencyByChannelIDByStimulatedChannelID.ContainsKey(stimulatedChannelID)) m_FrequencyByChannelIDByStimulatedChannelID.Add(stimulatedChannelID, frequencyByChannelID);
+                if (!UnityByChannelIDByStimulatedChannelID.ContainsKey(stimulatedChannelID)) UnityByChannelIDByStimulatedChannelID.Add(stimulatedChannelID, unitByChannelID);
+                if (!Frequencies.Contains(data.Frequency)) Frequencies.Add(data.Frequency);
+
+                // Events
+                EventStatistics.Add(DataManager.GetEventsStatistics(dataInfo, bloc));
             }
-            BlocEventsStatistics = DataManager.GetEventsStatistics(dataInfo, bloc);
-            Frequency = data.Frequency;
         }
         public override void Unload()
         {
             base.Unload();
-            BlocEventsStatistics = null;
-            DataByChannelID.Clear();
-            StatisticsByChannelID.Clear();
-            ProcessedValuesByChannel.Clear();
+            EventStatistics.Clear();
+            DataByChannelIDByStimulatedChannelID.Clear();
+            StatisticsByChannelIDByStimulatedChannelID.Clear();
+            ProcessedValuesByChannelIDByStimulatedChannelID.Clear();
+            UnityByChannelIDByStimulatedChannelID.Clear();
+            m_FrequencyByChannelIDByStimulatedChannelID.Clear();
+            Frequencies.Clear();
         }
         public void SetTimeline(Tools.CSharp.EEG.Frequency maxFrequency, Experience.Protocol.Bloc columnBloc, IEnumerable<Experience.Protocol.Bloc> blocs)
         {
+            // Process frequencies
+            Frequencies.Add(maxFrequency);
+            Frequencies = Frequencies.GroupBy(f => f.Value).Select(g => g.First()).ToList();
+
             // Get index of each subBloc
             Dictionary<Experience.Protocol.SubBloc, int> indexBySubBloc = new Dictionary<Experience.Protocol.SubBloc, int>();
             foreach (var bloc in blocs)
@@ -57,7 +82,14 @@ namespace HBP.Data.Visualization
             Dictionary<Experience.Protocol.SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc = new Dictionary<Experience.Protocol.SubBloc, List<SubBlocEventsStatistics>>();
             foreach (var subBloc in columnBloc.SubBlocs)
             {
-                eventStatisticsBySubBloc.Add(subBloc, new List<SubBlocEventsStatistics>() { BlocEventsStatistics.EventsStatisticsBySubBloc[subBloc] });
+                eventStatisticsBySubBloc.Add(subBloc, new List<SubBlocEventsStatistics>());
+            }
+            foreach (var blocEventStatistics in EventStatistics)
+            {
+                foreach (var subBlocEventStatistics in blocEventStatistics.EventsStatisticsBySubBloc)
+                {
+                    eventStatisticsBySubBloc[subBlocEventStatistics.Key].Add(subBlocEventStatistics.Value);
+                }
             }
 
             // Create timeline and iconic scenario
@@ -65,19 +97,25 @@ namespace HBP.Data.Visualization
             IconicScenario = new IconicScenario(columnBloc, maxFrequency, Timeline);
 
             // Standardize values
-            foreach (var channelID in DataByChannelID.Keys)
+            foreach (var dataByChannelIDByStimulatedChannelID in DataByChannelIDByStimulatedChannelID)
             {
-                List<float> values = new List<float>();
-                BlocChannelStatistics statistics = StatisticsByChannelID[channelID];
-                foreach (var subBloc in columnBloc.OrderedSubBlocs)
+                Dictionary<string, float[]> processedValuesByChannelID = new Dictionary<string, float[]>();
+                foreach (var channelID in dataByChannelIDByStimulatedChannelID.Value.Keys)
                 {
-                    float[] subBlocValues = statistics.Trial.ChannelSubTrialBySubBloc[subBloc].Values;
-                    SubTimeline subTimeline = Timeline.SubTimelinesBySubBloc[subBloc];
-                    if (subTimeline.Before > 0) values.AddRange(Enumerable.Repeat(subBlocValues[0], subTimeline.Before));
-                    values.AddRange(subBlocValues.Interpolate(subTimeline.Length, 0, 0));
-                    if (subTimeline.After > 0) values.AddRange(Enumerable.Repeat(subBlocValues[subBlocValues.Length - 1], subTimeline.After));
+                    List<float> values = new List<float>();
+                    Tools.CSharp.EEG.Frequency frequency = m_FrequencyByChannelIDByStimulatedChannelID[dataByChannelIDByStimulatedChannelID.Key][channelID];
+                    BlocChannelStatistics statistics = StatisticsByChannelIDByStimulatedChannelID[dataByChannelIDByStimulatedChannelID.Key][channelID];
+                    foreach (var subBloc in columnBloc.OrderedSubBlocs)
+                    {
+                        float[] subBlocValues = statistics.Trial.ChannelSubTrialBySubBloc[subBloc].Values;
+                        SubTimeline subTimeline = Timeline.SubTimelinesBySubBloc[subBloc];
+                        if (subTimeline.Before > 0) values.AddRange(Enumerable.Repeat(subBlocValues[0], subTimeline.Before));
+                        values.AddRange(subBlocValues.Interpolate(subTimeline.Length, 0, 0));
+                        if (subTimeline.After > 0) values.AddRange(Enumerable.Repeat(subBlocValues[subBlocValues.Length - 1], subTimeline.After));
+                    }
+                    processedValuesByChannelID.Add(channelID, values.ToArray());
                 }
-                ProcessedValuesByChannel.Add(channelID, values.ToArray());
+                ProcessedValuesByChannelIDByStimulatedChannelID.Add(dataByChannelIDByStimulatedChannelID.Key, processedValuesByChannelID);
             }
         }
         #endregion

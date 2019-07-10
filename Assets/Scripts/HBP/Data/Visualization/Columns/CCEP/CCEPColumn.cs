@@ -130,8 +130,8 @@ namespace HBP.Data.Visualization
         #region Public Methods
         public override bool IsCompatible(IEnumerable<Patient> patients)
         {
-            iEEGDataInfo[] iEEGDataInfos = Dataset?.GetIEEGDataInfos();
-            return Dataset != null && patients.All((patient) => iEEGDataInfos.Any((data) => data.Name == DataName && data.Patient == patient && data.IsOk));
+            CCEPDataInfo[] ccepDataInfos = Dataset?.GetCCEPDataInfos();
+            return Dataset != null && patients.All((patient) => ccepDataInfos.Any((data) => data.Name == DataName && data.Patient == patient && data.IsOk));
         }
         public override void Unload()
         {

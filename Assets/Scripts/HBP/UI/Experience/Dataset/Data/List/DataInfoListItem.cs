@@ -31,7 +31,7 @@ namespace HBP.UI.Experience.Dataset
             set
             {
                 base.Object = value;
-                m_NameText.text = value.Name;
+                m_NameText.text = value.Name + (value is CCEPDataInfo ccepDataInfo ? " (" + ccepDataInfo.StimulatedChannel + ")" : "");
                 if (value is PatientDataInfo patientDataInfo) m_PatientText.text = patientDataInfo.Patient.Name;
                 else m_PatientText.text = "None";
                 m_TypeText.text = value.GetType().GetDisplayName();
