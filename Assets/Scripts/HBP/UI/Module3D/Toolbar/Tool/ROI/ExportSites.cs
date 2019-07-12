@@ -81,10 +81,14 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (!dataInfoByPatient.ContainsKey(site.Information.Patient))
                 {
-                    if (SelectedColumn is Column3DIEEG)
+                    if (SelectedColumn is Column3DIEEG columnIEEG)
                     {
-                        Column3DIEEG columnIEEG = (Column3DIEEG)SelectedColumn;
                         DataInfo dataInfo = SelectedScene.Visualization.GetDataInfo(site.Information.Patient, columnIEEG.ColumnIEEGData);
+                        dataInfoByPatient.Add(site.Information.Patient, dataInfo);
+                    }
+                    else if (SelectedColumn is Column3DCCEP columnCCEP)
+                    {
+                        DataInfo dataInfo = SelectedScene.Visualization.GetDataInfo(site.Information.Patient, columnCCEP.ColumnCCEPData);
                         dataInfoByPatient.Add(site.Information.Patient, dataInfo);
                     }
                 }
@@ -99,9 +103,9 @@ namespace HBP.UI.Module3D.Tools
                 {
                     Vector3 sitePosition = sitePositions[i];
                     string dataType = "", dataFiles = "";
-                    if (SelectedColumn is Column3DIEEG)
+                    if (SelectedColumn is Column3DDynamic)
                     {
-                        Column3DIEEG columnIEEG = (Column3DIEEG)SelectedColumn;
+                        Column3DDynamic columnIEEG = (Column3DDynamic)SelectedColumn;
                         DataInfo dataInfo = dataInfoByPatient[site.Information.Patient];
                         if (dataInfo.DataContainer is Data.Container.BrainVision brainVisionDataContainer)
                         {

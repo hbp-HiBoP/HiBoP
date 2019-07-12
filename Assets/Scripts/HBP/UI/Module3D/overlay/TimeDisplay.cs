@@ -33,7 +33,7 @@ namespace HBP.UI.Module3D
                     IsActive = false;
                     break;
                 case Data.Enums.ColumnType.iEEG:
-                    Column3DIEEG col = (Column3DIEEG)column;
+                    Column3DDynamic col = (Column3DDynamic)column;
                     col.OnUpdateCurrentTimelineID.AddListener(() =>
                     {
                         m_Text.text = col.Timeline.CurrentSubtimeline.GetLocalIndex(col.Timeline.CurrentIndex).ToString() + " (" + col.Timeline.CurrentSubtimeline.GetLocalTime(col.Timeline.CurrentIndex).ToString("N2") + col.Timeline.Unit + ")";

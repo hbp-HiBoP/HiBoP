@@ -28,22 +28,22 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (IsGlobal)
                 {
-                    foreach (HBP.Module3D.Column3DIEEG column in SelectedScene.ColumnManager.ColumnsIEEG)
+                    foreach (HBP.Module3D.Column3DDynamic column in SelectedScene.ColumnManager.ColumnsIEEG)
                     {
-                        column.IEEGParameters.SetSpanValues(min, mid, max, column);
+                        column.DynamicParameters.SetSpanValues(min, mid, max, column);
                     }
                 }
                 else
                 {
-                    HBP.Module3D.Column3DIEEG column = (HBP.Module3D.Column3DIEEG)SelectedColumn;
-                    column.IEEGParameters.SetSpanValues(min, mid, max, column);
+                    HBP.Module3D.Column3DDynamic column = (HBP.Module3D.Column3DDynamic)SelectedColumn;
+                    column.DynamicParameters.SetSpanValues(min, mid, max, column);
                 }
             });
             m_Auto.onClick.AddListener(() =>
             {
-                HBP.Module3D.Column3DIEEG column = (HBP.Module3D.Column3DIEEG)SelectedColumn;
-                column.IEEGParameters.SetSpanValues(0, 0, 0, column);
-                m_ThresholdIEEG.UpdateIEEGValues(((HBP.Module3D.Column3DIEEG)SelectedColumn).IEEGParameters);
+                HBP.Module3D.Column3DDynamic column = (HBP.Module3D.Column3DDynamic)SelectedColumn;
+                column.DynamicParameters.SetSpanValues(0, 0, 0, column);
+                m_ThresholdIEEG.UpdateIEEGValues(((HBP.Module3D.Column3DDynamic)SelectedColumn).DynamicParameters);
             });
         }
 
@@ -63,7 +63,7 @@ namespace HBP.UI.Module3D.Tools
         {
             if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
             {
-                m_ThresholdIEEG.UpdateIEEGValues(((HBP.Module3D.Column3DIEEG)SelectedColumn).IEEGParameters);
+                m_ThresholdIEEG.UpdateIEEGValues(((HBP.Module3D.Column3DDynamic)SelectedColumn).DynamicParameters);
             }
         }
         #endregion

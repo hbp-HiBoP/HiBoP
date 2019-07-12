@@ -1,12 +1,14 @@
 ﻿using HBP.Data.Enums;
 using HBP.Data.Visualization;
+using HBP.Module3D.DLL;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
-    public class Column3DIEEG : Column3DDynamic
+    public class Column3DCCEP : Column3DDynamic
     {
         #region Properties
         /// <summary>
@@ -16,17 +18,17 @@ namespace HBP.Module3D
         {
             get
             {
-                return ColumnType.iEEG;
+                return ColumnType.CCEP;
             }
         }
         /// <summary>
         /// Column data
         /// </summary>
-        public IEEGColumn ColumnIEEGData
+        public CCEPColumn ColumnCCEPData
         {
             get
             {
-                return ColumnData as Data.Visualization.IEEGColumn;
+                return ColumnData as Data.Visualization.CCEPColumn;
             }
         }
 
@@ -34,15 +36,37 @@ namespace HBP.Module3D
         {
             get
             {
-                return ColumnIEEGData.Data.Timeline;
+                return ColumnCCEPData.Data.Timeline;
+            }
+        }
+
+        private Site m_SelectedSource;
+        public Site SelectedSource
+        {
+            get
+            {
+                return m_SelectedSource;
+            }
+            set
+            {
+                m_SelectedSource = value;
+                SetEEGData();
             }
         }
         #endregion
 
         #region Private Methods
+        protected override void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.A)) SelectedSource = SelectedSite;
+            base.Update();
+        }
+        /// <summary>
+        /// Set EEG Data for each site
+        /// </summary>
         protected override void SetEEGData()
         {
-            if (ColumnIEEGData == null) return;
+            if (ColumnCCEPData == null || m_SelectedSource == null) return;
 
             int timelineLength = Timeline.Length;
             int sitesCount = Sites.Count;
@@ -50,9 +74,16 @@ namespace HBP.Module3D
             IEEGValuesBySiteID = new float[sitesCount][];
             IEEGUnitsBySiteID = new string[sitesCount];
             int numberOfSitesWithValues = 0;
+
+            // Retrieve values
+            if (!ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.TryGetValue(m_SelectedSource.Information.FullCorrectedID, out Dictionary<string, float[]> processedValuesByChannel)) return;
+            if (!ColumnCCEPData.Data.UnityByChannelIDByStimulatedChannelID.TryGetValue(m_SelectedSource.Information.FullCorrectedID, out Dictionary<string, string> unitByChannel)) return;
+            if (!ColumnCCEPData.Data.DataByChannelIDByStimulatedChannelID.TryGetValue(m_SelectedSource.Information.FullCorrectedID, out Dictionary<string, Data.Experience.Dataset.BlocChannelData> dataByChannel)) return;
+            if (!ColumnCCEPData.Data.StatisticsByChannelIDByStimulatedChannelID.TryGetValue(m_SelectedSource.Information.FullCorrectedID, out Dictionary<string, Data.Experience.Dataset.BlocChannelStatistics> statisticsByChannel)) return;
+
             foreach (Site site in Sites)
             {
-                if (ColumnIEEGData.Data.ProcessedValuesByChannel.TryGetValue(site.Information.FullCorrectedID, out float[] values))
+                if (processedValuesByChannel.TryGetValue(site.Information.FullCorrectedID, out float[] values))
                 {
                     if (values.Length > 0)
                     {
@@ -71,7 +102,7 @@ namespace HBP.Module3D
                     IEEGValuesBySiteID[site.Information.GlobalID] = new float[timelineLength];
                     site.State.IsMasked = true;
                 }
-                if (ColumnIEEGData.Data.UnitByChannelID.TryGetValue(site.Information.FullCorrectedID, out string unit))
+                if (unitByChannel.TryGetValue(site.Information.FullCorrectedID, out string unit))
                 {
                     IEEGUnitsBySiteID[site.Information.GlobalID] = unit;
                 }
@@ -79,11 +110,11 @@ namespace HBP.Module3D
                 {
                     IEEGUnitsBySiteID[site.Information.GlobalID] = "";
                 }
-                if (ColumnIEEGData.Data.DataByChannelID.TryGetValue(site.Information.FullCorrectedID, out Data.Experience.Dataset.BlocChannelData blocChannelData))
+                if (dataByChannel.TryGetValue(site.Information.FullCorrectedID, out Data.Experience.Dataset.BlocChannelData blocChannelData))
                 {
                     site.Data = blocChannelData;
                 }
-                if (ColumnIEEGData.Data.StatisticsByChannelID.TryGetValue(site.Information.FullCorrectedID, out Data.Experience.Dataset.BlocChannelStatistics blocChannelStatistics))
+                if (statisticsByChannel.TryGetValue(site.Information.FullCorrectedID, out Data.Experience.Dataset.BlocChannelStatistics blocChannelStatistics))
                 {
                     site.Statistics = blocChannelStatistics;
                 }
@@ -133,10 +164,10 @@ namespace HBP.Module3D
         public override void LoadConfiguration(bool firstCall = true)
         {
             if (firstCall) ResetConfiguration();
-            DynamicParameters.Gain = ColumnIEEGData.DynamicConfiguration.Gain;
-            DynamicParameters.InfluenceDistance = ColumnIEEGData.DynamicConfiguration.MaximumInfluence;
-            DynamicParameters.AlphaMin = ColumnIEEGData.DynamicConfiguration.Alpha;
-            DynamicParameters.SetSpanValues(ColumnIEEGData.DynamicConfiguration.SpanMin, ColumnIEEGData.DynamicConfiguration.Middle, ColumnIEEGData.DynamicConfiguration.SpanMax, this);
+            DynamicParameters.Gain = ColumnCCEPData.DynamicConfiguration.Gain;
+            DynamicParameters.InfluenceDistance = ColumnCCEPData.DynamicConfiguration.MaximumInfluence;
+            DynamicParameters.AlphaMin = ColumnCCEPData.DynamicConfiguration.Alpha;
+            DynamicParameters.SetSpanValues(ColumnCCEPData.DynamicConfiguration.SpanMin, ColumnCCEPData.DynamicConfiguration.Middle, ColumnCCEPData.DynamicConfiguration.SpanMax, this);
             base.LoadConfiguration(false);
         }
         /// <summary>
@@ -144,12 +175,12 @@ namespace HBP.Module3D
         /// </summary>
         public override void SaveConfiguration()
         {
-            ColumnIEEGData.DynamicConfiguration.Gain = DynamicParameters.Gain;
-            ColumnIEEGData.DynamicConfiguration.MaximumInfluence = DynamicParameters.InfluenceDistance;
-            ColumnIEEGData.DynamicConfiguration.Alpha = DynamicParameters.AlphaMin;
-            ColumnIEEGData.DynamicConfiguration.SpanMin = DynamicParameters.SpanMin;
-            ColumnIEEGData.DynamicConfiguration.Middle = DynamicParameters.Middle;
-            ColumnIEEGData.DynamicConfiguration.SpanMax = DynamicParameters.SpanMax;
+            ColumnCCEPData.DynamicConfiguration.Gain = DynamicParameters.Gain;
+            ColumnCCEPData.DynamicConfiguration.MaximumInfluence = DynamicParameters.InfluenceDistance;
+            ColumnCCEPData.DynamicConfiguration.Alpha = DynamicParameters.AlphaMin;
+            ColumnCCEPData.DynamicConfiguration.SpanMin = DynamicParameters.SpanMin;
+            ColumnCCEPData.DynamicConfiguration.Middle = DynamicParameters.Middle;
+            ColumnCCEPData.DynamicConfiguration.SpanMax = DynamicParameters.SpanMax;
             base.SaveConfiguration();
         }
         /// <summary>

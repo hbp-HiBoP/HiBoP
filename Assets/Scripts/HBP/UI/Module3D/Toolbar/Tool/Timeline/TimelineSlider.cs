@@ -37,7 +37,7 @@ namespace HBP.UI.Module3D.Tools
         {
             DeleteSubTimelines();
 
-            HBP.Module3D.Column3DIEEG column = (HBP.Module3D.Column3DIEEG)SelectedColumn;
+            HBP.Module3D.Column3DDynamic column = (HBP.Module3D.Column3DDynamic)SelectedColumn;
             Data.Visualization.Timeline timeline = column.Timeline;
             m_Slider.maxValue = timeline.Length - 1;
             m_Slider.value = timeline.CurrentIndex;
@@ -68,20 +68,20 @@ namespace HBP.UI.Module3D.Tools
                 int val = (int)value;
                 if (IsGlobal)
                 {
-                    foreach (HBP.Module3D.Column3DIEEG column in SelectedScene.ColumnManager.ColumnsIEEG)
+                    foreach (HBP.Module3D.Column3DDynamic column in SelectedScene.ColumnManager.ColumnsIEEG)
                     {
                         column.Timeline.CurrentIndex = val;
                     }
                 }
                 else
                 {
-                    ((HBP.Module3D.Column3DIEEG)SelectedColumn).Timeline.CurrentIndex = val;
+                    ((HBP.Module3D.Column3DDynamic)SelectedColumn).Timeline.CurrentIndex = val;
                 }
             });
             ApplicationState.Module3D.OnUpdateSelectedColumnTimeLineID.AddListener(() =>
             {
                 ListenerLock = true;
-                HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)SelectedColumn;
+                HBP.Module3D.Column3DDynamic selectedColumn = (HBP.Module3D.Column3DDynamic)SelectedColumn;
                 if (selectedColumn)
                 {
                     m_Slider.value = selectedColumn.Timeline.CurrentIndex;

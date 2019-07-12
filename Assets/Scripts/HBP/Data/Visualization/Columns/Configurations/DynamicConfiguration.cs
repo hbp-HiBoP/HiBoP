@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace HBP.Data.Visualization
 {
     [DataContract]
-    public class IEEGConfiguration : ICloneable
+    public class DynamicConfiguration : ICloneable
     {
         #region Properties
         /// <summary>
@@ -34,7 +34,7 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructor
-        public IEEGConfiguration(float gain, float maximumInfluence, float alpha, float spanMin, float middle, float spanMax)
+        public DynamicConfiguration(float gain, float maximumInfluence, float alpha, float spanMin, float middle, float spanMax)
         {
             Gain = gain;
             MaximumInfluence = maximumInfluence;
@@ -44,7 +44,7 @@ namespace HBP.Data.Visualization
             SpanMax = spanMax;
 
         }
-        public IEEGConfiguration() : this(1, 15, .8f,0,0,0)
+        public DynamicConfiguration() : this(1, 15, .8f,0,0,0)
         {
         }
         #endregion
@@ -52,7 +52,7 @@ namespace HBP.Data.Visualization
         #region Public Methods
         public object Clone()
         {
-            return new IEEGConfiguration(Gain,MaximumInfluence,Alpha,SpanMin,Middle,SpanMax);
+            return new DynamicConfiguration(Gain,MaximumInfluence,Alpha,SpanMin,Middle,SpanMax);
         }
         #endregion
     }

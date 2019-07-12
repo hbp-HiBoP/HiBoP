@@ -159,6 +159,11 @@ namespace HBP.UI.Module3D
                         Data.Experience.Dataset.DataInfo dataInfo = m_Scene.Visualization.GetDataInfo(site.Information.Patient, columnIEEG.ColumnIEEGData);
                         dataInfoByPatient.Add(site.Information.Patient, dataInfo);
                     }
+                    else if (m_Scene.ColumnManager.SelectedColumn is Column3DCCEP columnCCEP)
+                    {
+                        Data.Experience.Dataset.DataInfo dataInfo = m_Scene.Visualization.GetDataInfo(site.Information.Patient, columnCCEP.ColumnCCEPData);
+                        dataInfoByPatient.Add(site.Information.Patient, dataInfo);
+                    }
                 }
                 // Update progressbar
                 if (m_UpdateUI || i == length - 1)
@@ -185,7 +190,7 @@ namespace HBP.UI.Module3D
                 Site site = sites[i];
                 Vector3 sitePosition = sitePositions[i];
                 Data.Experience.Dataset.DataInfo dataInfo = null;
-                if (m_Scene.ColumnManager.SelectedColumn is Column3DIEEG columnIEEG)
+                if (m_Scene.ColumnManager.SelectedColumn is Column3DDynamic columnIEEG)
                 {
                     dataInfo = dataInfoByPatient[site.Information.Patient];
                 }

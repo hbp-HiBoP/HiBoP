@@ -16,6 +16,6 @@
         /// <summary>
         /// Reset the configuration
         /// </summary>
-        void ResetConfiguration(bool firstCall);
+        void ResetConfiguration();
     }
 }

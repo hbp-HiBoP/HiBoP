@@ -25,14 +25,14 @@ namespace HBP.UI.Module3D.Tools
 
                 if (IsGlobal)
                 {
-                    foreach (HBP.Module3D.Column3DIEEG column in SelectedScene.ColumnManager.ColumnsIEEG)
+                    foreach (HBP.Module3D.Column3DDynamic column in SelectedScene.ColumnManager.ColumnsIEEG)
                     {
-                        column.IEEGParameters.AlphaMin = value;
+                        column.DynamicParameters.AlphaMin = value;
                     }
                 }
                 else
                 {
-                    ((HBP.Module3D.Column3DIEEG)SelectedColumn).IEEGParameters.AlphaMin = value;
+                    ((HBP.Module3D.Column3DDynamic)SelectedColumn).DynamicParameters.AlphaMin = value;
                     //((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.AlphaMax = value; // FIXME : Required / other value ?
                 }
             });
@@ -55,7 +55,7 @@ namespace HBP.UI.Module3D.Tools
         {
             if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
             {
-                m_Slider.value = ((HBP.Module3D.Column3DIEEG)SelectedColumn).IEEGParameters.AlphaMin;
+                m_Slider.value = ((HBP.Module3D.Column3DDynamic)SelectedColumn).DynamicParameters.AlphaMin;
             }
             else
             {

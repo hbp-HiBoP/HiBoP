@@ -46,7 +46,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         private bool m_Initialized = false;
 
-        private Dictionary<Column3DIEEG, Texture2D> m_HistogramByColumn = new Dictionary<Column3DIEEG, Texture2D>();
+        private Dictionary<Column3DDynamic, Texture2D> m_HistogramByColumn = new Dictionary<Column3DDynamic, Texture2D>();
 
         /// <summary>
         /// IEEG Histogram
@@ -107,7 +107,7 @@ namespace HBP.UI.Module3D
         private void UpdateIEEGHistogram()
         {
             UnityEngine.Profiling.Profiler.BeginSample("IEEG HISTOGRAM");
-            Column3DIEEG column = (Column3DIEEG)ApplicationState.Module3D.SelectedColumn;
+            Column3DDynamic column = (Column3DDynamic)ApplicationState.Module3D.SelectedColumn;
             if (!m_HistogramByColumn.TryGetValue(column, out m_IEEGHistogram))
             {
                 float[] iEEGValues = column.IEEGValuesOfUnmaskedSites;
@@ -307,7 +307,7 @@ namespace HBP.UI.Module3D
         /// Update IEEG values
         /// </summary>
         /// <param name="values">IEEG data values</param>
-        public void UpdateIEEGValues(IEEGDataParameters values)
+        public void UpdateIEEGValues(DynamicDataParameters values)
         {
             m_Initialized = false;
 

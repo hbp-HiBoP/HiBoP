@@ -44,9 +44,17 @@ namespace HBP.Module3D
         /// </summary>
         public List<Column3D> Columns { get; } = new List<Column3D>();
         /// <summary>
+        /// Dynamic Columns of the scene
+        /// </summary>
+        public List<Column3DDynamic> ColumnsDynamic { get { return (from column in Columns where column.Type == Data.Enums.ColumnType.iEEG select (Column3DDynamic)column).ToList(); } }
+        /// <summary>
         /// IEEG Columns of the scene
         /// </summary>
         public List<Column3DIEEG> ColumnsIEEG { get { return (from column in Columns where column.Type == Data.Enums.ColumnType.iEEG select (Column3DIEEG)column).ToList(); } }
+        /// <summary>
+        /// IEEG Columns of the scene
+        /// </summary>
+        public List<Column3DCCEP> ColumnsCCEP { get { return (from column in Columns where column.Type == Data.Enums.ColumnType.CCEP select (Column3DCCEP)column).ToList(); } }
 
         public ReadOnlyCollection<View3D> Views
         {
@@ -264,6 +272,10 @@ namespace HBP.Module3D
         /// Prefab for the Column3DIEEG
         /// </summary>
         [SerializeField] private GameObject m_Column3DIEEGPrefab;
+        /// <summary>
+        /// Prefab for the Column3DCCEP
+        /// </summary>
+        [SerializeField] private GameObject m_Column3DCCEPPrefab;
         #endregion
 
         #region Events
@@ -306,19 +318,19 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when changing the IEEG span values
         /// </summary>
-        [HideInInspector] public GenericEvent<Column3DIEEG> OnUpdateIEEGSpan = new GenericEvent<Column3DIEEG>();
+        [HideInInspector] public GenericEvent<Column3DDynamic> OnUpdateIEEGSpan = new GenericEvent<Column3DDynamic>();
         /// <summary>
         /// Event called when changing the transparency of the IEEG
         /// </summary>
-        [HideInInspector] public GenericEvent<Column3DIEEG> OnUpdateIEEGAlpha = new GenericEvent<Column3DIEEG>();
+        [HideInInspector] public GenericEvent<Column3DDynamic> OnUpdateIEEGAlpha = new GenericEvent<Column3DDynamic>();
         /// <summary>
         /// Event called when changing the gain of the sphere representing the sites
         /// </summary>
-        [HideInInspector] public GenericEvent<Column3DIEEG> OnUpdateIEEGGain = new GenericEvent<Column3DIEEG>();
+        [HideInInspector] public GenericEvent<Column3DDynamic> OnUpdateIEEGGain = new GenericEvent<Column3DDynamic>();
         /// <summary>
         /// Event called when changing the timeline ID of a column
         /// </summary>
-        [HideInInspector] public GenericEvent<Column3DIEEG> OnUpdateColumnTimelineID = new GenericEvent<Column3DIEEG>();
+        [HideInInspector] public GenericEvent<Column3DDynamic> OnUpdateColumnTimelineID = new GenericEvent<Column3DDynamic>();
         /// <summary>
         /// Event called when minimizing a column
         /// </summary>
@@ -374,15 +386,17 @@ namespace HBP.Module3D
         private void AddColumn(Data.Visualization.Column baseColumn)
         {
             Column3D column = null;
-            Data.Enums.ColumnType type = baseColumn is Data.Visualization.IEEGColumn ? Data.Enums.ColumnType.iEEG : Data.Enums.ColumnType.Anatomic;
-            switch (type)
+            if (baseColumn is Data.Visualization.AnatomicColumn)
             {
-                case Data.Enums.ColumnType.Anatomic:
-                    column = Instantiate(m_Column3DPrefab, transform.Find("Columns")).GetComponent<Column3D>();
-                    break;
-                case Data.Enums.ColumnType.iEEG:
-                    column = Instantiate(m_Column3DIEEGPrefab, transform.Find("Columns")).GetComponent<Column3DIEEG>();
-                    break;
+                column = Instantiate(m_Column3DPrefab, transform.Find("Columns")).GetComponent<Column3D>();
+            }
+            else if (baseColumn is Data.Visualization.IEEGColumn)
+            {
+                column = Instantiate(m_Column3DIEEGPrefab, transform.Find("Columns")).GetComponent<Column3DIEEG>();
+            }
+            else if (baseColumn is Data.Visualization.CCEPColumn)
+            {
+                column = Instantiate(m_Column3DCCEPPrefab, transform.Find("Columns")).GetComponent<Column3DCCEP>();
             }
             column.gameObject.name = "Column " + Columns.Count;
             column.OnChangeSelectedState.AddListener((selected) =>
@@ -434,32 +448,31 @@ namespace HBP.Module3D
             {
                 OnChangeSiteState.Invoke(site);
             });
-            if (type == Data.Enums.ColumnType.iEEG)
+            if (column is Column3DDynamic dynamicColumn)
             {
-                Column3DIEEG columnIEEG = column as Column3DIEEG;
-                columnIEEG.IEEGParameters.OnUpdateSpanValues.AddListener(() =>
+                dynamicColumn.DynamicParameters.OnUpdateSpanValues.AddListener(() =>
                 {
-                    OnUpdateIEEGSpan.Invoke(columnIEEG);
+                    OnUpdateIEEGSpan.Invoke(dynamicColumn);
                     column.IsRenderingUpToDate = false;
                 });
-                columnIEEG.IEEGParameters.OnUpdateAlphaValues.AddListener(() =>
+                dynamicColumn.DynamicParameters.OnUpdateAlphaValues.AddListener(() =>
                 {
-                    OnUpdateIEEGAlpha.Invoke(columnIEEG);
+                    OnUpdateIEEGAlpha.Invoke(dynamicColumn);
                     column.IsRenderingUpToDate = false;
                 });
-                columnIEEG.IEEGParameters.OnUpdateGain.AddListener(() =>
+                dynamicColumn.DynamicParameters.OnUpdateGain.AddListener(() =>
                 {
-                    OnUpdateIEEGGain.Invoke(columnIEEG);
+                    OnUpdateIEEGGain.Invoke(dynamicColumn);
                     column.IsRenderingUpToDate = false;
                 });
-                columnIEEG.IEEGParameters.OnUpdateInfluenceDistance.AddListener(() =>
+                dynamicColumn.DynamicParameters.OnUpdateInfluenceDistance.AddListener(() =>
                 {
                     OnRequestResetIEEG.Invoke();
                     column.IsRenderingUpToDate = false;
                 });
-                columnIEEG.OnUpdateCurrentTimelineID.AddListener(() =>
+                dynamicColumn.OnUpdateCurrentTimelineID.AddListener(() =>
                 {
-                    OnUpdateColumnTimelineID.Invoke(columnIEEG);
+                    OnUpdateColumnTimelineID.Invoke(dynamicColumn);
                     column.IsRenderingUpToDate = false;
                 });
             }
@@ -577,7 +590,7 @@ namespace HBP.Module3D
         /// Compute the UVs of the brain for the iEEG activity of a column
         /// </summary>
         /// <param name="column">Column on which to compute the UVs</param>
-        public void ComputeSurfaceBrainUVWithIEEG(Column3DIEEG column)
+        public void ComputeSurfaceBrainUVWithIEEG(Column3DDynamic column)
         {
             for (int ii = 0; ii < MeshSplitNumber; ++ii)
                 column.DLLBrainTextureGenerators[ii].ComputeSurfaceUVIEEG(SplittedMeshes[ii], column);

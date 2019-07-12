@@ -42,17 +42,31 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                List<HBP.Module3D.Column3DIEEG> columns = new List<HBP.Module3D.Column3DIEEG>();
-                if (IsGlobal)
+                List<HBP.Module3D.Column3DDynamic> columns = new List<HBP.Module3D.Column3DDynamic>();
+                if (SelectedColumn.Type == Data.Enums.ColumnType.CCEP)
                 {
-                    columns = SelectedScene.ColumnManager.ColumnsIEEG.ToList();
+                    if (IsGlobal)
+                    {
+                        columns = SelectedScene.ColumnManager.ColumnsCCEP.OfType<HBP.Module3D.Column3DDynamic>().ToList();
+                    }
+                    else
+                    {
+                        columns.Add((HBP.Module3D.Column3DDynamic)SelectedColumn);
+                    }
                 }
-                else
+                else if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
                 {
-                    columns.Add((HBP.Module3D.Column3DIEEG)SelectedColumn);
+                    if (IsGlobal)
+                    {
+                        columns = SelectedScene.ColumnManager.ColumnsIEEG.OfType<HBP.Module3D.Column3DDynamic>().ToList();
+                    }
+                    else
+                    {
+                        columns.Add((HBP.Module3D.Column3DDynamic)SelectedColumn);
+                    }
                 }
 
-                foreach (HBP.Module3D.Column3DIEEG column in columns)
+                foreach (HBP.Module3D.Column3DDynamic column in columns)
                 {
                     column.Timeline.IsLooping = m_Toggle.isOn;
                 }
@@ -77,7 +91,7 @@ namespace HBP.UI.Module3D.Tools
         {
             if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
             {
-                m_Toggle.isOn = ((HBP.Module3D.Column3DIEEG)SelectedColumn).Timeline.IsLooping;
+                m_Toggle.isOn = ((HBP.Module3D.Column3DDynamic)SelectedColumn).Timeline.IsLooping;
             }
             else
             {

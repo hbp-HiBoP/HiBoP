@@ -13,7 +13,7 @@ namespace HBP.Module3D
     /// <summary>
     /// Column 3D base class (anatomical data only)
     /// </summary>
-    public class Column3D : MonoBehaviour
+    public class Column3D : MonoBehaviour, IConfigurable
     {
         #region Properties
         /// <summary>
@@ -842,6 +842,61 @@ namespace HBP.Module3D
             {
                 site.IsSelected = true;
             }
+        }
+        /// <summary>
+        /// Update the site mask of the dll with all the masks
+        /// </summary>
+        public void UpdateDLLSitesMask()
+        {
+            bool isROI = m_ROIs.Count > 0;
+            for (int ii = 0; ii < Sites.Count; ++ii)
+            {
+                m_RawElectrodes.UpdateMask(ii, (Sites[ii].State.IsMasked || Sites[ii].State.IsBlackListed || (Sites[ii].State.IsOutOfROI && isROI) || !Sites[ii].State.IsFiltered));
+            }
+        }
+        public virtual void LoadConfiguration(bool firstCall = true)
+        {
+            if (firstCall) ResetConfiguration();
+            foreach (Data.Visualization.RegionOfInterest roi in ColumnData.BaseConfiguration.RegionsOfInterest)
+            {
+                ROI newROI = AddROI(roi.Name);
+                foreach (Data.Visualization.Sphere sphere in roi.Spheres)
+                {
+                    newROI.AddBubble(Layer, "Bubble", sphere.Position.ToVector3(), sphere.Radius);
+                }
+            }
+            foreach (Site site in Sites)
+            {
+                site.LoadConfiguration(false);
+            }
+
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+        }
+        public virtual void SaveConfiguration()
+        {
+            List<Data.Visualization.RegionOfInterest> rois = new List<Data.Visualization.RegionOfInterest>();
+            foreach (ROI roi in m_ROIs)
+            {
+                rois.Add(new Data.Visualization.RegionOfInterest(roi));
+            }
+            ColumnData.BaseConfiguration.RegionsOfInterest = rois;
+            foreach (Site site in Sites)
+            {
+                site.SaveConfiguration();
+            }
+        }
+        public virtual void ResetConfiguration()
+        {
+            while (m_ROIs.Count > 0)
+            {
+                RemoveSelectedROI();
+            }
+            foreach (Site site in Sites)
+            {
+                site.ResetConfiguration();
+            }
+
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
     }

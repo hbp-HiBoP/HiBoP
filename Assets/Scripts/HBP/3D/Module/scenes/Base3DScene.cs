@@ -695,7 +695,7 @@ namespace HBP.Module3D
             {
                 if (!value)
                 {
-                    foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
+                    foreach (Column3DDynamic column in m_ColumnManager.ColumnsIEEG)
                     {
                         column.Timeline.IsLooping = false;
                         column.Timeline.IsPlaying = false;
@@ -727,7 +727,7 @@ namespace HBP.Module3D
         /// Compute the textures for the MRI (3D) with the iEEG activity
         /// </summary>
         /// <param name="column">Specific column to update. If null, every columns will be updated.</param>
-        private void ComputeIEEGTextures(Column3DIEEG column = null)
+        private void ComputeIEEGTextures(Column3DDynamic column = null)
         {
             if (!SceneInformation.IsGeneratorUpToDate) return;
 
@@ -739,7 +739,7 @@ namespace HBP.Module3D
             }
             else
             {
-                foreach (Column3DIEEG col in m_ColumnManager.ColumnsIEEG)
+                foreach (Column3DDynamic col in m_ColumnManager.ColumnsIEEG)
                 {
                     m_ColumnManager.ComputeSurfaceBrainUVWithIEEG(col);
                     col.CutTextures.ColorCutsTexturesWithIEEG(col);
@@ -776,7 +776,6 @@ namespace HBP.Module3D
             // send inf values to overlays
             for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
             {
-                m_ColumnManager.ColumnsIEEG[ii].SendColormapValues();
                 m_ColumnManager.ColumnsIEEG[ii].Timeline.OnUpdateCurrentIndex.Invoke();
             }
 
@@ -1539,7 +1538,7 @@ namespace HBP.Module3D
         /// <param name="firstCall">Has this method not been called by another load method ?</param>
         public void LoadConfiguration(bool firstCall = true)
         {
-            if (firstCall) ResetConfiguration(false);
+            if (firstCall) ResetConfiguration();
             UpdateBrainSurfaceColor(Visualization.Configuration.BrainColor);
             UpdateBrainCutColor(Visualization.Configuration.BrainCutColor);
             UpdateColormap(Visualization.Configuration.EEGColormap);
@@ -1580,7 +1579,7 @@ namespace HBP.Module3D
             }
 
             ROICreation = !ROICreation;
-            foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
+            foreach (Column3D column in m_ColumnManager.Columns)
             {
                 column.LoadConfiguration(false);
             }
@@ -1588,7 +1587,7 @@ namespace HBP.Module3D
             
             SceneInformation.AreSitesUpdated = false;
 
-            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Save the current settings of this scene to the configuration of the linked visualization
@@ -1624,7 +1623,7 @@ namespace HBP.Module3D
             }
             Visualization.Configuration.Views = views;
 
-            foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
+            foreach (Column3D column in m_ColumnManager.Columns)
             {
                 column.SaveConfiguration();
             }
@@ -1638,7 +1637,7 @@ namespace HBP.Module3D
         /// Reset the settings of the loaded scene
         /// </summary>
         /// <param name="firstCall">Has this method not been called by another reset method ?</param>
-        public void ResetConfiguration(bool firstCall = true)
+        public void ResetConfiguration()
         {
             UpdateBrainSurfaceColor(Data.Enums.ColorType.BrainColor);
             UpdateBrainCutColor(Data.Enums.ColorType.Default);
@@ -1684,12 +1683,12 @@ namespace HBP.Module3D
                 }
             }
 
-            foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
+            foreach (Column3D column in m_ColumnManager.Columns)
             {
                 column.ResetConfiguration();
             }
 
-            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
         
@@ -1730,15 +1729,15 @@ namespace HBP.Module3D
             {
                 for (int i = 0; i < column.BrainSurfaceMeshes.Count; i++)
                 {
-                    if (column.Type != Data.Enums.ColumnType.iEEG || !SceneInformation.IsGeneratorUpToDate || SceneInformation.DisplayCCEPMode)
+                    if ((column.Type != Data.Enums.ColumnType.iEEG && column.Type != Data.Enums.ColumnType.CCEP) || !SceneInformation.IsGeneratorUpToDate || SceneInformation.DisplayCCEPMode)
                     {
                         column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv2 = m_ColumnManager.UVNull[i];
                         column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = m_ColumnManager.UVNull[i];
                     }
                     else
                     {
-                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv2 = ((Column3DIEEG)column).DLLBrainTextureGenerators[i].AlphaUV;
-                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = ((Column3DIEEG)column).DLLBrainTextureGenerators[i].IEEGUV;
+                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv2 = ((Column3DDynamic)column).DLLBrainTextureGenerators[i].AlphaUV;
+                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = ((Column3DDynamic)column).DLLBrainTextureGenerators[i].IEEGUV;
                     }
                 }
             }
@@ -1842,7 +1841,7 @@ namespace HBP.Module3D
                 }
             }
             // iEEG
-            if (column is Column3DIEEG columnIEEG)
+            if (column is Column3DDynamic columnIEEG)
             {
                 iEEGUnit = columnIEEG.IEEGUnitsBySiteID[siteID];
                 iEEGActivity = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.Timeline.CurrentIndex];
@@ -2400,7 +2399,7 @@ namespace HBP.Module3D
                     if (m_GeneratorNeedsUpdate) yield break;
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
                     if (m_GeneratorNeedsUpdate) yield break;
-                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
+                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].DynamicParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
                     if (m_GeneratorNeedsUpdate) yield break;
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                     if (m_GeneratorNeedsUpdate) yield break;
@@ -2428,7 +2427,7 @@ namespace HBP.Module3D
                 if (m_GeneratorNeedsUpdate) yield break;
                 m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
                 if (m_GeneratorNeedsUpdate) yield break;
-                m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
+                m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].DynamicParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
                 if (m_GeneratorNeedsUpdate) yield break;
                 m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                 if (m_GeneratorNeedsUpdate) yield break;

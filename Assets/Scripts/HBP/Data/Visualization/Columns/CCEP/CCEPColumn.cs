@@ -84,7 +84,7 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Configuration of the column.
         /// </summary>
-        [DataMember] public CCEPConfiguration CCEPConfiguration { get; set; }
+        [DataMember] public DynamicConfiguration DynamicConfiguration { get; set; }
 
         /// <summary>
         /// Data of the column.
@@ -93,12 +93,12 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public CCEPColumn(string name, BaseConfiguration baseConfiguration, Dataset dataset, string dataName, Bloc bloc, CCEPConfiguration configuration, CCEPData data) : base(name, baseConfiguration)
+        public CCEPColumn(string name, BaseConfiguration baseConfiguration, Dataset dataset, string dataName, Bloc bloc, DynamicConfiguration configuration, CCEPData data) : base(name, baseConfiguration)
         {
             Dataset = dataset;
             DataName = dataName;
             Bloc = bloc;
-            CCEPConfiguration = configuration;
+            DynamicConfiguration = configuration;
             Data = data;
         }
         public CCEPColumn(string name, BaseConfiguration baseConfiguration, IEnumerable<Patient> patients) : this(name, baseConfiguration)
@@ -118,11 +118,11 @@ namespace HBP.Data.Visualization
                 }
             }
         }
-        public CCEPColumn(string name, BaseConfiguration baseConfiguration) : this(name, baseConfiguration, null, string.Empty, null, new CCEPConfiguration(), new CCEPData())
+        public CCEPColumn(string name, BaseConfiguration baseConfiguration) : this(name, baseConfiguration, null, string.Empty, null, new DynamicConfiguration(), new CCEPData())
         {
 
         }
-        public CCEPColumn() : this("New column", new BaseConfiguration(), null, string.Empty, null, new CCEPConfiguration(), new CCEPData())
+        public CCEPColumn() : this("New column", new BaseConfiguration(), null, string.Empty, null, new DynamicConfiguration(), new CCEPData())
         {
         }
         #endregion
@@ -146,7 +146,7 @@ namespace HBP.Data.Visualization
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new CCEPColumn(Name, BaseConfiguration.Clone() as BaseConfiguration, Dataset, DataName, Bloc, CCEPConfiguration.Clone() as CCEPConfiguration, new CCEPData());
+            return new CCEPColumn(Name, BaseConfiguration.Clone() as BaseConfiguration, Dataset, DataName, Bloc, DynamicConfiguration.Clone() as DynamicConfiguration, new CCEPData());
         }
         #endregion
     }

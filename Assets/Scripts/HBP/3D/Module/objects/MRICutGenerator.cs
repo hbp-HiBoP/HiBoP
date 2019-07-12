@@ -222,11 +222,11 @@ namespace HBP.Module3D
             /// <param name="addValues"></param>
             /// <param name="ratioDistances"></param>
             /// <returns></returns>
-            public bool ComputeInfluences(Column3DIEEG IEEGColumn, bool multiCPU, bool addValues = false, int ratioDistances = 0)
+            public bool ComputeInfluences(Column3DDynamic IEEGColumn, bool multiCPU, bool addValues = false, int ratioDistances = 0)
             {
                 bool noError = false;
-                noError = compute_influences__MRITextureCutGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.EEGDimensions, IEEGColumn.IEEGParameters.InfluenceDistance,
-                    multiCPU?1:0, addValues?1:0, ratioDistances, IEEGColumn.IEEGParameters.Middle, IEEGColumn.IEEGParameters.SpanMin, IEEGColumn.IEEGParameters.SpanMax)== 1;
+                noError = compute_influences__MRITextureCutGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.EEGDimensions, IEEGColumn.DynamicParameters.InfluenceDistance,
+                    multiCPU?1:0, addValues?1:0, ratioDistances, IEEGColumn.DynamicParameters.Middle, IEEGColumn.DynamicParameters.SpanMin, IEEGColumn.DynamicParameters.SpanMax)== 1;
                 ApplicationState.DLLDebugManager.check_error();
 
                 if (!noError)
@@ -241,11 +241,11 @@ namespace HBP.Module3D
             /// <param name="colorScheme"></param>
             /// <param name="notInBrainCol"></param>
             /// <returns></returns>
-            public bool FillTextureWithIEEG(Column3DIEEG IEEGColumn, DLL.Texture colorScheme)
+            public bool FillTextureWithIEEG(Column3DDynamic IEEGColumn, DLL.Texture colorScheme)
             {
                 bool noError = false;
                 noError = fill_texture_with_SSEG__MRITextureCutGenerator(_handle, IEEGColumn.Timeline.CurrentIndex, colorScheme.getHandle(), 
-                IEEGColumn.IEEGParameters.AlphaMin, IEEGColumn.IEEGParameters.AlphaMax, new float[] { 0, 0, 0 })==1;
+                IEEGColumn.DynamicParameters.AlphaMin, IEEGColumn.DynamicParameters.AlphaMax, new float[] { 0, 0, 0 })==1;
                 ApplicationState.DLLDebugManager.check_error();
 
                 if (!noError)
@@ -283,9 +283,9 @@ namespace HBP.Module3D
             /// <summary>
             /// 
             /// </summary>
-            public void AdjustInfluencesToColormap(Column3DIEEG column3DIEEG)
+            public void AdjustInfluencesToColormap(Column3DDynamic column3DIEEG)
             {
-                ajust_influences_to_colormap__MRITextureCutGenerator(_handle, column3DIEEG.IEEGParameters.Middle, column3DIEEG.IEEGParameters.SpanMin, column3DIEEG.IEEGParameters.SpanMax);
+                ajust_influences_to_colormap__MRITextureCutGenerator(_handle, column3DIEEG.DynamicParameters.Middle, column3DIEEG.DynamicParameters.SpanMin, column3DIEEG.DynamicParameters.SpanMax);
             }
             /// <summary>
             /// Upathe the max density and influences values

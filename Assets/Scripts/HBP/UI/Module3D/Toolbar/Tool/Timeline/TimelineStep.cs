@@ -46,16 +46,31 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                List<HBP.Module3D.Column3DIEEG> columns = new List<HBP.Module3D.Column3DIEEG>();
-                if (IsGlobal)
+                List<HBP.Module3D.Column3DDynamic> columns = new List<HBP.Module3D.Column3DDynamic>();
+                if (SelectedColumn.Type == Data.Enums.ColumnType.CCEP)
                 {
-                    columns = SelectedScene.ColumnManager.ColumnsIEEG.ToList();
+                    if (IsGlobal)
+                    {
+                        columns = SelectedScene.ColumnManager.ColumnsCCEP.OfType<HBP.Module3D.Column3DDynamic>().ToList();
+                    }
+                    else
+                    {
+                        columns.Add((HBP.Module3D.Column3DDynamic)SelectedColumn);
+                    }
                 }
-                else
+                else if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
                 {
-                    columns.Add((HBP.Module3D.Column3DIEEG)SelectedColumn);
+                    if (IsGlobal)
+                    {
+                        columns = SelectedScene.ColumnManager.ColumnsIEEG.OfType<HBP.Module3D.Column3DDynamic>().ToList();
+                    }
+                    else
+                    {
+                        columns.Add((HBP.Module3D.Column3DDynamic)SelectedColumn);
+                    }
                 }
-                foreach (HBP.Module3D.Column3DIEEG column in columns)
+
+                foreach (HBP.Module3D.Column3DDynamic column in columns)
                 {
                     column.Timeline.CurrentIndex -= column.Timeline.Step;
                 }
@@ -65,16 +80,31 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                List<HBP.Module3D.Column3DIEEG> columns = new List<HBP.Module3D.Column3DIEEG>();
-                if (IsGlobal)
+                List<HBP.Module3D.Column3DDynamic> columns = new List<HBP.Module3D.Column3DDynamic>();
+                if (SelectedColumn.Type == Data.Enums.ColumnType.CCEP)
                 {
-                    columns = SelectedScene.ColumnManager.ColumnsIEEG.ToList();
+                    if (IsGlobal)
+                    {
+                        columns = SelectedScene.ColumnManager.ColumnsCCEP.OfType<HBP.Module3D.Column3DDynamic>().ToList();
+                    }
+                    else
+                    {
+                        columns.Add((HBP.Module3D.Column3DDynamic)SelectedColumn);
+                    }
                 }
-                else
+                else if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
                 {
-                    columns.Add((HBP.Module3D.Column3DIEEG)SelectedColumn);
+                    if (IsGlobal)
+                    {
+                        columns = SelectedScene.ColumnManager.ColumnsIEEG.OfType<HBP.Module3D.Column3DDynamic>().ToList();
+                    }
+                    else
+                    {
+                        columns.Add((HBP.Module3D.Column3DDynamic)SelectedColumn);
+                    }
                 }
-                foreach (HBP.Module3D.Column3DIEEG column in columns)
+
+                foreach (HBP.Module3D.Column3DDynamic column in columns)
                 {
                     column.Timeline.CurrentIndex += column.Timeline.Step;
                 }
@@ -103,17 +133,31 @@ namespace HBP.UI.Module3D.Tools
                     m_InputField.text = val.ToString();
                 }
 
-                List<HBP.Module3D.Column3DIEEG> columns = new List<HBP.Module3D.Column3DIEEG>();
-                if (IsGlobal)
+                List<HBP.Module3D.Column3DDynamic> columns = new List<HBP.Module3D.Column3DDynamic>();
+                if (SelectedColumn.Type == Data.Enums.ColumnType.CCEP)
                 {
-                    columns = SelectedScene.ColumnManager.ColumnsIEEG.ToList();
+                    if (IsGlobal)
+                    {
+                        columns = SelectedScene.ColumnManager.ColumnsCCEP.OfType<HBP.Module3D.Column3DDynamic>().ToList();
+                    }
+                    else
+                    {
+                        columns.Add((HBP.Module3D.Column3DDynamic)SelectedColumn);
+                    }
                 }
-                else
+                else if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
                 {
-                    columns.Add((HBP.Module3D.Column3DIEEG)SelectedColumn);
+                    if (IsGlobal)
+                    {
+                        columns = SelectedScene.ColumnManager.ColumnsIEEG.OfType<HBP.Module3D.Column3DDynamic>().ToList();
+                    }
+                    else
+                    {
+                        columns.Add((HBP.Module3D.Column3DDynamic)SelectedColumn);
+                    }
                 }
 
-                foreach (HBP.Module3D.Column3DIEEG column in columns)
+                foreach (HBP.Module3D.Column3DDynamic column in columns)
                 {
                     column.Timeline.Step = step;
                 }
@@ -142,7 +186,7 @@ namespace HBP.UI.Module3D.Tools
         {
             if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
             {
-                m_InputField.text = ((HBP.Module3D.Column3DIEEG)SelectedColumn).Timeline.Step.ToString();
+                m_InputField.text = ((HBP.Module3D.Column3DDynamic)SelectedColumn).Timeline.Step.ToString();
             }
             else
             {

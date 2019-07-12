@@ -9,7 +9,7 @@ namespace HBP.Module3D
     /// <summary>
     /// Class containing the parameters for the iEEG of a column
     /// </summary>
-    public class IEEGDataParameters
+    public class DynamicDataParameters
     {
         #region Properties
         /// <summary>
@@ -149,7 +149,7 @@ namespace HBP.Module3D
         /// <param name="mid">Middle value</param>
         /// <param name="max">Span max value</param>
         /// <param name="column">Column associated with these parameters</param>
-        public void SetSpanValues(float min, float mid, float max, Column3DIEEG column)
+        public void SetSpanValues(float min, float mid, float max, Column3DDynamic column)
         {
             if (min > max) min = max;
             mid = Mathf.Clamp(mid, min, max);

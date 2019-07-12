@@ -176,7 +176,7 @@ namespace HBP.Module3D
         /// Color cuts with iEEG values
         /// </summary>
         /// <param name="column">Column from which iEEG values are taken</param>
-        public void ColorCutsTexturesWithIEEG(Column3DIEEG column)
+        public void ColorCutsTexturesWithIEEG(Column3DDynamic column)
         {
             if (column.CutTextures != this)
             {
