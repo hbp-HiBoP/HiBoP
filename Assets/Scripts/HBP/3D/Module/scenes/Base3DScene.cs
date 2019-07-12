@@ -1628,9 +1628,11 @@ namespace HBP.Module3D
             {
                 column.SaveConfiguration();
             }
-
-            Visualization.Configuration.FirstSiteToSelect = m_ColumnManager.SelectedColumn.SelectedSite.Information.ChannelName;
-            Visualization.Configuration.FirstColumnToSelect = m_ColumnManager.Columns.FindIndex(c => c = m_ColumnManager.SelectedColumn);
+            if (m_ColumnManager.SelectedColumn.SelectedSite)
+            {
+                Visualization.Configuration.FirstSiteToSelect = m_ColumnManager.SelectedColumn.SelectedSite.Information.ChannelName;
+                Visualization.Configuration.FirstColumnToSelect = m_ColumnManager.Columns.FindIndex(c => c = m_ColumnManager.SelectedColumn);
+            }
         }
         /// <summary>
         /// Reset the settings of the loaded scene
