@@ -790,7 +790,7 @@ namespace HBP.Module3D
         /// <param name="site">Site that has been selected</param>
         private void ClickOnSiteCallback(Site site)
         {
-            if (m_ColumnManager.SelectedColumn.Type == Data.Enums.ColumnType.iEEG && !IsLatencyModeEnabled && site)
+            if (m_ColumnManager.SelectedColumn is Column3DDynamic && !IsLatencyModeEnabled && site)
             {
                 List<Site> sites = new List<Site>();
                 if (m_SiteToCompare) sites.Add(m_SiteToCompare);
@@ -1729,7 +1729,7 @@ namespace HBP.Module3D
             {
                 for (int i = 0; i < column.BrainSurfaceMeshes.Count; i++)
                 {
-                    if ((column.Type != Data.Enums.ColumnType.iEEG && column.Type != Data.Enums.ColumnType.CCEP) || !SceneInformation.IsGeneratorUpToDate || SceneInformation.DisplayCCEPMode)
+                    if (!(column is Column3DDynamic) || !SceneInformation.IsGeneratorUpToDate || SceneInformation.DisplayCCEPMode)
                     {
                         column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv2 = m_ColumnManager.UVNull[i];
                         column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = m_ColumnManager.UVNull[i];

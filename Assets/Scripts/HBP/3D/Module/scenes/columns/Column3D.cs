@@ -17,16 +17,6 @@ namespace HBP.Module3D
     {
         #region Properties
         /// <summary>
-        /// Type of the column
-        /// </summary>
-        public virtual ColumnType Type
-        {
-            get
-            {
-                return ColumnType.Anatomic;
-            }
-        }
-        /// <summary>
         /// Column data of this column 3D
         /// </summary>
         public Data.Visualization.Column ColumnData { get; private set; }

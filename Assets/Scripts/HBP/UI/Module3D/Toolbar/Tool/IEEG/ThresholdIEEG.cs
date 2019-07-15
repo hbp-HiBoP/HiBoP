@@ -54,16 +54,16 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isColumnIEEG = SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
+            bool isColumnDynamic = SelectedColumn is HBP.Module3D.Column3DDynamic;
 
-            m_Button.interactable = isColumnIEEG;
+            m_Button.interactable = isColumnDynamic;
         }
 
         public override void UpdateStatus()
         {
-            if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
+            if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)
             {
-                m_ThresholdIEEG.UpdateIEEGValues(((HBP.Module3D.Column3DDynamic)SelectedColumn).DynamicParameters);
+                m_ThresholdIEEG.UpdateIEEGValues(dynamicColumn.DynamicParameters);
             }
         }
         #endregion

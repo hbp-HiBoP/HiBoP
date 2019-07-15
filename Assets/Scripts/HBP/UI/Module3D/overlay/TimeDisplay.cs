@@ -21,26 +21,25 @@ namespace HBP.UI.Module3D
 
             scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
-                if (column.Type == Data.Enums.ColumnType.iEEG)
+                if (column is Column3DDynamic)
                 {
                     IsActive = value;
                 }
             });
 
-            switch (column.Type)
+            if (column is Column3DDynamic dynamicColumn)
             {
-                case Data.Enums.ColumnType.Anatomic:
-                    IsActive = false;
-                    break;
-                case Data.Enums.ColumnType.iEEG:
-                    Column3DDynamic col = (Column3DDynamic)column;
-                    col.OnUpdateCurrentTimelineID.AddListener(() =>
-                    {
-                        m_Text.text = col.Timeline.CurrentSubtimeline.GetLocalIndex(col.Timeline.CurrentIndex).ToString() + " (" + col.Timeline.CurrentSubtimeline.GetLocalTime(col.Timeline.CurrentIndex).ToString("N2") + col.Timeline.Unit + ")";
-                    });
-                    break;
-                default:
-                    break;
+                dynamicColumn.OnUpdateCurrentTimelineID.AddListener(() =>
+                {
+                    m_Text.text = string.Format("{0} ({1}{2})",
+                        dynamicColumn.Timeline.CurrentSubtimeline.GetLocalIndex(dynamicColumn.Timeline.CurrentIndex).ToString(),
+                        dynamicColumn.Timeline.CurrentSubtimeline.GetLocalTime(dynamicColumn.Timeline.CurrentIndex).ToString("N2"),
+                        dynamicColumn.Timeline.Unit);
+                });
+            }
+            else
+            {
+                IsActive = false;
             }
         }
         #endregion

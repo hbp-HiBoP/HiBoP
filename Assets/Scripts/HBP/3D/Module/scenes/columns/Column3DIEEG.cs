@@ -10,16 +10,6 @@ namespace HBP.Module3D
     {
         #region Properties
         /// <summary>
-        /// Type of the column
-        /// </summary>
-        public override ColumnType Type
-        {
-            get
-            {
-                return ColumnType.iEEG;
-            }
-        }
-        /// <summary>
         /// Column data
         /// </summary>
         public IEEGColumn ColumnIEEGData

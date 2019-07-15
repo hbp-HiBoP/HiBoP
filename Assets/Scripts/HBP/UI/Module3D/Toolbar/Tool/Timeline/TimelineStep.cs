@@ -47,7 +47,7 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 List<HBP.Module3D.Column3DDynamic> columns = new List<HBP.Module3D.Column3DDynamic>();
-                if (SelectedColumn.Type == Data.Enums.ColumnType.CCEP)
+                if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)
                 {
                     if (IsGlobal)
                     {
@@ -55,18 +55,7 @@ namespace HBP.UI.Module3D.Tools
                     }
                     else
                     {
-                        columns.Add((HBP.Module3D.Column3DDynamic)SelectedColumn);
-                    }
-                }
-                else if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
-                {
-                    if (IsGlobal)
-                    {
-                        columns = SelectedScene.ColumnManager.ColumnsIEEG.OfType<HBP.Module3D.Column3DDynamic>().ToList();
-                    }
-                    else
-                    {
-                        columns.Add((HBP.Module3D.Column3DDynamic)SelectedColumn);
+                        columns.Add(dynamicColumn);
                     }
                 }
 
@@ -81,7 +70,7 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 List<HBP.Module3D.Column3DDynamic> columns = new List<HBP.Module3D.Column3DDynamic>();
-                if (SelectedColumn.Type == Data.Enums.ColumnType.CCEP)
+                if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)
                 {
                     if (IsGlobal)
                     {
@@ -89,18 +78,7 @@ namespace HBP.UI.Module3D.Tools
                     }
                     else
                     {
-                        columns.Add((HBP.Module3D.Column3DDynamic)SelectedColumn);
-                    }
-                }
-                else if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
-                {
-                    if (IsGlobal)
-                    {
-                        columns = SelectedScene.ColumnManager.ColumnsIEEG.OfType<HBP.Module3D.Column3DDynamic>().ToList();
-                    }
-                    else
-                    {
-                        columns.Add((HBP.Module3D.Column3DDynamic)SelectedColumn);
+                        columns.Add(dynamicColumn);
                     }
                 }
 
@@ -114,9 +92,8 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                int val = 1;
                 int step = 1;
-                if (int.TryParse(value, out val))
+                if (int.TryParse(value, out int val))
                 {
                     step = val;
                     if (step < 1)
@@ -134,7 +111,7 @@ namespace HBP.UI.Module3D.Tools
                 }
 
                 List<HBP.Module3D.Column3DDynamic> columns = new List<HBP.Module3D.Column3DDynamic>();
-                if (SelectedColumn.Type == Data.Enums.ColumnType.CCEP)
+                if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)
                 {
                     if (IsGlobal)
                     {
@@ -142,18 +119,7 @@ namespace HBP.UI.Module3D.Tools
                     }
                     else
                     {
-                        columns.Add((HBP.Module3D.Column3DDynamic)SelectedColumn);
-                    }
-                }
-                else if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
-                {
-                    if (IsGlobal)
-                    {
-                        columns = SelectedScene.ColumnManager.ColumnsIEEG.OfType<HBP.Module3D.Column3DDynamic>().ToList();
-                    }
-                    else
-                    {
-                        columns.Add((HBP.Module3D.Column3DDynamic)SelectedColumn);
+                        columns.Add(dynamicColumn);
                     }
                 }
 
@@ -174,19 +140,19 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isColumnIEEG = SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
+            bool isColumnDynamic = SelectedColumn is HBP.Module3D.Column3DDynamic;
             bool areAmplitudesComputed = SelectedScene.SceneInformation.IsGeneratorUpToDate;
 
-            m_Minus.interactable = isColumnIEEG && areAmplitudesComputed;
-            m_InputField.interactable = isColumnIEEG && areAmplitudesComputed;
-            m_Plus.interactable = isColumnIEEG && areAmplitudesComputed;
+            m_Minus.interactable = isColumnDynamic && areAmplitudesComputed;
+            m_InputField.interactable = isColumnDynamic && areAmplitudesComputed;
+            m_Plus.interactable = isColumnDynamic && areAmplitudesComputed;
         }
 
         public override void UpdateStatus()
         {
-            if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
+            if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)
             {
-                m_InputField.text = ((HBP.Module3D.Column3DDynamic)SelectedColumn).Timeline.Step.ToString();
+                m_InputField.text = dynamicColumn.Timeline.Step.ToString();
             }
             else
             {

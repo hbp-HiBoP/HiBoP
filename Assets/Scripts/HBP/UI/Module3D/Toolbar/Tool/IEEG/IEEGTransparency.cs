@@ -46,16 +46,16 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isColumnIEEG = SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
+            bool isColumnDynamic = SelectedColumn is HBP.Module3D.Column3DDynamic;
 
-            m_Slider.interactable = isColumnIEEG;
+            m_Slider.interactable = isColumnDynamic;
         }
 
         public override void UpdateStatus()
         {
-            if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
+            if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)
             {
-                m_Slider.value = ((HBP.Module3D.Column3DDynamic)SelectedColumn).DynamicParameters.AlphaMin;
+                m_Slider.value = dynamicColumn.DynamicParameters.AlphaMin;
             }
             else
             {

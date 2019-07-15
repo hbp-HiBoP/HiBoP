@@ -48,7 +48,7 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 List<HBP.Module3D.Column3DDynamic> columns = new List<HBP.Module3D.Column3DDynamic>();
-                if (SelectedColumn.Type == Data.Enums.ColumnType.CCEP)
+                if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)
                 {
                     if (IsGlobal)
                     {
@@ -56,18 +56,7 @@ namespace HBP.UI.Module3D.Tools
                     }
                     else
                     {
-                        columns.Add((HBP.Module3D.Column3DDynamic)SelectedColumn);
-                    }
-                }
-                else if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
-                {
-                    if (IsGlobal)
-                    {
-                        columns = SelectedScene.ColumnManager.ColumnsIEEG.OfType<HBP.Module3D.Column3DDynamic>().ToList();
-                    }
-                    else
-                    {
-                        columns.Add((HBP.Module3D.Column3DDynamic)SelectedColumn);
+                        columns.Add(dynamicColumn);
                     }
                 }
 
@@ -86,17 +75,17 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isColumnIEEG = SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
+            bool isColumnDynamic = SelectedColumn is HBP.Module3D.Column3DDynamic;
             bool areAmplitudesComputed = SelectedScene.SceneInformation.IsGeneratorUpToDate;
 
-            m_Toggle.interactable = isColumnIEEG && areAmplitudesComputed;
+            m_Toggle.interactable = isColumnDynamic && areAmplitudesComputed;
         }
 
         public override void UpdateStatus()
         {
-            if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
+            if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)
             {
-                m_Toggle.isOn = ((HBP.Module3D.Column3DDynamic)SelectedColumn).Timeline.IsPlaying;
+                m_Toggle.isOn = dynamicColumn.Timeline.IsPlaying;
             }
             else
             {

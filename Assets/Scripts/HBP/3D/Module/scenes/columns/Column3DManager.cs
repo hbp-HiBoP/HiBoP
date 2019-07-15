@@ -46,15 +46,15 @@ namespace HBP.Module3D
         /// <summary>
         /// Dynamic Columns of the scene
         /// </summary>
-        public List<Column3DDynamic> ColumnsDynamic { get { return (from column in Columns where column.Type == Data.Enums.ColumnType.iEEG select (Column3DDynamic)column).ToList(); } }
+        public List<Column3DDynamic> ColumnsDynamic { get { return Columns.OfType<Column3DDynamic>().ToList(); } }
         /// <summary>
         /// IEEG Columns of the scene
         /// </summary>
-        public List<Column3DIEEG> ColumnsIEEG { get { return (from column in Columns where column.Type == Data.Enums.ColumnType.iEEG select (Column3DIEEG)column).ToList(); } }
+        public List<Column3DIEEG> ColumnsIEEG { get { return Columns.OfType<Column3DIEEG>().ToList(); } }
         /// <summary>
         /// IEEG Columns of the scene
         /// </summary>
-        public List<Column3DCCEP> ColumnsCCEP { get { return (from column in Columns where column.Type == Data.Enums.ColumnType.CCEP select (Column3DCCEP)column).ToList(); } }
+        public List<Column3DCCEP> ColumnsCCEP { get { return Columns.OfType<Column3DCCEP>().ToList(); } }
 
         public ReadOnlyCollection<View3D> Views
         {

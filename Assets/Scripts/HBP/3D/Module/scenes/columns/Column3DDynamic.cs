@@ -14,17 +14,6 @@ namespace HBP.Module3D
     {
         #region Properties
         /// <summary>
-        /// Type of the column
-        /// </summary>
-        public override ColumnType Type
-        {
-            get
-            {
-                return ColumnType.Dynamic;
-            }
-        }
-
-        /// <summary>
         /// Timeline of this column
         /// </summary>
         public virtual Data.Visualization.Timeline Timeline

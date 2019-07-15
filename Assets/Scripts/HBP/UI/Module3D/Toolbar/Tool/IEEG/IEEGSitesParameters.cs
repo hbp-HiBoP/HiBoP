@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Events;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -71,19 +67,18 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isColumnIEEG = SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
+            bool isColumnDynamic = SelectedColumn is HBP.Module3D.Column3DDynamic;
 
-            m_Slider.interactable = isColumnIEEG;
-            m_InputField.interactable = isColumnIEEG;
+            m_Slider.interactable = isColumnDynamic;
+            m_InputField.interactable = isColumnDynamic;
         }
 
         public override void UpdateStatus()
         {
-            if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
+            if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)
             {
-                HBP.Module3D.Column3DDynamic selectedColumn = (HBP.Module3D.Column3DDynamic)SelectedColumn;
-                m_Slider.value = selectedColumn.DynamicParameters.Gain;
-                m_InputField.text = selectedColumn.DynamicParameters.InfluenceDistance.ToString("N2");
+                m_Slider.value = dynamicColumn.DynamicParameters.Gain;
+                m_InputField.text = dynamicColumn.DynamicParameters.InfluenceDistance.ToString("N2");
             }
             else
             {

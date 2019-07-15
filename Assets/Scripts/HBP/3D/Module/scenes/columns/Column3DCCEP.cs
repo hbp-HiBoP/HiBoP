@@ -12,16 +12,6 @@ namespace HBP.Module3D
     {
         #region Properties
         /// <summary>
-        /// Type of the column
-        /// </summary>
-        public override ColumnType Type
-        {
-            get
-            {
-                return ColumnType.CCEP;
-            }
-        }
-        /// <summary>
         /// Column data
         /// </summary>
         public CCEPColumn ColumnCCEPData
