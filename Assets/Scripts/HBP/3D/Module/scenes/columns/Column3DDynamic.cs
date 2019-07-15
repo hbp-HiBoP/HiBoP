@@ -100,7 +100,7 @@ namespace HBP.Module3D
         /// Update sites sizes and colors arrays for iEEG (to be called before the rendering update)
         /// </summary>
         /// <param name="data">Information about the scene</param>
-        protected void UpdateSitesSizeAndColorForIEEG(SceneStatesInfo data)
+        protected virtual void UpdateSitesSizeAndColorForIEEG(SceneStatesInfo data)
         {
             UnityEngine.Profiling.Profiler.BeginSample("update_sites_size_and_color_arrays_for_IEEG");
 
@@ -169,7 +169,7 @@ namespace HBP.Module3D
         /// Specify a column data for this column
         /// </summary>
         /// <param name="columnData">Column data to use</param>
-        public void ComputeEEGData()
+        public virtual void ComputeEEGData()
         {
             Timeline.OnUpdateCurrentIndex.AddListener(() =>
             {

@@ -3,6 +3,7 @@ using HBP.Data.Visualization;
 using HBP.Module3D.DLL;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -18,7 +19,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return ColumnData as Data.Visualization.CCEPColumn;
+                return ColumnData as CCEPColumn;
             }
         }
 
@@ -30,17 +31,35 @@ namespace HBP.Module3D
             }
         }
 
-        private Site m_SelectedSource;
+        public List<Site> Sources { get; private set; } = new List<Site>();
+        private int m_SelectedSourceID = -1;
+        public int SelectedSourceID
+        {
+            get
+            {
+                return m_SelectedSourceID;
+            }
+            set
+            {
+                if (m_SelectedSourceID != value)
+                {
+                    m_SelectedSourceID = value;
+                    SetEEGData();
+                }
+            }
+        }
         public Site SelectedSource
         {
             get
             {
-                return m_SelectedSource;
+                return m_SelectedSourceID != -1 ? Sources[m_SelectedSourceID] : null;
             }
-            set
+        }
+        public bool IsSourceSelected
+        {
+            get
             {
-                m_SelectedSource = value;
-                SetEEGData();
+                return m_SelectedSourceID != -1;
             }
         }
         #endregion
@@ -48,7 +67,7 @@ namespace HBP.Module3D
         #region Private Methods
         protected override void Update()
         {
-            if (Input.GetKeyDown(KeyCode.A)) SelectedSource = SelectedSite;
+            //if (Input.GetKeyDown(KeyCode.A)) SelectedSource = SelectedSite;
             base.Update();
         }
         /// <summary>
@@ -56,20 +75,33 @@ namespace HBP.Module3D
         /// </summary>
         protected override void SetEEGData()
         {
-            if (ColumnCCEPData == null || m_SelectedSource == null) return;
-
+            if (ColumnCCEPData == null) return;
+            
             int timelineLength = Timeline.Length;
             int sitesCount = Sites.Count;
             // Construct sites value array the old way, and set sites masks // maybe FIXME
             IEEGValuesBySiteID = new float[sitesCount][];
+            for (int i = 0; i < sitesCount; i++)
+            {
+                IEEGValuesBySiteID[i] = new float[timelineLength];
+            }
             IEEGUnitsBySiteID = new string[sitesCount];
             int numberOfSitesWithValues = 0;
 
+            if (!IsSourceSelected)
+            {
+                foreach (var site in Sites)
+                {
+                    site.State.IsMasked = !ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.ContainsKey(site.Information.FullCorrectedID);
+                }
+                return;
+            }
+
             // Retrieve values
-            if (!ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.TryGetValue(m_SelectedSource.Information.FullCorrectedID, out Dictionary<string, float[]> processedValuesByChannel)) return;
-            if (!ColumnCCEPData.Data.UnityByChannelIDByStimulatedChannelID.TryGetValue(m_SelectedSource.Information.FullCorrectedID, out Dictionary<string, string> unitByChannel)) return;
-            if (!ColumnCCEPData.Data.DataByChannelIDByStimulatedChannelID.TryGetValue(m_SelectedSource.Information.FullCorrectedID, out Dictionary<string, Data.Experience.Dataset.BlocChannelData> dataByChannel)) return;
-            if (!ColumnCCEPData.Data.StatisticsByChannelIDByStimulatedChannelID.TryGetValue(m_SelectedSource.Information.FullCorrectedID, out Dictionary<string, Data.Experience.Dataset.BlocChannelStatistics> statisticsByChannel)) return;
+            if (!ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullCorrectedID, out Dictionary<string, float[]> processedValuesByChannel)) return;
+            if (!ColumnCCEPData.Data.UnityByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullCorrectedID, out Dictionary<string, string> unitByChannel)) return;
+            if (!ColumnCCEPData.Data.DataByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullCorrectedID, out Dictionary<string, Data.Experience.Dataset.BlocChannelData> dataByChannel)) return;
+            if (!ColumnCCEPData.Data.StatisticsByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullCorrectedID, out Dictionary<string, Data.Experience.Dataset.BlocChannelStatistics> statisticsByChannel)) return;
 
             foreach (Site site in Sites)
             {
@@ -83,7 +115,6 @@ namespace HBP.Module3D
                     }
                     else
                     {
-                        IEEGValuesBySiteID[site.Information.GlobalID] = new float[timelineLength];
                         site.State.IsMasked = true;
                     }
                 }
@@ -144,9 +175,21 @@ namespace HBP.Module3D
             }
             IEEGValuesOfUnmaskedSites = iEEGNotMasked.ToArray();
         }
+        protected override void UpdateSitesSizeAndColorForIEEG(SceneStatesInfo data)
+        {
+            if (IsSourceSelected)
+            {
+                base.UpdateSitesSizeAndColorForIEEG(data);
+            }
+        }
         #endregion
 
         #region Public Methods
+        public override void ComputeEEGData()
+        {
+            Sources = Sites.Where(s => ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.Keys.Contains(s.Information.FullCorrectedID)).ToList();
+            base.ComputeEEGData();
+        }
         /// <summary>
         /// Load the column configuration from the loaded column data
         /// </summary>

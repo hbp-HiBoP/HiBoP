@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HBP.Module3D;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,40 +11,47 @@ namespace HBP.UI.Module3D.Tools
     public class CCEPSourceSelector : Tool
     {
         #region Properties
-        [SerializeField]
-        private Text m_Text;
+        [SerializeField] private Dropdown m_Dropdown;
         #endregion
 
         #region Public Methods
         public override void Initialize()
         {
+            m_Dropdown.onValueChanged.AddListener((value) =>
+            {
+                if (ListenerLock) return;
+
+                if (SelectedColumn is Column3DCCEP ccepColumn)
+                {
+                    ccepColumn.SelectedSourceID = value - 1;
+                }
+            });
         }
 
         public override void DefaultState()
         {
-            m_Text.text = "CCEP mode disabled";
+            m_Dropdown.enabled = false;
         }
 
         public override void UpdateInteractable()
         {
+            bool isColumnCCEP = SelectedColumn is Column3DCCEP;
+
+            m_Dropdown.enabled = isColumnCCEP;
         }
 
         public override void UpdateStatus()
         {
-            if (SelectedScene.IsLatencyModeEnabled)
+            m_Dropdown.options.Clear();
+            if (SelectedColumn is Column3DCCEP ccepColumn)
             {
-                if (SelectedColumn.SourceDefined)
+                m_Dropdown.options.Add(new Dropdown.OptionData("No source selected"));
+                foreach (Site site in ccepColumn.Sources)
                 {
-                    m_Text.text = SelectedColumn.Sites[SelectedColumn.SelectedSiteID].Information.DisplayedName;
+                    m_Dropdown.options.Add(new Dropdown.OptionData(string.Format("{0} ({1})", site.Information.ChannelName, site.Information.Patient.Name)));
                 }
-                else
-                {
-                    m_Text.text = "No source selected";
-                }
-            }
-            else
-            {
-                m_Text.text = "CCEP mode disabled";
+                m_Dropdown.value = ccepColumn.SelectedSourceID + 1;
+                m_Dropdown.RefreshShownValue();
             }
         }
         #endregion

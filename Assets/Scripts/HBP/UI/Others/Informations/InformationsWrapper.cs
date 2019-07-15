@@ -124,29 +124,43 @@ namespace HBP.UI.Informations
         void GenerateDataStructs()
         {
             List<DataStruct> dataStructs = new List<DataStruct>();
-            foreach (var column in m_Scene.ColumnManager.ColumnsIEEG)
+            foreach (var column in m_Scene.ColumnManager.ColumnsDynamic)
             {
                 if (!column.IsMinimized || ApplicationState.UserPreferences.Visualization.Graph.ShowCurvesOfMinimizedColumns)
                 {
-                    Data.Visualization.IEEGColumn columnData = column.ColumnIEEGData;
-                    DataStruct data;
-                    if (dataStructs.Any(d => d.Dataset == columnData.Dataset && d.Data == columnData.DataName))
+                    Data.Experience.Dataset.Dataset dataset = null;
+                    Bloc bloc = null;
+                    string dataName = "";
+                    if (column is Column3DIEEG iEEGColumn)
                     {
-                        data = dataStructs.First(d => d.Dataset == columnData.Dataset && d.Data == columnData.DataName);
+                        dataset = iEEGColumn.ColumnIEEGData.Dataset;
+                        dataName = iEEGColumn.ColumnIEEGData.DataName;
+                        bloc = iEEGColumn.ColumnIEEGData.Bloc;
+                    }
+                    else if (column is Column3DCCEP ccepColumn)
+                    {
+                        dataset = ccepColumn.ColumnCCEPData.Dataset;
+                        dataName = ccepColumn.ColumnCCEPData.DataName;
+                        bloc = ccepColumn.ColumnCCEPData.Bloc;
+                    }
+                    DataStruct data;
+                    if (dataStructs.Any(d => d.Dataset == dataset && d.Data == dataName))
+                    {
+                        data = dataStructs.First(d => d.Dataset == dataset && d.Data == dataName);
                     }
                     else
                     {
-                        data = new DataStruct(columnData.Dataset, columnData.DataName, new List<BlocStruct>());
+                        data = new DataStruct(dataset, dataName, new List<BlocStruct>());
                         dataStructs.Add(data);
                     }
-                    if(!data.Blocs.Any(b => b.Bloc == columnData.Bloc))
+                    if(!data.Blocs.Any(b => b.Bloc == bloc))
                     {
-                        data.AddBloc(new BlocStruct(columnData.Bloc));
+                        data.AddBloc(new BlocStruct(bloc));
                     }
                     if(column.SelectedROI != null)
                     {
                         ROIStruct ROI = new ROIStruct(column.SelectedROI.Name, column.Sites.Where(s => !s.State.IsOutOfROI && !s.State.IsMasked).Select(s => new ChannelStruct(s.Information.ChannelName, s.Information.Patient)));
-                        data.Blocs.First(b => b.Bloc == columnData.Bloc).AddROI(ROI);
+                        data.Blocs.First(b => b.Bloc == bloc).AddROI(ROI);
                     }
                 }
             }
@@ -194,7 +208,8 @@ namespace HBP.UI.Informations
                 m_Scene.ColumnManager.OnUpdateROIMask.AddListener(OnChangeROIHandler);
                 m_Scene.OnChangeColormap.AddListener((t) => OnChangeColorMapHandler());
 
-                ChannelInformations.SetMaxNumberOfTrialMatrixColumn(Bloc.GetNumberOfColumns(m_Scene.ColumnManager.ColumnsIEEG.Select(c => c.ColumnIEEGData.Bloc).Distinct()));
+                int maxNumberOfTrialMatrixColumn = Mathf.Max(Bloc.GetNumberOfColumns(m_Scene.ColumnManager.ColumnsIEEG.Select(c => c.ColumnIEEGData.Bloc).Distinct()), Bloc.GetNumberOfColumns(m_Scene.ColumnManager.ColumnsCCEP.Select(c => c.ColumnCCEPData.Bloc).Distinct()));
+                ChannelInformations.SetMaxNumberOfTrialMatrixColumn(maxNumberOfTrialMatrixColumn);
                 OnChangeColorMapHandler();
 
                 SetColorMap();

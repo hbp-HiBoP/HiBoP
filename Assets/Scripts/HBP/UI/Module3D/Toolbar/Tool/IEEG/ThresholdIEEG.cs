@@ -28,7 +28,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (IsGlobal)
                 {
-                    foreach (HBP.Module3D.Column3DDynamic column in SelectedScene.ColumnManager.ColumnsIEEG)
+                    foreach (HBP.Module3D.Column3DDynamic column in SelectedScene.ColumnManager.ColumnsDynamic)
                     {
                         column.DynamicParameters.SetSpanValues(min, mid, max, column);
                     }

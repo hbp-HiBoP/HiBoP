@@ -24,7 +24,7 @@ namespace HBP.UI.Module3D.Tools
                 HBP.Module3D.Column3DDynamic selectedColumn = (HBP.Module3D.Column3DDynamic)SelectedColumn;
                 if (IsGlobal)
                 {
-                    foreach (HBP.Module3D.Column3DDynamic column in SelectedScene.ColumnManager.ColumnsIEEG)
+                    foreach (HBP.Module3D.Column3DDynamic column in SelectedScene.ColumnManager.ColumnsDynamic)
                     {
                         column.DynamicParameters.Gain = value;
                     }
@@ -44,7 +44,7 @@ namespace HBP.UI.Module3D.Tools
                 HBP.Module3D.Column3DDynamic selectedColumn = (HBP.Module3D.Column3DDynamic)SelectedColumn;
                 if (IsGlobal)
                 {
-                    foreach (HBP.Module3D.Column3DDynamic column in SelectedScene.ColumnManager.ColumnsIEEG)
+                    foreach (HBP.Module3D.Column3DDynamic column in SelectedScene.ColumnManager.ColumnsDynamic)
                     {
                         column.DynamicParameters.InfluenceDistance = val;
                     }

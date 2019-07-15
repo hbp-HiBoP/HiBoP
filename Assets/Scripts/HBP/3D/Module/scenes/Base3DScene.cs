@@ -629,13 +629,13 @@ namespace HBP.Module3D
             });
             m_ColumnManager.OnUpdateIEEGSpan.AddListener((column) =>
             {
-                for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
+                for (int ii = 0; ii < m_ColumnManager.ColumnsDynamic.Count; ++ii)
                 {
                     for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                     {
-                        m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap(m_ColumnManager.ColumnsIEEG[ii]);
+                        m_ColumnManager.ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap(m_ColumnManager.ColumnsDynamic[ii]);
                     }
-                    m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.AdjustInfluencesToColormap(m_ColumnManager.ColumnsIEEG[ii]);
+                    m_ColumnManager.ColumnsDynamic[ii].DLLMRIVolumeGenerator.AdjustInfluencesToColormap(m_ColumnManager.ColumnsDynamic[ii]);
                 }
                 ComputeMRITextures();
                 ComputeGUITextures();
@@ -695,7 +695,7 @@ namespace HBP.Module3D
             {
                 if (!value)
                 {
-                    foreach (Column3DDynamic column in m_ColumnManager.ColumnsIEEG)
+                    foreach (Column3DDynamic column in m_ColumnManager.ColumnsDynamic)
                     {
                         column.Timeline.IsLooping = false;
                         column.Timeline.IsPlaying = false;
@@ -739,7 +739,7 @@ namespace HBP.Module3D
             }
             else
             {
-                foreach (Column3DDynamic col in m_ColumnManager.ColumnsIEEG)
+                foreach (Column3DDynamic col in m_ColumnManager.ColumnsDynamic)
                 {
                     m_ColumnManager.ComputeSurfaceBrainUVWithIEEG(col);
                     col.CutTextures.ColorCutsTexturesWithIEEG(col);
@@ -774,9 +774,9 @@ namespace HBP.Module3D
             SceneInformation.IsGeneratorUpToDate = true;
 
             // send inf values to overlays
-            for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
+            for (int ii = 0; ii < m_ColumnManager.ColumnsDynamic.Count; ++ii)
             {
-                m_ColumnManager.ColumnsIEEG[ii].Timeline.OnUpdateCurrentIndex.Invoke();
+                m_ColumnManager.ColumnsDynamic[ii].Timeline.OnUpdateCurrentIndex.Invoke();
             }
 
             // update plots visibility
@@ -1025,7 +1025,7 @@ namespace HBP.Module3D
                 m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.SplittedMeshes[ii], m_ColumnManager.SelectedMRI.Volume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
             }
             
-            foreach (var column in m_ColumnManager.ColumnsIEEG)
+            foreach (var column in m_ColumnManager.ColumnsDynamic)
             {
                 column.DLLMRIVolumeGenerator.Reset(m_ColumnManager.SelectedMRI.Volume, 120);
             }
@@ -2303,7 +2303,7 @@ namespace HBP.Module3D
 
             try
             {
-                foreach (var columnIEEG in m_ColumnManager.ColumnsIEEG)
+                foreach (var columnIEEG in m_ColumnManager.ColumnsDynamic)
                 {
                     columnIEEG.ComputeEEGData();
                 }
@@ -2356,7 +2356,7 @@ namespace HBP.Module3D
         {
             yield return Ninja.JumpToUnity;
             float totalTime = 0.075f * Patients.Count + 1.5f; // Calculated by Linear Regression is 0.0593f * Patients.Count + 1.0956f
-            float totalProgress = m_ColumnManager.ColumnsIEEG.Count * (1 + m_ColumnManager.MeshSplitNumber + 10);
+            float totalProgress = m_ColumnManager.ColumnsDynamic.Count * (1 + m_ColumnManager.MeshSplitNumber + 10);
             float timeByProgress = totalTime / totalProgress;
             float currentProgress = 0.0f;
             OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Initializing", timeByProgress);
@@ -2364,102 +2364,102 @@ namespace HBP.Module3D
             bool addValues = false;
 
             // copy from main generators
-            for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
+            for (int ii = 0; ii < m_ColumnManager.ColumnsDynamic.Count; ++ii)
             {
                 for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                 {
-                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].Dispose();
-                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj] = (DLL.MRIBrainGenerator)m_ColumnManager.DLLCommonBrainTextureGeneratorList[jj].Clone();
+                    m_ColumnManager.ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].Dispose();
+                    m_ColumnManager.ColumnsDynamic[ii].DLLBrainTextureGenerators[jj] = (DLL.MRIBrainGenerator)m_ColumnManager.DLLCommonBrainTextureGeneratorList[jj].Clone();
                     if (m_GeneratorNeedsUpdate) yield break;
                 }
             }
 
             // Do your threaded task
-            for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
+            for (int ii = 0; ii < m_ColumnManager.ColumnsDynamic.Count; ++ii)
             {
                 yield return Ninja.JumpToUnity;
-                OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label, timeByProgress);
+                OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsDynamic[ii].Label, timeByProgress);
                 yield return Ninja.JumpBack;
 
                 float currentMaxDensity, currentMinInfluence, currentMaxInfluence;
                 float maxDensity = 1;
 
-                m_ColumnManager.ColumnsIEEG[ii].SharedMinInf = float.MaxValue;
-                m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf = float.MinValue;
+                m_ColumnManager.ColumnsDynamic[ii].SharedMinInf = float.MaxValue;
+                m_ColumnManager.ColumnsDynamic[ii].SharedMaxInf = float.MinValue;
 
                 // update raw electrodes
-                m_ColumnManager.ColumnsIEEG[ii].UpdateDLLSitesMask();
+                m_ColumnManager.ColumnsDynamic[ii].UpdateDLLSitesMask();
 
                 // splits
                 for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                 {
                     yield return Ninja.JumpToUnity;
-                    OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label, timeByProgress);
+                    OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsDynamic[ii].Label, timeByProgress);
                     yield return Ninja.JumpBack;
                     if (m_GeneratorNeedsUpdate) yield break;
-                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
+                    m_ColumnManager.ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsDynamic[ii].RawElectrodes);
                     if (m_GeneratorNeedsUpdate) yield break;
-                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].DynamicParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
+                    m_ColumnManager.ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsDynamic[ii].DynamicParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
                     if (m_GeneratorNeedsUpdate) yield break;
-                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                    m_ColumnManager.ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsDynamic[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                     if (m_GeneratorNeedsUpdate) yield break;
 
-                    currentMaxDensity = m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumDensity;
-                    currentMinInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MinimumInfluence;
-                    currentMaxInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumInfluence;
+                    currentMaxDensity = m_ColumnManager.ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].MaximumDensity;
+                    currentMinInfluence = m_ColumnManager.ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].MinimumInfluence;
+                    currentMaxInfluence = m_ColumnManager.ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].MaximumInfluence;
 
                     if (currentMaxDensity > maxDensity)
                         maxDensity = currentMaxDensity;
 
-                    if (currentMinInfluence < m_ColumnManager.ColumnsIEEG[ii].SharedMinInf)
-                        m_ColumnManager.ColumnsIEEG[ii].SharedMinInf = currentMinInfluence;
+                    if (currentMinInfluence < m_ColumnManager.ColumnsDynamic[ii].SharedMinInf)
+                        m_ColumnManager.ColumnsDynamic[ii].SharedMinInf = currentMinInfluence;
 
-                    if (currentMaxInfluence > m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf)
-                        m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf = currentMaxInfluence;
+                    if (currentMaxInfluence > m_ColumnManager.ColumnsDynamic[ii].SharedMaxInf)
+                        m_ColumnManager.ColumnsDynamic[ii].SharedMaxInf = currentMaxInfluence;
 
                 }
 
                 // volume
                 yield return Ninja.JumpToUnity;
                 currentProgress += 10;
-                OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label, timeByProgress * 10);
+                OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsDynamic[ii].Label, timeByProgress * 10);
                 yield return Ninja.JumpBack;
                 if (m_GeneratorNeedsUpdate) yield break;
-                m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
+                m_ColumnManager.ColumnsDynamic[ii].DLLMRIVolumeGenerator.InitializeOctree(m_ColumnManager.ColumnsDynamic[ii].RawElectrodes);
                 if (m_GeneratorNeedsUpdate) yield break;
-                m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].DynamicParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
+                m_ColumnManager.ColumnsDynamic[ii].DLLMRIVolumeGenerator.ComputeDistances(m_ColumnManager.ColumnsDynamic[ii].DynamicParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
                 if (m_GeneratorNeedsUpdate) yield break;
-                m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                m_ColumnManager.ColumnsDynamic[ii].DLLMRIVolumeGenerator.ComputeInfluences(m_ColumnManager.ColumnsDynamic[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                 if (m_GeneratorNeedsUpdate) yield break;
 
-                currentMaxDensity = m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.MaximumDensity;
-                currentMinInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.MinimumInfluence;
-                currentMaxInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.MaximumInfluence;
+                currentMaxDensity = m_ColumnManager.ColumnsDynamic[ii].DLLMRIVolumeGenerator.MaximumDensity;
+                currentMinInfluence = m_ColumnManager.ColumnsDynamic[ii].DLLMRIVolumeGenerator.MinimumInfluence;
+                currentMaxInfluence = m_ColumnManager.ColumnsDynamic[ii].DLLMRIVolumeGenerator.MaximumInfluence;
 
                 if (currentMaxDensity > maxDensity)
                     maxDensity = currentMaxDensity;
 
-                if (currentMinInfluence < m_ColumnManager.ColumnsIEEG[ii].SharedMinInf)
-                    m_ColumnManager.ColumnsIEEG[ii].SharedMinInf = currentMinInfluence;
+                if (currentMinInfluence < m_ColumnManager.ColumnsDynamic[ii].SharedMinInf)
+                    m_ColumnManager.ColumnsDynamic[ii].SharedMinInf = currentMinInfluence;
 
-                if (currentMaxInfluence > m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf)
-                    m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf = currentMaxInfluence;
+                if (currentMaxInfluence > m_ColumnManager.ColumnsDynamic[ii].SharedMaxInf)
+                    m_ColumnManager.ColumnsDynamic[ii].SharedMaxInf = currentMaxInfluence;
 
                 // synchronize max density
                 for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                 {
-                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, m_ColumnManager.ColumnsIEEG[ii].SharedMinInf, m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
+                    m_ColumnManager.ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, m_ColumnManager.ColumnsDynamic[ii].SharedMinInf, m_ColumnManager.ColumnsDynamic[ii].SharedMaxInf);
                     if (m_GeneratorNeedsUpdate) yield break;
                 }
-                m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.SynchronizeWithOthersGenerators(maxDensity, m_ColumnManager.ColumnsIEEG[ii].SharedMinInf, m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
+                m_ColumnManager.ColumnsDynamic[ii].DLLMRIVolumeGenerator.SynchronizeWithOthersGenerators(maxDensity, m_ColumnManager.ColumnsDynamic[ii].SharedMinInf, m_ColumnManager.ColumnsDynamic[ii].SharedMaxInf);
                 if (m_GeneratorNeedsUpdate) yield break;
 
                 for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                 {
-                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap(m_ColumnManager.ColumnsIEEG[ii]);
+                    m_ColumnManager.ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap(m_ColumnManager.ColumnsDynamic[ii]);
                     if (m_GeneratorNeedsUpdate) yield break;
                 }
-                m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.AdjustInfluencesToColormap(m_ColumnManager.ColumnsIEEG[ii]);
+                m_ColumnManager.ColumnsDynamic[ii].DLLMRIVolumeGenerator.AdjustInfluencesToColormap(m_ColumnManager.ColumnsDynamic[ii]);
                 if (m_GeneratorNeedsUpdate) yield break;
             }
             yield return Ninja.JumpToUnity;

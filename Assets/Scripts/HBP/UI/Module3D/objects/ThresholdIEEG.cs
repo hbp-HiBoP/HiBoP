@@ -292,7 +292,7 @@ namespace HBP.UI.Module3D
 
             ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
             {
-                foreach (var column in s.ColumnManager.ColumnsIEEG)
+                foreach (var column in s.ColumnManager.ColumnsDynamic)
                 {
                     Texture2D texture;
                     if (m_HistogramByColumn.TryGetValue(column, out texture))
