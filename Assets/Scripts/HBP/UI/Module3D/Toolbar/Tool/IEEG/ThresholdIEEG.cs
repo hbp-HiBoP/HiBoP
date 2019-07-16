@@ -10,12 +10,9 @@ namespace HBP.UI.Module3D.Tools
     public class ThresholdIEEG : Tool
     {
         #region Properties
-        [SerializeField]
-        private Button m_Button;
-        [SerializeField]
-        private Button m_Auto;
-        [SerializeField]
-        private Module3D.ThresholdIEEG m_ThresholdIEEG;
+        [SerializeField] private Button m_Button;
+        [SerializeField] private Button m_Auto;
+        [SerializeField] private Module3D.ThresholdIEEG m_ThresholdIEEG;
         
         public bool IsGlobal { get; set; }
         #endregion
@@ -30,19 +27,19 @@ namespace HBP.UI.Module3D.Tools
                 {
                     foreach (HBP.Module3D.Column3DDynamic column in SelectedScene.ColumnManager.ColumnsDynamic)
                     {
-                        column.DynamicParameters.SetSpanValues(min, mid, max, column);
+                        column.DynamicParameters.SetSpanValues(min, mid, max);
                     }
                 }
                 else
                 {
                     HBP.Module3D.Column3DDynamic column = (HBP.Module3D.Column3DDynamic)SelectedColumn;
-                    column.DynamicParameters.SetSpanValues(min, mid, max, column);
+                    column.DynamicParameters.SetSpanValues(min, mid, max);
                 }
             });
             m_Auto.onClick.AddListener(() =>
             {
                 HBP.Module3D.Column3DDynamic column = (HBP.Module3D.Column3DDynamic)SelectedColumn;
-                column.DynamicParameters.SetSpanValues(0, 0, 0, column);
+                column.DynamicParameters.ResetSpanValues(column);
                 m_ThresholdIEEG.UpdateIEEGValues(((HBP.Module3D.Column3DDynamic)SelectedColumn).DynamicParameters);
             });
         }
@@ -54,9 +51,10 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isColumnDynamic = SelectedColumn is HBP.Module3D.Column3DDynamic;
+            bool isColumnIEEG = SelectedColumn is HBP.Module3D.Column3DIEEG;
+            bool isColumnCCEPAndSourceSelected = SelectedColumn is HBP.Module3D.Column3DCCEP ccepColumn && ccepColumn.IsSourceSelected;
 
-            m_Button.interactable = isColumnDynamic;
+            m_Button.interactable = isColumnIEEG || isColumnCCEPAndSourceSelected;
         }
 
         public override void UpdateStatus()

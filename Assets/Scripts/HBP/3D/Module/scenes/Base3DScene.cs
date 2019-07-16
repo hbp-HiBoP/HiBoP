@@ -447,6 +447,15 @@ namespace HBP.Module3D
             }
         }
 
+        public bool CanComputeIEEG
+        {
+            get
+            {
+                bool isOneColumnDynamic = m_ColumnManager.ColumnsDynamic.Count > 0;
+                bool areAllCCEPColumnsReady = m_ColumnManager.ColumnsCCEP.All(c => c.IsSourceSelected);
+                return isOneColumnDynamic && areAllCCEPColumnsReady && !IsLatencyModeEnabled;
+            }
+        }
         /// <summary>
         /// Lock when updating generator
         /// </summary>
@@ -596,7 +605,7 @@ namespace HBP.Module3D
             {
                 OnIEEGOutdated.Invoke(true);
             }
-            if (!SceneInformation.IsGeneratorUpToDate && !IsLatencyModeEnabled && ApplicationState.UserPreferences.Visualization._3D.AutomaticEEGUpdate)
+            if (!SceneInformation.IsGeneratorUpToDate && CanComputeIEEG && ApplicationState.UserPreferences.Visualization._3D.AutomaticEEGUpdate)
             {
                 UpdateGenerator();
             }
@@ -687,6 +696,11 @@ namespace HBP.Module3D
                 ResetIEEG();
             });
             m_ColumnManager.FMRIManager.OnChangeFMRIParameters.AddListener(() =>
+            {
+                ResetIEEG();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            });
+            m_ColumnManager.OnSelectCCEPSource.AddListener(() =>
             {
                 ResetIEEG();
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
@@ -795,7 +809,17 @@ namespace HBP.Module3D
                 List<Site> sites = new List<Site>();
                 if (m_SiteToCompare) sites.Add(m_SiteToCompare);
                 sites.Add(site);
-                OnRequestSiteInformation.Invoke(sites);
+                if (m_ColumnManager.SelectedColumn is Column3DCCEP ccepColumn)
+                {
+                    if (ccepColumn.IsSourceSelected)
+                    {
+                        OnRequestSiteInformation.Invoke(sites);
+                    }
+                }
+                else
+                {
+                    OnRequestSiteInformation.Invoke(sites);
+                }
             }
             SceneInformation.AreSitesUpdated = false;
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();

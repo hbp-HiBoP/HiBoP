@@ -149,21 +149,33 @@ namespace HBP.Module3D
         /// <param name="mid">Middle value</param>
         /// <param name="max">Span max value</param>
         /// <param name="column">Column associated with these parameters</param>
-        public void SetSpanValues(float min, float mid, float max, Column3DDynamic column)
+        public void SetSpanValues(float min, float mid, float max)
         {
             if (min > max) min = max;
             mid = Mathf.Clamp(mid, min, max);
-            if (Mathf.Approximately(min, mid) && Mathf.Approximately(min, max) && Mathf.Approximately(mid, max))
-            {
-                float middle = column.IEEGValuesOfUnmaskedSites.Mean();
-                Vector2 limits = column.IEEGValuesOfUnmaskedSites.CalculateValueLimit();
-                mid = middle;
-                min = Mathf.Clamp(limits[0], MinimumAmplitude, MaximumAmplitude);
-                max = Mathf.Clamp(limits[1], MinimumAmplitude, MaximumAmplitude);
-            }
             SpanMin = min;
             Middle = mid;
             SpanMax = max;
+            OnUpdateSpanValues.Invoke();
+        }
+        public void ResetSpanValues(Column3DDynamic column)
+        {
+            if (column is Column3DCCEP ccepColumn)
+            {
+                if (!ccepColumn.IsSourceSelected)
+                {
+                    SpanMin = 0;
+                    Middle = 0;
+                    SpanMax = 0;
+                    OnUpdateSpanValues.Invoke();
+                    return;
+                }
+            }
+            float middle = column.IEEGValuesOfUnmaskedSites.Mean();
+            Vector2 limits = column.IEEGValuesOfUnmaskedSites.CalculateValueLimit();
+            Middle = middle;
+            SpanMin = Mathf.Clamp(limits[0], MinimumAmplitude, MaximumAmplitude);
+            SpanMax = Mathf.Clamp(limits[1], MinimumAmplitude, MaximumAmplitude);
             OnUpdateSpanValues.Invoke();
         }
         #endregion

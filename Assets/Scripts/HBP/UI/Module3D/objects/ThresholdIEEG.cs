@@ -46,7 +46,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         private bool m_Initialized = false;
 
-        private Dictionary<Column3DDynamic, Texture2D> m_HistogramByColumn = new Dictionary<Column3DDynamic, Texture2D>();
+        private Dictionary<string, Texture2D> m_HistogramByColumn = new Dictionary<string, Texture2D>();
 
         /// <summary>
         /// IEEG Histogram
@@ -108,7 +108,8 @@ namespace HBP.UI.Module3D
         {
             UnityEngine.Profiling.Profiler.BeginSample("IEEG HISTOGRAM");
             Column3DDynamic column = (Column3DDynamic)ApplicationState.Module3D.SelectedColumn;
-            if (!m_HistogramByColumn.TryGetValue(column, out m_IEEGHistogram))
+            string histogramID = column.name + "_" + (column is Column3DCCEP columnCCEP && columnCCEP.IsSourceSelected ? columnCCEP.SelectedSource.Information.ChannelName : "");
+            if (!m_HistogramByColumn.TryGetValue(histogramID, out m_IEEGHistogram))
             {
                 float[] iEEGValues = column.IEEGValuesOfUnmaskedSites;
                 if (!m_IEEGHistogram)
@@ -125,7 +126,7 @@ namespace HBP.UI.Module3D
                 {
                     m_IEEGHistogram = Texture2D.blackTexture;
                 }
-                m_HistogramByColumn.Add(column, m_IEEGHistogram);
+                m_HistogramByColumn.Add(histogramID, m_IEEGHistogram);
             }
             m_Histogram.texture = m_IEEGHistogram;
             UnityEngine.Profiling.Profiler.EndSample();
@@ -294,11 +295,12 @@ namespace HBP.UI.Module3D
             {
                 foreach (var column in s.ColumnManager.ColumnsDynamic)
                 {
+                    string histogramID = column.name + "_" + (column is Column3DCCEP columnCCEP && columnCCEP.IsSourceSelected ? columnCCEP.SelectedSource.Information.ChannelName : "");
                     Texture2D texture;
-                    if (m_HistogramByColumn.TryGetValue(column, out texture))
+                    if (m_HistogramByColumn.TryGetValue(histogramID, out texture))
                     {
                         Destroy(texture);
-                        m_HistogramByColumn.Remove(column);
+                        m_HistogramByColumn.Remove(histogramID);
                     }
                 }
             });

@@ -1,8 +1,5 @@
-﻿using HBP.Data.Enums;
-using HBP.Data.Visualization;
-using System.Collections;
+﻿using HBP.Data.Visualization;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace HBP.Module3D
 {
@@ -16,7 +13,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return ColumnData as Data.Visualization.IEEGColumn;
+                return ColumnData as IEEGColumn;
             }
         }
 
@@ -126,7 +123,7 @@ namespace HBP.Module3D
             DynamicParameters.Gain = ColumnIEEGData.DynamicConfiguration.Gain;
             DynamicParameters.InfluenceDistance = ColumnIEEGData.DynamicConfiguration.MaximumInfluence;
             DynamicParameters.AlphaMin = ColumnIEEGData.DynamicConfiguration.Alpha;
-            DynamicParameters.SetSpanValues(ColumnIEEGData.DynamicConfiguration.SpanMin, ColumnIEEGData.DynamicConfiguration.Middle, ColumnIEEGData.DynamicConfiguration.SpanMax, this);
+            DynamicParameters.SetSpanValues(ColumnIEEGData.DynamicConfiguration.SpanMin, ColumnIEEGData.DynamicConfiguration.Middle, ColumnIEEGData.DynamicConfiguration.SpanMax);
             base.LoadConfiguration(false);
         }
         /// <summary>
@@ -151,7 +148,7 @@ namespace HBP.Module3D
             DynamicParameters.Gain = 1.0f;
             DynamicParameters.InfluenceDistance = 15.0f;
             DynamicParameters.AlphaMin = 0.8f;
-            DynamicParameters.SetSpanValues(0, 0, 0, this);
+            DynamicParameters.ResetSpanValues(this);
             base.ResetConfiguration();
         }
         #endregion

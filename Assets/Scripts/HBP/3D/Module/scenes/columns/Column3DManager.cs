@@ -347,6 +347,8 @@ namespace HBP.Module3D
         /// Event called when selecting a source in a column or changing the latency file of a column
         /// </summary>
         [HideInInspector] public UnityEvent OnChangeCCEPParameters = new UnityEvent();
+
+        [HideInInspector] public UnityEvent OnSelectCCEPSource = new UnityEvent();
         #endregion
 
         #region Private Methods
@@ -475,6 +477,13 @@ namespace HBP.Module3D
                     OnUpdateColumnTimelineID.Invoke(dynamicColumn);
                     column.IsRenderingUpToDate = false;
                 });
+                if (dynamicColumn is Column3DCCEP column3DCCEP)
+                {
+                    column3DCCEP.OnSelectSource.AddListener(() =>
+                    {
+                        OnSelectCCEPSource.Invoke();
+                    });
+                }
             }
             column.Initialize(Columns.Count, baseColumn, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
             column.ResetSplitsNumber(MeshSplitNumber);

@@ -44,6 +44,7 @@ namespace HBP.Module3D
                 if (m_SelectedSourceID != value)
                 {
                     m_SelectedSourceID = value;
+                    OnSelectSource.Invoke();
                     SetEEGData();
                 }
             }
@@ -62,6 +63,10 @@ namespace HBP.Module3D
                 return m_SelectedSourceID != -1;
             }
         }
+        #endregion
+
+        #region Events
+        public UnityEvent OnSelectSource = new UnityEvent();
         #endregion
 
         #region Private Methods
@@ -200,7 +205,7 @@ namespace HBP.Module3D
             DynamicParameters.Gain = ColumnCCEPData.DynamicConfiguration.Gain;
             DynamicParameters.InfluenceDistance = ColumnCCEPData.DynamicConfiguration.MaximumInfluence;
             DynamicParameters.AlphaMin = ColumnCCEPData.DynamicConfiguration.Alpha;
-            DynamicParameters.SetSpanValues(ColumnCCEPData.DynamicConfiguration.SpanMin, ColumnCCEPData.DynamicConfiguration.Middle, ColumnCCEPData.DynamicConfiguration.SpanMax, this);
+            DynamicParameters.SetSpanValues(ColumnCCEPData.DynamicConfiguration.SpanMin, ColumnCCEPData.DynamicConfiguration.Middle, ColumnCCEPData.DynamicConfiguration.SpanMax);
             base.LoadConfiguration(false);
         }
         /// <summary>
@@ -225,7 +230,7 @@ namespace HBP.Module3D
             DynamicParameters.Gain = 1.0f;
             DynamicParameters.InfluenceDistance = 15.0f;
             DynamicParameters.AlphaMin = 0.8f;
-            DynamicParameters.SetSpanValues(0, 0, 0, this);
+            DynamicParameters.ResetSpanValues(this);
             base.ResetConfiguration();
         }
         #endregion
