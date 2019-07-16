@@ -2,10 +2,11 @@
 using Tools.CSharp.EEG;
 using System;
 using System.Runtime.Serialization;
+using System.ComponentModel;
 
 namespace HBP.Data.Experience.Protocol
 {
-    [DataContract]
+    [DataContract, DisplayName("Median")]
     public class MedianTreatment : Treatment
     {
         public override float[] Apply(float[] values, int mainEventIndex, Frequency frequency)

@@ -1,11 +1,12 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Runtime.Serialization;
 using Tools.CSharp;
 using Tools.CSharp.EEG;
 
 namespace HBP.Data.Experience.Protocol
 {
-    [DataContract]
+    [DataContract, DisplayName("Absolute")]
     public class AbsTreatment : Treatment
     {
         public override float[] Apply(float[] values, int mainEventIndex, Frequency frequency)

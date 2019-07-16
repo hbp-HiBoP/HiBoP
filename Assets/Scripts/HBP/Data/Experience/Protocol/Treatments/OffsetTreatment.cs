@@ -1,10 +1,11 @@
-﻿using System.Runtime.Serialization;
+﻿using System.ComponentModel;
+using System.Runtime.Serialization;
 using Tools.CSharp;
 using Tools.CSharp.EEG;
 
 namespace HBP.Data.Experience.Protocol
 {
-    [DataContract]
+    [DataContract, DisplayName("Offset")]
     public class OffsetTreatment : Treatment
     {
         #region Properties
