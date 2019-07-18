@@ -42,20 +42,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                List<HBP.Module3D.Column3DDynamic> columns = new List<HBP.Module3D.Column3DDynamic>();
-                if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)
-                {
-                    if (IsGlobal)
-                    {
-                        columns = SelectedScene.ColumnManager.ColumnsCCEP.OfType<HBP.Module3D.Column3DDynamic>().ToList();
-                    }
-                    else
-                    {
-                        columns.Add(dynamicColumn);
-                    }
-                }
-
-                foreach (HBP.Module3D.Column3DDynamic column in columns)
+                foreach (HBP.Module3D.Column3DDynamic column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
                     column.Timeline.IsLooping = m_Toggle.isOn;
                 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HBP.Module3D;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -22,18 +23,10 @@ namespace HBP.UI.Module3D.Tools
             m_Slider.onValueChanged.AddListener((value) =>
             {
                 if (ListenerLock) return;
-
-                if (IsGlobal)
+                
+                foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
-                    foreach (HBP.Module3D.Column3DDynamic column in SelectedScene.ColumnManager.ColumnsDynamic)
-                    {
-                        column.DynamicParameters.AlphaMin = value;
-                    }
-                }
-                else
-                {
-                    ((HBP.Module3D.Column3DDynamic)SelectedColumn).DynamicParameters.AlphaMin = value;
-                    //((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.AlphaMax = value; // FIXME : Required / other value ?
+                    column.DynamicParameters.AlphaMin = value;
                 }
             });
         }

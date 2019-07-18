@@ -66,16 +66,9 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 int val = (int)value;
-                if (IsGlobal)
+                foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
-                    foreach (HBP.Module3D.Column3DDynamic column in SelectedScene.ColumnManager.ColumnsDynamic)
-                    {
-                        column.Timeline.CurrentIndex = val;
-                    }
-                }
-                else
-                {
-                    ((HBP.Module3D.Column3DDynamic)SelectedColumn).Timeline.CurrentIndex = val;
+                    column.Timeline.CurrentIndex = val;
                 }
             });
             ApplicationState.Module3D.OnUpdateSelectedColumnTimeLineID.AddListener(() =>

@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using HBP.Module3D;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -23,24 +20,18 @@ namespace HBP.UI.Module3D.Tools
             m_ThresholdIEEG.Initialize();
             m_ThresholdIEEG.OnChangeValues.AddListener((min, mid, max) =>
             {
-                if (IsGlobal)
+                if (ListenerLock) return;
+
+                foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
-                    foreach (HBP.Module3D.Column3DDynamic column in SelectedScene.ColumnManager.ColumnsDynamic)
-                    {
-                        column.DynamicParameters.SetSpanValues(min, mid, max);
-                    }
-                }
-                else
-                {
-                    HBP.Module3D.Column3DDynamic column = (HBP.Module3D.Column3DDynamic)SelectedColumn;
                     column.DynamicParameters.SetSpanValues(min, mid, max);
                 }
             });
             m_Auto.onClick.AddListener(() =>
             {
-                HBP.Module3D.Column3DDynamic column = (HBP.Module3D.Column3DDynamic)SelectedColumn;
+                Column3DDynamic column = (Column3DDynamic)SelectedColumn;
                 column.DynamicParameters.ResetSpanValues(column);
-                m_ThresholdIEEG.UpdateIEEGValues(((HBP.Module3D.Column3DDynamic)SelectedColumn).DynamicParameters);
+                m_ThresholdIEEG.UpdateIEEGValues(((Column3DDynamic)SelectedColumn).DynamicParameters);
             });
         }
 

@@ -8,16 +8,16 @@ namespace HBP.Data.Visualization
     public class AnatomicColumn : Column
     {
         #region Properties
-        [DataMember] public AnantomicConfiguration AnantomicConfiguration { get; set; }
+        [DataMember] public AnatomicConfiguration AnatomicConfiguration { get; set; }
         #endregion
 
         #region Constructors
-        public AnatomicColumn(string name, BaseConfiguration baseConfiguration) : this(name,baseConfiguration, new AnantomicConfiguration())
+        public AnatomicColumn(string name, BaseConfiguration baseConfiguration) : this(name,baseConfiguration, new AnatomicConfiguration())
         {
         }
-        public AnatomicColumn(string name, BaseConfiguration baseConfiguration, AnantomicConfiguration anantomicConfiguration) : base(name, baseConfiguration)
+        public AnatomicColumn(string name, BaseConfiguration baseConfiguration, AnatomicConfiguration anantomicConfiguration) : base(name, baseConfiguration)
         {
-            AnantomicConfiguration = anantomicConfiguration;
+            AnatomicConfiguration = anantomicConfiguration;
         }
         public AnatomicColumn() : this("", new BaseConfiguration())
         {
@@ -27,7 +27,7 @@ namespace HBP.Data.Visualization
         #region Public Methods
         public override object Clone()
         {
-            return new AnatomicColumn(Name.Clone() as string, BaseConfiguration.Clone() as BaseConfiguration, AnantomicConfiguration.Clone() as AnantomicConfiguration);
+            return new AnatomicColumn(Name.Clone() as string, BaseConfiguration.Clone() as BaseConfiguration, AnatomicConfiguration.Clone() as AnatomicConfiguration);
         }
         public override bool IsCompatible(IEnumerable<Patient> patients)
         {

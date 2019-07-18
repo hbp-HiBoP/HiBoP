@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using HBP.Module3D;
+using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -20,18 +22,10 @@ namespace HBP.UI.Module3D.Tools
             m_Slider.onValueChanged.AddListener((value) =>
             {
                 if (ListenerLock) return;
-
-                HBP.Module3D.Column3DDynamic selectedColumn = (HBP.Module3D.Column3DDynamic)SelectedColumn;
-                if (IsGlobal)
+                
+                foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
-                    foreach (HBP.Module3D.Column3DDynamic column in SelectedScene.ColumnManager.ColumnsDynamic)
-                    {
-                        column.DynamicParameters.Gain = value;
-                    }
-                }
-                else
-                {
-                    selectedColumn.DynamicParameters.Gain = value;
+                    column.DynamicParameters.Gain = value;
                 }
             });
 
@@ -39,21 +33,13 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                float val;
-                global::Tools.Unity.NumberExtension.TryParseFloat(value, out val);
-                HBP.Module3D.Column3DDynamic selectedColumn = (HBP.Module3D.Column3DDynamic)SelectedColumn;
-                if (IsGlobal)
+                global::Tools.Unity.NumberExtension.TryParseFloat(value, out float val);
+                
+                foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
-                    foreach (HBP.Module3D.Column3DDynamic column in SelectedScene.ColumnManager.ColumnsDynamic)
-                    {
-                        column.DynamicParameters.InfluenceDistance = val;
-                    }
+                    column.DynamicParameters.InfluenceDistance = val;
                 }
-                else
-                {
-                    selectedColumn.DynamicParameters.InfluenceDistance = val;
-                }
-                m_InputField.text = selectedColumn.DynamicParameters.InfluenceDistance.ToString("N2");
+                m_InputField.text = ((Column3DDynamic)SelectedColumn).DynamicParameters.InfluenceDistance.ToString("N2");
             });
         }
 
@@ -67,7 +53,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isColumnDynamic = SelectedColumn is HBP.Module3D.Column3DDynamic;
+            bool isColumnDynamic = SelectedColumn is Column3DDynamic;
 
             m_Slider.interactable = isColumnDynamic;
             m_InputField.interactable = isColumnDynamic;
@@ -75,7 +61,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateStatus()
         {
-            if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)
+            if (SelectedColumn is Column3DDynamic dynamicColumn)
             {
                 m_Slider.value = dynamicColumn.DynamicParameters.Gain;
                 m_InputField.text = dynamicColumn.DynamicParameters.InfluenceDistance.ToString("N2");

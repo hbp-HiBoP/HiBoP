@@ -46,20 +46,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                List<HBP.Module3D.Column3DDynamic> columns = new List<HBP.Module3D.Column3DDynamic>();
-                if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)
-                {
-                    if (IsGlobal)
-                    {
-                        columns = SelectedScene.ColumnManager.ColumnsCCEP.OfType<HBP.Module3D.Column3DDynamic>().ToList();
-                    }
-                    else
-                    {
-                        columns.Add(dynamicColumn);
-                    }
-                }
-
-                foreach (HBP.Module3D.Column3DDynamic column in columns)
+                foreach (HBP.Module3D.Column3DDynamic column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
                     column.Timeline.CurrentIndex -= column.Timeline.Step;
                 }
@@ -69,20 +56,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                List<HBP.Module3D.Column3DDynamic> columns = new List<HBP.Module3D.Column3DDynamic>();
-                if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)
-                {
-                    if (IsGlobal)
-                    {
-                        columns = SelectedScene.ColumnManager.ColumnsCCEP.OfType<HBP.Module3D.Column3DDynamic>().ToList();
-                    }
-                    else
-                    {
-                        columns.Add(dynamicColumn);
-                    }
-                }
-
-                foreach (HBP.Module3D.Column3DDynamic column in columns)
+                foreach (HBP.Module3D.Column3DDynamic column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
                     column.Timeline.CurrentIndex += column.Timeline.Step;
                 }
@@ -110,20 +84,7 @@ namespace HBP.UI.Module3D.Tools
                     m_InputField.text = val.ToString();
                 }
 
-                List<HBP.Module3D.Column3DDynamic> columns = new List<HBP.Module3D.Column3DDynamic>();
-                if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)
-                {
-                    if (IsGlobal)
-                    {
-                        columns = SelectedScene.ColumnManager.ColumnsCCEP.OfType<HBP.Module3D.Column3DDynamic>().ToList();
-                    }
-                    else
-                    {
-                        columns.Add(dynamicColumn);
-                    }
-                }
-
-                foreach (HBP.Module3D.Column3DDynamic column in columns)
+                foreach (HBP.Module3D.Column3DDynamic column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
                     column.Timeline.Step = step;
                 }

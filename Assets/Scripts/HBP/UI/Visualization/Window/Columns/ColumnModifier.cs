@@ -33,14 +33,14 @@ namespace HBP.UI.Visualization
                     m_NameInputField.interactable = m_Interactable;
                     m_NameInputField.text = value.Name;
                     m_TypeDropdown.interactable = m_Interactable;
-                    m_TypeDropdown.value = Array.IndexOf(m_Types, value.GetType());
+                    m_TypeDropdown.SetValue(Array.IndexOf(m_Types, value.GetType()));
                 }
                 else
                 {
                     m_NameInputField.interactable = false;
                     m_NameInputField.text = "";
                     m_TypeDropdown.interactable = false;
-                    m_TypeDropdown.value = Array.IndexOf(m_Types, typeof(AnatomicColumn));
+                    m_TypeDropdown.SetValue(Array.IndexOf(m_Types, typeof(AnatomicColumn)));
                 }
                 OnChangeColumn.Invoke(value);
             }

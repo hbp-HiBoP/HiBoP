@@ -471,24 +471,25 @@ namespace HBP.Data.Visualization
                 {
                     // PROBABLY FIXME
                     Experience.Dataset.Data data = DataManager.GetData(dataInfo);
-                    foreach (var column in dataInfoByColumn.Keys)
+                    if (data is EpochedData epochedData)
                     {
-                        if (column is IEEGColumn iEEGColumn)
+                        foreach (var column in dataInfoByColumn.Keys)
                         {
-                            Experience.Dataset.IEEGData iEEGData = data as Experience.Dataset.IEEGData;
-                            if (iEEGData.DataByBloc.ContainsKey(iEEGColumn.Bloc) && !iEEGData.DataByBloc[iEEGColumn.Bloc].IsValid)
+                            if (column is IEEGColumn iEEGColumn)
                             {
-                                additionalInformation = "No bloc " + iEEGColumn.Bloc.Name + " could be epoched.";
-                                throw new Exception();
+                                if (epochedData.DataByBloc.ContainsKey(iEEGColumn.Bloc) && !epochedData.DataByBloc[iEEGColumn.Bloc].IsValid)
+                                {
+                                    additionalInformation = "No bloc " + iEEGColumn.Bloc.Name + " could be epoched.";
+                                    throw new Exception();
+                                }
                             }
-                        }
-                        else if (column is CCEPColumn ccepColumn)
-                        {
-                            Experience.Dataset.CCEPData ccepData = data as Experience.Dataset.CCEPData;
-                            if (ccepData.DataByBloc.ContainsKey(ccepColumn.Bloc) && !ccepData.DataByBloc[ccepColumn.Bloc].IsValid)
+                            else if (column is CCEPColumn ccepColumn)
                             {
-                                additionalInformation = "No bloc " + ccepColumn.Bloc.Name + " could be epoched.";
-                                throw new Exception();
+                                if (epochedData.DataByBloc.ContainsKey(ccepColumn.Bloc) && !epochedData.DataByBloc[ccepColumn.Bloc].IsValid)
+                                {
+                                    additionalInformation = "No bloc " + ccepColumn.Bloc.Name + " could be epoched.";
+                                    throw new Exception();
+                                }
                             }
                         }
                     }
