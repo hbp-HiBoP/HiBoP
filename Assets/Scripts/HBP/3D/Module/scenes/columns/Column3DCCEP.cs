@@ -32,35 +32,28 @@ namespace HBP.Module3D
         }
 
         public List<Site> Sources { get; private set; } = new List<Site>();
-        private int m_SelectedSourceID = -1;
-        public int SelectedSourceID
-        {
-            get
-            {
-                return m_SelectedSourceID;
-            }
-            set
-            {
-                if (m_SelectedSourceID != value)
-                {
-                    m_SelectedSourceID = value;
-                    OnSelectSource.Invoke();
-                    SetEEGData();
-                }
-            }
-        }
+        private Site m_SelectedSource = null;
         public Site SelectedSource
         {
             get
             {
-                return m_SelectedSourceID != -1 ? Sources[m_SelectedSourceID] : null;
+                return m_SelectedSource;
+            }
+            set
+            {
+                if (m_SelectedSource != value)
+                {
+                    m_SelectedSource = value;
+                    OnSelectSource.Invoke();
+                    SetEEGData();
+                }
             }
         }
         public bool IsSourceSelected
         {
             get
             {
-                return m_SelectedSourceID != -1;
+                return m_SelectedSource != null;
             }
         }
         #endregion
@@ -190,10 +183,10 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
-        public override void ComputeEEGData()
+        public override void UpdateSites(PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
         {
+            base.UpdateSites(sites, sitesPatientParent, siteList);
             Sources = Sites.Where(s => ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.Keys.Contains(s.Information.FullCorrectedID)).ToList();
-            base.ComputeEEGData();
         }
         /// <summary>
         /// Load the column configuration from the loaded column data

@@ -11,47 +11,66 @@ namespace HBP.UI.Module3D.Tools
     public class CCEPSourceSelector : Tool
     {
         #region Properties
-        [SerializeField] private Dropdown m_Dropdown;
+        [SerializeField] private Text m_Text;
+        [SerializeField] private Button m_SelectSource;
+        [SerializeField] private Button m_UnselectSource;
         #endregion
 
         #region Public Methods
         public override void Initialize()
         {
-            m_Dropdown.onValueChanged.AddListener((value) =>
+            m_SelectSource.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
 
-                if (SelectedColumn is Column3DCCEP ccepColumn)
-                {
-                    ccepColumn.SelectedSourceID = value - 1;
-                }
+                ((Column3DCCEP)SelectedColumn).SelectedSource = SelectedColumn.SelectedSite;
+            });
+            m_UnselectSource.onClick.AddListener(() =>
+            {
+                if (ListenerLock) return;
+
+                ((Column3DCCEP)SelectedColumn).SelectedSource = null;
             });
         }
 
         public override void DefaultState()
         {
-            m_Dropdown.enabled = false;
+            m_Text.text = "No source selected";
         }
 
         public override void UpdateInteractable()
         {
-            bool isColumnCCEP = SelectedColumn is Column3DCCEP;
+            if (SelectedColumn is Column3DCCEP ccepColumn)
+            {
+                bool isSourceSelected = ccepColumn.IsSourceSelected;
+                bool isSelectedSiteASource = ccepColumn.Sources.Contains(ccepColumn.SelectedSite);
 
-            m_Dropdown.enabled = isColumnCCEP;
+                m_SelectSource.interactable = isSelectedSiteASource;
+                m_UnselectSource.interactable = isSourceSelected;
+            }
+            else
+            {
+                m_SelectSource.interactable = false;
+                m_UnselectSource.interactable = false;
+            }
         }
 
         public override void UpdateStatus()
         {
-            m_Dropdown.options.Clear();
             if (SelectedColumn is Column3DCCEP ccepColumn)
             {
-                m_Dropdown.options.Add(new Dropdown.OptionData("No source selected"));
-                foreach (Site site in ccepColumn.Sources)
+                if (ccepColumn.IsSourceSelected)
                 {
-                    m_Dropdown.options.Add(new Dropdown.OptionData(string.Format("{0} ({1})", site.Information.ChannelName, site.Information.Patient.Name)));
+                    m_Text.text = string.Format("{0} ({1})", ccepColumn.SelectedSource.Information.ChannelName, ccepColumn.SelectedSource.Information.Patient.Name);
                 }
-                m_Dropdown.value = ccepColumn.SelectedSourceID + 1;
-                m_Dropdown.RefreshShownValue();
+                else
+                {
+                    m_Text.text = "No source selected";
+                }
+            }
+            else
+            {
+                m_Text.text = "Selected column is not CCEP";
             }
         }
         #endregion
