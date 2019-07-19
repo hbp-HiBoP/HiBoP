@@ -235,7 +235,7 @@ namespace HBP.UI.Anatomy
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Brain.Implantations.FindAll(i => i.WasUsable).Count).ToList();
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Brain.Implantations.FindAll(i => i.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.Implantation;
                     m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
