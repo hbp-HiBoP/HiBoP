@@ -148,6 +148,12 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Operators
+        public void GenerateNewIDs()
+        {
+            ID = Guid.NewGuid().ToString();
+            foreach (var subBloc in SubBlocs) subBloc.GenerateNewIDs();
+        }
+
         /// <summary>
         /// Copy the instance.
         /// </summary>

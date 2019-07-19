@@ -57,6 +57,10 @@ namespace HBP.Data.Container
         #endregion
 
         #region Operators
+        public void GenerateNewIDs()
+        {
+            ID = Guid.NewGuid().ToString();
+        }
         /// <summary>
         /// Operator Equals.
         /// </summary>

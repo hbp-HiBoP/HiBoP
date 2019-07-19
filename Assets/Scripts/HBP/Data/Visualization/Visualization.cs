@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using CielaSpike;
 using HBP.Data.Experience.Dataset;
-using HBP.Data.Experience;
 using Tools.Unity;
 using System.IO;
+using Tools.CSharp;
 
 namespace HBP.Data.Visualization
 {
@@ -105,7 +105,7 @@ namespace HBP.Data.Visualization
         /// <param name="name">Name of the visualization.</param>
         /// <param name="columns">Columns of the visualization.</param>
         /// <param name="id">Unique ID.</param>
-        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, string id, VisualizationConfiguration configuration)
+        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, VisualizationConfiguration configuration, string id)
         {
             Name = name;
             Columns = columns.ToList();
@@ -119,7 +119,16 @@ namespace HBP.Data.Visualization
         /// <param name="name">Name of the visualization.</param>
         /// <param name="columns">Columns of the visualization.</param>
         /// <param name="id">Unique ID.</param>
-        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, string id) : this(name, patients, columns, id, new VisualizationConfiguration())
+        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, VisualizationConfiguration configuration) : this(name, patients, columns, configuration, Guid.NewGuid().ToString())
+        {
+        }
+        /// <summary>
+        /// Create a new visualization instance.
+        /// </summary>
+        /// <param name="name">Name of the visualization.</param>
+        /// <param name="columns">Columns of the visualization.</param>
+        /// <param name="id">Unique ID.</param>
+        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, string id) : this(name, patients, columns, new VisualizationConfiguration(), id)
         {
         }
         /// <summary>
@@ -313,14 +322,17 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Operators
+        public void GenerateNewIDs()
+        {
+            ID = Guid.NewGuid().ToString();
+        }
         /// <summary>
         /// Clone this instance.
         /// </summary>
         /// <returns>Clone of this instance.</returns>
         public object Clone()
         {
-            Column[] columns = (from column in Columns select column.Clone() as Column).ToArray();
-            return new Visualization(Name, Patients, columns, ID, Configuration.Clone() as VisualizationConfiguration);
+            return new Visualization(Name, Patients, Columns.DeepClone(), Configuration.Clone() as VisualizationConfiguration, ID);
         }
         /// <summary>
         /// Copy an instance in this instance.

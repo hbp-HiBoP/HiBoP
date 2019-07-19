@@ -166,6 +166,11 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Operators
+        public void GenerateNewIDs()
+        {
+            ID = Guid.NewGuid().ToString();
+            foreach (var dataInfo in Data) dataInfo.GenerateNewIDs();
+        }
         /// <summary>
         /// Clone this instance.
         /// </summary>
