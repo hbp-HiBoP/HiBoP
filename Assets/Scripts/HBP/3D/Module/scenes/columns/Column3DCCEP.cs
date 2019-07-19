@@ -56,6 +56,9 @@ namespace HBP.Module3D
                 return m_SelectedSource != null;
             }
         }
+
+        public float[] Latencies;
+        public float[] Amplitudes;
         #endregion
 
         #region Events
@@ -84,6 +87,8 @@ namespace HBP.Module3D
                 IEEGValuesBySiteID[i] = new float[timelineLength];
             }
             IEEGUnitsBySiteID = new string[sitesCount];
+            Latencies = new float[sitesCount];
+            Amplitudes = new float[sitesCount];
             int numberOfSitesWithValues = 0;
 
             if (!IsSourceSelected)
@@ -113,6 +118,7 @@ namespace HBP.Module3D
                     }
                     else
                     {
+                        IEEGValuesBySiteID[site.Information.GlobalID] = new float[timelineLength];
                         site.State.IsMasked = true;
                     }
                 }
@@ -136,6 +142,17 @@ namespace HBP.Module3D
                 if (statisticsByChannel.TryGetValue(site.Information.FullCorrectedID, out Data.Experience.Dataset.BlocChannelStatistics blocChannelStatistics))
                 {
                     site.Statistics = blocChannelStatistics;
+                    Data.Experience.Dataset.ChannelSubTrialStat trial = blocChannelStatistics.Trial.ChannelSubTrialBySubBloc[ColumnCCEPData.Bloc.MainSubBloc];
+                    SubTimeline mainSubTimeline = Timeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc];
+                    for (int i = mainSubTimeline.StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedIndexFromStart + 2; i < mainSubTimeline.Length - 2; i++)
+                    {
+                        if (trial.Values[i - 1] > trial.Values[i - 2] && trial.Values[i] > trial.Values[i - 1] && trial.Values[i] > trial.Values[i + 1] && trial.Values[i + 1] > trial.Values[i + 2]) // Maybe FIXME: method to compute amplitude and latency
+                        {
+                            Amplitudes[site.Information.GlobalID] = trial.Values[i];
+                            Latencies[site.Information.GlobalID] = mainSubTimeline.Frequency.ConvertNumberOfSamplesToMilliseconds(i - mainSubTimeline.StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedIndexFromStart);
+                            break;
+                        }
+                    }
                 }
             }
             if (numberOfSitesWithValues == 0)

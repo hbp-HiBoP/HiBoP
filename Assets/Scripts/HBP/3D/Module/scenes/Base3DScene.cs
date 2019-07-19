@@ -1833,36 +1833,41 @@ namespace HBP.Module3D
             float iEEGActivity = -1;
             string iEEGUnit = "";
             // CCEP
-            if (SceneInformation.DisplayCCEPMode)
-            {
-                if (column.CurrentLatencyFile != -1)
-                {
-                    Latencies latencyFile = m_ColumnManager.SelectedImplantation.Latencies[column.CurrentLatencyFile];
+            //if (SceneInformation.DisplayCCEPMode)
+            //{
+            //    if (column.CurrentLatencyFile != -1)
+            //    {
+            //        Latencies latencyFile = m_ColumnManager.SelectedImplantation.Latencies[column.CurrentLatencyFile];
 
-                    if (column.SelectedSiteID == -1) // no source selected
-                    {
-                        CCEPLatency = "...";
-                        CCEPAmplitude = "no source selected";
-                    }
-                    else if (column.SelectedSiteID == siteID) // site is the source
-                    {
-                        CCEPLatency = "0";
-                        CCEPAmplitude = "source";
-                    }
-                    else
-                    {
-                        if (latencyFile.IsSiteResponsiveForSource(siteID, column.SelectedSiteID))
-                        {
-                            CCEPLatency = "" + latencyFile.LatenciesValues[column.SelectedSiteID][siteID];
-                            CCEPAmplitude = "" + latencyFile.Heights[column.SelectedSiteID][siteID];
-                        }
-                        else
-                        {
-                            CCEPLatency = "No data";
-                            CCEPAmplitude = "No data";
-                        }
-                    }
-                }
+            //        if (column.SelectedSiteID == -1) // no source selected
+            //        {
+            //            CCEPLatency = "...";
+            //            CCEPAmplitude = "no source selected";
+            //        }
+            //        else if (column.SelectedSiteID == siteID) // site is the source
+            //        {
+            //            CCEPLatency = "0";
+            //            CCEPAmplitude = "source";
+            //        }
+            //        else
+            //        {
+            //            if (latencyFile.IsSiteResponsiveForSource(siteID, column.SelectedSiteID))
+            //            {
+            //                CCEPLatency = "" + latencyFile.LatenciesValues[column.SelectedSiteID][siteID];
+            //                CCEPAmplitude = "" + latencyFile.Heights[column.SelectedSiteID][siteID];
+            //            }
+            //            else
+            //            {
+            //                CCEPLatency = "No data";
+            //                CCEPAmplitude = "No data";
+            //            }
+            //        }
+            //    }
+            //}
+            if (column is Column3DCCEP ccepColumn)
+            {
+                CCEPLatency = ccepColumn.Latencies[siteID].ToString();
+                CCEPAmplitude = ccepColumn.Amplitudes[siteID].ToString();
             }
             // iEEG
             if (column is Column3DDynamic columnIEEG)
@@ -1872,20 +1877,13 @@ namespace HBP.Module3D
             }
             // Send Event
             Data.Enums.SiteInformationDisplayMode displayMode;
-            if (SceneInformation.DisplayCCEPMode)
+            if (SceneInformation.IsGeneratorUpToDate)
             {
-                if (SceneInformation.IsGeneratorUpToDate)
-                {
-                    displayMode = Data.Enums.SiteInformationDisplayMode.IEEGCCEP;
-                }
-                else
+                if (column is Column3DCCEP)
                 {
                     displayMode = Data.Enums.SiteInformationDisplayMode.CCEP;
                 }
-            }
-            else
-            {
-                if (SceneInformation.IsGeneratorUpToDate)
+                else if (column is Column3DIEEG)
                 {
                     displayMode = Data.Enums.SiteInformationDisplayMode.IEEG;
                 }
@@ -1893,6 +1891,10 @@ namespace HBP.Module3D
                 {
                     displayMode = Data.Enums.SiteInformationDisplayMode.Anatomy;
                 }
+            }
+            else
+            {
+                displayMode = Data.Enums.SiteInformationDisplayMode.Anatomy;
             }
             ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, displayMode, iEEGActivity.ToString("0.00"), iEEGUnit, CCEPAmplitude, CCEPLatency));
         }

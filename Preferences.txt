@@ -17,7 +17,7 @@
   "Data": {
     "EEG": {
       "Averaging": 1,
-      "Normalization": 4
+      "Normalization": 1
     },
     "Protocol": {
       "PositionAveraging": 1,
