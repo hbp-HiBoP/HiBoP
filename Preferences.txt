@@ -34,7 +34,7 @@
   },
   "Visualization": {
     "_3D": {
-      "AutomaticEEGUpdate": true,
+      "AutomaticEEGUpdate": false,
       "SiteInfluenceByDistance": 2,
       "DefaultSelectedMRIInSinglePatientVisualization": "Preimplantation",
       "DefaultSelectedMeshInSinglePatientVisualization": "Grey matter",

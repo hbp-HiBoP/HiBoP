@@ -58,7 +58,7 @@ namespace HBP.Module3D.IBC
             {
                 return labels;
             }
-            return new Labels("Unknown", "Unknown Condition", "Unknown Target");
+            return new Labels(rawName, "Unknown Condition", "Unknown Target");
         }
         #endregion
     }
