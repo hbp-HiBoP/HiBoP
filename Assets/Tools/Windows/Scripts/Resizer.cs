@@ -135,24 +135,22 @@ namespace Tools.Unity.Window
         #endregion
 
         #region Private Methods
-        private void Clamp()
-        {
-        }
         void Resize(Vector2 resize, Vector2 sides)
         {
             float w = resize.x;
             float h = resize.y;
-            if(resize.x <= 0)
-            {
-                w = Mathf.Sign(resize.x) * Mathf.Min(m_RectTransform.rect.width - m_LayoutElement.minWidth, -resize.x);
-            }
-            if (resize.y <= 0)
-            {
-                h = Mathf.Sign(resize.y) * Mathf.Min(m_RectTransform.rect.height - m_LayoutElement.minHeight, -resize.y);
-            }
+            if(resize.x <= 0) w = Mathf.Sign(resize.x) * Mathf.Min(m_RectTransform.rect.width - m_LayoutElement.minWidth, -resize.x);
+            if (resize.y <= 0) h = Mathf.Sign(resize.y) * Mathf.Min(m_RectTransform.rect.height - m_LayoutElement.minHeight, -resize.y);
             Vector2 realResize = new Vector2(w,h);
             m_RectTransform.sizeDelta += realResize;
-            m_RectTransform.position += new Vector3(sides.x * m_RectTransform.pivot.x * realResize.x, sides.y * m_RectTransform.pivot.y * realResize.y, 0);
+            float xDeplacement = sides.x * m_RectTransform.pivot.x * realResize.x;
+            float yDeplacement = sides.y * m_RectTransform.pivot.y * realResize.y;
+            float xPivot = 0, yPivot = 0;
+            if (sides.x == 1) xPivot = m_RectTransform.pivot.x;
+            else if(sides.x == -1) xPivot = 1 - m_RectTransform.pivot.x;
+            if(sides.y == 1) yPivot = m_RectTransform.pivot.y;
+            else if(sides.y == -1) yPivot = 1 - m_RectTransform.pivot.y;    
+            m_RectTransform.position += new Vector3(sides.x * xPivot * realResize.x, sides.y * yPivot * realResize.y, 0);
         }
         Limits GetLimits()
         {
