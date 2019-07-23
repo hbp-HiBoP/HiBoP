@@ -222,6 +222,7 @@ namespace UnityEngine.UI
                     break;
             }
             float actualSize = axis != 0 ? RectTransform.rect.height : RectTransform.rect.width;
+            if (max < min) max = min;
             float size = Mathf.Clamp(actualSize, min, max);
             RectTransform.SetSizeWithCurrentAnchors((RectTransform.Axis)axis, size);
             if (minClampMode == ClampMode.Unconstrained && maxClampMode == ClampMode.Unconstrained)
