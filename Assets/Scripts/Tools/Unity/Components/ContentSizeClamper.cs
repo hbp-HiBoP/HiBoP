@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using UnityEngine.EventSystems;
 using UnityEngine.UI.Extensions;
 
@@ -19,7 +20,6 @@ namespace UnityEngine.UI
             PreferredSize,
             Custom,
         }
-
 
         [SerializeField] protected ClampMode m_MaxHorizontalClamp;
         public ClampMode MaxHorizontalClamp
@@ -193,12 +193,12 @@ namespace UnityEngine.UI
         }
         protected void HandleSelfFittingAlongAxis(int axis)
         {
+            //if (RectTransform.rect.width == 0 && RectTransform.rect.height == 0) return;
             ClampMode minClampMode = axis != 0 ? MinVerticalClamp : MinHorizontalClamp;
             ClampMode maxClampMode = axis != 0 ? MaxVerticalClamp : MaxHorizontalClamp;
             float min = float.MinValue, max = float.MaxValue;
             switch (minClampMode)
             {
-
                 case ClampMode.MinSize:
                     min = LayoutUtility.GetMinSize(m_RectTransform, axis);
                     break;
@@ -221,18 +221,19 @@ namespace UnityEngine.UI
                     max = axis != 0 ? MaxVerticalCustomValue : MaxHorizontalCustomValue;
                     break;
             }
+
             float actualSize = axis != 0 ? RectTransform.rect.height : RectTransform.rect.width;
             if (max < min) max = min;
             float size = Mathf.Clamp(actualSize, min, max);
             RectTransform.SetSizeWithCurrentAnchors((RectTransform.Axis)axis, size);
-            if (minClampMode == ClampMode.Unconstrained && maxClampMode == ClampMode.Unconstrained)
-            {
-                m_Tracker.Add(this, RectTransform, DrivenTransformProperties.None);
-            }
-            else
-            {
-                m_Tracker.Add(this, RectTransform, axis != 0 ? DrivenTransformProperties.SizeDeltaY : DrivenTransformProperties.SizeDeltaX);
-            }
+            //if (minClampMode == ClampMode.Unconstrained && maxClampMode == ClampMode.Unconstrained)
+            //{
+            //    m_Tracker.Add(this, RectTransform, DrivenTransformProperties.None);
+            //}
+            //else
+            //{
+            //    m_Tracker.Add(this, RectTransform, axis != 0 ? DrivenTransformProperties.SizeDeltaY : DrivenTransformProperties.SizeDeltaX);
+            //}
         }
         /// <summary>
         ///   <para>Mark the ContentSizeFitter as dirty.</para>
