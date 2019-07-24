@@ -51,7 +51,7 @@ namespace HBP.UI.Experience.Protocol
             m_OrderInputField.onEndEdit.AddListener((value) => ItemTemp.Order = int.Parse(value));
             m_TypeDropdown.onValueChanged.AddListener((value) => ItemTemp.Type = (Data.Enums.MainSecondaryEnum) value);
 
-            m_WindowSlider.onValueChanged.AddListener((min,max) => ItemTemp.Window = new Tools.CSharp.Window(Mathf.RoundToInt(min), Mathf.RoundToInt(max)));
+            m_WindowSlider.onValueChanged.AddListener(OnChangeWindow);
             m_BaselineSlider.onValueChanged.AddListener((min,max) => ItemTemp.Baseline = new Tools.CSharp.Window(Mathf.RoundToInt(min), Mathf.RoundToInt(max)));
 
             m_EventListGestion.Initialize(m_SubWindows);
@@ -79,6 +79,11 @@ namespace HBP.UI.Experience.Protocol
             m_EventListGestion.Objects = objectToDisplay.Events;
             m_IconListGestion.Objects = objectToDisplay.Icons;
             m_TreatmentListGestion.Objects = objectToDisplay.Treatments;
+        }
+        void OnChangeWindow(float min, float max)
+        {
+            ItemTemp.Window = new Tools.CSharp.Window(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
+            m_IconListGestion.Window = itemTemp.Window;
         }
         #endregion
     }
