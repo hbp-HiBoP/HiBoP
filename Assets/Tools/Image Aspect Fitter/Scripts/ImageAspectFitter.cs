@@ -2,30 +2,24 @@
 using UnityEngine.UI;
 
 [RequireComponent(typeof(Image))]
-[SerializePrivateVariables]
 public class ImageAspectFitter : MonoBehaviour, ILayoutElement
 {
-    [SerializeField]
-    public float minWidth { get; private set; }
-    [SerializeField]
-    public float preferredWidth { get; private set; }
-    [SerializeField]
-    public float flexibleWidth { get; private set; }
+    #region Properties
+    [SerializeField] public float minWidth { get; private set; }
+    [SerializeField] public float preferredWidth { get; private set; }
+    [SerializeField] public float flexibleWidth { get; private set; }
 
-    [SerializeField]
-    public float minHeight { get; private set; }
-    [SerializeField]
-    public float preferredHeight { get; private set; }
-    [SerializeField]
-    public float flexibleHeight { get; private set; }
+    [SerializeField] public float minHeight { get; private set; }
+    [SerializeField] public float preferredHeight { get; private set; }
+    [SerializeField] public float flexibleHeight { get; private set; }
 
-    [SerializeField]
-    public int layoutPriority { get; private set; }
+    [SerializeField] public int layoutPriority { get; private set; }
 
     public enum AspectModeEnum { None, WidthControlsHeigth,HeigthControlsWidth}
-    [SerializeField]
-    public AspectModeEnum AspectMode { get; set; }
-    
+    [SerializeField] public AspectModeEnum AspectMode { get; set; }
+    #endregion
+
+    #region Public Methods
     public void CalculateLayoutInputHorizontal()
     {
         if(AspectMode == AspectModeEnum.HeigthControlsWidth)
@@ -52,4 +46,5 @@ public class ImageAspectFitter : MonoBehaviour, ILayoutElement
             flexibleHeight = 0;
         }
     }
+    #endregion
 }
