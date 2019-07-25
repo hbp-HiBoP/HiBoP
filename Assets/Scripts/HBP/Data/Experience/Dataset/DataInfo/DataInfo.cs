@@ -126,6 +126,11 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Operators
+        public void GenerateNewIDs()
+        {
+            ID = Guid.NewGuid().ToString();
+            DataContainer.GenerateNewIDs();
+        }
         /// <summary>
         /// Operator Equals.
         /// </summary>

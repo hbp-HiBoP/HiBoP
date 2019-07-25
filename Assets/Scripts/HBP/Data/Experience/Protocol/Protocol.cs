@@ -99,6 +99,12 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Operator
+        public void GenerateNewIDs()
+        {
+            ID = Guid.NewGuid().ToString();
+            foreach (var bloc in Blocs) bloc.GenerateNewIDs();
+        }
+
         /// <summary>
         /// Copy the instance.
         /// </summary>

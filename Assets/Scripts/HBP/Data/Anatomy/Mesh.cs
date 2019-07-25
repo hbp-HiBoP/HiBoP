@@ -202,6 +202,10 @@ namespace HBP.Data.Anatomy
         {
             return new Mesh(Name, Transformation, ID);
         }
+        public virtual void GenerateNewIDs()
+        {
+            ID = Guid.NewGuid().ToString();
+        }
         public virtual void Copy(object copy)
         {
             Mesh mesh = copy as Mesh;

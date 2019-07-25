@@ -20,7 +20,8 @@ namespace HBP.UI
             if(prefab)
             {
                 GameObject go = Instantiate(prefab, Container);
-                go.transform.localPosition = Vector3.zero;
+                RectTransform rectTransform = go.transform as RectTransform;
+                go.transform.localPosition = (rectTransform.pivot-new Vector2(0.5f, 0.5f)) * rectTransform.rect.size; 
 
                 // SetWindow
                 window = go.GetComponent<Window>();
@@ -36,7 +37,8 @@ namespace HBP.UI
             if (prefab)
             {
                 GameObject go = Instantiate(prefab, Container);
-                go.transform.localPosition = Vector3.zero;
+                RectTransform rectTransform = go.transform as RectTransform;
+                go.transform.localPosition = (rectTransform.pivot - new Vector2(0.5f, 0.5f)) * rectTransform.rect.size;
 
                 // SetWindow
                 window = (T) go.GetComponent<Window>();
@@ -52,7 +54,8 @@ namespace HBP.UI
             if (prefab)
             {
                 GameObject go = Instantiate(prefab, Container);
-                go.transform.localPosition = Vector3.zero;
+                RectTransform rectTransform = go.transform as RectTransform;
+                go.transform.localPosition = (rectTransform.pivot - new Vector2(0.5f, 0.5f)) * rectTransform.rect.size;
 
                 modifier = go.GetComponent<ItemModifier<T>>();
                 modifier.Item = itemToModify;
@@ -69,7 +72,8 @@ namespace HBP.UI
             if (prefab)
             {
                 GameObject go = Instantiate(prefab, Container);
-                go.transform.localPosition = Vector3.zero;
+                RectTransform rectTransform = go.transform as RectTransform;
+                go.transform.localPosition = (rectTransform.pivot - new Vector2(0.5f, 0.5f)) * rectTransform.rect.size;
 
                 selector = go.GetComponent<ObjectSelector<T>>();
                 selector.Interactable = interactable;

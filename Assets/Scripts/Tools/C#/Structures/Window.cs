@@ -3,11 +3,12 @@ using UnityEngine;
 
 namespace Tools.CSharp
 {
+    [DataContract]
     public struct Window
     {
         #region Properties
-        public int Start { get; set; }
-        public int End { get; set; }
+        [DataMember] public int Start { get; set; }
+        [DataMember] public int End { get; set; }
         [IgnoreDataMember] public int Lenght
         {
             get

@@ -54,6 +54,13 @@ namespace HBP.Data.Anatomy
         {
             return new Brain(Meshes,MRIs,Connectivities,Implantations);
         }
+        public void GenerateNewIDs()
+        {
+            foreach (var mesh in Meshes) mesh.GenerateNewIDs();
+            // foreach (var mri in MRIs) mri.GenerateNewIDs();
+            // foreach (var connectivity in Connectivities) connectivity.GenerateNewIDs();
+            // foreach (var implantation in Implantations) implantation.GenerateNewIDs;
+        }
         #endregion
     }
 }

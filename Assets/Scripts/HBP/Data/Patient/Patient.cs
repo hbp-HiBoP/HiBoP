@@ -224,6 +224,11 @@ namespace HBP.Data
         {
             return new Patient(Name, Place, Date, Brain.Clone() as Brain, ID);
         }
+        public void GenerateNewIDs()
+        {
+            ID = Guid.NewGuid().ToString();
+            Brain.GenerateNewIDs();
+        }
         /// <summary>
         /// Copy the instance.
         /// </summary>

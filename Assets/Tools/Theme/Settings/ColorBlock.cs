@@ -18,6 +18,7 @@ namespace NewTheme
                 UnityEngine.UI.ColorBlock result = new UnityEngine.UI.ColorBlock();
                 result.normalColor = NormalColor;
                 result.highlightedColor = HighlightedColor;
+                result.selectedColor = HighlightedColor;
                 result.pressedColor = PressedColor;
                 result.disabledColor = DisabledColor;
                 result.colorMultiplier = ColorMultiplier;

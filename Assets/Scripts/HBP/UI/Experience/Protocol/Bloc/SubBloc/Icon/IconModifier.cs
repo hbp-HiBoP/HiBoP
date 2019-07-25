@@ -12,6 +12,21 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] RangeSlider m_WindowSlider;
         [SerializeField] ImageSelector m_ImageSelector;
 
+        Tools.CSharp.Window m_Window;
+        public Tools.CSharp.Window Window
+        {
+            get
+            {
+                return m_Window;
+            }
+            set
+            {
+                m_Window = value;
+                m_WindowSlider.minLimit = m_Window.Start;
+                m_WindowSlider.maxLimit = m_Window.End;
+            }
+        }
+
         public override bool Interactable
         {
             get
@@ -28,6 +43,8 @@ namespace HBP.UI.Experience.Protocol
             }
         }
         #endregion
+
+        #region Protected Methods
         protected override void Initialize()
         {
             base.Initialize();
@@ -45,10 +62,10 @@ namespace HBP.UI.Experience.Protocol
             m_WindowSlider.maxLimit = preferences.MaxLimit;
             m_WindowSlider.step = preferences.Step;
 
-            m_WindowSlider.minValue = objectToDisplay.Window.Start;
-            m_WindowSlider.maxValue = objectToDisplay.Window.End;
+            m_WindowSlider.Values = objectToDisplay.Window.ToVector2();
 
             m_ImageSelector.Path = objectToDisplay.IllustrationPath;
         }
+        #endregion
     }
 }

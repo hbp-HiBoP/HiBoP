@@ -165,7 +165,7 @@ namespace Tools.Unity.Components
             if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
             {
                 IIdentifiable identifiable = cloneItem as IIdentifiable;
-                identifiable.ID = Guid.NewGuid().ToString();
+                identifiable.GenerateNewIDs();
             }
             if (cloneItem != null)
             {
@@ -178,7 +178,7 @@ namespace Tools.Unity.Components
         {
             result = new T();
             ILoadable loadable = result as ILoadable;
-            string path = HBP.UI.FileBrowser.GetExistingFileName(new string[] { loadable.GetExtension() }).StandardizeToPath();
+            string path = FileBrowser.GetExistingFileName(new string[] { loadable.GetExtension() }).StandardizeToPath();
             if (path != string.Empty)
             {
                 result = ClassLoaderSaver.LoadFromJson<T>(path);

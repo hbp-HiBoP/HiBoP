@@ -126,6 +126,10 @@ namespace HBP.Data
 		#endregion
 
         #region Operator
+        public void GenerateNewIDs()
+        {
+            ID = Guid.NewGuid().ToString();
+        }
         /// <summary>
         /// Clone the instance.
         /// </summary>
