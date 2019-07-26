@@ -23,7 +23,7 @@ namespace HBP.Data
     *     - \a Epilepsy \a type : epilepsy type of the patient.(IGE,IPE,SGE,SPE,Unknown)
     */
     [DataContract]
-	public class Patient : Object, ICloneable, ICopiable, ILoadable, IIdentifiable
+	public class Patient : Object, ICloneable, ICopiable, ILoadable, IIdentifiable, ILoadableFromDatabase<Patient>
 	{
         #region Properties
         /// <summary>
@@ -109,6 +109,11 @@ namespace HBP.Data
         #endregion
 
         #region Public Methods
+        public Patient[] LoadFromDatabase(string path)
+        {
+            return GetPatientsDirectories(path).Select(p => new Patient(p)).ToArray();
+        }
+
         public void Load(string path)
         {
             Patient result;
