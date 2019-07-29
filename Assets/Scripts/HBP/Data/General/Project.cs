@@ -624,24 +624,25 @@ namespace HBP.Data.General
             SetVisualizations(visualizations.ToArray());
             outPut(progress);
         }
-        IEnumerator c_CheckDatasets(GenericEvent<float, float, LoadingText> OnChangeProgress)
+        public IEnumerator c_CheckDatasets(GenericEvent<float, float, LoadingText> OnChangeProgress, IEnumerable<Protocol> protocols = null)
         {
             yield return Ninja.JumpBack;
             int count = 1;
-            int length = m_Datasets.SelectMany(d => d.Data).Count();
+
+            IEnumerable<Dataset> datasets = protocols == null? m_Datasets: m_Datasets.Where(d => protocols.Contains(d.Protocol));
+            int length = datasets.SelectMany(d => d.Data).Count();
             float progress = 1.0f;
             float progressStep = 1.0f / length;
-            for (int i = 0; i < m_Datasets.Count; ++i)
+            foreach (var dataset in datasets)
             {
-                Dataset dataset = m_Datasets[i];
                 for (int j = 0; j < dataset.Data.Length; ++j, ++count)
                 {
                     DataInfo data = dataset.Data[j];
                     data.GetErrors(dataset.Protocol);
                     progress += progressStep;
 
-                    string message ="";
-                    if(data is PatientDataInfo patientDataInfo)
+                    string message = "";
+                    if (data is PatientDataInfo patientDataInfo)
                     {
                         message = patientDataInfo.Name + " | " + dataset.Protocol.Name + " | " + patientDataInfo.Patient.Name;
                     }

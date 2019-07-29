@@ -10,9 +10,9 @@ namespace HBP.Data.Experience.Protocol
     {
         #region Properties
         [DataMember] public bool UseMinTreshold { get; set; }
-        [DataMember] public float MinThreshold { get; set; }
+        [DataMember] public float Min { get; set; }
         [DataMember] public bool UseMaxTreshold { get; set; }
-        [DataMember] public float MaxTreshold { get; set; }
+        [DataMember] public float Max { get; set; }
         #endregion
 
         public override float[] Apply(float[] values, int mainEventIndex, Frequency frequency)
@@ -23,14 +23,14 @@ namespace HBP.Data.Experience.Protocol
             {
                 for (int i = startIndex; i <= endIndex; i++)
                 {
-                    if(values[i] > MinThreshold) values[i] = 0;
+                    if(values[i] > Min) values[i] = 0;
                 }
             }
             else if(!UseMinTreshold && UseMaxTreshold)
             {
                 for (int i = startIndex; i <= endIndex; i++)
                 {
-                    if (values[i] < MaxTreshold) values[i] = 0;
+                    if (values[i] < Max) values[i] = 0;
                 }
             }
             else if(UseMinTreshold && UseMaxTreshold)
@@ -39,7 +39,7 @@ namespace HBP.Data.Experience.Protocol
                 for (int i = startIndex; i <= endIndex; i++)
                 {
                     value = values[i];
-                    if (value < MaxTreshold && value > MinThreshold) values[i] = 0;
+                    if (value < Max && value > Min) values[i] = 0;
                 }
             }
             return values;
