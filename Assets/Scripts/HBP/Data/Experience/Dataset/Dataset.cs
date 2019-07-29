@@ -261,15 +261,5 @@ namespace HBP.Data.Experience.Dataset
             }
         }
         #endregion
-
-        #region Struct
-        public struct Resume
-        {
-            public enum StateEnum { OK, Warning, Error }
-            public string Label;
-            public int Number;
-            public StateEnum State;
-        }
-        #endregion
     }
 }
