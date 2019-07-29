@@ -35,22 +35,23 @@ namespace HBP.UI.Experience.Protocol
                 m_OrderText.text = value.Order.ToString();
 
                 StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.AppendLine("SubBlocs: ");
                 string[] subBlocs = value.OrderedSubBlocs.Select(s => s.Name).ToArray();
                 for (int i = 0; i < subBlocs.Length; i++)
                 {
-                    if (i < subBlocs.Length - 1) stringBuilder.AppendLine(" \u2022 " + subBlocs[i]);
-                    else stringBuilder.Append(" \u2022 " + subBlocs[i]);
+                    if (i < subBlocs.Length - 1) stringBuilder.AppendLine("  \u2022 " + subBlocs[i]);
+                    else stringBuilder.Append("  \u2022 " + subBlocs[i]);
                 }
                 if (subBlocs.Length == 0)
                 {
                     m_SubBlocsText.GetComponent<ThemeElement>().Set(m_ErrorState);
-                    m_SubBlocsTooltip.Text = " \u2022 None";
+                    stringBuilder.Append("  \u2022 None");
                 }
                 else
                 {
                     m_SubBlocsText.GetComponent<ThemeElement>().Set();
-                    m_SubBlocsTooltip.Text = stringBuilder.ToString();
                 }
+                m_SubBlocsTooltip.Text = stringBuilder.ToString();
                 m_SubBlocsText.text = subBlocs.Length.ToString();
 
                 m_Image.sprite = value.Image;

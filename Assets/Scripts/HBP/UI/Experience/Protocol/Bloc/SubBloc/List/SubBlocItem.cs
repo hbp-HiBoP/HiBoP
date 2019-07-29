@@ -2,6 +2,9 @@
 using UnityEngine.UI;
 using HBP.Data.Experience.Protocol;
 using NewTheme.Components;
+using System.Text;
+using System.Linq;
+using Tools.Unity;
 
 namespace HBP.UI.Experience.Protocol
 {
@@ -14,8 +17,13 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] Text m_EndWindowText;
 
         [SerializeField] Text m_EventsText;
+        [SerializeField] Tooltip m_EventsTooltip;
+
         [SerializeField] Text m_IconsText;
+        [SerializeField] Tooltip m_IconsTooltip;
+
         [SerializeField] Text m_TreatmentsText;
+        [SerializeField] Tooltip m_TreatmentsTooltip;
 
         [SerializeField] Text m_OrderText;
         [SerializeField] Text m_TypeText;
@@ -36,20 +44,69 @@ namespace HBP.UI.Experience.Protocol
                 m_StartWindowText.text = value.Window.Start.ToString();
                 m_EndWindowText.text = value.Window.End.ToString();
 
-                int nbEvents = value.Events.Count;
-                m_EventsText.text = nbEvents.ToString();
-                if (nbEvents == 0) m_EventsText.GetComponent<ThemeElement>().Set(m_ErrorState);
-                else m_EventsText.GetComponent<ThemeElement>().Set();
 
-                int nbIcons = value.Icons.Count;
-                m_IconsText.text = nbIcons.ToString();
-                if (nbIcons == 0) m_IconsText.GetComponent<ThemeElement>().Set(m_ErrorState);
-                else m_IconsText.GetComponent<ThemeElement>().Set();
+                // Events.
+                StringBuilder stringBuilder = new StringBuilder();
+                string[] events = value.Events.Select(s => s.Name).ToArray();
+                stringBuilder.AppendLine("Events :");
+                for (int i = 0; i < events.Length; i++)
+                {
+                    if (i < events.Length - 1) stringBuilder.AppendLine("  \u2022 " + events[i]);
+                    else stringBuilder.Append("  \u2022 " + events[i]);
+                }
+                if (events.Length == 0)
+                {
+                    m_EventsText.GetComponent<ThemeElement>().Set(m_ErrorState);
+                    stringBuilder .Append("  \u2022 None ");
+                }
+                else
+                {
+                    m_EventsText.GetComponent<ThemeElement>().Set();
+                }
+                m_EventsTooltip.Text = stringBuilder.ToString();
+                m_EventsText.text = events.Length.ToString();
 
-                int nbTreatments = value.Treatments.Count;
-                m_TreatmentsText.text = nbTreatments.ToString();
-                if (nbTreatments == 0) m_TreatmentsText.GetComponent<ThemeElement>().Set(m_ErrorState);
-                else m_TreatmentsText.GetComponent<ThemeElement>().Set();
+                // Icons.
+                stringBuilder = new StringBuilder();
+                string[] icons = value.Icons.Select(s => s.Name).ToArray();
+                stringBuilder.AppendLine("Icons :");
+                for (int i = 0; i < icons.Length; i++)
+                {
+                    if (i < icons.Length - 1) stringBuilder.AppendLine("  \u2022 " + icons[i]);
+                    else stringBuilder.Append("  \u2022 " + icons[i]);
+                }
+                if (icons.Length == 0)
+                {
+                    m_IconsText.GetComponent<ThemeElement>().Set(m_ErrorState);
+                    stringBuilder.Append("  \u2022 None ");
+                }
+                else
+                {
+                    m_IconsText.GetComponent<ThemeElement>().Set();
+                }
+                m_IconsTooltip.Text = stringBuilder.ToString();
+                m_IconsText.text = icons.Length.ToString();
+
+                // Treatments.
+                stringBuilder = new StringBuilder();
+                stringBuilder.AppendLine("Treatments :");
+                string[] treatments = value.Treatments.Select(s => s.GetType().ToString()).ToArray();
+                for (int i = 0; i < icons.Length; i++)
+                {
+                    if (i < treatments.Length - 1) stringBuilder.AppendLine("  \u2022 " + treatments[i]);
+                    else stringBuilder.Append("  \u2022 " + treatments[i]);
+                }
+                if (treatments.Length == 0)
+                {
+                    m_TreatmentsText.GetComponent<ThemeElement>().Set(m_ErrorState);
+                    stringBuilder.Append("  \u2022 None");
+                }
+                else
+                {
+                    m_TreatmentsText.GetComponent<ThemeElement>().Set();
+                }
+                m_TreatmentsTooltip.Text = stringBuilder.ToString();
+                m_TreatmentsText.text = treatments.Length.ToString();
 
                 m_OrderText.text = value.Order.ToString();
 
