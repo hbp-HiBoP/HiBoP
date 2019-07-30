@@ -244,10 +244,12 @@ namespace UnityEngine.UI
                 return;
             LayoutRebuilder.MarkLayoutForRebuild(RectTransform);
         }
+#if UNITY_EDITOR
         protected override void OnValidate()
         {
             SetDirty();
         }
+#endif
         #endregion
     }
 }
