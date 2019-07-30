@@ -102,7 +102,7 @@ namespace Tools.Unity.Components
             creatorWindow.IsLoadableFromDatabase = typeof(T).GetInterfaces().Contains(typeof(ILoadableFromDatabase<T>));
             creatorWindow.OnSave.AddListener(() => OnSaveCreator(creatorWindow));
         }
-        protected virtual void OpenSelector(T[] objects, bool multiSelection = false)
+        protected virtual void OpenSelector(T[] objects, bool multiSelection = false, bool openSelected = true)
         {
             ObjectSelector<T> selector = ApplicationState.WindowsManager.OpenSelector<T>();
             SubWindows.Add(selector);
@@ -110,6 +110,7 @@ namespace Tools.Unity.Components
             selector.OnSave.AddListener(() => OnSaveSelector(selector));
             selector.Objects = objects;
             selector.MultiSelection = multiSelection;
+            selector.OpenModifierWhenSave = openSelected;
             OnOpenSavableWindow.Invoke(selector);
             SubWindows.Add(selector);
         }
@@ -159,7 +160,7 @@ namespace Tools.Unity.Components
                     break;
                 case HBP.Data.Enums.CreationType.FromDatabase:
                     LoadFromDatabase(out T[] items);
-                    OpenSelector(items, true);
+                    OpenSelector(items, true, false);
                     break;
             }
         }
@@ -175,7 +176,14 @@ namespace Tools.Unity.Components
                 }
                 if (cloneItem != null)
                 {
-                    OpenModifier(cloneItem, true);
+                    if(selector.OpenModifierWhenSave)
+                    {
+                        OpenModifier(cloneItem, true);
+                    }
+                    else
+                    {
+                        Add(cloneItem);
+                    }
                 }
             }
             OnCloseSavableWindow.Invoke(selector);
