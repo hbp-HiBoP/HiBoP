@@ -38,6 +38,7 @@ namespace Tools.Unity
         public static Type[] Set(this Dropdown dropdown, Type parentType, DataAttribute dataAttribute)
         {
             Type[] types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(t => t.IsSubclassOf(parentType)).ToArray();
+            types = types.Where(t => t.GetCustomAttributes(true).Contains(dataAttribute)).ToArray();
             List<Dropdown.OptionData> options = new List<Dropdown.OptionData>();
             foreach (var type in types)
             {

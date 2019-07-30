@@ -1,23 +1,22 @@
 ﻿using UnityEngine.UI;
-using d = HBP.Data.Experience.Dataset;
+using HBP.Data.Experience.Dataset;
 using Tools.Unity;
 using UnityEngine;
 using System.Linq;
 using UnityEngine.Events;
-using HBP.Data.Experience.Dataset;
 using System;
 
 namespace HBP.UI.Experience.Dataset
 {
-    public class DataInfoModifier : ItemModifier<d.DataInfo>
+    public class DataInfoModifier : ItemModifier<DataInfo>
     {
         #region Properties
         public UnityEvent OnCanSave { get; set; } = new UnityEvent();
         public bool CanSave { get; set; }
 
-        d.iEEGDataInfo m_IEEGDataInfoTemp;
-        d.CCEPDataInfo m_CCEPDataInfoTemp;
-        public new d.DataInfo ItemTemp { get { return itemTemp; } }
+        iEEGDataInfo m_IEEGDataInfoTemp;
+        CCEPDataInfo m_CCEPDataInfoTemp;
+        public new DataInfo ItemTemp { get { return itemTemp; } }
         Type[] m_Types; 
         [SerializeField] InputField m_NameInputField;
         [SerializeField] PatientDataInfoSubModifier m_PatientDataInfoGestion;
@@ -46,7 +45,6 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Private Methods
-
         public override void Save()
         {
             OnCanSave.Invoke();
@@ -58,32 +56,31 @@ namespace HBP.UI.Experience.Dataset
             }
             else ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Warning, "Data already exists", "A data for this patient with the same name already exists.");
         }
-        protected override void SetFields(d.DataInfo objectToDisplay)
+        protected override void SetFields(DataInfo objectToDisplay)
         {
-            if (objectToDisplay is d.iEEGDataInfo iEEGDataInfo)
+            if (objectToDisplay is iEEGDataInfo iEEGDataInfo)
             {
-                m_CCEPDataInfoTemp = new d.CCEPDataInfo(iEEGDataInfo.Name, iEEGDataInfo.DataContainer, iEEGDataInfo.Patient, "", iEEGDataInfo.ID);
+                m_CCEPDataInfoTemp = new CCEPDataInfo(iEEGDataInfo.Name, iEEGDataInfo.DataContainer, iEEGDataInfo.Patient, "", iEEGDataInfo.ID);
                 m_IEEGDataInfoTemp = iEEGDataInfo;
             }
-            else if(objectToDisplay is d.CCEPDataInfo CCEPDataInfo)
+            else if(objectToDisplay is CCEPDataInfo CCEPDataInfo)
             {
                 m_CCEPDataInfoTemp = CCEPDataInfo;
-                m_IEEGDataInfoTemp = new d.iEEGDataInfo(CCEPDataInfo.Name, CCEPDataInfo.DataContainer, CCEPDataInfo.Patient, d.iEEGDataInfo.NormalizationType.Auto, CCEPDataInfo.ID);
+                m_IEEGDataInfoTemp = new iEEGDataInfo(CCEPDataInfo.Name, CCEPDataInfo.DataContainer, CCEPDataInfo.Patient, iEEGDataInfo.NormalizationType.Auto, CCEPDataInfo.ID);
             }
-            else if (objectToDisplay is d.PatientDataInfo patientDataInfo)
+            else if (objectToDisplay is PatientDataInfo patientDataInfo)
             {
-                m_IEEGDataInfoTemp = new d.iEEGDataInfo(patientDataInfo.Name, new Data.Container.Elan(), patientDataInfo.Patient, d.iEEGDataInfo.NormalizationType.Auto, patientDataInfo.ID);
-                m_CCEPDataInfoTemp = new d.CCEPDataInfo(patientDataInfo.Name, new Data.Container.Elan(), patientDataInfo.Patient, "", patientDataInfo.ID);
+                m_IEEGDataInfoTemp = new iEEGDataInfo(patientDataInfo.Name, new Data.Container.Elan(), patientDataInfo.Patient, iEEGDataInfo.NormalizationType.Auto, patientDataInfo.ID);
+                m_CCEPDataInfoTemp = new CCEPDataInfo(patientDataInfo.Name, new Data.Container.Elan(), patientDataInfo.Patient, "", patientDataInfo.ID);
             }
             else
             {
-                m_IEEGDataInfoTemp = new iEEGDataInfo(objectToDisplay.Name, new Data.Container.Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), d.iEEGDataInfo.NormalizationType.Auto, objectToDisplay.ID);
-                m_CCEPDataInfoTemp = new d.CCEPDataInfo(objectToDisplay.Name, new Data.Container.Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), "", objectToDisplay.ID);
+                m_IEEGDataInfoTemp = new iEEGDataInfo(objectToDisplay.Name, new Data.Container.Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), iEEGDataInfo.NormalizationType.Auto, objectToDisplay.ID);
+                m_CCEPDataInfoTemp = new CCEPDataInfo(objectToDisplay.Name, new Data.Container.Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), "", objectToDisplay.ID);
             }
 
             m_NameInputField.text = objectToDisplay.Name;
-            int value = Array.IndexOf(m_Types, objectToDisplay.GetType());
-            m_TypeDropdown.value = value;
+            m_TypeDropdown.SetValue(Array.IndexOf(m_Types, objectToDisplay.GetType()));
         }
         protected override void Initialize()
         {
@@ -98,7 +95,7 @@ namespace HBP.UI.Experience.Dataset
             Type type = m_Types[value];
             if(type == typeof(iEEGDataInfo))
             {
-                if (itemTemp is d.CCEPDataInfo ccepDataInfo)
+                if (itemTemp is CCEPDataInfo ccepDataInfo)
                 {
                     m_IEEGDataInfoTemp.Name = ccepDataInfo.Name;
                     m_IEEGDataInfoTemp.Patient = ccepDataInfo.Patient;
@@ -119,7 +116,7 @@ namespace HBP.UI.Experience.Dataset
             }
             else if(type == typeof(CCEPDataInfo))
             {
-                if (itemTemp is d.iEEGDataInfo ieegDataInfo)
+                if (itemTemp is iEEGDataInfo ieegDataInfo)
                 {
                     m_CCEPDataInfoTemp.Name = ieegDataInfo.Name;
                     m_CCEPDataInfoTemp.Patient = ieegDataInfo.Patient;
