@@ -2,6 +2,8 @@
 using UnityEngine.UI;
 using Tools.Unity.Lists;
 using NewTheme.Components;
+using Tools.Unity;
+using System.Text;
 
 namespace HBP.UI.Experience.Protocol
 {
@@ -9,7 +11,10 @@ namespace HBP.UI.Experience.Protocol
 	{
 		#region Properties
 		[SerializeField] Text m_NameText;
+
         [SerializeField] Text m_CodeText;
+        [SerializeField] Tooltip m_CodeTooltip;
+
         [SerializeField] Text m_TypeText;
         [SerializeField] State m_ErrorState;
 
@@ -25,10 +30,22 @@ namespace HBP.UI.Experience.Protocol
 
                 m_NameText.text = m_Object.Name;
 
-                int nbCode = m_Object.Codes.Count;
-                m_CodeText.text = m_Object.Codes.Count.ToString();
-                if (nbCode == 0) m_CodeText.GetComponent<ThemeElement>().Set(m_ErrorState);
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.AppendLine("Codes: ");
+                int[] codes = value.Codes.ToArray();
+                for (int i = 0; i < codes.Length; i++)
+                {
+                    if (i < codes.Length - 1) stringBuilder.AppendLine("  \u2022 " + codes[i]);
+                    else stringBuilder.Append("  \u2022 " + codes[i]);
+                }
+                if (codes.Length == 0)
+                {
+                    m_CodeText.GetComponent<ThemeElement>().Set(m_ErrorState);
+                    stringBuilder.Append("  \u2022 None");
+                }
                 else m_CodeText.GetComponent<ThemeElement>().Set();
+                m_CodeTooltip.Text = stringBuilder.ToString();
+                m_CodeText.text = codes.Length.ToString();
 
                 switch (m_Object.Type)
                 {
