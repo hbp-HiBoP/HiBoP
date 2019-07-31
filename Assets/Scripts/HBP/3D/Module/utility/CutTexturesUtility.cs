@@ -212,6 +212,17 @@ namespace HBP.Module3D
             cutTexture.UpdateTexture2D(BrainCutTextures[indexCut]);
             UnityEngine.Profiling.Profiler.EndSample();
         }
+        public void ColorCutsTexturesWithAtlas(int indexCut, float alpha)
+        {
+            UnityEngine.Profiling.Profiler.BeginSample("Compute Alpha textures");
+            MRITextureCutGenerator generator = DLLMRITextureCutGenerators[indexCut];
+            generator.FillTextureWithAtlas(ApplicationState.Module3D.JuBrainAtlas, alpha);
+
+            DLL.Texture cutTexture = DLLBrainCutTextures[indexCut];
+            generator.UpdateTextureWithAtlas(cutTexture);
+            cutTexture.UpdateTexture2D(BrainCutTextures[indexCut]);
+            UnityEngine.Profiling.Profiler.EndSample();
+        }
         /// <summary>
         /// Reset the color schemes
         /// </summary>

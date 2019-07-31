@@ -590,9 +590,14 @@ namespace HBP.Module3D
         public void CreateMRITexture(Column3D column, int cutID, int blurFactor)
         {
             column.CutTextures.CreateMRITexture(DLLMRIGeometryCutGeneratorList[cutID], SelectedMRI.Volume, cutID, MRICalMinFactor, MRICalMaxFactor, blurFactor);
-            if (FMRIManager.DisplayFMRI)
+            bool displayAtlas = true;
+            if (displayAtlas)
             {
-                FMRIManager.ColorCutTexture(column, cutID, blurFactor);
+                column.CutTextures.ColorCutsTexturesWithAtlas(cutID, 0.7f);
+            }
+            else if (FMRIManager.DisplayFMRI)
+            {
+                FMRIManager.ColorCutTexture(column, cutID);
             }
         }
         /// <summary>

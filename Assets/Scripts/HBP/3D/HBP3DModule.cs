@@ -107,6 +107,10 @@ namespace HBP.Module3D
         /// Mars atlas index (to get name of mars atlas, broadman etc)
         /// </summary>
         public DLL.MarsAtlasIndex MarsAtlasIndex { get; private set; }
+        /// <summary>
+        /// JuBrain Atlas (to color the MRIs with JuBrain areas)
+        /// </summary>
+        public DLL.JuBrainAtlas JuBrainAtlas { get; private set; }
 
         /// <summary>
         /// MNI Objects (Mesh and MRI)
@@ -195,7 +199,8 @@ namespace HBP.Module3D
             #if UNITY_EDITOR
                 dataDirectory = Application.dataPath + "/Data/";
             #endif
-            MarsAtlasIndex = new DLL.MarsAtlasIndex(dataDirectory + "MarsAtlas/mars_atlas_index.csv");
+            MarsAtlasIndex = new DLL.MarsAtlasIndex(dataDirectory + "Atlases/MarsAtlas/mars_atlas_index.csv");
+            JuBrainAtlas = new DLL.JuBrainAtlas(dataDirectory + "Atlases/JuBrain/jubrain_left.nii.gz", dataDirectory + "Atlases/JuBrain/jubrain_right.nii.gz", dataDirectory + "Atlases/JuBrain/jubrain.json");
         }
         void OnDestroy()
         {
