@@ -76,17 +76,19 @@ namespace HBP.UI.Visualization
         }
         public void AddGroups()
         {
-            GroupSelection groupSelection = ApplicationState.WindowsManager.Open<GroupSelection>("Add Group window", Interactable);
-            groupSelection.OnSave.AddListener(() => AddGroups(groupSelection.SelectedGroups));
-            groupSelection.OnClose.AddListener(() => m_SubWindows.Remove(groupSelection));
-            m_SubWindows.Add(groupSelection);
+            ObjectSelector<Group> selector = ApplicationState.WindowsManager.OpenSelector<Group>();
+            selector.Objects = ApplicationState.ProjectLoaded.Groups.ToArray();
+            selector.OnSave.AddListener(() => AddGroups(selector.ObjectsSelected));
+            selector.OnClose.AddListener(() => m_SubWindows.Remove(selector));
+            m_SubWindows.Add(selector);
         }
         public void RemoveGroups()
         {
-            GroupSelection groupSelection = ApplicationState.WindowsManager.Open<GroupSelection>("Remove Group window", Interactable);
-            groupSelection.OnSave.AddListener(() => RemoveGroups(groupSelection.SelectedGroups));
-            groupSelection.OnClose.AddListener(() => m_SubWindows.Remove(groupSelection));
-            m_SubWindows.Add(groupSelection);
+            ObjectSelector<Group> selector = ApplicationState.WindowsManager.OpenSelector<Group>();
+            selector.Objects = ApplicationState.ProjectLoaded.Groups.ToArray();
+            selector.OnSave.AddListener(() => RemoveGroups(selector.ObjectsSelected));
+            selector.OnClose.AddListener(() => m_SubWindows.Remove(selector));
+            m_SubWindows.Add(selector);
         }
         public void AddColumn()
         {
