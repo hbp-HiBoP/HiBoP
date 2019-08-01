@@ -91,7 +91,7 @@ namespace HBP.UI.Experience.Protocol
                 stringBuilder = new StringBuilder();
                 stringBuilder.AppendLine("Treatments :");
                 string[] treatments = value.Treatments.Select(s => s.GetType().ToString()).ToArray();
-                for (int i = 0; i < icons.Length; i++)
+                for (int i = 0; i < treatments.Length; i++)
                 {
                     if (i < treatments.Length - 1) stringBuilder.AppendLine("  \u2022 " + treatments[i]);
                     else stringBuilder.Append("  \u2022 " + treatments[i]);

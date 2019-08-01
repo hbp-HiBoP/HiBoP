@@ -14,6 +14,7 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] Text m_NameText;
 
         [SerializeField] Image m_Image;
+        [SerializeField] Tooltip m_ImageTooltip;
 
         [SerializeField] Text m_SubBlocsText;
         [SerializeField] Tooltip m_SubBlocsTooltip;
@@ -54,7 +55,9 @@ namespace HBP.UI.Experience.Protocol
                 m_SubBlocsTooltip.Text = stringBuilder.ToString();
                 m_SubBlocsText.text = subBlocs.Length.ToString();
 
-                m_Image.sprite = value.Image;
+                m_Image.overrideSprite = value.Image;
+                m_ImageTooltip.Text = "";
+                m_ImageTooltip.Image = value.Image;
             }
         }
         #endregion

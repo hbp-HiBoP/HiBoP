@@ -55,18 +55,19 @@ namespace HBP.Data.Experience.Protocol
             set
             {
                 m_IllustrationPath = value.ConvertToShortPath();
+                m_NeedToReload = true;
             }
         }
 
+        bool m_NeedToReload;
         Sprite m_Image;
         public Sprite Image
         {
             get
             {
-                if (!m_Image)
+                if(m_NeedToReload || m_Image != null)
                 {
-                    Sprite sprite;
-                    if (SpriteExtension.LoadSpriteFromFile(out sprite, IllustrationPath)) m_Image = sprite;
+                    if (SpriteExtension.LoadSpriteFromFile(out Sprite sprite, IllustrationPath)) m_Image = sprite;
                 }
                 return m_Image;
             }
