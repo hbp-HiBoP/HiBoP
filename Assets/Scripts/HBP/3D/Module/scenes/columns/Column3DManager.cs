@@ -226,6 +226,10 @@ namespace HBP.Module3D
         /// Manage everything concerning the FMRIs
         /// </summary>
         public FMRIManager FMRIManager { get; } = new FMRIManager();
+
+        public bool DisplayAtlas { get; set; } = true;
+        public float AtlasAlpha { get; set; } = 1.0f;
+        public int AtlasSelectedArea { get; set; } = -1;
         
         /// <summary>
         /// Brain surface color
@@ -590,10 +594,9 @@ namespace HBP.Module3D
         public void CreateMRITexture(Column3D column, int cutID, int blurFactor)
         {
             column.CutTextures.CreateMRITexture(DLLMRIGeometryCutGeneratorList[cutID], SelectedMRI.Volume, cutID, MRICalMinFactor, MRICalMaxFactor, blurFactor);
-            bool displayAtlas = true;
-            if (displayAtlas)
+            if (DisplayAtlas)
             {
-                column.CutTextures.ColorCutsTexturesWithAtlas(cutID, 1.0f);
+                column.CutTextures.ColorCutsTexturesWithAtlas(cutID, AtlasAlpha, AtlasSelectedArea);
             }
             else if (FMRIManager.DisplayFMRI)
             {

@@ -401,6 +401,35 @@ namespace HBP.Module3D
             }
         }
 
+        public bool DisplayAtlas
+        {
+            get
+            {
+                return m_ColumnManager.DisplayAtlas;
+            }
+            set
+            {
+                m_ColumnManager.DisplayAtlas = value;
+                ResetIEEG();
+            }
+        }
+        public int SelectedAtlasArea
+        {
+            get
+            {
+                return m_ColumnManager.AtlasSelectedArea;
+            }
+            set
+            {
+                if (m_ColumnManager.AtlasSelectedArea != value)
+                {
+                    m_ColumnManager.AtlasSelectedArea = value;
+                    ComputeMRITextures();
+                    ComputeGUITextures();
+                }
+            }
+        }
+
         /// <summary>
         /// Site to compare with when using the comparing site feature
         /// </summary>
@@ -1817,7 +1846,19 @@ namespace HBP.Module3D
             if (!isCollision)
             {
                 ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition));
+                SelectedAtlasArea = -1;
                 return;
+            }
+
+            bool cutHit = hit.transform.parent.gameObject.name == "Cuts";
+            if (cutHit && DisplayAtlas)
+            {
+                SelectedAtlasArea = ApplicationState.Module3D.JuBrainAtlas.GetClosestAreaIndex(hit.point - transform.position);
+                return;
+            }
+            else
+            {
+                SelectedAtlasArea = -1;
             }
 
             Site site = hit.collider.GetComponent<Site>();

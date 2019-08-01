@@ -23,6 +23,10 @@ namespace HBP.Module3D.DLL
         {
             return load_JuBrainAtlas(_handle, leftNIIPath, rightNIIPath, jsonPath) == 1;
         }
+        public int GetClosestAreaIndex(Vector3 position)
+        {
+            return get_closest_area_index_JuBrainAtlas(_handle, -position.x, position.y, position.z);
+        }
         #endregion
 
         #region Memory Management
@@ -43,6 +47,8 @@ namespace HBP.Module3D.DLL
         static private extern void delete_JuBrainAtlas(HandleRef juBrainAtlas);
         [DllImport("hbp_export", EntryPoint = "load_JuBrainAtlas", CallingConvention = CallingConvention.Cdecl)]
         static private extern int load_JuBrainAtlas(HandleRef juBrainAtlas, string leftNIIPath, string rightNIIPath, string jsonPath);
+        [DllImport("hbp_export", EntryPoint = "get_closest_area_index_JuBrainAtlas", CallingConvention = CallingConvention.Cdecl)]
+        static private extern int get_closest_area_index_JuBrainAtlas(HandleRef juBrainAtlas, float x, float y, float z);
         #endregion
     }
 }

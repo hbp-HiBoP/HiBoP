@@ -199,10 +199,10 @@ namespace HBP.Module3D
             /// <param name="calMin"></param>
             /// <param name="calMax"></param>
             /// <param name="alpha"></param>
-            public void FillTextureWithAtlas(JuBrainAtlas atlas, float alpha)
+            public void FillTextureWithAtlas(JuBrainAtlas atlas, float alpha, int selectedArea)
             {
                 bool noError = false;
-                noError = fill_texture_with_Atlas__MRITextureCutGenerator(_handle, atlas.getHandle() ,alpha) == 1;
+                noError = fill_texture_with_Atlas__MRITextureCutGenerator(_handle, atlas.getHandle(), alpha, selectedArea) == 1;
                 ApplicationState.DLLDebugManager.check_error();
 
                 if (!noError)
@@ -369,7 +369,7 @@ namespace HBP.Module3D
             static private extern int fill_texture_with_IRMF__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, HandleRef handleVolume, HandleRef handleColorSchemeTexture,
                                                               float calMin, float calMax, float alpha);
             [DllImport("hbp_export", EntryPoint = "fill_texture_with_Atlas__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
-            static private extern int fill_texture_with_Atlas__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, HandleRef handleAtlas, float alpha);
+            static private extern int fill_texture_with_Atlas__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, HandleRef handleAtlas, float alpha, int selectedArea);
             [DllImport("hbp_export", EntryPoint = "init_octree__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern void init_octree__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, HandleRef handleRawPlotList);
             [DllImport("hbp_export", EntryPoint = "compute_distances__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
