@@ -593,7 +593,7 @@ namespace HBP.Module3D
             bool displayAtlas = true;
             if (displayAtlas)
             {
-                column.CutTextures.ColorCutsTexturesWithAtlas(cutID, 0.7f);
+                column.CutTextures.ColorCutsTexturesWithAtlas(cutID, 1.0f);
             }
             else if (FMRIManager.DisplayFMRI)
             {
