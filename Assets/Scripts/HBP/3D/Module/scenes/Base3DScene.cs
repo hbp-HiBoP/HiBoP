@@ -1841,12 +1841,12 @@ namespace HBP.Module3D
             layerMask |= 1 << LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
             layerMask |= 1 << LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
 
-            RaycastHit hit;
-            bool isCollision = Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask);
+            bool isCollision = Physics.Raycast(ray.origin, ray.direction, out RaycastHit hit, Mathf.Infinity, layerMask);
             if (!isCollision)
             {
                 ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition));
                 SelectedAtlasArea = -1;
+                ApplicationState.Module3D.OnDisplayAtlasInformation.Invoke(new AtlasInfo(false, Input.mousePosition));
                 return;
             }
 
@@ -1854,11 +1854,20 @@ namespace HBP.Module3D
             if (cutHit && DisplayAtlas)
             {
                 SelectedAtlasArea = ApplicationState.Module3D.JuBrainAtlas.GetClosestAreaIndex(hit.point - transform.position);
-                return;
+                string[] information = ApplicationState.Module3D.JuBrainAtlas.GetInformation(SelectedAtlasArea);
+                if (information.Length == 5)
+                {
+                    ApplicationState.Module3D.OnDisplayAtlasInformation.Invoke(new AtlasInfo(true, Input.mousePosition, information[0], information[1], information[2], information[3], information[4]));
+                }
+                else
+                {
+                    ApplicationState.Module3D.OnDisplayAtlasInformation.Invoke(new AtlasInfo(false, Input.mousePosition));
+                }
             }
             else
             {
                 SelectedAtlasArea = -1;
+                ApplicationState.Module3D.OnDisplayAtlasInformation.Invoke(new AtlasInfo(false, Input.mousePosition));
             }
 
             Site site = hit.collider.GetComponent<Site>();

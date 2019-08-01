@@ -27,6 +27,11 @@ namespace HBP.Module3D.DLL
         {
             return get_closest_area_index_JuBrainAtlas(_handle, -position.x, position.y, position.z);
         }
+        public string[] GetInformation(int labelIndex)
+        {
+            string result = Marshal.PtrToStringAnsi(get_area_information_JuBrainAtlas(_handle, labelIndex));
+            return result.Split(new char[1] { '?' }, StringSplitOptions.None);
+        }
         #endregion
 
         #region Memory Management
@@ -49,6 +54,8 @@ namespace HBP.Module3D.DLL
         static private extern int load_JuBrainAtlas(HandleRef juBrainAtlas, string leftNIIPath, string rightNIIPath, string jsonPath);
         [DllImport("hbp_export", EntryPoint = "get_closest_area_index_JuBrainAtlas", CallingConvention = CallingConvention.Cdecl)]
         static private extern int get_closest_area_index_JuBrainAtlas(HandleRef juBrainAtlas, float x, float y, float z);
+        [DllImport("hbp_export", EntryPoint = "get_area_information_JuBrainAtlas", CallingConvention = CallingConvention.Cdecl)]
+        static private extern IntPtr get_area_information_JuBrainAtlas(HandleRef juBrainAtlas, int labelIndex);
         #endregion
     }
 }

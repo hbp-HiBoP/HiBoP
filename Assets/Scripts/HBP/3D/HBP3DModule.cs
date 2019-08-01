@@ -146,6 +146,10 @@ namespace HBP.Module3D
         /// </summary>
         [HideInInspector] public GenericEvent<SiteInfo> OnDisplaySiteInformation = new GenericEvent<SiteInfo>();
         /// <summary>
+        /// Event called when hovering a atlas area to display its information
+        /// </summary>
+        [HideInInspector] public GenericEvent<AtlasInfo> OnDisplayAtlasInformation = new GenericEvent<AtlasInfo>();
+        /// <summary>
         /// Event called when a scene is added
         /// </summary>
         [HideInInspector] public GenericEvent<Base3DScene> OnAddScene = new GenericEvent<Base3DScene>();
