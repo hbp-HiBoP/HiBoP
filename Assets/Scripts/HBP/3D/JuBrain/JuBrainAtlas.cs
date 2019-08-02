@@ -8,6 +8,10 @@ namespace HBP.Module3D.DLL
 {
     public class JuBrainAtlas : Tools.DLL.CppDLLImportBase
     {
+        #region Properties
+        public bool Loaded { get; private set; }
+        #endregion
+
         #region Constructors
         public JuBrainAtlas(string leftNIIPath, string rightNIIPath, string jsonPath) : base()
         {
@@ -21,7 +25,7 @@ namespace HBP.Module3D.DLL
         #region Public Methods
         public bool LoadJuBrainAtlas(string leftNIIPath, string rightNIIPath, string jsonPath)
         {
-            return load_JuBrainAtlas(_handle, leftNIIPath, rightNIIPath, jsonPath) == 1;
+            return Loaded = load_JuBrainAtlas(_handle, leftNIIPath, rightNIIPath, jsonPath) == 1;
         }
         public int GetClosestAreaIndex(Vector3 position)
         {

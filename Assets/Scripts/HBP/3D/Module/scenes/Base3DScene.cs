@@ -401,7 +401,7 @@ namespace HBP.Module3D
             }
         }
 
-        public bool DisplayAtlas
+        public bool DisplayJuBrainAtlas
         {
             get
             {
@@ -1184,6 +1184,10 @@ namespace HBP.Module3D
             if (meshID == -1) meshID = 0;
 
             m_ColumnManager.SelectedMeshID = meshID;
+            if (IsMarsAtlasEnabled && !m_ColumnManager.SelectedMesh.IsMarsAtlasLoaded)
+            {
+                IsMarsAtlasEnabled = false;
+            }
             SceneInformation.MeshGeometryNeedsUpdate = true;
             ResetIEEG();
             foreach (Column3D column in m_ColumnManager.Columns)
@@ -1192,6 +1196,7 @@ namespace HBP.Module3D
             }
 
             OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.Center);
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Set the MRI to be used
@@ -1210,6 +1215,7 @@ namespace HBP.Module3D
             {
                 column.IsRenderingUpToDate = false;
             }
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Set the implantation to be used
@@ -1842,7 +1848,7 @@ namespace HBP.Module3D
             Data.Enums.RaycastHitResult raycastResult = column.Raycast(ray, layerMask, out RaycastHit hit);
             Vector3 hitPoint = raycastResult != Data.Enums.RaycastHitResult.None ? hit.point - transform.position : Vector3.zero;
 
-            if (raycastResult == Data.Enums.RaycastHitResult.Cut && DisplayAtlas)
+            if (raycastResult == Data.Enums.RaycastHitResult.Cut && DisplayJuBrainAtlas)
             {
                 SelectedAtlasArea = ApplicationState.Module3D.JuBrainAtlas.GetClosestAreaIndex(hit.point - transform.position);
                 string[] information = ApplicationState.Module3D.JuBrainAtlas.GetInformation(SelectedAtlasArea);

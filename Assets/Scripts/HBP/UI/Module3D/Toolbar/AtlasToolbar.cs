@@ -7,13 +7,13 @@ using System.Linq;
 
 namespace HBP.UI.Module3D
 {
-    public class IBCToolbar : Toolbar
+    public class AtlasToolbar : Toolbar
     {
         #region Properties
         /// <summary>
         /// Change the state of the IBC mode
         /// </summary>
-        [SerializeField] private Tools.IBCState m_IBCState;
+        [SerializeField] private Tools.AtlasState m_IBCState;
         /// <summary>
         /// Change the contrast
         /// </summary>

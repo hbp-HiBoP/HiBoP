@@ -227,7 +227,7 @@ namespace HBP.Module3D
         /// </summary>
         public FMRIManager FMRIManager { get; } = new FMRIManager();
 
-        public bool DisplayAtlas { get; set; } = true;
+        public bool DisplayAtlas { get; set; }
         public float AtlasAlpha { get; set; } = 1.0f;
         public int AtlasSelectedArea { get; set; } = -1;
         

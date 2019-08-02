@@ -105,7 +105,7 @@ namespace HBP.UI.Module3D
             m_Toolbars.Add(m_ROIToggle, m_ToolbarMenu.ROIToolbar);
             m_Toolbars.Add(m_TriangleToggle, m_ToolbarMenu.TriangleToolbar);
             m_Toolbars.Add(m_CCEPToggle, m_ToolbarMenu.CCEPToolbar);
-            m_Toolbars.Add(m_IBCToggle, m_ToolbarMenu.IBCToolbar);
+            m_Toolbars.Add(m_IBCToggle, m_ToolbarMenu.AtlasToolbar);
             m_Toolbars.Add(m_FMRIToggle, m_ToolbarMenu.FMRIToolbar);
 
             AddListeners();

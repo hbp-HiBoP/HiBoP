@@ -31,11 +31,6 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private Tools.ImplantationSelector m_ImplantationSelector;
         /// <summary>
-        /// Show / hide Mars Atlas
-        /// </summary>
-        [SerializeField]
-        private Tools.MarsAtlas m_MarsAtlas;
-        /// <summary>
         /// Threshold MRI parameters
         /// </summary>
         [SerializeField]
@@ -78,7 +73,6 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_BrainSelector);
             m_Tools.Add(m_MRISelector);
             m_Tools.Add(m_ImplantationSelector);
-            m_Tools.Add(m_MarsAtlas);
             m_Tools.Add(m_Colormap);
             m_Tools.Add(m_BrainColor);
             m_Tools.Add(m_CutColor);
@@ -95,13 +89,7 @@ namespace HBP.UI.Module3D
 
             m_BrainSelector.OnChangeValue.AddListener((type) =>
             {
-                m_MarsAtlas.ChangeBrainTypeCallback();
                 m_BrainMeshes.ChangeBrainTypeCallback();
-                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
-            });
-            m_MRISelector.OnChangeValue.AddListener((type) =>
-            {
-                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             });
         }
         #endregion
