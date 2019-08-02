@@ -38,4 +38,5 @@ namespace HBP.Data.Enums
     public enum SiteType { Normal, Positive, Negative, Source, NotASource, BlackListed, NonePos, NoneNeg };
     public enum MainSecondaryEnum { Main, Secondary }
     public enum CreationType { FromScratch, FromExistingItem, FromFile }
+    public enum RaycastHitResult { None, Cut, Mesh, Site, ROI }
 }

@@ -844,6 +844,26 @@ namespace HBP.Module3D
                 m_RawElectrodes.UpdateMask(ii, (Sites[ii].State.IsMasked || Sites[ii].State.IsBlackListed || (Sites[ii].State.IsOutOfROI && isROI) || !Sites[ii].State.IsFiltered));
             }
         }
+        /// <summary>
+        /// Performs a raycast on the column
+        /// </summary>
+        /// <param name="ray"></param>
+        /// <param name="layerMask"></param>
+        /// <param name="hit"></param>
+        /// <returns></returns>
+        public RaycastHitResult Raycast(Ray ray, int layerMask, out RaycastHit hit)
+        {
+            layerMask |= 1 << LayerMask.NameToLayer(Layer);
+            RaycastHitResult result = RaycastHitResult.None;
+            if (Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask))
+            {
+                if (hit.transform.parent.gameObject.name == "Cuts") result = RaycastHitResult.Cut;
+                if (hit.transform.parent.gameObject.name == "Brains" || hit.transform.parent.gameObject.name == "Erased Brains") result = RaycastHitResult.Mesh;
+                if (hit.collider.GetComponent<Site>() != null) result = RaycastHitResult.Site;
+                if (hit.collider.GetComponent<Sphere>() != null) result = RaycastHitResult.ROI;
+            }
+            return result;
+        }
         public virtual void LoadConfiguration(bool firstCall = true)
         {
             if (firstCall) ResetConfiguration();

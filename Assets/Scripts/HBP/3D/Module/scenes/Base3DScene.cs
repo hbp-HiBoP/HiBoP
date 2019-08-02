@@ -1833,25 +1833,16 @@ namespace HBP.Module3D
         /// <param name="column">Column on which the raycast in performed</param>
         public void PassiveRaycastOnScene(Ray ray, Column3D column)
         {
-            // update colliders if necessary
             UpdateMeshesColliders();
 
             int layerMask = 0;
-            layerMask |= 1 << LayerMask.NameToLayer(column.Layer);
             layerMask |= 1 << LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
             layerMask |= 1 << LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
 
-            bool isCollision = Physics.Raycast(ray.origin, ray.direction, out RaycastHit hit, Mathf.Infinity, layerMask);
-            if (!isCollision)
-            {
-                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition));
-                SelectedAtlasArea = -1;
-                ApplicationState.Module3D.OnDisplayAtlasInformation.Invoke(new AtlasInfo(false, Input.mousePosition));
-                return;
-            }
+            Data.Enums.RaycastHitResult raycastResult = column.Raycast(ray, layerMask, out RaycastHit hit);
+            Vector3 hitPoint = raycastResult != Data.Enums.RaycastHitResult.None ? hit.point - transform.position : Vector3.zero;
 
-            bool cutHit = hit.transform.parent.gameObject.name == "Cuts";
-            if (cutHit && DisplayAtlas)
+            if (raycastResult == Data.Enums.RaycastHitResult.Cut && DisplayAtlas)
             {
                 SelectedAtlasArea = ApplicationState.Module3D.JuBrainAtlas.GetClosestAreaIndex(hit.point - transform.position);
                 string[] information = ApplicationState.Module3D.JuBrainAtlas.GetInformation(SelectedAtlasArea);
@@ -1870,83 +1861,53 @@ namespace HBP.Module3D
                 ApplicationState.Module3D.OnDisplayAtlasInformation.Invoke(new AtlasInfo(false, Input.mousePosition));
             }
 
-            Site site = hit.collider.GetComponent<Site>();
-            if (!site)
+            if (raycastResult == Data.Enums.RaycastHitResult.Site)
             {
-                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition));
-                return;
-            }
-
-            // Compute each required variable
-            int siteID = site.Information.GlobalID;
-            string CCEPLatency = "none", CCEPAmplitude = "none";
-            float iEEGActivity = -1;
-            string iEEGUnit = "";
-            // CCEP
-            //if (SceneInformation.DisplayCCEPMode)
-            //{
-            //    if (column.CurrentLatencyFile != -1)
-            //    {
-            //        Latencies latencyFile = m_ColumnManager.SelectedImplantation.Latencies[column.CurrentLatencyFile];
-
-            //        if (column.SelectedSiteID == -1) // no source selected
-            //        {
-            //            CCEPLatency = "...";
-            //            CCEPAmplitude = "no source selected";
-            //        }
-            //        else if (column.SelectedSiteID == siteID) // site is the source
-            //        {
-            //            CCEPLatency = "0";
-            //            CCEPAmplitude = "source";
-            //        }
-            //        else
-            //        {
-            //            if (latencyFile.IsSiteResponsiveForSource(siteID, column.SelectedSiteID))
-            //            {
-            //                CCEPLatency = "" + latencyFile.LatenciesValues[column.SelectedSiteID][siteID];
-            //                CCEPAmplitude = "" + latencyFile.Heights[column.SelectedSiteID][siteID];
-            //            }
-            //            else
-            //            {
-            //                CCEPLatency = "No data";
-            //                CCEPAmplitude = "No data";
-            //            }
-            //        }
-            //    }
-            //}
-            if (column is Column3DCCEP ccepColumn)
-            {
-                CCEPLatency = ccepColumn.Latencies[siteID].ToString();
-                CCEPAmplitude = ccepColumn.Amplitudes[siteID].ToString();
-            }
-            // iEEG
-            if (column is Column3DDynamic columnIEEG)
-            {
-                iEEGUnit = columnIEEG.IEEGUnitsBySiteID[siteID];
-                iEEGActivity = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.Timeline.CurrentIndex];
-            }
-            // Send Event
-            Data.Enums.SiteInformationDisplayMode displayMode;
-            if (SceneInformation.IsGeneratorUpToDate)
-            {
-                if (column is Column3DCCEP)
+                Site site = hit.collider.GetComponent<Site>();
+                // Compute each required variable
+                int siteID = site.Information.GlobalID;
+                string CCEPLatency = "none", CCEPAmplitude = "none";
+                float iEEGActivity = -1;
+                string iEEGUnit = "";
+                // CCEP
+                if (column is Column3DCCEP ccepColumn)
                 {
-                    displayMode = Data.Enums.SiteInformationDisplayMode.CCEP;
+                    CCEPLatency = ccepColumn.Latencies[siteID].ToString();
+                    CCEPAmplitude = ccepColumn.Amplitudes[siteID].ToString();
                 }
-                else if (column is Column3DIEEG)
+                // iEEG
+                if (column is Column3DDynamic columnIEEG)
                 {
-                    displayMode = Data.Enums.SiteInformationDisplayMode.IEEG;
+                    iEEGUnit = columnIEEG.IEEGUnitsBySiteID[siteID];
+                    iEEGActivity = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.Timeline.CurrentIndex];
+                }
+                // Send Event
+                Data.Enums.SiteInformationDisplayMode displayMode;
+                if (SceneInformation.IsGeneratorUpToDate)
+                {
+                    if (column is Column3DCCEP)
+                    {
+                        displayMode = Data.Enums.SiteInformationDisplayMode.CCEP;
+                    }
+                    else if (column is Column3DIEEG)
+                    {
+                        displayMode = Data.Enums.SiteInformationDisplayMode.IEEG;
+                    }
+                    else
+                    {
+                        displayMode = Data.Enums.SiteInformationDisplayMode.Anatomy;
+                    }
                 }
                 else
                 {
                     displayMode = Data.Enums.SiteInformationDisplayMode.Anatomy;
                 }
+                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, displayMode, iEEGActivity.ToString("0.00"), iEEGUnit, CCEPAmplitude, CCEPLatency));
             }
             else
             {
-                displayMode = Data.Enums.SiteInformationDisplayMode.Anatomy;
-            }
-            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, displayMode, iEEGActivity.ToString("0.00"), iEEGUnit, CCEPAmplitude, CCEPLatency));
+                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition));
+            }            
         }
         /// <summary>
         /// Manage the clicks on the scene
@@ -1955,76 +1916,53 @@ namespace HBP.Module3D
         public void ClickOnScene(Ray ray)
         {
             int layerMask = 0;
-            layerMask |= 1 << LayerMask.NameToLayer(m_ColumnManager.SelectedColumn.Layer);
             layerMask |= 1 << LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
             layerMask |= 1 << LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
 
-            RaycastHit hit;
-            bool isCollision = Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask);
-            if (!isCollision)
-            {
-                m_ColumnManager.SelectedColumn.UnselectSite();
-                ROI selectedROI = m_ColumnManager.SelectedColumn.SelectedROI;
-                if (selectedROI)
-                {
-                    selectedROI.SelectSphere(-1);
-                }
-                return;
-            }
+            Data.Enums.RaycastHitResult raycastResult = m_ColumnManager.SelectedColumn.Raycast(ray, layerMask, out RaycastHit hit);
+            Vector3 hitPoint = raycastResult != Data.Enums.RaycastHitResult.None ? hit.point - transform.position : Vector3.zero;
 
-            // FIXME : maybe create a component instead of checking the name of the parent
-            bool cutHit = hit.transform.parent.gameObject.name == "Cuts";
-            bool meshHit = hit.transform.parent.gameObject.name == "Brains" || hit.transform.parent.gameObject.name == "Erased Brains";
-            bool siteHit = hit.collider.GetComponent<Site>() != null;
-            bool roiHit = hit.collider.GetComponent<Sphere>() != null;
-            Vector3 hitPoint = hit.point - transform.position;
-
-            if (siteHit)
+            if (raycastResult == Data.Enums.RaycastHitResult.Site)
             {
                 m_ColumnManager.SelectedColumn.Sites[hit.collider.gameObject.GetComponent<Site>().Information.GlobalID].IsSelected = true;
             }
             else
             {
-                if (SceneInformation.IsROICreationModeEnabled)
+                m_ColumnManager.SelectedColumn.UnselectSite();
+            }
+
+            if (raycastResult == Data.Enums.RaycastHitResult.Mesh)
+            {
+                if (m_TriEraser.IsEnabled && m_TriEraser.IsClickAvailable)
                 {
-                    ROI selectedROI = m_ColumnManager.SelectedColumn.SelectedROI;
-                    if (selectedROI)
-                    {
-                        if (roiHit)
-                        {
-                            if (m_ColumnManager.SelectedColumn.SelectedROI.CheckCollision(ray))
-                            {
-                                int bubbleID = m_ColumnManager.SelectedColumn.SelectedROI.CollidedClosestBubbleID(ray);
-                                selectedROI.SelectSphere(bubbleID);
-                            }
-                        }
-                        else if (meshHit || cutHit)
-                        {
-                            selectedROI.AddBubble(m_ColumnManager.SelectedColumn.Layer, "Bubble", hitPoint, 5.0f);
-                            SceneInformation.AreSitesUpdated = false;
-                        }
-                        else
-                        {
-                            selectedROI.SelectSphere(-1);
-                        }
-                    }
-                }
-                else
-                {
-                    if (meshHit)
-                    {
-                        if (m_TriEraser.IsEnabled && m_TriEraser.IsClickAvailable)
-                        {
-                            m_TriEraser.EraseTriangles(ray.direction, hitPoint);
-                            UpdateMeshesFromDLL();
-                        }
-                    }
+                    m_TriEraser.EraseTriangles(ray.direction, hitPoint);
+                    UpdateMeshesFromDLL();
                 }
             }
 
-            if (!siteHit)
+            if (SceneInformation.IsROICreationModeEnabled)
             {
-                m_ColumnManager.SelectedColumn.UnselectSite();
+                ROI selectedROI = m_ColumnManager.SelectedColumn.SelectedROI;
+                if (selectedROI)
+                {
+                    if (raycastResult == Data.Enums.RaycastHitResult.ROI)
+                    {
+                        if (m_ColumnManager.SelectedColumn.SelectedROI.CheckCollision(ray))
+                        {
+                            int bubbleID = m_ColumnManager.SelectedColumn.SelectedROI.CollidedClosestBubbleID(ray);
+                            selectedROI.SelectSphere(bubbleID);
+                        }
+                    }
+                    else if (raycastResult == Data.Enums.RaycastHitResult.Mesh || raycastResult == Data.Enums.RaycastHitResult.Cut)
+                    {
+                        selectedROI.AddBubble(m_ColumnManager.SelectedColumn.Layer, "Bubble", hitPoint, 5.0f);
+                        SceneInformation.AreSitesUpdated = false;
+                    }
+                    else
+                    {
+                        selectedROI.SelectSphere(-1);
+                    }
+                }
             }
         }
         #endregion
