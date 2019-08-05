@@ -8,7 +8,7 @@ using Tools.Unity;
 namespace HBP.Data.Anatomy
 {
     [DataContract]
-    public class Implantation : ICloneable, ICopiable
+    public class Implantation : ICloneable, ICopiable, IIdentifiable
     {
         #region Properties
         const string HEADER = "ptsfile";
@@ -16,6 +16,7 @@ namespace HBP.Data.Anatomy
         public const string BIDS_EXTENSION = ".tsv";
         public const string MARS_ATLAS_EXTENSION = ".csv";
         public enum Error { None, PathIsNullOrEmpty, FileNotFound, WrongExtension, CannotReadFile, WrongFormat, CannotReadAllSites };
+        [DataMember] public string ID { get; set; }
         [DataMember] public string Name { get; set; }
         [DataMember(Name = "File")] string m_File;
         public string File
@@ -44,7 +45,7 @@ namespace HBP.Data.Anatomy
         }
         public string SavedMarsAtlas { get { return m_MarsAtlas; } }
         [IgnoreDataMember] public List<Site> Sites { get; set; }
-        [IgnoreDataMember] public Brain Brain { get; set; }
+        [IgnoreDataMember] public Patient Patient { get; set; }
         protected bool m_WasUsable;
         public bool WasUsable
         {
@@ -79,13 +80,17 @@ namespace HBP.Data.Anatomy
         #endregion
 
         #region Constructor
-        public Implantation(string name, string path, string marsAtlas)
+        public Implantation(string name, string path, string marsAtlas, string id)
         {
             Name = name;
             File = path;
             MarsAtlas = marsAtlas;
             Sites = new List<Site>();
+            ID = id;
             RecalculateUsable();
+        }
+        public Implantation(string name, string path, string marsAtlas) : this(name, path, marsAtlas, Guid.NewGuid().ToString())
+        {
         }
         public Implantation() : this("New implantation", string.Empty, string.Empty)
         {
@@ -165,7 +170,7 @@ namespace HBP.Data.Anatomy
             foreach (var line in lines)
             {
                 Site site;
-                if (Site.ReadLine(line,Brain.Patient, out site))
+                if (Site.ReadLine(line,Patient, out site))
                 {
                     ok &= true;
                     (sites as List<Site>).Add(site);
@@ -180,15 +185,54 @@ namespace HBP.Data.Anatomy
         #endregion
 
         #region Operators
+        public override bool Equals(object obj)
+        {
+            Implantation implantation = obj as Implantation;
+            if (implantation != null && implantation.ID == ID)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        public override int GetHashCode()
+        {
+            return this.ID.GetHashCode();
+        }
+        public static bool operator ==(Implantation a, Implantation b)
+        {
+            if (ReferenceEquals(a, b))
+            {
+                return true;
+            }
+
+            if (((object)a == null) || ((object)b == null))
+            {
+                return false;
+            }
+
+            return a.Equals(b);
+        }
+        public static bool operator !=(Implantation a, Implantation b)
+        {
+            return !(a == b);
+        }
+        public virtual void GenerateNewIDs()
+        {
+            ID = Guid.NewGuid().ToString();
+        }
         public object Clone()
         {
-            return new Implantation(Name, File, MarsAtlas);
+            return new Implantation(Name, File, MarsAtlas, ID);
         }
         public void Copy(object copy)
         {
             Implantation implantation = copy as Implantation;
             Name = implantation.Name;
             File = implantation.File;
+            ID = implantation.ID;
             MarsAtlas = implantation.MarsAtlas;
             RecalculateUsable();
         }

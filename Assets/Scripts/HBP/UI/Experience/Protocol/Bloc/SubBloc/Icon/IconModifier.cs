@@ -12,13 +12,27 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] RangeSlider m_WindowSlider;
         [SerializeField] ImageSelector m_ImageSelector;
 
+        Tools.CSharp.Window m_Window;
+        public Tools.CSharp.Window Window
+        {
+            get
+            {
+                return m_Window;
+            }
+            set
+            {
+                m_Window = value;
+                m_WindowSlider.minLimit = m_Window.Start;
+                m_WindowSlider.maxLimit = m_Window.End;
+            }
+        }
+
         public override bool Interactable
         {
             get
             {
                 return base.Interactable;
             }
-
             set
             {
                 base.Interactable = value;
@@ -28,27 +42,36 @@ namespace HBP.UI.Experience.Protocol
             }
         }
         #endregion
+
+        #region Protected Methods
         protected override void Initialize()
         {
             base.Initialize();
-            m_NameInputField.onValueChanged.AddListener((name) => ItemTemp.Name = name);
-            m_WindowSlider.onValueChanged.AddListener((min,max) => ItemTemp.Window = new Tools.CSharp.Window((int) min, (int) max));
-            m_ImageSelector.onValueChanged.AddListener(() => ItemTemp.IllustrationPath = m_ImageSelector.Path);
+            m_NameInputField.onValueChanged.AddListener(OnChangeName);
+            m_WindowSlider.onValueChanged.AddListener(OnChangeWindow);
+            m_ImageSelector.onValueChanged.AddListener(OnChangeImage);
         }
         protected override void SetFields(d.Icon objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
-
-            Data.Preferences.ProtocolPreferences preferences = ApplicationState.UserPreferences.Data.Protocol;
-
-            m_WindowSlider.minLimit = preferences.MinLimit;
-            m_WindowSlider.maxLimit = preferences.MaxLimit;
-            m_WindowSlider.step = preferences.Step;
-
-            m_WindowSlider.minValue = objectToDisplay.Window.Start;
-            m_WindowSlider.maxValue = objectToDisplay.Window.End;
-
+            m_WindowSlider.minLimit = ApplicationState.UserPreferences.Data.Protocol.MinLimit;
+            m_WindowSlider.maxLimit = ApplicationState.UserPreferences.Data.Protocol.MaxLimit;
+            m_WindowSlider.step = ApplicationState.UserPreferences.Data.Protocol.Step;
+            m_WindowSlider.Values = objectToDisplay.Window.ToVector2();
             m_ImageSelector.Path = objectToDisplay.IllustrationPath;
         }
+        void OnChangeName(string name)
+        {
+            ItemTemp.Name = name;
+        }
+        void OnChangeWindow(float min, float max)
+        {
+            ItemTemp.Window = new Tools.CSharp.Window((int)min, (int)max);
+        }
+        void OnChangeImage(string path)
+        {
+            ItemTemp.IllustrationPath = path;
+        }
+        #endregion
     }
 }

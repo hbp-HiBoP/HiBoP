@@ -13,6 +13,19 @@ namespace HBP.Data.Experience.Protocol
         [DataMember] public float Max { get; set; }
         #endregion
 
+        #region Constructors
+        public RescaleTreatment() : base()
+        {
+
+        }
+        public RescaleTreatment(Window window, float min, float max, int order, string id) : base(window, order, id)
+        {
+            Min = min;
+            Max = max;
+        }
+        #endregion
+
+        #region Public Methods
         public override float[] Apply(float[] values, int mainEventIndex, Frequency frequency)
         {
             int startIndex = mainEventIndex - frequency.ConvertToCeiledNumberOfSamples(Window.Start);
@@ -29,5 +42,20 @@ namespace HBP.Data.Experience.Protocol
             }
             return values;
         }
+        #endregion
+
+        #region Operators
+        public override object Clone()
+        {
+            return new RescaleTreatment(Window, Min, Max, Order, ID);
+        }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+            RescaleTreatment treatment = copy as RescaleTreatment;
+            Min = treatment.Min;
+            Max = treatment.Max;
+        }
+        #endregion
     }
 }

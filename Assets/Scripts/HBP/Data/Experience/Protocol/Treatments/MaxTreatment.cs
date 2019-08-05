@@ -8,6 +8,17 @@ namespace HBP.Data.Experience.Protocol
     [DataContract, DisplayName("Max")]
     public class MaxTreatment : Treatment
     {
+        #region Constructors
+        public MaxTreatment() : base()
+        {
+
+        }
+        public MaxTreatment(Window window, int order, string id) : base(window, order, id)
+        {
+        }
+        #endregion
+
+        #region Public Methods
         public override float[] Apply(float[] values, int mainEventIndex, Frequency frequency)
         {
             int startIndex = mainEventIndex - frequency.ConvertToCeiledNumberOfSamples(Window.Start);
@@ -23,5 +34,13 @@ namespace HBP.Data.Experience.Protocol
             }
             return values;
         }
+        #endregion
+
+        #region Operators
+        public override object Clone()
+        {
+            return new MaxTreatment(Window, Order, ID);
+        }
+        #endregion
     }
 }

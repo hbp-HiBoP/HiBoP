@@ -23,8 +23,8 @@ namespace HBP.UI.Experience.Protocol
                 base.Interactable = value;
                 m_UseMinClampToggle.interactable = value;
                 m_UseMaxClampToggle.interactable = value;
-                m_MinValueInputField.interactable = value && base.Object.UseMinClamp;
-                m_MaxValueInputField.interactable = value && base.Object.UseMaxClamp;
+                m_MinValueInputField.interactable = value && m_UseMinClampToggle.isOn;
+                m_MaxValueInputField.interactable = value && m_UseMaxClampToggle.isOn;
             }
         }
 

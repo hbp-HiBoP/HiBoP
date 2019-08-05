@@ -15,6 +15,21 @@ namespace HBP.Data.Experience.Protocol
         [DataMember] public float Max { get; set; }
         #endregion
 
+        #region Constructors
+        public TresholdTreatment(): base()
+        {
+
+        }
+        public TresholdTreatment(Window window, bool useMinTreshold, float min, bool useMaxTreshold, float max, int order, string id) : base(window, order, id)
+        {
+            UseMinTreshold = useMinTreshold;
+            Min = min;
+            UseMaxTreshold = useMaxTreshold;
+            Max = max;
+        }
+        #endregion
+
+        #region Public Methods
         public override float[] Apply(float[] values, int mainEventIndex, Frequency frequency)
         {
             int startIndex = mainEventIndex - frequency.ConvertToCeiledNumberOfSamples(Window.Start);
@@ -44,5 +59,22 @@ namespace HBP.Data.Experience.Protocol
             }
             return values;
         }
+        #endregion
+
+        #region Operators
+        public override object Clone()
+        {
+            return new TresholdTreatment(Window, UseMinTreshold, Min, UseMaxTreshold, Max, Order, ID);
+        }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+            TresholdTreatment treatment = copy as TresholdTreatment;
+            UseMinTreshold = treatment.UseMinTreshold;
+            Min = treatment.Min;
+            UseMaxTreshold = treatment.UseMaxTreshold;
+            Max = treatment.Max;
+        }
+        #endregion
     }
 }

@@ -85,7 +85,7 @@ namespace HBP.UI.Experience.Dataset
                     OpenModifier(item, Interactable);
                     break;
                 case Data.Enums.CreationType.FromExistingItem:
-                    OpenSelector();
+                    OpenSelector(Objects.ToArray());
                     break;
                 case Data.Enums.CreationType.FromFile:
                     if (LoadFromFile(out item))

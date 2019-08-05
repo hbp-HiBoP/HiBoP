@@ -1972,7 +1972,7 @@ namespace HBP.Module3D
             float totalTime = 0, loadingMeshProgress = 0, loadingMeshTime = 0, loadingMRIProgress = 0, loadingMRITime = 0, loadingImplantationsProgress = 0, loadingImplantationsTime = 0, loadingMNIProgress = 0, loadingMNITime = 0, loadingIEEGProgress = 0, loadingIEEGTime = 0;
             if (Type == Data.Enums.SceneType.SinglePatient)
             {
-                totalTime = Patients[0].Brain.Meshes.Count * LOADING_MESH_WEIGHT + Patients[0].Brain.MRIs.Count * LOADING_MRI_WEIGHT + usableImplantations.Count * LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + LOADING_IEEG_WEIGHT;
+                totalTime = Patients[0].Meshes.Count * LOADING_MESH_WEIGHT + Patients[0].MRIs.Count * LOADING_MRI_WEIGHT + usableImplantations.Count * LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + LOADING_IEEG_WEIGHT;
                 loadingMeshProgress = LOADING_MESH_WEIGHT / totalTime;
                 loadingMeshTime = LOADING_MESH_WEIGHT / 1000.0f;
                 loadingMRIProgress = LOADING_MRI_WEIGHT / totalTime;
@@ -2022,11 +2022,11 @@ namespace HBP.Module3D
             // Loading Meshes
             if (Type == Data.Enums.SceneType.SinglePatient)
             {
-                for (int i = 0; i < Patients[0].Brain.Meshes.Count; ++i)
+                for (int i = 0; i < Patients[0].Meshes.Count; ++i)
                 {
-                    Data.Anatomy.Mesh mesh = Patients[0].Brain.Meshes[i];
+                    Data.Anatomy.Mesh mesh = Patients[0].Meshes[i];
                     progress += loadingMeshProgress;
-                    onChangeProgress.Invoke(progress, loadingMeshTime, new LoadingText("Loading Mesh ", mesh.Name, " [" + (i + 1).ToString() + "/" + Patients[0].Brain.Meshes.Count + "]"));
+                    onChangeProgress.Invoke(progress, loadingMeshTime, new LoadingText("Loading Mesh ", mesh.Name, " [" + (i + 1).ToString() + "/" + Patients[0].Meshes.Count + "]"));
                     yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainSurface(mesh, e => exception = e));
                 }
                 if (exception != null)
@@ -2060,11 +2060,11 @@ namespace HBP.Module3D
             // Loading MRIs
             if (Type == Data.Enums.SceneType.SinglePatient)
             {
-                for (int i = 0; i < Patients[0].Brain.MRIs.Count; ++i)
+                for (int i = 0; i < Patients[0].MRIs.Count; ++i)
                 {
-                    Data.Anatomy.MRI mri = Patients[0].Brain.MRIs[i];
+                    Data.Anatomy.MRI mri = Patients[0].MRIs[i];
                     progress += loadingMRIProgress;
-                    onChangeProgress.Invoke(progress, loadingMRITime, new LoadingText("Loading MRI ", mri.Name, " [" + (i + 1).ToString() + "/" + Patients[0].Brain.MRIs.Count + "]"));
+                    onChangeProgress.Invoke(progress, loadingMRITime, new LoadingText("Loading MRI ", mri.Name, " [" + (i + 1).ToString() + "/" + Patients[0].MRIs.Count + "]"));
                     yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainVolume(mri, e => exception = e));
                 }
                 if (exception != null)
@@ -2229,8 +2229,8 @@ namespace HBP.Module3D
                 string implantationName = commonImplantations[i];
                 try
                 {
-                    IEnumerable<string> ptsFiles = (from patient in patients select patient.Brain.Implantations.Find((imp) => imp.Name == implantationName).File);
-                    IEnumerable<string> marsAtlasFiles = (from patient in patients select patient.Brain.Implantations.Find((imp) => imp.Name == implantationName).MarsAtlas);
+                    IEnumerable<string> ptsFiles = (from patient in patients select patient.Implantations.Find((imp) => imp.Name == implantationName).File);
+                    IEnumerable<string> marsAtlasFiles = (from patient in patients select patient.Implantations.Find((imp) => imp.Name == implantationName).MarsAtlas);
                     IEnumerable<string> patientIDs = (from patient in patients select patient.ID);
 
                     Implantation3D implantation3D = new Implantation3D(implantationName, ptsFiles, marsAtlasFiles, patientIDs);

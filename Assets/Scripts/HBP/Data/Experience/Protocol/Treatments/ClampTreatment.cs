@@ -15,6 +15,21 @@ namespace HBP.Data.Experience.Protocol
         [DataMember] public float Max { get; set; }
         #endregion
 
+        #region Constructors
+        public ClampTreatment() : base()
+        {
+
+        }
+        public ClampTreatment(Window window, bool useMinClamp, float min , bool useMaxClamp, float max, int order, string id) : base(window, order, id)
+        {
+            UseMinClamp = useMinClamp;
+            UseMaxClamp = useMaxClamp;
+            Min = min;
+            Max = max;
+        }
+        #endregion
+
+        #region Public Methods
         public override float[] Apply(float[] values, int mainEventIndex, Frequency frequency)
         {
             int startIndex = mainEventIndex - frequency.ConvertToCeiledNumberOfSamples(Window.Start);
@@ -51,5 +66,22 @@ namespace HBP.Data.Experience.Protocol
             }
             return values;
         }
+        #endregion
+
+        #region Operators
+        public override object Clone()
+        {
+            return new ClampTreatment(Window, UseMinClamp, Min, UseMaxClamp, Max, Order, ID);
+        }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+            ClampTreatment treatment = copy as ClampTreatment;
+            UseMinClamp = treatment.UseMinClamp;
+            Min = treatment.Min;
+            UseMaxClamp = treatment.UseMaxClamp;
+            Max = treatment.Max;
+        }
+        #endregion
     }
 }

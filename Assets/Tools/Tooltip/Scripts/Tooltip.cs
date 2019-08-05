@@ -23,6 +23,19 @@ namespace Tools.Unity
             }
         }
 
+        [SerializeField] Sprite m_Image = null;
+        public Sprite Image
+        {
+            get
+            {
+                return m_Image;
+            }
+            set
+            {
+                m_Image = value;
+            }
+        }
+
         [SerializeField]
         private bool m_FollowMouse;
         public bool FollowMouse
@@ -44,7 +57,7 @@ namespace Tools.Unity
                 m_TimeSinceEntered += Time.deltaTime;
                 if ((m_TimeSinceEntered > TooltipManager.TIME_TO_DISPLAY || (ApplicationState.TooltipManager.TooltipHasBeenDisplayedRecently && m_TimeSinceEntered > TooltipManager.TIME_TO_DISPLAY/3)) && !ApplicationState.TooltipManager.IsTooltipDisplayed)
                 {
-                    ApplicationState.TooltipManager.ShowTooltip(m_Text, m_FollowMouse);
+                    ApplicationState.TooltipManager.ShowTooltip(m_Text, m_Image, m_FollowMouse);
                 }
                 if (Input.GetAxis("Mouse X") !=0 && Input.GetAxis("Mouse Y") != 0)
                 {

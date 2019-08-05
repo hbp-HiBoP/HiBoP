@@ -98,17 +98,19 @@ namespace Tools.Unity.Components
         protected virtual void OpenCreatorWindow()
         {
             CreatorWindow creatorWindow = ApplicationState.WindowsManager.Open<CreatorWindow>("Creator window", true);
-            creatorWindow.IsLoadable = typeof(T).GetInterfaces().Contains(typeof(ILoadable));
+            creatorWindow.IsLoadableFromFile = typeof(T).GetInterfaces().Contains(typeof(ILoadable));
+            creatorWindow.IsLoadableFromDatabase = typeof(T).GetInterfaces().Contains(typeof(ILoadableFromDatabase<T>));
             creatorWindow.OnSave.AddListener(() => OnSaveCreator(creatorWindow));
         }
-        protected virtual void OpenSelector()
+        protected virtual void OpenSelector(T[] objects, bool multiSelection = false, bool openSelected = true)
         {
             ObjectSelector<T> selector = ApplicationState.WindowsManager.OpenSelector<T>();
             SubWindows.Add(selector);
             selector.OnClose.AddListener(() => OnCloseSubWindow(selector));
             selector.OnSave.AddListener(() => OnSaveSelector(selector));
-            selector.Objects = Objects.ToArray();
-            selector.MultiSelection = false;
+            selector.Objects = objects;
+            selector.MultiSelection = multiSelection;
+            selector.OpenModifierWhenSave = openSelected;
             OnOpenSavableWindow.Invoke(selector);
             SubWindows.Add(selector);
         }
@@ -148,28 +150,41 @@ namespace Tools.Unity.Components
                     OpenModifier(item, Interactable);
                     break;
                 case HBP.Data.Enums.CreationType.FromExistingItem:
-                    OpenSelector();
+                    OpenSelector(Objects.ToArray());
                     break;
                 case HBP.Data.Enums.CreationType.FromFile:
-                    if(LoadFromFile(out item))
+                    if (LoadFromFile(out item))
                     {
                         OpenModifier(item, Interactable);
                     }
+                    break;
+                case HBP.Data.Enums.CreationType.FromDatabase:
+                    LoadFromDatabase(out T[] items);
+                    OpenSelector(items, true, false);
                     break;
             }
         }
         protected virtual void OnSaveSelector(ObjectSelector<T> selector)
         {
-            T selectedItem = selector.ObjectsSelected.FirstOrDefault();
-            T cloneItem = (T) selectedItem.Clone();
-            if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
+            foreach(var selectedItem in selector.ObjectsSelected)
             {
-                IIdentifiable identifiable = cloneItem as IIdentifiable;
-                identifiable.GenerateNewIDs();
-            }
-            if (cloneItem != null)
-            {
-                OpenModifier(cloneItem, true);
+                T cloneItem = (T)selectedItem.Clone();
+                if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
+                {
+                    IIdentifiable identifiable = cloneItem as IIdentifiable;
+                    identifiable.GenerateNewIDs();
+                }
+                if (cloneItem != null)
+                {
+                    if(selector.OpenModifierWhenSave)
+                    {
+                        OpenModifier(cloneItem, true);
+                    }
+                    else
+                    {
+                        Add(cloneItem);
+                    }
+                }
             }
             OnCloseSavableWindow.Invoke(selector);
             SubWindows.Remove(selector);
@@ -187,6 +202,7 @@ namespace Tools.Unity.Components
                     IIdentifiable identifiable = result as IIdentifiable;
                     if (identifiable.ID == "xxxxxxxxxxxxxxxxxxxxxxxxx" || Objects.Any(p => (p as IIdentifiable).ID == identifiable.ID))
                     {
+
                         identifiable.ID = Guid.NewGuid().ToString();
                     }
                 }
@@ -194,6 +210,16 @@ namespace Tools.Unity.Components
             }
             return false;
         }
+        protected virtual bool LoadFromDatabase(out T[] results)
+        {
+            string path = FileBrowser.GetExistingDirectoryName();
+            ILoadableFromDatabase<T> loadable = new T() as ILoadableFromDatabase<T>;
+            loadable.LoadFromDatabase(path);
+            results = loadable.LoadFromDatabase(path);
+            if (results.Length > 0) return true;
+            else return false;
+        }
+
         protected virtual void UpdateCounter()
         {
             if(Counter != null)

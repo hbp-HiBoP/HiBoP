@@ -8,10 +8,11 @@ using Tools.Unity;
 namespace HBP.Data.Anatomy
 {
     [DataContract]
-    public class MRI : ICloneable, ICopiable
+    public class MRI : ICloneable, ICopiable, IIdentifiable
     {
         #region Properties
         public const string EXTENSION = ".nii";
+        [DataMember] public string ID { get; set; }
         [DataMember] public string Name { get; set; }
         [DataMember(Name = "File")] string m_File;
         public string File
@@ -53,13 +54,18 @@ namespace HBP.Data.Anatomy
         #endregion
 
         #region Constructor
-        public MRI(string name, string path)
+        public MRI(string name, string path, string id)
         {
             Name = name;
             File = path;
+            ID = id;
             RecalculateUsable();
         }
-        public MRI() : this("New MRI", string.Empty) { }
+        public MRI(string name, string path) : this(name, path, Guid.NewGuid().ToString())
+        {
+
+        }
+        public MRI() : this("New MRI", string.Empty, Guid.NewGuid().ToString()) { }
         #endregion
 
         #region Public Methods
@@ -106,15 +112,75 @@ namespace HBP.Data.Anatomy
         #endregion
 
         #region Operators
+        /// <summary>
+        /// Operator Equals.
+        /// </summary>
+        /// <param name="obj">Object to test.</param>
+        /// <returns>\a True if equals and \a false otherwise.</returns>
+        public override bool Equals(object obj)
+        {
+            MRI mri = obj as MRI;
+            if (mri != null && mri.ID == ID)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        /// <summary>
+        /// Get hash code.
+        /// </summary>
+        /// <returns>HashCode.</returns>
+        public override int GetHashCode()
+        {
+            return this.ID.GetHashCode();
+        }
+        /// <summary>
+        /// Operator equals.
+        /// </summary>
+        /// <param name="a">First mesh to compare.</param>
+        /// <param name="b">Second mesh to compare.</param>
+        /// <returns>\a True if equals and \a false otherwise.</returns>
+        public static bool operator ==(MRI a, MRI b)
+        {
+            if (ReferenceEquals(a, b))
+            {
+                return true;
+            }
+
+            if (((object)a == null) || ((object)b == null))
+            {
+                return false;
+            }
+
+            return a.Equals(b);
+        }
+        /// <summary>
+        /// Operator not equals.
+        /// </summary>
+        /// <param name="a">First mesh to compare.</param>
+        /// <param name="b">Second mesh to compare.</param>
+        /// <returns>\a True if not equals and \a false otherwise.</returns>
+        public static bool operator !=(MRI a, MRI b)
+        {
+            return !(a == b);
+        }
+        public virtual void GenerateNewIDs()
+        {
+            ID = Guid.NewGuid().ToString();
+        }
         public object Clone()
         {
-            return new MRI(Name, File);
+            return new MRI(Name, File, ID);
         }
         public void Copy(object copy)
         {
             MRI mri = copy as MRI;
             Name = mri.Name;
             File = mri.File;
+            ID = mri.ID;
             RecalculateUsable();
         }
         #endregion

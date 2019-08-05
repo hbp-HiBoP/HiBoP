@@ -12,6 +12,7 @@ namespace HBP.Data.Anatomy
     {
         #region Properties
         public const string EXTENSION = ".gii";
+        public const string TRANSFORMATION_EXTENSION = ".trm";
         [DataMember(Order = 0)] public string Name { get; set; }
         [DataMember] public string ID { get; set; }
         protected bool m_WasUsable;
@@ -37,7 +38,7 @@ namespace HBP.Data.Anatomy
         {
             get
             {
-                return !string.IsNullOrEmpty(Transformation) && File.Exists(Transformation) && (new FileInfo(Transformation).Extension == Anatomy.Transformation.EXTENSION || new FileInfo(Transformation).Extension == ".txt");
+                return !string.IsNullOrEmpty(Transformation) && File.Exists(Transformation) && (new FileInfo(Transformation).Extension == TRANSFORMATION_EXTENSION || new FileInfo(Transformation).Extension == ".txt");
             }
         }
         [DataMember(Order = 5, Name = "Transformation")] protected string m_Transformation;

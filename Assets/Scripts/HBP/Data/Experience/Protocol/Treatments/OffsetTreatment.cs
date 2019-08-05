@@ -12,6 +12,18 @@ namespace HBP.Data.Experience.Protocol
         [DataMember] public float Offset { get; set; }
         #endregion
 
+        #region Constructors
+        public OffsetTreatment() : base()
+        {
+
+        }
+        public OffsetTreatment(Window window, float offset, int order, string id) : base(window, order, id)
+        {
+            Offset = offset;
+        }
+        #endregion
+
+        #region Public Methods
         public override float[] Apply(float[] values, int mainEventIndex, Frequency frequency)
         {
             int startIndex = mainEventIndex - frequency.ConvertToCeiledNumberOfSamples(Window.Start);
@@ -22,5 +34,19 @@ namespace HBP.Data.Experience.Protocol
             }
             return values;
         }
+        #endregion
+
+        #region Operators
+        public override object Clone()
+        {
+            return new OffsetTreatment(Window, Offset, Order, ID);
+        }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+            OffsetTreatment treatment = copy as OffsetTreatment;
+            Offset = treatment.Offset;
+        }
+        #endregion
     }
 }

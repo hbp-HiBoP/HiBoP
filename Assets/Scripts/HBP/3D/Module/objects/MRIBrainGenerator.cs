@@ -4,7 +4,7 @@
  * \file    TexturesGenerator.cs
  * \author  Lance Florian
  * \date    2015
- * \brief   Define UITextureGenerator and DLL.BrainTextureGenerator classes
+ * \brief   Define UITextureGenerator and DLLTextureGenerator classes
  */
 
 // system

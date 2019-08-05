@@ -22,8 +22,8 @@ namespace HBP.UI.Experience.Protocol
                 base.Interactable = value;
                 m_UseMinTresholdToggle.interactable = value;
                 m_UseMaxTresholdToggle.interactable = value;
-                m_MinValueInputField.interactable = value && base.Object.UseMinTreshold;
-                m_MaxValueInputField.interactable = value && base.Object.UseMaxTreshold;
+                m_MinValueInputField.interactable = value && m_UseMinTresholdToggle.isOn;
+                m_MaxValueInputField.interactable = value && m_UseMaxTresholdToggle.isOn;
             }
         }
 

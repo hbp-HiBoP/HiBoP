@@ -819,10 +819,10 @@ namespace HBP.Data.General
                     yield return Ninja.JumpBack;
 
                     DirectoryInfo patientDirectory = Directory.CreateDirectory(Path.Combine(patientsDirectory.FullName, patient.ID));
-                    if (patient.Brain.Meshes.Count > 0)
+                    if (patient.Meshes.Count > 0)
                     {
                         DirectoryInfo meshesDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "Meshes"));
-                        foreach (var mesh in patient.Brain.Meshes)
+                        foreach (var mesh in patient.Meshes)
                         {
                             if (mesh is Anatomy.SingleMesh)
                             {
@@ -841,27 +841,27 @@ namespace HBP.Data.General
                             mesh.Transformation = mesh.Transformation.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
                         }
                     }
-                    if (patient.Brain.MRIs.Count > 0)
+                    if (patient.MRIs.Count > 0)
                     {
                         DirectoryInfo mriDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "MRIs"));
-                        foreach (var mri in patient.Brain.MRIs)
+                        foreach (var mri in patient.MRIs)
                         {
                             mri.File = mri.File.CopyToDirectory(mriDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
                         }
                     }
-                    if (patient.Brain.Implantations.Count > 0)
+                    if (patient.Implantations.Count > 0)
                     {
                         DirectoryInfo implantationsDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "Implantations"));
-                        foreach (var implantation in patient.Brain.Implantations)
+                        foreach (var implantation in patient.Implantations)
                         {
                             implantation.File = implantation.File.CopyToDirectory(implantationsDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
                             implantation.MarsAtlas = implantation.MarsAtlas.CopyToDirectory(implantationsDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
                         }
                     }
-                    if (patient.Brain.Connectivities.Count > 0)
+                    if (patient.Connectivities.Count > 0)
                     {
                         DirectoryInfo connectivitiesDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "Connectivities"));
-                        foreach (var connectivity in patient.Brain.Connectivities)
+                        foreach (var connectivity in patient.Connectivities)
                         {
                             connectivity.File = connectivity.File.CopyToDirectory(connectivitiesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
                         }

@@ -9,6 +9,7 @@ namespace HBP.Data.Experience.Protocol
     [DataContract, DisplayName("Absolute")]
     public class AbsTreatment : Treatment
     {
+        #region Public Methods
         public override float[] Apply(float[] values, int mainEventIndex, Frequency frequency)
         {
             int startIndex = mainEventIndex - frequency.ConvertToCeiledNumberOfSamples(Window.Start);
@@ -19,5 +20,24 @@ namespace HBP.Data.Experience.Protocol
             }
             return values;
         }
+        #endregion
+
+        #region Constructors
+        public AbsTreatment() : base()
+        {
+
+        }
+        public AbsTreatment(Window window, int order, string id) : base(window, order, id)
+        {
+
+        }
+        #endregion
+
+        #region Operators
+        public override object Clone()
+        {
+            return new AbsTreatment(Window, Order, ID);
+        }
+        #endregion
     }
 }

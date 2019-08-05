@@ -2,7 +2,7 @@
   "General": {
     "Project": {
       "DefaultName": "New project",
-      "DefaultLocation": "D:\\HBPProjects",
+      "DefaultLocation": "D:\\Programmation\\Travail\\Data\\Projects",
       "DefaultPatientDatabase": "Y:\\BrainVisaDB\\Epilepsy",
       "DefaultLocalizerDatabase": "Y:\\LOCA_DATABASE",
       "DefaultExportLocation": "D:/ScreenShot"
@@ -11,7 +11,7 @@
     "Localization": {},
     "System": {
       "MultiThreading": true,
-      "MemoryCacheLimit": 32659
+      "MemoryCacheLimit": 16345
     }
   },
   "Data": {

@@ -53,7 +53,7 @@ namespace HBP.UI.Experience.Dataset
                 {
                     m_BrainVisionDataContainerTemp = value as container.BrainVision;
                 }
-                m_ContainerTypeDropdown.value = Array.IndexOf(m_Types, m_Object.GetType());
+                m_ContainerTypeDropdown.SetValue(Array.IndexOf(m_Types, m_Object.GetType()));
             }
         }
 
@@ -67,7 +67,7 @@ namespace HBP.UI.Experience.Dataset
             set
             {
                 m_DataAttribute = value;
-                m_Types = m_ContainerTypeDropdown.Set(typeof(container.DataContainer));
+                m_Types = m_ContainerTypeDropdown.Set(typeof(container.DataContainer), m_DataAttribute);
             }
         }
 

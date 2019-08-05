@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using HBP.Data.Experience.Protocol;
+using Tools.Unity;
 
 namespace HBP.UI.Experience.Protocol
 {
@@ -16,6 +17,7 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] Text m_EndText;
 
         [SerializeField] Image m_ImageIcon;
+        [SerializeField] Tooltip m_ImageTooltip;
 
         public override Icon Object
         {
@@ -34,6 +36,7 @@ namespace HBP.UI.Experience.Protocol
                 m_EndText.text = value.Window.End.ToString();
 
                 m_ImageIcon.sprite = value.Image;
+                m_ImageTooltip.Image = value.Image;
             }
         }
         #endregion

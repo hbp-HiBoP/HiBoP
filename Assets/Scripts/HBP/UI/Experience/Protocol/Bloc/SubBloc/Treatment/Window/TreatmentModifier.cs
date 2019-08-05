@@ -13,6 +13,21 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] InputField m_OrderInputField;
         [SerializeField] Dropdown m_TypeDropdown;
 
+        Tools.CSharp.Window m_Window;
+        public Tools.CSharp.Window Window
+        {
+            get
+            {
+                return m_Window;
+            }
+            set
+            {
+                m_Window = value;
+                m_WindowSlider.minLimit = m_Window.Start;
+                m_WindowSlider.maxLimit = m_Window.End;
+            }
+        }
+
         d.ClampTreatment m_ClampTreatmentTemp = new d.ClampTreatment();
         d.AbsTreatment m_AbsTreatmentTemp = new d.AbsTreatment();
         d.MaxTreatment m_MaxTreatmentTemp = new d.MaxTreatment();
@@ -63,11 +78,22 @@ namespace HBP.UI.Experience.Protocol
 
         #endregion
 
+        #region Public Methods
+        public override void Save()
+        {
+            Item = ItemTemp;
+            OnSave.Invoke();
+            base.Close();
+        }
+        #endregion
+
         #region Private Methods
         protected override void Initialize()
         {
-            //m_OrderInputField.onEndEdit.AddListener((value) => ItemTemp.Order = int.Parse(value));
-            //m_WindowSlider.onValueChanged.AddListener((min, max) => ItemTemp.Window = new Tools.CSharp.Window(Mathf.RoundToInt(min), Mathf.RoundToInt(max)));
+            base.Initialize();
+
+            m_OrderInputField.onEndEdit.AddListener(OnChangeOrder);
+            m_WindowSlider.onValueChanged.AddListener(OnChangeWindow);
             m_TypeDropdown.onValueChanged.AddListener(OnChangeType);
             m_Types = m_TypeDropdown.Set(typeof(d.Treatment));
 
@@ -81,21 +107,16 @@ namespace HBP.UI.Experience.Protocol
             m_RescaleTreatmentSubModifier.Initialize();
             m_TresholdTreatmentSubModifier.Initialize();
 
-            base.Initialize();
         }
         protected override void SetFields(d.Treatment objectToDisplay)
         {
             m_OrderInputField.text = objectToDisplay.Order.ToString();
             m_TypeDropdown.SetValue(Array.IndexOf(m_Types, objectToDisplay.GetType()));
-
-            //ProtocolPreferences preferences = ApplicationState.UserPreferences.Data.Protocol;
-            //m_WindowSlider.minLimit = preferences.MinLimit;
-            //m_WindowSlider.maxLimit = preferences.MaxLimit;
-            //m_WindowSlider.step = preferences.Step;
-
+            m_WindowSlider.minLimit = ApplicationState.UserPreferences.Data.Protocol.MinLimit;
+            m_WindowSlider.maxLimit = ApplicationState.UserPreferences.Data.Protocol.MaxLimit;
+            m_WindowSlider.step = ApplicationState.UserPreferences.Data.Protocol.Step;
             m_WindowSlider.Values = objectToDisplay.Window.ToVector2();
         }
-
         void OnChangeType(int value)
         {
             Type type = m_Types[value];
@@ -460,7 +481,16 @@ namespace HBP.UI.Experience.Protocol
                 m_TresholdTreatmentSubModifier.IsActive = true;
                 itemTemp = m_TresholdTreatmentTemp;
             }
-            #endregion
+            Debug.Log(itemTemp.GetType());
         }
+        void OnChangeWindow(float min, float max)
+        {
+            ItemTemp.Window = new Tools.CSharp.Window(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
+        }
+        void OnChangeOrder(string order)
+        {
+            ItemTemp.Order = int.Parse(order);
+        }
+        #endregion
     }
 }

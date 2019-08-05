@@ -9,6 +9,17 @@ namespace HBP.Data.Experience.Protocol
     [DataContract, DisplayName("Median")]
     public class MedianTreatment : Treatment
     {
+        #region Constructors
+        public MedianTreatment() : base()
+        {
+
+        }
+        public MedianTreatment(Window window, int order, string id) : base(window, order, id)
+        {
+        }
+        #endregion
+
+        #region Public Methods
         public override float[] Apply(float[] values, int mainEventIndex, Frequency frequency)
         {
             int startIndex = mainEventIndex - frequency.ConvertToCeiledNumberOfSamples(Window.Start);
@@ -19,5 +30,13 @@ namespace HBP.Data.Experience.Protocol
             for (int i = startIndex; i <= endIndex; i++) values[i] = mean;
             return values;
         }
+        #endregion
+
+        #region Operators
+        public override object Clone()
+        {
+            return new MedianTreatment(Window, Order, ID);
+        }
+        #endregion
     }
 }
