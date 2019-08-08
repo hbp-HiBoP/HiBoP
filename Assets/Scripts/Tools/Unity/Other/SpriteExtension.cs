@@ -25,19 +25,19 @@ namespace Tools.Unity
         public static bool LoadTexture2DFromFile(out Texture2D texture, string path)
         {
             texture = new Texture2D(0, 0);
-            if (!string.IsNullOrEmpty(path))
-            {
-                FileInfo fileInfo = new FileInfo(path);
-                if (fileInfo.Exists && (EXTENSIONS.Contains(fileInfo.Extension.Substring(1))))
-                {
-                    byte[] bytes = File.ReadAllBytes(path);
-                    Image image = Image.FromFile(path);
-                    texture = new Texture2D(image.Width, image.Height);
-                    image.Dispose();
-                    return texture.LoadImage(bytes);
-                }
-                else return false;
-            }
+            //if (!string.IsNullOrEmpty(path))
+            //{
+            //    FileInfo fileInfo = new FileInfo(path);
+            //    if (fileInfo.Exists && (EXTENSIONS.Contains(fileInfo.Extension.Substring(1))))
+            //    {
+            //        byte[] bytes = File.ReadAllBytes(path);
+            //        Image image = Image.FromFile(path);
+            //        texture = new Texture2D(image.Width, image.Height);
+            //        image.Dispose();
+            //        return texture.LoadImage(bytes);
+            //    }
+            //    else return false;
+            //}
             return false;
         }
 

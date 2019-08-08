@@ -105,7 +105,7 @@ namespace HBP.UI.Experience.Dataset
             }
             else
             {
-                List.UpdateObject(modifier.Item);
+                UpdateItem(modifier.Item);
                 OnUpdateDataInfo.Invoke(modifier.Item);
             }
             OnCloseSavableWindow.Invoke(modifier);

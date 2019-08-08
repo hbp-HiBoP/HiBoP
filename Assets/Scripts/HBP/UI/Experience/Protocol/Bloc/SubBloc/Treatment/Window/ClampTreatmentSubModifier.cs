@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Experience.Protocol
@@ -49,10 +48,31 @@ namespace HBP.UI.Experience.Protocol
         public override void Initialize()
         {
             base.Initialize();
-            m_UseMinClampToggle.onValueChanged.AddListener((value) => Object.UseMinClamp = value);
-            m_UseMaxClampToggle.onValueChanged.AddListener((value) => Object.UseMaxClamp = value);
-            m_MinValueInputField.onValueChanged.AddListener((value) => Object.Min = float.Parse(value));
-            m_MaxValueInputField.onValueChanged.AddListener((value) => Object.Max = float.Parse(value));
+            m_UseMinClampToggle.onValueChanged.AddListener(OnChangeUseMinValue);
+            m_UseMaxClampToggle.onValueChanged.AddListener(OnChangeUseMaxValue);
+            m_MinValueInputField.onValueChanged.AddListener(OnChangeMinValue);
+            m_MaxValueInputField.onValueChanged.AddListener(OnChangeMaxValue);
+        }
+        #endregion
+
+        #region Private Methods
+        void OnChangeMinValue(string value)
+        {
+            if (float.TryParse(value, out float result)) Object.Min = result;   
+        }
+        void OnChangeMaxValue(string value)
+        {
+            if (float.TryParse(value, out float result)) Object.Max = result;
+        }
+        void OnChangeUseMinValue(bool value)
+        {
+            Object.UseMinClamp = value;
+            m_MinValueInputField.interactable = value;
+        }
+        void OnChangeUseMaxValue(bool value)
+        {
+            Object.UseMaxClamp = value;
+            m_MaxValueInputField.interactable = value;
         }
         #endregion
     }

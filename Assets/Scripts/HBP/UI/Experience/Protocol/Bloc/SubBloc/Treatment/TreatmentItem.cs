@@ -8,7 +8,10 @@ namespace HBP.UI.Experience.Protocol
     {
         #region Properties
         [SerializeField] Text m_TypeText;
-        [SerializeField] Text m_WindowText;
+
+        [SerializeField] Text m_StartWindowText;
+        [SerializeField] Text m_EndWindowText;
+
         [SerializeField] Text m_OrderText;
 
         public override d.Treatment Object
@@ -21,7 +24,9 @@ namespace HBP.UI.Experience.Protocol
             {
                 base.Object = value;
 
-                m_WindowText.text = string.Format("{0}ms to {1}ms", value.Window.Start, value.Window.End);
+                m_StartWindowText.text = value.Window.Start.ToString() + "ms";
+                m_EndWindowText.text = value.Window.End.ToString() + "ms";
+
                 m_OrderText.text = value.Order.ToString();
                 m_TypeText.text = value.GetType().Name;
             }

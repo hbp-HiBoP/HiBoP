@@ -48,10 +48,31 @@ namespace HBP.UI.Experience.Protocol
         public override void Initialize()
         {
             base.Initialize();
-            m_UseMinTresholdToggle.onValueChanged.AddListener((value) => Object.UseMinTreshold = value);
-            m_UseMaxTresholdToggle.onValueChanged.AddListener((value) => Object.UseMaxTreshold = value);
-            m_MinValueInputField.onValueChanged.AddListener((value) => Object.Min = float.Parse(value));
-            m_MaxValueInputField.onValueChanged.AddListener((value) => Object.Max = float.Parse(value));
+            m_UseMinTresholdToggle.onValueChanged.AddListener(OnChangeUseMinValue);
+            m_UseMaxTresholdToggle.onValueChanged.AddListener(OnChangeUseMaxValue);
+            m_MinValueInputField.onValueChanged.AddListener(OnChangeMinValue);
+            m_MaxValueInputField.onValueChanged.AddListener(OnChangeMaxValue);
+        }
+        #endregion
+
+        #region Private Methods
+        void OnChangeMinValue(string value)
+        {
+            if (float.TryParse(value, out float result)) Object.Min = result;
+        }
+        void OnChangeMaxValue(string value)
+        {
+            if (float.TryParse(value, out float result)) Object.Max = result;
+        }
+        void OnChangeUseMinValue(bool value)
+        {
+            Object.UseMinTreshold = value;
+            m_MinValueInputField.interactable = value;
+        }
+        void OnChangeUseMaxValue(bool value)
+        {
+            Object.UseMaxTreshold = value;
+            m_MaxValueInputField.interactable = value;
         }
         #endregion
     }

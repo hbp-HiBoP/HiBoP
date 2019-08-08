@@ -42,8 +42,19 @@ namespace HBP.UI.Experience.Protocol
         public override void Initialize()
         {
             base.Initialize();
-            m_MinInputField.onValueChanged.AddListener((value) => Object.Min = float.Parse(value));
-            m_MaxInputField.onValueChanged.AddListener((value) => Object.Max = float.Parse(value));
+            m_MinInputField.onValueChanged.AddListener(OnChangeMinValue);
+            m_MaxInputField.onValueChanged.AddListener(OnChangeMaxValue);
+        }
+        #endregion
+
+        #region Private Methods
+        protected void OnChangeMinValue(string value)
+        {
+            if (float.TryParse(value, out float result)) Object.Min = result;
+        }
+        protected void OnChangeMaxValue(string value)
+        {
+            if (float.TryParse(value, out float result)) Object.Max = result;
         }
         #endregion
     }

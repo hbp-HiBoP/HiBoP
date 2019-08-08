@@ -81,6 +81,7 @@ namespace HBP.UI.Experience.Protocol
         #region Public Methods
         public override void Save()
         {
+            ItemTemp.ID = Item.ID;
             Item = ItemTemp;
             OnSave.Invoke();
             base.Close();
@@ -110,6 +111,16 @@ namespace HBP.UI.Experience.Protocol
         }
         protected override void SetFields(d.Treatment objectToDisplay)
         {
+            if (itemTemp is d.ClampTreatment clampTreatment) m_ClampTreatmentTemp = clampTreatment;
+            else if (itemTemp is d.AbsTreatment absTreatment) m_AbsTreatmentTemp = absTreatment;
+            else if (itemTemp is d.MaxTreatment maxTreatment) m_MaxTreatmentTemp = maxTreatment;
+            else if (itemTemp is d.MinTreatment minTreatment) m_MinTreatmentTemp = minTreatment;
+            else if (itemTemp is d.MeanTreatment meanTreatment) m_MeanTreatmentTemp = meanTreatment;
+            else if (itemTemp is d.MedianTreatment medianTreatment) m_MedianTreatmentTemp = medianTreatment;
+            else if (itemTemp is d.OffsetTreatment offsetTreatment) m_OffsetTreatmentTemp = offsetTreatment;
+            else if (itemTemp is d.RescaleTreatment rescaleTreatment) m_RescaleTreatmentTemp = rescaleTreatment;
+            else if (itemTemp is d.TresholdTreatment tresholdTreatment) m_TresholdTreatmentTemp = tresholdTreatment;
+
             m_OrderInputField.text = objectToDisplay.Order.ToString();
             m_TypeDropdown.SetValue(Array.IndexOf(m_Types, objectToDisplay.GetType()));
             m_WindowSlider.minLimit = ApplicationState.UserPreferences.Data.Protocol.MinLimit;
@@ -161,6 +172,8 @@ namespace HBP.UI.Experience.Protocol
                     m_TresholdTreatmentSubModifier.IsActive = false;
                 }
 
+                m_ClampTreatmentTemp.Window = itemTemp.Window;
+                m_ClampTreatmentTemp.Order = itemTemp.Order;
                 m_ClampTreatmentSubModifier.Object = m_ClampTreatmentTemp;
                 m_ClampTreatmentSubModifier.IsActive = true;
                 itemTemp = m_ClampTreatmentTemp;
@@ -200,6 +213,8 @@ namespace HBP.UI.Experience.Protocol
                     m_TresholdTreatmentSubModifier.IsActive = false;
                 }
 
+                m_AbsTreatmentTemp.Window = itemTemp.Window;
+                m_AbsTreatmentTemp.Order = itemTemp.Order;
                 m_AbsTreatmentSubModifier.Object = m_AbsTreatmentTemp;
                 m_AbsTreatmentSubModifier.IsActive = true;
                 itemTemp = m_AbsTreatmentTemp;
@@ -239,6 +254,8 @@ namespace HBP.UI.Experience.Protocol
                     m_TresholdTreatmentSubModifier.IsActive = false;
                 }
 
+                m_MaxTreatmentTemp.Window = itemTemp.Window;
+                m_MaxTreatmentTemp.Order = itemTemp.Order;
                 m_MaxTreatmentSubModifier.Object = m_MaxTreatmentTemp;
                 m_MaxTreatmentSubModifier.IsActive = true;
                 itemTemp = m_MaxTreatmentTemp;
@@ -278,6 +295,8 @@ namespace HBP.UI.Experience.Protocol
                     m_TresholdTreatmentSubModifier.IsActive = false;
                 }
 
+                m_MinTreatmentTemp.Window = itemTemp.Window;
+                m_MinTreatmentTemp.Order = itemTemp.Order;
                 m_MinTreatmentSubModifier.Object = m_MinTreatmentTemp;
                 m_MinTreatmentSubModifier.IsActive = true;
                 itemTemp = m_MinTreatmentTemp;
@@ -317,6 +336,8 @@ namespace HBP.UI.Experience.Protocol
                     m_TresholdTreatmentSubModifier.IsActive = false;
                 }
 
+                m_MeanTreatmentTemp.Window = itemTemp.Window;
+                m_MeanTreatmentTemp.Order = itemTemp.Order;
                 m_MeanTreatmentSubModifier.Object = m_MeanTreatmentTemp;
                 m_MeanTreatmentSubModifier.IsActive = true;
                 itemTemp = m_MeanTreatmentTemp;
@@ -356,6 +377,8 @@ namespace HBP.UI.Experience.Protocol
                     m_TresholdTreatmentSubModifier.IsActive = false;
                 }
 
+                m_MedianTreatmentTemp.Window = itemTemp.Window;
+                m_MedianTreatmentTemp.Order = itemTemp.Order;
                 m_MedianTreatmentSubModifier.Object = m_MedianTreatmentTemp;
                 m_MedianTreatmentSubModifier.IsActive = true;
                 itemTemp = m_MedianTreatmentTemp;
@@ -395,6 +418,8 @@ namespace HBP.UI.Experience.Protocol
                     m_TresholdTreatmentSubModifier.IsActive = false;
                 }
 
+                m_OffsetTreatmentTemp.Window = itemTemp.Window;
+                m_OffsetTreatmentTemp.Order = itemTemp.Order;
                 m_OffsetTreatmentSubModifier.Object = m_OffsetTreatmentTemp;
                 m_OffsetTreatmentSubModifier.IsActive = true;
                 itemTemp = m_OffsetTreatmentTemp;
@@ -434,6 +459,8 @@ namespace HBP.UI.Experience.Protocol
                     m_TresholdTreatmentSubModifier.IsActive = false;
                 }
 
+                m_RescaleTreatmentTemp.Window = itemTemp.Window;
+                m_RescaleTreatmentTemp.Order = itemTemp.Order;
                 m_RescaleTreatmentSubModifier.Object = m_RescaleTreatmentTemp;
                 m_RescaleTreatmentSubModifier.IsActive = true;
                 itemTemp = m_RescaleTreatmentTemp;
@@ -477,11 +504,12 @@ namespace HBP.UI.Experience.Protocol
                     m_RescaleTreatmentSubModifier.IsActive = false;
                 }
 
+                m_TresholdTreatmentTemp.Window = itemTemp.Window;
+                m_TresholdTreatmentTemp.Order = itemTemp.Order;
                 m_TresholdTreatmentSubModifier.Object = m_TresholdTreatmentTemp;
                 m_TresholdTreatmentSubModifier.IsActive = true;
                 itemTemp = m_TresholdTreatmentTemp;
             }
-            Debug.Log(itemTemp.GetType());
         }
         void OnChangeWindow(float min, float max)
         {

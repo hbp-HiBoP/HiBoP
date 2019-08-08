@@ -32,8 +32,8 @@ namespace HBP.UI.Experience.Protocol
 
                 m_NameText.text = value.Name;
 
-                m_StartText.text = value.Window.Start.ToString();
-                m_EndText.text = value.Window.End.ToString();
+                m_StartText.text = value.Window.Start.ToString() + "ms";
+                m_EndText.text = value.Window.End.ToString() + "ms";
 
                 m_ImageIcon.sprite = value.Image;
                 m_ImageTooltip.Image = value.Image;

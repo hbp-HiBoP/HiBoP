@@ -1,6 +1,5 @@
 ﻿using UnityEngine.UI;
 using HBP.Data.Anatomy;
-using System;
 using Tools.Unity;
 using UnityEngine;
 
