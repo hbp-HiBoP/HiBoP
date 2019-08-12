@@ -28,7 +28,7 @@ namespace HBP.Data.Experience.Protocol
         #region Public Methods
         public override float[] Apply(float[] values, int mainEventIndex, Frequency frequency)
         {
-            int startIndex = mainEventIndex - frequency.ConvertToCeiledNumberOfSamples(Window.Start);
+            int startIndex = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
             int endIndex = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
             float min = float.MaxValue, max = float.MinValue;
             for (int i = startIndex; i <= endIndex; i++)
@@ -36,9 +36,10 @@ namespace HBP.Data.Experience.Protocol
                 if (values[i] > max) max = values[i];
                 if (values[i] < min) min = values[i];
             }
+            float ratio = (Max - Min) / (max - min);
             for (int i = startIndex; i <= endIndex; i++)
             {
-                values[i] = ((Max - Min) / (max - min)) * (values[i] - min) + Min;  
+                values[i] = ratio * (values[i] - min) + Min;  
             }
             return values;
         }

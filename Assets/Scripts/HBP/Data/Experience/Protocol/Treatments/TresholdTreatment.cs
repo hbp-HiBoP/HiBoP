@@ -32,7 +32,7 @@ namespace HBP.Data.Experience.Protocol
         #region Public Methods
         public override float[] Apply(float[] values, int mainEventIndex, Frequency frequency)
         {
-            int startIndex = mainEventIndex - frequency.ConvertToCeiledNumberOfSamples(Window.Start);
+            int startIndex = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
             int endIndex = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
             if(UseMinTreshold && !UseMaxTreshold)
             {
