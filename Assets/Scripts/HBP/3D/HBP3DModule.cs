@@ -204,7 +204,7 @@ namespace HBP.Module3D
                 dataDirectory = Application.dataPath + "/Data/";
             #endif
             MarsAtlasIndex = new DLL.MarsAtlasIndex(dataDirectory + "Atlases/MarsAtlas/mars_atlas_index.csv");
-            JuBrainAtlas = new DLL.JuBrainAtlas(dataDirectory + "Atlases/JuBrain/jubrain_left.nii.gz", dataDirectory + "Atlases/JuBrain/jubrain_right.nii.gz", dataDirectory + "Atlases/JuBrain/jubrain.json");
+            JuBrainAtlas = new DLL.JuBrainAtlas(dataDirectory + "Atlases/JuBrain/jubrain_left_nlin2Stdcolin27.nii.gz", dataDirectory + "Atlases/JuBrain/jubrain_right_nlin2Stdcolin27.nii.gz", dataDirectory + "Atlases/JuBrain/jubrain.json");
         }
         void OnDestroy()
         {

@@ -59,8 +59,8 @@ namespace HBP.Module3D.IBC
         {
             yield return Ninja.JumpToUnity;
 
-            string directory = ApplicationState.DataPath + "IBC/";
-            string csvFile = ApplicationState.DataPath + "IBC/map_labels.csv";
+            string directory = ApplicationState.DataPath + "Atlases/IBC/";
+            string csvFile = ApplicationState.DataPath + "Atlases/IBC/map_labels.csv";
             string[] files = Directory.GetFiles(directory, "*.nii.gz");
 
             yield return Ninja.JumpBack;
