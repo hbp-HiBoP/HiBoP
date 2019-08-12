@@ -9,7 +9,10 @@ namespace HBP.UI.Experience.Protocol
     public class TreatmentModifier : ItemModifier<d.Treatment>
     {
         #region Properties
+        [SerializeField] Toggle m_WindowToggle;
         [SerializeField] RangeSlider m_WindowSlider;
+        [SerializeField] Toggle m_BaselineToggle;
+        [SerializeField] RangeSlider m_BaselineSlider;
         [SerializeField] InputField m_OrderInputField;
         [SerializeField] Dropdown m_TypeDropdown;
 
@@ -25,6 +28,21 @@ namespace HBP.UI.Experience.Protocol
                 m_Window = value;
                 m_WindowSlider.minLimit = m_Window.Start;
                 m_WindowSlider.maxLimit = m_Window.End;
+            }
+        }
+
+        Tools.CSharp.Window m_Baseline;
+        public Tools.CSharp.Window Baseline
+        {
+            get
+            {
+                return m_Baseline;
+            }
+            set
+            {
+                m_Baseline = value;
+                m_BaselineSlider.minLimit = m_Baseline.Start;
+                m_BaselineSlider.maxLimit = m_Baseline.End;
             }
         }
 
@@ -60,7 +78,12 @@ namespace HBP.UI.Experience.Protocol
             {
                 base.Interactable = value;
 
-                m_WindowSlider.interactable = value;
+                m_WindowToggle.interactable = value;
+                m_WindowSlider.interactable = value && m_WindowToggle.isOn;
+
+                m_BaselineToggle.interactable = value;
+                m_BaselineSlider.interactable = value && m_BaselineToggle.isOn;
+
                 m_OrderInputField.interactable = value;
                 m_TypeDropdown.interactable = value;
 
@@ -94,7 +117,13 @@ namespace HBP.UI.Experience.Protocol
             base.Initialize();
 
             m_OrderInputField.onEndEdit.AddListener(OnChangeOrder);
+
+            m_WindowToggle.onValueChanged.AddListener(OnChangeUseOnWindow);
             m_WindowSlider.onValueChanged.AddListener(OnChangeWindow);
+
+            m_BaselineToggle.onValueChanged.AddListener(OnChangeUseOnBaseline);
+            m_BaselineSlider.onValueChanged.AddListener(OnChangeBaseline);
+
             m_TypeDropdown.onValueChanged.AddListener(OnChangeType);
             m_Types = m_TypeDropdown.Set(typeof(d.Treatment));
 
@@ -123,10 +152,18 @@ namespace HBP.UI.Experience.Protocol
 
             m_OrderInputField.text = objectToDisplay.Order.ToString();
             m_TypeDropdown.SetValue(Array.IndexOf(m_Types, objectToDisplay.GetType()));
+
+            m_WindowToggle.isOn = objectToDisplay.UseOnWindow;
             m_WindowSlider.minLimit = ApplicationState.UserPreferences.Data.Protocol.MinLimit;
             m_WindowSlider.maxLimit = ApplicationState.UserPreferences.Data.Protocol.MaxLimit;
             m_WindowSlider.step = ApplicationState.UserPreferences.Data.Protocol.Step;
             m_WindowSlider.Values = objectToDisplay.Window.ToVector2();
+
+            m_BaselineToggle.isOn = objectToDisplay.UseOnBaseline;
+            m_BaselineSlider.minLimit = ApplicationState.UserPreferences.Data.Protocol.MinLimit;
+            m_BaselineSlider.maxLimit = ApplicationState.UserPreferences.Data.Protocol.MaxLimit;
+            m_BaselineSlider.step = ApplicationState.UserPreferences.Data.Protocol.Step;
+            m_BaselineSlider.Values = objectToDisplay.Baseline.ToVector2();
         }
         void OnChangeType(int value)
         {
@@ -159,8 +196,8 @@ namespace HBP.UI.Experience.Protocol
                 }
                 else if (itemTemp is d.RescaleTreatment rescaleTreatment)
                 {
-                    m_ClampTreatmentTemp.Min = rescaleTreatment.Min;
-                    m_ClampTreatmentTemp.Max = rescaleTreatment.Max;
+                    m_ClampTreatmentTemp.Min = rescaleTreatment.AfterMin;
+                    m_ClampTreatmentTemp.Max = rescaleTreatment.AfterMax;
                     m_RescaleTreatmentSubModifier.IsActive = false;
                 }
                 else if (itemTemp is d.TresholdTreatment tresholdTreatment)
@@ -514,6 +551,20 @@ namespace HBP.UI.Experience.Protocol
         void OnChangeWindow(float min, float max)
         {
             ItemTemp.Window = new Tools.CSharp.Window(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
+        }
+        void OnChangeBaseline(float min, float max)
+        {
+            ItemTemp.Baseline = new Tools.CSharp.Window(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
+        }
+        void OnChangeUseOnWindow(bool value)
+        {
+            ItemTemp.UseOnWindow = value;
+            m_WindowSlider.interactable = Interactable && value;
+        }
+        void OnChangeUseOnBaseline(bool value)
+        {
+            ItemTemp.UseOnBaseline = value;
+            m_BaselineSlider.interactable = Interactable && value;
         }
         void OnChangeOrder(string order)
         {

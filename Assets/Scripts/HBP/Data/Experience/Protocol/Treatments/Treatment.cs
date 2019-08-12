@@ -20,16 +20,24 @@ namespace HBP.Data.Experience.Protocol
         #region Properties
         [DataMember] public string ID { get; set; }
         [DataMember] public int Order { get; set; }
+        [DataMember] public bool UseOnWindow { get; set; }
         [DataMember] public Window Window { get; set; }
+        [DataMember] public bool UseOnBaseline { get; set; }
+        [DataMember] public Window Baseline { get; set; }
         #endregion
 
         #region Constructors
-        public Treatment() : this(new Window(), 0, Guid.NewGuid().ToString())
+        public Treatment() : this(true, new Window(), false, new Window(), 0, Guid.NewGuid().ToString())
         {
         }
-        public Treatment(Window window, int order, string id)
+        public Treatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, int order, string id)
         {
+            UseOnWindow = useOnWindow;
             Window = window;
+
+            UseOnBaseline = useOnBaseline;
+            Baseline = baseline;
+
             Order = order;
             ID = id;
         }
@@ -93,12 +101,15 @@ namespace HBP.Data.Experience.Protocol
         }
         public virtual object Clone()
         {
-            return new Treatment(Window, Order, ID);
+            return new Treatment(UseOnWindow, Window, UseOnBaseline, Baseline, Order, ID);
         }
         public virtual void Copy(object copy)
         {
             Treatment treatment = copy as Treatment;
+            UseOnWindow = treatment.UseOnWindow;
             Window = treatment.Window;
+            UseOnBaseline = treatment.UseOnBaseline;
+            Baseline = treatment.Baseline;
             Order = treatment.Order;
             ID = treatment.ID;
         }

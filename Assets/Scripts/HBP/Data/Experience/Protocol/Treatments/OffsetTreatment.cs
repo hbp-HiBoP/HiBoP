@@ -17,7 +17,7 @@ namespace HBP.Data.Experience.Protocol
         {
 
         }
-        public OffsetTreatment(Window window, float offset, int order, string id) : base(window, order, id)
+        public OffsetTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, float offset, int order, string id) : base(useOnWindow, window, useOnBaseline, baseline, order, id)
         {
             Offset = offset;
         }
@@ -39,7 +39,7 @@ namespace HBP.Data.Experience.Protocol
         #region Operators
         public override object Clone()
         {
-            return new OffsetTreatment(Window, Offset, Order, ID);
+            return new OffsetTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, Offset, Order, ID);
         }
         public override void Copy(object copy)
         {

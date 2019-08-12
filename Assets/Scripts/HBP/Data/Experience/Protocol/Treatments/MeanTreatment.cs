@@ -14,7 +14,7 @@ namespace HBP.Data.Experience.Protocol
         {
 
         }
-        public MeanTreatment(Window window, int order, string id) : base(window, order, id)
+        public MeanTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, int order, string id) : base(useOnWindow, window, useOnBaseline, baseline, order, id)
         {
         }
         #endregion
@@ -35,7 +35,7 @@ namespace HBP.Data.Experience.Protocol
         #region Operators
         public override object Clone()
         {
-            return new MeanTreatment(Window, Order, ID);
+            return new MeanTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, Order, ID);
         }
         #endregion
     }

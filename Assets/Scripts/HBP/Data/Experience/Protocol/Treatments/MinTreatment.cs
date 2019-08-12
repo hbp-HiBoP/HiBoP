@@ -13,7 +13,7 @@ namespace HBP.Data.Experience.Protocol
         {
 
         }
-        public MinTreatment(Window window, int order, string id) : base(window, order, id)
+        public MinTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, int order, string id) : base(useOnWindow, window, useOnBaseline, baseline, order, id)
         {
         }
         #endregion
@@ -39,7 +39,7 @@ namespace HBP.Data.Experience.Protocol
         #region Operators
         public override object Clone()
         {
-            return new MinTreatment(Window, Order, ID);
+            return new MinTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, Order, ID);
         }
         #endregion
     }

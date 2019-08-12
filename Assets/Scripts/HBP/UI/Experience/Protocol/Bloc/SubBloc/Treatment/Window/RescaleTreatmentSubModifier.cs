@@ -32,8 +32,8 @@ namespace HBP.UI.Experience.Protocol
             set
             {
                 base.Object = value;
-                m_MinInputField.text = value.Min.ToString();
-                m_MaxInputField.text = value.Max.ToString();
+                m_MinInputField.text = value.AfterMin.ToString();
+                m_MaxInputField.text = value.AfterMax.ToString();
             }
         }
         #endregion
@@ -50,11 +50,11 @@ namespace HBP.UI.Experience.Protocol
         #region Private Methods
         protected void OnChangeMinValue(string value)
         {
-            if (float.TryParse(value, out float result)) Object.Min = result;
+            if (float.TryParse(value, out float result)) Object.AfterMin = result;
         }
         protected void OnChangeMaxValue(string value)
         {
-            if (float.TryParse(value, out float result)) Object.Max = result;
+            if (float.TryParse(value, out float result)) Object.AfterMax = result;
         }
         #endregion
     }

@@ -20,7 +20,7 @@ namespace HBP.Data.Experience.Protocol
         {
 
         }
-        public ClampTreatment(Window window, bool useMinClamp, float min , bool useMaxClamp, float max, int order, string id) : base(window, order, id)
+        public ClampTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, bool useMinClamp, float min , bool useMaxClamp, float max, int order, string id) : base(useOnWindow, window, useOnBaseline, baseline, order, id)
         {
             UseMinClamp = useMinClamp;
             UseMaxClamp = useMaxClamp;
@@ -71,7 +71,7 @@ namespace HBP.Data.Experience.Protocol
         #region Operators
         public override object Clone()
         {
-            return new ClampTreatment(Window, UseMinClamp, Min, UseMaxClamp, Max, Order, ID);
+            return new ClampTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, UseMinClamp, Min, UseMaxClamp, Max, Order, ID);
         }
         public override void Copy(object copy)
         {

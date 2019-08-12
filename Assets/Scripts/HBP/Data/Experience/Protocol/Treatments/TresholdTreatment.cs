@@ -20,7 +20,7 @@ namespace HBP.Data.Experience.Protocol
         {
 
         }
-        public TresholdTreatment(Window window, bool useMinTreshold, float min, bool useMaxTreshold, float max, int order, string id) : base(window, order, id)
+        public TresholdTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, bool useMinTreshold, float min, bool useMaxTreshold, float max, int order, string id) : base(useOnWindow, window, useOnBaseline, baseline, order, id)
         {
             UseMinTreshold = useMinTreshold;
             Min = min;
@@ -64,7 +64,7 @@ namespace HBP.Data.Experience.Protocol
         #region Operators
         public override object Clone()
         {
-            return new TresholdTreatment(Window, UseMinTreshold, Min, UseMaxTreshold, Max, Order, ID);
+            return new TresholdTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, UseMinTreshold, Min, UseMaxTreshold, Max, Order, ID);
         }
         public override void Copy(object copy)
         {

@@ -14,7 +14,7 @@ namespace HBP.Data.Experience.Protocol
         {
 
         }
-        public MedianTreatment(Window window, int order, string id) : base(window, order, id)
+        public MedianTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, int order, string id) : base(useOnWindow, window, useOnBaseline, baseline, order, id)
         {
         }
         #endregion
@@ -35,7 +35,7 @@ namespace HBP.Data.Experience.Protocol
         #region Operators
         public override object Clone()
         {
-            return new MedianTreatment(Window, Order, ID);
+            return new MedianTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, Order, ID);
         }
         #endregion
     }

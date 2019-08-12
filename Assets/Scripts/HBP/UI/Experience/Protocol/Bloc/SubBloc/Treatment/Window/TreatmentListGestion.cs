@@ -40,6 +40,23 @@ namespace HBP.UI.Experience.Protocol
                 }
             }
         }
+
+        Tools.CSharp.Window m_Baseline;
+        public Tools.CSharp.Window Baseline
+        {
+            get
+            {
+                return m_Baseline;
+            }
+            set
+            {
+                m_Baseline = value;
+                foreach (var modifier in SubWindows.OfType<TreatmentModifier>())
+                {
+                    modifier.Baseline = value;
+                }
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -76,6 +93,7 @@ namespace HBP.UI.Experience.Protocol
         {
             TreatmentModifier modifier = ApplicationState.WindowsManager.OpenModifier(item, interactable) as TreatmentModifier;
             modifier.Window = Window;
+            modifier.Baseline = Baseline;
             modifier.OnClose.AddListener(() => OnCloseSubWindow(modifier));
             modifier.OnSave.AddListener(() => OnSaveModifier(modifier));
             OnOpenSavableWindow.Invoke(modifier);

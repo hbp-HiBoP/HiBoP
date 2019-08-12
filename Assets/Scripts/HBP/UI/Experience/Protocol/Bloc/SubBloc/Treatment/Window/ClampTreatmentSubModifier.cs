@@ -67,12 +67,12 @@ namespace HBP.UI.Experience.Protocol
         void OnChangeUseMinValue(bool value)
         {
             Object.UseMinClamp = value;
-            m_MinValueInputField.interactable = value;
+            m_MinValueInputField.interactable = Interactable && value;
         }
         void OnChangeUseMaxValue(bool value)
         {
             Object.UseMaxClamp = value;
-            m_MaxValueInputField.interactable = value;
+            m_MaxValueInputField.interactable = Interactable && value;
         }
         #endregion
     }

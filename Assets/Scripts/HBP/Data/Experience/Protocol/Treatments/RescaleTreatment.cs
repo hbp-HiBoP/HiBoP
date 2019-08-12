@@ -9,8 +9,10 @@ namespace HBP.Data.Experience.Protocol
     public class RescaleTreatment : Treatment
     {
         #region Properties
-        [DataMember] public float Min { get; set; }
-        [DataMember] public float Max { get; set; }
+        [DataMember] public float BeforeMin { get; set; }
+        [DataMember] public float BeforeMax { get; set; }
+        [DataMember] public float AfterMin { get; set; }
+        [DataMember] public float AfterMax { get; set; }
         #endregion
 
         #region Constructors
@@ -18,10 +20,12 @@ namespace HBP.Data.Experience.Protocol
         {
 
         }
-        public RescaleTreatment(Window window, float min, float max, int order, string id) : base(window, order, id)
+        public RescaleTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, float beforeMin, float beforeMax, float afterMin, float afterMax, int order, string id) : base(useOnWindow, window, useOnBaseline, baseline, order, id)
         {
-            Min = min;
-            Max = max;
+            BeforeMin = beforeMin;
+            BeforeMax = beforeMax;
+            AfterMin = afterMin;
+            AfterMax = afterMax;
         }
         #endregion
 
@@ -30,16 +34,10 @@ namespace HBP.Data.Experience.Protocol
         {
             int startIndex = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
             int endIndex = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
-            float min = float.MaxValue, max = float.MinValue;
+            float ratio = (AfterMax - AfterMin) / (BeforeMax - BeforeMin);
             for (int i = startIndex; i <= endIndex; i++)
             {
-                if (values[i] > max) max = values[i];
-                if (values[i] < min) min = values[i];
-            }
-            float ratio = (Max - Min) / (max - min);
-            for (int i = startIndex; i <= endIndex; i++)
-            {
-                values[i] = ratio * (values[i] - min) + Min;  
+                values[i] = ratio * (values[i] - BeforeMin) + AfterMin;  
             }
             return values;
         }
@@ -48,14 +46,16 @@ namespace HBP.Data.Experience.Protocol
         #region Operators
         public override object Clone()
         {
-            return new RescaleTreatment(Window, Min, Max, Order, ID);
+            return new RescaleTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, BeforeMin, BeforeMax, AfterMin, AfterMax, Order, ID);
         }
         public override void Copy(object copy)
         {
             base.Copy(copy);
             RescaleTreatment treatment = copy as RescaleTreatment;
-            Min = treatment.Min;
-            Max = treatment.Max;
+            BeforeMin = treatment.BeforeMin;
+            BeforeMax = treatment.BeforeMax;
+            AfterMin = treatment.AfterMin;
+            AfterMax = treatment.AfterMax;
         }
         #endregion
     }
