@@ -33,6 +33,7 @@ namespace HBP.Data.Enums
     public enum CutOrientation { Axial = 0, Coronal = 1, Sagital = 2, Custom = 3 } // Same as above
     public enum SiteInformationDisplayMode { Anatomy, IEEG, CCEP, IEEGCCEP, Light }
     public enum MeshPart { Left, Right, Both, None };
+    public enum MeshType { Patient, MNI }
     public enum TriEraserMode { OneTri, Cylinder, Zone, Invert, Expand };
     public enum SiteNavigationDirection { Left, Right }
     public enum SiteType { Normal, Positive, Negative, Source, NotASource, BlackListed, NonePos, NoneNeg };

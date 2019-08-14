@@ -8,7 +8,7 @@
 		_ColorTex("Color map (RGB)", 2D) = "white" {}
 		_Glossiness("Smoothness", Range(0,1)) = 0.5
 		_Metallic("Metallic", Range(0,1)) = 0.0
-		_MarsAtlas("Mars Atlas", int) = 0
+		_Atlas("Atlas", int) = 0
 	}
 
 	SubShader
@@ -21,7 +21,7 @@
 			sampler2D _AoTex;
 			sampler2D _ColorTex;
 
-			int _MarsAtlas;
+			int _Atlas;
 			half _Glossiness;
 			half _Metallic;
 			fixed4 _Color;
@@ -37,10 +37,9 @@
 				float2 uv_MainTex : TEXCOORD0;
 				float2 uv2_AoTex :   TEXCOORD1;
 				float2 uv3_ColorTex :   TEXCOORD2;
-				float3 vertex_col : COLOR;
+				float4 vertex_col : COLOR;
 				float3 worldPos;
 			};
-
 
 			void surf(Input IN, inout SurfaceOutputStandard o)
 			{
@@ -85,9 +84,17 @@
 					color = 1;
 								
 				fixed4 col;	
-				if (_MarsAtlas)
+				if (_Atlas)
 				{
-					o.Albedo = IN.vertex_col.rgb;
+					if (IN.vertex_col.a > 0)
+					{
+						o.Albedo = IN.vertex_col.rgb * _Color;
+					}
+					else
+					{
+						o.Albedo = tex2D(_MainTex, IN.uv_MainTex.xy);
+					}
+					o.Alpha = 1.f;
 				}
 				else
 				{

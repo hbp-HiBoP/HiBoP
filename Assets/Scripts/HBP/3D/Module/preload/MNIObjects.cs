@@ -78,7 +78,7 @@ namespace HBP.Module3D
             leftHemi.ComputeNormals();
             rightHemi.ComputeNormals();
             bothHemi.ComputeNormals();
-            GreyMatter = new LeftRightMesh3D("MNI Grey matter", leftHemi, rightHemi, bothHemi);
+            GreyMatter = new LeftRightMesh3D("MNI Grey matter", leftHemi, rightHemi, bothHemi, Data.Enums.MeshType.MNI);
 
             DLL.Surface leftWhite = new DLL.Surface();
             DLL.Surface rightWhite = new DLL.Surface();
@@ -90,7 +90,7 @@ namespace HBP.Module3D
             leftWhite.ComputeNormals();
             rightWhite.ComputeNormals();
             bothWhite.ComputeNormals();
-            WhiteMatter = new LeftRightMesh3D("MNI White matter", leftWhite, rightWhite, bothWhite);
+            WhiteMatter = new LeftRightMesh3D("MNI White matter", leftWhite, rightWhite, bothWhite, Data.Enums.MeshType.MNI);
 
             DLL.Surface leftWhiteInflated = new DLL.Surface();
             DLL.Surface rightWhiteInflated = new DLL.Surface();
@@ -102,7 +102,7 @@ namespace HBP.Module3D
             leftWhiteInflated.ComputeNormals();
             rightWhiteInflated.ComputeNormals();
             bothWhiteInflated.ComputeNormals();
-            InflatedWhiteMatter = new LeftRightMesh3D("MNI Inflated", leftWhiteInflated, rightWhiteInflated, bothWhiteInflated);
+            InflatedWhiteMatter = new LeftRightMesh3D("MNI Inflated", leftWhiteInflated, rightWhiteInflated, bothWhiteInflated, Data.Enums.MeshType.MNI);
 
             LoadingMutex.ReleaseMutex();
         }

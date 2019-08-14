@@ -286,7 +286,7 @@ namespace HBP.Module3D
             set
             {
                 SceneInformation.MarsAtlasModeEnabled = value;
-                SharedMaterials.Brain.BrainMaterials[this].SetInt("_MarsAtlas", SceneInformation.MarsAtlasModeEnabled ? 1 : 0);
+                SharedMaterials.Brain.BrainMaterials[this].SetInt("_Atlas", SceneInformation.MarsAtlasModeEnabled ? 1 : 0);
             }
         }
 
@@ -410,6 +410,8 @@ namespace HBP.Module3D
             set
             {
                 m_ColumnManager.DisplayAtlas = value;
+                UpdateAtlasColors();
+                SharedMaterials.Brain.BrainMaterials[this].SetInt("_Atlas", m_ColumnManager.DisplayAtlas ? 1 : 0);
                 ResetIEEG();
             }
         }
@@ -424,11 +426,13 @@ namespace HBP.Module3D
                 if (m_ColumnManager.AtlasSelectedArea != value)
                 {
                     m_ColumnManager.AtlasSelectedArea = value;
+                    UpdateAtlasColors();
                     ComputeMRITextures();
                     ComputeGUITextures();
                 }
             }
         }
+        private List<int[]> m_SelectedMeshAtlasIndices = new List<int[]>();
 
         /// <summary>
         /// Site to compare with when using the comparing site feature
@@ -757,6 +761,8 @@ namespace HBP.Module3D
         /// </summary>
         private void ComputeMRITextures()
         {
+            if (SceneInformation.CutsNeedUpdate) return;
+
             foreach (Column3D column in m_ColumnManager.Columns)
             {
                 foreach (Cut cut in Cuts)
@@ -795,6 +801,8 @@ namespace HBP.Module3D
         /// </summary>
         private void ComputeGUITextures()
         {
+            if (SceneInformation.CutsNeedUpdate) return;
+
             Column3D column = m_ColumnManager.SelectedColumn;
             if (column)
             {
@@ -1012,6 +1020,7 @@ namespace HBP.Module3D
             UpdateCuts();
             UpdateGeneratorsAndUV();
             ResetTriangleErasing();
+            UpdateAtlasIndices();
 
             SceneInformation.MeshGeometryNeedsUpdate = false;
         }
@@ -1060,12 +1069,12 @@ namespace HBP.Module3D
         private void UpdateCuts()
         {
             ComputeMeshesCut();
+            SceneInformation.CutsNeedUpdate = false;
 
             ComputeMRITextures();
             ComputeGUITextures();
 
             OnUpdateCuts.Invoke();
-            SceneInformation.CutsNeedUpdate = false;
         }
         /// <summary>
         /// Update the generators for iEEG and the UV of the meshes
@@ -1089,6 +1098,32 @@ namespace HBP.Module3D
             {
                 m_ColumnManager.UVNull.Add(new Vector2[m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.vertexCount]);
                 m_ColumnManager.UVNull[ii].Fill(new Vector2(0.01f, 1f));
+            }
+        }
+        /// <summary>
+        /// Update the indices of all the JuBrain Atlas areas for all vertices
+        /// </summary>
+        private void UpdateAtlasIndices()
+        {
+            m_SelectedMeshAtlasIndices = new List<int[]>();
+            for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
+            {
+                m_SelectedMeshAtlasIndices.Add(ApplicationState.Module3D.JuBrainAtlas.GetSurfaceAreaLabels(m_ColumnManager.SplittedMeshes[ii]));
+            }
+        }
+        /// <summary>
+        /// Update all colors for the atlas
+        /// </summary>
+        private void UpdateAtlasColors()
+        {
+            for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
+            {
+                Color[] colors = ApplicationState.Module3D.JuBrainAtlas.ConvertIndicesToColors(m_SelectedMeshAtlasIndices[ii], SelectedAtlasArea);
+                m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.colors = colors;
+                foreach (Column3D column in m_ColumnManager.Columns)
+                {
+                    column.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().sharedMesh.colors = colors;
+                }
             }
         }
         /// <summary>
@@ -1187,6 +1222,14 @@ namespace HBP.Module3D
             if (IsMarsAtlasEnabled && !m_ColumnManager.SelectedMesh.IsMarsAtlasLoaded)
             {
                 IsMarsAtlasEnabled = false;
+            }
+            if (DisplayJuBrainAtlas && m_ColumnManager.SelectedMesh.Type != Data.Enums.MeshType.MNI)
+            {
+                DisplayJuBrainAtlas = false;
+            }
+            if (m_ColumnManager.FMRIManager.DisplayIBCContrasts && m_ColumnManager.SelectedMesh.Type != Data.Enums.MeshType.MNI)
+            {
+                m_ColumnManager.FMRIManager.DisplayIBCContrasts = false;
             }
             SceneInformation.MeshGeometryNeedsUpdate = true;
             ResetIEEG();
@@ -1848,7 +1891,7 @@ namespace HBP.Module3D
             Data.Enums.RaycastHitResult raycastResult = column.Raycast(ray, layerMask, out RaycastHit hit);
             Vector3 hitPoint = raycastResult != Data.Enums.RaycastHitResult.None ? hit.point - transform.position : Vector3.zero;
 
-            if (raycastResult == Data.Enums.RaycastHitResult.Cut && DisplayJuBrainAtlas)
+            if ((raycastResult == Data.Enums.RaycastHitResult.Cut || raycastResult == Data.Enums.RaycastHitResult.Mesh) && DisplayJuBrainAtlas)
             {
                 SelectedAtlasArea = ApplicationState.Module3D.JuBrainAtlas.GetClosestAreaIndex(hit.point - transform.position);
                 string[] information = ApplicationState.Module3D.JuBrainAtlas.GetInformation(SelectedAtlasArea);
@@ -2176,7 +2219,7 @@ namespace HBP.Module3D
                 {
                     if (mesh is Data.Anatomy.LeftRightMesh)
                     {
-                        LeftRightMesh3D mesh3D = new LeftRightMesh3D((Data.Anatomy.LeftRightMesh)mesh);
+                        LeftRightMesh3D mesh3D = new LeftRightMesh3D((Data.Anatomy.LeftRightMesh)mesh, Data.Enums.MeshType.Patient);
 
                         if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
                         {
@@ -2198,7 +2241,7 @@ namespace HBP.Module3D
                     }
                     else if (mesh is Data.Anatomy.SingleMesh)
                     {
-                        SingleMesh3D mesh3D = new SingleMesh3D((Data.Anatomy.SingleMesh)mesh);
+                        SingleMesh3D mesh3D = new SingleMesh3D((Data.Anatomy.SingleMesh)mesh, Data.Enums.MeshType.Patient);
 
                         if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
                         {

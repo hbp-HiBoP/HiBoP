@@ -36,6 +36,23 @@ namespace HBP.Module3D.DLL
             string result = Marshal.PtrToStringAnsi(get_area_information_JuBrainAtlas(_handle, labelIndex));
             return result.Split(new char[1] { '?' }, StringSplitOptions.None);
         }
+        public int[] GetSurfaceAreaLabels(Surface surface)
+        {
+            int[] result = new int[surface.NumberOfVertices];
+            get_vertices_area_index_JuBrainAtlas(_handle, surface.getHandle(), result);
+            return result;
+        }
+        public Color[] ConvertIndicesToColors(int[] indices, int selectedArea)
+        {
+            Color[] colors = new Color[indices.Length];
+            float[] result = new float[indices.Length * 4];
+            get_colors_from_indices_JuBrainAtlas(_handle, indices, indices.Length, selectedArea, result);
+            for (int i = 0; i < colors.Length; ++i)
+            {
+                colors[i] = new Color(result[4 * i] / 255, result[4 * i + 1] / 255, result[4 * i + 2] / 255, result[4 * i + 3] / 255);
+            }
+            return colors;
+        }
         #endregion
 
         #region Memory Management
@@ -60,6 +77,10 @@ namespace HBP.Module3D.DLL
         static private extern int get_closest_area_index_JuBrainAtlas(HandleRef juBrainAtlas, float x, float y, float z);
         [DllImport("hbp_export", EntryPoint = "get_area_information_JuBrainAtlas", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr get_area_information_JuBrainAtlas(HandleRef juBrainAtlas, int labelIndex);
+        [DllImport("hbp_export", EntryPoint = "get_vertices_area_index_JuBrainAtlas", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void get_vertices_area_index_JuBrainAtlas(HandleRef juBrainAtlas, HandleRef surfaceHandle, int[] indices);
+        [DllImport("hbp_export", EntryPoint = "get_colors_from_indices_JuBrainAtlas", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void get_colors_from_indices_JuBrainAtlas(HandleRef juBrainAtlas, int[] indices, int size, int selectedArea, float[] colors);
         #endregion
     }
 }
