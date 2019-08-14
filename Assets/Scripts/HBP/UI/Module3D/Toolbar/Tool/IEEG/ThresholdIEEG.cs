@@ -31,7 +31,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 Column3DDynamic column = (Column3DDynamic)SelectedColumn;
                 column.DynamicParameters.ResetSpanValues(column);
-                m_ThresholdIEEG.UpdateIEEGValues(((Column3DDynamic)SelectedColumn).DynamicParameters);
+                m_ThresholdIEEG.UpdateIEEGValues(column);
             });
         }
 
@@ -42,7 +42,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isColumnIEEG = SelectedColumn is HBP.Module3D.Column3DIEEG;
+            bool isColumnIEEG = SelectedColumn is Column3DIEEG;
             bool isColumnCCEPAndSourceSelected = SelectedColumn is HBP.Module3D.Column3DCCEP ccepColumn && ccepColumn.IsSourceSelected;
 
             m_Button.interactable = isColumnIEEG || isColumnCCEPAndSourceSelected;
@@ -50,9 +50,9 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateStatus()
         {
-            if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)
+            if (SelectedColumn is Column3DDynamic dynamicColumn)
             {
-                m_ThresholdIEEG.UpdateIEEGValues(dynamicColumn.DynamicParameters);
+                m_ThresholdIEEG.UpdateIEEGValues(dynamicColumn);
             }
         }
         #endregion

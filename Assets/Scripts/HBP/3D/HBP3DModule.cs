@@ -389,16 +389,13 @@ namespace HBP.Module3D
                 try
                 {
                     // Add the listeners
-                    scene.OnChangeSelectedState.AddListener((selected) =>
+                    scene.OnSelect.AddListener(() =>
                     {
-                        if (selected)
+                        foreach (Base3DScene s in m_Scenes)
                         {
-                            foreach (Base3DScene s in m_Scenes)
+                            if (s != scene)
                             {
-                                if (s != scene)
-                                {
-                                    s.IsSelected = false;
-                                }
+                                s.IsSelected = false;
                             }
                         }
                     });

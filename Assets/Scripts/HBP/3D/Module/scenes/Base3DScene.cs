@@ -50,11 +50,10 @@ namespace HBP.Module3D
             }
             set
             {
-                bool wasSelected = m_IsSelected;
                 m_IsSelected = value;
-                OnChangeSelectedState.Invoke(value);
-                if (m_IsSelected && !wasSelected)
+                if (m_IsSelected)
                 {
+                    OnSelect.Invoke();
                     ApplicationState.Module3D.OnSelectScene.Invoke(this);
                 }
             }
@@ -554,7 +553,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when this scene is selected or deselected
         /// </summary>
-        [HideInInspector] public GenericEvent<bool> OnChangeSelectedState = new GenericEvent<bool>();
+        [HideInInspector] public UnityEvent OnSelect = new UnityEvent();
         /// <summary>
         /// Event called when showing or hiding the scene in the UI
         /// </summary>
@@ -708,9 +707,9 @@ namespace HBP.Module3D
                 ResetIEEG(false);
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             });
-            m_ColumnManager.OnChangeSelectedState.AddListener((selected) =>
+            m_ColumnManager.OnSelect.AddListener(() =>
             {
-                IsSelected = selected;
+                IsSelected = true;
                 ComputeGUITextures();
                 OnUpdateCuts.Invoke();
             });

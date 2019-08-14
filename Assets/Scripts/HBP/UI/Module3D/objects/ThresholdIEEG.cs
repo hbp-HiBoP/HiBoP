@@ -104,10 +104,9 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Update IEEG Histogram Texture
         /// </summary>
-        private void UpdateIEEGHistogram()
+        private void UpdateIEEGHistogram(Column3DDynamic column)
         {
             UnityEngine.Profiling.Profiler.BeginSample("IEEG HISTOGRAM");
-            Column3DDynamic column = (Column3DDynamic)ApplicationState.Module3D.SelectedColumn;
             string histogramID = column.name + "_" + (column is Column3DCCEP columnCCEP && columnCCEP.IsSourceSelected ? columnCCEP.SelectedSource.Information.ChannelName : "");
             if (!m_HistogramByColumn.TryGetValue(histogramID, out m_IEEGHistogram))
             {
@@ -309,21 +308,21 @@ namespace HBP.UI.Module3D
         /// Update IEEG values
         /// </summary>
         /// <param name="values">IEEG data values</param>
-        public void UpdateIEEGValues(DynamicDataParameters values)
+        public void UpdateIEEGValues(Column3DDynamic column)
         {
             m_Initialized = false;
 
             // Fixed values
-            m_MinAmplitude = values.MinimumAmplitude;
-            m_MaxAmplitude = values.MaximumAmplitude;
+            m_MinAmplitude = column.DynamicParameters.MinimumAmplitude;
+            m_MaxAmplitude = column.DynamicParameters.MaximumAmplitude;
             m_Amplitude = m_MaxAmplitude - m_MinAmplitude;
             m_MinText.text = m_MinAmplitude.ToString("N2");
             m_MaxText.text = m_MaxAmplitude.ToString("N2");
 
             // Non-fixed values
-            SetValues((values.SpanMin - m_MinAmplitude) / m_Amplitude, (values.Middle - m_MinAmplitude) / m_Amplitude, (values.SpanMax - m_MinAmplitude) / m_Amplitude);
+            SetValues((column.DynamicParameters.SpanMin - m_MinAmplitude) / m_Amplitude, (column.DynamicParameters.Middle - m_MinAmplitude) / m_Amplitude, (column.DynamicParameters.SpanMax - m_MinAmplitude) / m_Amplitude);
 
-            UpdateIEEGHistogram();
+            UpdateIEEGHistogram(column);
 
             m_Initialized = true;
         }

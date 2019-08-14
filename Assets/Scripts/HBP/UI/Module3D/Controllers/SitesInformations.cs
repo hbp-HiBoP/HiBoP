@@ -142,7 +142,7 @@ namespace HBP.UI.Module3D
                 }
             });
             m_Scene.OnUpdateSites.AddListener(UpdateList);
-            m_Scene.ColumnManager.OnSelectColumn.AddListener((c) => UpdateList());
+            m_Scene.OnSelect.AddListener(() => UpdateList());
             m_Scene.OnSitesRenderingUpdated.AddListener(() =>
             {
                 UpdateList();

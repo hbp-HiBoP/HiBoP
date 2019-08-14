@@ -48,9 +48,9 @@ namespace HBP.Module3D
             set
             {
                 m_IsSelected = value;
-                OnChangeSelectedState.Invoke(value);
                 if (m_IsSelected)
                 {
+                    OnSelect.Invoke();
                     ApplicationState.Module3D.OnSelectColumn.Invoke(this);
                 }
             }
@@ -272,7 +272,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when this column is selected
         /// </summary>
-        [HideInInspector] public GenericEvent<bool> OnChangeSelectedState = new GenericEvent<bool>();
+        [HideInInspector] public UnityEvent OnSelect = new UnityEvent();
         /// <summary>
         /// Event called when a view is moved
         /// </summary>
@@ -677,19 +677,16 @@ namespace HBP.Module3D
             view.gameObject.name = "View " + m_Views.Count;
             view.LineID = m_Views.Count;
             view.Layer = Layer;
-            view.OnChangeSelectedState.AddListener((selected) =>
+            view.OnSelect.AddListener(() =>
             {
-                if (selected)
+                foreach (View3D v in m_Views)
                 {
-                    foreach (View3D v in m_Views)
+                    if (v != view)
                     {
-                        if (v != view)
-                        {
-                            v.IsSelected = false;
-                        }
+                        v.IsSelected = false;
                     }
                 }
-                IsSelected = selected;
+                IsSelected = true;
             });
             view.OnMoveView.AddListener(() =>
             {

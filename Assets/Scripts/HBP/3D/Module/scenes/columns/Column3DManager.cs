@@ -286,11 +286,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when changing the selected state of the column manager
         /// </summary>
-        [HideInInspector] public GenericEvent<bool> OnChangeSelectedState = new GenericEvent<bool>();
-        /// <summary>
-        /// Event called when selecting a column
-        /// </summary>
-        [HideInInspector] public GenericEvent<Column3D> OnSelectColumn = new GenericEvent<Column3D>();
+        [HideInInspector] public UnityEvent OnSelect = new UnityEvent();
         /// <summary>
         /// Event called when adding a column
         /// </summary>
@@ -405,23 +401,20 @@ namespace HBP.Module3D
                 column = Instantiate(m_Column3DCCEPPrefab, transform.Find("Columns")).GetComponent<Column3DCCEP>();
             }
             column.gameObject.name = "Column " + Columns.Count;
-            column.OnChangeSelectedState.AddListener((selected) =>
+            column.OnSelect.AddListener(() =>
             {
-                if (selected)
+                foreach (Column3D c in Columns)
                 {
-                    foreach (Column3D c in Columns)
+                    if (c != column)
                     {
-                        if (c != column)
+                        c.IsSelected = false;
+                        foreach (View3D v in c.Views)
                         {
-                            foreach (View3D v in c.Views)
-                            {
-                                v.IsSelected = false;
-                            }
+                            v.IsSelected = false;
                         }
                     }
                 }
-                OnChangeSelectedState.Invoke(selected);
-                if (selected) OnSelectColumn.Invoke(column);
+                OnSelect.Invoke();
             });
             column.OnMoveView.AddListener((view) =>
             {

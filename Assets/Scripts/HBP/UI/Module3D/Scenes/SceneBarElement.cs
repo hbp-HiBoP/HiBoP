@@ -27,7 +27,7 @@ namespace HBP.UI.Module3D
         public void Initialize(Base3DScene scene)
         {
             m_Scene = scene;
-            m_Scene.OnChangeSelectedState.AddListener(SetSelectedState);
+            ApplicationState.Module3D.OnSelectScene.AddListener((s) => SetSelectedState(s == m_Scene));
             SetSelectedState(m_Scene.IsSelected);
 
             m_Text.text = scene.Name;
