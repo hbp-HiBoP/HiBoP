@@ -21,19 +21,6 @@ namespace HBP.UI.Experience.Dataset
                 m_FileSelector.interactable = value;
             }
         }
-
-        public override container.BrainVision Object
-        {
-            get
-            {
-                return base.Object;
-            }
-            set
-            {
-                base.Object = value;
-                m_FileSelector.File = value.SavedHeader;
-            }
-        }
         #endregion
 
         #region Public Methods
@@ -41,7 +28,14 @@ namespace HBP.UI.Experience.Dataset
         {
             base.Initialize();
             m_FileSelector.DefaultDirectory = ApplicationState.ProjectLoaded.Settings.LocalizerDatabase;
-            m_FileSelector.onValueChanged.AddListener((header) => { m_Object.Header = header; });
+            m_FileSelector.onValueChanged.AddListener((header) => { Object.Header = header; });
+        }
+        #endregion
+
+        #region Protected Methods
+        protected override void SetFields(container.BrainVision objectToDisplay)
+        {
+            m_FileSelector.File = objectToDisplay.SavedHeader;
         }
         #endregion
     }

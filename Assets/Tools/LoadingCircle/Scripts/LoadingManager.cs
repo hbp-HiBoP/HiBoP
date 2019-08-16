@@ -1,4 +1,9 @@
-﻿using UnityEngine;
+﻿using CielaSpike;
+using System;
+using System.Collections;
+using Tools.Unity;
+using UnityEngine;
+using UnityEngine.Events;
 
 public class LoadingManager : MonoBehaviour
 {
@@ -21,6 +26,28 @@ public class LoadingManager : MonoBehaviour
         GameObject loadingCircleGameObject = Instantiate(LoadingCirclePrefab, Canvas.transform);
         LoadingCircle loadingCircle = loadingCircleGameObject.GetComponent<LoadingCircle>();
         return loadingCircle;
+    }
+    public void Load(IEnumerator action, GenericEvent<float, float, LoadingText> onChangeProgress, Action<TaskState> callBack = null)
+    {
+        StartCoroutine(c_Load(action, onChangeProgress, callBack));
+    }
+    public IEnumerator c_Load(IEnumerator action, GenericEvent<float, float, LoadingText> onChangeProgress, Action<TaskState> callBack = null)
+    {
+        LoadingCircle loadingCircle = Open();
+        onChangeProgress.AddListener((progress, time, message) => loadingCircle.ChangePercentage(progress, time, message));
+        yield return this.StartCoroutineAsync(action, out Task task);
+        switch (task.State)
+        {
+            case TaskState.Done:
+                yield return new WaitForSeconds(0.5f);
+                break;
+            case TaskState.Error:
+                Exception exception = task.Exception;
+                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
+                break;
+        }
+        loadingCircle.Close();
+        if (callBack != null) callBack.Invoke(task.State);
     }
     #endregion
 }

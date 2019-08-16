@@ -248,29 +248,29 @@ namespace HBP.Module3D
             visualizationToLoad.Name = patient.Name;
             visualizationToLoad.RemoveAllPatients();
             visualizationToLoad.AddPatient(patient);
-            if (patient.Brain.Meshes.FirstOrDefault(m => m.Name == ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization) != null)
+            if (patient.Meshes.FirstOrDefault(m => m.Name == ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization) != null)
             {
                 visualizationToLoad.Configuration.MeshName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization;
             }
-            else if (patient.Brain.Meshes.Count > 0)
+            else if (patient.Meshes.Count > 0)
             {
-                visualizationToLoad.Configuration.MeshName = patient.Brain.Meshes.First().Name;
+                visualizationToLoad.Configuration.MeshName = patient.Meshes.First().Name;
             }
-            if (patient.Brain.MRIs.FirstOrDefault(m => m.Name == ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization) != null)
+            if (patient.MRIs.FirstOrDefault(m => m.Name == ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization) != null)
             {
                 visualizationToLoad.Configuration.MRIName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization;
             }
-            else if (patient.Brain.MRIs.Count > 0)
+            else if (patient.MRIs.Count > 0)
             {
-                visualizationToLoad.Configuration.MRIName = patient.Brain.MRIs.First().Name;
+                visualizationToLoad.Configuration.MRIName = patient.MRIs.First().Name;
             }
-            if (patient.Brain.Implantations.FirstOrDefault(m => m.Name == ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization) != null)
+            if (patient.Implantations.FirstOrDefault(m => m.Name == ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization) != null)
             {
                 visualizationToLoad.Configuration.ImplantationName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization;
             }
-            else if (patient.Brain.Implantations.Count > 0)
+            else if (patient.Implantations.Count > 0)
             {
-                visualizationToLoad.Configuration.ImplantationName = patient.Brain.Implantations.First().Name;
+                visualizationToLoad.Configuration.ImplantationName = patient.Implantations.First().Name;
             }
             LoadScenes(new Data.Visualization.Visualization[] { visualizationToLoad });
         }

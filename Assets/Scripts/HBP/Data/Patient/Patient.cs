@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -46,11 +47,10 @@ namespace HBP.Data
         /// Place of study.
         /// </summary>
         [DataMember] public string Place { get; set; }
-        /// <summary>
-        /// Patient brain.
-        /// </summary>
-        [DataMember] public Brain Brain { get; set; }
-
+        [DataMember] public List<Mesh> Meshes { get; set; }
+        [DataMember] public List<MRI> MRIs { get; set; }
+        [DataMember] public List<Connectivity> Connectivities { get; set; }
+        [DataMember] public List<Implantation> Implantations { get; set; }
         [IgnoreDataMember] public string CompleteName { get { return Name + " (" + Place + " - " + Date + ")"; } }
         #endregion
 
@@ -63,12 +63,15 @@ namespace HBP.Data
         /// <param name="date">Date of the study.</param>
         /// <param name="brain">Brain of the patient.</param>
         /// <param name="id">Unique ID.</param>
-        public Patient(string name,string place,int date,Brain brain, string id)
+        public Patient(string name,string place,int date, IEnumerable<Mesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Connectivity> connectivities, IEnumerable<Implantation> implantations, string id)
         {
             Name = name;
             Place = place;
             Date = date;
-            Brain = brain;
+            Meshes = meshes.ToList();
+            this.MRIs = MRIs.ToList();
+            Connectivities = connectivities.ToList();
+            Implantations = implantations.ToList();
             ID = id;
         }
         /// <summary>
@@ -78,7 +81,7 @@ namespace HBP.Data
         /// <param name="place">Place of the study.</param>
         /// <param name="date">Date of the study.</param>
         /// <param name="brain">Brain of the patient.</param>
-        public Patient(string name, string place, int date, Brain brain) : this(name,place,date,brain,Guid.NewGuid().ToString())
+        public Patient(string name, string place, int date, IEnumerable<Mesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Connectivity> connectivities, IEnumerable<Implantation> implantations) : this(name, place, date, meshes, MRIs, connectivities, implantations, Guid.NewGuid().ToString())
         {
         }
         /// <summary>
@@ -96,14 +99,17 @@ namespace HBP.Data
                 Date = dateParsed;
                 Name = directoryNameParts[2];
                 ID = directory.Name;
-                Brain = new Brain(path);
+                Meshes = Mesh.GetMeshes(path).ToList();
+                MRIs = MRI.GetMRIs(path).ToList();
+                Connectivities = new List<Connectivity>();
+                Implantations = Implantation.GetImplantations(path).ToList();
             }
           
 		}
         /// <summary>
         /// Create a new patient instance with default values.
         /// </summary>
-        public Patient() : this("Unknown", "Unknown", 0, new Brain())
+        public Patient() : this("Unknown", "Unknown", 0, new Mesh[0], new MRI[0], new Connectivity[0], new Implantation[0])
         {
         }
         #endregion
@@ -113,7 +119,6 @@ namespace HBP.Data
         {
             return GetPatientsDirectories(path).Select(p => new Patient(p)).ToArray();
         }
-
         public void Load(string path)
         {
             Patient result;
@@ -227,12 +232,15 @@ namespace HBP.Data
         /// <returns>object cloned.</returns>
         public object Clone()
         {
-            return new Patient(Name, Place, Date, Brain.Clone() as Brain, ID);
+            return new Patient(Name, Place, Date, Meshes, MRIs, Connectivities, Implantations, ID);
         }
         public void GenerateNewIDs()
         {
             ID = Guid.NewGuid().ToString();
-            Brain.GenerateNewIDs();
+            foreach (var mesh in Meshes) mesh.GenerateNewIDs();
+            foreach (var mri in MRIs) mri.GenerateNewIDs();
+            foreach (var connectivity in Connectivities) connectivity.GenerateNewIDs();
+            foreach (var implantation in Implantations) implantation.GenerateNewIDs();
         }
         /// <summary>
         /// Copy the instance.
@@ -244,8 +252,11 @@ namespace HBP.Data
             Name = patient.Name;
             Date = patient.Date;
             Place = patient.Place;
+            Meshes = patient.Meshes;
+            MRIs = patient.MRIs;
+            Connectivities = patient.Connectivities;
+            Implantations = patient.Implantations;
             ID = patient.ID;
-            Brain = patient.Brain;
         }
         #endregion
     }

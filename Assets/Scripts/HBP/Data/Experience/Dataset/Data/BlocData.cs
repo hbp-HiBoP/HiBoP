@@ -39,6 +39,8 @@ namespace HBP.Data.Experience.Dataset
                 trials.Add(new Trial(data.ValuesByChannel, data.UnitByChannel, startIndex, MainSubBlocMainEventOccurences[i], endIndex, occurencesByEvent, bloc, data.Frequency));
             }
             Trials = SortTrials(bloc, trials).ToArray();
+
+            // TODO : Treatments
         }
         #endregion
 

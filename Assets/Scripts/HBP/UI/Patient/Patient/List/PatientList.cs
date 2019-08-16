@@ -155,12 +155,12 @@ namespace HBP.UI.Anatomy
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Brain.Meshes.FindAll(m => m.WasUsable).Count).ToList();
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Meshes.FindAll(m => m.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.Mesh;
                     m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Brain.Meshes.FindAll(m => m.WasUsable).Count).ToList();
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Meshes.FindAll(m => m.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.DescendingMesh;
                     m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -194,12 +194,12 @@ namespace HBP.UI.Anatomy
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Brain.MRIs.FindAll(m => m.WasUsable).Count).ToList();
+                    m_Objects = m_Objects.OrderBy((elt) => elt.MRIs.FindAll(m => m.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.MRI;
                     m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Brain.MRIs.FindAll(m => m.WasUsable).Count).ToList();
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.MRIs.FindAll(m => m.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.DescendingMRI;
                     m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -235,12 +235,12 @@ namespace HBP.UI.Anatomy
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Brain.Implantations.FindAll(i => i.WasUsable).Count).ToList();
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Implantations.FindAll(i => i.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.Implantation;
                     m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Brain.Implantations.FindAll(i => i.WasUsable).Count).ToList();
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Implantations.FindAll(i => i.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.DescendingImplantation;
                     m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -274,12 +274,12 @@ namespace HBP.UI.Anatomy
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Brain.Connectivities.FindAll(c => c.WasUsable).Count).ToList();
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Connectivities.FindAll(c => c.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.Connectivity;
                     m_ConnectivitySortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Brain.Connectivities.FindAll(c => c.WasUsable).Count).ToList();
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Connectivities.FindAll(c => c.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.DescendingConnectivity;
                     m_ConnectivitySortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;

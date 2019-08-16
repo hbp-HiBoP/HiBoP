@@ -9,15 +9,48 @@ namespace HBP.Data.Experience.Protocol
     [DataContract, DisplayName("Absolute")]
     public class AbsTreatment : Treatment
     {
-        public override float[] Apply(float[] values, int mainEventIndex, Frequency frequency)
+        #region Public Methods
+        public override void Apply(ref float[] values, ref float[] baseline, int mainEventIndex, Frequency frequency)
         {
-            int startIndex = mainEventIndex - frequency.ConvertToCeiledNumberOfSamples(Window.Start);
-            int endIndex = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
-            for (int i = startIndex; i <= endIndex; i++)
+            int start, end;
+            if(UseOnWindow)
             {
-                values[i] = Math.Abs(values[i]);
+                start = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
+                end = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
+                for (int i = start; i <= end; i++)
+                {
+                    values[i] = Math.Abs(values[i]);
+                }
             }
-            return values;
+            if(UseOnBaseline)
+            {
+                start = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Baseline.Start);
+                end = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Baseline.End);
+                for (int i = start; i <= end; i++)
+                {
+                    baseline[i] = Math.Abs(baseline[i]);
+                }
+            }
+
         }
+        #endregion
+
+        #region Constructors
+        public AbsTreatment() : base()
+        {
+
+        }
+        public AbsTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, int order, string id) : base(useOnWindow, window, useOnBaseline, baseline, order, id)
+        {
+
+        }
+        #endregion
+
+        #region Operators
+        public override object Clone()
+        {
+            return new AbsTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, Order, ID);
+        }
+        #endregion
     }
 }

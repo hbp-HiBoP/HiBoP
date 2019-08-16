@@ -1,4 +1,5 @@
-﻿using System.Runtime.Serialization;
+﻿using System;
+using System.Runtime.Serialization;
 using UnityEngine;
 
 namespace Tools.CSharp
@@ -32,6 +33,10 @@ namespace Tools.CSharp
         #endregion
 
         #region Public Methods
+        public override string ToString()
+        {
+            return String.Format("({0},{1})", Start, End);
+        }
         public override bool Equals(object obj)
         {
             if (obj is Window)

@@ -45,7 +45,7 @@ namespace HBP.UI.Anatomy
 
                 StringBuilder stringBuilder = new StringBuilder();
                 stringBuilder.AppendLine("Meshes :");
-                string[] meshes = (from mesh in m_Object.Brain.Meshes where mesh.WasUsable select mesh.Name).ToArray();
+                string[] meshes = (from mesh in m_Object.Meshes where mesh.WasUsable select mesh.Name).ToArray();
                 for (int i = 0; i < meshes.Length; i++)
                 {
                     if (i < meshes.Length - 1) stringBuilder.AppendLine("  \u2022 " + meshes[i]);
@@ -65,7 +65,7 @@ namespace HBP.UI.Anatomy
 
                 stringBuilder = new StringBuilder();
                 stringBuilder.AppendLine("MRIs :");
-                string[] MRIs = (from MRI in m_Object.Brain.MRIs where MRI.WasUsable select MRI.Name).ToArray();
+                string[] MRIs = (from MRI in m_Object.MRIs where MRI.WasUsable select MRI.Name).ToArray();
                 for (int i = 0; i < MRIs.Length; i++)
                 {
                     if (i < MRIs.Length - 1) stringBuilder.AppendLine("  \u2022 " + MRIs[i]);
@@ -85,7 +85,7 @@ namespace HBP.UI.Anatomy
 
                 stringBuilder = new StringBuilder();
                 stringBuilder.AppendLine("Implantations :");
-                string[] implantations = (from implantation in m_Object.Brain.Implantations where implantation.WasUsable select implantation.Name).ToArray();
+                string[] implantations = (from implantation in m_Object.Implantations where implantation.WasUsable select implantation.Name).ToArray();
                 for (int i = 0; i < implantations.Length; i++)
                 {
                     if (i < implantations.Length - 1) stringBuilder.AppendLine("  \u2022 " + implantations[i]);
@@ -105,7 +105,7 @@ namespace HBP.UI.Anatomy
 
                 stringBuilder = new StringBuilder();
                 stringBuilder.AppendLine("Connectivities :");
-                string[] connectivities = (from connectivity in m_Object.Brain.Connectivities where connectivity.WasUsable select connectivity.Name).ToArray();
+                string[] connectivities = (from connectivity in m_Object.Connectivities where connectivity.WasUsable select connectivity.Name).ToArray();
                 for (int i = 0; i < connectivities.Length; i++)
                 {
                     if (i < connectivities.Length - 1) stringBuilder.AppendLine("  \u2022 " + connectivities[i]);

@@ -71,6 +71,12 @@ namespace Tools.Unity.Components
                 List.Add(item);
             }
         }
+        public virtual void UpdateItem(T item)
+        {
+            int index = Objects.FindIndex((t) => t.Equals(item));
+            Objects[index] = item;
+            List.UpdateObject(item);
+        }
         public virtual void Remove(T item)
         {
             if(Objects.Contains(item))
@@ -135,7 +141,7 @@ namespace Tools.Unity.Components
             }
             else
             {
-                List.UpdateObject(modifier.Item);
+                UpdateItem(modifier.Item);
             }
             OnCloseSavableWindow.Invoke(modifier);
             SubWindows.Remove(modifier);

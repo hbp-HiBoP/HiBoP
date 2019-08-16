@@ -17,7 +17,7 @@
   "Data": {
     "EEG": {
       "Averaging": 1,
-      "Normalization": 4
+      "Normalization": 0
     },
     "Protocol": {
       "PositionAveraging": 1,
@@ -48,8 +48,8 @@
       "TrialsSynchronization": true,
       "TrialSmoothing": true,
       "NumberOfIntermediateValues": 4,
-      "SubBlocFormat": 2,
-      "TrialHeight": 19,
+      "SubBlocFormat": 0,
+      "TrialHeight": 20,
       "TrialRatio": 0.06969325,
       "BlocRatio": 0.184049129
     },

@@ -41,8 +41,8 @@ namespace HBP.UI.Experience.Protocol
                 base.Object = value;
                 m_NameText.text = value.Name;
 
-                m_StartWindowText.text = value.Window.Start.ToString();
-                m_EndWindowText.text = value.Window.End.ToString();
+                m_StartWindowText.text = value.Window.Start.ToString() + "ms";
+                m_EndWindowText.text = value.Window.End.ToString() + "ms";
 
 
                 // Events.

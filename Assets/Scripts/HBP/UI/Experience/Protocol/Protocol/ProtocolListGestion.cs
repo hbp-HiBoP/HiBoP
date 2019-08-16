@@ -1,14 +1,24 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using Tools.Unity.Components;
+using d = HBP.Data.Experience.Protocol;
 using UnityEngine;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class ProtocolListGestion : ListGestion<Data.Experience.Protocol.Protocol>
+    public class ProtocolListGestion : ListGestion<d.Protocol>
     {
         #region Properties
+        List<d.Protocol> m_ModifiedProtocols = new List<d.Protocol>();
+        public ReadOnlyCollection<d.Protocol> ModifiedProtocols
+        {
+            get
+            {
+                return new ReadOnlyCollection<d.Protocol>(m_ModifiedProtocols);
+            }
+        }
         [SerializeField]new ProtocolList List;
-        public override List<Data.Experience.Protocol.Protocol> Objects
+        public override List<d.Protocol> Objects
         {
             get
             {
@@ -29,6 +39,11 @@ namespace HBP.UI.Experience.Protocol
         {
             base.List = List;
             base.Initialize();
+        }
+        protected override void OnSaveModifier(ItemModifier<Data.Experience.Protocol.Protocol> modifier)
+        {
+            base.OnSaveModifier(modifier);
+            m_ModifiedProtocols.Add(modifier.Item);
         }
         #endregion
     }

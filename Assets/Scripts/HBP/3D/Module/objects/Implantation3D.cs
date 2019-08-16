@@ -57,7 +57,7 @@ namespace HBP.Module3D
         public void LoadLatencies(Data.Patient patient)
         {
             Latencies = new List<Latencies>();
-            foreach (Data.Anatomy.Connectivity connectivity in patient.Brain.Connectivities)
+            foreach (Data.Anatomy.Connectivity connectivity in patient.Connectivities)
             {
                 if (!connectivity.WasUsable) continue;
                 Latencies latencies = RawSiteList.UpdateLatenciesWithFile(connectivity.File);

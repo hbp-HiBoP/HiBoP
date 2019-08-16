@@ -50,7 +50,7 @@ namespace HBP.UI.Experience.Protocol
             m_NameInputField.onEndEdit.AddListener((value) => ItemTemp.Name = value);
 
             m_ImageFileSelector.Path = objectToDisplay.IllustrationPath;
-            m_ImageFileSelector.onValueChanged.AddListener(() => ItemTemp.IllustrationPath = m_ImageFileSelector.Path);
+            m_ImageFileSelector.onValueChanged.AddListener((value) => ItemTemp.IllustrationPath = value);
 
             m_SortInputField.text = objectToDisplay.Sort;
             m_SortInputField.onEndEdit.AddListener((value) =>

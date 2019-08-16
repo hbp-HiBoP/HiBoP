@@ -24,26 +24,23 @@ namespace HBP.UI.Experience.Dataset
                 m_PatientDropdown.interactable = value;
             }
         }
-        public override d.PatientDataInfo Object
-        {
-            get => base.Object;
-            set
-            {
-                base.Object = value;
-                m_PatientDropdown.value = m_Patients.IndexOf(value.Patient);
-            }
-        }
         #endregion
 
         #region Public Methods
         public override void Initialize()
         {
             base.Initialize();
-            m_PatientDropdown.onValueChanged.AddListener((i) => m_Object.Patient = m_Patients[i]);
+            m_PatientDropdown.onValueChanged.AddListener((i) => Object.Patient = m_Patients[i]);
             m_Patients = ApplicationState.ProjectLoaded.Patients;
             m_PatientDropdown.options = (from patient in m_Patients select new Dropdown.OptionData(patient.CompleteName, null)).ToList();
         }
         #endregion
 
+        #region Protected Methods
+        protected override void SetFields(d.PatientDataInfo objectToDisplay)
+        {
+            m_PatientDropdown.value = m_Patients.IndexOf(objectToDisplay.Patient);
+        }
+        #endregion
     }
 }

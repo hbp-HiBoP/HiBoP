@@ -8,20 +8,61 @@ namespace HBP.Data.Experience.Protocol
     [DataContract, DisplayName("Min")]
     public class MinTreatment : Treatment
     {
-        public override float[] Apply(float[] values, int mainEventIndex, Frequency frequency)
+        #region Constructors
+        public MinTreatment() : base()
         {
-            int startIndex = mainEventIndex - frequency.ConvertToCeiledNumberOfSamples(Window.Start);
-            int endIndex = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
-            float min = float.MaxValue;
-            for (int i = startIndex; i <= endIndex; i++)
-            {
-                if (min > values[i]) min = values[i];
-            }
-            for (int i = startIndex; i <= endIndex; i++)
-            {
-                values[i] = min;
-            }
-            return values;
+
         }
+        public MinTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, int order, string id) : base(useOnWindow, window, useOnBaseline, baseline, order, id)
+        {
+        }
+        #endregion
+
+        #region Public Methods
+        public override void Apply(ref float[] values, ref float[] baseline, int mainEventIndex, Frequency frequency)
+        {
+            int startWindow = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
+            int endWindow = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
+            int startBaseline = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Baseline.Start);
+            int endBaseline = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Baseline.End);
+            float min = float.MaxValue;
+            if (UseOnWindow)
+            {
+                for (int i = startWindow; i <= endWindow; i++)
+                {
+                    if (min > values[i]) min = values[i];
+                }
+            }
+            if (UseOnBaseline)
+            {
+                for (int i = startBaseline; i <= endBaseline; i++)
+                {
+                    if (min > baseline[i]) min = baseline[i];
+                }
+            }
+
+            if (UseOnWindow)
+            {
+                for (int i = startWindow; i <= endWindow; i++)
+                {
+                    values[i] = min;
+                }
+            }
+            if (UseOnBaseline)
+            {
+                for (int i = startBaseline; i <= endBaseline; i++)
+                {
+                    baseline[i] = min;
+                }
+            }
+        }
+        #endregion
+
+        #region Operators
+        public override object Clone()
+        {
+            return new MinTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, Order, ID);
+        }
+        #endregion
     }
 }

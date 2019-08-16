@@ -9,15 +9,55 @@ namespace HBP.Data.Experience.Protocol
     [DataContract, DisplayName("Median")]
     public class MedianTreatment : Treatment
     {
-        public override float[] Apply(float[] values, int mainEventIndex, Frequency frequency)
+        #region Constructors
+        public MedianTreatment() : base()
         {
-            int startIndex = mainEventIndex - frequency.ConvertToCeiledNumberOfSamples(Window.Start);
-            int endIndex = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
-            float[] subArray = new float[endIndex - startIndex + 1];
-            Array.Copy(values, startIndex, subArray, 0, subArray.Length);
-            float mean = subArray.Median();
-            for (int i = startIndex; i <= endIndex; i++) values[i] = mean;
-            return values;
+
         }
+        public MedianTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, int order, string id) : base(useOnWindow, window, useOnBaseline, baseline, order, id)
+        {
+        }
+        #endregion
+
+        #region Public Methods
+        public override void Apply(ref float[] values, ref float[] baseline, int mainEventIndex, Frequency frequency)
+        {
+            float[] windowSubArray = new float[0];
+            float[] baselineSubArray = new float[0];
+            int startWindow = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
+            int endWindow = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
+            int startBaseline = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Baseline.Start);
+            int endBaseline = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Baseline.End);
+            if (UseOnWindow)
+            {
+                windowSubArray = new float[endWindow - startWindow + 1];
+                Array.Copy(values, startWindow, windowSubArray, 0, windowSubArray.Length);
+            }
+            if (UseOnBaseline)
+            {
+                baselineSubArray = new float[endBaseline - startBaseline + 1];
+                Array.Copy(baseline, startBaseline, baselineSubArray, 0, baselineSubArray.Length);
+            }
+            float[] subArray = new float[windowSubArray.Length + baselineSubArray.Length];
+            windowSubArray.CopyTo(subArray, 0);
+            baselineSubArray.CopyTo(subArray, windowSubArray.Length);
+            float median = subArray.Median();
+            if (UseOnWindow)
+            {
+                for (int i = startWindow; i <= endWindow; i++) values[i] = median;
+            }
+            if (UseOnBaseline)
+            {
+                for (int i = startBaseline; i <= endBaseline; i++) baseline[i] = median;
+            }
+        }
+        #endregion
+
+        #region Operators
+        public override object Clone()
+        {
+            return new MedianTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, Order, ID);
+        }
+        #endregion
     }
 }
