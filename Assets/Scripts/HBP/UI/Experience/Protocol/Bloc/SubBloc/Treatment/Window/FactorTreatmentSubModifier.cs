@@ -1,10 +1,11 @@
 ﻿using HBP.Data.Experience.Protocol;
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class FactorTreatmentSubModifier : SubModifier<Data.Experience.Protocol.FactorTreatment>
+    public class FactorTreatmentSubModifier : SubModifier<FactorTreatment>
     {
         #region Properties
         [SerializeField] InputField m_FactorInputField;
@@ -24,24 +25,17 @@ namespace HBP.UI.Experience.Protocol
         #endregion
 
         #region Public Methods
-        public override void Initialize()
+        public void OnChangeFactorValue(float value)
         {
-            base.Initialize();
-            m_FactorInputField.onValueChanged.AddListener(OnChangeFactorValue);
-        }
-        #endregion
-
-        #region Private Methods
-        void OnChangeFactorValue(string value)
-        {
-            if (float.TryParse(value, out float result)) Object.Factor = result;
+            Object.Factor = value;
         }
         #endregion
 
         #region Protected Methods
         protected override void SetFields(FactorTreatment objectToDisplay)
         {
-            m_FactorInputField.text = objectToDisplay.Factor.ToString();
+            CultureInfo cultureInfo = CultureInfo.GetCultureInfo("en-US");
+            m_FactorInputField.text = objectToDisplay.Factor.ToString("0.##", cultureInfo);
         }
         #endregion
     }

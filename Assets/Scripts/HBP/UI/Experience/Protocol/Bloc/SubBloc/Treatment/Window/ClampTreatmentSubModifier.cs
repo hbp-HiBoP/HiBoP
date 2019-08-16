@@ -1,10 +1,11 @@
 ﻿using HBP.Data.Experience.Protocol;
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class ClampTreatmentSubModifier : SubModifier<Data.Experience.Protocol.ClampTreatment>
+    public class ClampTreatmentSubModifier : SubModifier<ClampTreatment>
     {
         #region Properties
         [SerializeField] Toggle m_UseMinClampToggle;
@@ -35,20 +36,18 @@ namespace HBP.UI.Experience.Protocol
             base.Initialize();
             m_UseMinClampToggle.onValueChanged.AddListener(OnChangeUseMinValue);
             m_UseMaxClampToggle.onValueChanged.AddListener(OnChangeUseMaxValue);
-            m_MinValueInputField.onValueChanged.AddListener(OnChangeMinValue);
-            m_MaxValueInputField.onValueChanged.AddListener(OnChangeMaxValue);
+        }
+        public void OnChangeMinValue(float value)
+        {
+           Object.Min = value;
+        }
+        public void OnChangeMaxValue(float value)
+        {
+           Object.Max = value;
         }
         #endregion
 
         #region Private Methods
-        void OnChangeMinValue(string value)
-        {
-            if (float.TryParse(value, out float result)) Object.Min = result;   
-        }
-        void OnChangeMaxValue(string value)
-        {
-            if (float.TryParse(value, out float result)) Object.Max = result;
-        }
         void OnChangeUseMinValue(bool value)
         {
             Object.UseMinClamp = value;
@@ -66,8 +65,9 @@ namespace HBP.UI.Experience.Protocol
         {
             m_UseMinClampToggle.isOn = objectToDisplay.UseMinClamp;
             m_UseMaxClampToggle.isOn = objectToDisplay.UseMaxClamp;
-            m_MinValueInputField.text = objectToDisplay.Min.ToString();
-            m_MaxValueInputField.text = objectToDisplay.Max.ToString();
+            CultureInfo cultureInfo = CultureInfo.GetCultureInfo("en-US");
+            m_MinValueInputField.text = objectToDisplay.Min.ToString("0.##", cultureInfo);
+            m_MaxValueInputField.text = objectToDisplay.Max.ToString("0.##", cultureInfo);
         }
         #endregion
     }

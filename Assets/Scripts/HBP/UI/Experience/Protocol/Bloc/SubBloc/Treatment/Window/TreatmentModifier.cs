@@ -105,14 +105,16 @@ namespace HBP.UI.Experience.Protocol
             OnSave.Invoke();
             base.Close();
         }
+        public void OnChangeOrder(int order)
+        {
+            itemTemp.Order = order;
+        }
         #endregion
 
         #region Private Methods
         protected override void Initialize()
         {
             base.Initialize();
-
-            m_OrderInputField.onEndEdit.AddListener(OnChangeOrder);
 
             m_WindowToggle.onValueChanged.AddListener(OnChangeUseOnWindow);
             m_WindowSlider.onValueChanged.AddListener(OnChangeWindow);
@@ -220,10 +222,6 @@ namespace HBP.UI.Experience.Protocol
         {
             ItemTemp.UseOnBaseline = value;
             m_BaselineSlider.interactable = Interactable && value;
-        }
-        void OnChangeOrder(string order)
-        {
-            if (int.TryParse(order, out int result)) itemTemp.Order = result;
         }
         #endregion
     }

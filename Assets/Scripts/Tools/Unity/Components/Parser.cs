@@ -8,7 +8,7 @@ namespace Tools.Unity.Components
     public class Parser : MonoBehaviour
     {
         #region Properties
-        [SerializeField] string m_Format = "N2";
+        [SerializeField] string m_Format = "0.##";
         public string Format
         {
             get

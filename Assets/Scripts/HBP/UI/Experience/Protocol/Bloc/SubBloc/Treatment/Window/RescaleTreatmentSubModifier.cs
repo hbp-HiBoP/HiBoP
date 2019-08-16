@@ -1,4 +1,5 @@
 ﻿using HBP.Data.Experience.Protocol;
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -31,40 +32,34 @@ namespace HBP.UI.Experience.Protocol
         #endregion
 
         #region Public Methods
-        public override void Initialize()
+        public void OnChangeMinBeforeValue(float value)
         {
-            base.Initialize();
-            m_MinBeforeInputField.onValueChanged.AddListener(OnChangeMinBeforeValue);
-            m_MaxBeforeInputField.onValueChanged.AddListener(OnChangeMaxBeforeValue);
-            m_MinAfterInputField.onValueChanged.AddListener(OnChangeMinAfterValue);
-            m_MaxAfterInputField.onValueChanged.AddListener(OnChangeMaxAfterValue);
+            Object.BeforeMin = value;
+        }
+        public void OnChangeMaxBeforeValue(float value)
+        {
+            Object.BeforeMax = value;
+        }
+        public void OnChangeMinAfterValue(float value)
+        {
+            Object.AfterMin = value;
+        }
+        public void OnChangeMaxAfterValue(float value)
+        {
+            Object.AfterMax = value;
         }
         #endregion
 
         #region Private Methods
-        protected void OnChangeMinBeforeValue(string value)
-        {
-            if (float.TryParse(value, out float result)) Object.BeforeMin = result;
-        }
-        protected void OnChangeMaxBeforeValue(string value)
-        {
-            if (float.TryParse(value, out float result)) Object.BeforeMax = result;
-        }
-        protected void OnChangeMinAfterValue(string value)
-        {
-            if (float.TryParse(value, out float result)) Object.AfterMin = result;
-        }
-        protected void OnChangeMaxAfterValue(string value)
-        {
-            if (float.TryParse(value, out float result)) Object.AfterMax = result;
-        }
+
         protected override void SetFields(RescaleTreatment objectToDisplay)
         {
-            m_MinBeforeInputField.text = objectToDisplay.BeforeMin.ToString();
-            m_MaxBeforeInputField.text = objectToDisplay.BeforeMax.ToString();
+            CultureInfo cultureInfo = CultureInfo.GetCultureInfo("en-US");
+            m_MinBeforeInputField.text = objectToDisplay.BeforeMin.ToString("0.##", cultureInfo);
+            m_MaxBeforeInputField.text = objectToDisplay.BeforeMax.ToString("0.##", cultureInfo);
 
-            m_MinAfterInputField.text = objectToDisplay.AfterMin.ToString();
-            m_MaxAfterInputField.text = objectToDisplay.AfterMax.ToString();
+            m_MinAfterInputField.text = objectToDisplay.AfterMin.ToString("0.##", cultureInfo);
+            m_MaxAfterInputField.text = objectToDisplay.AfterMax.ToString("0.##", cultureInfo);
         }
         #endregion
     }

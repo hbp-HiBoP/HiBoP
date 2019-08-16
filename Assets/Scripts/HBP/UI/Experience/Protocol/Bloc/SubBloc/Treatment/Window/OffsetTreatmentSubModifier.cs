@@ -1,4 +1,5 @@
 ﻿using HBP.Data.Experience.Protocol;
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -27,14 +28,18 @@ namespace HBP.UI.Experience.Protocol
         public override void Initialize()
         {
             base.Initialize();
-            m_OffsetInputField.onValueChanged.AddListener((value) => Object.Offset = float.Parse(value));
+        }
+        public void OnChangeOffset(float offset)
+        {
+            Object.Offset = offset;
         }
         #endregion
 
         #region Protected Methods
         protected override void SetFields(OffsetTreatment objectToDisplay)
         {
-            m_OffsetInputField.text = objectToDisplay.Offset.ToString();
+            CultureInfo cultureInfo = CultureInfo.GetCultureInfo("en-US");
+            m_OffsetInputField.text = objectToDisplay.Offset.ToString("0.##", cultureInfo);
         }
         #endregion
     }
