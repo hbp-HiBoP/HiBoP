@@ -19,20 +19,42 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Public Methods
-        public override float[] Apply(float[] values, int mainEventIndex, Frequency frequency)
+        public override void Apply(ref float[] values, ref float[] baseline, int mainEventIndex, Frequency frequency)
         {
-            int startIndex = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
-            int endIndex = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
+            int startWindow = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
+            int endWindow = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
+            int startBaseline = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Baseline.Start);
+            int endBaseline = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Baseline.End);
             float min = float.MaxValue;
-            for (int i = startIndex; i <= endIndex; i++)
+            if (UseOnWindow)
             {
-                if (min > values[i]) min = values[i];
+                for (int i = startWindow; i <= endWindow; i++)
+                {
+                    if (min > values[i]) min = values[i];
+                }
             }
-            for (int i = startIndex; i <= endIndex; i++)
+            if (UseOnBaseline)
             {
-                values[i] = min;
+                for (int i = startBaseline; i <= endBaseline; i++)
+                {
+                    if (min > baseline[i]) min = baseline[i];
+                }
             }
-            return values;
+
+            if (UseOnWindow)
+            {
+                for (int i = startWindow; i <= endWindow; i++)
+                {
+                    values[i] = min;
+                }
+            }
+            if (UseOnBaseline)
+            {
+                for (int i = startBaseline; i <= endBaseline; i++)
+                {
+                    baseline[i] = min;
+                }
+            }
         }
         #endregion
 

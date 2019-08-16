@@ -44,9 +44,8 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Public Methods
-        public virtual float[] Apply(float[] values, int mainEventIndex, Frequency frequency)
+        public virtual void Apply(ref float[] values, ref float[] baseline, int mainEventIndex, Frequency frequency)
         {
-            return values;
         }
         #endregion
 

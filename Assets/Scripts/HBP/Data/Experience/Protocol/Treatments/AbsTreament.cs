@@ -10,15 +10,28 @@ namespace HBP.Data.Experience.Protocol
     public class AbsTreatment : Treatment
     {
         #region Public Methods
-        public override float[] Apply(float[] values, int mainEventIndex, Frequency frequency)
+        public override void Apply(ref float[] values, ref float[] baseline, int mainEventIndex, Frequency frequency)
         {
-            int startIndex = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
-            int endIndex = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
-            for (int i = startIndex; i <= endIndex; i++)
+            int start, end;
+            if(UseOnWindow)
             {
-                values[i] = Math.Abs(values[i]);
+                start = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
+                end = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
+                for (int i = start; i <= end; i++)
+                {
+                    values[i] = Math.Abs(values[i]);
+                }
             }
-            return values;
+            if(UseOnBaseline)
+            {
+                start = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Baseline.Start);
+                end = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Baseline.End);
+                for (int i = start; i <= end; i++)
+                {
+                    baseline[i] = Math.Abs(baseline[i]);
+                }
+            }
+
         }
         #endregion
 

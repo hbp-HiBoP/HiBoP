@@ -104,7 +104,7 @@ namespace HBP.UI.Visualization
             {
                 if (type == typeof(AnatomicColumn))
                 {
-                    if (!(m_Object is AnatomicColumn)) Object = new AnatomicColumn(m_Object.Name, m_Object.BaseConfiguration);
+                    if (!(m_Object is AnatomicColumn)) Object = new AnatomicColumn(Object.Name, Object.BaseConfiguration);
                     m_AnatomicColumnModifier.Object = Object as AnatomicColumn;
 
                     m_AnatomicColumnModifier.IsActive = true;
@@ -113,7 +113,7 @@ namespace HBP.UI.Visualization
                 }
                 else if (type == typeof(IEEGColumn))
                 {
-                    if (!(m_Object is IEEGColumn)) Object = new IEEGColumn(m_Object.Name, m_Object.BaseConfiguration, m_Patients);
+                    if (!(m_Object is IEEGColumn)) Object = new IEEGColumn(Object.Name, Object.BaseConfiguration, m_Patients);
                     m_IEEGColumnModifier.Object = Object as IEEGColumn;
 
                     m_AnatomicColumnModifier.IsActive = false;
@@ -122,7 +122,7 @@ namespace HBP.UI.Visualization
                 }
                 else if (type == typeof(CCEPColumn))
                 {
-                    if (!(m_Object is CCEPColumn)) Object = new CCEPColumn(m_Object.Name, m_Object.BaseConfiguration, m_Patients);
+                    if (!(m_Object is CCEPColumn)) Object = new CCEPColumn(Object.Name, Object.BaseConfiguration, m_Patients);
                     m_CCEPColumnModifier.Object = Object as CCEPColumn;
 
                     m_AnatomicColumnModifier.IsActive = false;
@@ -135,7 +135,7 @@ namespace HBP.UI.Visualization
         {
             if (m_Object != null)
             {
-                m_Object.Name = value;
+                Object.Name = value;
             }
             OnChangeName.Invoke(value);
         }

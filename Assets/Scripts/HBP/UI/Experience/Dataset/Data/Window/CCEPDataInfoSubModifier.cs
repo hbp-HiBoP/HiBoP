@@ -21,22 +21,20 @@ namespace HBP.UI.Experience.Dataset
                 m_ChannelInputField.interactable = value;
             }
         }
-        public override d.CCEPDataInfo Object
-        {
-            get => base.Object;
-            set
-            {
-                base.Object = value;
-                m_ChannelInputField.text = value.StimulatedChannel;
-            }
-        }
         #endregion
 
         #region Public Methods
         public override void Initialize()
         {
             base.Initialize();
-            m_ChannelInputField.onValueChanged.AddListener((channel) => m_Object.StimulatedChannel = channel);
+            m_ChannelInputField.onValueChanged.AddListener((channel) => Object.StimulatedChannel = channel);
+        }
+        #endregion
+
+        #region Protected Methods
+        protected override void SetFields(d.CCEPDataInfo objectToDisplay)
+        {
+            m_ChannelInputField.text = objectToDisplay.StimulatedChannel;
         }
         #endregion
     }

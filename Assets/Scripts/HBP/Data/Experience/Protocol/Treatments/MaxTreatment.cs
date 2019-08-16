@@ -19,20 +19,42 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Public Methods
-        public override float[] Apply(float[] values, int mainEventIndex, Frequency frequency)
+        public override void Apply(ref float[] values, ref float[] baseline, int mainEventIndex, Frequency frequency)
         {
-            int startIndex = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
-            int endIndex = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
+            int startWindow = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
+            int endWindow = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
+            int startBaseline = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Baseline.Start);
+            int endBaseline = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Baseline.End);
             float max = float.MinValue;
-            for (int i = startIndex; i <= endIndex; i++)
+            if(UseOnWindow)
             {
-                if (max < values[i]) max = values[i];
+                for (int i = startWindow; i <= endWindow; i++)
+                {
+                    if (max < values[i]) max = values[i];
+                }
             }
-            for (int i = startIndex; i <= endIndex; i++)
+            if (UseOnBaseline)
             {
-                values[i] = max;
+                for (int i = startBaseline; i <= endBaseline; i++)
+                {
+                    if (max < baseline[i]) max = baseline[i];
+                }
             }
-            return values;
+
+            if(UseOnWindow)
+            {
+                for (int i = startWindow; i <= endWindow; i++)
+                {
+                    values[i] = max;
+                }
+            }
+            if(UseOnBaseline)
+            {
+                for (int i = startBaseline; i <= endBaseline; i++)
+                {
+                    baseline[i] = max;
+                }
+            }
         }
         #endregion
 

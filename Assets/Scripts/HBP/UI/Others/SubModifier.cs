@@ -2,7 +2,7 @@
 
 namespace HBP.UI
 {
-    public abstract class SubModifier<T> : MonoBehaviour
+    public abstract class BaseSubModifier : MonoBehaviour
     {
         #region Properties
         protected bool m_Interactable;
@@ -42,8 +42,8 @@ namespace HBP.UI
             }
         }
 
-        protected T m_Object;
-        public virtual T Object
+        protected object m_Object;
+        public virtual object Object
         {
             get
             {
@@ -53,6 +53,7 @@ namespace HBP.UI
             {
                 if (!m_Initialized) Initialize();
                 m_Object = value;
+                SetFields(value);
             }
         }
         #endregion
@@ -61,6 +62,41 @@ namespace HBP.UI
         public virtual void Initialize()
         {
             m_Initialized = true;
+        }
+        #endregion
+
+        #region Protected Methods
+        protected virtual void SetFields(object objectToDisplay)
+        {
+
+        }
+        #endregion
+    }
+    public abstract class SubModifier<T> : BaseSubModifier
+    {
+        #region Properties
+        public new virtual T Object
+        {
+            get
+            {
+                return (T) m_Object;
+            }
+            set
+            {
+                base.Object = value;
+            }
+        }
+        #endregion
+
+        #region Private Methods
+        protected override void SetFields(object objectToDisplay)
+        {
+            base.SetFields(objectToDisplay);
+            SetFields((T) objectToDisplay);
+        }
+        protected virtual void SetFields(T objectToDisplay)
+        {
+
         }
         #endregion
     }

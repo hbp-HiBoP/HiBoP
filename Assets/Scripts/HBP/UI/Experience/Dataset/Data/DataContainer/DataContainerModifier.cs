@@ -22,41 +22,6 @@ namespace HBP.UI.Experience.Dataset
         container.Micromed m_MicromedDataContainerTemp;
         container.BrainVision m_BrainVisionDataContainerTemp;
 
-        public override container.DataContainer Object
-        {
-            get
-            {
-                return base.Object;
-            }
-            set
-            {
-               base.Object = value;
-
-                m_ElanDataContainerTemp = new container.Elan("", "", "", value.ID);
-                m_EDFDataContainerTemp = new container.EDF("", value.ID);
-                m_BrainVisionDataContainerTemp = new container.BrainVision("", value.ID);
-                m_MicromedDataContainerTemp = new container.Micromed("", value.ID);
-
-                if (value is container.Elan)
-                {
-                    m_ElanDataContainerTemp = value as container.Elan;
-                }
-                else if (value is container.EDF)
-                {
-                    m_EDFDataContainerTemp = value as container.EDF;
-                }
-                else if (value is container.Micromed)
-                {
-                    m_MicromedDataContainerTemp = value as container.Micromed;
-                }
-                else if (value is container.BrainVision)
-                {
-                    m_BrainVisionDataContainerTemp = value as container.BrainVision;
-                }
-                m_ContainerTypeDropdown.SetValue(Array.IndexOf(m_Types, m_Object.GetType()));
-            }
-        }
-
         DataAttribute m_DataAttribute;
         public DataAttribute DataAttribute
         {
@@ -152,6 +117,34 @@ namespace HBP.UI.Experience.Dataset
                 m_MicromedDataContainerSubModifier.IsActive = false;
             }
             OnChangeDataType.Invoke();
+        }
+        #endregion
+
+        #region Protected Methods
+        protected override void SetFields(container.DataContainer objectToDisplay)
+        {
+            m_ElanDataContainerTemp = new container.Elan("", "", "", objectToDisplay.ID);
+            m_EDFDataContainerTemp = new container.EDF("", objectToDisplay.ID);
+            m_BrainVisionDataContainerTemp = new container.BrainVision("", objectToDisplay.ID);
+            m_MicromedDataContainerTemp = new container.Micromed("", objectToDisplay.ID);
+
+            if (objectToDisplay is container.Elan)
+            {
+                m_ElanDataContainerTemp = objectToDisplay as container.Elan;
+            }
+            else if (objectToDisplay is container.EDF)
+            {
+                m_EDFDataContainerTemp = objectToDisplay as container.EDF;
+            }
+            else if (objectToDisplay is container.Micromed)
+            {
+                m_MicromedDataContainerTemp = objectToDisplay as container.Micromed;
+            }
+            else if (objectToDisplay is container.BrainVision)
+            {
+                m_BrainVisionDataContainerTemp = objectToDisplay as container.BrainVision;
+            }
+            m_ContainerTypeDropdown.SetValue(Array.IndexOf(m_Types, Object.GetType()));
         }
         #endregion
     }

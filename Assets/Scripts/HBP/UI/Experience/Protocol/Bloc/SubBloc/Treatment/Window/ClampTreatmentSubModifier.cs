@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HBP.Data.Experience.Protocol;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Experience.Protocol
@@ -24,22 +25,6 @@ namespace HBP.UI.Experience.Protocol
                 m_UseMaxClampToggle.interactable = value;
                 m_MinValueInputField.interactable = value && m_UseMinClampToggle.isOn;
                 m_MaxValueInputField.interactable = value && m_UseMaxClampToggle.isOn;
-            }
-        }
-
-        public override Data.Experience.Protocol.ClampTreatment Object
-        {
-            get
-            {
-                return base.Object;
-            }
-            set
-            {
-                base.Object = value;
-                m_UseMinClampToggle.isOn = value.UseMinClamp;
-                m_UseMaxClampToggle.isOn = value.UseMaxClamp;
-                m_MinValueInputField.text = value.Min.ToString();
-                m_MaxValueInputField.text = value.Max.ToString();
             }
         }
         #endregion
@@ -73,6 +58,16 @@ namespace HBP.UI.Experience.Protocol
         {
             Object.UseMaxClamp = value;
             m_MaxValueInputField.interactable = Interactable && value;
+        }
+        #endregion
+
+        #region Protected Methods
+        protected override void SetFields(ClampTreatment objectToDisplay)
+        {
+            m_UseMinClampToggle.isOn = objectToDisplay.UseMinClamp;
+            m_UseMaxClampToggle.isOn = objectToDisplay.UseMaxClamp;
+            m_MinValueInputField.text = objectToDisplay.Min.ToString();
+            m_MaxValueInputField.text = objectToDisplay.Max.ToString();
         }
         #endregion
     }

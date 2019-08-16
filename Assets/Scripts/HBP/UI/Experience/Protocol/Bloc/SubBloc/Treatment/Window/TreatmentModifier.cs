@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,6 +16,17 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] RangeSlider m_BaselineSlider;
         [SerializeField] InputField m_OrderInputField;
         [SerializeField] Dropdown m_TypeDropdown;
+
+        [SerializeField] ClampTreatmentSubModifier m_ClampTreatmentSubModifier;
+        [SerializeField] AbsTreatmentSubModifier m_AbsTreatmentSubModifier;
+        [SerializeField] MaxTreatmentSubModifier m_MaxTreatmentSubModifier;
+        [SerializeField] MinTreatmentSubModifier m_MinTreatmentSubModifier;
+        [SerializeField] MeanTreatmentSubModifier m_MeanTreatmentSubModifier;
+        [SerializeField] MedianTreatmentSubModifier m_MedianTreatmentSubModifier;
+        [SerializeField] OffsetTreatmentSubModifier m_OffsetTreatmentSubModifier;
+        [SerializeField] RescaleTreatmentSubModifier m_RescaleTreatmentSubModifier;
+        [SerializeField] TresholdTreatmentSubModifier m_TresholdTreatmentSubModifier;
+        [SerializeField] FactorTreatmentSubModifier m_FactorTreatmentSubModifier;
 
         Tools.CSharp.Window m_Window;
         public Tools.CSharp.Window Window
@@ -46,25 +58,8 @@ namespace HBP.UI.Experience.Protocol
             }
         }
 
-        d.ClampTreatment m_ClampTreatmentTemp = new d.ClampTreatment();
-        d.AbsTreatment m_AbsTreatmentTemp = new d.AbsTreatment();
-        d.MaxTreatment m_MaxTreatmentTemp = new d.MaxTreatment();
-        d.MinTreatment m_MinTreatmentTemp = new d.MinTreatment();
-        d.MeanTreatment m_MeanTreatmentTemp = new d.MeanTreatment();
-        d.MedianTreatment m_MedianTreatmentTemp = new d.MedianTreatment();
-        d.OffsetTreatment m_OffsetTreatmentTemp = new d.OffsetTreatment();
-        d.RescaleTreatment m_RescaleTreatmentTemp = new d.RescaleTreatment();
-        d.TresholdTreatment m_TresholdTreatmentTemp = new d.TresholdTreatment();
-
-        [SerializeField] ClampTreatmentSubModifier m_ClampTreatmentSubModifier;
-        [SerializeField] AbsTreatmentSubModifier m_AbsTreatmentSubModifier;
-        [SerializeField] MaxTreatmentSubModifier m_MaxTreatmentSubModifier;
-        [SerializeField] MinTreatmentSubModifier m_MinTreatmentSubModifier;
-        [SerializeField] MeanTreatmentSubModifier m_MeanTreatmentSubModifier;
-        [SerializeField] MedianTreatmentSubModifier m_MedianTreatmentSubModifier;
-        [SerializeField] OffsetTreatmentSubModifier m_OffsetTreatmentSubModifier;
-        [SerializeField] RescaleTreatmentSubModifier m_RescaleTreatmentSubModifier;
-        [SerializeField] TresholdTreatmentSubModifier m_TresholdTreatmentSubModifier;
+        List<BaseSubModifier> m_SubModifiers;
+        List<d.Treatment> m_TreatmentsTemp;
 
         Type[] m_Types;
         public override bool Interactable
@@ -96,6 +91,7 @@ namespace HBP.UI.Experience.Protocol
                 m_OffsetTreatmentSubModifier.Interactable = value;
                 m_RescaleTreatmentSubModifier.Interactable = value;
                 m_TresholdTreatmentSubModifier.Interactable = value;
+                m_FactorTreatmentSubModifier.Interactable = value;
             }
         }
 
@@ -127,28 +123,54 @@ namespace HBP.UI.Experience.Protocol
             m_TypeDropdown.onValueChanged.AddListener(OnChangeType);
             m_Types = m_TypeDropdown.Set(typeof(d.Treatment));
 
-            m_ClampTreatmentSubModifier.Initialize();
-            m_AbsTreatmentSubModifier.Initialize();
-            m_MaxTreatmentSubModifier.Initialize();
-            m_MinTreatmentSubModifier.Initialize();
-            m_MeanTreatmentSubModifier.Initialize();
-            m_MedianTreatmentSubModifier.Initialize();
-            m_OffsetTreatmentSubModifier.Initialize();
-            m_RescaleTreatmentSubModifier.Initialize();
-            m_TresholdTreatmentSubModifier.Initialize();
+            m_SubModifiers = new List<BaseSubModifier>();
 
+            m_ClampTreatmentSubModifier.Initialize();
+            m_SubModifiers.Add(m_ClampTreatmentSubModifier);
+
+            m_AbsTreatmentSubModifier.Initialize();
+            m_SubModifiers.Add(m_AbsTreatmentSubModifier);
+
+            m_MaxTreatmentSubModifier.Initialize();
+            m_SubModifiers.Add(m_MaxTreatmentSubModifier);
+
+            m_MinTreatmentSubModifier.Initialize();
+            m_SubModifiers.Add(m_MinTreatmentSubModifier);
+
+            m_MeanTreatmentSubModifier.Initialize();
+            m_SubModifiers.Add(m_MeanTreatmentSubModifier);
+
+            m_MedianTreatmentSubModifier.Initialize();
+            m_SubModifiers.Add(m_MedianTreatmentSubModifier);
+
+            m_OffsetTreatmentSubModifier.Initialize();
+            m_SubModifiers.Add(m_OffsetTreatmentSubModifier);
+
+            m_RescaleTreatmentSubModifier.Initialize();
+            m_SubModifiers.Add(m_RescaleTreatmentSubModifier);
+
+            m_TresholdTreatmentSubModifier.Initialize();
+            m_SubModifiers.Add(m_TresholdTreatmentSubModifier);
+
+            m_FactorTreatmentSubModifier.Initialize();
+            m_SubModifiers.Add(m_FactorTreatmentSubModifier);
+
+            m_TreatmentsTemp = new List<d.Treatment>();
+            m_TreatmentsTemp.Add(new d.ClampTreatment());
+            m_TreatmentsTemp.Add(new d.AbsTreatment());
+            m_TreatmentsTemp.Add(new d.MaxTreatment());
+            m_TreatmentsTemp.Add(new d.MinTreatment());
+            m_TreatmentsTemp.Add(new d.MeanTreatment());
+            m_TreatmentsTemp.Add(new d.MedianTreatment());
+            m_TreatmentsTemp.Add(new d.OffsetTreatment());
+            m_TreatmentsTemp.Add(new d.RescaleTreatment());
+            m_TreatmentsTemp.Add(new d.TresholdTreatment());
+            m_TreatmentsTemp.Add(new d.FactorTreatment());
         }
         protected override void SetFields(d.Treatment objectToDisplay)
         {
-            if (itemTemp is d.ClampTreatment clampTreatment) m_ClampTreatmentTemp = clampTreatment;
-            else if (itemTemp is d.AbsTreatment absTreatment) m_AbsTreatmentTemp = absTreatment;
-            else if (itemTemp is d.MaxTreatment maxTreatment) m_MaxTreatmentTemp = maxTreatment;
-            else if (itemTemp is d.MinTreatment minTreatment) m_MinTreatmentTemp = minTreatment;
-            else if (itemTemp is d.MeanTreatment meanTreatment) m_MeanTreatmentTemp = meanTreatment;
-            else if (itemTemp is d.MedianTreatment medianTreatment) m_MedianTreatmentTemp = medianTreatment;
-            else if (itemTemp is d.OffsetTreatment offsetTreatment) m_OffsetTreatmentTemp = offsetTreatment;
-            else if (itemTemp is d.RescaleTreatment rescaleTreatment) m_RescaleTreatmentTemp = rescaleTreatment;
-            else if (itemTemp is d.TresholdTreatment tresholdTreatment) m_TresholdTreatmentTemp = tresholdTreatment;
+            int index = m_TreatmentsTemp.FindIndex(t => t.GetType() == ItemTemp.GetType());
+            m_TreatmentsTemp[index] = ItemTemp;
 
             m_OrderInputField.text = objectToDisplay.Order.ToString();
             m_TypeDropdown.SetValue(Array.IndexOf(m_Types, objectToDisplay.GetType()));
@@ -167,386 +189,19 @@ namespace HBP.UI.Experience.Protocol
         }
         void OnChangeType(int value)
         {
-            Type type = m_Types[value];
-            if (type == typeof(d.ClampTreatment))
-            {
-                if (itemTemp is d.AbsTreatment absTreatment)
-                {
-                    m_AbsTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MaxTreatment maxTreatment)
-                {
-                    m_MaxTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MinTreatment minTreatment)
-                {
-                    m_MinTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MeanTreatment meanTreatment)
-                {
-                    m_MeanTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MedianTreatment medianTreatment)
-                {
-                    m_MedianTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.OffsetTreatment offsetTreatment)
-                {
-                    m_OffsetTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.RescaleTreatment rescaleTreatment)
-                {
-                    m_ClampTreatmentTemp.Min = rescaleTreatment.AfterMin;
-                    m_ClampTreatmentTemp.Max = rescaleTreatment.AfterMax;
-                    m_RescaleTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.TresholdTreatment tresholdTreatment)
-                {
-                    m_ClampTreatmentTemp.Min = tresholdTreatment.Min;
-                    m_ClampTreatmentTemp.Max = tresholdTreatment.Max;
-                    m_ClampTreatmentTemp.UseMinClamp = tresholdTreatment.UseMinTreshold;
-                    m_ClampTreatmentTemp.UseMaxClamp = tresholdTreatment.UseMaxTreshold;
-                    m_TresholdTreatmentSubModifier.IsActive = false;
-                }
+            Type type = m_Types[value];        
+            
+            // Close old subModifier
+            m_SubModifiers.Find(subModifier => subModifier.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(itemTemp.GetType()))).IsActive = false;
 
-                m_ClampTreatmentTemp.Window = itemTemp.Window;
-                m_ClampTreatmentTemp.Order = itemTemp.Order;
-                m_ClampTreatmentSubModifier.Object = m_ClampTreatmentTemp;
-                m_ClampTreatmentSubModifier.IsActive = true;
-                itemTemp = m_ClampTreatmentTemp;
-            }
-            else if (type == typeof(d.AbsTreatment))
-            {
-                if (itemTemp is d.ClampTreatment clampTreatment)
-                {
-                    m_ClampTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MaxTreatment maxTreatment)
-                {
-                    m_MaxTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MinTreatment minTreatment)
-                {
-                    m_MinTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MeanTreatment meanTreatment)
-                {
-                    m_MeanTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MedianTreatment medianTreatment)
-                {
-                    m_MedianTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.OffsetTreatment offsetTreatment)
-                {
-                    m_OffsetTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.RescaleTreatment rescaleTreatment)
-                {
-                    m_RescaleTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.TresholdTreatment tresholdTreatment)
-                {
-                    m_TresholdTreatmentSubModifier.IsActive = false;
-                }
+            d.Treatment treatment = m_TreatmentsTemp.Find(t => t.GetType() == type);
+            treatment.Copy(ItemTemp);
+            itemTemp = treatment;
 
-                m_AbsTreatmentTemp.Window = itemTemp.Window;
-                m_AbsTreatmentTemp.Order = itemTemp.Order;
-                m_AbsTreatmentSubModifier.Object = m_AbsTreatmentTemp;
-                m_AbsTreatmentSubModifier.IsActive = true;
-                itemTemp = m_AbsTreatmentTemp;
-            }
-            else if (type == typeof(d.MaxTreatment))
-            {
-                if (itemTemp is d.ClampTreatment clampTreatment)
-                {
-                    m_ClampTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.AbsTreatment absTreatment)
-                {
-                    m_AbsTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MinTreatment minTreatment)
-                {
-                    m_MinTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MeanTreatment meanTreatment)
-                {
-                    m_MeanTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MedianTreatment medianTreatment)
-                {
-                    m_MedianTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.OffsetTreatment offsetTreatment)
-                {
-                    m_OffsetTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.RescaleTreatment rescaleTreatment)
-                {
-                    m_RescaleTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.TresholdTreatment tresholdTreatment)
-                {
-                    m_TresholdTreatmentSubModifier.IsActive = false;
-                }
-
-                m_MaxTreatmentTemp.Window = itemTemp.Window;
-                m_MaxTreatmentTemp.Order = itemTemp.Order;
-                m_MaxTreatmentSubModifier.Object = m_MaxTreatmentTemp;
-                m_MaxTreatmentSubModifier.IsActive = true;
-                itemTemp = m_MaxTreatmentTemp;
-            }
-            else if (type == typeof(d.MinTreatment))
-            {
-                if (itemTemp is d.ClampTreatment clampTreatment)
-                {
-                    m_ClampTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.AbsTreatment absTreatment)
-                {
-                    m_AbsTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MaxTreatment maxTreatment)
-                {
-                    m_MaxTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MeanTreatment meanTreatment)
-                {
-                    m_MeanTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MedianTreatment medianTreatment)
-                {
-                    m_MedianTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.OffsetTreatment offsetTreatment)
-                {
-                    m_OffsetTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.RescaleTreatment rescaleTreatment)
-                {
-                    m_RescaleTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.TresholdTreatment tresholdTreatment)
-                {
-                    m_TresholdTreatmentSubModifier.IsActive = false;
-                }
-
-                m_MinTreatmentTemp.Window = itemTemp.Window;
-                m_MinTreatmentTemp.Order = itemTemp.Order;
-                m_MinTreatmentSubModifier.Object = m_MinTreatmentTemp;
-                m_MinTreatmentSubModifier.IsActive = true;
-                itemTemp = m_MinTreatmentTemp;
-            }
-            else if (type == typeof(d.MeanTreatment))
-            {
-                if (itemTemp is d.ClampTreatment clampTreatment)
-                {
-                    m_ClampTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.AbsTreatment absTreatment)
-                {
-                    m_AbsTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MaxTreatment maxTreatment)
-                {
-                    m_MaxTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MinTreatment minTreatment)
-                {
-                    m_MinTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MedianTreatment medianTreatment)
-                {
-                    m_MedianTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.OffsetTreatment offsetTreatment)
-                {
-                    m_OffsetTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.RescaleTreatment rescaleTreatment)
-                {
-                    m_RescaleTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.TresholdTreatment tresholdTreatment)
-                {
-                    m_TresholdTreatmentSubModifier.IsActive = false;
-                }
-
-                m_MeanTreatmentTemp.Window = itemTemp.Window;
-                m_MeanTreatmentTemp.Order = itemTemp.Order;
-                m_MeanTreatmentSubModifier.Object = m_MeanTreatmentTemp;
-                m_MeanTreatmentSubModifier.IsActive = true;
-                itemTemp = m_MeanTreatmentTemp;
-            }
-            else if (type == typeof(d.MedianTreatment))
-            {
-                if (itemTemp is d.ClampTreatment clampTreatment)
-                {
-                    m_ClampTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.AbsTreatment absTreatment)
-                {
-                    m_AbsTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MaxTreatment maxTreatment)
-                {
-                    m_MaxTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MinTreatment minTreatment)
-                {
-                    m_MinTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MeanTreatment meanTreatment)
-                {
-                    m_MeanTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.OffsetTreatment offsetTreatment)
-                {
-                    m_OffsetTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.RescaleTreatment rescaleTreatment)
-                {
-                    m_RescaleTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.TresholdTreatment tresholdTreatment)
-                {
-                    m_TresholdTreatmentSubModifier.IsActive = false;
-                }
-
-                m_MedianTreatmentTemp.Window = itemTemp.Window;
-                m_MedianTreatmentTemp.Order = itemTemp.Order;
-                m_MedianTreatmentSubModifier.Object = m_MedianTreatmentTemp;
-                m_MedianTreatmentSubModifier.IsActive = true;
-                itemTemp = m_MedianTreatmentTemp;
-            }
-            else if (type == typeof(d.OffsetTreatment))
-            {
-                if (itemTemp is d.ClampTreatment clampTreatment)
-                {
-                    m_ClampTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.AbsTreatment absTreatment)
-                {
-                    m_AbsTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MaxTreatment maxTreatment)
-                {
-                    m_MaxTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MinTreatment minTreatment)
-                {
-                    m_MinTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MeanTreatment meanTreatment)
-                {
-                    m_MeanTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MedianTreatment medianTreatment)
-                {
-                    m_MedianTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.RescaleTreatment rescaleTreatment)
-                {
-                    m_RescaleTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.TresholdTreatment tresholdTreatment)
-                {
-                    m_TresholdTreatmentSubModifier.IsActive = false;
-                }
-
-                m_OffsetTreatmentTemp.Window = itemTemp.Window;
-                m_OffsetTreatmentTemp.Order = itemTemp.Order;
-                m_OffsetTreatmentSubModifier.Object = m_OffsetTreatmentTemp;
-                m_OffsetTreatmentSubModifier.IsActive = true;
-                itemTemp = m_OffsetTreatmentTemp;
-            }
-            else if (type == typeof(d.RescaleTreatment))
-            {
-                if (itemTemp is d.ClampTreatment clampTreatment)
-                {
-                    m_ClampTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.AbsTreatment absTreatment)
-                {
-                    m_AbsTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MaxTreatment maxTreatment)
-                {
-                    m_MaxTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MinTreatment minTreatment)
-                {
-                    m_MinTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MeanTreatment meanTreatment)
-                {
-                    m_MeanTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MedianTreatment medianTreatment)
-                {
-                    m_MedianTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.OffsetTreatment offsetTreatment)
-                {
-                    m_OffsetTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.TresholdTreatment tresholdTreatment)
-                {
-                    m_TresholdTreatmentSubModifier.IsActive = false;
-                }
-
-                m_RescaleTreatmentTemp.Window = itemTemp.Window;
-                m_RescaleTreatmentTemp.Order = itemTemp.Order;
-                m_RescaleTreatmentSubModifier.Object = m_RescaleTreatmentTemp;
-                m_RescaleTreatmentSubModifier.IsActive = true;
-                itemTemp = m_RescaleTreatmentTemp;
-            }
-            else if (type == typeof(d.TresholdTreatment))
-            {
-                if (itemTemp is d.ClampTreatment clampTreatment)
-                {
-                    m_TresholdTreatmentTemp.Min = clampTreatment.Min;
-                    m_TresholdTreatmentTemp.Max = clampTreatment.Max;
-                    m_TresholdTreatmentTemp.UseMinTreshold = clampTreatment.UseMinClamp;
-                    m_TresholdTreatmentTemp.UseMaxTreshold = clampTreatment.UseMaxClamp;
-                    m_ClampTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.AbsTreatment absTreatment)
-                {
-                    m_AbsTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MaxTreatment maxTreatment)
-                {
-                    m_MaxTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MinTreatment minTreatment)
-                {
-                    m_MinTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MeanTreatment meanTreatment)
-                {
-                    m_MeanTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.MedianTreatment medianTreatment)
-                {
-                    m_MedianTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.OffsetTreatment offsetTreatment)
-                {
-                    m_OffsetTreatmentSubModifier.IsActive = false;
-                }
-                else if (itemTemp is d.RescaleTreatment rescaleTreatment)
-                {
-                    m_RescaleTreatmentSubModifier.IsActive = false;
-                }
-
-                m_TresholdTreatmentTemp.Window = itemTemp.Window;
-                m_TresholdTreatmentTemp.Order = itemTemp.Order;
-                m_TresholdTreatmentSubModifier.Object = m_TresholdTreatmentTemp;
-                m_TresholdTreatmentSubModifier.IsActive = true;
-                itemTemp = m_TresholdTreatmentTemp;
-            }
+            // Open new subModifier;
+            BaseSubModifier newSubModifier = m_SubModifiers.Find(subModifier => subModifier.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(type)));
+            newSubModifier.IsActive = true;
+            newSubModifier.Object = itemTemp;
         }
         void OnChangeWindow(float min, float max)
         {
@@ -568,7 +223,7 @@ namespace HBP.UI.Experience.Protocol
         }
         void OnChangeOrder(string order)
         {
-            ItemTemp.Order = int.Parse(order);
+            if (int.TryParse(order, out int result)) itemTemp.Order = result;
         }
         #endregion
     }

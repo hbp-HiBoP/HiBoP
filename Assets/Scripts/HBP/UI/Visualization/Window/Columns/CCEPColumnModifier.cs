@@ -103,7 +103,7 @@ namespace HBP.UI.Visualization
             if (interactable)
             {
                 m_ProtocolDropdown.options = m_Protocols.Select(p => new Dropdown.OptionData(p.Name, null)).ToList();
-                if (m_Object.Dataset != null) m_ProtocolDropdown.SetValue(m_Protocols.IndexOf(m_Object.Dataset.Protocol));
+                if (Object.Dataset != null) m_ProtocolDropdown.SetValue(m_Protocols.IndexOf(Object.Dataset.Protocol));
                 else m_ProtocolDropdown.SetValue(0);
             }
             else
@@ -124,7 +124,7 @@ namespace HBP.UI.Visualization
         {
             if (m_SelectedProtocol != null && m_SelectedProtocol.Blocs.Count > value)
             {
-                m_Object.Bloc = m_SelectedProtocol.Blocs[value];
+                Object.Bloc = m_SelectedProtocol.Blocs[value];
             }
         }
         void SetBlocDropdownInteractable(bool interactable)
@@ -133,7 +133,7 @@ namespace HBP.UI.Visualization
             if (interactable)
             {
                 m_BlocDropdown.options = m_SelectedProtocol.Blocs.Select(b => new Dropdown.OptionData(b.Name, null)).ToList();
-                if (m_Object.Bloc != null) m_BlocDropdown.SetValue(m_SelectedProtocol.Blocs.IndexOf(m_Object.Bloc));
+                if (Object.Bloc != null) m_BlocDropdown.SetValue(m_SelectedProtocol.Blocs.IndexOf(Object.Bloc));
                 else m_BlocDropdown.SetValue(0);
             }
             else
@@ -146,7 +146,7 @@ namespace HBP.UI.Visualization
         // Dataset.
         void OnChangeDataset(int value)
         {
-            if (m_Datasets != null && m_Datasets.Count > value) m_Object.Dataset = m_Datasets[value];
+            if (m_Datasets != null && m_Datasets.Count > value) Object.Dataset = m_Datasets[value];
             SetDataNameDropdown();
         }
         void SetDatasetDropdown()
@@ -160,9 +160,9 @@ namespace HBP.UI.Visualization
             if (interactable)
             {
                 m_DatasetDropdown.options = m_Datasets.Select(d => new Dropdown.OptionData(d.Name, null)).ToList();
-                if (m_Object.Dataset != null)
+                if (Object.Dataset != null)
                 {
-                    m_DatasetDropdown.SetValue(m_Datasets.IndexOf(m_Object.Dataset));
+                    m_DatasetDropdown.SetValue(m_Datasets.IndexOf(Object.Dataset));
                 }
                 else
                 {
@@ -182,14 +182,14 @@ namespace HBP.UI.Visualization
         {
             if (m_DataNames != null && m_DataNames.Count > value)
             {
-                m_Object.DataName = m_DataNames[value];
+                Object.DataName = m_DataNames[value];
             }
         }
         void SetDataNameDropdown()
         {
-            if (m_Object.Dataset != null)
+            if (Object.Dataset != null)
             {
-                m_DataNames = (from data in m_Object.Dataset.Data select data.Name).Distinct().Where((name) => m_Patients.All((patient) => m_Object.Dataset.GetCCEPDataInfos().Any((dataInfo) => dataInfo.IsOk && dataInfo.Name == name && dataInfo.Patient == patient))).ToList();
+                m_DataNames = (from data in Object.Dataset.Data select data.Name).Distinct().Where((name) => m_Patients.All((patient) => Object.Dataset.GetCCEPDataInfos().Any((dataInfo) => dataInfo.IsOk && dataInfo.Name == name && dataInfo.Patient == patient))).ToList();
             }
             else
             {
@@ -203,7 +203,7 @@ namespace HBP.UI.Visualization
             if (interactable)
             {
                 m_DataNameDropdown.options = (from label in m_DataNames select new Dropdown.OptionData(label, null)).ToList();
-                m_DataNameDropdown.SetValue(Mathf.Clamp(m_DataNames.IndexOf(m_Object.DataName), 0, m_DataNameDropdown.options.Count - 1));
+                m_DataNameDropdown.SetValue(Mathf.Clamp(m_DataNames.IndexOf(Object.DataName), 0, m_DataNameDropdown.options.Count - 1));
             }
             else
             {

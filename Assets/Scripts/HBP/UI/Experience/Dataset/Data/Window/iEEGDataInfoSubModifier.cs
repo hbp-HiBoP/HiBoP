@@ -22,17 +22,6 @@ namespace HBP.UI.Experience.Dataset
                 m_NormalizationDropdown.interactable = value;
             }
         }
-
-        public override d.iEEGDataInfo Object
-        {
-            get => base.Object;
-            set
-            {
-                base.Object = value;
-                m_NormalizationDropdown.value = (int)value.Normalization;
-                m_NormalizationDropdown.RefreshShownValue();
-            }
-        }
         #endregion
 
         #region Public Methods
@@ -40,7 +29,15 @@ namespace HBP.UI.Experience.Dataset
         {
             base.Initialize();
             m_NormalizationDropdown.options = (from name in System.Enum.GetNames(typeof(d.iEEGDataInfo.NormalizationType)) select new Dropdown.OptionData(name, null)).ToList();
-            m_NormalizationDropdown.onValueChanged.AddListener((value) => m_Object.Normalization = (d.iEEGDataInfo.NormalizationType)value);
+            m_NormalizationDropdown.onValueChanged.AddListener((value) => Object.Normalization = (d.iEEGDataInfo.NormalizationType)value);
+        }
+        #endregion
+
+        #region Protected Methods
+        protected override void SetFields(d.iEEGDataInfo objectToDisplay)
+        {
+            m_NormalizationDropdown.value = (int)objectToDisplay.Normalization;
+            m_NormalizationDropdown.RefreshShownValue();
         }
         #endregion
     }

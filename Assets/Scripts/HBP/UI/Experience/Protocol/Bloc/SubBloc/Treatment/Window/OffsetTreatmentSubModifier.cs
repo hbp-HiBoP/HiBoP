@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HBP.Data.Experience.Protocol;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Experience.Protocol
@@ -20,19 +21,6 @@ namespace HBP.UI.Experience.Protocol
                 m_OffsetInputField.interactable = value;
             }
         }
-
-        public override Data.Experience.Protocol.OffsetTreatment Object
-        {
-            get
-            {
-                return base.Object;
-            }
-            set
-            {
-                base.Object = value;
-                m_OffsetInputField.text = value.Offset.ToString();
-            }
-        }
         #endregion
 
         #region Public Methods
@@ -40,6 +28,13 @@ namespace HBP.UI.Experience.Protocol
         {
             base.Initialize();
             m_OffsetInputField.onValueChanged.AddListener((value) => Object.Offset = float.Parse(value));
+        }
+        #endregion
+
+        #region Protected Methods
+        protected override void SetFields(OffsetTreatment objectToDisplay)
+        {
+            m_OffsetInputField.text = objectToDisplay.Offset.ToString();
         }
         #endregion
     }

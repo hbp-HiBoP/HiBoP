@@ -21,19 +21,6 @@ namespace HBP.UI.Experience.Dataset
                 m_FileSelector.interactable = value;
             }
         }
-
-        public override container.EDF Object
-        {
-            get
-            {
-                return base.Object;
-            }
-            set
-            {
-                base.Object = value;
-                m_FileSelector.File = value.SavedEDF;
-            }
-        }
         #endregion
 
         #region Public Methods
@@ -41,7 +28,14 @@ namespace HBP.UI.Experience.Dataset
         {
             base.Initialize();
             m_FileSelector.DefaultDirectory = ApplicationState.ProjectLoaded.Settings.LocalizerDatabase;
-            m_FileSelector.onValueChanged.AddListener((path) => { m_Object.Path = path; });
+            m_FileSelector.onValueChanged.AddListener((path) => { Object.Path = path; });
+        }
+        #endregion
+
+        #region Protected Methods
+        protected override void SetFields(container.EDF objectToDisplay)
+        {
+            m_FileSelector.File = objectToDisplay.SavedEDF;
         }
         #endregion
     }

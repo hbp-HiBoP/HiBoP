@@ -36,23 +36,20 @@ namespace HBP.Data.Experience.Dataset
             if (startIndex >= 0)
             {
                 RawValuesByChannel = EpochValues(valuesByChannel, startIndex, endIndex);
-                Dictionary<string, float[]> result = new Dictionary<string, float[]>();
-                foreach (var channel in RawValuesByChannel.Keys)
-                {
-                    result[channel] = RawValuesByChannel[channel].Clone() as float[];
-                }
+                BaselineValuesByChannel = EpochValues(valuesByChannel, startIndex, endIndex);
+                UnitByChannel = unitByChannel;
+                InformationsByEvent = FindEvents(mainEventOccurence, subBloc, occurencesByEvent, frequency);
                 foreach (var treatment in subBloc.Treatments.OrderBy(t => t.Order))
                 {
-                    foreach (var channel in RawValuesByChannel.Keys)
+                    foreach (var channel in RawValuesByChannel.Keys.ToArray())
                     {
-                        result[channel] = treatment.Apply(result[channel], mainEventOccurence.Index - startIndex, frequency);
+                        float[] rawValues = RawValuesByChannel[channel];
+                        float[] baselineValues = BaselineValuesByChannel[channel];
+                        treatment.Apply(ref rawValues, ref baselineValues, mainEventOccurence.Index - startIndex, frequency);
+                        RawValuesByChannel[channel] = rawValues; 
                     }
                 }
-                RawValuesByChannel = result;
-                UnitByChannel = unitByChannel;
                 ValuesByChannel = RawValuesByChannel.ToDictionary(kv => kv.Key, kv => kv.Value.Clone() as float[]);
-                BaselineValuesByChannel = EpochValues(valuesByChannel, startIndex, endIndex);
-                InformationsByEvent = FindEvents(mainEventOccurence, subBloc, occurencesByEvent, frequency);
                 Found = true;
             }
             else

@@ -18,7 +18,10 @@ namespace HBP.Data.Experience.Protocol
         #region Constructors
         public ClampTreatment() : base()
         {
-
+            UseMinClamp = false;
+            UseMaxClamp = false;
+            Min = 0;
+            Max = 1;
         }
         public ClampTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, bool useMinClamp, float min , bool useMaxClamp, float max, int order, string id) : base(useOnWindow, window, useOnBaseline, baseline, order, id)
         {
@@ -30,41 +33,80 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Public Methods
-        public override float[] Apply(float[] values, int mainEventIndex, Frequency frequency)
+        public override void Apply(ref float[] values, ref float[] baseline, int mainEventIndex, Frequency frequency)
         {
-            int startIndex = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
-            int endIndex = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
-            if (UseMinClamp && !UseMaxClamp)
+            int start, end;
+            if(UseOnWindow)
             {
-                for (int i = startIndex; i <= endIndex; i++)
+                start = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
+                end = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
+                if (UseMinClamp && !UseMaxClamp)
                 {
-                    if (values[i] < Min) values[i] = Min;
-                }
-            }
-            else if (!UseMinClamp && UseMaxClamp)
-            {
-                for (int i = startIndex; i <= endIndex; i++)
-                {
-                    if (values[i] > Max) values[i] = Max;
-                }
-            }
-            else if (UseMinClamp && UseMaxClamp)
-            {
-                for (int i = startIndex; i <= endIndex; i++)
-                {
-                    if (values[i] > Max)
+                    for (int i = start; i <= end; i++)
                     {
-                        values[i] = Max;
-                        continue;
-                    }
-                    if (values[i] < Min)
-                    {
-                        values[i] = Min;
-                        continue;
+                        if (values[i] < Min) values[i] = Min;
                     }
                 }
+                else if (!UseMinClamp && UseMaxClamp)
+                {
+                    for (int i = start; i <= end; i++)
+                    {
+                        if (values[i] > Max) values[i] = Max;
+                    }
+                }
+                else if (UseMinClamp && UseMaxClamp)
+                {
+                    for (int i = start; i <= end; i++)
+                    {
+                        if (values[i] > Max)
+                        {
+                            values[i] = Max;
+                            continue;
+                        }
+                        if (values[i] < Min)
+                        {
+                            values[i] = Min;
+                            continue;
+                        }
+                    }
+                }
             }
-            return values;
+
+            if (UseOnBaseline)
+            {
+                start = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Baseline.Start);
+                end = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Baseline.End);
+                if (UseMinClamp && !UseMaxClamp)
+                {
+                    for (int i = start; i <= end; i++)
+                    {
+                        if (baseline[i] < Min) baseline[i] = Min;
+                    }
+                }
+                else if (!UseMinClamp && UseMaxClamp)
+                {
+                    for (int i = start; i <= end; i++)
+                    {
+                        if (baseline[i] > Max) baseline[i] = Max;
+                    }
+                }
+                else if (UseMinClamp && UseMaxClamp)
+                {
+                    for (int i = start; i <= end; i++)
+                    {
+                        if (baseline[i] > Max)
+                        {
+                            baseline[i] = Max;
+                            continue;
+                        }
+                        if (baseline[i] < Min)
+                        {
+                            baseline[i] = Min;
+                            continue;
+                        }
+                    }
+                }
+            }
         }
         #endregion
 
@@ -76,11 +118,20 @@ namespace HBP.Data.Experience.Protocol
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            ClampTreatment treatment = copy as ClampTreatment;
-            UseMinClamp = treatment.UseMinClamp;
-            Min = treatment.Min;
-            UseMaxClamp = treatment.UseMaxClamp;
-            Max = treatment.Max;
+            if(copy is ClampTreatment clampTreatment)
+            {
+                UseMinClamp = clampTreatment.UseMinClamp;
+                Min = clampTreatment.Min;
+                UseMaxClamp = clampTreatment.UseMaxClamp;
+                Max = clampTreatment.Max;
+            }
+            if(copy is TresholdTreatment tresholdTreatment)
+            {
+                UseMinClamp = tresholdTreatment.UseMinTreshold;
+                Min = tresholdTreatment.Min;
+                UseMaxClamp = tresholdTreatment.UseMaxTreshold;
+                Max = tresholdTreatment.Max;
+            }
         }
         #endregion
     }

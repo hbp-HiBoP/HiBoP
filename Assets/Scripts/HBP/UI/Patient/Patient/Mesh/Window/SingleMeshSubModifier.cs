@@ -21,24 +21,22 @@ namespace HBP.UI.Anatomy
                 m_MarsAtlasFileSelector.interactable = value;
             }
         }
-        public override SingleMesh Object
-        {
-            get => base.Object;
-            set
-            {
-                base.Object = value;
-                m_MeshFileSelector.File = value.SavedPath;
-                m_MarsAtlasFileSelector.File = value.SavedMarsAtlasPath;
-            }
-        }
         #endregion
 
         #region Public Methods
         public override void Initialize()
         {
             base.Initialize();
-            m_MeshFileSelector.onValueChanged.AddListener((path) => m_Object.Path = path);
-            m_MarsAtlasFileSelector.onValueChanged.AddListener((marsAtlasPath) => m_Object.MarsAtlasPath = marsAtlasPath);
+            m_MeshFileSelector.onValueChanged.AddListener((path) => Object.Path = path);
+            m_MarsAtlasFileSelector.onValueChanged.AddListener((marsAtlasPath) => Object.MarsAtlasPath = marsAtlasPath);
+        }
+        #endregion
+
+        #region Protected Methods
+        protected override void SetFields(SingleMesh objectToDisplay)
+        {
+            m_MeshFileSelector.File = objectToDisplay.SavedPath;
+            m_MarsAtlasFileSelector.File = objectToDisplay.SavedMarsAtlasPath;
         }
         #endregion
     }

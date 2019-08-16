@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HBP.Data.Experience.Protocol;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Experience.Protocol
@@ -24,22 +25,6 @@ namespace HBP.UI.Experience.Protocol
                 m_UseMaxTresholdToggle.interactable = value;
                 m_MinValueInputField.interactable = value && m_UseMinTresholdToggle.isOn;
                 m_MaxValueInputField.interactable = value && m_UseMaxTresholdToggle.isOn;
-            }
-        }
-
-        public override Data.Experience.Protocol.TresholdTreatment Object
-        {
-            get
-            {
-                return base.Object;
-            }
-            set
-            {
-                base.Object = value;
-                m_UseMinTresholdToggle.isOn = value.UseMinTreshold;
-                m_UseMaxTresholdToggle.isOn = value.UseMaxTreshold;
-                m_MinValueInputField.text = value.Min.ToString();
-                m_MaxValueInputField.text = value.Max.ToString();
             }
         }
         #endregion
@@ -73,6 +58,17 @@ namespace HBP.UI.Experience.Protocol
         {
             Object.UseMaxTreshold = value;
             m_MaxValueInputField.interactable = value;
+        }
+        #endregion
+
+        #region Protected Methods
+        protected override void SetFields(TresholdTreatment objectToDisplay)
+        {
+            base.SetFields(objectToDisplay);
+            m_UseMinTresholdToggle.isOn = objectToDisplay.UseMinTreshold;
+            m_UseMaxTresholdToggle.isOn = objectToDisplay.UseMaxTreshold;
+            m_MinValueInputField.text = objectToDisplay.Min.ToString();
+            m_MaxValueInputField.text = objectToDisplay.Max.ToString();
         }
         #endregion
     }

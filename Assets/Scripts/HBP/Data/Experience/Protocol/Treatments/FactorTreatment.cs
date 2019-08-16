@@ -5,21 +5,21 @@ using Tools.CSharp.EEG;
 
 namespace HBP.Data.Experience.Protocol
 {
-    [DataContract, DisplayName("Offset")]
-    public class OffsetTreatment : Treatment
+    [DataContract, DisplayName("Factor")]
+    public class FactorTreatment : Treatment
     {
         #region Properties
-        [DataMember] public float Offset { get; set; }
+        [DataMember] public float Factor { get; set; }
         #endregion
 
         #region Constructors
-        public OffsetTreatment() : base()
+        public FactorTreatment() : base()
         {
-            Offset = 0;
+            Factor = 1;
         }
-        public OffsetTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, float offset, int order, string id) : base(useOnWindow, window, useOnBaseline, baseline, order, id)
+        public FactorTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, float factor, int order, string id) : base(useOnWindow, window, useOnBaseline, baseline, order, id)
         {
-            Offset = offset;
+            Factor = factor;
         }
         #endregion
 
@@ -32,7 +32,7 @@ namespace HBP.Data.Experience.Protocol
                 int endIndex = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
                 for (int i = startIndex; i <= endIndex; i++)
                 {
-                    values[i] += Offset;
+                    values[i] *= Factor;
                 }
             }
             if (UseOnBaseline)
@@ -41,7 +41,7 @@ namespace HBP.Data.Experience.Protocol
                 int endIndex = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Baseline.End);
                 for (int i = startIndex; i <= endIndex; i++)
                 {
-                    baseline[i] += Offset;
+                    baseline[i] *= Factor;
                 }
             }
         }
@@ -50,14 +50,14 @@ namespace HBP.Data.Experience.Protocol
         #region Operators
         public override object Clone()
         {
-            return new OffsetTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, Offset, Order, ID);
+            return new FactorTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, Factor, Order, ID);
         }
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            if(copy is OffsetTreatment treatment)
+            if(copy is FactorTreatment treatment)
             {
-                Offset = treatment.Offset;
+                Factor = treatment.Factor;
             }
         }
         #endregion

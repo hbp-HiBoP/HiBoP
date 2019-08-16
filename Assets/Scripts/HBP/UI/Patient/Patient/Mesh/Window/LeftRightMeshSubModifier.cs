@@ -43,10 +43,10 @@ namespace HBP.UI.Anatomy
         public override void Initialize()
         {
             base.Initialize();
-            m_LeftMeshFileSelector.onValueChanged.AddListener((path) => m_Object.LeftHemisphere = path);
-            m_RightMeshFileSelector.onValueChanged.AddListener((path) => m_Object.RightHemisphere = path);
-            m_LeftMarsAtlasFileSelector.onValueChanged.AddListener((path) => m_Object.LeftMarsAtlasHemisphere = path);
-            m_RightMarsAtlasFileSelector.onValueChanged.AddListener((path) => m_Object.RightMarsAtlasHemisphere = path);
+            m_LeftMeshFileSelector.onValueChanged.AddListener((path) => Object.LeftHemisphere = path);
+            m_RightMeshFileSelector.onValueChanged.AddListener((path) => Object.RightHemisphere = path);
+            m_LeftMarsAtlasFileSelector.onValueChanged.AddListener((path) => Object.LeftMarsAtlasHemisphere = path);
+            m_RightMarsAtlasFileSelector.onValueChanged.AddListener((path) => Object.RightMarsAtlasHemisphere = path);
         }
         #endregion
     }
