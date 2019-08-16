@@ -80,6 +80,14 @@ namespace HBP.Data.Visualization
             get { return new ReadOnlyCollection<AnatomicColumn>(Columns.OfType<AnatomicColumn>().ToArray()); }
         }
 
+        public ReadOnlyCollection<CCEPColumn> CCEPColumns
+        {
+            get
+            {
+                return new ReadOnlyCollection<CCEPColumn>(Columns.OfType<CCEPColumn>().ToArray());
+            }
+        }
+
         /// <summary>
         /// Test if the visualization is visualizable.
         /// </summary>
@@ -94,8 +102,7 @@ namespace HBP.Data.Visualization
 
         const float FIND_FILES_TO_READ_PROGRESS = 0.025f;
         const float LOAD_DATA_PROGRESS = 0.8f;
-        const float LOAD_COLUMNS_PROGRESS = 0.1f;
-        const float STANDARDIZE_COLUMNS_PROGRESS = 0.075f;
+        const float LOAD_COLUMNS_PROGRESS = 0.175f;
         #endregion
 
         #region Constructors
@@ -233,9 +240,9 @@ namespace HBP.Data.Visualization
             Exception exception = null;
             float progress = 0.0f;
             yield return Ninja.JumpToUnity;
-            if (IEEGColumns.Count > 0)
+            if (IEEGColumns.Count > 0 || CCEPColumns.Count > 0) // FIXME : this security should not exist
             {
-                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadEEG(progress, onChangeProgress, e => { exception = e; }));
+                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadColumnsData(progress, onChangeProgress, e => { exception = e; }));
             }
             yield return Ninja.JumpBack;
             if (exception != null)
@@ -259,9 +266,20 @@ namespace HBP.Data.Visualization
         /// </summary>
         /// <param name="column">Column</param>
         /// <returns>DataInfo of the column.</returns>
-        public IEnumerable<iEEGDataInfo> GetDataInfo(IEEGColumn column)
+        public IEnumerable<DataInfo> GetDataInfo(Column column)
         {
-            return column.Dataset.GetIEEGDataInfos().Where((data) => (column.DataName == data.Name && Patients.Contains(data.Patient)));
+            if (column is IEEGColumn iEEGColumn)
+            {
+                return iEEGColumn.Dataset.GetIEEGDataInfos().Where((data) => (iEEGColumn.DataName == data.Name && Patients.Contains(data.Patient)));
+            }
+            else if (column is CCEPColumn ccepColumn)
+            {
+                return ccepColumn.Dataset.GetCCEPDataInfos().Where((data) => (ccepColumn.DataName == data.Name && Patients.Contains(data.Patient)));
+            }
+            else
+            {
+                return null;
+            }
         }
         /// <summary>
         /// Get the DataInfo used by the column for a specific Patient.
@@ -269,9 +287,20 @@ namespace HBP.Data.Visualization
         /// <param name="patient">Patient concerned.</param>
         /// <param name="column">Column concerned.</param>
         /// <returns>DataInfo used by the column for the specific Patient.</returns>
-        public DataInfo GetDataInfo(Patient patient, IEEGColumn column)
+        public DataInfo GetDataInfo(Patient patient, Column column)
         {
-            return GetDataInfo(column).First((dataInfo) => dataInfo.Patient == patient);
+            if (column is IEEGColumn iEEGColumn)
+            {
+                return GetDataInfo(column).OfType<iEEGDataInfo>().First((dataInfo) => dataInfo.Patient == patient);
+            }
+            else if (column is CCEPColumn ccepColumn)
+            {
+                return GetDataInfo(column).OfType<CCEPDataInfo>().First((dataInfo) => dataInfo.Patient == patient);
+            }
+            else
+            {
+                return null;
+            }
         }
         /// <summary>
         /// Get the dataInfo of all columns for a specific patient
@@ -350,12 +379,12 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Private Methods
-        IEnumerator c_LoadEEG(float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
+        IEnumerator c_LoadColumnsData(float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
         {
             Exception exception = null;
 
             // Find dataInfo.
-            Dictionary<IEEGColumn, IEnumerable<iEEGDataInfo>> dataInfoByColumn = new Dictionary<IEEGColumn, IEnumerable<iEEGDataInfo>>();
+            Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn = new Dictionary<Column, IEnumerable<DataInfo>>();
             yield return Ninja.JumpToUnity;
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_FindDataInfoToRead(progress, onChangeProgress, (value, progressValue, e) => { dataInfoByColumn = value; progress = progressValue; exception = e; }));
             yield return Ninja.JumpBack;
@@ -375,25 +404,18 @@ namespace HBP.Data.Visualization
                 yield return Ninja.JumpBack;
             }
 
-            // Standardize Columns.
-            if (exception == null)
-            {
-                yield return Ninja.JumpToUnity;
-                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_StandardizeColumns(progress, onChangeProgress, (value, e) => { progress = value; exception = e; }));
-            }
-
             if (exception != null)
             {
                 outPut(exception);
             }
         }
-        IEnumerator c_FindDataInfoToRead(float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<Dictionary<IEEGColumn, IEnumerable<iEEGDataInfo>>, float, Exception> outPut)
+        IEnumerator c_FindDataInfoToRead(float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<Dictionary<Column, IEnumerable<DataInfo>>, float, Exception> outPut)
         {
             Exception exception = null;
             // Find files to read.
-            Dictionary<IEEGColumn, IEnumerable<iEEGDataInfo>> dataInfoByColumn = new Dictionary<IEEGColumn, IEnumerable<iEEGDataInfo>>();
-            float progressStep = FIND_FILES_TO_READ_PROGRESS / (IEEGColumns.Count);
-            foreach (var column in IEEGColumns)
+            Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn = new Dictionary<Column, IEnumerable<DataInfo>>();
+            float progressStep = FIND_FILES_TO_READ_PROGRESS / Columns.Count;
+            foreach (var column in Columns)
             {
                 // Update progress;
                 yield return Ninja.JumpToUnity;
@@ -403,18 +425,36 @@ namespace HBP.Data.Visualization
 
                 try
                 {
-                    IEnumerable<iEEGDataInfo> dataInfoForThisColumn = GetDataInfo(column);
-                    if (dataInfoForThisColumn.Select(d => d.Patient).Distinct().Count() != Patients.Count)
+                    if (column is IEEGColumn iEEGColumn)
                     {
-                        foreach (Patient patient in Patients)
+                        IEnumerable<iEEGDataInfo> dataInfoForThisColumn = GetDataInfo(iEEGColumn).OfType<iEEGDataInfo>();
+                        if (dataInfoForThisColumn.Select(d => d.Patient).Distinct().Count() != Patients.Count)
                         {
-                            if (!dataInfoForThisColumn.Any((dataInfo) => dataInfo.Patient == patient))
+                            foreach (Patient patient in Patients)
                             {
-                                throw new CannotFindDataInfoException(patient.ID, column.DataName);
+                                if (!dataInfoForThisColumn.Any((dataInfo) => dataInfo.Patient == patient))
+                                {
+                                    throw new CannotFindDataInfoException(patient.ID, iEEGColumn.DataName);
+                                }
                             }
                         }
+                        dataInfoByColumn.Add(column, dataInfoForThisColumn);
                     }
-                    dataInfoByColumn.Add(column, dataInfoForThisColumn);
+                    else if (column is CCEPColumn ccepColumn)
+                    {
+                        IEnumerable<CCEPDataInfo> dataInfoForThisColumn = GetDataInfo(ccepColumn).OfType<CCEPDataInfo>();
+                        if (dataInfoForThisColumn.Select(d => d.Patient).Distinct().Count() != Patients.Count)
+                        {
+                            foreach (Patient patient in Patients)
+                            {
+                                if (!dataInfoForThisColumn.Any((dataInfo) => dataInfo.Patient == patient))
+                                {
+                                    throw new CannotFindDataInfoException(patient.ID, ccepColumn.DataName);
+                                }
+                            }
+                        }
+                        dataInfoByColumn.Add(column, dataInfoForThisColumn);
+                    }
                 }
                 catch (Exception e)
                 {
@@ -424,12 +464,12 @@ namespace HBP.Data.Visualization
             }
             outPut(dataInfoByColumn, progress, exception);
         }
-        IEnumerator c_LoadData(Dictionary<IEEGColumn, IEnumerable<iEEGDataInfo>> dataInfoByColumn, float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<float, Exception> outPut)
+        IEnumerator c_LoadData(Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn, float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<float, Exception> outPut)
         {
             Exception exception = null;
             string additionalInformation = "";
             yield return Ninja.JumpBack;
-            IEnumerable<iEEGDataInfo> dataInfoCollection = dataInfoByColumn.SelectMany(d => d.Value).Distinct();
+            IEnumerable<DataInfo> dataInfoCollection = dataInfoByColumn.SelectMany(d => d.Value).Distinct();
             int i = 0;
             int dataInfoCollectionLength = dataInfoCollection.Count();
             float progressStep = LOAD_DATA_PROGRESS / (dataInfoCollectionLength + 1);
@@ -437,24 +477,39 @@ namespace HBP.Data.Visualization
             {
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading ", string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name) + " for " + dataInfo.Patient.Name, " [" + (i + 1).ToString() + "/" + dataInfoCollectionLength + "]"));
+                onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading ", string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name) + (dataInfo is PatientDataInfo patientDataInfo ? " for " + patientDataInfo.Patient.Name : ""), " [" + (i + 1).ToString() + "/" + dataInfoCollectionLength + "]"));
                 yield return Ninja.JumpBack;
                 try
                 {
-                    Experience.Dataset.IEEGData data = DataManager.GetData(dataInfo) as Experience.Dataset.IEEGData;
-                    foreach (var column in dataInfoByColumn.Keys)
+                    // PROBABLY FIXME
+                    Experience.Dataset.Data data = DataManager.GetData(dataInfo);
+                    if (data is EpochedData epochedData)
                     {
-                        if (data.DataByBloc.ContainsKey(column.Bloc) && !data.DataByBloc[column.Bloc].IsValid)
+                        foreach (var column in dataInfoByColumn.Keys)
                         {
-                            additionalInformation = "No bloc " + column.Bloc.Name + " could be epoched.";
-                            throw new Exception();
+                            if (column is IEEGColumn iEEGColumn)
+                            {
+                                if (epochedData.DataByBloc.ContainsKey(iEEGColumn.Bloc) && !epochedData.DataByBloc[iEEGColumn.Bloc].IsValid)
+                                {
+                                    additionalInformation = "No bloc " + iEEGColumn.Bloc.Name + " could be epoched.";
+                                    throw new Exception();
+                                }
+                            }
+                            else if (column is CCEPColumn ccepColumn)
+                            {
+                                if (epochedData.DataByBloc.ContainsKey(ccepColumn.Bloc) && !epochedData.DataByBloc[ccepColumn.Bloc].IsValid)
+                                {
+                                    additionalInformation = "No bloc " + ccepColumn.Bloc.Name + " could be epoched.";
+                                    throw new Exception();
+                                }
+                            }
                         }
                     }
                 }
                 catch (Exception e)
                 {
                     UnityEngine.Debug.LogException(e);
-                    exception = new CannotLoadDataInfoException(string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name), dataInfo.Patient.ID, additionalInformation);
+                    exception = new CannotLoadDataInfoException(string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name), (dataInfo is PatientDataInfo pDataInfo ? " for " + pDataInfo.Patient.ID : "Unkwown patient") , additionalInformation);
                     break;
                 }
                 i++;
@@ -469,82 +524,108 @@ namespace HBP.Data.Visualization
             }
             outPut(progress, exception);
         }
-        IEnumerator c_LoadColumns(Dictionary<IEEGColumn, IEnumerable<iEEGDataInfo>> dataInfoByColumn, float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<float, Exception> outPut)
+        IEnumerator c_LoadColumns(Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn, float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<float, Exception> outPut)
         {
             Exception exception = null;
-            ReadOnlyCollection<IEEGColumn> columns = IEEGColumns;
-            int columnsLength = columns.Count;
 
-            float progressStep = LOAD_COLUMNS_PROGRESS / (columnsLength * 2);
-            for (int i = 0; i < columnsLength; ++i)
-            {
-                IEEGColumn column = columns[i];
-                yield return Ninja.JumpToUnity;
-                progress += progressStep;
-                onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading column ", column.Name, " [" + (i + 1).ToString() + "/" + columnsLength + "]"));
-                yield return Ninja.JumpBack;
-                try
-                {
-                    column.Data.Load(dataInfoByColumn[column], column.Bloc);
-                }
-                catch (Exception e)
-                {
-                    UnityEngine.Debug.LogException(e);
-                    exception = e;
-                    outPut(progress, exception);
-                    yield break;
-                }
-            }
-            Tools.CSharp.EEG.Frequency maxFrequency = new Tools.CSharp.EEG.Frequency(columns.Max(column => column.Data.Frequencies.Max(f => f.RawValue)));
-            for (int i = 0; i < columnsLength; ++i)
-            {
-                IEEGColumn column = columns[i];
-                yield return Ninja.JumpToUnity;
-                progress += progressStep;
-                onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading timeline of column ", column.Name, " [" + (i + 1).ToString() + "/" + Columns.Count + "]"));
-                yield return Ninja.JumpBack;
-                column.Data.SetTimeline(maxFrequency, column.Bloc, columns.Select(c => c.Bloc).Distinct());
-                yield return Ninja.JumpToUnity;
-                try
-                {
-                    column.Data.IconicScenario.LoadIcons();
-                }
-                catch (Exception e)
-                {
-                    UnityEngine.Debug.LogException(e);
-                    exception = e;
-                    outPut(progress, exception);
-                    yield break;
-                }
-            }
-            outPut(progress, exception);
-        }
-        IEnumerator c_StandardizeColumns(float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<float, Exception> outPut)
-        {
-            ReadOnlyCollection<IEEGColumn> columns = IEEGColumns;
-            int columnsLength = columns.Count;
-            Exception exception = null;
+            ReadOnlyCollection<IEEGColumn> iEEGColumns = IEEGColumns;
+            int iEEGColumnsLength = iEEGColumns.Count;
+            ReadOnlyCollection<CCEPColumn> ccepColumns = CCEPColumns;
+            int ccepColumnsLength = ccepColumns.Count;
+            float progressStep = LOAD_COLUMNS_PROGRESS / (iEEGColumnsLength * 2 + ccepColumnsLength * 2);
 
-            float progressStep = STANDARDIZE_COLUMNS_PROGRESS / columnsLength;
-            //int maxBefore = columns.Max(column => column.Data.TimeLine.MainEvent.Position);
-            //int maxAfter = columns.Max(column => column.Data.TimeLine.Lenght - column.Data.TimeLine.MainEvent.Position);
-            for (int i = 0; i < columnsLength; ++i)
+            // iEEG Columns
+            if (iEEGColumnsLength > 0)
             {
-                IEEGColumn column = columns[i];
-                yield return Ninja.JumpToUnity;
-                progress += progressStep;
-                onChangeProgress.Invoke(progress, 0, new LoadingText("Standardize column ", column.Name, " [" + (i + 1).ToString() + "/" + Columns.Count + "]"));
-                yield return Ninja.JumpBack;
-                //try
-                //{
-                //    column.Data.Standardize(maxBefore, maxAfter);
-                //}
-                //catch (Exception e)
-                //{
-                //    exception = e;
-                //    break;
-                //}
+                for (int i = 0; i < iEEGColumnsLength; ++i)
+                {
+                    IEEGColumn iEEGColumn = iEEGColumns[i];
+                    yield return Ninja.JumpToUnity;
+                    progress += progressStep;
+                    onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading iEEG column ", iEEGColumn.Name, " [" + (i + 1).ToString() + "/" + iEEGColumnsLength + "]"));
+                    yield return Ninja.JumpBack;
+                    try
+                    {
+                        iEEGColumn.Data.Load(dataInfoByColumn[iEEGColumn].OfType<iEEGDataInfo>(), iEEGColumn.Bloc);
+                    }
+                    catch (Exception e)
+                    {
+                        UnityEngine.Debug.LogException(e);
+                        exception = e;
+                        outPut(progress, exception);
+                        yield break;
+                    }
+                }
+                Tools.CSharp.EEG.Frequency maxiEEGFrequency = new Tools.CSharp.EEG.Frequency(iEEGColumns.Max(column => column.Data.Frequencies.Max(f => f.RawValue)));
+                for (int i = 0; i < iEEGColumnsLength; ++i)
+                {
+                    IEEGColumn column = iEEGColumns[i];
+                    yield return Ninja.JumpToUnity;
+                    progress += progressStep;
+                    onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading timeline of iEEG column ", column.Name, " [" + (i + 1).ToString() + "/" + Columns.Count + "]"));
+                    yield return Ninja.JumpBack;
+                    column.Data.SetTimeline(maxiEEGFrequency, column.Bloc, iEEGColumns.Select(c => c.Bloc).Distinct());
+                    yield return Ninja.JumpToUnity;
+                    try
+                    {
+                        column.Data.IconicScenario.LoadIcons();
+                    }
+                    catch (Exception e)
+                    {
+                        UnityEngine.Debug.LogException(e);
+                        exception = e;
+                        outPut(progress, exception);
+                        yield break;
+                    }
+                }
             }
+
+            // CCEP Columns
+            if (ccepColumnsLength > 0)
+            {
+                for (int i = 0; i < ccepColumnsLength; ++i)
+                {
+                    CCEPColumn ccepColumn = ccepColumns[i];
+                    yield return Ninja.JumpToUnity;
+                    progress += progressStep;
+                    onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading CCEP column ", ccepColumn.Name, " [" + (i + 1).ToString() + "/" + ccepColumnsLength + "]"));
+                    yield return Ninja.JumpBack;
+                    try
+                    {
+                        ccepColumn.Data.Load(dataInfoByColumn[ccepColumn].OfType<CCEPDataInfo>(), ccepColumn.Bloc);
+                    }
+                    catch (Exception e)
+                    {
+                        UnityEngine.Debug.LogException(e);
+                        exception = e;
+                        outPut(progress, exception);
+                        yield break;
+                    }
+                }
+                Tools.CSharp.EEG.Frequency maxCCEPFrequency = new Tools.CSharp.EEG.Frequency(ccepColumns.Max(column => column.Data.Frequencies.Max(f => f.RawValue)));
+                for (int i = 0; i < ccepColumnsLength; ++i)
+                {
+                    CCEPColumn column = ccepColumns[i];
+                    yield return Ninja.JumpToUnity;
+                    progress += progressStep;
+                    onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading timeline of CCEP column ", column.Name, " [" + (i + 1).ToString() + "/" + Columns.Count + "]"));
+                    yield return Ninja.JumpBack;
+                    column.Data.SetTimeline(maxCCEPFrequency, column.Bloc, ccepColumns.Select(c => c.Bloc).Distinct());
+                    yield return Ninja.JumpToUnity;
+                    try
+                    {
+                        column.Data.IconicScenario.LoadIcons();
+                    }
+                    catch (Exception e)
+                    {
+                        UnityEngine.Debug.LogException(e);
+                        exception = e;
+                        outPut(progress, exception);
+                        yield break;
+                    }
+                }
+            }
+
             outPut(progress, exception);
         }
         #endregion

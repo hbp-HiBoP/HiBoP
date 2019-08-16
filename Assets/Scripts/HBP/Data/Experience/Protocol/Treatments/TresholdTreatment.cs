@@ -5,7 +5,7 @@ using Tools.CSharp.EEG;
 
 namespace HBP.Data.Experience.Protocol
 {
-    [DataContract, DisplayName("Treshold")]
+    [DataContract, DisplayName("Threshold")]
     public class TresholdTreatment : Treatment
     {
         #region Properties

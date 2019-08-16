@@ -8,11 +8,12 @@ namespace HBP.Data.Visualization
     public class IEEGData : DynamicData
     {
         #region Properties
-        public Dictionary<Patient, BlocEventsStatistics> EventStatisticsByPatient { get; set; } = new Dictionary<Patient, BlocEventsStatistics>();
+        public List<BlocEventsStatistics> EventStatistics { get; set; } = new List<BlocEventsStatistics>();
         public Dictionary<string, BlocChannelData> DataByChannelID { get; set; } = new Dictionary<string, BlocChannelData>();
         public Dictionary<string, BlocChannelStatistics> StatisticsByChannelID { get; set; } = new Dictionary<string, BlocChannelStatistics>();
         public Dictionary<string, float[]> ProcessedValuesByChannel { get; set; } = new Dictionary<string, float[]>();
-        
+        public Dictionary<string, string> UnitByChannelID { get; set; } = new Dictionary<string, string>();
+
         private Dictionary<string, Tools.CSharp.EEG.Frequency> m_FrequencyByChannelID = new Dictionary<string, Tools.CSharp.EEG.Frequency>();
         public List<Tools.CSharp.EEG.Frequency> Frequencies = new List<Tools.CSharp.EEG.Frequency>();
         #endregion
@@ -30,19 +31,20 @@ namespace HBP.Data.Visualization
                     if (!DataByChannelID.ContainsKey(channelID)) DataByChannelID.Add(channelID, DataManager.GetData(dataInfo, bloc, channel));
                     if (!StatisticsByChannelID.ContainsKey(channelID)) StatisticsByChannelID.Add(channelID, DataManager.GetStatistics(dataInfo, bloc, channel));
                     if (!m_FrequencyByChannelID.ContainsKey(channelID)) m_FrequencyByChannelID.Add(channelID, data.Frequency);
-                    if (!UnitByChannel.ContainsKey(channelID)) UnitByChannel.Add(channelID, data.UnitByChannel[channel]);
-                    if (!Frequencies.Contains(data.Frequency)) Frequencies.Add(data.Frequency);
+                    if (!UnitByChannelID.ContainsKey(channelID)) UnitByChannelID.Add(channelID, data.UnitByChannel[channel]);
                 }
+                if (!Frequencies.Contains(data.Frequency)) Frequencies.Add(data.Frequency);
                 // Events
-                if (!EventStatisticsByPatient.ContainsKey(dataInfo.Patient)) EventStatisticsByPatient.Add(dataInfo.Patient, DataManager.GetEventsStatistics(dataInfo, bloc));
+                EventStatistics.Add(DataManager.GetEventsStatistics(dataInfo, bloc));
             }
         }
         public override void Unload()
         {
             base.Unload();
-            EventStatisticsByPatient.Clear();
+            EventStatistics.Clear();
             DataByChannelID.Clear();
             StatisticsByChannelID.Clear();
+            UnitByChannelID.Clear();
             m_FrequencyByChannelID.Clear();
             Frequencies.Clear();
             ProcessedValuesByChannel.Clear();
@@ -71,7 +73,7 @@ namespace HBP.Data.Visualization
             {
                 eventStatisticsBySubBloc.Add(subBloc, new List<SubBlocEventsStatistics>());
             }
-            foreach (var blocEventStatistics in EventStatisticsByPatient.Values)
+            foreach (var blocEventStatistics in EventStatistics)
             {
                 foreach (var subBlocEventStatistics in blocEventStatistics.EventsStatisticsBySubBloc)
                 {

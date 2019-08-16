@@ -13,19 +13,9 @@ namespace HBP.Module3D
     /// <summary>
     /// Column 3D base class (anatomical data only)
     /// </summary>
-    public class Column3D : MonoBehaviour
+    public class Column3D : MonoBehaviour, IConfigurable
     {
         #region Properties
-        /// <summary>
-        /// Type of the column
-        /// </summary>
-        public virtual ColumnType Type
-        {
-            get
-            {
-                return ColumnType.Anatomic;
-            }
-        }
         /// <summary>
         /// Column data of this column 3D
         /// </summary>
@@ -58,9 +48,9 @@ namespace HBP.Module3D
             set
             {
                 m_IsSelected = value;
-                OnChangeSelectedState.Invoke(value);
                 if (m_IsSelected)
                 {
+                    OnSelect.Invoke();
                     ApplicationState.Module3D.OnSelectColumn.Invoke(this);
                 }
             }
@@ -282,7 +272,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when this column is selected
         /// </summary>
-        [HideInInspector] public GenericEvent<bool> OnChangeSelectedState = new GenericEvent<bool>();
+        [HideInInspector] public UnityEvent OnSelect = new UnityEvent();
         /// <summary>
         /// Event called when a view is moved
         /// </summary>
@@ -687,19 +677,16 @@ namespace HBP.Module3D
             view.gameObject.name = "View " + m_Views.Count;
             view.LineID = m_Views.Count;
             view.Layer = Layer;
-            view.OnChangeSelectedState.AddListener((selected) =>
+            view.OnSelect.AddListener(() =>
             {
-                if (selected)
+                foreach (View3D v in m_Views)
                 {
-                    foreach (View3D v in m_Views)
+                    if (v != view)
                     {
-                        if (v != view)
-                        {
-                            v.IsSelected = false;
-                        }
+                        v.IsSelected = false;
                     }
                 }
-                IsSelected = selected;
+                IsSelected = true;
             });
             view.OnMoveView.AddListener(() =>
             {
@@ -842,6 +829,81 @@ namespace HBP.Module3D
             {
                 site.IsSelected = true;
             }
+        }
+        /// <summary>
+        /// Update the site mask of the dll with all the masks
+        /// </summary>
+        public void UpdateDLLSitesMask()
+        {
+            bool isROI = m_ROIs.Count > 0;
+            for (int ii = 0; ii < Sites.Count; ++ii)
+            {
+                m_RawElectrodes.UpdateMask(ii, (Sites[ii].State.IsMasked || Sites[ii].State.IsBlackListed || (Sites[ii].State.IsOutOfROI && isROI) || !Sites[ii].State.IsFiltered));
+            }
+        }
+        /// <summary>
+        /// Performs a raycast on the column
+        /// </summary>
+        /// <param name="ray"></param>
+        /// <param name="layerMask"></param>
+        /// <param name="hit"></param>
+        /// <returns></returns>
+        public RaycastHitResult Raycast(Ray ray, int layerMask, out RaycastHit hit)
+        {
+            layerMask |= 1 << LayerMask.NameToLayer(Layer);
+            RaycastHitResult result = RaycastHitResult.None;
+            if (Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask))
+            {
+                if (hit.transform.parent.gameObject.name == "Cuts") result = RaycastHitResult.Cut;
+                if (hit.transform.parent.gameObject.name == "Brains" || hit.transform.parent.gameObject.name == "Erased Brains") result = RaycastHitResult.Mesh;
+                if (hit.collider.GetComponent<Site>() != null) result = RaycastHitResult.Site;
+                if (hit.collider.GetComponent<Sphere>() != null) result = RaycastHitResult.ROI;
+            }
+            return result;
+        }
+        public virtual void LoadConfiguration(bool firstCall = true)
+        {
+            if (firstCall) ResetConfiguration();
+            foreach (Data.Visualization.RegionOfInterest roi in ColumnData.BaseConfiguration.RegionsOfInterest)
+            {
+                ROI newROI = AddROI(roi.Name);
+                foreach (Data.Visualization.Sphere sphere in roi.Spheres)
+                {
+                    newROI.AddBubble(Layer, "Bubble", sphere.Position.ToVector3(), sphere.Radius);
+                }
+            }
+            foreach (Site site in Sites)
+            {
+                site.LoadConfiguration(false);
+            }
+
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+        }
+        public virtual void SaveConfiguration()
+        {
+            List<Data.Visualization.RegionOfInterest> rois = new List<Data.Visualization.RegionOfInterest>();
+            foreach (ROI roi in m_ROIs)
+            {
+                rois.Add(new Data.Visualization.RegionOfInterest(roi));
+            }
+            ColumnData.BaseConfiguration.RegionsOfInterest = rois;
+            foreach (Site site in Sites)
+            {
+                site.SaveConfiguration();
+            }
+        }
+        public virtual void ResetConfiguration()
+        {
+            while (m_ROIs.Count > 0)
+            {
+                RemoveSelectedROI();
+            }
+            foreach (Site site in Sites)
+            {
+                site.ResetConfiguration();
+            }
+
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
     }

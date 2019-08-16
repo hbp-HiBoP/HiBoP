@@ -50,11 +50,10 @@ namespace HBP.Module3D
             }
             set
             {
-                bool wasSelected = m_IsSelected;
                 m_IsSelected = value;
-                OnChangeSelectedState.Invoke(value);
-                if (m_IsSelected && !wasSelected)
+                if (m_IsSelected)
                 {
+                    OnSelect.Invoke();
                     ApplicationState.Module3D.OnSelectScene.Invoke(this);
                 }
             }
@@ -286,7 +285,7 @@ namespace HBP.Module3D
             set
             {
                 SceneInformation.MarsAtlasModeEnabled = value;
-                SharedMaterials.Brain.BrainMaterials[this].SetInt("_MarsAtlas", SceneInformation.MarsAtlasModeEnabled ? 1 : 0);
+                SharedMaterials.Brain.BrainMaterials[this].SetInt("_Atlas", SceneInformation.MarsAtlasModeEnabled ? 1 : 0);
             }
         }
 
@@ -401,6 +400,39 @@ namespace HBP.Module3D
             }
         }
 
+        public bool DisplayJuBrainAtlas
+        {
+            get
+            {
+                return m_ColumnManager.DisplayAtlas;
+            }
+            set
+            {
+                m_ColumnManager.DisplayAtlas = value;
+                UpdateAtlasColors();
+                SharedMaterials.Brain.BrainMaterials[this].SetInt("_Atlas", m_ColumnManager.DisplayAtlas ? 1 : 0);
+                ResetIEEG();
+            }
+        }
+        public int SelectedAtlasArea
+        {
+            get
+            {
+                return m_ColumnManager.AtlasSelectedArea;
+            }
+            set
+            {
+                if (m_ColumnManager.AtlasSelectedArea != value)
+                {
+                    m_ColumnManager.AtlasSelectedArea = value;
+                    UpdateAtlasColors();
+                    ComputeMRITextures();
+                    ComputeGUITextures();
+                }
+            }
+        }
+        private List<int[]> m_SelectedMeshAtlasIndices = new List<int[]>();
+
         /// <summary>
         /// Site to compare with when using the comparing site feature
         /// </summary>
@@ -447,6 +479,15 @@ namespace HBP.Module3D
             }
         }
 
+        public bool CanComputeIEEG
+        {
+            get
+            {
+                bool isOneColumnDynamic = m_ColumnManager.ColumnsDynamic.Count > 0;
+                bool areAllCCEPColumnsReady = m_ColumnManager.ColumnsCCEP.All(c => c.IsSourceSelected);
+                return isOneColumnDynamic && areAllCCEPColumnsReady && !IsLatencyModeEnabled;
+            }
+        }
         /// <summary>
         /// Lock when updating generator
         /// </summary>
@@ -512,7 +553,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when this scene is selected or deselected
         /// </summary>
-        [HideInInspector] public GenericEvent<bool> OnChangeSelectedState = new GenericEvent<bool>();
+        [HideInInspector] public UnityEvent OnSelect = new UnityEvent();
         /// <summary>
         /// Event called when showing or hiding the scene in the UI
         /// </summary>
@@ -596,7 +637,7 @@ namespace HBP.Module3D
             {
                 OnIEEGOutdated.Invoke(true);
             }
-            if (!SceneInformation.IsGeneratorUpToDate && !IsLatencyModeEnabled && ApplicationState.UserPreferences.Visualization._3D.AutomaticEEGUpdate)
+            if (!SceneInformation.IsGeneratorUpToDate && CanComputeIEEG && ApplicationState.UserPreferences.Visualization._3D.AutomaticEEGUpdate)
             {
                 UpdateGenerator();
             }
@@ -629,13 +670,13 @@ namespace HBP.Module3D
             });
             m_ColumnManager.OnUpdateIEEGSpan.AddListener((column) =>
             {
-                for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
+                for (int ii = 0; ii < m_ColumnManager.ColumnsDynamic.Count; ++ii)
                 {
                     for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                     {
-                        m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap(m_ColumnManager.ColumnsIEEG[ii]);
+                        m_ColumnManager.ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap(m_ColumnManager.ColumnsDynamic[ii]);
                     }
-                    m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.AdjustInfluencesToColormap(m_ColumnManager.ColumnsIEEG[ii]);
+                    m_ColumnManager.ColumnsDynamic[ii].DLLMRIVolumeGenerator.AdjustInfluencesToColormap(m_ColumnManager.ColumnsDynamic[ii]);
                 }
                 ComputeMRITextures();
                 ComputeGUITextures();
@@ -666,9 +707,9 @@ namespace HBP.Module3D
                 ResetIEEG(false);
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             });
-            m_ColumnManager.OnChangeSelectedState.AddListener((selected) =>
+            m_ColumnManager.OnSelect.AddListener(() =>
             {
-                IsSelected = selected;
+                IsSelected = true;
                 ComputeGUITextures();
                 OnUpdateCuts.Invoke();
             });
@@ -691,11 +732,16 @@ namespace HBP.Module3D
                 ResetIEEG();
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             });
+            m_ColumnManager.OnSelectCCEPSource.AddListener(() =>
+            {
+                ResetIEEG();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            });
             SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
                 if (!value)
                 {
-                    foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
+                    foreach (Column3DDynamic column in m_ColumnManager.ColumnsDynamic)
                     {
                         column.Timeline.IsLooping = false;
                         column.Timeline.IsPlaying = false;
@@ -714,6 +760,8 @@ namespace HBP.Module3D
         /// </summary>
         private void ComputeMRITextures()
         {
+            if (SceneInformation.CutsNeedUpdate) return;
+
             foreach (Column3D column in m_ColumnManager.Columns)
             {
                 foreach (Cut cut in Cuts)
@@ -727,7 +775,7 @@ namespace HBP.Module3D
         /// Compute the textures for the MRI (3D) with the iEEG activity
         /// </summary>
         /// <param name="column">Specific column to update. If null, every columns will be updated.</param>
-        private void ComputeIEEGTextures(Column3DIEEG column = null)
+        private void ComputeIEEGTextures(Column3DDynamic column = null)
         {
             if (!SceneInformation.IsGeneratorUpToDate) return;
 
@@ -739,7 +787,7 @@ namespace HBP.Module3D
             }
             else
             {
-                foreach (Column3DIEEG col in m_ColumnManager.ColumnsIEEG)
+                foreach (Column3DDynamic col in m_ColumnManager.ColumnsDynamic)
                 {
                     m_ColumnManager.ComputeSurfaceBrainUVWithIEEG(col);
                     col.CutTextures.ColorCutsTexturesWithIEEG(col);
@@ -752,6 +800,8 @@ namespace HBP.Module3D
         /// </summary>
         private void ComputeGUITextures()
         {
+            if (SceneInformation.CutsNeedUpdate) return;
+
             Column3D column = m_ColumnManager.SelectedColumn;
             if (column)
             {
@@ -774,10 +824,9 @@ namespace HBP.Module3D
             SceneInformation.IsGeneratorUpToDate = true;
 
             // send inf values to overlays
-            for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
+            for (int ii = 0; ii < m_ColumnManager.ColumnsDynamic.Count; ++ii)
             {
-                m_ColumnManager.ColumnsIEEG[ii].SendColormapValues();
-                m_ColumnManager.ColumnsIEEG[ii].Timeline.OnUpdateCurrentIndex.Invoke();
+                m_ColumnManager.ColumnsDynamic[ii].Timeline.OnUpdateCurrentIndex.Invoke();
             }
 
             // update plots visibility
@@ -791,12 +840,22 @@ namespace HBP.Module3D
         /// <param name="site">Site that has been selected</param>
         private void ClickOnSiteCallback(Site site)
         {
-            if (m_ColumnManager.SelectedColumn.Type == Data.Enums.ColumnType.iEEG && !IsLatencyModeEnabled && site)
+            if (m_ColumnManager.SelectedColumn is Column3DDynamic && !IsLatencyModeEnabled && site)
             {
                 List<Site> sites = new List<Site>();
                 if (m_SiteToCompare) sites.Add(m_SiteToCompare);
                 sites.Add(site);
-                OnRequestSiteInformation.Invoke(sites);
+                if (m_ColumnManager.SelectedColumn is Column3DCCEP ccepColumn)
+                {
+                    if (ccepColumn.IsSourceSelected)
+                    {
+                        OnRequestSiteInformation.Invoke(sites);
+                    }
+                }
+                else
+                {
+                    OnRequestSiteInformation.Invoke(sites);
+                }
             }
             SceneInformation.AreSitesUpdated = false;
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
@@ -960,6 +1019,7 @@ namespace HBP.Module3D
             UpdateCuts();
             UpdateGeneratorsAndUV();
             ResetTriangleErasing();
+            UpdateAtlasIndices();
 
             SceneInformation.MeshGeometryNeedsUpdate = false;
         }
@@ -1008,12 +1068,12 @@ namespace HBP.Module3D
         private void UpdateCuts()
         {
             ComputeMeshesCut();
+            SceneInformation.CutsNeedUpdate = false;
 
             ComputeMRITextures();
             ComputeGUITextures();
 
             OnUpdateCuts.Invoke();
-            SceneInformation.CutsNeedUpdate = false;
         }
         /// <summary>
         /// Update the generators for iEEG and the UV of the meshes
@@ -1026,7 +1086,7 @@ namespace HBP.Module3D
                 m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.SplittedMeshes[ii], m_ColumnManager.SelectedMRI.Volume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
             }
             
-            foreach (var column in m_ColumnManager.ColumnsIEEG)
+            foreach (var column in m_ColumnManager.ColumnsDynamic)
             {
                 column.DLLMRIVolumeGenerator.Reset(m_ColumnManager.SelectedMRI.Volume, 120);
             }
@@ -1037,6 +1097,32 @@ namespace HBP.Module3D
             {
                 m_ColumnManager.UVNull.Add(new Vector2[m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.vertexCount]);
                 m_ColumnManager.UVNull[ii].Fill(new Vector2(0.01f, 1f));
+            }
+        }
+        /// <summary>
+        /// Update the indices of all the JuBrain Atlas areas for all vertices
+        /// </summary>
+        private void UpdateAtlasIndices()
+        {
+            m_SelectedMeshAtlasIndices = new List<int[]>();
+            for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
+            {
+                m_SelectedMeshAtlasIndices.Add(ApplicationState.Module3D.JuBrainAtlas.GetSurfaceAreaLabels(m_ColumnManager.SplittedMeshes[ii]));
+            }
+        }
+        /// <summary>
+        /// Update all colors for the atlas
+        /// </summary>
+        private void UpdateAtlasColors()
+        {
+            for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
+            {
+                Color[] colors = ApplicationState.Module3D.JuBrainAtlas.ConvertIndicesToColors(m_SelectedMeshAtlasIndices[ii], SelectedAtlasArea);
+                m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.colors = colors;
+                foreach (Column3D column in m_ColumnManager.Columns)
+                {
+                    column.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().sharedMesh.colors = colors;
+                }
             }
         }
         /// <summary>
@@ -1132,6 +1218,18 @@ namespace HBP.Module3D
             if (meshID == -1) meshID = 0;
 
             m_ColumnManager.SelectedMeshID = meshID;
+            if (IsMarsAtlasEnabled && !m_ColumnManager.SelectedMesh.IsMarsAtlasLoaded)
+            {
+                IsMarsAtlasEnabled = false;
+            }
+            if (DisplayJuBrainAtlas && m_ColumnManager.SelectedMesh.Type != Data.Enums.MeshType.MNI)
+            {
+                DisplayJuBrainAtlas = false;
+            }
+            if (m_ColumnManager.FMRIManager.DisplayIBCContrasts && m_ColumnManager.SelectedMesh.Type != Data.Enums.MeshType.MNI)
+            {
+                m_ColumnManager.FMRIManager.DisplayIBCContrasts = false;
+            }
             SceneInformation.MeshGeometryNeedsUpdate = true;
             ResetIEEG();
             foreach (Column3D column in m_ColumnManager.Columns)
@@ -1140,6 +1238,7 @@ namespace HBP.Module3D
             }
 
             OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.Center);
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Set the MRI to be used
@@ -1158,6 +1257,7 @@ namespace HBP.Module3D
             {
                 column.IsRenderingUpToDate = false;
             }
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Set the implantation to be used
@@ -1539,7 +1639,7 @@ namespace HBP.Module3D
         /// <param name="firstCall">Has this method not been called by another load method ?</param>
         public void LoadConfiguration(bool firstCall = true)
         {
-            if (firstCall) ResetConfiguration(false);
+            if (firstCall) ResetConfiguration();
             UpdateBrainSurfaceColor(Visualization.Configuration.BrainColor);
             UpdateBrainCutColor(Visualization.Configuration.BrainCutColor);
             UpdateColormap(Visualization.Configuration.EEGColormap);
@@ -1580,7 +1680,7 @@ namespace HBP.Module3D
             }
 
             ROICreation = !ROICreation;
-            foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
+            foreach (Column3D column in m_ColumnManager.Columns)
             {
                 column.LoadConfiguration(false);
             }
@@ -1588,7 +1688,7 @@ namespace HBP.Module3D
             
             SceneInformation.AreSitesUpdated = false;
 
-            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Save the current settings of this scene to the configuration of the linked visualization
@@ -1624,19 +1724,21 @@ namespace HBP.Module3D
             }
             Visualization.Configuration.Views = views;
 
-            foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
+            foreach (Column3D column in m_ColumnManager.Columns)
             {
                 column.SaveConfiguration();
             }
-
-            Visualization.Configuration.FirstSiteToSelect = m_ColumnManager.SelectedColumn.SelectedSite.Information.ChannelName;
-            Visualization.Configuration.FirstColumnToSelect = m_ColumnManager.Columns.FindIndex(c => c = m_ColumnManager.SelectedColumn);
+            if (m_ColumnManager.SelectedColumn.SelectedSite)
+            {
+                Visualization.Configuration.FirstSiteToSelect = m_ColumnManager.SelectedColumn.SelectedSite.Information.ChannelName;
+                Visualization.Configuration.FirstColumnToSelect = m_ColumnManager.Columns.FindIndex(c => c = m_ColumnManager.SelectedColumn);
+            }
         }
         /// <summary>
         /// Reset the settings of the loaded scene
         /// </summary>
         /// <param name="firstCall">Has this method not been called by another reset method ?</param>
-        public void ResetConfiguration(bool firstCall = true)
+        public void ResetConfiguration()
         {
             UpdateBrainSurfaceColor(Data.Enums.ColorType.BrainColor);
             UpdateBrainCutColor(Data.Enums.ColorType.Default);
@@ -1682,12 +1784,12 @@ namespace HBP.Module3D
                 }
             }
 
-            foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
+            foreach (Column3D column in m_ColumnManager.Columns)
             {
                 column.ResetConfiguration();
             }
 
-            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
         
@@ -1728,15 +1830,15 @@ namespace HBP.Module3D
             {
                 for (int i = 0; i < column.BrainSurfaceMeshes.Count; i++)
                 {
-                    if (column.Type != Data.Enums.ColumnType.iEEG || !SceneInformation.IsGeneratorUpToDate || SceneInformation.DisplayCCEPMode)
+                    if (!(column is Column3DDynamic) || !SceneInformation.IsGeneratorUpToDate || SceneInformation.DisplayCCEPMode)
                     {
                         column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv2 = m_ColumnManager.UVNull[i];
                         column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = m_ColumnManager.UVNull[i];
                     }
                     else
                     {
-                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv2 = ((Column3DIEEG)column).DLLBrainTextureGenerators[i].AlphaUV;
-                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = ((Column3DIEEG)column).DLLBrainTextureGenerators[i].IEEGUV;
+                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv2 = ((Column3DDynamic)column).DLLBrainTextureGenerators[i].AlphaUV;
+                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = ((Column3DDynamic)column).DLLBrainTextureGenerators[i].IEEGUV;
                     }
                 }
             }
@@ -1779,97 +1881,81 @@ namespace HBP.Module3D
         /// <param name="column">Column on which the raycast in performed</param>
         public void PassiveRaycastOnScene(Ray ray, Column3D column)
         {
-            // update colliders if necessary
             UpdateMeshesColliders();
 
             int layerMask = 0;
-            layerMask |= 1 << LayerMask.NameToLayer(column.Layer);
             layerMask |= 1 << LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
             layerMask |= 1 << LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
 
-            RaycastHit hit;
-            bool isCollision = Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask);
-            if (!isCollision)
-            {
-                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition));
-                return;
-            }
+            Data.Enums.RaycastHitResult raycastResult = column.Raycast(ray, layerMask, out RaycastHit hit);
+            Vector3 hitPoint = raycastResult != Data.Enums.RaycastHitResult.None ? hit.point - transform.position : Vector3.zero;
 
-            Site site = hit.collider.GetComponent<Site>();
-            if (!site)
+            if ((raycastResult == Data.Enums.RaycastHitResult.Cut || raycastResult == Data.Enums.RaycastHitResult.Mesh) && DisplayJuBrainAtlas)
             {
-                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition));
-                return;
-            }
-
-            // Compute each required variable
-            int siteID = site.Information.GlobalID;
-            string CCEPLatency = "none", CCEPAmplitude = "none";
-            float iEEGActivity = -1;
-            string iEEGUnit = "";
-            // CCEP
-            if (SceneInformation.DisplayCCEPMode)
-            {
-                if (column.CurrentLatencyFile != -1)
+                SelectedAtlasArea = ApplicationState.Module3D.JuBrainAtlas.GetClosestAreaIndex(hit.point - transform.position);
+                string[] information = ApplicationState.Module3D.JuBrainAtlas.GetInformation(SelectedAtlasArea);
+                if (information.Length == 5)
                 {
-                    Latencies latencyFile = m_ColumnManager.SelectedImplantation.Latencies[column.CurrentLatencyFile];
-
-                    if (column.SelectedSiteID == -1) // no source selected
-                    {
-                        CCEPLatency = "...";
-                        CCEPAmplitude = "no source selected";
-                    }
-                    else if (column.SelectedSiteID == siteID) // site is the source
-                    {
-                        CCEPLatency = "0";
-                        CCEPAmplitude = "source";
-                    }
-                    else
-                    {
-                        if (latencyFile.IsSiteResponsiveForSource(siteID, column.SelectedSiteID))
-                        {
-                            CCEPLatency = "" + latencyFile.LatenciesValues[column.SelectedSiteID][siteID];
-                            CCEPAmplitude = "" + latencyFile.Heights[column.SelectedSiteID][siteID];
-                        }
-                        else
-                        {
-                            CCEPLatency = "No data";
-                            CCEPAmplitude = "No data";
-                        }
-                    }
-                }
-            }
-            // iEEG
-            if (column is Column3DIEEG columnIEEG)
-            {
-                iEEGUnit = columnIEEG.IEEGUnitsBySiteID[siteID];
-                iEEGActivity = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.Timeline.CurrentIndex];
-            }
-            // Send Event
-            Data.Enums.SiteInformationDisplayMode displayMode;
-            if (SceneInformation.DisplayCCEPMode)
-            {
-                if (SceneInformation.IsGeneratorUpToDate)
-                {
-                    displayMode = Data.Enums.SiteInformationDisplayMode.IEEGCCEP;
+                    ApplicationState.Module3D.OnDisplayAtlasInformation.Invoke(new AtlasInfo(true, Input.mousePosition, information[0], information[1], information[2], information[3], information[4]));
                 }
                 else
                 {
-                    displayMode = Data.Enums.SiteInformationDisplayMode.CCEP;
+                    ApplicationState.Module3D.OnDisplayAtlasInformation.Invoke(new AtlasInfo(false, Input.mousePosition));
                 }
             }
             else
             {
+                SelectedAtlasArea = -1;
+                ApplicationState.Module3D.OnDisplayAtlasInformation.Invoke(new AtlasInfo(false, Input.mousePosition));
+            }
+
+            if (raycastResult == Data.Enums.RaycastHitResult.Site)
+            {
+                Site site = hit.collider.GetComponent<Site>();
+                // Compute each required variable
+                int siteID = site.Information.GlobalID;
+                string CCEPLatency = "none", CCEPAmplitude = "none";
+                float iEEGActivity = -1;
+                string iEEGUnit = "";
+                // CCEP
+                if (column is Column3DCCEP ccepColumn)
+                {
+                    CCEPLatency = ccepColumn.Latencies[siteID].ToString();
+                    CCEPAmplitude = ccepColumn.Amplitudes[siteID].ToString();
+                }
+                // iEEG
+                if (column is Column3DDynamic columnIEEG)
+                {
+                    iEEGUnit = columnIEEG.IEEGUnitsBySiteID[siteID];
+                    iEEGActivity = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.Timeline.CurrentIndex];
+                }
+                // Send Event
+                Data.Enums.SiteInformationDisplayMode displayMode;
                 if (SceneInformation.IsGeneratorUpToDate)
                 {
-                    displayMode = Data.Enums.SiteInformationDisplayMode.IEEG;
+                    if (column is Column3DCCEP)
+                    {
+                        displayMode = Data.Enums.SiteInformationDisplayMode.CCEP;
+                    }
+                    else if (column is Column3DIEEG)
+                    {
+                        displayMode = Data.Enums.SiteInformationDisplayMode.IEEG;
+                    }
+                    else
+                    {
+                        displayMode = Data.Enums.SiteInformationDisplayMode.Anatomy;
+                    }
                 }
                 else
                 {
                     displayMode = Data.Enums.SiteInformationDisplayMode.Anatomy;
                 }
+                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, displayMode, iEEGActivity.ToString("0.00"), iEEGUnit, CCEPAmplitude, CCEPLatency));
             }
-            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, displayMode, iEEGActivity.ToString("0.00"), iEEGUnit, CCEPAmplitude, CCEPLatency));
+            else
+            {
+                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition));
+            }            
         }
         /// <summary>
         /// Manage the clicks on the scene
@@ -1878,76 +1964,53 @@ namespace HBP.Module3D
         public void ClickOnScene(Ray ray)
         {
             int layerMask = 0;
-            layerMask |= 1 << LayerMask.NameToLayer(m_ColumnManager.SelectedColumn.Layer);
             layerMask |= 1 << LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
             layerMask |= 1 << LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
 
-            RaycastHit hit;
-            bool isCollision = Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask);
-            if (!isCollision)
-            {
-                m_ColumnManager.SelectedColumn.UnselectSite();
-                ROI selectedROI = m_ColumnManager.SelectedColumn.SelectedROI;
-                if (selectedROI)
-                {
-                    selectedROI.SelectSphere(-1);
-                }
-                return;
-            }
+            Data.Enums.RaycastHitResult raycastResult = m_ColumnManager.SelectedColumn.Raycast(ray, layerMask, out RaycastHit hit);
+            Vector3 hitPoint = raycastResult != Data.Enums.RaycastHitResult.None ? hit.point - transform.position : Vector3.zero;
 
-            // FIXME : maybe create a component instead of checking the name of the parent
-            bool cutHit = hit.transform.parent.gameObject.name == "Cuts";
-            bool meshHit = hit.transform.parent.gameObject.name == "Brains" || hit.transform.parent.gameObject.name == "Erased Brains";
-            bool siteHit = hit.collider.GetComponent<Site>() != null;
-            bool roiHit = hit.collider.GetComponent<Sphere>() != null;
-            Vector3 hitPoint = hit.point - transform.position;
-
-            if (siteHit)
+            if (raycastResult == Data.Enums.RaycastHitResult.Site)
             {
                 m_ColumnManager.SelectedColumn.Sites[hit.collider.gameObject.GetComponent<Site>().Information.GlobalID].IsSelected = true;
             }
             else
             {
-                if (SceneInformation.IsROICreationModeEnabled)
+                m_ColumnManager.SelectedColumn.UnselectSite();
+            }
+
+            if (raycastResult == Data.Enums.RaycastHitResult.Mesh)
+            {
+                if (m_TriEraser.IsEnabled && m_TriEraser.IsClickAvailable)
                 {
-                    ROI selectedROI = m_ColumnManager.SelectedColumn.SelectedROI;
-                    if (selectedROI)
-                    {
-                        if (roiHit)
-                        {
-                            if (m_ColumnManager.SelectedColumn.SelectedROI.CheckCollision(ray))
-                            {
-                                int bubbleID = m_ColumnManager.SelectedColumn.SelectedROI.CollidedClosestBubbleID(ray);
-                                selectedROI.SelectSphere(bubbleID);
-                            }
-                        }
-                        else if (meshHit || cutHit)
-                        {
-                            selectedROI.AddBubble(m_ColumnManager.SelectedColumn.Layer, "Bubble", hitPoint, 5.0f);
-                            SceneInformation.AreSitesUpdated = false;
-                        }
-                        else
-                        {
-                            selectedROI.SelectSphere(-1);
-                        }
-                    }
-                }
-                else
-                {
-                    if (meshHit)
-                    {
-                        if (m_TriEraser.IsEnabled && m_TriEraser.IsClickAvailable)
-                        {
-                            m_TriEraser.EraseTriangles(ray.direction, hitPoint);
-                            UpdateMeshesFromDLL();
-                        }
-                    }
+                    m_TriEraser.EraseTriangles(ray.direction, hitPoint);
+                    UpdateMeshesFromDLL();
                 }
             }
 
-            if (!siteHit)
+            if (SceneInformation.IsROICreationModeEnabled)
             {
-                m_ColumnManager.SelectedColumn.UnselectSite();
+                ROI selectedROI = m_ColumnManager.SelectedColumn.SelectedROI;
+                if (selectedROI)
+                {
+                    if (raycastResult == Data.Enums.RaycastHitResult.ROI)
+                    {
+                        if (m_ColumnManager.SelectedColumn.SelectedROI.CheckCollision(ray))
+                        {
+                            int bubbleID = m_ColumnManager.SelectedColumn.SelectedROI.CollidedClosestBubbleID(ray);
+                            selectedROI.SelectSphere(bubbleID);
+                        }
+                    }
+                    else if (raycastResult == Data.Enums.RaycastHitResult.Mesh || raycastResult == Data.Enums.RaycastHitResult.Cut)
+                    {
+                        selectedROI.AddBubble(m_ColumnManager.SelectedColumn.Layer, "Bubble", hitPoint, 5.0f);
+                        SceneInformation.AreSitesUpdated = false;
+                    }
+                    else
+                    {
+                        selectedROI.SelectSphere(-1);
+                    }
+                }
             }
         }
         #endregion
@@ -2155,7 +2218,7 @@ namespace HBP.Module3D
                 {
                     if (mesh is Data.Anatomy.LeftRightMesh)
                     {
-                        LeftRightMesh3D mesh3D = new LeftRightMesh3D((Data.Anatomy.LeftRightMesh)mesh);
+                        LeftRightMesh3D mesh3D = new LeftRightMesh3D((Data.Anatomy.LeftRightMesh)mesh, Data.Enums.MeshType.Patient);
 
                         if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
                         {
@@ -2177,7 +2240,7 @@ namespace HBP.Module3D
                     }
                     else if (mesh is Data.Anatomy.SingleMesh)
                     {
-                        SingleMesh3D mesh3D = new SingleMesh3D((Data.Anatomy.SingleMesh)mesh);
+                        SingleMesh3D mesh3D = new SingleMesh3D((Data.Anatomy.SingleMesh)mesh, Data.Enums.MeshType.Patient);
 
                         if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
                         {
@@ -2302,7 +2365,7 @@ namespace HBP.Module3D
 
             try
             {
-                foreach (var columnIEEG in m_ColumnManager.ColumnsIEEG)
+                foreach (var columnIEEG in m_ColumnManager.ColumnsDynamic)
                 {
                     columnIEEG.ComputeEEGData();
                 }
@@ -2355,7 +2418,7 @@ namespace HBP.Module3D
         {
             yield return Ninja.JumpToUnity;
             float totalTime = 0.075f * Patients.Count + 1.5f; // Calculated by Linear Regression is 0.0593f * Patients.Count + 1.0956f
-            float totalProgress = m_ColumnManager.ColumnsIEEG.Count * (1 + m_ColumnManager.MeshSplitNumber + 10);
+            float totalProgress = m_ColumnManager.ColumnsDynamic.Count * (1 + m_ColumnManager.MeshSplitNumber + 10);
             float timeByProgress = totalTime / totalProgress;
             float currentProgress = 0.0f;
             OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Initializing", timeByProgress);
@@ -2363,102 +2426,102 @@ namespace HBP.Module3D
             bool addValues = false;
 
             // copy from main generators
-            for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
+            for (int ii = 0; ii < m_ColumnManager.ColumnsDynamic.Count; ++ii)
             {
                 for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                 {
-                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].Dispose();
-                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj] = (DLL.MRIBrainGenerator)m_ColumnManager.DLLCommonBrainTextureGeneratorList[jj].Clone();
+                    m_ColumnManager.ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].Dispose();
+                    m_ColumnManager.ColumnsDynamic[ii].DLLBrainTextureGenerators[jj] = (DLL.MRIBrainGenerator)m_ColumnManager.DLLCommonBrainTextureGeneratorList[jj].Clone();
                     if (m_GeneratorNeedsUpdate) yield break;
                 }
             }
 
             // Do your threaded task
-            for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
+            for (int ii = 0; ii < m_ColumnManager.ColumnsDynamic.Count; ++ii)
             {
                 yield return Ninja.JumpToUnity;
-                OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label, timeByProgress);
+                OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsDynamic[ii].Label, timeByProgress);
                 yield return Ninja.JumpBack;
 
                 float currentMaxDensity, currentMinInfluence, currentMaxInfluence;
                 float maxDensity = 1;
 
-                m_ColumnManager.ColumnsIEEG[ii].SharedMinInf = float.MaxValue;
-                m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf = float.MinValue;
+                m_ColumnManager.ColumnsDynamic[ii].SharedMinInf = float.MaxValue;
+                m_ColumnManager.ColumnsDynamic[ii].SharedMaxInf = float.MinValue;
 
                 // update raw electrodes
-                m_ColumnManager.ColumnsIEEG[ii].UpdateDLLSitesMask();
+                m_ColumnManager.ColumnsDynamic[ii].UpdateDLLSitesMask();
 
                 // splits
                 for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                 {
                     yield return Ninja.JumpToUnity;
-                    OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label, timeByProgress);
+                    OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsDynamic[ii].Label, timeByProgress);
                     yield return Ninja.JumpBack;
                     if (m_GeneratorNeedsUpdate) yield break;
-                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
+                    m_ColumnManager.ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsDynamic[ii].RawElectrodes);
                     if (m_GeneratorNeedsUpdate) yield break;
-                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
+                    m_ColumnManager.ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsDynamic[ii].DynamicParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
                     if (m_GeneratorNeedsUpdate) yield break;
-                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                    m_ColumnManager.ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsDynamic[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                     if (m_GeneratorNeedsUpdate) yield break;
 
-                    currentMaxDensity = m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumDensity;
-                    currentMinInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MinimumInfluence;
-                    currentMaxInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumInfluence;
+                    currentMaxDensity = m_ColumnManager.ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].MaximumDensity;
+                    currentMinInfluence = m_ColumnManager.ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].MinimumInfluence;
+                    currentMaxInfluence = m_ColumnManager.ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].MaximumInfluence;
 
                     if (currentMaxDensity > maxDensity)
                         maxDensity = currentMaxDensity;
 
-                    if (currentMinInfluence < m_ColumnManager.ColumnsIEEG[ii].SharedMinInf)
-                        m_ColumnManager.ColumnsIEEG[ii].SharedMinInf = currentMinInfluence;
+                    if (currentMinInfluence < m_ColumnManager.ColumnsDynamic[ii].SharedMinInf)
+                        m_ColumnManager.ColumnsDynamic[ii].SharedMinInf = currentMinInfluence;
 
-                    if (currentMaxInfluence > m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf)
-                        m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf = currentMaxInfluence;
+                    if (currentMaxInfluence > m_ColumnManager.ColumnsDynamic[ii].SharedMaxInf)
+                        m_ColumnManager.ColumnsDynamic[ii].SharedMaxInf = currentMaxInfluence;
 
                 }
 
                 // volume
                 yield return Ninja.JumpToUnity;
                 currentProgress += 10;
-                OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label, timeByProgress * 10);
+                OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsDynamic[ii].Label, timeByProgress * 10);
                 yield return Ninja.JumpBack;
                 if (m_GeneratorNeedsUpdate) yield break;
-                m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
+                m_ColumnManager.ColumnsDynamic[ii].DLLMRIVolumeGenerator.InitializeOctree(m_ColumnManager.ColumnsDynamic[ii].RawElectrodes);
                 if (m_GeneratorNeedsUpdate) yield break;
-                m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
+                m_ColumnManager.ColumnsDynamic[ii].DLLMRIVolumeGenerator.ComputeDistances(m_ColumnManager.ColumnsDynamic[ii].DynamicParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
                 if (m_GeneratorNeedsUpdate) yield break;
-                m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                m_ColumnManager.ColumnsDynamic[ii].DLLMRIVolumeGenerator.ComputeInfluences(m_ColumnManager.ColumnsDynamic[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                 if (m_GeneratorNeedsUpdate) yield break;
 
-                currentMaxDensity = m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.MaximumDensity;
-                currentMinInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.MinimumInfluence;
-                currentMaxInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.MaximumInfluence;
+                currentMaxDensity = m_ColumnManager.ColumnsDynamic[ii].DLLMRIVolumeGenerator.MaximumDensity;
+                currentMinInfluence = m_ColumnManager.ColumnsDynamic[ii].DLLMRIVolumeGenerator.MinimumInfluence;
+                currentMaxInfluence = m_ColumnManager.ColumnsDynamic[ii].DLLMRIVolumeGenerator.MaximumInfluence;
 
                 if (currentMaxDensity > maxDensity)
                     maxDensity = currentMaxDensity;
 
-                if (currentMinInfluence < m_ColumnManager.ColumnsIEEG[ii].SharedMinInf)
-                    m_ColumnManager.ColumnsIEEG[ii].SharedMinInf = currentMinInfluence;
+                if (currentMinInfluence < m_ColumnManager.ColumnsDynamic[ii].SharedMinInf)
+                    m_ColumnManager.ColumnsDynamic[ii].SharedMinInf = currentMinInfluence;
 
-                if (currentMaxInfluence > m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf)
-                    m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf = currentMaxInfluence;
+                if (currentMaxInfluence > m_ColumnManager.ColumnsDynamic[ii].SharedMaxInf)
+                    m_ColumnManager.ColumnsDynamic[ii].SharedMaxInf = currentMaxInfluence;
 
                 // synchronize max density
                 for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                 {
-                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, m_ColumnManager.ColumnsIEEG[ii].SharedMinInf, m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
+                    m_ColumnManager.ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, m_ColumnManager.ColumnsDynamic[ii].SharedMinInf, m_ColumnManager.ColumnsDynamic[ii].SharedMaxInf);
                     if (m_GeneratorNeedsUpdate) yield break;
                 }
-                m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.SynchronizeWithOthersGenerators(maxDensity, m_ColumnManager.ColumnsIEEG[ii].SharedMinInf, m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
+                m_ColumnManager.ColumnsDynamic[ii].DLLMRIVolumeGenerator.SynchronizeWithOthersGenerators(maxDensity, m_ColumnManager.ColumnsDynamic[ii].SharedMinInf, m_ColumnManager.ColumnsDynamic[ii].SharedMaxInf);
                 if (m_GeneratorNeedsUpdate) yield break;
 
                 for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                 {
-                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap(m_ColumnManager.ColumnsIEEG[ii]);
+                    m_ColumnManager.ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap(m_ColumnManager.ColumnsDynamic[ii]);
                     if (m_GeneratorNeedsUpdate) yield break;
                 }
-                m_ColumnManager.ColumnsIEEG[ii].DLLMRIVolumeGenerator.AdjustInfluencesToColormap(m_ColumnManager.ColumnsIEEG[ii]);
+                m_ColumnManager.ColumnsDynamic[ii].DLLMRIVolumeGenerator.AdjustInfluencesToColormap(m_ColumnManager.ColumnsDynamic[ii]);
                 if (m_GeneratorNeedsUpdate) yield break;
             }
             yield return Ninja.JumpToUnity;

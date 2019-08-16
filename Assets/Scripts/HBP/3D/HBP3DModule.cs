@@ -107,6 +107,10 @@ namespace HBP.Module3D
         /// Mars atlas index (to get name of mars atlas, broadman etc)
         /// </summary>
         public DLL.MarsAtlasIndex MarsAtlasIndex { get; private set; }
+        /// <summary>
+        /// JuBrain Atlas (to color the MRIs with JuBrain areas)
+        /// </summary>
+        public DLL.JuBrainAtlas JuBrainAtlas { get; private set; }
 
         /// <summary>
         /// MNI Objects (Mesh and MRI)
@@ -141,6 +145,10 @@ namespace HBP.Module3D
         /// Event called when hovering a site to display its information
         /// </summary>
         [HideInInspector] public GenericEvent<SiteInfo> OnDisplaySiteInformation = new GenericEvent<SiteInfo>();
+        /// <summary>
+        /// Event called when hovering a atlas area to display its information
+        /// </summary>
+        [HideInInspector] public GenericEvent<AtlasInfo> OnDisplayAtlasInformation = new GenericEvent<AtlasInfo>();
         /// <summary>
         /// Event called when a scene is added
         /// </summary>
@@ -195,7 +203,8 @@ namespace HBP.Module3D
             #if UNITY_EDITOR
                 dataDirectory = Application.dataPath + "/Data/";
             #endif
-            MarsAtlasIndex = new DLL.MarsAtlasIndex(dataDirectory + "MarsAtlas/mars_atlas_index.csv");
+            MarsAtlasIndex = new DLL.MarsAtlasIndex(dataDirectory + "Atlases/MarsAtlas/mars_atlas_index.csv");
+            JuBrainAtlas = new DLL.JuBrainAtlas(dataDirectory + "Atlases/JuBrain/jubrain_left_nlin2Stdcolin27.nii.gz", dataDirectory + "Atlases/JuBrain/jubrain_right_nlin2Stdcolin27.nii.gz", dataDirectory + "Atlases/JuBrain/jubrain.json");
         }
         void OnDestroy()
         {
@@ -380,16 +389,13 @@ namespace HBP.Module3D
                 try
                 {
                     // Add the listeners
-                    scene.OnChangeSelectedState.AddListener((selected) =>
+                    scene.OnSelect.AddListener(() =>
                     {
-                        if (selected)
+                        foreach (Base3DScene s in m_Scenes)
                         {
-                            foreach (Base3DScene s in m_Scenes)
+                            if (s != scene)
                             {
-                                if (s != scene)
-                                {
-                                    s.IsSelected = false;
-                                }
+                                s.IsSelected = false;
                             }
                         }
                     });

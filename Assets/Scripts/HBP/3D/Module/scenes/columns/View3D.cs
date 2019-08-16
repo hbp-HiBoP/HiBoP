@@ -35,32 +35,11 @@ namespace HBP.Module3D
             }
             set
             {
-                bool wasSelected = m_IsSelected;
                 m_IsSelected = value;
-                OnChangeSelectedState.Invoke(value);
-                if (m_IsSelected && !wasSelected)
+                if (m_IsSelected)
                 {
+                    OnSelect.Invoke();
                     ApplicationState.Module3D.OnSelectView.Invoke(this);
-                }
-            }
-        }
-
-        private bool m_IsClicked = false;
-        /// <summary>
-        /// True if this view is the last object in which the user clicked
-        /// </summary>
-        public bool IsClicked
-        {
-            get
-            {
-                return m_IsClicked;
-            }
-            set
-            {
-                m_IsClicked = value;
-                if (m_IsClicked)
-                {
-                    IsSelected = value;
                 }
             }
         }
@@ -289,7 +268,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when we select this view
         /// </summary>
-        [HideInInspector] public GenericEvent<bool> OnChangeSelectedState = new GenericEvent<bool>();
+        [HideInInspector] public UnityEvent OnSelect = new UnityEvent();
         /// <summary>
         /// Event called when the camera is moved (rotation, strafe, zoom)
         /// </summary>

@@ -2,22 +2,22 @@
   "General": {
     "Project": {
       "DefaultName": "New project",
-      "DefaultLocation": "D:\\Programmation\\Travail\\Data\\Projects",
-      "DefaultPatientDatabase": "Y:\\BrainVisaDB\\Epilepsy",
-      "DefaultLocalizerDatabase": "Y:\\LOCA_DATABASE",
-      "DefaultExportLocation": "D:/ScreenShot"
+      "DefaultLocation": "E:\\HBP\\Projects",
+      "DefaultPatientDatabase": "E:\\HBP\\MiniDB\\Patients",
+      "DefaultLocalizerDatabase": "E:\\HBP\\MiniDB\\Localizers",
+      "DefaultExportLocation": "E:\\HBP\\Projects\\Screenshots"
     },
     "Theme": {},
     "Localization": {},
     "System": {
       "MultiThreading": true,
-      "MemoryCacheLimit": 16345
+      "MemoryCacheLimit": 16334
     }
   },
   "Data": {
     "EEG": {
       "Averaging": 1,
-      "Normalization": 0
+      "Normalization": 1
     },
     "Protocol": {
       "PositionAveraging": 1,
@@ -48,8 +48,8 @@
       "TrialsSynchronization": true,
       "TrialSmoothing": true,
       "NumberOfIntermediateValues": 4,
-      "SubBlocFormat": 0,
-      "TrialHeight": 20,
+      "SubBlocFormat": 2,
+      "TrialHeight": 19,
       "TrialRatio": 0.06969325,
       "BlocRatio": 0.184049129
     },

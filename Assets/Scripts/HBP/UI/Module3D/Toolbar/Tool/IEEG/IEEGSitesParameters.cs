@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections;
+﻿using HBP.Module3D;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -24,18 +22,10 @@ namespace HBP.UI.Module3D.Tools
             m_Slider.onValueChanged.AddListener((value) =>
             {
                 if (ListenerLock) return;
-
-                HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)SelectedColumn;
-                if (IsGlobal)
+                
+                foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
-                    foreach (HBP.Module3D.Column3DIEEG column in SelectedScene.ColumnManager.ColumnsIEEG)
-                    {
-                        column.IEEGParameters.Gain = value;
-                    }
-                }
-                else
-                {
-                    selectedColumn.IEEGParameters.Gain = value;
+                    column.DynamicParameters.Gain = value;
                 }
             });
 
@@ -43,21 +33,13 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                float val;
-                global::Tools.Unity.NumberExtension.TryParseFloat(value, out val);
-                HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)SelectedColumn;
-                if (IsGlobal)
+                global::Tools.Unity.NumberExtension.TryParseFloat(value, out float val);
+                
+                foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
-                    foreach (HBP.Module3D.Column3DIEEG column in SelectedScene.ColumnManager.ColumnsIEEG)
-                    {
-                        column.IEEGParameters.InfluenceDistance = val;
-                    }
+                    column.DynamicParameters.InfluenceDistance = val;
                 }
-                else
-                {
-                    selectedColumn.IEEGParameters.InfluenceDistance = val;
-                }
-                m_InputField.text = selectedColumn.IEEGParameters.InfluenceDistance.ToString("N2");
+                m_InputField.text = ((Column3DDynamic)SelectedColumn).DynamicParameters.InfluenceDistance.ToString("N2");
             });
         }
 
@@ -71,19 +53,18 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isColumnIEEG = SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
+            bool isColumnDynamic = SelectedColumn is Column3DDynamic;
 
-            m_Slider.interactable = isColumnIEEG;
-            m_InputField.interactable = isColumnIEEG;
+            m_Slider.interactable = isColumnDynamic;
+            m_InputField.interactable = isColumnDynamic;
         }
 
         public override void UpdateStatus()
         {
-            if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
+            if (SelectedColumn is Column3DDynamic dynamicColumn)
             {
-                HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)SelectedColumn;
-                m_Slider.value = selectedColumn.IEEGParameters.Gain;
-                m_InputField.text = selectedColumn.IEEGParameters.InfluenceDistance.ToString("N2");
+                m_Slider.value = dynamicColumn.DynamicParameters.Gain;
+                m_InputField.text = dynamicColumn.DynamicParameters.InfluenceDistance.ToString("N2");
             }
             else
             {

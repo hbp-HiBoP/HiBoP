@@ -105,37 +105,38 @@ namespace HBP.Module3D.DLL
 
             //{ Nothing = 0, Abort = 1, Ignore = 2, Pause_Editor = 3};
             string errorMsg = retrieve_error_message();
-            int action = UI.FileBrowser.get_action_to_do_from_error_dialog_test(errorMsg, Application.isEditor);
-            switch (action)
-            {
-                case 1: // abort
-                    leaveProgram = true;
-                    Debug.LogError("An error has occured in the DLL and the program will be aborted at the end of the current frame.");
-                    bool editor = false;
-                    #if UNITY_EDITOR
-                        editor = true;
-                        UnityEditor.EditorApplication.isPlaying = false;
-                    #endif
-                    if (!editor)
-                        Application.Quit();
-                    break;
-                case 2: // Ignore
-                    Debug.LogError("An error has occured in the DLL but was ignored !!!");
-                    break;
-                case 3: // Pause_Editor
-                    pauseEditor = true;
-                    Debug.LogError("An error has occured in the DLL and the editor will be paused at the end of frame.");
-                    #if UNITY_EDITOR
-                        UnityEditor.EditorApplication.isPaused = true;
-                    #endif
-                    break;
-                case 4: // Delayed
-                    Debug.LogError("An error has occured in the DLL but not in the main thread, the error will be delayed. ");
-                    break;
-                default:
-                    Debug.LogError("Code from the DLL not managed !");
-                    break;
-            }
+            Debug.LogException(new Exception(errorMsg));
+            //int action = UI.FileBrowser.get_action_to_do_from_error_dialog_test(errorMsg, Application.isEditor);
+            //switch (action)
+            //{
+            //    case 1: // abort
+            //        leaveProgram = true;
+            //        Debug.LogError("An error has occured in the DLL and the program will be aborted at the end of the current frame.");
+            //        bool editor = false;
+            //        #if UNITY_EDITOR
+            //            editor = true;
+            //            UnityEditor.EditorApplication.isPlaying = false;
+            //        #endif
+            //        if (!editor)
+            //            Application.Quit();
+            //        break;
+            //    case 2: // Ignore
+            //        Debug.LogError("An error has occured in the DLL but was ignored !!!");
+            //        break;
+            //    case 3: // Pause_Editor
+            //        pauseEditor = true;
+            //        Debug.LogError("An error has occured in the DLL and the editor will be paused at the end of frame.");
+            //        #if UNITY_EDITOR
+            //            UnityEditor.EditorApplication.isPaused = true;
+            //        #endif
+            //        break;
+            //    case 4: // Delayed
+            //        Debug.LogError("An error has occured in the DLL but not in the main thread, the error will be delayed. ");
+            //        break;
+            //    default:
+            //        Debug.LogError("Code from the DLL not managed !");
+            //        break;
+            //}
         }
 
         /// <summary>

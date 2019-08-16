@@ -1,4 +1,5 @@
 ﻿using HBP.Module3D;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace HBP.UI.Module3D.Tools
@@ -49,6 +50,29 @@ namespace HBP.UI.Module3D.Tools
             {
                 DefaultState();
             }
+        }
+        #endregion
+
+        #region Private Methods
+        protected List<Column3DDynamic> GetColumnsDependingOnTypeAndGlobal(bool isGlobal)
+        {
+            List<Column3DDynamic> columns = new List<Column3DDynamic>();
+            if (isGlobal)
+            {
+                if (SelectedColumn is Column3DIEEG)
+                {
+                    columns.AddRange(SelectedScene.ColumnManager.ColumnsIEEG);
+                }
+                else if (SelectedColumn is Column3DCCEP)
+                {
+                    columns.AddRange(SelectedScene.ColumnManager.ColumnsCCEP);
+                }
+            }
+            else
+            {
+                columns.Add((Column3DDynamic)SelectedColumn);
+            }
+            return columns;
         }
         #endregion
     }

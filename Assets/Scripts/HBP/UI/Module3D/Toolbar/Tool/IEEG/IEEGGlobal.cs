@@ -34,9 +34,9 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isColumnIEEG = SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
+            bool isColumnDynamic = SelectedColumn is HBP.Module3D.Column3DDynamic;
 
-            m_Toggle.interactable = isColumnIEEG;
+            m_Toggle.interactable = isColumnDynamic;
         }
 
         public void Set(bool isOn)

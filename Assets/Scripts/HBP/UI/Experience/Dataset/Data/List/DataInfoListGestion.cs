@@ -68,7 +68,14 @@ namespace HBP.UI.Experience.Dataset
         {
             if(modifier.ItemTemp is PatientDataInfo patientDataInfo)
             {
-                modifier.CanSave = !Objects.OfType<PatientDataInfo>().Any(data => data.Patient == patientDataInfo.Patient && data.Name == patientDataInfo.Name && data != modifier.Item);
+                if (modifier.ItemTemp is iEEGDataInfo iEEGDataInfo)
+                {
+                    modifier.CanSave = !Objects.OfType<iEEGDataInfo>().Any(data => data.Patient == iEEGDataInfo.Patient && data.Name == iEEGDataInfo.Name && data != modifier.Item);
+                }
+                else if (modifier.ItemTemp is CCEPDataInfo ccepDataInfo)
+                {
+                    modifier.CanSave = !Objects.OfType<CCEPDataInfo>().Any(data => data.Patient == ccepDataInfo.Patient && data.Name == ccepDataInfo.Name && data.StimulatedChannel == ccepDataInfo.StimulatedChannel && data != modifier.Item);
+                }
             }
             else
             {

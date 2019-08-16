@@ -37,7 +37,7 @@ namespace HBP.UI.Module3D.Tools
         {
             DeleteSubTimelines();
 
-            HBP.Module3D.Column3DIEEG column = (HBP.Module3D.Column3DIEEG)SelectedColumn;
+            HBP.Module3D.Column3DDynamic column = (HBP.Module3D.Column3DDynamic)SelectedColumn;
             Data.Visualization.Timeline timeline = column.Timeline;
             m_Slider.maxValue = timeline.Length - 1;
             m_Slider.value = timeline.CurrentIndex;
@@ -66,22 +66,15 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 int val = (int)value;
-                if (IsGlobal)
+                foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
-                    foreach (HBP.Module3D.Column3DIEEG column in SelectedScene.ColumnManager.ColumnsIEEG)
-                    {
-                        column.Timeline.CurrentIndex = val;
-                    }
-                }
-                else
-                {
-                    ((HBP.Module3D.Column3DIEEG)SelectedColumn).Timeline.CurrentIndex = val;
+                    column.Timeline.CurrentIndex = val;
                 }
             });
             ApplicationState.Module3D.OnUpdateSelectedColumnTimeLineID.AddListener(() =>
             {
                 ListenerLock = true;
-                HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)SelectedColumn;
+                HBP.Module3D.Column3DDynamic selectedColumn = (HBP.Module3D.Column3DDynamic)SelectedColumn;
                 if (selectedColumn)
                 {
                     m_Slider.value = selectedColumn.Timeline.CurrentIndex;
@@ -103,15 +96,15 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isColumnIEEG = SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
+            bool isColumnDynamic = SelectedColumn is HBP.Module3D.Column3DDynamic;
             bool areAmplitudesComputed = SelectedScene.SceneInformation.IsGeneratorUpToDate;
 
-            m_Slider.interactable = isColumnIEEG && areAmplitudesComputed;
+            m_Slider.interactable = isColumnDynamic && areAmplitudesComputed;
         }
 
         public override void UpdateStatus()
         {
-            if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG && SelectedScene.SceneInformation.IsGeneratorUpToDate)
+            if (SelectedColumn is HBP.Module3D.Column3DDynamic && SelectedScene.SceneInformation.IsGeneratorUpToDate)
             {
                 ShowSubTimelines();
             }

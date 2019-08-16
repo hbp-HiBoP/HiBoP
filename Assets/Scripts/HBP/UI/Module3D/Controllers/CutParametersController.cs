@@ -336,8 +336,7 @@ namespace HBP.UI.Module3D
             if (Cut.Orientation == Data.Enums.CutOrientation.Custom) return;
             
             List<Site> sites = new List<Site>();
-            int[] result;
-            m_Scene.ColumnManager.SelectedColumn.RawElectrodes.GetSitesOnPlane(Cut, 1.0f, out result);
+            m_Scene.ColumnManager.SelectedColumn.RawElectrodes.GetSitesOnPlane(Cut, 1.0f, out int[] result);
             foreach (var site in m_Scene.ColumnManager.SelectedColumn.Sites)
             {
                 if (result[site.Information.GlobalID] == 1 && site.IsActive)

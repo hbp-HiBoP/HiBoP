@@ -20,19 +20,25 @@ namespace HBP.UI.Module3D
         {
             base.Setup(scene, column, columnUI);
 
-            switch (column.Type)
+            if (column is Column3DIEEG columnIEEG)
             {
-                case Data.Enums.ColumnType.Anatomic:
-                    IsActive = false;
-                    break;
-                case Data.Enums.ColumnType.iEEG:
-                    IsActive = true;
-                    Column3DIEEG col = (Column3DIEEG)column;
-                    m_Protocol.text = col.ColumnIEEGData.Dataset.Protocol.Name;
-                    m_Bloc.text = col.ColumnIEEGData.Bloc.Name;
-                    m_Dataset.text = col.ColumnIEEGData.Dataset.Name;
-                    m_Data.text = col.ColumnIEEGData.DataName;
-                    break;
+                m_Protocol.text = columnIEEG.ColumnIEEGData.Dataset.Protocol.Name;
+                m_Bloc.text = columnIEEG.ColumnIEEGData.Bloc.Name;
+                m_Dataset.text = columnIEEG.ColumnIEEGData.Dataset.Name;
+                m_Data.text = columnIEEG.ColumnIEEGData.DataName;
+                IsActive = true;
+            }
+            else if (column is Column3DCCEP columnCCEP)
+            {
+                m_Protocol.text = columnCCEP.ColumnCCEPData.Dataset.Protocol.Name;
+                m_Bloc.text = columnCCEP.ColumnCCEPData.Bloc.Name;
+                m_Dataset.text = columnCCEP.ColumnCCEPData.Dataset.Name;
+                m_Data.text = columnCCEP.ColumnCCEPData.DataName;
+                IsActive = true;
+            }
+            else
+            {
+                IsActive = false;
             }
         }
         #endregion

@@ -24,6 +24,8 @@ namespace HBP.Data.Visualization
         /// </summary>
         public float TimeLength { get; private set; }
 
+        public Tools.CSharp.EEG.Frequency Frequency { get; private set; }
+
         private int m_CurrentIndex;
         /// <summary>
         /// Current index of the timeline
@@ -104,6 +106,7 @@ namespace HBP.Data.Visualization
         #region Constructors
         public Timeline(Bloc bloc, Dictionary<SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc, Dictionary<SubBloc, int> indexBySubBloc, Tools.CSharp.EEG.Frequency frequency)
         {
+            Frequency = frequency;
             Unit = "ms";
             int startIndex = 0;
             SubTimelinesBySubBloc = new Dictionary<SubBloc, SubTimeline>(bloc.SubBlocs.Count);
@@ -190,6 +193,8 @@ namespace HBP.Data.Visualization
         /// Length of the timeline in unit of time
         /// </summary>
         public float TimeLength { get { return MaxTime - MinTime; } }
+        
+        public Tools.CSharp.EEG.Frequency Frequency { get; private set; }
 
         private int m_GlobalMinIndex;
         /// <summary>
@@ -242,6 +247,8 @@ namespace HBP.Data.Visualization
         #region Constructors
         public SubTimeline(SubBloc subBloc, int startIndex, List<SubBlocEventsStatistics> eventStatistics, int maxBefore, int maxAfter, Tools.CSharp.EEG.Frequency frequency)
         {
+            Frequency = frequency;
+
             // Events
             StatisticsByEvent = new Dictionary<Experience.Protocol.Event, EventStatistics>();
             foreach (var e in subBloc.Events)

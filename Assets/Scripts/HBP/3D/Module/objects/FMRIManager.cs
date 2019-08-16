@@ -214,8 +214,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="column"></param>
         /// <param name="cutID"></param>
-        /// <param name="blurFactor"></param>
-        public void ColorCutTexture(Column3D column, int cutID, float blurFactor)
+        public void ColorCutTexture(Column3D column, int cutID)
         {
             column.CutTextures.ColorCutsTexturesWithFMRI(CurrentVolume, cutID, m_FMRICalMinFactor, m_FMRICalMaxFactor, m_FMRIAlpha);
         }

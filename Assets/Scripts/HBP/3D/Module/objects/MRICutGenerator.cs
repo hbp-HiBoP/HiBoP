@@ -185,11 +185,28 @@ namespace HBP.Module3D
             public void FillTextureWithFMRI(Texture colorScheme, Volume volume, float calMin, float calMax, float alpha)
             {
                 bool noError = false;
-                noError = fill_texture_with_IRMF__MRITextureCutGenerator(_handle, volume.getHandle(), colorScheme.getHandle(), calMin, calMax, alpha) ==1;
+                noError = fill_texture_with_IRMF__MRITextureCutGenerator(_handle, volume.getHandle(), colorScheme.getHandle(), calMin, calMax, alpha) == 1;
                 ApplicationState.DLLDebugManager.check_error();
 
                 if (!noError)
                     Debug.LogError("fill_texture_with_IRMF__MRITextureCutGenerator failed ! (check DLL console debug output)");
+            }
+            /// <summary>
+            /// Will update the previously MRI colored texture with an Atlas
+            /// </summary>
+            /// <param name="colorScheme"></param>
+            /// <param name="volume"></param>
+            /// <param name="calMin"></param>
+            /// <param name="calMax"></param>
+            /// <param name="alpha"></param>
+            public void FillTextureWithAtlas(JuBrainAtlas atlas, float alpha, int selectedArea)
+            {
+                bool noError = false;
+                noError = fill_texture_with_Atlas__MRITextureCutGenerator(_handle, atlas.getHandle(), alpha, selectedArea) == 1;
+                ApplicationState.DLLDebugManager.check_error();
+
+                if (!noError)
+                    Debug.LogError("fill_texture_with_Atlas__MRITextureCutGenerator failed ! (check DLL console debug output)");
             }
             /// <summary>
             /// Will reset the octree built with the cut points and sites positions
@@ -222,11 +239,11 @@ namespace HBP.Module3D
             /// <param name="addValues"></param>
             /// <param name="ratioDistances"></param>
             /// <returns></returns>
-            public bool ComputeInfluences(Column3DIEEG IEEGColumn, bool multiCPU, bool addValues = false, int ratioDistances = 0)
+            public bool ComputeInfluences(Column3DDynamic IEEGColumn, bool multiCPU, bool addValues = false, int ratioDistances = 0)
             {
                 bool noError = false;
-                noError = compute_influences__MRITextureCutGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.EEGDimensions, IEEGColumn.IEEGParameters.InfluenceDistance,
-                    multiCPU?1:0, addValues?1:0, ratioDistances, IEEGColumn.IEEGParameters.Middle, IEEGColumn.IEEGParameters.SpanMin, IEEGColumn.IEEGParameters.SpanMax)== 1;
+                noError = compute_influences__MRITextureCutGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.EEGDimensions, IEEGColumn.DynamicParameters.InfluenceDistance,
+                    multiCPU?1:0, addValues?1:0, ratioDistances, IEEGColumn.DynamicParameters.Middle, IEEGColumn.DynamicParameters.SpanMin, IEEGColumn.DynamicParameters.SpanMax)== 1;
                 ApplicationState.DLLDebugManager.check_error();
 
                 if (!noError)
@@ -241,11 +258,11 @@ namespace HBP.Module3D
             /// <param name="colorScheme"></param>
             /// <param name="notInBrainCol"></param>
             /// <returns></returns>
-            public bool FillTextureWithIEEG(Column3DIEEG IEEGColumn, DLL.Texture colorScheme)
+            public bool FillTextureWithIEEG(Column3DDynamic IEEGColumn, DLL.Texture colorScheme)
             {
                 bool noError = false;
                 noError = fill_texture_with_SSEG__MRITextureCutGenerator(_handle, IEEGColumn.Timeline.CurrentIndex, colorScheme.getHandle(), 
-                IEEGColumn.IEEGParameters.AlphaMin, IEEGColumn.IEEGParameters.AlphaMax, new float[] { 0, 0, 0 })==1;
+                IEEGColumn.DynamicParameters.AlphaMin, IEEGColumn.DynamicParameters.AlphaMax, new float[] { 0, 0, 0 })==1;
                 ApplicationState.DLLDebugManager.check_error();
 
                 if (!noError)
@@ -283,9 +300,18 @@ namespace HBP.Module3D
             /// <summary>
             /// 
             /// </summary>
-            public void AdjustInfluencesToColormap(Column3DIEEG column3DIEEG)
+            /// <param name="texture"></param>
+            public void UpdateTextureWithAtlas(DLL.Texture texture)
             {
-                ajust_influences_to_colormap__MRITextureCutGenerator(_handle, column3DIEEG.IEEGParameters.Middle, column3DIEEG.IEEGParameters.SpanMin, column3DIEEG.IEEGParameters.SpanMax);
+                update_texture_with_Atlas__MRITextureCutGenerator(_handle, texture.getHandle());
+                texture.UpdateSizes();
+            }
+            /// <summary>
+            /// 
+            /// </summary>
+            public void AdjustInfluencesToColormap(Column3DDynamic column3DIEEG)
+            {
+                ajust_influences_to_colormap__MRITextureCutGenerator(_handle, column3DIEEG.DynamicParameters.Middle, column3DIEEG.DynamicParameters.SpanMin, column3DIEEG.DynamicParameters.SpanMax);
             }
             /// <summary>
             /// Upathe the max density and influences values
@@ -342,6 +368,8 @@ namespace HBP.Module3D
             [DllImport("hbp_export", EntryPoint = "fill_texture_with_IRMF__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern int fill_texture_with_IRMF__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, HandleRef handleVolume, HandleRef handleColorSchemeTexture,
                                                               float calMin, float calMax, float alpha);
+            [DllImport("hbp_export", EntryPoint = "fill_texture_with_Atlas__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
+            static private extern int fill_texture_with_Atlas__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, HandleRef handleAtlas, float alpha, int selectedArea);
             [DllImport("hbp_export", EntryPoint = "init_octree__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern void init_octree__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, HandleRef handleRawPlotList);
             [DllImport("hbp_export", EntryPoint = "compute_distances__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
@@ -364,6 +392,8 @@ namespace HBP.Module3D
             static private extern void update_texture_with_SEEG__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, HandleRef handleTexture);
             [DllImport("hbp_export", EntryPoint = "update_texture_with_IRMF__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern void update_texture_with_IRMF__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, HandleRef handleTexture);
+            [DllImport("hbp_export", EntryPoint = "update_texture_with_Atlas__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
+            static private extern void update_texture_with_Atlas__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, HandleRef handleTexture);
             [DllImport("hbp_export", EntryPoint = "ajust_influences_to_colormap__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern void ajust_influences_to_colormap__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, float middle, float min, float max);
             [DllImport("hbp_export", EntryPoint = "synchronize_with_others_generators__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
