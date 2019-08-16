@@ -151,6 +151,8 @@ namespace HBP.Module3D
         /// <param name="column">Column associated with these parameters</param>
         public void SetSpanValues(float min, float mid, float max)
         {
+            if (Mathf.Approximately(min, 0f) && Mathf.Approximately(mid, 0f) && Mathf.Approximately(max, 0f)) return;
+
             if (min > max) min = max;
             mid = Mathf.Clamp(mid, min, max);
             SpanMin = min;

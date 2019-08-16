@@ -41,7 +41,7 @@
 				float3 worldPos;
 			};
 
-			void surf(Input IN, inout SurfaceOutputStandard o)
+			float is_clipped(Input IN)
 			{
 				float3 localPos = IN.worldPos - mul(unity_ObjectToWorld, float4(0, 0, 0, 1)).xyz;
 				float clipping = 1;
@@ -73,35 +73,45 @@
 						}
 					}
 				}
-				clip(clipping);
+				return clipping;
+			}
 
-				fixed4 ao = tex2D(_AoTex, IN.uv2_AoTex.xy);
-				float color = ao.r;
-				
-				// boost alpha (because of low tri mesh density compated to cuts textures)
-				color *= 2.5;
-				if (color > 1)
-					color = 1;
-								
-				fixed4 col;	
-				if (_Atlas)
+			void display_atlas(Input IN, inout SurfaceOutputStandard o)
+			{
+				if (IN.vertex_col.a > 0)
 				{
-					if (IN.vertex_col.a > 0)
-					{
-						o.Albedo = IN.vertex_col.rgb * _Color;
-					}
-					else
-					{
-						o.Albedo = tex2D(_MainTex, IN.uv_MainTex.xy);
-					}
-					o.Alpha = 1.f;
+					o.Albedo = IN.vertex_col.rgb * _Color;
 				}
 				else
 				{
-					col = (1 - color) * tex2D(_MainTex, IN.uv_MainTex.xy) + (color)* tex2D(_ColorTex, IN.uv3_ColorTex.xy);
-					col *= _Color;
-					o.Albedo = col.rgb;
-					o.Alpha = 1.f;
+					o.Albedo = tex2D(_MainTex, IN.uv_MainTex);
+				}
+				o.Alpha = 1.f;
+			}
+
+			void display_ieeg(Input IN, inout SurfaceOutputStandard o)
+			{
+				fixed4 col;
+				fixed4 ao = tex2D(_AoTex, IN.uv2_AoTex);
+				float color = ao.r * 2.5; // boost alpha (because of low tri mesh density compated to cuts textures)
+				if (color > 1) color = 1;
+				col = (1 - color) * tex2D(_MainTex, IN.uv_MainTex) + (color)* tex2D(_ColorTex, IN.uv3_ColorTex);
+				col *= _Color;
+				o.Albedo = col.rgb;
+				o.Alpha = 1.f;
+			}
+
+			void surf(Input IN, inout SurfaceOutputStandard o)
+			{
+				clip(is_clipped(IN));
+							
+				if (_Atlas)
+				{
+					display_atlas(IN, o);
+				}
+				else
+				{
+					display_ieeg(IN, o);
 				}
 
 				o.Metallic =  _Metallic;
