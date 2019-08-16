@@ -77,19 +77,6 @@ namespace Tools.Unity
                 file.Delete();
             }
 
-            if (target == BuildTarget.StandaloneOSX)
-            {
-                DirectoryInfo pluginsDirectory = new DirectoryInfo(Application.dataPath + "/Plugins/x86_64/MacOS");
-                DirectoryInfo newPluginsDirectory = new DirectoryInfo(dataDirectory + "Contents/Frameworks/MonoEmbedRuntime/osx/");
-                Directory.CreateDirectory(newPluginsDirectory.FullName);
-                pluginsDirectory.CopyFilesRecursively(newPluginsDirectory);
-                foreach (var file in newPluginsDirectory.GetFiles("*.meta"))
-                {
-                    file.Delete();
-                }
-                new DirectoryInfo(dataDirectory + "Contents/Plugins/x86_64").Delete(true);
-            }
-
             FileInfo readme = new FileInfo(projectPath + "README.md");
             readme.CopyTo(buildDirectory + readme.Name);
 
