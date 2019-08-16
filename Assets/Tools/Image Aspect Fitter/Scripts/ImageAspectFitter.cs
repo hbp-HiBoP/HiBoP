@@ -231,11 +231,13 @@ public class ImageAspectFitter : UIBehaviour, ILayoutElement, ILayoutIgnorer
         LayoutRebuilder.MarkLayoutForRebuild(this.transform as RectTransform);
     }
 
+#if UNITY_EDITOR
     protected override void OnValidate()
     {
         m_Image = GetComponent<Image>();
         m_RectTransform = GetComponent<RectTransform>();
         this.SetDirty();
     }
+#endif
     #endregion
 }
