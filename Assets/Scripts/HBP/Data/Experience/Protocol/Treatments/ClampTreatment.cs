@@ -125,7 +125,7 @@ namespace HBP.Data.Experience.Protocol
                 UseMaxClamp = clampTreatment.UseMaxClamp;
                 Max = clampTreatment.Max;
             }
-            if(copy is TresholdTreatment tresholdTreatment)
+            if(copy is ThresholdTreatment tresholdTreatment)
             {
                 UseMinClamp = tresholdTreatment.UseMinTreshold;
                 Min = tresholdTreatment.Min;

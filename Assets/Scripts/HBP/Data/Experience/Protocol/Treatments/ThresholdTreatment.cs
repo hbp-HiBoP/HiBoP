@@ -6,7 +6,7 @@ using Tools.CSharp.EEG;
 namespace HBP.Data.Experience.Protocol
 {
     [DataContract, DisplayName("Threshold")]
-    public class TresholdTreatment : Treatment
+    public class ThresholdTreatment : Treatment
     {
         #region Properties
         [DataMember] public bool UseMinTreshold { get; set; }
@@ -16,14 +16,14 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Constructors
-        public TresholdTreatment(): base()
+        public ThresholdTreatment(): base()
         {
             UseMinTreshold = false;
             UseMaxTreshold = false;
             Min = 0;
             Max = 1;
         }
-        public TresholdTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, bool useMinTreshold, float min, bool useMaxTreshold, float max, int order, string id) : base(useOnWindow, window, useOnBaseline, baseline, order, id)
+        public ThresholdTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, bool useMinTreshold, float min, bool useMaxTreshold, float max, int order, string id) : base(useOnWindow, window, useOnBaseline, baseline, order, id)
         {
             UseMinTreshold = useMinTreshold;
             Min = min;
@@ -99,12 +99,12 @@ namespace HBP.Data.Experience.Protocol
         #region Operators
         public override object Clone()
         {
-            return new TresholdTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, UseMinTreshold, Min, UseMaxTreshold, Max, Order, ID);
+            return new ThresholdTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, UseMinTreshold, Min, UseMaxTreshold, Max, Order, ID);
         }
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            if(copy is TresholdTreatment tresholdTreatment)
+            if(copy is ThresholdTreatment tresholdTreatment)
             {
                 UseMinTreshold = tresholdTreatment.UseMinTreshold;
                 Min = tresholdTreatment.Min;

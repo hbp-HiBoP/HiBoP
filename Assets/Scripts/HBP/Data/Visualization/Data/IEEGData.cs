@@ -99,7 +99,7 @@ namespace HBP.Data.Visualization
                     values.AddRange(subBlocValues.Interpolate(subTimeline.Length, 0, 0));
                     if (subTimeline.After > 0) values.AddRange(Enumerable.Repeat(subBlocValues[subBlocValues.Length - 1], subTimeline.After));
                 }
-                ProcessedValuesByChannel.Add(channelID, values.ToArray());
+                ProcessedValuesByChannel[channelID] = values.ToArray();
             }
         }
         #endregion
