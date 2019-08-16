@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class TresholdTreatmentSubModifier : SubModifier<Data.Experience.Protocol.TresholdTreatment>
+    public class ThresholdTreatmentSubModifier : SubModifier<Data.Experience.Protocol.ThresholdTreatment>
     {
         #region Properties
         [SerializeField] Toggle m_UseMinTresholdToggle;
@@ -62,7 +62,7 @@ namespace HBP.UI.Experience.Protocol
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(TresholdTreatment objectToDisplay)
+        protected override void SetFields(ThresholdTreatment objectToDisplay)
         {
             base.SetFields(objectToDisplay);
             m_UseMinTresholdToggle.isOn = objectToDisplay.UseMinTreshold;

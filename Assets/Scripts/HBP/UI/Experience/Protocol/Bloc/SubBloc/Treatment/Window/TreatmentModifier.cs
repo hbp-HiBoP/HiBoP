@@ -25,7 +25,7 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] MedianTreatmentSubModifier m_MedianTreatmentSubModifier;
         [SerializeField] OffsetTreatmentSubModifier m_OffsetTreatmentSubModifier;
         [SerializeField] RescaleTreatmentSubModifier m_RescaleTreatmentSubModifier;
-        [SerializeField] TresholdTreatmentSubModifier m_TresholdTreatmentSubModifier;
+        [SerializeField] ThresholdTreatmentSubModifier m_ThresholdTreatmentSubModifier;
         [SerializeField] FactorTreatmentSubModifier m_FactorTreatmentSubModifier;
 
         Tools.CSharp.Window m_Window;
@@ -90,7 +90,7 @@ namespace HBP.UI.Experience.Protocol
                 m_MedianTreatmentSubModifier.Interactable = value;
                 m_OffsetTreatmentSubModifier.Interactable = value;
                 m_RescaleTreatmentSubModifier.Interactable = value;
-                m_TresholdTreatmentSubModifier.Interactable = value;
+                m_ThresholdTreatmentSubModifier.Interactable = value;
                 m_FactorTreatmentSubModifier.Interactable = value;
             }
         }
@@ -149,8 +149,8 @@ namespace HBP.UI.Experience.Protocol
             m_RescaleTreatmentSubModifier.Initialize();
             m_SubModifiers.Add(m_RescaleTreatmentSubModifier);
 
-            m_TresholdTreatmentSubModifier.Initialize();
-            m_SubModifiers.Add(m_TresholdTreatmentSubModifier);
+            m_ThresholdTreatmentSubModifier.Initialize();
+            m_SubModifiers.Add(m_ThresholdTreatmentSubModifier);
 
             m_FactorTreatmentSubModifier.Initialize();
             m_SubModifiers.Add(m_FactorTreatmentSubModifier);
@@ -164,7 +164,7 @@ namespace HBP.UI.Experience.Protocol
             m_TreatmentsTemp.Add(new d.MedianTreatment());
             m_TreatmentsTemp.Add(new d.OffsetTreatment());
             m_TreatmentsTemp.Add(new d.RescaleTreatment());
-            m_TreatmentsTemp.Add(new d.TresholdTreatment());
+            m_TreatmentsTemp.Add(new d.ThresholdTreatment());
             m_TreatmentsTemp.Add(new d.FactorTreatment());
         }
         protected override void SetFields(d.Treatment objectToDisplay)
