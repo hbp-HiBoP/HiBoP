@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 // unity
@@ -50,6 +51,11 @@ namespace HBP.Module3D
             #endregion
 
             #region Public Methods
+            public static void ResetAll(MRIVolumeGenerator[] generators, Volume volume, int dimension)
+            {
+                reset_all_MRIVolumeGenerator(generators.Select(g => g.getHandle()).ToArray(), generators.Length, volume.getHandle(), dimension);
+                ApplicationState.DLLDebugManager.check_error();
+            }
             /// <summary>
             /// 
             /// </summary>
@@ -170,6 +176,8 @@ namespace HBP.Module3D
             // actions
             [DllImport("hbp_export", EntryPoint = "reset_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern void reset_MRIVolumeGenerator(HandleRef handleBrainVolumeTextureGenerator, HandleRef handleSurface, int dimension);
+            [DllImport("hbp_export", EntryPoint = "reset_all_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
+            static private extern void reset_all_MRIVolumeGenerator(HandleRef[] handleBrainVolumeTextureGenerator, int count, HandleRef handleSurface, int dimension);
             [DllImport("hbp_export", EntryPoint = "initOctree_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern void initOctree_MRIVolumeGenerator(HandleRef handleBrainSurfaceTextureGenerator, HandleRef handleRawPlotList);
             [DllImport("hbp_export", EntryPoint = "computeDistances_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]

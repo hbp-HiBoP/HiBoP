@@ -1086,11 +1086,6 @@ namespace HBP.Module3D
                 m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.SplittedMeshes[ii], m_ColumnManager.SelectedMRI.Volume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
             }
             
-            foreach (var column in m_ColumnManager.ColumnsDynamic)
-            {
-                column.DLLMRIVolumeGenerator.Reset(m_ColumnManager.SelectedMRI.Volume, 120);
-            }
-
             UpdateMeshesFromDLL();
             m_ColumnManager.UVNull = new List<Vector2[]>(m_ColumnManager.MeshSplitNumber);
             for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
@@ -1251,6 +1246,7 @@ namespace HBP.Module3D
 
             m_ColumnManager.SelectedMRIID = mriID;
             SceneInformation.VolumeCenter = m_ColumnManager.SelectedMRI.Volume.Center;
+            DLL.MRIVolumeGenerator.ResetAll(m_ColumnManager.ColumnsDynamic.Select(c => c.DLLMRIVolumeGenerator).ToArray(), m_ColumnManager.SelectedMRI.Volume, 120);
             SceneInformation.MeshGeometryNeedsUpdate = true;
             ResetIEEG();
             foreach (Column3D column in m_ColumnManager.Columns)
