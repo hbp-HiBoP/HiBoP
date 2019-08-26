@@ -9,12 +9,14 @@
 		_Glossiness("Smoothness", Range(0,1)) = 0.5
 		_Metallic("Metallic", Range(0,1)) = 0.0
 		_Atlas("Atlas", int) = 0
+		_Amount("Extrusion Amount", Range(0, 1)) = 0
+		_MaxRadius("Maximum extrusion radius", Range(0,100)) = 100
 	}
 
 	SubShader
 	{
 		CGPROGRAM
-			#pragma surface surf Standard
+			#pragma surface surf Standard vertex:vert
 			#pragma target 3.0
 
 			sampler2D _MainTex;
@@ -25,11 +27,14 @@
 			half _Glossiness;
 			half _Metallic;
 			fixed4 _Color;
+			float _Amount;
+			float _MaxRadius;
 
 			uniform int _StrongCuts;
 			uniform int _CutCount;
 			uniform float3 _CutPoints[20];
 			uniform float3 _CutNormals[20];
+			uniform float3 _Center;
 
 			struct Input
 			{
@@ -40,6 +45,17 @@
 				float4 vertex_col : COLOR;
 				float3 worldPos;
 			};
+
+			void vert(inout appdata_full v)
+			{
+				float3 normal = v.vertex.xyz - _Center;
+				float norm = sqrt(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
+				normal = float3(normal.x / norm, normal.y / norm, normal.z / norm);
+				normal = (1 - _Amount) * v.normal + _Amount * normal;
+
+				v.vertex.xyz += normal * (_MaxRadius - norm) * _Amount;
+				v.normal = _Amount * normal + (1 - _Amount) * v.normal;
+			}
 
 			float is_clipped(Input IN)
 			{

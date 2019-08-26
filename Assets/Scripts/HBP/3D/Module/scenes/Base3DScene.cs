@@ -1057,6 +1057,7 @@ namespace HBP.Module3D
             }
             // get the middle
             SceneInformation.MeshCenter = SceneInformation.MeshToDisplay.Center;
+            SharedMaterials.Brain.BrainMaterials[this].SetVector("_Center", SceneInformation.MeshCenter);
 
             m_ColumnManager.GenerateSplits(SceneInformation.MeshToDisplay);
 

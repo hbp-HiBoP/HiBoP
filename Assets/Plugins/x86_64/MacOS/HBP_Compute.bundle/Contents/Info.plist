@@ -2,43 +2,43 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>BuildMachineOSBuild</key>
-	<string>18F203</string>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>en</string>
-	<key>CFBundleExecutable</key>
-	<string>libHBP_Compute</string>
-	<key>CFBundleIdentifier</key>
-	<string>CRNL.llibHBP_Compute</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>HBP_Compute</string>
-	<key>CFBundlePackageType</key>
-	<string>BNDL</string>
-	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
-	<key>CFBundleSupportedPlatforms</key>
-	<array>
-		<string>MacOSX</string>
-	</array>
-	<key>CFBundleVersion</key>
-	<string>1</string>
-	<key>DTCompiler</key>
-	<string>com.apple.compilers.llvm.clang.1_0</string>
-	<key>DTPlatformBuild</key>
-	<string>10G8</string>
-	<key>DTPlatformVersion</key>
-	<string>GM</string>
-	<key>DTSDKBuild</key>
-	<string>18G74</string>
-	<key>DTSDKName</key>
-	<string>macosx10.14</string>
-	<key>DTXcode</key>
-	<string>1030</string>
-	<key>DTXcodeBuild</key>
-	<string>10G8</string>
-	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2019 Florian SIPP. All rights reserved.</string>
+<key>BuildMachineOSBuild</key>
+<string>18F203</string>
+<key>CFBundleDevelopmentRegion</key>
+<string>en</string>
+<key>CFBundleExecutable</key>
+<string>libHBP_Compute</string>
+<key>CFBundleIdentifier</key>
+<string>CRNL.libHBP_Compute</string>
+<key>CFBundleInfoDictionaryVersion</key>
+<string>6.0</string>
+<key>CFBundleName</key>
+<string>HBP_Compute</string>
+<key>CFBundlePackageType</key>
+<string>BNDL</string>
+<key>CFBundleShortVersionString</key>
+<string>1.0</string>
+<key>CFBundleSupportedPlatforms</key>
+<array>
+<string>MacOSX</string>
+</array>
+<key>CFBundleVersion</key>
+<string>1</string>
+<key>DTCompiler</key>
+<string>com.apple.compilers.llvm.clang.1_0</string>
+<key>DTPlatformBuild</key>
+<string>10G8</string>
+<key>DTPlatformVersion</key>
+<string>GM</string>
+<key>DTSDKBuild</key>
+<string>18G74</string>
+<key>DTSDKName</key>
+<string>macosx10.14</string>
+<key>DTXcode</key>
+<string>1030</string>
+<key>DTXcodeBuild</key>
+<string>10G8</string>
+<key>NSHumanReadableCopyright</key>
+<string>Copyright © DYCOG Laboratory - Lyon - France . This Software has been funded by the European Council as a part of the Humain Brain Project</string>
 </dict>
 </plist>

@@ -77,6 +77,17 @@ namespace Tools.Unity
                 file.Delete();
             }
 
+            if (target == BuildTarget.StandaloneLinux64)
+            {
+                DirectoryInfo pluginsDirectory = new DirectoryInfo(Application.dataPath + "/Plugins/x86_64/Linux");
+                DirectoryInfo newPluginsDirectory = new DirectoryInfo(dataDirectory + "HiBoP_Data/Plugins/x86_64");
+                pluginsDirectory.CopyFilesRecursively(newPluginsDirectory);
+                foreach (var metaFile in newPluginsDirectory.GetFiles("*.meta"))
+                {
+                    metaFile.Delete();
+                }
+            }
+
             FileInfo readme = new FileInfo(projectPath + "README.md");
             readme.CopyTo(buildDirectory + readme.Name);
 
