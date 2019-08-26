@@ -336,8 +336,7 @@ namespace HBP.Module3D
                 LoadingCircle loadingCircle = ApplicationState.LoadingManager.Open();
                 GenericEvent<float, float, LoadingText> OnChangeLoadingProgress = new GenericEvent<float, float, LoadingText>();
                 OnChangeLoadingProgress.AddListener((progress, time, message) => { loadingCircle.ChangePercentage(progress / 2.0f, time, message); });
-                Task visualizationLoadingTask;
-                yield return this.StartCoroutineAsync(visualization.c_Load(OnChangeLoadingProgress), out visualizationLoadingTask);
+                yield return this.StartCoroutineAsync(visualization.c_Load(OnChangeLoadingProgress), out Task visualizationLoadingTask);
                 switch (visualizationLoadingTask.State)
                 {
                     case TaskState.Done:

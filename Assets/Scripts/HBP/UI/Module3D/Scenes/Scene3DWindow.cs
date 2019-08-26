@@ -82,13 +82,13 @@ namespace HBP.UI.Module3D
             grid.VerticalHandlers[0].Position = 1.0f;
             grid.SetVerticalHandlersPosition(0);
 
-            ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
+            ApplicationState.Module3D.OnRemoveScene.AddSafeListener((s) =>
             {
                 if (s == scene)
                 {
                     Destroy(gameObject);
                 }
-            });
+            }, gameObject);
             scene.OnChangeVisibleState.AddListener((value) =>
             {
                 gameObject.SetActive(value);

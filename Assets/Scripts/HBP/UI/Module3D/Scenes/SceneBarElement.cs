@@ -2,6 +2,7 @@
 using NewTheme.Components;
 using System.Collections;
 using System.Collections.Generic;
+using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,16 +22,13 @@ namespace HBP.UI.Module3D
 
         [SerializeField] private State m_SelectedState;
         [SerializeField] private ThemeElement m_ThemeElement;
-
-        private UnityEngine.Events.UnityAction<Base3DScene> OnSelectSceneCallback;
         #endregion
 
         #region Public Methods
         public void Initialize(Base3DScene scene)
         {
             m_Scene = scene;
-            OnSelectSceneCallback = (s) => SetSelectedState(s == m_Scene);
-            ApplicationState.Module3D.OnSelectScene.AddListener(OnSelectSceneCallback);
+            ApplicationState.Module3D.OnSelectScene.AddSafeListener((s) => SetSelectedState(s == m_Scene), gameObject);
             SetSelectedState(m_Scene.IsSelected);
 
             m_Text.text = scene.Name;
@@ -40,13 +38,13 @@ namespace HBP.UI.Module3D
                 ApplicationState.Module3D.RemoveScene(scene);
             });
 
-            ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
+            ApplicationState.Module3D.OnRemoveScene.AddSafeListener((s) =>
             {
                 if (s == scene)
                 {
                     Destroy(gameObject);
                 }
-            });
+            }, gameObject);
 
             m_Toggle.isOn = true;
             m_Toggle.onValueChanged.AddListener((isOn) =>
@@ -57,10 +55,6 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
-        private void OnDestroy()
-        {
-            ApplicationState.Module3D.OnSelectScene.RemoveListener(OnSelectSceneCallback);
-        }
         private void SetSelectedState(bool selected)
         {
             if (selected)

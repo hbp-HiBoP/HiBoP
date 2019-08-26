@@ -295,8 +295,7 @@ namespace HBP.UI.Module3D
                 foreach (var column in s.ColumnManager.ColumnsDynamic)
                 {
                     string histogramID = column.name + "_" + (column is Column3DCCEP columnCCEP && columnCCEP.IsSourceSelected ? columnCCEP.SelectedSource.Information.ChannelName : "");
-                    Texture2D texture;
-                    if (m_HistogramByColumn.TryGetValue(histogramID, out texture))
+                    if (m_HistogramByColumn.TryGetValue(histogramID, out Texture2D texture))
                     {
                         Destroy(texture);
                         m_HistogramByColumn.Remove(histogramID);
