@@ -36,11 +36,11 @@ namespace HBP.Module3D
                 Material brainMaterial = null, cutMaterial = null, simplifiedBrainMaterial = null;
                 switch (scene.Type) // Distinction is useful in the shader in order to show mars atlases in sp
                 {
-                    case Data.Enums.SceneType.SinglePatient:
+                    case SceneType.SinglePatient:
                         brainMaterial = Instantiate(Resources.Load("Materials/Brain/SpBrain", typeof(Material))) as Material;
                         cutMaterial = Instantiate(Resources.Load("Materials/Brain/SpCut", typeof(Material))) as Material;
                         break;
-                    case Data.Enums.SceneType.MultiPatients:
+                    case SceneType.MultiPatients:
                         brainMaterial = Instantiate(Resources.Load("Materials/Brain/MpBrain", typeof(Material))) as Material;
                         cutMaterial = Instantiate(Resources.Load("Materials/Brain/MpCut", typeof(Material))) as Material;
                         break;

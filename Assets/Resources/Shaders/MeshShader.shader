@@ -51,7 +51,7 @@
 				float3 normal = v.vertex.xyz - _Center;
 				float norm = sqrt(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
 				normal = float3(normal.x / norm, normal.y / norm, normal.z / norm);
-				normal = (1 - _Amount) * v.normal + _Amount * normal;
+				//normal = (1 - _Amount) * v.normal + _Amount * normal;
 
 				v.vertex.xyz += normal * (_MaxRadius - norm) * _Amount;
 				v.normal = _Amount * normal + (1 - _Amount) * v.normal;

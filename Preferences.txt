@@ -2,7 +2,7 @@
   "General": {
     "Project": {
       "DefaultName": "New project",
-      "DefaultLocation": "D:\\Programmation\\Travail\\Data\\Projects",
+      "DefaultLocation": "D:\\HBPProjects",
       "DefaultPatientDatabase": "Y:\\BrainVisaDB\\Epilepsy",
       "DefaultLocalizerDatabase": "Y:\\LOCA_DATABASE",
       "DefaultExportLocation": "D:/ScreenShot"
