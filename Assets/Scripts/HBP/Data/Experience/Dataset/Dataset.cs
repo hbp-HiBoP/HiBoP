@@ -98,7 +98,7 @@ namespace HBP.Data.Experience.Dataset
             return m_Data.OfType<CCEPDataInfo>().ToArray();
         }
 
-        public void Load(string path)
+        public void LoadFromJson(string path)
         {
             Dataset result;
             try
@@ -166,10 +166,10 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Operators
-        public void GenerateNewIDs()
+        public void GenerateID()
         {
             ID = Guid.NewGuid().ToString();
-            foreach (var dataInfo in Data) dataInfo.GenerateNewIDs();
+            foreach (var dataInfo in Data) dataInfo.GenerateID();
         }
         /// <summary>
         /// Clone this instance.

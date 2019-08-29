@@ -210,7 +210,7 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Public Methods
-        public void Load(string path)
+        public void LoadFromJson(string path)
         {
             Visualization result;
             try
@@ -351,7 +351,7 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Operators
-        public void GenerateNewIDs()
+        public void GenerateID()
         {
             ID = Guid.NewGuid().ToString();
         }

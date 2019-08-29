@@ -6,5 +6,5 @@ public interface IIdentifiable
 {
     string ID { get; set; }
 
-    void GenerateNewIDs();
+    void GenerateID();
 }

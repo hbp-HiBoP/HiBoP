@@ -162,7 +162,7 @@ namespace HBP.Data.General
             }
             foreach (Group _group in m_Groups)
             {
-                _group.RemovePatient((from patient in _group.Patients where !m_Patients.Contains(patient) select patient).ToArray());
+                _group.Remove((from patient in _group.Patients where !m_Patients.Contains(patient) select patient).ToArray());
             }
         }
         public void AddPatient(Patient patient)
@@ -180,7 +180,7 @@ namespace HBP.Data.General
         {
             foreach(Group group in m_Groups)
             {
-                group.RemovePatient(patient);
+                group.Remove(patient);
             }
             foreach (Dataset dataset in m_Datasets)
             {

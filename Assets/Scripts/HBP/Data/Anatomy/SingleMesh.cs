@@ -39,14 +39,14 @@ namespace HBP.Data.Anatomy
         {
             get
             {
-                return !string.IsNullOrEmpty(Path) && File.Exists(Path) && new FileInfo(Path).Extension == EXTENSION;
+                return !string.IsNullOrEmpty(Path) && File.Exists(Path) && new FileInfo(Path).Extension == MESH_EXTENSION;
             }
         }
         public override bool HasMarsAtlas
         {
             get
             {
-                return !string.IsNullOrEmpty(MarsAtlasPath) && File.Exists(MarsAtlasPath) && new FileInfo(MarsAtlasPath).Extension == EXTENSION;
+                return !string.IsNullOrEmpty(MarsAtlasPath) && File.Exists(MarsAtlasPath) && new FileInfo(MarsAtlasPath).Extension == MESH_EXTENSION;
             }
         }
         #endregion

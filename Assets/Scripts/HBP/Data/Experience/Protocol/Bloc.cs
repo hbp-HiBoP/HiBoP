@@ -149,10 +149,10 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Operators
-        public void GenerateNewIDs()
+        public void GenerateID()
         {
             ID = Guid.NewGuid().ToString();
-            foreach (var subBloc in SubBlocs) subBloc.GenerateNewIDs();
+            foreach (var subBloc in SubBlocs) subBloc.GenerateID();
         }
 
         /// <summary>

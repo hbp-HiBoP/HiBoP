@@ -8,6 +8,7 @@ using System.Collections;
 using CielaSpike;
 using HBP.Data.Visualization;
 using Tools.Unity;
+using UnityEngine.Profiling;
 
 namespace HBP.Module3D
 {
@@ -617,41 +618,54 @@ namespace HBP.Module3D
         {
             if (!SceneInformation.IsSceneInitialized || m_DestroyRequested) return;
 
+            Profiler.BeginSample("UpdateGeometry");
             if (SceneInformation.MeshGeometryNeedsUpdate)
             {
                 UpdateGeometry();
             }
+            Profiler.EndSample();
 
+            Profiler.BeginSample("UpdateCuts");
             if (SceneInformation.CutsNeedUpdate)
             {
                 UpdateCuts();
             }
+            Profiler.EndSample();
 
+            Profiler.BeginSample("UpdateAllColumnsSitesRendering");
             if (!SceneInformation.AreSitesUpdated)
             {
                 m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
                 OnSitesRenderingUpdated.Invoke();
             }
+            Profiler.EndSample();
 
+            Profiler.BeginSample("OnIEEGOutdated");
             if (m_GeneratorNeedsUpdate && !IsLatencyModeEnabled)
             {
                 OnIEEGOutdated.Invoke(true);
             }
+            Profiler.EndSample();
+
+            Profiler.BeginSample("UpdateGenerator");
             if (!SceneInformation.IsGeneratorUpToDate && CanComputeIEEG && ApplicationState.UserPreferences.Visualization._3D.AutomaticEEGUpdate)
             {
                 UpdateGenerator();
             }
             OnUpdatingGenerator.Invoke(m_UpdatingGenerator);
+            Profiler.EndSample();
 
+            Profiler.BeginSample("UpdateVisibleState");
             if (!SceneInformation.IsSceneCompletelyLoaded)
             {
                 UpdateVisibleState(true);
+                SceneInformation.IsSceneCompletelyLoaded = true;
                 if (Visualization.Configuration.FirstColumnToSelect < m_ColumnManager.Columns.Count)
                 {
                     m_ColumnManager.Columns[Visualization.Configuration.FirstColumnToSelect].SelectFirstSite(Visualization.Configuration.FirstSiteToSelect);
                 }
-                SceneInformation.IsSceneCompletelyLoaded = true;
             }
+            Profiler.EndSample();
         }
         /// <summary>
         /// Add every listeners required for the scene
@@ -845,17 +859,7 @@ namespace HBP.Module3D
                 List<Site> sites = new List<Site>();
                 if (m_SiteToCompare) sites.Add(m_SiteToCompare);
                 sites.Add(site);
-                if (m_ColumnManager.SelectedColumn is Column3DCCEP ccepColumn)
-                {
-                    if (ccepColumn.IsSourceSelected)
-                    {
-                        OnRequestSiteInformation.Invoke(sites);
-                    }
-                }
-                else
-                {
-                    OnRequestSiteInformation.Invoke(sites);
-                }
+                OnRequestSiteInformation.Invoke(sites);
             }
             SceneInformation.AreSitesUpdated = false;
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
@@ -1015,11 +1019,21 @@ namespace HBP.Module3D
         /// </summary>
         private void UpdateGeometry()
         {
+            Profiler.BeginSample("UpdateMeshesInformation");
             UpdateMeshesInformation();
+            Profiler.EndSample();
+            Profiler.BeginSample("UpdateCuts");
             UpdateCuts();
+            Profiler.EndSample();
+            Profiler.BeginSample("UpdateGeneratorsAndUV");
             UpdateGeneratorsAndUV();
+            Profiler.EndSample();
+            Profiler.BeginSample("ResetTriangleErasing");
             ResetTriangleErasing();
+            Profiler.EndSample();
+            Profiler.BeginSample("UpdateIndices");
             UpdateAtlasIndices();
+            Profiler.EndSample();
 
             SceneInformation.MeshGeometryNeedsUpdate = false;
         }
@@ -1080,24 +1094,33 @@ namespace HBP.Module3D
         /// </summary>
         private void UpdateGeneratorsAndUV()
         {
+            Profiler.BeginSample("DLLCommonBrainTextureGeneratorList");
             for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
             {
                 m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].Reset(m_ColumnManager.SplittedMeshes[ii], m_ColumnManager.SelectedMRI.Volume);
                 m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.SplittedMeshes[ii], m_ColumnManager.SelectedMRI.Volume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
             }
-            
+            Profiler.EndSample();
+
+            Profiler.BeginSample("DLLMRIVolumeGenerator");
             foreach (var column in m_ColumnManager.ColumnsDynamic)
             {
                 column.DLLMRIVolumeGenerator.Reset(m_ColumnManager.SelectedMRI.Volume, 120);
             }
+            Profiler.EndSample();
 
+            Profiler.BeginSample("UpdateMeshesFromDLL");
             UpdateMeshesFromDLL();
+            Profiler.EndSample();
+
+            Profiler.BeginSample("UVNull");
             m_ColumnManager.UVNull = new List<Vector2[]>(m_ColumnManager.MeshSplitNumber);
             for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
             {
                 m_ColumnManager.UVNull.Add(new Vector2[m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.vertexCount]);
                 m_ColumnManager.UVNull[ii].Fill(new Vector2(0.01f, 1f));
             }
+            Profiler.EndSample();
         }
         /// <summary>
         /// Update the indices of all the JuBrain Atlas areas for all vertices

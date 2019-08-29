@@ -54,7 +54,7 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new iEEGDataInfo(Name, DataContainer, Patient, Normalization, ID);
+            return new iEEGDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, Normalization, ID);
         }
         public override void Copy(object copy)
         {

@@ -54,7 +54,7 @@ namespace HBP.UI.Experience.Dataset
         }
         #endregion
 
-        #region Propected Methods
+        #region Protected Methods
         protected override void OpenModifier(DataInfo item, bool interactable)
         {
             DataInfoModifier modifier =(DataInfoModifier) ApplicationState.WindowsManager.OpenModifier(item, interactable);

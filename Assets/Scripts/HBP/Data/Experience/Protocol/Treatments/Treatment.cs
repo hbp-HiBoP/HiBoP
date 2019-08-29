@@ -112,7 +112,7 @@ namespace HBP.Data.Experience.Protocol
             Order = treatment.Order;
             ID = treatment.ID;
         }
-        public virtual void GenerateNewIDs()
+        public virtual void GenerateID()
         {
             ID = Guid.NewGuid().ToString();
         }

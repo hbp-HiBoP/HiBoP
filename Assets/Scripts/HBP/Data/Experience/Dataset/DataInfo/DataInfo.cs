@@ -126,10 +126,10 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Operators
-        public void GenerateNewIDs()
+        public void GenerateID()
         {
             ID = Guid.NewGuid().ToString();
-            DataContainer.GenerateNewIDs();
+            DataContainer.GenerateID();
         }
         /// <summary>
         /// Operator Equals.
@@ -192,7 +192,7 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance.</returns>
         public virtual object Clone()
         {
-            return new DataInfo(Name, DataContainer, ID);
+            return new DataInfo(Name, DataContainer.Clone() as Container.DataContainer, ID);
         }
         public virtual void Copy(object copy)
         {

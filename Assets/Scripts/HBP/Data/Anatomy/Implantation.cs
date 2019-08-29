@@ -7,67 +7,108 @@ using Tools.Unity;
 
 namespace HBP.Data.Anatomy
 {
+    /// <summary>
+    /// Contains all the data about a electrodes implantation.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <term><b>Name</b></term>
+    /// <description>Name of the patient.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Date</b></term>
+    /// <description>Year in which the patient was implanted.</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     [DataContract]
-    public class Implantation : ICloneable, ICopiable, IIdentifiable
+    public class Implantation : BaseData
     {
         #region Properties
-        const string HEADER = "ptsfile";
-        public const string EXTENSION = ".pts";
+        /// <summary>
+        /// Header of PTS files.
+        /// </summary>
+        const string PTS_HEADER = "ptsfile";
+        /// <summary>
+        /// Extension of PTS files.
+        /// </summary>
+        public const string PTS_EXTENSION = ".pts";
+        /// <summary>
+        /// Extension of BIDS files.
+        /// </summary>
         public const string BIDS_EXTENSION = ".tsv";
-        public const string MARS_ATLAS_EXTENSION = ".csv";
+        /// <summary>
+        /// Extension of Mars atlas files.
+        /// </summary>
+        public const string MARS_ATLAS_EXTENSION = ".csv";     
         public enum Error { None, PathIsNullOrEmpty, FileNotFound, WrongExtension, CannotReadFile, WrongFormat, CannotReadAllSites };
-        [DataMember] public string ID { get; set; }
+
+        /// <summary>
+        /// Name of the implantation.
+        /// </summary>
         [DataMember] public string Name { get; set; }
-        [DataMember(Name = "File")] string m_File;
+
+        /// <summary>
+        /// Path to the implantation file after aliases treatments.
+        /// </summary>
+        [DataMember(Name = "File")] public string SavedFile { get; private set; }
+        /// <summary>
+        /// Path to the implantation file.
+        /// </summary>
         public string File
         {
             get
             {
-                return m_File.ConvertToFullPath();
+                return SavedFile.ConvertToFullPath();
             }
             set
             {
-                m_File = value.ConvertToShortPath();
+                SavedFile = value.ConvertToShortPath();
             }
         }
-        public string SavedFile { get { return m_File; } }
-        [DataMember(Name = "MarsAtlas")] string m_MarsAtlas;
+
+        /// <summary>
+        /// Path to the MarsAtlas file after aliases treatments.
+        /// </summary>
+        [DataMember(Name = "MarsAtlas")] public string SavedMarsAtlas { get; private set; }
+        /// <summary>
+        /// Path to the MarsAtlas file.
+        /// </summary>
         public string MarsAtlas
         {
             get
             {
-                return m_MarsAtlas.ConvertToFullPath();
+                return SavedMarsAtlas.ConvertToFullPath();
             }
             set
             {
-                m_MarsAtlas = value.ConvertToShortPath();
+                SavedMarsAtlas = value.ConvertToShortPath();
             }
         }
-        public string SavedMarsAtlas { get { return m_MarsAtlas; } }
+
         [IgnoreDataMember] public List<Site> Sites { get; set; }
         [IgnoreDataMember] public Patient Patient { get; set; }
-        protected bool m_WasUsable;
-        public bool WasUsable
-        {
-            get
-            {
-                return m_WasUsable;
-            }
-        }
+        public bool WasUsable { get; protected set; }
         public bool Usable
         {
             get
             {
                 bool usable = !string.IsNullOrEmpty(Name) && HasImplantation;
-                m_WasUsable = usable;
+                WasUsable = usable;
                 return usable;
             }
         }
+
         public virtual bool HasImplantation
         {
             get
             {
-                return !string.IsNullOrEmpty(File) && System.IO.File.Exists(File) && (new FileInfo(File).Extension == EXTENSION || new FileInfo(File).Extension == BIDS_EXTENSION);
+                return !string.IsNullOrEmpty(File) && System.IO.File.Exists(File) && (new FileInfo(File).Extension == PTS_EXTENSION || new FileInfo(File).Extension == BIDS_EXTENSION);
             }
         }
         public virtual bool HasMarsAtlas
@@ -107,7 +148,7 @@ namespace HBP.Data.Anatomy
             if (string.IsNullOrEmpty(File)) return Error.PathIsNullOrEmpty;
             FileInfo fileInfo = new FileInfo(File);
             if (!fileInfo.Exists) return Error.FileNotFound;
-            if (fileInfo.Extension != EXTENSION) return Error.WrongExtension;
+            if (fileInfo.Extension != PTS_EXTENSION) return Error.WrongExtension;
             string[] lines = new string[0];
             try
             {
@@ -127,7 +168,7 @@ namespace HBP.Data.Anatomy
         {
             Sites = new List<Site>();
         }
-        public static Implantation[] GetImplantations(string path)
+        public static Implantation[] GetImplantationsInDirectory(string path)
         {
             List<Implantation> implantations = new List<Implantation>();
             DirectoryInfo patientDirectory = new DirectoryInfo(path);
@@ -139,16 +180,16 @@ namespace HBP.Data.Anatomy
                     FileInfo marsAtlasFile = new FileInfo(Path.Combine(implantationDirectory.FullName, patientDirectory.Name + MARS_ATLAS_EXTENSION));
                     string marsAtlas = marsAtlasFile.Exists ? marsAtlasFile.FullName : string.Empty;
 
-                    FileInfo patientImplantation = new FileInfo(Path.Combine(implantationDirectory.FullName, patientDirectory.Name + EXTENSION));
+                    FileInfo patientImplantation = new FileInfo(Path.Combine(implantationDirectory.FullName, patientDirectory.Name + PTS_EXTENSION));
                     if (patientImplantation != null && patientImplantation.Exists) implantations.Add(new Implantation("Patient", patientImplantation.FullName, marsAtlas));
 
-                    FileInfo MNIImplantation = new FileInfo(Path.Combine(implantationDirectory.FullName, patientDirectory.Name + "_MNI" + EXTENSION));
+                    FileInfo MNIImplantation = new FileInfo(Path.Combine(implantationDirectory.FullName, patientDirectory.Name + "_MNI" + PTS_EXTENSION));
                     if (MNIImplantation != null && MNIImplantation.Exists) implantations.Add(new Implantation("MNI", MNIImplantation.FullName, marsAtlas));
 
-                    FileInfo ACPCImplantation = new FileInfo(Path.Combine(implantationDirectory.FullName, patientDirectory.Name + "_ACPC" + EXTENSION));
+                    FileInfo ACPCImplantation = new FileInfo(Path.Combine(implantationDirectory.FullName, patientDirectory.Name + "_ACPC" + PTS_EXTENSION));
                     if (ACPCImplantation != null && ACPCImplantation.Exists) implantations.Add(new Implantation("ACPC", ACPCImplantation.FullName, marsAtlas));
 
-                    FileInfo postImplantation = implantationDirectory.GetFiles(patientDirectory.Name + "_T1Post*" + EXTENSION).FirstOrDefault();
+                    FileInfo postImplantation = implantationDirectory.GetFiles(patientDirectory.Name + "_T1Post*" + PTS_EXTENSION).FirstOrDefault();
                     if (postImplantation != null && postImplantation.Exists) implantations.Add(new Implantation("Post", postImplantation.FullName, marsAtlas));
                 }
             }
@@ -161,7 +202,7 @@ namespace HBP.Data.Anatomy
         bool IsCorrect(string[] lines)
         {
             int sites = 0;
-            return lines[0] == HEADER && int.TryParse(lines[2],out sites) && sites == (lines.Length - 3);
+            return lines[0] == PTS_HEADER && int.TryParse(lines[2],out sites) && sites == (lines.Length - 3);
         }
         bool ReadSites(IEnumerable<string> lines, out IEnumerable<Site> sites)
         {
@@ -185,56 +226,28 @@ namespace HBP.Data.Anatomy
         #endregion
 
         #region Operators
-        public override bool Equals(object obj)
-        {
-            Implantation implantation = obj as Implantation;
-            if (implantation != null && implantation.ID == ID)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        public override int GetHashCode()
-        {
-            return this.ID.GetHashCode();
-        }
-        public static bool operator ==(Implantation a, Implantation b)
-        {
-            if (ReferenceEquals(a, b))
-            {
-                return true;
-            }
-
-            if (((object)a == null) || ((object)b == null))
-            {
-                return false;
-            }
-
-            return a.Equals(b);
-        }
-        public static bool operator !=(Implantation a, Implantation b)
-        {
-            return !(a == b);
-        }
-        public virtual void GenerateNewIDs()
-        {
-            ID = Guid.NewGuid().ToString();
-        }
-        public object Clone()
+        /// <summary>
+        /// Clone the instance.
+        /// </summary>
+        /// <returns>object cloned.</returns>
+        public override object Clone()
         {
             return new Implantation(Name, File, MarsAtlas, ID);
         }
-        public void Copy(object copy)
+        /// <summary>
+        /// Copy the instance.
+        /// </summary>
+        /// <param name="obj">instance to copy.</param>
+        public override void Copy(object obj)
         {
-            Implantation implantation = copy as Implantation;
-            Name = implantation.Name;
-            File = implantation.File;
-            ID = implantation.ID;
-            MarsAtlas = implantation.MarsAtlas;
-            RecalculateUsable();
+            base.Copy(obj);
+            if(obj is Implantation implantation)
+            {
+                Name = implantation.Name;
+                File = implantation.File;
+                MarsAtlas = implantation.MarsAtlas;
+                RecalculateUsable();
+            }
         }
         #endregion
 
@@ -242,7 +255,7 @@ namespace HBP.Data.Anatomy
         [OnDeserialized()]
         public void OnDeserialized(StreamingContext context)
         {
-            m_File = m_File.ToPath();
+            SavedFile = SavedFile.ToPath();
             m_MarsAtlas = m_MarsAtlas.ToPath();
             RecalculateUsable();
         }

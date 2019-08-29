@@ -150,7 +150,7 @@ namespace HBP.Data.Experience.Protocol
         {
             return new SubBloc(Name, Order, Type, Window, Baseline, Events.DeepClone(), Icons.DeepClone(), Treatments.DeepClone(), ID);
         }
-        public void GenerateNewIDs()
+        public void GenerateID()
         {
             ID = Guid.NewGuid().ToString();
         }

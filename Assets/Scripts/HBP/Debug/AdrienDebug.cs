@@ -12,10 +12,10 @@ public class AdrienDebug : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyUp(KeyCode.Space))
-        {
-            Load();
-        }
+        //if (Input.GetKeyUp(KeyCode.Space))
+        //{
+        //    Load();
+        //}
     }
 
     void Load()

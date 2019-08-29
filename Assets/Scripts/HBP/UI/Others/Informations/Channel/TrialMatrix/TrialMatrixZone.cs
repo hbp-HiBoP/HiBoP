@@ -1,7 +1,7 @@
-﻿using HBP.Data.Experience.Dataset;
-using HBP.Data.Informations;
+﻿using HBP.Data.Informations;
 using System.Collections.Generic;
 using System.Linq;
+using Tools.CSharp;
 using UnityEngine;
 using data = HBP.Data.TrialMatrix.Grid;
 
@@ -12,7 +12,7 @@ namespace HBP.UI.Informations
         #region Properties
         [SerializeField] TrialMatrix.Grid.TrialMatrixGrid m_TrialMatrixGrid;
         data.TrialMatrixGrid m_TrialMatrixGridData;
-        Dictionary<Data, Settings> m_SettingsByData;
+        Dictionary<DataStruct, Settings> m_SettingsByData;
         bool m_ShowWholeProtocolLastState;
         #endregion
 
@@ -24,24 +24,40 @@ namespace HBP.UI.Informations
             {
                 for (int d = 0; d < dataStructs.Length; d++)
                 {
-                    dataToDisplay[d] = new DataStruct(dataStructs[d].Dataset, dataStructs[d].Data, dataStructs[d].Dataset.Protocol.Blocs.Select(b => new BlocStruct(b)));
+                    DataStruct dataStruct = dataStructs[d];
+                    if (dataStruct is IEEGDataStruct)
+                    {
+                        dataStruct = new IEEGDataStruct(dataStruct.Dataset, dataStruct.Data, dataStruct.Dataset.Protocol.Blocs.Select(b => new BlocStruct(b)));
+                    }
+                    else if (dataStruct is CCEPDataStruct ccepDataStruct)
+                    {
+                        dataStruct = new CCEPDataStruct(ccepDataStruct.Dataset, ccepDataStruct.Data, ccepDataStruct.Source, ccepDataStruct.Dataset.Protocol.Blocs.Select(b => new BlocStruct(b)));
+
+                    }
+                    dataToDisplay[d] = dataStruct;
                 }
             }
             else
             {
                 for (int d = 0; d < dataStructs.Length; d++)
                 {
-                    dataToDisplay[d] = new DataStruct(dataStructs[d].Dataset, dataStructs[d].Data, dataStructs[d].Blocs.ToList());
+                    DataStruct dataStruct = dataStructs[d];
+                    if (dataStruct is IEEGDataStruct)
+                    {
+                        dataStruct = new IEEGDataStruct(dataStruct.Dataset, dataStruct.Data, dataStruct.Blocs.ToList());
+                    }
+                    else if (dataStruct is CCEPDataStruct ccepDataStruct)
+                    {
+                        dataStruct = new CCEPDataStruct(ccepDataStruct.Dataset, ccepDataStruct.Data, ccepDataStruct.Source, ccepDataStruct.Blocs.ToList());
+
+                    }
+                    dataToDisplay[d] = dataStruct;
                 }
             }
             SaveSettings();
             foreach (var data in dataToDisplay)
             {
-                Data key = new Data(data.Dataset, data.Data);
-                if (!m_SettingsByData.ContainsKey(key))
-                {
-                    m_SettingsByData.Add(key, new Settings(new Vector2(), true));
-                }
+                m_SettingsByData.AddIfAbsent(data, new Settings());
             }
             m_TrialMatrixGridData = new data.TrialMatrixGrid(channelStructs, dataToDisplay);
             m_TrialMatrixGrid.gameObject.SetActive(true);
@@ -53,31 +69,27 @@ namespace HBP.UI.Informations
         #region Private Methods
         void Awake()
         {
-            m_SettingsByData = new Dictionary<Data, Settings>();
+            m_SettingsByData = new Dictionary<DataStruct, Settings>();
             m_TrialMatrixGrid.gameObject.SetActive(false);
-            //m_TrialMatrixList.OnAutoLimitsChanged.AddListener(OnChangeAutoLimits);
-            //m_TrialMatrixList.OnLimitsChanged.AddListener(OnChangeLimits);
         }
         void SaveSettings()
         {
             foreach (var data in m_TrialMatrixGrid.Data)
             {
-                Data key = new Data(data.GridData.DataStruct.Dataset, data.GridData.DataStruct.Data);
-                var settings = m_SettingsByData[key];
+                var settings = m_SettingsByData[data.GridData.DataStruct];
                 settings.UseDefaultLimit = data.UseDefaultLimits;
                 if(!settings.UseDefaultLimit)
                 {
                     settings.Limits = data.Limits;
                 }
-                m_SettingsByData[key] = settings;
+                m_SettingsByData[data.GridData.DataStruct] = settings;
             }
         }
         void ApplySettings()
         {
             foreach (var data in m_TrialMatrixGrid.Data)
             {
-                Data key = new Data(data.GridData.DataStruct.Dataset, data.GridData.DataStruct.Data);
-                Settings settings = m_SettingsByData[key];
+                Settings settings = m_SettingsByData[data.GridData.DataStruct];
                 if(!settings.UseDefaultLimit)
                 {
                     data.Limits = settings.Limits;
@@ -87,7 +99,7 @@ namespace HBP.UI.Informations
         #endregion
 
         #region Structs
-        struct Settings
+        class Settings
         {
             #region Properties
             public Vector2 Limits { get; set; }
@@ -95,28 +107,17 @@ namespace HBP.UI.Informations
             #endregion
 
             #region Constructors
+            public Settings(): this(Vector2.zero, true)
+            {
+
+            }
             public Settings(Vector2 limits, bool useDefaultLimits)
             {
                 Limits = limits;
                 UseDefaultLimit = useDefaultLimits;
             }
             #endregion
-        }
-        struct Data
-        {
-            #region Properties
-            public Dataset Dataset { get; set; }
-            public string DataLabel { get; set;}
-            #endregion
-
-            #region Constructors
-            public Data(Dataset dataset, string dataLabel)
-            {
-                Dataset = dataset;
-                DataLabel = dataLabel;
-            }
-            #endregion
-        }
+        }       
         #endregion
     }
 }

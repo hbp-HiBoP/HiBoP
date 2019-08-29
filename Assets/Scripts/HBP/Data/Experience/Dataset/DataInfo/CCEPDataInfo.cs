@@ -43,7 +43,7 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new CCEPDataInfo(Name, DataContainer, Patient, StimulatedChannel, ID);
+            return new CCEPDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, StimulatedChannel, ID);
         }
         public override void Copy(object copy)
         {

@@ -73,7 +73,7 @@ namespace HBP.Data.Anatomy
         {
             return Usable;
         }
-        public static MRI[] GetMRIs(string path)
+        public static MRI[] GetMRIsInDirectory(string path)
         {
             //UnityEngine.Profiling.Profiler.BeginSample("GetMRIs");
             List<MRI> MRIs = new List<MRI>();
@@ -167,7 +167,7 @@ namespace HBP.Data.Anatomy
         {
             return !(a == b);
         }
-        public virtual void GenerateNewIDs()
+        public virtual void GenerateID()
         {
             ID = Guid.NewGuid().ToString();
         }

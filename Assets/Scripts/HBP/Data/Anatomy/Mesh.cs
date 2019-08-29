@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
@@ -7,28 +6,45 @@ using Tools.Unity;
 
 namespace HBP.Data.Anatomy
 {
+    /// <summary>
+    /// Contains all the data about a mesh.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <term><b>Name</b></term>
+    /// <description>Name of the mesh.</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     [DataContract]
-    public class Mesh : ICloneable, ICopiable, IIdentifiable
+    public class Mesh : BaseData
     {
         #region Properties
-        public const string EXTENSION = ".gii";
+        /// <summary>
+        /// Extension of mesh files.
+        /// </summary>
+        public const string MESH_EXTENSION = ".gii";
+        /// <summary>
+        /// Extension of transformation files.
+        /// </summary>
         public const string TRANSFORMATION_EXTENSION = ".trm";
+        /// <summary>
+        /// Name of the mesh.
+        /// </summary>
         [DataMember(Order = 0)] public string Name { get; set; }
-        [DataMember] public string ID { get; set; }
-        protected bool m_WasUsable;
-        public bool WasUsable
-        {
-            get
-            {
-                return m_WasUsable;
-            }
-        }
+
+        public bool WasUsable { get; protected set; }
         public bool Usable
         {
             get
             {
                 bool usable = !string.IsNullOrEmpty(Name) && HasMesh;
-                m_WasUsable = usable;
+                WasUsable = usable;
                 return usable;
             }
         }
@@ -56,17 +72,32 @@ namespace HBP.Data.Anatomy
         public string SavedTransformation { get { return m_Transformation; } }
         #endregion
 
-        #region Constructor
-        public Mesh(string name, string transformation, string ID)
+        #region Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HBP.Data.Anatomy.Mesh">Mesh</see> class.
+        /// </summary>
+        /// <param name="name">Name of the group.</param>
+        /// <param name="patients">Patients of the group.</param>
+        /// <param name="id">Unique identifier to identify the group.</param>
+        public Mesh(string name, string transformation, string id): base(id)
         {
             Name = name;
             Transformation = transformation;
-            this.ID = ID;
         }
-        public Mesh(string name, string transformation) : this(name,transformation, Guid.NewGuid().ToString())
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HBP.Data.Group">Group</see> class.
+        /// </summary>
+        /// <param name="name">Name of the group.</param>
+        /// <param name="patients">Patients of the group.</param>
+        /// <param name="id">Unique identifier to identify the group.</param>
+        public Mesh(string name, string transformation) : base()
+        {
+            Name = name;
+            Transformation = transformation;
+        }
+        public Mesh() : this("New mesh", string.Empty)
         {
         }
-        public Mesh() : this("New mesh", string.Empty) { }
         #endregion
 
         #region Public Methods
@@ -74,13 +105,12 @@ namespace HBP.Data.Anatomy
         {
             return Usable;
         }
-        public static Mesh[] GetMeshes(string path)
+        public static Mesh[] GetMeshesInDirectory(string path)
         {
             List<Mesh> meshes = new List<Mesh>();
             DirectoryInfo parent = new DirectoryInfo(path);
             DirectoryInfo t1mr1 = new DirectoryInfo(Path.Combine(path, "t1mri"));
 
-            // Pre
             DirectoryInfo preimplantationDirectory = null, preTransformationsDirectory = null;
             FileInfo preTransformation = null;
             preimplantationDirectory = t1mr1.GetDirectories("T1pre_*").FirstOrDefault();
@@ -112,8 +142,8 @@ namespace HBP.Data.Anatomy
             DirectoryInfo meshDirectory = new DirectoryInfo(Path.Combine(preimplantationDirectory.FullName, "default_analysis", "segmentation", "mesh"));
             if(meshDirectory.Exists)
             {
-                FileInfo greyMatterLeftHemisphere = new FileInfo(Path.Combine(meshDirectory.FullName, parent.Name + "_Lhemi" + EXTENSION));
-                FileInfo greyMatterRightHemisphere = new FileInfo(Path.Combine(meshDirectory.FullName, parent.Name + "_Rhemi" + EXTENSION));
+                FileInfo greyMatterLeftHemisphere = new FileInfo(Path.Combine(meshDirectory.FullName, parent.Name + "_Lhemi" + MESH_EXTENSION));
+                FileInfo greyMatterRightHemisphere = new FileInfo(Path.Combine(meshDirectory.FullName, parent.Name + "_Rhemi" + MESH_EXTENSION));
                 if (greyMatterLeftHemisphere.Exists && greyMatterRightHemisphere.Exists)
                 {
                     meshes.Add(new LeftRightMesh("Grey matter", preTransformationPath, greyMatterLeftHemisphere.FullName, greyMatterRightHemisphere.FullName, string.Empty, string.Empty));
@@ -123,11 +153,11 @@ namespace HBP.Data.Anatomy
                     }
                 }
 
-                FileInfo whiteMatterLeftHemisphere = new FileInfo(Path.Combine(meshDirectory.FullName, parent.Name + "_Lwhite" + EXTENSION));
-                FileInfo whiteMatterRightHemisphere = new FileInfo(Path.Combine(meshDirectory.FullName, parent.Name + "_Rwhite" + EXTENSION));
+                FileInfo whiteMatterLeftHemisphere = new FileInfo(Path.Combine(meshDirectory.FullName, parent.Name + "_Lwhite" + MESH_EXTENSION));
+                FileInfo whiteMatterRightHemisphere = new FileInfo(Path.Combine(meshDirectory.FullName, parent.Name + "_Rwhite" + MESH_EXTENSION));
                 DirectoryInfo SurfaceAnalysisDirectory = new DirectoryInfo(Path.Combine(meshDirectory.FullName, "surface_analysis"));
-                FileInfo marsAtlasLeftHemisphere = new FileInfo(Path.Combine(SurfaceAnalysisDirectory.FullName, parent.Name + "_Lwhite_parcels_marsAtlas" + EXTENSION));
-                FileInfo marsAtlasRightHemisphere = new FileInfo(Path.Combine(SurfaceAnalysisDirectory.FullName, parent.Name + "_Rwhite_parcels_marsAtlas" + EXTENSION));
+                FileInfo marsAtlasLeftHemisphere = new FileInfo(Path.Combine(SurfaceAnalysisDirectory.FullName, parent.Name + "_Lwhite_parcels_marsAtlas" + MESH_EXTENSION));
+                FileInfo marsAtlasRightHemisphere = new FileInfo(Path.Combine(SurfaceAnalysisDirectory.FullName, parent.Name + "_Rwhite_parcels_marsAtlas" + MESH_EXTENSION));
                 string marsAtlasLeftHemispherePath = marsAtlasLeftHemisphere.Exists ? marsAtlasLeftHemisphere.FullName : string.Empty;
                 string marsAtlasRightHemispherePath = marsAtlasRightHemisphere.Exists ? marsAtlasRightHemisphere.FullName : string.Empty;
                 if (whiteMatterLeftHemisphere.Exists && whiteMatterRightHemisphere.Exists)
@@ -144,75 +174,18 @@ namespace HBP.Data.Anatomy
         #endregion
 
         #region Operators
-        /// <summary>
-        /// Operator Equals.
-        /// </summary>
-        /// <param name="obj">Object to test.</param>
-        /// <returns>\a True if equals and \a false otherwise.</returns>
-        public override bool Equals(object obj)
-        {
-            Mesh mesh = obj as Mesh;
-            if (mesh != null && mesh.ID == ID)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        /// <summary>
-        /// Get hash code.
-        /// </summary>
-        /// <returns>HashCode.</returns>
-        public override int GetHashCode()
-        {
-            return this.ID.GetHashCode();
-        }
-        /// <summary>
-        /// Operator equals.
-        /// </summary>
-        /// <param name="a">First mesh to compare.</param>
-        /// <param name="b">Second mesh to compare.</param>
-        /// <returns>\a True if equals and \a false otherwise.</returns>
-        public static bool operator ==(Mesh a, Mesh b)
-        {
-            if (ReferenceEquals(a, b))
-            {
-                return true;
-            }
-
-            if (((object)a == null) || ((object)b == null))
-            {
-                return false;
-            }
-
-            return a.Equals(b);
-        }
-        /// <summary>
-        /// Operator not equals.
-        /// </summary>
-        /// <param name="a">First mesh to compare.</param>
-        /// <param name="b">Second mesh to compare.</param>
-        /// <returns>\a True if not equals and \a false otherwise.</returns>
-        public static bool operator !=(Mesh a, Mesh b)
-        {
-            return !(a == b);
-        }
-        public virtual object Clone()
+        public override object Clone()
         {
             return new Mesh(Name, Transformation, ID);
         }
-        public virtual void GenerateNewIDs()
+        public override void Copy(object copy)
         {
-            ID = Guid.NewGuid().ToString();
-        }
-        public virtual void Copy(object copy)
-        {
-            Mesh mesh = copy as Mesh;
-            Name = mesh.Name;
-            Transformation = mesh.Transformation;
-            ID = mesh.ID;
+            base.Copy(copy);
+            if(copy is Mesh mesh)
+            {
+                Name = mesh.Name;
+                Transformation = mesh.Transformation;
+            }
         }
         #endregion
 

@@ -78,7 +78,7 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Public Methods
-        public void Load(string path)
+        public void LoadFromJson(string path)
         {
             Protocol result;
             try
@@ -99,10 +99,10 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Operator
-        public void GenerateNewIDs()
+        public void GenerateID()
         {
             ID = Guid.NewGuid().ToString();
-            foreach (var bloc in Blocs) bloc.GenerateNewIDs();
+            foreach (var bloc in Blocs) bloc.GenerateID();
         }
 
         /// <summary>

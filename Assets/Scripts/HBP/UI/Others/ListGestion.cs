@@ -178,7 +178,7 @@ namespace Tools.Unity.Components
                 if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
                 {
                     IIdentifiable identifiable = cloneItem as IIdentifiable;
-                    identifiable.GenerateNewIDs();
+                    identifiable.GenerateID();
                 }
                 if (cloneItem != null)
                 {

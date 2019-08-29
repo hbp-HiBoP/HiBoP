@@ -2,9 +2,9 @@
   "General": {
     "Project": {
       "DefaultName": "New project",
-      "DefaultLocation": "D:\\Programmation\\Travail\\Data\\Projects",
-      "DefaultPatientDatabase": "Y:\\BrainVisaDB\\Epilepsy",
-      "DefaultLocalizerDatabase": "Y:\\LOCA_DATABASE",
+      "DefaultLocation": "D:\\HiBoP\\Projects",
+      "DefaultPatientDatabase": "D:\\HiBoP\\Data\\Patients",
+      "DefaultLocalizerDatabase": "D:\\HiBoP\\Data\\Loca",
       "DefaultExportLocation": "D:/ScreenShot"
     },
     "Theme": {},
@@ -54,7 +54,7 @@
       "BlocRatio": 0.184049129
     },
     "Graph": {
-      "ShowCurvesOfMinimizedColumns": false
+      "ShowCurvesOfMinimizedColumns": true
     },
     "Cut": {
       "ShowCutLines": true
