@@ -33,10 +33,12 @@ namespace HBP.Data.Experience.Dataset
         {
             int startIndex = mainEventOccurence.Index + frequency.ConvertToCeiledNumberOfSamples(subBloc.Window.Start);
             int endIndex = mainEventOccurence.Index + frequency.ConvertToFlooredNumberOfSamples(subBloc.Window.End);
+            int baselineStartIndex = mainEventOccurence.Index + frequency.ConvertToCeiledNumberOfSamples(subBloc.Baseline.Start);
+            int baselineEndIndex = mainEventOccurence.Index + frequency.ConvertToFlooredNumberOfSamples(subBloc.Baseline.End);
             if (startIndex >= 0)
             {
                 RawValuesByChannel = EpochValues(valuesByChannel, startIndex, endIndex);
-                BaselineValuesByChannel = EpochValues(valuesByChannel, startIndex, endIndex);
+                BaselineValuesByChannel = EpochValues(valuesByChannel, baselineStartIndex, baselineEndIndex);
                 UnitByChannel = unitByChannel;
                 InformationsByEvent = FindEvents(mainEventOccurence, subBloc, occurencesByEvent, frequency);
                 foreach (var treatment in subBloc.Treatments.OrderBy(t => t.Order))
@@ -102,8 +104,7 @@ namespace HBP.Data.Experience.Dataset
         }
         public void Normalize(float average, float standardDeviation, string channel)
         {
-            float[] values;
-            if (RawValuesByChannel.TryGetValue(channel, out values))
+            if (RawValuesByChannel.TryGetValue(channel, out float[] values))
             {
                 values.Normalize(ValuesByChannel[channel], average, standardDeviation);
             }

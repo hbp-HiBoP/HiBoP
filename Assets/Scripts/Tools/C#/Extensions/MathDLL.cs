@@ -73,7 +73,7 @@ namespace Tools.CSharp
             {
                 throw new System.Exception("Array is empty");
             }
-            if (standardDeviation == 0) standardDeviation = 1;
+            if (Mathf.Approximately(standardDeviation, 0)) standardDeviation = 1;
             Normalize(array, array.Length, targetArray, average, standardDeviation);
         }
         public static float Lerp(float value1, float value2, float percentage)

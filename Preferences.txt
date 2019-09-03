@@ -16,8 +16,8 @@
   },
   "Data": {
     "EEG": {
-      "Averaging": 1,
-      "Normalization": 0
+      "Averaging": 0,
+      "Normalization": 1
     },
     "Protocol": {
       "PositionAveraging": 1,
@@ -44,14 +44,14 @@
       "DefaultSelectedImplantationInMultiPatientsVisualization": "MNI"
     },
     "TrialMatrix": {
-      "ShowWholeProtocol": false,
+      "ShowWholeProtocol": true,
       "TrialsSynchronization": true,
       "TrialSmoothing": true,
       "NumberOfIntermediateValues": 4,
-      "SubBlocFormat": 0,
+      "SubBlocFormat": 2,
       "TrialHeight": 20,
       "TrialRatio": 0.06969325,
-      "BlocRatio": 0.184049129
+      "BlocRatio": 0.1490798
     },
     "Graph": {
       "ShowCurvesOfMinimizedColumns": false
