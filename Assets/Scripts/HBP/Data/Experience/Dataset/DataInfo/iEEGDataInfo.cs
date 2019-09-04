@@ -38,7 +38,7 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Constructors
-        public  iEEGDataInfo(string name, Container.DataContainer dataContainer, Patient patient, NormalizationType normalization, string id) : base(name, dataContainer, patient,id)
+        public iEEGDataInfo(string name, Container.DataContainer dataContainer, Patient patient, NormalizationType normalization, string id) : base(name, dataContainer, patient,id)
         {
             Normalization = normalization;
         }
@@ -56,11 +56,13 @@ namespace HBP.Data.Experience.Dataset
         {
             return new iEEGDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, Normalization, ID);
         }
-        public override void Copy(object copy)
+        public override void Copy(object obj)
         {
-            base.Copy(copy);
-            iEEGDataInfo dataInfo = copy as iEEGDataInfo;
-            Normalization = dataInfo.Normalization;
+            base.Copy(obj);
+            if(obj is iEEGDataInfo iEEGdataInfo)
+            {
+                Normalization = iEEGdataInfo.Normalization;
+            }
         }
         #endregion
 

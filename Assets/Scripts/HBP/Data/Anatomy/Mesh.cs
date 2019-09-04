@@ -38,8 +38,14 @@ namespace HBP.Data.Anatomy
         /// </summary>
         [DataMember(Order = 0)] public string Name { get; set; }
 
+        /// <summary>
+        /// Specifies if a mesh was usable at the last verification. Don't perform the verification.
+        /// </summary>
         public bool WasUsable { get; protected set; }
-        public bool Usable
+        /// <summary>
+        /// Specifies if a mesh is usable.
+        /// </summary>
+        public bool IsUsable
         {
             get
             {
@@ -48,8 +54,17 @@ namespace HBP.Data.Anatomy
                 return usable;
             }
         }
+        /// <summary>
+        /// The mesh object has a mesh file.
+        /// </summary>
         public virtual bool HasMesh { get { return false; } }
+        /// <summary>
+        /// The mesh object has a marsAtlas file.
+        /// </summary>
         public virtual bool HasMarsAtlas { get { return false; } }
+        /// <summary>
+        /// The mesh object has a transformation file.
+        /// </summary>
         public virtual bool HasTransformation
         {
             get
@@ -57,55 +72,66 @@ namespace HBP.Data.Anatomy
                 return !string.IsNullOrEmpty(Transformation) && File.Exists(Transformation) && (new FileInfo(Transformation).Extension == TRANSFORMATION_EXTENSION || new FileInfo(Transformation).Extension == ".txt");
             }
         }
-        [DataMember(Order = 5, Name = "Transformation")] protected string m_Transformation;
+        [DataMember(Order = 5, Name = "Transformation")] public string SavedTransformation { get; protected set; }
         public string Transformation
         {
             get
             {
-                return m_Transformation.ConvertToFullPath();
+                return SavedTransformation.ConvertToFullPath();
             }
             set
             {
-                m_Transformation = value.ConvertToShortPath();
+            SavedTransformation = value.ConvertToShortPath();
             }
         }
-        public string SavedTransformation { get { return m_Transformation; } }
         #endregion
 
         #region Constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="HBP.Data.Anatomy.Mesh">Mesh</see> class.
+        /// Initializes a new instance of the Mesh class.
         /// </summary>
-        /// <param name="name">Name of the group.</param>
-        /// <param name="patients">Patients of the group.</param>
-        /// <param name="id">Unique identifier to identify the group.</param>
+        /// <param name="name">Name of the mesh.</param>
+        /// <param name="transformation">Transformation file of the mesh.</param>
+        /// <param name="id">Unique identifier to identify the mesh.</param>
         public Mesh(string name, string transformation, string id): base(id)
         {
             Name = name;
             Transformation = transformation;
         }
         /// <summary>
-        /// Initializes a new instance of the <see cref="HBP.Data.Group">Group</see> class.
+        /// Initializes a new instance of the Mesh class.
         /// </summary>
-        /// <param name="name">Name of the group.</param>
-        /// <param name="patients">Patients of the group.</param>
-        /// <param name="id">Unique identifier to identify the group.</param>
+        /// <param name="name">Name of the mesh.</param>
+        /// <param name="patients">Transformation file of the mesh.</param>
+        /// <param name="id">Unique identifier to identify the mesh.</param>
         public Mesh(string name, string transformation) : base()
         {
             Name = name;
             Transformation = transformation;
         }
+        /// <summary>
+        /// Initializes a new instance of the Mesh class.
+        /// </summary>
         public Mesh() : this("New mesh", string.Empty)
         {
         }
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Recalculates if the mesh is usable.
+        /// </summary>
+        /// <returns></returns>
         public bool RecalculateUsable()
         {
-            return Usable;
+            return IsUsable;
         }
-        public static Mesh[] GetMeshesInDirectory(string path)
+        /// <summary>
+        /// Loads meshes from a directory.
+        /// </summary>
+        /// <param name="path">path of the directory.</param>
+        /// <returns></returns>
+        public static Mesh[] LoadFromDirectory(string path)
         {
             List<Mesh> meshes = new List<Mesh>();
             DirectoryInfo parent = new DirectoryInfo(path);
@@ -197,7 +223,7 @@ namespace HBP.Data.Anatomy
         }
         protected virtual void OnDeserializedOperation(StreamingContext context)
         {
-            m_Transformation = m_Transformation.ToPath();
+            SavedTransformation = SavedTransformation.ToPath();
             RecalculateUsable();
         }
         #endregion

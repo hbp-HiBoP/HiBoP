@@ -19,7 +19,7 @@ namespace HBP.Data.Experience.Dataset
     *     - Name.
     */
     [DataContract]
-    public class DataInfo : ICloneable, ICopiable, IIdentifiable
+    public class DataInfo : BaseData
     {
         #region Properties
         [DataMember(Name = "Name")] protected string m_Name;
@@ -31,8 +31,6 @@ namespace HBP.Data.Experience.Dataset
             get { return m_Name; }
             set { m_Name = value; m_NameErrors = GetNameErrors(); }
         }
-
-        [DataMember] public string ID { get; set; }
 
         [DataMember(Name = "DataContainer")] protected Container.DataContainer m_DataContainer;
         public Container.DataContainer DataContainer
@@ -72,6 +70,36 @@ namespace HBP.Data.Experience.Dataset
         public UnityEvent OnRequestErrorCheck { get; set; } = new UnityEvent();
         #endregion
 
+        #region Constructors
+        /// <summary>
+        /// Create a new DataInfo instance.
+        /// </summary>
+        /// <param name="name">Name of the dataInfo.</param>
+        /// <param name="dataContainer">Data container of the dataInfo.</param>
+        /// <param name="id">Unique ID of the subBloc.</param>
+        public DataInfo(string name, Container.DataContainer dataContainer, string id): base(id)
+        {
+            Name = name;
+            DataContainer = dataContainer;
+        }
+        /// <summary>
+        /// Create a new DataInfo instance.
+        /// </summary>
+        /// <param name="name">Name of the dataInfo.</param>
+        /// <param name="dataContainer">Data container of the dataInfo.</param>
+        public DataInfo(string name, Container.DataContainer dataContainer) : base()
+        {
+            Name = name;
+            DataContainer = dataContainer;
+        }
+        /// <summary>
+        /// Create a new DataInfo instance with default value.
+        /// </summary>
+        public DataInfo() : this("Data", new Container.DataContainer(), Guid.NewGuid().ToString())
+        {
+        }
+        #endregion
+
         #region Public Methods
         public virtual Error[] GetErrors(Protocol.Protocol protocol)
         {
@@ -101,105 +129,30 @@ namespace HBP.Data.Experience.Dataset
             }
             return stringBuilder.ToString();
         }
-        #endregion
-
-        #region Constructors
-        /// <summary>
-        /// Create a new DataInfo instance.
-        /// </summary>
-        /// <param name="name">Name of the dataInfo.</param>
-        /// <param name="measure">Name of the measure in the EEG file.</param>
-        /// <param name="eeg">EEG file path.</param>
-        /// <param name="pos">POS file path.</param>
-        public DataInfo(string name, Container.DataContainer dataContainer, string id)
+        public override void GenerateID()
         {
-            Name = name;
-            ID = id;
-            DataContainer = dataContainer;
-        }
-        /// <summary>
-        /// Create a new DataInfo instance with default value.
-        /// </summary>
-        public DataInfo() : this("Data", new Container.DataContainer(), Guid.NewGuid().ToString())
-        {
+            base.GenerateID();
+            DataContainer.GenerateID();
         }
         #endregion
 
         #region Operators
-        public void GenerateID()
-        {
-            ID = Guid.NewGuid().ToString();
-            DataContainer.GenerateID();
-        }
-        /// <summary>
-        /// Operator Equals.
-        /// </summary>
-        /// <param name="obj">Object to test.</param>
-        /// <returns>\a True if equals and \a false otherwise.</returns>
-        public override bool Equals(object obj)
-        {
-            DataInfo dataInfo = obj as DataInfo;
-            if (dataInfo != null && dataInfo.ID == ID)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        /// <summary>
-        /// Get hash code.
-        /// </summary>
-        /// <returns>HashCode.</returns>
-        public override int GetHashCode()
-        {
-            return ID.GetHashCode();
-        }
-        /// <summary>
-        /// Operator equals.
-        /// </summary>
-        /// <param name="a">First mesh to compare.</param>
-        /// <param name="b">Second mesh to compare.</param>
-        /// <returns>\a True if equals and \a false otherwise.</returns>
-        public static bool operator ==(DataInfo a, DataInfo b)
-        {
-            if (ReferenceEquals(a, b))
-            {
-                return true;
-            }
-
-            if (((object)a == null) || ((object)b == null))
-            {
-                return false;
-            }
-
-            return a.Equals(b);
-        }
-        /// <summary>
-        /// Operator not equals.
-        /// </summary>
-        /// <param name="a">First mesh to compare.</param>
-        /// <param name="b">Second mesh to compare.</param>
-        /// <returns>\a True if not equals and \a false otherwise.</returns>
-        public static bool operator !=(DataInfo a, DataInfo b)
-        {
-            return !(a == b);
-        }
         /// <summary>
         /// Clone this instance.
         /// </summary>
         /// <returns>Clone of this instance.</returns>
-        public virtual object Clone()
+        public override object Clone()
         {
             return new DataInfo(Name, DataContainer.Clone() as Container.DataContainer, ID);
         }
-        public virtual void Copy(object copy)
+        public override void Copy(object copy)
         {
-            DataInfo dataInfo = copy as DataInfo;
-            Name = dataInfo.Name;
-            DataContainer = dataInfo.DataContainer;
-            ID = dataInfo.ID;
+            base.Copy(copy);
+            if(copy is DataInfo dataInfo)
+            {
+                Name = dataInfo.Name;
+                DataContainer = dataInfo.DataContainer;
+            }
         }
         #endregion
 

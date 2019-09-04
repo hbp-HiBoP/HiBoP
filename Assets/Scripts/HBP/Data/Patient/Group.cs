@@ -43,7 +43,7 @@ namespace HBP.Data
         /// <summary>
         /// IDs of the patients of the group.
         /// </summary>
-        [DataMember(Name = "Patients",Order = 3)] List<string> m_Patients;
+        [DataMember(Name = "Patients",Order = 3)] List<string> m_Patients = new List<string>();
         /// <summary>
         /// Patients of the group.
         /// </summary>
@@ -63,7 +63,7 @@ namespace HBP.Data
         public Group(string name, IEnumerable<Patient> patients, string id) : base (id)
         {
             Name = name;
-            Add(patients);
+            AddPatient(patients);
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="HBP.Data.Group">Group</see> class.
@@ -73,7 +73,7 @@ namespace HBP.Data
         public Group(string name, IEnumerable<Patient> patients): base()
         {
             Name = name;
-            Add(patients);
+            AddPatient(patients);
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="HBP.Data.Group">Group</see> class.
@@ -84,7 +84,19 @@ namespace HBP.Data
         #endregion
 
         #region Public Methods
-        public void Clear()
+        /// <summary>
+        /// Set patients of the group.
+        /// </summary>
+        /// <param name="patients"></param>
+        public void SetPatients(IEnumerable<Patient> patients)
+        {
+            ClearPatients();
+            AddPatient(patients);
+        }
+        /// <summary>
+        /// Clears patients of the group.
+        /// </summary>
+        public void ClearPatients()
         {
             m_Patients.Clear();
         }
@@ -92,7 +104,7 @@ namespace HBP.Data
         /// Adds a patient to the group.
         /// </summary>
         /// <param name="patient">Patient to add.</param>
-        public bool Add(Patient patient)
+        public bool AddPatient(Patient patient)
         {
             return m_Patients.AddIfAbsent(patient.ID);
         }
@@ -100,12 +112,12 @@ namespace HBP.Data
         /// Adds patients to the group.
         /// </summary>
         /// <param name="patient">Patients to add.</param>
-        public bool Add(IEnumerable<Patient> patients)
+        public bool AddPatient(IEnumerable<Patient> patients)
         {
             bool result = true;
             foreach (Patient patient in patients)
             {
-                result &= Add(patient);
+                result &= AddPatient(patient);
             }
             return result;
         }
@@ -113,7 +125,7 @@ namespace HBP.Data
         /// Removes patient to the group.
         /// </summary>
         /// <param name="patient">Patient to remove.</param>
-        public bool Remove(Patient patient)
+        public bool RemovePatient(Patient patient)
         {
             return m_Patients.Remove(patient.ID);
         }
@@ -121,12 +133,12 @@ namespace HBP.Data
         /// Removes patients to the group.
         /// </summary>
         /// <param name="patient">Patients to remove.</param>
-        public bool Remove(IEnumerable<Patient> patients)
+        public bool RemovePatient(IEnumerable<Patient> patients)
         {
             bool result = true;
             foreach (Patient patient in patients)
             {
-                result &= Remove(patient);
+                result &= RemovePatient(patient);
             }
             return result;
         }
@@ -182,7 +194,7 @@ namespace HBP.Data
             if(obj is Group group)
             {
                 Name = group.Name;
-                Add(group.Patients);
+                AddPatient(group.Patients);
             }
         }
         #endregion

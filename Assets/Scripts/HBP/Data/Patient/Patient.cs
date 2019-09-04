@@ -166,7 +166,7 @@ namespace HBP.Data
             return true;
         }
         /// <summary>
-        /// Loads patient from a directory
+        /// Loads patients from a directory
         /// </summary>
         /// <param name="path">The specified path of the patient directory.</param>
         /// <param name="result">The patient in the patient directory.</param>
@@ -179,7 +179,7 @@ namespace HBP.Data
                 DirectoryInfo directory = new DirectoryInfo(path);
                 string[] directoryNameParts = directory.Name.Split(new char[1] { '_' }, StringSplitOptions.RemoveEmptyEntries);
                 int.TryParse(directoryNameParts[1], out int date);
-                result = new Patient(directoryNameParts[2], directoryNameParts[0], date, Mesh.GetMeshesInDirectory(path), MRI.GetMRIsInDirectory(path), Implantation.GetImplantationsInDirectory(path), directory.Name);
+                result = new Patient(directoryNameParts[2], directoryNameParts[0], date, Mesh.LoadFromDirectory(path), MRI.LoadFromDirectory(path), Implantation.LoadFromDirectory(path), directory.Name);
                 return true;
             }
             return false;
@@ -196,8 +196,7 @@ namespace HBP.Data
             try
             {
                 result = ClassLoaderSaver.LoadFromJson<Patient>(path);
-                if (result != null) return true;
-                else return false;
+                return result != null;
             }
             catch (Exception e)
             {

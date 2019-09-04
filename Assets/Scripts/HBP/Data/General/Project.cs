@@ -163,7 +163,7 @@ namespace HBP.Data.General
             }
             foreach (Group _group in m_Groups)
             {
-                _group.Remove((from patient in _group.Patients where !m_Patients.Contains(patient) select patient).ToArray());
+                _group.RemovePatient((from patient in _group.Patients where !m_Patients.Contains(patient) select patient).ToArray());
             }
         }
         public void AddPatient(Patient patient)
@@ -181,7 +181,7 @@ namespace HBP.Data.General
         {
             foreach(Group group in m_Groups)
             {
-                group.Remove(patient);
+                group.RemovePatient(patient);
             }
             foreach (Dataset dataset in m_Datasets)
             {
@@ -857,14 +857,6 @@ namespace HBP.Data.General
                         {
                             implantation.File = implantation.File.CopyToDirectory(implantationsDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
                             implantation.MarsAtlas = implantation.MarsAtlas.CopyToDirectory(implantationsDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
-                        }
-                    }
-                    if (patient.Connectivities.Count > 0)
-                    {
-                        DirectoryInfo connectivitiesDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "Connectivities"));
-                        foreach (var connectivity in patient.Connectivities)
-                        {
-                            connectivity.File = connectivity.File.CopyToDirectory(connectivitiesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
                         }
                     }
                 }

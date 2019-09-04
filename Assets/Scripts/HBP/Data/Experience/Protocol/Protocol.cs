@@ -21,15 +21,10 @@ namespace HBP.Data.Experience.Protocol
     *     - \a Blocs.
     */
     [DataContract]
-	public class Protocol : ICloneable,ICopiable, ILoadable, IIdentifiable
+	public class Protocol : BaseData, ILoadable<Protocol>
     {
         #region Properties
         public const string EXTENSION = ".prov";
-
-        /// <summary>
-        /// Unique ID of the protocol.
-        /// </summary>
-        [DataMember] public string ID { get; set; }
         /// <summary>
         /// Name of the protocol.
         /// </summary>
@@ -38,7 +33,6 @@ namespace HBP.Data.Experience.Protocol
         /// Blocs of the protocol.
         /// </summary>
         [DataMember] public List<Bloc> Blocs { get; set; }
-
         public IOrderedEnumerable<Bloc> OrderedBlocs
         {
             get
@@ -55,19 +49,20 @@ namespace HBP.Data.Experience.Protocol
         /// <param name="name">Name of the protocol.</param>
         /// <param name="blocs">Blocs of the protocol.</param>
         /// <param name="id">Unique ID of the protocol.</param>
-        public Protocol(string name,IEnumerable<Bloc> blocs,string id)
+        public Protocol(string name,IEnumerable<Bloc> blocs,string id) : base(id)
         {
             Name = name;
             Blocs = blocs.ToList();
-            ID = id;
         }
         /// <summary>
         /// Create a new protocol.
         /// </summary>
         /// <param name="name">Name of the protocol.</param>
         /// <param name="blocs">Blocs of the protocol.</param>
-        public Protocol(string name, IEnumerable<Bloc> blocs) : this(name,blocs, Guid.NewGuid().ToString())
+        public Protocol(string name, IEnumerable<Bloc> blocs) : base()
         {
+            Name = name;
+            Blocs = blocs.ToList();
         }
         /// <summary>
         /// Create a new protocol instance with default values.
@@ -78,106 +73,70 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Public Methods
-        public void LoadFromJson(string path)
+        /// <summary>
+        /// Generates  ID recursively.
+        /// </summary>
+        public override void GenerateID()
         {
-            Protocol result;
+            base.GenerateID();
+            foreach (var bloc in Blocs) bloc.GenerateID();
+        }
+        #endregion
+
+        #region Public Static Methods
+        public static string GetExtension()
+        {
+            return EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION;
+        }
+        public static bool LoadFromFile(string path, out Protocol result)
+        {
+            result = null;
             try
             {
                 result = ClassLoaderSaver.LoadFromJson<Protocol>(path);
+                if (result != null) return true;
+                else return false;
             }
             catch (Exception e)
             {
                 UnityEngine.Debug.LogException(e);
                 throw new CanNotReadProtocolFileException(Path.GetFileNameWithoutExtension(path));
             }
-            Copy(result);
-        }
-        public string GetExtension()
-        {
-            return EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION;
         }
         #endregion
 
         #region Operator
-        public void GenerateID()
-        {
-            ID = Guid.NewGuid().ToString();
-            foreach (var bloc in Blocs) bloc.GenerateID();
-        }
-
-        /// <summary>
-        /// Copy the instance.
-        /// </summary>
-        /// <param name="copy">instance to copy.</param>
-        public void Copy(object copy)
-        {
-            Protocol protocol = copy as Protocol;
-            ID = protocol.ID;
-            Name = protocol.Name;
-            Blocs = protocol.Blocs;
-        }
         /// <summary>
         /// Clone this instance.
         /// </summary>
         /// <returns>Instance cloned.</returns>
-        public object Clone()
+        public override object Clone()
         {
             return new Protocol(Name.Clone() as string, new List<Bloc>(Blocs.ToArray().DeepClone()), ID.Clone() as string);
         }
         /// <summary>
-        /// Operator Equals.
+        /// Copy the instance.
         /// </summary>
-        /// <param name="obj">Object to test.</param>
-        /// <returns>\a True if equals and \a false otherwise.</returns>
-        public override bool Equals(object obj)
+        /// <param name="obj">instance to copy.</param>
+        public override void Copy(object obj)
         {
-            Protocol p = obj as Protocol;
-            if (p == null)
+            base.Copy(obj);
+            if(obj is Protocol protocol)
             {
-                return false;
-            }
-            else
-            {
-                return Name == p.Name && Enumerable.SequenceEqual(Blocs, p.Blocs);
+                Name = protocol.Name;
+                Blocs = protocol.Blocs;
             }
         }
-        /// <summary>
-        /// Get hash code.
-        /// </summary>
-        /// <returns>HashCode.</returns>
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
-        /// <summary>
-        /// Operator equals.
-        /// </summary>
-        /// <param name="a">Display informations to compare.</param>
-        /// <param name="b">Display informations to compare.</param>
-        /// <returns>\a True if equals and \a false otherwise.</returns>
-        public static bool operator ==(Protocol a, Protocol b)
-        {
-            if (ReferenceEquals(a, b))
-            {
-                return true;
-            }
+        #endregion
 
-            if (((object)a == null) || ((object)b == null))
-            {
-                return false;
-            }
-
-            return a.Equals(b);
-        }
-        /// <summary>
-        /// Operator not equals.
-        /// </summary>
-        /// <param name="a">Display informations to compare.</param>
-        /// <param name="b">Display informations to compare.</param>
-        /// <returns>\a True if not equals and \a false otherwise.</returns>
-        public static bool operator !=(Protocol a, Protocol b)
+        #region Interfaces
+        string ILoadable<Protocol>.GetExtension()
         {
-            return !(a == b);
+            return GetExtension();
+        }
+        bool ILoadable<Protocol>.LoadFromFile(string path, out Protocol result)
+        {
+            return LoadFromFile(path, out result);
         }
         #endregion
     }

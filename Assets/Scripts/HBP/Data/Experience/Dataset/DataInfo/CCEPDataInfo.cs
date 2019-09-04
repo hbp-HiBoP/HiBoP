@@ -25,7 +25,7 @@ namespace HBP.Data.Experience.Dataset
         }
         #endregion
 
-        #region Contructors
+        #region Constructors
         public CCEPDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string channel, string id) : base(name, dataContainer, patient, id)
         {
             StimulatedChannel = channel;
@@ -48,8 +48,10 @@ namespace HBP.Data.Experience.Dataset
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            CCEPDataInfo dataInfo = copy as CCEPDataInfo;
-            StimulatedChannel = dataInfo.StimulatedChannel;
+            if(copy is CCEPDataInfo ccepDataInfo)
+            {
+                StimulatedChannel = ccepDataInfo.StimulatedChannel;
+            }
         }
         #endregion
 

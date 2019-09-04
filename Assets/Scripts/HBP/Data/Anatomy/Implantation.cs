@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Linq;
@@ -43,9 +42,9 @@ namespace HBP.Data.Anatomy
         /// </summary>
         public const string BIDS_EXTENSION = ".tsv";
         /// <summary>
-        /// Extension of Mars atlas files.
+        /// Extension of MarsAtlas files.
         /// </summary>
-        public const string MARS_ATLAS_EXTENSION = ".csv";     
+        public const string MARSATLAS_EXTENSION = ".csv";     
         public enum Error { None, PathIsNullOrEmpty, FileNotFound, WrongExtension, CannotReadFile, WrongFormat, CannotReadAllSites };
 
         /// <summary>
@@ -91,10 +90,16 @@ namespace HBP.Data.Anatomy
             }
         }
 
-        [IgnoreDataMember] public List<Site> Sites { get; set; }
+        [IgnoreDataMember] public List<Site> Sites { get; set; } = new List<Site>();
         [IgnoreDataMember] public Patient Patient { get; set; }
+        /// <summary>
+        /// Specifies if a implantation was usable at the last verification. Don't perform the verification.
+        /// </summary>
         public bool WasUsable { get; protected set; }
-        public bool Usable
+        /// <summary>
+        /// Specifies if a implantation is usable.
+        /// </summary>
+        public bool IsUsable
         {
             get
             {
@@ -104,6 +109,9 @@ namespace HBP.Data.Anatomy
             }
         }
 
+        /// <summary>
+        /// Specifies if a implantation has a implantation file.
+        /// </summary>
         public virtual bool HasImplantation
         {
             get
@@ -111,38 +119,67 @@ namespace HBP.Data.Anatomy
                 return !string.IsNullOrEmpty(File) && System.IO.File.Exists(File) && (new FileInfo(File).Extension == PTS_EXTENSION || new FileInfo(File).Extension == BIDS_EXTENSION);
             }
         }
+        /// <summary>
+        /// Specifies if a implantation has a marsAtlas file.
+        /// </summary>
         public virtual bool HasMarsAtlas
         {
             get
             {
-                return !string.IsNullOrEmpty(MarsAtlas) && System.IO.File.Exists(MarsAtlas) && (new FileInfo(MarsAtlas).Extension == MARS_ATLAS_EXTENSION);
+                return !string.IsNullOrEmpty(MarsAtlas) && System.IO.File.Exists(MarsAtlas) && (new FileInfo(MarsAtlas).Extension == MARSATLAS_EXTENSION);
             }
         }
         #endregion
 
-        #region Constructor
-        public Implantation(string name, string path, string marsAtlas, string id)
+        #region Constructors
+        /// <summary>
+        /// Initializes a new instance of the Implantation class.
+        /// </summary>
+        /// <param name="name">Name of the implantation.</param>
+        /// <param name="path">Path of the implantation file.</param>
+        /// <param name="marsAtlas">Path of the marsAtlas file.</param>
+        /// <param name="id">Unique identifier to identify the implantation.</param>
+        public Implantation(string name, string path, string marsAtlas, string id): base(id)
         {
             Name = name;
             File = path;
             MarsAtlas = marsAtlas;
-            Sites = new List<Site>();
-            ID = id;
-            RecalculateUsable();
+            RecalculateIsUsable();
         }
-        public Implantation(string name, string path, string marsAtlas) : this(name, path, marsAtlas, Guid.NewGuid().ToString())
+        /// <summary>
+        /// Initializes a new instance of the Implantation class.
+        /// </summary>
+        /// <param name="name">Name of the implantation.</param>
+        /// <param name="path">Path of the implantation file.</param>
+        /// <param name="marsAtlas">Path of the marsAtlas file.</param>
+        public Implantation(string name, string path, string marsAtlas) : base()
         {
+            Name = name;
+            File = path;
+            MarsAtlas = marsAtlas;
+            RecalculateIsUsable();
         }
+        /// <summary>
+        /// Initializes a new instance of the Implantation class.
+        /// </summary>
         public Implantation() : this("New implantation", string.Empty, string.Empty)
         {
         }
         #endregion
 
         #region Public Methods
-        public bool RecalculateUsable()
+        /// <summary>
+        /// Recalculate if a implantation is usable.
+        /// </summary>
+        /// <returns></returns>
+        public bool RecalculateIsUsable()
         {
-            return Usable;
+            return IsUsable;
         }
+        /// <summary>
+        /// Load the implantation.
+        /// </summary>
+        /// <returns></returns>
         public Error Load()
         {
             if (string.IsNullOrEmpty(File)) return Error.PathIsNullOrEmpty;
@@ -164,20 +201,29 @@ namespace HBP.Data.Anatomy
             Sites = sites.ToList();
             return Error.None;
         }
+        /// <summary>
+        /// Unload the implantation.
+        /// </summary>
         public void Unload()
         {
             Sites = new List<Site>();
         }
-        public static Implantation[] GetImplantationsInDirectory(string path)
+        /// <summary>
+        ///  Loads implantations from a directory.
+        /// </summary>
+        /// <param name="path">path of the directory.</param>
+        /// <param name="result">Implantations in the directory.</param>
+        /// <returns><see langword="true"/> if the method worked successfully; otherwise, <see langword="false"/></returns>
+        public static Implantation[] LoadFromDirectory(string path)
         {
             List<Implantation> implantations = new List<Implantation>();
             DirectoryInfo patientDirectory = new DirectoryInfo(path);
-            if(patientDirectory != null && patientDirectory.Exists)
+            if (patientDirectory != null && patientDirectory.Exists)
             {
                 DirectoryInfo implantationDirectory = new DirectoryInfo(Path.Combine(path, "implantation"));
                 if (implantationDirectory != null && implantationDirectory.Exists)
                 {
-                    FileInfo marsAtlasFile = new FileInfo(Path.Combine(implantationDirectory.FullName, patientDirectory.Name + MARS_ATLAS_EXTENSION));
+                    FileInfo marsAtlasFile = new FileInfo(Path.Combine(implantationDirectory.FullName, patientDirectory.Name + MARSATLAS_EXTENSION));
                     string marsAtlas = marsAtlasFile.Exists ? marsAtlasFile.FullName : string.Empty;
 
                     FileInfo patientImplantation = new FileInfo(Path.Combine(implantationDirectory.FullName, patientDirectory.Name + PTS_EXTENSION));
@@ -193,7 +239,6 @@ namespace HBP.Data.Anatomy
                     if (postImplantation != null && postImplantation.Exists) implantations.Add(new Implantation("Post", postImplantation.FullName, marsAtlas));
                 }
             }
-
             return implantations.ToArray();
         }
         #endregion
@@ -246,7 +291,7 @@ namespace HBP.Data.Anatomy
                 Name = implantation.Name;
                 File = implantation.File;
                 MarsAtlas = implantation.MarsAtlas;
-                RecalculateUsable();
+                RecalculateIsUsable();
             }
         }
         #endregion
@@ -256,8 +301,8 @@ namespace HBP.Data.Anatomy
         public void OnDeserialized(StreamingContext context)
         {
             SavedFile = SavedFile.ToPath();
-            m_MarsAtlas = m_MarsAtlas.ToPath();
-            RecalculateUsable();
+            SavedMarsAtlas = SavedMarsAtlas.ToPath();
+            RecalculateIsUsable();
         }
         #endregion
     }

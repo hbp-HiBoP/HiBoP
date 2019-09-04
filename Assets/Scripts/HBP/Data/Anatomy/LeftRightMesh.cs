@@ -9,58 +9,54 @@ namespace HBP.Data.Anatomy
     public class LeftRightMesh : Mesh
     {
         #region Properties
-        [DataMember(Order = 1, Name = "LeftHemisphere")] string m_LeftHemisphere;
+        [DataMember(Order = 1, Name = "LeftHemisphere")] public string SavedLeftHemisphere { get; protected set; }
         public string LeftHemisphere
         {
             get
             {
-                return m_LeftHemisphere.ConvertToFullPath();
+                return SavedLeftHemisphere.ConvertToFullPath();
             }
             set
             {
-                m_LeftHemisphere = value.ConvertToShortPath();
+                SavedLeftHemisphere = value.ConvertToShortPath();
             }
         }
-        public string SavedLeftHemisphere { get { return m_LeftHemisphere; } }
-        [DataMember(Order = 2, Name = "RightHemisphere")] string m_RightHemisphere;
+        [DataMember(Order = 2, Name = "RightHemisphere")] public string SavedRightHemisphere { get; protected set; }
         public string RightHemisphere
         {
             get
             {
-                return m_RightHemisphere.ConvertToFullPath();
+                return SavedRightHemisphere.ConvertToFullPath();
             }
             set
             {
-                m_RightHemisphere = value.ConvertToShortPath();
+                SavedRightHemisphere = value.ConvertToShortPath();
             }
         }
-        public string SavedRightHemisphere { get { return m_RightHemisphere; } }
-        [DataMember(Order = 3, Name = "LeftMarsAtlasHemisphere")] string m_LeftMarsAtlasHemisphere;
+        [DataMember(Order = 3, Name = "LeftMarsAtlasHemisphere")] public string SavedLeftMarsAtlasHemisphere { get; protected set; }
         public string LeftMarsAtlasHemisphere
         {
             get
             {
-                return m_LeftMarsAtlasHemisphere.ConvertToFullPath();
+                return SavedLeftMarsAtlasHemisphere.ConvertToFullPath();
             }
             set
             {
-                m_LeftMarsAtlasHemisphere = value.ConvertToShortPath();
+                SavedLeftMarsAtlasHemisphere = value.ConvertToShortPath();
             }
         }
-        public string SavedLeftMarsAtlasHemisphere { get { return m_LeftMarsAtlasHemisphere; } }
-        [DataMember(Order = 4, Name = "RightMarsAtlasHemisphere")] string m_RightMarsAtlasHemisphere;
+        [DataMember(Order = 4, Name = "RightMarsAtlasHemisphere")] public string SavedRightMarsAtlasHemisphere { get; protected set; }
         public string RightMarsAtlasHemisphere
         {
             get
             {
-                return m_RightMarsAtlasHemisphere.ConvertToFullPath();
+                return SavedRightMarsAtlasHemisphere.ConvertToFullPath();
             }
             set
             {
-                m_RightMarsAtlasHemisphere = value.ConvertToShortPath();
+                SavedRightMarsAtlasHemisphere = value.ConvertToShortPath();
             }
         }
-        public string SavedRightMarsAtlasHemisphere { get { return m_RightMarsAtlasHemisphere; } }
         public override bool HasMesh
         {
             get
@@ -102,25 +98,26 @@ namespace HBP.Data.Anatomy
         {
             return new LeftRightMesh(Name, Transformation, ID, LeftHemisphere, RightHemisphere, LeftMarsAtlasHemisphere, RightMarsAtlasHemisphere);
         }
-        public override void Copy(object copy)
+        public override void Copy(object obj)
         {
-            base.Copy(copy);
-
-            LeftRightMesh mesh = copy as LeftRightMesh;
-            LeftHemisphere = mesh.LeftHemisphere;
-            RightHemisphere = mesh.RightHemisphere;
-            LeftMarsAtlasHemisphere = mesh.LeftMarsAtlasHemisphere;
-            RightMarsAtlasHemisphere = mesh.RightMarsAtlasHemisphere;
+            base.Copy(obj);
+            if(obj is LeftRightMesh leftRightMesh)
+            {
+                LeftHemisphere = leftRightMesh.LeftHemisphere;
+                RightHemisphere = leftRightMesh.RightHemisphere;
+                LeftMarsAtlasHemisphere = leftRightMesh.LeftMarsAtlasHemisphere;
+                RightMarsAtlasHemisphere = leftRightMesh.RightMarsAtlasHemisphere;
+            }
         }
         #endregion
 
         #region Serialization
         protected override void OnDeserializedOperation(StreamingContext context)
         {
-            m_LeftHemisphere = m_LeftHemisphere.ToPath();
-            m_RightHemisphere = m_RightHemisphere.ToPath();
-            m_LeftMarsAtlasHemisphere = m_LeftMarsAtlasHemisphere.ToPath();
-            m_RightMarsAtlasHemisphere = m_RightMarsAtlasHemisphere.ToPath();
+            SavedLeftHemisphere = SavedLeftHemisphere.ToPath();
+            SavedRightHemisphere = SavedRightHemisphere.ToPath();
+            SavedLeftMarsAtlasHemisphere = SavedLeftMarsAtlasHemisphere.ToPath();
+            SavedRightMarsAtlasHemisphere = SavedRightMarsAtlasHemisphere.ToPath();
             base.OnDeserializedOperation(context);
         }
         #endregion

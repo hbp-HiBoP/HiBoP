@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -25,13 +24,9 @@ namespace HBP.Data.Experience.Protocol
     *     - Treatments.
     */
     [DataContract]
-    public class SubBloc : ICloneable, ICopiable, IIdentifiable
+    public class SubBloc : BaseData
     {
         #region Properties
-        /// <summary>
-        /// ID of the SubBloc.
-        /// </summary>
-        [DataMember] public string ID { get; set; }
         /// <summary> 
         /// Name of the SubBloc.
         /// </summary>
@@ -86,9 +81,8 @@ namespace HBP.Data.Experience.Protocol
         /// <param name="scenario">Iconic Scenario of the subBloc.</param>
         /// <param name="treatments">Treatments of the subBloc.</param>
         /// <param name="id">Unique ID of the subBloc.</param>
-        public SubBloc(string name, int order, Enums.MainSecondaryEnum type, Window window, Window baseline, IEnumerable<Event> events, IEnumerable<Icon> icons, IEnumerable<Treatment> treatments, string id)
+        public SubBloc(string name, int order, Enums.MainSecondaryEnum type, Window window, Window baseline, IEnumerable<Event> events, IEnumerable<Icon> icons, IEnumerable<Treatment> treatments, string id) : base(id)
         {
-            ID = id;
             Name = name;
             Order = order;
             Type = type;
@@ -109,8 +103,16 @@ namespace HBP.Data.Experience.Protocol
         /// <param name="scenario">Iconic Scenario of the subBloc.</param>
         /// <param name="treatments">Treatments of the subBloc.</param>
         /// <param name="id">Unique ID of the subBloc.</param>
-        public SubBloc(string name, int order, Enums.MainSecondaryEnum type, Window window, Window baseline, IEnumerable<Event> events, IEnumerable<Icon> icons, IEnumerable<Treatment> treatments) : this(name, order, type, window, baseline, events, icons, treatments, Guid.NewGuid().ToString())
+        public SubBloc(string name, int order, Enums.MainSecondaryEnum type, Window window, Window baseline, IEnumerable<Event> events, IEnumerable<Icon> icons, IEnumerable<Treatment> treatments) : base()
         {
+            Name = name;
+            Order = order;
+            Type = type;
+            Window = window;
+            Baseline = baseline;
+            Events = events.ToList();
+            Icons = icons.ToList();
+            Treatments = treatments.ToList();
         }
         /// <summary>
         /// Create a new SubBloc with default value.
@@ -128,86 +130,29 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// Copy the instance.
         /// </summary>
-        /// <param name="copy">instance to copy.</param>
-        public void Copy(object copy)
+        /// <param name="obj">instance to copy.</param>
+        public override void Copy(object obj)
         {
-            SubBloc subBloc = copy as SubBloc;
-            ID = subBloc.ID;
-            Name = subBloc.Name;
-            Order = subBloc.Order;
-            Type = subBloc.Type;
-            Window = subBloc.Window;
-            Baseline = subBloc.Baseline;
-            Events = subBloc.Events;
-            Icons = subBloc.Icons;
-            Treatments = subBloc.Treatments;
+            base.Copy(obj);
+            if(obj is SubBloc subBloc)
+            {
+                Name = subBloc.Name;
+                Order = subBloc.Order;
+                Type = subBloc.Type;
+                Window = subBloc.Window;
+                Baseline = subBloc.Baseline;
+                Events = subBloc.Events;
+                Icons = subBloc.Icons;
+                Treatments = subBloc.Treatments;
+            }
         }
         /// <summary>
         /// Clone the instance.
         /// </summary>
         /// <returns>object cloned.</returns>
-        public object Clone()
+        public override object Clone()
         {
             return new SubBloc(Name, Order, Type, Window, Baseline, Events.DeepClone(), Icons.DeepClone(), Treatments.DeepClone(), ID);
-        }
-        public void GenerateID()
-        {
-            ID = Guid.NewGuid().ToString();
-        }
-        /// <summary>
-        /// Operator Equals.
-        /// </summary>
-        /// <param name="obj">Object to test.</param>
-        /// <returns>\a True if equals and \a false otherwise.</returns>
-        public override bool Equals(object obj)
-        {
-            SubBloc p = obj as SubBloc;
-            if (p == null)
-            {
-                return false;
-            }
-            else
-            {
-                return ID == p.ID;
-            }
-        }
-        /// <summary>
-        /// Get hash code.
-        /// </summary>
-        /// <returns>HashCode.</returns>
-        public override int GetHashCode()
-        {
-            return ID.GetHashCode();
-        }
-        /// <summary>
-        /// Operator equals.
-        /// </summary>
-        /// <param name="a">First bloc to compare.</param>
-        /// <param name="b">Second bloc to compare.</param>
-        /// <returns>\a True if equals and \a false otherwise.</returns>
-        public static bool operator ==(SubBloc a, SubBloc b)
-        {
-            if (ReferenceEquals(a, b))
-            {
-                return true;
-            }
-
-            if (((object)a == null) || ((object)b == null))
-            {
-                return false;
-            }
-
-            return a.Equals(b);
-        }
-        /// <summary>
-        /// Operator not equals.
-        /// </summary>
-        /// <param name="a">First bloc to compare.</param>
-        /// <param name="b">Second bloc to compare.</param>
-        /// <returns>\a True if not equals and \a false otherwise.</returns>
-        public static bool operator !=(SubBloc a, SubBloc b)
-        {
-            return !(a == b);
         }
         #endregion
     }

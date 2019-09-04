@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Runtime.Serialization;
 using Tools.Unity;
 
@@ -9,32 +8,30 @@ namespace HBP.Data.Anatomy
     public class SingleMesh : Mesh
     {
         #region Properties
-        [DataMember(Order = 1, Name = "Path")] string m_Path;
+        [DataMember(Order = 1, Name = "Path")] public string SavedPath { get; protected set; }
         public string Path
         {
             get
             {
-                return m_Path.ConvertToFullPath();
+                return SavedPath.ConvertToFullPath();
             }
             set
             {
-                m_Path = value.ConvertToShortPath();
+                SavedPath = value.ConvertToShortPath();
             }
         }
-        public string SavedPath { get { return m_Path; } }
-        [DataMember(Order = 2, Name = "MarsAtlasPath")] string m_MarsAtlasPath;
+        [DataMember(Order = 2, Name = "MarsAtlasPath")] public string SavedMarsAtlasPath { get; protected set; }
         public string MarsAtlasPath
         {
             get
             {
-                return m_MarsAtlasPath.ConvertToFullPath();
+                return SavedMarsAtlasPath.ConvertToFullPath();
             }
             set
             {
-                m_MarsAtlasPath = value.ConvertToShortPath();
+                SavedMarsAtlasPath = value.ConvertToShortPath();
             }
         }
-        public string SavedMarsAtlasPath { get { return m_MarsAtlasPath; } }
         public override bool HasMesh
         {
             get
@@ -72,21 +69,22 @@ namespace HBP.Data.Anatomy
         {
             return new SingleMesh(Name, Transformation, ID, Path, MarsAtlasPath);
         }
-        public override void Copy(object copy)
+        public override void Copy(object obj)
         {
-            base.Copy(copy);
-
-            SingleMesh mesh = copy as SingleMesh;
-            Path = mesh.Path;
-            MarsAtlasPath = mesh.MarsAtlasPath;
+            base.Copy(obj);
+            if(obj is SingleMesh singleMesh)
+            {
+                Path = singleMesh.Path;
+                MarsAtlasPath = singleMesh.MarsAtlasPath;
+            }
         }
         #endregion
 
         #region Serialization
         protected override void OnDeserializedOperation(StreamingContext context)
         {
-            m_Path = m_Path.ToPath();
-            m_MarsAtlasPath = m_MarsAtlasPath.ToPath();
+            SavedPath = SavedPath.ToPath();
+            SavedMarsAtlasPath = SavedMarsAtlasPath.ToPath();
             base.OnDeserializedOperation(context);
         }
         #endregion
