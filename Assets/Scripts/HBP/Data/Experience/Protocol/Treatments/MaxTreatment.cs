@@ -19,12 +19,12 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Public Methods
-        public override void Apply(ref float[] values, ref float[] baseline, int mainEventIndex, Frequency frequency)
+        public override void Apply(ref float[] values, ref float[] baseline, int windowMainEventIndex, int baselineMainEventIndex, Frequency frequency)
         {
-            int startWindow = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
-            int endWindow = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
-            int startBaseline = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Baseline.Start);
-            int endBaseline = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Baseline.End);
+            int startWindow = windowMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
+            int endWindow = windowMainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
+            int startBaseline = baselineMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Baseline.Start);
+            int endBaseline = baselineMainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Baseline.End);
             float max = float.MinValue;
             if(UseOnWindow)
             {

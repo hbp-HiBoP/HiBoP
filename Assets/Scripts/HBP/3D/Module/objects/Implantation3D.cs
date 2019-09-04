@@ -51,22 +51,6 @@ namespace HBP.Module3D
 
         #region Public Methods
         /// <summary>
-        /// Load the CCEP for a patient
-        /// </summary>
-        /// <param name="patient">Patient for these CCEP</param>
-        public void LoadLatencies(Data.Patient patient)
-        {
-            Latencies = new List<Latencies>();
-            foreach (Data.Anatomy.Connectivity connectivity in patient.Connectivities)
-            {
-                if (!connectivity.WasUsable) continue;
-                Latencies latencies = RawSiteList.UpdateLatenciesWithFile(connectivity.File);
-                latencies.Name = connectivity.Name;
-                Latencies.Add(latencies);
-                AreLatenciesLoaded = true;
-            }
-        }
-        /// <summary>
         /// Clean the implantation
         /// </summary>
         public void Clean()

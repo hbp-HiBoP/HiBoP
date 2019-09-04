@@ -45,6 +45,11 @@ namespace HBP.Data.Informations
             Channel = channel;
             Patient = patient;
         }
+        public ChannelStruct(Module3D.Site site)
+        {
+            Channel = site.Information.ChannelName;
+            Patient = site.Information.Patient;
+        }
 
         public override bool Equals(object obj)
         {
@@ -166,6 +171,74 @@ namespace HBP.Data.Informations
         public static bool operator !=(DataStruct struct1, DataStruct struct2)
         {
             return !(struct1 == struct2);
+        }
+        #endregion
+    }
+
+    [Serializable]
+    public class CCEPDataStruct : DataStruct
+    {
+        #region Properties
+        [SerializeField] ChannelStruct m_Source;
+        public ChannelStruct Source
+        {
+            get
+            {
+                return m_Source;
+            }
+            set
+            {
+                SetPropertyUtility.SetClass(ref m_Source, value);
+            }
+        }
+        #endregion
+
+        #region Constructors
+        public CCEPDataStruct(Dataset dataset, string data, ChannelStruct channel, IEnumerable<BlocStruct> blocs = null) : base(dataset, data, blocs)
+        {
+            Source = channel;
+        }
+        #endregion
+
+        #region Public Methods
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as CCEPDataStruct);
+        }
+        public bool Equals(CCEPDataStruct other)
+        {
+            return base.Equals(other) && EqualityComparer<ChannelStruct>.Default.Equals(Source, other.Source);
+        }
+        public override int GetHashCode()
+        {
+            var hashCode = 139406400 + base.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<ChannelStruct>.Default.GetHashCode(Source);
+            return hashCode;
+        }
+        public static bool operator ==(CCEPDataStruct struct1, CCEPDataStruct struct2)
+        {
+            return EqualityComparer<CCEPDataStruct>.Default.Equals(struct1, struct2);
+        }
+        public static bool operator !=(CCEPDataStruct struct1, CCEPDataStruct struct2)
+        {
+            return !(struct1 == struct2);
+        }
+        #endregion
+    }
+
+    [Serializable]
+    public class IEEGDataStruct : DataStruct
+    {
+        #region Constructors
+        public IEEGDataStruct(Dataset dataset, string data, IEnumerable<BlocStruct> blocs = null) : base(dataset, data, blocs)
+        {
+        }
+        #endregion
+
+        #region Public Methods
+        public bool Equals(IEEGDataStruct other)
+        {
+            return base.Equals(other);
         }
         #endregion
     }

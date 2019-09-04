@@ -33,7 +33,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                global::Tools.Unity.NumberExtension.TryParseFloat(value, out float val);
+                global::Tools.CSharp.NumberExtension.TryParseFloat(value, out float val);
                 
                 foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {

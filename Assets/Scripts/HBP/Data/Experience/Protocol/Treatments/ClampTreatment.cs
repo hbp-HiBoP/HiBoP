@@ -33,13 +33,13 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Public Methods
-        public override void Apply(ref float[] values, ref float[] baseline, int mainEventIndex, Frequency frequency)
+        public override void Apply(ref float[] values, ref float[] baseline, int windowMainEventIndex, int baselineMainEventIndex, Frequency frequency)
         {
             int start, end;
             if(UseOnWindow)
             {
-                start = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
-                end = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
+                start = windowMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
+                end = windowMainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
                 if (UseMinClamp && !UseMaxClamp)
                 {
                     for (int i = start; i <= end; i++)
@@ -74,8 +74,8 @@ namespace HBP.Data.Experience.Protocol
 
             if (UseOnBaseline)
             {
-                start = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Baseline.Start);
-                end = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Baseline.End);
+                start = baselineMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Baseline.Start);
+                end = baselineMainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Baseline.End);
                 if (UseMinClamp && !UseMaxClamp)
                 {
                     for (int i = start; i <= end; i++)

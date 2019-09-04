@@ -2,9 +2,9 @@
   "General": {
     "Project": {
       "DefaultName": "New project",
-      "DefaultLocation": "D:\\HBPProjects",
-      "DefaultPatientDatabase": "Y:\\BrainVisaDB\\Epilepsy",
-      "DefaultLocalizerDatabase": "Y:\\LOCA_DATABASE",
+      "DefaultLocation": "D:\\HiBoP\\Projects",
+      "DefaultPatientDatabase": "D:\\HiBoP\\Data\\Patients",
+      "DefaultLocalizerDatabase": "D:\\HiBoP\\Data\\Loca",
       "DefaultExportLocation": "D:/ScreenShot"
     },
     "Theme": {},
@@ -16,8 +16,8 @@
   },
   "Data": {
     "EEG": {
-      "Averaging": 0,
-      "Normalization": 1
+      "Averaging": 1,
+      "Normalization": 0
     },
     "Protocol": {
       "PositionAveraging": 1,
@@ -44,17 +44,17 @@
       "DefaultSelectedImplantationInMultiPatientsVisualization": "MNI"
     },
     "TrialMatrix": {
-      "ShowWholeProtocol": true,
+      "ShowWholeProtocol": false,
       "TrialsSynchronization": true,
       "TrialSmoothing": true,
       "NumberOfIntermediateValues": 4,
-      "SubBlocFormat": 2,
+      "SubBlocFormat": 0,
       "TrialHeight": 20,
       "TrialRatio": 0.06969325,
-      "BlocRatio": 0.1490798
+      "BlocRatio": 0.184049129
     },
     "Graph": {
-      "ShowCurvesOfMinimizedColumns": false
+      "ShowCurvesOfMinimizedColumns": true
     },
     "Cut": {
       "ShowCutLines": true

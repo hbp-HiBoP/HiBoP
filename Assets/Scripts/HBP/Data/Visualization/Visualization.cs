@@ -18,7 +18,7 @@ namespace HBP.Data.Visualization
     * \author Adrien Gannerie
     * \version 2.0
     * \date 09 mai 2017
-    * \brief 3D brain vizualisation.
+    * \brief 3D brain visualization.
     * 
     * \details Define a 3D brain visualization and contains:
     * 
@@ -28,16 +28,10 @@ namespace HBP.Data.Visualization
     *   - \a Columns.   
     */
     [DataContract]
-    public class Visualization :  ICloneable , ICopiable, ILoadable, IIdentifiable
+    public class Visualization :  BaseData, ILoadable<Visualization>
     {
         #region Properties
         public const string EXTENSION = ".visualization";
-
-        /// <summary>
-        /// Unique ID.
-        /// </summary>
-        [DataMember(Order = 1)] public string ID { get; set; }
-
         /// <summary>
         /// Name of the visualization.
         /// </summary>
@@ -112,13 +106,12 @@ namespace HBP.Data.Visualization
         /// <param name="name">Name of the visualization.</param>
         /// <param name="columns">Columns of the visualization.</param>
         /// <param name="id">Unique ID.</param>
-        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, VisualizationConfiguration configuration, string id)
+        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, VisualizationConfiguration configuration, string id) : base(id)
         {
             Name = name;
             Columns = columns.ToList();
             SetPatients(patients);
             Configuration = configuration;
-            ID = id;
         }
         /// <summary>
         /// Create a new visualization instance.
@@ -126,8 +119,12 @@ namespace HBP.Data.Visualization
         /// <param name="name">Name of the visualization.</param>
         /// <param name="columns">Columns of the visualization.</param>
         /// <param name="id">Unique ID.</param>
-        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, VisualizationConfiguration configuration) : this(name, patients, columns, configuration, Guid.NewGuid().ToString())
+        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, VisualizationConfiguration configuration) : base()
         {
+            Name = name;
+            Columns = columns.ToList();
+            SetPatients(patients);
+            Configuration = configuration;
         }
         /// <summary>
         /// Create a new visualization instance.
@@ -143,7 +140,7 @@ namespace HBP.Data.Visualization
         /// </summary>
         /// <param name="name">Name of the visualization.</param>
         /// <param name="columns">Columns of the visualization.</param>
-        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns) : this(name, patients, columns, Guid.NewGuid().ToString())
+        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns) : this(name, patients, columns, new VisualizationConfiguration())
         {
         }
         /// <summary>
@@ -209,26 +206,28 @@ namespace HBP.Data.Visualization
         }
         #endregion
 
-        #region Public Methods
-        public void Load(string path)
+        #region Public Static Methods
+        public static bool LoadFromFile(string path, out Visualization result)
         {
-            Visualization result;
+            result = null;
             try
             {
                 result = ClassLoaderSaver.LoadFromJson<Visualization>(path);
+                return result != null;
             }
             catch (Exception e)
             {
                 UnityEngine.Debug.LogException(e);
                 throw new CanNotReadVisualizationFileException(Path.GetFileNameWithoutExtension(path));
             }
-            Copy(result);
         }
-        public string GetExtension()
+        public static string GetExtension()
         {
             return EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION;
         }
+        #endregion
 
+        #region Public Methods
         /// <summary>
         /// Load the visualization.
         /// </summary>
@@ -340,7 +339,11 @@ namespace HBP.Data.Visualization
             //}
             //return commonImplantations;
         }
-
+        public override void GenerateID()
+        {
+            base.GenerateID();
+            // TODO:
+        }
         public void Unload()
         {
             foreach (var column in Columns)
@@ -351,15 +354,11 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Operators
-        public void GenerateNewIDs()
-        {
-            ID = Guid.NewGuid().ToString();
-        }
         /// <summary>
         /// Clone this instance.
         /// </summary>
         /// <returns>Clone of this instance.</returns>
-        public object Clone()
+        public override object Clone()
         {
             return new Visualization(Name, Patients, Columns.DeepClone(), Configuration.Clone() as VisualizationConfiguration, ID);
         }
@@ -367,14 +366,17 @@ namespace HBP.Data.Visualization
         /// Copy an instance in this instance.
         /// </summary>
         /// <param name="copy">Instance to copy.</param>
-        public void Copy(object copy)
+        public override void Copy(object copy)
         {
-            Visualization visualization = copy as Visualization;
-            Name = visualization.Name;
-            Columns = visualization.Columns;
-            ID = visualization.ID;
-            Configuration = visualization.Configuration;
-            SetPatients(visualization.Patients);
+            base.Copy(copy);
+            if(copy is Visualization visualization)
+            {
+                Name = visualization.Name;
+                Columns = visualization.Columns;
+                ID = visualization.ID;
+                Configuration = visualization.Configuration;
+                SetPatients(visualization.Patients);
+            }
         }
         #endregion
 
@@ -627,6 +629,17 @@ namespace HBP.Data.Visualization
             }
 
             outPut(progress, exception);
+        }
+        #endregion
+
+        #region Interfaces
+        bool ILoadable<Visualization>.LoadFromFile(string path, out Visualization result)
+        {
+            return LoadFromFile(path, out result);
+        }
+        string ILoadable<Visualization>.GetExtension()
+        {
+            return GetExtension();
         }
         #endregion
     }

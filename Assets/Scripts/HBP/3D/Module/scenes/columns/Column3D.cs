@@ -246,10 +246,6 @@ namespace HBP.Module3D
         /// </summary>
         public CutTexturesUtility CutTextures { get; private set; }
 
-        /// <summary>
-        /// Is a source defined ?
-        /// </summary>
-        public bool SourceDefined { get { return SelectedSiteID != -1; } }
         private int m_CurrentLatencyFile = -1;
         /// <summary>
         /// Currently selected latency file

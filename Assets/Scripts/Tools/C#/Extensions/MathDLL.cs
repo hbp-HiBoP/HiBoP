@@ -16,6 +16,7 @@ namespace Tools.CSharp
                 float absStandardDeviation = Mathf.Abs(array.StandardDeviation());
                 float mean = array.Mean();
                 float offset = Zscore * absStandardDeviation;
+                if (offset == 0) offset = 1;
                 return new Vector2(mean - offset, mean + offset);
             }
         }

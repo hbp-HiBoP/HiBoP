@@ -41,7 +41,7 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 float floatValue;
-                if (global::Tools.Unity.NumberExtension.TryParseFloat(value, out floatValue))
+                if (global::Tools.CSharp.NumberExtension.TryParseFloat(value, out floatValue))
                 {
                     SelectedScene.ColumnManager.FMRIManager.FMRICalMin = floatValue;
                 }
@@ -63,7 +63,7 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 float floatValue;
-                if (global::Tools.Unity.NumberExtension.TryParseFloat(value, out floatValue))
+                if (global::Tools.CSharp.NumberExtension.TryParseFloat(value, out floatValue))
                 {
                     SelectedScene.ColumnManager.FMRIManager.FMRICalMax = floatValue;
                 }

@@ -7,7 +7,7 @@ using UnityEngine.Events;
 using System.Collections;
 using CielaSpike;
 using HBP.Data.Visualization;
-using Tools.Unity;
+using Tools.CSharp;
 
 namespace HBP.Module3D
 {
@@ -646,11 +646,11 @@ namespace HBP.Module3D
             if (!SceneInformation.IsSceneCompletelyLoaded)
             {
                 UpdateVisibleState(true);
+                SceneInformation.IsSceneCompletelyLoaded = true;
                 if (Visualization.Configuration.FirstColumnToSelect < m_ColumnManager.Columns.Count)
                 {
                     m_ColumnManager.Columns[Visualization.Configuration.FirstColumnToSelect].SelectFirstSite(Visualization.Configuration.FirstSiteToSelect);
                 }
-                SceneInformation.IsSceneCompletelyLoaded = true;
             }
         }
         /// <summary>
@@ -2171,7 +2171,7 @@ namespace HBP.Module3D
         {
             try
             {
-                if (mri.Usable)
+                if (mri.IsUsable)
                 {
 
                     MRI3D mri3D = new MRI3D(mri);
@@ -2211,7 +2211,7 @@ namespace HBP.Module3D
         {
             try
             {
-                if (mesh.Usable)
+                if (mesh.IsUsable)
                 {
                     if (mesh is Data.Anatomy.LeftRightMesh)
                     {
@@ -2297,10 +2297,6 @@ namespace HBP.Module3D
                     if (implantation3D.IsLoaded)
                     {
                         m_ColumnManager.Implantations.Add(implantation3D);
-                        if (Type == Data.Enums.SceneType.SinglePatient)
-                        {
-                            implantation3D.LoadLatencies(Patients[0]);
-                        }
                     }
                     else
                     {

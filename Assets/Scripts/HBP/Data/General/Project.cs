@@ -12,6 +12,7 @@ using CielaSpike;
 using Tools.Unity;
 using UnityEngine.Events;
 using Ionic.Zip;
+using Tools.CSharp;
 
 namespace HBP.Data.General
 {
@@ -856,14 +857,6 @@ namespace HBP.Data.General
                         {
                             implantation.File = implantation.File.CopyToDirectory(implantationsDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
                             implantation.MarsAtlas = implantation.MarsAtlas.CopyToDirectory(implantationsDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
-                        }
-                    }
-                    if (patient.Connectivities.Count > 0)
-                    {
-                        DirectoryInfo connectivitiesDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "Connectivities"));
-                        foreach (var connectivity in patient.Connectivities)
-                        {
-                            connectivity.File = connectivity.File.CopyToDirectory(connectivitiesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
                         }
                     }
                 }

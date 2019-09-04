@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using Tools.Unity;
 using HBP.Errors;
 using System.ComponentModel;
+using Tools.CSharp;
 
 namespace HBP.Data.Container
 {

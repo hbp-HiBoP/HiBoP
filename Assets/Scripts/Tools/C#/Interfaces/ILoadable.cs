@@ -1,5 +1,5 @@
-﻿public interface ILoadable
+﻿public interface ILoadable<T>
 {
     string GetExtension();
-    void Load(string path);
+    bool LoadFromFile(string path, out T result);
 }

@@ -17,28 +17,23 @@ namespace HBP.Data.Experience.Protocol
     *     - \a Codes ( Put ',' between codes in the UI).
     */
     [DataContract]
-	public class Event : ICloneable, ICopiable
+	public class Event : BaseData
 	{
         #region Properties
         /** Code separator. */
         private const char SEPARATOR = ',';
-
         /** Name of the code. */
         [DataMember] public string Name { get; set; }
-
         /// <summary>
         ///  Codes of the event.
         /// </summary>
         [DataMember] public List<int> Codes { get; set; }
-
         /// <summary>
         /// Type of event.
         /// </summary>
         [DataMember] public Enums.MainSecondaryEnum Type { get; set; }
-
         /** Codes of the event in a string with code separate with ','. */
-        [IgnoreDataMember]
-        public string CodesString
+        [IgnoreDataMember] public string CodesString
         {
             get { return GetStringFromCodes(Codes.ToArray()); }
             set {Codes = GetCodesFromString(value).ToList(); }
@@ -49,11 +44,22 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// Create a new instance of a event.
         /// </summary>
-        /// <param name="label">Label of the event.</param>
+        /// <param name="name">Label of the event.</param>
         /// <param name="codes">Codes of the event.</param>
-        public Event(string label, int[] codes, Enums.MainSecondaryEnum type)
+        public Event(string name, int[] codes, Enums.MainSecondaryEnum type, string id) : base(id)
         {
-            Name = label;
+            Name = name;
+            Codes = codes.ToList();
+            Type = type;
+        }
+        /// <summary>
+        /// Create a new instance of a event.
+        /// </summary>
+        /// <param name="name">Label of the event.</param>
+        /// <param name="codes">Codes of the event.</param>
+        public Event(string name, int[] codes, Enums.MainSecondaryEnum type) : base()
+        {
+            Name = name;
             Codes = codes.ToList();
             Type = type;
         }
@@ -75,7 +81,7 @@ namespace HBP.Data.Experience.Protocol
         /// </summary>
         /// <param name="codes">Codes to translate.</param>
         /// <returns>Codes string translated.</returns>
-        private string GetStringFromCodes(int[] codes)
+        public static string GetStringFromCodes(int[] codes)
 		{
             string result = string.Empty;
 			for(int i=0 ;i < codes.Length;i++)
@@ -93,7 +99,7 @@ namespace HBP.Data.Experience.Protocol
         /// </summary>
         /// <param name="codesString">String to translate.</param>
         /// <returns>Codes array.</returns>
-		private int[] GetCodesFromString(string codesString)
+		public static int[] GetCodesFromString(string codesString)
 		{
 			string[] codes = codesString.Split(new char[] { SEPARATOR },StringSplitOptions.RemoveEmptyEntries);
 			List<int> result = new List<int>();
@@ -114,17 +120,19 @@ namespace HBP.Data.Experience.Protocol
         /// Clone a Event instance.
         /// </summary>
         /// <returns>Event cloned.</returns>
-        public object Clone()
+        public override object Clone()
         {
             return new Event(Name.Clone() as string, Codes.ToArray().Clone() as int[], Type);
         }
-
-        public void Copy(object copy)
+        public override void Copy(object obj)
         {
-            Event e = copy as Event;
-            Name = e.Name;
-            Codes = e.Codes;
-            Type = e.Type;
+            base.Copy(obj);
+            if(obj is Event eve)
+            {
+                Name = eve.Name;
+                Codes = eve.Codes;
+                Type = eve.Type;
+            }
         }
         #endregion
     }

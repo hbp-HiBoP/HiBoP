@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
@@ -8,39 +7,30 @@ using Tools.Unity;
 namespace HBP.Data.Anatomy
 {
     [DataContract]
-    public class MRI : ICloneable, ICopiable, IIdentifiable
+    public class MRI : BaseData
     {
         #region Properties
         public const string EXTENSION = ".nii";
-        [DataMember] public string ID { get; set; }
         [DataMember] public string Name { get; set; }
-        [DataMember(Name = "File")] string m_File;
+        [DataMember(Name = "File")] public string SavedFile { get; protected set; }
         public string File
         {
             get
             {
-                return m_File.ConvertToFullPath();
+                return SavedFile.ConvertToFullPath();
             }
             set
             {
-                m_File = value.ConvertToShortPath();
+                SavedFile = value.ConvertToShortPath();
             }
         }
-        public string SavedFile { get { return m_File; } }
-        protected bool m_WasUsable;
-        public bool WasUsable
-        {
-            get
-            {
-                return m_WasUsable;
-            }
-        }
-        public bool Usable
+        public bool WasUsable { get; protected set; }
+        public bool IsUsable
         {
             get
             {
                 bool usable = !string.IsNullOrEmpty(Name) && HasMRI;
-                m_WasUsable = usable;
+                WasUsable = usable;
                 return usable;
             }
         }
@@ -53,37 +43,40 @@ namespace HBP.Data.Anatomy
         }
         #endregion
 
-        #region Constructor
-        public MRI(string name, string path, string id)
+        #region Constructors
+        public MRI(string name, string path, string id) : base(id)
         {
             Name = name;
             File = path;
-            ID = id;
-            RecalculateUsable();
+            RecalculateIsUsable();
         }
-        public MRI(string name, string path) : this(name, path, Guid.NewGuid().ToString())
+        public MRI(string name, string path) : base()
         {
-
+            Name = name;
+            File = path;
+            RecalculateIsUsable();
         }
-        public MRI() : this("New MRI", string.Empty, Guid.NewGuid().ToString()) { }
+        public MRI() : this("New MRI", string.Empty) { }
         #endregion
 
         #region Public Methods
-        public bool RecalculateUsable()
+        public bool RecalculateIsUsable()
         {
-            return Usable;
+            return IsUsable;
         }
-        public static MRI[] GetMRIs(string path)
+        #endregion
+
+        #region Public Static Methods
+        public static MRI[] LoadFromDirectory(string path)
         {
-            //UnityEngine.Profiling.Profiler.BeginSample("GetMRIs");
             List<MRI> MRIs = new List<MRI>();
-            if (String.IsNullOrEmpty(path) || !Directory.Exists(path)) return MRIs.ToArray();
+            if (string.IsNullOrEmpty(path) || !Directory.Exists(path)) return MRIs.ToArray();
             DirectoryInfo directoryInfo = new DirectoryInfo(path);
             DirectoryInfo t1mriDirectoy = directoryInfo.GetDirectories("t1mri", SearchOption.TopDirectoryOnly).FirstOrDefault();
 
-            if(t1mriDirectoy != null && t1mriDirectoy.Exists)
+            if (t1mriDirectoy != null && t1mriDirectoy.Exists)
             {
-                // Preimplantation.
+                // Pre-implantation.
                 DirectoryInfo preimplantationDirectory = t1mriDirectoy.GetDirectories("T1pre_*", SearchOption.TopDirectoryOnly).FirstOrDefault();
                 if (preimplantationDirectory != null && preimplantationDirectory.Exists)
                 {
@@ -94,7 +87,7 @@ namespace HBP.Data.Anatomy
                     }
                 }
 
-                // Postimplantation.
+                // Post-implantation.
                 DirectoryInfo postimplantationDirectory = t1mriDirectoy.GetDirectories("T1post_*", SearchOption.TopDirectoryOnly).FirstOrDefault();
                 if (postimplantationDirectory != null && postimplantationDirectory.Exists)
                 {
@@ -105,83 +98,24 @@ namespace HBP.Data.Anatomy
                     }
                 }
             }
-
-
             return MRIs.ToArray();
         }
         #endregion
 
         #region Operators
-        /// <summary>
-        /// Operator Equals.
-        /// </summary>
-        /// <param name="obj">Object to test.</param>
-        /// <returns>\a True if equals and \a false otherwise.</returns>
-        public override bool Equals(object obj)
-        {
-            MRI mri = obj as MRI;
-            if (mri != null && mri.ID == ID)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        /// <summary>
-        /// Get hash code.
-        /// </summary>
-        /// <returns>HashCode.</returns>
-        public override int GetHashCode()
-        {
-            return this.ID.GetHashCode();
-        }
-        /// <summary>
-        /// Operator equals.
-        /// </summary>
-        /// <param name="a">First mesh to compare.</param>
-        /// <param name="b">Second mesh to compare.</param>
-        /// <returns>\a True if equals and \a false otherwise.</returns>
-        public static bool operator ==(MRI a, MRI b)
-        {
-            if (ReferenceEquals(a, b))
-            {
-                return true;
-            }
-
-            if (((object)a == null) || ((object)b == null))
-            {
-                return false;
-            }
-
-            return a.Equals(b);
-        }
-        /// <summary>
-        /// Operator not equals.
-        /// </summary>
-        /// <param name="a">First mesh to compare.</param>
-        /// <param name="b">Second mesh to compare.</param>
-        /// <returns>\a True if not equals and \a false otherwise.</returns>
-        public static bool operator !=(MRI a, MRI b)
-        {
-            return !(a == b);
-        }
-        public virtual void GenerateNewIDs()
-        {
-            ID = Guid.NewGuid().ToString();
-        }
-        public object Clone()
+        public override object Clone()
         {
             return new MRI(Name, File, ID);
         }
-        public void Copy(object copy)
+        public override void Copy(object obj)
         {
-            MRI mri = copy as MRI;
-            Name = mri.Name;
-            File = mri.File;
-            ID = mri.ID;
-            RecalculateUsable();
+            base.Copy(obj);
+            if(obj is MRI mri)
+            {
+                Name = mri.Name;
+                File = mri.File;
+                RecalculateIsUsable();
+            }
         }
         #endregion
 
@@ -189,8 +123,8 @@ namespace HBP.Data.Anatomy
         [OnDeserialized()]
         public void OnDeserialized(StreamingContext context)
         {
-            m_File = m_File.ToPath();
-            RecalculateUsable();
+            SavedFile = SavedFile.ToPath();
+            RecalculateIsUsable();
         }
         #endregion
     }

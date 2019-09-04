@@ -24,14 +24,7 @@ namespace HBP.UI.Informations
         [SerializeField] RectTransform m_ToggleContainer;
 
         [SerializeField] List<Color> m_Colors;
-        Dictionary<Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color> m_ColorsByData = new Dictionary<Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color>();
-        public Dictionary<Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color> ColorsByData
-        {
-            get
-            {
-                return m_ColorsByData;
-            }
-        }
+        public Dictionary<Tuple<int, DataStruct, Data.Experience.Protocol.Bloc>, Color> ColorsByData { get; private set; } = new Dictionary<Tuple<int, DataStruct, Data.Experience.Protocol.Bloc>, Color>();
         Dictionary<Tuple<ROIStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color> m_ColorsByROI = new Dictionary<Tuple<ROIStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color>();
         Dictionary<string, bool> m_StatesByCurves = new Dictionary<string, bool>();
 
@@ -103,35 +96,16 @@ namespace HBP.UI.Informations
 
             Tuple<Graph.Curve[], Tools.CSharp.Window, bool>[] columns = GenerateDataCurve(m_Data, m_Channels);
 
-            Vector2 minMax = new Vector2(float.MaxValue, float.MinValue);
+            List<float> values = new List<float>();
             foreach (var column in columns)
             {
                 foreach (var curve in column.Item1)
                 {
-                    Vector2 curveMinMax = GetMinMax(curve);
-                    if (curveMinMax.x < minMax.x) minMax.x = curveMinMax.x;
-                    if (curveMinMax.y > minMax.y) minMax.y = curveMinMax.y;
+                    values.AddRange(GetValues(curve));
                 }
             }
-            float lenght = minMax.y - minMax.x;
-
-            Vector2 defaultOrdinateDisplayRange = new Vector2(minMax.x - 0.1f * lenght, minMax.y + 0.1f * lenght);
-            Vector2 ordinateDisplayRange;
-            if (lenght != 0)
-            {
-                if (m_useDefaultDisplayRange)
-                {
-                    ordinateDisplayRange = defaultOrdinateDisplayRange;
-                }
-                else
-                {
-                    ordinateDisplayRange = m_OrdinateDisplayRange;
-                }
-            }
-            else
-            {
-                ordinateDisplayRange = new Vector2(minMax.x - Mathf.Abs(minMax.x), minMax.y + Mathf.Abs(minMax.y));
-            }
+            Vector2 defaultOrdinateDisplayRange = values.ToArray().CalculateValueLimit(5);
+            Vector2 ordinateDisplayRange = m_useDefaultDisplayRange ? defaultOrdinateDisplayRange : m_OrdinateDisplayRange;
 
             Vector2[] abscissaDisplayRange = new Vector2[columns.Length];
             for (int c = 0; c < abscissaDisplayRange.Length; c++)
@@ -156,7 +130,6 @@ namespace HBP.UI.Informations
         }
         void AddGraph(Graph.Curve[] curves, Vector2 defaultAbscissaDisplayRange, Vector2 defaultOrdinateDisplayRange, Vector2 abscissaDisplayRange, Vector2 ordinateDisplayRange, bool selected)
         {
-            UnityEngine.Profiling.Profiler.BeginSample("Instantiate graph");
             string name = "";
 
             // Add Graph
@@ -166,9 +139,7 @@ namespace HBP.UI.Informations
             graph.AbscissaDisplayRange = abscissaDisplayRange;
             graph.OrdinateDisplayRange = ordinateDisplayRange;
 
-            UnityEngine.Profiling.Profiler.EndSample();
 
-            UnityEngine.Profiling.Profiler.BeginSample("AddCurves");
             Queue<Graph.Curve> curveQueue = new Queue<Graph.Curve>();
             foreach (var curve in curves)
             {
@@ -184,7 +155,6 @@ namespace HBP.UI.Informations
                     curveQueue.Enqueue(subCurve);
                 }
             }
-            UnityEngine.Profiling.Profiler.EndSample();
 
             Dictionary<string, bool> dico = m_StatesByCurves.ToDictionary((t) => t.Key, (t) => t.Value);
             foreach (var pair in dico)
@@ -283,22 +253,26 @@ namespace HBP.UI.Informations
             return result.ToArray();
         }
         Graph.Curve GenerateDataCurve(ChannelStruct[] channels, DataStruct data, SubBloc[] subBlocs)
-        {
-            Graph.Curve result = new Graph.Curve(data.Data, null, true, data.Data, new Graph.Curve[0], new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1));
+        {     
+            string id = "";
+            if(data is IEEGDataStruct ieegDataStruct) id = ieegDataStruct.Data + "_" + "IEEG";
+            else if(data is CCEPDataStruct ccepDataStruct) id = ccepDataStruct.Data + "_CCEP_" + ccepDataStruct.Source.Patient.CompleteName + "_" + ccepDataStruct.Source.Channel;
+            Graph.Curve result = new Graph.Curve(data.Data, null, true, id, new Graph.Curve[0], new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1));
             foreach (var bloc in data.Blocs)
             {
                 SubBloc subBloc = bloc.Bloc.SubBlocs.FirstOrDefault(s => subBlocs.Contains(s));
                 if (subBloc != null)
                 {
-                    result.AddSubCurve(GenerateBlocCurve(channels, data, bloc.Bloc, subBloc));
+                    result.AddSubCurve(GenerateBlocCurve(channels, data, bloc.Bloc, subBloc, id));
                 }
             }
             if (result.SubCurves.Count == 0) return null;
             return result;
         }
-        Graph.Curve GenerateBlocCurve(ChannelStruct[] channels, DataStruct data, Data.Experience.Protocol.Bloc bloc, SubBloc subBloc)
+        Graph.Curve GenerateBlocCurve(ChannelStruct[] channels, DataStruct data, Data.Experience.Protocol.Bloc bloc, SubBloc subBloc, string id)
         {
-            Graph.Curve result = new Graph.Curve(bloc.Name, null, true, data.Data + "_" + bloc.Name, new Graph.Curve[0], new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1));
+            id = id + "_" + bloc.Name;
+            Graph.Curve result = new Graph.Curve(bloc.Name, null, true, id, new Graph.Curve[0], new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1));
 
             // Patients
             Dictionary<Patient, List<ChannelStruct>> channelsByPatients = new Dictionary<Patient, List<ChannelStruct>>();
@@ -312,56 +286,65 @@ namespace HBP.UI.Informations
             }
             foreach (var pair in channelsByPatients)
             {
-                result.AddSubCurve(GeneratePatientCurve(pair.Value.ToArray(), data, bloc, subBloc));
+                result.AddSubCurve(GeneratePatientCurve(pair.Value.ToArray(), data, bloc, subBloc, id));
             }
 
             // ROIs
             if (data.Blocs.First(b => b.Bloc == bloc).ROIs.Count > 0)
             {
-                result.AddSubCurve(GenerateROIsCurve(data, bloc, subBloc));
+                result.AddSubCurve(GenerateROIsCurve(data, bloc, subBloc, id));
             }
 
             return result;
         }
-        Graph.Curve GeneratePatientCurve(ChannelStruct[] channels, DataStruct data, Data.Experience.Protocol.Bloc bloc, SubBloc subBloc)
+        Graph.Curve GeneratePatientCurve(ChannelStruct[] channels, DataStruct data, Data.Experience.Protocol.Bloc bloc, SubBloc subBloc, string id)
         {
-            Graph.Curve result = new Graph.Curve(channels[0].Patient.Name, null, true, data.Data + "_" + bloc.Name + "_" + channels[0].Patient.Name, new Graph.Curve[0], new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1));
+            id = id + "_" + channels[0].Patient.Name;
+            Graph.Curve result = new Graph.Curve(channels[0].Patient.Name, null, true, id, new Graph.Curve[0], new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1));
             foreach (var channel in channels)
             {
-                result.AddSubCurve(GenerateChannelCurve(channel, data, bloc, subBloc));
+                result.AddSubCurve(GenerateChannelCurve(channel, data, bloc, subBloc, id));
             }
             return result;
         }
-        Graph.Curve GenerateROIsCurve(DataStruct data, Data.Experience.Protocol.Bloc bloc, SubBloc subBloc)
+        Graph.Curve GenerateROIsCurve(DataStruct data, Data.Experience.Protocol.Bloc bloc, SubBloc subBloc, string id)
         {
+            id = id + "_ROI";
             Graph.Curve result = new Graph.Curve("ROI", null, true, data.Data + "_" + bloc.Name + "_ROI", new Graph.Curve[0], new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1));
             BlocStruct blocStruct = data.Blocs.First(b => b.Bloc == bloc);
             foreach (var ROI in blocStruct.ROIs)
             {
-                result.AddSubCurve(GenerateROICurve(data, ROI, bloc, subBloc));
+                result.AddSubCurve(GenerateROICurve(data, ROI, bloc, subBloc, id));
             }
             return result;
         }
-        Graph.Curve GenerateROICurve(DataStruct data, ROIStruct ROI, Data.Experience.Protocol.Bloc bloc, SubBloc subBloc)
+        Graph.Curve GenerateROICurve(DataStruct data, ROIStruct ROI, Data.Experience.Protocol.Bloc bloc, SubBloc subBloc, string id)
         {
-            string ID = data.Data + "_" + bloc.Name + "_ROI_" + ROI.Name;
-
+           id = id + "_" + ROI.Name;
 
             CurveData curveData = null;
             Dictionary<Patient, List<string>> ChannelsByPatient = new Dictionary<Patient, List<string>>();
             foreach (var channel in ROI.Channels)
             {
-                if (!ChannelsByPatient.ContainsKey(channel.Patient))
-                {
-                    ChannelsByPatient.Add(channel.Patient, new List<string>());
-                }
+                ChannelsByPatient.AddIfAbsent(channel.Patient, new List<string>());
                 ChannelsByPatient[channel.Patient].Add(channel.Channel);
             }
             Dictionary<Patient, PatientDataInfo> DataInfoByPatient = new Dictionary<Patient, PatientDataInfo>(ChannelsByPatient.Count);
-            PatientDataInfo[] patientDataInfos = data.Dataset.GetPatientDataInfos();
-            foreach (var patient in ChannelsByPatient.Keys)
+            if(data is IEEGDataStruct ieegDataStruct)
             {
-                DataInfoByPatient.Add(patient, patientDataInfos.First(d => d.Patient == patient && d.Name == data.Data));
+                iEEGDataInfo[] ieegDataInfo = ieegDataStruct.Dataset.GetIEEGDataInfos();
+                foreach (var patient in ChannelsByPatient.Keys)
+                {
+                    DataInfoByPatient.Add(patient, ieegDataInfo.First(d => d.Patient == patient && d.Name == ieegDataStruct.Data));
+                }
+            }
+            else if(data is CCEPDataStruct ccepDataStruct)
+            {
+                CCEPDataInfo[] ccepDataInfo = ccepDataStruct.Dataset.GetCCEPDataInfos();
+                foreach (var patient in ChannelsByPatient.Keys)
+                {
+                    DataInfoByPatient.Add(patient, ccepDataInfo.First(d => d.Patient == patient && d.Patient == ccepDataStruct.Source.Patient && d.StimulatedChannel == ccepDataStruct.Source.Channel && d.Name == ccepDataStruct.Data));
+                }
             }
 
             Dictionary<ChannelStruct, BlocChannelStatistics> StatsByChannel = new Dictionary<ChannelStruct, BlocChannelStatistics>(ROI.Channels.Count);
@@ -418,16 +401,16 @@ namespace HBP.UI.Informations
                 curveData = CurveData.CreateInstance(points, color);
             }
 
-            Graph.Curve result = new Graph.Curve(ROI.Name, curveData, true, ID, new Graph.Curve[0], new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1));
+            Graph.Curve result = new Graph.Curve(ROI.Name, curveData, true, id, new Graph.Curve[0], new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1));
             return result;
         }
-        Graph.Curve GenerateChannelCurve(ChannelStruct channel, DataStruct data, Data.Experience.Protocol.Bloc bloc, SubBloc subBloc)
+        Graph.Curve GenerateChannelCurve(ChannelStruct channel, DataStruct data, Data.Experience.Protocol.Bloc bloc, SubBloc subBloc, string id)
         {
-            string ID = data.Data + "_" + bloc.Name + "_" + channel.Patient.Name + "_" + channel.Channel;
+            id = id + "_" + channel.Channel;
             ChannelBloc channelBloc = m_TrialMatrixGrid.Data.First(d => d.GridData.DataStruct == data).Blocs.First(b => b.Data.Data == bloc).ChannelBlocs.First(c => c.Data.Channel == channel);
 
             CurveData curveData = GetCurveData(channel, data, bloc, subBloc, channelBloc.TrialIsSelected);
-            Graph.Curve result = new Graph.Curve(channel.Channel, curveData, true, ID, new Graph.Curve[0], new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1));
+            Graph.Curve result = new Graph.Curve(channel.Channel, curveData, true, id, new Graph.Curve[0], new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1));
 
             channelBloc.OnChangeTrialSelected.AddListener(() => { result.Data = GetCurveData(channel, data, bloc, subBloc, channelBloc.TrialIsSelected); });
             return result;
@@ -435,9 +418,17 @@ namespace HBP.UI.Informations
         CurveData GetCurveData(ChannelStruct channel, DataStruct data, Data.Experience.Protocol.Bloc bloc, SubBloc subBloc, bool[] selected)
         {
             CurveData result = null;
-            PatientDataInfo dataInfo = data.Dataset.GetPatientDataInfos().First(d => (d.Patient == channel.Patient && d.Name == data.Data));
+            PatientDataInfo dataInfo = null;
+            if(data is IEEGDataStruct ieegDataStruct)
+            {
+                dataInfo = ieegDataStruct.Dataset.GetIEEGDataInfos().First(d => (d.Patient == channel.Patient && d.Name == ieegDataStruct.Data));
+            }
+            else if(data is CCEPDataStruct ccepDataStruct)
+            {
+                dataInfo = ccepDataStruct.Dataset.GetCCEPDataInfos().First(d => (d.Patient == channel.Patient && d.StimulatedChannel == ccepDataStruct.Source.Channel && d.Patient == ccepDataStruct.Source.Patient && d.Name == ccepDataStruct.Data));
+            }
             BlocChannelData blocChannelData = DataManager.GetData(dataInfo, bloc, channel.Channel);
-            Color color = m_ColorsByData[new Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>(channel, data, bloc)];
+            Color color = ColorsByData[new Tuple<int, DataStruct, Data.Experience.Protocol.Bloc>(Array.IndexOf(m_Channels, channel), data, bloc)];
 
             ChannelTrial[] validTrials = blocChannelData.Trials.Where(t => t.IsValid).ToArray();
             List<ChannelTrial> trialsToUse = new List<ChannelTrial>(blocChannelData.Trials.Length);
@@ -500,31 +491,22 @@ namespace HBP.UI.Informations
         }
         void GenerateColors(ChannelStruct[] channels, DataStruct[] data)
         {
-            Dictionary<Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color> channelColor = new Dictionary<Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color>();
-            foreach (var channel in channels)
+            for (int i = 0; i < channels.Length; i++)
             {
                 foreach (var d in data)
                 {
                     foreach (var bloc in d.Blocs)
                     {
-                        Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc> key = new Tuple<ChannelStruct, DataStruct, Data.Experience.Protocol.Bloc>(channel, d, bloc.Bloc);
-                        if (!channelColor.ContainsKey(key))
+                        Tuple<int, DataStruct, Data.Experience.Protocol.Bloc> key = new Tuple<int, DataStruct, Data.Experience.Protocol.Bloc>(i, d, bloc.Bloc);
+                        if (!ColorsByData.ContainsKey(key))
                         {
-                            if (m_ColorsByData.ContainsKey(key))
-                            {
-                                channelColor.Add(key, m_ColorsByData[key]);
-                            }
-                            else
-                            {
-                                Color color = m_Colors.FirstOrDefault(c => !channelColor.ContainsValue(c));
-                                if (color == null) color = Color.white;
-                                channelColor.Add(key, color);
-                            }
+                            Color color = m_Colors.FirstOrDefault(c => !ColorsByData.ContainsValue(c));
+                            if (color == null) color = Color.white;
+                            ColorsByData.Add(key, color);
                         }
                     }
                 }
             }
-            m_ColorsByData = channelColor;
 
             Dictionary<Tuple<ROIStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color> ROIColor = new Dictionary<Tuple<ROIStruct, DataStruct, Data.Experience.Protocol.Bloc>, Color>();
             foreach (var d in data)
@@ -542,7 +524,7 @@ namespace HBP.UI.Informations
                             }
                             else
                             {
-                                Color color = m_Colors.FirstOrDefault(c => !channelColor.ContainsValue(c) && !ROIColor.ContainsValue(c));
+                                Color color = m_Colors.FirstOrDefault(c => !ColorsByData.ContainsValue(c) && !ROIColor.ContainsValue(c));
                                 if (color == null) color = Color.white;
                                 ROIColor.Add(key, color);
                             }
@@ -553,19 +535,20 @@ namespace HBP.UI.Informations
             m_ColorsByROI = ROIColor;
 
         }
-
-        Vector2 GetMinMax(Graph.Curve curve)
+        List<float> GetValues(Graph.Curve curve)
         {
-            Vector2 result = new Vector2(float.MaxValue, float.MinValue);
-            if (curve.Data != null)
+            List<float> result = new List<float>();
+            if(curve.Data != null)
             {
-                result = new Vector2(curve.Data.Points.Min(p => p.y), curve.Data.Points.Max(p => p.y));
+                int lenght = curve.Data.Points.Length;
+                for (int i = 0; i < lenght; i++)
+                {
+                    result.Add(curve.Data.Points[i].y);
+                }
             }
             foreach (var subCurve in curve.SubCurves)
             {
-                Vector2 curveResult = GetMinMax(subCurve);
-                if (curveResult.x < result.x) result.x = curveResult.x;
-                if (curveResult.y > result.y) result.y = curveResult.y;
+                result.AddRange(GetValues(subCurve));
             }
             return result;
         }

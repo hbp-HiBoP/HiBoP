@@ -34,14 +34,17 @@ namespace HBP.Data.Experience.Dataset
         }
         #endregion
 
-        #region Contructors
+        #region Constructors
         public PatientDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string id) : base(name, dataContainer, id)
         {
             Patient = patient;
         }
-        public PatientDataInfo() : this("Data", new Container.DataContainer(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), Guid.NewGuid().ToString())
+        public PatientDataInfo(string name, Container.DataContainer dataContainer, Patient patient) : base(name, dataContainer)
         {
-
+            Patient = patient;
+        }
+        public PatientDataInfo() : this("Data", new Container.DataContainer(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault())
+        {
         }
         #endregion
 
@@ -54,11 +57,13 @@ namespace HBP.Data.Experience.Dataset
         {
             return new PatientDataInfo(Name, DataContainer, Patient, ID);
         }
-        public override void Copy(object copy)
+        public override void Copy(object obj)
         {
-            base.Copy(copy);
-            PatientDataInfo dataInfo = copy as PatientDataInfo;
-            Patient = dataInfo.Patient;
+            base.Copy(obj);
+            if(obj is PatientDataInfo patientDataInfo)
+            {
+                Patient = patientDataInfo.Patient;
+            }
         }
         #endregion
 

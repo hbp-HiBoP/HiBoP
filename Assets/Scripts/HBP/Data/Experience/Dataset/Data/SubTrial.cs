@@ -47,7 +47,7 @@ namespace HBP.Data.Experience.Dataset
                     {
                         float[] rawValues = RawValuesByChannel[channel];
                         float[] baselineValues = BaselineValuesByChannel[channel];
-                        treatment.Apply(ref rawValues, ref baselineValues, mainEventOccurence.Index - startIndex, frequency);
+                        treatment.Apply(ref rawValues, ref baselineValues, mainEventOccurence.Index - startIndex, mainEventOccurence.Index - baselineStartIndex, frequency);
                         RawValuesByChannel[channel] = rawValues; 
                     }
                 }

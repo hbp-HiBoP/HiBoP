@@ -33,13 +33,13 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Public Methods
-        public override void Apply(ref float[] values, ref float[] baseline, int mainEventIndex, Frequency frequency)
+        public override void Apply(ref float[] values, ref float[] baseline, int windowMainEventIndex, int baselineMainEventIndex, Frequency frequency)
         {
             float ratio = (AfterMax - AfterMin) / (BeforeMax - BeforeMin);
             if (UseOnWindow)
             {
-                int startIndex = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
-                int endIndex = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
+                int startIndex = windowMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
+                int endIndex = windowMainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
                 for (int i = startIndex; i <= endIndex; i++)
                 {
                     values[i] = ratio * (values[i] - BeforeMin) + AfterMin;
@@ -47,8 +47,8 @@ namespace HBP.Data.Experience.Protocol
             }
             if(UseOnBaseline)
             {
-                int startIndex = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Baseline.Start);
-                int endIndex = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Baseline.End);
+                int startIndex = baselineMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Baseline.Start);
+                int endIndex = baselineMainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Baseline.End);
                 for (int i = startIndex; i <= endIndex; i++)
                 {
                     baseline[i] = ratio * (baseline[i] - BeforeMin) + AfterMin;
