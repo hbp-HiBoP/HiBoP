@@ -7,6 +7,7 @@ namespace HBP.UI.Module3D
     {
         #region Properties
         [SerializeField] private SiteInfoDisplayer m_SiteInfoDisplayer;
+        [SerializeField] private AtlasInfoDisplayer m_AtlasInfoDisplayer;
         public ColorPicker ColorPicker;
 
         public GameObject SceneWindowPrefab;
@@ -16,7 +17,9 @@ namespace HBP.UI.Module3D
         private void Awake()
         {
             m_SiteInfoDisplayer.Initialize();
-            
+            m_AtlasInfoDisplayer.Initialize();
+
+
             ApplicationState.Module3D.OnAddScene.AddListener((scene) =>
             {
                 Scene3DWindow sceneWindow = Instantiate(SceneWindowPrefab, transform).GetComponentInChildren<Scene3DWindow>();

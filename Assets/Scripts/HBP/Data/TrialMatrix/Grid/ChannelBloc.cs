@@ -34,7 +34,15 @@ namespace HBP.Data.TrialMatrix.Grid
         #region Constructors
         public ChannelBloc(p.Bloc bloc, DataStruct data, ChannelStruct channel)
         {
-            DataInfo dataInfo = data.Dataset.Data.FirstOrDefault(d => d.Name == data.Data && d.Patient == channel.Patient);
+            DataInfo dataInfo = null;
+            if(data is IEEGDataStruct iEEGDataStruct)
+            {
+                dataInfo = iEEGDataStruct.Dataset.GetIEEGDataInfos().FirstOrDefault(d => d.Name == iEEGDataStruct.Data && d.Patient == channel.Patient);
+            }
+            else if(data is CCEPDataStruct ccepDataStruct)
+            {
+                dataInfo = ccepDataStruct.Dataset.GetCCEPDataInfos().FirstOrDefault(d => d.Name == ccepDataStruct.Data && d.Patient == channel.Patient && d.Patient == ccepDataStruct.Source.Patient && d.StimulatedChannel == ccepDataStruct.Source.Channel);
+            }
 
             UnityEngine.Profiling.Profiler.BeginSample("GetData");
             BlocChannelData blocChannelData = DataManager.GetData(dataInfo, bloc, channel.Channel);

@@ -100,7 +100,7 @@ namespace HBP.UI.TrialMatrix
         [SerializeField] LayoutElement m_RightFillerLayoutElement;
         [SerializeField] GameObject m_EventPrefab;
         [SerializeField] RectTransform m_EventContainer;
-        LayoutElement m_LayoutElement;
+        [SerializeField] LayoutElement m_LayoutElement;
         #endregion
 
         #region Public Methods
@@ -221,8 +221,12 @@ namespace HBP.UI.TrialMatrix
         }
         Color GetColor(float value, Vector2 limits, Color[] colors)
         {
-            float ratio = (value - limits.x) / (limits.y - limits.x);
-            ratio = Mathf.Clamp01(ratio);
+            float ratio = 0.5f;
+            if(limits.y != limits.x)
+            {
+                ratio = (value - limits.x) / (limits.y - limits.x);
+                ratio = Mathf.Clamp01(ratio);
+            }
             int x = Mathf.RoundToInt(ratio * (colors.Length - 1));
             return colors[x];
         }
@@ -291,7 +295,5 @@ namespace HBP.UI.TrialMatrix
             Set(m_Data, m_Colors, m_Limits);
         }
         #endregion
-
-
     }
 }

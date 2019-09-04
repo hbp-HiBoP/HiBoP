@@ -57,15 +57,32 @@ namespace HBP.UI.Experience.Dataset
 
             m_ProtocolDropdown.options = (from protocol in ApplicationState.ProjectLoaded.Protocols select new Dropdown.OptionData(protocol.Name)).ToList();
             m_ProtocolDropdown.onValueChanged.RemoveAllListeners();
-            m_ProtocolDropdown.onValueChanged.AddListener((value) => ItemTemp.Protocol = ApplicationState.ProjectLoaded.Protocols[value]);
+            m_ProtocolDropdown.onValueChanged.AddListener(OnChangeProtocol);
 
             m_DataInfoListGestion.Initialize(m_SubWindows);
+            m_DataInfoListGestion.OnDataInfoNeedCheckErrors.AddListener(CheckErrors);
+            m_DataInfoListGestion.OnAddDataInfo.AddListener((d) => ItemTemp.AddData(d));
+            m_DataInfoListGestion.OnRemoveDataInfo.AddListener((d) => ItemTemp.RemoveData(d));
+            m_DataInfoListGestion.OnUpdateDataInfo.AddListener((d) =>
+            {
+                ItemTemp.RemoveData(d);
+                ItemTemp.AddData(d);
+            });
         }
         protected override void SetFields(d.Dataset objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_ProtocolDropdown.value = ApplicationState.ProjectLoaded.Protocols.IndexOf(objectToDisplay.Protocol);
             m_DataInfoListGestion.Objects = objectToDisplay.Data.ToList();
+        }
+        protected virtual void OnChangeProtocol(int value)
+        {
+            ItemTemp.Protocol = ApplicationState.ProjectLoaded.Protocols[value];
+            m_DataInfoListGestion.UpdateAllObjects();
+        }
+        protected virtual void CheckErrors(d.DataInfo dataInfo)
+        {
+            dataInfo.GetErrors(ItemTemp.Protocol);
         }
         #endregion
     }

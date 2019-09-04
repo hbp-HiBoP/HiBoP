@@ -10,8 +10,7 @@ namespace HBP.UI.Module3D.Tools
     public class EdgeMode : Tool
     {
         #region Properties
-        [SerializeField]
-        private Toggle m_Toggle;
+        [SerializeField] private Toggle m_Toggle;
         #endregion
 
         #region Public Methods

@@ -123,78 +123,110 @@ namespace HBP.UI.Informations
         }
         void GenerateDataStructs()
         {
+            if (!m_Scene.SceneInformation.IsSceneCompletelyLoaded) return;
             List<DataStruct> dataStructs = new List<DataStruct>();
             foreach (var column in m_Scene.ColumnManager.ColumnsIEEG)
             {
                 if (!column.IsMinimized || ApplicationState.UserPreferences.Visualization.Graph.ShowCurvesOfMinimizedColumns)
                 {
-                    Data.Visualization.IEEGColumn columnData = column.ColumnIEEGData;
-                    DataStruct data;
-                    if (dataStructs.Any(d => d.Dataset == columnData.Dataset && d.Data == columnData.DataName))
+                    Data.Experience.Dataset.Dataset dataset = column.ColumnIEEGData.Dataset;
+                    string dataName = column.ColumnIEEGData.DataName;
+                    BlocStruct bloc = new BlocStruct(column.ColumnIEEGData.Bloc);
+                    IEEGDataStruct data = dataStructs.OfType<IEEGDataStruct>().FirstOrDefault(d => d.Dataset == dataset && d.Data == dataName);
+                    if (data == null)
                     {
-                        data = dataStructs.First(d => d.Dataset == columnData.Dataset && d.Data == columnData.DataName);
-                    }
-                    else
-                    {
-                        data = new DataStruct(columnData.Dataset, columnData.DataName, new List<BlocStruct>());
+                        data = new IEEGDataStruct(dataset, dataName);
                         dataStructs.Add(data);
                     }
-                    if(!data.Blocs.Any(b => b.Bloc == columnData.Bloc))
+                    if (!data.Blocs.Any(b => b.Bloc == bloc.Bloc)) data.AddBloc(bloc);
+                    if (column.SelectedROI != null)
                     {
-                        data.AddBloc(new BlocStruct(columnData.Bloc));
+                        ROIStruct ROI = new ROIStruct(column.SelectedROI.Name, column.Sites.Where(s => !s.State.IsOutOfROI && !s.State.IsMasked).Select(site => new ChannelStruct(site)));
+                        data.Blocs.First(b => b == bloc).AddROI(ROI);
                     }
-                    if(column.SelectedROI != null)
+                }
+            }
+            foreach (var column in m_Scene.ColumnManager.ColumnsCCEP)
+            {
+                if ((!column.IsMinimized || ApplicationState.UserPreferences.Visualization.Graph.ShowCurvesOfMinimizedColumns) && column.IsSourceSelected)
+                {
+                    Data.Experience.Dataset.Dataset dataset = column.ColumnCCEPData.Dataset;
+                    ChannelStruct source = new ChannelStruct(column.SelectedSource);
+                    string dataName = column.ColumnCCEPData.DataName;
+                    BlocStruct bloc = new BlocStruct(column.ColumnCCEPData.Bloc);
+                    CCEPDataStruct data = dataStructs.OfType<CCEPDataStruct>().FirstOrDefault(d => d.Dataset == dataset && d.Data == dataName && d.Source == source);
+                    if (data == null)
                     {
-                        ROIStruct ROI = new ROIStruct(column.SelectedROI.Name, column.Sites.Where(s => !s.State.IsOutOfROI && !s.State.IsMasked).Select(s => new ChannelStruct(s.Information.ChannelName, s.Information.Patient)));
-                        data.Blocs.First(b => b.Bloc == columnData.Bloc).AddROI(ROI);
+                        data = new CCEPDataStruct(dataset, dataName, source);
+                        if(m_ChannelStructs.Any(c => c.Patient == source.Patient))
+                        {
+                            dataStructs.Add(data);
+                        }
+                    }
+                    if (!data.Blocs.Contains(bloc)) data.AddBloc(bloc);
+                    if (column.SelectedROI != null)
+                    {
+                        ROIStruct ROI = new ROIStruct(column.SelectedROI.Name, column.Sites.Where(s => !s.State.IsOutOfROI && !s.State.IsMasked).Select(site => new ChannelStruct(site)));
+                        data.Blocs.First(b => b == bloc).AddROI(ROI);
                     }
                 }
             }
             m_DataStructs = dataStructs.ToArray();
+        }
+        void GenerateChannelStructs(IEnumerable<Site> sites)
+        {
+            m_ChannelStructs = sites.Where(s => !s.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray(); // FIXME: it is better to show a "No data for site X" message instead of filtering by IsMasked
+        }
+        void Display()
+        {
+            if (m_ChannelStructs.Length != 0 && m_DataStructs.Length != 0)
+            {
+                ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
+            }
         }
         #endregion
 
         #region Handlers
         void OnSiteInformationRequestHandler(IEnumerable<Site> sites)
         {
-            m_ChannelStructs = sites.Where(s => !s.State.IsMasked).Select(s => new ChannelStruct(s.Information.ChannelName, s.Information.Patient)).ToArray(); // FIXME: it is better to show a "No data for site X" message instead of filtering by IsMasked
-            if (m_ChannelStructs.Length != 0 && m_DataStructs.Length != 0)
-            {
-                ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
-            }
-
+            GenerateChannelStructs(sites);
+            GenerateDataStructs();
+            Display();
         }
         void OnMinimizeColumnHandler()
         {
-            GenerateDataStructs(); if (m_ChannelStructs.Length != 0 && m_DataStructs.Length != 0)
-            {
-                ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
-            }
+            GenerateDataStructs();
+            Display();
         }
         void OnChangeROIHandler()
         {
-            GenerateDataStructs(); if (m_ChannelStructs.Length != 0 && m_DataStructs.Length != 0)
-            {
-                ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
-            }
+            GenerateDataStructs();
+            Display();
         }
         void OnChangeColorMapHandler()
         {
             ColorMap = m_Scene.ColumnManager.BrainColorMapTexture;
+        }
+        void OnChangeSourceHandler()
+        {
+            GenerateDataStructs();
+            Display();
         }
         #endregion
 
         #region Setters
         void SetBase3DScene()
         {
-            if(m_Scene != null)
+            if (m_Scene != null)
             {
                 m_Scene.OnRequestSiteInformation.AddListener(sites => OnSiteInformationRequestHandler(sites));
                 m_Scene.ColumnManager.OnChangeColumnMinimizedState.AddListener(OnMinimizeColumnHandler);
                 m_Scene.ColumnManager.OnUpdateROIMask.AddListener(OnChangeROIHandler);
                 m_Scene.OnChangeColormap.AddListener((t) => OnChangeColorMapHandler());
+                m_Scene.ColumnManager.OnSelectCCEPSource.AddListener(OnChangeSourceHandler);
 
-                ChannelInformations.SetMaxNumberOfTrialMatrixColumn(Bloc.GetNumberOfColumns(m_Scene.ColumnManager.ColumnsIEEG.Select(c => c.ColumnIEEGData.Bloc).Distinct()));
+                int maxNumberOfTrialMatrixColumn = Mathf.Max(Bloc.GetNumberOfColumns(m_Scene.ColumnManager.ColumnsIEEG.Select(c => c.ColumnIEEGData.Bloc).Distinct()), Bloc.GetNumberOfColumns(m_Scene.ColumnManager.ColumnsCCEP.Select(c => c.ColumnCCEPData.Bloc).Distinct()));
+                ChannelInformations.SetMaxNumberOfTrialMatrixColumn(maxNumberOfTrialMatrixColumn);
                 OnChangeColorMapHandler();
 
                 SetColorMap();

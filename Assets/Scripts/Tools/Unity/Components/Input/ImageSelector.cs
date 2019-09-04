@@ -9,7 +9,7 @@ namespace Tools.Unity
     public class ImageSelector : MonoBehaviour
     {
         #region Properties
-        [HideInInspector] public UnityEvent onValueChanged = new UnityEvent();
+        [HideInInspector] public GenericEvent<string> onValueChanged = new GenericEvent<string>();
         public bool interactable
         {
             get
@@ -33,7 +33,7 @@ namespace Tools.Unity
                 if(m_Path != value)
                 {
                     m_Path = value;
-                    onValueChanged.Invoke();
+                    onValueChanged.Invoke(value);
                     LoadImage(value);
                 }
             }

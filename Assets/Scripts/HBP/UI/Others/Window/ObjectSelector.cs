@@ -39,6 +39,8 @@ namespace HBP.UI
                 m_List.MultiSelection = value;
             }
         }
+        public bool OpenModifierWhenSave { get; set; }
+
         public override bool Interactable
         {
             get

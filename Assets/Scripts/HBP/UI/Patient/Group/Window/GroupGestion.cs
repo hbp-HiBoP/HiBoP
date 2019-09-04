@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using System.Linq;
+﻿using System.Linq;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Anatomy
@@ -38,9 +38,13 @@ namespace HBP.UI.Anatomy
         #endregion
 
         #region Private Methods
-        protected override void SetFields()
+        protected override void Initialize()
         {
             m_GroupListGestion.Initialize(m_SubWindows);
+            base.Initialize();
+        }
+        protected override void SetFields()
+        {
             m_GroupListGestion.Objects = ApplicationState.ProjectLoaded.Groups.ToList();
             base.SetFields();
         }

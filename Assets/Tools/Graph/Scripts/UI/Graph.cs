@@ -617,31 +617,30 @@ namespace Tools.Unity.Graph
         void SetOrdinateDisplayRange()
         {
             m_OnChangeOrdinateDisplayRange.Invoke(m_OrdinateDisplayRange);
-            if (m_OrdinateDisplayRange != m_DefaultOrdinateDisplayRange && m_UseDefaultDisplayRange)
+            if (m_OrdinateDisplayRange != m_DefaultOrdinateDisplayRange)
             {
-                m_UseDefaultDisplayRange = false;
+                UseDefaultDisplayRange = false;
                 m_OnChangeUseDefaultRange.Invoke(m_UseDefaultDisplayRange);
             }
-            else if (m_OrdinateDisplayRange == m_DefaultOrdinateDisplayRange && m_OrdinateDisplayRange == m_DefaultOrdinateDisplayRange && !m_UseDefaultDisplayRange)
-            {
-                m_UseDefaultDisplayRange = true;
-                m_OnChangeUseDefaultRange.Invoke(m_UseDefaultDisplayRange);
-
-            }
+            //else if (m_OrdinateDisplayRange == m_DefaultOrdinateDisplayRange && m_OrdinateDisplayRange == m_DefaultOrdinateDisplayRange)
+            //{
+            //    UseDefaultDisplayRange = true;
+            //    m_OnChangeUseDefaultRange.Invoke(m_UseDefaultDisplayRange);
+            //}
         }
         void SetAbscissaDisplayRange()
         {
             m_OnChangeAbscissaDisplayRange.Invoke(m_AbscissaDisplayRange);
-            if (m_AbscissaDisplayRange != m_DefaultAbscissaDisplayRange && m_UseDefaultDisplayRange)
+            if (m_AbscissaDisplayRange != m_DefaultAbscissaDisplayRange)
             {
-                m_UseDefaultDisplayRange = false;
+                UseDefaultDisplayRange = false;
                 m_OnChangeUseDefaultRange.Invoke(m_UseDefaultDisplayRange);
             }
-            else if (m_AbscissaDisplayRange == m_DefaultAbscissaDisplayRange && m_OrdinateDisplayRange == m_DefaultOrdinateDisplayRange && !m_UseDefaultDisplayRange)
-            {
-                m_UseDefaultDisplayRange = true;
-                m_OnChangeUseDefaultRange.Invoke(m_UseDefaultDisplayRange);
-            }
+            //else if (m_AbscissaDisplayRange == m_DefaultAbscissaDisplayRange && m_OrdinateDisplayRange == m_DefaultOrdinateDisplayRange)
+            //{
+            //    UseDefaultDisplayRange = true;
+            //    m_OnChangeUseDefaultRange.Invoke(m_UseDefaultDisplayRange);
+            //}
         }
         void SetDefaultAbscissaDisplayRange()
         {

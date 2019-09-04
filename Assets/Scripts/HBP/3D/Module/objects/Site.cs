@@ -288,12 +288,13 @@ namespace HBP.Module3D
         #region Public Methods
         public void LoadConfiguration(bool firstCall = true)
         {
-            if (firstCall) ResetConfiguration(false);
+            if (firstCall) ResetConfiguration();
             State.IsBlackListed = Configuration.IsBlacklisted;
             State.IsHighlighted = Configuration.IsHighlighted;
             State.Color = Configuration.Color;
             State.Labels = Configuration.Labels.ToList();
-            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         public void SaveConfiguration()
         {
@@ -302,13 +303,14 @@ namespace HBP.Module3D
             Configuration.Color = State.Color;
             Configuration.Labels = State.Labels.ToArray();
         }
-        public void ResetConfiguration(bool firstCall = true)
+        public void ResetConfiguration()
         {
             State.IsBlackListed = false;
             State.IsHighlighted = false;
             State.Color = SiteState.DefaultColor;
             State.Labels = new List<string>();
-            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
     }

@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
-using System.Linq;
 using System.Collections.Generic;
 
 namespace HBP.UI.Visualization
@@ -16,9 +15,14 @@ namespace HBP.UI.Visualization
         {
             get
             {
-                Toggle activeToggle = m_ToggleGroup.ActiveToggles().FirstOrDefault();
-                if (activeToggle != null) return activeToggle.transform.GetSiblingIndex();
-                else return -1;
+                return m_Tabs.FindIndex(t => t.IsActive);
+            }
+            set
+            {
+                if (value >= 0 && value < m_Tabs.Count)
+                {
+                    m_Tabs[value].IsActive = true;
+                }
             }
         }
 
@@ -43,16 +47,16 @@ namespace HBP.UI.Visualization
                 m_Tabs[position].Title = title;
             }
         }
-        public void AddTab(string titleTab = "", int position = -1)
+        public void AddTab(string titleTab = "", int position = -1, bool isActive = false)
         {
             Tab tab = Instantiate(TabPrefab, transform).GetComponent<Tab>();
-            tab.OnValueChanged.AddListener((value) => OnActiveTabChanged.Invoke());
-            tab.Title = titleTab;
-            tab.Group = m_ToggleGroup;
-            tab.IsActive = true;
-
             if (position > -1) m_Tabs.Insert(position, tab);
             else m_Tabs.Add(tab);
+
+            tab.OnValueChanged.AddListener(OnTabChangeValue);
+            tab.Title = titleTab;
+            tab.Group = m_ToggleGroup;
+            tab.IsActive = isActive;
 
             CheckIfButtonsHasToBeInteractable();
         }
@@ -91,6 +95,13 @@ namespace HBP.UI.Visualization
         #endregion
 
         #region Private Methods
+        void OnTabChangeValue(bool value)
+        {
+            if (value)
+            {
+                OnActiveTabChanged.Invoke();
+            }
+        }
         void Awake()
         {
             m_ToggleGroup = GetComponent<ToggleGroup>();

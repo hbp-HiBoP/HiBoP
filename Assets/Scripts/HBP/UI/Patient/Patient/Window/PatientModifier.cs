@@ -23,12 +23,6 @@ namespace HBP.UI.Anatomy
         [SerializeField] ImplantationListGestion m_ImplantationListGestion;
         [SerializeField] Button m_AddImplantationButton, m_RemoveImplantationButton;
 
-        // Connectivity.
-        [SerializeField] ConnectivityListGestion m_ConnectivityListGestion;
-        [SerializeField] Button m_AddConnectivityButton, m_RemoveConnectivityButton;
-
-        [SerializeField] OthersGestion m_OthersGestion;
-
         public override bool Interactable
         {
             get
@@ -60,13 +54,7 @@ namespace HBP.UI.Anatomy
                 m_AddImplantationButton.interactable = value;
                 m_RemoveImplantationButton.interactable = value;
 
-                // Connectivity.
-                m_ConnectivityListGestion.Interactable = value;
-                m_AddConnectivityButton.interactable = value;
-                m_RemoveConnectivityButton.interactable = value;
-
-                // Others.
-                m_OthersGestion.Interactable = value;
+                // Tags.
             }
         }
         #endregion
@@ -79,16 +67,11 @@ namespace HBP.UI.Anatomy
             m_MeshListGestion.Initialize(m_SubWindows);
             m_ImplantationListGestion.Initialize(m_SubWindows);
             m_MRIListGestion.Initialize(m_SubWindows);
-            m_ConnectivityListGestion.Initialize(m_SubWindows);
 
-            m_NameInputField.onValueChanged.RemoveAllListeners();
             m_NameInputField.onValueChanged.AddListener((value) => ItemTemp.Name = value);
-            m_PlaceInputField.onValueChanged.RemoveAllListeners();
             m_PlaceInputField.onValueChanged.AddListener((value) => ItemTemp.Place = value);
-            m_DateInputField.onValueChanged.RemoveAllListeners();
             m_DateInputField.onValueChanged.AddListener((value) => ItemTemp.Date = int.Parse(value));
 
-            m_OthersGestion.Initialize();
         }
         protected override void SetFields(Data.Patient objectToDisplay)
         {
@@ -97,12 +80,9 @@ namespace HBP.UI.Anatomy
             m_DateInputField.text = objectToDisplay.Date.ToString();
 
 
-            m_MeshListGestion.Objects = objectToDisplay.Brain.Meshes;
-            m_ImplantationListGestion.Objects = objectToDisplay.Brain.Implantations;
-            m_MRIListGestion.Objects = objectToDisplay.Brain.MRIs;
-            m_ConnectivityListGestion.Objects = objectToDisplay.Brain.Connectivities;
-
-            m_OthersGestion.Set(objectToDisplay);
+            m_MeshListGestion.Objects = objectToDisplay.Meshes;
+            m_ImplantationListGestion.Objects = objectToDisplay.Implantations;
+            m_MRIListGestion.Objects = objectToDisplay.MRIs;
         }
         #endregion
     }

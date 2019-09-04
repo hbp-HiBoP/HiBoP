@@ -159,6 +159,11 @@ namespace HBP.UI.Module3D
                         Data.Experience.Dataset.DataInfo dataInfo = m_Scene.Visualization.GetDataInfo(site.Information.Patient, columnIEEG.ColumnIEEGData);
                         dataInfoByPatient.Add(site.Information.Patient, dataInfo);
                     }
+                    else if (m_Scene.ColumnManager.SelectedColumn is Column3DCCEP columnCCEP)
+                    {
+                        Data.Experience.Dataset.DataInfo dataInfo = m_Scene.Visualization.GetDataInfo(site.Information.Patient, columnCCEP.ColumnCCEPData);
+                        dataInfoByPatient.Add(site.Information.Patient, dataInfo);
+                    }
                 }
                 // Update progressbar
                 if (m_UpdateUI || i == length - 1)
@@ -185,15 +190,37 @@ namespace HBP.UI.Module3D
                 Site site = sites[i];
                 Vector3 sitePosition = sitePositions[i];
                 Data.Experience.Dataset.DataInfo dataInfo = null;
-                if (m_Scene.ColumnManager.SelectedColumn is Column3DIEEG columnIEEG)
+                if (m_Scene.ColumnManager.SelectedColumn is Column3DDynamic columnIEEG)
                 {
                     dataInfo = dataInfoByPatient[site.Information.Patient];
                 }
                 string dataType = "", dataFiles = "";
                 if (dataInfo != null)
                 {
-                    dataType = dataInfo.DataTypeString;
-                    dataFiles = dataInfo.DataFilesString;
+                    if (dataInfo.DataContainer is Data.Container.BrainVision brainVisionDataContainer)
+                    {
+                        dataType = "BrainVision";
+                        dataFiles = string.Join(";", new string[] { brainVisionDataContainer.Header });
+                    }
+                    else if (dataInfo.DataContainer is Data.Container.EDF edfDataContainer)
+                    {
+                        dataType = "EDF";
+                        dataFiles = string.Join(";", new string[] { edfDataContainer.Path });
+                    }
+                    else if (dataInfo.DataContainer is Data.Container.Elan elanDataContainer)
+                    {
+                        dataType = "ELAN";
+                        dataFiles = string.Join(";", new string[] { elanDataContainer.EEG, elanDataContainer.POS, elanDataContainer.Notes });
+                    }
+                    else if (dataInfo.DataContainer is Data.Container.Micromed micromedDataContainer)
+                    {
+                        dataType = "Micromed";
+                        dataFiles = string.Join(";", new string[] { micromedDataContainer.Path });
+                    }
+                    else
+                    {
+                        throw new Exception("Invalid data container type");
+                    }
                 }
                 // Write in string builder
                 csvBuilder.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9}",

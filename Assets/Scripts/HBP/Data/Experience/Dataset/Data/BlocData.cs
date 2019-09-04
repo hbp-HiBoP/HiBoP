@@ -19,13 +19,13 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Constructors
-        public BlocData(RawData data, Bloc bloc)
+        public BlocData(DynamicData data, Bloc bloc)
         {
             // Find all occurences for each event.
             Dictionary<Event, EventOccurences> occurencesByEvent = bloc.SubBlocs.SelectMany((s) => s.Events).ToDictionary((e) => e, (e) => new EventOccurences(e.Codes.ToDictionary((c) => c, (c) => data.GetOccurences(c).ToArray())));
 
             // Get all occurences for the mainEvent of the mainSubBloc.
-            RawData.Occurence[] MainSubBlocMainEventOccurences = occurencesByEvent[bloc.MainSubBloc.MainEvent].GetOccurences();
+            EventOccurence[] MainSubBlocMainEventOccurences = occurencesByEvent[bloc.MainSubBloc.MainEvent].GetOccurences();
 
             // Initialize loop.
             List<Trial> trials = new List<Trial>(MainSubBlocMainEventOccurences.Length);
@@ -39,6 +39,8 @@ namespace HBP.Data.Experience.Dataset
                 trials.Add(new Trial(data.ValuesByChannel, data.UnitByChannel, startIndex, MainSubBlocMainEventOccurences[i], endIndex, occurencesByEvent, bloc, data.Frequency));
             }
             Trials = SortTrials(bloc, trials).ToArray();
+
+            // TODO : Treatments
         }
         #endregion
 
@@ -68,52 +70,54 @@ namespace HBP.Data.Experience.Dataset
                     string eventName = parts[1];
                     string command = parts[2];
                     SubBloc subBloc = bloc.SubBlocs.FirstOrDefault(s => s.Name == subBlocName);
-                    Event @event = subBloc.Events.FirstOrDefault(e => e.Name == eventName);
-                    if (command == "LATENCY")
+                    if (subBloc != null)
                     {
-                        List<Trial> trialsFound = new List<Trial>();
-                        List<Trial> trialsNotFound = new List<Trial>();
-                        foreach (var trial in ordereredTrials)
+                        Event @event = subBloc.Events.FirstOrDefault(e => e.Name == eventName);
+                        if (@event != null)
                         {
-                            if (trial.SubTrialBySubBloc[subBloc].InformationsByEvent[@event].IsFound)
+                            if (command == "LATENCY")
                             {
-                                trialsFound.Add(trial);
+                                List<Trial> trialsFound = new List<Trial>();
+                                List<Trial> trialsNotFound = new List<Trial>();
+                                foreach (var trial in ordereredTrials)
+                                {
+                                    if (trial.SubTrialBySubBloc[subBloc].InformationsByEvent[@event].IsFound)
+                                    {
+                                        trialsFound.Add(trial);
+                                    }
+                                    else
+                                    {
+                                        trialsNotFound.Add(trial);
+                                    }
+                                }
+                                ordereredTrials = trialsFound.OrderBy(t => t.SubTrialBySubBloc[subBloc].InformationsByEvent[@event].Occurences.First().TimeFromMainEvent);
+                                foreach (var trial in trialsNotFound)
+                                {
+                                    ordereredTrials = ordereredTrials.Append(trial).OrderBy(a => 1); // Trick to convert IEnumerable to IOrderedEnumerable
+                                }
                             }
-                            else
+                            else if (command == "CODE")
                             {
-                                trialsNotFound.Add(trial);
+                                List<Trial> trialsFound = new List<Trial>();
+                                List<Trial> trialsNotFound = new List<Trial>();
+                                foreach (var trial in ordereredTrials)
+                                {
+                                    if (trial.SubTrialBySubBloc[subBloc].InformationsByEvent[@event].IsFound)
+                                    {
+                                        trialsFound.Add(trial);
+                                    }
+                                    else
+                                    {
+                                        trialsNotFound.Add(trial);
+                                    }
+                                }
+                                ordereredTrials = trialsFound.OrderBy(t => t.SubTrialBySubBloc[subBloc].InformationsByEvent[@event].Occurences.First().Code);
+                                foreach (var trial in trialsNotFound)
+                                {
+                                    ordereredTrials = ordereredTrials.Append(trial).OrderBy(a => 1); // Trick to convert IEnumerable to IOrderedEnumerable
+                                }
                             }
                         }
-                        ordereredTrials = trialsFound.OrderBy(t => t.SubTrialBySubBloc[subBloc].InformationsByEvent[@event].Occurences.First().TimeFromMainEvent);
-                        foreach (var trial in trialsNotFound)
-                        {
-                            ordereredTrials = ordereredTrials.Append(trial).OrderBy(a => 1); // Trick to convert IEnumerable to IOrderedEnumerable
-                        }
-                    }
-                    else if (command == "CODE")
-                    {
-                        List<Trial> trialsFound = new List<Trial>();
-                        List<Trial> trialsNotFound = new List<Trial>();
-                        foreach (var trial in ordereredTrials)
-                        {
-                            if (trial.SubTrialBySubBloc[subBloc].InformationsByEvent[@event].IsFound)
-                            {
-                                trialsFound.Add(trial);
-                            }
-                            else
-                            {
-                                trialsNotFound.Add(trial);
-                            }
-                        }
-                        ordereredTrials = trialsFound.OrderBy(t => t.SubTrialBySubBloc[subBloc].InformationsByEvent[@event].Occurences.First().Code);
-                        foreach (var trial in trialsNotFound)
-                        {
-                            ordereredTrials = ordereredTrials.Append(trial).OrderBy(a => 1); // Trick to convert IEnumerable to IOrderedEnumerable
-                        }
-                    }
-                    else
-                    {
-
                     }
                 }
             }
@@ -125,26 +129,26 @@ namespace HBP.Data.Experience.Dataset
         public struct EventOccurences
         {
             #region Properties
-            Dictionary<int, RawData.Occurence[]> m_OccurencesByCode;
+            Dictionary<int, EventOccurence[]> m_OccurencesByCode;
             #endregion
 
             #region Constructors
-            public EventOccurences(Dictionary<int, RawData.Occurence[]> occurencesByCode)
+            public EventOccurences(Dictionary<int, EventOccurence[]> occurencesByCode)
             {
                 m_OccurencesByCode = occurencesByCode;
             }
             #endregion
 
             #region Public Methods
-            public RawData.Occurence[] GetOccurences()
+            public EventOccurence[] GetOccurences()
             {
                 return m_OccurencesByCode.SelectMany((kv) => kv.Value).ToArray();
             }
-            public RawData.Occurence[] GetOccurences(int code)
+            public EventOccurence[] GetOccurences(int code)
             {
                 return m_OccurencesByCode[code];
             }
-            public RawData.Occurence[] GetOccurences(int start, int end)
+            public EventOccurence[] GetOccurences(int start, int end)
             {
                 return m_OccurencesByCode.SelectMany((kv) => kv.Value.Where(o => o.Index >= start && o.Index <= end)).ToArray();
             }

@@ -1,9 +1,7 @@
 ﻿using UnityEngine;
-using System;
 using Tools.CSharp;
 using Tools.Unity;
 using System.Runtime.Serialization;
-using System.IO;
 
 namespace HBP.Data.Experience.Protocol
 {
@@ -20,7 +18,7 @@ namespace HBP.Data.Experience.Protocol
     *     - \a Window.
     */
     [DataContract]
-    public class Icon : ICloneable, ICopiable
+    public class Icon : BaseData
     {
         #region Properties
         /// <summary>
@@ -28,7 +26,6 @@ namespace HBP.Data.Experience.Protocol
         /// </summary>
         [DataMember]
         public string Name { get; set; }
-
         [DataMember(Name = "IllustrationPath")]
         private string m_IllustrationPath = "";
         /// <summary>
@@ -69,15 +66,21 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Constructors
+        public Icon(string name, string path, Vector2Int window, string id): base(id)
+        {
+            Name = name;
+            IllustrationPath = path;
+            Window = new Window(window);
+        }
         /// <summary>
         /// Create a new instance of icon.
         /// </summary>
-        /// <param name="label">Label of the icon.</param>
+        /// <param name="name">Label of the icon.</param>
         /// <param name="path">Path of the icon illustration.</param>
         /// <param name="window">Window of the icon.</param>
-        public Icon(string label, string path, Vector2Int window)
+        public Icon(string name, string path, Vector2Int window): base()
         {
-            Name = label;
+            Name = name;
             IllustrationPath = path;
             Window = new Window(window);
         }
@@ -94,17 +97,19 @@ namespace HBP.Data.Experience.Protocol
         /// Clone the icon instance.
         /// </summary>
         /// <returns>Icon clone.</returns>
-        public object Clone()
+        public override object Clone()
         {
-            return new Icon(Name.Clone() as string, IllustrationPath.Clone() as string, new Vector2Int(Window.Start, Window.End));
+            return new Icon(Name.Clone() as string, IllustrationPath.Clone() as string, new Vector2Int(Window.Start, Window.End), ID);
         }
-
-        public void Copy(object copy)
+        public override void Copy(object obj)
         {
-            Icon icon = copy as Icon;
-            Name = icon.Name;
-            IllustrationPath = icon.IllustrationPath;
-            Window = icon.Window;
+            base.Copy(obj);
+            if(obj is Icon icon)
+            {
+                Name = icon.Name;
+                IllustrationPath = icon.IllustrationPath;
+                Window = icon.Window;
+            }
         }
         #endregion
 

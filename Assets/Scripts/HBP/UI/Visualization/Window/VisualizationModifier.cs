@@ -76,23 +76,26 @@ namespace HBP.UI.Visualization
         }
         public void AddGroups()
         {
-            GroupSelection groupSelection = ApplicationState.WindowsManager.Open<GroupSelection>("Add Group window", Interactable);
-            groupSelection.OnSave.AddListener(() => AddGroups(groupSelection.SelectedGroups));
-            groupSelection.OnClose.AddListener(() => m_SubWindows.Remove(groupSelection));
-            m_SubWindows.Add(groupSelection);
+            ObjectSelector<Group> selector = ApplicationState.WindowsManager.OpenSelector<Group>();
+            selector.Objects = ApplicationState.ProjectLoaded.Groups.ToArray();
+            selector.OnSave.AddListener(() => AddGroups(selector.ObjectsSelected));
+            selector.OnClose.AddListener(() => m_SubWindows.Remove(selector));
+            m_SubWindows.Add(selector);
         }
         public void RemoveGroups()
         {
-            GroupSelection groupSelection = ApplicationState.WindowsManager.Open<GroupSelection>("Remove Group window", Interactable);
-            groupSelection.OnSave.AddListener(() => RemoveGroups(groupSelection.SelectedGroups));
-            groupSelection.OnClose.AddListener(() => m_SubWindows.Remove(groupSelection));
-            m_SubWindows.Add(groupSelection);
+            ObjectSelector<Group> selector = ApplicationState.WindowsManager.OpenSelector<Group>();
+            selector.Objects = ApplicationState.ProjectLoaded.Groups.ToArray();
+            selector.OnSave.AddListener(() => RemoveGroups(selector.ObjectsSelected));
+            selector.OnClose.AddListener(() => m_SubWindows.Remove(selector));
+            m_SubWindows.Add(selector);
         }
         public void AddColumn()
         {
-            BaseColumn column = new IEEGColumn("Column n°"+(ItemTemp.Columns.Count + 1), new BaseConfiguration(), ItemTemp.Patients);
+            Column column = new IEEGColumn("Column n°"+(ItemTemp.Columns.Count + 1), new BaseConfiguration(), ItemTemp.Patients);
             ItemTemp.Columns.Add(column);
-            m_TabGestion.AddTab(column.Name);
+            m_TabGestion.AddTab(column.Name, -1 , true);
+            m_ColumnModifier.Object = column;
         }
         public void RemoveColumn()
         {
@@ -120,7 +123,7 @@ namespace HBP.UI.Visualization
 
             // Column Modifier.
             m_ColumnModifier.OnChangeName.AddListener(m_TabGestion.ChangeTabTitle);
-            m_ColumnModifier.OnChangeColumn.AddListener(column => ItemTemp.Columns[m_TabGestion.ActiveTabIndex] = column);
+            m_ColumnModifier.OnChangeColumn.AddListener(OnChangeColumnHandler);
         }
         protected override void SetFields(Data.Visualization.Visualization objectToDisplay)
         {
@@ -145,9 +148,9 @@ namespace HBP.UI.Visualization
                 {
                     m_TabGestion.AddTab(objectToDisplay.Columns[i].Name);
                 }
+                m_TabGestion.ActiveTabIndex = 0;
             }
         }
-
 
         protected void AddPatients(IEnumerable<Patient> patients)
         {
@@ -180,7 +183,8 @@ namespace HBP.UI.Visualization
                 {
                     m_ColumnModifier.gameObject.SetActive(true);
                 }
-                m_ColumnModifier.Set(ItemTemp.Columns[index], ItemTemp.Patients);
+                m_ColumnModifier.Patients = ItemTemp.Patients.ToArray();
+                m_ColumnModifier.Object = ItemTemp.Columns[index];
             }
             else
             {
@@ -188,6 +192,13 @@ namespace HBP.UI.Visualization
                 {
                     m_ColumnModifier.gameObject.SetActive(false);
                 }
+            }
+        }
+        protected void OnChangeColumnHandler(Column column)
+        {
+            if(ItemTemp != null)
+            {
+                ItemTemp.Columns[m_TabGestion.ActiveTabIndex] = column;
             }
         }
         #endregion

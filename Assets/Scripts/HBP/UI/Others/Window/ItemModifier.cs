@@ -7,14 +7,14 @@ namespace HBP.UI
     {
         #region Properties
         protected T item;
-        public T Item
+        public virtual T Item
         {
             get { return item; }
             set { item = value; ItemTemp = (T)item.Clone(); }
         }
 
         protected T itemTemp;
-        protected T ItemTemp
+        protected virtual T ItemTemp
         {
             get { return itemTemp; }
             set { itemTemp = value; SetFields(itemTemp); }

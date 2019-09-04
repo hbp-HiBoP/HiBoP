@@ -11,19 +11,34 @@ namespace HBP.UI
     public class CreatorWindow : SavableWindow
     {
         #region Properties
-        bool m_IsLoadable = false;
-        public bool IsLoadable
+        bool m_IsLoadableFromFile = false;
+        public bool IsLoadableFromFile
         {
             get
             {
-                return m_IsLoadable;
+                return m_IsLoadableFromFile;
             }
             set
             {
-                m_IsLoadable = value;
+                m_IsLoadableFromFile = value;
                 Set();
             }
         }
+
+        bool m_IsLoadableFromDatabase = false;
+        public bool IsLoadableFromDatabase
+        {
+            get
+            {
+                return m_IsLoadableFromDatabase;
+            }
+            set
+            {
+                m_IsLoadableFromDatabase = value;
+                Set();
+            }
+        }
+
         public CreationType Type { private set; get; }
         [SerializeField] Dropdown m_TypeDropdown;
 
@@ -51,7 +66,8 @@ namespace HBP.UI
         void Set()
         {
             List<Dropdown.OptionData> options = Enum.GetNames(typeof(CreationType)).Select((name) => new Dropdown.OptionData(StringExtension.CamelCaseToWords(name))).ToList();
-            if (!IsLoadable) options.RemoveAll(o => o.text == "From file");
+            if (!IsLoadableFromFile) options.RemoveAll(o => o.text == "From file");
+            if (!IsLoadableFromDatabase) options.RemoveAll(o => o.text == "From database");
             m_TypeDropdown.options = options;
             m_TypeDropdown.value = (int)Type;
             m_TypeDropdown.RefreshShownValue();

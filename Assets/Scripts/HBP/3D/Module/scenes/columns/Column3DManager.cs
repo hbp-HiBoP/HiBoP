@@ -44,9 +44,17 @@ namespace HBP.Module3D
         /// </summary>
         public List<Column3D> Columns { get; } = new List<Column3D>();
         /// <summary>
+        /// Dynamic Columns of the scene
+        /// </summary>
+        public List<Column3DDynamic> ColumnsDynamic { get { return Columns.OfType<Column3DDynamic>().ToList(); } }
+        /// <summary>
         /// IEEG Columns of the scene
         /// </summary>
-        public List<Column3DIEEG> ColumnsIEEG { get { return (from column in Columns where column.Type == Data.Enums.ColumnType.iEEG select (Column3DIEEG)column).ToList(); } }
+        public List<Column3DIEEG> ColumnsIEEG { get { return Columns.OfType<Column3DIEEG>().ToList(); } }
+        /// <summary>
+        /// IEEG Columns of the scene
+        /// </summary>
+        public List<Column3DCCEP> ColumnsCCEP { get { return Columns.OfType<Column3DCCEP>().ToList(); } }
 
         public ReadOnlyCollection<View3D> Views
         {
@@ -159,10 +167,6 @@ namespace HBP.Module3D
                 return MRIs[SelectedMRIID];
             }
         }
-        /// <summary>
-        /// Cube bounding box around the mesh, depending on the cuts
-        /// </summary>
-        public DLL.BBox CubeBoundingBox { get; private set; }
 
         /// <summary>
         /// Null UV vector
@@ -217,112 +221,16 @@ namespace HBP.Module3D
                 }
             }
         }
+
+        /// <summary>
+        /// Manage everything concerning the FMRIs
+        /// </summary>
+        public FMRIManager FMRIManager { get; } = new FMRIManager();
+
+        public bool DisplayAtlas { get; set; }
+        public float AtlasAlpha { get; set; } = 1.0f;
+        public int AtlasSelectedArea { get; set; } = -1;
         
-        /// <summary>
-        /// FMRI associated to this scene
-        /// </summary>
-        public MRI3D FMRI = null;
-        
-        private float m_FMRIAlpha = 0.5f;
-        /// <summary>
-        /// Alpha of the FMRI
-        /// </summary>
-        public float FMRIAlpha
-        {
-            get
-            {
-                return m_FMRIAlpha;
-            }
-            set
-            {
-                if (m_FMRIAlpha != value)
-                {
-                    m_FMRIAlpha = value;
-                    OnUpdateFMRIParameters.Invoke();
-                }
-            }
-        }
-
-        private float m_FMRICalMinFactor = 0.4f;
-        /// <summary>
-        /// Cal min factor of the FMRI
-        /// </summary>
-        public float FMRICalMinFactor
-        {
-            get
-            {
-                return m_FMRICalMinFactor;
-            }
-            set
-            {
-                if (m_FMRICalMinFactor != value)
-                {
-                    m_FMRICalMinFactor = value;
-                    OnUpdateFMRIParameters.Invoke();
-                }
-            }
-        }
-        /// <summary>
-        /// Cal min value of the FMRI
-        /// </summary>
-        public float FMRICalMin
-        {
-            get
-            {
-                if (FMRI == null) return 0;
-                return m_FMRICalMinFactor * (FMRI.Volume.ExtremeValues.ComputedCalMax - FMRI.Volume.ExtremeValues.ComputedCalMin) + FMRI.Volume.ExtremeValues.ComputedCalMin;
-            }
-            set
-            {
-                if (FMRI == null)
-                {
-                    FMRICalMinFactor = 0;
-                    return;
-                }
-                FMRICalMinFactor = (value - FMRI.Volume.ExtremeValues.ComputedCalMin) / (FMRI.Volume.ExtremeValues.ComputedCalMax - FMRI.Volume.ExtremeValues.ComputedCalMin);
-            }
-        }
-
-        private float m_FMRICalMaxFactor = 0.6f;
-        /// <summary>
-        /// Cal max factor of the FMRI
-        /// </summary>
-        public float FMRICalMaxFactor
-        {
-            get
-            {
-                return m_FMRICalMaxFactor;
-            }
-            set
-            {
-                if (m_FMRICalMaxFactor != value)
-                {
-                    m_FMRICalMaxFactor = value;
-                    OnUpdateFMRIParameters.Invoke();
-                }
-            }
-        }
-        /// <summary>
-        /// Cal max value of the FMRI
-        /// </summary>
-        public float FMRICalMax
-        {
-            get
-            {
-                if (FMRI == null) return 0;
-                return m_FMRICalMaxFactor * (FMRI.Volume.ExtremeValues.ComputedCalMax - FMRI.Volume.ExtremeValues.ComputedCalMin) + FMRI.Volume.ExtremeValues.ComputedCalMin;
-            }
-            set
-            {
-                if (FMRI == null)
-                {
-                    FMRICalMaxFactor = 1.0f;
-                    return;
-                }
-                FMRICalMaxFactor = (value - FMRI.Volume.ExtremeValues.ComputedCalMin) / (FMRI.Volume.ExtremeValues.ComputedCalMax - FMRI.Volume.ExtremeValues.ComputedCalMin);
-            }
-        }
-
         /// <summary>
         /// Brain surface color
         /// </summary>
@@ -368,17 +276,17 @@ namespace HBP.Module3D
         /// Prefab for the Column3DIEEG
         /// </summary>
         [SerializeField] private GameObject m_Column3DIEEGPrefab;
+        /// <summary>
+        /// Prefab for the Column3DCCEP
+        /// </summary>
+        [SerializeField] private GameObject m_Column3DCCEPPrefab;
         #endregion
 
         #region Events
         /// <summary>
         /// Event called when changing the selected state of the column manager
         /// </summary>
-        [HideInInspector] public GenericEvent<bool> OnChangeSelectedState = new GenericEvent<bool>();
-        /// <summary>
-        /// Event called when selecting a column
-        /// </summary>
-        [HideInInspector] public GenericEvent<Column3D> OnSelectColumn = new GenericEvent<Column3D>();
+        [HideInInspector] public UnityEvent OnSelect = new UnityEvent();
         /// <summary>
         /// Event called when adding a column
         /// </summary>
@@ -402,7 +310,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when updating the alpha or cal values of the FMRI
         /// </summary>
-        [HideInInspector] public UnityEvent OnUpdateFMRIParameters = new UnityEvent();
+        [HideInInspector] public UnityEvent OnRequestResetIEEG = new UnityEvent();
         /// <summary>
         /// Event called when updating the ROI mask for this column
         /// </summary>
@@ -410,23 +318,19 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when changing the IEEG span values
         /// </summary>
-        [HideInInspector] public GenericEvent<Column3DIEEG> OnUpdateIEEGSpan = new GenericEvent<Column3DIEEG>();
+        [HideInInspector] public GenericEvent<Column3DDynamic> OnUpdateIEEGSpan = new GenericEvent<Column3DDynamic>();
         /// <summary>
         /// Event called when changing the transparency of the IEEG
         /// </summary>
-        [HideInInspector] public GenericEvent<Column3DIEEG> OnUpdateIEEGAlpha = new GenericEvent<Column3DIEEG>();
+        [HideInInspector] public GenericEvent<Column3DDynamic> OnUpdateIEEGAlpha = new GenericEvent<Column3DDynamic>();
         /// <summary>
         /// Event called when changing the gain of the sphere representing the sites
         /// </summary>
-        [HideInInspector] public GenericEvent<Column3DIEEG> OnUpdateIEEGGain = new GenericEvent<Column3DIEEG>();
-        /// <summary>
-        /// Event called when changing the influence of each site on the texture
-        /// </summary>
-        [HideInInspector] public GenericEvent<Column3DIEEG> OnUpdateInfluenceDistance = new GenericEvent<Column3DIEEG>();
+        [HideInInspector] public GenericEvent<Column3DDynamic> OnUpdateIEEGGain = new GenericEvent<Column3DDynamic>();
         /// <summary>
         /// Event called when changing the timeline ID of a column
         /// </summary>
-        [HideInInspector] public GenericEvent<Column3DIEEG> OnUpdateColumnTimelineID = new GenericEvent<Column3DIEEG>();
+        [HideInInspector] public GenericEvent<Column3DDynamic> OnUpdateColumnTimelineID = new GenericEvent<Column3DDynamic>();
         /// <summary>
         /// Event called when minimizing a column
         /// </summary>
@@ -443,6 +347,8 @@ namespace HBP.Module3D
         /// Event called when selecting a source in a column or changing the latency file of a column
         /// </summary>
         [HideInInspector] public UnityEvent OnChangeCCEPParameters = new UnityEvent();
+
+        [HideInInspector] public UnityEvent OnSelectCCEPSource = new UnityEvent();
         #endregion
 
         #region Private Methods
@@ -474,43 +380,41 @@ namespace HBP.Module3D
             }
             foreach (var dllCommonBrainTextureGenerator in DLLCommonBrainTextureGeneratorList) dllCommonBrainTextureGenerator.Dispose();
             foreach (var dllMRIGeometryCutGenerator in DLLMRIGeometryCutGeneratorList) dllMRIGeometryCutGenerator.Dispose();
-            CubeBoundingBox.Dispose();
         }
         /// <summary>
         /// Add a column to the scene
         /// </summary>
         /// <param name="type">Type of the column</param>
-        private void AddColumn(Data.Visualization.BaseColumn baseColumn)
+        private void AddColumn(Data.Visualization.Column baseColumn)
         {
             Column3D column = null;
-            Data.Enums.ColumnType type = baseColumn is Data.Visualization.IEEGColumn ? Data.Enums.ColumnType.iEEG : Data.Enums.ColumnType.Anatomic;
-            switch (type)
+            if (baseColumn is Data.Visualization.AnatomicColumn)
             {
-                case Data.Enums.ColumnType.Anatomic:
-                    column = Instantiate(m_Column3DPrefab, transform.Find("Columns")).GetComponent<Column3D>();
-                    break;
-                case Data.Enums.ColumnType.iEEG:
-                    column = Instantiate(m_Column3DIEEGPrefab, transform.Find("Columns")).GetComponent<Column3DIEEG>();
-                    break;
+                column = Instantiate(m_Column3DPrefab, transform.Find("Columns")).GetComponent<Column3D>();
+            }
+            else if (baseColumn is Data.Visualization.IEEGColumn)
+            {
+                column = Instantiate(m_Column3DIEEGPrefab, transform.Find("Columns")).GetComponent<Column3DIEEG>();
+            }
+            else if (baseColumn is Data.Visualization.CCEPColumn)
+            {
+                column = Instantiate(m_Column3DCCEPPrefab, transform.Find("Columns")).GetComponent<Column3DCCEP>();
             }
             column.gameObject.name = "Column " + Columns.Count;
-            column.OnChangeSelectedState.AddListener((selected) =>
+            column.OnSelect.AddListener(() =>
             {
-                if (selected)
+                foreach (Column3D c in Columns)
                 {
-                    foreach (Column3D c in Columns)
+                    if (c != column)
                     {
-                        if (c != column)
+                        c.IsSelected = false;
+                        foreach (View3D v in c.Views)
                         {
-                            foreach (View3D v in c.Views)
-                            {
-                                v.IsSelected = false;
-                            }
+                            v.IsSelected = false;
                         }
                     }
                 }
-                OnChangeSelectedState.Invoke(selected);
-                if (selected) OnSelectColumn.Invoke(column);
+                OnSelect.Invoke();
             });
             column.OnMoveView.AddListener((view) =>
             {
@@ -543,34 +447,40 @@ namespace HBP.Module3D
             {
                 OnChangeSiteState.Invoke(site);
             });
-            if (type == Data.Enums.ColumnType.iEEG)
+            if (column is Column3DDynamic dynamicColumn)
             {
-                Column3DIEEG columnIEEG = column as Column3DIEEG;
-                columnIEEG.IEEGParameters.OnUpdateSpanValues.AddListener(() =>
+                dynamicColumn.DynamicParameters.OnUpdateSpanValues.AddListener(() =>
                 {
-                    OnUpdateIEEGSpan.Invoke(columnIEEG);
+                    OnUpdateIEEGSpan.Invoke(dynamicColumn);
                     column.IsRenderingUpToDate = false;
                 });
-                columnIEEG.IEEGParameters.OnUpdateAlphaValues.AddListener(() =>
+                dynamicColumn.DynamicParameters.OnUpdateAlphaValues.AddListener(() =>
                 {
-                    OnUpdateIEEGAlpha.Invoke(columnIEEG);
+                    OnUpdateIEEGAlpha.Invoke(dynamicColumn);
                     column.IsRenderingUpToDate = false;
                 });
-                columnIEEG.IEEGParameters.OnUpdateGain.AddListener(() =>
+                dynamicColumn.DynamicParameters.OnUpdateGain.AddListener(() =>
                 {
-                    OnUpdateIEEGGain.Invoke(columnIEEG);
+                    OnUpdateIEEGGain.Invoke(dynamicColumn);
                     column.IsRenderingUpToDate = false;
                 });
-                columnIEEG.IEEGParameters.OnUpdateInfluenceDistance.AddListener(() =>
+                dynamicColumn.DynamicParameters.OnUpdateInfluenceDistance.AddListener(() =>
                 {
-                    OnUpdateInfluenceDistance.Invoke(columnIEEG);
+                    OnRequestResetIEEG.Invoke();
                     column.IsRenderingUpToDate = false;
                 });
-                columnIEEG.OnUpdateCurrentTimelineID.AddListener(() =>
+                dynamicColumn.OnUpdateCurrentTimelineID.AddListener(() =>
                 {
-                    OnUpdateColumnTimelineID.Invoke(columnIEEG);
+                    OnUpdateColumnTimelineID.Invoke(dynamicColumn);
                     column.IsRenderingUpToDate = false;
                 });
+                if (dynamicColumn is Column3DCCEP column3DCCEP)
+                {
+                    column3DCCEP.OnSelectSource.AddListener(() =>
+                    {
+                        OnSelectCCEPSource.Invoke();
+                    });
+                }
             }
             column.Initialize(Columns.Count, baseColumn, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
             column.ResetSplitsNumber(MeshSplitNumber);
@@ -662,9 +572,9 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="type"></param>
         /// <param name="number"></param>
-        public void InitializeColumns(IEnumerable<Data.Visualization.BaseColumn> columns)
+        public void InitializeColumns(IEnumerable<Data.Visualization.Column> columns)
         {
-            foreach (Data.Visualization.BaseColumn column in columns)
+            foreach (Data.Visualization.Column column in columns)
             {
                 AddColumn(column);
             }
@@ -677,16 +587,20 @@ namespace HBP.Module3D
         public void CreateMRITexture(Column3D column, int cutID, int blurFactor)
         {
             column.CutTextures.CreateMRITexture(DLLMRIGeometryCutGeneratorList[cutID], SelectedMRI.Volume, cutID, MRICalMinFactor, MRICalMaxFactor, blurFactor);
-            if (FMRI != null)
+            if (DisplayAtlas)
             {
-                column.CutTextures.ColorCutsTexturesWithFMRI(FMRI.Volume, cutID, m_FMRICalMinFactor, m_FMRICalMaxFactor, m_FMRIAlpha);
+                column.CutTextures.ColorCutsTexturesWithAtlas(cutID, AtlasAlpha, AtlasSelectedArea);
+            }
+            else if (FMRIManager.DisplayFMRI)
+            {
+                FMRIManager.ColorCutTexture(column, cutID);
             }
         }
         /// <summary>
         /// Compute the UVs of the brain for the iEEG activity of a column
         /// </summary>
         /// <param name="column">Column on which to compute the UVs</param>
-        public void ComputeSurfaceBrainUVWithIEEG(Column3DIEEG column)
+        public void ComputeSurfaceBrainUVWithIEEG(Column3DDynamic column)
         {
             for (int ii = 0; ii < MeshSplitNumber; ++ii)
                 column.DLLBrainTextureGenerators[ii].ComputeSurfaceUVIEEG(SplittedMeshes[ii], column);
@@ -739,15 +653,6 @@ namespace HBP.Module3D
             {
                 SelectedColumn.Views.First().IsSelected = true;
             }
-        }
-        /// <summary>
-        /// Update the cube bounding box
-        /// </summary>
-        /// <param name="cuts">Cuts used for the cube bounding box</param>
-        public void UpdateCubeBoundingBox(List<Cut> cuts)
-        {
-            CubeBoundingBox?.Dispose();
-            CubeBoundingBox = SelectedMRI.Volume.GetCubeBoundingBox(cuts);
         }
         #endregion
     }

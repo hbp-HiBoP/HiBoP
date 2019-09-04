@@ -22,10 +22,12 @@ namespace HBP.UI.Visualization
             get { return m_Toggle.group; }
             set { m_Toggle.group = value; }
         }
+
+        bool m_IsActive;
         public bool IsActive
         {
-            get { return m_Toggle.isOn; }
-            set { m_Toggle.isOn = value; }
+            get { return m_IsActive; }
+            set { m_IsActive = value;  m_Toggle.isOn = value; OnValueChanged.Invoke(value); }
         }
 
         UnityEvent<bool> m_OnValueChanged = new Toggle.ToggleEvent();
@@ -53,7 +55,7 @@ namespace HBP.UI.Visualization
         void Awake()
         {
             m_Toggle = GetComponent<Toggle>();
-            m_Toggle.onValueChanged.AddListener((value) => OnValueChanged.Invoke(value));
+            m_Toggle.onValueChanged.AddListener((value) => IsActive = value);
         }
         #endregion
     }

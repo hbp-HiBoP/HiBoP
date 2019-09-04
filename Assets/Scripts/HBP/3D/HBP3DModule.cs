@@ -83,7 +83,7 @@ namespace HBP.Module3D
 
         private List<Base3DScene> m_Scenes = new List<Base3DScene>();
         /// <summary>
-        /// List of loaded scenes
+        /// List of open scenes
         /// </summary>
         public ReadOnlyCollection<Base3DScene> Scenes
         {
@@ -104,14 +104,26 @@ namespace HBP.Module3D
         }
 
         /// <summary>
-        /// Mars atlas index (to get name of mars atlas, broadman etc)
+        /// Mars Atlas Index DLL Object
+        /// This is used to get information about Mars Atlas and Brodmann areas (name, color etc.)
         /// </summary>
         public DLL.MarsAtlasIndex MarsAtlasIndex { get; private set; }
+        /// <summary>
+        /// JuBrain Atlas DLL Object
+        /// This is used to get information about JuBrain Atlas areas (name, color etc.)
+        /// </summary>
+        public DLL.JuBrainAtlas JuBrainAtlas { get; private set; }
 
         /// <summary>
-        /// MNI Objects (Mesh and MRI)
+        /// MNI Objects
+        /// Contains data for the MNI meshes and MRI
         /// </summary>
         public MNIObjects MNIObjects;
+        /// <summary>
+        /// IBC Objects
+        /// Contains data for the IBC contrasts (fMRIs)
+        /// </summary>
+        public IBC.IBCObjects IBCObjects;
         
         /// <summary>
         /// Shared directional light between all scenes
@@ -130,11 +142,6 @@ namespace HBP.Module3D
         /// Prefab corresponding to a scene
         /// </summary>
         [SerializeField] private GameObject m_ScenePrefab;
-
-
-        // FIXME : improve this
-        private string m_FirstSiteToSelectName;
-        private int m_FirstSiteToSelectColumnNumber;
         #endregion
 
         #region Events
@@ -142,6 +149,10 @@ namespace HBP.Module3D
         /// Event called when hovering a site to display its information
         /// </summary>
         [HideInInspector] public GenericEvent<SiteInfo> OnDisplaySiteInformation = new GenericEvent<SiteInfo>();
+        /// <summary>
+        /// Event called when hovering a atlas area to display its information
+        /// </summary>
+        [HideInInspector] public GenericEvent<AtlasInfo> OnDisplayAtlasInformation = new GenericEvent<AtlasInfo>();
         /// <summary>
         /// Event called when a scene is added
         /// </summary>
@@ -196,7 +207,8 @@ namespace HBP.Module3D
             #if UNITY_EDITOR
                 dataDirectory = Application.dataPath + "/Data/";
             #endif
-            MarsAtlasIndex = new DLL.MarsAtlasIndex(dataDirectory + "MarsAtlas/mars_atlas_index.csv");
+            MarsAtlasIndex = new DLL.MarsAtlasIndex(dataDirectory + "Atlases/MarsAtlas/mars_atlas_index.csv");
+            JuBrainAtlas = new DLL.JuBrainAtlas(dataDirectory + "Atlases/JuBrain/jubrain_left_nlin2Stdcolin27.nii.gz", dataDirectory + "Atlases/JuBrain/jubrain_right_nlin2Stdcolin27.nii.gz", dataDirectory + "Atlases/JuBrain/jubrain.json");
         }
         void OnDestroy()
         {
@@ -245,35 +257,33 @@ namespace HBP.Module3D
         {
             Base3DScene scene = Scenes.FirstOrDefault(s => s.Visualization == visualization);
             scene.SaveConfiguration();
-            m_FirstSiteToSelectName = scene.ColumnManager.SelectedColumn.SelectedSite.Information.ChannelName;
-            m_FirstSiteToSelectColumnNumber = scene.ColumnManager.Columns.FindIndex(c => c = scene.ColumnManager.SelectedColumn);
             Data.Visualization.Visualization visualizationToLoad = visualization.Clone() as Data.Visualization.Visualization;
             visualizationToLoad.Name = patient.Name;
             visualizationToLoad.RemoveAllPatients();
             visualizationToLoad.AddPatient(patient);
-            if (patient.Brain.Meshes.FirstOrDefault(m => m.Name == ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization) != null)
+            if (patient.Meshes.FirstOrDefault(m => m.Name == ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization) != null)
             {
                 visualizationToLoad.Configuration.MeshName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization;
             }
-            else if (patient.Brain.Meshes.Count > 0)
+            else if (patient.Meshes.Count > 0)
             {
-                visualizationToLoad.Configuration.MeshName = patient.Brain.Meshes.First().Name;
+                visualizationToLoad.Configuration.MeshName = patient.Meshes.First().Name;
             }
-            if (patient.Brain.MRIs.FirstOrDefault(m => m.Name == ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization) != null)
+            if (patient.MRIs.FirstOrDefault(m => m.Name == ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization) != null)
             {
                 visualizationToLoad.Configuration.MRIName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization;
             }
-            else if (patient.Brain.MRIs.Count > 0)
+            else if (patient.MRIs.Count > 0)
             {
-                visualizationToLoad.Configuration.MRIName = patient.Brain.MRIs.First().Name;
+                visualizationToLoad.Configuration.MRIName = patient.MRIs.First().Name;
             }
-            if (patient.Brain.Implantations.FirstOrDefault(m => m.Name == ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization) != null)
+            if (patient.Implantations.FirstOrDefault(m => m.Name == ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization) != null)
             {
                 visualizationToLoad.Configuration.ImplantationName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization;
             }
-            else if (patient.Brain.Implantations.Count > 0)
+            else if (patient.Implantations.Count > 0)
             {
-                visualizationToLoad.Configuration.ImplantationName = patient.Brain.Implantations.First().Name;
+                visualizationToLoad.Configuration.ImplantationName = patient.Implantations.First().Name;
             }
             LoadScenes(new Data.Visualization.Visualization[] { visualizationToLoad });
         }
@@ -330,8 +340,7 @@ namespace HBP.Module3D
                 LoadingCircle loadingCircle = ApplicationState.LoadingManager.Open();
                 GenericEvent<float, float, LoadingText> OnChangeLoadingProgress = new GenericEvent<float, float, LoadingText>();
                 OnChangeLoadingProgress.AddListener((progress, time, message) => { loadingCircle.ChangePercentage(progress / 2.0f, time, message); });
-                Task visualizationLoadingTask;
-                yield return this.StartCoroutineAsync(visualization.c_Load(OnChangeLoadingProgress), out visualizationLoadingTask);
+                yield return this.StartCoroutineAsync(visualization.c_Load(OnChangeLoadingProgress), out Task visualizationLoadingTask);
                 switch (visualizationLoadingTask.State)
                 {
                     case TaskState.Done:
@@ -344,8 +353,7 @@ namespace HBP.Module3D
                 }
                 if (visualizationLoadingTask.State == TaskState.Done)
                 {
-                    Task sceneLoadingTask;
-                    yield return this.StartCoroutineAsync(c_LoadScene(visualization, OnChangeLoadingProgress), out sceneLoadingTask);
+                    yield return this.StartCoroutineAsync(c_LoadScene(visualization, OnChangeLoadingProgress), out Task sceneLoadingTask);
                     switch (sceneLoadingTask.State)
                     {
                         case TaskState.Done:
@@ -383,16 +391,13 @@ namespace HBP.Module3D
                 try
                 {
                     // Add the listeners
-                    scene.OnChangeSelectedState.AddListener((selected) =>
+                    scene.OnSelect.AddListener(() =>
                     {
-                        if (selected)
+                        foreach (Base3DScene s in m_Scenes)
                         {
-                            foreach (Base3DScene s in m_Scenes)
+                            if (s != scene)
                             {
-                                if (s != scene)
-                                {
-                                    s.IsSelected = false;
-                                }
+                                s.IsSelected = false;
                             }
                         }
                     });
@@ -401,9 +406,6 @@ namespace HBP.Module3D
                     scene.FinalizeInitialization();
                     ApplicationState.Module3D.OnAddScene.Invoke(scene);
                     scene.LoadConfiguration();
-                    scene.SelectFirstSite(m_FirstSiteToSelectName, m_FirstSiteToSelectColumnNumber);
-                    m_FirstSiteToSelectColumnNumber = 0;
-                    m_FirstSiteToSelectName = "";
                 }
                 catch (Exception e)
                 {

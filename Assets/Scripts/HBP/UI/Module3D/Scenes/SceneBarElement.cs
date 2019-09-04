@@ -2,6 +2,7 @@
 using NewTheme.Components;
 using System.Collections;
 using System.Collections.Generic;
+using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -27,7 +28,7 @@ namespace HBP.UI.Module3D
         public void Initialize(Base3DScene scene)
         {
             m_Scene = scene;
-            m_Scene.OnChangeSelectedState.AddListener(SetSelectedState);
+            ApplicationState.Module3D.OnSelectScene.AddSafeListener((s) => SetSelectedState(s == m_Scene), gameObject);
             SetSelectedState(m_Scene.IsSelected);
 
             m_Text.text = scene.Name;
@@ -37,13 +38,13 @@ namespace HBP.UI.Module3D
                 ApplicationState.Module3D.RemoveScene(scene);
             });
 
-            ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
+            ApplicationState.Module3D.OnRemoveScene.AddSafeListener((s) =>
             {
                 if (s == scene)
                 {
                     Destroy(gameObject);
                 }
-            });
+            }, gameObject);
 
             m_Toggle.isOn = true;
             m_Toggle.onValueChanged.AddListener((isOn) =>

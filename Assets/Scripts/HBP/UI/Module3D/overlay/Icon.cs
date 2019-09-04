@@ -30,51 +30,53 @@ namespace HBP.UI.Module3D
 
             scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
-                if (column.Type == Data.Enums.ColumnType.iEEG)
+                if (column is Column3DDynamic)
                 {
                     IsActive = value;
                 }
                 m_CurrentIcon = null;
             });
 
-            switch (column.Type)
+            if (column is Column3DDynamic dynamicColumn)
             {
-                case Data.Enums.ColumnType.Anatomic:
-                    IsActive = false;
-                    break;
-                case Data.Enums.ColumnType.iEEG:
-                    Column3DIEEG col = (Column3DIEEG)column;
-                    m_Icons = col.ColumnIEEGData.Data.IconicScenario.Icons.OrderByDescending((i) => i.StartPosition).ToList();
+                if (dynamicColumn is Column3DIEEG iEEGColumn)
+                {
+                    m_Icons = iEEGColumn.ColumnIEEGData.Data.IconicScenario.Icons.OrderByDescending((i) => i.StartPosition).ToList();
+                }
+                else if (dynamicColumn is Column3DCCEP ccepColumn)
+                {
+                    m_Icons = ccepColumn.ColumnCCEPData.Data.IconicScenario.Icons.OrderByDescending((i) => i.StartPosition).ToList();
+                }
+                dynamicColumn.OnUpdateCurrentTimelineID.AddListener(() =>
+                {
+                    if (!scene.SceneInformation.IsGeneratorUpToDate) return;
 
-                    col.OnUpdateCurrentTimelineID.AddListener(() =>
+                    Data.Visualization.Icon icon = m_Icons.FirstOrDefault((i) => i.StartPosition <= dynamicColumn.Timeline.CurrentIndex && i.EndPosition >= dynamicColumn.Timeline.CurrentIndex);
+                    if (icon == null)
                     {
-                        if (!scene.SceneInformation.IsGeneratorUpToDate) return;
-
-                        Data.Visualization.Icon icon = m_Icons.FirstOrDefault((i) => i.StartPosition <= col.Timeline.CurrentIndex && i.EndPosition >= col.Timeline.CurrentIndex);
-                        if (icon == null)
+                        IsActive = false;
+                        m_CurrentIcon = null;
+                    }
+                    if (icon != m_CurrentIcon)
+                    {
+                        if (!icon.Usable)
                         {
                             IsActive = false;
-                            m_CurrentIcon = null;
+                            m_Image.sprite = m_DefaultSprite;
                         }
-                        if (icon != m_CurrentIcon)
+                        else
                         {
-                            if (!icon.Usable)
-                            {
-                                IsActive = false;
-                                m_Image.sprite = m_DefaultSprite;
-                            }
-                            else
-                            {
-                                IsActive = true;
-                                m_Image.sprite = icon.Illustration;
-                                m_Text.text = icon.Label;
-                            }
-                            m_CurrentIcon = icon;
+                            IsActive = true;
+                            m_Image.sprite = icon.Illustration;
+                            m_Text.text = icon.Label;
                         }
-                    });
-                    break;
-                default:
-                    break;
+                        m_CurrentIcon = icon;
+                    }
+                });
+            }
+            else
+            {
+                IsActive = false;
             }
         }
         #endregion

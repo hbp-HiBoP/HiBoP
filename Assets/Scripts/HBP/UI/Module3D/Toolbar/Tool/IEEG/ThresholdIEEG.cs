@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using HBP.Module3D;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -10,12 +7,9 @@ namespace HBP.UI.Module3D.Tools
     public class ThresholdIEEG : Tool
     {
         #region Properties
-        [SerializeField]
-        private Button m_Button;
-        [SerializeField]
-        private Button m_Auto;
-        [SerializeField]
-        private Module3D.ThresholdIEEG m_ThresholdIEEG;
+        [SerializeField] private Button m_Button;
+        [SerializeField] private Button m_Auto;
+        [SerializeField] private Module3D.ThresholdIEEG m_ThresholdIEEG;
         
         public bool IsGlobal { get; set; }
         #endregion
@@ -26,24 +20,18 @@ namespace HBP.UI.Module3D.Tools
             m_ThresholdIEEG.Initialize();
             m_ThresholdIEEG.OnChangeValues.AddListener((min, mid, max) =>
             {
-                if (IsGlobal)
+                if (ListenerLock) return;
+
+                foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
-                    foreach (HBP.Module3D.Column3DIEEG column in SelectedScene.ColumnManager.ColumnsIEEG)
-                    {
-                        column.IEEGParameters.SetSpanValues(min, mid, max, column);
-                    }
-                }
-                else
-                {
-                    HBP.Module3D.Column3DIEEG column = (HBP.Module3D.Column3DIEEG)SelectedColumn;
-                    column.IEEGParameters.SetSpanValues(min, mid, max, column);
+                    column.DynamicParameters.SetSpanValues(min, mid, max);
                 }
             });
             m_Auto.onClick.AddListener(() =>
             {
-                HBP.Module3D.Column3DIEEG column = (HBP.Module3D.Column3DIEEG)SelectedColumn;
-                column.IEEGParameters.SetSpanValues(0, 0, 0, column);
-                m_ThresholdIEEG.UpdateIEEGValues(((HBP.Module3D.Column3DIEEG)SelectedColumn).IEEGParameters);
+                Column3DDynamic column = (Column3DDynamic)SelectedColumn;
+                column.DynamicParameters.ResetSpanValues(column);
+                m_ThresholdIEEG.UpdateIEEGValues(column);
             });
         }
 
@@ -54,16 +42,17 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isColumnIEEG = SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
+            bool isColumnIEEG = SelectedColumn is Column3DIEEG;
+            bool isColumnCCEPAndSourceSelected = SelectedColumn is HBP.Module3D.Column3DCCEP ccepColumn && ccepColumn.IsSourceSelected;
 
-            m_Button.interactable = isColumnIEEG;
+            m_Button.interactable = isColumnIEEG || isColumnCCEPAndSourceSelected;
         }
 
         public override void UpdateStatus()
         {
-            if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
+            if (SelectedColumn is Column3DDynamic dynamicColumn)
             {
-                m_ThresholdIEEG.UpdateIEEGValues(((HBP.Module3D.Column3DIEEG)SelectedColumn).IEEGParameters);
+                m_ThresholdIEEG.UpdateIEEGValues(dynamicColumn);
             }
         }
         #endregion

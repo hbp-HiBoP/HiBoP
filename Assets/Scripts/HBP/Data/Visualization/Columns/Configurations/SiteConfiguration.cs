@@ -37,7 +37,7 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Color of the site
         /// </summary>
-        [DataMember] private SerializableColor m_Color;
+        [DataMember(Name ="Color")] private SerializableColor m_Color;
         public Color Color
         {
             get

@@ -4,7 +4,7 @@
  * \file    TexturesGenerator.cs
  * \author  Lance Florian
  * \date    2015
- * \brief   Define UITextureGenerator and DLL.BrainTextureGenerator classes
+ * \brief   Define UITextureGenerator and DLLTextureGenerator classes
  */
 
 // system
@@ -133,11 +133,11 @@ namespace HBP.Module3D
             /// <param name="addValues"></param>
             /// <param name="ratioDistances"></param>
             /// <returns></returns>
-            public bool ComputeInfluences(Column3DIEEG IEEGColumn, bool multiCPU, bool addValues = false, int ratioDistances = 0)
+            public bool ComputeInfluences(Column3DDynamic IEEGColumn, bool multiCPU, bool addValues = false, int ratioDistances = 0)
             {
                 bool noError = false;
-                noError = computeInfluences_BrainSurfaceTextureGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.EEGDimensions, IEEGColumn.IEEGParameters.InfluenceDistance, multiCPU ? 1 : 0, addValues ? 1 : 0, ratioDistances,
-                    IEEGColumn.IEEGParameters.Middle, IEEGColumn.IEEGParameters.SpanMin, IEEGColumn.IEEGParameters.SpanMax) == 1;
+                noError = computeInfluences_BrainSurfaceTextureGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.EEGDimensions, IEEGColumn.DynamicParameters.InfluenceDistance, multiCPU ? 1 : 0, addValues ? 1 : 0, ratioDistances,
+                    IEEGColumn.DynamicParameters.Middle, IEEGColumn.DynamicParameters.SpanMin, IEEGColumn.DynamicParameters.SpanMax) == 1;
                 ApplicationState.DLLDebugManager.check_error();
 
                 if(!noError)
@@ -148,9 +148,9 @@ namespace HBP.Module3D
             /// <summary>
             /// 
             /// </summary>
-            public void AdjustInfluencesToColormap(Column3DIEEG column3DIEEG)
+            public void AdjustInfluencesToColormap(Column3DDynamic column3DIEEG)
             {
-                ajustInfluencesToColormap_BrainSurfaceTextureGenerator( _handle, column3DIEEG.IEEGParameters.Middle, column3DIEEG.IEEGParameters.SpanMin, column3DIEEG.IEEGParameters.SpanMax);
+                ajustInfluencesToColormap_BrainSurfaceTextureGenerator( _handle, column3DIEEG.DynamicParameters.Middle, column3DIEEG.DynamicParameters.SpanMin, column3DIEEG.DynamicParameters.SpanMax);
             }
             /// <summary>
             /// 
@@ -169,10 +169,10 @@ namespace HBP.Module3D
             /// <param name="surface"></param>
             /// <param name="IEEGColumn"></param>
             /// <returns></returns>
-            public bool ComputeSurfaceUVIEEG(DLL.Surface surface, Column3DIEEG IEEGColumn)
+            public bool ComputeSurfaceUVIEEG(DLL.Surface surface, Column3DDynamic IEEGColumn)
             {                
                 bool noError = false;
-                noError = computeSurfaceTextCoordAmplitudes_BrainSurfaceTextureGenerator( _handle, surface.getHandle(), IEEGColumn.Timeline.CurrentIndex, IEEGColumn.IEEGParameters.AlphaMin, IEEGColumn.IEEGParameters.AlphaMax) == 1;
+                noError = computeSurfaceTextCoordAmplitudes_BrainSurfaceTextureGenerator( _handle, surface.getHandle(), IEEGColumn.Timeline.CurrentIndex, IEEGColumn.DynamicParameters.AlphaMin, IEEGColumn.DynamicParameters.AlphaMax) == 1;
 
                 int m_nbVertices = surface.NumberOfVertices;
                 if (m_nbVertices == 0) // mesh is empty

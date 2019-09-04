@@ -433,6 +433,8 @@ namespace HBP.Module3D.DLL
         [DllImport("hbp_export", EntryPoint = "cube_bounding_box_Volume", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr cube_bounding_box_Volume(HandleRef handleSurface, float[] planes, int planesCount);
 
+        
+
         //// memory management        
         //delegate IntPtr create_Volume();
         //delegate void delete_Volume(HandleRef handleVolume);

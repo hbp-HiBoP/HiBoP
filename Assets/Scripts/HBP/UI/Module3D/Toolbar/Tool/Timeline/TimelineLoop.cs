@@ -42,17 +42,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                List<HBP.Module3D.Column3DIEEG> columns = new List<HBP.Module3D.Column3DIEEG>();
-                if (IsGlobal)
-                {
-                    columns = SelectedScene.ColumnManager.ColumnsIEEG.ToList();
-                }
-                else
-                {
-                    columns.Add((HBP.Module3D.Column3DIEEG)SelectedColumn);
-                }
-
-                foreach (HBP.Module3D.Column3DIEEG column in columns)
+                foreach (HBP.Module3D.Column3DDynamic column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
                     column.Timeline.IsLooping = m_Toggle.isOn;
                 }
@@ -67,17 +57,17 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isColumnIEEG = SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
+            bool isColumnDynamic = SelectedColumn is HBP.Module3D.Column3DDynamic;
             bool areAmplitudesComputed = SelectedScene.SceneInformation.IsGeneratorUpToDate;
 
-            m_Toggle.interactable = isColumnIEEG && areAmplitudesComputed;
+            m_Toggle.interactable = isColumnDynamic && areAmplitudesComputed;
         }
 
         public override void UpdateStatus()
         {
-            if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
+            if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)
             {
-                m_Toggle.isOn = ((HBP.Module3D.Column3DIEEG)SelectedColumn).Timeline.IsLooping;
+                m_Toggle.isOn = dynamicColumn.Timeline.IsLooping;
             }
             else
             {

@@ -12,6 +12,7 @@ using CielaSpike;
 using Tools.Unity;
 using UnityEngine.Events;
 using Ionic.Zip;
+using Tools.CSharp;
 
 namespace HBP.Data.General
 {
@@ -154,7 +155,7 @@ namespace HBP.Data.General
             AddPatient(patients);
             foreach (Dataset dataset in m_Datasets)
             {
-                dataset.RemoveData(from data in dataset.Data where !m_Patients.Any(p => p == data.Patient) select data);
+                dataset.RemoveData(from data in dataset.GetPatientDataInfos() where !m_Patients.Any(p => p == data.Patient) select data);
             }
             foreach (Visualization.Visualization visualization in m_Visualizations)
             {
@@ -184,7 +185,7 @@ namespace HBP.Data.General
             }
             foreach (Dataset dataset in m_Datasets)
             {
-                dataset.RemoveData(from data in dataset.Data where data.Patient == patient select data);
+                dataset.RemoveData(from data in dataset.GetPatientDataInfos() where data.Patient == patient select data);
             }
             foreach(Visualization.Visualization visualization in m_Visualizations)
             {
@@ -236,7 +237,7 @@ namespace HBP.Data.General
             foreach (Visualization.Visualization visualization in m_Visualizations)
             {
                 IEEGColumn[] columnsToRemove = visualization.Columns.Where(c => c is IEEGColumn).Select(c => c as IEEGColumn).Where(c => !m_Protocols.Any(p => p == c.Dataset.Protocol)).ToArray();
-                foreach (BaseColumn column in columnsToRemove)
+                foreach (Column column in columnsToRemove)
                 {
                     visualization.Columns.Remove(column);
                 }
@@ -276,8 +277,8 @@ namespace HBP.Data.General
             AddDataset(datasets);
             foreach (Visualization.Visualization visualization in m_Visualizations)
             {
-                BaseColumn[] columnsToRemove = visualization.Columns.Where(column => column is IEEGColumn && !m_Datasets.Any(d => d == (column as IEEGColumn).Dataset)).ToArray();
-                foreach (BaseColumn column in columnsToRemove)
+                Column[] columnsToRemove = visualization.Columns.Where(column => column is IEEGColumn && !m_Datasets.Any(d => d == (column as IEEGColumn).Dataset)).ToArray();
+                foreach (Column column in columnsToRemove)
                 {
                     visualization.Columns.Remove(column);
                 }
@@ -624,25 +625,35 @@ namespace HBP.Data.General
             SetVisualizations(visualizations.ToArray());
             outPut(progress);
         }
-        IEnumerator c_CheckDatasets(GenericEvent<float, float, LoadingText> OnChangeProgress)
+        public IEnumerator c_CheckDatasets(GenericEvent<float, float, LoadingText> OnChangeProgress, IEnumerable<Protocol> protocols = null)
         {
             yield return Ninja.JumpBack;
             int count = 1;
-            int length = m_Datasets.SelectMany(d => d.Data).Count();
+
+            IEnumerable<Dataset> datasets = protocols == null? m_Datasets: m_Datasets.Where(d => protocols.Contains(d.Protocol));
+            int length = datasets.SelectMany(d => d.Data).Count();
             float progress = 1.0f;
             float progressStep = 1.0f / length;
-            for (int i = 0; i < m_Datasets.Count; ++i)
+            foreach (var dataset in datasets)
             {
-                Dataset dataset = m_Datasets[i];
                 for (int j = 0; j < dataset.Data.Length; ++j, ++count)
                 {
                     DataInfo data = dataset.Data[j];
                     data.GetErrors(dataset.Protocol);
                     progress += progressStep;
 
+                    string message = "";
+                    if (data is PatientDataInfo patientDataInfo)
+                    {
+                        message = patientDataInfo.Name + " | " + dataset.Protocol.Name + " | " + patientDataInfo.Patient.Name;
+                    }
+                    else
+                    {
+                        message = data.Name + " | " + dataset.Protocol.Name;
+                    }
                     // DEBUG
                     yield return Ninja.JumpToUnity;
-                    OnChangeProgress.Invoke(progress, 0, new LoadingText("Checking ", data.Name + " | " + dataset.Protocol.Name + " | " + data.Patient.Name, " [" + count + "/" + length + "]"));
+                    OnChangeProgress.Invoke(progress, 0, new LoadingText("Checking ", message, " [" + count + "/" + length + "]"));
                     yield return Ninja.JumpBack;
                 }
             }
@@ -809,10 +820,10 @@ namespace HBP.Data.General
                     yield return Ninja.JumpBack;
 
                     DirectoryInfo patientDirectory = Directory.CreateDirectory(Path.Combine(patientsDirectory.FullName, patient.ID));
-                    if (patient.Brain.Meshes.Count > 0)
+                    if (patient.Meshes.Count > 0)
                     {
                         DirectoryInfo meshesDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "Meshes"));
-                        foreach (var mesh in patient.Brain.Meshes)
+                        foreach (var mesh in patient.Meshes)
                         {
                             if (mesh is Anatomy.SingleMesh)
                             {
@@ -831,29 +842,21 @@ namespace HBP.Data.General
                             mesh.Transformation = mesh.Transformation.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
                         }
                     }
-                    if (patient.Brain.MRIs.Count > 0)
+                    if (patient.MRIs.Count > 0)
                     {
                         DirectoryInfo mriDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "MRIs"));
-                        foreach (var mri in patient.Brain.MRIs)
+                        foreach (var mri in patient.MRIs)
                         {
                             mri.File = mri.File.CopyToDirectory(mriDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
                         }
                     }
-                    if (patient.Brain.Implantations.Count > 0)
+                    if (patient.Implantations.Count > 0)
                     {
                         DirectoryInfo implantationsDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "Implantations"));
-                        foreach (var implantation in patient.Brain.Implantations)
+                        foreach (var implantation in patient.Implantations)
                         {
                             implantation.File = implantation.File.CopyToDirectory(implantationsDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
                             implantation.MarsAtlas = implantation.MarsAtlas.CopyToDirectory(implantationsDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
-                        }
-                    }
-                    if (patient.Brain.Connectivities.Count > 0)
-                    {
-                        DirectoryInfo connectivitiesDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "Connectivities"));
-                        foreach (var connectivity in patient.Brain.Connectivities)
-                        {
-                            connectivity.File = connectivity.File.CopyToDirectory(connectivitiesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
                         }
                     }
                 }
@@ -876,7 +879,7 @@ namespace HBP.Data.General
                         {
                             DirectoryInfo dataInfoDirectory = new DirectoryInfo(Path.Combine(datasetDirectory.FullName, data.Name));
                             if (!dataInfoDirectory.Exists) dataInfoDirectory = Directory.CreateDirectory(dataInfoDirectory.FullName);
-                            data.CopyDataToDirectory(dataInfoDirectory, projectDirectory.FullName, oldProjectDirectory);
+                            data.DataContainer.CopyDataToDirectory(dataInfoDirectory, projectDirectory.FullName, oldProjectDirectory);
                         }
                     }
                 }

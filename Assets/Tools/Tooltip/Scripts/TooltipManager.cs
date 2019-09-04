@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace Tools.Unity
@@ -11,54 +9,41 @@ namespace Tools.Unity
         private static Vector3 m_Offset = new Vector3(0, -20, 0);
         public const float TIME_TO_DISPLAY = 0.7f;
 
-        private bool m_IsTooltipDisplayed = false;
-        public bool IsTooltipDisplayed
-        {
-            get
-            {
-                return m_IsTooltipDisplayed;
-            }
-        }
+        public bool IsTooltipDisplayed { get; private set; } = false;
 
         private float m_TimeBeforeHiding = TIME_TO_DISPLAY;
-        private bool m_TooltipHasBeenDisplayedRecently = false;
-        public bool TooltipHasBeenDisplayedRecently
-        {
-            get
-            {
-                return m_TooltipHasBeenDisplayedRecently;
-            }
-        }
+        public bool TooltipHasBeenDisplayedRecently { get; private set; } = false;
 
         private bool m_FollowMouse = false;
 
         /// <summary>
         /// Canvas on which the tooltip is displayed
         /// </summary>
-        [SerializeField]
-        private RectTransform m_Canvas;
+        [SerializeField] RectTransform m_Canvas;
         /// <summary>
         /// Tooltip's RectTransform
         /// </summary>
-        [SerializeField]
-        private RectTransform m_Tooltip;
+        [SerializeField] RectTransform m_Tooltip;
         /// <summary>
         /// Tooltip's Textfield
         /// </summary>
-        [SerializeField]
-        private Text m_TextField;
+        [SerializeField] Text m_TextField;
+        /// <summary>
+        /// Tooltip's Icon
+        /// </summary>
+        [SerializeField] Image m_ImageField;
         #endregion
 
         #region Private Methods
         private void Update()
         {
-            if (!m_IsTooltipDisplayed)
+            if (!IsTooltipDisplayed)
             {
                 m_TimeBeforeHiding -= Time.deltaTime;
             }
             if (m_TimeBeforeHiding < 0)
             {
-                m_TooltipHasBeenDisplayedRecently = false;
+                TooltipHasBeenDisplayedRecently = false;
             }
             if(m_FollowMouse)
             {
@@ -87,21 +72,27 @@ namespace Tools.Unity
         #endregion
 
         #region Public Methods
-        public void ShowTooltip(string text, bool followMouse = false)
+        public void ShowTooltip(string text, Sprite icon, bool followMouse = false)
         {
             m_FollowMouse = followMouse;
             m_Tooltip.gameObject.SetActive(true);
             m_TextField.text = text;
+            if (icon != null)
+            {
+                m_ImageField.sprite = icon;
+                m_ImageField.gameObject.SetActive(true);
+            }
+            else m_ImageField.gameObject.SetActive(false);
             MoveAtMousePosition();
 
-            m_IsTooltipDisplayed = true;
-            m_TooltipHasBeenDisplayedRecently = true;
+            IsTooltipDisplayed = true;
+            TooltipHasBeenDisplayedRecently = true;
             m_TimeBeforeHiding = TIME_TO_DISPLAY;
         }
         public void HideTooltip()
         {
             m_Tooltip.gameObject.SetActive(false);
-            m_IsTooltipDisplayed = false;
+            IsTooltipDisplayed = false;
         }
         #endregion
     }

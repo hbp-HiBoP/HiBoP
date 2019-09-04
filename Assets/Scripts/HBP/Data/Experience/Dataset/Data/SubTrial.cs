@@ -29,17 +29,29 @@ namespace HBP.Data.Experience.Dataset
             BaselineValuesByChannel = baselineValuesByChannel;
             Found = found;
         }
-        public SubTrial(Dictionary<string, float[]> valuesByChannel, Dictionary<string, string> unitByChannel, RawData.Occurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Tools.CSharp.EEG.Frequency frequency)
+        public SubTrial(Dictionary<string, float[]> valuesByChannel, Dictionary<string, string> unitByChannel, EventOccurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Tools.CSharp.EEG.Frequency frequency)
         {
             int startIndex = mainEventOccurence.Index + frequency.ConvertToCeiledNumberOfSamples(subBloc.Window.Start);
             int endIndex = mainEventOccurence.Index + frequency.ConvertToFlooredNumberOfSamples(subBloc.Window.End);
+            int baselineStartIndex = mainEventOccurence.Index + frequency.ConvertToCeiledNumberOfSamples(subBloc.Baseline.Start);
+            int baselineEndIndex = mainEventOccurence.Index + frequency.ConvertToFlooredNumberOfSamples(subBloc.Baseline.End);
             if (startIndex >= 0)
             {
                 RawValuesByChannel = EpochValues(valuesByChannel, startIndex, endIndex);
+                BaselineValuesByChannel = EpochValues(valuesByChannel, baselineStartIndex, baselineEndIndex);
                 UnitByChannel = unitByChannel;
-                ValuesByChannel = RawValuesByChannel.ToDictionary(kv => kv.Key, kv => kv.Value.Clone() as float[]);
-                BaselineValuesByChannel = EpochValues(valuesByChannel, startIndex, endIndex);
                 InformationsByEvent = FindEvents(mainEventOccurence, subBloc, occurencesByEvent, frequency);
+                foreach (var treatment in subBloc.Treatments.OrderBy(t => t.Order))
+                {
+                    foreach (var channel in RawValuesByChannel.Keys.ToArray())
+                    {
+                        float[] rawValues = RawValuesByChannel[channel];
+                        float[] baselineValues = BaselineValuesByChannel[channel];
+                        treatment.Apply(ref rawValues, ref baselineValues, mainEventOccurence.Index - startIndex, mainEventOccurence.Index - baselineStartIndex, frequency);
+                        RawValuesByChannel[channel] = rawValues; 
+                    }
+                }
+                ValuesByChannel = RawValuesByChannel.ToDictionary(kv => kv.Key, kv => kv.Value.Clone() as float[]);
                 Found = true;
             }
             else
@@ -92,8 +104,7 @@ namespace HBP.Data.Experience.Dataset
         }
         public void Normalize(float average, float standardDeviation, string channel)
         {
-            float[] values;
-            if (RawValuesByChannel.TryGetValue(channel, out values))
+            if (RawValuesByChannel.TryGetValue(channel, out float[] values))
             {
                 values.Normalize(ValuesByChannel[channel], average, standardDeviation);
             }
@@ -116,7 +127,7 @@ namespace HBP.Data.Experience.Dataset
             }
             return result;
         }
-        Dictionary<Event,EventInformation> FindEvents(RawData.Occurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Tools.CSharp.EEG.Frequency frequency)
+        Dictionary<Event,EventInformation> FindEvents(EventOccurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Tools.CSharp.EEG.Frequency frequency)
         {
             // Initialize
             Dictionary<Event, EventInformation> result = new Dictionary<Event, EventInformation>(subBloc.Events.Count);
@@ -130,7 +141,7 @@ namespace HBP.Data.Experience.Dataset
 
             foreach (var _event in subBloc.SecondaryEvents)
             {
-                RawData.Occurence[] occurences = occurencesByEvent[_event].GetOccurences(startIndex, endIndex);
+                EventOccurence[] occurences = occurencesByEvent[_event].GetOccurences(startIndex, endIndex);
                 List<EventInformation.EventOccurence> eventOccurences = new List<EventInformation.EventOccurence>(occurences.Length);
                 foreach (var occurence in occurences)
                 {

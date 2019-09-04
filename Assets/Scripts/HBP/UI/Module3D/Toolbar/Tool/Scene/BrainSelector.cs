@@ -12,8 +12,7 @@ namespace HBP.UI.Module3D.Tools
     public class BrainSelector : Tool
     {
         #region Properties
-        [SerializeField]
-        private Dropdown m_Dropdown;
+        [SerializeField] private Dropdown m_Dropdown;
         
         public GenericEvent<int> OnChangeValue = new GenericEvent<int>();
         #endregion

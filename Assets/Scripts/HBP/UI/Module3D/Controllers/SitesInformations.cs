@@ -142,10 +142,10 @@ namespace HBP.UI.Module3D
                 }
             });
             m_Scene.OnUpdateSites.AddListener(UpdateList);
-            m_Scene.ColumnManager.OnSelectColumn.AddListener((c) => UpdateList());
+            m_Scene.OnSelect.AddListener(() => UpdateList());
             m_Scene.OnSitesRenderingUpdated.AddListener(() =>
             {
-                m_SiteList.Refresh();
+                UpdateList();
                 m_SiteList.ScrollToObject(m_Scene.ColumnManager.SelectedColumn.SelectedSite);
             });
         }

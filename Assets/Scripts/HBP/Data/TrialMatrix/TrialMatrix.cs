@@ -39,7 +39,7 @@ namespace HBP.Data.TrialMatrix
         #endregion
 
         #region Constructor
-        public TrialMatrix(DataInfo dataInfo, string channel, IEnumerable<Experience.Protocol.Bloc> blocsToDisplay = null)
+        public TrialMatrix(iEEGDataInfo dataInfo, string channel, IEnumerable<Experience.Protocol.Bloc> blocsToDisplay = null)
         {
             Protocol protocol = dataInfo.Dataset.Protocol;
             ChannelData channelData = DataManager.GetData(dataInfo, channel);

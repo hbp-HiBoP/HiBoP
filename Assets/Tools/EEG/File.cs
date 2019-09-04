@@ -212,7 +212,7 @@ namespace Tools.CSharp.EEG
         static private extern IntPtr CreateEDFFile(string filePath, bool loadData);
         [DllImport("EEGFormat", EntryPoint = "CreateBrainVisionFile", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr CreateBrainVisionFile(string filePath, bool loadData);
-        [DllImport("EEGFormat", EntryPoint = "DeleteFile", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("EEGFormat", EntryPoint = "DeleteGenericFile", CallingConvention = CallingConvention.Cdecl)]
         static private extern void DeleteFile(HandleRef fileToDelete);
 
         [DllImport("EEGFormat", EntryPoint = "GetNumberOfSamples", CallingConvention = CallingConvention.Cdecl)]
