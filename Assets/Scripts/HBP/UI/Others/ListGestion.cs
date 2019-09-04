@@ -104,7 +104,7 @@ namespace Tools.Unity.Components
         protected virtual void OpenCreatorWindow()
         {
             CreatorWindow creatorWindow = ApplicationState.WindowsManager.Open<CreatorWindow>("Creator window", true);
-            creatorWindow.IsLoadableFromFile = typeof(T).GetInterfaces().Contains(typeof(ILoadable));
+            creatorWindow.IsLoadableFromFile = typeof(T).GetInterfaces().Contains(typeof(ILoadable<T>));
             creatorWindow.IsLoadableFromDatabase = typeof(T).GetInterfaces().Contains(typeof(ILoadableFromDatabase<T>));
             creatorWindow.OnSave.AddListener(() => OnSaveCreator(creatorWindow));
         }
@@ -198,7 +198,7 @@ namespace Tools.Unity.Components
         protected virtual bool LoadFromFile(out T result)
         {
             result = new T();
-            ILoadable loadable = result as ILoadable;
+            ILoadable<T> loadable = result as ILoadable<T>;
             string path = FileBrowser.GetExistingFileName(new string[] { loadable.GetExtension() }).StandardizeToPath();
             if (path != string.Empty)
             {
@@ -220,10 +220,7 @@ namespace Tools.Unity.Components
         {
             string path = FileBrowser.GetExistingDirectoryName();
             ILoadableFromDatabase<T> loadable = new T() as ILoadableFromDatabase<T>;
-            loadable.LoadFromDatabase(path);
-            results = loadable.LoadFromDatabase(path);
-            if (results.Length > 0) return true;
-            else return false;
+            return loadable.LoadFromDatabase(path, out results);
         }
 
         protected virtual void UpdateCounter()

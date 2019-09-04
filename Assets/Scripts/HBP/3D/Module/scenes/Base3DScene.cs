@@ -9,6 +9,7 @@ using CielaSpike;
 using HBP.Data.Visualization;
 using Tools.Unity;
 using UnityEngine.Profiling;
+using Tools.CSharp;
 
 namespace HBP.Module3D
 {
@@ -2197,7 +2198,7 @@ namespace HBP.Module3D
         {
             try
             {
-                if (mri.Usable)
+                if (mri.IsUsable)
                 {
 
                     MRI3D mri3D = new MRI3D(mri);
@@ -2237,7 +2238,7 @@ namespace HBP.Module3D
         {
             try
             {
-                if (mesh.Usable)
+                if (mesh.IsUsable)
                 {
                     if (mesh is Data.Anatomy.LeftRightMesh)
                     {
@@ -2323,10 +2324,6 @@ namespace HBP.Module3D
                     if (implantation3D.IsLoaded)
                     {
                         m_ColumnManager.Implantations.Add(implantation3D);
-                        if (Type == Data.Enums.SceneType.SinglePatient)
-                        {
-                            implantation3D.LoadLatencies(Patients[0]);
-                        }
                     }
                     else
                     {

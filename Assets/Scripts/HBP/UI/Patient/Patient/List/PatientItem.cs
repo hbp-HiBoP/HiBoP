@@ -25,9 +25,6 @@ namespace HBP.UI.Anatomy
         [SerializeField] Text m_ImplantationText;
         [SerializeField] Tooltip m_ImplantationTooltip;
 
-        [SerializeField] Text m_ConnectivityText;
-        [SerializeField] Tooltip m_ConnectivityTooltip;
-
         [SerializeField] State m_ErrorState;
 
         public override Patient Object
@@ -102,26 +99,6 @@ namespace HBP.UI.Anatomy
                 }
                 m_ImplantationTooltip.Text = stringBuilder.ToString();
                 m_ImplantationText.text = implantations.Length.ToString();
-
-                stringBuilder = new StringBuilder();
-                stringBuilder.AppendLine("Connectivities :");
-                string[] connectivities = (from connectivity in m_Object.Connectivities where connectivity.WasUsable select connectivity.Name).ToArray();
-                for (int i = 0; i < connectivities.Length; i++)
-                {
-                    if (i < connectivities.Length - 1) stringBuilder.AppendLine("  \u2022 " + connectivities[i]);
-                    else stringBuilder.Append("  \u2022 " + connectivities[i]);
-                }
-                if (connectivities.Length == 0)
-                {
-                    m_ConnectivityText.GetComponent<ThemeElement>().Set(m_ErrorState);
-                    stringBuilder.Append("  \u2022 None");
-                }
-                else
-                {
-                    m_ConnectivityText.GetComponent<ThemeElement>().Set();
-                }
-                m_ConnectivityTooltip.Text = stringBuilder.ToString();
-                m_ConnectivityText.text = connectivities.Length.ToString();
             }
         }
         #endregion
