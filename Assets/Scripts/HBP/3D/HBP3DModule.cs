@@ -83,7 +83,7 @@ namespace HBP.Module3D
 
         private List<Base3DScene> m_Scenes = new List<Base3DScene>();
         /// <summary>
-        /// List of loaded scenes
+        /// List of open scenes
         /// </summary>
         public ReadOnlyCollection<Base3DScene> Scenes
         {
@@ -104,20 +104,24 @@ namespace HBP.Module3D
         }
 
         /// <summary>
-        /// Mars atlas index (to get name of mars atlas, broadman etc)
+        /// Mars Atlas Index DLL Object
+        /// This is used to get information about Mars Atlas and Brodmann areas (name, color etc.)
         /// </summary>
         public DLL.MarsAtlasIndex MarsAtlasIndex { get; private set; }
         /// <summary>
-        /// JuBrain Atlas (to color the MRIs with JuBrain areas)
+        /// JuBrain Atlas DLL Object
+        /// This is used to get information about JuBrain Atlas areas (name, color etc.)
         /// </summary>
         public DLL.JuBrainAtlas JuBrainAtlas { get; private set; }
 
         /// <summary>
-        /// MNI Objects (Mesh and MRI)
+        /// MNI Objects
+        /// Contains data for the MNI meshes and MRI
         /// </summary>
         public MNIObjects MNIObjects;
         /// <summary>
         /// IBC Objects
+        /// Contains data for the IBC contrasts (fMRIs)
         /// </summary>
         public IBC.IBCObjects IBCObjects;
         
@@ -349,8 +353,7 @@ namespace HBP.Module3D
                 }
                 if (visualizationLoadingTask.State == TaskState.Done)
                 {
-                    Task sceneLoadingTask;
-                    yield return this.StartCoroutineAsync(c_LoadScene(visualization, OnChangeLoadingProgress), out sceneLoadingTask);
+                    yield return this.StartCoroutineAsync(c_LoadScene(visualization, OnChangeLoadingProgress), out Task sceneLoadingTask);
                     switch (sceneLoadingTask.State)
                     {
                         case TaskState.Done:
