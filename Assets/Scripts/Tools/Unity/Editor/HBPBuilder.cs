@@ -4,6 +4,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 using Ionic.Zip;
+using Tools.CSharp;
 
 namespace Tools.Unity
 {

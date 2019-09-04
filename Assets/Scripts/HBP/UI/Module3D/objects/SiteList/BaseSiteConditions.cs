@@ -86,7 +86,7 @@ namespace HBP.UI.Module3D
         }
         protected bool CheckPatientDate(Site site, string patientDateString)
         {
-            if (global::Tools.Unity.NumberExtension.TryParseFloat(patientDateString, out float patientDate))
+            if (global::Tools.CSharp.NumberExtension.TryParseFloat(patientDateString, out float patientDate))
             {
                 return site.Information.Patient.Date == patientDate;
             }
@@ -169,7 +169,7 @@ namespace HBP.UI.Module3D
         }
         private bool CompareValue(float value, bool superior, string stringValueToCompare)
         {
-            if (global::Tools.Unity.NumberExtension.TryParseFloat(stringValueToCompare, out float valueToCompare))
+            if (global::Tools.CSharp.NumberExtension.TryParseFloat(stringValueToCompare, out float valueToCompare))
             {
                 return superior ? value > valueToCompare : value < valueToCompare;
             }
