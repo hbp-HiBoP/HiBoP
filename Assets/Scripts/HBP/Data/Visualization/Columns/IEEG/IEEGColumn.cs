@@ -1,10 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
-using Tools.CSharp;
 using System.ComponentModel;
 
 namespace HBP.Data.Visualization
@@ -96,6 +94,14 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
+        public IEEGColumn(string name, BaseConfiguration baseConfiguration, Dataset dataset, string dataName, Bloc bloc, DynamicConfiguration configuration, IEEGData data, string id) : base(name, baseConfiguration, id)
+        {
+            Dataset = dataset;
+            DataName = dataName;
+            Bloc = bloc;
+            DynamicConfiguration = configuration;
+            Data = data;
+        }
         public IEEGColumn(string name, BaseConfiguration baseConfiguration, Dataset dataset, string dataName, Bloc bloc, DynamicConfiguration configuration, IEEGData data) : base(name, baseConfiguration)
         {
             Dataset = dataset;
@@ -149,7 +155,18 @@ namespace HBP.Data.Visualization
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new IEEGColumn(Name, BaseConfiguration.Clone() as BaseConfiguration, Dataset, DataName, Bloc, DynamicConfiguration.Clone() as DynamicConfiguration, new IEEGData());
+            return new IEEGColumn(Name, BaseConfiguration.Clone() as BaseConfiguration, Dataset, DataName, Bloc, DynamicConfiguration.Clone() as DynamicConfiguration, new IEEGData(), ID);
+        }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+            if (copy is IEEGColumn ieegColumn)
+            {
+                Dataset = ieegColumn.Dataset;
+                DataName = ieegColumn.DataName;
+                Bloc = ieegColumn.Bloc;
+                DynamicConfiguration = ieegColumn.DynamicConfiguration;
+            }
         }
         #endregion
     }

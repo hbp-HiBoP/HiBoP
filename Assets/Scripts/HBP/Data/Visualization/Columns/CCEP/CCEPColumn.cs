@@ -93,6 +93,15 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
+        public CCEPColumn(string name, BaseConfiguration baseConfiguration, Dataset dataset, string dataName, Bloc bloc, DynamicConfiguration configuration, CCEPData data, string id) : base(name, baseConfiguration, id)
+        {
+            Dataset = dataset;
+            DataName = dataName;
+            Bloc = bloc;
+            DynamicConfiguration = configuration;
+            Data = data;
+        }
+
         public CCEPColumn(string name, BaseConfiguration baseConfiguration, Dataset dataset, string dataName, Bloc bloc, DynamicConfiguration configuration, CCEPData data) : base(name, baseConfiguration)
         {
             Dataset = dataset;
@@ -146,7 +155,18 @@ namespace HBP.Data.Visualization
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new CCEPColumn(Name, BaseConfiguration.Clone() as BaseConfiguration, Dataset, DataName, Bloc, DynamicConfiguration.Clone() as DynamicConfiguration, new CCEPData());
+            return new CCEPColumn(Name, BaseConfiguration.Clone() as BaseConfiguration, Dataset, DataName, Bloc, DynamicConfiguration.Clone() as DynamicConfiguration, new CCEPData(), ID);
+        }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+            if(copy is CCEPColumn ccepColumn)
+            {
+                Dataset = ccepColumn.Dataset;
+                DataName = ccepColumn.DataName;
+                Bloc = ccepColumn.Bloc;
+                DynamicConfiguration = ccepColumn.DynamicConfiguration;
+            }
         }
         #endregion
     }
