@@ -176,7 +176,7 @@ namespace HBP.Module3D
                 OnUpdateCurrentTimelineID.Invoke();
                 if (IsSelected)
                 {
-                    ApplicationState.Module3D.OnUpdateSelectedColumnTimeLineID.Invoke();
+                    ApplicationState.Module3D.OnUpdateSelectedColumnTimeLineIndex.Invoke();
                 }
             });
             SetEEGData();
