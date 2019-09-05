@@ -182,15 +182,15 @@ namespace HBP.Module3D
         /// </summary>
         [HideInInspector] public GenericEvent<View3D> OnSelectView = new GenericEvent<View3D>();
         /// <summary>
-        /// Event called when changing the value of the timeline of the selected column
+        /// Event called when changing the index of the timeline of the selected column
         /// </summary>
-        [HideInInspector] public UnityEvent OnUpdateSelectedColumnTimeLineID = new UnityEvent();
+        [HideInInspector] public UnityEvent OnUpdateSelectedColumnTimeLineIndex = new UnityEvent();
         /// <summary>
         /// Event called when the timeline is stopped because it reached the end
         /// </summary>
         [HideInInspector] public UnityEvent OnStopTimelinePlay = new UnityEvent();
         /// <summary>
-        /// Event called when requesting an update in the UI
+        /// Event called when requesting an update in the toolbar
         /// </summary>
         [HideInInspector] public UnityEvent OnRequestUpdateInToolbar = new UnityEvent();
         #endregion
@@ -202,7 +202,7 @@ namespace HBP.Module3D
             QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
             QualitySettings.antiAliasing = 8;
 
-            // MarsAtlas index
+            // Atlases
             string dataDirectory = Application.dataPath + "/../Data/";
             #if UNITY_EDITOR
                 dataDirectory = Application.dataPath + "/Data/";

@@ -71,7 +71,7 @@ namespace HBP.UI.Module3D.Tools
                     column.Timeline.CurrentIndex = val;
                 }
             });
-            ApplicationState.Module3D.OnUpdateSelectedColumnTimeLineID.AddListener(() =>
+            ApplicationState.Module3D.OnUpdateSelectedColumnTimeLineIndex.AddListener(() =>
             {
                 ListenerLock = true;
                 HBP.Module3D.Column3DDynamic selectedColumn = (HBP.Module3D.Column3DDynamic)SelectedColumn;
