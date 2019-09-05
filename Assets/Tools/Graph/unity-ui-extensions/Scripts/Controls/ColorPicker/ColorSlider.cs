@@ -18,8 +18,6 @@ namespace UnityEngine.UI.Extensions.ColorPicker
 
         private Slider slider;
 
-        private bool listen = true;
-
         private void Awake()
         {
             slider = GetComponent<Slider>();
@@ -38,7 +36,6 @@ namespace UnityEngine.UI.Extensions.ColorPicker
 
         private void ColorChanged(Color newColor)
         {
-            listen = false;
             switch (type)
             {
                 case ColorValues.R:
@@ -60,7 +57,6 @@ namespace UnityEngine.UI.Extensions.ColorPicker
 
         private void HSVChanged(float hue, float saturation, float value)
         {
-            listen = false;
             switch (type)
             {
                 case ColorValues.Hue:
@@ -79,15 +75,8 @@ namespace UnityEngine.UI.Extensions.ColorPicker
 
         private void SliderChanged(float newValue)
         {
-            if (listen)
-            {
-                newValue = slider.normalizedValue;
-                //if (type == ColorValues.Hue)
-                //    newValue = 1 - newValue;
-
-                ColorPicker.AssignColor(type, newValue);
-            }
-            listen = true;
+            newValue = slider.normalizedValue;
+            ColorPicker.AssignColor(type, newValue);
         }
     }
 }

@@ -398,9 +398,9 @@ namespace UnityEngine.UI
             if (!s_ShowNavigation)
                 return;
 
-            for (int i = 0; i < Selectable.allSelectables.Count; i++)
+            for (int i = 0; i < Selectable.allSelectablesArray.Length; i++)
             {
-                DrawNavigationForSelectable(Selectable.allSelectables[i]);
+                DrawNavigationForSelectable(Selectable.allSelectablesArray[i]);
             }
         }
         private static void DrawNavigationForSelectable(Selectable sel)

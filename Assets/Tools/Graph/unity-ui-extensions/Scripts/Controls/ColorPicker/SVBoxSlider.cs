@@ -114,6 +114,8 @@ namespace UnityEngine.UI.Extensions.ColorPicker
                 }
                 texture.SetPixels32(s, 0, 1, 100, colors);
             }
+            texture.wrapMode = TextureWrapMode.Clamp;
+            texture.filterMode = FilterMode.Trilinear;
             texture.Apply();
 
             image.texture = texture;

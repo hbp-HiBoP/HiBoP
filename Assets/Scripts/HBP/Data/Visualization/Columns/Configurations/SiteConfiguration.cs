@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
+using UnityEngine;
 
 namespace HBP.Data.Visualization
 {
@@ -24,10 +27,6 @@ namespace HBP.Data.Visualization
     {
         #region Properties
         /// <summary>
-        /// The site is excluded ?
-        /// </summary>
-        [DataMember] public bool IsExcluded { get; set; }
-        /// <summary>
         /// The site is blacklisted ?
         /// </summary>
         [DataMember] public bool IsBlacklisted { get; set; }
@@ -36,41 +35,40 @@ namespace HBP.Data.Visualization
         /// </summary>
         [DataMember] public bool IsHighlighted { get; set; }
         /// <summary>
-        /// The site is marked ?
+        /// Color of the site
         /// </summary>
-        [DataMember] public bool IsMarked { get; set; }
-        /// <summary>
-        /// The site is suspicious ?
-        /// </summary>
-        [DataMember] public bool IsSuspicious { get; set; }
+        [DataMember(Name ="Color")] private SerializableColor m_Color;
+        public Color Color
+        {
+            get
+            {
+                return m_Color.ToColor();
+            }
+            set
+            {
+                m_Color = new SerializableColor(value);
+            }
+        }
+        [DataMember] public string[] Labels { get; set; }
         #endregion
 
         #region Constructors
-        public SiteConfiguration() : this(false, false, false, false, false)
+        public SiteConfiguration() : this(false, false, Module3D.SiteState.DefaultColor, new string[0])
         {
         }
-        public SiteConfiguration(bool isExcluded, bool isBlacklisted, bool isHighlighted, bool isMarked, bool isSuspicious)
+        public SiteConfiguration(bool isBlacklisted, bool isHighlighted, Color color, string[] labels)
         {
-            IsExcluded = isExcluded;
             IsBlacklisted = isBlacklisted;
             IsHighlighted = isHighlighted;
-            IsMarked = isMarked;
-            IsSuspicious = isSuspicious;
+            Color = color;
+            Labels = labels;
         }
         #endregion
 
         #region Public Methods
         public object Clone()
         {
-            return new SiteConfiguration(IsExcluded, IsBlacklisted, IsHighlighted, IsMarked, IsSuspicious);
-        }
-        public void LoadSerializedConfiguration(SiteConfiguration configuration)
-        {
-            IsBlacklisted = configuration.IsBlacklisted;
-            IsExcluded = configuration.IsExcluded;
-            IsHighlighted = configuration.IsHighlighted;
-            IsMarked = configuration.IsMarked;
-            IsSuspicious = configuration.IsSuspicious;
+            return new SiteConfiguration(IsBlacklisted, IsHighlighted, Color, Labels);
         }
         #endregion
     }

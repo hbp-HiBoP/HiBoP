@@ -11,11 +11,8 @@ namespace HBP.UI.Module3D
         [SerializeField] GameObject m_Atlas;
         [SerializeField] GameObject m_States;
         [SerializeField] Text m_SiteNameText;
-        [SerializeField] Image m_IsExcludedImage;
         [SerializeField] Image m_IsHighlightedImage;
         [SerializeField] Image m_IsBlackListedImage;
-        [SerializeField] Image m_IsMarkedImage;
-        [SerializeField] Image m_IsSuspiciousImage;
         [SerializeField] Text m_PatientText;
         [SerializeField] Text m_IEEGAmplitudeText;
         [SerializeField] Text m_CCEPAmplitudeText;
@@ -130,11 +127,8 @@ namespace HBP.UI.Module3D
         }
         void SetStates(HBP.Module3D.Site site)
         {
-            m_IsMarkedImage.gameObject.SetActive(site.State.IsMarked);
             m_IsBlackListedImage.gameObject.SetActive(site.State.IsBlackListed);
             m_IsHighlightedImage.gameObject.SetActive(site.State.IsHighlighted);
-            m_IsSuspiciousImage.gameObject.SetActive(site.State.IsSuspicious);
-            m_IsExcludedImage.gameObject.SetActive(site.State.IsExcluded);
         }
         void SetCCEP(HBP.Module3D.SiteInfo siteInfo)
         {
@@ -173,7 +167,7 @@ namespace HBP.UI.Module3D
                     m_BroadmanText.transform.parent.gameObject.SetActive(false);
                 }
                 string freesurferText = siteInfo.Site.Information.FreesurferLabel;
-                if (!freesurferText.Contains("not in a freesurfer parcel"))
+                if (!string.IsNullOrEmpty(freesurferText) && !freesurferText.Contains("not in a freesurfer parcel"))
                 {
                     m_FreesurferText.transform.parent.gameObject.SetActive(true);
                     m_FreesurferText.text = freesurferText;

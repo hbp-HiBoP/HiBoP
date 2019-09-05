@@ -16,18 +16,21 @@ namespace HBP.UI.Module3D
         #region Properties
         public const string TRUE = "TRUE";
         public const string FALSE = "FALSE";
-        public const string EXCLUDED = "E";
         public const string HIGHLIGHTED = "H";
         public const string BLACKLISTED = "B";
-        public const string MARKED = "M";
-        public const string SUSPICIOUS = "S";
+        public const string LABEL = "LABEL";
         public const string IN_ROI = "ROI";
         public const string IN_MESH = "MESH";
+        public const string IN_LEFT_HEMISPHERE = "L";
+        public const string IN_RIGHT_HEMISPHERE = "R";
         public const string ON_PLANE = "CUT";
         public const string NAME = "NAME";
-        public const string PATIENT = "PAT";
+        public const string PATIENT_NAME = "PAT_NAME";
+        public const string PATIENT_PLACE = "PAT_PLACE";
+        public const string PATIENT_DATE = "PAT_DATE";
         public const string MARS_ATLAS = "MA";
         public const string BROADMAN = "BA";
+        public const string FREESURFER = "FS";
         public const string MEAN = "MEAN";
         public const string MEDIAN = "MEDIAN";
         public const string MAX = "MAX";
@@ -60,10 +63,6 @@ namespace HBP.UI.Module3D
             {
                 return false;
             }
-            else if (s == EXCLUDED)
-            {
-                return CheckExcluded(site);
-            }
             else if (s == HIGHLIGHTED)
             {
                 return CheckHighlighted(site);
@@ -72,13 +71,13 @@ namespace HBP.UI.Module3D
             {
                 return CheckBlacklisted(site);
             }
-            else if (s == MARKED)
+            else if (s.Contains(LABEL))
             {
-                return CheckMarked(site);
-            }
-            else if (s == SUSPICIOUS)
-            {
-                return CheckSuspicious(site);
+                string[] array = s.Split('=');
+                if (array.Length == 2)
+                {
+                    return CheckLabel(site, array[1].Replace("\"", ""));
+                }
             }
             else if (s == IN_ROI)
             {
@@ -87,6 +86,14 @@ namespace HBP.UI.Module3D
             else if (s == IN_MESH)
             {
                 return CheckInMesh(site);
+            }
+            else if (s == IN_LEFT_HEMISPHERE)
+            {
+                return CheckInLeftHemisphere(site);
+            }
+            else if (s == IN_RIGHT_HEMISPHERE)
+            {
+                return CheckInRightHemisphere(site);
             }
             else if (s == ON_PLANE)
             {
@@ -100,12 +107,28 @@ namespace HBP.UI.Module3D
                     return CheckName(site, array[1].Replace("\"", ""));
                 }
             }
-            else if (s.Contains(PATIENT))
+            else if (s.Contains(PATIENT_NAME))
             {
                 string[] array = s.Split('=');
                 if (array.Length == 2)
                 {
                     return CheckPatientName(site, array[1].Replace("\"", ""));
+                }
+            }
+            else if (s.Contains(PATIENT_PLACE))
+            {
+                string[] array = s.Split('=');
+                if (array.Length == 2)
+                {
+                    return CheckPatientPlace(site, array[1].Replace("\"", ""));
+                }
+            }
+            else if (s.Contains(PATIENT_DATE))
+            {
+                string[] array = s.Split('=');
+                if (array.Length == 2)
+                {
+                    return CheckPatientDate(site, array[1].Replace("\"", ""));
                 }
             }
             else if (s.Contains(MARS_ATLAS))
@@ -122,6 +145,14 @@ namespace HBP.UI.Module3D
                 if (array.Length == 2)
                 {
                     return CheckBroadmanAreaName(site, array[1].Replace("\"", ""));
+                }
+            }
+            else if (s.Contains(FREESURFER))
+            {
+                string[] array = s.Split('=');
+                if (array.Length == 2)
+                {
+                    return CheckFreesurferName(site, array[1].Replace("\"", ""));
                 }
             }
             else if (s.Contains(MEAN))
@@ -219,7 +250,7 @@ namespace HBP.UI.Module3D
                     }
                 }
             }
-            throw new InvalidConditionException(s);
+            throw new InvalidAdvancedConditionException(s);
         }
         #endregion
 

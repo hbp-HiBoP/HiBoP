@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 // unity
@@ -50,6 +51,11 @@ namespace HBP.Module3D
             #endregion
 
             #region Public Methods
+            public static void ResetAll(MRIVolumeGenerator[] generators, Volume volume, int dimension)
+            {
+                reset_all_MRIVolumeGenerator(generators.Select(g => g.getHandle()).ToArray(), generators.Length, volume.getHandle(), dimension);
+                ApplicationState.DLLDebugManager.check_error();
+            }
             /// <summary>
             /// 
             /// </summary>
@@ -104,11 +110,11 @@ namespace HBP.Module3D
             /// <param name="addValues"></param>
             /// <param name="ratioDistances"></param>
             /// <returns></returns>
-            public bool ComputeInfluences(Column3DIEEG IEEGColumn, bool multiCPU, bool addValues = false, int ratioDistances = 0)
+            public bool ComputeInfluences(Column3DDynamic IEEGColumn, bool multiCPU, bool addValues = false, int ratioDistances = 0)
             {
                 bool noError = false;
-                noError = computeInfluences_MRIVolumeGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.EEGDimensions, IEEGColumn.IEEGParameters.InfluenceDistance, multiCPU ? 1 : 0, addValues ? 1 : 0, ratioDistances,
-                    IEEGColumn.IEEGParameters.Middle, IEEGColumn.IEEGParameters.SpanMin, IEEGColumn.IEEGParameters.SpanMax) == 1;
+                noError = computeInfluences_MRIVolumeGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.EEGDimensions, IEEGColumn.DynamicParameters.InfluenceDistance, multiCPU ? 1 : 0, addValues ? 1 : 0, ratioDistances,
+                    IEEGColumn.DynamicParameters.Middle, IEEGColumn.DynamicParameters.SpanMin, IEEGColumn.DynamicParameters.SpanMax) == 1;
                 ApplicationState.DLLDebugManager.check_error();
 
                 if (!noError)
@@ -119,9 +125,9 @@ namespace HBP.Module3D
             /// <summary>
             /// 
             /// </summary>
-            public void AdjustInfluencesToColormap(Column3DIEEG column3DIEEG)
+            public void AdjustInfluencesToColormap(Column3DDynamic column3DIEEG)
             {
-                ajustInfluencesToColormap_MRIVolumeGenerator(_handle, column3DIEEG.IEEGParameters.Middle, column3DIEEG.IEEGParameters.SpanMin, column3DIEEG.IEEGParameters.SpanMax);
+                ajustInfluencesToColormap_MRIVolumeGenerator(_handle, column3DIEEG.DynamicParameters.Middle, column3DIEEG.DynamicParameters.SpanMin, column3DIEEG.DynamicParameters.SpanMax);
             }
             #endregion
 
@@ -170,6 +176,8 @@ namespace HBP.Module3D
             // actions
             [DllImport("hbp_export", EntryPoint = "reset_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern void reset_MRIVolumeGenerator(HandleRef handleBrainVolumeTextureGenerator, HandleRef handleSurface, int dimension);
+            [DllImport("hbp_export", EntryPoint = "reset_all_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
+            static private extern void reset_all_MRIVolumeGenerator(HandleRef[] handleBrainVolumeTextureGenerator, int count, HandleRef handleSurface, int dimension);
             [DllImport("hbp_export", EntryPoint = "initOctree_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern void initOctree_MRIVolumeGenerator(HandleRef handleBrainSurfaceTextureGenerator, HandleRef handleRawPlotList);
             [DllImport("hbp_export", EntryPoint = "computeDistances_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]

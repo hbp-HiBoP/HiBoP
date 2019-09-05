@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+using UnityEngine.Events;
 
 namespace HBP.UI.Experience.Protocol
 {
@@ -48,6 +49,8 @@ namespace HBP.UI.Experience.Protocol
                 base.Save();
             }
             FindObjectOfType<MenuButtonState>().SetInteractables();
+            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+            ApplicationState.LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckDatasets(onChangeProgress, m_ProtocolListGestion.ModifiedProtocols), onChangeProgress);
         }
         #endregion
 

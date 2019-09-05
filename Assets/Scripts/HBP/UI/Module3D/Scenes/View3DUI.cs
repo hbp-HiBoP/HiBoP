@@ -46,10 +46,6 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     /// </summary>
     private RectTransform m_RectTransform;
     /// <summary>
-    /// Lock to know whether a click triggered OnPointerDown event or not
-    /// </summary>
-    private bool m_PointerDownLock;
-    /// <summary>
     /// True if the pointer in on the view ui
     /// </summary>
     private bool m_PointerIsInView;
@@ -149,22 +145,7 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
             OnChangeViewSize.Invoke();
             m_RectTransform.hasChanged = false;
         }
-        DeselectView();
         SendRayToScene();
-    }
-    /// <summary>
-    /// Handles mouse events
-    /// </summary>
-    private void DeselectView()
-    {
-        if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1) || Input.GetMouseButtonDown(2) || Input.mouseScrollDelta != Vector2.zero)
-        {
-            if (!m_PointerDownLock) // If a click was recorded but this click did not trigger OnPointerDown, consider that the view has not been clicked
-            {
-                m_View.IsClicked = false;
-            }
-        }
-        m_PointerDownLock = false;
     }
     /// <summary>
     /// Transform the mouse position to a ray and send it to the scene
@@ -184,8 +165,7 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     {
         if (IsMinimized) return;
 
-        m_View.IsClicked = true;
-        m_PointerDownLock = true;
+        m_View.IsSelected = true;
         if (Input.GetMouseButton(1) || Input.GetMouseButton(2))
         {
             m_View.DisplayRotationCircles = true;
@@ -193,8 +173,7 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         }
         else
         {
-            Ray ray;
-            if (CursorToRay(out ray))
+            if (CursorToRay(out Ray ray))
             {
                 m_Scene.ClickOnScene(ray);
             }
@@ -233,7 +212,6 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     {
         if (IsMinimized) return;
 
-        m_PointerDownLock = false;
         m_View.DisplayRotationCircles = false;
         m_ThemeElement.Set();
     }
@@ -241,7 +219,6 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     {
         if (IsMinimized) return;
 
-        m_PointerDownLock = true;
         ROI selectedROI = m_Column.SelectedROI;
         if (m_Scene.SceneInformation.IsROICreationModeEnabled && selectedROI)
         {

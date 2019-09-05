@@ -10,6 +10,7 @@ namespace HBP.Module3D
     {
         #region Properties
         public string Name { get; set; }
+        public Data.Enums.MeshType Type { get; protected set; }
 
         protected DLL.Surface m_Both;
         public DLL.Surface Both
@@ -62,10 +63,11 @@ namespace HBP.Module3D
         #endregion
 
         #region Constructors
-        public Mesh3D(Data.Anatomy.Mesh mesh)
+        public Mesh3D(Data.Anatomy.Mesh mesh, Data.Enums.MeshType type)
         {
             m_Mesh = mesh;
             Name = mesh.Name;
+            Type = type;
             if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
             {
                 Load();
@@ -89,7 +91,7 @@ namespace HBP.Module3D
     public class SingleMesh3D : Mesh3D
     {
         #region Constructors
-        public SingleMesh3D(Data.Anatomy.SingleMesh mesh) : base(mesh) { }
+        public SingleMesh3D(Data.Anatomy.SingleMesh mesh, Data.Enums.MeshType type) : base(mesh, type) { }
         public SingleMesh3D() { }
         #endregion
 
@@ -99,6 +101,7 @@ namespace HBP.Module3D
             SingleMesh3D mesh = new SingleMesh3D
             {
                 Name = Name,
+                Type = Type,
                 Both = Both,
                 SimplifiedBoth = SimplifiedBoth,
                 m_Mesh = m_Mesh,
@@ -189,10 +192,11 @@ namespace HBP.Module3D
         #endregion
 
         #region Constructors
-        public LeftRightMesh3D(Data.Anatomy.LeftRightMesh mesh) : base(mesh) { }
-        public LeftRightMesh3D(string name, DLL.Surface left, DLL.Surface right, DLL.Surface both)
+        public LeftRightMesh3D(Data.Anatomy.LeftRightMesh mesh, Data.Enums.MeshType type) : base(mesh, type) { }
+        public LeftRightMesh3D(string name, DLL.Surface left, DLL.Surface right, DLL.Surface both, Data.Enums.MeshType type)
         {
             Name = name;
+            Type = type;
             Left = left;
             Right = right;
             Both = both;
@@ -210,6 +214,7 @@ namespace HBP.Module3D
             LeftRightMesh3D mesh = new LeftRightMesh3D
             {
                 Name = Name,
+                Type = Type,
                 Both = Both,
                 SimplifiedBoth = SimplifiedBoth,
                 Left = Left,

@@ -121,8 +121,8 @@ namespace HBP.Module3D
                 {
                     if (LatenciesValues[ii][jj] != 0 && LatenciesValues[ii][jj] != -1)
                     {
-                        Transparencies[ii][jj] = 1f - (0.9f * LatenciesValues[ii][jj] / maxLatency);
-                        Sizes[ii][jj] = Math.Abs(Heights[ii][jj]) / max;
+                        Transparencies[ii][jj] = (1f - (LatenciesValues[ii][jj] / maxLatency)) * 0.5f + 0.25f;
+                        Sizes[ii][jj] = (Math.Abs(Heights[ii][jj]) / max) * 0.6f + 0.4f;
                     }
                 }
             }

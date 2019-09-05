@@ -17,6 +17,8 @@ namespace Tools.Unity.Lists
             Item<T> item;
             if (GetItemFromObject(objectToUpdate, out item))
             {
+                int index = m_Objects.FindIndex((obj) => obj.Equals(objectToUpdate));
+                m_Objects[index] = objectToUpdate;
                 ActionnableItem<T> actionnableItem = item as ActionnableItem<T>;
                 actionnableItem.Object = objectToUpdate;
                 actionnableItem.OnChangeSelected.RemoveAllListeners();

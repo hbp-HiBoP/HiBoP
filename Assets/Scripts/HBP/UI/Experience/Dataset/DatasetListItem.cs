@@ -1,19 +1,24 @@
-﻿using UnityEngine;
+﻿using HBP.Data.Experience.Dataset;
+using NewTheme.Components;
+using System.Linq;
+using System.Text;
+using Tools.Unity;
+using Tools.Unity.Lists;
+using UnityEngine;
 using UnityEngine.UI;
 using d = HBP.Data.Experience.Dataset;
-using System.Linq;
-using Tools.Unity.Lists;
-using NewTheme.Components;
 
 namespace HBP.UI.Experience.Dataset
 {
-	public class DatasetListItem : ActionnableItem<d.Dataset> 
+    public class DatasetListItem : ActionnableItem<d.Dataset> 
 	{
         #region Properties
         [SerializeField] Text m_NameText;
         [SerializeField] Text m_ProtocolText;
+
         [SerializeField] Text m_DataInfosText;
-        //[SerializeField] DatasetResumeList m_DatasetList;
+        [SerializeField] Tooltip m_DataInfosTooltip;
+
         [SerializeField] State m_ErrorState;
 
         public override d.Dataset Object
@@ -29,41 +34,30 @@ namespace HBP.UI.Experience.Dataset
                 m_NameText.text = value.Name;
                 m_ProtocolText.text = value.Protocol.Name;
 
-                int nbData = value.Data.Count((d) => d.isOk);
-                m_DataInfosText.text = nbData.ToString();
-                if (nbData == 0) m_DataInfosText.GetComponent<ThemeElement>().Set(m_ErrorState);
-                else m_DataInfosText.GetComponent<ThemeElement>().Set();
-                //SetData();
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.AppendLine("Data : ");
+                DataInfo[] data = value.Data.Where(s => s.IsOk).ToArray();
+                string[] names = data.Select(d => d.Name).Distinct().ToArray();
+                for (int i = 0; i < names.Length; i++)
+                {
+                    int nbData = data.Count(d => d.Name == names[i]);
+                    string text = string.Format("  \u2022 {0} {1}", nbData, names[i]);
+                    if (i < names.Length - 1) stringBuilder.AppendLine(text);
+                    else stringBuilder.Append(text);
+                }
+                if (data.Length == 0)
+                {
+                    m_DataInfosText.GetComponent<ThemeElement>().Set(m_ErrorState);
+                    stringBuilder.Append("  \u2022 None");
+                }
+                else
+                {
+                    m_DataInfosText.GetComponent<ThemeElement>().Set();
+                }
+                m_DataInfosTooltip.Text = stringBuilder.ToString();
+                m_DataInfosText.text = data.Length.ToString();
             }
         }
         #endregion
-
-        #region Public Methods
-        public void SetData()
-        {
-            //m_DatasetList.Initialize();
-            //System.Collections.Generic.List<d.Dataset.Resume> resumes = new System.Collections.Generic.List<d.Dataset.Resume>();
-            //string[] names = (from data in m_Object.Data select data.Name).Distinct().ToArray();
-            //foreach (var name in names)
-            //{
-            //    d.Dataset.Resume resume = new d.Dataset.Resume();
-            //    resume.Label = name;
-            //    d.DataInfo[] data = m_Object.Data.Where((d) => d.Name == name).ToArray();
-            //    resume.Number = data.Length;
-            //    if(data.All((d) => d.isOk))
-            //    {
-            //        resume.State = d.Dataset.Resume.StateEnum.OK;
-            //    }
-            //    else
-            //    {
-            //        resume.State = data.Any((d) => d.isOk) ? d.Dataset.Resume.StateEnum.Warning : d.Dataset.Resume.StateEnum.Error;
-            //    }
-            //    resumes.Add(resume);
-            //}
-            //resumes.OrderBy((r) => r.Label);
-            //m_DatasetList.Objects = resumes.OrderBy((r) => r.Label).ToArray();
-        }
-        #endregion
-
     }
 }

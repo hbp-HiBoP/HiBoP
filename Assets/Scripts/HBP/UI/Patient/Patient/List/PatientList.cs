@@ -10,7 +10,7 @@ namespace HBP.UI.Anatomy
 	public class PatientList : Tools.Unity.Lists.SelectableListWithItemAction<Data.Patient>
 	{
         #region Properties
-        enum OrderBy { None, Name, DescendingName, Place, DescendingPlace, Date, DescendingDate, Mesh, DescendingMesh, MRI, DescendingMRI, Implantation, DescendingImplantation, Connectivity, DescendingConnectivity }
+        enum OrderBy { None, Name, DescendingName, Place, DescendingPlace, Date, DescendingDate, Mesh, DescendingMesh, MRI, DescendingMRI, Implantation, DescendingImplantation }
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
@@ -19,7 +19,6 @@ namespace HBP.UI.Anatomy
         [SerializeField] SortingDisplayer m_MeshSortingDisplayer;
         [SerializeField] SortingDisplayer m_MRISortingDisplayer;
         [SerializeField] SortingDisplayer m_ImplantationSortingDisplayer;
-        [SerializeField] SortingDisplayer m_ConnectivitySortingDisplayer;
         #endregion
 
         #region Public Methods
@@ -54,7 +53,6 @@ namespace HBP.UI.Anatomy
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ConnectivitySortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
         /// Sort by name.
@@ -93,7 +91,6 @@ namespace HBP.UI.Anatomy
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ConnectivitySortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
         /// Sort by place.
@@ -132,7 +129,6 @@ namespace HBP.UI.Anatomy
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ConnectivitySortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
         /// Sort by date.
@@ -155,12 +151,12 @@ namespace HBP.UI.Anatomy
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Brain.Meshes.FindAll(m => m.WasUsable).Count).ToList();
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Meshes.FindAll(m => m.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.Mesh;
                     m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Brain.Meshes.FindAll(m => m.WasUsable).Count).ToList();
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Meshes.FindAll(m => m.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.DescendingMesh;
                     m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -171,7 +167,6 @@ namespace HBP.UI.Anatomy
             m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ConnectivitySortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
         /// Sort by mesh.
@@ -194,12 +189,12 @@ namespace HBP.UI.Anatomy
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Brain.MRIs.FindAll(m => m.WasUsable).Count).ToList();
+                    m_Objects = m_Objects.OrderBy((elt) => elt.MRIs.FindAll(m => m.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.MRI;
                     m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Brain.MRIs.FindAll(m => m.WasUsable).Count).ToList();
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.MRIs.FindAll(m => m.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.DescendingMRI;
                     m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -212,7 +207,6 @@ namespace HBP.UI.Anatomy
             m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ConnectivitySortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
         /// Sort by MRI.
@@ -235,12 +229,12 @@ namespace HBP.UI.Anatomy
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Brain.Implantations.FindAll(i => i.WasUsable).Count).ToList();
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Implantations.FindAll(i => i.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.Implantation;
                     m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Brain.Implantations.FindAll(i => i.WasUsable).Count).ToList();
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Implantations.FindAll(i => i.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.DescendingImplantation;
                     m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -251,7 +245,6 @@ namespace HBP.UI.Anatomy
             m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ConnectivitySortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
         /// Sort by implantation.
@@ -266,48 +259,6 @@ namespace HBP.UI.Anatomy
         }
 
         /// <summary>
-        /// Sort by connectivity.
-        /// </summary>
-        /// <param name="sorting">Sorting</param>
-        public void SortByConnectivity(Sorting sorting)
-        {
-            switch (sorting)
-            {
-                case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Brain.Connectivities.FindAll(c => c.WasUsable).Count).ToList();
-                    m_OrderBy = OrderBy.Connectivity;
-                    m_ConnectivitySortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
-                    break;
-                case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Brain.Connectivities.FindAll(c => c.WasUsable).Count).ToList();
-                    m_OrderBy = OrderBy.DescendingConnectivity;
-                    m_ConnectivitySortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
-                    break;
-                default:
-                    break;
-            }
-            Refresh();
-            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_PlaceSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        }
-        /// <summary>
-        /// Sort by connectivity.
-        /// </summary>
-        public void SortByConnectivity()
-        {
-            switch (m_OrderBy)
-            {
-                case OrderBy.DescendingConnectivity: SortByConnectivity(Sorting.Ascending); break;
-                default: SortByConnectivity(Sorting.Descending); break;
-            }
-
-        }
-
-        /// <summary>
         /// Sort by none.
         /// </summary>
         public void SortByNone()
@@ -318,7 +269,6 @@ namespace HBP.UI.Anatomy
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ConnectivitySortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderBy = OrderBy.None;
         }
         #endregion

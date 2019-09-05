@@ -1,136 +1,150 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Tools.Unity.Lists;
+﻿using Tools.Unity.Lists;
+using d = HBP.Data.Experience.Protocol;
 using UnityEngine;
+using System.Linq;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class TreatmentList : SelectableListWithItemAction<Data.Experience.Protocol.Treatment>
+    public class TreatmentList : SelectableListWithItemAction<d.Treatment>
     {
-        //#region Properties
-        //enum OrderBy { None, Name, DescendingName, Patients, DescendingPatients, Columns, DescendingColumns }
-        //OrderBy m_OrderBy = OrderBy.None;
+        #region Properties
+        enum OrderBy { None, Type, DescendingType, StartWindow, DescendingStartWindow, EndWindow, DescendingEndWindow, Order, DescendingOrder }
+        OrderBy m_OrderBy = OrderBy.None;
 
-        //[SerializeField] SortingDisplayer m_NameSortingDisplayer;
-        //[SerializeField] SortingDisplayer m_PatientsSortingDisplayer;
-        //[SerializeField] SortingDisplayer m_ColumnsSortingDisplayer;
-        //#endregion
+        [SerializeField] SortingDisplayer m_TypeSortingDisplayer;
+        [SerializeField] SortingDisplayer m_StartWindowSortingDisplayer;
+        [SerializeField] SortingDisplayer m_EndWindowSortingDisplayer;
+        [SerializeField] SortingDisplayer m_OrderSortingDisplayer;
+        #endregion
 
-        //#region Public Methods
-        ///// <summary>
-        ///// Sort by name.
-        ///// </summary>
-        ///// <param name="sorting">Sorting</param>
-        //public void SortByName(Sorting sorting)
-        //{
-        //    switch (sorting)
-        //    {
-        //        case Sorting.Ascending:
-        //            m_Objects = m_Objects.OrderBy((elt) => elt.Name).ToList();
-        //            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
-        //            m_OrderBy = OrderBy.Name;
-        //            break;
-        //        case Sorting.Descending:
-        //            m_Objects = m_Objects.OrderByDescending((elt) => elt.Name).ToList();
-        //            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
-        //            m_OrderBy = OrderBy.DescendingName;
-        //            break;
-        //    }
-        //    Refresh();
-        //    m_PatientsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //    m_ColumnsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //}
-        ///// <summary>
-        ///// Sort by name.
-        ///// </summary>
-        //public void SortByName()
-        //{
-        //    switch (m_OrderBy)
-        //    {
-        //        case OrderBy.DescendingName: SortByName(Sorting.Ascending); break;
-        //        default: SortByName(Sorting.Descending); break;
-        //    }
-        //}
+        #region Public Methods
+        public void SortByType(Sorting sorting)
+        {
+            switch (sorting)
+            {
+                case Sorting.Ascending:
+                    m_Objects = m_Objects.OrderBy((elt) => elt.GetType().ToString()).ToList();
+                    m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
+                    m_OrderBy = OrderBy.Type;
+                    break;
+                case Sorting.Descending:
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.GetType().ToString()).ToList();
+                    m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
+                    m_OrderBy = OrderBy.DescendingType;
+                    break;
+            }
+            Refresh();
+            m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+        }
+        public void SortByType()
+        {
+            switch (m_OrderBy)
+            {
+                case OrderBy.DescendingType: SortByType(Sorting.Ascending); break;
+                default: SortByType(Sorting.Descending); break;
+            }
+        }
 
-        ///// <summary>
-        ///// Sort by patients.
-        ///// </summary>
-        ///// <param name="sorting">Sorting</param>
-        //public void SortByPatients(Sorting sorting)
-        //{
-        //    switch (sorting)
-        //    {
-        //        case Sorting.Ascending:
-        //            m_Objects = m_Objects.OrderBy((elt) => elt.Patients.Count).ToList();
-        //            m_PatientsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
-        //            m_OrderBy = OrderBy.Patients;
-        //            break;
-        //        case Sorting.Descending:
-        //            m_Objects = m_Objects.OrderByDescending((elt) => elt.Patients.Count).ToList();
-        //            m_PatientsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
-        //            m_OrderBy = OrderBy.DescendingPatients;
-        //            break;
-        //    }
-        //    Refresh();
-        //    m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //    m_ColumnsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //}
-        ///// <summary>
-        ///// Sort by patients.
-        ///// </summary>
-        //public void SortByPatients()
-        //{
-        //    switch (m_OrderBy)
-        //    {
-        //        case OrderBy.DescendingPatients: SortByPatients(Sorting.Ascending); break;
-        //        default: SortByPatients(Sorting.Descending); break;
-        //    }
-        //}
+        public void SortByStartWindow(Sorting sorting)
+        {
+            switch (sorting)
+            {
+                case Sorting.Ascending:
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Window.Start).ToList();
+                    m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
+                    m_OrderBy = OrderBy.StartWindow;
+                    break;
+                case Sorting.Descending:
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Window.Start).ToList();
+                    m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
+                    m_OrderBy = OrderBy.DescendingStartWindow;
+                    break;
+            }
+            Refresh();
+            m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+        }
+        public void SortByStartWindow()
+        {
+            switch (m_OrderBy)
+            {
+                case OrderBy.DescendingStartWindow: SortByStartWindow(Sorting.Ascending); break;
+                default: SortByStartWindow(Sorting.Descending); break;
+            }
+        }
 
-        ///// <summary>
-        ///// Sort by columns.
-        ///// </summary>
-        ///// <param name="sorting">Sorting</param>
-        //public void SortByColumns(Sorting sorting)
-        //{
-        //    switch (sorting)
-        //    {
-        //        case Sorting.Ascending:
-        //            m_Objects = m_Objects.OrderBy((elt) => elt.Columns.Count).ToList();
-        //            m_ColumnsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
-        //            m_OrderBy = OrderBy.Columns;
-        //            break;
-        //        case Sorting.Descending:
-        //            m_Objects = m_Objects.OrderByDescending((elt) => elt.Columns.Count).ToList();
-        //            m_ColumnsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
-        //            m_OrderBy = OrderBy.DescendingColumns;
-        //            break;
-        //    }
-        //    Refresh();
-        //    m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //    m_PatientsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //}
-        ///// <summary>
-        ///// Sort by columns.
-        ///// </summary>
-        //public void SortByColumns()
-        //{
-        //    switch (m_OrderBy)
-        //    {
-        //        case OrderBy.DescendingColumns: SortByColumns(Sorting.Ascending); break;
-        //        default: SortByColumns(Sorting.Descending); break;
-        //    }
-        //}
 
-        ///// <summary>
-        ///// Sort by none.
-        ///// </summary>
-        //public void SortByNone()
-        //{
-        //    m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //    m_PatientsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //    m_ColumnsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //}
-        //#endregion
+        public void SortByEndWindow(Sorting sorting)
+        {
+            switch (sorting)
+            {
+                case Sorting.Ascending:
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Window.End).ToList();
+                    m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
+                    m_OrderBy = OrderBy.EndWindow;
+                    break;
+                case Sorting.Descending:
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Window.End).ToList();
+                    m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
+                    m_OrderBy = OrderBy.DescendingEndWindow;
+                    break;
+            }
+            Refresh();
+            m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+        }
+        public void SortByEndWindow()
+        {
+            switch (m_OrderBy)
+            {
+                case OrderBy.DescendingEndWindow: SortByEndWindow(Sorting.Ascending); break;
+                default: SortByEndWindow(Sorting.Descending); break;
+            }
+        }
+
+        public void SortByOrder(Sorting sorting)
+        {
+            switch (sorting)
+            {
+                case Sorting.Ascending:
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Order).ToList();
+                    m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
+                    m_OrderBy = OrderBy.Order;
+                    break;
+                case Sorting.Descending:
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Order).ToList();
+                    m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
+                    m_OrderBy = OrderBy.DescendingOrder;
+                    break;
+            }
+            Refresh();
+            m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+        }
+        public void SortByOrder()
+        {
+            switch (m_OrderBy)
+            {
+                case OrderBy.DescendingOrder: SortByOrder(Sorting.Ascending); break;
+                default: SortByOrder(Sorting.Descending); break;
+            }
+        }
+
+        /// <summary>
+        /// Sort by none.
+        /// </summary>
+        public void SortByNone()
+        {
+            m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+        }
+        #endregion
     }
 }

@@ -1,6 +1,6 @@
 ﻿using HBP.Module3D;
 using System.Collections.Generic;
-using Tools.Unity;
+using Tools.CSharp;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -46,7 +46,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         private bool m_Initialized = false;
 
-        private Dictionary<Column3DIEEG, Texture2D> m_HistogramByColumn = new Dictionary<Column3DIEEG, Texture2D>();
+        private Dictionary<string, Texture2D> m_HistogramByColumn = new Dictionary<string, Texture2D>();
 
         /// <summary>
         /// IEEG Histogram
@@ -104,11 +104,11 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Update IEEG Histogram Texture
         /// </summary>
-        private void UpdateIEEGHistogram()
+        private void UpdateIEEGHistogram(Column3DDynamic column)
         {
             UnityEngine.Profiling.Profiler.BeginSample("IEEG HISTOGRAM");
-            Column3DIEEG column = (Column3DIEEG)ApplicationState.Module3D.SelectedColumn;
-            if (!m_HistogramByColumn.TryGetValue(column, out m_IEEGHistogram))
+            string histogramID = column.name + "_" + (column is Column3DCCEP columnCCEP && columnCCEP.IsSourceSelected ? columnCCEP.SelectedSource.Information.ChannelName : "");
+            if (!m_HistogramByColumn.TryGetValue(histogramID, out m_IEEGHistogram))
             {
                 float[] iEEGValues = column.IEEGValuesOfUnmaskedSites;
                 if (!m_IEEGHistogram)
@@ -125,7 +125,7 @@ namespace HBP.UI.Module3D
                 {
                     m_IEEGHistogram = Texture2D.blackTexture;
                 }
-                m_HistogramByColumn.Add(column, m_IEEGHistogram);
+                m_HistogramByColumn.Add(histogramID, m_IEEGHistogram);
             }
             m_Histogram.texture = m_IEEGHistogram;
             UnityEngine.Profiling.Profiler.EndSample();
@@ -292,13 +292,13 @@ namespace HBP.UI.Module3D
 
             ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
             {
-                foreach (var column in s.ColumnManager.ColumnsIEEG)
+                foreach (var column in s.ColumnManager.ColumnsDynamic)
                 {
-                    Texture2D texture;
-                    if (m_HistogramByColumn.TryGetValue(column, out texture))
+                    string histogramID = column.name + "_" + (column is Column3DCCEP columnCCEP && columnCCEP.IsSourceSelected ? columnCCEP.SelectedSource.Information.ChannelName : "");
+                    if (m_HistogramByColumn.TryGetValue(histogramID, out Texture2D texture))
                     {
                         Destroy(texture);
-                        m_HistogramByColumn.Remove(column);
+                        m_HistogramByColumn.Remove(histogramID);
                     }
                 }
             });
@@ -307,21 +307,21 @@ namespace HBP.UI.Module3D
         /// Update IEEG values
         /// </summary>
         /// <param name="values">IEEG data values</param>
-        public void UpdateIEEGValues(IEEGDataParameters values)
+        public void UpdateIEEGValues(Column3DDynamic column)
         {
             m_Initialized = false;
 
             // Fixed values
-            m_MinAmplitude = values.MinimumAmplitude;
-            m_MaxAmplitude = values.MaximumAmplitude;
+            m_MinAmplitude = column.DynamicParameters.MinimumAmplitude;
+            m_MaxAmplitude = column.DynamicParameters.MaximumAmplitude;
             m_Amplitude = m_MaxAmplitude - m_MinAmplitude;
             m_MinText.text = m_MinAmplitude.ToString("N2");
             m_MaxText.text = m_MaxAmplitude.ToString("N2");
 
             // Non-fixed values
-            SetValues((values.SpanMin - m_MinAmplitude) / m_Amplitude, (values.Middle - m_MinAmplitude) / m_Amplitude, (values.SpanMax - m_MinAmplitude) / m_Amplitude);
+            SetValues((column.DynamicParameters.SpanMin - m_MinAmplitude) / m_Amplitude, (column.DynamicParameters.Middle - m_MinAmplitude) / m_Amplitude, (column.DynamicParameters.SpanMax - m_MinAmplitude) / m_Amplitude);
 
-            UpdateIEEGHistogram();
+            UpdateIEEGHistogram(column);
 
             m_Initialized = true;
         }

@@ -10,10 +10,8 @@ namespace HBP.UI.Module3D.Tools
     public class ComputeIEEG : Tool
     {
         #region Properties
-        [SerializeField]
-        private Button m_Compute;
-        [SerializeField]
-        private Button m_Remove;
+        [SerializeField] private Button m_Compute;
+        [SerializeField] private Button m_Remove;
         #endregion
 
         #region Public Methods
@@ -42,12 +40,10 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool isCCEP = SelectedScene.IsLatencyModeEnabled;
-            bool isColumnIEEG = SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
             bool isGeneratorUpToDate = SelectedScene.SceneInformation.IsGeneratorUpToDate;
 
-            m_Compute.interactable = !isCCEP && isColumnIEEG;
-            m_Remove.interactable = !isCCEP && isColumnIEEG && isGeneratorUpToDate;
+            m_Compute.interactable = SelectedScene.CanComputeIEEG;
+            m_Remove.interactable = isGeneratorUpToDate;
         }
         #endregion
     }

@@ -8,30 +8,33 @@
 		_ColorTex("Color map (RGB)", 2D) = "white" {}
 		_Glossiness("Smoothness", Range(0,1)) = 0.5
 		_Metallic("Metallic", Range(0,1)) = 0.0
-		_MarsAtlas("Mars Atlas", int) = 0
+		_Atlas("Atlas", int) = 0
+		_Amount("Extrusion Amount", Range(0, 1)) = 0
+		_MaxRadius("Maximum extrusion radius", Range(0,100)) = 100
 	}
 
 	SubShader
 	{
-		Tags{ "RenderType" = "Opaque" }
-
 		CGPROGRAM
-			#pragma surface surf Standard
+			#pragma surface surf Standard vertex:vert
 			#pragma target 3.0
 
 			sampler2D _MainTex;
 			sampler2D _AoTex;
 			sampler2D _ColorTex;
 
-			int _MarsAtlas;
+			int _Atlas;
 			half _Glossiness;
 			half _Metallic;
 			fixed4 _Color;
+			float _Amount;
+			float _MaxRadius;
 
 			uniform int _StrongCuts;
 			uniform int _CutCount;
 			uniform float3 _CutPoints[20];
 			uniform float3 _CutNormals[20];
+			uniform float3 _Center;
 
 			struct Input
 			{
@@ -39,12 +42,22 @@
 				float2 uv_MainTex : TEXCOORD0;
 				float2 uv2_AoTex :   TEXCOORD1;
 				float2 uv3_ColorTex :   TEXCOORD2;
-				float3 vertex_col : COLOR;
+				float4 vertex_col : COLOR;
 				float3 worldPos;
 			};
 
+			void vert(inout appdata_full v)
+			{
+				float3 normal = v.vertex.xyz - _Center;
+				float norm = sqrt(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
+				normal = float3(normal.x / norm, normal.y / norm, normal.z / norm);
+				//normal = (1 - _Amount) * v.normal + _Amount * normal;
 
-			void surf(Input IN, inout SurfaceOutputStandard o)
+				v.vertex.xyz += normal * (_MaxRadius - norm) * _Amount;
+				v.normal = _Amount * normal + (1 - _Amount) * v.normal;
+			}
+
+			float is_clipped(Input IN)
 			{
 				float3 localPos = IN.worldPos - mul(unity_ObjectToWorld, float4(0, 0, 0, 1)).xyz;
 				float clipping = 1;
@@ -76,27 +89,45 @@
 						}
 					}
 				}
-				clip(clipping);
+				return clipping;
+			}
 
-				fixed4 ao = tex2D(_AoTex, IN.uv2_AoTex.xy);
-				float color = ao.r;
-				
-				// boost alpha (because of low tri mesh density compated to cuts textures)
-				color *= 2.5;
-				if (color > 1)
-					color = 1;
-								
-				fixed4 col;	
-				if (_MarsAtlas)
+			void display_atlas(Input IN, inout SurfaceOutputStandard o)
+			{
+				if (IN.vertex_col.a > 0)
 				{
-					o.Albedo = IN.vertex_col.rgb;
+					o.Albedo = IN.vertex_col.rgb * _Color;
 				}
 				else
 				{
-					col = (1 - color) * tex2D(_MainTex, IN.uv_MainTex.xy) + (color)* tex2D(_ColorTex, IN.uv3_ColorTex.xy);
-					col *= _Color;
-					o.Albedo = col.rgb;
-					o.Alpha = 1.f;
+					o.Albedo = tex2D(_MainTex, IN.uv_MainTex);
+				}
+				o.Alpha = 1.f;
+			}
+
+			void display_ieeg(Input IN, inout SurfaceOutputStandard o)
+			{
+				fixed4 col;
+				fixed4 ao = tex2D(_AoTex, IN.uv2_AoTex);
+				float color = ao.r * 2.5; // boost alpha (because of low tri mesh density compated to cuts textures)
+				if (color > 1) color = 1;
+				col = (1 - color) * tex2D(_MainTex, IN.uv_MainTex) + (color)* tex2D(_ColorTex, IN.uv3_ColorTex);
+				col *= _Color;
+				o.Albedo = col.rgb;
+				o.Alpha = 1.f;
+			}
+
+			void surf(Input IN, inout SurfaceOutputStandard o)
+			{
+				clip(is_clipped(IN));
+							
+				if (_Atlas)
+				{
+					display_atlas(IN, o);
+				}
+				else
+				{
+					display_ieeg(IN, o);
 				}
 
 				o.Metallic =  _Metallic;

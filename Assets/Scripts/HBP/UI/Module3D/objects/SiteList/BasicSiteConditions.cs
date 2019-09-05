@@ -14,22 +14,20 @@ namespace HBP.UI.Module3D
     {
         #region Properties
         // State
-        [SerializeField] Toggle m_Excluded;
-        [SerializeField] Toggle m_NotExcluded;
         [SerializeField] Toggle m_Highlighted;
         [SerializeField] Toggle m_NotHighlighted;
         [SerializeField] Toggle m_Blacklisted;
         [SerializeField] Toggle m_NotBlacklisted;
-        [SerializeField] Toggle m_Marked;
-        [SerializeField] Toggle m_NotMarked;
-        [SerializeField] Toggle m_Suspicious;
-        [SerializeField] Toggle m_NotSuspicious;
+        [SerializeField] Toggle m_Label;
+        [SerializeField] InputField m_LabelFilter;
 
         // Position
         [SerializeField] Toggle m_InROI;
         [SerializeField] Toggle m_OutOfROI;
         [SerializeField] Toggle m_InMesh;
         [SerializeField] Toggle m_OutOfMesh;
+        [SerializeField] Toggle m_LeftHemisphere;
+        [SerializeField] Toggle m_RightHemisphere;
         [SerializeField] Toggle m_OnPlane;
         [SerializeField] Toggle m_NotOnPlane;
 
@@ -37,11 +35,15 @@ namespace HBP.UI.Module3D
         [SerializeField] Toggle m_SiteName;
         [SerializeField] InputField m_SiteNameFilter;
         [SerializeField] Toggle m_Patient;
-        [SerializeField] InputField m_PatientFilter;
+        [SerializeField] InputField m_PatientNameFilter;
+        [SerializeField] InputField m_PatientPlaceFilter;
+        [SerializeField] InputField m_PatientDateFilter;
         [SerializeField] Toggle m_MarsAtlas;
         [SerializeField] InputField m_MarsAtlasFilter;
         [SerializeField] Toggle m_Broadman;
         [SerializeField] InputField m_BroadmanFilter;
+        [SerializeField] Toggle m_Freesurfer;
+        [SerializeField] InputField m_FreesurferFilter;
 
         // Values
         [SerializeField] Toggle m_Mean;
@@ -65,16 +67,11 @@ namespace HBP.UI.Module3D
         private bool CheckState(Site site)
         {
             bool result = true;
-            if (m_Excluded.isOn) result &= CheckExcluded(site);
-            if (m_NotExcluded.isOn) result &= !CheckExcluded(site);
             if (m_Highlighted.isOn) result &= CheckHighlighted(site);
             if (m_NotHighlighted.isOn) result &= !CheckHighlighted(site);
             if (m_Blacklisted.isOn) result &= CheckBlacklisted(site);
             if (m_NotBlacklisted.isOn) result &= !CheckBlacklisted(site);
-            if (m_Marked.isOn) result &= CheckMarked(site);
-            if (m_NotMarked.isOn) result &= !CheckMarked(site);
-            if (m_Suspicious.isOn) result &= CheckSuspicious(site);
-            if (m_NotSuspicious.isOn) result &= !CheckSuspicious(site);
+            if (m_Label.isOn) result &= CheckLabel(site, m_LabelFilter.text);
             return result;
         }
         private bool CheckPosition(Site site)
@@ -84,6 +81,8 @@ namespace HBP.UI.Module3D
             if (m_OutOfROI.isOn) result &= !CheckInROI(site);
             if (m_InMesh.isOn) result &= CheckInMesh(site);
             if (m_OutOfMesh.isOn) result &= !CheckInMesh(site);
+            if (m_LeftHemisphere.isOn) result &= CheckInLeftHemisphere(site);
+            if (m_RightHemisphere.isOn) result &= CheckInRightHemisphere(site);
             if (m_OnPlane.isOn) result &= CheckOnPlane(site);
             if (m_NotOnPlane.isOn) result &= !CheckOnPlane(site);
             return result;
@@ -92,9 +91,24 @@ namespace HBP.UI.Module3D
         {
             bool result = true;
             if (m_SiteName.isOn) result &= CheckName(site, m_SiteNameFilter.text);
-            if (m_Patient.isOn) result &= CheckPatientName(site, m_PatientFilter.text);
+            if (m_Patient.isOn)
+            {
+                if (!string.IsNullOrEmpty(m_PatientNameFilter.text))
+                {
+                    result &= CheckPatientName(site, m_PatientNameFilter.text);
+                }
+                if (!string.IsNullOrEmpty(m_PatientPlaceFilter.text))
+                {
+                    result &= CheckPatientPlace(site, m_PatientPlaceFilter.text);
+                }
+                if (!string.IsNullOrEmpty(m_PatientDateFilter.text))
+                {
+                    result &= CheckPatientDate(site, m_PatientDateFilter.text);
+                }
+            }
             if (m_MarsAtlas.isOn) result &= CheckMarsAtlasName(site, m_MarsAtlasFilter.text);
             if (m_Broadman.isOn) result &= CheckBroadmanAreaName(site, m_BroadmanFilter.text);
+            if (m_Freesurfer.isOn) result &= CheckFreesurferName(site, m_FreesurferFilter.text);
             return result;
         }
         private bool CheckValues(Site site)

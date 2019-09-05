@@ -6,29 +6,20 @@ using System.Linq;
 using System.IO;
 using HBP.Module3D.DLL;
 using HBP.Data.Enums;
+using Tools.Unity;
 
 namespace HBP.Module3D
 {
     /// <summary>
     /// Column 3D base class (anatomical data only)
     /// </summary>
-    public class Column3D : MonoBehaviour
+    public class Column3D : MonoBehaviour, IConfigurable
     {
         #region Properties
         /// <summary>
-        /// Type of the column
-        /// </summary>
-        public virtual ColumnType Type
-        {
-            get
-            {
-                return ColumnType.Anatomic;
-            }
-        }
-        /// <summary>
         /// Column data of this column 3D
         /// </summary>
-        public Data.Visualization.BaseColumn ColumnData { get; private set; }
+        public Data.Visualization.Column ColumnData { get; private set; }
         /// <summary>
         /// Name of the column
         /// </summary>
@@ -57,9 +48,9 @@ namespace HBP.Module3D
             set
             {
                 m_IsSelected = value;
-                OnChangeSelectedState.Invoke(value);
                 if (m_IsSelected)
                 {
+                    OnSelect.Invoke();
                     ApplicationState.Module3D.OnSelectColumn.Invoke(this);
                 }
             }
@@ -138,7 +129,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Currently selected site
         /// </summary>
-        public Site SelectedSite { get; protected set; }
+        public Site SelectedSite { get; private set; }
         /// <summary>
         /// Currently selected site ID
         /// </summary>
@@ -255,10 +246,6 @@ namespace HBP.Module3D
         /// </summary>
         public CutTexturesUtility CutTextures { get; private set; }
 
-        /// <summary>
-        /// Is a source defined ?
-        /// </summary>
-        public bool SourceDefined { get { return SelectedSiteID != -1; } }
         private int m_CurrentLatencyFile = -1;
         /// <summary>
         /// Currently selected latency file
@@ -281,7 +268,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when this column is selected
         /// </summary>
-        [HideInInspector] public GenericEvent<bool> OnChangeSelectedState = new GenericEvent<bool>();
+        [HideInInspector] public UnityEvent OnSelect = new UnityEvent();
         /// <summary>
         /// Event called when a view is moved
         /// </summary>
@@ -326,7 +313,7 @@ namespace HBP.Module3D
         /// <param name="sites">List of sites (DLL)</param>
         /// <param name="sitesPatientParent">List of the gameobjects for the sites corresponding to the patients</param>
         /// <param name="siteList">List of the sites gameobjects</param>
-        public void Initialize(int idColumn, Data.Visualization.BaseColumn baseColumn, PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
+        public void Initialize(int idColumn, Data.Visualization.Column baseColumn, PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
         {
             Layer = "Column" + idColumn;
             ColumnData = baseColumn;
@@ -381,15 +368,14 @@ namespace HBP.Module3D
                         Site site = Sites[id];
                         site.Information = baseSite.Information;
                         // State
-                        if (!SiteStateBySiteID.ContainsKey(baseSite.Information.FullID))
+                        if (!SiteStateBySiteID.ContainsKey(baseSite.Information.FullCorrectedID))
                         {
-                            SiteStateBySiteID.Add(baseSite.Information.FullID, new SiteState(baseSite.State));
+                            SiteStateBySiteID.Add(baseSite.Information.FullCorrectedID, new SiteState(baseSite.State));
                         }
-                        site.State = SiteStateBySiteID[baseSite.Information.FullID];
+                        site.State = SiteStateBySiteID[baseSite.Information.FullCorrectedID];
                         site.State.OnChangeState.AddListener(() => OnChangeSiteState.Invoke(site));
                         // Configuration
-                        Data.Visualization.SiteConfiguration siteConfiguration;
-                        if (ColumnData.BaseConfiguration.ConfigurationBySite.TryGetValue(site.Information.FullCorrectedID, out siteConfiguration))
+                        if (ColumnData.BaseConfiguration.ConfigurationBySite.TryGetValue(site.Information.FullCorrectedID, out Data.Visualization.SiteConfiguration siteConfiguration))
                         {
                             site.Configuration = siteConfiguration;
                         }
@@ -489,7 +475,12 @@ namespace HBP.Module3D
                     bool activity = site.IsActive;
                     SiteType siteType;
                     float alpha = -1.0f;
-                    if (site.State.IsBlackListed)
+                    if (!site.State.IsFiltered)
+                    {
+                        if (activity) site.IsActive = false;
+                        continue;
+                    }
+                    else if (site.State.IsBlackListed)
                     {
                         site.transform.localScale = Vector3.one;
                         siteType = SiteType.BlackListed;
@@ -498,11 +489,6 @@ namespace HBP.Module3D
                             if (activity) site.IsActive = false;
                             continue;
                         }
-                    }
-                    else if (site.State.IsExcluded)
-                    {
-                        site.transform.localScale = Vector3.one;
-                        siteType = SiteType.Excluded;
                     }
                     else if (latenciesFile != null)
                     {
@@ -520,24 +506,24 @@ namespace HBP.Module3D
                             }
                             else if (latenciesFile.IsSiteResponsiveForSource(i, SelectedSiteID))
                             {
-                                siteType = latenciesFile.PositiveHeight[SelectedSiteID][i] ? SiteType.NonePos : SiteType.NoneNeg;
-                                alpha = site.State.IsHighlighted ? 1.0f : latenciesFile.Transparencies[SelectedSiteID][i] - 0.25f;
+                                siteType = latenciesFile.PositiveHeight[SelectedSiteID][i] ? SiteType.Positive : SiteType.Negative;
+                                alpha = site.State.IsHighlighted ? 1.0f : latenciesFile.Transparencies[SelectedSiteID][i];
                                 site.transform.localScale = Vector3.one * latenciesFile.Sizes[SelectedSiteID][i];
                             }
                             else
                             {
-                                site.transform.localScale = Vector3.one;
-                                siteType = SiteType.NoLatencyData;
+                                if (activity) site.IsActive = false;
+                                continue;
                             }
                         }
                     }
                     else
                     {
                         site.transform.localScale = Vector3.one;
-                        siteType = site.State.IsMarked ? SiteType.Marked : SiteType.Normal;
+                        siteType = SiteType.Normal;
                     }
                     if (!activity) site.IsActive = true;
-                    Material siteMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType);
+                    Material siteMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
                     if (alpha > 0.0f)
                     {
                         Color materialColor = siteMaterial.color;
@@ -554,7 +540,7 @@ namespace HBP.Module3D
                     Site site = Sites[i];
                     bool activity = site.IsActive;
                     SiteType siteType;
-                    if (site.State.IsMasked || (site.State.IsOutOfROI && !data.ShowAllSites))
+                    if (site.State.IsMasked || (site.State.IsOutOfROI && !data.ShowAllSites) || !site.State.IsFiltered)
                     {
                         if (activity) site.IsActive = false;
                         continue;
@@ -569,36 +555,15 @@ namespace HBP.Module3D
                             continue;
                         }
                     }
-                    else if (site.State.IsExcluded)
-                    {
-                        site.transform.localScale = Vector3.one;
-                        siteType = SiteType.Excluded;
-                    }
-                    else if (site.State.IsSuspicious)
-                    {
-                        site.transform.localScale = Vector3.one;
-                        siteType = SiteType.Suspicious;
-                    }
                     else
                     {
                         site.transform.localScale = Vector3.one;
-                        siteType = site.State.IsMarked ? SiteType.Marked : SiteType.Normal;
+                        siteType = SiteType.Normal;
                     }
                     if (!activity) site.IsActive = true;
-                    site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType);
+                    site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
                 }
             }
-
-            // Selected site
-            //if (SelectedSiteID == -1)
-            //{
-            //    m_SelectRing.SetSelectedSite(null, Vector3.zero);
-            //}
-            //else
-            //{
-            //    Site selectedSite = SelectedSite;
-            //    m_SelectRing.SetSelectedSite(selectedSite, selectedSite.transform.localScale);
-            //}
         }
         /// <summary>
         /// Save the states of the sites of this column to a file
@@ -610,17 +575,17 @@ namespace HBP.Module3D
             {
                 using (StreamWriter sw = new StreamWriter(path))
                 {
-                    sw.WriteLine("ID,Excluded,Blacklisted,Highlighted,Marked,Suspicious");
+                    sw.WriteLine("ID,Blacklisted,Highlighted,Color,Labels");
                     foreach (var site in SiteStateBySiteID)
                     {
-                        sw.WriteLine("{0},{1},{2},{3},{4},{5}", site.Key, site.Value.IsExcluded, site.Value.IsBlackListed, site.Value.IsHighlighted, site.Value.IsMarked, site.Value.IsSuspicious);
+                        sw.WriteLine("{0},{1},{2},{3},{4}", site.Key, site.Value.IsBlackListed, site.Value.IsHighlighted, site.Value.Color.ToHexString(), string.Join(";", site.Value.Labels));
                     }
                 }
             }
             catch (System.Exception e)
             {
                 Debug.LogException(e);
-                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Can not save site states", "Please verify your rights.");
+                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Can not save site states", "Please verify your rights.");
             }
         }
         /// <summary>
@@ -636,11 +601,11 @@ namespace HBP.Module3D
                     // Find which column of the csv corresponds to which argument
                     string firstLine = sr.ReadLine();
                     string[] firstLineSplits = firstLine.Split(',');
-                    int[] indices = new int[6];
-                    for (int i = 0; i < 6; ++i)
+                    int[] indices = new int[5];
+                    for (int i = 0; i < indices.Length; ++i)
                     {
                         string split = firstLineSplits[i];
-                        indices[i] = split == "ID" ? 0 : split == "Excluded" ? 1 : split == "Blacklisted" ? 2 : split == "Highlighted" ? 3 : split == "Marked" ? 4 : split == "Suspicious" ? 5 : i;
+                        indices[i] = split == "ID" ? 0 : split == "Blacklisted" ? 1 : split == "Highlighted" ? 2 : split == "Color" ? 3 : split == "Labels" ? 4 : i;
                     }
                     // Fill states
                     string line;
@@ -648,16 +613,8 @@ namespace HBP.Module3D
                     {
                         string[] args = line.Split(',');
                         SiteState state = new SiteState();
-                        bool stateValue;
-                        if (bool.TryParse(args[indices[1]], out stateValue))
-                        {
-                            state.IsExcluded = stateValue;
-                        }
-                        else
-                        {
-                            state.IsExcluded = false;
-                        }
-                        if (bool.TryParse(args[indices[2]], out stateValue))
+
+                        if (bool.TryParse(args[indices[1]], out bool stateValue))
                         {
                             state.IsBlackListed = stateValue;
                         }
@@ -665,7 +622,8 @@ namespace HBP.Module3D
                         {
                             state.IsBlackListed = false;
                         }
-                        if (bool.TryParse(args[indices[3]], out stateValue))
+
+                        if (bool.TryParse(args[indices[2]], out stateValue))
                         {
                             state.IsHighlighted = stateValue;
                         }
@@ -673,24 +631,23 @@ namespace HBP.Module3D
                         {
                             state.IsHighlighted = false;
                         }
-                        if (bool.TryParse(args[indices[4]], out stateValue))
+
+                        if (ColorUtility.TryParseHtmlString(args[indices[3]], out Color color))
                         {
-                            state.IsMarked = stateValue;
+                            state.Color = color;
                         }
                         else
                         {
-                            state.IsMarked = false;
+                            state.Color = SiteState.DefaultColor;
                         }
-                        if (bool.TryParse(args[indices[5]], out stateValue))
+
+                        string[] labels = args[indices[4]].Split(new char[] { ';' }, System.StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var label in labels)
                         {
-                            state.IsSuspicious = stateValue;
+                            state.AddLabel(label);
                         }
-                        else
-                        {
-                            state.IsSuspicious = false;
-                        }
-                        SiteState existingState;
-                        if (SiteStateBySiteID.TryGetValue(args[indices[0]], out existingState))
+
+                        if (SiteStateBySiteID.TryGetValue(args[indices[0]], out SiteState existingState))
                         {
                             existingState.ApplyState(state);
                         }
@@ -716,19 +673,16 @@ namespace HBP.Module3D
             view.gameObject.name = "View " + m_Views.Count;
             view.LineID = m_Views.Count;
             view.Layer = Layer;
-            view.OnChangeSelectedState.AddListener((selected) =>
+            view.OnSelect.AddListener(() =>
             {
-                if (selected)
+                foreach (View3D v in m_Views)
                 {
-                    foreach (View3D v in m_Views)
+                    if (v != view)
                     {
-                        if (v != view)
-                        {
-                            v.IsSelected = false;
-                        }
+                        v.IsSelected = false;
                     }
                 }
-                IsSelected = selected;
+                IsSelected = true;
             });
             view.OnMoveView.AddListener(() =>
             {
@@ -871,6 +825,81 @@ namespace HBP.Module3D
             {
                 site.IsSelected = true;
             }
+        }
+        /// <summary>
+        /// Update the site mask of the dll with all the masks
+        /// </summary>
+        public void UpdateDLLSitesMask()
+        {
+            bool isROI = m_ROIs.Count > 0;
+            for (int ii = 0; ii < Sites.Count; ++ii)
+            {
+                m_RawElectrodes.UpdateMask(ii, (Sites[ii].State.IsMasked || Sites[ii].State.IsBlackListed || (Sites[ii].State.IsOutOfROI && isROI) || !Sites[ii].State.IsFiltered));
+            }
+        }
+        /// <summary>
+        /// Performs a raycast on the column
+        /// </summary>
+        /// <param name="ray"></param>
+        /// <param name="layerMask"></param>
+        /// <param name="hit"></param>
+        /// <returns></returns>
+        public RaycastHitResult Raycast(Ray ray, int layerMask, out RaycastHit hit)
+        {
+            layerMask |= 1 << LayerMask.NameToLayer(Layer);
+            RaycastHitResult result = RaycastHitResult.None;
+            if (Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask))
+            {
+                if (hit.transform.parent.gameObject.name == "Cuts") result = RaycastHitResult.Cut;
+                if (hit.transform.parent.gameObject.name == "Brains" || hit.transform.parent.gameObject.name == "Erased Brains") result = RaycastHitResult.Mesh;
+                if (hit.collider.GetComponent<Site>() != null) result = RaycastHitResult.Site;
+                if (hit.collider.GetComponent<Sphere>() != null) result = RaycastHitResult.ROI;
+            }
+            return result;
+        }
+        public virtual void LoadConfiguration(bool firstCall = true)
+        {
+            if (firstCall) ResetConfiguration();
+            foreach (Data.Visualization.RegionOfInterest roi in ColumnData.BaseConfiguration.RegionsOfInterest)
+            {
+                ROI newROI = AddROI(roi.Name);
+                foreach (Data.Visualization.Sphere sphere in roi.Spheres)
+                {
+                    newROI.AddBubble(Layer, "Bubble", sphere.Position.ToVector3(), sphere.Radius);
+                }
+            }
+            foreach (Site site in Sites)
+            {
+                site.LoadConfiguration(false);
+            }
+
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+        }
+        public virtual void SaveConfiguration()
+        {
+            List<Data.Visualization.RegionOfInterest> rois = new List<Data.Visualization.RegionOfInterest>();
+            foreach (ROI roi in m_ROIs)
+            {
+                rois.Add(new Data.Visualization.RegionOfInterest(roi));
+            }
+            ColumnData.BaseConfiguration.RegionsOfInterest = rois;
+            foreach (Site site in Sites)
+            {
+                site.SaveConfiguration();
+            }
+        }
+        public virtual void ResetConfiguration()
+        {
+            while (m_ROIs.Count > 0)
+            {
+                RemoveSelectedROI();
+            }
+            foreach (Site site in Sites)
+            {
+                site.ResetConfiguration();
+            }
+
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
     }

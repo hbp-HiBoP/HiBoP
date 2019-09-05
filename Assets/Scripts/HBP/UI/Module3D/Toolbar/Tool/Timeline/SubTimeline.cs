@@ -19,13 +19,13 @@ namespace HBP.UI.Module3D.Tools
         [SerializeField] private RectTransform m_After;
         private Data.Visualization.Timeline m_Timeline;
         private Data.Visualization.SubTimeline m_SubTimeline;
-        private Column3DIEEG m_Column;
+        private Column3DDynamic m_Column;
         [SerializeField] private GameObject m_MainEventPrefab;
         [SerializeField] private GameObject m_SecondaryEventPrefab;
         #endregion
 
         #region Public Methods
-        public void Initialize(Column3DIEEG column, Data.Visualization.Timeline timeline, Data.Visualization.SubTimeline subTimeline, float offset)
+        public void Initialize(Column3DDynamic column, Data.Visualization.Timeline timeline, Data.Visualization.SubTimeline subTimeline, float offset)
         {
             m_Column = column;
             m_Timeline = timeline;

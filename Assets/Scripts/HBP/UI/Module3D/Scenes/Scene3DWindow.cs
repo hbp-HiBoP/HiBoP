@@ -77,18 +77,18 @@ namespace HBP.UI.Module3D
             grid.Columns.Last().Views.Last().GetComponent<CutController>().Initialize(scene);
             // Positions
             grid.VerticalHandlers[0].MagneticPosition = 0.45f;
-            grid.VerticalHandlers[1].MagneticPosition = 0.8f;
+            grid.VerticalHandlers[1].MagneticPosition = 0.75f;
             grid.VerticalHandlers[2].MagneticPosition = 0.9f;
             grid.VerticalHandlers[0].Position = 1.0f;
             grid.SetVerticalHandlersPosition(0);
 
-            ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
+            ApplicationState.Module3D.OnRemoveScene.AddSafeListener((s) =>
             {
                 if (s == scene)
                 {
                     Destroy(gameObject);
                 }
-            });
+            }, gameObject);
             scene.OnChangeVisibleState.AddListener((value) =>
             {
                 gameObject.SetActive(value);

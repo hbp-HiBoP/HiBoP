@@ -176,7 +176,7 @@ namespace HBP.Module3D
         /// Color cuts with iEEG values
         /// </summary>
         /// <param name="column">Column from which iEEG values are taken</param>
-        public void ColorCutsTexturesWithIEEG(Column3DIEEG column)
+        public void ColorCutsTexturesWithIEEG(Column3DDynamic column)
         {
             if (column.CutTextures != this)
             {
@@ -209,6 +209,17 @@ namespace HBP.Module3D
 
             DLL.Texture cutTexture = DLLBrainCutTextures[indexCut];
             generator.UpdateTextureWithFMRI(cutTexture);
+            cutTexture.UpdateTexture2D(BrainCutTextures[indexCut]);
+            UnityEngine.Profiling.Profiler.EndSample();
+        }
+        public void ColorCutsTexturesWithAtlas(int indexCut, float alpha, int selectedArea)
+        {
+            UnityEngine.Profiling.Profiler.BeginSample("Compute Alpha textures");
+            MRITextureCutGenerator generator = DLLMRITextureCutGenerators[indexCut];
+            generator.FillTextureWithAtlas(ApplicationState.Module3D.JuBrainAtlas, alpha, selectedArea);
+
+            DLL.Texture cutTexture = DLLBrainCutTextures[indexCut];
+            generator.UpdateTextureWithAtlas(cutTexture);
             cutTexture.UpdateTexture2D(BrainCutTextures[indexCut]);
             UnityEngine.Profiling.Profiler.EndSample();
         }

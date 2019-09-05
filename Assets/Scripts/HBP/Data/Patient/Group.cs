@@ -4,201 +4,219 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Tools.Unity;
 using System.IO;
+using Tools.CSharp;
+using System.Collections.ObjectModel;
 
 namespace HBP.Data
 {
-    /**
-    * \class Group
-    * \author Adrien Gannerie
-    * \version 1.0
-    * \date 04 janvier 2017
-    * \brief Patients group.
-    * 
-    * \details Group which contains:
-    *   - \a Name.
-    *   - \a ID.
-    *   - \a Patients.
-    */
+    /// <summary>
+    /// Contains all the data about a group of patients.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <term><b>Name</b></term>
+    /// <description>Name of the group.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Patients</b></term>
+    /// <description>Patients of the group.</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     [DataContract]
-    public class Group : ICloneable , ICopiable, ILoadable, IIdentifiable
+    public class Group : BaseData, ILoadable<Group>
     {
         #region Properties
+        /// <summary>
+        /// Extension of group files.
+        /// </summary>
         public const string EXTENSION = ".group";
-        /** Unique ID. */
-        [DataMember]
-        public string ID { get; set; }
-        /** Group name.*/
-        [DataMember]
-        public string Name { get; set; }
-        /** Patients. */
-        [DataMember(Name = "Patients",Order = 3)]
-        private List<string> patientsID;
-        public List<Patient> Patients
+        /// <summary>
+        /// <description>Name of the group.</description>
+        /// </summary>
+        [DataMember] public string Name { get; set; }
+        /// <summary>
+        /// IDs of the patients of the group.
+        /// </summary>
+        [DataMember(Name = "Patients",Order = 3)] List<string> m_Patients = new List<string>();
+        /// <summary>
+        /// Patients of the group.
+        /// </summary>
+        [IgnoreDataMember] public ReadOnlyCollection<Patient> Patients
         {
-            get { return (from patient in ApplicationState.ProjectLoaded.Patients where patientsID.Contains(patient.ID) select patient).ToList(); }
-            set { patientsID = (from patient in value select patient.ID).ToList(); }
+            get { return new ReadOnlyCollection<Patient>((from patient in ApplicationState.ProjectLoaded.Patients where m_Patients.Contains(patient.ID) select patient).ToArray()); }
         }
         #endregion
 
         #region Constructors
         /// <summary>
-        /// Construct a new group instance.
+        /// Initializes a new instance of the <see cref="HBP.Data.Group">Group</see> class.
         /// </summary>
-        /// <param name="name">\a Name of the group.</param>
-        /// <param name="patientsInTheGroup">\a Patients in the group.</param>
-        /// <param name="id">\a ID of the group.</param>
-        public Group(string name, Patient[] patientsInTheGroup,string id)
+        /// <param name="name">Name of the group.</param>
+        /// <param name="patients">Patients of the group.</param>
+        /// <param name="id">Unique identifier to identify the group.</param>
+        public Group(string name, IEnumerable<Patient> patients, string id) : base (id)
         {
             Name = name;
-            Patients = patientsInTheGroup.ToList();
-            ID = id;
+            AddPatient(patients);
         }
         /// <summary>
-        /// Construct a new group instance with a unique ID.
+        /// Initializes a new instance of the <see cref="HBP.Data.Group">Group</see> class.
         /// </summary>
-        /// <param name="name">\a Name of the group.</param>
-        /// <param name="patientsInTheGroup">\a Patients in the group.</param>
-        public Group(string name, Patient[] patientsInTheGroup): this(name,patientsInTheGroup,Guid.NewGuid().ToString())
+        /// <param name="name">Name of the group.</param>
+        /// <param name="patients">Patients of the group.</param>
+        public Group(string name, IEnumerable<Patient> patients): base()
         {
+            Name = name;
+            AddPatient(patients);
         }
         /// <summary>
-        /// Construct a new group instance with a default name and no patients.
+        /// Initializes a new instance of the <see cref="HBP.Data.Group">Group</see> class.
         /// </summary>
         public Group() : this("New Group",new Patient[0])
 		{
 		}
-		#endregion
+        #endregion
 
-		#region Public Methods
-        public void Load(string path)
+        #region Public Methods
+        /// <summary>
+        /// Set patients of the group.
+        /// </summary>
+        /// <param name="patients"></param>
+        public void SetPatients(IEnumerable<Patient> patients)
         {
-            Group result;
+            ClearPatients();
+            AddPatient(patients);
+        }
+        /// <summary>
+        /// Clears patients of the group.
+        /// </summary>
+        public void ClearPatients()
+        {
+            m_Patients.Clear();
+        }
+        /// <summary>
+        /// Adds a patient to the group.
+        /// </summary>
+        /// <param name="patient">Patient to add.</param>
+        public bool AddPatient(Patient patient)
+        {
+            return m_Patients.AddIfAbsent(patient.ID);
+        }
+        /// <summary>
+        /// Adds patients to the group.
+        /// </summary>
+        /// <param name="patient">Patients to add.</param>
+        public bool AddPatient(IEnumerable<Patient> patients)
+        {
+            bool result = true;
+            foreach (Patient patient in patients)
+            {
+                result &= AddPatient(patient);
+            }
+            return result;
+        }
+        /// <summary>
+        /// Removes patient to the group.
+        /// </summary>
+        /// <param name="patient">Patient to remove.</param>
+        public bool RemovePatient(Patient patient)
+        {
+            return m_Patients.Remove(patient.ID);
+        }
+        /// <summary>
+        /// Removes patients to the group.
+        /// </summary>
+        /// <param name="patient">Patients to remove.</param>
+        public bool RemovePatient(IEnumerable<Patient> patients)
+        {
+            bool result = true;
+            foreach (Patient patient in patients)
+            {
+                result &= RemovePatient(patient);
+            }
+            return result;
+        }
+        #endregion
+
+        #region Public Static Methods
+        /// <summary>
+        /// Gets the extension of the group files.
+        /// </summary>
+        /// <returns></returns>
+        public static string GetExtension()
+        {
+            return EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION;
+        }
+        /// <summary>
+        /// Loads group from group file.
+        /// </summary>
+        /// <param name="path">The specified path of the group file.</param>
+        /// <param name="result">The group in the group file.</param>
+        /// <returns><see langword="true"/> if the method worked successfully; otherwise, <see langword="false"/></returns>
+        public static bool LoadFromFile(string path, out Group result)
+        {
             try
             {
                 result = ClassLoaderSaver.LoadFromJson<Group>(path);
+                if (result != null) return true;
+                else return false;
             }
             catch (Exception e)
             {
                 UnityEngine.Debug.LogException(e);
                 throw new CanNotReadGroupFileException(Path.GetFileNameWithoutExtension(path));
             }
-            Copy(result);
         }
-        public string GetExtension()
-        {
-            return EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION;
-        }
-        /// <summary>
-        /// Add patient.
-        /// </summary>
-        /// <param name="patient">\a Patient to add.</param>
-        public void AddPatient(Patient patient)
-        {
-            if(!patientsID.Contains(patient.ID))
-            {
-                patientsID.Add(patient.ID);
-            }
-        }
-        /// <summary>
-        /// Add patients.
-        /// </summary>
-        /// <param name="patients">\a Patients to add.</param>
-        public void AddPatient(Patient[] patients)
-        {
-            foreach (Patient patient in patients) AddPatient(patient);
-        }
-        /// <summary>
-        /// Remove patient. 
-        /// </summary>
-        /// <param name="patient">\a Patient to remove.</param>
-        public void RemovePatient(Patient patient)
-        {
-            patientsID.Remove(patient.ID);
-        }
-        /// <summary>
-        /// Remove patients.
-        /// </summary>
-        /// <param name="patients">\a Patients to remove.</param>
-        public void RemovePatient(Patient[] patients)
-        {
-            foreach (Patient patient in patients) RemovePatient(patient);
-        }
-		#endregion
+        #endregion
 
-        #region Operator
+        #region Operators
         /// <summary>
         /// Clone the instance.
         /// </summary>
         /// <returns>object cloned.</returns>
-        public object Clone()
+        public override object Clone()
         {
-            return new Group(Name, Patients.ToArray().Clone() as Patient[],ID);
-        }
-        /// <summary>
-        /// Operator Equals.
-        /// </summary>
-        /// <param name="obj">Object to test.</param>
-        /// <returns>\a True if equals and \a false otherwise.</returns>
-        public override bool Equals(object obj)
-        {
-            Group p = obj as Group;
-            if (p == null)
-            {
-                return false;
-            }
-            else
-            {
-                return ID == p.ID;
-            }
-        }
-        /// <summary>
-        /// Get hash code.
-        /// </summary>
-        /// <returns>HashCode.</returns>
-        public override int GetHashCode()
-        {
-            return this.ID.GetHashCode();
+            return new Group(Name, Patients, ID);
         }
         /// <summary>
         /// Copy the instance.
         /// </summary>
-        /// <param name="copy">instance to copy.</param>
-        public void Copy(object copy)
+        /// <param name="obj">instance to copy.</param>
+        public override void Copy(object obj)
         {
-            Group group = copy as Group;
-            Name = group.Name;
-            Patients = group.Patients.ToList();
-            ID = group.ID;
+            base.Copy(obj);
+            if(obj is Group group)
+            {
+                Name = group.Name;
+                AddPatient(group.Patients);
+            }
+        }
+        #endregion
+
+        #region Interfaces
+        /// <summary>
+        /// Gets the extension of the group files.
+        /// </summary>
+        /// <returns></returns>
+        string ILoadable<Group>.GetExtension()
+        {
+            return GetExtension();
         }
         /// <summary>
-        /// Operator equals.
+        /// Loads group from group file.
         /// </summary>
-        /// <param name="a">First group to compare.</param>
-        /// <param name="b">Second group to compare.</param>
-        /// <returns>\a True if equals and \a false otherwise.</returns>
-        public static bool operator ==(Group a, Group b)
+        /// <param name="path">The specified path of the group file.</param>
+        /// <param name="result">The group in the group file.</param>
+        /// <returns><see langword="true"/> if the method worked successfully; otherwise, <see langword="false"/></returns>
+        bool ILoadable<Group>.LoadFromFile(string path, out Group result)
         {
-            if (ReferenceEquals(a, b))
-            {
-                return true;
-            }
-
-            if (((object)a == null) || ((object)b == null))
-            {
-                return false;
-            }
-
-            return a.Equals(b);
-        }
-        /// <summary>
-        /// Operator not equals.
-        /// </summary>
-        /// <param name="a">First group to compare.</param>
-        /// <param name="b">Second group to compare.</param>
-        /// <returns>\a True if not equals and \a false otherwise.</returns>
-        public static bool operator !=(Group a, Group b)
-        {
-            return !(a == b);
+            return LoadFromFile(path, out result);
         }
         #endregion
     }

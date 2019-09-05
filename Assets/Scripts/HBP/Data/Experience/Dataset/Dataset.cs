@@ -21,16 +21,10 @@ namespace HBP.Data.Experience.Dataset
     *       - \a Unique ID.
     */
     [DataContract]
-	public class Dataset : ICloneable, ICopiable, ILoadable, IIdentifiable
+	public class Dataset : BaseData, ILoadable<Dataset>
 	{
         #region Properties
         public const string EXTENSION = ".dataset";
-
-        /// <summary>
-        /// Unique ID of the dataset.
-        /// </summary>
-        [DataMember] public string ID { get; set; }
-
         /// <summary>
         /// Name of the dataset.
         /// </summary>
@@ -49,10 +43,7 @@ namespace HBP.Data.Experience.Dataset
             set
             {
                 m_ProtocolID = value.ID;
-                if(m_Data != null)
-                {
-                    foreach (var data in m_Data) data.GetPOSErrors(Protocol);
-                }
+                UpdateDataStates();
             }
         }
 
@@ -70,13 +61,18 @@ namespace HBP.Data.Experience.Dataset
         }
         #endregion
 
-        #region Constructor
-        public Dataset(string name,Protocol.Protocol protocol, DataInfo[] data,string id)
+        #region Constructors
+        public Dataset(string name,Protocol.Protocol protocol, DataInfo[] data,string id) : base(id)
         {
             Name = name;
             Protocol = protocol;
             SetData(data);
-            ID = id;
+        }
+        public Dataset(string name, Protocol.Protocol protocol, DataInfo[] data) : base()
+        {
+            Name = name;
+            Protocol = protocol;
+            SetData(data);
         }
         public Dataset() : this("New dataset", ApplicationState.ProjectLoaded.Protocols.First(), new DataInfo[0], Guid.NewGuid().ToString())
 		{
@@ -84,32 +80,31 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Public Methods
-        public void Load(string path)
+        public PatientDataInfo[] GetPatientDataInfos()
         {
-            Dataset result;
-            try
-            {
-                result = ClassLoaderSaver.LoadFromJson<Dataset>(path);
-            }
-            catch (Exception e)
-            {
-                UnityEngine.Debug.LogException(e);
-                throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(path));
-            }
-            Copy(result);
+            return m_Data.OfType<PatientDataInfo>().ToArray();
         }
-        public string GetExtension()
+        public PatientDataInfo[] GetPatientDataInfos(Patient patient)
         {
-            return EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION;
+            return m_Data.OfType<PatientDataInfo>().Where(d => d.Patient == patient).ToArray();
         }
+        public iEEGDataInfo[] GetIEEGDataInfos()
+        {
+            return m_Data.OfType<iEEGDataInfo>().ToArray();
+        }
+        public CCEPDataInfo[] GetCCEPDataInfos()
+        {
+            return m_Data.OfType<CCEPDataInfo>().ToArray();
+        }
+
         public bool AddData(DataInfo data)
         {
             if (!m_Data.Contains(data))
             {
                 m_Data.Add(data);
-                UnityAction action = new UnityAction(() => { data.GetPOSErrors(Protocol); });
+                UnityAction action = new UnityAction(() => { data.GetErrors(Protocol); });
                 m_ActionByDataInfo.Add(data, action);
-                data.OnPOSChanged.AddListener(action);
+                data.OnRequestErrorCheck.AddListener(action);
                 return true;
             }
             else return false;
@@ -123,7 +118,8 @@ namespace HBP.Data.Experience.Dataset
             if (m_Data.Contains(data))
             {
                 m_Data.Remove(data);
-                data.OnPOSChanged.RemoveListener(m_ActionByDataInfo[data]);
+                data.OnRequestErrorCheck.RemoveListener(m_ActionByDataInfo[data]);
+                m_ActionByDataInfo.Remove(data);
                 return true;
             }
             else return false;
@@ -143,16 +139,45 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         public void UpdateDataStates()
         {
-            foreach (DataInfo dataInfo in Data) dataInfo.GetErrors(Protocol);
+            if (m_Data != null)
+            {
+                foreach (DataInfo dataInfo in m_Data) dataInfo.GetErrors(Protocol);
+            }
+        }
+        public override void GenerateID()
+        {
+            base.GenerateID();
+            foreach (var dataInfo in Data) dataInfo.GenerateID();
         }
         #endregion
 
-        #region Operrators
+        #region Public static Methods
+        public static string GetExtension()
+        {
+            return EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION;
+        }
+        public static bool LoadFromFile(string path, out Dataset result)
+        {
+            result = null;
+            try
+            {
+                result = ClassLoaderSaver.LoadFromJson<Dataset>(path);
+                return result != null;
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogException(e);
+                throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(path));
+            }
+        }
+        #endregion
+
+        #region Operators
         /// <summary>
         /// Clone this instance.
         /// </summary>
         /// <returns>Clone of this instance</returns>
-        public object Clone()
+        public override object Clone()
         {
             return new Dataset(Name ,Protocol ,Data.Clone() as DataInfo[], ID);
         }
@@ -160,68 +185,15 @@ namespace HBP.Data.Experience.Dataset
         /// Copy this a instance to this instance.
         /// </summary>
         /// <param name="copy">Instance to copy.</param>
-        public void Copy(object copy)
+        public override void Copy(object copy)
         {
-            Dataset dataset = copy as Dataset;
-            Name = dataset.Name;
-            Protocol = dataset.Protocol;
-            ID = dataset.ID;
-            SetData(dataset.Data);
-        }
-        /// <summary>
-        /// Operator Equals.
-        /// </summary>
-        /// <param name="obj">Object to test.</param>
-        /// <returns>\a True if equals and \a false otherwise.</returns>
-        public override bool Equals(object obj)
-        {
-            Dataset dataset = obj as Dataset;
-            if (dataset != null && dataset.ID == ID)
+            base.Copy(copy);
+            if(copy is Dataset dataset)
             {
-                return true;
+                Name = dataset.Name;
+                Protocol = dataset.Protocol;
+                SetData(dataset.Data);
             }
-            else
-            {
-                return false;
-            }
-        }
-        /// <summary>
-        /// Get hash code.
-        /// </summary>
-        /// <returns>HashCode.</returns>
-        public override int GetHashCode()
-        {
-            return ID.GetHashCode();
-        }
-        /// <summary>
-        /// Operator equals.
-        /// </summary>
-        /// <param name="a">Dataset to compare.</param>
-        /// <param name="b">Dataset to compare.</param>
-        /// <returns>\a True if equals and \a false otherwise.</returns>
-        public static bool operator ==(Dataset a, Dataset b)
-        {
-            if (ReferenceEquals(a, b))
-            {
-                return true;
-            }
-
-            if (((object)a == null) || ((object)b == null))
-            {
-                return false;
-            }
-
-            return a.Equals(b);
-        }
-        /// <summary>
-        /// Operator not equals.
-        /// </summary>
-        /// <param name="a">Dataset to compare.</param>
-        /// <param name="b">Dataset to compare.</param>
-        /// <returns>\a True if not equals and \a false otherwise.</returns>
-        public static bool operator !=(Dataset a, Dataset b)
-        {
-            return !(a == b);
         }
         #endregion
 
@@ -232,20 +204,21 @@ namespace HBP.Data.Experience.Dataset
             if (Protocol == null) Protocol = ApplicationState.ProjectLoaded.Protocols.First();
             foreach (var data in m_Data)
             {
-                UnityAction action = new UnityAction(() => data.GetPOSErrors(Protocol));
+                UnityAction action = new UnityAction(() => data.GetErrors(Protocol));
                 m_ActionByDataInfo.Add(data, action);
-                data.OnPOSChanged.AddListener(action);
+                data.OnRequestErrorCheck.AddListener(action);
             }
         }
         #endregion
 
-        #region Struct
-        public struct Resume
+        #region Interfaces
+        string ILoadable<Dataset>.GetExtension()
         {
-            public enum StateEnum { OK, Warning, Error }
-            public string Label;
-            public int Number;
-            public StateEnum State;
+            return GetExtension();
+        }
+        bool ILoadable<Dataset>.LoadFromFile(string path, out Dataset result)
+        {
+            return LoadFromFile(path, out result);
         }
         #endregion
     }

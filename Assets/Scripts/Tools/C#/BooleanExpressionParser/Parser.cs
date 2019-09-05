@@ -90,7 +90,7 @@ namespace Tools.CSharp.BooleanExpressionParser
                         error = "A binary operator does not have enough operands.";
                         return false;
                     }
-                    else if ((tokens[i - 1].Type != TokenType.Value && tokens[i - 1].Type != TokenType.CloseParenthesis) || (tokens[i + 1].Type != TokenType.Value && tokens[i + 1].Type != TokenType.OpenParenthesis))
+                    else if ((tokens[i - 1].Type != TokenType.Value && tokens[i - 1].Type != TokenType.CloseParenthesis) || (tokens[i + 1].Type != TokenType.Value && tokens[i + 1].Type != TokenType.OpenParenthesis && tokens[i + 1].Type != TokenType.UnaryOperator))
                     {
                         error = "A binary operator does not have enough operands.";
                         return false;

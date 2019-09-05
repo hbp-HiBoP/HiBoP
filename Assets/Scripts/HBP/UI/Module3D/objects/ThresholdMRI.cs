@@ -79,8 +79,7 @@ namespace HBP.UI.Module3D
             {
                 foreach (var mri in s.ColumnManager.MRIs)
                 {
-                    Texture2D texture; 
-                    if (m_HistogramByMRI.TryGetValue(mri, out texture))
+                    if (m_HistogramByMRI.TryGetValue(mri, out Texture2D texture))
                     {
                         Destroy(texture);
                         m_HistogramByMRI.Remove(mri);

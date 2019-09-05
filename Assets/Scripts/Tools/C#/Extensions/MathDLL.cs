@@ -16,6 +16,7 @@ namespace Tools.CSharp
                 float absStandardDeviation = Mathf.Abs(array.StandardDeviation());
                 float mean = array.Mean();
                 float offset = Zscore * absStandardDeviation;
+                if (offset == 0) offset = 1;
                 return new Vector2(mean - offset, mean + offset);
             }
         }
@@ -73,7 +74,7 @@ namespace Tools.CSharp
             {
                 throw new System.Exception("Array is empty");
             }
-            if (standardDeviation == 0) standardDeviation = 1;
+            if (Mathf.Approximately(standardDeviation, 0)) standardDeviation = 1;
             Normalize(array, array.Length, targetArray, average, standardDeviation);
         }
         public static float Lerp(float value1, float value2, float percentage)

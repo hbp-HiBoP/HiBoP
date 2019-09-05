@@ -106,6 +106,11 @@ namespace HBP.Data.Visualization
         /// </summary>
         [DataMember(Name = "Views")]
         public List<View> Views { get; set; } = new List<View>();
+
+        [IgnoreDataMember]
+        public string FirstSiteToSelect { get; set; }
+        [IgnoreDataMember]
+        public int FirstColumnToSelect { get; set; }
         #endregion
 
         #region Constructors
@@ -136,10 +141,13 @@ namespace HBP.Data.Visualization
         #region Public Methods
         public object Clone()
         {
-            return new VisualizationConfiguration(BrainColor, BrainCutColor, EEGColormap,
+            VisualizationConfiguration result = new VisualizationConfiguration(BrainColor, BrainCutColor, EEGColormap,
                 MeshPart, MeshName, MRIName, ImplantationName, ShowEdges, StrongCuts,
                 HideBlacklistedSites, ShowAllSites, MRICalMinFactor,
                 MRICalMaxFactor, CameraType, Cuts.ToList(), Views.ToList());
+            result.FirstSiteToSelect = FirstSiteToSelect;
+            result.FirstColumnToSelect = FirstColumnToSelect;
+            return result;
         }
         #endregion
     }

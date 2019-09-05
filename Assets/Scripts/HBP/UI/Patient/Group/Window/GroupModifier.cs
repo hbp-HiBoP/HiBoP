@@ -41,7 +41,7 @@ namespace HBP.UI.Anatomy
         #region Public Methods
         public override void Save()
         {
-            ItemTemp.Patients = m_GroupPatientListGestion.Objects;
+            ItemTemp.SetPatients(m_GroupPatientListGestion.Objects);
             base.Save();
         }
         public void AddPatients()
@@ -71,7 +71,7 @@ namespace HBP.UI.Anatomy
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_ProjectPatientListGestion.Objects = ApplicationState.ProjectLoaded.Patients.Where(p => !objectToDisplay.Patients.Contains(p)).ToList();
-            m_GroupPatientListGestion.Objects = objectToDisplay.Patients;
+            m_GroupPatientListGestion.Objects = objectToDisplay.Patients.ToList();
         }
         #endregion
     }

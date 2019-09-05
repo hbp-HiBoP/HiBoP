@@ -104,16 +104,16 @@ namespace Tools.Unity
                     switch (Application.platform)
                     {
                         case RuntimePlatform.OSXPlayer:
-                            logFile = "~/Library/Logs/Unity/Player.log";
+                            logFile = Path.Combine("~", "Library", "Logs", Application.companyName, Application.productName, "Player.log");
                             break;
                         case RuntimePlatform.WindowsPlayer:
-                            logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "..", "LocalLow", Application.companyName, Application.productName, "output_log.txt");
+                            logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "..", "LocalLow", Application.companyName, Application.productName, "Player.log");
                             break;
                         case RuntimePlatform.LinuxPlayer:
-                            logFile = "~/.config/unity3d/CRNL/HiBoP/Player.log";
+                            logFile = Path.Combine("~", ".config", "unity3d", Application.companyName, Application.productName, "Player.log");
                             break;
                         default:
-                            logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "..", "LocalLow", Application.companyName, Application.productName, "output_log.txt");
+                            logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "..", "LocalLow", Application.companyName, Application.productName, "Player.log");
                             break;
                     }
                     if (File.Exists(logFile))

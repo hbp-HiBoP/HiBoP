@@ -1,11 +1,9 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
-using Tools.CSharp;
-
+using System.ComponentModel;
 
 namespace HBP.Data.Visualization
 {
@@ -22,8 +20,8 @@ namespace HBP.Data.Visualization
     *   - \a Protocol.
     *   - \a Bloc.
     */
-    [DataContract]
-    public class IEEGColumn : BaseColumn
+    [DataContract, DisplayName("iEEG")]
+    public class IEEGColumn : Column
     {
         #region Properties
         [DataMember(Name = "Dataset")] string datasetID;
@@ -87,7 +85,7 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Configuration of the column.
         /// </summary>
-        [DataMember] public IEEGConfiguration IEEGConfiguration { get; set; }
+        [DataMember] public DynamicConfiguration DynamicConfiguration { get; set; }
 
         /// <summary>
         /// Data of the column.
@@ -96,21 +94,30 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public IEEGColumn(string name, BaseConfiguration baseConfiguration, Dataset dataset, string dataName, Bloc bloc, IEEGConfiguration configuration, IEEGData data) : base(name, baseConfiguration)
+        public IEEGColumn(string name, BaseConfiguration baseConfiguration, Dataset dataset, string dataName, Bloc bloc, DynamicConfiguration configuration, IEEGData data, string id) : base(name, baseConfiguration, id)
         {
             Dataset = dataset;
             DataName = dataName;
             Bloc = bloc;
-            IEEGConfiguration = configuration;
+            DynamicConfiguration = configuration;
+            Data = data;
+        }
+        public IEEGColumn(string name, BaseConfiguration baseConfiguration, Dataset dataset, string dataName, Bloc bloc, DynamicConfiguration configuration, IEEGData data) : base(name, baseConfiguration)
+        {
+            Dataset = dataset;
+            DataName = dataName;
+            Bloc = bloc;
+            DynamicConfiguration = configuration;
             Data = data;
         }
         public IEEGColumn(string name, BaseConfiguration baseConfiguration, IEnumerable<Patient> patients) : this(name,baseConfiguration)
         {
             foreach (Dataset dataset in ApplicationState.ProjectLoaded.Datasets)
             {
+                iEEGDataInfo[] iEEGDataInfos = dataset.GetIEEGDataInfos();
                 foreach (var dataName in dataset.Data.Select(data => data.Name).Distinct())
                 {
-                    if (patients.All((patient) => dataset.Data.Any((data) => (data.Patient == patient && data.Name == dataName))))
+                    if (patients.All((patient) => iEEGDataInfos.Any((data) => (data.Patient == patient && data.Name == dataName))))
                     {
                         Dataset = dataset;
                         DataName = dataName;
@@ -120,11 +127,11 @@ namespace HBP.Data.Visualization
                 }
             }
         }
-        public IEEGColumn(string name, BaseConfiguration baseConfiguration) : this(name, baseConfiguration, null, string.Empty, null, new IEEGConfiguration(), new IEEGData())
+        public IEEGColumn(string name, BaseConfiguration baseConfiguration) : this(name, baseConfiguration, null, string.Empty, null, new DynamicConfiguration(), new IEEGData())
         {
 
         }
-        public IEEGColumn() : this("New column", new BaseConfiguration(), null, string.Empty, null, new IEEGConfiguration(), new IEEGData())
+        public IEEGColumn() : this("New column", new BaseConfiguration(), null, string.Empty, null, new DynamicConfiguration(), new IEEGData())
         {
         }
         #endregion
@@ -132,7 +139,8 @@ namespace HBP.Data.Visualization
         #region Public Methods
         public override bool IsCompatible(IEnumerable<Patient> patients)
         {
-            return Dataset != null && patients.All((patient) => Dataset.Data.Any((data) => data.Name == DataName && data.Patient == patient && data.isOk));
+            iEEGDataInfo[] iEEGDataInfos = Dataset?.GetIEEGDataInfos();
+            return Dataset != null && patients.All((patient) => iEEGDataInfos.Any((data) => data.Name == DataName && data.Patient == patient && data.IsOk));
         }
         public override void Unload()
         {
@@ -146,8 +154,19 @@ namespace HBP.Data.Visualization
         /// </summary>
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
-        {   
-            return new IEEGColumn(Name, BaseConfiguration.Clone() as BaseConfiguration, Dataset, DataName, Bloc, IEEGConfiguration.Clone() as IEEGConfiguration, new IEEGData());
+        {
+            return new IEEGColumn(Name, BaseConfiguration.Clone() as BaseConfiguration, Dataset, DataName, Bloc, DynamicConfiguration.Clone() as DynamicConfiguration, new IEEGData(), ID);
+        }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+            if (copy is IEEGColumn ieegColumn)
+            {
+                Dataset = ieegColumn.Dataset;
+                DataName = ieegColumn.DataName;
+                Bloc = ieegColumn.Bloc;
+                DynamicConfiguration = ieegColumn.DynamicConfiguration;
+            }
         }
         #endregion
     }

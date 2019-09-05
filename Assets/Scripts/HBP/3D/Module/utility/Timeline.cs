@@ -5,7 +5,6 @@ using HBP.Data.Experience.Dataset;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
-using HBP.Data.Localizer;
 
 namespace HBP.Data.Visualization
 {
@@ -24,6 +23,8 @@ namespace HBP.Data.Visualization
         /// Length of the timeline in unit of time
         /// </summary>
         public float TimeLength { get; private set; }
+
+        public Tools.CSharp.EEG.Frequency Frequency { get; private set; }
 
         private int m_CurrentIndex;
         /// <summary>
@@ -103,8 +104,9 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public Timeline(Bloc bloc, Dictionary<SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc, Dictionary<SubBloc, int> indexBySubBloc, Frequency frequency)
+        public Timeline(Bloc bloc, Dictionary<SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc, Dictionary<SubBloc, int> indexBySubBloc, Tools.CSharp.EEG.Frequency frequency)
         {
+            Frequency = frequency;
             Unit = "ms";
             int startIndex = 0;
             SubTimelinesBySubBloc = new Dictionary<SubBloc, SubTimeline>(bloc.SubBlocs.Count);
@@ -191,6 +193,8 @@ namespace HBP.Data.Visualization
         /// Length of the timeline in unit of time
         /// </summary>
         public float TimeLength { get { return MaxTime - MinTime; } }
+        
+        public Tools.CSharp.EEG.Frequency Frequency { get; private set; }
 
         private int m_GlobalMinIndex;
         /// <summary>
@@ -241,8 +245,10 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public SubTimeline(SubBloc subBloc, int startIndex, List<SubBlocEventsStatistics> eventStatistics, int maxBefore, int maxAfter, Frequency frequency)
+        public SubTimeline(SubBloc subBloc, int startIndex, List<SubBlocEventsStatistics> eventStatistics, int maxBefore, int maxAfter, Tools.CSharp.EEG.Frequency frequency)
         {
+            Frequency = frequency;
+
             // Events
             StatisticsByEvent = new Dictionary<Experience.Protocol.Event, EventStatistics>();
             foreach (var e in subBloc.Events)

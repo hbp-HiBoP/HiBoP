@@ -2,13 +2,13 @@
 using System.Runtime.Serialization;
 
 [DataContract]
-public class AnantomicConfiguration : ICloneable
+public class AnatomicConfiguration : ICloneable
 {
     #region Properties
     #endregion
 
     #region Constructors
-    public AnantomicConfiguration()
+    public AnatomicConfiguration()
     {
 
     }
@@ -17,7 +17,7 @@ public class AnantomicConfiguration : ICloneable
     #region Public Methods
     public object Clone()
     {
-        return new AnantomicConfiguration();
+        return new AnatomicConfiguration();
     }
     #endregion
 

@@ -1,13 +1,16 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Runtime.Serialization;
+using UnityEngine;
 
 namespace Tools.CSharp
 {
+    [DataContract]
     public struct Window
     {
         #region Properties
-        public int Start { get; set; }
-        public int End { get; set; }
-        public int Lenght
+        [DataMember] public int Start { get; set; }
+        [DataMember] public int End { get; set; }
+        [IgnoreDataMember] public int Lenght
         {
             get
             {
@@ -30,6 +33,10 @@ namespace Tools.CSharp
         #endregion
 
         #region Public Methods
+        public override string ToString()
+        {
+            return String.Format("({0},{1})", Start, End);
+        }
         public override bool Equals(object obj)
         {
             if (obj is Window)

@@ -4,6 +4,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 using Ionic.Zip;
+using Tools.CSharp;
 
 namespace Tools.Unity
 {
@@ -77,17 +78,15 @@ namespace Tools.Unity
                 file.Delete();
             }
 
-            if (target == BuildTarget.StandaloneOSX)
+            if (target == BuildTarget.StandaloneLinux64)
             {
-                DirectoryInfo pluginsDirectory = new DirectoryInfo(Application.dataPath + "/Plugins/x86_64/MacOS");
-                DirectoryInfo newPluginsDirectory = new DirectoryInfo(dataDirectory + "Contents/Frameworks/MonoEmbedRuntime/osx/");
-                Directory.CreateDirectory(newPluginsDirectory.FullName);
+                DirectoryInfo pluginsDirectory = new DirectoryInfo(Application.dataPath + "/Plugins/x86_64/Linux");
+                DirectoryInfo newPluginsDirectory = new DirectoryInfo(dataDirectory + "HiBoP_Data/Plugins/x86_64");
                 pluginsDirectory.CopyFilesRecursively(newPluginsDirectory);
-                foreach (var file in newPluginsDirectory.GetFiles("*.meta"))
+                foreach (var metaFile in newPluginsDirectory.GetFiles("*.meta"))
                 {
-                    file.Delete();
+                    metaFile.Delete();
                 }
-                new DirectoryInfo(dataDirectory + "Contents/Plugins/x86_64").Delete(true);
             }
 
             FileInfo readme = new FileInfo(projectPath + "README.md");

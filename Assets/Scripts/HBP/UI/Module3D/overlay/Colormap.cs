@@ -90,7 +90,7 @@ namespace HBP.UI.Module3D
 
             scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
-                if (column.Type == Data.Enums.ColumnType.iEEG)
+                if (column is Column3DDynamic)
                 {
                     IsActive = value;
                 }
@@ -98,13 +98,13 @@ namespace HBP.UI.Module3D
 
             scene.OnChangeColormap.AddListener((color) => m_Icon.sprite = m_SpriteByColorType[color]);
 
-            if (column is Column3DIEEG columnIEEG)
+            if (column is Column3DDynamic dynamicColumn)
             {
-                columnIEEG.IEEGParameters.OnUpdateSpanValues.AddListener(() =>
+                dynamicColumn.DynamicParameters.OnUpdateSpanValues.AddListener(() =>
                 {
-                    m_Min.text = columnIEEG.IEEGParameters.SpanMin.ToString("0.00");
-                    m_Mid.text = columnIEEG.IEEGParameters.Middle.ToString("0.00");
-                    m_Max.text = columnIEEG.IEEGParameters.SpanMax.ToString("0.00");
+                    m_Min.text = dynamicColumn.DynamicParameters.SpanMin.ToString("0.00");
+                    m_Mid.text = dynamicColumn.DynamicParameters.Middle.ToString("0.00");
+                    m_Max.text = dynamicColumn.DynamicParameters.SpanMax.ToString("0.00");
                 });
             }
         }

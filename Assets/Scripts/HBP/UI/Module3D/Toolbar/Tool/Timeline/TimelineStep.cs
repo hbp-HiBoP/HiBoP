@@ -46,16 +46,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                List<HBP.Module3D.Column3DIEEG> columns = new List<HBP.Module3D.Column3DIEEG>();
-                if (IsGlobal)
-                {
-                    columns = SelectedScene.ColumnManager.ColumnsIEEG.ToList();
-                }
-                else
-                {
-                    columns.Add((HBP.Module3D.Column3DIEEG)SelectedColumn);
-                }
-                foreach (HBP.Module3D.Column3DIEEG column in columns)
+                foreach (HBP.Module3D.Column3DDynamic column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
                     column.Timeline.CurrentIndex -= column.Timeline.Step;
                 }
@@ -65,16 +56,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                List<HBP.Module3D.Column3DIEEG> columns = new List<HBP.Module3D.Column3DIEEG>();
-                if (IsGlobal)
-                {
-                    columns = SelectedScene.ColumnManager.ColumnsIEEG.ToList();
-                }
-                else
-                {
-                    columns.Add((HBP.Module3D.Column3DIEEG)SelectedColumn);
-                }
-                foreach (HBP.Module3D.Column3DIEEG column in columns)
+                foreach (HBP.Module3D.Column3DDynamic column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
                     column.Timeline.CurrentIndex += column.Timeline.Step;
                 }
@@ -84,11 +66,15 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                int val = 1;
                 int step = 1;
-                if (int.TryParse(value, out val))
+                if (int.TryParse(value, out int val))
                 {
                     step = val;
+                    if (step < 1)
+                    {
+                        step = 1;
+                        val = 1;
+                    }
                     m_InputField.text = val.ToString();
                 }
                 else
@@ -98,17 +84,7 @@ namespace HBP.UI.Module3D.Tools
                     m_InputField.text = val.ToString();
                 }
 
-                List<HBP.Module3D.Column3DIEEG> columns = new List<HBP.Module3D.Column3DIEEG>();
-                if (IsGlobal)
-                {
-                    columns = SelectedScene.ColumnManager.ColumnsIEEG.ToList();
-                }
-                else
-                {
-                    columns.Add((HBP.Module3D.Column3DIEEG)SelectedColumn);
-                }
-
-                foreach (HBP.Module3D.Column3DIEEG column in columns)
+                foreach (HBP.Module3D.Column3DDynamic column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
                     column.Timeline.Step = step;
                 }
@@ -125,19 +101,19 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isColumnIEEG = SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
+            bool isColumnDynamic = SelectedColumn is HBP.Module3D.Column3DDynamic;
             bool areAmplitudesComputed = SelectedScene.SceneInformation.IsGeneratorUpToDate;
 
-            m_Minus.interactable = isColumnIEEG && areAmplitudesComputed;
-            m_InputField.interactable = isColumnIEEG && areAmplitudesComputed;
-            m_Plus.interactable = isColumnIEEG && areAmplitudesComputed;
+            m_Minus.interactable = isColumnDynamic && areAmplitudesComputed;
+            m_InputField.interactable = isColumnDynamic && areAmplitudesComputed;
+            m_Plus.interactable = isColumnDynamic && areAmplitudesComputed;
         }
 
         public override void UpdateStatus()
         {
-            if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
+            if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)
             {
-                m_InputField.text = ((HBP.Module3D.Column3DIEEG)SelectedColumn).Timeline.Step.ToString();
+                m_InputField.text = dynamicColumn.Timeline.Step.ToString();
             }
             else
             {

@@ -68,7 +68,7 @@ namespace HBP.UI.Module3D.Tools
             yield return Ninja.JumpBack;
 
             System.Text.StringBuilder csvBuilder = new System.Text.StringBuilder();
-            csvBuilder.AppendLine("Site,Patient,Place,Date,X,Y,Z,CoordSystem,EEG,POS");
+            csvBuilder.AppendLine("Site,Patient,Place,Date,X,Y,Z,CoordSystem,DataType,DataFiles");
             
             List<Site> sites = SelectedColumn.Sites;
             int length = sites.Count;
@@ -81,10 +81,14 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (!dataInfoByPatient.ContainsKey(site.Information.Patient))
                 {
-                    if (SelectedColumn is Column3DIEEG)
+                    if (SelectedColumn is Column3DIEEG columnIEEG)
                     {
-                        Column3DIEEG columnIEEG = (Column3DIEEG)SelectedColumn;
                         DataInfo dataInfo = SelectedScene.Visualization.GetDataInfo(site.Information.Patient, columnIEEG.ColumnIEEGData);
+                        dataInfoByPatient.Add(site.Information.Patient, dataInfo);
+                    }
+                    else if (SelectedColumn is Column3DCCEP columnCCEP)
+                    {
+                        DataInfo dataInfo = SelectedScene.Visualization.GetDataInfo(site.Information.Patient, columnCCEP.ColumnCCEPData);
                         dataInfoByPatient.Add(site.Information.Patient, dataInfo);
                     }
                 }
@@ -95,16 +99,38 @@ namespace HBP.UI.Module3D.Tools
                 Site site = sites[i];
                 m_Progress = (float)i / (length - 1);
                 m_Message = new LoadingText("Exporting ", site.Information.FullCorrectedID);
-                if (!(site.State.IsExcluded || site.State.IsBlackListed || site.State.IsMasked || site.State.IsOutOfROI))
+                if (!(site.State.IsBlackListed || site.State.IsMasked || site.State.IsOutOfROI))
                 {
                     Vector3 sitePosition = sitePositions[i];
-                    string EEG = "", POS = "";
-                    if (SelectedColumn is Column3DIEEG)
+                    string dataType = "", dataFiles = "";
+                    if (SelectedColumn is Column3DDynamic)
                     {
-                        Column3DIEEG columnIEEG = (Column3DIEEG)SelectedColumn;
+                        Column3DDynamic columnIEEG = (Column3DDynamic)SelectedColumn;
                         DataInfo dataInfo = dataInfoByPatient[site.Information.Patient];
-                        EEG = dataInfo.EEG;
-                        POS = dataInfo.POS;
+                        if (dataInfo.DataContainer is Data.Container.BrainVision brainVisionDataContainer)
+                        {
+                            dataType = "BrainVision";
+                            dataFiles = string.Join(";", new string[] { brainVisionDataContainer.Header });
+                        }
+                        else if (dataInfo.DataContainer is Data.Container.EDF edfDataContainer)
+                        {
+                            dataType = "EDF";
+                            dataFiles = string.Join(";", new string[] { edfDataContainer.Path });
+                        }
+                        else if (dataInfo.DataContainer is Data.Container.Elan elanDataContainer)
+                        {
+                            dataType = "ELAN";
+                            dataFiles = string.Join(";", new string[] { elanDataContainer.EEG, elanDataContainer.POS, elanDataContainer.Notes });
+                        }
+                        else if (dataInfo.DataContainer is Data.Container.Micromed micromedDataContainer)
+                        {
+                            dataType = "Micromed";
+                            dataFiles = string.Join(";", new string[] { micromedDataContainer.Path });
+                        }
+                        else
+                        {
+                            throw new Exception("Invalid data container type");
+                        }
                     }
                     csvBuilder.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9}",
                             site.Information.ChannelName,
@@ -115,8 +141,8 @@ namespace HBP.UI.Module3D.Tools
                             sitePosition.y.ToString("N2"),
                             sitePosition.z.ToString("N2"),
                             SelectedScene.ColumnManager.SelectedImplantation.Name,
-                            EEG,
-                            POS));
+                            dataType,
+                            dataFiles));
                 }
             }
 
