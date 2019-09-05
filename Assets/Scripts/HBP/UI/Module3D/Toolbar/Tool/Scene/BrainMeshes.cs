@@ -94,7 +94,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool isMeshLeftRight = SelectedScene.ColumnManager.SelectedMesh is LeftRightMesh3D;
+            bool isMeshLeftRight = SelectedScene.SelectedMesh is LeftRightMesh3D;
 
             m_Left.interactable = isMeshLeftRight;
             m_Right.interactable = isMeshLeftRight;
@@ -126,7 +126,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public void ChangeBrainTypeCallback()
         {
-            m_IsMeshLeftRight = SelectedScene.ColumnManager.SelectedMesh is LeftRightMesh3D;
+            m_IsMeshLeftRight = SelectedScene.SelectedMesh is LeftRightMesh3D;
             if (!m_IsMeshLeftRight)
             {
                 m_Left.isOn = false;

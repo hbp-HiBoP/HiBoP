@@ -61,11 +61,11 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (SelectedColumn is Column3DIEEG)
                 {
-                    columns.AddRange(SelectedScene.ColumnManager.ColumnsIEEG);
+                    columns.AddRange(SelectedScene.ColumnsIEEG);
                 }
                 else if (SelectedColumn is Column3DCCEP)
                 {
-                    columns.AddRange(SelectedScene.ColumnManager.ColumnsCCEP);
+                    columns.AddRange(SelectedScene.ColumnsCCEP);
                 }
             }
             else

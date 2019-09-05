@@ -22,7 +22,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedScene.ColumnManager.FMRIManager.DisplayIBCContrasts = isOn;
+                SelectedScene.FMRIManager.DisplayIBCContrasts = isOn;
             });
             m_JubrainToggle.onValueChanged.AddListener((isOn) =>
             {
@@ -50,9 +50,9 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isIBCAvailable = ApplicationState.Module3D.IBCObjects.Loaded && SelectedScene.ColumnManager.SelectedMesh.Type == Data.Enums.MeshType.MNI;
-            bool isJuBrainAtlasAvailable = ApplicationState.Module3D.JuBrainAtlas.Loaded && SelectedScene.ColumnManager.SelectedMesh.Type == Data.Enums.MeshType.MNI;
-            bool canUseMarsAtlas = SelectedScene.ColumnManager.SelectedMesh.IsMarsAtlasLoaded;
+            bool isIBCAvailable = ApplicationState.Module3D.IBCObjects.Loaded && SelectedScene.SelectedMesh.Type == Data.Enums.MeshType.MNI;
+            bool isJuBrainAtlasAvailable = ApplicationState.Module3D.JuBrainAtlas.Loaded && SelectedScene.SelectedMesh.Type == Data.Enums.MeshType.MNI;
+            bool canUseMarsAtlas = SelectedScene.SelectedMesh.IsMarsAtlasLoaded;
 
             m_IBCToggle.interactable = isIBCAvailable;
             m_JubrainToggle.interactable = isJuBrainAtlasAvailable;
@@ -61,7 +61,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateStatus()
         {
-            m_IBCToggle.isOn = SelectedScene.ColumnManager.FMRIManager.DisplayIBCContrasts;
+            m_IBCToggle.isOn = SelectedScene.FMRIManager.DisplayIBCContrasts;
             m_JubrainToggle.isOn = SelectedScene.DisplayJuBrainAtlas;
             m_MarsAtlasToggle.isOn = SelectedScene.IsMarsAtlasEnabled;
         }

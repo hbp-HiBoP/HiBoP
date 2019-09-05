@@ -102,14 +102,14 @@ namespace HBP.UI.Module3D
             List<Site> sites = new List<Site>();
             if (m_AllColumnsToggle.isOn)
             {
-                foreach (var column in m_Scene.ColumnManager.Columns)
+                foreach (var column in m_Scene.Columns)
                 {
                     sites.AddRange(column.Sites.Where(s => s.State.IsFiltered));
                 }
             }
             else
             {
-                sites.AddRange(m_Scene.ColumnManager.SelectedColumn.Sites.Where(s => s.State.IsFiltered));
+                sites.AddRange(m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered));
             }
 
             foreach (var site in sites)
@@ -132,7 +132,7 @@ namespace HBP.UI.Module3D
             if (string.IsNullOrEmpty(csvPath)) return;
 
             m_ProgressBar.Begin();
-            List<Site> sites = m_Scene.ColumnManager.SelectedColumn.Sites.Where(s => s.State.IsFiltered).ToList();
+            List<Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered).ToList();
             m_Coroutine = this.StartCoroutineAsync(c_ExportSites(sites, csvPath));
         }
         private void StopExport()
@@ -154,12 +154,12 @@ namespace HBP.UI.Module3D
                 Site site = sites[i];
                 if (!dataInfoByPatient.ContainsKey(site.Information.Patient))
                 {
-                    if (m_Scene.ColumnManager.SelectedColumn is Column3DIEEG columnIEEG)
+                    if (m_Scene.SelectedColumn is Column3DIEEG columnIEEG)
                     {
                         Data.Experience.Dataset.DataInfo dataInfo = m_Scene.Visualization.GetDataInfo(site.Information.Patient, columnIEEG.ColumnIEEGData);
                         dataInfoByPatient.Add(site.Information.Patient, dataInfo);
                     }
-                    else if (m_Scene.ColumnManager.SelectedColumn is Column3DCCEP columnCCEP)
+                    else if (m_Scene.SelectedColumn is Column3DCCEP columnCCEP)
                     {
                         Data.Experience.Dataset.DataInfo dataInfo = m_Scene.Visualization.GetDataInfo(site.Information.Patient, columnCCEP.ColumnCCEPData);
                         dataInfoByPatient.Add(site.Information.Patient, dataInfo);
@@ -190,7 +190,7 @@ namespace HBP.UI.Module3D
                 Site site = sites[i];
                 Vector3 sitePosition = sitePositions[i];
                 Data.Experience.Dataset.DataInfo dataInfo = null;
-                if (m_Scene.ColumnManager.SelectedColumn is Column3DDynamic columnIEEG)
+                if (m_Scene.SelectedColumn is Column3DDynamic columnIEEG)
                 {
                     dataInfo = dataInfoByPatient[site.Information.Patient];
                 }
@@ -231,7 +231,7 @@ namespace HBP.UI.Module3D
                         sitePosition.x.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
                         sitePosition.y.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
                         sitePosition.z.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
-                        m_Scene.ColumnManager.SelectedImplantation.Name,
+                        m_Scene.SelectedImplantation.Name,
                         dataType,
                         dataFiles));
                 // Update progressbar

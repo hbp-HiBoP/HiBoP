@@ -35,7 +35,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateStatus()
         {
-            m_ThresholdMRI.UpdateMRICalValues(SelectedScene.ColumnManager.SelectedMRI.Volume.ExtremeValues);
+            m_ThresholdMRI.UpdateMRICalValues(SelectedScene.SelectedMRI.Volume.ExtremeValues);
         }
         #endregion
     }

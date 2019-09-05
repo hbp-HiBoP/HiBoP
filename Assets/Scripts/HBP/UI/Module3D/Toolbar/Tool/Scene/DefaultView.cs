@@ -22,7 +22,7 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 int lineID = SelectedView.LineID;
-                foreach (Column3D column in SelectedScene.ColumnManager.Columns)
+                foreach (Column3D column in SelectedScene.Columns)
                 {
                     foreach (View3D view in column.Views)
                     {

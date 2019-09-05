@@ -63,7 +63,7 @@ namespace HBP.UI.Module3D
                 m_MaxHandler.ClampPosition();
 
                 m_MRICalMin = m_MinHandler.Position;
-                ApplicationState.Module3D.SelectedScene.ColumnManager.MRICalMinFactor = m_MRICalMin;
+                ApplicationState.Module3D.SelectedScene.MRICalMinFactor = m_MRICalMin;
             });
 
             m_MaxHandler.OnChangePosition.AddListener((deplacement) =>
@@ -72,12 +72,12 @@ namespace HBP.UI.Module3D
                 m_MinHandler.ClampPosition();
 
                 m_MRICalMax = m_MaxHandler.Position;
-                ApplicationState.Module3D.SelectedScene.ColumnManager.MRICalMaxFactor = m_MRICalMax;
+                ApplicationState.Module3D.SelectedScene.MRICalMaxFactor = m_MRICalMax;
             });
 
             ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
             {
-                foreach (var mri in s.ColumnManager.MRIs)
+                foreach (var mri in s.MRIs)
                 {
                     if (m_HistogramByMRI.TryGetValue(mri, out Texture2D texture))
                     {
@@ -93,7 +93,7 @@ namespace HBP.UI.Module3D
         private void UpdateMRIHistogram()
         {
             UnityEngine.Profiling.Profiler.BeginSample("HISTOGRAM MRI");
-            MRI3D mri3D = ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedMRI;
+            MRI3D mri3D = ApplicationState.Module3D.SelectedScene.SelectedMRI;
             if (!m_HistogramByMRI.TryGetValue(mri3D, out m_MRIHistogram))
             {
                 if (!m_MRIHistogram)
@@ -123,8 +123,8 @@ namespace HBP.UI.Module3D
             m_HandlerZone.anchorMin = new Vector2(min, m_HandlerZone.anchorMin.y);
             m_HandlerZone.anchorMax = new Vector2(max, m_HandlerZone.anchorMax.y);
 
-            m_MRICalMin = ApplicationState.Module3D.SelectedScene.ColumnManager.MRICalMinFactor;
-            m_MRICalMax = ApplicationState.Module3D.SelectedScene.ColumnManager.MRICalMaxFactor;
+            m_MRICalMin = ApplicationState.Module3D.SelectedScene.MRICalMinFactor;
+            m_MRICalMax = ApplicationState.Module3D.SelectedScene.MRICalMaxFactor;
 
             m_MinHandler.MinimumPosition = 0.0f;
             m_MinHandler.MaximumPosition = 0.9f;

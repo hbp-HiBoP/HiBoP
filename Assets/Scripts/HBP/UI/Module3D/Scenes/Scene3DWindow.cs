@@ -141,9 +141,9 @@ namespace HBP.UI.Module3D
             if (multipleFiles) // TODO : add iconic scenario and / or scales
             {
                 // Scene
-                for (int c = 0; c < m_Scene.ColumnManager.Columns.Count; c++)
+                for (int c = 0; c < m_Scene.Columns.Count; c++)
                 {
-                    Column3D column = m_Scene.ColumnManager.Columns[c];
+                    Column3D column = m_Scene.Columns[c];
                     if (!column.IsMinimized)
                     {
                         for (int v = 0; v < column.Views.Count; v++)

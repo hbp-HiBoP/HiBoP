@@ -73,11 +73,11 @@ namespace HBP.UI.Module3D
         {
             m_Scene = scene;
             m_IEEGOutdated.Initialize();
-            for (int i = 0; i < m_Scene.ColumnManager.Columns.Count; i++)
+            for (int i = 0; i < m_Scene.Columns.Count; i++)
             {
                 m_ResizableGrid.AddColumn();
                 Column3DUI columnUI = m_ResizableGrid.Columns.Last().GetComponent<Column3DUI>();
-                columnUI.Initialize(m_Scene, m_Scene.ColumnManager.Columns[i]);
+                columnUI.Initialize(m_Scene, m_Scene.Columns[i]);
                 columnUI.OnChangeColumnSize.AddListener(() =>
                 {
                     columnUI.UpdateOverlayElementsPosition();
@@ -89,7 +89,7 @@ namespace HBP.UI.Module3D
             {
                 Column3DUI columnUI = m_ResizableGrid.Columns[i].GetComponent<Column3DUI>();
                 View3DUI viewUI = m_ResizableGrid.Columns[i].Views.Last().GetComponent<View3DUI>();
-                viewUI.Initialize(m_Scene, m_Scene.ColumnManager.Columns[i], m_Scene.ColumnManager.Columns[i].Views.Last());
+                viewUI.Initialize(m_Scene, m_Scene.Columns[i], m_Scene.Columns[i].Views.Last());
                 viewUI.OnChangeViewSize.AddListener(() =>
                 {
                     columnUI.UpdateOverlayElementsPosition();
@@ -98,21 +98,14 @@ namespace HBP.UI.Module3D
             }
 
             // Listeners
-            m_Scene.ColumnManager.OnAddColumn.AddListener(() =>
+            m_Scene.OnAddColumn.AddListener(() =>
             {
                 if (!m_Scene) return; // if the scene has not been initialized, don't proceed
 
                 m_ResizableGrid.AddColumn();
-                m_ResizableGrid.Columns.Last().GetComponent<Column3DUI>().Initialize(m_Scene, m_Scene.ColumnManager.Columns.Last());
+                m_ResizableGrid.Columns.Last().GetComponent<Column3DUI>().Initialize(m_Scene, m_Scene.Columns.Last());
             });
-            m_Scene.ColumnManager.OnRemoveColumn.AddListener((column) =>
-            {
-                if (!m_Scene) return;
-
-                int columnID = m_Scene.ColumnManager.Columns.ToList().FindIndex((c) => c == column);
-                m_ResizableGrid.RemoveColumn(m_ResizableGrid.Columns[columnID]);
-            });
-            m_Scene.ColumnManager.OnAddViewLine.AddListener(() =>
+            m_Scene.OnAddViewLine.AddListener(() =>
             {
                 if (!m_Scene) return;
 
@@ -130,7 +123,7 @@ namespace HBP.UI.Module3D
                     });
                 }
             });
-            m_Scene.ColumnManager.OnRemoveViewLine.AddListener((lineID) =>
+            m_Scene.OnRemoveViewLine.AddListener((lineID) =>
             {
                 if (!m_Scene) return;
 

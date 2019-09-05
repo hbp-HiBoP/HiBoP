@@ -40,11 +40,11 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateStatus()
         {
             m_Dropdown.options.Clear();
-            foreach (Mesh3D mesh in SelectedScene.ColumnManager.Meshes)
+            foreach (Mesh3D mesh in SelectedScene.Meshes)
             {
                 m_Dropdown.options.Add(new Dropdown.OptionData(mesh.Name.ToString()));
             }
-            m_Dropdown.value = SelectedScene.ColumnManager.SelectedMeshID;
+            m_Dropdown.value = SelectedScene.SelectedMeshID;
             m_Dropdown.RefreshShownValue();
         }
         #endregion

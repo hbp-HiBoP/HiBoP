@@ -146,12 +146,12 @@ namespace HBP.UI.Module3D
             m_Scene.OnSitesRenderingUpdated.AddListener(() =>
             {
                 UpdateList();
-                m_SiteList.ScrollToObject(m_Scene.ColumnManager.SelectedColumn.SelectedSite);
+                m_SiteList.ScrollToObject(m_Scene.SelectedColumn.SelectedSite);
             });
         }
         public void UpdateList()
         {
-            List<Site> sites = m_Scene.ColumnManager.SelectedColumn.Sites.Where(s => s.State.IsFiltered && !s.State.IsMasked).ToList();
+            List<Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered && !s.State.IsMasked).ToList();
             if (!string.IsNullOrEmpty(m_Name))
             {
                 sites.RemoveAll(s => !s.Information.ChannelName.ToUpper().Contains(m_Name.ToUpper()));

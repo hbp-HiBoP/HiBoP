@@ -46,7 +46,7 @@ namespace HBP.UI.Module3D
         }
         public void ApplyFilters()
         {
-            foreach (var column in m_Scene.ColumnManager.Columns)
+            foreach (var column in m_Scene.Columns)
             {
                 foreach (var site in column.Sites)
                 {
@@ -55,7 +55,7 @@ namespace HBP.UI.Module3D
             }
 
             List<Site> sites = new List<Site>();
-            foreach (var column in m_Scene.ColumnManager.Columns)
+            foreach (var column in m_Scene.Columns)
             {
                 sites.AddRange(column.Sites);
             }
@@ -81,7 +81,7 @@ namespace HBP.UI.Module3D
         }
         public void ResetFilters()
         {
-            foreach (var column in m_Scene.ColumnManager.Columns)
+            foreach (var column in m_Scene.Columns)
             {
                 foreach (var site in column.Sites)
                 {
