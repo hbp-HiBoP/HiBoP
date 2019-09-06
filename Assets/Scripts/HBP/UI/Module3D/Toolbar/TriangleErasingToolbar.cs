@@ -35,14 +35,14 @@ namespace HBP.UI.Module3D
         {
             foreach (HBP.Module3D.Base3DScene scene in ApplicationState.Module3D.Scenes)
             {
-                scene.IsTriangleErasingEnabled = true;
+                scene.TriangleEraser.IsEnabled = true;
             }
         }
         public override void HideToolbarCallback()
         {
             foreach (HBP.Module3D.Base3DScene scene in ApplicationState.Module3D.Scenes)
             {
-                scene.IsTriangleErasingEnabled = false;
+                scene.TriangleEraser.IsEnabled = false;
             }
         }
         #endregion

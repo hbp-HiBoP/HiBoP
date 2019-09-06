@@ -21,7 +21,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedScene.TriangleErasingMode = Data.Enums.TriEraserMode.Invert;
+                SelectedScene.TriangleEraser.CurrentMode = Data.Enums.TriEraserMode.Invert;
             });
         }
         public override void DefaultState()

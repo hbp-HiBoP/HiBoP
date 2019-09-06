@@ -105,15 +105,7 @@ namespace HBP.Module3D
                     OnUpdateGeneratorState.Invoke(value);
                 }
             }
-        }      
-        /// <summary>
-        /// Name of the layer containing the meshes
-        /// </summary>
-        public string MeshesLayerName;
-        /// <summary>
-        /// Name of the layer containing the hidden meshes (e.g. the surface mesh when cutting)
-        /// </summary>
-        public string HiddenMeshesLayerName;
+        }
         /// <summary>
         /// Hide blacklisted sites
         /// </summary>

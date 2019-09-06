@@ -30,7 +30,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool haveTrianglesBeenErased = SelectedScene.HasInvisibleTriangles;
+            bool haveTrianglesBeenErased = SelectedScene.TriangleEraser.MeshHasInvisibleTriangles;
 
             m_Button.interactable = haveTrianglesBeenErased;
         }

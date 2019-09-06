@@ -22,9 +22,10 @@ namespace HBP.Module3D
     /// <summary>
     /// A class for erasing parts of the brain meshes
     /// </summary>
-    public class TriEraser
+    public class TriangleEraser
     {
         #region Properties
+        public Base3DScene ParentScene { get; set; }
         private bool m_IsEnabled = false;
         public bool IsEnabled
         {
@@ -34,12 +35,35 @@ namespace HBP.Module3D
             }
             set
             {
-                m_IsEnabled = value;
-                for (int ii = 0; ii < m_BrainInvisibleMeshesGO.Count; ++ii)
-                    m_BrainInvisibleMeshesGO[ii].SetActive(m_IsEnabled);
+                if (m_IsEnabled != value)
+                {
+                    m_IsEnabled = value;
+                    for (int ii = 0; ii < m_BrainInvisibleMeshesGO.Count; ++ii)
+                        m_BrainInvisibleMeshesGO[ii].SetActive(value);
+                    ParentScene.SceneInformation.CollidersNeedUpdate = true;
+                }
             }
         }
-        public Data.Enums.TriEraserMode CurrentMode { get; set; } = Data.Enums.TriEraserMode.OneTri;
+        private Data.Enums.TriEraserMode m_CurrentMode = Data.Enums.TriEraserMode.OneTri;
+        public Data.Enums.TriEraserMode CurrentMode
+        {
+            get
+            {
+                return m_CurrentMode;
+            }
+            set
+            {
+                Data.Enums.TriEraserMode previousMode = m_CurrentMode;
+                m_CurrentMode = value;
+
+                if (value == Data.Enums.TriEraserMode.Expand || value == Data.Enums.TriEraserMode.Invert)
+                {
+                    EraseTriangles(new Vector3(), new Vector3());
+                    ParentScene.UpdateMeshesFromDLL();
+                    m_CurrentMode = previousMode;
+                }
+            }
+        }
         public int Degrees { get; set; } = 30;
 
         public bool CanCancelLastAction
@@ -80,7 +104,10 @@ namespace HBP.Module3D
                         brainInvisibleMeshesDLL.UpdateMeshFromDLL(m_BrainInvisibleMeshesGO[i].GetComponent<MeshFilter>().mesh);
                     }
                     MeshHasInvisibleTriangles = m_BrainMeshDLL.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
-                    OnModifyInvisiblePart.Invoke();
+
+                    ParentScene.ResetIEEG();
+                    ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+                    ParentScene.UpdateMeshesFromDLL();
                 }
             }
         }
@@ -142,7 +169,9 @@ namespace HBP.Module3D
             m_SplittedMasksStack.Clear();
 
             MeshHasInvisibleTriangles = m_BrainMeshDLL.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
-            OnModifyInvisiblePart.Invoke();
+
+            ParentScene.ResetIEEG();
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         public void ResetSimplified(DLL.Surface simplifiedMeshDLL)
         {
@@ -205,7 +234,9 @@ namespace HBP.Module3D
             }
 
             MeshHasInvisibleTriangles = m_BrainMeshDLL.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
-            OnModifyInvisiblePart.Invoke();
+
+            ParentScene.ResetIEEG();
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Cancel the last action and update the invisible part mesh GO
@@ -223,7 +254,10 @@ namespace HBP.Module3D
             }
 
             MeshHasInvisibleTriangles = m_BrainMeshDLL.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
-            OnModifyInvisiblePart.Invoke();
+
+            ParentScene.ResetIEEG();
+            ParentScene.UpdateMeshesFromDLL();
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
     }
