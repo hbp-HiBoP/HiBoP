@@ -1,7 +1,9 @@
 ﻿using System;
+using System.ComponentModel;
 
 namespace HBP.Data.Tags
 {
+    [DisplayName("String")]
     public class StringTag : Tag
     {
         #region Properties
@@ -14,7 +16,7 @@ namespace HBP.Data.Tags
         public StringTag(string name) : base(name)
         {
         }
-        public StringTag(string name, string ID) : base (name,ID)
+        public StringTag(string name, string ID) : base(name, ID)
         {
 
         }
@@ -34,7 +36,7 @@ namespace HBP.Data.Tags
         }
         public override object Clone()
         {
-            return new StringTag(Name.Clone() as string);
+            return new StringTag(Name, ID);
         }
         #endregion
     }

@@ -39,7 +39,7 @@ namespace HBP.UI.Tags
                     OpenModifier(item, true);
                     break;
                 case Data.Enums.CreationType.FromExistingItem:
-                    OpenSelector();
+                    OpenSelector(Objects.ToArray());
                     break;
                 case Data.Enums.CreationType.FromFile:
                     if (LoadFromFile(out item))

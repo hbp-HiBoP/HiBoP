@@ -1,8 +1,10 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Runtime.Serialization;
 
 namespace HBP.Data.Tags
 {
+    [DisplayName("Enumerable")]
     public class EnumTag : Tag
     {
         #region Properties
@@ -48,12 +50,15 @@ namespace HBP.Data.Tags
         }
         public override object Clone()
         {
-            return new EnumTag(Name.Clone() as string, PossibleValues.Clone() as string[]);
+            return new EnumTag(Name, PossibleValues.Clone() as string[], ID);
         }
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            PossibleValues = (copy as EnumTag).PossibleValues;
+            if(copy is EnumTag enumTag)
+            {
+                PossibleValues = enumTag.PossibleValues;
+            }
         }
         #endregion
     }

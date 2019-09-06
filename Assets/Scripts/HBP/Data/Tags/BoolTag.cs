@@ -1,7 +1,9 @@
 ﻿using System;
+using System.ComponentModel;
 
 namespace HBP.Data.Tags
 {
+    [DisplayName("Boolean")]
     public class BoolTag : Tag
     {
         #region Properties
@@ -34,7 +36,7 @@ namespace HBP.Data.Tags
         }
         public override object Clone()
         {
-            return new BoolTag(Name.Clone() as string);
+            return new BoolTag(Name.Clone() as string, ID);
         }
         #endregion
     }

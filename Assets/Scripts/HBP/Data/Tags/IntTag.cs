@@ -1,8 +1,10 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Runtime.Serialization;
 
 namespace HBP.Data.Tags
 {
+    [DisplayName("Integer")]
     public class IntTag : Tag
     {
         #region Properties
@@ -51,7 +53,17 @@ namespace HBP.Data.Tags
         }
         public override object Clone()
         {
-            return new IntTag(Name.Clone() as string, Limited, Min, Max);
+            return new IntTag(Name.Clone() as string, Limited, Min, Max, ID);
+        }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+            if(copy is IntTag intTag)
+            {
+                Limited = intTag.Limited;
+                Min = intTag.Min;
+                Max = intTag.Max;
+            }
         }
         #endregion
     }

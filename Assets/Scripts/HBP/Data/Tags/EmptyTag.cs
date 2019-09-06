@@ -1,5 +1,8 @@
-﻿namespace HBP.Data.Tags
+﻿using System.ComponentModel;
+
+namespace HBP.Data.Tags
 {
+    [DisplayName("Empty")]
     public class EmptyTag : Tag
     {
         #region Properties
@@ -21,7 +24,7 @@
         #region Public Methods
         public override object Clone()
         {
-            return new EmptyTag(Name.Clone() as string);
+            return new EmptyTag(Name.Clone() as string, ID);
         }
         #endregion
     }

@@ -1,8 +1,10 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Runtime.Serialization;
 
 namespace HBP.Data.Tags
 {
+    [DisplayName("Decimal")]
     public class FloatTag : Tag
     {
         #region Properties
@@ -46,7 +48,17 @@ namespace HBP.Data.Tags
         }
         public override object Clone()
         {
-            return new FloatTag(Name.Clone() as string, Limited, Min, Max);
+            return new FloatTag(Name.Clone() as string, Limited, Min, Max, ID);
+        }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+            if(copy is FloatTag floatTag)
+            {
+                Limited = floatTag.Limited;
+                Min = floatTag.Min;
+                Max = floatTag.Max;
+            }
         }
         #endregion
     }

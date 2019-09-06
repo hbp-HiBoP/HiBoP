@@ -1,31 +1,43 @@
 {
+  "$type": "HBP.Data.Preferences.UserPreferences, Assembly-CSharp",
   "General": {
+    "$type": "HBP.Data.Preferences.GeneralPreferences, Assembly-CSharp",
     "Project": {
+      "$type": "HBP.Data.Preferences.ProjectPreferences, Assembly-CSharp",
       "DefaultName": "New project",
       "DefaultLocation": "D:\\HiBoP\\Projects",
       "DefaultPatientDatabase": "D:\\HiBoP\\Data\\Patients",
       "DefaultLocalizerDatabase": "D:\\HiBoP\\Data\\Loca",
       "DefaultExportLocation": "D:/ScreenShot"
     },
-    "Theme": {},
-    "Localization": {},
+    "Theme": {
+      "$type": "HBP.Data.Preferences.ThemePreferences, Assembly-CSharp"
+    },
+    "Localization": {
+      "$type": "HBP.Data.Preferences.LocalizationPreferences, Assembly-CSharp"
+    },
     "System": {
+      "$type": "HBP.Data.Preferences.SystemPreferences, Assembly-CSharp",
       "MultiThreading": true,
       "MemoryCacheLimit": 16345
     }
   },
   "Data": {
+    "$type": "HBP.Data.Preferences.DataPreferences, Assembly-CSharp",
     "EEG": {
+      "$type": "HBP.Data.Preferences.EEGPrefrences, Assembly-CSharp",
       "Averaging": 1,
       "Normalization": 0
     },
     "Protocol": {
+      "$type": "HBP.Data.Preferences.ProtocolPreferences, Assembly-CSharp",
       "PositionAveraging": 1,
       "MinLimit": -1500.0,
       "MaxLimit": 3500.0,
       "Step": 100
     },
     "Anatomic": {
+      "$type": "HBP.Data.Preferences.AnatomicPreferences, Assembly-CSharp",
       "SiteNameCorrection": true,
       "MeshPreloading": false,
       "MRIPreloading": false,
@@ -33,7 +45,9 @@
     }
   },
   "Visualization": {
+    "$type": "HBP.Data.Preferences.VisualizationPreferences, Assembly-CSharp",
     "_3D": {
+      "$type": "HBP.Data.Preferences._3DPreferences, Assembly-CSharp",
       "AutomaticEEGUpdate": false,
       "SiteInfluenceByDistance": 2,
       "DefaultSelectedMRIInSinglePatientVisualization": "Preimplantation",
@@ -44,6 +58,7 @@
       "DefaultSelectedImplantationInMultiPatientsVisualization": "MNI"
     },
     "TrialMatrix": {
+      "$type": "HBP.Data.Preferences.TrialMatrixPreferences, Assembly-CSharp",
       "ShowWholeProtocol": false,
       "TrialsSynchronization": true,
       "TrialSmoothing": true,
@@ -54,9 +69,11 @@
       "BlocRatio": 0.184049129
     },
     "Graph": {
+      "$type": "HBP.Data.Preferences.GraphPreferences, Assembly-CSharp",
       "ShowCurvesOfMinimizedColumns": true
     },
     "Cut": {
+      "$type": "HBP.Data.Preferences.CutPreferences, Assembly-CSharp",
       "ShowCutLines": true
     }
   }

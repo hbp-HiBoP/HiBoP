@@ -6,54 +6,45 @@ using Tools.Unity;
 namespace HBP.Data.Tags
 {
     [DataContract]
-    public class Tag : ICloneable, ICopiable, ILoadable, IIdentifiable
+    public class Tag : BaseData, ILoadable<Tag>
     {
         #region Properties
         public const string EXTENSION = ".tag";
-
         /// <summary>
         /// Tag Name.
         /// </summary>
-        [DataMember(Order = 0)]
-        public string Name { get; set; }
-
-        /// <summary>
-        /// Unique ID.
-        /// </summary>
-        [DataMember]
-        public string ID { get; set; }
+        [DataMember(Order = 0)] public string Name { get; set; }
         #endregion
 
         #region Constructors
-        public Tag() : this("")
+        public Tag() : this("New Tag")
         {
         }
-        public Tag(string name) : this(name, Guid.NewGuid().ToString())
-        {
-        }
-        public Tag(string name, string ID)
+        public Tag(string name) : base()
         {
             Name = name;
-            this.ID = ID;
+        }
+        public Tag(string name, string ID) : base(ID)
+        {
+            Name = name;
         }
         #endregion
 
-        #region Public Methods
-        public void Load(string path)
+        #region Public static Methods
+        public static bool LoadFromFile(string path, out Tag result)
         {
-            Tag result;
             try
             {
                 result = ClassLoaderSaver.LoadFromJson<Tag>(path);
+                return result != null;
             }
             catch (Exception e)
             {
                 UnityEngine.Debug.LogException(e);
                 throw new CanNotReadTagFileException(Path.GetFileNameWithoutExtension(path));
             }
-            Copy(result);
         }
-        public string GetExtension()
+        public static string GetExtension()
         {
             return EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION;
         }
@@ -61,69 +52,35 @@ namespace HBP.Data.Tags
 
         #region Operators
         /// <summary>
-        /// Operator Equals.
+        /// Clone the instance.
         /// </summary>
-        /// <param name="obj">Object to test.</param>
-        /// <returns>\a True if equals and \a false otherwise.</returns>
-        public override bool Equals(object obj)
-        {
-            Tag tag = obj as Tag;
-            if (tag != null && tag.ID == ID)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        /// <summary>
-        /// Get hash code.
-        /// </summary>
-        /// <returns>HashCode.</returns>
-        public override int GetHashCode()
-        {
-            return this.ID.GetHashCode();
-        }
-        /// <summary>
-        /// Operator equals.
-        /// </summary>
-        /// <param name="a">First tag to compare.</param>
-        /// <param name="b">Second tag to compare.</param>
-        /// <returns>\a True if equals and \a false otherwise.</returns>
-        public static bool operator ==(Tag a, Tag b)
-        {
-            if (ReferenceEquals(a, b))
-            {
-                return true;
-            }
-
-            if (((object)a == null) || ((object)b == null))
-            {
-                return false;
-            }
-
-            return a.Equals(b);
-        }
-        /// <summary>
-        /// Operator not equals.
-        /// </summary>
-        /// <param name="a">First tag to compare.</param>
-        /// <param name="b">Second tag to compare.</param>
-        /// <returns>\a True if not equals and \a false otherwise.</returns>
-        public static bool operator !=(Tag a, Tag b)
-        {
-            return !(a == b);
-        }
-        public virtual object Clone()
+        /// <returns>object cloned.</returns>
+        public override object Clone()
         {
             return new Tag(Name, ID);
         }
-        public virtual void Copy(object copy)
+        /// <summary>
+        /// Copy the instance.
+        /// </summary>
+        /// <param name="obj">instance to copy.</param>
+        public override void Copy(object copy)
         {
-            Tag tag = copy as Tag;
-            Name = tag.Name;
-            ID = tag.ID;
+            base.Copy(copy);
+            if(copy is Tag tag)
+            {
+                Name = tag.Name;
+            }
+        }
+        #endregion
+
+        #region Interfaces
+        string ILoadable<Tag>.GetExtension()
+        {
+            return GetExtension();
+        }
+        bool ILoadable<Tag>.LoadFromFile(string path, out Tag result)
+        {
+            return LoadFromFile(path, out result);
         }
         #endregion
     }
