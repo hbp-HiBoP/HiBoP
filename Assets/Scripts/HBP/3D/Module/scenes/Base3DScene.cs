@@ -2708,6 +2708,7 @@ namespace HBP.Module3D
             {
                 m_BrainColor = value;
 
+                BrainColorTexture = Texture2Dutility.GenerateColorScheme();
                 DLL.Texture tex = DLL.Texture.Generate1DColorTexture(value);
                 tex.UpdateTexture2D(BrainColorTexture);
                 tex.Dispose();
@@ -2756,9 +2757,11 @@ namespace HBP.Module3D
             {
                 m_Colormap = value;
 
+                BrainColorMapTexture = Texture2Dutility.GenerateColorScheme();
                 DLL.Texture tex = DLL.Texture.Generate1DColorTexture(value);
                 tex.UpdateTexture2D(BrainColorMapTexture);
                 tex.Dispose();
+                    
                 ResetColors();
 
                 SharedMaterials.Brain.BrainMaterials[this].SetTexture("_ColorTex", BrainColorMapTexture);
