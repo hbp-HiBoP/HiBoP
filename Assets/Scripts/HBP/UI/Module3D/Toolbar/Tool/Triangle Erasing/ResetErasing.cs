@@ -21,7 +21,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedScene.ResetTriangleErasing();
+                SelectedScene.TriangleEraser.ResetEraser();
             });
         }
         public override void DefaultState()

@@ -170,10 +170,11 @@ namespace HBP.Module3D
             }
         }
 
+        [SerializeField] private TriangleEraser m_TriangleEraser;
         /// <summary>
         /// Triangle Eraser
         /// </summary>
-        public TriangleEraser TriangleEraser { get; } = new TriangleEraser();
+        public TriangleEraser TriangleEraser { get { return m_TriangleEraser; } }
         
         /// <summary>
         /// Selected column
@@ -723,10 +724,6 @@ namespace HBP.Module3D
         /// </summary>
         [SerializeField] private GameObject m_SimplifiedBrainPrefab;
         /// <summary>
-        /// Prefab for the 3D invisible brain mesh part
-        /// </summary>
-        [SerializeField] private GameObject m_InvisibleBrainPrefab;
-        /// <summary>
         /// Prefab for the 3D cut
         /// </summary>
         [SerializeField] private GameObject m_CutPrefab;
@@ -1189,7 +1186,7 @@ namespace HBP.Module3D
             UpdateMeshesInformation();
             UpdateCuts();
             UpdateGeneratorsAndUV();
-            ResetTriangleErasing();
+            m_TriangleEraser.ResetEraser();
             UpdateAtlasIndices();
 
             SceneInformation.MeshGeometryNeedsUpdate = false;
@@ -1918,7 +1915,6 @@ namespace HBP.Module3D
             BrainColorTexture = Texture2Dutility.GenerateColorScheme();
 
             SceneInformation = new SceneStatesInfo();
-            TriangleEraser.ParentScene = this;
 
             Visualization = visualization;
             gameObject.name = Visualization.Name;
@@ -2104,38 +2100,7 @@ namespace HBP.Module3D
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
-
-        /// <summary>
-        /// Reset invisible brain and triangle eraser
-        /// </summary>
-        /// <param name="updateGO">Do we need to update the meshes from DLL ?</param>
-        public void ResetTriangleErasing()
-        {
-            // destroy previous GO
-            if (m_DisplayedObjects.InvisibleBrainSurfaceMeshes != null)
-                for (int ii = 0; ii < m_DisplayedObjects.InvisibleBrainSurfaceMeshes.Count; ++ii)
-                    Destroy(m_DisplayedObjects.InvisibleBrainSurfaceMeshes[ii]);
-
-            // create new GO
-            m_DisplayedObjects.InvisibleBrainSurfaceMeshes = new List<GameObject>(m_DisplayedObjects.BrainSurfaceMeshes.Count);
-            for (int ii = 0; ii < m_DisplayedObjects.BrainSurfaceMeshes.Count; ++ii)
-            {
-                GameObject invisibleBrainPart = Instantiate(m_InvisibleBrainPrefab);
-                invisibleBrainPart.name = "erased brain part " + ii;
-                invisibleBrainPart.transform.SetParent(m_DisplayedObjects.InvisibleBrainMeshesParent.transform);
-                invisibleBrainPart.layer = LayerMask.NameToLayer(HBP3DModule.DEFAULT_MESHES_LAYER);
-                invisibleBrainPart.AddComponent<MeshFilter>();
-                invisibleBrainPart.transform.localScale = new Vector3(-1, 1, 1);
-                invisibleBrainPart.transform.localPosition = new Vector3(0, 0, 0);
-                invisibleBrainPart.SetActive(TriangleEraser.IsEnabled);
-                m_DisplayedObjects.InvisibleBrainSurfaceMeshes.Add(invisibleBrainPart);
-            }
-
-            TriangleEraser.Reset(m_DisplayedObjects.InvisibleBrainSurfaceMeshes, SceneInformation.MeshToDisplay, SplittedMeshes);
-            TriangleEraser.ResetSimplified(SceneInformation.SimplifiedMeshToUse);
-
-            UpdateMeshesFromDLL();
-        }
+        
         /// <summary>
         /// Copy the states of the sites of the selected column to all other columns
         /// </summary>
@@ -2324,10 +2289,9 @@ namespace HBP.Module3D
 
             if (raycastResult == Data.Enums.RaycastHitResult.Mesh)
             {
-                if (TriangleEraser.IsEnabled && TriangleEraser.IsClickAvailable)
+                if (m_TriangleEraser.IsEnabled && m_TriangleEraser.IsClickAvailable)
                 {
-                    TriangleEraser.EraseTriangles(ray.direction, hitPoint);
-                    UpdateMeshesFromDLL();
+                    m_TriangleEraser.EraseTriangles(ray.direction, hitPoint);
                 }
             }
 

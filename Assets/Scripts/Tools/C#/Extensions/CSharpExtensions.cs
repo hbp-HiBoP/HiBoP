@@ -132,6 +132,14 @@ namespace Tools.CSharp
 
             Array.Copy(destinationArray, 0, destinationArray, copyLength, destinationArray.Length - copyLength);
         }
+
+        public static T[] Create<T>(int length, T value)
+        {
+            T[] result = new T[length];
+            for (int i = 0; i < length; ++i)
+                result[i] = value;
+            return result;
+        }
     }
 
     public static class NumberExtension
