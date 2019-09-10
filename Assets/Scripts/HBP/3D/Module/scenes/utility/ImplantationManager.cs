@@ -1,13 +1,25 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace HBP.Module3D
 {
-    public class ImplantationsManager : MonoBehaviour
+    /// <summary>
+    /// Class responsible for managing the implantations of the scene
+    /// </summary>
+    /// <remarks>
+    /// This class can load and store implantations for the corresponding scene.
+    /// It is also used to select which implantation to display on the scene.
+    /// </remarks>
+    public class ImplantationManager : MonoBehaviour
     {
         #region Properties
+        /// <summary>
+        /// Parent scene of the manager
+        /// </summary>
         [SerializeField] private Base3DScene m_Scene;
+        /// <summary>
+        /// Component containing references to GameObjects of the 3D scene
+        /// </summary>
         [SerializeField] private DisplayedObjects m_DisplayedObjects;
 
         /// <summary>
@@ -81,7 +93,6 @@ namespace HBP.Module3D
             {
                 column.IsRenderingUpToDate = false;
             }
-            m_Scene.OnUpdateSites.Invoke();
         }
         #endregion
     }

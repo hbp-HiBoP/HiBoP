@@ -38,14 +38,14 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool areCCEPAvailable = SelectedScene.Type == Data.Enums.SceneType.SinglePatient && SelectedScene.ImplantationsManager.SelectedImplantation.AreLatenciesLoaded;
+            bool areCCEPAvailable = SelectedScene.Type == Data.Enums.SceneType.SinglePatient && SelectedScene.ImplantationManager.SelectedImplantation.AreLatenciesLoaded;
 
             m_Toggle.interactable = areCCEPAvailable;
         }
 
         public override void UpdateStatus()
         {
-            m_Toggle.isOn = SelectedScene.IsLatencyModeEnabled && SelectedScene.ImplantationsManager.SelectedImplantation.AreLatenciesLoaded;
+            m_Toggle.isOn = SelectedScene.IsLatencyModeEnabled && SelectedScene.ImplantationManager.SelectedImplantation.AreLatenciesLoaded;
         }
         #endregion
     }

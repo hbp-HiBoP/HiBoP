@@ -141,7 +141,6 @@ namespace HBP.UI.Module3D
                     m_SiteFiltersToggle.isOn = false;
                 }
             });
-            m_Scene.OnUpdateSites.AddListener(UpdateList);
             m_Scene.OnSelect.AddListener(() => UpdateList());
             m_Scene.OnSitesRenderingUpdated.AddListener(() =>
             {

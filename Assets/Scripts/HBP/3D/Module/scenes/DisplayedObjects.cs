@@ -35,30 +35,46 @@ namespace HBP.Module3D
         public List<GameObject> SitesPatientParent { get; private set; }
 
         /// <summary>
-        /// Prefab for the 3D site
+        /// Prefab for the 3D brain mesh part
         /// </summary>
-        [SerializeField] private GameObject m_SitePrefab;
+        [SerializeField] private GameObject m_BrainPrefab;
+        /// <summary>
+        /// Prefab for the 3D simplified brain mesh
+        /// </summary>
+        [SerializeField] private GameObject m_SimplifiedBrainPrefab;
         /// <summary>
         /// Prefab for the 3D invisible brain mesh
         /// </summary>
         [SerializeField] private GameObject m_InvisibleBrainPrefab;
+        /// <summary>
+        /// Prefab for the 3D site
+        /// </summary>
+        [SerializeField] private GameObject m_SitePrefab;
 
         /// <summary>
         /// Meshes of the brain surface
         /// </summary>
-        [HideInInspector] public List<GameObject> BrainSurfaceMeshes = new List<GameObject>();
+        [HideInInspector] public List<GameObject> BrainSurfaceMeshes { get; private set; } = new List<GameObject>();
         /// <summary>
         /// Meshes of the cuts
         /// </summary>
-        [HideInInspector] public List<GameObject> BrainCutMeshes = new List<GameObject>();
+        [HideInInspector] public List<GameObject> BrainCutMeshes { get; private set; } = new List<GameObject>();
         /// <summary>
         /// Meshes of the invisible surface
         /// </summary>
-        [HideInInspector] public List<GameObject> InvisibleBrainSurfaceMeshes = new List<GameObject>();
+        [HideInInspector] public List<GameObject> InvisibleBrainSurfaceMeshes { get; private set; } = new List<GameObject>();
         /// <summary>
         /// Simplified brain
         /// </summary>
-        [HideInInspector] public GameObject SimplifiedBrain;
+        [HideInInspector] public GameObject SimplifiedBrain { get; private set; }
+        #endregion
+
+        #region Private Methods
+        private void Awake()
+        {
+            // Mark brain mesh as dynamic
+            m_BrainPrefab.GetComponent<MeshFilter>().sharedMesh.MarkDynamic();
+        }
         #endregion
 
         #region Public Methods
@@ -149,6 +165,36 @@ namespace HBP.Module3D
                 column.UpdateSites(electrodesList, SitesPatientParent);
                 column.UpdateROIMask();
             }
+        }
+        public void InstantiateSplits(int nbSplits)
+        {
+            for (int i = 0; i < BrainSurfaceMeshes.Count; i++)
+            {
+                Destroy(BrainSurfaceMeshes[i]);
+            }
+            if (SimplifiedBrain != null)
+            {
+                Destroy(SimplifiedBrain);
+            }
+
+            BrainSurfaceMeshes = new List<GameObject>(nbSplits);
+            for (int i = 0; i < nbSplits; ++i)
+            {
+                BrainSurfaceMeshes.Add(Instantiate(m_BrainPrefab));
+                BrainSurfaceMeshes[i].GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.BrainMaterials[m_Scene];
+                BrainSurfaceMeshes[i].name = "brain_" + i;
+                BrainSurfaceMeshes[i].transform.parent = BrainSurfaceMeshesParent.transform;
+                BrainSurfaceMeshes[i].transform.localPosition = Vector3.zero;
+                BrainSurfaceMeshes[i].layer = LayerMask.NameToLayer(HBP3DModule.HIDDEN_MESHES_LAYER);
+                BrainSurfaceMeshes[i].SetActive(true);
+            }
+            SimplifiedBrain = Instantiate(m_SimplifiedBrainPrefab);
+            SimplifiedBrain.GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.SimplifiedBrainMaterials[m_Scene];
+            SimplifiedBrain.transform.name = "brain_simplified";
+            SimplifiedBrain.transform.parent = BrainSurfaceMeshesParent.transform;
+            SimplifiedBrain.transform.localPosition = Vector3.zero;
+            SimplifiedBrain.layer = LayerMask.NameToLayer(HBP3DModule.HIDDEN_MESHES_LAYER);
+            SimplifiedBrain.SetActive(true);
         }
         #endregion
     }

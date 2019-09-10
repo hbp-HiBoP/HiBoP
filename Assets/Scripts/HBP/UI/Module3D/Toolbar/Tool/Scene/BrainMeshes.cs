@@ -48,7 +48,7 @@ namespace HBP.UI.Module3D.Tools
                     if (m_Left.isOn || m_Right.isOn)
                     {
                         Data.Enums.MeshPart mesh = GetMeshPart(m_Left.isOn, m_Right.isOn);
-                        SelectedScene.UpdateMeshPartToDisplay(mesh);
+                        SelectedScene.MeshManager.SelectMeshPart(mesh);
                     }
                     else
                     {
@@ -58,7 +58,7 @@ namespace HBP.UI.Module3D.Tools
                 else
                 {
                     Data.Enums.MeshPart mesh = GetMeshPart(true, true);
-                    SelectedScene.UpdateMeshPartToDisplay(mesh);
+                    SelectedScene.MeshManager.SelectMeshPart(mesh);
                 }
             });
 
@@ -71,7 +71,7 @@ namespace HBP.UI.Module3D.Tools
                     if (m_Left.isOn || m_Right.isOn)
                     {
                         Data.Enums.MeshPart mesh = GetMeshPart(m_Left.isOn, m_Right.isOn);
-                        SelectedScene.UpdateMeshPartToDisplay(mesh);
+                        SelectedScene.MeshManager.SelectMeshPart(mesh);
                     }
                     else
                     {
@@ -81,7 +81,7 @@ namespace HBP.UI.Module3D.Tools
                 else
                 {
                     Data.Enums.MeshPart mesh = GetMeshPart(true, true);
-                    SelectedScene.UpdateMeshPartToDisplay(mesh);
+                    SelectedScene.MeshManager.SelectMeshPart(mesh);
                 }
             });
         }
@@ -94,7 +94,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool isMeshLeftRight = SelectedScene.SelectedMesh is LeftRightMesh3D;
+            bool isMeshLeftRight = SelectedScene.MeshManager.SelectedMesh is LeftRightMesh3D;
 
             m_Left.interactable = isMeshLeftRight;
             m_Right.interactable = isMeshLeftRight;
@@ -126,7 +126,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public void ChangeBrainTypeCallback()
         {
-            m_IsMeshLeftRight = SelectedScene.SelectedMesh is LeftRightMesh3D;
+            m_IsMeshLeftRight = SelectedScene.MeshManager.SelectedMesh is LeftRightMesh3D;
             if (!m_IsMeshLeftRight)
             {
                 m_Left.isOn = false;

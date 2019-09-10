@@ -176,11 +176,17 @@ namespace HBP.Module3D
         /// </summary>
         public TriangleEraser TriangleEraser { get { return m_TriangleEraser; } }
 
-        [SerializeField] private ImplantationsManager m_ImplantationsManager;
+        [SerializeField] private ImplantationManager m_ImplantationManager;
         /// <summary>
         /// Implantations manager
         /// </summary>
-        public ImplantationsManager ImplantationsManager { get { return m_ImplantationsManager; } }
+        public ImplantationManager ImplantationManager { get { return m_ImplantationManager; } }
+
+        [SerializeField] private MeshManager m_MeshManager;
+        /// <summary>
+        /// Mesh manager
+        /// </summary>
+        public MeshManager MeshManager { get { return m_MeshManager; } }
 
         /// <summary>
         /// Selected column
@@ -228,37 +234,6 @@ namespace HBP.Module3D
         }
 
         /// <summary>
-        /// List of all the mesh3Ds of the scene
-        /// </summary>
-        public List<Mesh3D> Meshes = new List<Mesh3D>();
-        /// <summary>
-        /// List of all the loaded meshes
-        /// </summary>
-        public List<Mesh3D> LoadedMeshes { get { return (from mesh in Meshes where mesh.IsLoaded select mesh).ToList(); } }
-        /// <summary>
-        /// Number of splits of the meshes
-        /// </summary>
-        public int MeshSplitNumber { get; set; }
-        /// <summary>
-        /// Selected mesh3D ID
-        /// </summary>
-        public int SelectedMeshID { get; set; }
-        /// <summary>
-        /// Selected Mesh3D (Surface)
-        /// </summary>
-        public Mesh3D SelectedMesh
-        {
-            get
-            {
-                return Meshes[SelectedMeshID];
-            }
-        }
-        /// <summary>
-        /// List of splitted meshes
-        /// </summary>
-        public List<DLL.Surface> SplittedMeshes = new List<DLL.Surface>();
-
-        /// <summary>
         /// List of the MRIs of the scene
         /// </summary>
         public List<MRI3D> MRIs = new List<MRI3D>();
@@ -280,11 +255,6 @@ namespace HBP.Module3D
                 return MRIs[SelectedMRIID];
             }
         }
-
-        /// <summary>
-        /// Null UV vector
-        /// </summary>
-        public List<Vector2[]> UVNull;
 
         /// <summary>
         /// Common generator for each brain part
@@ -572,7 +542,7 @@ namespace HBP.Module3D
             set
             {
                 DisplayAtlas = value;
-                UpdateAtlasColors();
+                m_MeshManager.UpdateAtlasColors();
                 SharedMaterials.Brain.BrainMaterials[this].SetInt("_Atlas", DisplayAtlas ? 1 : 0);
                 ResetIEEG();
             }
@@ -588,13 +558,12 @@ namespace HBP.Module3D
                 if (AtlasSelectedArea != value)
                 {
                     AtlasSelectedArea = value;
-                    UpdateAtlasColors();
+                    m_MeshManager.UpdateAtlasColors();
                     ComputeMRITextures();
                     ComputeGUITextures();
                 }
             }
         }
-        private List<int[]> m_SelectedMeshAtlasIndices = new List<int[]>();
 
         /// <summary>
         /// Site to compare with when using the comparing site feature
@@ -691,14 +660,6 @@ namespace HBP.Module3D
         private const int LOADING_IEEG_WEIGHT = 15;
 
         /// <summary>
-        /// Prefab for the 3D brain mesh part
-        /// </summary>
-        [SerializeField] private GameObject m_BrainPrefab;
-        /// <summary>
-        /// Prefab for the 3D simplified brain mesh
-        /// </summary>
-        [SerializeField] private GameObject m_SimplifiedBrainPrefab;
-        /// <summary>
         /// Prefab for the 3D cut
         /// </summary>
         [SerializeField] private GameObject m_CutPrefab;
@@ -757,10 +718,6 @@ namespace HBP.Module3D
         /// Event called when changing the colors of the colormap
         /// </summary>
         [HideInInspector] public GenericEvent<Data.Enums.ColorType> OnChangeColormap = new GenericEvent<Data.Enums.ColorType>();
-        /// <summary>
-        /// Event called when changing the implantation files to use in the scene
-        /// </summary>
-        [HideInInspector] public UnityEvent OnUpdateSites = new UnityEvent();
         /// <summary>
         /// Ask the camera manager to update the target for this scene
         /// </summary>
@@ -847,23 +804,12 @@ namespace HBP.Module3D
         }
         private void OnDestroy()
         {
-            foreach (var mesh in Meshes)
-            {
-                if (!mesh.HasBeenLoadedOutside)
-                {
-                    mesh.Clean();
-                }
-            }
             foreach (var mri in MRIs)
             {
                 if (!mri.HasBeenLoadedOutside)
                 {
                     mri.Clean();
                 }
-            }
-            foreach (var mesh in SplittedMeshes)
-            {
-                mesh?.Dispose();
             }
             foreach (var dllCommonBrainTextureGenerator in DLLCommonBrainTextureGeneratorList) dllCommonBrainTextureGenerator.Dispose();
             foreach (var dllMRIGeometryCutGenerator in DLLMRIGeometryCutGeneratorList) dllMRIGeometryCutGenerator.Dispose();
@@ -955,9 +901,7 @@ namespace HBP.Module3D
             Column3D column = SelectedColumn;
             if (column)
             {
-                //column.CutTextures.DrawSitesOnMRITextures(Cuts, ColumnManager.SelectedImplantation.RawSiteList);
                 column.CutTextures.CreateGUIMRITextures(Cuts);
-                //column.CutTextures.ResizeGUIMRITextures(Cuts);
                 column.CutTextures.UpdateTextures2D();
                 foreach (Cut cut in Cuts)
                 {
@@ -1009,72 +953,6 @@ namespace HBP.Module3D
             }
             SceneInformation.AreSitesUpdated = false;
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
-        }
-        /// <summary>
-        /// Update the surface meshes from the DLL
-        /// </summary>
-        public void UpdateMeshesFromDLL()
-        {
-            for (int ii = 0; ii < MeshSplitNumber; ++ii)
-            {
-                SplittedMeshes[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
-            }
-            UnityEngine.Profiling.Profiler.BeginSample("Update Columns Meshes");
-            foreach (Column3D column in Columns)
-            {
-                column.UpdateColumnMeshes(m_DisplayedObjects.BrainSurfaceMeshes);
-            }
-            UnityEngine.Profiling.Profiler.EndSample();
-        }
-        /// <summary>
-        /// Generate the split number regarding all meshes
-        /// </summary>
-        /// <param name="meshes">Meshes loaded</param>
-        private void GenerateSplits(IEnumerable<DLL.Surface> meshes)
-        {
-            int maxVertices = (from mesh in meshes select mesh.NumberOfVertices).Max();
-            int splits = (maxVertices / 65000) + (((maxVertices % 60000) != 0) ? 3 : 2);
-            if (splits < 3) splits = 3;
-            ResetSplitsNumber(splits);
-        }
-        /// <summary>
-        /// Reset the number of splits of the brain mesh
-        /// </summary>
-        /// <param name="nbSplits">Number of splits</param>
-        private void ResetSplitsNumber(int nbSplits)
-        {
-            if (MeshSplitNumber == nbSplits) return;
-
-            MeshSplitNumber = nbSplits;
-            DLLCommonBrainTextureGeneratorList = new List<DLL.MRIBrainGenerator>(MeshSplitNumber);
-            for (int ii = 0; ii < MeshSplitNumber; ++ii)
-                DLLCommonBrainTextureGeneratorList.Add(new DLL.MRIBrainGenerator());
-
-            if (m_DisplayedObjects.BrainSurfaceMeshes.Count > 0)
-                for (int ii = 0; ii < m_DisplayedObjects.BrainSurfaceMeshes.Count; ++ii)
-                    Destroy(m_DisplayedObjects.BrainSurfaceMeshes[ii]);
-
-            // reset meshes
-            m_DisplayedObjects.BrainSurfaceMeshes = new List<GameObject>(nbSplits);
-            for (int ii = 0; ii < nbSplits; ++ii)
-            {
-                m_DisplayedObjects.BrainSurfaceMeshes.Add(Instantiate(m_BrainPrefab));
-                m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.BrainMaterials[this];
-                m_DisplayedObjects.BrainSurfaceMeshes[ii].name = "brain_" + ii;
-                m_DisplayedObjects.BrainSurfaceMeshes[ii].transform.parent = m_DisplayedObjects.BrainSurfaceMeshesParent.transform;
-                m_DisplayedObjects.BrainSurfaceMeshes[ii].transform.localPosition = Vector3.zero;
-                m_DisplayedObjects.BrainSurfaceMeshes[ii].layer = LayerMask.NameToLayer(HBP3DModule.HIDDEN_MESHES_LAYER);
-                m_DisplayedObjects.BrainSurfaceMeshes[ii].SetActive(true);
-            }
-            // mesh collider
-            m_DisplayedObjects.SimplifiedBrain = Instantiate(m_SimplifiedBrainPrefab);
-            m_DisplayedObjects.SimplifiedBrain.GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.SimplifiedBrainMaterials[this];
-            m_DisplayedObjects.SimplifiedBrain.transform.name = "brain_simplified";
-            m_DisplayedObjects.SimplifiedBrain.transform.parent = m_DisplayedObjects.BrainSurfaceMeshesParent.transform;
-            m_DisplayedObjects.SimplifiedBrain.transform.localPosition = Vector3.zero;
-            m_DisplayedObjects.SimplifiedBrain.layer = LayerMask.NameToLayer(HBP3DModule.HIDDEN_MESHES_LAYER);
-            m_DisplayedObjects.SimplifiedBrain.AddComponent<MeshCollider>();
-            m_DisplayedObjects.SimplifiedBrain.SetActive(true);
         }
         /// <summary>
         /// Compute the cuts of the regular meshes
@@ -1153,53 +1031,13 @@ namespace HBP.Module3D
         /// </summary>
         private void UpdateGeometry()
         {
-            UpdateMeshesInformation();
+            m_MeshManager.UpdateMeshesInformation();
             UpdateCuts();
             UpdateGeneratorsAndUV();
             m_TriangleEraser.ResetEraser();
-            UpdateAtlasIndices();
+            m_MeshManager.UpdateAtlasIndices();
 
             SceneInformation.MeshGeometryNeedsUpdate = false;
-        }
-        /// <summary>
-        /// Update meshes to display
-        /// </summary>
-        public void UpdateMeshesInformation()
-        {
-            if (SelectedMesh is LeftRightMesh3D selectedMesh)
-            {
-                switch (SceneInformation.MeshPartToDisplay)
-                {
-                    case Data.Enums.MeshPart.Left:
-                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedLeft;
-                        SceneInformation.MeshToDisplay = selectedMesh.Left;
-                        break;
-                    case Data.Enums.MeshPart.Right:
-                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedRight;
-                        SceneInformation.MeshToDisplay = selectedMesh.Right;
-                        break;
-                    case Data.Enums.MeshPart.Both:
-                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
-                        SceneInformation.MeshToDisplay = selectedMesh.Both;
-                        break;
-                    default:
-                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
-                        SceneInformation.MeshToDisplay = selectedMesh.Both;
-                        break;
-                }
-            }
-            else
-            {
-                SceneInformation.SimplifiedMeshToUse = SelectedMesh.SimplifiedBoth;
-                SceneInformation.MeshToDisplay = SelectedMesh.Both;
-            }
-            // get the middle
-            SceneInformation.MeshCenter = SceneInformation.MeshToDisplay.Center;
-            SharedMaterials.Brain.BrainMaterials[this].SetVector("_Center", SceneInformation.MeshCenter);
-
-            SplittedMeshes = SceneInformation.MeshToDisplay.SplitToSurfaces(MeshSplitNumber);
-
-            UpdateAllCutPlanes();
         }
         /// <summary>
         /// Update the cuts of the scene
@@ -1219,45 +1057,13 @@ namespace HBP.Module3D
         /// </summary>
         private void UpdateGeneratorsAndUV()
         {
-            for (int ii = 0; ii < MeshSplitNumber; ++ii)
+            for (int i = 0; i < m_MeshManager.MeshSplitNumber; ++i)
             {
-                DLLCommonBrainTextureGeneratorList[ii].Reset(SplittedMeshes[ii], SelectedMRI.Volume);
-                DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(SplittedMeshes[ii], SelectedMRI.Volume, MRICalMinFactor, MRICalMaxFactor);
+                DLLCommonBrainTextureGeneratorList[i].Reset(m_MeshManager.SplittedMeshes[i], SelectedMRI.Volume);
+                DLLCommonBrainTextureGeneratorList[i].ComputeUVMainWithVolume(m_MeshManager.SplittedMeshes[i], SelectedMRI.Volume, MRICalMinFactor, MRICalMaxFactor);
+                DLLCommonBrainTextureGeneratorList[i].ComputeUVNull(m_MeshManager.SplittedMeshes[i]);
             }
-            
-            UpdateMeshesFromDLL();
-            UVNull = new List<Vector2[]>(MeshSplitNumber);
-            for (int ii = 0; ii < MeshSplitNumber; ++ii)
-            {
-                UVNull.Add(new Vector2[m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.vertexCount]);
-                UVNull[ii].Fill(new Vector2(0.01f, 1f));
-            }
-        }
-        /// <summary>
-        /// Update the indices of all the JuBrain Atlas areas for all vertices
-        /// </summary>
-        private void UpdateAtlasIndices()
-        {
-            m_SelectedMeshAtlasIndices = new List<int[]>();
-            for (int ii = 0; ii < MeshSplitNumber; ++ii)
-            {
-                m_SelectedMeshAtlasIndices.Add(ApplicationState.Module3D.JuBrainAtlas.GetSurfaceAreaLabels(SplittedMeshes[ii]));
-            }
-        }
-        /// <summary>
-        /// Update all colors for the atlas
-        /// </summary>
-        private void UpdateAtlasColors()
-        {
-            for (int ii = 0; ii < MeshSplitNumber; ++ii)
-            {
-                Color[] colors = ApplicationState.Module3D.JuBrainAtlas.ConvertIndicesToColors(m_SelectedMeshAtlasIndices[ii], SelectedAtlasArea);
-                m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.colors = colors;
-                foreach (Column3D column in Columns)
-                {
-                    column.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().sharedMesh.colors = colors;
-                }
-            }
+            m_MeshManager.UpdateMeshesFromDLL();
         }
         /// <summary>
         /// Update the brain and the cuts meshes colliders
@@ -1282,7 +1088,7 @@ namespace HBP.Module3D
                 Latencies latencyFile = null;
                 if (column.CurrentLatencyFile != -1)
                 {
-                    latencyFile = ImplantationsManager.SelectedImplantation.Latencies[column.CurrentLatencyFile];
+                    latencyFile = m_ImplantationManager.SelectedImplantation.Latencies[column.CurrentLatencyFile];
                 }
                 column.UpdateSitesRendering(SceneInformation, latencyFile);
             }
@@ -1324,8 +1130,8 @@ namespace HBP.Module3D
         /// <param name="column">Column on which to compute the UVs</param>
         private void ComputeSurfaceBrainUVWithIEEG(Column3DDynamic column)
         {
-            for (int ii = 0; ii < MeshSplitNumber; ++ii)
-                column.DLLBrainTextureGenerators[ii].ComputeSurfaceUVIEEG(SplittedMeshes[ii], column);
+            for (int ii = 0; ii < m_MeshManager.MeshSplitNumber; ++ii)
+                column.DLLBrainTextureGenerators[ii].ComputeSurfaceUVIEEG(m_MeshManager.SplittedMeshes[ii], column);
         }
         /// <summary>
         /// Add a column to the scene
@@ -1405,7 +1211,7 @@ namespace HBP.Module3D
                     //FIXME : probably only consider the current column
                     for (int ii = 0; ii < ColumnsDynamic.Count; ++ii)
                     {
-                        for (int jj = 0; jj < MeshSplitNumber; ++jj)
+                        for (int jj = 0; jj < m_MeshManager.MeshSplitNumber; ++jj)
                         {
                             ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap(ColumnsDynamic[ii]);
                         }
@@ -1454,8 +1260,8 @@ namespace HBP.Module3D
                     });
                 }
             }
-            column.Initialize(Columns.Count, baseColumn, ImplantationsManager.SelectedImplantation.PatientElectrodesList, m_DisplayedObjects.SitesPatientParent);
-            column.ResetSplitsNumber(MeshSplitNumber);
+            column.Initialize(Columns.Count, baseColumn, m_ImplantationManager.SelectedImplantation.PatientElectrodesList, m_DisplayedObjects.SitesPatientParent);
+            column.ResetSplitsNumber(m_MeshManager.MeshSplitNumber);
             Columns.Add(column);
             OnAddColumn.Invoke();
         }
@@ -1481,52 +1287,6 @@ namespace HBP.Module3D
         #region Public Methods
 
         #region Display
-        /// <summary>
-        /// Set the mesh part to be displayed in the scene
-        /// </summary>
-        /// <param name="meshPartToDisplay">Mesh part to be displayed</param>
-        public void UpdateMeshPartToDisplay(Data.Enums.MeshPart meshPartToDisplay)
-        {
-            SceneInformation.MeshPartToDisplay = meshPartToDisplay;
-            SceneInformation.MeshGeometryNeedsUpdate = true;
-            ResetIEEG();
-            foreach (Column3D column in Columns)
-            {
-                column.IsRenderingUpToDate = false;
-            }
-        }
-        /// <summary>
-        /// Set the mesh type to be displayed in the scene
-        /// </summary>
-        /// <param name="meshName">Name of the mesh to be displayed</param>
-        public void UpdateMeshToDisplay(string meshName)
-        {
-            int meshID = Meshes.FindIndex(m => m.Name == meshName);
-            if (meshID == -1) meshID = 0;
-
-            SelectedMeshID = meshID;
-            if (IsMarsAtlasEnabled && !SelectedMesh.IsMarsAtlasLoaded)
-            {
-                IsMarsAtlasEnabled = false;
-            }
-            if (DisplayJuBrainAtlas && SelectedMesh.Type != Data.Enums.MeshType.MNI)
-            {
-                DisplayJuBrainAtlas = false;
-            }
-            if (FMRIManager.DisplayIBCContrasts && SelectedMesh.Type != Data.Enums.MeshType.MNI)
-            {
-                FMRIManager.DisplayIBCContrasts = false;
-            }
-            SceneInformation.MeshGeometryNeedsUpdate = true;
-            ResetIEEG();
-            foreach (Column3D column in Columns)
-            {
-                column.IsRenderingUpToDate = false;
-            }
-
-            OnUpdateCameraTarget.Invoke(SelectedMesh.Both.Center);
-            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
-        }
         /// <summary>
         /// Set the MRI to be used
         /// </summary>
@@ -1787,8 +1547,6 @@ namespace HBP.Module3D
             AddListeners();
 
             transform.position = new Vector3(HBP3DModule.SPACE_BETWEEN_SCENES_GAME_OBJECTS * ApplicationState.Module3D.NumberOfScenesLoadedSinceStart++, transform.position.y, transform.position.z);
-            // Mark brain mesh as dynamic
-            m_BrainPrefab.GetComponent<MeshFilter>().sharedMesh.MarkDynamic();
         }
         /// <summary>
         /// Set up the scene to display it properly
@@ -1810,7 +1568,7 @@ namespace HBP.Module3D
             BrainColor = Visualization.Configuration.BrainColor;
             CutColor = Visualization.Configuration.BrainCutColor;
             Colormap = Visualization.Configuration.EEGColormap;
-            UpdateMeshPartToDisplay(Visualization.Configuration.MeshPart);
+            m_MeshManager.SelectMeshPart(Visualization.Configuration.MeshPart);
             EdgeMode = Visualization.Configuration.ShowEdges;
             StrongCuts = Visualization.Configuration.StrongCuts;
             HideBlacklistedSites = Visualization.Configuration.HideBlacklistedSites;
@@ -1819,9 +1577,9 @@ namespace HBP.Module3D
             MRICalMaxFactor = Visualization.Configuration.MRICalMaxFactor;
             CameraType = Visualization.Configuration.CameraType;
 
-            if (!string.IsNullOrEmpty(Visualization.Configuration.MeshName)) UpdateMeshToDisplay(Visualization.Configuration.MeshName);
+            if (!string.IsNullOrEmpty(Visualization.Configuration.MeshName)) m_MeshManager.Select(Visualization.Configuration.MeshName);
             if (!string.IsNullOrEmpty(Visualization.Configuration.MRIName)) UpdateMRIToDisplay(Visualization.Configuration.MRIName);
-            if (!string.IsNullOrEmpty(Visualization.Configuration.ImplantationName)) ImplantationsManager.Select(Visualization.Configuration.ImplantationName);
+            if (!string.IsNullOrEmpty(Visualization.Configuration.ImplantationName)) m_ImplantationManager.Select(Visualization.Configuration.ImplantationName);
 
             foreach (Data.Visualization.Cut cut in Visualization.Configuration.Cuts)
             {
@@ -1866,9 +1624,9 @@ namespace HBP.Module3D
             Visualization.Configuration.BrainCutColor = CutColor;
             Visualization.Configuration.EEGColormap = Colormap;
             Visualization.Configuration.MeshPart = SceneInformation.MeshPartToDisplay;
-            Visualization.Configuration.MeshName = SelectedMesh.Name;
+            Visualization.Configuration.MeshName = m_MeshManager.SelectedMesh.Name;
             Visualization.Configuration.MRIName = SelectedMRI.Name;
-            Visualization.Configuration.ImplantationName = ImplantationsManager.SelectedImplantation.Name;
+            Visualization.Configuration.ImplantationName = m_ImplantationManager.SelectedImplantation.Name;
             Visualization.Configuration.ShowEdges = EdgeMode;
             Visualization.Configuration.StrongCuts = StrongCuts;
             Visualization.Configuration.HideBlacklistedSites = HideBlacklistedSites;
@@ -1913,7 +1671,7 @@ namespace HBP.Module3D
             BrainColor = Data.Enums.ColorType.BrainColor;
             CutColor = Data.Enums.ColorType.Default;
             Colormap = Data.Enums.ColorType.MatLab;
-            UpdateMeshPartToDisplay(Data.Enums.MeshPart.Both);
+            m_MeshManager.SelectMeshPart(Data.Enums.MeshPart.Both);
             EdgeMode = false;
             StrongCuts = false;
             HideBlacklistedSites = false;
@@ -1924,14 +1682,14 @@ namespace HBP.Module3D
             switch (Type)
             {
                 case Data.Enums.SceneType.SinglePatient:
-                    UpdateMeshToDisplay("Grey matter");
+                    m_MeshManager.Select("Grey matter");
                     UpdateMRIToDisplay("Preimplantation");
-                    ImplantationsManager.Select("Patient");
+                    m_ImplantationManager.Select("Patient");
                     break;
                 case Data.Enums.SceneType.MultiPatients:
-                    UpdateMeshToDisplay("MNI Grey matter");
+                    m_MeshManager.Select("MNI Grey matter");
                     UpdateMRIToDisplay("MNI");
-                    ImplantationsManager.Select("MNI");
+                    m_ImplantationManager.Select("MNI");
                     break;
                 default:
                     break;
@@ -1991,19 +1749,19 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender");
 
             // update cuts textures
-            for (int ii = 0; ii < Cuts.Count; ++ii)
+            for (int i = 0; i < Cuts.Count; ++i)
             {
-                m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = column.CutTextures.BrainCutTextures[ii];
+                m_DisplayedObjects.BrainCutMeshes[i].GetComponent<Renderer>().material.mainTexture = column.CutTextures.BrainCutTextures[i];
             }
 
             if (!column.IsRenderingUpToDate)
             {
-                for (int i = 0; i < column.BrainSurfaceMeshes.Count; i++)
+                for (int i = 0; i < column.BrainSurfaceMeshes.Count; ++i)
                 {
                     if (!(column is Column3DDynamic) || !SceneInformation.IsGeneratorUpToDate || SceneInformation.DisplayCCEPMode)
                     {
-                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv2 = UVNull[i];
-                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = UVNull[i];
+                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv2 = DLLCommonBrainTextureGeneratorList[i].UVNull;
+                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = DLLCommonBrainTextureGeneratorList[i].UVNull;
                     }
                     else
                     {
@@ -2266,27 +2024,8 @@ namespace HBP.Module3D
                     outPut(exception);
                     yield break;
                 }
-
-                if (Meshes.Count > 0)
-                {
-                    if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
-                    {
-                        GenerateSplits(from mesh3D in Meshes select mesh3D.Both);
-                    }
-                    else
-                    {
-                        ResetSplitsNumber(10);
-                    }
-                }
-                else
-                {
-                    ResetSplitsNumber(3);
-                }
             }
-            else
-            {
-                ResetSplitsNumber(3);
-            }
+            m_MeshManager.GenerateSplits(ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading || Type == Data.Enums.SceneType.MultiPatients);
             SceneInformation.MeshGeometryNeedsUpdate = true;
 
             // Loading MRIs
@@ -2333,7 +2072,7 @@ namespace HBP.Module3D
             {
                 column.InitializeColumnMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent);
             }
-            OnUpdateCameraTarget.Invoke(SelectedMesh.Both.Center);
+            OnUpdateCameraTarget.Invoke(m_MeshManager.SelectedMesh.Both.Center);
             outPut(exception);
         }
         /// <summary>
@@ -2386,57 +2125,7 @@ namespace HBP.Module3D
         {
             try
             {
-                if (mesh.IsUsable)
-                {
-                    if (mesh is Data.Anatomy.LeftRightMesh)
-                    {
-                        LeftRightMesh3D mesh3D = new LeftRightMesh3D((Data.Anatomy.LeftRightMesh)mesh, Data.Enums.MeshType.Patient);
-
-                        if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
-                        {
-                            if (mesh3D.IsLoaded)
-                            {
-                                Meshes.Add(mesh3D);
-                            }
-                            else
-                            {
-                                throw new CanNotLoadGIIFile(mesh.Name);
-                            }
-                        }
-                        else
-                        {
-                            string name = !string.IsNullOrEmpty(Visualization.Configuration.MeshName) ? Visualization.Configuration.MeshName : "Grey matter";
-                            if (mesh3D.Name == name) mesh3D.Load();
-                            Meshes.Add(mesh3D);
-                        }
-                    }
-                    else if (mesh is Data.Anatomy.SingleMesh)
-                    {
-                        SingleMesh3D mesh3D = new SingleMesh3D((Data.Anatomy.SingleMesh)mesh, Data.Enums.MeshType.Patient);
-
-                        if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
-                        {
-                            if (mesh3D.IsLoaded)
-                            {
-                                Meshes.Add(mesh3D);
-                            }
-                            else
-                            {
-                                throw new CanNotLoadGIIFile(mesh.Name);
-                            }
-                        }
-                        else
-                        {
-                            string name = !string.IsNullOrEmpty(Visualization.Configuration.MeshName) ? Visualization.Configuration.MeshName : "Grey matter";
-                            if (mesh3D.Name == name) mesh3D.Load();
-                            Meshes.Add(mesh3D);
-                        }
-                    }
-                    else
-                    {
-                        Debug.LogError("Mesh not handled.");
-                    }
-                }
+                m_MeshManager.Add(mesh);
             }
             catch (Exception e)
             {
@@ -2468,7 +2157,7 @@ namespace HBP.Module3D
                     IEnumerable<string> marsAtlasFiles = from patient in patients select patient.Implantations.Find((imp) => imp.Name == implantationName).MarsAtlas;
                     IEnumerable<string> patientIDs = from patient in patients select patient.ID;
 
-                    ImplantationsManager.Add(implantationName, ptsFiles, marsAtlasFiles, patientIDs);
+                    m_ImplantationManager.Add(implantationName, ptsFiles, marsAtlasFiles, patientIDs);
                 }
                 catch (Exception e)
                 {
@@ -2479,7 +2168,7 @@ namespace HBP.Module3D
             }
             
             yield return Ninja.JumpToUnity;
-            ImplantationsManager.Select("");
+            m_ImplantationManager.Select("");
             yield return Ninja.JumpBack;
         }
         /// <summary>
@@ -2491,9 +2180,9 @@ namespace HBP.Module3D
         {
             try
             {
-                Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.GreyMatter.Clone()));
-                Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.WhiteMatter.Clone()));
-                Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.InflatedWhiteMatter.Clone()));
+                m_MeshManager.Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.GreyMatter.Clone()));
+                m_MeshManager.Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.WhiteMatter.Clone()));
+                m_MeshManager.Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.InflatedWhiteMatter.Clone()));
                 MRIs.Add(ApplicationState.Module3D.MNIObjects.MRI);
             }
             catch (Exception e)
@@ -2547,7 +2236,7 @@ namespace HBP.Module3D
         private IEnumerator c_LoadMissingAnatomy()
         {
             yield return Ninja.JumpBack;
-            foreach (var mesh in Meshes)
+            foreach (var mesh in m_MeshManager.Meshes)
             {
                 if (!mesh.IsLoaded) mesh.Load();
             }
@@ -2581,7 +2270,7 @@ namespace HBP.Module3D
         {
             yield return Ninja.JumpToUnity;
             float totalTime = 0.075f * Patients.Count + 1.5f; // Calculated by Linear Regression is 0.0593f * Patients.Count + 1.0956f
-            float totalProgress = ColumnsDynamic.Count * (1 + MeshSplitNumber + 10);
+            float totalProgress = ColumnsDynamic.Count * (1 + m_MeshManager.MeshSplitNumber + 10);
             float timeByProgress = totalTime / totalProgress;
             float currentProgress = 0.0f;
             OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Initializing", timeByProgress);
@@ -2591,7 +2280,7 @@ namespace HBP.Module3D
             // copy from main generators
             for (int ii = 0; ii < ColumnsDynamic.Count; ++ii)
             {
-                for (int jj = 0; jj < MeshSplitNumber; ++jj)
+                for (int jj = 0; jj < m_MeshManager.MeshSplitNumber; ++jj)
                 {
                     ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].Dispose();
                     ColumnsDynamic[ii].DLLBrainTextureGenerators[jj] = (DLL.MRIBrainGenerator)DLLCommonBrainTextureGeneratorList[jj].Clone();
@@ -2616,7 +2305,7 @@ namespace HBP.Module3D
                 ColumnsDynamic[ii].UpdateDLLSitesMask();
 
                 // splits
-                for (int jj = 0; jj < MeshSplitNumber; ++jj)
+                for (int jj = 0; jj < m_MeshManager.MeshSplitNumber; ++jj)
                 {
                     yield return Ninja.JumpToUnity;
                     OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + ColumnsDynamic[ii].Label, timeByProgress);
@@ -2671,7 +2360,7 @@ namespace HBP.Module3D
                     ColumnsDynamic[ii].SharedMaxInf = currentMaxInfluence;
 
                 // synchronize max density
-                for (int jj = 0; jj < MeshSplitNumber; ++jj)
+                for (int jj = 0; jj < m_MeshManager.MeshSplitNumber; ++jj)
                 {
                     ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, ColumnsDynamic[ii].SharedMinInf, ColumnsDynamic[ii].SharedMaxInf);
                     if (m_GeneratorNeedsUpdate) yield break;
@@ -2679,7 +2368,7 @@ namespace HBP.Module3D
                 ColumnsDynamic[ii].DLLMRIVolumeGenerator.SynchronizeWithOthersGenerators(maxDensity, ColumnsDynamic[ii].SharedMinInf, ColumnsDynamic[ii].SharedMaxInf);
                 if (m_GeneratorNeedsUpdate) yield break;
 
-                for (int jj = 0; jj < MeshSplitNumber; ++jj)
+                for (int jj = 0; jj < m_MeshManager.MeshSplitNumber; ++jj)
                 {
                     ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap(ColumnsDynamic[ii]);
                     if (m_GeneratorNeedsUpdate) yield break;

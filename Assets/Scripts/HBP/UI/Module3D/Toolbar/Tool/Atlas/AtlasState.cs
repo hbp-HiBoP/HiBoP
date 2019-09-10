@@ -50,9 +50,9 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isIBCAvailable = ApplicationState.Module3D.IBCObjects.Loaded && SelectedScene.SelectedMesh.Type == Data.Enums.MeshType.MNI;
-            bool isJuBrainAtlasAvailable = ApplicationState.Module3D.JuBrainAtlas.Loaded && SelectedScene.SelectedMesh.Type == Data.Enums.MeshType.MNI;
-            bool canUseMarsAtlas = SelectedScene.SelectedMesh.IsMarsAtlasLoaded;
+            bool isIBCAvailable = ApplicationState.Module3D.IBCObjects.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == Data.Enums.MeshType.MNI;
+            bool isJuBrainAtlasAvailable = ApplicationState.Module3D.JuBrainAtlas.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == Data.Enums.MeshType.MNI;
+            bool canUseMarsAtlas = SelectedScene.MeshManager.SelectedMesh.IsMarsAtlasLoaded;
 
             m_IBCToggle.interactable = isIBCAvailable;
             m_JubrainToggle.interactable = isJuBrainAtlasAvailable;

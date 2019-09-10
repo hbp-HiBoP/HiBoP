@@ -12,6 +12,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Tools.CSharp;
 
 // unity
 using UnityEngine;
@@ -26,22 +27,9 @@ namespace HBP.Module3D
         public class MRIBrainGenerator : Tools.DLL.CppDLLImportBase, ICloneable
         {
             #region Properties
-            private Vector2[] m_UVAmplitudesV = new Vector2[0];
-            public Vector2[] IEEGUV
-            {
-                get
-                {
-                    return m_UVAmplitudesV;
-                }
-            }
-            private Vector2[] m_UVAlphaV = new Vector2[0];
-            public Vector2[] AlphaUV
-            {
-                get
-                {
-                    return m_UVAlphaV;
-                }
-            }
+            public Vector2[] IEEGUV { get; private set; } = new Vector2[0];
+            public Vector2[] AlphaUV { get; private set; } = new Vector2[0];
+            public Vector2[] UVNull { get; private set; } = new Vector2[0];
 
             /// <summary>
             /// Maximum density
@@ -179,20 +167,20 @@ namespace HBP.Module3D
                     return true;
 
                 // amplitudes
-                if (m_UVAmplitudesV.Length != m_nbVertices)
+                if (IEEGUV.Length != m_nbVertices)
                 {
-                    m_UVAmplitudesV = new Vector2[m_nbVertices];
+                    IEEGUV = new Vector2[m_nbVertices];
                     if (m_UVAmplitudesHandle.IsAllocated) m_UVAmplitudesHandle.Free();
-                    m_UVAmplitudesHandle = GCHandle.Alloc(m_UVAmplitudesV, GCHandleType.Pinned); 
+                    m_UVAmplitudesHandle = GCHandle.Alloc(IEEGUV, GCHandleType.Pinned); 
                 }
                 updateUVAmplitudes_BrainSurfaceTextureGenerator(_handle, m_UVAmplitudesHandle.AddrOfPinnedObject());
 
                 // alpha
-                if (m_UVAlphaV.Length != m_nbVertices)
+                if (AlphaUV.Length != m_nbVertices)
                 {
-                    m_UVAlphaV = new Vector2[m_nbVertices];
+                    AlphaUV = new Vector2[m_nbVertices];
                     if (m_UVAlphaHandle.IsAllocated) m_UVAlphaHandle.Free();
-                    m_UVAlphaHandle = GCHandle.Alloc(m_UVAlphaV, GCHandleType.Pinned);
+                    m_UVAlphaHandle = GCHandle.Alloc(AlphaUV, GCHandleType.Pinned);
                 }
                 updateUVAlpha_BrainSurfaceTextureGenerator(_handle, m_UVAlphaHandle.AddrOfPinnedObject());
 
@@ -201,6 +189,15 @@ namespace HBP.Module3D
                     Debug.LogError("computeSurfaceTextCoordAmplitudes_BrainSurfaceTextureGenerator failed ! (check DLL console debug output)");
 
                 return noError;
+            }
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="surface"></param>
+            public void ComputeUVNull(DLL.Surface surface)
+            {
+                UVNull = new Vector2[surface.NumberOfVertices];
+                UVNull.Fill(new Vector2(0.01f, 1f));
             }
             #endregion
 

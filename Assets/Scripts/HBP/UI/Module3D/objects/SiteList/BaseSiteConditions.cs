@@ -44,13 +44,13 @@ namespace HBP.UI.Module3D
         }
         protected bool CheckInMesh(Site site)
         {
-            return m_Scene.SelectedMesh.SimplifiedBoth.IsPointInside(m_Scene.ImplantationsManager.SelectedImplantation.RawSiteList, site.Information.GlobalID);
+            return m_Scene.MeshManager.SelectedMesh.SimplifiedBoth.IsPointInside(m_Scene.ImplantationManager.SelectedImplantation.RawSiteList, site.Information.GlobalID);
         }
         protected bool CheckInLeftHemisphere(Site site)
         {
-            if (m_Scene.SelectedMesh is LeftRightMesh3D mesh)
+            if (m_Scene.MeshManager.SelectedMesh is LeftRightMesh3D mesh)
             {
-                return mesh.SimplifiedLeft.IsPointInside(m_Scene.ImplantationsManager.SelectedImplantation.RawSiteList, site.Information.GlobalID);
+                return mesh.SimplifiedLeft.IsPointInside(m_Scene.ImplantationManager.SelectedImplantation.RawSiteList, site.Information.GlobalID);
             }
             else
             {
@@ -59,9 +59,9 @@ namespace HBP.UI.Module3D
         }
         protected bool CheckInRightHemisphere(Site site)
         {
-            if (m_Scene.SelectedMesh is LeftRightMesh3D mesh)
+            if (m_Scene.MeshManager.SelectedMesh is LeftRightMesh3D mesh)
             {
-                return mesh.SimplifiedRight.IsPointInside(m_Scene.ImplantationsManager.SelectedImplantation.RawSiteList, site.Information.GlobalID);
+                return mesh.SimplifiedRight.IsPointInside(m_Scene.ImplantationManager.SelectedImplantation.RawSiteList, site.Information.GlobalID);
             }
             else
             {
@@ -70,7 +70,7 @@ namespace HBP.UI.Module3D
         }
         protected bool CheckOnPlane(Site site)
         {
-            return m_Scene.ImplantationsManager.SelectedImplantation.RawSiteList.IsSiteOnAnyPlane(site, from cut in m_Scene.Cuts select cut as HBP.Module3D.Plane, 1.0f);
+            return m_Scene.ImplantationManager.SelectedImplantation.RawSiteList.IsSiteOnAnyPlane(site, from cut in m_Scene.Cuts select cut as HBP.Module3D.Plane, 1.0f);
         }
         protected bool CheckName(Site site, string name)
         {

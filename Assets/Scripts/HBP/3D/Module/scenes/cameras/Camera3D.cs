@@ -212,7 +212,7 @@ namespace HBP.Module3D
             transform.localEulerAngles = new Vector3(0, 100, 90);
             m_OriginalRotationEuler = transform.localEulerAngles;
             m_StartDistance = Mathf.Clamp(m_StartDistance, m_MinDistance, m_MaxDistance);
-            Target = m_AssociatedScene.SelectedMesh.Both.Center;
+            Target = m_AssociatedScene.MeshManager.SelectedMesh.Both.Center;
             m_OriginalTarget = LocalTarget;
             transform.position = Target - transform.forward * m_StartDistance;
 
