@@ -82,7 +82,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Information about the scene
         /// </summary>
-        public SceneStatesInfo SceneInformation { get; set; }
+        public SceneStatesInfo SceneInformation { get; set; } = new SceneStatesInfo();
 
         /// <summary>
         /// Displayable objects of the scene
@@ -175,7 +175,13 @@ namespace HBP.Module3D
         /// Triangle Eraser
         /// </summary>
         public TriangleEraser TriangleEraser { get { return m_TriangleEraser; } }
-        
+
+        [SerializeField] private ImplantationsManager m_ImplantationsManager;
+        /// <summary>
+        /// Implantations manager
+        /// </summary>
+        public ImplantationsManager ImplantationsManager { get { return m_ImplantationsManager; } }
+
         /// <summary>
         /// Selected column
         /// </summary>
@@ -220,37 +226,6 @@ namespace HBP.Module3D
                 return viewNumber;
             }
         }
-
-        /// <summary>
-        /// List of the implantation3Ds of the scene
-        /// </summary>
-        public List<Implantation3D> Implantations = new List<Implantation3D>();
-        /// <summary>
-        /// Selected implantation3D ID
-        /// </summary>
-        public int SelectedImplantationID { get; set; }
-        /// <summary>
-        /// Selected implantation3D
-        /// </summary>
-        public Implantation3D SelectedImplantation
-        {
-            get
-            {
-                return Implantations[SelectedImplantationID];
-            }
-        }
-        /// <summary>
-        /// List of the site gameObjects
-        /// </summary>
-        public List<GameObject> SitesList = new List<GameObject>();
-        /// <summary>
-        /// List of the patient gameObjects that contain sites
-        /// </summary>
-        public List<GameObject> SitesPatientParent = new List<GameObject>();
-        /// <summary>
-        /// List of the electrode gameObjects that contain sites
-        /// </summary>
-        public List<List<GameObject>> SitesElectrodesParent = new List<List<GameObject>>();
 
         /// <summary>
         /// List of all the mesh3Ds of the scene
@@ -728,10 +703,6 @@ namespace HBP.Module3D
         /// </summary>
         [SerializeField] private GameObject m_CutPrefab;
         /// <summary>
-        /// Prefab for the 3D site
-        /// </summary>
-        [SerializeField] private GameObject m_SitePrefab;
-        /// <summary>
         /// Prefab for the Column3D
         /// </summary>
         [SerializeField] private GameObject m_Column3DPrefab;
@@ -890,7 +861,6 @@ namespace HBP.Module3D
                     mri.Clean();
                 }
             }
-            foreach (var implantation in Implantations) implantation.Clean();
             foreach (var mesh in SplittedMeshes)
             {
                 mesh?.Dispose();
@@ -1312,7 +1282,7 @@ namespace HBP.Module3D
                 Latencies latencyFile = null;
                 if (column.CurrentLatencyFile != -1)
                 {
-                    latencyFile = SelectedImplantation.Latencies[column.CurrentLatencyFile];
+                    latencyFile = ImplantationsManager.SelectedImplantation.Latencies[column.CurrentLatencyFile];
                 }
                 column.UpdateSitesRendering(SceneInformation, latencyFile);
             }
@@ -1484,7 +1454,7 @@ namespace HBP.Module3D
                     });
                 }
             }
-            column.Initialize(Columns.Count, baseColumn, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
+            column.Initialize(Columns.Count, baseColumn, ImplantationsManager.SelectedImplantation.PatientElectrodesList, m_DisplayedObjects.SitesPatientParent);
             column.ResetSplitsNumber(MeshSplitNumber);
             Columns.Add(column);
             OnAddColumn.Invoke();
@@ -1576,112 +1546,6 @@ namespace HBP.Module3D
                 column.IsRenderingUpToDate = false;
             }
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
-        }
-        /// <summary>
-        /// Set the implantation to be used
-        /// </summary>
-        /// <param name="implantationName">Name of the implantation to use</param>
-        public void UpdateSites(string implantationName)
-        {
-            // destroy previous electrodes gameobjects
-            for (int ii = 0; ii < SitesList.Count; ++ii)
-            {
-                //Destroy(go_.PlotsList[ii].GetComponent<MeshFilter>().mesh); // now it's a shared mesh
-                Destroy(SitesList[ii]);
-            }
-            SitesList.Clear();
-
-
-            // destroy plots elecs/patients parents
-            for (int ii = 0; ii < SitesPatientParent.Count; ++ii)
-            {
-                Destroy(SitesPatientParent[ii]);
-                for (int jj = 0; jj < SitesElectrodesParent[ii].Count; ++jj)
-                {
-                    Destroy(SitesElectrodesParent[ii][jj]);
-                }
-
-            }
-            SitesPatientParent.Clear();
-            SitesElectrodesParent.Clear();
-
-            int implantationID = Implantations.FindIndex(i => i.Name == implantationName);
-            SelectedImplantationID = implantationID > 0 ? implantationID : 0;
-            DLL.PatientElectrodesList electrodesList = SelectedImplantation.PatientElectrodesList;
-
-            int currPlotNb = 0;
-            for (int ii = 0; ii < electrodesList.NumberOfPatients; ++ii)
-            {
-                int patientSiteID = 0;
-                string patientID = electrodesList.PatientName(ii);
-                Data.Patient patient = Visualization.Patients.FirstOrDefault((p) => p.ID == patientID);
-
-                // create plot patient parent
-                SitesPatientParent.Add(new GameObject("P" + ii + " - " + patientID));
-                SitesPatientParent[SitesPatientParent.Count - 1].transform.SetParent(m_DisplayedObjects.SitesMeshesParent.transform);
-                SitesPatientParent[SitesPatientParent.Count - 1].transform.localPosition = Vector3.zero;
-                SitesElectrodesParent.Add(new List<GameObject>(electrodesList.NumberOfElectrodesInPatient(ii)));
-
-                for (int jj = 0; jj < electrodesList.NumberOfElectrodesInPatient(ii); ++jj)
-                {
-                    // create plot electrode parent
-                    SitesElectrodesParent[ii].Add(new GameObject(electrodesList.ElectrodeName(ii, jj)));
-                    SitesElectrodesParent[ii][SitesElectrodesParent[ii].Count - 1].transform.SetParent(SitesPatientParent[ii].transform);
-                    SitesElectrodesParent[ii][SitesElectrodesParent[ii].Count - 1].transform.localPosition = Vector3.zero;
-
-                    for (int kk = 0; kk < electrodesList.NumberOfSitesInElectrode(ii, jj); ++kk)
-                    {
-                        Vector3 invertedPosition = electrodesList.SitePosition(ii, jj, kk);
-                        invertedPosition.x = -invertedPosition.x;
-
-                        GameObject siteGameObject = Instantiate(m_SitePrefab);
-                        siteGameObject.name = electrodesList.SiteName(ii, jj, kk);
-
-                        siteGameObject.transform.SetParent(SitesElectrodesParent[ii][jj].transform);
-                        siteGameObject.transform.localPosition = invertedPosition;
-                        siteGameObject.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.Site;
-
-                        siteGameObject.SetActive(true);
-                        siteGameObject.layer = LayerMask.NameToLayer("Inactive");
-
-                        Site site = siteGameObject.GetComponent<Site>();
-                        site.Information.Patient = patient;
-                        site.Information.Name = siteGameObject.name;
-                        site.Information.SitePatientID = patientSiteID++;
-                        site.Information.PatientNumber = ii;
-                        site.Information.ElectrodeNumber = jj;
-                        site.Information.SiteNumber = kk;
-                        site.Information.GlobalID = currPlotNb++;
-                        site.Information.MarsAtlasIndex = electrodesList.MarsAtlasLabelOfSite(ii, jj, kk);
-                        site.Information.FreesurferLabel = electrodesList.FreesurferLabelOfSite(ii, jj, kk).Replace('_', ' ');
-                        site.State.IsBlackListed = false;
-                        site.State.IsHighlighted = false;
-                        site.State.IsOutOfROI = true;
-                        site.State.IsMasked = false;
-                        site.State.Color = SiteState.DefaultColor;
-                        site.IsActive = true;
-
-                        SitesList.Add(siteGameObject);
-                    }
-                }
-            }
-            foreach (Column3D column in Columns)
-            {
-                column.UpdateSites(SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
-                column.UpdateROIMask();
-            }
-            // reset selected site
-            for (int ii = 0; ii < Columns.Count; ++ii)
-            {
-                Columns[ii].UnselectSite();
-            }
-
-            ResetIEEG();
-            foreach (Column3D column in Columns)
-            {
-                column.IsRenderingUpToDate = false;
-            }
-            OnUpdateSites.Invoke();
         }
         /// <summary>
         /// Update the visible state of the scene
@@ -1913,9 +1777,7 @@ namespace HBP.Module3D
         {
             BrainColorMapTexture = Texture2Dutility.GenerateColorScheme();
             BrainColorTexture = Texture2Dutility.GenerateColorScheme();
-
-            SceneInformation = new SceneStatesInfo();
-
+            
             Visualization = visualization;
             gameObject.name = Visualization.Name;
 
@@ -1959,7 +1821,7 @@ namespace HBP.Module3D
 
             if (!string.IsNullOrEmpty(Visualization.Configuration.MeshName)) UpdateMeshToDisplay(Visualization.Configuration.MeshName);
             if (!string.IsNullOrEmpty(Visualization.Configuration.MRIName)) UpdateMRIToDisplay(Visualization.Configuration.MRIName);
-            if (!string.IsNullOrEmpty(Visualization.Configuration.ImplantationName)) UpdateSites(Visualization.Configuration.ImplantationName);
+            if (!string.IsNullOrEmpty(Visualization.Configuration.ImplantationName)) ImplantationsManager.Select(Visualization.Configuration.ImplantationName);
 
             foreach (Data.Visualization.Cut cut in Visualization.Configuration.Cuts)
             {
@@ -2006,7 +1868,7 @@ namespace HBP.Module3D
             Visualization.Configuration.MeshPart = SceneInformation.MeshPartToDisplay;
             Visualization.Configuration.MeshName = SelectedMesh.Name;
             Visualization.Configuration.MRIName = SelectedMRI.Name;
-            Visualization.Configuration.ImplantationName = SelectedImplantation.Name;
+            Visualization.Configuration.ImplantationName = ImplantationsManager.SelectedImplantation.Name;
             Visualization.Configuration.ShowEdges = EdgeMode;
             Visualization.Configuration.StrongCuts = StrongCuts;
             Visualization.Configuration.HideBlacklistedSites = HideBlacklistedSites;
@@ -2064,12 +1926,12 @@ namespace HBP.Module3D
                 case Data.Enums.SceneType.SinglePatient:
                     UpdateMeshToDisplay("Grey matter");
                     UpdateMRIToDisplay("Preimplantation");
-                    UpdateSites("Patient");
+                    ImplantationsManager.Select("Patient");
                     break;
                 case Data.Enums.SceneType.MultiPatients:
                     UpdateMeshToDisplay("MNI Grey matter");
                     UpdateMRIToDisplay("MNI");
-                    UpdateSites("MNI");
+                    ImplantationsManager.Select("MNI");
                     break;
                 default:
                     break;
@@ -2602,19 +2464,11 @@ namespace HBP.Module3D
                 string implantationName = commonImplantations[i];
                 try
                 {
-                    IEnumerable<string> ptsFiles = (from patient in patients select patient.Implantations.Find((imp) => imp.Name == implantationName).File);
-                    IEnumerable<string> marsAtlasFiles = (from patient in patients select patient.Implantations.Find((imp) => imp.Name == implantationName).MarsAtlas);
-                    IEnumerable<string> patientIDs = (from patient in patients select patient.ID);
+                    IEnumerable<string> ptsFiles = from patient in patients select patient.Implantations.Find((imp) => imp.Name == implantationName).File;
+                    IEnumerable<string> marsAtlasFiles = from patient in patients select patient.Implantations.Find((imp) => imp.Name == implantationName).MarsAtlas;
+                    IEnumerable<string> patientIDs = from patient in patients select patient.ID;
 
-                    Implantation3D implantation3D = new Implantation3D(implantationName, ptsFiles, marsAtlasFiles, patientIDs);
-                    if (implantation3D.IsLoaded)
-                    {
-                        Implantations.Add(implantation3D);
-                    }
-                    else
-                    {
-                        throw new CanNotLoadImplantation(implantationName);
-                    }
+                    ImplantationsManager.Add(implantationName, ptsFiles, marsAtlasFiles, patientIDs);
                 }
                 catch (Exception e)
                 {
@@ -2625,7 +2479,7 @@ namespace HBP.Module3D
             }
             
             yield return Ninja.JumpToUnity;
-            UpdateSites("");
+            ImplantationsManager.Select("");
             yield return Ninja.JumpBack;
         }
         /// <summary>

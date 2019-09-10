@@ -150,9 +150,9 @@ namespace HBP.Module3D
         /// <param name="sites">List of the sites (DLL)</param>
         /// <param name="sitesPatientParent">List of the gameobjects for the sites corresponding to the patients</param>
         /// <param name="siteList">List of the sites gameobjects</param>
-        public override void UpdateSites(PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
+        public override void UpdateSites(PatientElectrodesList sites, List<GameObject> sceneSitePatientParent)
         {
-            base.UpdateSites(sites, sitesPatientParent, siteList);
+            base.UpdateSites(sites, sceneSitePatientParent);
             
             m_ElectrodesSizeScale = new List<Vector3>(m_RawElectrodes.NumberOfSites);
             m_ElectrodesPositiveColor = new List<bool>(m_RawElectrodes.NumberOfSites);

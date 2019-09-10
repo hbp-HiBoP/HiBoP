@@ -231,7 +231,7 @@ namespace HBP.UI.Module3D
                         sitePosition.x.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
                         sitePosition.y.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
                         sitePosition.z.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
-                        m_Scene.SelectedImplantation.Name,
+                        m_Scene.ImplantationsManager.SelectedImplantation.Name,
                         dataType,
                         dataFiles));
                 // Update progressbar

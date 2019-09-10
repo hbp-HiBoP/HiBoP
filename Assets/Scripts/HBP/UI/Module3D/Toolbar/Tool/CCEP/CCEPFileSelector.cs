@@ -42,7 +42,7 @@ namespace HBP.UI.Module3D.Tools
             m_Dropdown.options.Clear();
             if (SelectedScene.Type == Data.Enums.SceneType.SinglePatient)
             {
-                foreach (HBP.Module3D.Latencies latencies in SelectedScene.SelectedImplantation.Latencies)
+                foreach (HBP.Module3D.Latencies latencies in SelectedScene.ImplantationsManager.SelectedImplantation.Latencies)
                 {
                     m_Dropdown.options.Add(new Dropdown.OptionData(latencies.Name));
                 }

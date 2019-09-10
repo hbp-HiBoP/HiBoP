@@ -140,7 +140,7 @@ namespace HBP.UI.Module3D.Tools
                             sitePosition.x.ToString("N2"),
                             sitePosition.y.ToString("N2"),
                             sitePosition.z.ToString("N2"),
-                            SelectedScene.SelectedImplantation.Name,
+                            SelectedScene.ImplantationsManager.SelectedImplantation.Name,
                             dataType,
                             dataFiles));
                 }

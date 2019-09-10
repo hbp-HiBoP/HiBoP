@@ -126,6 +126,7 @@ namespace HBP.Module3D
             }
         }
 
+        [SerializeField] private Transform m_SitesMeshesParent;
         /// <summary>
         /// Currently selected site
         /// </summary>
@@ -150,10 +151,6 @@ namespace HBP.Module3D
                 return m_RawElectrodes;
             }
         }
-        /// <summary>
-        /// Sites GameObjects. List order is Patient > Electrode > Site
-        /// </summary>
-        public List<List<List<GameObject>>> SitesGameObjects;
         /// <summary>
         /// Sites of this column
         /// </summary>
@@ -313,7 +310,7 @@ namespace HBP.Module3D
         /// <param name="sites">List of sites (DLL)</param>
         /// <param name="sitesPatientParent">List of the gameobjects for the sites corresponding to the patients</param>
         /// <param name="siteList">List of the sites gameobjects</param>
-        public void Initialize(int idColumn, Data.Visualization.Column baseColumn, PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
+        public void Initialize(int idColumn, Data.Visualization.Column baseColumn, PatientElectrodesList sites, List<GameObject> sceneSitePatientParent)
         {
             Layer = "Column" + idColumn;
             ColumnData = baseColumn;
@@ -321,7 +318,7 @@ namespace HBP.Module3D
             DLLMRIVolumeGenerator = new MRIVolumeGenerator();
             m_RawElectrodes = new RawSiteList();
             m_SelectRing.SetLayer(Layer);
-            UpdateSites(sites, sitesPatientParent, siteList);
+            UpdateSites(sites, sceneSitePatientParent);
             AddView();
             IsRenderingUpToDate = false;
         }
@@ -331,41 +328,34 @@ namespace HBP.Module3D
         /// <param name="sites">List of the sites (DLL)</param>
         /// <param name="sitesPatientParent">List of the gameobjects for the sites corresponding to the patients</param>
         /// <param name="siteList">List of the sites gameobjects</param>
-        public virtual void UpdateSites(PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
+        public virtual void UpdateSites(PatientElectrodesList sites, List<GameObject> sceneSitePatientParent)
         {
-            GameObject patientPlotsParent = transform.Find("Sites").gameObject;
-            foreach (Transform patientSite in patientPlotsParent.transform)
+            sites.ExtractRawSiteList(m_RawElectrodes);
+
+            foreach (Transform patientSite in m_SitesMeshesParent)
             {
                 Destroy(patientSite.gameObject);
             }
-
-            sites.ExtractRawSiteList(m_RawElectrodes);
-
-            SitesGameObjects = new List<List<List<GameObject>>>(sitesPatientParent.Count);
             Sites = new List<Site>(sites.TotalSitesNumber);
-            for (int ii = 0; ii < sitesPatientParent.Count; ++ii)
+            
+            for (int i = 0; i < sceneSitePatientParent.Count; ++i)
             {
-                // instantiate patient plots
-                GameObject patientPlots = Instantiate(sitesPatientParent[ii]);
-                patientPlots.transform.SetParent(patientPlotsParent.transform);
-                patientPlots.transform.localPosition = Vector3.zero;
-                patientPlots.name = sitesPatientParent[ii].name;
+                Transform sceneSitePatient = sceneSitePatientParent[i].transform;
+                Transform sitePatient = Instantiate(sceneSitePatient, m_SitesMeshesParent);
+                sitePatient.transform.localPosition = Vector3.zero;
+                sitePatient.name = sceneSitePatient.name;
 
-                SitesGameObjects.Add(new List<List<GameObject>>(patientPlots.transform.childCount));
-                for (int jj = 0; jj < patientPlots.transform.childCount; ++jj)
+                for (int j = 0; j < sceneSitePatient.childCount; ++j)
                 {
-                    int nbPlots = patientPlots.transform.GetChild(jj).childCount;
-
-                    SitesGameObjects[ii].Add(new List<GameObject>(nbPlots));
-                    for (int kk = 0; kk < nbPlots; ++kk)
+                    Transform sceneSiteElectrode = sceneSitePatient.GetChild(j);
+                    Transform siteElectrode = sitePatient.GetChild(j);
+                    for (int k = 0; k < sceneSiteElectrode.childCount; ++k)
                     {
-                        SitesGameObjects[ii][jj].Add(patientPlots.transform.GetChild(jj).GetChild(kk).gameObject);
-                        SitesGameObjects[ii][jj][kk].layer = LayerMask.NameToLayer(Layer);
-                        Sites.Add(patientPlots.transform.GetChild(jj).GetChild(kk).gameObject.GetComponent<Site>());
-
-                        int id = Sites.Count - 1;
-                        Site baseSite = siteList[id].GetComponent<Site>();
-                        Site site = Sites[id];
+                        GameObject sceneSiteGameObject = sceneSiteElectrode.GetChild(k).gameObject;
+                        GameObject siteGameObject = siteElectrode.GetChild(k).gameObject;
+                        siteGameObject.layer = LayerMask.NameToLayer(Layer);
+                        Site site = siteGameObject.GetComponent<Site>();
+                        Site baseSite = sceneSiteGameObject.GetComponent<Site>();
                         site.Information = baseSite.Information;
                         // State
                         if (!SiteStateBySiteID.ContainsKey(baseSite.Information.FullCorrectedID))
@@ -381,7 +371,7 @@ namespace HBP.Module3D
                         }
                         else
                         {
-                            ColumnData.BaseConfiguration.ConfigurationBySite.Add(site.Information.FullCorrectedID, site.Configuration); // TODO creation des sites configurations au chargement de la VISU d'apres le PTS.
+                            ColumnData.BaseConfiguration.ConfigurationBySite.Add(site.Information.FullCorrectedID, site.Configuration);
                         }
                         site.IsActive = true;
                         site.OnSelectSite.AddListener((selected) =>
@@ -397,6 +387,7 @@ namespace HBP.Module3D
                             }
                             OnSelectSite.Invoke(SelectedSite);
                         });
+                        Sites.Add(site);
                     }
                 }
             }

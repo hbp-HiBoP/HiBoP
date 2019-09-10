@@ -200,9 +200,9 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
-        public override void UpdateSites(PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
+        public override void UpdateSites(PatientElectrodesList sites, List<GameObject> sceneSitePatientParent)
         {
-            base.UpdateSites(sites, sitesPatientParent, siteList);
+            base.UpdateSites(sites, sceneSitePatientParent);
             Sources = Sites.Where(s => ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.Keys.Contains(s.Information.FullCorrectedID)).ToList();
         }
         /// <summary>
