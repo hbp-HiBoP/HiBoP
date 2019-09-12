@@ -48,10 +48,6 @@ namespace HBP.Module3D
         /// </summary>
         public bool AreSitesUpdated = false;
         /// <summary>
-        /// Is the Mars Atlas mode enabled ?
-        /// </summary>
-        public bool MarsAtlasModeEnabled = false;
-        /// <summary>
         /// Are we cutting the holes ?
         /// </summary>
         public bool CutHolesEnabled = true;

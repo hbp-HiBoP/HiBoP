@@ -101,7 +101,13 @@ namespace HBP.Module3D
         /// Object that handles the implantations of the scene
         /// </summary>
         public ImplantationManager ImplantationManager { get { return m_ImplantationManager; } }
-        
+
+        [SerializeField] private AtlasManager m_AtlasManager;
+        /// <summary>
+        /// Object that handles the JuBrain and Mars atlases
+        /// </summary>
+        public AtlasManager AtlasManager { get { return m_AtlasManager; } }
+
         /// <summary>
         /// Object that handles the FMRI of the scene
         /// </summary>
@@ -151,61 +157,11 @@ namespace HBP.Module3D
         /// <summary>
         /// Common generator for each brain part
         /// </summary>
-        public List<DLL.MRIBrainGenerator> DLLCommonBrainTextureGeneratorList = new List<DLL.MRIBrainGenerator>();
+        public List<DLL.MRIBrainGenerator> DLLCommonBrainTextureGeneratorList { get; set; } = new List<DLL.MRIBrainGenerator>();
         /// <summary>
         /// Geometry generator for cuts
         /// </summary>
-        public List<DLL.MRIGeometryCutGenerator> DLLMRIGeometryCutGeneratorList = new List<DLL.MRIGeometryCutGenerator>();
-        
-        public bool DisplayAtlas { get; set; }
-        public float AtlasAlpha { get; set; } = 1.0f;
-        public int AtlasSelectedArea { get; set; } = -1;
-        public bool DisplayJuBrainAtlas
-        {
-            get
-            {
-                return DisplayAtlas;
-            }
-            set
-            {
-                DisplayAtlas = value;
-                m_MeshManager.UpdateAtlasColors();
-                BrainMaterial.SetInt("_Atlas", DisplayAtlas ? 1 : 0);
-                ResetIEEG();
-            }
-        }
-        public int SelectedAtlasArea
-        {
-            get
-            {
-                return AtlasSelectedArea;
-            }
-            set
-            {
-                if (AtlasSelectedArea != value)
-                {
-                    AtlasSelectedArea = value;
-                    m_MeshManager.UpdateAtlasColors();
-                    ComputeMRITextures();
-                    ComputeGUITextures();
-                }
-            }
-        }
-        /// <summary>
-        /// Are Mars Atlas colors displayed ?
-        /// </summary>
-        public bool IsMarsAtlasEnabled
-        {
-            get
-            {
-                return SceneInformation.MarsAtlasModeEnabled;
-            }
-            set
-            {
-                SceneInformation.MarsAtlasModeEnabled = value;
-                BrainMaterial.SetInt("_Atlas", SceneInformation.MarsAtlasModeEnabled ? 1 : 0);
-            }
-        }
+        public List<DLL.MRIGeometryCutGenerator> DLLMRIGeometryCutGeneratorList { get; set; } = new List<DLL.MRIGeometryCutGenerator>();
 
         private Data.Enums.ColorType m_BrainColor = Data.Enums.ColorType.BrainColor;
         /// <summary>
@@ -247,8 +203,7 @@ namespace HBP.Module3D
                 ResetColors();
 
                 SceneInformation.CutsNeedUpdate = true;
-                ComputeMRITextures();
-                ComputeGUITextures();
+                ComputeCutTextures();
                 foreach (Column3D column in Columns)
                 {
                     column.IsRenderingUpToDate = false;
@@ -761,7 +716,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Compute the textures for the MRI (3D)
         /// </summary>
-        public void ComputeMRITextures()
+        private void ComputeMRITextures()
         {
             if (SceneInformation.CutsNeedUpdate) return;
 
@@ -770,9 +725,9 @@ namespace HBP.Module3D
                 foreach (Cut cut in Cuts)
                 {
                     column.CutTextures.CreateMRITexture(DLLMRIGeometryCutGeneratorList[cut.ID], MRIManager.SelectedMRI.Volume, cut.ID, MRIManager.MRICalMinFactor, MRIManager.MRICalMaxFactor, 3);
-                    if (DisplayAtlas)
+                    if (m_AtlasManager.DisplayAtlas)
                     {
-                        column.CutTextures.ColorCutsTexturesWithAtlas(cut.ID, AtlasAlpha, AtlasSelectedArea);
+                        column.CutTextures.ColorCutsTexturesWithAtlas(cut.ID, m_AtlasManager.AtlasAlpha, m_AtlasManager.AtlasSelectedArea);
                     }
                     else if (FMRIManager.DisplayFMRI)
                     {
@@ -780,7 +735,6 @@ namespace HBP.Module3D
                     }
                 }
             }
-            ComputeIEEGTextures();
         }
         /// <summary>
         /// Compute the textures for the MRI (3D) with the iEEG activity
@@ -810,7 +764,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Compute the texture for the MRI (GUI)
         /// </summary>
-        public void ComputeGUITextures()
+        private void ComputeGUITextures()
         {
             if (SceneInformation.CutsNeedUpdate) return;
 
@@ -950,7 +904,7 @@ namespace HBP.Module3D
             UpdateCuts();
             UpdateGeneratorsAndUV();
             m_TriangleEraser.ResetEraser();
-            m_MeshManager.UpdateAtlasIndices();
+            m_AtlasManager.UpdateAtlasIndices();
 
             SceneInformation.MeshGeometryNeedsUpdate = false;
         }
@@ -962,8 +916,7 @@ namespace HBP.Module3D
             ComputeMeshesCut();
             SceneInformation.CutsNeedUpdate = false;
 
-            ComputeMRITextures();
-            ComputeGUITextures();
+            ComputeCutTextures();
 
             OnUpdateCuts.Invoke();
         }
@@ -1132,8 +1085,7 @@ namespace HBP.Module3D
                         }
                         ColumnsDynamic[ii].DLLMRIVolumeGenerator.AdjustInfluencesToColormap(ColumnsDynamic[ii]);
                     }
-                    ComputeMRITextures();
-                    ComputeGUITextures();
+                    ComputeCutTextures();
                     dynamicColumn.IsRenderingUpToDate = false;
                 });
                 dynamicColumn.DynamicParameters.OnUpdateAlphaValues.AddListener(() =>
@@ -1608,6 +1560,15 @@ namespace HBP.Module3D
         #endregion
         
         /// <summary>
+        /// Compute the cut textures
+        /// </summary>
+        public void ComputeCutTextures()
+        {
+            ComputeMRITextures();
+            ComputeIEEGTextures();
+            ComputeGUITextures();
+        }
+        /// <summary>
         /// Copy the states of the sites of the selected column to all other columns
         /// </summary>
         public void ApplySelectedColumnSiteStatesToOtherColumns()
@@ -1684,8 +1645,7 @@ namespace HBP.Module3D
             if (hardReset)
             {
                 SceneInformation.IsGeneratorUpToDate = false;
-                ComputeMRITextures();
-                ComputeGUITextures();
+                ComputeCutTextures();
             }
         }
         /// <summary>
@@ -1704,72 +1664,8 @@ namespace HBP.Module3D
             Data.Enums.RaycastHitResult raycastResult = column.Raycast(ray, layerMask, out RaycastHit hit);
             Vector3 hitPoint = raycastResult != Data.Enums.RaycastHitResult.None ? hit.point - transform.position : Vector3.zero;
 
-            if ((raycastResult == Data.Enums.RaycastHitResult.Cut || raycastResult == Data.Enums.RaycastHitResult.Mesh) && DisplayJuBrainAtlas)
-            {
-                SelectedAtlasArea = ApplicationState.Module3D.JuBrainAtlas.GetClosestAreaIndex(hit.point - transform.position);
-                string[] information = ApplicationState.Module3D.JuBrainAtlas.GetInformation(SelectedAtlasArea);
-                if (information.Length == 5)
-                {
-                    ApplicationState.Module3D.OnDisplayAtlasInformation.Invoke(new AtlasInfo(true, Input.mousePosition, information[0], information[1], information[2], information[3], information[4]));
-                }
-                else
-                {
-                    ApplicationState.Module3D.OnDisplayAtlasInformation.Invoke(new AtlasInfo(false, Input.mousePosition));
-                }
-            }
-            else
-            {
-                SelectedAtlasArea = -1;
-                ApplicationState.Module3D.OnDisplayAtlasInformation.Invoke(new AtlasInfo(false, Input.mousePosition));
-            }
-
-            if (raycastResult == Data.Enums.RaycastHitResult.Site)
-            {
-                Site site = hit.collider.GetComponent<Site>();
-                // Compute each required variable
-                int siteID = site.Information.GlobalID;
-                string CCEPLatency = "none", CCEPAmplitude = "none";
-                float iEEGActivity = -1;
-                string iEEGUnit = "";
-                // CCEP
-                if (column is Column3DCCEP ccepColumn)
-                {
-                    CCEPLatency = ccepColumn.Latencies[siteID].ToString();
-                    CCEPAmplitude = ccepColumn.Amplitudes[siteID].ToString();
-                }
-                // iEEG
-                if (column is Column3DDynamic columnIEEG)
-                {
-                    iEEGUnit = columnIEEG.IEEGUnitsBySiteID[siteID];
-                    iEEGActivity = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.Timeline.CurrentIndex];
-                }
-                // Send Event
-                Data.Enums.SiteInformationDisplayMode displayMode;
-                if (SceneInformation.IsGeneratorUpToDate)
-                {
-                    if (column is Column3DCCEP)
-                    {
-                        displayMode = Data.Enums.SiteInformationDisplayMode.CCEP;
-                    }
-                    else if (column is Column3DIEEG)
-                    {
-                        displayMode = Data.Enums.SiteInformationDisplayMode.IEEG;
-                    }
-                    else
-                    {
-                        displayMode = Data.Enums.SiteInformationDisplayMode.Anatomy;
-                    }
-                }
-                else
-                {
-                    displayMode = Data.Enums.SiteInformationDisplayMode.Anatomy;
-                }
-                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, displayMode, iEEGActivity.ToString("0.00"), iEEGUnit, CCEPAmplitude, CCEPLatency));
-            }
-            else
-            {
-                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition));
-            }            
+            m_AtlasManager.DisplayAtlasInformation(raycastResult == Data.Enums.RaycastHitResult.Cut || raycastResult == Data.Enums.RaycastHitResult.Mesh, hitPoint);
+            m_ImplantationManager.DisplaySiteInformation(raycastResult == Data.Enums.RaycastHitResult.Site, column, hit);
         }
         /// <summary>
         /// Manage the clicks on the scene

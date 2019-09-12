@@ -28,13 +28,13 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedScene.DisplayJuBrainAtlas = isOn;
+                SelectedScene.AtlasManager.DisplayJuBrainAtlas = isOn;
             });
             m_MarsAtlasToggle.onValueChanged.AddListener((isOn) =>
             {
                 if (ListenerLock) return;
 
-                SelectedScene.IsMarsAtlasEnabled = isOn;
+                SelectedScene.AtlasManager.IsMarsAtlasEnabled = isOn;
             });
         }
 
@@ -62,8 +62,8 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateStatus()
         {
             m_IBCToggle.isOn = SelectedScene.FMRIManager.DisplayIBCContrasts;
-            m_JubrainToggle.isOn = SelectedScene.DisplayJuBrainAtlas;
-            m_MarsAtlasToggle.isOn = SelectedScene.IsMarsAtlasEnabled;
+            m_JubrainToggle.isOn = SelectedScene.AtlasManager.DisplayJuBrainAtlas;
+            m_MarsAtlasToggle.isOn = SelectedScene.AtlasManager.IsMarsAtlasEnabled;
         }
         #endregion
     }

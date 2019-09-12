@@ -54,10 +54,6 @@ namespace HBP.Module3D
         /// List of splitted meshes
         /// </summary>
         public List<DLL.Surface> SplittedMeshes = new List<DLL.Surface>();
-        /// <summary>
-        /// Atlas indices for the splitted meshes
-        /// </summary>
-        private List<int[]> m_SplitAtlasIndices = new List<int[]>();
         #endregion
 
         #region Private Methods
@@ -161,13 +157,13 @@ namespace HBP.Module3D
             if (meshID == -1) meshID = 0;
 
             SelectedMeshID = meshID;
-            if (m_Scene.IsMarsAtlasEnabled && !SelectedMesh.IsMarsAtlasLoaded)
+            if (m_Scene.AtlasManager.IsMarsAtlasEnabled && !SelectedMesh.IsMarsAtlasLoaded)
             {
-                m_Scene.IsMarsAtlasEnabled = false;
+                m_Scene.AtlasManager.IsMarsAtlasEnabled = false;
             }
-            if (m_Scene.DisplayJuBrainAtlas && SelectedMesh.Type != Data.Enums.MeshType.MNI)
+            if (m_Scene.AtlasManager.DisplayJuBrainAtlas && SelectedMesh.Type != Data.Enums.MeshType.MNI)
             {
-                m_Scene.DisplayJuBrainAtlas = false;
+                m_Scene.AtlasManager.DisplayJuBrainAtlas = false;
             }
             if (m_Scene.FMRIManager.DisplayIBCContrasts && SelectedMesh.Type != Data.Enums.MeshType.MNI)
             {
@@ -262,32 +258,6 @@ namespace HBP.Module3D
             SplittedMeshes = m_Scene.SceneInformation.MeshToDisplay.SplitToSurfaces(MeshSplitNumber);
 
             m_Scene.UpdateAllCutPlanes();
-        }
-        /// <summary>
-        /// Update the indices of all the JuBrain Atlas areas for all vertices
-        /// </summary>
-        public void UpdateAtlasIndices()
-        {
-            m_SplitAtlasIndices = new List<int[]>();
-            for (int ii = 0; ii < MeshSplitNumber; ++ii)
-            {
-                m_SplitAtlasIndices.Add(ApplicationState.Module3D.JuBrainAtlas.GetSurfaceAreaLabels(SplittedMeshes[ii]));
-            }
-        }
-        /// <summary>
-        /// Update all colors for the atlas for all vertices
-        /// </summary>
-        public void UpdateAtlasColors()
-        {
-            for (int ii = 0; ii < MeshSplitNumber; ++ii)
-            {
-                Color[] colors = ApplicationState.Module3D.JuBrainAtlas.ConvertIndicesToColors(m_SplitAtlasIndices[ii], m_Scene.SelectedAtlasArea);
-                m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.colors = colors;
-                foreach (Column3D column in m_Scene.Columns)
-                {
-                    column.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().sharedMesh.colors = colors;
-                }
-            }
         }
         /// <summary>
         /// Generate the split number regarding all meshes

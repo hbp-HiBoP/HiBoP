@@ -94,6 +94,62 @@ namespace HBP.Module3D
                 column.IsRenderingUpToDate = false;
             }
         }
+        /// <summary>
+        /// Display information about the site under the mouse
+        /// </summary>
+        /// <param name="canDisplay">Is a site under the mouse ?</param>
+        /// <param name="column">Column on which the raycast is performed</param>
+        /// <param name="hit">RaycastHit of the raycast</param>
+        public void DisplaySiteInformation(bool canDisplay, Column3D column, RaycastHit hit)
+        {
+            if (canDisplay)
+            {
+                Site site = hit.collider.GetComponent<Site>();
+                // Compute each required variable
+                int siteID = site.Information.GlobalID;
+                string CCEPLatency = "none", CCEPAmplitude = "none";
+                float iEEGActivity = -1;
+                string iEEGUnit = "";
+                // CCEP
+                if (column is Column3DCCEP ccepColumn)
+                {
+                    CCEPLatency = ccepColumn.Latencies[siteID].ToString();
+                    CCEPAmplitude = ccepColumn.Amplitudes[siteID].ToString();
+                }
+                // iEEG
+                if (column is Column3DDynamic columnIEEG)
+                {
+                    iEEGUnit = columnIEEG.IEEGUnitsBySiteID[siteID];
+                    iEEGActivity = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.Timeline.CurrentIndex];
+                }
+                // Send Event
+                Data.Enums.SiteInformationDisplayMode displayMode;
+                if (m_Scene.SceneInformation.IsGeneratorUpToDate)
+                {
+                    if (column is Column3DCCEP)
+                    {
+                        displayMode = Data.Enums.SiteInformationDisplayMode.CCEP;
+                    }
+                    else if (column is Column3DIEEG)
+                    {
+                        displayMode = Data.Enums.SiteInformationDisplayMode.IEEG;
+                    }
+                    else
+                    {
+                        displayMode = Data.Enums.SiteInformationDisplayMode.Anatomy;
+                    }
+                }
+                else
+                {
+                    displayMode = Data.Enums.SiteInformationDisplayMode.Anatomy;
+                }
+                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, displayMode, iEEGActivity.ToString("0.00"), iEEGUnit, CCEPAmplitude, CCEPLatency));
+            }
+            else
+            {
+                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition));
+            }
+        }
         #endregion
     }
 }
