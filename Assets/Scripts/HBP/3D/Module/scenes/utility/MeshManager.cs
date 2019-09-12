@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -40,7 +39,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Selected Mesh3D ID
         /// </summary>
-        public int SelectedMeshID { get; set; }
+        public int SelectedMeshID { get; private set; }
         /// <summary>
         /// Selected Mesh3D
         /// </summary>
@@ -199,6 +198,16 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
+        /// Load every mesh that has not been loaded yet
+        /// </summary>
+        public void LoadMissing()
+        {
+            foreach (var mesh in Meshes)
+            {
+                if (!mesh.IsLoaded) mesh.Load();
+            }
+        }
+        /// <summary>
         /// Update the surface meshes from the DLL
         /// </summary>
         public void UpdateMeshesFromDLL()
@@ -248,7 +257,7 @@ namespace HBP.Module3D
             }
             // get the middle
             m_Scene.SceneInformation.MeshCenter = m_Scene.SceneInformation.MeshToDisplay.Center;
-            SharedMaterials.Brain.BrainMaterials[m_Scene].SetVector("_Center", m_Scene.SceneInformation.MeshCenter);
+            m_Scene.BrainMaterial.SetVector("_Center", m_Scene.SceneInformation.MeshCenter);
 
             SplittedMeshes = m_Scene.SceneInformation.MeshToDisplay.SplitToSurfaces(MeshSplitNumber);
 

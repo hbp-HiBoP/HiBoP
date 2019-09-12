@@ -47,6 +47,10 @@ namespace HBP.Module3D
         /// </summary>
         [SerializeField] private GameObject m_InvisibleBrainPrefab;
         /// <summary>
+        /// Prefab for the 3D cut
+        /// </summary>
+        [SerializeField] private GameObject m_CutPrefab;
+        /// <summary>
         /// Prefab for the 3D site
         /// </summary>
         [SerializeField] private GameObject m_SitePrefab;
@@ -181,7 +185,7 @@ namespace HBP.Module3D
             for (int i = 0; i < nbSplits; ++i)
             {
                 BrainSurfaceMeshes.Add(Instantiate(m_BrainPrefab));
-                BrainSurfaceMeshes[i].GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.BrainMaterials[m_Scene];
+                BrainSurfaceMeshes[i].GetComponent<Renderer>().sharedMaterial = m_Scene.BrainMaterial;
                 BrainSurfaceMeshes[i].name = "brain_" + i;
                 BrainSurfaceMeshes[i].transform.parent = BrainSurfaceMeshesParent.transform;
                 BrainSurfaceMeshes[i].transform.localPosition = Vector3.zero;
@@ -189,12 +193,24 @@ namespace HBP.Module3D
                 BrainSurfaceMeshes[i].SetActive(true);
             }
             SimplifiedBrain = Instantiate(m_SimplifiedBrainPrefab);
-            SimplifiedBrain.GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.SimplifiedBrainMaterials[m_Scene];
+            SimplifiedBrain.GetComponent<Renderer>().sharedMaterial = m_Scene.SimplifiedBrainMaterial;
             SimplifiedBrain.transform.name = "brain_simplified";
             SimplifiedBrain.transform.parent = BrainSurfaceMeshesParent.transform;
             SimplifiedBrain.transform.localPosition = Vector3.zero;
             SimplifiedBrain.layer = LayerMask.NameToLayer(HBP3DModule.HIDDEN_MESHES_LAYER);
             SimplifiedBrain.SetActive(true);
+        }
+        public void InstantiateCut()
+        {
+            GameObject cutGameObject = Instantiate(m_CutPrefab);
+            cutGameObject.GetComponent<Renderer>().sharedMaterial = m_Scene.CutMaterial;
+            cutGameObject.name = "Cut";
+            cutGameObject.transform.parent = BrainCutMeshesParent.transform;
+            cutGameObject.AddComponent<MeshCollider>();
+            cutGameObject.layer = LayerMask.NameToLayer(HBP3DModule.DEFAULT_MESHES_LAYER);
+            cutGameObject.transform.localPosition = Vector3.zero;
+            BrainCutMeshes.Add(cutGameObject);
+            BrainCutMeshes.Last().layer = LayerMask.NameToLayer(HBP3DModule.DEFAULT_MESHES_LAYER);
         }
         #endregion
     }

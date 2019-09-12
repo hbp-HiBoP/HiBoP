@@ -20,7 +20,12 @@ namespace HBP.UI.Module3D.Tools
         #region Public Methods
         public override void Initialize()
         {
+            m_ThresholdMRI.OnChangeValues.AddListener((min, max) =>
+            {
+                if (ListenerLock) return;
 
+                SelectedScene.MRIManager.SetCalValues(min, max);
+            });
         }
 
         public override void DefaultState()
@@ -35,7 +40,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateStatus()
         {
-            m_ThresholdMRI.UpdateMRICalValues(SelectedScene.SelectedMRI.Volume.ExtremeValues);
+            m_ThresholdMRI.UpdateMRICalValues(SelectedScene);
         }
         #endregion
     }
