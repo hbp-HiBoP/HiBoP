@@ -59,12 +59,12 @@ namespace HBP.Module3D
             }
             set
             {
-                m_IsSelected = value;
-                if (m_IsSelected)
+                if (m_IsSelected != value)
                 {
+                    m_IsSelected = value;
                     OnSelect.Invoke();
-                    ApplicationState.Module3D.OnSelectScene.Invoke(this);
                 }
+                ApplicationState.Module3D.OnSelectScene.Invoke(this);
             }
         }
         
