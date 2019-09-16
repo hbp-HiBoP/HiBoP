@@ -102,7 +102,7 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateStatus()
         {
             ChangeBrainTypeCallback();
-            switch (SelectedScene.SceneInformation.MeshPartToDisplay)
+            switch (SelectedScene.MeshManager.MeshPartToDisplay)
             {
                 case Data.Enums.MeshPart.Left:
                     m_Left.isOn = true;
@@ -134,15 +134,15 @@ namespace HBP.UI.Module3D.Tools
             }
             else
             {
-                if (SelectedScene.SceneInformation.MeshPartToDisplay == Data.Enums.MeshPart.Both)
+                if (SelectedScene.MeshManager.MeshPartToDisplay == Data.Enums.MeshPart.Both)
                 {
                     m_Left.isOn = true;
                     m_Right.isOn = true;
                 }
                 else
                 {
-                    m_Left.isOn = (SelectedScene.SceneInformation.MeshPartToDisplay == Data.Enums.MeshPart.Left);
-                    m_Right.isOn = (SelectedScene.SceneInformation.MeshPartToDisplay == Data.Enums.MeshPart.Right);
+                    m_Left.isOn = (SelectedScene.MeshManager.MeshPartToDisplay == Data.Enums.MeshPart.Left);
+                    m_Right.isOn = (SelectedScene.MeshManager.MeshPartToDisplay == Data.Enums.MeshPart.Right);
                 }
             }
         }

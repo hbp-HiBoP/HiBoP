@@ -1,13 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using System.Linq;
 using Tools.Unity.ResizableGrid;
-using UnityEngine.UI;
-using UnityEngine.EventSystems;
-using System;
 using HBP.Module3D;
-using Tools.Unity;
 
 namespace HBP.UI.Module3D
 {
@@ -60,6 +54,15 @@ namespace HBP.UI.Module3D
             {
                 m_MinimizedGameObject.SetActive(IsMinimized);
                 m_RectTransform.hasChanged = false;
+            }
+
+            if (m_Scene.UpdatingGenerators)
+            {
+                m_ProgressBar.Open();
+            }
+            else
+            {
+                m_ProgressBar.Close();
             }
         }
         #endregion
@@ -134,17 +137,6 @@ namespace HBP.UI.Module3D
                 if (!m_Scene) return;
 
                 m_ResizableGrid.ResetPositions();
-            });
-            m_Scene.OnUpdatingGenerator.AddListener((value) =>
-            {
-                if (value)
-                {
-                    m_ProgressBar.Open();
-                }
-                else
-                {
-                    m_ProgressBar.Close();
-                }
             });
             m_Scene.OnProgressUpdateGenerator.AddListener((progress, message, duration) =>
             {

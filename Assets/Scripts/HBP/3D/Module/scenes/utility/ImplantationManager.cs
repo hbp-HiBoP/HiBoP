@@ -8,7 +8,7 @@ namespace HBP.Module3D
     /// </summary>
     /// <remarks>
     /// This class can load and store implantations for the corresponding scene.
-    /// It is also used to select which implantation to display on the scene.
+    /// It is also used to select which implantation to display on the scene and to compare sites.
     /// </remarks>
     public class ImplantationManager : MonoBehaviour
     {
@@ -38,6 +38,34 @@ namespace HBP.Module3D
             get
             {
                 return Implantations[SelectedImplantationID];
+            }
+        }
+
+        /// <summary>
+        /// Site to compare with when using the comparing site feature
+        /// </summary>
+        public Site SiteToCompare { get; private set; }
+        private bool m_ComparingSites;
+        /// <summary>
+        /// Are we comparing sites ?
+        /// </summary>
+        public bool ComparingSites
+        {
+            get
+            {
+                return m_ComparingSites;
+            }
+            set
+            {
+                m_ComparingSites = value;
+                if (m_ComparingSites)
+                {
+                    SiteToCompare = m_Scene.SelectedColumn.SelectedSite;
+                }
+                else
+                {
+                    SiteToCompare = null;
+                }
             }
         }
         #endregion
@@ -124,7 +152,7 @@ namespace HBP.Module3D
                 }
                 // Send Event
                 Data.Enums.SiteInformationDisplayMode displayMode;
-                if (m_Scene.SceneInformation.IsGeneratorUpToDate)
+                if (m_Scene.IsGeneratorUpToDate)
                 {
                     if (column is Column3DCCEP)
                     {

@@ -45,14 +45,14 @@ namespace HBP.UI.Module3D
         {
             foreach (HBP.Module3D.Base3DScene scene in ApplicationState.Module3D.Scenes)
             {
-                scene.ROICreation = true;
+                scene.ROICreationMode = true;
             }
         }
         public override void HideToolbarCallback()
         {
             foreach (HBP.Module3D.Base3DScene scene in ApplicationState.Module3D.Scenes)
             {
-                scene.ROICreation = false;
+                scene.ROICreationMode = false;
             }
         }
         #endregion

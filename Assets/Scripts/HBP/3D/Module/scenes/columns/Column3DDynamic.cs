@@ -100,7 +100,7 @@ namespace HBP.Module3D
         /// Update sites sizes and colors arrays for iEEG (to be called before the rendering update)
         /// </summary>
         /// <param name="data">Information about the scene</param>
-        protected virtual void UpdateSitesSizeAndColorForIEEG(SceneStatesInfo data)
+        protected virtual void UpdateSitesSizeAndColorForIEEG(bool showAllSites)
         {
             UnityEngine.Profiling.Profiler.BeginSample("update_sites_size_and_color_arrays_for_IEEG");
 
@@ -109,7 +109,7 @@ namespace HBP.Module3D
 
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
-                if ((Sites[ii].State.IsOutOfROI && !data.ShowAllSites) || Sites[ii].State.IsMasked)
+                if ((Sites[ii].State.IsOutOfROI && !showAllSites) || Sites[ii].State.IsMasked)
                     continue;
 
                 float value = IEEGValuesBySiteID[ii][Timeline.CurrentIndex];
@@ -186,114 +186,50 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="data">Information about the scene</param>
         /// <param name="latenciesFile">CCEP files</param>
-        public override void UpdateSitesRendering(SceneStatesInfo data, Latencies latenciesFile)
+        public override void UpdateSitesRendering(bool showAllSites, bool hideBlacklistedSites, bool isGeneratorUpToDate)
         {
-            UpdateSitesSizeAndColorForIEEG(data);
+            UpdateSitesSizeAndColorForIEEG(showAllSites);
 
-            if (data.DisplayCCEPMode) // CCEP
+            for (int i = 0; i < Sites.Count; ++i)
             {
-                for (int i = 0; i < Sites.Count; ++i)
+                Site site = Sites[i];
+                bool activity = site.IsActive;
+                SiteType siteType;
+                if (site.State.IsMasked || (site.State.IsOutOfROI && !showAllSites) || !site.State.IsFiltered)
                 {
-                    Site site = Sites[i];
-                    bool activity = site.IsActive;
-                    SiteType siteType;
-                    float alpha = -1.0f;
-                    if (!site.State.IsFiltered)
+                    if (activity) site.IsActive = false;
+                    continue;
+                }
+                else if (site.State.IsBlackListed)
+                {
+                    site.transform.localScale = Vector3.one;
+                    siteType = SiteType.BlackListed;
+                    if (hideBlacklistedSites)
                     {
                         if (activity) site.IsActive = false;
                         continue;
                     }
-                    else if (site.State.IsBlackListed)
-                    {
-                        site.transform.localScale = Vector3.one;
-                        siteType = SiteType.BlackListed;
-                        if (data.HideBlacklistedSites)
-                        {
-                            if (activity) site.IsActive = false;
-                            continue;
-                        }
-                    }
-                    else if (latenciesFile != null)
-                    {
-                        if (SelectedSiteID == -1)
-                        {
-                            site.transform.localScale = Vector3.one;
-                            siteType = latenciesFile.IsSiteASource(i) ? SiteType.Source : SiteType.NotASource;
-                        }
-                        else
-                        {
-                            if (i == SelectedSiteID)
-                            {
-                                site.transform.localScale = Vector3.one;
-                                siteType = SiteType.Source;
-                            }
-                            else if (latenciesFile.IsSiteResponsiveForSource(i, SelectedSiteID))
-                            {
-                                siteType = latenciesFile.PositiveHeight[SelectedSiteID][i] ? SiteType.Positive : SiteType.Negative;
-                                alpha = site.State.IsHighlighted ? 1.0f : latenciesFile.Transparencies[SelectedSiteID][i];
-                                site.transform.localScale = Vector3.one * latenciesFile.Sizes[SelectedSiteID][i];
-                            }
-                            else
-                            {
-                                if (activity) site.IsActive = false;
-                                continue;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        site.transform.localScale = Vector3.one;
-                        siteType = SiteType.Normal;
-                    }
-                    if (!activity) site.IsActive = true;
-                    Material siteMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
-                    if (alpha > 0.0f)
-                    {
-                        Color materialColor = siteMaterial.color;
-                        materialColor.a = alpha;
-                        siteMaterial.color = materialColor;
-                    }
-                    site.GetComponent<MeshRenderer>().sharedMaterial = siteMaterial;
-                    site.transform.localScale *= DynamicParameters.Gain;
                 }
-            }
-            else // iEEG
-            {
-                for (int i = 0; i < Sites.Count; ++i)
+                else if (isGeneratorUpToDate)
                 {
-                    Site site = Sites[i];
-                    bool activity = site.IsActive;
-                    SiteType siteType;
-                    if (site.State.IsMasked || (site.State.IsOutOfROI && !data.ShowAllSites) || !site.State.IsFiltered)
-                    {
-                        if (activity) site.IsActive = false;
-                        continue;
-                    }
-                    else if (site.State.IsBlackListed)
-                    {
-                        site.transform.localScale = Vector3.one;
-                        siteType = SiteType.BlackListed;
-                        if (data.HideBlacklistedSites)
-                        {
-                            if (activity) site.IsActive = false;
-                            continue;
-                        }
-                    }
-                    else if (data.IsGeneratorUpToDate)
-                    {
-                        site.transform.localScale = m_ElectrodesSizeScale[i];
-                        siteType = m_ElectrodesPositiveColor[i] ? SiteType.Positive : SiteType.Negative;
-                    }
-                    else
-                    {
-                        site.transform.localScale = Vector3.one;
-                        siteType = SiteType.Normal;
-                    }
-                    if (!activity) site.IsActive = true;
-                    site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
-                    site.transform.localScale *= DynamicParameters.Gain;
+                    site.transform.localScale = m_ElectrodesSizeScale[i];
+                    siteType = m_ElectrodesPositiveColor[i] ? SiteType.Positive : SiteType.Negative;
                 }
+                else
+                {
+                    site.transform.localScale = Vector3.one;
+                    siteType = SiteType.Normal;
+                }
+                if (!activity) site.IsActive = true;
+                site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
+                site.transform.localScale *= DynamicParameters.Gain;
             }
+        }
+        public void ComputeSurfaceBrainUVWithIEEG(List<Surface> splittedMeshes)
+        {
+            for (int ii = 0; ii < DLLBrainTextureGenerators.Count; ++ii)
+                DLLBrainTextureGenerators[ii].ComputeSurfaceUVIEEG(splittedMeshes[ii], this);
+            CutTextures.ColorCutsTexturesWithIEEG(this);
         }
         #endregion
     }

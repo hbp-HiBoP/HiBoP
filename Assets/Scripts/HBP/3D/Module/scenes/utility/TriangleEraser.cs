@@ -66,7 +66,7 @@ namespace HBP.Module3D
                     m_IsEnabled = value;
                     for (int ii = 0; ii < m_DisplayedObjects.InvisibleBrainSurfaceMeshes.Count; ++ii)
                         m_DisplayedObjects.InvisibleBrainSurfaceMeshes[ii].SetActive(value);
-                    m_Scene.SceneInformation.CollidersNeedUpdate = true;
+                    m_Scene.ColliderNeedsUpdate = true;
                 }
             }
         }
@@ -151,8 +151,8 @@ namespace HBP.Module3D
             get
             {
                 List<int[]> masks = new List<int[]>();
-                masks.Add(m_Scene.SceneInformation.MeshToDisplay.VisibilityMask);
-                if (m_EraseTrianglesOfSimplifiedMesh) masks.Add(m_Scene.SceneInformation.SimplifiedMeshToUse.VisibilityMask);
+                masks.Add(m_Scene.MeshManager.MeshToDisplay.VisibilityMask);
+                if (m_EraseTrianglesOfSimplifiedMesh) masks.Add(m_Scene.MeshManager.SimplifiedMeshToUse.VisibilityMask);
                 foreach (var split in m_Scene.MeshManager.SplittedMeshes)
                 {
                     masks.Add(split.VisibilityMask);
@@ -163,15 +163,15 @@ namespace HBP.Module3D
             {
                 if (value.Count == m_Scene.MeshManager.SplittedMeshes.Count + 2)
                 {
-                    m_Scene.SceneInformation.MeshToDisplay.UpdateVisibilityMask(value[0]).Dispose();
-                    if (m_EraseTrianglesOfSimplifiedMesh) m_Scene.SceneInformation.SimplifiedMeshToUse.UpdateVisibilityMask(value[1]).Dispose();
+                    m_Scene.MeshManager.MeshToDisplay.UpdateVisibilityMask(value[0]).Dispose();
+                    if (m_EraseTrianglesOfSimplifiedMesh) m_Scene.MeshManager.SimplifiedMeshToUse.UpdateVisibilityMask(value[1]).Dispose();
                     for (int i = 0; i < m_Scene.MeshManager.SplittedMeshes.Count; ++i)
                     {
                         DLL.Surface brainInvisibleMeshesDLL = m_Scene.MeshManager.SplittedMeshes[i].UpdateVisibilityMask(value[i + 2]);
                         brainInvisibleMeshesDLL.UpdateMeshFromDLL(m_DisplayedObjects.InvisibleBrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh);
                         brainInvisibleMeshesDLL.Dispose();
                     }
-                    MeshHasInvisibleTriangles = m_Scene.SceneInformation.MeshToDisplay.VisibilityMask.Contains(0);
+                    MeshHasInvisibleTriangles = m_Scene.MeshManager.MeshToDisplay.VisibilityMask.Contains(0);
 
                     m_Scene.ResetIEEG();
                     m_Scene.MeshManager.UpdateMeshesFromDLL();
@@ -187,10 +187,10 @@ namespace HBP.Module3D
         /// </summary>
         public void ResetEraser()
         {
-            m_DisplayedObjects.ResetInvisibleMesh(m_IsEnabled);
+            m_DisplayedObjects.InstantiateInvisibleMesh(m_IsEnabled);
 
-            int[] fullMask = ArrayExtensions.Create(m_Scene.SceneInformation.MeshToDisplay.NumberOfTriangles, 1);
-            m_Scene.SceneInformation.MeshToDisplay.UpdateVisibilityMask(fullMask).Dispose();
+            int[] fullMask = ArrayExtensions.Create(m_Scene.MeshManager.MeshToDisplay.NumberOfTriangles, 1);
+            m_Scene.MeshManager.MeshToDisplay.UpdateVisibilityMask(fullMask).Dispose();
             
             for (int ii = 0; ii < m_Scene.MeshManager.SplittedMeshes.Count; ++ii)
             {
@@ -198,8 +198,8 @@ namespace HBP.Module3D
                 m_Scene.MeshManager.SplittedMeshes[ii].UpdateVisibilityMask(mask).Dispose();
             }
             
-            int[] simplifiedFullMask = ArrayExtensions.Create(m_Scene.SceneInformation.SimplifiedMeshToUse.NumberOfTriangles, 1);
-            m_Scene.SceneInformation.SimplifiedMeshToUse.UpdateVisibilityMask(simplifiedFullMask).Dispose();
+            int[] simplifiedFullMask = ArrayExtensions.Create(m_Scene.MeshManager.SimplifiedMeshToUse.NumberOfTriangles, 1);
+            m_Scene.MeshManager.SimplifiedMeshToUse.UpdateVisibilityMask(simplifiedFullMask).Dispose();
 
             MeshHasInvisibleTriangles = false;
 
@@ -222,19 +222,19 @@ namespace HBP.Module3D
             hitPoint.x = -hitPoint.x;
 
             // Save current masks
-            m_FullMasksStack.Push(m_Scene.SceneInformation.MeshToDisplay.VisibilityMask);
+            m_FullMasksStack.Push(m_Scene.MeshManager.MeshToDisplay.VisibilityMask);
             List<int[]> splittedMasks = new List<int[]>(m_Scene.MeshManager.SplittedMeshes.Count);
             for (int ii = 0; ii < m_Scene.MeshManager.SplittedMeshes.Count; ++ii)
             {
                 splittedMasks.Add(m_Scene.MeshManager.SplittedMeshes[ii].VisibilityMask);
             }
             m_SplittedMasksStack.Push(splittedMasks);
-            if (m_EraseTrianglesOfSimplifiedMesh) m_SimplifiedFullMasksStack.Push(m_Scene.SceneInformation.SimplifiedMeshToUse.VisibilityMask);
+            if (m_EraseTrianglesOfSimplifiedMesh) m_SimplifiedFullMasksStack.Push(m_Scene.MeshManager.SimplifiedMeshToUse.VisibilityMask);
 
             // Apply rays and retrieve mask
-            m_Scene.SceneInformation.MeshToDisplay.UpdateVisibilityMask(rayDirection, hitPoint, CurrentMode, Degrees).Dispose();
-            if (m_EraseTrianglesOfSimplifiedMesh) m_Scene.SceneInformation.SimplifiedMeshToUse.UpdateVisibilityMask(rayDirection, hitPoint, CurrentMode, Degrees).Dispose();
-            int[] newFullMask = m_Scene.SceneInformation.MeshToDisplay.VisibilityMask;
+            m_Scene.MeshManager.MeshToDisplay.UpdateVisibilityMask(rayDirection, hitPoint, CurrentMode, Degrees).Dispose();
+            if (m_EraseTrianglesOfSimplifiedMesh) m_Scene.MeshManager.SimplifiedMeshToUse.UpdateVisibilityMask(rayDirection, hitPoint, CurrentMode, Degrees).Dispose();
+            int[] newFullMask = m_Scene.MeshManager.MeshToDisplay.VisibilityMask;
 
             // Split it
             int currId = 0;
@@ -249,7 +249,7 @@ namespace HBP.Module3D
                 brainInvisibleMeshesDLL.Dispose();
             }
 
-            MeshHasInvisibleTriangles = m_Scene.SceneInformation.MeshToDisplay.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
+            MeshHasInvisibleTriangles = m_Scene.MeshManager.MeshToDisplay.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
 
             m_Scene.ResetIEEG();
             m_Scene.MeshManager.UpdateMeshesFromDLL();
@@ -260,8 +260,8 @@ namespace HBP.Module3D
         /// </summary>
         public void CancelLastAction()
         {
-            m_Scene.SceneInformation.MeshToDisplay.UpdateVisibilityMask(m_FullMasksStack.Pop()).Dispose();
-            if (m_EraseTrianglesOfSimplifiedMesh) m_Scene.SceneInformation.SimplifiedMeshToUse.UpdateVisibilityMask(m_SimplifiedFullMasksStack.Pop()).Dispose();
+            m_Scene.MeshManager.MeshToDisplay.UpdateVisibilityMask(m_FullMasksStack.Pop()).Dispose();
+            if (m_EraseTrianglesOfSimplifiedMesh) m_Scene.MeshManager.SimplifiedMeshToUse.UpdateVisibilityMask(m_SimplifiedFullMasksStack.Pop()).Dispose();
 
             List<int[]> splittedMasks = m_SplittedMasksStack.Pop();
             for (int ii = 0; ii < m_Scene.MeshManager.SplittedMeshes.Count; ++ii)
@@ -271,7 +271,7 @@ namespace HBP.Module3D
                 brainInvisibleMeshesDLL.Dispose();
             }
 
-            MeshHasInvisibleTriangles = m_Scene.SceneInformation.MeshToDisplay.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
+            MeshHasInvisibleTriangles = m_Scene.MeshManager.MeshToDisplay.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
 
             m_Scene.ResetIEEG();
             m_Scene.MeshManager.UpdateMeshesFromDLL();

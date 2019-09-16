@@ -28,7 +28,7 @@ namespace HBP.UI.Module3D
             IsActive = false;
             m_DefaultSprite = m_Image.sprite;
 
-            scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
+            scene.OnUpdateGeneratorState.AddListener((value) =>
             {
                 if (column is Column3DDynamic)
                 {
@@ -49,7 +49,7 @@ namespace HBP.UI.Module3D
                 }
                 dynamicColumn.OnUpdateCurrentTimelineID.AddListener(() =>
                 {
-                    if (!scene.SceneInformation.IsGeneratorUpToDate) return;
+                    if (!scene.IsGeneratorUpToDate) return;
 
                     Data.Visualization.Icon icon = m_Icons.FirstOrDefault((i) => i.StartPosition <= dynamicColumn.Timeline.CurrentIndex && i.EndPosition >= dynamicColumn.Timeline.CurrentIndex);
                     if (icon == null)

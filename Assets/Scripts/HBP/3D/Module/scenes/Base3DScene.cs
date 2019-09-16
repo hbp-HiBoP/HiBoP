@@ -10,8 +10,14 @@ using HBP.Data.Visualization;
 namespace HBP.Module3D
 {
     /// <summary>
-    /// Class containing all the DLL data and the displayable Gameobjects of a 3D scene.
+    /// Class containing all the data concerning the gameObjects, the DLL objects and the parameters of the 3D scene
     /// </summary>
+    /// <remarks>
+    /// This class manages everything concerning the scene.
+    /// It manages directly the cuts, the coloring of the meshes and the different parameters.
+    /// It also uses other classes to manage meshes, MRIs, implantations, triangle erasing, atlases, fMRIs and displayed gameObjects.
+    /// See also <seealso cref="MeshManager"/>, <seealso cref="MRIManager"/>, <seealso cref="ImplantationManager"/>, <seealso cref="TriangleEraser"/>, <seealso cref="AtlasManager"/>, <seealso cref="FMRIManager"/>, <seealso cref="DisplayedObjects"/>.
+    /// </remarks>
     public class Base3DScene : MonoBehaviour, IConfigurable
     {
         #region Properties
@@ -25,7 +31,6 @@ namespace HBP.Module3D
                 return Visualization.Name;
             }
         }
-
         /// <summary>
         /// Type of the scene (Single / Multi)
         /// </summary>
@@ -68,28 +73,13 @@ namespace HBP.Module3D
         /// </summary>
         public List<Cut> Cuts { get; } = new List<Cut>();
 
-        /// <summary>
-        /// Information about the scene
-        /// </summary>
-        public SceneStatesInfo SceneInformation { get; private set; } = new SceneStatesInfo();
-
-        /// <summary>
-        /// Displayable objects of the scene
-        /// </summary>
-        [SerializeField] private DisplayedObjects m_DisplayedObjects;
-        
-        [SerializeField] private TriangleEraser m_TriangleEraser;
-        /// <summary>
-        /// Object that handles the erasing of triangles on the selected brain mesh
-        /// </summary>
-        public TriangleEraser TriangleEraser { get { return m_TriangleEraser; } }
-
+        #region Managers
         [SerializeField] private MeshManager m_MeshManager;
         /// <summary>
         /// Object that handles the meshes of the scene
         /// </summary>
         public MeshManager MeshManager { get { return m_MeshManager; } }
-
+        
         [SerializeField] private MRIManager m_MRIManager;
         /// <summary>
         /// Object that handles the MRIs of the scene
@@ -101,6 +91,12 @@ namespace HBP.Module3D
         /// Object that handles the implantations of the scene
         /// </summary>
         public ImplantationManager ImplantationManager { get { return m_ImplantationManager; } }
+        
+        [SerializeField] private TriangleEraser m_TriangleEraser;
+        /// <summary>
+        /// Object that handles the erasing of triangles on the selected brain mesh
+        /// </summary>
+        public TriangleEraser TriangleEraser { get { return m_TriangleEraser; } }
 
         [SerializeField] private AtlasManager m_AtlasManager;
         /// <summary>
@@ -108,10 +104,17 @@ namespace HBP.Module3D
         /// </summary>
         public AtlasManager AtlasManager { get { return m_AtlasManager; } }
 
+        [SerializeField] private FMRIManager m_FMRIManager;
         /// <summary>
         /// Object that handles the FMRI of the scene
         /// </summary>
-        public FMRIManager FMRIManager { get; } = new FMRIManager();
+        public FMRIManager FMRIManager { get { return m_FMRIManager; } }
+
+        /// <summary>
+        /// Displayable objects of the scene
+        /// </summary>
+        [SerializeField] private DisplayedObjects m_DisplayedObjects;
+        #endregion
 
         /// <summary>
         /// Selected column
@@ -163,9 +166,22 @@ namespace HBP.Module3D
         /// </summary>
         public List<DLL.MRIGeometryCutGenerator> DLLMRIGeometryCutGeneratorList { get; set; } = new List<DLL.MRIGeometryCutGenerator>();
 
+        /// <summary>
+        /// Material used for the brain mesh
+        /// </summary>
+        public Material BrainMaterial { get; private set; }
+        /// <summary>
+        /// Material used for the simplified mesh (not really used now, this is a bit legacy but could be useful)
+        /// </summary>
+        public Material SimplifiedBrainMaterial { get; private set; }
+        /// <summary>
+        /// Material used for the cut meshes
+        /// </summary>
+        public Material CutMaterial { get; private set; }
+
         private Data.Enums.ColorType m_BrainColor = Data.Enums.ColorType.BrainColor;
         /// <summary>
-        /// Brain surface color
+        /// Brain surface color type (see <see cref="Data.Enums.ColorType"/> for all possible values)
         /// </summary>
         public Data.Enums.ColorType BrainColor
         {
@@ -188,7 +204,7 @@ namespace HBP.Module3D
 
         private Data.Enums.ColorType m_CutColor = Data.Enums.ColorType.Default;
         /// <summary>
-        /// Brain cut color
+        /// Brain cut color type (see <see cref="Data.Enums.ColorType"/> for all possible values)
         /// </summary>
         public Data.Enums.ColorType CutColor
         {
@@ -202,7 +218,7 @@ namespace HBP.Module3D
 
                 ResetColors();
 
-                SceneInformation.CutsNeedUpdate = true;
+                m_CutsNeedUpdate = true;
                 ComputeCutTextures();
                 foreach (Column3D column in Columns)
                 {
@@ -213,7 +229,7 @@ namespace HBP.Module3D
 
         private Data.Enums.ColorType m_Colormap = Data.Enums.ColorType.MatLab;
         /// <summary>
-        /// Colormap
+        /// Colormap type (see <see cref="Data.Enums.ColorType"/> for all possible values)
         /// </summary>
         public Data.Enums.ColorType Colormap
         {
@@ -234,7 +250,7 @@ namespace HBP.Module3D
 
                 BrainMaterial.SetTexture("_ColorTex", BrainColorMapTexture);
 
-                if (SceneInformation.IsGeneratorUpToDate)
+                if (m_IsGeneratorUpToDate)
                 {
                     ComputeIEEGTextures();
                     ComputeGUITextures();
@@ -245,63 +261,36 @@ namespace HBP.Module3D
         }
 
         /// <summary>
-        /// Colormap texture
+        /// Colormap Unity texture
         /// </summary>
         public Texture2D BrainColorMapTexture { get; private set; }
         /// <summary>
-        /// Brain texture
+        /// Brain Unity texture
         /// </summary>
         public Texture2D BrainColorTexture { get; private set; }
-        public Material BrainMaterial { get; private set; }
-        public Material SimplifiedBrainMaterial { get; private set; }
-        public Material CutMaterial { get; private set; }
 
+        private bool m_CutHolesEnabled;
         /// <summary>
-        /// Are cut holes in MRI enabled ?
+        /// Are cut holes in MRI enabled (that means black zones are invisible) ?
         /// </summary>
         public bool CutHolesEnabled
         {
             get
             {
-                return SceneInformation.CutHolesEnabled;
+                return m_CutHolesEnabled;
             }
             set
             {
-                SceneInformation.CutHolesEnabled = value;
-                SceneInformation.CutsNeedUpdate = true;
+                m_CutHolesEnabled = value;
+                m_CutsNeedUpdate = true;
                 foreach (Column3D column in Columns)
                 {
                     column.IsRenderingUpToDate = false;
                 }
             }
         }
-        /// <summary>
-        /// Is the latency (CCEP) mode enabled ?
-        /// </summary>
-        public bool IsLatencyModeEnabled
-        {
-            get
-            {
-                return SceneInformation.DisplayCCEPMode;
-            }
-            set
-            {
-                SceneInformation.DisplayCCEPMode = value;
-                if (value)
-                {
-                    foreach (Column3D column in Columns)
-                    {
-                        if (column.CurrentLatencyFile == -1)
-                        {
-                            column.CurrentLatencyFile = 0;
-                        }
-                    }
-                }
-                SceneInformation.AreSitesUpdated = false;
-                ResetIEEG();
-                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
-            }
-        }
+
+        private bool m_HideBlacklistedSites = false;
         /// <summary>
         /// Are the blacklisted sites hidden ?
         /// </summary>
@@ -309,35 +298,37 @@ namespace HBP.Module3D
         {
             get
             {
-                return SceneInformation.HideBlacklistedSites;
+                return m_HideBlacklistedSites;
             }
             set
             {
-                SceneInformation.HideBlacklistedSites = value;
-                SceneInformation.AreSitesUpdated = false;
+                m_HideBlacklistedSites = value;
+                m_SitesNeedUpdate = false;
             }
         }
+
+        private bool m_ShowAllSites = false;
         /// <summary>
-        /// Are all sites shown ?
+        /// Are all sites shown (if false, only sites in ROIs are displayed) ?
         /// </summary>
         public bool ShowAllSites
         {
             get
             {
-                return SceneInformation.ShowAllSites;
+                return m_ShowAllSites;
             }
             set
             {
-                SceneInformation.ShowAllSites = value;
+                m_ShowAllSites = value;
                 foreach (var column in Columns)
                 {
                     column.UpdateROIMask();
                 }
-                SceneInformation.AreSitesUpdated = false;
+                m_SitesNeedUpdate = false;
             }
         }
-
-        public bool m_EdgeMode = false;
+        
+        private bool m_EdgeMode = false;
         /// <summary>
         /// Are the edges displayed ?
         /// </summary>
@@ -362,7 +353,7 @@ namespace HBP.Module3D
 
         private bool m_StrongCuts = false;
         /// <summary>
-        /// Are we using strong cuts or soft cuts ?
+        /// Are we using strong cuts (cuts the vertices in front of each cut) or soft cuts (cuts only the vertices in front of every cuts) ?
         /// </summary>
         public bool StrongCuts
         {
@@ -374,7 +365,7 @@ namespace HBP.Module3D
             {
                 m_StrongCuts = value;
                 BrainMaterial.SetInt("_StrongCuts", m_StrongCuts ? 1 : 0);
-                SceneInformation.CutsNeedUpdate = true;
+                m_CutsNeedUpdate = true;
             }
         }
 
@@ -426,7 +417,7 @@ namespace HBP.Module3D
 
         private Data.Enums.CameraControl m_CameraType = Data.Enums.CameraControl.Trackball;
         /// <summary>
-        /// Camera Control type
+        /// Camera Control type (see <see cref="Data.Enums.CameraControl"/> for possible values)
         /// </summary>
         public Data.Enums.CameraControl CameraType
         {
@@ -447,74 +438,110 @@ namespace HBP.Module3D
             }
         }
         
-        /// <summary>
-        /// Site to compare with when using the comparing site feature
-        /// </summary>
-        private Site m_SiteToCompare = null;
-        private bool m_ComparingSites;
-        /// <summary>
-        /// Are we comparing sites ?
-        /// </summary>
-        public bool ComparingSites
-        {
-            get
-            {
-                return m_ComparingSites;
-            }
-            set
-            {
-                m_ComparingSites = value;
-                if (m_ComparingSites)
-                {
-                    m_SiteToCompare = SelectedColumn.SelectedSite;
-                }
-                else
-                {
-                    m_SiteToCompare = null;
-                }
-            }
-        }
-
+        private bool m_ROICreationMode;
         /// <summary>
         /// Is ROI creation mode activated ?
         /// </summary>
-        public bool ROICreation
+        public bool ROICreationMode
         {
             get
             {
-                return SceneInformation.IsROICreationModeEnabled;
+                return m_ROICreationMode;
             }
             set
             {
-                SceneInformation.IsROICreationModeEnabled = value;
+                m_ROICreationMode = value;
                 for (int ii = 0; ii < Columns.Count; ++ii)
                     if (Columns[ii].SelectedROI != null)
                         Columns[ii].SelectedROI.SetRenderingState(value);
             }
         }
-
-        public bool CanComputeIEEG
+        
+        /// <summary>
+        /// True if we can compute and project the functional values on the mesh and on the MRI
+        /// </summary>
+        public bool CanComputeFunctionalValues
         {
             get
             {
                 bool isOneColumnDynamic = ColumnsDynamic.Count > 0;
                 bool areAllCCEPColumnsReady = ColumnsCCEP.All(c => c.IsSourceSelected);
-                return isOneColumnDynamic && areAllCCEPColumnsReady && !IsLatencyModeEnabled;
+                return isOneColumnDynamic && areAllCCEPColumnsReady;
             }
         }
         /// <summary>
-        /// Lock when updating generator
+        /// Index of the last cut plane that has been modified (this is used to show the cut circles)
         /// </summary>
-        private bool m_UpdatingGenerator = false;
+        public int LastPlaneModifiedIndex { get; private set; }
+        /// <summary>
+        /// Does the mesh need a geometry update (changing vertices, computing cuts etc.)
+        /// </summary>
+        public bool MeshGeometryNeedsUpdate { get; set; }
+        /// <summary>
+        /// Does the collider of the brain mesh needs an update ?
+        /// </summary>
+        public bool ColliderNeedsUpdate { get; set; }
         /// <summary>
         /// True if generator needs an update
         /// </summary>
         private bool m_GeneratorNeedsUpdate = true;
         /// <summary>
+        /// True if sites rendering needs an update
+        /// </summary>
+        private bool m_SitesNeedUpdate = true;
+        /// <summary>
+        /// True if cuts need an update
+        /// </summary>
+        private bool m_CutsNeedUpdate = true;
+
+        /// <summary>
         /// Lock when updating colliders
         /// </summary>
         private bool m_UpdatingColliders = false;
+        /// <summary>
+        /// Lock when updating generator
+        /// </summary>
+        public bool UpdatingGenerators { get; private set; } = false;
 
+        private bool m_IsGeneratorUpToDate = false;
+        /// <summary>
+        /// Is the iEEG generator up to date ?
+        /// </summary>
+        public bool IsGeneratorUpToDate
+        {
+            get
+            {
+                return m_IsGeneratorUpToDate;
+            }
+            set
+            {
+                if (value != m_IsGeneratorUpToDate)
+                {
+                    m_IsGeneratorUpToDate = value;
+                    if (!value)
+                    {
+                        foreach (Column3DDynamic column in ColumnsDynamic)
+                        {
+                            column.Timeline.IsLooping = false;
+                            column.Timeline.IsPlaying = false;
+                            column.Timeline.OnUpdateCurrentIndex.Invoke();
+                            column.IsRenderingUpToDate = false;
+                        }
+                    }
+                    OnUpdateGeneratorState.Invoke(value);
+                    ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Is the scene initialized (loading is finished but displaying may not be finished) ?
+        /// </summary>
+        private bool m_Initialized = false;
+        /// <summary>
+        /// Has the scene finished loading (everything is loaded, scene is ready to be used) ?
+        /// </summary>
+        public bool IsSceneCompletelyLoaded { get; private set; } = false;
         /// <summary>
         /// True if the coroutine c_Destroy has been called
         /// </summary>
@@ -561,7 +588,7 @@ namespace HBP.Module3D
 
         #region Events
         /// <summary>
-        /// Event called when this scene is selected or deselected
+        /// Event called when this scene is selected
         /// </summary>
         [HideInInspector] public UnityEvent OnSelect = new UnityEvent();
         /// <summary>
@@ -601,17 +628,13 @@ namespace HBP.Module3D
         /// </summary>
         [HideInInspector] public GenericEvent<Vector3> OnUpdateCameraTarget = new GenericEvent<Vector3>();
         /// <summary>
-        /// Event called when site is clicked to dipslay additionnal infomation.
+        /// Event called when site is clicked to dipslay additionnal infomation
         /// </summary>
         [HideInInspector] public GenericEvent<IEnumerable<Site>> OnRequestSiteInformation = new GenericEvent<IEnumerable<Site>>();
         /// <summary>
-        /// Event called when requesting a screenshot of the scene
+        /// Event called when requesting a screenshot of the scene (true if multi screenshots)
         /// </summary>
         [HideInInspector] public GenericEvent<bool> OnRequestScreenshot = new GenericEvent<bool>();
-        /// <summary>
-        /// Event called when updating the generator state
-        /// </summary>
-        [HideInInspector] public GenericEvent<bool> OnUpdatingGenerator = new GenericEvent<bool>();
         /// <summary>
         /// Event called when ieeg are outdated or not anymore
         /// </summary>
@@ -624,6 +647,9 @@ namespace HBP.Module3D
         /// Event called when minimizing a column
         /// </summary>
         [HideInInspector] public UnityEvent OnChangeColumnMinimizedState = new UnityEvent();
+        /// <summary>
+        /// Event called when selecting a source when viewing a CCEP column
+        /// </summary>
         [HideInInspector] public UnityEvent OnSelectCCEPSource = new UnityEvent();
         /// <summary>
         /// Event called when adding a column
@@ -637,43 +663,42 @@ namespace HBP.Module3D
         /// Event called when removing a line of views
         /// </summary>
         [HideInInspector] public GenericEvent<int> OnRemoveViewLine = new GenericEvent<int>();
+        /// <summary>
+        /// Event called when the generator is updated or not up to date
+        /// </summary>
+        [HideInInspector] public GenericEvent<bool> OnUpdateGeneratorState = new GenericEvent<bool>();
         #endregion
 
         #region Private Methods
         private void Update()
         {
-            if (!SceneInformation.IsSceneInitialized || m_DestroyRequested) return;
+            if (!m_Initialized || m_DestroyRequested) return;
 
-            if (SceneInformation.MeshGeometryNeedsUpdate)
+            if (MeshGeometryNeedsUpdate)
             {
                 UpdateGeometry();
             }
 
-            if (SceneInformation.CutsNeedUpdate)
+            if (m_CutsNeedUpdate)
             {
                 UpdateCuts();
             }
 
-            if (!SceneInformation.AreSitesUpdated)
+            if (!m_SitesNeedUpdate)
             {
                 UpdateAllColumnsSitesRendering();
                 OnSitesRenderingUpdated.Invoke();
             }
 
-            if (m_GeneratorNeedsUpdate && !IsLatencyModeEnabled)
-            {
-                OnIEEGOutdated.Invoke(true);
-            }
-            if (!SceneInformation.IsGeneratorUpToDate && CanComputeIEEG && ApplicationState.UserPreferences.Visualization._3D.AutomaticEEGUpdate)
+            if (!m_IsGeneratorUpToDate && CanComputeFunctionalValues && ApplicationState.UserPreferences.Visualization._3D.AutomaticEEGUpdate)
             {
                 UpdateGenerator();
             }
-            OnUpdatingGenerator.Invoke(m_UpdatingGenerator);
 
-            if (!SceneInformation.IsSceneCompletelyLoaded)
+            if (!IsSceneCompletelyLoaded)
             {
                 UpdateVisibleState(true);
-                SceneInformation.IsSceneCompletelyLoaded = true;
+                IsSceneCompletelyLoaded = true;
                 if (Visualization.Configuration.FirstColumnToSelect < Columns.Count)
                 {
                     Columns[Visualization.Configuration.FirstColumnToSelect].SelectFirstSite(Visualization.Configuration.FirstSiteToSelect);
@@ -686,48 +711,20 @@ namespace HBP.Module3D
             foreach (var dllMRIGeometryCutGenerator in DLLMRIGeometryCutGeneratorList) dllMRIGeometryCutGenerator.Dispose();
         }
         /// <summary>
-        /// Add every listeners required for the scene
-        /// </summary>
-        private void AddListeners()
-        {
-            FMRIManager.OnChangeFMRIParameters.AddListener(() =>
-            {
-                ResetIEEG();
-                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
-            });
-            SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
-            {
-                if (!value)
-                {
-                    foreach (Column3DDynamic column in ColumnsDynamic)
-                    {
-                        column.Timeline.IsLooping = false;
-                        column.Timeline.IsPlaying = false;
-                        column.Timeline.OnUpdateCurrentIndex.Invoke();
-                        column.IsRenderingUpToDate = false;
-                    }
-                }
-                if (IsSelected)
-                {
-                    ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
-                }
-            });
-        }
-        /// <summary>
         /// Compute the textures for the MRI (3D)
         /// </summary>
         private void ComputeMRITextures()
         {
-            if (SceneInformation.CutsNeedUpdate) return;
+            if (m_CutsNeedUpdate) return;
 
             foreach (Column3D column in Columns)
             {
                 foreach (Cut cut in Cuts)
                 {
                     column.CutTextures.CreateMRITexture(DLLMRIGeometryCutGeneratorList[cut.ID], MRIManager.SelectedMRI.Volume, cut.ID, MRIManager.MRICalMinFactor, MRIManager.MRICalMaxFactor, 3);
-                    if (m_AtlasManager.DisplayAtlas)
+                    if (m_AtlasManager.DisplayJuBrainAtlas)
                     {
-                        column.CutTextures.ColorCutsTexturesWithAtlas(cut.ID, m_AtlasManager.AtlasAlpha, m_AtlasManager.AtlasSelectedArea);
+                        column.CutTextures.ColorCutsTexturesWithAtlas(cut.ID, m_AtlasManager.AtlasAlpha, m_AtlasManager.HoveredArea);
                     }
                     else if (FMRIManager.DisplayFMRI)
                     {
@@ -742,22 +739,13 @@ namespace HBP.Module3D
         /// <param name="column">Specific column to update. If null, every columns will be updated.</param>
         private void ComputeIEEGTextures(Column3DDynamic column = null)
         {
-            if (!SceneInformation.IsGeneratorUpToDate) return;
-
+            if (!m_IsGeneratorUpToDate) return;
+            
             UnityEngine.Profiling.Profiler.BeginSample("Compute IEEG Textures");
-
-            if (column)
+            List<Column3DDynamic> columns = column ? new List<Column3DDynamic>() { column } : ColumnsDynamic;
+            foreach (Column3DDynamic col in columns)
             {
-                ComputeSurfaceBrainUVWithIEEG(column);
-                column.CutTextures.ColorCutsTexturesWithIEEG(column);
-            }
-            else
-            {
-                foreach (Column3DDynamic col in ColumnsDynamic)
-                {
-                    ComputeSurfaceBrainUVWithIEEG(col);
-                    col.CutTextures.ColorCutsTexturesWithIEEG(col);
-                }
+                column.ComputeSurfaceBrainUVWithIEEG(m_MeshManager.SplittedMeshes);
             }
             UnityEngine.Profiling.Profiler.EndSample();
         }
@@ -766,7 +754,7 @@ namespace HBP.Module3D
         /// </summary>
         private void ComputeGUITextures()
         {
-            if (SceneInformation.CutsNeedUpdate) return;
+            if (m_CutsNeedUpdate) return;
 
             Column3D column = SelectedColumn;
             if (column)
@@ -780,12 +768,12 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Finalize Generators Computing
+        /// Finalize Generators Computing (method called at the end of the computing of the activity)
         /// </summary>
         private void FinalizeGeneratorsComputing()
         {
             // generators are now up to date
-            SceneInformation.IsGeneratorUpToDate = true;
+            IsGeneratorUpToDate = true;
 
             // send inf values to overlays
             for (int ii = 0; ii < ColumnsDynamic.Count; ++ii)
@@ -794,20 +782,20 @@ namespace HBP.Module3D
             }
 
             // update plots visibility
-            SceneInformation.AreSitesUpdated = false;
+            m_SitesNeedUpdate = false;
 
             OnIEEGOutdated.Invoke(false);
         }
         /// <summary>
         /// Actions to perform after clicking on a site
         /// </summary>
-        /// <param name="site">Site that has been selected</param>
+        /// <param name="site">Site that has been clicked</param>
         private void ClickOnSiteCallback(Site site)
         {
-            if (SelectedColumn is Column3DDynamic && !IsLatencyModeEnabled && site)
+            if (SelectedColumn is Column3DDynamic && site)
             {
                 List<Site> sites = new List<Site>();
-                if (m_SiteToCompare) sites.Add(m_SiteToCompare);
+                if (ImplantationManager.SiteToCompare) sites.Add(ImplantationManager.SiteToCompare);
                 sites.Add(site);
                 if (SelectedColumn is Column3DCCEP ccepColumn)
                 {
@@ -821,21 +809,21 @@ namespace HBP.Module3D
                     OnRequestSiteInformation.Invoke(sites);
                 }
             }
-            SceneInformation.AreSitesUpdated = false;
+            m_SitesNeedUpdate = false;
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
-        /// Compute the cuts of the regular meshes
+        /// Compute the cuts of the meshes (compute the cuts meshes, fill parameters in the brain mesh shader and reset generators)
         /// </summary>
         private void ComputeMeshesCut()
         {
-            if (SceneInformation.MeshToDisplay == null) return;
+            if (MeshManager.MeshToDisplay == null) return;
 
             // Create the cuts
             UnityEngine.Profiling.Profiler.BeginSample("cut_generator Create cut");
             List<DLL.Surface> generatedCutMeshes = new List<DLL.Surface>(Cuts.Count);
             if (Cuts.Count > 0)
-                generatedCutMeshes = SceneInformation.MeshToDisplay.GenerateCutSurfaces(Cuts, !SceneInformation.CutHolesEnabled, StrongCuts);
+                generatedCutMeshes = MeshManager.MeshToDisplay.GenerateCutSurfaces(Cuts, !m_CutHolesEnabled, StrongCuts);
             UnityEngine.Profiling.Profiler.EndSample();
 
             // Fill parameters in shader
@@ -887,7 +875,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < Cuts.Count; ++ii)
                 m_DisplayedObjects.BrainCutMeshes[ii].SetActive(true);
 
-            SceneInformation.CollidersNeedUpdate = true;
+            ColliderNeedsUpdate = true;
 
             foreach (var cut in generatedCutMeshes)
             {
@@ -896,17 +884,17 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
-        /// Update the mesh geometry
+        /// Update the mesh geometry (information, cuts, generators, triangle eraser and atlas)
         /// </summary>
         private void UpdateGeometry()
         {
             m_MeshManager.UpdateMeshesInformation();
             UpdateCuts();
-            UpdateGeneratorsAndUV();
+            UpdateGeneratorsAndUnityMeshes();
             m_TriangleEraser.ResetEraser();
             m_AtlasManager.UpdateAtlasIndices();
 
-            SceneInformation.MeshGeometryNeedsUpdate = false;
+            MeshGeometryNeedsUpdate = false;
         }
         /// <summary>
         /// Update the cuts of the scene
@@ -914,16 +902,16 @@ namespace HBP.Module3D
         private void UpdateCuts()
         {
             ComputeMeshesCut();
-            SceneInformation.CutsNeedUpdate = false;
+            m_CutsNeedUpdate = false;
 
             ComputeCutTextures();
 
             OnUpdateCuts.Invoke();
         }
         /// <summary>
-        /// Update the generators for iEEG and the UV of the meshes
+        /// Update the generators for activity and the UV of the meshes
         /// </summary>
-        private void UpdateGeneratorsAndUV()
+        private void UpdateGeneratorsAndUnityMeshes()
         {
             for (int i = 0; i < m_MeshManager.MeshSplitNumber; ++i)
             {
@@ -938,16 +926,15 @@ namespace HBP.Module3D
         /// </summary>
         private void UpdateMeshesColliders()
         {
-            if (SceneInformation.CollidersNeedUpdate)
+            if (ColliderNeedsUpdate)
             {
                 this.StartCoroutineAsync(c_UpdateMeshesColliders());
-                SceneInformation.CollidersNeedUpdate = false;
+                ColliderNeedsUpdate = false;
             }
         }
         /// <summary>
         /// Update the sites rendering for all columns
         /// </summary>
-        /// <param name="data">Information about the scene</param>
         private void UpdateAllColumnsSitesRendering()
         {
 
@@ -958,10 +945,10 @@ namespace HBP.Module3D
                 {
                     latencyFile = m_ImplantationManager.SelectedImplantation.Latencies[column.CurrentLatencyFile];
                 }
-                column.UpdateSitesRendering(SceneInformation, latencyFile);
+                column.UpdateSitesRendering(m_ShowAllSites, m_HideBlacklistedSites, m_IsGeneratorUpToDate);
             }
 
-            SceneInformation.AreSitesUpdated = true;
+            m_SitesNeedUpdate = true;
         }
         /// <summary>
         /// Reset color schemes of every columns
@@ -972,7 +959,7 @@ namespace HBP.Module3D
                 Columns[ii].CutTextures.ResetColorSchemes(Colormap, CutColor);
         }
         /// <summary>
-        /// Update the number of cut planes for every columns
+        /// Update the number of cut planes
         /// </summary>
         /// <param name="nbCuts">Number of cuts</param>
         private void UpdateCutNumber(int nbCuts)
@@ -993,18 +980,9 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Compute the UVs of the brain for the iEEG activity of a column
-        /// </summary>
-        /// <param name="column">Column on which to compute the UVs</param>
-        private void ComputeSurfaceBrainUVWithIEEG(Column3DDynamic column)
-        {
-            for (int ii = 0; ii < m_MeshManager.MeshSplitNumber; ++ii)
-                column.DLLBrainTextureGenerators[ii].ComputeSurfaceUVIEEG(m_MeshManager.SplittedMeshes[ii], column);
-        }
-        /// <summary>
         /// Add a column to the scene
         /// </summary>
-        /// <param name="type">Type of the column</param>
+        /// <param name="type">Base data column</param>
         private void AddColumn(Column baseColumn)
         {
             Column3D column = null;
@@ -1054,7 +1032,7 @@ namespace HBP.Module3D
             });
             column.OnChangeCCEPParameters.AddListener(() =>
             {
-                SceneInformation.AreSitesUpdated = false;
+                m_SitesNeedUpdate = false;
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             });
             column.OnSelectSite.AddListener((site) =>
@@ -1099,7 +1077,7 @@ namespace HBP.Module3D
                 });
                 dynamicColumn.DynamicParameters.OnUpdateGain.AddListener(() =>
                 {
-                    SceneInformation.AreSitesUpdated = false;
+                    m_SitesNeedUpdate = false;
                     dynamicColumn.IsRenderingUpToDate = false;
                 });
                 dynamicColumn.DynamicParameters.OnUpdateInfluenceDistance.AddListener(() =>
@@ -1114,7 +1092,7 @@ namespace HBP.Module3D
                     {
                         ComputeGUITextures();
                     }
-                    SceneInformation.AreSitesUpdated = false;
+                    m_SitesNeedUpdate = false;
                     dynamicColumn.IsRenderingUpToDate = false;
                 });
                 if (dynamicColumn is Column3DCCEP column3DCCEP)
@@ -1251,7 +1229,7 @@ namespace HBP.Module3D
 
             UpdateCutNumber(m_DisplayedObjects.BrainCutMeshes.Count);
 
-            SceneInformation.CutsNeedUpdate = true;
+            m_CutsNeedUpdate = true;
 
             OnAddCut.Invoke(cut);
             UpdateCutPlane(cut);
@@ -1275,7 +1253,7 @@ namespace HBP.Module3D
 
             UpdateCutNumber(m_DisplayedObjects.BrainCutMeshes.Count);
 
-            SceneInformation.CutsNeedUpdate = true;
+            m_CutsNeedUpdate = true;
 
             cut.OnRemoveCut.Invoke();
         }
@@ -1300,21 +1278,21 @@ namespace HBP.Module3D
                 cut.Normal = plane.Normal;
             }
 
-            if (changedByUser) SceneInformation.LastPlaneModifiedID = cut.ID;
+            if (changedByUser) LastPlaneModifiedIndex = cut.ID;
 
             // Cuts base on the mesh
             float offset;
-            if (SceneInformation.MeshToDisplay != null)
+            if (MeshManager.MeshToDisplay != null)
             {
-                offset = SceneInformation.MeshToDisplay.SizeOffsetCutPlane(cut, cut.NumberOfCuts);
+                offset = MeshManager.MeshToDisplay.SizeOffsetCutPlane(cut, cut.NumberOfCuts);
                 offset *= 1.05f; // upsize a little bit the bbox for planes
             }
             else
                 offset = 0.1f;
 
-            cut.Point = SceneInformation.MeshCenter + cut.Normal.normalized * (cut.Position - 0.5f) * offset * cut.NumberOfCuts;
+            cut.Point = MeshManager.MeshCenter + cut.Normal.normalized * (cut.Position - 0.5f) * offset * cut.NumberOfCuts;
 
-            SceneInformation.CutsNeedUpdate = true;
+            m_CutsNeedUpdate = true;
 
             // update cameras cuts display
             OnModifyPlanesCuts.Invoke();
@@ -1345,24 +1323,24 @@ namespace HBP.Module3D
             Vector3 sitePosition = new Vector3(-site.transform.localPosition.x, site.transform.localPosition.y, site.transform.localPosition.z);
 
             Cut axialCut = AddCutPlane();
-            Vector3 axialPoint = SceneInformation.MeshCenter + (Vector3.Dot(sitePosition - SceneInformation.MeshCenter, axialCut.Normal) / Vector3.Dot(axialCut.Normal, axialCut.Normal)) * axialCut.Normal;
-            float axialOffset = SceneInformation.MeshToDisplay.SizeOffsetCutPlane(axialCut, axialCut.NumberOfCuts) * 1.05f;
-            axialCut.Position = ((axialPoint.z - SceneInformation.MeshCenter.z) / (axialCut.Normal.z * axialOffset * axialCut.NumberOfCuts)) + 0.5f;
+            Vector3 axialPoint = MeshManager.MeshCenter + (Vector3.Dot(sitePosition - MeshManager.MeshCenter, axialCut.Normal) / Vector3.Dot(axialCut.Normal, axialCut.Normal)) * axialCut.Normal;
+            float axialOffset = MeshManager.MeshToDisplay.SizeOffsetCutPlane(axialCut, axialCut.NumberOfCuts) * 1.05f;
+            axialCut.Position = ((axialPoint.z - MeshManager.MeshCenter.z) / (axialCut.Normal.z * axialOffset * axialCut.NumberOfCuts)) + 0.5f;
             UpdateCutPlane(axialCut);
 
             Cut coronalCut = AddCutPlane();
-            Vector3 coronalPoint = SceneInformation.MeshCenter + (Vector3.Dot(sitePosition - SceneInformation.MeshCenter, coronalCut.Normal) / Vector3.Dot(coronalCut.Normal, coronalCut.Normal)) * coronalCut.Normal;
-            float coronalOffset = SceneInformation.MeshToDisplay.SizeOffsetCutPlane(coronalCut, coronalCut.NumberOfCuts) * 1.05f;
-            coronalCut.Position = ((coronalPoint.y - SceneInformation.MeshCenter.y) / (coronalCut.Normal.y * coronalOffset * coronalCut.NumberOfCuts)) + 0.5f;
+            Vector3 coronalPoint = MeshManager.MeshCenter + (Vector3.Dot(sitePosition - MeshManager.MeshCenter, coronalCut.Normal) / Vector3.Dot(coronalCut.Normal, coronalCut.Normal)) * coronalCut.Normal;
+            float coronalOffset = MeshManager.MeshToDisplay.SizeOffsetCutPlane(coronalCut, coronalCut.NumberOfCuts) * 1.05f;
+            coronalCut.Position = ((coronalPoint.y - MeshManager.MeshCenter.y) / (coronalCut.Normal.y * coronalOffset * coronalCut.NumberOfCuts)) + 0.5f;
             UpdateCutPlane(coronalCut);
 
             Cut sagitalCut = AddCutPlane();
-            Vector3 sagitalPoint = SceneInformation.MeshCenter + (Vector3.Dot(sitePosition - SceneInformation.MeshCenter, sagitalCut.Normal) / Vector3.Dot(sagitalCut.Normal, sagitalCut.Normal)) * sagitalCut.Normal;
-            float sagitalOffset = SceneInformation.MeshToDisplay.SizeOffsetCutPlane(sagitalCut, sagitalCut.NumberOfCuts) * 1.05f;
-            sagitalCut.Position = ((sagitalPoint.x - SceneInformation.MeshCenter.x) / (sagitalCut.Normal.x * sagitalOffset * sagitalCut.NumberOfCuts)) + 0.5f;
+            Vector3 sagitalPoint = MeshManager.MeshCenter + (Vector3.Dot(sitePosition - MeshManager.MeshCenter, sagitalCut.Normal) / Vector3.Dot(sagitalCut.Normal, sagitalCut.Normal)) * sagitalCut.Normal;
+            float sagitalOffset = MeshManager.MeshToDisplay.SizeOffsetCutPlane(sagitalCut, sagitalCut.NumberOfCuts) * 1.05f;
+            sagitalCut.Position = ((sagitalPoint.x - MeshManager.MeshCenter.x) / (sagitalCut.Normal.x * sagitalOffset * sagitalCut.NumberOfCuts)) + 0.5f;
             UpdateCutPlane(sagitalCut);
 
-            SceneInformation.CutsNeedUpdate = true;
+            m_CutsNeedUpdate = true;
         }
         #endregion
 
@@ -1384,8 +1362,6 @@ namespace HBP.Module3D
             SimplifiedBrainMaterial = Instantiate(Resources.Load("Materials/Brain/Simplified", typeof(Material))) as Material;
             CutMaterial = Instantiate(Resources.Load("Materials/Brain/Cut", typeof(Material))) as Material;
 
-            AddListeners();
-
             transform.position = new Vector3(HBP3DModule.SPACE_BETWEEN_SCENES_GAME_OBJECTS * ApplicationState.Module3D.NumberOfScenesLoadedSinceStart++, transform.position.y, transform.position.z);
         }
         /// <summary>
@@ -1395,7 +1371,7 @@ namespace HBP.Module3D
         {
             Columns[0].Views[0].IsSelected = true; // Select default view
             Columns[0].SelectFirstSite();
-            SceneInformation.IsSceneInitialized = true;
+            m_Initialized = true;
             this.StartCoroutineAsync(c_LoadMissingAnatomy());
         }
         /// <summary>
@@ -1443,14 +1419,14 @@ namespace HBP.Module3D
                 }
             }
 
-            ROICreation = !ROICreation;
+            ROICreationMode = !ROICreationMode;
             foreach (Column3D column in Columns)
             {
                 column.LoadConfiguration(false);
             }
-            ROICreation = !ROICreation;
-            
-            SceneInformation.AreSitesUpdated = false;
+            ROICreationMode = !ROICreationMode;
+
+            m_SitesNeedUpdate = false;
 
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
@@ -1462,13 +1438,13 @@ namespace HBP.Module3D
             Visualization.Configuration.BrainColor = BrainColor;
             Visualization.Configuration.BrainCutColor = CutColor;
             Visualization.Configuration.EEGColormap = Colormap;
-            Visualization.Configuration.MeshPart = SceneInformation.MeshPartToDisplay;
+            Visualization.Configuration.MeshPart = MeshManager.MeshPartToDisplay;
             Visualization.Configuration.MeshName = m_MeshManager.SelectedMesh.Name;
             Visualization.Configuration.MRIName = m_MRIManager.SelectedMRI.Name;
             Visualization.Configuration.ImplantationName = m_ImplantationManager.SelectedImplantation.Name;
             Visualization.Configuration.ShowEdges = EdgeMode;
             Visualization.Configuration.StrongCuts = StrongCuts;
-            Visualization.Configuration.HideBlacklistedSites = HideBlacklistedSites;
+            Visualization.Configuration.HideBlacklistedSites = m_HideBlacklistedSites;
             Visualization.Configuration.ShowAllSites = ShowAllSites;
             Visualization.Configuration.MRICalMinFactor = m_MRIManager.MRICalMinFactor;
             Visualization.Configuration.MRICalMaxFactor = m_MRIManager.MRICalMaxFactor;
@@ -1504,7 +1480,6 @@ namespace HBP.Module3D
         /// <summary>
         /// Reset the settings of the loaded scene
         /// </summary>
-        /// <param name="firstCall">Has this method not been called by another reset method ?</param>
         public void ResetConfiguration()
         {
             BrainColor = Data.Enums.ColorType.BrainColor;
@@ -1560,7 +1535,7 @@ namespace HBP.Module3D
         #endregion
         
         /// <summary>
-        /// Compute the cut textures
+        /// Compute the cut textures (Cut mesh texture, activity coloration and GUI textures)
         /// </summary>
         public void ComputeCutTextures()
         {
@@ -1588,10 +1563,9 @@ namespace HBP.Module3D
         /// Update the data rendering for a column
         /// </summary>
         /// <param name="column">Column to be updated</param>
-        /// <returns></returns>
         public void UpdateColumnRendering(Column3D column)
         {
-            if (SceneInformation.MeshGeometryNeedsUpdate) return;
+            if (MeshGeometryNeedsUpdate) return;
 
             UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender");
 
@@ -1605,7 +1579,7 @@ namespace HBP.Module3D
             {
                 for (int i = 0; i < column.BrainSurfaceMeshes.Count; ++i)
                 {
-                    if (!(column is Column3DDynamic) || !SceneInformation.IsGeneratorUpToDate || SceneInformation.DisplayCCEPMode)
+                    if (!(column is Column3DDynamic) || !m_IsGeneratorUpToDate)
                     {
                         column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv2 = DLLCommonBrainTextureGeneratorList[i].UVNull;
                         column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = DLLCommonBrainTextureGeneratorList[i].UVNull;
@@ -1626,12 +1600,12 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateGenerator()
         {
-            if (SceneInformation.MeshGeometryNeedsUpdate || m_UpdatingGenerator) // if update cut plane is pending, cancel action
+            if (MeshGeometryNeedsUpdate || UpdatingGenerators) // if update cut plane is pending, cancel action
                 return;
 
             OnIEEGOutdated.Invoke(false);
             m_GeneratorNeedsUpdate = false;
-            SceneInformation.IsGeneratorUpToDate = false;
+            IsGeneratorUpToDate = false;
             StartCoroutine(c_ComputeGenerators());
         }
         /// <summary>
@@ -1641,12 +1615,13 @@ namespace HBP.Module3D
         public void ResetIEEG(bool hardReset = true)
         {
             m_GeneratorNeedsUpdate = true;
-            SceneInformation.AreSitesUpdated = false;
+            m_SitesNeedUpdate = false;
             if (hardReset)
             {
-                SceneInformation.IsGeneratorUpToDate = false;
+                IsGeneratorUpToDate = false;
                 ComputeCutTextures();
             }
+            OnIEEGOutdated.Invoke(true);
         }
         /// <summary>
         /// Passive raycast on the scene (to hover sites for instance)
@@ -1697,7 +1672,7 @@ namespace HBP.Module3D
                 }
             }
 
-            if (SceneInformation.IsROICreationModeEnabled)
+            if (m_ROICreationMode)
             {
                 ROI selectedROI = SelectedColumn.SelectedROI;
                 if (selectedROI)
@@ -1713,7 +1688,7 @@ namespace HBP.Module3D
                     else if (raycastResult == Data.Enums.RaycastHitResult.Mesh || raycastResult == Data.Enums.RaycastHitResult.Cut)
                     {
                         selectedROI.AddBubble(SelectedColumn.Layer, "Bubble", hitPoint, 5.0f);
-                        SceneInformation.AreSitesUpdated = false;
+                        m_SitesNeedUpdate = false;
                     }
                     else
                     {
@@ -1731,7 +1706,7 @@ namespace HBP.Module3D
         /// <param name="visualization">Visualization to load in the scene</param>
         /// <param name="onChangeProgress">Event to update the loading circle</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
-        /// <returns></returns>
+        /// <returns>Coroutine return</returns>
         public IEnumerator c_Initialize(Visualization visualization, GenericEvent<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
         {
             Exception exception = null;
@@ -1808,7 +1783,7 @@ namespace HBP.Module3D
                 }
             }
             m_MeshManager.GenerateSplits(ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading || Type == Data.Enums.SceneType.MultiPatients);
-            SceneInformation.MeshGeometryNeedsUpdate = true;
+            MeshGeometryNeedsUpdate = true;
 
             // Loading MRIs
             if (Type == Data.Enums.SceneType.SinglePatient)
@@ -1862,7 +1837,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="mri">MRI to load</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
-        /// <returns></returns>
+        /// <returns>Coroutine return</returns>
         private IEnumerator c_LoadBrainVolume(Data.Anatomy.MRI mri, Action<Exception> outPut)
         {
             try
@@ -1881,7 +1856,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="mesh">Mesh to be loaded</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
-        /// <returns></returns>
+        /// <returns>Coroutine return</returns>
         private IEnumerator c_LoadBrainSurface(Data.Anatomy.Mesh mesh, Action<Exception> outPut)
         {
             try
@@ -1903,7 +1878,7 @@ namespace HBP.Module3D
         /// <param name="commonImplantations">List of the implantations that are in all patients of the visualization</param>
         /// <param name="updateCircle">Action to update the loading circle</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
-        /// <returns></returns>
+        /// <returns>Coroutine return</returns>
         private IEnumerator c_LoadImplantations(IEnumerable<Data.Patient> patients, List<string> commonImplantations, Action<int> updateCircle, Action<Exception> outPut)
         {
             for (int i = 0; i < commonImplantations.Count; ++i)
@@ -1936,7 +1911,7 @@ namespace HBP.Module3D
         /// Copy the MNI objects references to this scene
         /// </summary>
         /// <param name="outPut">Action to execute if an exception is raised</param>
-        /// <returns></returns>
+        /// <returns>Coroutine return</returns>
         private IEnumerator c_LoadMNIObjects(Action<Exception> outPut)
         {
             try
@@ -1957,7 +1932,7 @@ namespace HBP.Module3D
         /// Load the iEEG values to the columns
         /// </summary>
         /// <param name="outPut">Action to execute if an exception is raised</param>
-        /// <returns></returns>
+        /// <returns>Coroutine return</returns>
         private IEnumerator c_LoadColumns(Action<Exception> outPut)
         {
             yield return Ninja.JumpToUnity;
@@ -1993,7 +1968,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Load missing anatomy if not preloaded
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Coroutine return</returns>
         private IEnumerator c_LoadMissingAnatomy()
         {
             yield return Ninja.JumpBack;
@@ -2003,12 +1978,12 @@ namespace HBP.Module3D
         /// <summary>
         /// Start the update of the generators for the iEEG signal on the brain
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Coroutine return</returns>
         private IEnumerator c_ComputeGenerators()
         {
-            m_UpdatingGenerator = true;
+            UpdatingGenerators = true;
             yield return this.StartCoroutineAsync(c_LoadIEEG());
-            m_UpdatingGenerator = false;
+            UpdatingGenerators = false;
 
             if (!m_GeneratorNeedsUpdate)
             {
@@ -2020,7 +1995,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Compute the iEEG values on the brain
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Coroutine return</returns>
         private IEnumerator c_LoadIEEG()
         {
             yield return Ninja.JumpToUnity;
@@ -2137,9 +2112,9 @@ namespace HBP.Module3D
             yield return new WaitForSeconds(0.1f);
         }
         /// <summary>
-        /// Update the colliders
+        /// Update the colliders (cuts and brain meshes)
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Coroutine return</returns>
         private IEnumerator c_UpdateMeshesColliders()
         {
             while (m_UpdatingColliders)
@@ -2151,8 +2126,8 @@ namespace HBP.Module3D
 
             yield return Ninja.JumpBack;
             List<DLL.Surface> cuts;
-            if (Cuts.Count > 0) cuts = new List<DLL.Surface>(SceneInformation.SimplifiedMeshToUse.Cut(Cuts.ToArray(), !SceneInformation.CutHolesEnabled, StrongCuts));
-            else cuts = new List<DLL.Surface>() { (DLL.Surface)SceneInformation.SimplifiedMeshToUse.Clone() };
+            if (Cuts.Count > 0) cuts = new List<DLL.Surface>(MeshManager.SimplifiedMeshToUse.Cut(Cuts.ToArray(), !m_CutHolesEnabled, StrongCuts));
+            else cuts = new List<DLL.Surface>() { (DLL.Surface)MeshManager.SimplifiedMeshToUse.Clone() };
             yield return Ninja.JumpToUnity;
 
             cuts[0].UpdateMeshFromDLL(m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().mesh);
@@ -2177,14 +2152,14 @@ namespace HBP.Module3D
             m_UpdatingColliders = false;
         }
         /// <summary>
-        /// Destroy the scene
+        /// Coroutine triggered when destroying the scene (waiting for generators to be updated before completely destroying the scene)
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Coroutine return</returns>
         public IEnumerator c_Destroy()
         {
             m_GeneratorNeedsUpdate = true;
             m_DestroyRequested = true;
-            yield return new WaitUntil(delegate { return !m_UpdatingGenerator; });
+            yield return new WaitUntil(delegate { return !UpdatingGenerators; });
             Visualization.Unload();
             Destroy(gameObject);
         }

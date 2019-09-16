@@ -397,7 +397,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="brainMeshesParent">Parent of the main meshes</param>
         /// <param name="useSimplifiedMeshes">Are we using simplified meshes ?</param>
-        public void InitializeColumnMeshes(GameObject brainMeshesParent)
+        public void InitializeColumnMeshes(Transform brainMeshesParent)
         {
             BrainSurfaceMeshes = new List<GameObject>();
             foreach (Transform meshPart in brainMeshesParent.transform)
@@ -456,104 +456,35 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="data">Information about the scene</param>
         /// <param name="latenciesFile">CCEP files</param>
-        public virtual void UpdateSitesRendering(SceneStatesInfo data, Latencies latenciesFile)
+        public virtual void UpdateSitesRendering(bool showAllSites, bool hideBlacklistedSites, bool isGeneratorUpToDate)
         {
-            if (data.DisplayCCEPMode) // CCEP
+            for (int i = 0; i < Sites.Count; ++i)
             {
-                for (int i = 0; i < Sites.Count; ++i)
+                Site site = Sites[i];
+                bool activity = site.IsActive;
+                SiteType siteType;
+                if (site.State.IsMasked || (site.State.IsOutOfROI && !showAllSites) || !site.State.IsFiltered)
                 {
-                    Site site = Sites[i];
-                    bool activity = site.IsActive;
-                    SiteType siteType;
-                    float alpha = -1.0f;
-                    if (!site.State.IsFiltered)
+                    if (activity) site.IsActive = false;
+                    continue;
+                }
+                else if (site.State.IsBlackListed)
+                {
+                    site.transform.localScale = Vector3.one;
+                    siteType = SiteType.BlackListed;
+                    if (hideBlacklistedSites)
                     {
                         if (activity) site.IsActive = false;
                         continue;
                     }
-                    else if (site.State.IsBlackListed)
-                    {
-                        site.transform.localScale = Vector3.one;
-                        siteType = SiteType.BlackListed;
-                        if (data.HideBlacklistedSites)
-                        {
-                            if (activity) site.IsActive = false;
-                            continue;
-                        }
-                    }
-                    else if (latenciesFile != null)
-                    {
-                        if (SelectedSiteID == -1)
-                        {
-                            site.transform.localScale = Vector3.one;
-                            siteType = latenciesFile.IsSiteASource(i) ? SiteType.Source : SiteType.NotASource;
-                        }
-                        else
-                        {
-                            if (i == SelectedSiteID)
-                            {
-                                site.transform.localScale = Vector3.one;
-                                siteType = SiteType.Source;
-                            }
-                            else if (latenciesFile.IsSiteResponsiveForSource(i, SelectedSiteID))
-                            {
-                                siteType = latenciesFile.PositiveHeight[SelectedSiteID][i] ? SiteType.Positive : SiteType.Negative;
-                                alpha = site.State.IsHighlighted ? 1.0f : latenciesFile.Transparencies[SelectedSiteID][i];
-                                site.transform.localScale = Vector3.one * latenciesFile.Sizes[SelectedSiteID][i];
-                            }
-                            else
-                            {
-                                if (activity) site.IsActive = false;
-                                continue;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        site.transform.localScale = Vector3.one;
-                        siteType = SiteType.Normal;
-                    }
-                    if (!activity) site.IsActive = true;
-                    Material siteMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
-                    if (alpha > 0.0f)
-                    {
-                        Color materialColor = siteMaterial.color;
-                        materialColor.a = alpha;
-                        siteMaterial.color = materialColor;
-                    }
-                    site.GetComponent<MeshRenderer>().sharedMaterial = siteMaterial;
                 }
-            }
-            else // iEEG
-            {
-                for (int i = 0; i < Sites.Count; ++i)
+                else
                 {
-                    Site site = Sites[i];
-                    bool activity = site.IsActive;
-                    SiteType siteType;
-                    if (site.State.IsMasked || (site.State.IsOutOfROI && !data.ShowAllSites) || !site.State.IsFiltered)
-                    {
-                        if (activity) site.IsActive = false;
-                        continue;
-                    }
-                    else if (site.State.IsBlackListed)
-                    {
-                        site.transform.localScale = Vector3.one;
-                        siteType = SiteType.BlackListed;
-                        if (data.HideBlacklistedSites)
-                        {
-                            if (activity) site.IsActive = false;
-                            continue;
-                        }
-                    }
-                    else
-                    {
-                        site.transform.localScale = Vector3.one;
-                        siteType = SiteType.Normal;
-                    }
-                    if (!activity) site.IsActive = true;
-                    site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
+                    site.transform.localScale = Vector3.one;
+                    siteType = SiteType.Normal;
                 }
+                if (!activity) site.IsActive = true;
+                site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
             }
         }
         /// <summary>

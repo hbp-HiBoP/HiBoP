@@ -123,7 +123,7 @@ namespace HBP.UI.Informations
         }
         void GenerateDataStructs()
         {
-            if (!m_Scene.SceneInformation.IsSceneCompletelyLoaded) return;
+            if (!m_Scene.IsSceneCompletelyLoaded) return;
             List<DataStruct> dataStructs = new List<DataStruct>();
             foreach (var column in m_Scene.ColumnsIEEG)
             {

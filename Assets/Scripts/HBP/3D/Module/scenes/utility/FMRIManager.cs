@@ -1,22 +1,31 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Events;
+﻿using UnityEngine;
 
 namespace HBP.Module3D
 {
-    public class FMRIManager
+    /// <summary>
+    /// Class responsible for the display of fMRIs on the cuts
+    /// </summary>
+    public class FMRIManager : MonoBehaviour
     {
         #region Properties
+        /// <summary>
+        /// Parent scene of the manager
+        /// </summary>
+        [SerializeField] private Base3DScene m_Scene;
+        /// <summary>
+        /// Component containing references to GameObjects of the 3D scene
+        /// </summary>
+        [SerializeField] private DisplayedObjects m_DisplayedObjects;
+
         private enum CalType { Value, Factor }
         /// <summary>
-        /// Cal type (depending on how we set the cal values)
+        /// Calibration type (depending on how we set the calibration values)
         /// </summary>
         private CalType m_CurrentCalType = CalType.Factor;
 
         private MRI3D m_FMRI;
         /// <summary>
-        /// FMRI associated to this scene
+        /// FMRI associated to the scene
         /// </summary>
         public MRI3D FMRI
         {
@@ -28,11 +37,13 @@ namespace HBP.Module3D
             {
                 m_FMRI = value;
                 ChangeFMRICallback();
-                OnChangeFMRIParameters.Invoke();
             }
         }
 
         private bool m_DisplayIBCContrasts;
+        /// <summary>
+        /// Do we display the IBC contrasts on the cuts ?
+        /// </summary>
         public bool DisplayIBCContrasts
         {
             get
@@ -43,10 +54,13 @@ namespace HBP.Module3D
             {
                 m_DisplayIBCContrasts = value;
                 ChangeFMRICallback();
-                OnChangeFMRIParameters.Invoke();
             }
         }
+
         private int m_SelectedIBCContrastID;
+        /// <summary>
+        /// ID of the selected IBC contrast
+        /// </summary>
         public int SelectedIBCContrastID
         {
             get
@@ -57,9 +71,11 @@ namespace HBP.Module3D
             {
                 m_SelectedIBCContrastID = value;
                 ChangeFMRICallback();
-                OnChangeFMRIParameters.Invoke();
             }
         }
+        /// <summary>
+        /// Selected IBC contrast (this object contains some information about the contrast)
+        /// </summary>
         public IBC.Contrast SelectedIBCContrast
         {
             get
@@ -69,7 +85,7 @@ namespace HBP.Module3D
         }
 
         /// <summary>
-        /// Current used volume
+        /// Currently used volume (depends on the type of fMRI we are displaying)
         /// </summary>
         public DLL.Volume CurrentVolume
         {
@@ -113,13 +129,14 @@ namespace HBP.Module3D
             set
             {
                 m_FMRIAlpha = value;
-                OnChangeFMRIParameters.Invoke();
+                m_Scene.ResetIEEG();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
 
         private float m_FMRICalMinFactor = 0.4f;
         /// <summary>
-        /// Cal min factor of the FMRI
+        /// Calibration min factor of the FMRI (between 0 and 1)
         /// </summary>
         public float FMRICalMinFactor
         {
@@ -135,13 +152,14 @@ namespace HBP.Module3D
                     m_FMRICalMin = m_FMRICalMinFactor * (CurrentVolume.ExtremeValues.ComputedCalMax - CurrentVolume.ExtremeValues.ComputedCalMin) + CurrentVolume.ExtremeValues.ComputedCalMin;
                 }
                 m_CurrentCalType = CalType.Factor;
-                OnChangeFMRIParameters.Invoke();
+                m_Scene.ResetIEEG();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
 
         private float m_FMRICalMin;
         /// <summary>
-        /// Cal min value of the FMRI
+        /// Calibration min value of the FMRI
         /// </summary>
         public float FMRICalMin
         {
@@ -157,13 +175,14 @@ namespace HBP.Module3D
                     m_FMRICalMinFactor = (value - CurrentVolume.ExtremeValues.ComputedCalMin) / (CurrentVolume.ExtremeValues.ComputedCalMax - CurrentVolume.ExtremeValues.ComputedCalMin);
                 }
                 m_CurrentCalType = CalType.Value;
-                OnChangeFMRIParameters.Invoke();
+                m_Scene.ResetIEEG();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
 
         private float m_FMRICalMaxFactor = 0.6f;
         /// <summary>
-        /// Cal max factor of the FMRI
+        /// Calibration max factor of the FMRI (between 0 and 1)
         /// </summary>
         public float FMRICalMaxFactor
         {
@@ -179,13 +198,14 @@ namespace HBP.Module3D
                     m_FMRICalMax = m_FMRICalMaxFactor * (CurrentVolume.ExtremeValues.ComputedCalMax - CurrentVolume.ExtremeValues.ComputedCalMin) + CurrentVolume.ExtremeValues.ComputedCalMin;
                 }
                 m_CurrentCalType = CalType.Factor;
-                OnChangeFMRIParameters.Invoke();
+                m_Scene.ResetIEEG();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
 
         private float m_FMRICalMax;
         /// <summary>
-        /// Cal max value of the FMRI
+        /// Calibration max value of the FMRI
         /// </summary>
         public float FMRICalMax
         {
@@ -201,19 +221,18 @@ namespace HBP.Module3D
                     m_FMRICalMaxFactor = (value - CurrentVolume.ExtremeValues.ComputedCalMin) / (CurrentVolume.ExtremeValues.ComputedCalMax - CurrentVolume.ExtremeValues.ComputedCalMin);
                 }
                 m_CurrentCalType = CalType.Value;
-                OnChangeFMRIParameters.Invoke();
+                m_Scene.ResetIEEG();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
-
-        public UnityEvent OnChangeFMRIParameters = new UnityEvent();
         #endregion
 
         #region Public Methods
         /// <summary>
-        /// Color the cut with a FMRI
+        /// Color the cut with the selected FMRI
         /// </summary>
-        /// <param name="column"></param>
-        /// <param name="cutID"></param>
+        /// <param name="column">Column on which the cut is colored</param>
+        /// <param name="cutID">ID of the cut to color</param>
         public void ColorCutTexture(Column3D column, int cutID)
         {
             column.CutTextures.ColorCutsTexturesWithFMRI(CurrentVolume, cutID, m_FMRICalMinFactor, m_FMRICalMaxFactor, m_FMRIAlpha);
@@ -221,6 +240,9 @@ namespace HBP.Module3D
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Method called when changing the used fMRI of the scene
+        /// </summary>
         private void ChangeFMRICallback()
         {
             if (CurrentVolume == null)
@@ -237,6 +259,9 @@ namespace HBP.Module3D
                     m_FMRICalMax = m_FMRICalMaxFactor * (CurrentVolume.ExtremeValues.ComputedCalMax - CurrentVolume.ExtremeValues.ComputedCalMin) + CurrentVolume.ExtremeValues.ComputedCalMin;
                     break;
             }
+
+            m_Scene.ResetIEEG();
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
     }

@@ -33,7 +33,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateStatus()
         {
-            m_Toggle.isOn = SelectedScene.SceneInformation.HideBlacklistedSites;
+            m_Toggle.isOn = SelectedScene.HideBlacklistedSites;
         }
         #endregion
     }

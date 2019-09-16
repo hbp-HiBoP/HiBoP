@@ -186,7 +186,7 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         switch (data.button)
         {
             case PointerEventData.InputButton.Left:
-                if (m_Scene.SceneInformation.IsROICreationModeEnabled)
+                if (m_Scene.ROICreationMode)
                 {
                     m_Column.MoveSelectedROISphere(m_View.Camera, data.delta);
                 }
@@ -220,7 +220,7 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         if (IsMinimized) return;
 
         ROI selectedROI = m_Column.SelectedROI;
-        if (m_Scene.SceneInformation.IsROICreationModeEnabled && selectedROI)
+        if (m_Scene.ROICreationMode && selectedROI)
         {
             if (selectedROI.SelectedSphereID != -1)
             {

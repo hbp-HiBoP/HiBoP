@@ -327,7 +327,7 @@ namespace HBP.Module3D
                     m_DisplayPlanesTimer += Time.deltaTime;
                     m_PlaneMaterial.SetPass(0);
                     {
-                        int ii = m_AssociatedScene.SceneInformation.LastPlaneModifiedID;
+                        int ii = m_AssociatedScene.LastPlaneModifiedIndex;
                         if (ii < m_PlanesCutsCirclesVertices.Count)
                         {
                             for (int jj = 0; jj < m_PlanesCutsCirclesVertices[ii].Length; ++jj)

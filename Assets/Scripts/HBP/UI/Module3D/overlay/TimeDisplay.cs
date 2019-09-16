@@ -19,7 +19,7 @@ namespace HBP.UI.Module3D
             base.Setup(scene, column, columnUI);
             IsActive = false;
 
-            scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
+            scene.OnUpdateGeneratorState.AddListener((value) =>
             {
                 if (column is Column3DDynamic)
                 {

@@ -54,6 +54,23 @@ namespace HBP.Module3D
         /// List of splitted meshes
         /// </summary>
         public List<DLL.Surface> SplittedMeshes = new List<DLL.Surface>();
+
+        /// <summary>
+        /// Mesh part to be displayed in the scene
+        /// </summary>
+        public Data.Enums.MeshPart MeshPartToDisplay { get; private set; } = Data.Enums.MeshPart.Both;
+        /// <summary>
+        /// Mesh being displayed in the scene
+        /// </summary>
+        public DLL.Surface MeshToDisplay { get; private set; }
+        /// <summary>
+        /// Simplified mesh to be used in the scene
+        /// </summary>
+        public DLL.Surface SimplifiedMeshToUse { get; private set; }
+        /// <summary>
+        /// Center of the loaded mesh
+        /// </summary>
+        public Vector3 MeshCenter { get; private set; }
         #endregion
 
         #region Private Methods
@@ -157,9 +174,9 @@ namespace HBP.Module3D
             if (meshID == -1) meshID = 0;
 
             SelectedMeshID = meshID;
-            if (m_Scene.AtlasManager.IsMarsAtlasEnabled && !SelectedMesh.IsMarsAtlasLoaded)
+            if (m_Scene.AtlasManager.DisplayMarsAtlas && !SelectedMesh.IsMarsAtlasLoaded)
             {
-                m_Scene.AtlasManager.IsMarsAtlasEnabled = false;
+                m_Scene.AtlasManager.DisplayMarsAtlas = false;
             }
             if (m_Scene.AtlasManager.DisplayJuBrainAtlas && SelectedMesh.Type != Data.Enums.MeshType.MNI)
             {
@@ -169,7 +186,7 @@ namespace HBP.Module3D
             {
                 m_Scene.FMRIManager.DisplayIBCContrasts = false;
             }
-            m_Scene.SceneInformation.MeshGeometryNeedsUpdate = true;
+            m_Scene.MeshGeometryNeedsUpdate = true;
             m_Scene.ResetIEEG();
             foreach (Column3D column in m_Scene.Columns)
             {
@@ -185,8 +202,8 @@ namespace HBP.Module3D
         /// <param name="meshPartToDisplay">Mesh part to be displayed</param>
         public void SelectMeshPart(Data.Enums.MeshPart meshPartToDisplay)
         {
-            m_Scene.SceneInformation.MeshPartToDisplay = meshPartToDisplay;
-            m_Scene.SceneInformation.MeshGeometryNeedsUpdate = true;
+            MeshPartToDisplay = meshPartToDisplay;
+            m_Scene.MeshGeometryNeedsUpdate = true;
             m_Scene.ResetIEEG();
             foreach (Column3D column in m_Scene.Columns)
             {
@@ -220,42 +237,42 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
-        /// Update meshes to display (fills SceneInformation and splits the mesh)
+        /// Update meshes to display (fills information and splits the mesh)
         /// </summary>
         public void UpdateMeshesInformation()
         {
             if (SelectedMesh is LeftRightMesh3D selectedMesh)
             {
-                switch (m_Scene.SceneInformation.MeshPartToDisplay)
+                switch (MeshPartToDisplay)
                 {
                     case Data.Enums.MeshPart.Left:
-                        m_Scene.SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedLeft;
-                        m_Scene.SceneInformation.MeshToDisplay = selectedMesh.Left;
+                        SimplifiedMeshToUse = selectedMesh.SimplifiedLeft;
+                        MeshToDisplay = selectedMesh.Left;
                         break;
                     case Data.Enums.MeshPart.Right:
-                        m_Scene.SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedRight;
-                        m_Scene.SceneInformation.MeshToDisplay = selectedMesh.Right;
+                        SimplifiedMeshToUse = selectedMesh.SimplifiedRight;
+                        MeshToDisplay = selectedMesh.Right;
                         break;
                     case Data.Enums.MeshPart.Both:
-                        m_Scene.SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
-                        m_Scene.SceneInformation.MeshToDisplay = selectedMesh.Both;
+                        SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
+                        MeshToDisplay = selectedMesh.Both;
                         break;
                     default:
-                        m_Scene.SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
-                        m_Scene.SceneInformation.MeshToDisplay = selectedMesh.Both;
+                        SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
+                        MeshToDisplay = selectedMesh.Both;
                         break;
                 }
             }
             else
             {
-                m_Scene.SceneInformation.SimplifiedMeshToUse = SelectedMesh.SimplifiedBoth;
-                m_Scene.SceneInformation.MeshToDisplay = SelectedMesh.Both;
+                SimplifiedMeshToUse = SelectedMesh.SimplifiedBoth;
+                MeshToDisplay = SelectedMesh.Both;
             }
             // get the middle
-            m_Scene.SceneInformation.MeshCenter = m_Scene.SceneInformation.MeshToDisplay.Center;
-            m_Scene.BrainMaterial.SetVector("_Center", m_Scene.SceneInformation.MeshCenter);
+            MeshCenter = MeshToDisplay.Center;
+            m_Scene.BrainMaterial.SetVector("_Center", MeshCenter);
 
-            SplittedMeshes = m_Scene.SceneInformation.MeshToDisplay.SplitToSurfaces(MeshSplitNumber);
+            SplittedMeshes = MeshToDisplay.SplitToSurfaces(MeshSplitNumber);
 
             m_Scene.UpdateAllCutPlanes();
         }

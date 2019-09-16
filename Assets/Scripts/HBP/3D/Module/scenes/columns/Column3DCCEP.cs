@@ -190,11 +190,11 @@ namespace HBP.Module3D
             }
             IEEGValuesOfUnmaskedSites = iEEGNotMasked.ToArray();
         }
-        protected override void UpdateSitesSizeAndColorForIEEG(SceneStatesInfo data)
+        protected override void UpdateSitesSizeAndColorForIEEG(bool showAllSites)
         {
             if (IsSourceSelected)
             {
-                base.UpdateSitesSizeAndColorForIEEG(data);
+                base.UpdateSitesSizeAndColorForIEEG(showAllSites);
             }
         }
         #endregion

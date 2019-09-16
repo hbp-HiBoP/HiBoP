@@ -102,7 +102,7 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateInteractable()
         {
             bool isColumnDynamic = SelectedColumn is HBP.Module3D.Column3DDynamic;
-            bool areAmplitudesComputed = SelectedScene.SceneInformation.IsGeneratorUpToDate;
+            bool areAmplitudesComputed = SelectedScene.IsGeneratorUpToDate;
 
             m_Minus.interactable = isColumnDynamic && areAmplitudesComputed;
             m_InputField.interactable = isColumnDynamic && areAmplitudesComputed;

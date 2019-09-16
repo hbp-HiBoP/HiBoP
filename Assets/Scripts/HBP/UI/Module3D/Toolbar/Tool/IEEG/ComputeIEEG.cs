@@ -40,9 +40,9 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool isGeneratorUpToDate = SelectedScene.SceneInformation.IsGeneratorUpToDate;
+            bool isGeneratorUpToDate = SelectedScene.IsGeneratorUpToDate;
 
-            m_Compute.interactable = SelectedScene.CanComputeIEEG;
+            m_Compute.interactable = SelectedScene.CanComputeFunctionalValues;
             m_Remove.interactable = isGeneratorUpToDate;
         }
         #endregion

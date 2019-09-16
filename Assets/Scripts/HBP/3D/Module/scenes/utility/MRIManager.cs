@@ -53,6 +53,11 @@ namespace HBP.Module3D
         /// Max calibration factor (between 0 and 1)
         /// </summary>
         public float MRICalMaxFactor { get; private set; } = 1.0f;
+        
+        /// <summary>
+        /// Center of the loaded mri
+        /// </summary>
+        public Vector3 VolumeCenter { get; private set; } = new Vector3(0, 0, 0);
         #endregion
 
         #region Private Methods
@@ -121,9 +126,9 @@ namespace HBP.Module3D
             if (mriID == -1) mriID = 0;
 
             SelectedMRIID = mriID;
-            m_Scene.SceneInformation.VolumeCenter = SelectedMRI.Volume.Center;
+            VolumeCenter = SelectedMRI.Volume.Center;
             DLL.MRIVolumeGenerator.ResetAll(m_Scene.ColumnsDynamic.Select(c => c.DLLMRIVolumeGenerator).ToArray(), SelectedMRI.Volume, 120);
-            m_Scene.SceneInformation.MeshGeometryNeedsUpdate = true;
+            m_Scene.MeshGeometryNeedsUpdate = true;
             m_Scene.ResetIEEG();
             foreach (Column3D column in m_Scene.Columns)
             {
