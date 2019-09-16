@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using UnityEngine;
 
 namespace Tools.CSharp.BooleanExpressionParser
 {
@@ -29,11 +27,24 @@ namespace Tools.CSharp.BooleanExpressionParser
             { AND_CHAR, new Tuple<TokenType, string>(TokenType.BinaryOperator, AND_STRING) },
             { OR_CHAR, new Tuple<TokenType, string>(TokenType.BinaryOperator, OR_STRING) }
         };
-        public TokenType Type;
-        public string Value;
+        public TokenType Type { get; private set; }
+        public string Value { get; private set; }
+        #endregion
+
+        #region Default Values
+        public static Token Not { get { return new Token(TokenType.UnaryOperator, NOT_STRING); } }
+        public static Token And { get { return new Token(TokenType.BinaryOperator, AND_STRING); } }
+        public static Token Or { get { return new Token(TokenType.BinaryOperator, OR_STRING); } }
+        public static Token OpenParenthesis { get { return new Token(TokenType.OpenParenthesis, OPEN_PARENTHESIS_STRING); } }
+        public static Token CloseParenthesis { get { return new Token(TokenType.CloseParenthesis, CLOSE_PARENTHESIS_STRING); } }
         #endregion
 
         #region Constructors
+        public Token(TokenType type, string value = "")
+        {
+            Type = type;
+            Value = value;
+        }
         public Token(StringReader stringReader)
         {
             int c = stringReader.Read();
@@ -52,8 +63,7 @@ namespace Tools.CSharp.BooleanExpressionParser
             else
             {
                 char character = (char)c;
-                Tuple<TokenType, string> value;
-                if (m_SymbolToOperator.TryGetValue(character, out value))
+                if (m_SymbolToOperator.TryGetValue(character, out Tuple<TokenType, string> value))
                 {
                     Type = value.Item1;
                     Value = value.Item2;

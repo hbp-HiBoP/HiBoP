@@ -12,22 +12,9 @@ namespace Tools.CSharp.BooleanExpressionParser
         public static BooleanExpression Parse(string expression)
         {
             FixExpression(ref expression);
+            List<Token> tokens = StringToTokens(expression);
 
-            List<Token> tokens = new List<Token>();
-            StringReader stringReader = new StringReader(expression);
-
-            Token token;
-            do
-            {
-                token = new Token(stringReader);
-                if (token.Type != TokenType.Space)
-                {
-                    tokens.Add(token);
-                }
-            } while (token.Type != TokenType.EndOfExpression);
-
-            string error;
-            if (!CheckExpression(tokens, out error))
+            if (!CheckExpression(tokens, out string error))
             {
                 throw new InvalidBooleanExpressionException(error);
             }
@@ -48,6 +35,41 @@ namespace Tools.CSharp.BooleanExpressionParser
         {
             expression = new Regex(Token.AND_CHAR + "+").Replace(expression, Token.AND_CHAR.ToString());
             expression = new Regex("\\" + Token.OR_CHAR + "+").Replace(expression, Token.OR_CHAR.ToString());
+            
+        }
+        private static List<Token> StringToTokens(string expression)
+        {
+            List<Token> tokens = new List<Token>();
+            StringReader stringReader = new StringReader(expression);
+
+            Token token;
+            do
+            {
+                token = new Token(stringReader);
+                if (token.Type != TokenType.Space)
+                {
+                    tokens.Add(token);
+                }
+            } while (token.Type != TokenType.EndOfExpression);
+
+            List<Token> tokensWithSafeParentheses = new List<Token>();
+            bool notWithoutParentheses = false;
+            for (int i = 0; i < tokens.Count; ++i)
+            {
+                if (notWithoutParentheses && (tokens[i].Type == TokenType.BinaryOperator || tokens[i].Type == TokenType.EndOfExpression))
+                {
+                    notWithoutParentheses = false;
+                    tokensWithSafeParentheses.Add(Token.CloseParenthesis);
+                }
+                tokensWithSafeParentheses.Add(tokens[i]);
+                if (i < tokens.Count - 1 && tokens[i].Type == TokenType.UnaryOperator && tokens[i+1].Type != TokenType.OpenParenthesis)
+                {
+                    notWithoutParentheses = true;
+                    tokensWithSafeParentheses.Add(Token.OpenParenthesis);
+                }
+            }
+
+            return tokensWithSafeParentheses;
         }
         private static bool CheckExpression(List<Token> tokens, out string error)
         {
