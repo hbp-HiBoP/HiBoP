@@ -1284,7 +1284,9 @@ namespace HBP.Module3D
             float offset;
             if (MeshManager.MeshToDisplay != null)
             {
-                offset = MeshManager.MeshToDisplay.SizeOffsetCutPlane(cut, cut.NumberOfCuts);
+                Plane plane = new Plane(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
+                m_MRIManager.SelectedMRI.Volume.SetPlaneWithOrientation(plane, cut.Orientation, false);
+                offset = MeshManager.MeshToDisplay.SizeOffsetCutPlane(plane, cut.NumberOfCuts);
                 offset *= 1.05f; // upsize a little bit the bbox for planes
             }
             else
@@ -1326,18 +1328,33 @@ namespace HBP.Module3D
             Vector3 axialPoint = MeshManager.MeshCenter + (Vector3.Dot(sitePosition - MeshManager.MeshCenter, axialCut.Normal) / Vector3.Dot(axialCut.Normal, axialCut.Normal)) * axialCut.Normal;
             float axialOffset = MeshManager.MeshToDisplay.SizeOffsetCutPlane(axialCut, axialCut.NumberOfCuts) * 1.05f;
             axialCut.Position = ((axialPoint.z - MeshManager.MeshCenter.z) / (axialCut.Normal.z * axialOffset * axialCut.NumberOfCuts)) + 0.5f;
+            if (axialCut.Position < 0.5f)
+            {
+                axialCut.Flip = true;
+                axialCut.Position = 1 - axialCut.Position;
+            }
             UpdateCutPlane(axialCut);
 
             Cut coronalCut = AddCutPlane();
             Vector3 coronalPoint = MeshManager.MeshCenter + (Vector3.Dot(sitePosition - MeshManager.MeshCenter, coronalCut.Normal) / Vector3.Dot(coronalCut.Normal, coronalCut.Normal)) * coronalCut.Normal;
             float coronalOffset = MeshManager.MeshToDisplay.SizeOffsetCutPlane(coronalCut, coronalCut.NumberOfCuts) * 1.05f;
             coronalCut.Position = ((coronalPoint.y - MeshManager.MeshCenter.y) / (coronalCut.Normal.y * coronalOffset * coronalCut.NumberOfCuts)) + 0.5f;
+            if (coronalCut.Position < 0.5f)
+            {
+                coronalCut.Flip = true;
+                coronalCut.Position = 1 - coronalCut.Position;
+            }
             UpdateCutPlane(coronalCut);
 
             Cut sagitalCut = AddCutPlane();
             Vector3 sagitalPoint = MeshManager.MeshCenter + (Vector3.Dot(sitePosition - MeshManager.MeshCenter, sagitalCut.Normal) / Vector3.Dot(sagitalCut.Normal, sagitalCut.Normal)) * sagitalCut.Normal;
             float sagitalOffset = MeshManager.MeshToDisplay.SizeOffsetCutPlane(sagitalCut, sagitalCut.NumberOfCuts) * 1.05f;
             sagitalCut.Position = ((sagitalPoint.x - MeshManager.MeshCenter.x) / (sagitalCut.Normal.x * sagitalOffset * sagitalCut.NumberOfCuts)) + 0.5f;
+            if (sagitalCut.Position < 0.5f)
+            {
+                sagitalCut.Flip = true;
+                sagitalCut.Position = 1 - sagitalCut.Position;
+            }
             UpdateCutPlane(sagitalCut);
 
             m_CutsNeedUpdate = true;
