@@ -23,11 +23,6 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private Tools.ROIExport m_ROIExport;
-        /// <summary>
-        /// Export sites to a csv file
-        /// </summary>
-        [SerializeField]
-        private Tools.ExportSites m_ExportSites;
         #endregion
 
         #region Private Methods
@@ -36,7 +31,6 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_ROIManager);
             m_Tools.Add(m_ROICopy);
             m_Tools.Add(m_ROIExport);
-            m_Tools.Add(m_ExportSites);
         }
         #endregion
 
