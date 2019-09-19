@@ -101,6 +101,13 @@ namespace HBP.UI.Informations
 
         [SerializeField] DataStruct[] m_DataStructs;
         [SerializeField] ChannelStruct[] m_ChannelStructs;
+        public ChannelStruct[] ChannelStructs
+        {
+            get
+            {
+                return m_ChannelStructs;
+            }
+        }
         #endregion
 
         #region Public Methods
