@@ -6,7 +6,7 @@ using UnityStandardAssets.ImageEffects;
 namespace HBP.Module3D
 {
     /// <summary>
-    /// Camera of the 3D scene
+    /// Camera associated to a view 3D
     /// </summary>
     public class Camera3D : MonoBehaviour
     {
@@ -24,11 +24,12 @@ namespace HBP.Module3D
         /// </summary>
         private View3D m_AssociatedView;
 
+        [SerializeField] private Camera m_Camera;
         /// <summary>
         /// Camera component
         /// </summary>
-        public Camera Camera;
-        
+        public Camera Camera { get { return m_Camera; } }
+
         /// <summary>
         /// Culling mask of the camera (so it doesn't render when view is minimized)
         /// </summary>
@@ -36,11 +37,11 @@ namespace HBP.Module3D
         {
             get
             {
-                return Camera.cullingMask;
+                return m_Camera.cullingMask;
             }
             set
             {
-                Camera.cullingMask = value;
+                m_Camera.cullingMask = value;
             }
         }
         /// <summary>
@@ -269,7 +270,7 @@ namespace HBP.Module3D
             ApplicationState.Module3D.SharedDirectionalLight.transform.eulerAngles = transform.eulerAngles;
             ApplicationState.Module3D.SharedSpotlight.transform.eulerAngles = transform.eulerAngles;
             ApplicationState.Module3D.SharedSpotlight.transform.position = transform.position;
-            m_AssociatedColumn.SelectRing.SelectRingFaceCamera(Camera);
+            m_AssociatedColumn.SelectRing.SelectRingFaceCamera(m_Camera);
         }
         private void OnPreRender()
         {
@@ -285,20 +286,20 @@ namespace HBP.Module3D
             {
                 if (m_AssociatedView.IsSelected)
                 {
-                    Camera.GetComponent<NewTheme.Components.ThemeElement>().Set(Clicked);
+                    m_Camera.GetComponent<NewTheme.Components.ThemeElement>().Set(Clicked);
                 }
                 else if (m_AssociatedColumn.IsSelected)
                 {
-                    Camera.GetComponent<NewTheme.Components.ThemeElement>().Set(Selected);
+                    m_Camera.GetComponent<NewTheme.Components.ThemeElement>().Set(Selected);
                 }
                 else
                 {
-                    Camera.GetComponent<NewTheme.Components.ThemeElement>().Set();
+                    m_Camera.GetComponent<NewTheme.Components.ThemeElement>().Set();
                 }
             }
             else
             {
-                Camera.GetComponent<NewTheme.Components.ThemeElement>().Set();
+                m_Camera.GetComponent<NewTheme.Components.ThemeElement>().Set();
             }
             AutomaticCameraRotation();
         }
@@ -445,7 +446,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Zoom towards target
         /// </summary>
-        /// <param name="amount">Distance</param>
+        /// <param name="amount">Zoom distance</param>
         public void Zoom(float amount)
         {
             float distance = m_Distance - amount * m_ZoomSpeed;

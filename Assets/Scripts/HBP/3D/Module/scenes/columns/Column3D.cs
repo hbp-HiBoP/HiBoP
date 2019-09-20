@@ -83,11 +83,11 @@ namespace HBP.Module3D
         /// Surface meshes displayed in this column
         /// </summary>
         public List<GameObject> BrainSurfaceMeshes { get; protected set; } = new List<GameObject>();
-        
+
         /// <summary>
         /// Views of this column
         /// </summary>
-        public List<View3D> Views { get; protected set; }
+        public List<View3D> Views { get; protected set; } = new List<View3D>();
         /// <summary>
         /// Currently selected view
         /// </summary>
@@ -130,11 +130,11 @@ namespace HBP.Module3D
         /// Selection ring feedback
         /// </summary>
         public SiteRing SelectRing { get { return m_SelectRing; } }
-        
+
         /// <summary>
         /// List of the ROIs of this column
         /// </summary>
-        public List<ROI> ROIs { get; protected set; }
+        public List<ROI> ROIs { get; protected set; } = new List<ROI>();
 
         protected ROI m_SelectedROI = null;
         /// <summary>
@@ -538,9 +538,9 @@ namespace HBP.Module3D
             view.gameObject.name = "View " + Views.Count;
             view.LineID = Views.Count;
             view.Layer = Layer;
-            view.OnSelect.AddListener((UnityAction)(() =>
+            view.OnSelect.AddListener(() =>
             {
-                foreach (View3D v in this.Views)
+                foreach (View3D v in Views)
                 {
                     if (v != view)
                     {
@@ -548,7 +548,7 @@ namespace HBP.Module3D
                     }
                 }
                 IsSelected = true;
-            }));
+            });
             view.OnMoveView.AddListener(() =>
             {
                 OnMoveView.Invoke(view);

@@ -173,8 +173,8 @@ namespace HBP.Module3D
                     return;
                 }
             }
-            float middle = column.IEEGValuesOfUnmaskedSites.Mean();
-            Vector2 limits = column.IEEGValuesOfUnmaskedSites.CalculateValueLimit();
+            float middle = column.ActivityValuesOfUnmaskedSites.Mean();
+            Vector2 limits = column.ActivityValuesOfUnmaskedSites.CalculateValueLimit();
             Middle = middle;
             SpanMin = Mathf.Clamp(limits[0], MinimumAmplitude, MaximumAmplitude);
             SpanMax = Mathf.Clamp(limits[1], MinimumAmplitude, MaximumAmplitude);

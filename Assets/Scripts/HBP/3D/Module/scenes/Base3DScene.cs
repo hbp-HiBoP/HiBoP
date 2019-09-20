@@ -745,7 +745,7 @@ namespace HBP.Module3D
             List<Column3DDynamic> columns = column ? new List<Column3DDynamic>() { column } : ColumnsDynamic;
             foreach (Column3DDynamic col in columns)
             {
-                col.ComputeSurfaceBrainUVWithIEEG(m_MeshManager.SplittedMeshes);
+                col.ComputeSurfaceBrainUVWithActivity(m_MeshManager.SplittedMeshes);
             }
             UnityEngine.Profiling.Profiler.EndSample();
         }
@@ -1960,7 +1960,7 @@ namespace HBP.Module3D
             {
                 foreach (var columnIEEG in ColumnsDynamic)
                 {
-                    columnIEEG.ComputeEEGData();
+                    columnIEEG.ComputeActivityData();
                 }
             }
             catch (Exception e)

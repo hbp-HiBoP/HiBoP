@@ -1,7 +1,5 @@
-﻿using HBP.Data.Enums;
-using HBP.Data.Visualization;
+﻿using HBP.Data.Visualization;
 using HBP.Module3D.DLL;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -9,11 +7,14 @@ using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
+    /// <summary>
+    /// Class containing the CCEP data for the column
+    /// </summary>
     public class Column3DCCEP : Column3DDynamic
     {
         #region Properties
         /// <summary>
-        /// Column data
+        /// CCEP data of this column (contains information about what to display)
         /// </summary>
         public CCEPColumn ColumnCCEPData
         {
@@ -22,7 +23,9 @@ namespace HBP.Module3D
                 return ColumnData as CCEPColumn;
             }
         }
-
+        /// <summary>
+        /// Timeline of this column (contains information about the length, the number of samples, the events etc.)
+        /// </summary>
         public override Timeline Timeline
         {
             get
@@ -31,8 +34,14 @@ namespace HBP.Module3D
             }
         }
 
+        /// <summary>
+        /// List of all possible sources for this column
+        /// </summary>
         public List<Site> Sources { get; private set; } = new List<Site>();
         private Site m_SelectedSource = null;
+        /// <summary>
+        /// Currently selected source
+        /// </summary>
         public Site SelectedSource
         {
             get
@@ -45,10 +54,13 @@ namespace HBP.Module3D
                 {
                     m_SelectedSource = value;
                     OnSelectSource.Invoke();
-                    SetEEGData();
+                    SetActivityData();
                 }
             }
         }
+        /// <summary>
+        /// Is a source selected in this column ?
+        /// </summary>
         public bool IsSourceSelected
         {
             get
@@ -57,11 +69,20 @@ namespace HBP.Module3D
             }
         }
 
-        public float[] Latencies;
-        public float[] Amplitudes;
+        /// <summary>
+        /// Latencies of the first spike of each site for the selected source
+        /// </summary>
+        public float[] Latencies { get; private set; }
+        /// <summary>
+        /// Amplitudes of the first spike of each site for the selected source
+        /// </summary>
+        public float[] Amplitudes { get; private set; }
         #endregion
 
         #region Events
+        /// <summary>
+        /// Event called when selecting a source for this column
+        /// </summary>
         public UnityEvent OnSelectSource = new UnityEvent();
         #endregion
 
@@ -72,21 +93,21 @@ namespace HBP.Module3D
             base.Update();
         }
         /// <summary>
-        /// Set EEG Data for each site
+        /// Set activity data for each site
         /// </summary>
-        protected override void SetEEGData()
+        protected override void SetActivityData()
         {
             if (ColumnCCEPData == null) return;
             
             int timelineLength = Timeline.Length;
             int sitesCount = Sites.Count;
             // Construct sites value array the old way, and set sites masks // maybe FIXME
-            IEEGValuesBySiteID = new float[sitesCount][];
+            ActivityValuesBySiteID = new float[sitesCount][];
             for (int i = 0; i < sitesCount; i++)
             {
-                IEEGValuesBySiteID[i] = new float[timelineLength];
+                ActivityValuesBySiteID[i] = new float[timelineLength];
             }
-            IEEGUnitsBySiteID = new string[sitesCount];
+            ActivityUnitsBySiteID = new string[sitesCount];
             Latencies = new float[sitesCount];
             Amplitudes = new float[sitesCount];
             int numberOfSitesWithValues = 0;
@@ -113,27 +134,27 @@ namespace HBP.Module3D
                     if (values.Length > 0)
                     {
                         numberOfSitesWithValues++;
-                        IEEGValuesBySiteID[site.Information.GlobalID] = values;
+                        ActivityValuesBySiteID[site.Information.GlobalID] = values;
                         site.State.IsMasked = false;
                     }
                     else
                     {
-                        IEEGValuesBySiteID[site.Information.GlobalID] = new float[timelineLength];
+                        ActivityValuesBySiteID[site.Information.GlobalID] = new float[timelineLength];
                         site.State.IsMasked = true;
                     }
                 }
                 else
                 {
-                    IEEGValuesBySiteID[site.Information.GlobalID] = new float[timelineLength];
+                    ActivityValuesBySiteID[site.Information.GlobalID] = new float[timelineLength];
                     site.State.IsMasked = true;
                 }
                 if (unitByChannel.TryGetValue(site.Information.FullCorrectedID, out string unit))
                 {
-                    IEEGUnitsBySiteID[site.Information.GlobalID] = unit;
+                    ActivityUnitsBySiteID[site.Information.GlobalID] = unit;
                 }
                 else
                 {
-                    IEEGUnitsBySiteID[site.Information.GlobalID] = "";
+                    ActivityUnitsBySiteID[site.Information.GlobalID] = "";
                 }
                 if (dataByChannel.TryGetValue(site.Information.FullCorrectedID, out Data.Experience.Dataset.BlocChannelData blocChannelData))
                 {
@@ -164,20 +185,20 @@ namespace HBP.Module3D
             DynamicParameters.MaximumAmplitude = float.MinValue;
 
             int length = timelineLength * sitesCount;
-            IEEGValues = new float[length];
+            ActivityValues = new float[length];
             List<float> iEEGNotMasked = new List<float>();
             for (int s = 0; s < sitesCount; ++s)
             {
                 for (int t = 0; t < timelineLength; ++t)
                 {
-                    float val = IEEGValuesBySiteID[s][t];
-                    IEEGValues[t * sitesCount + s] = val;
+                    float val = ActivityValuesBySiteID[s][t];
+                    ActivityValues[t * sitesCount + s] = val;
                 }
                 if (!Sites[s].State.IsMasked)
                 {
                     for (int t = 0; t < timelineLength; ++t)
                     {
-                        float val = IEEGValuesBySiteID[s][t];
+                        float val = ActivityValuesBySiteID[s][t];
                         iEEGNotMasked.Add(val);
 
                         //update min/ max values
@@ -188,25 +209,34 @@ namespace HBP.Module3D
                     }
                 }
             }
-            IEEGValuesOfUnmaskedSites = iEEGNotMasked.ToArray();
+            ActivityValuesOfUnmaskedSites = iEEGNotMasked.ToArray();
         }
-        protected override void UpdateSitesSizeAndColorForIEEG(bool showAllSites)
+        /// <summary>
+        /// Update sites sizes and colors arrays depending on the activity (to be called before the rendering update)
+        /// </summary>
+        /// <param name="showAllSites">Display sites that are not in a ROI</param>
+        protected override void UpdateSitesSizeAndColorOfSites(bool showAllSites)
         {
             if (IsSourceSelected)
             {
-                base.UpdateSitesSizeAndColorForIEEG(showAllSites);
+                base.UpdateSitesSizeAndColorOfSites(showAllSites);
             }
         }
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Update the sites of this column (when changing the implantation of the scene)
+        /// </summary>
+        /// <param name="sites">List of the sites in the DLL</param>
+        /// <param name="sceneSitePatientParent">List of the patient parent of the sites as instantiated in the scene</param>
         public override void UpdateSites(PatientElectrodesList sites, List<GameObject> sceneSitePatientParent)
         {
             base.UpdateSites(sites, sceneSitePatientParent);
             Sources = Sites.Where(s => ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.Keys.Contains(s.Information.FullCorrectedID)).ToList();
         }
         /// <summary>
-        /// Load the column configuration from the loaded column data
+        /// Load the column configuration from the column data
         /// </summary>
         /// <param name="firstCall">Has this method not been called by another load method ?</param>
         public override void LoadConfiguration(bool firstCall = true)
@@ -219,7 +249,7 @@ namespace HBP.Module3D
             base.LoadConfiguration(false);
         }
         /// <summary>
-        /// Save the current settings of this column to the configuration of the linked column data
+        /// Save the configuration of this column to the data column
         /// </summary>
         public override void SaveConfiguration()
         {
@@ -232,9 +262,8 @@ namespace HBP.Module3D
             base.SaveConfiguration();
         }
         /// <summary>
-        /// Reset the settings of the loaded column
+        /// Reset the configuration of this column
         /// </summary>
-        /// <param name="firstCall">Has this method not been called by another reset method ?</param>
         public override void ResetConfiguration()
         {
             DynamicParameters.Gain = 1.0f;

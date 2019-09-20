@@ -113,7 +113,7 @@ namespace HBP.Module3D
             public bool ComputeInfluences(Column3DDynamic IEEGColumn, bool multiCPU, bool addValues = false, int ratioDistances = 0)
             {
                 bool noError = false;
-                noError = computeInfluences_MRIVolumeGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.EEGDimensions, IEEGColumn.DynamicParameters.InfluenceDistance, multiCPU ? 1 : 0, addValues ? 1 : 0, ratioDistances,
+                noError = computeInfluences_MRIVolumeGenerator(_handle, IEEGColumn.ActivityValues, IEEGColumn.Timeline.Length, IEEGColumn.Sites.Count, IEEGColumn.DynamicParameters.InfluenceDistance, multiCPU ? 1 : 0, addValues ? 1 : 0, ratioDistances,
                     IEEGColumn.DynamicParameters.Middle, IEEGColumn.DynamicParameters.SpanMin, IEEGColumn.DynamicParameters.SpanMax) == 1;
                 ApplicationState.DLLDebugManager.check_error();
 
@@ -183,7 +183,7 @@ namespace HBP.Module3D
             [DllImport("hbp_export", EntryPoint = "computeDistances_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern int computeDistances_MRIVolumeGenerator(HandleRef handleBrainSurfaceTextureGenerator, float maxDistance, int multiCPU);
             [DllImport("hbp_export", EntryPoint = "computeInfluences_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
-            static private extern int computeInfluences_MRIVolumeGenerator(HandleRef handleBrainSurfaceTextureGenerator, float[] timelineAmplitudes, int[] dimensions, float maxDistance, int multiCPU,
+            static private extern int computeInfluences_MRIVolumeGenerator(HandleRef handleBrainSurfaceTextureGenerator, float[] timelineAmplitudes, int timelineLength, int sitesNumber, float maxDistance, int multiCPU,
                 int addValues, int ratioDistances, float middle, float spanMin, float spanMax);
             [DllImport("hbp_export", EntryPoint = "ajustInfluencesToColormap_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern void ajustInfluencesToColormap_MRIVolumeGenerator(HandleRef handleBrainSurfaceTextureGenerator, float middle, float min, float max);

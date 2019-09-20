@@ -3,76 +3,59 @@ using UnityEngine;
 using UnityEngine.Events;
 using HBP.Module3D.DLL;
 using HBP.Data.Enums;
-using System.Linq;
 
 namespace HBP.Module3D
 {
     /// <summary>
-    /// Column 3D iEEG class (functional iEEG data)
+    /// Base class for the columns containing temporal dynamic data (iEEG, CCEP)
     /// </summary>
-    public class Column3DDynamic : Column3D
+    public abstract class Column3DDynamic : Column3D
     {
         #region Properties
         /// <summary>
-        /// Timeline of this column
+        /// Timeline of this column (contains information about the length, the number of samples, the events etc.)
         /// </summary>
-        public virtual Data.Visualization.Timeline Timeline
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public abstract Data.Visualization.Timeline Timeline { get; }
 
         /// <summary>
-        /// Shared minimum influence (for iEEG on the surface)
+        /// Shared minimum influence between all dynamic columns
         /// </summary>
         public float SharedMinInf = 0f;
         /// <summary>
-        /// Shared maximum influence (for iEEG of the surface)
+        /// Shared maximum influence between all dynamic columns
         /// </summary>
         public float SharedMaxInf = 0f;
 
         /// <summary>
-        /// IEEG Parameters
+        /// Parameters on how to display the activity on the column
         /// </summary>
         public DynamicDataParameters DynamicParameters { get; } = new DynamicDataParameters();
+        
+        /// <summary>
+        /// Values of the signal in a 1D array (used for the DLL)
+        /// </summary>
+        public float[] ActivityValues { get; protected set; } = new float[0];
+        /// <summary>
+        /// Values of the signal of the sites that are not masked (and have correct values)
+        /// </summary>
+        public float[] ActivityValuesOfUnmaskedSites { get; protected set; } = new float[0];
+        /// <summary>
+        /// Signal values by site global ID
+        /// </summary>
+        public float[][] ActivityValuesBySiteID { get; protected set; } = new float[0][];
+        /// <summary>
+        /// Units of the signal values of each site
+        /// </summary>
+        public string[] ActivityUnitsBySiteID { get; protected set; } = new string[0];
 
         /// <summary>
-        /// Dimensions of the EEG array (used for the DLL)
+        /// Size of each site depending on its activity
         /// </summary>
-        public int[] EEGDimensions
-        {
-            get
-            {
-                return new int[] { Timeline.Length, 1, Sites.Count };
-            }
-        }
+        protected List<Vector3> m_ElectrodesSizeScale = new List<Vector3>();
         /// <summary>
-        /// Values of the iEEG signal in a 1D array (used for the DLL)
+        /// Does the site have a positive activity value ?
         /// </summary>
-        public float[] IEEGValues = new float[0];
-        /// <summary>
-        /// Values of the iEEG signal of the sites that are not masked (and have correct values)
-        /// </summary>
-        public float[] IEEGValuesOfUnmaskedSites = new float[0];
-        /// <summary>
-        /// iEEG values by site global ID
-        /// </summary>
-        public float[][] IEEGValuesBySiteID;
-        /// <summary>
-        /// Units of the iEEG values of each site
-        /// </summary>
-        public string[] IEEGUnitsBySiteID = new string[0];
-
-        /// <summary>
-        /// Size of each site
-        /// </summary>
-        protected List<Vector3> m_ElectrodesSizeScale;
-        /// <summary>
-        /// Does the site have a positive value ?
-        /// </summary>
-        protected List<bool> m_ElectrodesPositiveColor;
+        protected List<bool> m_ElectrodesPositiveColor = new List<bool>();
         #endregion
 
         #region Events
@@ -91,18 +74,16 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Set EEG Data for each site
+        /// Set activity data for each site
         /// </summary>
-        protected virtual void SetEEGData()
-        {
-        }
+        protected abstract void SetActivityData();
         /// <summary>
-        /// Update sites sizes and colors arrays for iEEG (to be called before the rendering update)
+        /// Update sites sizes and colors arrays depending on the activity (to be called before the rendering update)
         /// </summary>
-        /// <param name="data">Information about the scene</param>
-        protected virtual void UpdateSitesSizeAndColorForIEEG(bool showAllSites)
+        /// <param name="showAllSites">Display sites that are not in a ROI</param>
+        protected virtual void UpdateSitesSizeAndColorOfSites(bool showAllSites)
         {
-            UnityEngine.Profiling.Profiler.BeginSample("update_sites_size_and_color_arrays_for_IEEG");
+            UnityEngine.Profiling.Profiler.BeginSample("update_sites_size_and_color_arrays");
 
             float diffMin = DynamicParameters.SpanMin - DynamicParameters.Middle;
             float diffMax = DynamicParameters.SpanMax - DynamicParameters.Middle;
@@ -112,7 +93,7 @@ namespace HBP.Module3D
                 if ((Sites[ii].State.IsOutOfROI && !showAllSites) || Sites[ii].State.IsMasked)
                     continue;
 
-                float value = IEEGValuesBySiteID[ii][Timeline.CurrentIndex];
+                float value = ActivityValuesBySiteID[ii][Timeline.CurrentIndex];
                 if (value < DynamicParameters.SpanMin)
                     value = DynamicParameters.SpanMin;
                 if (value > DynamicParameters.SpanMax)
@@ -145,11 +126,10 @@ namespace HBP.Module3D
 
         #region Public Methods
         /// <summary>
-        /// Update the implantation for this column
+        /// Update the sites of this column (when changing the implantation of the scene)
         /// </summary>
-        /// <param name="sites">List of the sites (DLL)</param>
-        /// <param name="sitesPatientParent">List of the gameobjects for the sites corresponding to the patients</param>
-        /// <param name="siteList">List of the sites gameobjects</param>
+        /// <param name="sites">List of the sites in the DLL</param>
+        /// <param name="sceneSitePatientParent">List of the patient parent of the sites as instantiated in the scene</param>
         public override void UpdateSites(PatientElectrodesList sites, List<GameObject> sceneSitePatientParent)
         {
             base.UpdateSites(sites, sceneSitePatientParent);
@@ -163,13 +143,12 @@ namespace HBP.Module3D
                 m_ElectrodesPositiveColor.Add(true);
             }
 
-            SetEEGData();
+            SetActivityData();
         }
         /// <summary>
-        /// Specify a column data for this column
+        /// Method called when initializing the activity on the column
         /// </summary>
-        /// <param name="columnData">Column data to use</param>
-        public virtual void ComputeEEGData()
+        public virtual void ComputeActivityData()
         {
             Timeline.OnUpdateCurrentIndex.AddListener(() =>
             {
@@ -179,16 +158,17 @@ namespace HBP.Module3D
                     ApplicationState.Module3D.OnUpdateSelectedColumnTimeLineIndex.Invoke();
                 }
             });
-            SetEEGData();
+            SetActivityData();
         }
         /// <summary>
-        /// Update the shape and color of the sites of this column
+        /// Update the visibility, the size and the color of the sites depending on their state
         /// </summary>
-        /// <param name="data">Information about the scene</param>
-        /// <param name="latenciesFile">CCEP files</param>
+        /// <param name="showAllSites">Do we show sites that are not in a ROI ?</param>
+        /// <param name="hideBlacklistedSites">Do we hide blacklisted sites ?</param>
+        /// <param name="isGeneratorUpToDate">Is the activity generator up to date ?</param>
         public override void UpdateSitesRendering(bool showAllSites, bool hideBlacklistedSites, bool isGeneratorUpToDate)
         {
-            UpdateSitesSizeAndColorForIEEG(showAllSites);
+            UpdateSitesSizeAndColorOfSites(showAllSites);
 
             for (int i = 0; i < Sites.Count; ++i)
             {
@@ -225,7 +205,11 @@ namespace HBP.Module3D
                 site.transform.localScale *= DynamicParameters.Gain;
             }
         }
-        public void ComputeSurfaceBrainUVWithIEEG(List<Surface> splittedMeshes)
+        /// <summary>
+        /// Compute the UVs of the meshes for the brain activity
+        /// </summary>
+        /// <param name="splittedMeshes">DLL brain splitted meshes</param>
+        public void ComputeSurfaceBrainUVWithActivity(List<Surface> splittedMeshes)
         {
             for (int ii = 0; ii < DLLBrainTextureGenerators.Count; ++ii)
                 DLLBrainTextureGenerators[ii].ComputeSurfaceUVIEEG(splittedMeshes[ii], this);

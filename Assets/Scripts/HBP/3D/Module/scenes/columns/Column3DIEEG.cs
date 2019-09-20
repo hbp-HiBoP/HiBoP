@@ -3,11 +3,14 @@ using System.Collections.Generic;
 
 namespace HBP.Module3D
 {
+    /// <summary>
+    /// Class containing the iEEG data for the column
+    /// </summary>
     public class Column3DIEEG : Column3DDynamic
     {
         #region Properties
         /// <summary>
-        /// Column data
+        /// IEEG data of this column (contains information about what to display)
         /// </summary>
         public IEEGColumn ColumnIEEGData
         {
@@ -16,7 +19,9 @@ namespace HBP.Module3D
                 return ColumnData as IEEGColumn;
             }
         }
-
+        /// <summary>
+        /// Timeline of this column (contains information about the length, the number of samples, the events etc.)
+        /// </summary>
         public override Timeline Timeline
         {
             get
@@ -27,15 +32,17 @@ namespace HBP.Module3D
         #endregion
 
         #region Private Methods
-        protected override void SetEEGData()
+        /// <summary>
+        /// Set activity data for each site
+        /// </summary>
+        protected override void SetActivityData()
         {
             if (ColumnIEEGData == null) return;
 
             int timelineLength = Timeline.Length;
             int sitesCount = Sites.Count;
-            // Construct sites value array the old way, and set sites masks // maybe FIXME
-            IEEGValuesBySiteID = new float[sitesCount][];
-            IEEGUnitsBySiteID = new string[sitesCount];
+            ActivityValuesBySiteID = new float[sitesCount][];
+            ActivityUnitsBySiteID = new string[sitesCount];
             int numberOfSitesWithValues = 0;
             foreach (Site site in Sites)
             {
@@ -44,27 +51,27 @@ namespace HBP.Module3D
                     if (values.Length > 0)
                     {
                         numberOfSitesWithValues++;
-                        IEEGValuesBySiteID[site.Information.GlobalID] = values;
+                        ActivityValuesBySiteID[site.Information.GlobalID] = values;
                         site.State.IsMasked = false;
                     }
                     else
                     {
-                        IEEGValuesBySiteID[site.Information.GlobalID] = new float[timelineLength];
+                        ActivityValuesBySiteID[site.Information.GlobalID] = new float[timelineLength];
                         site.State.IsMasked = true;
                     }
                 }
                 else
                 {
-                    IEEGValuesBySiteID[site.Information.GlobalID] = new float[timelineLength];
+                    ActivityValuesBySiteID[site.Information.GlobalID] = new float[timelineLength];
                     site.State.IsMasked = true;
                 }
                 if (ColumnIEEGData.Data.UnitByChannelID.TryGetValue(site.Information.FullCorrectedID, out string unit))
                 {
-                    IEEGUnitsBySiteID[site.Information.GlobalID] = unit;
+                    ActivityUnitsBySiteID[site.Information.GlobalID] = unit;
                 }
                 else
                 {
-                    IEEGUnitsBySiteID[site.Information.GlobalID] = "";
+                    ActivityUnitsBySiteID[site.Information.GlobalID] = "";
                 }
                 if (ColumnIEEGData.Data.DataByChannelID.TryGetValue(site.Information.FullCorrectedID, out Data.Experience.Dataset.BlocChannelData blocChannelData))
                 {
@@ -84,23 +91,22 @@ namespace HBP.Module3D
             DynamicParameters.MaximumAmplitude = float.MinValue;
 
             int length = timelineLength * sitesCount;
-            IEEGValues = new float[length];
+            ActivityValues = new float[length];
             List<float> iEEGNotMasked = new List<float>();
             for (int s = 0; s < sitesCount; ++s)
             {
                 for (int t = 0; t < timelineLength; ++t)
                 {
-                    float val = IEEGValuesBySiteID[s][t];
-                    IEEGValues[t * sitesCount + s] = val;
+                    float val = ActivityValuesBySiteID[s][t];
+                    ActivityValues[t * sitesCount + s] = val;
                 }
                 if (!Sites[s].State.IsMasked)
                 {
                     for (int t = 0; t < timelineLength; ++t)
                     {
-                        float val = IEEGValuesBySiteID[s][t];
+                        float val = ActivityValuesBySiteID[s][t];
                         iEEGNotMasked.Add(val);
 
-                        //update min/ max values
                         if (val > DynamicParameters.MaximumAmplitude)
                             DynamicParameters.MaximumAmplitude = val;
                         else if (val < DynamicParameters.MinimumAmplitude)
@@ -108,13 +114,13 @@ namespace HBP.Module3D
                     }
                 }
             }
-            IEEGValuesOfUnmaskedSites = iEEGNotMasked.ToArray();
+            ActivityValuesOfUnmaskedSites = iEEGNotMasked.ToArray();
         }
         #endregion
 
         #region Public Methods
         /// <summary>
-        /// Load the column configuration from the loaded column data
+        /// Load the column configuration from the column data
         /// </summary>
         /// <param name="firstCall">Has this method not been called by another load method ?</param>
         public override void LoadConfiguration(bool firstCall = true)
@@ -127,7 +133,7 @@ namespace HBP.Module3D
             base.LoadConfiguration(false);
         }
         /// <summary>
-        /// Save the current settings of this column to the configuration of the linked column data
+        /// Save the configuration of this column to the data column
         /// </summary>
         public override void SaveConfiguration()
         {
@@ -140,9 +146,8 @@ namespace HBP.Module3D
             base.SaveConfiguration();
         }
         /// <summary>
-        /// Reset the settings of the loaded column
+        /// Reset the configuration of this column
         /// </summary>
-        /// <param name="firstCall">Has this method not been called by another reset method ?</param>
         public override void ResetConfiguration()
         {
             DynamicParameters.Gain = 1.0f;

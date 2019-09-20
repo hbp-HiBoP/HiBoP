@@ -242,7 +242,7 @@ namespace HBP.Module3D
             public bool ComputeInfluences(Column3DDynamic IEEGColumn, bool multiCPU, bool addValues = false, int ratioDistances = 0)
             {
                 bool noError = false;
-                noError = compute_influences__MRITextureCutGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.EEGDimensions, IEEGColumn.DynamicParameters.InfluenceDistance,
+                noError = compute_influences__MRITextureCutGenerator(_handle, IEEGColumn.ActivityValues, IEEGColumn.Timeline.Length, IEEGColumn.Sites.Count, IEEGColumn.DynamicParameters.InfluenceDistance,
                     multiCPU?1:0, addValues?1:0, ratioDistances, IEEGColumn.DynamicParameters.Middle, IEEGColumn.DynamicParameters.SpanMin, IEEGColumn.DynamicParameters.SpanMax)== 1;
                 ApplicationState.DLLDebugManager.check_error();
 
@@ -375,7 +375,7 @@ namespace HBP.Module3D
             [DllImport("hbp_export", EntryPoint = "compute_distances__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern int compute_distances__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, float maxDistance, int multiCPU);
             [DllImport("hbp_export", EntryPoint = "compute_influences__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
-            static private extern int compute_influences__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, float[] timelineAmplitudes, int[] dimensions,
+            static private extern int compute_influences__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, float[] timelineAmplitudes, int timelineLength, int sitesNumber,
                                                 float maxDistance, int multiCPU, int addValues, int ratioDistances, float middle, float spanMin, float spanMax);
             [DllImport("hbp_export", EntryPoint = "fill_texture_with_SSEG__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern int fill_texture_with_SSEG__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, int idTimeline, HandleRef handleColorSchemeTexture,

@@ -5,6 +5,9 @@ using Tools.Unity;
 
 namespace HBP.Module3D
 {
+    /// <summary>
+    /// Class containing information on how to display each view 
+    /// </summary>
     public class View3D : MonoBehaviour
     {
         #region Properties
@@ -75,6 +78,26 @@ namespace HBP.Module3D
         public int LineID { get; set; }
 
         /// <summary>
+        /// Layer of the view
+        /// </summary>
+        public string Layer { get; set; }
+
+        /// <summary>
+        /// Aspect ratio of the camera
+        /// </summary>
+        public float Aspect
+        {
+            get
+            {
+                return m_Camera3D.Camera.aspect;
+            }
+            set
+            {
+                m_Camera3D.Camera.aspect = value;
+            }
+        }
+
+        /// <summary>
         /// Start or stop the automatic rotation of the camera of this view
         /// </summary>
         public bool AutomaticRotation
@@ -88,7 +111,6 @@ namespace HBP.Module3D
                 m_Camera3D.AutomaticRotation = value;
             }
         }
-
         /// <summary>
         /// Automatic rotation speed
         /// </summary>
@@ -103,7 +125,6 @@ namespace HBP.Module3D
                 m_Camera3D.AutomaticRotationSpeed = value;
             }
         }
-
         /// <summary>
         /// Set the edge mode
         /// </summary>
@@ -118,9 +139,8 @@ namespace HBP.Module3D
                 m_Camera3D.GetComponent<EdgeDetection>().enabled = value;
             }
         }
-
         /// <summary>
-        /// Camera rotation type
+        /// Camera rotation type (trackball or orbital)
         /// </summary>
         public Data.Enums.CameraControl CameraType
         {
@@ -133,11 +153,6 @@ namespace HBP.Module3D
                 m_Camera3D.Type = value;
             }
         }
-
-        /// <summary>
-        /// Layer of the view
-        /// </summary>
-        public string Layer { get; set; }
 
         /// <summary>
         /// Set the texture on which the camera renders
@@ -185,21 +200,6 @@ namespace HBP.Module3D
                 m_Camera3D.Camera.backgroundColor = currentBackground;
                 screenshotRenderTexture.Release();
                 return texture;
-            }
-        }
-
-        /// <summary>
-        /// Aspect ratio of the camera
-        /// </summary>
-        public float Aspect
-        {
-            get
-            {
-                return m_Camera3D.Camera.aspect;
-            }
-            set
-            {
-                m_Camera3D.Camera.aspect = value;
             }
         }
 
@@ -266,7 +266,7 @@ namespace HBP.Module3D
 
         #region Events
         /// <summary>
-        /// Event called when we select this view
+        /// Event called when selecting this view
         /// </summary>
         [HideInInspector] public UnityEvent OnSelect = new UnityEvent();
         /// <summary>

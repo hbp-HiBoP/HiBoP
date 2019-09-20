@@ -147,8 +147,8 @@ namespace HBP.Module3D
                 // iEEG
                 if (column is Column3DDynamic columnIEEG)
                 {
-                    iEEGUnit = columnIEEG.IEEGUnitsBySiteID[siteID];
-                    iEEGActivity = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.Timeline.CurrentIndex];
+                    iEEGUnit = columnIEEG.ActivityUnitsBySiteID[siteID];
+                    iEEGActivity = columnIEEG.ActivityValuesBySiteID[siteID][columnIEEG.Timeline.CurrentIndex];
                 }
                 // Send Event
                 Data.Enums.SiteInformationDisplayMode displayMode;
