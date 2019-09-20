@@ -303,7 +303,7 @@ namespace HBP.Module3D
             set
             {
                 m_HideBlacklistedSites = value;
-                m_SitesNeedUpdate = false;
+                m_SitesUpToDate = false;
             }
         }
 
@@ -324,7 +324,7 @@ namespace HBP.Module3D
                 {
                     column.UpdateROIMask();
                 }
-                m_SitesNeedUpdate = false;
+                m_SitesUpToDate = false;
             }
         }
         
@@ -486,9 +486,9 @@ namespace HBP.Module3D
         /// </summary>
         private bool m_GeneratorNeedsUpdate = true;
         /// <summary>
-        /// True if sites rendering needs an update
+        /// True if sites rendering is up to date
         /// </summary>
-        private bool m_SitesNeedUpdate = true;
+        private bool m_SitesUpToDate = true;
         /// <summary>
         /// True if cuts need an update
         /// </summary>
@@ -684,7 +684,7 @@ namespace HBP.Module3D
                 UpdateCuts();
             }
 
-            if (!m_SitesNeedUpdate)
+            if (!m_SitesUpToDate)
             {
                 UpdateAllColumnsSitesRendering();
                 OnSitesRenderingUpdated.Invoke();
@@ -701,7 +701,7 @@ namespace HBP.Module3D
                 IsSceneCompletelyLoaded = true;
                 if (Visualization.Configuration.FirstColumnToSelect < Columns.Count)
                 {
-                    Columns[Visualization.Configuration.FirstColumnToSelect].SelectFirstSite(Visualization.Configuration.FirstSiteToSelect);
+                    Columns[Visualization.Configuration.FirstColumnToSelect].SelectFirstOrDefaultSiteByName(Visualization.Configuration.FirstSiteToSelect);
                 }
             }
         }
@@ -745,7 +745,7 @@ namespace HBP.Module3D
             List<Column3DDynamic> columns = column ? new List<Column3DDynamic>() { column } : ColumnsDynamic;
             foreach (Column3DDynamic col in columns)
             {
-                column.ComputeSurfaceBrainUVWithIEEG(m_MeshManager.SplittedMeshes);
+                col.ComputeSurfaceBrainUVWithIEEG(m_MeshManager.SplittedMeshes);
             }
             UnityEngine.Profiling.Profiler.EndSample();
         }
@@ -782,7 +782,7 @@ namespace HBP.Module3D
             }
 
             // update plots visibility
-            m_SitesNeedUpdate = false;
+            m_SitesUpToDate = false;
 
             OnIEEGOutdated.Invoke(false);
         }
@@ -809,7 +809,7 @@ namespace HBP.Module3D
                     OnRequestSiteInformation.Invoke(sites);
                 }
             }
-            m_SitesNeedUpdate = false;
+            m_SitesUpToDate = false;
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
@@ -937,18 +937,11 @@ namespace HBP.Module3D
         /// </summary>
         private void UpdateAllColumnsSitesRendering()
         {
-
             foreach (Column3D column in Columns)
             {
-                Latencies latencyFile = null;
-                if (column.CurrentLatencyFile != -1)
-                {
-                    latencyFile = m_ImplantationManager.SelectedImplantation.Latencies[column.CurrentLatencyFile];
-                }
                 column.UpdateSitesRendering(m_ShowAllSites, m_HideBlacklistedSites, m_IsGeneratorUpToDate);
             }
-
-            m_SitesNeedUpdate = true;
+            m_SitesUpToDate = true;
         }
         /// <summary>
         /// Reset color schemes of every columns
@@ -1030,11 +1023,6 @@ namespace HBP.Module3D
             {
                 OnChangeColumnMinimizedState.Invoke();
             });
-            column.OnChangeCCEPParameters.AddListener(() =>
-            {
-                m_SitesNeedUpdate = false;
-                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
-            });
             column.OnSelectSite.AddListener((site) =>
             {
                 ClickOnSiteCallback(site);
@@ -1077,7 +1065,7 @@ namespace HBP.Module3D
                 });
                 dynamicColumn.DynamicParameters.OnUpdateGain.AddListener(() =>
                 {
-                    m_SitesNeedUpdate = false;
+                    m_SitesUpToDate = false;
                     dynamicColumn.IsRenderingUpToDate = false;
                 });
                 dynamicColumn.DynamicParameters.OnUpdateInfluenceDistance.AddListener(() =>
@@ -1092,7 +1080,7 @@ namespace HBP.Module3D
                     {
                         ComputeGUITextures();
                     }
-                    m_SitesNeedUpdate = false;
+                    m_SitesUpToDate = false;
                     dynamicColumn.IsRenderingUpToDate = false;
                 });
                 if (dynamicColumn is Column3DCCEP column3DCCEP)
@@ -1387,7 +1375,7 @@ namespace HBP.Module3D
         public void FinalizeInitialization()
         {
             Columns[0].Views[0].IsSelected = true; // Select default view
-            Columns[0].SelectFirstSite();
+            Columns[0].SelectFirstOrDefaultSiteByName();
             m_Initialized = true;
             this.StartCoroutineAsync(c_LoadMissingAnatomy());
         }
@@ -1443,7 +1431,7 @@ namespace HBP.Module3D
             }
             ROICreationMode = !ROICreationMode;
 
-            m_SitesNeedUpdate = false;
+            m_SitesUpToDate = false;
 
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
@@ -1632,7 +1620,7 @@ namespace HBP.Module3D
         public void ResetIEEG(bool hardReset = true)
         {
             m_GeneratorNeedsUpdate = true;
-            m_SitesNeedUpdate = false;
+            m_SitesUpToDate = false;
             if (hardReset)
             {
                 IsGeneratorUpToDate = false;
@@ -1705,7 +1693,7 @@ namespace HBP.Module3D
                     else if (raycastResult == Data.Enums.RaycastHitResult.Mesh || raycastResult == Data.Enums.RaycastHitResult.Cut)
                     {
                         selectedROI.AddBubble(SelectedColumn.Layer, "Bubble", hitPoint, 5.0f);
-                        m_SitesNeedUpdate = false;
+                        m_SitesUpToDate = false;
                     }
                     else
                     {
@@ -2039,7 +2027,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < ColumnsDynamic.Count; ++ii)
             {
                 yield return Ninja.JumpToUnity;
-                OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + ColumnsDynamic[ii].Label, timeByProgress);
+                OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + ColumnsDynamic[ii].Name, timeByProgress);
                 yield return Ninja.JumpBack;
 
                 float currentMaxDensity, currentMinInfluence, currentMaxInfluence;
@@ -2055,7 +2043,7 @@ namespace HBP.Module3D
                 for (int jj = 0; jj < m_MeshManager.MeshSplitNumber; ++jj)
                 {
                     yield return Ninja.JumpToUnity;
-                    OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + ColumnsDynamic[ii].Label, timeByProgress);
+                    OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + ColumnsDynamic[ii].Name, timeByProgress);
                     yield return Ninja.JumpBack;
                     if (m_GeneratorNeedsUpdate) yield break;
                     ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].InitializeOctree(ColumnsDynamic[ii].RawElectrodes);
@@ -2083,7 +2071,7 @@ namespace HBP.Module3D
                 // volume
                 yield return Ninja.JumpToUnity;
                 currentProgress += 10;
-                OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + ColumnsDynamic[ii].Label, timeByProgress * 10);
+                OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + ColumnsDynamic[ii].Name, timeByProgress * 10);
                 yield return Ninja.JumpBack;
                 if (m_GeneratorNeedsUpdate) yield break;
                 ColumnsDynamic[ii].DLLMRIVolumeGenerator.InitializeOctree(ColumnsDynamic[ii].RawElectrodes);

@@ -154,10 +154,10 @@ namespace HBP.Module3D
         {
             base.UpdateSites(sites, sceneSitePatientParent);
             
-            m_ElectrodesSizeScale = new List<Vector3>(m_RawElectrodes.NumberOfSites);
-            m_ElectrodesPositiveColor = new List<bool>(m_RawElectrodes.NumberOfSites);
+            m_ElectrodesSizeScale = new List<Vector3>(RawElectrodes.NumberOfSites);
+            m_ElectrodesPositiveColor = new List<bool>(RawElectrodes.NumberOfSites);
             
-            for (int ii = 0; ii < m_RawElectrodes.NumberOfSites; ii++)
+            for (int ii = 0; ii < RawElectrodes.NumberOfSites; ii++)
             {
                 m_ElectrodesSizeScale.Add(new Vector3(1, 1, 1));
                 m_ElectrodesPositiveColor.Add(true);

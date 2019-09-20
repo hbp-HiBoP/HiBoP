@@ -156,7 +156,7 @@ namespace HBP.UI.Module3D
         {
             Column = column;
 
-            m_MinimizedGameObject.GetComponentInChildren<Text>().text = Column.Label;
+            m_MinimizedGameObject.GetComponentInChildren<Text>().text = Column.Name;
             m_MinimizedGameObject.SetActive(false);
 
             m_Colormap.Setup(scene, column, this);

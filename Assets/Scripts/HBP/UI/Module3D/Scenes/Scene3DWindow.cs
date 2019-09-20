@@ -153,7 +153,7 @@ namespace HBP.UI.Module3D
                             {
                                 try
                                 {
-                                    string viewFilePath = path + string.Format("{0}_{1}_{2}_Brain.png", openedProjectName, m_Scene.Name, column.Label);
+                                    string viewFilePath = path + string.Format("{0}_{1}_{2}_Brain.png", openedProjectName, m_Scene.Name, column.Name);
                                     ClassLoaderSaver.GenerateUniqueSavePath(ref viewFilePath);
                                     view.ScreenshotTexture.SaveToPNG(viewFilePath);
                                 }

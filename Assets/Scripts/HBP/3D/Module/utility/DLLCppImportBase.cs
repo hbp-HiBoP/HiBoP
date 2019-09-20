@@ -36,7 +36,7 @@ namespace Tools.DLL
         {
             create_DLL_class();
 #if UNITY_EDITOR
-            ApplicationState.DLLDebugManager.AddDLLObject(ToString(), m_ID);
+            ApplicationState.DLLDebugManager?.AddDLLObject(ToString(), m_ID);
 #endif
         }
         /// <summary>
@@ -47,7 +47,7 @@ namespace Tools.DLL
         {
             _handle = new HandleRef(this, ptr);
 #if UNITY_EDITOR
-            ApplicationState.DLLDebugManager.AddDLLObject(ToString(), m_ID);
+            ApplicationState.DLLDebugManager?.AddDLLObject(ToString(), m_ID);
 #endif
         }
         /// <summary>
@@ -56,7 +56,7 @@ namespace Tools.DLL
         ~CppDLLImportBase()
         {
 #if UNITY_EDITOR
-            ApplicationState.DLLDebugManager.RemoveDLLOBject(ToString(), m_ID, HBP.Module3D.DLL.DLLDebugManager.CleanedBy.GC);
+            ApplicationState.DLLDebugManager?.RemoveDLLOBject(ToString(), m_ID, HBP.Module3D.DLL.DLLDebugManager.CleanedBy.GC);
 #endif
             Cleanup();
         }
@@ -74,7 +74,7 @@ namespace Tools.DLL
         public virtual void Dispose()
         {
 #if UNITY_EDITOR
-            ApplicationState.DLLDebugManager.RemoveDLLOBject(ToString(), m_ID, HBP.Module3D.DLL.DLLDebugManager.CleanedBy.Dispose);
+            ApplicationState.DLLDebugManager?.RemoveDLLOBject(ToString(), m_ID, HBP.Module3D.DLL.DLLDebugManager.CleanedBy.Dispose);
 #endif
             Cleanup();
             GC.SuppressFinalize(this);

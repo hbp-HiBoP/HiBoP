@@ -58,7 +58,7 @@ namespace HBP.UI.Module3D
             base.Setup(scene, column, columnUI);
             IsActive = true;
 
-            m_Text.text = column.Label;
+            m_Text.text = column.Name;
             m_Left.onClick.AddListener(() =>
             {
                 columnUI.Move(-1);
@@ -75,7 +75,7 @@ namespace HBP.UI.Module3D
                 Destroy(m_CurrentImage);
             }
             m_CurrentImage = Instantiate(m_ColumnImagePrefab, m_ColumnUI.ParentGrid.transform);
-            m_CurrentImage.transform.Find("Label").GetComponent<Text>().text = m_ColumnUI.Column.Label;
+            m_CurrentImage.transform.Find("Label").GetComponent<Text>().text = m_ColumnUI.Column.Name;
         }
 
         public void OnPointerUp(PointerEventData eventData)
