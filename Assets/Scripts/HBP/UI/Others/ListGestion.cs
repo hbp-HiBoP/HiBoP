@@ -108,25 +108,26 @@ namespace Tools.Unity.Components
             creatorWindow.IsLoadableFromDatabase = typeof(T).GetInterfaces().Contains(typeof(ILoadableFromDatabase<T>));
             creatorWindow.OnSave.AddListener(() => OnSaveCreator(creatorWindow));
         }
-        protected virtual void OpenSelector(T[] objects, bool multiSelection = false, bool openSelected = true)
+        protected virtual void OpenSelector(T[] objects, bool multiSelection = false, bool openSelected = true, bool generateNewIDs = true)
         {
             ObjectSelector<T> selector = ApplicationState.WindowsManager.OpenSelector<T>();
             SubWindows.Add(selector);
             selector.OnClose.AddListener(() => OnCloseSubWindow(selector));
-            selector.OnSave.AddListener(() => OnSaveSelector(selector));
+            selector.OnSave.AddListener(() => OnSaveSelector(selector, generateNewIDs));
             selector.Objects = objects;
             selector.MultiSelection = multiSelection;
             selector.OpenModifierWhenSave = openSelected;
             OnOpenSavableWindow.Invoke(selector);
             SubWindows.Add(selector);
         }
-        protected virtual void OpenModifier(T item, bool interactable)
+        protected virtual ItemModifier<T> OpenModifier(T item, bool interactable)
         {
             ItemModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(item, interactable);
             modifier.OnClose.AddListener(() => OnCloseSubWindow(modifier));
             modifier.OnSave.AddListener(() => OnSaveModifier(modifier));
             OnOpenSavableWindow.Invoke(modifier);
             SubWindows.Add(modifier);
+            return modifier;
         }
         protected virtual void OnCloseSubWindow(SavableWindow subWindow)
         {
@@ -165,20 +166,25 @@ namespace Tools.Unity.Components
                     }
                     break;
                 case HBP.Data.Enums.CreationType.FromDatabase:
-                    LoadFromDatabase(out T[] items);
-                    OpenSelector(items, true, false);
+                    if(LoadFromDatabase(out T[] items))
+                    {
+                        OpenSelector(items, true, false, false);
+                    }
                     break;
             }
         }
-        protected virtual void OnSaveSelector(ObjectSelector<T> selector)
+        protected virtual void OnSaveSelector(ObjectSelector<T> selector, bool generateNewIDs = true)
         {
             foreach(var selectedItem in selector.ObjectsSelected)
             {
                 T cloneItem = (T)selectedItem.Clone();
-                if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
+                if(generateNewIDs)
                 {
-                    IIdentifiable identifiable = cloneItem as IIdentifiable;
-                    identifiable.GenerateID();
+                    if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
+                    {
+                        IIdentifiable identifiable = cloneItem as IIdentifiable;
+                        identifiable.GenerateID();
+                    }
                 }
                 if (cloneItem != null)
                 {

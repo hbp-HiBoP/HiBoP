@@ -13,7 +13,11 @@ namespace HBP.Data.Experience.Protocol
         {
 
         }
-        public MaxTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, int order, string id) : base(useOnWindow, window, useOnBaseline, baseline, order, id)
+        public MaxTreatment(string ID) : base(ID)
+        {
+
+        }
+        public MaxTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
         {
         }
         #endregion

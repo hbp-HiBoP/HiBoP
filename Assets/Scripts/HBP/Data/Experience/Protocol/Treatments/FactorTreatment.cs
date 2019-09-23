@@ -17,6 +17,10 @@ namespace HBP.Data.Experience.Protocol
         {
             Factor = 1;
         }
+        public FactorTreatment(string ID) : base(ID)
+        {
+            Factor = 1;
+        }
         public FactorTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, float factor, int order, string id) : base(useOnWindow, window, useOnBaseline, baseline, order, id)
         {
             Factor = factor;

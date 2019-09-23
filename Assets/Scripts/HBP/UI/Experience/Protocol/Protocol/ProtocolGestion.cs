@@ -39,6 +39,9 @@ namespace HBP.UI.Experience.Protocol
                 {
                     ApplicationState.ProjectLoaded.SetProtocols(m_ProtocolListGestion.Objects);
                     base.Save();
+                    FindObjectOfType<MenuButtonState>().SetInteractables();
+                    GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+                    ApplicationState.LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckDatasets(onChangeProgress, m_ProtocolListGestion.ModifiedProtocols), onChangeProgress);
                     DataManager.Clear();
                     ApplicationState.Module3D.ReloadScenes();
                 });
@@ -47,10 +50,10 @@ namespace HBP.UI.Experience.Protocol
             {
                 ApplicationState.ProjectLoaded.SetProtocols((m_ProtocolListGestion.Objects));
                 base.Save();
+                FindObjectOfType<MenuButtonState>().SetInteractables();
+                GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+                ApplicationState.LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckDatasets(onChangeProgress, m_ProtocolListGestion.ModifiedProtocols), onChangeProgress);
             }
-            FindObjectOfType<MenuButtonState>().SetInteractables();
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            ApplicationState.LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckDatasets(onChangeProgress, m_ProtocolListGestion.ModifiedProtocols), onChangeProgress);
         }
         #endregion
 

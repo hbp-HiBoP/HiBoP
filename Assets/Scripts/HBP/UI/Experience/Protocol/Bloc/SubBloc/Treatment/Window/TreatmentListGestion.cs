@@ -89,7 +89,7 @@ namespace HBP.UI.Experience.Protocol
                     break;
             }
         }
-        protected override void OpenModifier(Treatment item, bool interactable)
+        protected override ItemModifier<Treatment> OpenModifier(Treatment item, bool interactable)
         {
             TreatmentModifier modifier = ApplicationState.WindowsManager.OpenModifier(item, interactable) as TreatmentModifier;
             modifier.Window = Window;
@@ -98,6 +98,7 @@ namespace HBP.UI.Experience.Protocol
             modifier.OnSave.AddListener(() => OnSaveModifier(modifier));
             OnOpenSavableWindow.Invoke(modifier);
             SubWindows.Add(modifier);
+            return modifier;
         }
         #endregion
     }

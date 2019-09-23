@@ -40,6 +40,13 @@ namespace HBP.Data.Experience.Protocol
                 return Blocs.OrderBy(s => s.Order).ThenBy(s => s.Name);
             }
         }
+        public bool IsVisualizable
+        {
+            get
+            {
+                return Blocs.Count > 0 && Blocs.All(b => b.IsVisualizable);
+            }
+        }
         #endregion
 
         #region Constructors
@@ -48,8 +55,8 @@ namespace HBP.Data.Experience.Protocol
         /// </summary>
         /// <param name="name">Name of the protocol.</param>
         /// <param name="blocs">Blocs of the protocol.</param>
-        /// <param name="id">Unique ID of the protocol.</param>
-        public Protocol(string name,IEnumerable<Bloc> blocs,string id) : base(id)
+        /// <param name="ID">Unique ID of the protocol.</param>
+        public Protocol(string name,IEnumerable<Bloc> blocs,string ID) : base(ID)
         {
             Name = name;
             Blocs = blocs.ToList();
@@ -67,7 +74,7 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// Create a new protocol instance with default values.
         /// </summary>
-        public Protocol() : this(string.Empty,new List<Bloc>())
+        public Protocol() : this("New protocol",new List<Bloc>())
 		{
         }
         #endregion
@@ -112,7 +119,7 @@ namespace HBP.Data.Experience.Protocol
         /// <returns>Instance cloned.</returns>
         public override object Clone()
         {
-            return new Protocol(Name.Clone() as string, new List<Bloc>(Blocs.ToArray().DeepClone()), ID.Clone() as string);
+            return new Protocol(Name, Blocs.DeepClone(), ID);
         }
         /// <summary>
         /// Copy the instance.

@@ -23,7 +23,14 @@ namespace HBP.Data.Experience.Protocol
             AfterMin = -1;
             AfterMax = 1;
         }
-        public RescaleTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, float beforeMin, float beforeMax, float afterMin, float afterMax, int order, string id) : base(useOnWindow, window, useOnBaseline, baseline, order, id)
+        public RescaleTreatment(string ID) : base(ID)
+        {
+            BeforeMin = 80;
+            BeforeMax = 120;
+            AfterMin = -1;
+            AfterMax = 1;
+        }
+        public RescaleTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, float beforeMin, float beforeMax, float afterMin, float afterMax, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
         {
             BeforeMin = beforeMin;
             BeforeMax = beforeMax;

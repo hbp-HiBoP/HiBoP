@@ -8,7 +8,7 @@ namespace HBP.UI.Experience.Protocol
 	/// </summary>
 	public class EventList : Tools.Unity.Lists.SelectableListWithItemAction<Data.Experience.Protocol.Event> 
 	{
-        #region Proterties
+        #region Properties
         enum OrderBy { None, Name, DescendingName, Code, DescendingCode, Type, DescendingType }
         OrderBy m_OrderBy = OrderBy.None;
 

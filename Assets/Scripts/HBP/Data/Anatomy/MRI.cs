@@ -44,7 +44,7 @@ namespace HBP.Data.Anatomy
         #endregion
 
         #region Constructors
-        public MRI(string name, string path, string id) : base(id)
+        public MRI(string name, string path, string ID) : base(ID)
         {
             Name = name;
             File = path;

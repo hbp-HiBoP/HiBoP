@@ -25,18 +25,6 @@ namespace HBP.UI.Anatomy
                 m_RightMarsAtlasFileSelector.interactable = value;
             }
         }
-        public override LeftRightMesh Object
-        {
-            get => base.Object;
-            set
-            {
-                base.Object = value;
-                m_LeftMeshFileSelector.File = value.SavedLeftHemisphere;
-                m_RightMeshFileSelector.File = value.SavedRightHemisphere;
-                m_LeftMarsAtlasFileSelector.File = value.SavedLeftMarsAtlasHemisphere;
-                m_RightMarsAtlasFileSelector.File = value.SavedRightMarsAtlasHemisphere;
-            }
-        }
         #endregion
 
         #region Public Methods
@@ -47,6 +35,18 @@ namespace HBP.UI.Anatomy
             m_RightMeshFileSelector.onValueChanged.AddListener((path) => Object.RightHemisphere = path);
             m_LeftMarsAtlasFileSelector.onValueChanged.AddListener((path) => Object.LeftMarsAtlasHemisphere = path);
             m_RightMarsAtlasFileSelector.onValueChanged.AddListener((path) => Object.RightMarsAtlasHemisphere = path);
+        }
+
+        #endregion
+
+        #region Protected Methods
+        protected override void SetFields(LeftRightMesh objectToDisplay)
+        {
+            base.SetFields(objectToDisplay);
+            m_LeftMeshFileSelector.File = objectToDisplay.SavedLeftHemisphere;
+            m_RightMeshFileSelector.File = objectToDisplay.SavedRightHemisphere;
+            m_LeftMarsAtlasFileSelector.File = objectToDisplay.SavedLeftMarsAtlasHemisphere;
+            m_RightMarsAtlasFileSelector.File = objectToDisplay.SavedRightMarsAtlasHemisphere;
         }
         #endregion
     }

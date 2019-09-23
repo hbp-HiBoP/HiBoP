@@ -94,16 +94,13 @@ namespace HBP.UI.Experience.Protocol
                 m_FactorTreatmentSubModifier.Interactable = value;
             }
         }
-
         #endregion
 
         #region Public Methods
         public override void Save()
         {
-            ItemTemp.ID = Item.ID;
-            Item = ItemTemp;
-            OnSave.Invoke();
-            base.Close();
+            item = ItemTemp;
+            base.Save();
         }
         public void OnChangeOrder(int order)
         {
@@ -125,36 +122,27 @@ namespace HBP.UI.Experience.Protocol
             m_TypeDropdown.onValueChanged.AddListener(OnChangeType);
             m_Types = m_TypeDropdown.Set(typeof(d.Treatment));
 
-            m_SubModifiers = new List<BaseSubModifier>();
-
             m_ClampTreatmentSubModifier.Initialize();
-            m_SubModifiers.Add(m_ClampTreatmentSubModifier);
-
             m_AbsTreatmentSubModifier.Initialize();
-            m_SubModifiers.Add(m_AbsTreatmentSubModifier);
-
             m_MaxTreatmentSubModifier.Initialize();
-            m_SubModifiers.Add(m_MaxTreatmentSubModifier);
-
             m_MinTreatmentSubModifier.Initialize();
-            m_SubModifiers.Add(m_MinTreatmentSubModifier);
-
             m_MeanTreatmentSubModifier.Initialize();
-            m_SubModifiers.Add(m_MeanTreatmentSubModifier);
-
             m_MedianTreatmentSubModifier.Initialize();
-            m_SubModifiers.Add(m_MedianTreatmentSubModifier);
-
             m_OffsetTreatmentSubModifier.Initialize();
-            m_SubModifiers.Add(m_OffsetTreatmentSubModifier);
-
             m_RescaleTreatmentSubModifier.Initialize();
-            m_SubModifiers.Add(m_RescaleTreatmentSubModifier);
-
             m_ThresholdTreatmentSubModifier.Initialize();
-            m_SubModifiers.Add(m_ThresholdTreatmentSubModifier);
-
             m_FactorTreatmentSubModifier.Initialize();
+
+            m_SubModifiers = new List<BaseSubModifier>();
+            m_SubModifiers.Add(m_ClampTreatmentSubModifier);
+            m_SubModifiers.Add(m_AbsTreatmentSubModifier);
+            m_SubModifiers.Add(m_MaxTreatmentSubModifier);
+            m_SubModifiers.Add(m_MinTreatmentSubModifier);
+            m_SubModifiers.Add(m_MeanTreatmentSubModifier);
+            m_SubModifiers.Add(m_MedianTreatmentSubModifier);
+            m_SubModifiers.Add(m_OffsetTreatmentSubModifier);
+            m_SubModifiers.Add(m_RescaleTreatmentSubModifier);
+            m_SubModifiers.Add(m_ThresholdTreatmentSubModifier);
             m_SubModifiers.Add(m_FactorTreatmentSubModifier);
 
             m_TreatmentsTemp = new List<d.Treatment>();
@@ -197,7 +185,7 @@ namespace HBP.UI.Experience.Protocol
             m_SubModifiers.Find(subModifier => subModifier.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(itemTemp.GetType()))).IsActive = false;
 
             d.Treatment treatment = m_TreatmentsTemp.Find(t => t.GetType() == type);
-            treatment.Copy(ItemTemp);
+            treatment.Copy(itemTemp);
             itemTemp = treatment;
 
             // Open new subModifier;

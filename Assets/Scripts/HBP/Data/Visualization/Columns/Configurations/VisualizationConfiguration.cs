@@ -8,7 +8,7 @@ using System.Linq;
 namespace HBP.Data.Visualization
 {
     [DataContract]
-    public class VisualizationConfiguration : ICloneable
+    public class VisualizationConfiguration : BaseData
     {
         #region Properties
         /// <summary>
@@ -114,7 +114,7 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, List<Cut> cuts, List<View> views)
+        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views) : base()
         {
             BrainColor = brainColor;
             BrainCutColor = brainCutColor;
@@ -130,24 +130,68 @@ namespace HBP.Data.Visualization
             MRICalMinFactor = mRICalMinFactor;
             MRICalMaxFactor = mRICalMaxFactor;
             CameraType = cameraType;
-            Cuts = cuts;
-            Views = views;
+            Cuts = cuts.ToList();
+            Views = views.ToList();
         }
-        public VisualizationConfiguration()
+        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, string ID) : base(ID)
+        {
+            BrainColor = brainColor;
+            BrainCutColor = brainCutColor;
+            EEGColormap = eEGColormap;
+            MeshPart = meshPart;
+            MeshName = meshName;
+            MRIName = mRIName;
+            ImplantationName = implantationName;
+            ShowEdges = showEdges;
+            StrongCuts = strongCuts;
+            HideBlacklistedSites = hideBlacklistedSites;
+            ShowAllSites = showAllSites;
+            MRICalMinFactor = mRICalMinFactor;
+            MRICalMaxFactor = mRICalMaxFactor;
+            CameraType = cameraType;
+            Cuts = cuts.ToList();
+            Views = views.ToList();
+        }
+        public VisualizationConfiguration() : base()
         {
         }
         #endregion
 
         #region Public Methods
-        public object Clone()
+        public override object Clone()
         {
             VisualizationConfiguration result = new VisualizationConfiguration(BrainColor, BrainCutColor, EEGColormap,
                 MeshPart, MeshName, MRIName, ImplantationName, ShowEdges, StrongCuts,
                 HideBlacklistedSites, ShowAllSites, MRICalMinFactor,
-                MRICalMaxFactor, CameraType, Cuts.ToList(), Views.ToList());
+                MRICalMaxFactor, CameraType, Cuts, Views, ID);
             result.FirstSiteToSelect = FirstSiteToSelect;
             result.FirstColumnToSelect = FirstColumnToSelect;
             return result;
+        }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+            if(copy is VisualizationConfiguration visualizationConfiguration)
+            {
+                BrainColor = visualizationConfiguration.BrainColor;
+                BrainCutColor = visualizationConfiguration.BrainCutColor;
+                EEGColormap = visualizationConfiguration.EEGColormap;
+                MeshPart = visualizationConfiguration.MeshPart;
+                MeshName = visualizationConfiguration.MeshName;
+                MRIName = visualizationConfiguration.MRIName;
+                ImplantationName = visualizationConfiguration.ImplantationName;
+                ShowEdges = visualizationConfiguration.ShowEdges;
+                StrongCuts = visualizationConfiguration.StrongCuts;
+                HideBlacklistedSites = visualizationConfiguration.HideBlacklistedSites;
+                ShowAllSites = visualizationConfiguration.ShowAllSites;
+                MRICalMinFactor = visualizationConfiguration.MRICalMinFactor;
+                MRICalMaxFactor = visualizationConfiguration.MRICalMaxFactor;
+                CameraType = visualizationConfiguration.CameraType;
+                Cuts = visualizationConfiguration.Cuts;
+                Views = visualizationConfiguration.Views;
+                FirstColumnToSelect = visualizationConfiguration.FirstColumnToSelect;
+                FirstSiteToSelect = visualizationConfiguration.FirstSiteToSelect;
+            }
         }
         #endregion
     }

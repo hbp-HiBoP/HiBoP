@@ -1,19 +1,24 @@
 ﻿using UnityEngine.UI;
-using HBP.Data.Anatomy;
 using Tools.Unity;
 using UnityEngine;
+using System.Collections.Generic;
+using System;
 
 namespace HBP.UI.Anatomy
 {
     public class MeshModifier : ItemModifier<Data.Anatomy.Mesh>
 {
         #region Properties
-        enum Type { Single, LeftRight}
         [SerializeField] InputField m_NameInputField;
         [SerializeField] Dropdown m_TypeDropdown;
+        [SerializeField] FileSelector m_TransformationFileSelector;
+
         [SerializeField] SingleMeshSubModifier m_SingleMeshSubModifier;
         [SerializeField] LeftRightMeshSubModifier m_LeftRightMeshSubModifier;
-        [SerializeField] FileSelector m_TransformationFileSelector;
+
+        Type[] m_Types;
+        List<BaseSubModifier> m_SubModifiers;
+        List<Data.Anatomy.Mesh> m_MeshesTemp;
 
         public override bool Interactable
         {
@@ -28,9 +33,10 @@ namespace HBP.UI.Anatomy
 
                 m_NameInputField.interactable = value;
                 m_TypeDropdown.interactable = value;
+                m_TransformationFileSelector.interactable = value;
+
                 m_SingleMeshSubModifier.Interactable = value;
                 m_LeftRightMeshSubModifier.Interactable = value;
-                m_TransformationFileSelector.interactable = value;
             }
         }
         #endregion
@@ -38,66 +44,69 @@ namespace HBP.UI.Anatomy
         #region Public Methods
         public override void Save()
         {
-            if (m_TypeDropdown.value == (int)Type.Single)
-            {
-                SingleMesh mesh = (SingleMesh) ItemTemp;
-                Item = new SingleMesh(mesh.Name, mesh.Transformation, mesh.ID, mesh.Path, mesh.MarsAtlasPath);
-            }
-            else if (m_TypeDropdown.value == (int)Type.LeftRight)
-            {
-                LeftRightMesh mesh = (LeftRightMesh)ItemTemp;
-                Item = new LeftRightMesh(mesh.Name, mesh.Transformation, mesh.ID, mesh.LeftHemisphere, mesh.RightHemisphere, mesh.LeftMarsAtlasHemisphere, mesh.RightMarsAtlasHemisphere);
-            }
-            Item.RecalculateUsable();
-            OnSave.Invoke();
-            base.Close();
+            item = ItemTemp;
+            item.RecalculateUsable();
+            base.Save();
         }
         #endregion
 
         #region Private Methods
-        protected override void SetFields(Data.Anatomy.Mesh objectToDisplay)
-        {
-            m_NameInputField.text = objectToDisplay.Name;
-            m_TypeDropdown.Set(typeof(Type), objectToDisplay is LeftRightMesh ? 1 : 0);
-            m_TransformationFileSelector.File = objectToDisplay.SavedTransformation;
-        }
         protected override void Initialize()
         {
             base.Initialize();
 
-            m_NameInputField.onValueChanged.RemoveAllListeners();
-            m_NameInputField.onValueChanged.AddListener((name) => ItemTemp.Name = name);
+            m_NameInputField.onValueChanged.AddListener(OnChangeName);
+            m_TransformationFileSelector.onValueChanged.AddListener(OnChangeTransformation);
 
-            m_TypeDropdown.onValueChanged.RemoveAllListeners();
-            m_TypeDropdown.onValueChanged.AddListener(ChangeMeshType);
+            m_TypeDropdown.onValueChanged.AddListener(OnChangeType);
+            m_Types = m_TypeDropdown.Set(typeof(Data.Anatomy.Mesh));
 
-            m_TransformationFileSelector.onValueChanged.RemoveAllListeners();
-            m_TransformationFileSelector.onValueChanged.AddListener((path) => ItemTemp.Transformation = path);
+            m_SingleMeshSubModifier.Initialize();
+            m_LeftRightMeshSubModifier.Initialize();
+
+            m_SubModifiers = new List<BaseSubModifier>();
+            m_SubModifiers.Add(m_SingleMeshSubModifier);
+            m_SubModifiers.Add(m_LeftRightMeshSubModifier);
+
+            m_MeshesTemp = new List<Data.Anatomy.Mesh>();
+            m_MeshesTemp.Add(new Data.Anatomy.SingleMesh());
+            m_MeshesTemp.Add(new Data.Anatomy.LeftRightMesh());
+
         }
-        void ChangeMeshType(int i)
+        protected override void SetFields(Data.Anatomy.Mesh objectToDisplay)
         {
-            if(i == 0)
-            {
-                if(!(ItemTemp is SingleMesh))
-                {
-                    LeftRightMesh leftRightMesh = ItemTemp as LeftRightMesh;
-                    itemTemp = new SingleMesh(leftRightMesh.Name, leftRightMesh.Transformation, leftRightMesh.ID, leftRightMesh.LeftHemisphere, leftRightMesh.LeftMarsAtlasHemisphere);
-                }
-                m_LeftRightMeshSubModifier.IsActive = false;
-                m_SingleMeshSubModifier.Object = ItemTemp as SingleMesh;
-                m_SingleMeshSubModifier.IsActive = true;
-            }
-            else if(i == 1)
-            {
-                if(!(ItemTemp is LeftRightMesh))
-                {
-                    SingleMesh singleMesh = ItemTemp as SingleMesh;
-                    itemTemp = new LeftRightMesh(singleMesh.Name, singleMesh.Transformation, singleMesh.ID, singleMesh.Path, singleMesh.Path, singleMesh.MarsAtlasPath, singleMesh.MarsAtlasPath);
-                }
-                m_SingleMeshSubModifier.IsActive = false;
-                m_LeftRightMeshSubModifier.Object = ItemTemp as LeftRightMesh;
-                m_LeftRightMeshSubModifier.IsActive = true;
-            }
+            int index = m_MeshesTemp.FindIndex(t => t.GetType() == ItemTemp.GetType());
+            m_MeshesTemp[index] = ItemTemp;
+
+            m_NameInputField.text = objectToDisplay.Name;
+
+            m_TypeDropdown.SetValue(Array.IndexOf(m_Types, objectToDisplay.GetType()));
+
+            m_TransformationFileSelector.File = objectToDisplay.SavedTransformation;
+        }
+        protected void OnChangeType(int value)
+        {
+            Type type = m_Types[value];
+
+            // Close old subModifier
+            m_SubModifiers.Find(subModifier => subModifier.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(itemTemp.GetType()))).IsActive = false;
+
+            Data.Anatomy.Mesh mesh = m_MeshesTemp.Find(t => t.GetType() == type);
+            mesh.Copy(itemTemp);
+            itemTemp = mesh;
+
+            // Open new subModifier;
+            BaseSubModifier newSubModifier = m_SubModifiers.Find(subModifier => subModifier.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(type)));
+            newSubModifier.IsActive = true;
+            newSubModifier.Object = itemTemp;
+        }
+        protected void OnChangeName(string name)
+        {
+            ItemTemp.Name = name;
+        }
+        protected void OnChangeTransformation(string path)
+        {
+            ItemTemp.Transformation = path;
         }
         #endregion
     }

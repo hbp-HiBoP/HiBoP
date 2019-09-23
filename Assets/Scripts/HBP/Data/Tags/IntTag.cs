@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Runtime.Serialization;
+using UnityEngine;
+using UnityEngine.Events;
 
 namespace HBP.Data.Tags
 {
@@ -8,9 +10,48 @@ namespace HBP.Data.Tags
     public class IntTag : Tag
     {
         #region Properties
-        [DataMember] public bool Limited { get; set; }
-        [DataMember] public int Min { get; set; }
-        [DataMember] public int Max { get; set; }
+        [DataMember(Name = "Clamped")] bool m_Clamped;
+        public bool Clamped
+        {
+            get => m_Clamped;
+            set
+            {
+                if (m_Clamped != value)
+                {
+                    m_Clamped = value;
+                    OnNeedToRecalculateValue.Invoke();
+                }
+            }
+        }
+        [DataMember(Name = "Min")] int m_Min;
+        public int Min
+        {
+            get => m_Min;
+            set
+            {
+                if (m_Min != value)
+                {
+                    m_Min = value;
+                    OnNeedToRecalculateValue.Invoke();
+                }
+            }
+
+        }
+        [DataMember(Name = "Max")] int m_Max;
+        public int Max
+        {
+            get => m_Max;
+            set
+            {
+                if (m_Max != value)
+                {
+                    m_Max = value;
+                    OnNeedToRecalculateValue.Invoke();
+                }
+            }
+        }
+
+        public UnityEvent OnNeedToRecalculateValue { get; set; } = new UnityEvent();
         #endregion
 
         #region Constructors
@@ -25,21 +66,25 @@ namespace HBP.Data.Tags
         {
 
         }
-        public IntTag(string name, bool limited, int min, int max) : base(name)
+        public IntTag(string name, bool clamped, int min, int max) : base(name)
         {
-            Limited = limited;
+            Clamped = clamped;
             Min = min;
             Max = max;
         }
-        public IntTag(string name, bool limited, int min, int max, string ID) : base(name, ID)
+        public IntTag(string name, bool clamped, int min, int max, string ID) : base(name, ID)
         {
-            Limited = limited;
+            Clamped = clamped;
             Min = min;
             Max = max;
         }
         #endregion
 
         #region Public Methods
+        public int Clamp(int value)
+        {
+            return Clamped ? Mathf.Clamp(value, Min, Max) : value;
+        }
         public int Convert(object value)
         {
             if (value != null && value is int)
@@ -53,16 +98,22 @@ namespace HBP.Data.Tags
         }
         public override object Clone()
         {
-            return new IntTag(Name.Clone() as string, Limited, Min, Max, ID);
+            return new IntTag(Name, Clamped, Min, Max, ID);
         }
         public override void Copy(object copy)
         {
             base.Copy(copy);
             if(copy is IntTag intTag)
             {
-                Limited = intTag.Limited;
+                Clamped = intTag.Clamped;
                 Min = intTag.Min;
                 Max = intTag.Max;
+            }
+            if(copy is FloatTag floatTag)
+            {
+                Clamped = floatTag.Clamped;
+                Min = (int) floatTag.Min;
+                Max = (int) floatTag.Max;
             }
         }
         #endregion

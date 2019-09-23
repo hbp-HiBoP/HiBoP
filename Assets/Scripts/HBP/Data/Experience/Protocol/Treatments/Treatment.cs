@@ -26,10 +26,14 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Constructors
-        public Treatment() : this(true, new Window(), false, new Window(), 0, Guid.NewGuid().ToString())
+        public Treatment() : this(true, new Window(), false, new Window(), 0)
         {
         }
-        public Treatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, int order, string id) : base(id)
+        public Treatment(string ID) : this(true, new Window(), false, new Window(), 0, ID)
+        {
+
+        }
+        public Treatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, int order) : base()
         {
             UseOnWindow = useOnWindow;
             Window = window;
@@ -37,7 +41,7 @@ namespace HBP.Data.Experience.Protocol
             Baseline = baseline;
             Order = order;
         }
-        public Treatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, int order) : base()
+        public Treatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, int order, string ID) : base(ID)
         {
             UseOnWindow = useOnWindow;
             Window = window;

@@ -26,11 +26,15 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Constructors
-        public CCEPDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string channel, string id) : base(name, dataContainer, patient, id)
+        public CCEPDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string channel, string ID) : base(name, dataContainer, patient, ID)
         {
             StimulatedChannel = channel;
         }
-        public CCEPDataInfo() : this("Data", new Container.Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), "", Guid.NewGuid().ToString())
+        public CCEPDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string channel) : base(name, dataContainer, patient)
+        {
+            StimulatedChannel = channel;
+        }
+        public CCEPDataInfo() : this("Data", new Container.Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), "")
         {
 
         }
@@ -95,7 +99,7 @@ namespace HBP.Data.Experience.Dataset
                 }
                 Tools.CSharp.EEG.File file = new Tools.CSharp.EEG.File(type, false, files);
                 List<Tools.CSharp.EEG.Trigger> triggers = file.Triggers;
-                if (!protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))))
+                if (protocol.IsVisualizable && !protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))))
                 {
                     errors.Add(new BlocsCantBeEpochedError());
                 }

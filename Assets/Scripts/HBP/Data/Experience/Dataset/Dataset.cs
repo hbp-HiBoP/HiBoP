@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using UnityEngine.Events;
 using Tools.Unity;
 using System.IO;
+using Tools.CSharp;
 
 namespace HBP.Data.Experience.Dataset
 {
@@ -21,15 +22,15 @@ namespace HBP.Data.Experience.Dataset
     *       - \a Unique ID.
     */
     [DataContract]
-	public class Dataset : BaseData, ILoadable<Dataset>
-	{
+    public class Dataset : BaseData, ILoadable<Dataset>
+    {
         #region Properties
         public const string EXTENSION = ".dataset";
         /// <summary>
         /// Name of the dataset.
         /// </summary>
         [DataMember] public string Name { get; set; }
-        
+
         [DataMember(Name = "Protocol", Order = 3)] string m_ProtocolID;
         /// <summary>
         /// Protocol used during the experiment.
@@ -48,7 +49,7 @@ namespace HBP.Data.Experience.Dataset
         }
 
         Dictionary<DataInfo, UnityAction> m_ActionByDataInfo;
-        [DataMember(Order = 4,Name = "Data")] List<DataInfo> m_Data;
+        [DataMember(Order = 4, Name = "Data")] List<DataInfo> m_Data;
         /// <summary>
         /// DataInfo of the dataset.
         /// </summary>
@@ -62,20 +63,20 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Constructors
-        public Dataset(string name,Protocol.Protocol protocol, DataInfo[] data,string id) : base(id)
+        public Dataset(string name, Protocol.Protocol protocol, IEnumerable<DataInfo> data, string ID) : base(ID)
         {
             Name = name;
             Protocol = protocol;
             SetData(data);
         }
-        public Dataset(string name, Protocol.Protocol protocol, DataInfo[] data) : base()
+        public Dataset(string name, Protocol.Protocol protocol, IEnumerable<DataInfo> data) : base()
         {
             Name = name;
             Protocol = protocol;
             SetData(data);
         }
         public Dataset() : this("New dataset", ApplicationState.ProjectLoaded.Protocols.First(), new DataInfo[0], Guid.NewGuid().ToString())
-		{
+        {
         }
         #endregion
 
@@ -179,7 +180,7 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance</returns>
         public override object Clone()
         {
-            return new Dataset(Name ,Protocol ,Data.Clone() as DataInfo[], ID);
+            return new Dataset(Name, Protocol, Data.DeepClone(), ID);
         }
         /// <summary>
         /// Copy this a instance to this instance.
@@ -188,7 +189,7 @@ namespace HBP.Data.Experience.Dataset
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            if(copy is Dataset dataset)
+            if (copy is Dataset dataset)
             {
                 Name = dataset.Name;
                 Protocol = dataset.Protocol;

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using UnityEngine;
@@ -23,7 +22,7 @@ namespace HBP.Data.Visualization
     *   - \a Color.
     */
     [DataContract]
-    public class SiteConfiguration : ICloneable
+    public class SiteConfiguration : BaseData
     {
         #region Properties
         /// <summary>
@@ -37,7 +36,7 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Color of the site
         /// </summary>
-        [DataMember(Name ="Color")] private SerializableColor m_Color;
+        [DataMember(Name = "Color")] private SerializableColor m_Color;
         public Color Color
         {
             get
@@ -56,19 +55,37 @@ namespace HBP.Data.Visualization
         public SiteConfiguration() : this(false, false, Module3D.SiteState.DefaultColor, new string[0])
         {
         }
-        public SiteConfiguration(bool isBlacklisted, bool isHighlighted, Color color, string[] labels)
+        public SiteConfiguration(bool isBlacklisted, bool isHighlighted, Color color, IEnumerable<string> labels) : base()
         {
             IsBlacklisted = isBlacklisted;
             IsHighlighted = isHighlighted;
             Color = color;
-            Labels = labels;
+            Labels = labels.ToArray();
+        }
+        public SiteConfiguration(bool isBlacklisted, bool isHighlighted, Color color, IEnumerable<string> labels, string ID) : base(ID)
+        {
+            IsBlacklisted = isBlacklisted;
+            IsHighlighted = isHighlighted;
+            Color = color;
+            Labels = labels.ToArray();
         }
         #endregion
 
-        #region Public Methods
-        public object Clone()
+        #region Operators
+        public override object Clone()
         {
-            return new SiteConfiguration(IsBlacklisted, IsHighlighted, Color, Labels);
+            return new SiteConfiguration(IsBlacklisted, IsHighlighted, Color, Labels, ID);
+        }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+            if(copy is SiteConfiguration siteConfiguration)
+            {
+                IsBlacklisted = siteConfiguration.IsBlacklisted;
+                IsHighlighted = siteConfiguration.IsHighlighted;
+                Color = siteConfiguration.Color;
+                Labels = siteConfiguration.Labels;
+            }
         }
         #endregion
     }

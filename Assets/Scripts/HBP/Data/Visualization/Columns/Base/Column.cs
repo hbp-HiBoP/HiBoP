@@ -42,7 +42,7 @@ namespace HBP.Data.Visualization
         /// </summary>
         /// <param name="name">Name of the column.</param>
         /// <param name="baseConfiguration">Base configuration of the column.</param>
-        public Column(string name, BaseConfiguration baseConfiguration, string id) : base(id)
+        public Column(string name, BaseConfiguration baseConfiguration, string ID) : base(ID)
         {
             Name = name;
             BaseConfiguration = baseConfiguration;
@@ -56,6 +56,11 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Public Methods
+        public override void GenerateID()
+        {
+            base.GenerateID();
+            BaseConfiguration.GenerateID();
+        }
         public override void Copy(object copy)
         {
             base.Copy(copy);

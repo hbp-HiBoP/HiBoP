@@ -105,8 +105,8 @@ namespace HBP.Data.Visualization
         /// </summary>
         /// <param name="name">Name of the visualization.</param>
         /// <param name="columns">Columns of the visualization.</param>
-        /// <param name="id">Unique ID.</param>
-        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, VisualizationConfiguration configuration, string id) : base(id)
+        /// <param name="ID">Unique ID.</param>
+        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, VisualizationConfiguration configuration, string ID) : base(ID)
         {
             Name = name;
             Columns = columns.ToList();
@@ -131,8 +131,8 @@ namespace HBP.Data.Visualization
         /// </summary>
         /// <param name="name">Name of the visualization.</param>
         /// <param name="columns">Columns of the visualization.</param>
-        /// <param name="id">Unique ID.</param>
-        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, string id) : this(name, patients, columns, new VisualizationConfiguration(), id)
+        /// <param name="ID">Unique ID.</param>
+        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, string ID) : this(name, patients, columns, new VisualizationConfiguration(), ID)
         {
         }
         /// <summary>
@@ -151,7 +151,7 @@ namespace HBP.Data.Visualization
 
         }
         #endregion
-        
+
         #region Getter/Setter
         /// <summary>
         /// Add a patient to the visualization.
@@ -342,7 +342,7 @@ namespace HBP.Data.Visualization
         public override void GenerateID()
         {
             base.GenerateID();
-            // TODO:
+            foreach (var column in Columns) column.GenerateID();
         }
         public void Unload()
         {

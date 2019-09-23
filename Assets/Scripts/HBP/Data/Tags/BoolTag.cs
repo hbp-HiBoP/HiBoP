@@ -36,7 +36,7 @@ namespace HBP.Data.Tags
         }
         public override object Clone()
         {
-            return new BoolTag(Name.Clone() as string, ID);
+            return new BoolTag(Name, ID);
         }
         #endregion
     }

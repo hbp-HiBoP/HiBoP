@@ -38,6 +38,13 @@ namespace HBP.Data.Experience.Protocol
             get { return GetStringFromCodes(Codes.ToArray()); }
             set {Codes = GetCodesFromString(value).ToList(); }
         }
+        public bool IsVisualizable
+        {
+            get
+            {
+                return Codes.Count > 0;
+            }
+        }
         #endregion
 
         #region Constructors
@@ -46,7 +53,7 @@ namespace HBP.Data.Experience.Protocol
         /// </summary>
         /// <param name="name">Label of the event.</param>
         /// <param name="codes">Codes of the event.</param>
-        public Event(string name, int[] codes, Enums.MainSecondaryEnum type, string id) : base(id)
+        public Event(string name, IEnumerable<int> codes, Enums.MainSecondaryEnum type, string ID) : base(ID)
         {
             Name = name;
             Codes = codes.ToList();
@@ -57,7 +64,7 @@ namespace HBP.Data.Experience.Protocol
         /// </summary>
         /// <param name="name">Label of the event.</param>
         /// <param name="codes">Codes of the event.</param>
-        public Event(string name, int[] codes, Enums.MainSecondaryEnum type) : base()
+        public Event(string name, IEnumerable<int> codes, Enums.MainSecondaryEnum type) : base()
         {
             Name = name;
             Codes = codes.ToList();
@@ -122,7 +129,7 @@ namespace HBP.Data.Experience.Protocol
         /// <returns>Event cloned.</returns>
         public override object Clone()
         {
-            return new Event(Name.Clone() as string, Codes.ToArray().Clone() as int[], Type);
+            return new Event(Name, Codes, Type, ID);
         }
         public override void Copy(object obj)
         {

@@ -38,11 +38,15 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Constructors
-        public iEEGDataInfo(string name, Container.DataContainer dataContainer, Patient patient, NormalizationType normalization, string id) : base(name, dataContainer, patient,id)
+        public iEEGDataInfo(string name, Container.DataContainer dataContainer, Patient patient, NormalizationType normalization, string ID) : base(name, dataContainer, patient,ID)
         {
             Normalization = normalization;
         }
-        public iEEGDataInfo() : this("Data", new Container.Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), NormalizationType.Auto, Guid.NewGuid().ToString())
+        public iEEGDataInfo(string name, Container.DataContainer dataContainer, Patient patient, NormalizationType normalization) : base(name, dataContainer, patient)
+        {
+            Normalization = normalization;
+        }
+        public iEEGDataInfo() : this("Data", new Container.Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), NormalizationType.Auto)
         {
         }
         #endregion
@@ -106,7 +110,7 @@ namespace HBP.Data.Experience.Dataset
                 }
                 Tools.CSharp.EEG.File file = new Tools.CSharp.EEG.File(type, false, files);
                 List<Tools.CSharp.EEG.Trigger> triggers = file.Triggers;
-                if (!protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))))
+                if (protocol.IsVisualizable && !protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))))
                 {
                     errors.Add(new BlocsCantBeEpochedError());
                 }

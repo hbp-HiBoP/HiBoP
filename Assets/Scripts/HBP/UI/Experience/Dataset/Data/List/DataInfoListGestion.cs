@@ -55,7 +55,7 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Protected Methods
-        protected override void OpenModifier(DataInfo item, bool interactable)
+        protected override ItemModifier<DataInfo> OpenModifier(DataInfo item, bool interactable)
         {
             DataInfoModifier modifier =(DataInfoModifier) ApplicationState.WindowsManager.OpenModifier(item, interactable);
             modifier.OnClose.AddListener(() => OnCloseSubWindow(modifier));
@@ -63,6 +63,7 @@ namespace HBP.UI.Experience.Dataset
             modifier.OnCanSave.AddListener(() => OnCanSaveModifier(modifier));
             OnOpenSavableWindow.Invoke(modifier);
             SubWindows.Add(modifier);
+            return modifier;
         }
         protected void OnCanSaveModifier(DataInfoModifier modifier)
         {

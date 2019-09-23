@@ -67,6 +67,23 @@ namespace HBP.Data.Experience.Protocol
         /// Treatments of the subBloc.
         /// </summary>
         [DataMember] public List<Treatment> Treatments { get; set; }
+        public bool IsVisualizable
+        {
+            get
+            {
+                return Window.Lenght > 0 && MainEvent != null && Events.All(e => e.IsVisualizable);
+            }
+        }
+        #endregion
+
+        #region Public Methods
+        public override void GenerateID()
+        {
+            base.GenerateID();
+            foreach (var eve in Events) eve.GenerateID();
+            foreach (var icon in Icons) icon.GenerateID();
+            foreach (var treatment in Treatments) treatment.GenerateID();
+        }
         #endregion
 
         #region Constructors
@@ -80,8 +97,8 @@ namespace HBP.Data.Experience.Protocol
         /// <param name="events">Events of the subBloc.</param>
         /// <param name="scenario">Iconic Scenario of the subBloc.</param>
         /// <param name="treatments">Treatments of the subBloc.</param>
-        /// <param name="id">Unique ID of the subBloc.</param>
-        public SubBloc(string name, int order, Enums.MainSecondaryEnum type, Window window, Window baseline, IEnumerable<Event> events, IEnumerable<Icon> icons, IEnumerable<Treatment> treatments, string id) : base(id)
+        /// <param name="ID">Unique ID of the subBloc.</param>
+        public SubBloc(string name, int order, Enums.MainSecondaryEnum type, Window window, Window baseline, IEnumerable<Event> events, IEnumerable<Icon> icons, IEnumerable<Treatment> treatments, string ID) : base(ID)
         {
             Name = name;
             Order = order;
@@ -117,7 +134,7 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// Create a new SubBloc with default value.
         /// </summary>
-        public SubBloc() : this(string.Empty, 0, Enums.MainSecondaryEnum.Main, new Window(-300,300), new Window(-300,0), new List<Event>(), new List<Icon>(), new List<Treatment>())
+        public SubBloc() : this("New subBloc", 0, Enums.MainSecondaryEnum.Main, new Window(-300,300), new Window(-300,0), new List<Event>(), new List<Icon>(), new List<Treatment>())
         {
         }
         public SubBloc(Enums.MainSecondaryEnum type) : this()

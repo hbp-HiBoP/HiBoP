@@ -23,7 +23,14 @@ namespace HBP.Data.Experience.Protocol
             Min = 0;
             Max = 1;
         }
-        public ThresholdTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, bool useMinTreshold, float min, bool useMaxTreshold, float max, int order, string id) : base(useOnWindow, window, useOnBaseline, baseline, order, id)
+        public ThresholdTreatment(string ID) : base(ID)
+        {
+            UseMinTreshold = false;
+            UseMaxTreshold = false;
+            Min = 0;
+            Max = 1;
+        }
+        public ThresholdTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, bool useMinTreshold, float min, bool useMaxTreshold, float max, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
         {
             UseMinTreshold = useMinTreshold;
             Min = min;

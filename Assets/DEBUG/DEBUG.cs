@@ -1,29 +1,19 @@
 ﻿using UnityEngine;
-using Ionic.Zip;
-using System.IO;
-using CielaSpike;
-using HBP.UI;
-using HBP.UI.Tags;
+using UnityEditor;
 using HBP.Data.Tags;
 
-public class DEBUG : MonoBehaviour
+public static class DEBUG
 {
-    public TagList tagList;
-
-    private void Start()
+    [MenuItem("DEBUG/Adrien/Main")]
+    private static void Main()
     {
-        //tagModifier.Item = new FloatTag("Poids", true, 0,200);
-        Tag tag = new EnumTag("Latéralité", new string[] { "Gaucher", "Droitier", "Ambidextre" });
-        Tag tag2 = new IntTag("Age");
-        Tag tag3 = new FloatTag("Poids");
-        Tag tag4 = new EmptyTag("Tutu");
-        Tag tag5 = new BoolTag("Vivant");
-        Tag[] tags = new Tag[] { tag, tag2, tag3, tag4, tag5 };
-        //tagList.Objects = tags;
-        tagList.Initialize();
-        foreach (var item in tags)
-        {
-            tagList.Add(item);
-        }
+        IntTag ageTag = new IntTag("age", true, 0, 100);
+        IntTag PoidsTag = new IntTag("poids", true, 0, 50);
+        EmptyTag emptyTag = new EmptyTag();
+        IntTagValue age = new IntTagValue(ageTag, 245);
+        IntTagValue poids = new IntTagValue(PoidsTag, 23);
+        poids.Copy(age);
+        Debug.Log(age.Value);
+        Debug.Log(poids.Value);
     }
 }

@@ -12,7 +12,7 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public AnatomicColumn(string name, BaseConfiguration baseConfiguration, AnatomicConfiguration anantomicConfiguration, string id) : base(name, baseConfiguration, id)
+        public AnatomicColumn(string name, BaseConfiguration baseConfiguration, AnatomicConfiguration anantomicConfiguration, string ID) : base(name, baseConfiguration, ID)
         {
             AnatomicConfiguration = anantomicConfiguration;
         }

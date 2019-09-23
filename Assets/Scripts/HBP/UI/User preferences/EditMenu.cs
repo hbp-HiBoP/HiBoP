@@ -1,0 +1,19 @@
+﻿using UnityEngine;
+
+namespace HBP.UI.UserPreferences
+{
+    public class EditMenu : MonoBehaviour
+    {
+        #region Public Methods
+        public void OpenPreferences()
+        {
+            ApplicationState.WindowsManager.OpenModifier(ApplicationState.UserPreferences, true);
+        }
+        public void OpenProjectPreferences()
+        {
+            ApplicationState.WindowsManager.OpenModifier(ApplicationState.ProjectLoaded.Settings, true);
+        }
+        #endregion
+    }
+
+}

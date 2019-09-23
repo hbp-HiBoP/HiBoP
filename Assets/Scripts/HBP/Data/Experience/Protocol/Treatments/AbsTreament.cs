@@ -40,7 +40,11 @@ namespace HBP.Data.Experience.Protocol
         {
 
         }
-        public AbsTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, int order, string id) : base(useOnWindow, window, useOnBaseline, baseline, order, id)
+        public AbsTreatment(string ID) : base(ID)
+        {
+
+        }
+        public AbsTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
         {
 
         }

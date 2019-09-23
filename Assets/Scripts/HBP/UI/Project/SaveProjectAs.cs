@@ -30,7 +30,7 @@ namespace HBP.UI
         #region Public Methods
         public void SaveAs()
         {
-            Data.Preferences.ProjectSettings l_ps = new Data.Preferences.ProjectSettings(m_NameInputField.text, ApplicationState.ProjectLoaded.Settings.PatientDatabase, ApplicationState.ProjectLoaded.Settings.LocalizerDatabase);
+            Data.General.ProjectSettings l_ps = new Data.General.ProjectSettings(m_NameInputField.text, ApplicationState.ProjectLoaded.Settings.PatientDatabase, ApplicationState.ProjectLoaded.Settings.LocalizerDatabase);
             ApplicationState.ProjectLoaded.Settings = l_ps;
             FindObjectOfType<ProjectLoaderSaver>().Save(m_LocationFolderSelector.Folder);
             base.Close();

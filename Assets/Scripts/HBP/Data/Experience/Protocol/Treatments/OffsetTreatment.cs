@@ -17,7 +17,11 @@ namespace HBP.Data.Experience.Protocol
         {
             Offset = 0;
         }
-        public OffsetTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, float offset, int order, string id) : base(useOnWindow, window, useOnBaseline, baseline, order, id)
+        public OffsetTreatment(string ID) : base(ID)
+        {
+            Offset = 0;
+        }
+        public OffsetTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, float offset, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
         {
             Offset = offset;
         }

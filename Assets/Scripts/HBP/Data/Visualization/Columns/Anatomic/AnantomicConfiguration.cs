@@ -1,26 +1,32 @@
-﻿using System;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 
-[DataContract]
-public class AnatomicConfiguration : ICloneable
+namespace HBP.Data.Visualization
 {
-    #region Properties
-    #endregion
-
-    #region Constructors
-    public AnatomicConfiguration()
+    [DataContract]
+    public class AnatomicConfiguration : BaseData
     {
+        #region Properties
+        #endregion
 
+        #region Constructors
+        public AnatomicConfiguration() : base()
+        {
+
+        }
+        public AnatomicConfiguration(string ID) : base(ID)
+        {
+
+        }
+        #endregion
+
+        #region Public Methods
+        public override object Clone()
+        {
+            return new AnatomicConfiguration(ID);
+        }
+        #endregion
+
+        #region Private Methods
+        #endregion
     }
-    #endregion
-
-    #region Public Methods
-    public object Clone()
-    {
-        return new AnatomicConfiguration();
-    }
-    #endregion
-
-    #region Private Methods
-    #endregion
 }

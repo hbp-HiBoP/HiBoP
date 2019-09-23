@@ -1,5 +1,5 @@
-﻿using HBP.Errors;
-using System;
+﻿using HBP.Data.Container;
+using HBP.Errors;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -35,15 +35,15 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Constructors
-        public PatientDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string id) : base(name, dataContainer, id)
+        public PatientDataInfo(string name, DataContainer dataContainer, Patient patient, string ID) : base(name, dataContainer, ID)
         {
             Patient = patient;
         }
-        public PatientDataInfo(string name, Container.DataContainer dataContainer, Patient patient) : base(name, dataContainer)
+        public PatientDataInfo(string name, DataContainer dataContainer, Patient patient) : base(name, dataContainer)
         {
             Patient = patient;
         }
-        public PatientDataInfo() : this("Data", new Container.DataContainer(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault())
+        public PatientDataInfo() : this("Data", new DataContainer(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault())
         {
         }
         #endregion
@@ -55,12 +55,12 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new PatientDataInfo(Name, DataContainer, Patient, ID);
+            return new PatientDataInfo(Name, DataContainer.Clone() as DataContainer, Patient, ID);
         }
         public override void Copy(object obj)
         {
             base.Copy(obj);
-            if(obj is PatientDataInfo patientDataInfo)
+            if (obj is PatientDataInfo patientDataInfo)
             {
                 Patient = patientDataInfo.Patient;
             }

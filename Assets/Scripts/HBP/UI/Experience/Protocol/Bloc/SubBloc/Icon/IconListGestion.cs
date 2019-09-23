@@ -49,7 +49,7 @@ namespace HBP.UI.Experience.Protocol
             base.List = List;
             base.Initialize();
         }
-        protected override void OpenModifier(Icon item, bool interactable)
+        protected override ItemModifier<Icon> OpenModifier(Icon item, bool interactable)
         {
             IconModifier modifier = ApplicationState.WindowsManager.OpenModifier(item, interactable) as IconModifier;
             modifier.Window = Window;
@@ -57,6 +57,7 @@ namespace HBP.UI.Experience.Protocol
             modifier.OnSave.AddListener(() => OnSaveModifier(modifier));
             OnOpenSavableWindow.Invoke(modifier);
             SubWindows.Add(modifier);
+            return modifier;
         }
         #endregion
     }

@@ -95,7 +95,7 @@ namespace HBP.UI
             m_LoadingButton.interactable = false;
             m_ProjectList.Objects = new ProjectInfo[0];
             yield return Ninja.JumpBack;
-            string[] paths = Project.GetProject(path).ToArray();
+            string[] paths = HBP.Data.General.Project.GetProject(path).ToArray();
             foreach (string projectPath in paths)
             {
                 ProjectInfo project = new ProjectInfo(projectPath);

@@ -138,8 +138,8 @@ namespace HBP.Data.Anatomy
         /// <param name="name">Name of the implantation.</param>
         /// <param name="path">Path of the implantation file.</param>
         /// <param name="marsAtlas">Path of the marsAtlas file.</param>
-        /// <param name="id">Unique identifier to identify the implantation.</param>
-        public Implantation(string name, string path, string marsAtlas, string id): base(id)
+        /// <param name="ID">Unique identifier to identify the implantation.</param>
+        public Implantation(string name, string path, string marsAtlas, string ID): base(ID)
         {
             Name = name;
             File = path;

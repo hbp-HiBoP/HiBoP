@@ -92,8 +92,8 @@ namespace HBP.Data.Anatomy
         /// </summary>
         /// <param name="name">Name of the mesh.</param>
         /// <param name="transformation">Transformation file of the mesh.</param>
-        /// <param name="id">Unique identifier to identify the mesh.</param>
-        public Mesh(string name, string transformation, string id): base(id)
+        /// <param name="ID">Unique identifier to identify the mesh.</param>
+        public Mesh(string name, string transformation, string ID): base(ID)
         {
             Name = name;
             Transformation = transformation;

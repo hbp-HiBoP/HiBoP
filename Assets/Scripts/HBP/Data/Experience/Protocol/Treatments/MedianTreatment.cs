@@ -14,7 +14,11 @@ namespace HBP.Data.Experience.Protocol
         {
 
         }
-        public MedianTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, int order, string id) : base(useOnWindow, window, useOnBaseline, baseline, order, id)
+        public MedianTreatment(string ID) : base()
+        {
+
+        }
+        public MedianTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
         {
         }
         #endregion

@@ -36,8 +36,8 @@ namespace HBP.UI
         #region Coroutines
         public IEnumerator c_Load(ProjectInfo info)
         {
-            Project oldProject = ApplicationState.ProjectLoaded;
-            Project project = new Project();
+            Data.General.Project oldProject = ApplicationState.ProjectLoaded;
+            Data.General.Project project = new Data.General.Project();
             ApplicationState.ProjectLoaded = project;
             yield return Ninja.JumpToUnity;
             LoadingCircle loadingCircle = ApplicationState.LoadingManager.Open();

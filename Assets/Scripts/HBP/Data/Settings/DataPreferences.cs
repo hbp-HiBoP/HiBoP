@@ -1,30 +1,41 @@
-﻿using System.Runtime.Serialization;
+﻿using System;
+using System.Runtime.Serialization;
 using HBP.Data.Enums;
-using UnityEngine;
 
 namespace HBP.Data.Preferences
 {
     [DataContract]
-    public class DataPreferences
+    public class DataPreferences : ICloneable
     {
         #region Properties
-        [DataMember] public EEGPrefrences EEG { get; set; }
+        [DataMember] public EEGPreferences EEG { get; set; }
         [DataMember] public ProtocolPreferences Protocol { get; set; }
         [DataMember] public AnatomicPreferences Anatomic { get; set; }
         #endregion
 
         #region Constructors
-        public DataPreferences()
+        public DataPreferences() : this(new EEGPreferences(), new ProtocolPreferences(), new AnatomicPreferences())
         {
-            EEG = new EEGPrefrences();
-            Protocol = new ProtocolPreferences();
-            Anatomic = new AnatomicPreferences();
+
+        }
+        public DataPreferences(EEGPreferences EEGPreferences, ProtocolPreferences protocolPreferences, AnatomicPreferences anatomicPreferences)
+        {
+            EEG = EEGPreferences;
+            Protocol = protocolPreferences;
+            Anatomic = anatomicPreferences;
+        }
+        #endregion
+
+        #region Public Methods
+        public object Clone()
+        {
+            return new DataPreferences(EEG.Clone() as EEGPreferences, Protocol.Clone() as ProtocolPreferences, Anatomic.Clone() as AnatomicPreferences);
         }
         #endregion
     }
 
     [DataContract]
-    public class EEGPrefrences
+    public class EEGPreferences : ICloneable
     {
         #region Properties
         [DataMember] public AveragingType Averaging { get; set; }
@@ -32,27 +43,39 @@ namespace HBP.Data.Preferences
         #endregion
 
         #region Constructors
-        public EEGPrefrences()
+        public EEGPreferences() : this(AveragingType.Median, NormalizationType.None)
         {
-            Averaging = AveragingType.Median;
-            Normalization =  NormalizationType.None;
+
+        }
+        public EEGPreferences(AveragingType averaging, NormalizationType normalization)
+        {
+            Averaging = averaging;
+            Normalization = normalization;
+        }
+        #endregion
+
+        #region Public Methods
+        public object Clone()
+        {
+            return new EEGPreferences(Averaging, Normalization);
         }
         #endregion
     }
 
     [DataContract]
-    public class ProtocolPreferences
+    public class ProtocolPreferences : ICloneable
     {
         #region Properties
         [DataMember] public AveragingType PositionAveraging { get; set; }
         [DataMember] public float MinLimit { get; set; }
-        [DataMember] public float MaxLimit{ get; set; }
+        [DataMember] public float MaxLimit { get; set; }
         [DataMember] public int Step { get; set; }
         #endregion
 
         #region Constructors
-        public ProtocolPreferences() : this(AveragingType.Median, -3000, 3000, 100)
+        public ProtocolPreferences() : this(AveragingType.Median, -3000, 3000, 0)
         {
+
         }
         public ProtocolPreferences(AveragingType positionAveraging, float minLimit, float maxLimit, int step)
         {
@@ -62,10 +85,17 @@ namespace HBP.Data.Preferences
             Step = step;
         }
         #endregion
+
+        #region Public Methods
+        public object Clone()
+        {
+            return new ProtocolPreferences(PositionAveraging, MinLimit, MaxLimit, Step);
+        }
+        #endregion
     }
 
     [DataContract]
-    public class AnatomicPreferences
+    public class AnatomicPreferences : ICloneable
     {
         #region Properties
         [DataMember] public bool SiteNameCorrection { get; set; }
@@ -75,15 +105,23 @@ namespace HBP.Data.Preferences
         #endregion
 
         #region Constructors
-        public AnatomicPreferences(bool siteNameCorrection, bool meshPreloading, bool mRIPreloading, bool implantationPreloading)
+        public AnatomicPreferences() : this(true, true, true, true)
+        {
+
+        }
+        public AnatomicPreferences(bool siteNameCorrection, bool meshPreloading, bool mriPreloading, bool implantationPreloading)
         {
             SiteNameCorrection = siteNameCorrection;
             MeshPreloading = meshPreloading;
-            MRIPreloading = mRIPreloading;
+            MRIPreloading = mriPreloading;
             ImplantationPreloading = implantationPreloading;
         }
-        public AnatomicPreferences() : this(true, false, false, false)
+        #endregion
+
+        #region Public Methods
+        public object Clone()
         {
+            return new AnatomicPreferences(SiteNameCorrection, MeshPreloading, MRIPreloading, ImplantationPreloading);
         }
         #endregion
     }

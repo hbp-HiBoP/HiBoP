@@ -1,9 +1,11 @@
 ﻿using HBP.Data.Anatomy;
+using HBP.Data.Tags;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
+using Tools.CSharp;
 using Tools.Unity;
 
 namespace HBP.Data
@@ -76,6 +78,10 @@ namespace HBP.Data
         /// </summary>
         [DataMember] public List<Implantation> Implantations { get; set; }
         /// <summary>
+        /// Tags of the patient.
+        /// </summary>
+        [DataMember] public List<BaseTagValue> Tags { get; set; }
+        /// <summary>
         /// Complete name of the patient. Name (Place-Date).
         /// </summary>
         [IgnoreDataMember] public string CompleteName { get { return Name + " (" + Place + " - " + Date + ")"; } }
@@ -91,8 +97,8 @@ namespace HBP.Data
         /// <param name="meshes">Meshes of the patient.</param>
         /// <param name="MRIs">MRI scans of the patient.</param>
         /// <param name="implantations">Electrodes implantations of the patient.</param>
-        /// <param name="id">Unique identifier to identify the patient.</param>
-        public Patient(string name, string place, int date, IEnumerable<Mesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Implantation> implantations, string id) : base(id) 
+        /// <param name="ID">Unique identifier to identify the patient.</param>
+        public Patient(string name, string place, int date, IEnumerable<Mesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Implantation> implantations, IEnumerable<BaseTagValue> tags, string ID) : base(ID) 
         {
             Name = name;
             Place = place;
@@ -100,6 +106,7 @@ namespace HBP.Data
             Meshes = meshes.ToList();
             this.MRIs = MRIs.ToList();
             Implantations = implantations.ToList();
+            Tags = tags.ToList();
         }
         /// <summary>
         /// Initializes a new instance of the Patient class.
@@ -110,7 +117,7 @@ namespace HBP.Data
         /// <param name="meshes">Meshes of the patient.</param>
         /// <param name="MRIs">MRI scans of the patient.</param>
         /// <param name="implantations">Electrodes implantations of the patient.</param>
-        public Patient(string name, string place, int date, IEnumerable<Mesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Implantation> implantations) : base()
+        public Patient(string name, string place, int date, IEnumerable<Mesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Implantation> implantations, IEnumerable<BaseTagValue> tags) : base()
         {
             Name = name;
             Place = place;
@@ -118,11 +125,12 @@ namespace HBP.Data
             Meshes = meshes.ToList();
             this.MRIs = MRIs.ToList();
             Implantations = implantations.ToList();
+            Tags = tags.ToList();
         }
         /// <summary>
         /// Initializes a new instance of the Patient class.
         /// </summary>
-        public Patient() : this("Unknown", "Unknown", 0, new Mesh[0], new MRI[0], new Implantation[0])
+        public Patient() : this("Unknown", "Unknown", 0, new Mesh[0], new MRI[0], new Implantation[0], new BaseTagValue[0])
         {
         }
         #endregion
@@ -137,6 +145,7 @@ namespace HBP.Data
             foreach (var mesh in Meshes) mesh.GenerateID();
             foreach (var mri in MRIs) mri.GenerateID();
             foreach (var implantation in Implantations) implantation.GenerateID();
+            foreach (var tag in Tags) tag.GenerateID();
         }
         #endregion
 
@@ -179,7 +188,7 @@ namespace HBP.Data
                 DirectoryInfo directory = new DirectoryInfo(path);
                 string[] directoryNameParts = directory.Name.Split(new char[1] { '_' }, StringSplitOptions.RemoveEmptyEntries);
                 int.TryParse(directoryNameParts[1], out int date);
-                result = new Patient(directoryNameParts[2], directoryNameParts[0], date, Mesh.LoadFromDirectory(path), MRI.LoadFromDirectory(path), Implantation.LoadFromDirectory(path), directory.Name);
+                result = new Patient(directoryNameParts[2], directoryNameParts[0], date, Mesh.LoadFromDirectory(path), MRI.LoadFromDirectory(path), Implantation.LoadFromDirectory(path), new BaseTagValue[0], directory.Name);
                 return true;
             }
             return false;
@@ -212,7 +221,7 @@ namespace HBP.Data
         /// <returns><see langword="true"/> if the method worked successfully; otherwise, <see langword="false"/></returns>
         public static bool LoadFromDatabase(string path, out Patient[] result)
         {
-            result = null;
+            result = new Patient[0];
             if (string.IsNullOrEmpty(path)) return false;
             DirectoryInfo directory = new DirectoryInfo(path);
             if (!directory.Exists) return false;
@@ -237,7 +246,7 @@ namespace HBP.Data
         /// <returns>object cloned.</returns>
         public override object Clone()
         {
-            return new Patient(Name, Place, Date, Meshes, MRIs, Implantations, ID);
+            return new Patient(Name, Place, Date, Meshes.DeepClone(), MRIs.DeepClone(), Implantations.DeepClone(), Tags.DeepClone(), ID);
         }
         /// <summary>
         /// Copy the instance.
@@ -254,6 +263,7 @@ namespace HBP.Data
                 Meshes = patient.Meshes;
                 MRIs = patient.MRIs;
                 Implantations = patient.Implantations;
+                Tags = patient.Tags;
             }
         }
         #endregion

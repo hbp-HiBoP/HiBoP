@@ -23,7 +23,21 @@ namespace HBP.Data.Experience.Protocol
             Min = 0;
             Max = 1;
         }
-        public ClampTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, bool useMinClamp, float min , bool useMaxClamp, float max, int order, string id) : base(useOnWindow, window, useOnBaseline, baseline, order, id)
+        public ClampTreatment(string ID) :  base(ID)
+        {
+            UseMinClamp = false;
+            UseMaxClamp = false;
+            Min = 0;
+            Max = 1;
+        }
+        public ClampTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, bool useMinClamp, float min, bool useMaxClamp, float max, int order) : base(useOnWindow, window, useOnBaseline, baseline, order)
+        {
+            UseMinClamp = useMinClamp;
+            UseMaxClamp = useMaxClamp;
+            Min = min;
+            Max = max;
+        }
+        public ClampTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, bool useMinClamp, float min , bool useMaxClamp, float max, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
         {
             UseMinClamp = useMinClamp;
             UseMaxClamp = useMaxClamp;

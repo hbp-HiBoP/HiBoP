@@ -66,11 +66,20 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Constructors
-        public Icon(string name, string path, Vector2Int window, string id): base(id)
+        public Icon(string name, string path, Window window) : base()
         {
             Name = name;
             IllustrationPath = path;
-            Window = new Window(window);
+            Window = window;
+        }
+        public Icon(string name, string path, Window window, string ID) : base(ID)
+        {
+            Name = name;
+            IllustrationPath = path;
+            Window = window;
+        }
+        public Icon(string name, string path, Vector2Int window, string ID): this(name,path, new Window(window), ID)
+        {
         }
         /// <summary>
         /// Create a new instance of icon.
@@ -78,11 +87,8 @@ namespace HBP.Data.Experience.Protocol
         /// <param name="name">Label of the icon.</param>
         /// <param name="path">Path of the icon illustration.</param>
         /// <param name="window">Window of the icon.</param>
-        public Icon(string name, string path, Vector2Int window): base()
+        public Icon(string name, string path, Vector2Int window): this(name, path, new Window(window))
         {
-            Name = name;
-            IllustrationPath = path;
-            Window = new Window(window);
         }
         /// <summary>
         /// Create a new instance of icon with default value.
@@ -99,7 +105,7 @@ namespace HBP.Data.Experience.Protocol
         /// <returns>Icon clone.</returns>
         public override object Clone()
         {
-            return new Icon(Name.Clone() as string, IllustrationPath.Clone() as string, new Vector2Int(Window.Start, Window.End), ID);
+            return new Icon(Name, IllustrationPath, Window, ID);
         }
         public override void Copy(object obj)
         {

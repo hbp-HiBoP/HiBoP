@@ -85,7 +85,7 @@ namespace HBP.UI.Visualization
         // Protocol.
         void SetProtocolDropdown()
         {
-            m_Protocols = ApplicationState.ProjectLoaded.Protocols.ToList();
+            m_Protocols = ApplicationState.ProjectLoaded.Protocols.Where(p => p.IsVisualizable).ToList();
             SetProtocolDropdownInteractable(m_Protocols != null && m_Patients != null && m_Protocols.Count > 0 && m_Patients.Length > 0);
         }
         void OnChangeProtocol(int value)

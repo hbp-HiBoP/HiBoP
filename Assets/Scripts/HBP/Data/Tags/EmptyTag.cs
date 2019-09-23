@@ -5,9 +5,6 @@ namespace HBP.Data.Tags
     [DisplayName("Empty")]
     public class EmptyTag : Tag
     {
-        #region Properties
-        #endregion
-
         #region Constructors
         public EmptyTag() : base()
         {
@@ -24,7 +21,7 @@ namespace HBP.Data.Tags
         #region Public Methods
         public override object Clone()
         {
-            return new EmptyTag(Name.Clone() as string, ID);
+            return new EmptyTag(Name, ID);
         }
         #endregion
     }

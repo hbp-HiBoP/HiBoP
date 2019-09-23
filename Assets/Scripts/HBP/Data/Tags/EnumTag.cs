@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.Serialization;
+using System.Linq;
+using UnityEngine;
 
 namespace HBP.Data.Tags
 {
@@ -8,7 +11,7 @@ namespace HBP.Data.Tags
     public class EnumTag : Tag
     {
         #region Properties
-        [DataMember] public string[] PossibleValues { get; set; }
+        [DataMember] public string[] Values { get; set; } = new string[0];
         #endregion
 
         #region Constructors
@@ -18,25 +21,33 @@ namespace HBP.Data.Tags
         public EnumTag(string name) : this(name, new string[0])
         {
         }
-        public EnumTag(string name, string[] possibleValues) : base(name)
+        public EnumTag(string name, string ID) : this(name, new string[0], ID)
         {
-            PossibleValues = possibleValues;
+
         }
-        public EnumTag(string name, string[] possibleValues, string ID) : base(name, ID)
+        public EnumTag(string name, IEnumerable<string> values) : base(name)
         {
-            PossibleValues = possibleValues;
+            Values = values.ToArray();
+        }
+        public EnumTag(string name, IEnumerable<string> values, string ID) : base(name, ID)
+        {
+            Values = values.ToArray();
         }
         #endregion
 
         #region Public Methods
+        public int Clamp(int value)
+        {
+            return Mathf.Clamp(value, 0, Values.Length);
+        }
         public string Convert(object value)
         {
             if (value != null && value is int)
             {
                 int intValue = (int)value;
-                if (intValue >= 0 && intValue < PossibleValues.Length)
+                if (intValue >= 0 && intValue < Values.Length)
                 {
-                    return PossibleValues[intValue];
+                    return Values[intValue];
                 }
                 else
                 {
@@ -50,14 +61,14 @@ namespace HBP.Data.Tags
         }
         public override object Clone()
         {
-            return new EnumTag(Name, PossibleValues.Clone() as string[], ID);
+            return new EnumTag(Name, Values, ID);
         }
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            if(copy is EnumTag enumTag)
+            if (copy is EnumTag enumTag)
             {
-                PossibleValues = enumTag.PossibleValues;
+                Values = enumTag.Values;
             }
         }
         #endregion

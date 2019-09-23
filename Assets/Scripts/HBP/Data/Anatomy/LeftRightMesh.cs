@@ -1,11 +1,11 @@
-﻿using System;
+﻿using System.ComponentModel;
 using System.IO;
 using System.Runtime.Serialization;
 using Tools.Unity;
 
 namespace HBP.Data.Anatomy
 {
-    [DataContract]
+    [DataContract, DisplayName("LeftRight")]
     public class LeftRightMesh : Mesh
     {
         #region Properties
@@ -74,7 +74,7 @@ namespace HBP.Data.Anatomy
         #endregion
 
         #region Constructors
-        public LeftRightMesh(string name, string transformation, string ID, string leftHemisphere, string rightHemisphere, string leftMarsAtlasHemisphere, string rightMarsAtlasHemisphere) : base(name, transformation, ID)
+        public LeftRightMesh(string name, string transformation, string leftHemisphere, string rightHemisphere, string leftMarsAtlasHemisphere, string rightMarsAtlasHemisphere, string ID) : base(name, transformation, ID)
         {
             LeftHemisphere = leftHemisphere;
             RightHemisphere = rightHemisphere;
@@ -90,23 +90,28 @@ namespace HBP.Data.Anatomy
             RightMarsAtlasHemisphere = rightMarsAtlasHemisphere;
             RecalculateUsable();
         }
-        public LeftRightMesh():this("New mesh", string.Empty, Guid.NewGuid().ToString(), string.Empty, string.Empty, string.Empty,string.Empty) { }
+        public LeftRightMesh() : this("New mesh", string.Empty, string.Empty, string.Empty, string.Empty, string.Empty) { }
         #endregion
 
         #region Operators
         public override object Clone()
         {
-            return new LeftRightMesh(Name, Transformation, ID, LeftHemisphere, RightHemisphere, LeftMarsAtlasHemisphere, RightMarsAtlasHemisphere);
+            return new LeftRightMesh(Name, Transformation, LeftHemisphere, RightHemisphere, LeftMarsAtlasHemisphere, RightMarsAtlasHemisphere, ID);
         }
         public override void Copy(object obj)
         {
             base.Copy(obj);
-            if(obj is LeftRightMesh leftRightMesh)
+            if (obj is LeftRightMesh leftRightMesh)
             {
                 LeftHemisphere = leftRightMesh.LeftHemisphere;
                 RightHemisphere = leftRightMesh.RightHemisphere;
                 LeftMarsAtlasHemisphere = leftRightMesh.LeftMarsAtlasHemisphere;
                 RightMarsAtlasHemisphere = leftRightMesh.RightMarsAtlasHemisphere;
+            }
+            if (obj is SingleMesh singleMesh)
+            {
+                LeftHemisphere = singleMesh.Path;
+                LeftMarsAtlasHemisphere = singleMesh.MarsAtlasPath;
             }
         }
         #endregion

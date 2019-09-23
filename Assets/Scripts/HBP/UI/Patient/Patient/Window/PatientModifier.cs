@@ -1,5 +1,6 @@
 ﻿using UnityEngine.UI;
 using UnityEngine;
+using System.Linq;
 
 namespace HBP.UI.Anatomy
 {
@@ -22,6 +23,11 @@ namespace HBP.UI.Anatomy
         // Implantation.
         [SerializeField] ImplantationListGestion m_ImplantationListGestion;
         [SerializeField] Button m_AddImplantationButton, m_RemoveImplantationButton;
+
+        // Tags
+        [SerializeField] Tags.TagValueListGestion m_TagValueListGestion;
+        [SerializeField] Button m_AddTagValueButton, m_RemoveTagValueButton;
+
 
         public override bool Interactable
         {
@@ -55,6 +61,9 @@ namespace HBP.UI.Anatomy
                 m_RemoveImplantationButton.interactable = value;
 
                 // Tags.
+                m_TagValueListGestion.Interactable = value;
+                m_AddTagValueButton.interactable = value;
+                m_RemoveTagValueButton.interactable = value;
             }
         }
         #endregion
@@ -67,6 +76,7 @@ namespace HBP.UI.Anatomy
             m_MeshListGestion.Initialize(m_SubWindows);
             m_ImplantationListGestion.Initialize(m_SubWindows);
             m_MRIListGestion.Initialize(m_SubWindows);
+            m_TagValueListGestion.Initialize(m_SubWindows);
 
             m_NameInputField.onValueChanged.AddListener((value) => ItemTemp.Name = value);
             m_PlaceInputField.onValueChanged.AddListener((value) => ItemTemp.Place = value);
@@ -83,6 +93,8 @@ namespace HBP.UI.Anatomy
             m_MeshListGestion.Objects = objectToDisplay.Meshes;
             m_ImplantationListGestion.Objects = objectToDisplay.Implantations;
             m_MRIListGestion.Objects = objectToDisplay.MRIs;
+            m_TagValueListGestion.Tags = ApplicationState.ProjectLoaded.Settings.PatientsTags.Concat(ApplicationState.ProjectLoaded.Settings.GeneralTags).ToArray();
+            m_TagValueListGestion.Objects = objectToDisplay.Tags;
         }
         #endregion
     }

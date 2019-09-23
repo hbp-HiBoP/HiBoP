@@ -2,6 +2,7 @@
 using System.IO;
 using System.Runtime.Serialization;
 using HBP.UI.Theme;
+using System;
 
 namespace HBP.Data.Preferences
 {
@@ -18,7 +19,7 @@ namespace HBP.Data.Preferences
     *     - Visualization preferences.
     */
     [DataContract]
-    public class UserPreferences
+    public class UserPreferences: ICopiable, ICloneable
     {
         #region Properties
         public static string PATH = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "Preferences.txt");
@@ -29,11 +30,30 @@ namespace HBP.Data.Preferences
         #endregion
 
         #region Constructors
-        public UserPreferences()
+        public UserPreferences() : this(new GeneralPreferences(), new DataPreferences(), new VisualizationPreferences())
         {
-            General = new GeneralPreferences();
-            Data = new DataPreferences();
-            Visualization = new VisualizationPreferences();
+        }
+        public UserPreferences(GeneralPreferences generalPreferences, DataPreferences dataPreferences, VisualizationPreferences visualizationPreferences)
+        {
+            General = generalPreferences;
+            Data = dataPreferences;
+            Visualization = visualizationPreferences;
+        }
+        #endregion
+
+        #region Public Methods
+        public object Clone()
+        {
+            return new UserPreferences(General.Clone() as GeneralPreferences, Data.Clone() as DataPreferences, Visualization.Clone() as VisualizationPreferences);
+        }
+        public void Copy(object copy)
+        {
+            if (copy is UserPreferences preferences)
+            {
+                General = preferences.General;
+                Data = preferences.Data;
+                Visualization = preferences.Visualization;
+            }
         }
         #endregion
     }

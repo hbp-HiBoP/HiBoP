@@ -94,6 +94,13 @@ namespace HBP.Data.Experience.Protocol
                 return Array.IndexOf(OrderedSubBlocs.ToArray(), MainSubBloc);
             }
         }
+        public bool IsVisualizable
+        {
+            get
+            {
+                return MainSubBloc != null && SubBlocs.All(s => s.IsVisualizable);
+            }
+        }
         #endregion
 
         #region Constructors
@@ -133,7 +140,7 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// Create a new bloc instance at a position with default values.
         /// </summary>
-        public Bloc(int order) : this(string.Empty, order, string.Empty, string.Empty, new List<SubBloc>())
+        public Bloc(int order) : this("New bloc", order, string.Empty, string.Empty, new List<SubBloc>())
 		{
 		}
         /// <summary>
@@ -279,7 +286,7 @@ namespace HBP.Data.Experience.Protocol
         /// <returns>object cloned.</returns>
         public override object Clone()
         {
-            return new Bloc(Name, Order, IllustrationPath, Sort, SubBlocs.ToArray().DeepClone(), ID.Clone() as string);
+            return new Bloc(Name, Order, IllustrationPath, Sort, SubBlocs.DeepClone(), ID);
         }
         #endregion
 

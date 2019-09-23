@@ -1,10 +1,11 @@
-﻿using System.IO;
+﻿using System.ComponentModel;
+using System.IO;
 using System.Runtime.Serialization;
 using Tools.Unity;
 
 namespace HBP.Data.Anatomy
 {
-    [DataContract]
+    [DataContract, DisplayName("Single")]
     public class SingleMesh : Mesh
     {
         #region Properties
@@ -49,13 +50,13 @@ namespace HBP.Data.Anatomy
         #endregion
 
         #region Constructors
-        public SingleMesh(string name, string transformation,string ID, string path, string marsAtlasPath) : base(name, transformation,ID)
+        public SingleMesh(string name, string transformation, string path, string marsAtlasPath, string ID) : base(name, transformation, ID)
         {
             Path = path;
             MarsAtlasPath = marsAtlasPath;
             RecalculateUsable();
         }
-        public SingleMesh(string name, string transformation, string path,string marsAtlasPath) : base(name, transformation)
+        public SingleMesh(string name, string transformation, string path, string marsAtlasPath) : base(name, transformation)
         {
             Path = path;
             MarsAtlasPath = marsAtlasPath;
@@ -67,15 +68,20 @@ namespace HBP.Data.Anatomy
         #region Operators
         public override object Clone()
         {
-            return new SingleMesh(Name, Transformation, ID, Path, MarsAtlasPath);
+            return new SingleMesh(Name, Transformation, Path, MarsAtlasPath, ID);
         }
         public override void Copy(object obj)
         {
             base.Copy(obj);
-            if(obj is SingleMesh singleMesh)
+            if (obj is SingleMesh singleMesh)
             {
                 Path = singleMesh.Path;
                 MarsAtlasPath = singleMesh.MarsAtlasPath;
+            }
+            if (obj is LeftRightMesh leftRightMesh)
+            {
+                Path = leftRightMesh.LeftHemisphere;
+                MarsAtlasPath = leftRightMesh.LeftMarsAtlasHemisphere;
             }
         }
         #endregion
