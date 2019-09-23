@@ -14,4 +14,11 @@
         Suffix = suffix;
     }
     #endregion
+
+    #region Public Methods
+    public override string ToString()
+    {
+        return Prefix + Message + Suffix;
+    }
+    #endregion
 }

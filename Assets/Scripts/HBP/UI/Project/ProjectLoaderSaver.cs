@@ -42,9 +42,9 @@ namespace HBP.UI
             yield return Ninja.JumpToUnity;
             LoadingCircle loadingCircle = ApplicationState.LoadingManager.Open();
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            onChangeProgress.AddListener((progress,time,message) => loadingCircle.ChangePercentage(progress / 2.0f, time, message));
+            onChangeProgress.AddListener((progress, time, message) => loadingCircle.ChangePercentage(progress, time, message));
             Task loadingTask;
-            yield return this.StartCoroutineAsync(project.c_Load(info, onChangeProgress), out loadingTask);
+            yield return this.StartCoroutineAsync(project.c_Load(info, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), out loadingTask);
             switch (loadingTask.State)
             {
                 case TaskState.Done:
@@ -68,7 +68,7 @@ namespace HBP.UI
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
             onChangeProgress.AddListener((progress, time, message) => loadingCircle.ChangePercentage(progress, time, message));
             Task savingTask;
-            yield return this.StartCoroutineAsync(ApplicationState.ProjectLoaded.c_Save(path,onChangeProgress),out savingTask);
+            yield return this.StartCoroutineAsync(ApplicationState.ProjectLoaded.c_Save(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), out savingTask);
             switch (savingTask.State)
             {
                 case TaskState.Done:

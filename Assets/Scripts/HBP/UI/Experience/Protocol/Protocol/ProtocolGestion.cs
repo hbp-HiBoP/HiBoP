@@ -2,10 +2,11 @@
 using UnityEngine.UI;
 using System.Linq;
 using UnityEngine.Events;
+using System;
 
 namespace HBP.UI.Experience.Protocol
 {
-	public class ProtocolGestion : SavableWindow
+    public class ProtocolGestion : SavableWindow
     {
         #region Properties
         [SerializeField] ProtocolListGestion m_ProtocolListGestion;
@@ -18,7 +19,7 @@ namespace HBP.UI.Experience.Protocol
             {
                 return base.Interactable;
             }
-            set 
+            set
             {
                 base.Interactable = value;
 
@@ -31,7 +32,7 @@ namespace HBP.UI.Experience.Protocol
 
         #region Public Methods
         public override void Save()
-		{
+        {
             foreach (var modifier in m_ProtocolListGestion.SubWindows.ToArray()) modifier.Save();
             if (DataManager.HasData)
             {
@@ -41,7 +42,7 @@ namespace HBP.UI.Experience.Protocol
                     base.Save();
                     FindObjectOfType<MenuButtonState>().SetInteractables();
                     GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                    ApplicationState.LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckDatasets(onChangeProgress, m_ProtocolListGestion.ModifiedProtocols), onChangeProgress);
+                    ApplicationState.LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckDatasets(m_ProtocolListGestion.ModifiedProtocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
                     DataManager.Clear();
                     ApplicationState.Module3D.ReloadScenes();
                 });
@@ -52,7 +53,7 @@ namespace HBP.UI.Experience.Protocol
                 base.Save();
                 FindObjectOfType<MenuButtonState>().SetInteractables();
                 GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                ApplicationState.LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckDatasets(onChangeProgress, m_ProtocolListGestion.ModifiedProtocols), onChangeProgress);
+                ApplicationState.LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckDatasets(m_ProtocolListGestion.ModifiedProtocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
             }
         }
         #endregion
