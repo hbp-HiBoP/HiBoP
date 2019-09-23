@@ -3,35 +3,6 @@ using UnityEngine;
 
 namespace HBP.Module3D
 {
-    /// <summary>
-    /// Bounding box simple class with a min and max 3D points
-    /// </summary>
-    public struct BBox
-    {
-        #region Properties
-        /// <summary>
-        /// Minimum point of the bounding box
-        /// </summary>
-        public Vector3 Min;
-        /// <summary>
-        /// Maximum point of the bounding box
-        /// </summary>
-        public Vector3 Max;
-        #endregion
-
-        #region Constructors
-        /// <summary>
-        /// Constructor of the bounding box
-        /// </summary>
-        /// <param name="bboxArray">Dimensions (Xmin, Ymin, Zmin, Xmax, Ymax, Zmax)</param>
-        public BBox(float[] bboxArray)
-        {
-            Min = new Vector3(bboxArray[0], bboxArray[1], bboxArray[2]);
-            Max = new Vector3(bboxArray[3], bboxArray[4], bboxArray[5]);
-        }
-        #endregion
-    }
-
     [System.Serializable]
     /// <summary>
     /// A simple plane class using a normal and a point

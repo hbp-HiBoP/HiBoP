@@ -65,7 +65,7 @@ namespace HBP.Module3D.DLL
         /// 
         /// </summary>
         /// <returns></returns>
-        public float DiagramLength
+        public float DiagonalLength
         {
             get
             {
