@@ -1,37 +1,37 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using UnityEngine;
+﻿using System.IO;
 
 namespace HBP.Module3D.IBC
 {
+    /// <summary>
+    /// This class describes a contrast from the IBC functional atlas
+    /// </summary>
     public class Contrast
     {
         #region Properties
         /// <summary>
-        /// Raw name of the contrast
+        /// Raw name of the contrast (from the file name)
         /// </summary>
         public string RawName { get; private set; }
         /// <summary>
-        /// Name of the contrast
+        /// Name of the contrast (from the correspondance table)
         /// </summary>
         public string Name { get; private set; }
         /// <summary>
-        /// Control condition of the contrast (contrast is target-control)
+        /// Control condition of the contrast (contrast is target minus control)
         /// </summary>
         public string ControlCondition { get; private set; }
         /// <summary>
-        /// Target condition of the contrast (contrast is target-control)
+        /// Target condition of the contrast (contrast is target minus control)
         /// </summary>
         public string TargetCondition { get; private set; }
         /// <summary>
         /// Nifti image of the contrast
         /// </summary>
-        public DLL.NIFTI NIFTI { get; private set; }
+        public DLL.NIFTI NIFTI { get; private set; } = new DLL.NIFTI();
         /// <summary>
         /// Volume of the contrast
         /// </summary>
-        public DLL.Volume Volume { get; private set; }
+        public DLL.Volume Volume { get; private set; } = new DLL.Volume();
         /// <summary>
         /// Is the contrast loaded ?
         /// </summary>
@@ -49,10 +49,8 @@ namespace HBP.Module3D.IBC
                 Name = labels.PrettyName;
                 ControlCondition = labels.ControlCondition;
                 TargetCondition = labels.TargetCondition;
-                NIFTI = new DLL.NIFTI();
                 if (NIFTI.LoadNIIFile(file))
                 {
-                    Volume = new DLL.Volume();
                     NIFTI.ConvertToVolume(Volume);
                     Loaded = true;
                 }
@@ -61,6 +59,9 @@ namespace HBP.Module3D.IBC
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Dispose all DLL objects
+        /// </summary>
         public void Clean()
         {
             NIFTI?.Dispose();

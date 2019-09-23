@@ -1,28 +1,26 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Tools.CSharp;
+﻿using Tools.CSharp;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
     /// <summary>
-    /// Class containing the parameters for the iEEG of a column
+    /// Class containing the parameters for the activity of a dynamic column
     /// </summary>
     public class DynamicDataParameters
     {
         #region Properties
         /// <summary>
-        /// Minimum influence distance
+        /// Minimum distance for a site to influence a vertex of the mesh
         /// </summary>
         private const float MIN_INFLUENCE = 0.0f;
         /// <summary>
-        /// Maximum influence distance
+        /// Maximum distance for a site to influence a vertex of the mesh
         /// </summary>
         private const float MAX_INFLUENCE = 50.0f;
         private float m_InfluenceDistance = 15.0f;
         /// <summary>
-        /// Influence distance of a site (sphere around the site to color the mesh)
+        /// Distance for a site to influence a vertex of the mesh
         /// </summary>
         public float InfluenceDistance
         {
@@ -43,7 +41,7 @@ namespace HBP.Module3D
 
         private float m_Gain = 1.0f;
         /// <summary>
-        /// Gain of the spheres representing the sites
+        /// Gain for the size of the sites
         /// </summary>
         public float Gain
         {
@@ -61,17 +59,17 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Minimum amplitude value
+        /// Minimum amplitude value (computed externally for this column when setting activity values)
         /// </summary>
         public float MinimumAmplitude { get; set; } = float.MinValue;
         /// <summary>
-        /// Maximum amplitude value
+        /// Maximum amplitude value (computed externally for this column when setting activity values)
         /// </summary>
         public float MaximumAmplitude { get; set; } = float.MaxValue;
 
         private float m_AlphaMin = 0.8f;
         /// <summary>
-        /// Minimum Alpha
+        /// Alpha of the activity for the lowest site density
         /// </summary>
         public float AlphaMin
         {
@@ -91,7 +89,7 @@ namespace HBP.Module3D
 
         private float m_AlphaMax = 1.0f;
         /// <summary>
-        /// Maximum Alpha
+        /// Alpha of the activity for the highest site density
         /// </summary>
         public float AlphaMax
         {
@@ -109,15 +107,15 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Span Min value
+        /// Minimum span value (to adjust the colormap)
         /// </summary>
         public float SpanMin { get; private set; } = 0.0f;
         /// <summary>
-        /// Middle value
+        /// Middle value (to adjust the colormap)
         /// </summary>
         public float Middle { get; private set; } = 0.0f;
         /// <summary>
-        /// Span Min value
+        /// Maximum span value (to adjust the colormap)
         /// </summary>
         public float SpanMax { get; private set; } = 0.0f;
         #endregion
@@ -143,12 +141,11 @@ namespace HBP.Module3D
 
         #region Public Methods
         /// <summary>
-        /// Set the span values
+        /// Set the span values all together
         /// </summary>
         /// <param name="min">Span min value</param>
         /// <param name="mid">Middle value</param>
         /// <param name="max">Span max value</param>
-        /// <param name="column">Column associated with these parameters</param>
         public void SetSpanValues(float min, float mid, float max)
         {
             if (Mathf.Approximately(min, 0f) && Mathf.Approximately(mid, 0f) && Mathf.Approximately(max, 0f)) return;
@@ -160,6 +157,10 @@ namespace HBP.Module3D
             SpanMax = max;
             OnUpdateSpanValues.Invoke();
         }
+        /// <summary>
+        /// Reset span values to their default values
+        /// </summary>
+        /// <param name="column">Column associated with this class</param>
         public void ResetSpanValues(Column3DDynamic column)
         {
             if (column is Column3DCCEP ccepColumn)

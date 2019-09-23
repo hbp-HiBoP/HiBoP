@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace HBP.Module3D.IBC
 {
+    /// <summary>
+    /// Class containing the data of the IBC functional atlas
+    /// </summary>
     public class IBCObjects : MonoBehaviour
     {
         #region Properties
@@ -14,11 +17,11 @@ namespace HBP.Module3D.IBC
         /// Contains information about labels of the contrasts
         /// </summary>
         public IBCInformation Information { get; private set; }
+
+        private List<Contrast> m_Contrasts;
         /// <summary>
         /// List of the contrasts of the IBC
         /// </summary>
-        private List<Contrast> m_Contrasts;
-
         public List<Contrast> Contrasts
         {
             get
@@ -55,6 +58,10 @@ namespace HBP.Module3D.IBC
         #endregion
 
         #region Coroutines
+        /// <summary>
+        /// Load all the contrast that are in the IBC directory
+        /// </summary>
+        /// <returns>Coroutine return</returns>
         private IEnumerator c_LoadContrasts()
         {
             yield return Ninja.JumpToUnity;

@@ -1,11 +1,45 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace HBP.Module3D
 {
+    /// <summary>
+    /// Small class containing information about an area of the JuBrain Atlas (see <seealso cref="DLL.JuBrainAtlas"/>)
+    /// This is used to get information and transfer it to the UI when hovering an area with the mouse
+    /// </summary>
     public class AtlasInfo
     {
+        #region Properties
+        /// <summary>
+        /// Do we display information about this area ?
+        /// </summary>
+        public bool Enabled { get; set; }
+        /// <summary>
+        /// Position where to display information
+        /// </summary>
+        public Vector3 Position { get; set; }
+        /// <summary>
+        /// Name of the area
+        /// </summary>
+        public string Name { get; set; }
+        /// <summary>
+        /// Precise location of the area within the brain
+        /// </summary>
+        public string Location { get; set; }
+        /// <summary>
+        /// Label of the area (as described in the json file)
+        /// </summary>
+        public string AreaLabel { get; set; }
+        /// <summary>
+        /// Status of this area
+        /// </summary>
+        public string Status { get; set; }
+        /// <summary>
+        /// DOI of the area
+        /// </summary>
+        public string DOI { get; set; }
+        #endregion
+
+        #region Constructor
         public AtlasInfo(bool enabled, Vector3 position, string name = "", string location = "", string areaLabel = "", string status = "", string doi = "")
         {
             Enabled = enabled;
@@ -16,13 +50,6 @@ namespace HBP.Module3D
             Status = status;
             DOI = doi;
         }
-
-        public bool Enabled { get; set; }
-        public Vector3 Position { get; set; }
-        public string Name { get; set; }
-        public string Location { get; set; }
-        public string AreaLabel { get; set; }
-        public string Status { get; set; }
-        public string DOI { get; set; }
+        #endregion
     }
 }

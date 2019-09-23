@@ -1,18 +1,26 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
 
 namespace HBP.Module3D
 {
+    /// <summary>
+    /// This class contains information about a mesh and can load meshes to DLL objects
+    /// </summary>
     public abstract class Mesh3D : ICloneable
     {
         #region Properties
+        /// <summary>
+        /// Name of the mesh
+        /// </summary>
         public string Name { get; set; }
+        /// <summary>
+        /// Type of the mesh (Patient or MNI)
+        /// </summary>
         public Data.Enums.MeshType Type { get; protected set; }
 
         protected DLL.Surface m_Both;
+        /// <summary>
+        /// DLL surface containing data for the whole brain mesh
+        /// </summary>
         public DLL.Surface Both
         {
             get
@@ -28,6 +36,9 @@ namespace HBP.Module3D
         }
 
         protected DLL.Surface m_SimplifiedBoth;
+        /// <summary>
+        /// DLL surface containing data for the whole simplified brain mesh
+        /// </summary>
         public DLL.Surface SimplifiedBoth
         {
             get
@@ -42,6 +53,9 @@ namespace HBP.Module3D
             }
         }
 
+        /// <summary>
+        /// Is the 3D mesh completely loaded ?
+        /// </summary>
         public bool IsLoaded
         {
             get
@@ -49,6 +63,9 @@ namespace HBP.Module3D
                 return m_Both != null ? m_Both.IsLoaded : false;
             }
         }
+        /// <summary>
+        /// Is mars atlas loaded for this mesh ?
+        /// </summary>
         public bool IsMarsAtlasLoaded
         {
             get
@@ -56,9 +73,17 @@ namespace HBP.Module3D
                 return m_Both != null ? m_Both.IsMarsAtlasLoaded : false;
             }
         }
+        /// <summary>
+        /// Is the mesh currently loading ?
+        /// </summary>
         protected bool m_IsLoading = false;
+        /// <summary>
+        /// Does the mesh have been loaded outside of a scene and copied to the scene (e.g. MNI objects) ?
+        /// </summary>
         public bool HasBeenLoadedOutside { get; protected set; }
-
+        /// <summary>
+        /// Data of the mesh (paths etc.)
+        /// </summary>
         protected Data.Anatomy.Mesh m_Mesh;
         #endregion
 
@@ -78,16 +103,25 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
-        public abstract object Clone();
+        /// <summary>
+        /// Load the mesh to DLL objects
+        /// </summary>
         public abstract void Load();
+        /// <summary>
+        /// Dispose all DLL objects
+        /// </summary>
         public virtual void Clean()
         {
             m_Both?.Dispose();
             m_SimplifiedBoth?.Dispose();
         }
+        public abstract object Clone();
         #endregion
     }
 
+    /// <summary>
+    /// Subclass of <see cref="Mesh3D"/> that contains data for a mesh in one piece
+    /// </summary>
     public class SingleMesh3D : Mesh3D
     {
         #region Constructors
@@ -96,19 +130,9 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
-        public override object Clone()
-        {
-            SingleMesh3D mesh = new SingleMesh3D
-            {
-                Name = Name,
-                Type = Type,
-                Both = Both,
-                SimplifiedBoth = SimplifiedBoth,
-                m_Mesh = m_Mesh,
-                HasBeenLoadedOutside = HasBeenLoadedOutside
-            };
-            return mesh;
-        }
+        /// <summary>
+        /// Load the mesh to DLL objects
+        /// </summary>
         public override void Load()
         {
             m_IsLoading = true;
@@ -124,13 +148,32 @@ namespace HBP.Module3D
             }
             m_IsLoading = false;
         }
+        public override object Clone()
+        {
+            SingleMesh3D mesh = new SingleMesh3D
+            {
+                Name = Name,
+                Type = Type,
+                Both = Both,
+                SimplifiedBoth = SimplifiedBoth,
+                m_Mesh = m_Mesh,
+                HasBeenLoadedOutside = HasBeenLoadedOutside
+            };
+            return mesh;
+        }
         #endregion
     }
 
+    /// <summary>
+    /// Subclass of <see cref="Mesh3D"/> that contains data for a mesh divided in two hemispheres
+    /// </summary>
     public class LeftRightMesh3D : Mesh3D
     {
         #region Properties
         protected DLL.Surface m_Left;
+        /// <summary>
+        /// DLL surface containing data for the left part of the mesh
+        /// </summary>
         public DLL.Surface Left
         {
             get
@@ -146,6 +189,9 @@ namespace HBP.Module3D
         }
 
         protected DLL.Surface m_Right;
+        /// <summary>
+        /// DLL surface containing data for the right part of the mesh
+        /// </summary>
         public DLL.Surface Right
         {
             get
@@ -161,6 +207,9 @@ namespace HBP.Module3D
         }
 
         protected DLL.Surface m_SimplifiedLeft;
+        /// <summary>
+        /// DLL surface containing data for the left simplified part of the mesh
+        /// </summary>
         public DLL.Surface SimplifiedLeft
         {
             get
@@ -176,6 +225,9 @@ namespace HBP.Module3D
         }
 
         protected DLL.Surface m_SimplifiedRight;
+        /// <summary>
+        /// DLL surface containing data for the right simplified part of the mesh
+        /// </summary>
         public DLL.Surface SimplifiedRight
         {
             get
@@ -209,23 +261,9 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
-        public override object Clone()
-        {
-            LeftRightMesh3D mesh = new LeftRightMesh3D
-            {
-                Name = Name,
-                Type = Type,
-                Both = Both,
-                SimplifiedBoth = SimplifiedBoth,
-                Left = Left,
-                Right = Right,
-                SimplifiedLeft = SimplifiedLeft,
-                SimplifiedRight = SimplifiedRight,
-                m_Mesh = m_Mesh,
-                HasBeenLoadedOutside = HasBeenLoadedOutside
-            };
-            return mesh;
-        }
+        /// <summary>
+        /// Load the mesh to DLL objects
+        /// </summary>
         public override void Load()
         {
             m_IsLoading = true;
@@ -256,6 +294,9 @@ namespace HBP.Module3D
             }
             m_IsLoading = false;
         }
+        /// <summary>
+        /// Dispose all DLL objects
+        /// </summary>
         public override void Clean()
         {
             base.Clean();
@@ -263,6 +304,23 @@ namespace HBP.Module3D
             m_Right?.Dispose();
             m_SimplifiedLeft?.Dispose();
             m_SimplifiedRight?.Dispose();
+        }
+        public override object Clone()
+        {
+            LeftRightMesh3D mesh = new LeftRightMesh3D
+            {
+                Name = Name,
+                Type = Type,
+                Both = Both,
+                SimplifiedBoth = SimplifiedBoth,
+                Left = Left,
+                Right = Right,
+                SimplifiedLeft = SimplifiedLeft,
+                SimplifiedRight = SimplifiedRight,
+                m_Mesh = m_Mesh,
+                HasBeenLoadedOutside = HasBeenLoadedOutside
+            };
+            return mesh;
         }
         #endregion
     }
