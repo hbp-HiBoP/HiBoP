@@ -101,7 +101,7 @@ namespace HBP.UI.Module3D
         }
         protected bool CheckBroadmanAreaName(Site site, string broadmanAreaName)
         {
-            return site.Information.BroadmanAreaName.ToLower().Contains(broadmanAreaName.ToLower());
+            return site.Information.BrodmannAreaName.ToLower().Contains(broadmanAreaName.ToLower());
         }
         protected bool CheckFreesurferName(Site site, string freesurferName)
         {

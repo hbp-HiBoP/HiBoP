@@ -58,11 +58,11 @@ namespace HBP.Module3D
                     ApplicationState.Module3D.MarsAtlasIndex.Lobe(value).Replace('_', ' '),
                     ApplicationState.Module3D.MarsAtlasIndex.NameFS(value).Replace('_', ' '),
                     ApplicationState.Module3D.MarsAtlasIndex.FullName(value).Replace('_', ' '));
-                BroadmanAreaName = ApplicationState.Module3D.MarsAtlasIndex.BroadmanArea(value).Replace('_', ' ');
+                BrodmannAreaName = ApplicationState.Module3D.MarsAtlasIndex.BrodmannArea(value).Replace('_', ' ');
             }
         }
         public string MarsAtlasLabel { get; private set; }
-        public string BroadmanAreaName { get; private set; }
+        public string BrodmannAreaName { get; private set; }
         public string FreesurferLabel { get; set; }
 
         public string PatientID

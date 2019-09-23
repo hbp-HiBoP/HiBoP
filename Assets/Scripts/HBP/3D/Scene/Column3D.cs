@@ -283,7 +283,7 @@ namespace HBP.Module3D
             {
                 Destroy(patientSite.gameObject);
             }
-            Sites = new List<Site>(sites.TotalSitesNumber);
+            Sites = new List<Site>(sites.NumberOfSites);
             
             for (int i = 0; i < sceneSitePatientParent.Count; ++i)
             {
