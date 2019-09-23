@@ -8,7 +8,17 @@ namespace HBP.Data.Tags
     {
         #region Properties
         [DataMember(Name = "Tag")] protected string m_TagID;
-        public Tag Tag { get; protected set; }
+        public Tag Tag
+        {
+            get
+            {
+                return ApplicationState.ProjectLoaded.Settings.Tags.FirstOrDefault(t => t.ID == m_TagID);
+            }
+            set
+            {
+                m_TagID = value.ID;
+            }
+        }
 
         [DataMember(Name = "Value")] protected object m_Value;
         public object Value
@@ -43,17 +53,21 @@ namespace HBP.Data.Tags
         }
         public BaseTagValue(Tag tag, object value) : base()
         {
-            Tag = tag;
+            m_TagID = tag.ID;
             Value = value;
         }
         public BaseTagValue(Tag tag, object value, string ID) : base(ID)
         {
-            Tag = tag;
+            m_TagID = tag.ID;
             Value = value;
         }
         #endregion
 
-        #region Operators
+        #region Public Methods
+        public void UpdateValue()
+        {
+            Value = Value;
+        }
         /// <summary>
         /// Clone the instance.
         /// </summary>
@@ -65,17 +79,11 @@ namespace HBP.Data.Tags
         #endregion
 
         #region Serialization
-        [OnSerializing()]
-        protected void OnSerializingMethod(StreamingContext context)
-        {
-            m_TagID = Tag?.ID;
-        }
         [OnDeserialized()]
         protected void OnDeserializedMethod(StreamingContext context)
         {
-            Tag = ApplicationState.ProjectLoaded.Settings.Tags.FirstOrDefault(t => t.ID == m_TagID);
             Value = Value;
         }
-    #endregion
+        #endregion
     }
 }

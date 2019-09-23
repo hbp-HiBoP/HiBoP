@@ -9,7 +9,7 @@
             set
             {
                 base.Tag = value;
-                base.Tag.OnNeedToRecalculateValue.AddListener(() => Value = Value);
+                base.Tag.OnNeedToRecalculateValue.AddListener(RecalculateValue);
             }
         }
         public override float Value
@@ -36,10 +36,18 @@
         }
         #endregion
 
-        #region Operators
+        #region Public Methods
         public override object Clone()
         {
             return new FloatTagValue(Tag, Value, ID);
+        }
+        #endregion
+
+        #region Private Methods
+        void RecalculateValue()
+        {
+            Value = Value;
+            UnityEngine.Debug.Log("tutu");
         }
         #endregion
     }
