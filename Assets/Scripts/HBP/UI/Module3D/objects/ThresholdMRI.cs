@@ -45,6 +45,15 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private ThresholdHandler m_MaxHandler;
+
+        /// <summary>
+        /// Is the module initialized ?
+        /// </summary>
+        private bool m_Initialized;
+        #endregion
+
+        #region Events
+        public GenericEvent<float, float> OnChangeValues = new GenericEvent<float, float>();
         #endregion
 
         #region Private Methods
@@ -63,7 +72,11 @@ namespace HBP.UI.Module3D
                 m_MaxHandler.ClampPosition();
 
                 m_MRICalMin = m_MinHandler.Position;
-                ApplicationState.Module3D.SelectedScene.ColumnManager.MRICalMinFactor = m_MRICalMin;
+
+                if (m_Initialized)
+                {
+                    OnChangeValues.Invoke(m_MRICalMin, m_MRICalMax);
+                }
             });
 
             m_MaxHandler.OnChangePosition.AddListener((deplacement) =>
@@ -72,12 +85,16 @@ namespace HBP.UI.Module3D
                 m_MinHandler.ClampPosition();
 
                 m_MRICalMax = m_MaxHandler.Position;
-                ApplicationState.Module3D.SelectedScene.ColumnManager.MRICalMaxFactor = m_MRICalMax;
+
+                if (m_Initialized)
+                {
+                    OnChangeValues.Invoke(m_MRICalMin, m_MRICalMax);
+                }
             });
 
             ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
             {
-                foreach (var mri in s.ColumnManager.MRIs)
+                foreach (var mri in s.MRIManager.MRIs)
                 {
                     if (m_HistogramByMRI.TryGetValue(mri, out Texture2D texture))
                     {
@@ -90,10 +107,9 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Update MRI Histogram Texture
         /// </summary>
-        private void UpdateMRIHistogram()
+        private void UpdateMRIHistogram(MRI3D mri3D)
         {
             UnityEngine.Profiling.Profiler.BeginSample("HISTOGRAM MRI");
-            MRI3D mri3D = ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedMRI;
             if (!m_HistogramByMRI.TryGetValue(mri3D, out m_MRIHistogram))
             {
                 if (!m_MRIHistogram)
@@ -115,16 +131,19 @@ namespace HBP.UI.Module3D
         /// Update Maximum and Minimum Cal value
         /// </summary>
         /// <param name="values">Cal values</param>
-        public void UpdateMRICalValues(MRICalValues values)
+        public void UpdateMRICalValues(Base3DScene scene)
         {
+            m_Initialized = false;
+
+            MRICalValues values = scene.MRIManager.SelectedMRI.Volume.ExtremeValues;
             float amplitude = values.Max - values.Min;
             float min = (values.ComputedCalMin - values.Min) / amplitude;
             float max = 1.0f - (values.Max - values.ComputedCalMax) / amplitude;
             m_HandlerZone.anchorMin = new Vector2(min, m_HandlerZone.anchorMin.y);
             m_HandlerZone.anchorMax = new Vector2(max, m_HandlerZone.anchorMax.y);
 
-            m_MRICalMin = ApplicationState.Module3D.SelectedScene.ColumnManager.MRICalMinFactor;
-            m_MRICalMax = ApplicationState.Module3D.SelectedScene.ColumnManager.MRICalMaxFactor;
+            m_MRICalMin = scene.MRIManager.MRICalMinFactor;
+            m_MRICalMax = scene.MRIManager.MRICalMaxFactor;
 
             m_MinHandler.MinimumPosition = 0.0f;
             m_MinHandler.MaximumPosition = 0.9f;
@@ -135,7 +154,9 @@ namespace HBP.UI.Module3D
             m_MinHandler.MaximumPosition = m_MRICalMax - 0.1f;
             m_MaxHandler.MinimumPosition = m_MRICalMin + 0.1f;
 
-            UpdateMRIHistogram();
+            UpdateMRIHistogram(scene.MRIManager.SelectedMRI);
+
+            m_Initialized = true;
         }
         #endregion
     }

@@ -43,7 +43,7 @@ namespace HBP.UI.Module3D.Tools
                 float floatValue;
                 if (global::Tools.CSharp.NumberExtension.TryParseFloat(value, out floatValue))
                 {
-                    SelectedScene.ColumnManager.FMRIManager.FMRICalMin = floatValue;
+                    SelectedScene.FMRIManager.FMRICalMin = floatValue;
                 }
                 ListenerLock = true;
                 UpdateStatus();
@@ -53,7 +53,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedScene.ColumnManager.FMRIManager.FMRICalMinFactor = value;
+                SelectedScene.FMRIManager.FMRICalMinFactor = value;
                 ListenerLock = true;
                 UpdateStatus();
                 ListenerLock = false;
@@ -65,7 +65,7 @@ namespace HBP.UI.Module3D.Tools
                 float floatValue;
                 if (global::Tools.CSharp.NumberExtension.TryParseFloat(value, out floatValue))
                 {
-                    SelectedScene.ColumnManager.FMRIManager.FMRICalMax = floatValue;
+                    SelectedScene.FMRIManager.FMRICalMax = floatValue;
                 }
                 ListenerLock = true;
                 UpdateStatus();
@@ -75,7 +75,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedScene.ColumnManager.FMRIManager.FMRICalMaxFactor = value;
+                SelectedScene.FMRIManager.FMRICalMaxFactor = value;
                 ListenerLock = true;
                 UpdateStatus();
                 ListenerLock = false;
@@ -84,7 +84,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedScene.ColumnManager.FMRIManager.FMRIAlpha = value;
+                SelectedScene.FMRIManager.FMRIAlpha = value;
                 ListenerLock = true;
                 UpdateStatus();
                 ListenerLock = false;
@@ -98,24 +98,24 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool hasFMRI = SelectedScene.ColumnManager.FMRIManager.FMRI != null;
+            bool hasFMRI = SelectedScene.FMRIManager.FMRI != null;
 
             gameObject.SetActive(hasFMRI);
         }
 
         public override void UpdateStatus()
         {
-            bool hasFMRI = SelectedScene.ColumnManager.FMRIManager.FMRI != null;
+            bool hasFMRI = SelectedScene.FMRIManager.FMRI != null;
             if (hasFMRI)
             {
-                MRICalValues calValues = SelectedScene.ColumnManager.FMRIManager.FMRI.Volume.ExtremeValues;
+                MRICalValues calValues = SelectedScene.FMRIManager.FMRI.Volume.ExtremeValues;
                 m_MinText.text = calValues.ComputedCalMin.ToString("N2");
                 m_MaxText.text = calValues.ComputedCalMax.ToString("N2");
-                m_CalMinInputField.text = SelectedScene.ColumnManager.FMRIManager.FMRICalMin.ToString("N2");
-                m_CalMaxInputField.text = SelectedScene.ColumnManager.FMRIManager.FMRICalMax.ToString("N2");
-                m_CalMinSlider.value = SelectedScene.ColumnManager.FMRIManager.FMRICalMinFactor;
-                m_CalMaxSlider.value = SelectedScene.ColumnManager.FMRIManager.FMRICalMaxFactor;
-                m_AlphaSlider.value = SelectedScene.ColumnManager.FMRIManager.FMRIAlpha;
+                m_CalMinInputField.text = SelectedScene.FMRIManager.FMRICalMin.ToString("N2");
+                m_CalMaxInputField.text = SelectedScene.FMRIManager.FMRICalMax.ToString("N2");
+                m_CalMinSlider.value = SelectedScene.FMRIManager.FMRICalMinFactor;
+                m_CalMaxSlider.value = SelectedScene.FMRIManager.FMRICalMaxFactor;
+                m_AlphaSlider.value = SelectedScene.FMRIManager.FMRIAlpha;
             }
         }
         #endregion

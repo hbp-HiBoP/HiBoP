@@ -27,7 +27,7 @@
     "EEG": {
       "$type": "HBP.Data.Preferences.EEGPreferences, Assembly-CSharp",
       "Averaging": 1,
-      "Normalization": 0
+      "Normalization": 1
     },
     "Protocol": {
       "$type": "HBP.Data.Preferences.ProtocolPreferences, Assembly-CSharp",

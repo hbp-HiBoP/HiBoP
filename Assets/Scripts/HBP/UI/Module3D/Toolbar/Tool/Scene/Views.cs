@@ -26,7 +26,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedScene.ColumnManager.AddViewLine();
+                SelectedScene.AddViewLine();
                 OnClick.Invoke();
             });
 
@@ -34,7 +34,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedScene.ColumnManager.RemoveViewLine();
+                SelectedScene.RemoveViewLine();
                 OnClick.Invoke();
             });
         }
@@ -45,8 +45,8 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool canAddView = SelectedScene.ColumnManager.ViewLineNumber < HBP3DModule.MAXIMUM_VIEW_NUMBER;
-            bool canRemoveView = SelectedScene.ColumnManager.ViewLineNumber > 1;
+            bool canAddView = SelectedScene.ViewLineNumber < HBP3DModule.MAXIMUM_VIEW_NUMBER;
+            bool canRemoveView = SelectedScene.ViewLineNumber > 1;
 
             m_Add.interactable = canAddView;
             m_Remove.interactable = canRemoveView;

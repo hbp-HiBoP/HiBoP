@@ -1,10 +1,6 @@
 ﻿using HBP.Module3D;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -25,7 +21,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedScene.UpdateMRIToDisplay(m_Dropdown.options[value].text);
+                SelectedScene.MRIManager.Select(m_Dropdown.options[value].text);
                 OnChangeValue.Invoke(value);
             });
         }
@@ -41,11 +37,11 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateStatus()
         {
             m_Dropdown.options.Clear();
-            foreach (MRI3D mri in SelectedScene.ColumnManager.MRIs)
+            foreach (MRI3D mri in SelectedScene.MRIManager.MRIs)
             {
                 m_Dropdown.options.Add(new Dropdown.OptionData(mri.Name));
             }
-            m_Dropdown.value = SelectedScene.ColumnManager.SelectedMRIID;
+            m_Dropdown.value = SelectedScene.MRIManager.SelectedMRIID;
             m_Dropdown.RefreshShownValue();
         }
         #endregion

@@ -21,7 +21,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedScene.CancelLastTriangleErasingAction();
+                SelectedScene.TriangleEraser.CancelLastAction();
             });
         }
         public override void DefaultState()
@@ -30,7 +30,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool isCancelAvailable = SelectedScene.CanCancelLastTriangleErasingAction;
+            bool isCancelAvailable = SelectedScene.TriangleEraser.CanCancelLastAction;
 
             m_Button.interactable = isCancelAvailable;
         }

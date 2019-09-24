@@ -22,7 +22,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedScene.ColumnManager.FMRIManager.SelectedIBCContrastID = value;
+                SelectedScene.FMRIManager.SelectedIBCContrastID = value;
             });
         }
 
@@ -33,7 +33,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isIBC = SelectedScene.ColumnManager.FMRIManager.DisplayIBCContrasts;
+            bool isIBC = SelectedScene.FMRIManager.DisplayIBCContrasts;
 
             m_Dropdown.gameObject.SetActive(isIBC);
         }
@@ -47,7 +47,7 @@ namespace HBP.UI.Module3D.Tools
                 {
                     m_Dropdown.options.Add(new Dropdown.OptionData(contrast.Name));
                 }
-                m_Dropdown.value = SelectedScene.ColumnManager.FMRIManager.SelectedIBCContrastID;
+                m_Dropdown.value = SelectedScene.FMRIManager.SelectedIBCContrastID;
             }
             m_Dropdown.RefreshShownValue();
         }

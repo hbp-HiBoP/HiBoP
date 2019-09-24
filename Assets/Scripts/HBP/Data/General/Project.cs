@@ -342,7 +342,48 @@ namespace HBP.Data.General
         #region Public Methods
         public static bool IsProject(string path)
         {
-            return new FileInfo(path).Extension == EXTENSION;
+            bool isProject = false;
+            if (new FileInfo(path).Extension == EXTENSION)
+            {
+                using (ZipFile zip = ZipFile.Read(path))
+                {
+                    bool hasPatientsDirectory = false;
+                    bool hasGroupsDirectory = false;
+                    bool hasProtocolsDirectory = false;
+                    bool hasDatasetsDirectory = false;
+                    bool hasVisualizationsDirectory = false;
+                    bool hasSettingsFile = false;
+                    foreach (var entryFileName in zip.EntryFileNames)
+                    {
+                        if (entryFileName == "Patients/")
+                        {
+                            hasPatientsDirectory = true;
+                        }
+                        else if (entryFileName == "Groups/")
+                        {
+                            hasGroupsDirectory = true;
+                        }
+                        else if (entryFileName == "Protocols/")
+                        {
+                            hasProtocolsDirectory = true;
+                        }
+                        else if (entryFileName == "Datasets/")
+                        {
+                            hasDatasetsDirectory = true;
+                        }
+                        else if (entryFileName == "Visualizations/")
+                        {
+                            hasVisualizationsDirectory = true;
+                        }
+                        else if (entryFileName.EndsWith(ProjectSettings.EXTENSION))
+                        {
+                            hasSettingsFile = true;
+                        }
+                    }
+                    isProject = hasPatientsDirectory && hasGroupsDirectory && hasProtocolsDirectory && hasDatasetsDirectory && hasVisualizationsDirectory && hasSettingsFile;
+                }
+            }
+            return isProject;
         }
         public static IEnumerable<string> GetProject(string path)
         {

@@ -29,7 +29,7 @@ namespace HBP.UI.Module3D.Tools
                 if (!string.IsNullOrEmpty(path))
                 {
                     m_LastFMRIPath = path;
-                    SelectedScene.ColumnManager.FMRIManager.FMRI = new MRI3D(new Data.Anatomy.MRI("FMRI", path));
+                    SelectedScene.FMRIManager.FMRI = new MRI3D(new Data.Anatomy.MRI("FMRI", path));
                 }
                 OnChangeFMRI.Invoke();
             });
@@ -37,7 +37,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedScene.ColumnManager.FMRIManager.FMRI = null;
+                SelectedScene.FMRIManager.FMRI = null;
                 OnChangeFMRI.Invoke();
             });
         }
@@ -51,7 +51,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool hasFMRI = SelectedScene.ColumnManager.FMRIManager.FMRI != null;
+            bool hasFMRI = SelectedScene.FMRIManager.FMRI != null;
 
             m_AddFMRI.interactable = !hasFMRI;
             m_RemoveFMRI.interactable = hasFMRI;

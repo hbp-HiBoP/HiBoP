@@ -24,7 +24,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedScene.UpdateMeshToDisplay(m_Dropdown.options[value].text);
+                SelectedScene.MeshManager.Select(m_Dropdown.options[value].text);
                 OnChangeValue.Invoke(value);
             });
         }
@@ -40,11 +40,11 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateStatus()
         {
             m_Dropdown.options.Clear();
-            foreach (Mesh3D mesh in SelectedScene.ColumnManager.Meshes)
+            foreach (Mesh3D mesh in SelectedScene.MeshManager.Meshes)
             {
                 m_Dropdown.options.Add(new Dropdown.OptionData(mesh.Name.ToString()));
             }
-            m_Dropdown.value = SelectedScene.ColumnManager.SelectedMeshID;
+            m_Dropdown.value = SelectedScene.MeshManager.SelectedMeshID;
             m_Dropdown.RefreshShownValue();
         }
         #endregion

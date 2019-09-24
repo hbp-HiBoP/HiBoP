@@ -336,8 +336,8 @@ namespace HBP.UI.Module3D
             if (Cut.Orientation == Data.Enums.CutOrientation.Custom) return;
             
             List<Site> sites = new List<Site>();
-            m_Scene.ColumnManager.SelectedColumn.RawElectrodes.GetSitesOnPlane(Cut, 1.0f, out int[] result);
-            foreach (var site in m_Scene.ColumnManager.SelectedColumn.Sites)
+            m_Scene.SelectedColumn.RawElectrodes.GetSitesOnPlane(Cut, 1.0f, out int[] result);
+            foreach (var site in m_Scene.SelectedColumn.Sites)
             {
                 if (result[site.Information.GlobalID] == 1 && site.IsActive)
                 {
@@ -347,7 +347,7 @@ namespace HBP.UI.Module3D
 
             foreach (var site in sites)
             {
-                Vector2 ratio = m_Scene.ColumnManager.DLLMRIGeometryCutGeneratorList[Cut.ID].GetPositionRatioOnTexture(site.transform.localPosition);
+                Vector2 ratio = m_Scene.DLLMRIGeometryCutGeneratorList[Cut.ID].GetPositionRatioOnTexture(site.transform.localPosition);
                 float horizontalRatio = 0, verticalRatio = 0;
                 switch (Cut.Orientation)
                 {
@@ -374,7 +374,7 @@ namespace HBP.UI.Module3D
             foreach (Transform child in m_CutLinesRectTransform) Destroy(child.gameObject);
             if (Cut.Orientation == Data.Enums.CutOrientation.Custom || !ApplicationState.UserPreferences.Visualization.Cut.ShowCutLines) return;
 
-            HBP.Module3D.DLL.BBox boundingBox = m_Scene.ColumnManager.DLLMRIGeometryCutGeneratorList[Cut.ID].BoundingBox;
+            HBP.Module3D.DLL.BBox boundingBox = m_Scene.DLLMRIGeometryCutGeneratorList[Cut.ID].BoundingBox;
             if (boundingBox != null)
             {
                 Vector3 min = boundingBox.Min;
@@ -388,7 +388,7 @@ namespace HBP.UI.Module3D
                     List<Vector2> linePoints = new List<Vector2>();
                     foreach (var point in points)
                     {
-                        Vector2 ratio = m_Scene.ColumnManager.DLLMRIGeometryCutGeneratorList[Cut.ID].GetPositionRatioOnTexture(new Vector3(-point.x, point.y, point.z));
+                        Vector2 ratio = m_Scene.DLLMRIGeometryCutGeneratorList[Cut.ID].GetPositionRatioOnTexture(new Vector3(-point.x, point.y, point.z));
                         float horizontalRatio = 0, verticalRatio = 0;
                         switch (Cut.Orientation)
                         {

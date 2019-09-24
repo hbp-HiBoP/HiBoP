@@ -30,7 +30,7 @@ namespace HBP.UI.Module3D.Tools
                     string file = FileBrowser.GetSavedFileName(new string[] { "trimask" }, "Save brain state to");
                     if (!string.IsNullOrEmpty(file))
                     {
-                        string fileContent = string.Join("\n", SelectedScene.TriangleErasingCurrentMasks.Select(m => string.Join(" ", m)));
+                        string fileContent = string.Join("\n", SelectedScene.TriangleEraser.CurrentMasks.Select(m => string.Join(" ", m)));
                         File.WriteAllText(file, fileContent);
                     }
                 }
@@ -49,7 +49,7 @@ namespace HBP.UI.Module3D.Tools
                     if (!string.IsNullOrEmpty(file))
                     {
                         string fileContent = File.ReadAllText(file);
-                        SelectedScene.TriangleErasingCurrentMasks = fileContent.Split('\n').Select(s => s.Split(' ').Select(split => int.Parse(split)).ToArray()).ToList();
+                        SelectedScene.TriangleEraser.CurrentMasks = fileContent.Split('\n').Select(s => s.Split(' ').Select(split => int.Parse(split)).ToArray()).ToList();
                     }
                 }
                 catch (Exception e)

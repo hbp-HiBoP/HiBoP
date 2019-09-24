@@ -23,15 +23,15 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
                 
-                while (SelectedScene.ColumnManager.ViewLineNumber > 3)
+                while (SelectedScene.ViewLineNumber > 3)
                 {
-                    SelectedScene.ColumnManager.RemoveViewLine();
+                    SelectedScene.RemoveViewLine();
                 }
-                while (SelectedScene.ColumnManager.ViewLineNumber < 3)
+                while (SelectedScene.ViewLineNumber < 3)
                 {
-                    SelectedScene.ColumnManager.AddViewLine();
+                    SelectedScene.AddViewLine();
                 }
-                foreach (Column3D column in SelectedScene.ColumnManager.Columns)
+                foreach (Column3D column in SelectedScene.Columns)
                 {
                     foreach (View3D view in column.Views)
                     {

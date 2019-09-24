@@ -22,7 +22,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedScene.UpdateSites(m_Dropdown.options[value].text);
+                SelectedScene.ImplantationManager.Select(m_Dropdown.options[value].text);
             });
         }
         public override void DefaultState()
@@ -39,11 +39,11 @@ namespace HBP.UI.Module3D.Tools
             m_Dropdown.options.Clear();
             if (SelectedScene != null)
             {
-                foreach (Implantation3D implantation in SelectedScene.ColumnManager.Implantations)
+                foreach (Implantation3D implantation in SelectedScene.ImplantationManager.Implantations)
                 {
                     m_Dropdown.options.Add(new Dropdown.OptionData(implantation.Name));
                 }
-                m_Dropdown.value = SelectedScene.ColumnManager.SelectedImplantationID;
+                m_Dropdown.value = SelectedScene.ImplantationManager.SelectedImplantationID;
             }
             m_Dropdown.RefreshShownValue();
         }

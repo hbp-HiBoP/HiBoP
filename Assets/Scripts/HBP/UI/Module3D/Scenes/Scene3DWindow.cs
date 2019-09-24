@@ -141,9 +141,9 @@ namespace HBP.UI.Module3D
             if (multipleFiles) // TODO : add iconic scenario and / or scales
             {
                 // Scene
-                for (int c = 0; c < m_Scene.ColumnManager.Columns.Count; c++)
+                for (int c = 0; c < m_Scene.Columns.Count; c++)
                 {
-                    Column3D column = m_Scene.ColumnManager.Columns[c];
+                    Column3D column = m_Scene.Columns[c];
                     if (!column.IsMinimized)
                     {
                         for (int v = 0; v < column.Views.Count; v++)
@@ -153,7 +153,7 @@ namespace HBP.UI.Module3D
                             {
                                 try
                                 {
-                                    string viewFilePath = path + string.Format("{0}_{1}_{2}_Brain.png", openedProjectName, m_Scene.Name, column.Label);
+                                    string viewFilePath = path + string.Format("{0}_{1}_{2}_Brain.png", openedProjectName, m_Scene.Name, column.Name);
                                     ClassLoaderSaver.GenerateUniqueSavePath(ref viewFilePath);
                                     view.ScreenshotTexture.SaveToPNG(viewFilePath);
                                 }
@@ -196,7 +196,7 @@ namespace HBP.UI.Module3D
                         Texture2D graphTexture = Texture2DExtension.ScreenRectToTexture(graph.GetComponent<RectTransform>().ToScreenSpace());
                         try
                         {
-                            string graphFilePath = path + string.Format("{0}_{1}_Graph.png", openedProjectName, m_Scene.Name);
+                            string graphFilePath = path + string.Format("{0}_{1}_[{2}]_Graph.png", openedProjectName, m_Scene.Name, string.Join("-", informations.ChannelStructs.Select(cs => cs.Patient.Name + "_" + cs.Channel)));
                             ClassLoaderSaver.GenerateUniqueSavePath(ref graphFilePath);
                             graphTexture.SaveToPNG(graphFilePath);
                         }
@@ -208,7 +208,7 @@ namespace HBP.UI.Module3D
                         }
                         try
                         {
-                            string graphFilePath = path + string.Format("{0}_{1}_Graph.svg", openedProjectName, m_Scene.Name);
+                            string graphFilePath = path + string.Format("{0}_{1}_[{2}]_Graph.svg", openedProjectName, m_Scene.Name, string.Join("-", informations.ChannelStructs.Select(cs => cs.Patient.Name + "_" + cs.Channel)));
                             ClassLoaderSaver.GenerateUniqueSavePath(ref graphFilePath);
                             using (StreamWriter sw = new StreamWriter(graphFilePath))
                             {
@@ -273,7 +273,7 @@ namespace HBP.UI.Module3D
                         }
                         try
                         {
-                            string trialMatrixFilePath = path + string.Format("{0}_{1}_TrialMatrix.png", openedProjectName, m_Scene.Name);
+                            string trialMatrixFilePath = path + string.Format("{0}_{1}_[{2}]_TrialMatrix.png", openedProjectName, m_Scene.Name, string.Join("-", informations.ChannelStructs.Select(cs => cs.Patient.Name + "_" + cs.Channel)));
                             ClassLoaderSaver.GenerateUniqueSavePath(ref trialMatrixFilePath);
                             trialMatrixTexture.SaveToPNG(trialMatrixFilePath);
                         }

@@ -43,12 +43,7 @@ namespace HBP.Module3D
         {
             get
             {
-                Base3DScene scene = SelectedScene;
-                if (scene)
-                {
-                    return scene.ColumnManager.SelectedColumn;
-                }
-                return null;
+                return SelectedScene?.SelectedColumn;
             }
         }
         /// <summary>
@@ -58,12 +53,7 @@ namespace HBP.Module3D
         {
             get
             {
-                Column3D column = SelectedColumn;
-                if (column)
-                {
-                    return column.SelectedView;
-                }
-                return null;
+                return SelectedColumn?.SelectedView;
             }
         }
 
@@ -213,6 +203,7 @@ namespace HBP.Module3D
         void OnDestroy()
         {
             MarsAtlasIndex?.Dispose();
+            JuBrainAtlas?.Dispose();
             ApplicationState.DLLDebugManager.clean();
         }
         #endregion
@@ -246,7 +237,7 @@ namespace HBP.Module3D
         {
             OnRemoveScene.Invoke(scene);
             m_Scenes.Remove(scene);
-            this.StartCoroutine(scene.c_Destroy());
+            StartCoroutine(scene.c_Destroy());
         }
         /// <summary>
         /// Load a single patient scene extracted from a visualization

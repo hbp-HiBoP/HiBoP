@@ -102,14 +102,14 @@ namespace HBP.UI.Module3D
             List<Site> sites = new List<Site>();
             if (m_AllColumnsToggle.isOn)
             {
-                foreach (var column in m_Scene.ColumnManager.Columns)
+                foreach (var column in m_Scene.Columns)
                 {
                     sites.AddRange(column.Sites.Where(s => s.State.IsFiltered));
                 }
             }
             else
             {
-                sites.AddRange(m_Scene.ColumnManager.SelectedColumn.Sites.Where(s => s.State.IsFiltered));
+                sites.AddRange(m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered));
             }
 
             foreach (var site in sites)
@@ -132,7 +132,7 @@ namespace HBP.UI.Module3D
             if (string.IsNullOrEmpty(csvPath)) return;
 
             m_ProgressBar.Begin();
-            List<Site> sites = m_Scene.ColumnManager.SelectedColumn.Sites.Where(s => s.State.IsFiltered).ToList();
+            List<Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered).ToList();
             m_Coroutine = this.StartCoroutineAsync(c_ExportSites(sites, csvPath));
         }
         private void StopExport()
@@ -154,12 +154,12 @@ namespace HBP.UI.Module3D
                 Site site = sites[i];
                 if (!dataInfoByPatient.ContainsKey(site.Information.Patient))
                 {
-                    if (m_Scene.ColumnManager.SelectedColumn is Column3DIEEG columnIEEG)
+                    if (m_Scene.SelectedColumn is Column3DIEEG columnIEEG)
                     {
                         Data.Experience.Dataset.DataInfo dataInfo = m_Scene.Visualization.GetDataInfo(site.Information.Patient, columnIEEG.ColumnIEEGData);
                         dataInfoByPatient.Add(site.Information.Patient, dataInfo);
                     }
-                    else if (m_Scene.ColumnManager.SelectedColumn is Column3DCCEP columnCCEP)
+                    else if (m_Scene.SelectedColumn is Column3DCCEP columnCCEP)
                     {
                         Data.Experience.Dataset.DataInfo dataInfo = m_Scene.Visualization.GetDataInfo(site.Information.Patient, columnCCEP.ColumnCCEPData);
                         dataInfoByPatient.Add(site.Information.Patient, dataInfo);
@@ -177,7 +177,7 @@ namespace HBP.UI.Module3D
 
             // Create string builder
             System.Text.StringBuilder csvBuilder = new System.Text.StringBuilder();
-            csvBuilder.AppendLine("Site,Patient,Place,Date,X,Y,Z,CoordSystem,DataType,DataFiles");
+            csvBuilder.AppendLine("Site,Patient,Place,Date,X,Y,Z,CoordSystem,Labels,DataType,DataFiles");
 
             // Prepare sites positions for performance increase
             yield return Ninja.JumpToUnity;
@@ -190,7 +190,7 @@ namespace HBP.UI.Module3D
                 Site site = sites[i];
                 Vector3 sitePosition = sitePositions[i];
                 Data.Experience.Dataset.DataInfo dataInfo = null;
-                if (m_Scene.ColumnManager.SelectedColumn is Column3DDynamic columnIEEG)
+                if (m_Scene.SelectedColumn is Column3DDynamic columnIEEG)
                 {
                     dataInfo = dataInfoByPatient[site.Information.Patient];
                 }
@@ -200,22 +200,22 @@ namespace HBP.UI.Module3D
                     if (dataInfo.DataContainer is Data.Container.BrainVision brainVisionDataContainer)
                     {
                         dataType = "BrainVision";
-                        dataFiles = string.Join(";", new string[] { brainVisionDataContainer.Header });
+                        dataFiles = string.Join(";", new string[] { brainVisionDataContainer.Header }.Where(s => !string.IsNullOrEmpty(s)));
                     }
                     else if (dataInfo.DataContainer is Data.Container.EDF edfDataContainer)
                     {
                         dataType = "EDF";
-                        dataFiles = string.Join(";", new string[] { edfDataContainer.Path });
+                        dataFiles = string.Join(";", new string[] { edfDataContainer.Path }.Where(s => !string.IsNullOrEmpty(s)));
                     }
                     else if (dataInfo.DataContainer is Data.Container.Elan elanDataContainer)
                     {
                         dataType = "ELAN";
-                        dataFiles = string.Join(";", new string[] { elanDataContainer.EEG, elanDataContainer.POS, elanDataContainer.Notes });
+                        dataFiles = string.Join(";", new string[] { elanDataContainer.EEG, elanDataContainer.POS, elanDataContainer.Notes }.Where(s => !string.IsNullOrEmpty(s)));
                     }
                     else if (dataInfo.DataContainer is Data.Container.Micromed micromedDataContainer)
                     {
                         dataType = "Micromed";
-                        dataFiles = string.Join(";", new string[] { micromedDataContainer.Path });
+                        dataFiles = string.Join(";", new string[] { micromedDataContainer.Path }.Where(s => !string.IsNullOrEmpty(s)));
                     }
                     else
                     {
@@ -223,7 +223,7 @@ namespace HBP.UI.Module3D
                     }
                 }
                 // Write in string builder
-                csvBuilder.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9}",
+                csvBuilder.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}",
                         site.Information.ChannelName,
                         site.Information.Patient.Name,
                         site.Information.Patient.Place,
@@ -231,7 +231,8 @@ namespace HBP.UI.Module3D
                         sitePosition.x.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
                         sitePosition.y.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
                         sitePosition.z.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
-                        m_Scene.ColumnManager.SelectedImplantation.Name,
+                        m_Scene.ImplantationManager.SelectedImplantation.Name,
+                        string.Join(";", site.State.Labels),
                         dataType,
                         dataFiles));
                 // Update progressbar

@@ -110,7 +110,7 @@ namespace HBP.UI.Module3D
             string histogramID = column.name + "_" + (column is Column3DCCEP columnCCEP && columnCCEP.IsSourceSelected ? columnCCEP.SelectedSource.Information.ChannelName : "");
             if (!m_HistogramByColumn.TryGetValue(histogramID, out m_IEEGHistogram))
             {
-                float[] iEEGValues = column.IEEGValuesOfUnmaskedSites;
+                float[] iEEGValues = column.ActivityValuesOfUnmaskedSites;
                 if (!m_IEEGHistogram)
                 {
                     m_IEEGHistogram = new Texture2D(1, 1);
@@ -292,7 +292,7 @@ namespace HBP.UI.Module3D
 
             ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
             {
-                foreach (var column in s.ColumnManager.ColumnsDynamic)
+                foreach (var column in s.ColumnsDynamic)
                 {
                     string histogramID = column.name + "_" + (column is Column3DCCEP columnCCEP && columnCCEP.IsSourceSelected ? columnCCEP.SelectedSource.Information.ChannelName : "");
                     if (m_HistogramByColumn.TryGetValue(histogramID, out Texture2D texture))

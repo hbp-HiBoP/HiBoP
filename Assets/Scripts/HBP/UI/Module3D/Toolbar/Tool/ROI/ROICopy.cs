@@ -19,7 +19,7 @@ namespace HBP.UI.Module3D.Tools
         {
             m_Button.onClick.AddListener(() =>
             {
-                foreach (Column3D column in SelectedScene.ColumnManager.Columns)
+                foreach (Column3D column in SelectedScene.Columns)
                 {
                     if (column == SelectedColumn) continue;
 
@@ -29,7 +29,7 @@ namespace HBP.UI.Module3D.Tools
                     }
                 }
 
-                foreach (Column3D column in SelectedScene.ColumnManager.Columns)
+                foreach (Column3D column in SelectedScene.Columns)
                 {
                     column.UpdateROIMask();
                 }
