@@ -25,8 +25,6 @@ namespace HBP.Module3D
     public class MNIObjects : MonoBehaviour
     {
         #region Properties
-        public static Mutex LoadingMutex = new Mutex();
-
         public LeftRightMesh3D GreyMatter { get; private set; }
         public LeftRightMesh3D WhiteMatter { get; private set; }
         public LeftRightMesh3D InflatedWhiteMatter { get; private set; }
@@ -60,8 +58,6 @@ namespace HBP.Module3D
         /// <param name="instanceID"></param>
         void LoadData(string baseIRMDir, string baseMeshDir, string GOName, int instanceID)
         {
-            LoadingMutex.WaitOne();
-
             DLL.NIFTI nii = new DLL.NIFTI();
             nii.LoadNIIFile(baseIRMDir + "MNI.nii");
             DLL.Volume volume = new DLL.Volume();
@@ -103,8 +99,6 @@ namespace HBP.Module3D
             rightWhiteInflated.ComputeNormals();
             bothWhiteInflated.ComputeNormals();
             InflatedWhiteMatter = new LeftRightMesh3D("MNI Inflated", leftWhiteInflated, rightWhiteInflated, bothWhiteInflated, Data.Enums.MeshType.MNI);
-
-            LoadingMutex.ReleaseMutex();
         }
         #endregion
 
