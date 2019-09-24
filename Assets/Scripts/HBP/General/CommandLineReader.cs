@@ -64,12 +64,7 @@ namespace HBP
                 }
                 else
                 {
-                    Task projectLoadingTask;
-                    yield return this.StartCoroutineAsync(FindObjectOfType<ProjectLoaderSaver>().c_Load(new Data.General.ProjectInfo(ApplicationState.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0] + Data.General.Project.EXTENSION)), out projectLoadingTask);
-                    if (projectLoadingTask.State == TaskState.Error)
-                    {
-                        ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Couldn't open project", "No project named <color=red>" + arguments[0] + "</color> could be found in the default project directory (" + ApplicationState.UserPreferences.General.Project.DefaultLocation + ").\n\nPlease verify the project name or your default project directory.");
-                    }
+                    FindObjectOfType<ProjectLoaderSaver>().Load(new Data.General.ProjectInfo(ApplicationState.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0] + Data.General.Project.EXTENSION));
                 }
             }
             else if (action == "-pf") // Project File
@@ -80,12 +75,7 @@ namespace HBP
                 }
                 else
                 {
-                    Task projectLoadingTask;
-                    yield return this.StartCoroutineAsync(FindObjectOfType<ProjectLoaderSaver>().c_Load(new Data.General.ProjectInfo(arguments[0])), out projectLoadingTask);
-                    if (projectLoadingTask.State == TaskState.Error)
-                    {
-                        ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Couldn't open project", "The selected file <color=red>" + arguments[0] + "</color> is not a valid project.\n\nPlease verify the project file.");
-                    }
+                    FindObjectOfType<ProjectLoaderSaver>().Load(new Data.General.ProjectInfo(arguments[0]));
                 }
             }
             else if (action == "-v") // Visualization

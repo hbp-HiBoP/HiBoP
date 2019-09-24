@@ -1,10 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
-using System;
 using System.IO;
-using System.Collections;
 using CielaSpike;
-using Tools.Unity;
 using HBP.Data.General;
 
 namespace HBP.UI
@@ -14,14 +11,39 @@ namespace HBP.UI
         #region Public Methods  
         public void Load(ProjectInfo projectInfo)
         {
+            Project projectToLoad = new Project();
+
             DataManager.Clear();
-            this.StartCoroutineAsync(c_Load(projectInfo));
+            Project projectLoaded = ApplicationState.ProjectLoaded;
+            string projectLoadedLocation = ApplicationState.ProjectLoadedLocation;
+            ApplicationState.ProjectLoaded = projectToLoad;
+            ApplicationState.ProjectLoadedLocation = Directory.GetParent(projectInfo.Path).FullName;
+
+            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+            ApplicationState.LoadingManager.Load(
+                projectToLoad.c_Load(projectInfo, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)),
+                onChangeProgress,
+                (taskState) =>
+                {
+                    if (taskState == TaskState.Done)
+                    {
+                        FindObjectOfType<MenuButtonState>().SetInteractables();
+                    }
+                    else
+                    {
+                        ApplicationState.ProjectLoaded = projectLoaded;
+                        ApplicationState.ProjectLoadedLocation = projectLoadedLocation;
+                    }
+                });
         }
         public void Save(string path)
         {
             ApplicationState.Module3D.SaveConfigurations();
             ApplicationState.ProjectLoadedLocation = path;
-            this.StartCoroutineAsync(c_Save(path));
+            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+            ApplicationState.LoadingManager.Load(
+                ApplicationState.ProjectLoaded.c_Save(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)),
+                onChangeProgress);
         }
         public void Save()
         {
@@ -29,64 +51,8 @@ namespace HBP.UI
         }
         public void SaveAndReload()
         {
-            this.StartCoroutineAsync(c_SaveAndReload(ApplicationState.ProjectLoadedLocation));
-        }
-        #endregion
-
-        #region Coroutines
-        public IEnumerator c_Load(ProjectInfo info)
-        {
-            Data.General.Project oldProject = ApplicationState.ProjectLoaded;
-            Data.General.Project project = new Data.General.Project();
-            ApplicationState.ProjectLoaded = project;
-            yield return Ninja.JumpToUnity;
-            LoadingCircle loadingCircle = ApplicationState.LoadingManager.Open();
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            onChangeProgress.AddListener((progress, time, message) => loadingCircle.ChangePercentage(progress, time, message));
-            Task loadingTask;
-            yield return this.StartCoroutineAsync(project.c_Load(info, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), out loadingTask);
-            switch (loadingTask.State)
-            {
-                case TaskState.Done:
-                    yield return new WaitForSeconds(0.5f);
-                    ApplicationState.ProjectLoaded = project;
-                    ApplicationState.ProjectLoadedLocation = Directory.GetParent(info.Path).FullName;
-                    FindObjectOfType<MenuButtonState>().SetInteractables();
-                    break;
-                case TaskState.Error:
-                    Exception exception = loadingTask.Exception;
-                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
-                    ApplicationState.ProjectLoaded = oldProject;
-                    break;
-            }
-            loadingCircle.Close();
-        }
-        public IEnumerator c_Save(string path)
-        {
-            yield return Ninja.JumpToUnity;
-            LoadingCircle loadingCircle = ApplicationState.LoadingManager.Open();
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            onChangeProgress.AddListener((progress, time, message) => loadingCircle.ChangePercentage(progress, time, message));
-            Task savingTask;
-            yield return this.StartCoroutineAsync(ApplicationState.ProjectLoaded.c_Save(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), out savingTask);
-            switch (savingTask.State)
-            {
-                case TaskState.Done:
-                    yield return new WaitForSeconds(0.5f);
-                    break;
-                case TaskState.Error:
-                    Exception exception = savingTask.Exception;
-                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
-                    break;
-            }
-            loadingCircle.Close();
-        }
-        IEnumerator c_SaveAndReload(string path)
-        {
-            yield return c_Save(path);
-            yield return Ninja.JumpToUnity;
-            // TODO
-            GameObject.FindObjectOfType<MenuButtonState>().SetInteractables();
+            Save();
+            FindObjectOfType<MenuButtonState>().SetInteractables();
         }
         #endregion
     }

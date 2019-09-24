@@ -1,6 +1,8 @@
-﻿using HBP.Data.Anatomy;
+﻿using CielaSpike;
+using HBP.Data.Anatomy;
 using HBP.Data.Tags;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -98,7 +100,7 @@ namespace HBP.Data
         /// <param name="MRIs">MRI scans of the patient.</param>
         /// <param name="implantations">Electrodes implantations of the patient.</param>
         /// <param name="ID">Unique identifier to identify the patient.</param>
-        public Patient(string name, string place, int date, IEnumerable<Mesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Implantation> implantations, IEnumerable<BaseTagValue> tags, string ID) : base(ID) 
+        public Patient(string name, string place, int date, IEnumerable<Mesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Implantation> implantations, IEnumerable<BaseTagValue> tags, string ID) : base(ID)
         {
             Name = name;
             Place = place;
@@ -237,6 +239,38 @@ namespace HBP.Data
             result = patients.ToArray();
             return true;
         }
+        public static IEnumerator c_LoadFromDatabase(string path, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Patient>> result)
+        {
+            yield return Ninja.JumpBack;
+
+            List<Patient> patients = new List<Patient>();
+            if (!string.IsNullOrEmpty(path))
+            {
+                DirectoryInfo directory = new DirectoryInfo(path);
+                if (directory.Exists)
+                {
+                    IEnumerable<DirectoryInfo> patientDirectories = directory.GetDirectories().Where(d => IsPatientDirectory(d.FullName));
+                    int length = patientDirectories.Count();
+                    int i = 0;
+                    foreach (var dir in patientDirectories)
+                    {
+                        yield return Ninja.JumpToUnity;
+                        OnChangeProgress.Invoke((float)i / length, 0, new LoadingText("Loading patient ", dir.Name , " [" + (i + 1) + "/" + length + "]"));
+                        yield return Ninja.JumpBack;
+                        if (LoadFromDirectory(dir.FullName, out Patient patient))
+                        {
+                            patients.Add(patient);
+                        }
+                        i++;
+                    }
+                }
+            }
+
+            yield return Ninja.JumpToUnity;
+            OnChangeProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
+            result(patients);
+        }
+
         #endregion
 
         #region Operators
@@ -280,6 +314,12 @@ namespace HBP.Data
         bool ILoadableFromDatabase<Patient>.LoadFromDatabase(string path, out Patient[] result)
         {
             return LoadFromDatabase(path, out result);
+        }
+        IEnumerator ILoadableFromDatabase<Patient>.LoadFromDatabase(string path, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Patient>> result)
+        {
+            yield return Ninja.JumpToUnity;
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadFromDatabase(path, OnChangeProgress, result));
+            yield return Ninja.JumpBack;
         }
         #endregion
     }

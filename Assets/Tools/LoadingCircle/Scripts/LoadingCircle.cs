@@ -8,28 +8,19 @@ using UnityEngine.UI;
 public class LoadingCircle : MonoBehaviour
 {
     #region Properties
-    [SerializeField, HideInInspector]
-    float m_Progress;
-    public float Progress
-    {
-        get
-        {
-            return m_Progress;
-        }
-        set
-        {
-            m_Progress = value;
-        }
-    }
-
+    float m_TargetProgress;
     float m_LastProgress;
-    Coroutine m_TextCoroutine;
-    Coroutine m_ChangePercentageCoroutine;
-    bool m_ChangePercentageCoroutineIsRunning;
-    float m_EndPercentageCurrentCoroutine;
+    public float Progress { get; set; }
 
     LoadingText m_LastText;
     public LoadingText Text { get; set; }
+
+    float m_CurrentDurationInSeconds;
+    public float DurationInSeconds { get; set; }
+
+    Coroutine m_TextCoroutine;
+
+
     bool loading;
     Sprite[] m_Sprites;
 
@@ -42,31 +33,13 @@ public class LoadingCircle : MonoBehaviour
     #endregion
 
     #region Public Methods
-    public void ChangePercentage(float progress, float seconds, LoadingText message)
+    public void ChangePercentage(float progress, float durationInSeconds, LoadingText message)
     {
-        if (m_ChangePercentageCoroutineIsRunning)
-        {
-            StopCoroutine(m_ChangePercentageCoroutine);
-            Progress = m_EndPercentageCurrentCoroutine;
-        }
-        ChangePercentage(m_Progress, progress, seconds);
+        m_LastProgress = m_TargetProgress;
+        m_TargetProgress = progress;
+        DurationInSeconds = durationInSeconds;
+        m_CurrentDurationInSeconds = 0;
         Text = message;
-    }
-    public void ChangePercentage(float start, float end, float seconds)
-    {
-        if(!Mathf.Approximately(start,end))
-        {
-            m_EndPercentageCurrentCoroutine = end;
-            if (seconds > 0)
-            {
-                m_ChangePercentageCoroutine = StartCoroutine(c_ChangePercentage(start, end, seconds));
-            }
-            else
-            {
-                Progress = end;
-            }
-        }
-
     }
     public void Close()
     {
@@ -85,19 +58,7 @@ public class LoadingCircle : MonoBehaviour
     #endregion
 
     #region Coroutines
-    IEnumerator c_ChangePercentage(float start, float end, float seconds)
-    {
-        m_ChangePercentageCoroutineIsRunning = true;
-        float actualTime = 0;
-        while(actualTime < seconds)
-        {
-            actualTime += Time.deltaTime;
-            Progress = Mathf.Lerp(start, end, actualTime / seconds);
-            yield return new WaitForEndOfFrame();
-        }
-        m_ChangePercentageCoroutineIsRunning = false;
-    }
-    IEnumerator c_Load()
+    IEnumerator c_TextLoadingEffect()
     {
         loading = true;
         m_LoadingEffectText.text = "";
@@ -124,17 +85,19 @@ public class LoadingCircle : MonoBehaviour
     }
     void LateUpdate()
     {
-        if (!loading && m_LoadingEffectText.gameObject.activeSelf) m_TextCoroutine = StartCoroutine(c_Load());
+        if (!loading && m_LoadingEffectText.gameObject.activeSelf) m_TextCoroutine = StartCoroutine(c_TextLoadingEffect());
     }
 
     private void Update()
     {
-        if(m_Progress != m_LastProgress)
+        if (!Mathf.Approximately(Progress,m_TargetProgress))
         {
-            int percentage = Mathf.Min(Mathf.FloorToInt(m_Progress * 100.0f),100);
-            m_FillProgress.fillAmount = m_Progress;
+            float t = Mathf.Approximately(DurationInSeconds, 0) ? 1 : m_CurrentDurationInSeconds / DurationInSeconds;
+            Progress = Mathf.Lerp(m_LastProgress, m_TargetProgress, t);
+            int percentage = Mathf.Min(Mathf.FloorToInt(Progress * 100.0f), 100);
+            m_FillProgress.fillAmount = Progress;
             m_IconProgress.sprite = m_Sprites[percentage];
-            m_LastProgress = m_Progress;
+            m_CurrentDurationInSeconds += Time.deltaTime;
         }
         if (Text != m_LastText)
         {

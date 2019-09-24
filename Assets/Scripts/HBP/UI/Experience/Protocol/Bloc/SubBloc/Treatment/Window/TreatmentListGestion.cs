@@ -84,8 +84,7 @@ namespace HBP.UI.Experience.Protocol
                     }
                     break;
                 case Data.Enums.CreationType.FromDatabase:
-                    LoadFromDatabase(out Treatment[] items);
-                    OpenSelector(items, true, false);
+                    OpenDatabaseSelector();
                     break;
             }
         }

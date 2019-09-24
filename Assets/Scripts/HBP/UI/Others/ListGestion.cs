@@ -166,10 +166,7 @@ namespace Tools.Unity.Components
                     }
                     break;
                 case HBP.Data.Enums.CreationType.FromDatabase:
-                    if(LoadFromDatabase(out T[] items))
-                    {
-                        OpenSelector(items, true, false, false);
-                    }
+                    OpenDatabaseSelector();
                     break;
             }
         }
@@ -222,11 +219,23 @@ namespace Tools.Unity.Components
             }
             return false;
         }
-        protected virtual bool LoadFromDatabase(out T[] results)
+        protected virtual void OpenDatabaseSelector()
         {
             string path = FileBrowser.GetExistingDirectoryName();
-            ILoadableFromDatabase<T> loadable = new T() as ILoadableFromDatabase<T>;
-            return loadable.LoadFromDatabase(path, out results);
+            if(path != null)
+            {
+                ILoadableFromDatabase<T> loadable = new T() as ILoadableFromDatabase<T>;
+                GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+                ApplicationState.LoadingManager.Load(loadable.LoadFromDatabase(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => OnEndLoadFromDatabase(result.ToArray())), onChangeProgress);
+            }       
+        }
+
+        protected virtual void OnEndLoadFromDatabase(T[] result)
+        {
+            if(result.Length > 0)
+            {
+                OpenSelector(result, true, false, false);
+            }
         }
 
         protected virtual void UpdateCounter()
