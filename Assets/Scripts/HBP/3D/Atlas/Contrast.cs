@@ -25,10 +25,6 @@ namespace HBP.Module3D.IBC
         /// </summary>
         public string TargetCondition { get; private set; }
         /// <summary>
-        /// Nifti image of the contrast
-        /// </summary>
-        public DLL.NIFTI NIFTI { get; private set; } = new DLL.NIFTI();
-        /// <summary>
         /// Volume of the contrast
         /// </summary>
         public DLL.Volume Volume { get; private set; } = new DLL.Volume();
@@ -49,11 +45,7 @@ namespace HBP.Module3D.IBC
                 Name = labels.PrettyName;
                 ControlCondition = labels.ControlCondition;
                 TargetCondition = labels.TargetCondition;
-                if (NIFTI.LoadNIIFile(file))
-                {
-                    NIFTI.ConvertToVolume(Volume);
-                    Loaded = true;
-                }
+                Loaded = Volume.LoadNIIFile(file);
             }
         }
         #endregion
@@ -64,7 +56,6 @@ namespace HBP.Module3D.IBC
         /// </summary>
         public void Clean()
         {
-            NIFTI?.Dispose();
             Volume?.Dispose();
         }
         #endregion

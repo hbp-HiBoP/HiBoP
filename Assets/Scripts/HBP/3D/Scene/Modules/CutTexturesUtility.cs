@@ -16,13 +16,9 @@ namespace HBP.Module3D
         /// </summary>
         public DLL.Texture DLLCutColorScheme;
         /// <summary>
-        /// Color scheme for the FMRI
-        /// </summary>
-        public DLL.Texture DLLCutFMRIColorScheme;
-        /// <summary>
         /// Generator for the MRI textures of the cuts
         /// </summary>
-        public List<DLL.MRITextureCutGenerator> DLLMRITextureCutGenerators = new List<DLL.MRITextureCutGenerator>();
+        public List<MRITextureCutGenerator> DLLMRITextureCutGenerators = new List<DLL.MRITextureCutGenerator>();
         /// <summary>
         /// DLL textures for the cuts for the 3D
         /// </summary>
@@ -185,11 +181,11 @@ namespace HBP.Module3D
 
             for (int i = 0; i < DLLMRITextureCutGenerators.Count; ++i)
             {
-                DLL.MRITextureCutGenerator generator = DLLMRITextureCutGenerators[i];
-                generator.FillTextureWithIEEG(column, DLLCutColorScheme);
+                MRITextureCutGenerator generator = DLLMRITextureCutGenerators[i];
+                generator.FillTextureWithActivity(column, DLLCutColorScheme);
 
                 DLL.Texture cutTexture = DLLBrainCutTextures[i];
-                generator.UpdateTextureWithIEEG(cutTexture);
+                generator.UpdateTextureWithActivity(cutTexture);
                 cutTexture.UpdateTexture2D(BrainCutTextures[i]);
             }
         }
@@ -205,7 +201,7 @@ namespace HBP.Module3D
         {
             UnityEngine.Profiling.Profiler.BeginSample("Compute FMRI textures");
             DLL.MRITextureCutGenerator generator = DLLMRITextureCutGenerators[indexCut];
-            generator.FillTextureWithFMRI(DLLCutFMRIColorScheme, volume, FMRICalMinFactor, FMRICalMaxFactor, FMRIAlpha);
+            generator.FillTextureWithFMRI(volume, FMRICalMinFactor, FMRICalMaxFactor, FMRIAlpha);
 
             DLL.Texture cutTexture = DLLBrainCutTextures[indexCut];
             generator.UpdateTextureWithFMRI(cutTexture);
@@ -232,8 +228,6 @@ namespace HBP.Module3D
         {
             DLLCutColorScheme?.Dispose();
             DLLCutColorScheme = DLL.Texture.Generate2DColorTexture(colorBrainCut, colormap);
-            DLLCutFMRIColorScheme?.Dispose();
-            DLLCutFMRIColorScheme = DLL.Texture.Generate2DColorTexture(colorBrainCut, colormap);
         }
         /// <summary>
         /// Set the DLL MRI Volume Generator
@@ -253,7 +247,6 @@ namespace HBP.Module3D
         {
             foreach (var dllMRITextureCutGenerator in DLLMRITextureCutGenerators) dllMRITextureCutGenerator?.Dispose();
             DLLCutColorScheme?.Dispose();
-            DLLCutFMRIColorScheme?.Dispose();
             foreach (var texture in DLLBrainCutTextures) texture?.Dispose();
             foreach (var texture in DLLGUIBrainCutTextures) texture?.Dispose();
         }

@@ -270,6 +270,7 @@ namespace HBP.Module3D.DLL
     public class Volume : Tools.DLL.CppDLLImportBase
     {
         #region Properties
+        public bool IsLoaded { get; private set; }
         /// <summary>
         /// 
         /// </summary>
@@ -332,6 +333,11 @@ namespace HBP.Module3D.DLL
         #endregion
 
         #region Public Methods
+        public bool LoadNIIFile(string path)
+        {
+            IsLoaded = (loadNiiFile_Volume(_handle, path) == 1);
+            return IsLoaded;
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -433,7 +439,9 @@ namespace HBP.Module3D.DLL
         [DllImport("hbp_export", EntryPoint = "cube_bounding_box_Volume", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr cube_bounding_box_Volume(HandleRef handleSurface, float[] planes, int planesCount);
 
-        
+        [DllImport("hbp_export", EntryPoint = "loadNiiFile_Volume", CallingConvention = CallingConvention.Cdecl)]
+        static private extern int loadNiiFile_Volume(HandleRef handleNii, string pathFile);
+
 
         //// memory management        
         //delegate IntPtr create_Volume();

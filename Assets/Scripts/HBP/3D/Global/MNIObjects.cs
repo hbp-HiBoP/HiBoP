@@ -51,24 +51,22 @@ namespace HBP.Module3D
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="baseIRMDir"></param>
-        /// <param name="baseMeshDir"></param>
+        /// <param name="mniMRIDir"></param>
+        /// <param name="mniMeshDir"></param>
         /// <param name="idScript"></param>
         /// <param name="GOName"></param>
         /// <param name="instanceID"></param>
-        void LoadData(string baseIRMDir, string baseMeshDir, string GOName, int instanceID)
+        void LoadData(string mniMRIDir, string mniMeshDir, string GOName, int instanceID)
         {
-            DLL.NIFTI nii = new DLL.NIFTI();
-            nii.LoadNIIFile(baseIRMDir + "MNI.nii");
             DLL.Volume volume = new DLL.Volume();
-            nii.ConvertToVolume(volume);
-            MRI = new MRI3D("MNI", nii, volume);
+            volume.LoadNIIFile(mniMRIDir + "MNI.nii");
+            MRI = new MRI3D("MNI", volume);
 
             DLL.Surface leftHemi = new DLL.Surface();
             DLL.Surface rightHemi = new DLL.Surface();
             DLL.Surface bothHemi;
-            leftHemi.LoadGIIFile(baseMeshDir + "MNI_Lhemi.gii", true, baseMeshDir + "MNI.trm"); leftHemi.FlipTriangles();
-            rightHemi.LoadGIIFile(baseMeshDir + "MNI_Rhemi.gii", true, baseMeshDir + "MNI.trm"); rightHemi.FlipTriangles();
+            leftHemi.LoadGIIFile(mniMeshDir + "MNI_Lhemi.gii", mniMeshDir + "MNI.trm"); leftHemi.FlipTriangles();
+            rightHemi.LoadGIIFile(mniMeshDir + "MNI_Rhemi.gii", mniMeshDir + "MNI.trm"); rightHemi.FlipTriangles();
             bothHemi = (DLL.Surface)leftHemi.Clone();
             bothHemi.Append(rightHemi);
             leftHemi.ComputeNormals();
@@ -79,8 +77,8 @@ namespace HBP.Module3D
             DLL.Surface leftWhite = new DLL.Surface();
             DLL.Surface rightWhite = new DLL.Surface();
             DLL.Surface bothWhite;
-            leftWhite.LoadGIIFile(baseMeshDir + "MNI_Lwhite.gii", true, baseMeshDir + "MNI.trm"); leftWhite.FlipTriangles();
-            rightWhite.LoadGIIFile(baseMeshDir + "MNI_Rwhite.gii", true, baseMeshDir + "MNI.trm"); rightWhite.FlipTriangles();
+            leftWhite.LoadGIIFile(mniMeshDir + "MNI_Lwhite.gii", mniMeshDir + "MNI.trm"); leftWhite.FlipTriangles();
+            rightWhite.LoadGIIFile(mniMeshDir + "MNI_Rwhite.gii", mniMeshDir + "MNI.trm"); rightWhite.FlipTriangles();
             bothWhite = (DLL.Surface)leftWhite.Clone();
             bothWhite.Append(rightWhite);
             leftWhite.ComputeNormals();
@@ -91,8 +89,8 @@ namespace HBP.Module3D
             DLL.Surface leftWhiteInflated = new DLL.Surface();
             DLL.Surface rightWhiteInflated = new DLL.Surface();
             DLL.Surface bothWhiteInflated;
-            leftWhiteInflated.LoadGIIFile(baseMeshDir + "MNI_Lwhite_inflated.gii", true, baseMeshDir + "MNI.trm"); leftWhiteInflated.FlipTriangles();
-            rightWhiteInflated.LoadGIIFile(baseMeshDir + "MNI_Rwhite_inflated.gii", true, baseMeshDir + "MNI.trm"); rightWhiteInflated.FlipTriangles();
+            leftWhiteInflated.LoadGIIFile(mniMeshDir + "MNI_Lwhite_inflated.gii", mniMeshDir + "MNI.trm"); leftWhiteInflated.FlipTriangles();
+            rightWhiteInflated.LoadGIIFile(mniMeshDir + "MNI_Rwhite_inflated.gii", mniMeshDir + "MNI.trm"); rightWhiteInflated.FlipTriangles();
             bothWhiteInflated = (DLL.Surface)leftWhiteInflated.Clone();
             bothWhiteInflated.Append(rightWhiteInflated);
             leftWhiteInflated.ComputeNormals();

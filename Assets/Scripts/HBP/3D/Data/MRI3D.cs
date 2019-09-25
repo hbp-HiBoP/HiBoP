@@ -13,25 +13,7 @@ namespace HBP.Module3D
         /// </summary>
         public string Name { get; set; }
 
-        private DLL.NIFTI m_NII;
-        /// <summary>
-        /// DLL NIFTI of this MRI
-        /// </summary>
-        public DLL.NIFTI NII
-        {
-            get
-            {
-                while (m_IsLoading) System.Threading.Thread.Sleep(10);
-                if (!IsLoaded) Load();
-                return m_NII;
-            }
-            protected set
-            {
-                m_NII = value;
-            }
-        }
-
-        private DLL.Volume m_Volume;
+        private DLL.Volume m_Volume = new DLL.Volume();
         /// <summary>
         /// Volume of this MRI
         /// </summary>
@@ -56,7 +38,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_NII != null ? m_NII.IsLoaded : false;
+                return m_Volume != null ? m_Volume.IsLoaded : false;
             }
         }
         /// <summary>
@@ -84,10 +66,9 @@ namespace HBP.Module3D
             }
             HasBeenLoadedOutside = false;
         }
-        public MRI3D(string name, DLL.NIFTI nii, DLL.Volume volume)
+        public MRI3D(string name, DLL.Volume volume)
         {
             Name = name;
-            NII = nii;
             Volume = volume;
             HasBeenLoadedOutside = true;
         }
@@ -101,12 +82,7 @@ namespace HBP.Module3D
         public void Load()
         {
             m_IsLoading = true;
-            m_NII = new DLL.NIFTI();
-            if (m_NII.LoadNIIFile(m_MRI.File))
-            {
-                m_Volume = new DLL.Volume();
-                m_NII.ConvertToVolume(m_Volume);
-            }
+            m_Volume.LoadNIIFile(m_MRI.File);
             m_IsLoading = false;
         }
         /// <summary>
@@ -114,7 +90,6 @@ namespace HBP.Module3D
         /// </summary>
         public void Clean()
         {
-            m_NII?.Dispose();
             m_Volume?.Dispose();
         }
         public object Clone()
@@ -122,7 +97,6 @@ namespace HBP.Module3D
             MRI3D mri = new MRI3D
             {
                 Name = Name,
-                NII = NII,
                 Volume = Volume,
                 HasBeenLoadedOutside = HasBeenLoadedOutside
             };

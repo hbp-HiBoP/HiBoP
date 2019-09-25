@@ -1,20 +1,5 @@
-﻿
-
-/**
- * \file    ROI.cs
- * \author  Lance Florian
- * \date    2015
- * \brief   Define Bubble and ROI classes
- */
-
-// system
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
-
-// unity
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -235,7 +220,7 @@ namespace HBP.Module3D
             // DLL
             Vector3 positionBubble = sphere.transform.localPosition;
             positionBubble.x = -positionBubble.x;
-            m_DLLROI.AddBubble(ray, positionBubble);
+            m_DLLROI.AddSphere(ray, positionBubble);
 
             OnChangeNumberOfVolumeInROI.Invoke();
             SelectSphere(m_Spheres.Count - 1);
@@ -249,7 +234,7 @@ namespace HBP.Module3D
                 // DLL
                 Vector3 positionBubble = SelectedSphere.Position;
                 positionBubble.x = -positionBubble.x;
-                m_DLLROI.UpdateBubblePosition(SelectedSphereID, positionBubble);
+                m_DLLROI.UpdateSpherePosition(SelectedSphereID, positionBubble);
 
                 OnChangeROISphereParameters.Invoke();
             }
@@ -267,7 +252,7 @@ namespace HBP.Module3D
             m_Spheres.RemoveAt(sphereID);
 
             // remove dll sphere
-            m_DLLROI.RemoveBubble(sphereID);
+            m_DLLROI.RemoveSphere(sphereID);
 
             OnChangeNumberOfVolumeInROI.Invoke();
             
@@ -297,7 +282,7 @@ namespace HBP.Module3D
             m_Spheres[idBubble].GetComponent<Sphere>().Radius *= coeff;
 
             // DLL
-            m_DLLROI.UpdateBubbleRadius(idBubble, m_Spheres[idBubble].GetComponent<Sphere>().Radius);
+            m_DLLROI.UpdateSphereRadius(idBubble, m_Spheres[idBubble].GetComponent<Sphere>().Radius);
 
             OnChangeROISphereParameters.Invoke();
         }

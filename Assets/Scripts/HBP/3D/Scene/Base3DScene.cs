@@ -916,8 +916,8 @@ namespace HBP.Module3D
             for (int i = 0; i < m_MeshManager.MeshSplitNumber; ++i)
             {
                 DLLCommonBrainTextureGeneratorList[i].Reset(m_MeshManager.SplittedMeshes[i], m_MRIManager.SelectedMRI.Volume);
-                DLLCommonBrainTextureGeneratorList[i].ComputeUVMainWithVolume(m_MeshManager.SplittedMeshes[i], m_MRIManager.SelectedMRI.Volume, m_MRIManager.MRICalMinFactor, m_MRIManager.MRICalMaxFactor);
-                DLLCommonBrainTextureGeneratorList[i].ComputeUVNull(m_MeshManager.SplittedMeshes[i]);
+                DLLCommonBrainTextureGeneratorList[i].ComputeMainUVWithVolume(m_MeshManager.SplittedMeshes[i], m_MRIManager.SelectedMRI.Volume, m_MRIManager.MRICalMinFactor, m_MRIManager.MRICalMaxFactor);
+                DLLCommonBrainTextureGeneratorList[i].ComputeNullUV(m_MeshManager.SplittedMeshes[i]);
             }
             m_MeshManager.UpdateMeshesFromDLL();
         }
@@ -1586,13 +1586,13 @@ namespace HBP.Module3D
                 {
                     if (!(column is Column3DDynamic) || !m_IsGeneratorUpToDate)
                     {
-                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv2 = DLLCommonBrainTextureGeneratorList[i].UVNull;
-                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = DLLCommonBrainTextureGeneratorList[i].UVNull;
+                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv2 = DLLCommonBrainTextureGeneratorList[i].NullUV;
+                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = DLLCommonBrainTextureGeneratorList[i].NullUV;
                     }
                     else
                     {
                         column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv2 = ((Column3DDynamic)column).DLLBrainTextureGenerators[i].AlphaUV;
-                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = ((Column3DDynamic)column).DLLBrainTextureGenerators[i].IEEGUV;
+                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = ((Column3DDynamic)column).DLLBrainTextureGenerators[i].ActivityUV;
                     }
                 }
             }
@@ -2050,7 +2050,7 @@ namespace HBP.Module3D
                     if (m_GeneratorNeedsUpdate) yield break;
                     ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].ComputeDistances(ColumnsDynamic[ii].DynamicParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
                     if (m_GeneratorNeedsUpdate) yield break;
-                    ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(ColumnsDynamic[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                    ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(ColumnsDynamic[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                     if (m_GeneratorNeedsUpdate) yield break;
 
                     currentMaxDensity = ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].MaximumDensity;
