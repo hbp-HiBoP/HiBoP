@@ -1,4 +1,7 @@
-﻿namespace HBP.Data.Tags
+﻿using System;
+using UnityEngine;
+
+namespace HBP.Data.Tags
 {
     public class IntTagValue : TagValue<IntTag, int>
     {
@@ -38,6 +41,18 @@
         public override object Clone()
         {
             return new IntTagValue(Tag, Value, ID);
+        }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+            if (copy is FloatTagValue floatTagValue)
+            {
+                Value = Mathf.RoundToInt(floatTagValue.Value);
+            }
+            if (copy is BoolTagValue boolTagValue)
+            {
+                Value = Convert.ToInt32(boolTagValue.Value);
+            }
         }
         #endregion
     }

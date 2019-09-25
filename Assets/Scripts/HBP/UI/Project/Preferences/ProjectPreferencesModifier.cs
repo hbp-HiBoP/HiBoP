@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using HBP.Data.General;
+using UnityEngine.Events;
 
 namespace HBP.UI.General
 {
@@ -25,6 +26,8 @@ namespace HBP.UI.General
         public override void Save()
         {
             base.Save();
+            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+            ApplicationState.LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckPatientTagValues(m_TagsSubModifier.ModifiedTags, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
         }
         #endregion
 

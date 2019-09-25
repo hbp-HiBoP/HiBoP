@@ -41,6 +41,24 @@
         {
             return new FloatTagValue(Tag, Value, ID);
         }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+            if (copy is BaseTagValue baseTagValue)
+            {
+                if (baseTagValue.Value is int intValue)
+                {
+                    Value = intValue;
+                }
+                if (baseTagValue.Value is string stringValue)
+                {
+                    if (float.TryParse(stringValue, out float floatValue))
+                    {
+                        Value = floatValue;
+                    }
+                }
+            }
+        }
         #endregion
 
         #region Private Methods

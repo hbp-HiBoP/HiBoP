@@ -1,4 +1,7 @@
-﻿namespace HBP.Data.Tags
+﻿using System;
+using UnityEngine;
+
+namespace HBP.Data.Tags
 {
     public class EnumTagValue : TagValue<EnumTag, int>
     {
@@ -39,6 +42,18 @@
         public override object Clone()
         {
             return new EnumTagValue(Tag, Value, ID);
+        }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+            if(copy is FloatTagValue floatTagValue)
+            {
+                Value = Mathf.RoundToInt(floatTagValue.Value);
+            }
+            if(copy is StringTagValue stringTagValue)
+            {
+                Value = Array.FindIndex(Tag.Values, t => t == stringTagValue.Value);
+            }
         }
         #endregion
     }

@@ -1,5 +1,6 @@
 ﻿using HBP.Data.General;
 using HBP.UI.Tags;
+using System.Collections.ObjectModel;
 using UnityEngine;
 
 namespace HBP.UI.General
@@ -16,6 +17,14 @@ namespace HBP.UI.General
             {
                  base.Interactable = value;
                 m_TagListGestion.Interactable = value;
+            }
+        }
+
+        public ReadOnlyCollection<Data.Tags.Tag> ModifiedTags
+        {
+            get
+            {
+                return m_TagListGestion.ModifiedTags;
             }
         }
         #endregion

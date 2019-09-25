@@ -19,6 +19,14 @@
         {
             return new StringTagValue(Tag, Value, ID);
         }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+            if(copy is BaseTagValue baseTagValue)
+            {
+                Value = baseTagValue.DisplayableValue;
+            }
+        }
         #endregion
     }
 }

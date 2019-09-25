@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Tools.Unity.Components;
 
 namespace HBP.UI.Tags
@@ -19,6 +20,15 @@ namespace HBP.UI.Tags
                 List.Initialize();
                 base.Objects = value;
                 List.SortByName(TagList.Sorting.Descending);
+            }
+        }
+
+        List<Data.Tags.Tag> m_ModifiedTags = new List<Data.Tags.Tag>();
+        public ReadOnlyCollection<Data.Tags.Tag> ModifiedTags
+        {
+            get
+            {
+                return new ReadOnlyCollection<Data.Tags.Tag>(m_ModifiedTags);
             }
         }
         #endregion
@@ -42,12 +52,14 @@ namespace HBP.UI.Tags
                     OpenSelector(Objects.ToArray());
                     break;
                 case Data.Enums.CreationType.FromFile:
-                    if (LoadFromFile(out item))
-                    {
-                        OpenModifier(item, true);
-                    }
+                    if (LoadFromFile(out item)) OpenModifier(item, true);
                     break;
             }
+        }
+        protected override void OnSaveModifier(ItemModifier<Data.Tags.Tag> modifier)
+        {
+            base.OnSaveModifier(modifier);
+            m_ModifiedTags.Add(modifier.Item);
         }
         #endregion
     }

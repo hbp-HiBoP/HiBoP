@@ -464,7 +464,7 @@ namespace HBP.Data.General
 
             yield return Ninja.JumpBack;
 
-            onChangeProgress.Invoke(1.0f , 0, new LoadingText("Project loaded successfully."));
+            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Project loaded successfully."));
         }
         public IEnumerator c_Save(string path, Action<float, float, LoadingText> onChangeProgress)
         {
@@ -581,27 +581,27 @@ namespace HBP.Data.General
                     if (data is PatientDataInfo patientDataInfo) message = patientDataInfo.Name + " | " + dataset.Protocol.Name + " | " + patientDataInfo.Patient.Name;
                     else message = data.Name + " | " + dataset.Protocol.Name;
 
-                    onChangeProgress.Invoke((float) count / length, 0, new LoadingText("Checking ", message, " [" + (count+1) + "/" + length + "]"));
+                    onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Checking ", message, " [" + (count + 1) + "/" + length + "]"));
                 }
             }
         }
-        public IEnumerable c_CheckPatientTagValues(IEnumerable<Tags.Tag> tags, Action<float, float, LoadingText> onChangeProgress)
+        public IEnumerator c_CheckPatientTagValues(IEnumerable<Tags.Tag> tags, Action<float, float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
 
             // Test patient TagValues;
             IEnumerable<Tags.BaseTagValue> patientsTagValues = m_Patients.SelectMany(p => p.Tags);
             int count = 0;
-            int length = patientsTagValues.Count();
+            int length = tags.Count();
             foreach (var tag in tags)
             {
+                onChangeProgress.Invoke((float)(count+1) / length, 0.1f, new LoadingText("Checking ", tag.Name, " [" + (count + 1) + "/" + length + "]"));
                 IEnumerable<Tags.BaseTagValue> tagValues = patientsTagValues.Where(t => t.Tag == tag);
                 foreach (var tagValue in tagValues)
                 {
                     tagValue.UpdateValue();
                 }
                 count++;
-                onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Checking ", tag.Name, " [" + count + "/" + length + "]"));
             }
         }
         #endregion
@@ -628,6 +628,9 @@ namespace HBP.Data.General
         }
         IEnumerator c_LoadPatients(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
         {
+            const float LOADING_PROGRESS = 0.99f;
+            const float CHECKING_PROGRESS = 0.01f;
+
             yield return Ninja.JumpBack;
 
             // Load patients.
@@ -637,7 +640,7 @@ namespace HBP.Data.General
             for (int i = 0; i < patientFiles.Length; ++i)
             {
                 FileInfo patientFile = patientFiles[i];
-                onChangeProgress.Invoke((float)i / patientFiles.Length, 0, new LoadingText("Loading patient ", Path.GetFileNameWithoutExtension(patientFile.Name), " [" + (i + 1).ToString() + "/" + patientFiles.Length + "]"));
+                onChangeProgress.Invoke((float)(i / patientFiles.Length) * LOADING_PROGRESS, 0, new LoadingText("Loading patient ", Path.GetFileNameWithoutExtension(patientFile.Name), " [" + (i + 1).ToString() + "/" + patientFiles.Length + "]"));
                 try
                 {
                     patients.Add(ClassLoaderSaver.LoadFromJson<Patient>(patientFile.FullName));
@@ -649,6 +652,9 @@ namespace HBP.Data.General
                 }
             }
             SetPatients(patients.ToArray());
+            yield return Ninja.JumpToUnity;
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_CheckPatientTagValues(Settings.Tags, (localProgress, duration, text) => onChangeProgress.Invoke(LOADING_PROGRESS + localProgress * CHECKING_PROGRESS, duration, text)));
+            yield return Ninja.JumpBack;
             onChangeProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
         }
         IEnumerator c_LoadGroups(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
