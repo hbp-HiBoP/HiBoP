@@ -408,7 +408,7 @@ namespace HBP.Data.General
             return projectsDirectories.FirstOrDefault((project) => new ProjectInfo(project).Settings.ID == ID);
         }
 
-        public IEnumerator c_Load(ProjectInfo projectInfo, Action<float, float, LoadingText> OnChangeProgress)
+        public IEnumerator c_Load(ProjectInfo projectInfo, Action<float, float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
 
@@ -423,7 +423,7 @@ namespace HBP.Data.General
             float datasetsProgress = 5 * projectInfo.Patients * projectInfo.Datasets / steps;
             float visualizationsProgress = projectInfo.Visualizations / steps;
 
-            OnChangeProgress.Invoke(progress, 0, new LoadingText("Loading project"));
+            onChangeProgress.Invoke(progress, 0, new LoadingText("Loading project"));
 
             // Unzipping
             if (Directory.Exists(ApplicationState.ProjectLoadedTMPFullPath)) Directory.Delete(ApplicationState.ProjectLoadedTMPFullPath, true);
@@ -439,34 +439,34 @@ namespace HBP.Data.General
             yield return Ninja.JumpToUnity;
 
             // Load Settings.
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadSettings(projectDirectory, (localProgress, duration, text) => OnChangeProgress.Invoke(progress + localProgress * settingsProgress, duration, text)));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadSettings(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * settingsProgress, duration, text)));
             progress += settingsProgress;
 
             // Load Patients.
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadPatients(projectDirectory, (localProgress, duration, text) => OnChangeProgress.Invoke(progress + localProgress * patientsProgress, duration, text)));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadPatients(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * patientsProgress, duration, text)));
             progress += patientsProgress;
 
             // Load Groups.
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadGroups(projectDirectory, (localProgress, duration, text) => OnChangeProgress.Invoke(progress + localProgress * groupsProgress, duration, text)));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadGroups(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * groupsProgress, duration, text)));
             progress += groupsProgress;
 
             // Load Protocols.
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadProtocols(projectDirectory, (localProgress, duration, text) => OnChangeProgress.Invoke(progress + localProgress * protocolsProgress, duration, text)));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadProtocols(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * protocolsProgress, duration, text)));
             progress += protocolsProgress;
 
             // Load Datasets.
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadDatasets(projectDirectory, (localProgress, duration, text) => OnChangeProgress.Invoke(progress + localProgress * datasetsProgress, duration, text)));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadDatasets(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * datasetsProgress, duration, text)));
             progress += datasetsProgress;
 
             // Load Visualizations.
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadVisualizations(projectDirectory, (localProgress, duration, text) => OnChangeProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text)));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadVisualizations(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text)));
             progress += visualizationsProgress;
 
             yield return Ninja.JumpBack;
 
-            OnChangeProgress.Invoke(1.0f , 0, new LoadingText("Project loaded successfully."));
+            onChangeProgress.Invoke(1.0f , 0, new LoadingText("Project loaded successfully."));
         }
-        public IEnumerator c_Save(string path, Action<float, float, LoadingText> OnChangeProgress)
+        public IEnumerator c_Save(string path, Action<float, float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
             // Initialize progress.
@@ -483,7 +483,7 @@ namespace HBP.Data.General
             float finalizationProgress = 10 / steps;
 
             // Initialization.
-            OnChangeProgress.Invoke(progress, 0, new LoadingText("Initialization"));
+            onChangeProgress.Invoke(progress, 0, new LoadingText("Initialization"));
 
             if (string.IsNullOrEmpty(path)) throw new ArgumentNullException(path);
             if (!Directory.Exists(path)) throw new DirectoryNotFoundException(path);
@@ -491,32 +491,32 @@ namespace HBP.Data.General
             string oldTMPProjectDirectory = ApplicationState.ProjectLoadedTMPFullPath;
             progress += initializationProgress;
 
-            OnChangeProgress.Invoke(progress, 0, new LoadingText("Saving project"));
+            onChangeProgress.Invoke(progress, 0, new LoadingText("Saving project"));
 
             yield return Ninja.JumpToUnity;
 
             // Save Settings.
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SaveSettings(tmpProjectDirectory, (localProgress, duration, text) => OnChangeProgress.Invoke(progress + localProgress * settingsProgress, duration, text)));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SaveSettings(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * settingsProgress, duration, text)));
             progress += settingsProgress;
 
             // Save Patients
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SavePatients(tmpProjectDirectory, (localProgress, duration, text) => OnChangeProgress.Invoke(progress + localProgress * patientsProgress, duration, text)));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SavePatients(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * patientsProgress, duration, text)));
             progress += patientsProgress;
 
             // Save Groups.
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SaveGroups(tmpProjectDirectory, (localProgress, duration, text) => OnChangeProgress.Invoke(progress + localProgress * groupsProgress, duration, text)));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SaveGroups(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * groupsProgress, duration, text)));
             progress += groupsProgress;
 
             // Save Protocols.
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SaveProtocols(tmpProjectDirectory, (localProgress, duration, text) => OnChangeProgress.Invoke(progress + localProgress * protocolsProgress, duration, text)));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SaveProtocols(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * protocolsProgress, duration, text)));
             progress += protocolsProgress;
 
             // Save Datasets
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SaveDatasets(tmpProjectDirectory, (localProgress, duration, text) => OnChangeProgress.Invoke(progress + localProgress * datasetsProgress, duration, text)));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SaveDatasets(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * datasetsProgress, duration, text)));
             progress += datasetsProgress;
 
             // Save Visualizations.
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SaveVisualizations(tmpProjectDirectory, (localProgress, duration, text) => OnChangeProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text)));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SaveVisualizations(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text)));
             progress += visualizationsProgress;
 
             yield return Ninja.JumpBack;
@@ -525,7 +525,7 @@ namespace HBP.Data.General
             CopyIcons(Path.Combine(oldTMPProjectDirectory, "Protocols", "Icons"), Path.Combine(tmpProjectDirectory.FullName, "Protocols", "Icons"));
 
             // Deleting old directories.
-            OnChangeProgress.Invoke(progress + finalizationProgress, 0.75f, new LoadingText("Finalizing."));
+            onChangeProgress.Invoke(progress + finalizationProgress, 0.75f, new LoadingText("Finalizing."));
 
             if (Directory.Exists(oldTMPProjectDirectory))
             {
@@ -560,10 +560,10 @@ namespace HBP.Data.General
                 zip.Save();
             }
 
-            OnChangeProgress.Invoke(1, 0, new LoadingText("Project saved successfully."));
+            onChangeProgress.Invoke(1, 0, new LoadingText("Project saved successfully."));
         }
 
-        public IEnumerator c_CheckDatasets(IEnumerable<Protocol> protocols, Action<float, float, LoadingText> OnChangeProgress)
+        public IEnumerator c_CheckDatasets(IEnumerable<Protocol> protocols, Action<float, float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
 
@@ -581,11 +581,11 @@ namespace HBP.Data.General
                     if (data is PatientDataInfo patientDataInfo) message = patientDataInfo.Name + " | " + dataset.Protocol.Name + " | " + patientDataInfo.Patient.Name;
                     else message = data.Name + " | " + dataset.Protocol.Name;
 
-                    OnChangeProgress.Invoke((float) count / length, 0, new LoadingText("Checking ", message, " [" + (count+1) + "/" + length + "]"));
+                    onChangeProgress.Invoke((float) count / length, 0, new LoadingText("Checking ", message, " [" + (count+1) + "/" + length + "]"));
                 }
             }
         }
-        public IEnumerable c_CheckPatientTagValues(IEnumerable<Tags.Tag> tags, Action<float, float, LoadingText> OnChangeProgress)
+        public IEnumerable c_CheckPatientTagValues(IEnumerable<Tags.Tag> tags, Action<float, float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
 
@@ -601,16 +601,16 @@ namespace HBP.Data.General
                     tagValue.UpdateValue();
                 }
                 count++;
-                OnChangeProgress.Invoke((float)count / length, 0, new LoadingText("Checking ", tag.Name, " [" + count + "/" + length + "]"));
+                onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Checking ", tag.Name, " [" + count + "/" + length + "]"));
             }
         }
         #endregion
 
         #region Private Methods
-        IEnumerator c_LoadSettings(DirectoryInfo projectDirectory, Action<float, float, LoadingText> OnChangeProgress)
+        IEnumerator c_LoadSettings(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
-            OnChangeProgress.Invoke(0, 0, new LoadingText("Loading settings"));
+            onChangeProgress.Invoke(0, 0, new LoadingText("Loading settings"));
 
             FileInfo[] settingsFiles = projectDirectory.GetFiles("*" + ProjectSettings.EXTENSION, SearchOption.TopDirectoryOnly);
             if (settingsFiles.Length == 0) throw new SettingsFileNotFoundException(); // Test if settings files found.
@@ -624,9 +624,9 @@ namespace HBP.Data.General
                 UnityEngine.Debug.LogException(e);
                 throw new CanNotReadSettingsFileException(settingsFiles[0].Name);
             }
-            OnChangeProgress.Invoke(1.0f, 0, new LoadingText("Settings loaded successfully"));
+            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Settings loaded successfully"));
         }
-        IEnumerator c_LoadPatients(DirectoryInfo projectDirectory, Action<float, float, LoadingText> OnChangeProgress)
+        IEnumerator c_LoadPatients(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
 
@@ -637,7 +637,7 @@ namespace HBP.Data.General
             for (int i = 0; i < patientFiles.Length; ++i)
             {
                 FileInfo patientFile = patientFiles[i];
-                OnChangeProgress.Invoke((float)i / patientFiles.Length, 0, new LoadingText("Loading patient ", Path.GetFileNameWithoutExtension(patientFile.Name), " [" + (i + 1).ToString() + "/" + patientFiles.Length + "]"));
+                onChangeProgress.Invoke((float)i / patientFiles.Length, 0, new LoadingText("Loading patient ", Path.GetFileNameWithoutExtension(patientFile.Name), " [" + (i + 1).ToString() + "/" + patientFiles.Length + "]"));
                 try
                 {
                     patients.Add(ClassLoaderSaver.LoadFromJson<Patient>(patientFile.FullName));
@@ -649,9 +649,9 @@ namespace HBP.Data.General
                 }
             }
             SetPatients(patients.ToArray());
-            OnChangeProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
+            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
         }
-        IEnumerator c_LoadGroups(DirectoryInfo projectDirectory, Action<float, float, LoadingText> OnChangeProgress)
+        IEnumerator c_LoadGroups(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
 
@@ -662,7 +662,7 @@ namespace HBP.Data.General
             for (int i = 0; i < groupFiles.Length; ++i)
             {
                 FileInfo groupFile = groupFiles[i];
-                OnChangeProgress.Invoke((float)i / groupFiles.Length, 0, new LoadingText("Loading group ", Path.GetFileNameWithoutExtension(groupFile.Name), " [" + (i + 1).ToString() + "/" + groupFiles.Length + "]"));
+                onChangeProgress.Invoke((float)i / groupFiles.Length, 0, new LoadingText("Loading group ", Path.GetFileNameWithoutExtension(groupFile.Name), " [" + (i + 1).ToString() + "/" + groupFiles.Length + "]"));
                 try
                 {
                     groups.Add(ClassLoaderSaver.LoadFromJson<Group>(groupFile.FullName));
@@ -674,9 +674,9 @@ namespace HBP.Data.General
                 }
             }
             SetGroups(groups.ToArray());
-            OnChangeProgress.Invoke(1.0f, 0, new LoadingText("Groups loaded successfully"));
+            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Groups loaded successfully"));
         }
-        IEnumerator c_LoadProtocols(DirectoryInfo projectDirectory, Action<float, float, LoadingText> OnChangeProgress)
+        IEnumerator c_LoadProtocols(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
             //Load Protocols
@@ -686,7 +686,7 @@ namespace HBP.Data.General
             for (int i = 0; i < protocolFiles.Length; ++i)
             {
                 FileInfo protocolFile = protocolFiles[i];
-                OnChangeProgress.Invoke((float)i / protocolFiles.Length, 0, new LoadingText("Loading protocol ", Path.GetFileNameWithoutExtension(protocolFile.Name), " [" + (i + 1).ToString() + "/" + protocolFiles.Length + "]"));
+                onChangeProgress.Invoke((float)i / protocolFiles.Length, 0, new LoadingText("Loading protocol ", Path.GetFileNameWithoutExtension(protocolFile.Name), " [" + (i + 1).ToString() + "/" + protocolFiles.Length + "]"));
                 try
                 {
                     protocols.Add(ClassLoaderSaver.LoadFromJson<Protocol>(protocolFile.FullName));
@@ -698,9 +698,9 @@ namespace HBP.Data.General
                 }
             }
             SetProtocols(protocols.ToArray());
-            OnChangeProgress.Invoke(1.0f, 0, new LoadingText("Protocols loaded successfully"));
+            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Protocols loaded successfully"));
         }
-        IEnumerator c_LoadDatasets(DirectoryInfo projectDirectory, Action<float, float, LoadingText> OnChangeProgress)
+        IEnumerator c_LoadDatasets(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
         {
             const float LOADING_TIME = 0.01f;
             const float CHECKING_TIME = 0.99f;
@@ -712,7 +712,7 @@ namespace HBP.Data.General
             for (int i = 0; i < datasetFiles.Length; ++i)
             {
                 FileInfo datasetFile = datasetFiles[i];
-                OnChangeProgress.Invoke((float)i / datasetFiles.Length * LOADING_TIME, 0, new LoadingText("Loading dataset ", Path.GetFileNameWithoutExtension(datasetFile.Name), " [" + (i + 1).ToString() + "/" + datasetFiles.Length + "]"));
+                onChangeProgress.Invoke((float)i / datasetFiles.Length * LOADING_TIME, 0, new LoadingText("Loading dataset ", Path.GetFileNameWithoutExtension(datasetFile.Name), " [" + (i + 1).ToString() + "/" + datasetFiles.Length + "]"));
                 try
                 {
                     datasets.Add(ClassLoaderSaver.LoadFromJson<Dataset>(datasetFile.FullName));
@@ -725,11 +725,11 @@ namespace HBP.Data.General
             }
             SetDatasets(datasets.ToArray());
             yield return Ninja.JumpToUnity;
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_CheckDatasets(m_Protocols, (localProgress, duration, text) => OnChangeProgress.Invoke(LOADING_TIME + localProgress * CHECKING_TIME, duration, text)));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_CheckDatasets(m_Protocols, (localProgress, duration, text) => onChangeProgress.Invoke(LOADING_TIME + localProgress * CHECKING_TIME, duration, text)));
             yield return Ninja.JumpBack;
-            OnChangeProgress.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
+            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
         }
-        IEnumerator c_LoadVisualizations(DirectoryInfo projectDirectory, Action<float, float, LoadingText> OnChangeProgress)
+        IEnumerator c_LoadVisualizations(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
             //Load Visualizations
@@ -740,7 +740,7 @@ namespace HBP.Data.General
             for (int i = 0; i < visualizationFiles.Length; ++i)
             {
                 FileInfo visualizationFile = visualizationFiles[i];
-                OnChangeProgress.Invoke((float)i / visualizationFiles.Length, 0, new LoadingText("Loading visualization ", Path.GetFileNameWithoutExtension(visualizationFile.Name), " [" + (i + 1).ToString() + "/" + visualizationFiles.Length + "]"));
+                onChangeProgress.Invoke((float)i / visualizationFiles.Length, 0, new LoadingText("Loading visualization ", Path.GetFileNameWithoutExtension(visualizationFile.Name), " [" + (i + 1).ToString() + "/" + visualizationFiles.Length + "]"));
                 try
                 {
                     visualizations.Add(ClassLoaderSaver.LoadFromJson<Visualization.Visualization>(visualizationFile.FullName));
@@ -752,14 +752,14 @@ namespace HBP.Data.General
                 }
             }
             SetVisualizations(visualizations.ToArray());
-            OnChangeProgress.Invoke(1.0f, 0, new LoadingText("Visualizations loaded successfully"));
+            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Visualizations loaded successfully"));
         }
 
-        IEnumerator c_SaveSettings(DirectoryInfo projectDirectory, Action<float, float, LoadingText> OnChangeProgress)
+        IEnumerator c_SaveSettings(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
         {
             // Save settings
             yield return Ninja.JumpBack;
-            OnChangeProgress.Invoke(0, 0, new LoadingText("Saving settings"));
+            onChangeProgress.Invoke(0, 0, new LoadingText("Saving settings"));
 
             try
             {
@@ -770,9 +770,9 @@ namespace HBP.Data.General
                 UnityEngine.Debug.LogException(e);
                 throw new CanNotSaveSettingsException();
             }
-            OnChangeProgress.Invoke(1.0f, 0, new LoadingText("Settings saved successfully"));
+            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Settings saved successfully"));
         }
-        IEnumerator c_SavePatients(DirectoryInfo projectDirectory, Action<float, float, LoadingText> OnChangeProgress)
+        IEnumerator c_SavePatients(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
             DirectoryInfo patientDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Patients"));
@@ -782,7 +782,7 @@ namespace HBP.Data.General
             int length = m_Patients.Count();
             foreach (Patient patient in m_Patients)
             {
-                OnChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving patient ", patient.ID, " [" + (count + 1) + "/" + length + "]"));
+                onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving patient ", patient.ID, " [" + (count + 1) + "/" + length + "]"));
                 try
                 {
                     ClassLoaderSaver.SaveToJSon(patient, Path.Combine(patientDirectory.FullName, patient.ID + Patient.EXTENSION));
@@ -794,9 +794,9 @@ namespace HBP.Data.General
                 }
                 count++;
             }
-            OnChangeProgress.Invoke(1.0f, 0, new LoadingText("Patients saved successfully"));
+            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Patients saved successfully"));
         }
-        IEnumerator c_SaveGroups(DirectoryInfo projectDirectory, Action<float, float, LoadingText> OnChangeProgress)
+        IEnumerator c_SaveGroups(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
             // Save groups
@@ -806,7 +806,7 @@ namespace HBP.Data.General
             int length = m_Patients.Count();
             foreach (Group group in m_Groups)
             {
-                OnChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving group ", group.Name, " [" + (count + 1) + "/" + length + "]"));
+                onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving group ", group.Name, " [" + (count + 1) + "/" + length + "]"));
                 try
                 {
                     ClassLoaderSaver.SaveToJSon(group, Path.Combine(groupDirectory.FullName, group.Name + Group.EXTENSION));
@@ -818,9 +818,9 @@ namespace HBP.Data.General
                 }
                 count++;
             }
-            OnChangeProgress.Invoke(1.0f, 0, new LoadingText("Groups saved successfully"));
+            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Groups saved successfully"));
         }
-        IEnumerator c_SaveProtocols(DirectoryInfo projectDirectory, Action<float, float, LoadingText> OnChangeProgress)
+        IEnumerator c_SaveProtocols(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
             // Save protocols
@@ -829,7 +829,7 @@ namespace HBP.Data.General
             int length = m_Protocols.Count();
             foreach (Protocol protocol in m_Protocols)
             {
-                OnChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving protocol ", protocol.Name, " [" + (count + 1).ToString() + "/" + length + "]"));
+                onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving protocol ", protocol.Name, " [" + (count + 1).ToString() + "/" + length + "]"));
                 try
                 {
                     ClassLoaderSaver.SaveToJSon(protocol, Path.Combine(protocolDirectory.FullName, protocol.Name + Protocol.EXTENSION));
@@ -841,9 +841,9 @@ namespace HBP.Data.General
                 }
                 count++;
             }
-            OnChangeProgress.Invoke(1.0f, 0, new LoadingText("Protocols saved successfully"));
+            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Protocols saved successfully"));
         }
-        IEnumerator c_SaveDatasets(DirectoryInfo projectDirectory, Action<float, float, LoadingText> OnChangeProgress)
+        IEnumerator c_SaveDatasets(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
             //Save datasets
@@ -853,7 +853,7 @@ namespace HBP.Data.General
             int length = m_Datasets.Count();
             foreach (Dataset dataset in m_Datasets)
             {
-                OnChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving dataset ", dataset.Name, " [" + (count + 1).ToString() + "/" + length + "]"));
+                onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving dataset ", dataset.Name, " [" + (count + 1).ToString() + "/" + length + "]"));
                 try
                 {
                     ClassLoaderSaver.SaveToJSon(dataset, Path.Combine(datasetDirectory.FullName, dataset.Name + Dataset.EXTENSION));
@@ -865,9 +865,9 @@ namespace HBP.Data.General
                 }
                 count++;
             }
-            OnChangeProgress.Invoke(1.0f, 0, new LoadingText("Datasets saved successfully"));
+            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Datasets saved successfully"));
         }
-        IEnumerator c_SaveVisualizations(DirectoryInfo projectDirectory, Action<float, float, LoadingText> OnChangeProgress)
+        IEnumerator c_SaveVisualizations(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
         {
             DirectoryInfo visualizationDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Visualizations"));
 
@@ -877,7 +877,7 @@ namespace HBP.Data.General
             foreach (Visualization.Visualization visualization in m_Visualizations)
             {
                 yield return Ninja.JumpToUnity;
-                OnChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving visualization ", visualization.Name, " [" + (count + 1) + "/" + length + "]"));
+                onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving visualization ", visualization.Name, " [" + (count + 1) + "/" + length + "]"));
                 yield return Ninja.JumpBack;
 
                 try
@@ -891,14 +891,14 @@ namespace HBP.Data.General
                 }
                 count++;
             }
-            OnChangeProgress.Invoke(1.0f, 0, new LoadingText("Visualizations saved successfully"));
+            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Visualizations saved successfully"));
         }
 
         void CopyIcons(string oldIconsDirectoryPath, string newIconsDirectoryPath)
         {
             new DirectoryInfo(oldIconsDirectoryPath).CopyFilesRecursively(new DirectoryInfo(newIconsDirectoryPath));
         }
-        IEnumerator c_EmbedDataIntoProjectFile(DirectoryInfo projectDirectory, string oldProjectDirectory, Action<float, float, LoadingText> OnChangeProgress)
+        IEnumerator c_EmbedDataIntoProjectFile(DirectoryInfo projectDirectory, string oldProjectDirectory, Action<float, float, LoadingText> onChangeProgress)
         {
             DirectoryInfo dataDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Data"));
 
@@ -906,7 +906,7 @@ namespace HBP.Data.General
             float progressStep = 1.0f / (Patients.Count + Datasets.Count);
 
             yield return Ninja.JumpToUnity;
-            OnChangeProgress.Invoke(progress, 0, new LoadingText("Copying data"));
+            onChangeProgress.Invoke(progress, 0, new LoadingText("Copying data"));
             yield return Ninja.JumpBack;
 
             // Save Patient Data
@@ -917,7 +917,7 @@ namespace HBP.Data.General
                 {
                     yield return Ninja.JumpToUnity;
                     progress += progressStep;
-                    OnChangeProgress.Invoke(progress, 0, new LoadingText("Copying ", patient.Name, " anatomical data"));
+                    onChangeProgress.Invoke(progress, 0, new LoadingText("Copying ", patient.Name, " anatomical data"));
                     yield return Ninja.JumpBack;
 
                     DirectoryInfo patientDirectory = Directory.CreateDirectory(Path.Combine(patientsDirectory.FullName, patient.ID));
@@ -972,7 +972,7 @@ namespace HBP.Data.General
                     {
                         yield return Ninja.JumpToUnity;
                         progress += progressStep;
-                        OnChangeProgress.Invoke(progress, 0, new LoadingText("Copying ", dataset.Name));
+                        onChangeProgress.Invoke(progress, 0, new LoadingText("Copying ", dataset.Name));
                         yield return Ninja.JumpBack;
 
                         DirectoryInfo datasetDirectory = Directory.CreateDirectory(Path.Combine(localizersDirectory.FullName, dataset.Name));
