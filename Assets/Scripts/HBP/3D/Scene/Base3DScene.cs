@@ -667,6 +667,10 @@ namespace HBP.Module3D
         /// Event called when the generator is updated or not up to date
         /// </summary>
         [HideInInspector] public GenericEvent<bool> OnUpdateGeneratorState = new GenericEvent<bool>();
+        /// <summary>
+        /// Event called when selecting a site on a column
+        /// </summary>
+        [HideInInspector] public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
         #endregion
 
         #region Private Methods
@@ -1033,6 +1037,7 @@ namespace HBP.Module3D
                         c.UnselectSite();
                     }
                 }
+                OnSelectSite.Invoke(site);
             });
             column.OnChangeSiteState.AddListener((site) =>
             {

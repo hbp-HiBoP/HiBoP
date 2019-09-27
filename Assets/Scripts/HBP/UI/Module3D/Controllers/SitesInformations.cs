@@ -141,12 +141,17 @@ namespace HBP.UI.Module3D
                     m_SiteFiltersToggle.isOn = false;
                 }
             });
-            m_Scene.OnSelect.AddListener(() => UpdateList());
-            m_Scene.OnSitesRenderingUpdated.AddListener(() =>
+            m_Scene.OnSelect.AddListener(UpdateList);
+            m_Scene.OnSitesRenderingUpdated.AddListener(UpdateList);
+            m_Scene.OnSelectSite.AddListener((s) =>
             {
                 UpdateList();
-                m_SiteList.ScrollToObject(m_Scene.SelectedColumn.SelectedSite);
+                m_SiteList.ScrollToObject(s);
             });
+            foreach (var column in m_Scene.Columns)
+            {
+                column.OnSelect.AddListener(UpdateList);
+            }
         }
         public void UpdateList()
         {
