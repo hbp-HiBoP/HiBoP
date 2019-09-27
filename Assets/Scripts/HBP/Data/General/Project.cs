@@ -12,6 +12,7 @@ using Tools.Unity;
 using UnityEngine.Events;
 using Ionic.Zip;
 using Tools.CSharp;
+using UnityEngine;
 
 namespace HBP.Data.General
 {
@@ -590,16 +591,52 @@ namespace HBP.Data.General
             yield return Ninja.JumpBack;
 
             // Test patient TagValues;
-            IEnumerable<Tags.BaseTagValue> patientsTagValues = m_Patients.SelectMany(p => p.Tags);
             int count = 0;
             int length = tags.Count();
             foreach (var tag in tags)
             {
-                onChangeProgress.Invoke((float)(count+1) / length, 0.1f, new LoadingText("Checking ", tag.Name, " [" + (count + 1) + "/" + length + "]"));
-                IEnumerable<Tags.BaseTagValue> tagValues = patientsTagValues.Where(t => t.Tag == tag);
-                foreach (var tagValue in tagValues)
+                onChangeProgress.Invoke((float)(count + 1) / length, 0.1f, new LoadingText("Checking ", tag.Name, " [" + (count + 1) + "/" + length + "]"));
+                for (int p = 0; p < m_Patients.Count; p++)
                 {
-                    tagValue.UpdateValue();
+                    var patient = m_Patients[p];
+                    for (int t = 0; t < patient.Tags.Count; t++)
+                    {
+                        Tags.BaseTagValue tagValue = patient.Tags[t];
+                        if(tagValue.Tag == tag)
+                        {
+                            if (tag is Tags.IntTag && !(tagValue is Tags.IntTagValue))
+                            {
+                                patient.Tags[t] = new Tags.IntTagValue();
+                                patient.Tags[t].Copy(tagValue);
+                            }
+                            else if (tag is Tags.FloatTag && !(tagValue is Tags.FloatTagValue))
+                            {
+                                patient.Tags[t] = new Tags.FloatTagValue();
+                                patient.Tags[t].Copy(tagValue);
+                            }
+                            else if (tag is Tags.BoolTag && !(tagValue is Tags.BoolTagValue))
+                            {
+                                patient.Tags[t] = new Tags.BoolTagValue();
+                                patient.Tags[t].Copy(tagValue);
+                            }
+                            else if (tag is Tags.EmptyTag && !(tagValue is Tags.EmptyTagValue))
+                            {
+                                patient.Tags[t] = new Tags.EmptyTagValue();
+                                patient.Tags[t].Copy(tagValue);
+                            }
+                            else if (tag is Tags.EnumTag && !(tagValue is Tags.EnumTagValue))
+                            {
+                                patient.Tags[t] = new Tags.EnumTagValue();
+                                patient.Tags[t].Copy(tagValue);
+                            }
+                            else if (tag is Tags.StringTag && !(tagValue is Tags.StringTagValue))
+                            {
+                                patient.Tags[t] = new Tags.StringTagValue();
+                                patient.Tags[t].Copy(tagValue);
+                            }
+                            patient.Tags[t].UpdateValue();
+                        }
+                    }
                 }
                 count++;
             }

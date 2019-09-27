@@ -21,7 +21,14 @@ namespace HBP.Data.Tags
         {
             get
             {
-                return Tag.Values[Value];
+                if(Tag == null || Value < 0 || Value >= Tag.Values.Length)
+                {
+                    return "None";
+                }
+                else
+                {
+                    return Tag.Values[Value];
+                }
             }
         }
         #endregion
