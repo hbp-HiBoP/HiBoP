@@ -384,28 +384,33 @@ namespace HBP.UI.Module3D
                 {
                     if (cut == Cut || cut.Orientation == Data.Enums.CutOrientation.Custom) continue;
 
-                    List<Vector3> points = boundingBox.IntersectionSegmentBetweenTwoPlanes(Cut, cut);
+                    Segment3 segment = boundingBox.IntersectionSegmentBetweenTwoPlanes(Cut, cut);
                     List<Vector2> linePoints = new List<Vector2>();
-                    foreach (var point in points)
+                    if (segment != null)
                     {
-                        Vector2 ratio = m_Scene.DLLMRIGeometryCutGeneratorList[Cut.ID].GetPositionRatioOnTexture(new Vector3(-point.x, point.y, point.z));
-                        float horizontalRatio = 0, verticalRatio = 0;
-                        switch (Cut.Orientation)
+                        void addRatioOfPoint(Vector3 point)
                         {
-                            case Data.Enums.CutOrientation.Axial:
-                                horizontalRatio = Cut.Flip ? 1.0f - ratio.x : ratio.x;
-                                verticalRatio = ratio.y;
-                                break;
-                            case Data.Enums.CutOrientation.Coronal:
-                                horizontalRatio = Cut.Flip ? 1.0f - ratio.x : ratio.x;
-                                verticalRatio = Cut.Flip ? 1.0f - ratio.y : ratio.y;
-                                break;
-                            case Data.Enums.CutOrientation.Sagital:
-                                horizontalRatio = Cut.Flip ? 1.0f - ratio.y : ratio.y;
-                                verticalRatio = Cut.Flip ? ratio.x : 1.0f - ratio.x;
-                                break;
+                            Vector2 ratio = m_Scene.DLLMRIGeometryCutGeneratorList[Cut.ID].GetPositionRatioOnTexture(new Vector3(-point.x, point.y, point.z));
+                            float horizontalRatio = 0, verticalRatio = 0;
+                            switch (Cut.Orientation)
+                            {
+                                case Data.Enums.CutOrientation.Axial:
+                                    horizontalRatio = Cut.Flip ? 1.0f - ratio.x : ratio.x;
+                                    verticalRatio = ratio.y;
+                                    break;
+                                case Data.Enums.CutOrientation.Coronal:
+                                    horizontalRatio = Cut.Flip ? 1.0f - ratio.x : ratio.x;
+                                    verticalRatio = Cut.Flip ? 1.0f - ratio.y : ratio.y;
+                                    break;
+                                case Data.Enums.CutOrientation.Sagital:
+                                    horizontalRatio = Cut.Flip ? 1.0f - ratio.y : ratio.y;
+                                    verticalRatio = Cut.Flip ? ratio.x : 1.0f - ratio.x;
+                                    break;
+                            }
+                            linePoints.Add(new Vector2(horizontalRatio, verticalRatio));
                         }
-                        linePoints.Add(new Vector2(horizontalRatio, verticalRatio));
+                        addRatioOfPoint(segment.End1);
+                        addRatioOfPoint(segment.End2);
                     }
                     UnityEngine.UI.Extensions.UILineRenderer lineRenderer = Instantiate(m_CutLinePrefab, m_CutLinesRectTransform).GetComponent<UnityEngine.UI.Extensions.UILineRenderer>();
                     RectTransform lineRectTransform = lineRenderer.GetComponent<RectTransform>();

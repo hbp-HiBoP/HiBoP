@@ -82,7 +82,7 @@ namespace HBP.Module3D
         public void Load()
         {
             m_IsLoading = true;
-            m_Volume.LoadNIIFile(m_MRI.File);
+            m_Volume.LoadNIFTIFile(m_MRI.File);
             m_IsLoading = false;
         }
         /// <summary>

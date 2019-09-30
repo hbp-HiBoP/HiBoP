@@ -6,6 +6,7 @@ using UnityEngine.Events;
 using System.Collections;
 using CielaSpike;
 using HBP.Data.Visualization;
+using Tools.Unity;
 
 namespace HBP.Module3D
 {
@@ -193,7 +194,7 @@ namespace HBP.Module3D
             {
                 m_BrainColor = value;
 
-                BrainColorTexture = Texture2Dutility.GenerateColorScheme();
+                BrainColorTexture = Texture2DExtension.Generate();
                 DLL.Texture tex = DLL.Texture.Generate1DColorTexture(value);
                 tex.UpdateTexture2D(BrainColorTexture);
                 tex.Dispose();
@@ -241,7 +242,7 @@ namespace HBP.Module3D
             {
                 m_Colormap = value;
 
-                BrainColorMapTexture = Texture2Dutility.GenerateColorScheme();
+                BrainColorMapTexture = Texture2DExtension.Generate();
                 DLL.Texture tex = DLL.Texture.Generate1DColorTexture(value);
                 tex.UpdateTexture2D(BrainColorMapTexture);
                 tex.Dispose();
@@ -269,7 +270,7 @@ namespace HBP.Module3D
         /// </summary>
         public Texture2D BrainColorTexture { get; private set; }
 
-        private bool m_CutHolesEnabled;
+        private bool m_CutHolesEnabled = true;
         /// <summary>
         /// Are cut holes in MRI enabled (that means black zones are invisible) ?
         /// </summary>
@@ -1375,8 +1376,8 @@ namespace HBP.Module3D
         /// <param name="visualization">Visualization to be loaded in this scene</param>
         public void Initialize(Visualization visualization)
         {
-            BrainColorMapTexture = Texture2Dutility.GenerateColorScheme();
-            BrainColorTexture = Texture2Dutility.GenerateColorScheme();
+            BrainColorMapTexture = Texture2DExtension.Generate();
+            BrainColorTexture = Texture2DExtension.Generate();
 
             Visualization = visualization;
             gameObject.name = Visualization.Name;

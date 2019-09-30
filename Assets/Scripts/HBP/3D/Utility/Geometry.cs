@@ -53,6 +53,28 @@ namespace HBP.Module3D
         #endregion
     }
 
+    public class Segment3
+    {
+        #region Properties
+        /// <summary>
+        /// First end of the segment
+        /// </summary>
+        public Vector3 End1 { get; set; }
+        /// <summary>
+        /// Second end of the segment
+        /// </summary>
+        public Vector3 End2 { get; set; }
+        #endregion
+
+        #region Constructors
+        public Segment3(Vector3 end1, Vector3 end2)
+        {
+            End1 = end1;
+            End2 = end2;
+        }
+        #endregion
+    }
+
     /// <summary>
     /// Static geometry methods
     /// </summary>
@@ -216,16 +238,16 @@ namespace HBP.Module3D
         /// <param name="offset">Offset for the center of the bouding box</param>
         public static void DisplayBBoxDebug(DLL.BBox bbox, Vector3 offset, Color color, float duration = 50)
         {
-            List<Vector3> rawLinesPoints = bbox.LinesPairPoints;
-            List<Vector3> linesPoints = new List<Vector3>(rawLinesPoints.Count);
-            foreach (var p in rawLinesPoints)
+            List<Segment3> rawSegments = bbox.Segments;
+            List<Segment3> segments = new List<Segment3>(rawSegments.Count);
+            foreach (var s in rawSegments)
             {
-                linesPoints.Add(new Vector3(-p.x, p.y, p.z));
+                segments.Add(new Segment3(new Vector3(-s.End1.x, s.End1.y, s.End1.z), new Vector3(-s.End2.x, s.End2.y, s.End2.z)));
             }
 
-            for (int ii = 0; ii < linesPoints.Count; ii += 2)
+            for (int ii = 0; ii < segments.Count; ++ii)
             {
-                Debug.DrawRay(offset + linesPoints[ii], linesPoints[ii + 1] - linesPoints[ii], color, duration);
+                Debug.DrawRay(offset + segments[ii].End1, segments[ii].End2 - segments[ii].End1, color, duration);
             }
         }
         /// <summary>
@@ -236,11 +258,16 @@ namespace HBP.Module3D
         /// <param name="offset">Offset for the center of the intersection</param>
         public static void DisplayBBoxPlaneIntersection(DLL.BBox bbox, Plane plane, Vector3 offset)
         {
-            List<Vector3> interLinesPoints = bbox.IntersectionLinesWithPlane(plane);
-
-            for (int ii = 0; ii < interLinesPoints.Count / 2; ++ii)
+            List<Segment3> rawSegments = bbox.IntersectionLinesWithPlane(plane);
+            List<Segment3> segments = new List<Segment3>(rawSegments.Count);
+            foreach (var s in rawSegments)
             {
-                Debug.DrawRay(offset + interLinesPoints[2 * ii], interLinesPoints[2 * ii + 1] - interLinesPoints[2 * ii], Color.green);
+                segments.Add(new Segment3(new Vector3(-s.End1.x, s.End1.y, s.End1.z), new Vector3(-s.End2.x, s.End2.y, s.End2.z)));
+            }
+
+            for (int ii = 0; ii < segments.Count; ++ii)
+            {
+                Debug.DrawRay(offset + segments[ii].End1, segments[ii].End2 - segments[ii].End1, Color.green);
             }
         }
         /// <summary>
@@ -259,23 +286,13 @@ namespace HBP.Module3D
             mat.SetPass(0);
             GL.Color(new Color(mat.color.r, mat.color.g, mat.color.b, mat.color.a));
 
-            List<Vector3> linesPoints = bbox.LinesPairPoints;
+            List<Segment3> segments = bbox.Segments;
 
-            for (int ii = 0; ii < linesPoints.Count; ++ii)
+            for (int ii = 0; ii < segments.Count; ++ii)
             {
-                GL.Vertex(linesPoints[ii]);
+                GL.Vertex(segments[ii].End1);
+                GL.Vertex(segments[ii].End2);
             }
-            //for (int ii = 0; ii < linesPoints.Count; ii += 2)
-            //{
-            //   
-            //    
-            //    
-            //    Vector3 p1 = offset + linesPoints[ii];
-            //    Vector3 p2 = linesPoints[ii + 1] - linesPoints[ii];
-            //    GL.Vertex(p1);
-            //    GL.Vertex(p2);
-            //    GL.End();
-            //}
 
             GL.Begin(GL.TRIANGLES);
             GL.Color(new Color(1, 1, 1, 1));

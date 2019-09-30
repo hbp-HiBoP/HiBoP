@@ -116,7 +116,7 @@ namespace HBP.UI.Module3D
                 {
                     m_MRIHistogram = new Texture2D(1, 1);
                 }
-                HBP.Module3D.DLL.Texture texture = HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(mri3D.Volume, 4 * 110, 4 * 110, m_MRICalMin, m_MRICalMax);
+                HBP.Module3D.DLL.Texture texture = HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(mri3D.Volume, 440, 440);
                 texture.UpdateTexture2D(m_MRIHistogram);
                 texture.Dispose();
                 m_HistogramByMRI.Add(mri3D, m_MRIHistogram);

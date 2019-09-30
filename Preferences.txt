@@ -27,7 +27,7 @@
     "EEG": {
       "$type": "HBP.Data.Preferences.EEGPreferences, Assembly-CSharp",
       "Averaging": 1,
-      "Normalization": 1
+      "Normalization": 0
     },
     "Protocol": {
       "$type": "HBP.Data.Preferences.ProtocolPreferences, Assembly-CSharp",
@@ -48,7 +48,7 @@
     "$type": "HBP.Data.Preferences.VisualizationPreferences, Assembly-CSharp",
     "_3D": {
       "$type": "HBP.Data.Preferences._3DPreferences, Assembly-CSharp",
-      "AutomaticEEGUpdate": true,
+      "AutomaticEEGUpdate": false,
       "SiteInfluenceByDistance": 2,
       "DefaultSelectedMRIInSinglePatientVisualization": "Preimplantation",
       "DefaultSelectedMeshInSinglePatientVisualization": "Grey matter",

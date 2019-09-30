@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using HBP.Module3D.DLL;
+using Tools.Unity;
 using UnityEngine;
 
 namespace HBP.Module3D
@@ -57,11 +58,11 @@ namespace HBP.Module3D
         {
             while (Size < size)
             {
-                BrainCutTextures.Add(Texture2Dutility.GenerateCut());
-                GUIBrainCutTextures.Add(Texture2Dutility.GenerateGUI());
+                BrainCutTextures.Add(Texture2DExtension.Generate());
+                GUIBrainCutTextures.Add(Texture2DExtension.Generate(1, 1, -10, 9, FilterMode.Point));
                 DLLBrainCutTextures.Add(new DLL.Texture());
                 DLLGUIBrainCutTextures.Add(new DLL.Texture());
-                DLLMRITextureCutGenerators.Add(new DLL.MRITextureCutGenerator());
+                DLLMRITextureCutGenerators.Add(new MRITextureCutGenerator());
                 Size++;
             }
             while (Size > size)
@@ -114,9 +115,9 @@ namespace HBP.Module3D
         {
             foreach (Cut cut in cuts)
             {
-                if (DLLBrainCutTextures[cut.ID].TextureSize[0] > 0)
+                if (DLLBrainCutTextures[cut.ID].Height > 0)
                 {
-                    DLLGUIBrainCutTextures[cut.ID].CopyAndRotate(DLLBrainCutTextures[cut.ID], cut.Orientation.ToString(), cut.Flip, false, cut.ID, cuts, DLLMRITextureCutGenerators[cut.ID]);
+                    DLLGUIBrainCutTextures[cut.ID].CloneAndRotate(DLLBrainCutTextures[cut.ID], cut.Orientation.ToString(), cut.Flip, false, cut.ID, cuts, DLLMRITextureCutGenerators[cut.ID]);
                 }
             }
         }
@@ -129,7 +130,7 @@ namespace HBP.Module3D
         {
             foreach (Cut cut in cuts)
             {
-                if (DLLBrainCutTextures[cut.ID].TextureSize[0] > 0)
+                if (DLLBrainCutTextures[cut.ID].Height > 0)
                 {
                     DLLBrainCutTextures[cut.ID].DrawSites(cut, rawList, 1, DLLMRITextureCutGenerators[cut.ID]);
                 }
@@ -146,7 +147,7 @@ namespace HBP.Module3D
             {
                 if (cut.Orientation != Data.Enums.CutOrientation.Custom)
                 {
-                    int textureMax = DLLGUIBrainCutTextures[cut.ID].TextureSize.Max();
+                    int textureMax = Mathf.Max(DLLGUIBrainCutTextures[cut.ID].Width, DLLGUIBrainCutTextures[cut.ID].Height);
                     if (textureMax > max)
                     {
                         max = textureMax;

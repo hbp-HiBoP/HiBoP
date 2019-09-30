@@ -266,7 +266,6 @@ namespace HBP.Module3D.DLL
         public void UpdateTexture(Texture texture)
         {
             update_texture__MRITextureCutGenerator(_handle, texture.getHandle());
-            texture.UpdateSizes();
         }
         /// <summary>
         /// Update the DLL texture with the activity filled one in the generator
@@ -275,7 +274,6 @@ namespace HBP.Module3D.DLL
         public void UpdateTextureWithActivity(Texture texture)
         {
             update_texture_with_SEEG__MRITextureCutGenerator(_handle, texture.getHandle());
-            texture.UpdateSizes();
         }
         /// <summary>
         /// Update the DLL texture with the fMRI filled one in the generator
@@ -284,7 +282,6 @@ namespace HBP.Module3D.DLL
         public void UpdateTextureWithFMRI(Texture texture)
         {
             update_texture_with_IRMF__MRITextureCutGenerator(_handle, texture.getHandle());
-            texture.UpdateSizes();
         }
         /// <summary>
         /// Update the DLL texture with the atlas filled one in the generator
@@ -293,7 +290,6 @@ namespace HBP.Module3D.DLL
         public void UpdateTextureWithAtlas(Texture texture)
         {
             update_texture_with_Atlas__MRITextureCutGenerator(_handle, texture.getHandle());
-            texture.UpdateSizes();
         }
         /// <summary>
         /// Transform the influence values to a ratio between 0 and 1 to match the activity colormap

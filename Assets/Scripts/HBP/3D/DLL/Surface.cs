@@ -376,7 +376,7 @@ namespace HBP.Module3D.DLL
         /// </summary>
         /// <param name="cutPlane">Cut plane to compute the offset for</param>
         /// <param name="nbCuts">Number of desired cuts</param>
-        /// <returns></returns>
+        /// <returns>Value of the offset</returns>
         public float SizeOffsetCutPlane(Plane cutPlane, int nbCuts)
         {            
             return size_offset_cut_plane_Surface(_handle, cutPlane.ConvertToArray(), nbCuts);

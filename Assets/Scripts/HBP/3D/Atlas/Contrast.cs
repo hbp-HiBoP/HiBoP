@@ -45,7 +45,7 @@ namespace HBP.Module3D.IBC
                 Name = labels.PrettyName;
                 ControlCondition = labels.ControlCondition;
                 TargetCondition = labels.TargetCondition;
-                Loaded = Volume.LoadNIIFile(file);
+                Loaded = Volume.LoadNIFTIFile(file);
             }
         }
         #endregion

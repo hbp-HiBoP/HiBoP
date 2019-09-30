@@ -59,7 +59,7 @@ namespace HBP.Module3D
         void LoadData(string mniMRIDir, string mniMeshDir, string GOName, int instanceID)
         {
             DLL.Volume volume = new DLL.Volume();
-            volume.LoadNIIFile(mniMRIDir + "MNI.nii");
+            volume.LoadNIFTIFile(mniMRIDir + "MNI.nii");
             MRI = new MRI3D("MNI", volume);
 
             DLL.Surface leftHemi = new DLL.Surface();
