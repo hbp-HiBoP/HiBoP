@@ -83,7 +83,7 @@ namespace HBP.Module3D
                 {
                     m_HoveredArea = value;
                     UpdateAtlasColors();
-                    m_Scene.ComputeCutTextures();
+                    m_Scene.CutTexturesNeedUpdate = true;
                 }
             }
         }

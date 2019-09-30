@@ -29,9 +29,13 @@ namespace HBP.UI.Module3D.Tools
             });
             m_Auto.onClick.AddListener(() =>
             {
-                Column3DDynamic column = (Column3DDynamic)SelectedColumn;
-                column.DynamicParameters.ResetSpanValues(column);
-                m_ThresholdIEEG.UpdateIEEGValues(column);
+                if (ListenerLock) return;
+
+                foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
+                {
+                    column.DynamicParameters.ResetSpanValues(column);
+                    m_ThresholdIEEG.UpdateIEEGValues(column);
+                }
             });
         }
 

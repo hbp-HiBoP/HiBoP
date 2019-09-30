@@ -219,7 +219,7 @@ namespace HBP.Module3D
                 ResetColors();
 
                 m_CutsNeedUpdate = true;
-                ComputeCutTextures();
+                CutTexturesNeedUpdate = true;
                 foreach (Column3D column in Columns)
                 {
                     column.IsRenderingUpToDate = false;
@@ -493,6 +493,10 @@ namespace HBP.Module3D
         /// True if cuts need an update
         /// </summary>
         private bool m_CutsNeedUpdate = true;
+        /// <summary>
+        /// True if cut textures are not up to date
+        /// </summary>
+        public bool CutTexturesNeedUpdate { get; set; }
 
         /// <summary>
         /// Lock when updating colliders
@@ -688,6 +692,11 @@ namespace HBP.Module3D
                 UpdateCuts();
             }
 
+            if (CutTexturesNeedUpdate)
+            {
+                ComputeCutTextures();
+            }
+
             if (!m_SitesUpToDate)
             {
                 UpdateAllColumnsSitesRendering();
@@ -770,6 +779,16 @@ namespace HBP.Module3D
                     cut.OnUpdateGUITextures.Invoke(column);
                 }
             }
+        }
+        /// <summary>
+        /// Compute the cut textures (Cut mesh texture, activity coloration and GUI textures)
+        /// </summary>
+        private void ComputeCutTextures()
+        {
+            ComputeMRITextures();
+            ComputeIEEGTextures();
+            ComputeGUITextures();
+            CutTexturesNeedUpdate = false;
         }
         /// <summary>
         /// Finalize Generators Computing (method called at the end of the computing of the activity)
@@ -907,10 +926,8 @@ namespace HBP.Module3D
         {
             ComputeMeshesCut();
             m_CutsNeedUpdate = false;
-
-            ComputeCutTextures();
-
             OnUpdateCuts.Invoke();
+            CutTexturesNeedUpdate = true;
         }
         /// <summary>
         /// Update the generators for activity and the UV of the meshes
@@ -1047,17 +1064,14 @@ namespace HBP.Module3D
             {
                 dynamicColumn.DynamicParameters.OnUpdateSpanValues.AddListener(() =>
                 {
-                    //FIXME : probably only consider the current column
-                    for (int ii = 0; ii < ColumnsDynamic.Count; ++ii)
+                    for (int jj = 0; jj < m_MeshManager.MeshSplitNumber; ++jj)
                     {
-                        for (int jj = 0; jj < m_MeshManager.MeshSplitNumber; ++jj)
-                        {
-                            ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap(ColumnsDynamic[ii]);
-                        }
-                        ColumnsDynamic[ii].DLLMRIVolumeGenerator.AdjustInfluencesToColormap(ColumnsDynamic[ii]);
+                        dynamicColumn.DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap(dynamicColumn);
                     }
-                    ComputeCutTextures();
+                    dynamicColumn.DLLMRIVolumeGenerator.AdjustInfluencesToColormap(dynamicColumn);
+                    CutTexturesNeedUpdate = true;
                     dynamicColumn.IsRenderingUpToDate = false;
+                    m_SitesUpToDate = false;
                 });
                 dynamicColumn.DynamicParameters.OnUpdateAlphaValues.AddListener(() =>
                 {
@@ -1545,15 +1559,6 @@ namespace HBP.Module3D
         #endregion
         
         /// <summary>
-        /// Compute the cut textures (Cut mesh texture, activity coloration and GUI textures)
-        /// </summary>
-        public void ComputeCutTextures()
-        {
-            ComputeMRITextures();
-            ComputeIEEGTextures();
-            ComputeGUITextures();
-        }
-        /// <summary>
         /// Copy the states of the sites of the selected column to all other columns
         /// </summary>
         public void ApplySelectedColumnSiteStatesToOtherColumns()
@@ -1629,7 +1634,7 @@ namespace HBP.Module3D
             if (hardReset)
             {
                 IsGeneratorUpToDate = false;
-                ComputeCutTextures();
+                CutTexturesNeedUpdate = true;
             }
             OnIEEGOutdated.Invoke(true);
         }
