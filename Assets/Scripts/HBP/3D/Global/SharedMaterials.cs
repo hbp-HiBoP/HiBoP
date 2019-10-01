@@ -1,36 +1,133 @@
-﻿
-/* \file SharedMaterials.cs
- * \author Lance Florian
- * \date    22/04/2016
- * \brief Define SharedMaterials
- */
-
-using HBP.Data.Enums;
+﻿using HBP.Data.Enums;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace HBP.Module3D
 {
     /// <summary>
-    /// Shared materials used by GO at runtime
+    /// Class managing the materials for some objects on the scene (ROI, Sites, Selection Ring)
     /// </summary>
     public class SharedMaterials : MonoBehaviour
     {
         #region Struct
+        /// <summary>
+        /// Struct containing the materials of the ROI spheres
+        /// </summary>
         public struct ROI
         {
-            public static Material Normal = null;
-            public static Material Selected = null;
+            #region Properties
+            /// <summary>
+            /// Material used for a ROI sphere in a regular state
+            /// </summary>
+            public static Material Normal { get; private set; }
+            /// <summary>
+            /// Material used for a ROI sphere when it is selected
+            /// </summary>
+            public static Material Selected { get; private set; }
+            #endregion
+
+            #region Public Methods
+            /// <summary>
+            /// Load the materials for the ROIs
+            /// </summary>
+            public static void Load()
+            {
+                Normal = Instantiate(Resources.Load("Materials/ROI/ROI", typeof(Material))) as Material;
+                Selected = Instantiate(Resources.Load("Materials/ROI/ROISelected", typeof(Material))) as Material;
+            }
+            #endregion
         }
 
-        public struct Ring
-        {
-            public static Material Selected = null;
-        }
-
+        /// <summary>
+        /// Struct containing the materials of the sites
+        /// </summary>
         public struct Site
         {
+            #region Properties
+            /// <summary>
+            /// Dictionary containing the site material for each color that has been used in the scene
+            /// </summary>
             private static Dictionary<Color, Material> m_MaterialByColor = new Dictionary<Color, Material>();
+
+            /// <summary>
+            /// Default material for a site
+            /// </summary>
+            public static Material Basic { get; private set; }
+
+            /// <summary>
+            /// Material used when the activity of the site is negative
+            /// </summary>
+            public static Material Negative { get; private set; }
+            /// <summary>
+            /// Material used when the activity of the site is positive
+            /// </summary>
+            public static Material Positive { get; private set; }
+            /// <summary>
+            /// Material used when the site is blacklisted
+            /// </summary>
+            public static Material BlackListed { get; private set; }
+
+            /// <summary>
+            /// Material used when the activity of the site is negative and the site is highlighted
+            /// </summary>
+            public static Material NegativeHighlighted { get; private set; }
+            /// <summary>
+            /// Material used when the activity of the site is positive and the site is highlighted
+            /// </summary>
+            public static Material PositiveHighlighted { get; private set; }
+            /// <summary>
+            /// Material used when the site is blacklisted and highlighted
+            /// </summary>
+            public static Material BlackListedHighlighted { get; private set; }
+
+            /// <summary>
+            /// Material used if the site is a source for CCEP
+            /// </summary>
+            public static Material Source { get; private set; }
+            /// <summary>
+            /// Material used if the site is a source for CCEP and is highlighted
+            /// </summary>
+            public static Material SourceHighlighted { get; private set; }
+            /// <summary>
+            /// Material used if the site is not a source for CCEP
+            /// </summary>
+            public static Material NotASource { get; private set; }
+            /// <summary>
+            /// Material used if the site is not a source for CCEP and is highlighted
+            /// </summary>
+            public static Material NotASourceHighlighted { get; private set; }
+
+            /// <summary>
+            /// Material used for the selection ring
+            /// </summary>
+            public static Material SelectionRing { get; private set; }
+            #endregion
+
+            #region Public Methods
+            /// <summary>
+            /// Load the materials for the sites
+            /// </summary>
+            public static void Load()
+            {
+                BlackListed = Instantiate(Resources.Load("Materials/Sites/Blacklisted", typeof(Material))) as Material;
+                Negative = Instantiate(Resources.Load("Materials/Sites/Negative", typeof(Material))) as Material;
+                Basic = Instantiate(Resources.Load("Materials/Sites/Basic", typeof(Material))) as Material;
+                Positive = Instantiate(Resources.Load("Materials/Sites/Positive", typeof(Material))) as Material;
+                BlackListedHighlighted = Instantiate(Resources.Load("Materials/Sites/BlacklistedHighlighted", typeof(Material))) as Material;
+                NegativeHighlighted = Instantiate(Resources.Load("Materials/Sites/NegativeHighlighted", typeof(Material))) as Material;
+                PositiveHighlighted = Instantiate(Resources.Load("Materials/Sites/PositiveHighlighted", typeof(Material))) as Material;
+                Source = Instantiate(Resources.Load("Materials/Sites/Source", typeof(Material))) as Material;
+                SourceHighlighted = Instantiate(Resources.Load("Materials/Sites/SourceHighlighted", typeof(Material))) as Material;
+                NotASource = Instantiate(Resources.Load("Materials/Sites/NotASource", typeof(Material))) as Material;
+                NotASourceHighlighted = Instantiate(Resources.Load("Materials/Sites/NotASourceHighlighted", typeof(Material))) as Material;
+                SelectionRing = Instantiate(Resources.Load("Materials/Rings/Selected", typeof(Material))) as Material;
+            }
+            /// <summary>
+            /// Get the site material corresponding to the input color
+            /// </summary>
+            /// <param name="baseColor">Color used to get the material</param>
+            /// <param name="highlighted">Is the site highlighted ?</param>
+            /// <returns>The corresponding material</returns>
             public static Material GetMaterial(Color baseColor, bool highlighted)
             {
                 Color color = new Color(baseColor.r, baseColor.g, baseColor.b, highlighted ? 1 : 0.5f);
@@ -42,50 +139,26 @@ namespace HBP.Module3D
                 }
                 return material;
             }
-
-            public static Material Basic = null;
-
-            public static Material Negative = null;
-            public static Material Positive = null;
-            public static Material BlackListed = null;
-            
-            public static Material NegativeHighlighted = null;
-            public static Material PositiveHighlighted = null;
-            public static Material BlackListedHighlighted = null;
-
-            public static Material Source = null;
-            public static Material SourceHighlighted = null;
-            public static Material NotASource = null;
-            public static Material NotASourceHighlighted = null;
+            #endregion
         }
         #endregion
 
         #region Private Methods
         void Awake()
         {
-            // ROI
-            ROI.Normal = Instantiate(Resources.Load("Materials/ROI/ROI", typeof(Material))) as Material;
-            ROI.Selected = Instantiate(Resources.Load("Materials/ROI/ROISelected", typeof(Material))) as Material;
-
-            // Site
-            Site.BlackListed = Instantiate(Resources.Load("Materials/Sites/Blacklisted", typeof(Material))) as Material;
-            Site.Negative = Instantiate(Resources.Load("Materials/Sites/Negative", typeof(Material))) as Material;
-            Site.Basic = Instantiate(Resources.Load("Materials/Sites/Basic", typeof(Material))) as Material;
-            Site.Positive = Instantiate(Resources.Load("Materials/Sites/Positive", typeof(Material))) as Material;
-            Site.BlackListedHighlighted = Instantiate(Resources.Load("Materials/Sites/BlacklistedHighlighted", typeof(Material))) as Material;
-            Site.NegativeHighlighted = Instantiate(Resources.Load("Materials/Sites/NegativeHighlighted", typeof(Material))) as Material;
-            Site.PositiveHighlighted = Instantiate(Resources.Load("Materials/Sites/PositiveHighlighted", typeof(Material))) as Material;
-            Site.Source = Instantiate(Resources.Load("Materials/Sites/Source", typeof(Material))) as Material;
-            Site.SourceHighlighted = Instantiate(Resources.Load("Materials/Sites/SourceHighlighted", typeof(Material))) as Material;
-            Site.NotASource = Instantiate(Resources.Load("Materials/Sites/NotASource", typeof(Material))) as Material;
-            Site.NotASourceHighlighted = Instantiate(Resources.Load("Materials/Sites/NotASourceHighlighted", typeof(Material))) as Material;
-
-            // Ring
-            Ring.Selected = Instantiate(Resources.Load("Materials/Rings/Selected", typeof(Material))) as Material;
+            ROI.Load();
+            Site.Load();
         }
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Get the material for a specific site
+        /// </summary>
+        /// <param name="highlighted">Is the site highlighted</param>
+        /// <param name="siteType">Current state of the site</param>
+        /// <param name="baseColor">Color of the site</param>
+        /// <returns>The corresponding material</returns>
         public static Material SiteSharedMaterial(bool highlighted, SiteType siteType, Color baseColor)
         {
             switch (siteType)

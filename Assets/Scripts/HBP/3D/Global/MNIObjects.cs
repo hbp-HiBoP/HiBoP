@@ -1,42 +1,44 @@
-﻿
-/* \file MNIObjects.cs
- * \author Lance Florian
- * \date    22/04/2016
- * \brief Define MNIObjects
- */
-
-// system
-using System;
-using System.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.Threading;
-
-// unity
+﻿using System.Collections;
 using UnityEngine;
-using UnityEngine.Events;
 using CielaSpike;
 
 namespace HBP.Module3D
 {
     /// <summary>
-    /// MNI meshes and MRI preloaded at start
+    /// Global class containing information about the MNI meshes and MRIs
     /// </summary>
     public class MNIObjects : MonoBehaviour
     {
         #region Properties
+        /// <summary>
+        /// Mesh of the Grey Matter
+        /// </summary>
         public LeftRightMesh3D GreyMatter { get; private set; }
+        /// <summary>
+        /// Mesh of the White Matter
+        /// </summary>
         public LeftRightMesh3D WhiteMatter { get; private set; }
+        /// <summary>
+        /// Mesh of the Inflated White Matter
+        /// </summary>
         public LeftRightMesh3D InflatedWhiteMatter { get; private set; }
+        /// <summary>
+        /// MRI of the MNI
+        /// </summary>
         public MRI3D MRI { get; private set; }
 
+        /// <summary>
+        /// Path to the files to load
+        /// </summary>
         private string m_DataPath = "";
-
-        public bool Loaded { get; private set; }
+        /// <summary>
+        /// Are the MNI objects completely loaded ?
+        /// </summary>
+        public bool IsLoaded { get; private set; }
         #endregion
 
         #region Private Methods
-        void Awake()
+        private void Awake()
         {
             m_DataPath = ApplicationState.DataPath;
             this.StartCoroutineAsync(c_Load());
@@ -49,14 +51,11 @@ namespace HBP.Module3D
             MRI?.Clean();
         }
         /// <summary>
-        /// 
+        /// Load the MNI objects
         /// </summary>
-        /// <param name="mniMRIDir"></param>
-        /// <param name="mniMeshDir"></param>
-        /// <param name="idScript"></param>
-        /// <param name="GOName"></param>
-        /// <param name="instanceID"></param>
-        void LoadData(string mniMRIDir, string mniMeshDir, string GOName, int instanceID)
+        /// <param name="mniMRIDir">Directory of the MRI of the MNI</param>
+        /// <param name="mniMeshDir">Directory of the meshes of the MNI</param>
+        private void LoadData(string mniMRIDir, string mniMeshDir)
         {
             DLL.Volume volume = new DLL.Volume();
             volume.LoadNIFTIFile(mniMRIDir + "MNI.nii");
@@ -101,16 +100,17 @@ namespace HBP.Module3D
         #endregion
 
         #region Coroutines
+        /// <summary>
+        /// Coroutine to load the MNI objects
+        /// </summary>
+        /// <returns>Coroutine return</returns>
         public IEnumerator c_Load()
         {
-            yield return Ninja.JumpToUnity;
-            int instanceID = GetInstanceID();
-            string nameGO = name;
             yield return Ninja.JumpBack;
             string baseIRMDir = m_DataPath + "IRM/", baseMeshDir = m_DataPath + "Meshes/";
-            LoadData(baseIRMDir, baseMeshDir, nameGO, instanceID);
+            LoadData(baseIRMDir, baseMeshDir);
             yield return Ninja.JumpToUnity;
-            Loaded = true;
+            IsLoaded = true;
         }
         #endregion
     }

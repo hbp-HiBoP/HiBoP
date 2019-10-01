@@ -1764,7 +1764,7 @@ namespace HBP.Module3D
             onChangeProgress.Invoke(progress, 0.0f, new LoadingText("Loading MNI"));
             System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
             watch.Start();
-            yield return new WaitUntil(delegate { return ApplicationState.Module3D.MNIObjects.Loaded || watch.ElapsedMilliseconds > 5000; });
+            yield return new WaitUntil(delegate { return ApplicationState.Module3D.MNIObjects.IsLoaded || watch.ElapsedMilliseconds > 5000; });
             watch.Stop();
             if (watch.ElapsedMilliseconds > 5000)
             {

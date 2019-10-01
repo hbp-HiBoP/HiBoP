@@ -40,7 +40,7 @@ namespace HBP.Module3D
             m_Ring.transform.localPosition = Vector3.zero;
             m_Ring.transform.localEulerAngles = new Vector3(90, 0, 0);
             m_Ring.SetActive(false);
-            m_Ring.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.Ring.Selected;
+            m_Ring.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.Site.SelectionRing;
         }
         void Update()
         {

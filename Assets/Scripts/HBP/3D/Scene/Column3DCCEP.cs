@@ -1,4 +1,5 @@
-﻿using HBP.Data.Visualization;
+﻿using HBP.Data.Enums;
+using HBP.Data.Visualization;
 using HBP.Module3D.DLL;
 using System.Collections.Generic;
 using System.Linq;
@@ -116,7 +117,7 @@ namespace HBP.Module3D
             {
                 foreach (var site in Sites)
                 {
-                    site.State.IsMasked = !ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.ContainsKey(site.Information.FullCorrectedID);
+                    site.State.IsMasked = false;// !ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.ContainsKey(site.Information.FullCorrectedID);
                 }
                 return;
             }
@@ -234,6 +235,56 @@ namespace HBP.Module3D
         {
             base.UpdateSites(sites, sceneSitePatientParent);
             Sources = Sites.Where(s => ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.Keys.Contains(s.Information.FullCorrectedID)).ToList();
+        }
+        /// <summary>
+        /// Update the visibility, the size and the color of the sites depending on their state
+        /// </summary>
+        /// <param name="showAllSites">Do we show sites that are not in a ROI ?</param>
+        /// <param name="hideBlacklistedSites">Do we hide blacklisted sites ?</param>
+        /// <param name="isGeneratorUpToDate">Is the activity generator up to date ?</param>
+        public override void UpdateSitesRendering(bool showAllSites, bool hideBlacklistedSites, bool isGeneratorUpToDate)
+        {
+            UpdateSitesSizeAndColorOfSites(showAllSites);
+
+            for (int i = 0; i < Sites.Count; ++i)
+            {
+                Site site = Sites[i];
+                bool activity = site.IsActive;
+                SiteType siteType;
+                if (site.State.IsMasked || (site.State.IsOutOfROI && !showAllSites) || !site.State.IsFiltered)
+                {
+                    if (activity) site.IsActive = false;
+                    continue;
+                }
+                else if (site.State.IsBlackListed)
+                {
+                    site.transform.localScale = Vector3.one;
+                    siteType = SiteType.BlackListed;
+                    if (hideBlacklistedSites)
+                    {
+                        if (activity) site.IsActive = false;
+                        continue;
+                    }
+                }
+                else if (isGeneratorUpToDate)
+                {
+                    site.transform.localScale = m_ElectrodesSizeScale[i];
+                    siteType = m_ElectrodesPositiveColor[i] ? SiteType.Positive : SiteType.Negative;
+                }
+                else if (!IsSourceSelected)
+                {
+                    site.transform.localScale = Vector3.one;
+                    siteType = ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.ContainsKey(site.Information.FullCorrectedID) ? SiteType.Source : SiteType.NotASource;
+                }
+                else
+                {
+                    site.transform.localScale = Vector3.one;
+                    siteType = SiteType.Normal;
+                }
+                if (!activity) site.IsActive = true;
+                site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
+                site.transform.localScale *= DynamicParameters.Gain;
+            }
         }
         /// <summary>
         /// Load the column configuration from the column data
