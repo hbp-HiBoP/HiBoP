@@ -134,7 +134,7 @@ namespace HBP.Module3D
             {
                 Site site = hit.collider.GetComponent<Site>();
                 // Compute each required variable
-                int siteID = site.Information.GlobalID;
+                int siteID = site.Information.Index;
                 string CCEPLatency = "none", CCEPAmplitude = "none";
                 float iEEGActivity = -1;
                 string iEEGUnit = "";

@@ -339,7 +339,7 @@ namespace HBP.UI.Module3D
             m_Scene.SelectedColumn.RawElectrodes.GetSitesOnPlane(Cut, 1.0f, out int[] result);
             foreach (var site in m_Scene.SelectedColumn.Sites)
             {
-                if (result[site.Information.GlobalID] == 1 && site.IsActive)
+                if (result[site.Information.Index] == 1 && site.IsActive)
                 {
                     sites.Add(site);
                 }

@@ -34,7 +34,7 @@ namespace HBP.UI.Module3D.Tools
             for (int i = 0; i < SelectedColumn.ROIs.Count; i++)
             {
                 ROI roi = SelectedColumn.ROIs[i];
-                if (roi.Name == ROI.DEFAULT_ROI_NAME)
+                if (roi.Name == "ROI")
                 {
                     m_ROISelector.options.Add(new Dropdown.OptionData("ROI " + i));
                 }
@@ -140,7 +140,7 @@ namespace HBP.UI.Module3D.Tools
             bool hasVolume = false;
             if (hasROI && SelectedColumn.SelectedROI)
             {
-                hasVolume = SelectedColumn.SelectedROI.NumberOfBubbles > 0;
+                hasVolume = SelectedColumn.SelectedROI.Spheres.Count > 0;
             }
 
             m_AddROI.interactable = true;

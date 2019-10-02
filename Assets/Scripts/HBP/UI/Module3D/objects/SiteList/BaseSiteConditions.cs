@@ -44,13 +44,13 @@ namespace HBP.UI.Module3D
         }
         protected bool CheckInMesh(Site site)
         {
-            return m_Scene.MeshManager.SelectedMesh.SimplifiedBoth.IsSiteInside(m_Scene.ImplantationManager.SelectedImplantation.RawSiteList, site.Information.GlobalID);
+            return m_Scene.MeshManager.SelectedMesh.SimplifiedBoth.IsSiteInside(m_Scene.ImplantationManager.SelectedImplantation.RawSiteList, site.Information.Index);
         }
         protected bool CheckInLeftHemisphere(Site site)
         {
             if (m_Scene.MeshManager.SelectedMesh is LeftRightMesh3D mesh)
             {
-                return mesh.SimplifiedLeft.IsSiteInside(m_Scene.ImplantationManager.SelectedImplantation.RawSiteList, site.Information.GlobalID);
+                return mesh.SimplifiedLeft.IsSiteInside(m_Scene.ImplantationManager.SelectedImplantation.RawSiteList, site.Information.Index);
             }
             else
             {
@@ -61,7 +61,7 @@ namespace HBP.UI.Module3D
         {
             if (m_Scene.MeshManager.SelectedMesh is LeftRightMesh3D mesh)
             {
-                return mesh.SimplifiedRight.IsSiteInside(m_Scene.ImplantationManager.SelectedImplantation.RawSiteList, site.Information.GlobalID);
+                return mesh.SimplifiedRight.IsSiteInside(m_Scene.ImplantationManager.SelectedImplantation.RawSiteList, site.Information.Index);
             }
             else
             {
@@ -101,7 +101,7 @@ namespace HBP.UI.Module3D
         }
         protected bool CheckBroadmanAreaName(Site site, string broadmanAreaName)
         {
-            return site.Information.BrodmannAreaName.ToLower().Contains(broadmanAreaName.ToLower());
+            return site.Information.BrodmannAreaLabel.ToLower().Contains(broadmanAreaName.ToLower());
         }
         protected bool CheckFreesurferName(Site site, string freesurferName)
         {

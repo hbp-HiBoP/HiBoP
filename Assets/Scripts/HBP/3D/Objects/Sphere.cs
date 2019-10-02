@@ -93,7 +93,7 @@ namespace HBP.Module3D
         #region Private Methods
         private void Update()
         {
-            if (m_RadiusPercentage < 1.0f)
+            if (m_RadiusPercentage < 2.0f)
             {
                 m_RadiusPercentage += 2 * Time.deltaTime;
                 Radius = Mathf.SmoothStep(m_Radius, m_TargetRadius, m_RadiusPercentage);
@@ -108,14 +108,13 @@ namespace HBP.Module3D
         /// <param name="layer"> layer of the bubble gameobject </param>
         /// <param name="radius"></param>
         /// <param name="position"></param>
-        public void Initialize(int layer, float radius, Vector3 position)
+        public void Initialize(int layer, string name, float radius, Vector3 position)
         {
             gameObject.layer = layer;
             Position = position;
             m_TargetRadius = radius;
             gameObject.SetActive(true);
-
-            // add mesh
+            
             gameObject.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.ROISphere;
         }
         /// <summary>

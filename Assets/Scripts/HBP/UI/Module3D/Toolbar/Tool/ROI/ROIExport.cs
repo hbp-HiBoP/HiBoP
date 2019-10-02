@@ -69,7 +69,7 @@ namespace HBP.UI.Module3D.Tools
                 ROI roi = SelectedColumn.AddROI(serializedROI.Name);
                 foreach (Data.Visualization.Sphere sphere in serializedROI.Spheres)
                 {
-                    roi.AddBubble(SelectedColumn.Layer, "Bubble", sphere.Position.ToVector3(), sphere.Radius);
+                    roi.AddSphere(SelectedColumn.Layer, "Bubble", sphere.Position.ToVector3(), sphere.Radius);
                 }
             }
         }

@@ -106,11 +106,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Currently selected site ID
         /// </summary>
-        public int SelectedSiteID { get { return SelectedSite != null ? SelectedSite.Information.GlobalID : -1; } }
-        /// <summary>
-        /// ID of the patient which site is currently selected
-        /// </summary>
-        public int SelectedPatientID { get { return SelectedSite != null ? SelectedSite.Information.PatientNumber : -1; } }
+        public int SelectedSiteID { get { return SelectedSite != null ? SelectedSite.Information.Index : -1; } }
 
         /// <summary>
         /// Raw site list (used for DLL operations)
@@ -161,7 +157,6 @@ namespace HBP.Module3D
 
                     m_SelectedROI = value;
                     m_SelectedROI.SetVisibility(true);
-                    m_SelectedROI.StartAnimation();
                 }
                 UpdateROIMask();
             }
@@ -305,11 +300,13 @@ namespace HBP.Module3D
                         Site baseSite = sceneSiteGameObject.GetComponent<Site>();
                         site.Information = baseSite.Information;
                         // State
-                        if (!SiteStateBySiteID.ContainsKey(baseSite.Information.FullCorrectedID))
+                        if (!SiteStateBySiteID.TryGetValue(baseSite.Information.FullCorrectedID, out SiteState siteState))
                         {
-                            SiteStateBySiteID.Add(baseSite.Information.FullCorrectedID, new SiteState(baseSite.State));
+                            siteState = new SiteState();
+                            siteState.ApplyState(baseSite.State);
+                            SiteStateBySiteID.Add(baseSite.Information.FullCorrectedID, siteState);
                         }
-                        site.State = SiteStateBySiteID[baseSite.Information.FullCorrectedID];
+                        site.State = siteState;
                         site.State.OnChangeState.AddListener(() => OnChangeSiteState.Invoke(site));
                         // Configuration
                         if (ColumnData.BaseConfiguration.ConfigurationBySite.TryGetValue(site.Information.FullCorrectedID, out Data.Visualization.SiteConfiguration siteConfiguration))
@@ -569,16 +566,16 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="name">Name of the new ROI</param>
         /// <returns>Newly created ROI</returns>
-        public ROI AddROI(string name = ROI.DEFAULT_ROI_NAME)
+        public ROI AddROI(string name = "ROI")
         {
             GameObject roiGameObject = Instantiate(m_ROIPrefab, m_ROIParent);
             ROI roi = roiGameObject.GetComponent<ROI>();
             roi.Name = name;
-            roi.OnChangeNumberOfVolumeInROI.AddListener(() =>
+            roi.OnChangeNumberOfSpheres.AddListener(() =>
             {
                 UpdateROIMask();
             });
-            roi.OnChangeROISphereParameters.AddListener(() =>
+            roi.OnChangeSphereParameters.AddListener(() =>
             {
                 UpdateROIMask();
             });
@@ -598,7 +595,7 @@ namespace HBP.Module3D
             newROI.Name = roi.Name;
             foreach (Sphere bubble in roi.Spheres)
             {
-                newROI.AddBubble(Layer, "Bubble", bubble.Position, bubble.Radius);
+                newROI.AddSphere(Layer, "Bubble", bubble.Position, bubble.Radius);
             }
         }
         /// <summary>
@@ -735,7 +732,7 @@ namespace HBP.Module3D
                 ROI newROI = AddROI(roi.Name);
                 foreach (Data.Visualization.Sphere sphere in roi.Spheres)
                 {
-                    newROI.AddBubble(Layer, "Bubble", sphere.Position.ToVector3(), sphere.Radius);
+                    newROI.AddSphere(Layer, "Bubble", sphere.Position.ToVector3(), sphere.Radius);
                 }
             }
             foreach (Site site in Sites)

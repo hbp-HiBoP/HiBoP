@@ -135,10 +135,10 @@ namespace HBP.Module3D
             DLL.PatientElectrodesList electrodesList = implantation.PatientElectrodesList;
 
             int currPlotNb = 0;
-            for (int ii = 0; ii < electrodesList.NumberOfPatients; ++ii)
+            for (int i = 0; i < electrodesList.NumberOfPatients; ++i)
             {
                 int patientSiteID = 0;
-                string patientID = electrodesList.PatientName(ii);
+                string patientID = electrodesList.PatientName(i);
                 Data.Patient patient = m_Scene.Visualization.Patients.FirstOrDefault((p) => p.ID == patientID);
 
                 GameObject sitePatient = new GameObject(patientID);
@@ -146,19 +146,19 @@ namespace HBP.Module3D
                 sitePatient.transform.localPosition = Vector3.zero;
                 SitesPatientParent.Add(sitePatient);
 
-                for (int jj = 0; jj < electrodesList.NumberOfElectrodesInPatient(ii); ++jj)
+                for (int j = 0; j < electrodesList.NumberOfElectrodesInPatient(i); ++j)
                 {
-                    GameObject siteElectrode = new GameObject(electrodesList.ElectrodeName(ii, jj));
+                    GameObject siteElectrode = new GameObject(electrodesList.ElectrodeName(i, j));
                     siteElectrode.transform.SetParent(sitePatient.transform);
                     siteElectrode.transform.localPosition = Vector3.zero;
 
-                    for (int kk = 0; kk < electrodesList.NumberOfSitesInElectrode(ii, jj); ++kk)
+                    for (int k = 0; k < electrodesList.NumberOfSitesInElectrode(i, j); ++k)
                     {
-                        Vector3 invertedPosition = electrodesList.SitePosition(ii, jj, kk);
+                        Vector3 invertedPosition = electrodesList.SitePosition(i, j, k);
                         invertedPosition.x = -invertedPosition.x;
 
                         GameObject siteGameObject = Instantiate(m_SitePrefab, siteElectrode.transform);
-                        siteGameObject.name = electrodesList.SiteName(ii, jj, kk);
+                        siteGameObject.name = electrodesList.SiteName(i, j, k);
 
                         siteGameObject.transform.localPosition = invertedPosition;
                         siteGameObject.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.Site;
@@ -169,13 +169,9 @@ namespace HBP.Module3D
                         Site site = siteGameObject.GetComponent<Site>();
                         site.Information.Patient = patient;
                         site.Information.Name = siteGameObject.name;
-                        site.Information.SitePatientID = patientSiteID++;
-                        site.Information.PatientNumber = ii;
-                        site.Information.ElectrodeNumber = jj;
-                        site.Information.SiteNumber = kk;
-                        site.Information.GlobalID = currPlotNb++;
-                        site.Information.MarsAtlasIndex = electrodesList.MarsAtlasLabelOfSite(ii, jj, kk);
-                        site.Information.FreesurferLabel = electrodesList.FreesurferLabelOfSite(ii, jj, kk).Replace('_', ' ');
+                        site.Information.Index = currPlotNb++;
+                        site.Information.MarsAtlasIndex = electrodesList.MarsAtlasLabelOfSite(i, j, k);
+                        site.Information.FreesurferLabel = electrodesList.FreesurferLabelOfSite(i, j, k).Replace('_', ' ');
                         site.State.IsBlackListed = false;
                         site.State.IsHighlighted = false;
                         site.State.IsOutOfROI = true;

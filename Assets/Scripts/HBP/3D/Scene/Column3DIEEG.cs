@@ -51,27 +51,27 @@ namespace HBP.Module3D
                     if (values.Length > 0)
                     {
                         numberOfSitesWithValues++;
-                        ActivityValuesBySiteID[site.Information.GlobalID] = values;
+                        ActivityValuesBySiteID[site.Information.Index] = values;
                         site.State.IsMasked = false;
                     }
                     else
                     {
-                        ActivityValuesBySiteID[site.Information.GlobalID] = new float[timelineLength];
+                        ActivityValuesBySiteID[site.Information.Index] = new float[timelineLength];
                         site.State.IsMasked = true;
                     }
                 }
                 else
                 {
-                    ActivityValuesBySiteID[site.Information.GlobalID] = new float[timelineLength];
+                    ActivityValuesBySiteID[site.Information.Index] = new float[timelineLength];
                     site.State.IsMasked = true;
                 }
                 if (ColumnIEEGData.Data.UnitByChannelID.TryGetValue(site.Information.FullCorrectedID, out string unit))
                 {
-                    ActivityUnitsBySiteID[site.Information.GlobalID] = unit;
+                    ActivityUnitsBySiteID[site.Information.Index] = unit;
                 }
                 else
                 {
-                    ActivityUnitsBySiteID[site.Information.GlobalID] = "";
+                    ActivityUnitsBySiteID[site.Information.Index] = "";
                 }
                 if (ColumnIEEGData.Data.DataByChannelID.TryGetValue(site.Information.FullCorrectedID, out Data.Experience.Dataset.BlocChannelData blocChannelData))
                 {

@@ -1,49 +1,37 @@
-﻿
-
-
-
-// unity
-using HBP.Data.Enums;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
 using System.Linq;
-/**
-* \file    Site.cs
-* \author  Lance Florian
-* \date    2015
-* \brief   Define site related classes
-*/
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
+    /// <summary>
+    /// Class containing information about a site
+    /// </summary>
+    /// <remarks>
+    /// The information available in this class does not depend on which column the site is
+    /// One instance of this class is required per site in the scene
+    /// </remarks>
     public class SiteInformation
     {
-        public SiteInformation(SiteInformation info)
-        {
-            Patient = info.Patient;
-            Name = info.Name;
-            SitePatientID = info.SitePatientID;
-            PatientNumber = info.PatientNumber;
-            ElectrodeNumber = info.ElectrodeNumber;
-            SiteNumber = info.SiteNumber;
-            MarsAtlasIndex = info.MarsAtlasIndex;
-        }
-        public SiteInformation() { }
-
+        #region Properties
+        /// <summary>
+        /// Reference to the patient this site belongs to
+        /// </summary>
         public Data.Patient Patient { get; set; }
+        /// <summary>
+        /// Raw name of the site (as read in the implantation file)
+        /// </summary>
         public string Name { get; set; }
-
-        public int GlobalID { get; set; }
-        public int SitePatientID { get; set; }
-
-        public int PatientNumber { get; set; }
-        public int ElectrodeNumber { get; set; }
-        public int SiteNumber { get; set; }
+        /// <summary>
+        /// Global Index of the site (same index as in the raw site list)
+        /// </summary>
+        public int Index { get; set; }
 
         private int m_MarsAtlasIndex;
+        /// <summary>
+        /// Index of the MarsAtlas area of this site
+        /// </summary>
         public int MarsAtlasIndex
         {
             get
@@ -58,13 +46,25 @@ namespace HBP.Module3D
                     ApplicationState.Module3D.MarsAtlasIndex.Lobe(value).Replace('_', ' '),
                     ApplicationState.Module3D.MarsAtlasIndex.NameFS(value).Replace('_', ' '),
                     ApplicationState.Module3D.MarsAtlasIndex.FullName(value).Replace('_', ' '));
-                BrodmannAreaName = ApplicationState.Module3D.MarsAtlasIndex.BrodmannArea(value).Replace('_', ' ');
+                BrodmannAreaLabel = ApplicationState.Module3D.MarsAtlasIndex.BrodmannArea(value).Replace('_', ' ');
             }
         }
+        /// <summary>
+        /// Label of the MarsAtlas area this site belongs to
+        /// </summary>
         public string MarsAtlasLabel { get; private set; }
-        public string BrodmannAreaName { get; private set; }
+        /// <summary>
+        /// Label of the Brodmann area this site belongs to
+        /// </summary>
+        public string BrodmannAreaLabel { get; private set; }
+        /// <summary>
+        /// Label of the Freesurfer area this site belongs to
+        /// </summary>
         public string FreesurferLabel { get; set; }
 
+        /// <summary>
+        /// ID of the patient this site belongs to
+        /// </summary>
         public string PatientID
         {
             get
@@ -72,6 +72,9 @@ namespace HBP.Module3D
                 return Patient.ID;
             }
         }
+        /// <summary>
+        /// Full ID of this site
+        /// </summary>
         public string FullID
         {
             get
@@ -79,6 +82,13 @@ namespace HBP.Module3D
                 return PatientID + "_" + Name;
             }
         }
+        /// <summary>
+        /// Full corrected ID of this site
+        /// </summary>
+        /// <remarks>
+        /// The ID is corrected only if <see cref="ApplicationState.UserPreferences.Data.Anatomic.SiteNameCorrection"/> is set as true
+        /// Otherwise, this returns the same value than <see cref="FullID"/>
+        /// </remarks>
         public string FullCorrectedID
         {
             get
@@ -102,6 +112,9 @@ namespace HBP.Module3D
                 }
             }
         }
+        /// <summary>
+        /// Format the name of the string with information from the patient it is from in order to display it properly
+        /// </summary>
         public string DisplayedName
         {
             get
@@ -109,24 +122,52 @@ namespace HBP.Module3D
                 return ChannelName + " (" + Patient.Name + " - " + Patient.Place + " - " + Patient.Date + ")";
             }
         }
+        /// <summary>
+        /// Name of the channel associated with this site
+        /// </summary>
+        /// <remarks>
+        /// If <see cref="ApplicationState.UserPreferences.Data.Anatomic.SiteNameCorrection"/> is set as true, this returns the corrected name of the site
+        /// Otherwise, this returns the same value as <see cref="Name"/>
+        /// </remarks>
         public string ChannelName
         {
             get { return FullCorrectedID.Replace(PatientID + "_", ""); }
         }
+        #endregion
     }
 
+    /// <summary>
+    /// This class describes the current state of the site
+    /// </summary>
+    /// <remarks>
+    /// The information avaiable in this class depends on which column the site is
+    /// Each instance of the <see cref="Site"/> class has its own instance of this class
+    /// </remarks>
     public class SiteState
     {
+        #region Properties
+        /// <summary>
+        /// Default color of any site
+        /// </summary>
         public static Color DefaultColor = new Color(0.53f, 0.15f, 0.15f);
-        public UnityEvent OnChangeState = new UnityEvent();
-        public SiteState(SiteState state)
-        {
-            ApplyState(state);
-        }
-        public SiteState() { }
+
+        /// <summary>
+        /// Is the site completely masked ?
+        /// </summary>
+        /// <remarks>
+        /// Usually, that means this site contains no activity value
+        /// </remarks>
         public bool IsMasked { get; set; }
+
+        /// <summary>
+        /// Is the site out of the selected ROI ?
+        /// </summary>
         public bool IsOutOfROI { get; set; }
+
         private bool m_IsFiltered = true;
+        /// <summary>
+        /// Is the site filtered (using the site list on the right)
+        /// </summary>
         public bool IsFiltered
         {
             get
@@ -139,7 +180,11 @@ namespace HBP.Module3D
                 OnChangeState.Invoke();
             }
         }
+
         private bool m_IsBlackListed;
+        /// <summary>
+        /// Is the site blacklisted ?
+        /// </summary>
         public bool IsBlackListed
         {
             get
@@ -152,7 +197,11 @@ namespace HBP.Module3D
                 OnChangeState.Invoke();
             }
         }
+
         private bool m_IsHighlighted;
+        /// <summary>
+        /// Is the site highlighted ?
+        /// </summary>
         public bool IsHighlighted
         {
             get
@@ -165,7 +214,11 @@ namespace HBP.Module3D
                 OnChangeState.Invoke();
             }
         }
+
         private Color m_Color = DefaultColor;
+        /// <summary>
+        /// Color of the site (the color will be applied if the site is in a regular state)
+        /// </summary>
         public Color Color
         {
             get
@@ -178,7 +231,25 @@ namespace HBP.Module3D
                 OnChangeState.Invoke();
             }
         }
+
+        /// <summary>
+        /// Labels of the site
+        /// </summary>
         public List<string> Labels { get; set; } = new List<string>();
+        #endregion
+
+        #region Events
+        /// <summary>
+        /// Event called when changing any parameter of this class
+        /// </summary>
+        public UnityEvent OnChangeState = new UnityEvent();
+        #endregion
+
+        #region Public Methods
+        /// <summary>
+        /// Add a new label (if the label is not already in the list)
+        /// </summary>
+        /// <param name="label">Label to be added</param>
         public void AddLabel(string label)
         {
             if (!Labels.Contains(label))
@@ -187,15 +258,30 @@ namespace HBP.Module3D
                 OnChangeState.Invoke();
             }
         }
+        /// <summary>
+        /// Remove a label from the list
+        /// </summary>
+        /// <param name="label">Label to be removed</param>
         public void RemoveLabel(string label)
         {
             Labels.Remove(label);
             OnChangeState.Invoke();
         }
+        /// <summary>
+        /// Copy a state to this state
+        /// </summary>
+        /// <param name="state">State to be copied</param>
         public void ApplyState(SiteState state)
         {
             ApplyState(state.IsBlackListed, state.IsHighlighted, state.Color, state.Labels);
         }
+        /// <summary>
+        /// Set all values of the state at once
+        /// </summary>
+        /// <param name="blacklisted">Is the site blacklisted ?</param>
+        /// <param name="highlighted">Is the site highlighted ?</param>
+        /// <param name="color">Color of the site</param>
+        /// <param name="labels">Labels of the site</param>
         public void ApplyState(bool blacklisted, bool highlighted, Color color, IEnumerable<string> labels)
         {
             m_IsBlackListed = blacklisted;
@@ -204,10 +290,11 @@ namespace HBP.Module3D
             Labels = labels.ToList();
             OnChangeState.Invoke();
         }
+        #endregion
     }
 
     /// <summary>
-    /// Class for defining informations about a plot
+    /// Class defining a site in the scene
     /// </summary>
     public class Site : MonoBehaviour, IConfigurable
     {
@@ -240,6 +327,9 @@ namespace HBP.Module3D
         }
 
         private bool m_IsSelected;
+        /// <summary>
+        /// Is the site selected ?
+        /// </summary>
         public bool IsSelected
         {
             get
@@ -255,15 +345,14 @@ namespace HBP.Module3D
                 }
             }
         }
-        public GenericEvent<bool> OnSelectSite = new GenericEvent<bool>();
 
         /// <summary>
-        /// Information about this site
+        /// Information about this site (common to all sites with the same ID in the scene)
         /// </summary>
         public SiteInformation Information { get; set; }
 
         /// <summary>
-        /// State of this site
+        /// State of this site (one per site)
         /// </summary>
         public SiteState State { get; set; }
 
@@ -272,8 +361,21 @@ namespace HBP.Module3D
         /// </summary>
         public Data.Visualization.SiteConfiguration Configuration { get; set; }
 
+        /// <summary>
+        /// Associated data
+        /// </summary>
         public Data.Experience.Dataset.BlocChannelData Data { get; set; }
+        /// <summary>
+        /// Associated data statistics
+        /// </summary>
         public Data.Experience.Dataset.BlocChannelStatistics Statistics { get; set; }
+        #endregion
+
+        #region Events
+        /// <summary>
+        /// Event called when selecting or unselecting this site
+        /// </summary>
+        public GenericEvent<bool> OnSelectSite = new GenericEvent<bool>();
         #endregion
 
         #region Private Methods
@@ -286,6 +388,10 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Load a configuration to this site from the configuration in the associated visualization
+        /// </summary>
+        /// <param name="firstCall">Has this method not been called by another load method ?</param>
         public void LoadConfiguration(bool firstCall = true)
         {
             if (firstCall) ResetConfiguration();
@@ -296,6 +402,9 @@ namespace HBP.Module3D
 
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
+        /// <summary>
+        /// Save the configuration of this site to the configuration in the associated visualization
+        /// </summary>
         public void SaveConfiguration()
         {
             Configuration.IsBlacklisted = State.IsBlackListed;
@@ -303,6 +412,9 @@ namespace HBP.Module3D
             Configuration.Color = State.Color;
             Configuration.Labels = State.Labels.ToArray();
         }
+        /// <summary>
+        /// Reset the configuration of this site
+        /// </summary>
         public void ResetConfiguration()
         {
             State.IsBlackListed = false;

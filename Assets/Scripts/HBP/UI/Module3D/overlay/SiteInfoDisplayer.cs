@@ -156,7 +156,7 @@ namespace HBP.UI.Module3D
                 {
                     m_MarsAtlasText.transform.parent.gameObject.SetActive(false);
                 }
-                string broadmanText = siteInfo.Site.Information.BrodmannAreaName;
+                string broadmanText = siteInfo.Site.Information.BrodmannAreaLabel;
                 if (!broadmanText.Contains("No info") && !broadmanText.Contains("not found"))
                 {
                     m_BroadmanText.transform.parent.gameObject.SetActive(true);

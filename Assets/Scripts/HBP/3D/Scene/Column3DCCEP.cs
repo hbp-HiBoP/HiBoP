@@ -135,27 +135,27 @@ namespace HBP.Module3D
                     if (values.Length > 0)
                     {
                         numberOfSitesWithValues++;
-                        ActivityValuesBySiteID[site.Information.GlobalID] = values;
+                        ActivityValuesBySiteID[site.Information.Index] = values;
                         site.State.IsMasked = false;
                     }
                     else
                     {
-                        ActivityValuesBySiteID[site.Information.GlobalID] = new float[timelineLength];
+                        ActivityValuesBySiteID[site.Information.Index] = new float[timelineLength];
                         site.State.IsMasked = true;
                     }
                 }
                 else
                 {
-                    ActivityValuesBySiteID[site.Information.GlobalID] = new float[timelineLength];
+                    ActivityValuesBySiteID[site.Information.Index] = new float[timelineLength];
                     site.State.IsMasked = true;
                 }
                 if (unitByChannel.TryGetValue(site.Information.FullCorrectedID, out string unit))
                 {
-                    ActivityUnitsBySiteID[site.Information.GlobalID] = unit;
+                    ActivityUnitsBySiteID[site.Information.Index] = unit;
                 }
                 else
                 {
-                    ActivityUnitsBySiteID[site.Information.GlobalID] = "";
+                    ActivityUnitsBySiteID[site.Information.Index] = "";
                 }
                 if (dataByChannel.TryGetValue(site.Information.FullCorrectedID, out Data.Experience.Dataset.BlocChannelData blocChannelData))
                 {
@@ -170,8 +170,8 @@ namespace HBP.Module3D
                     {
                         if (trial.Values[i - 1] > trial.Values[i - 2] && trial.Values[i] > trial.Values[i - 1] && trial.Values[i] > trial.Values[i + 1] && trial.Values[i + 1] > trial.Values[i + 2]) // Maybe FIXME: method to compute amplitude and latency
                         {
-                            Amplitudes[site.Information.GlobalID] = trial.Values[i];
-                            Latencies[site.Information.GlobalID] = mainSubTimeline.Frequency.ConvertNumberOfSamplesToMilliseconds(i - mainSubTimeline.StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedIndexFromStart);
+                            Amplitudes[site.Information.Index] = trial.Values[i];
+                            Latencies[site.Information.Index] = mainSubTimeline.Frequency.ConvertNumberOfSamplesToMilliseconds(i - mainSubTimeline.StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedIndexFromStart);
                             break;
                         }
                     }

@@ -215,7 +215,7 @@ namespace HBP.Module3D
                         planeV[ii] = plane.Point[ii];
                         planeV[ii + 3] = plane.Normal[ii];
                     }
-                    result |= is_site_on_plane_RawSiteList(_handle, site.Information.GlobalID, planeV, precision) == 1;
+                    result |= is_site_on_plane_RawSiteList(_handle, site.Information.Index, planeV, precision) == 1;
                 }
                 return result;
             }

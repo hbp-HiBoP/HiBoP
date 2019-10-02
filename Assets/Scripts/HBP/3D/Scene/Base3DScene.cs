@@ -1673,7 +1673,7 @@ namespace HBP.Module3D
 
             if (raycastResult == Data.Enums.RaycastHitResult.Site)
             {
-                SelectedColumn.Sites[hit.collider.gameObject.GetComponent<Site>().Information.GlobalID].IsSelected = true;
+                SelectedColumn.Sites[hit.collider.gameObject.GetComponent<Site>().Information.Index].IsSelected = true;
             }
             else
             {
@@ -1695,15 +1695,11 @@ namespace HBP.Module3D
                 {
                     if (raycastResult == Data.Enums.RaycastHitResult.ROI)
                     {
-                        if (SelectedColumn.SelectedROI.CheckCollision(ray))
-                        {
-                            int bubbleID = SelectedColumn.SelectedROI.CollidedClosestBubbleID(ray);
-                            selectedROI.SelectSphere(bubbleID);
-                        }
+                        selectedROI.SelectClosestSphere(ray);
                     }
                     else if (raycastResult == Data.Enums.RaycastHitResult.Mesh || raycastResult == Data.Enums.RaycastHitResult.Cut)
                     {
-                        selectedROI.AddBubble(SelectedColumn.Layer, "Bubble", hitPoint, 5.0f);
+                        selectedROI.AddSphere(SelectedColumn.Layer, "Bubble", hitPoint, 5.0f);
                         m_SitesUpToDate = false;
                     }
                     else
