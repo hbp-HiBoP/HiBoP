@@ -6,11 +6,11 @@
     public interface IConfigurable
     {
         /// <summary>
-        /// Load the configuration from the saved configuration file
+        /// Load the configuration from a data class
         /// </summary>
         void LoadConfiguration(bool firstCall);
         /// <summary>
-        /// Save the current configuration to a file
+        /// Save the current configuration to a data class
         /// </summary>
         void SaveConfiguration();
         /// <summary>

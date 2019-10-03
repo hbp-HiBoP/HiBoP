@@ -17,7 +17,7 @@ namespace HBP.Module3D
     /// This class manages everything concerning the scene.
     /// It manages directly the cuts, the coloring of the meshes and the different parameters.
     /// It also uses other classes to manage meshes, MRIs, implantations, triangle erasing, atlases, fMRIs and displayed gameObjects.
-    /// See also <seealso cref="MeshManager"/>, <seealso cref="MRIManager"/>, <seealso cref="ImplantationManager"/>, <seealso cref="TriangleEraser"/>, <seealso cref="AtlasManager"/>, <seealso cref="FMRIManager"/>, <seealso cref="DisplayedObjects"/>.
+    /// <seealso cref="MeshManager"/> <seealso cref="MRIManager"/> <seealso cref="ImplantationManager"/> <seealso cref="TriangleEraser"/> <seealso cref="AtlasManager"/> <seealso cref="FMRIManager"/> <seealso cref="DisplayedObjects"/>
     /// </remarks>
     public class Base3DScene : MonoBehaviour, IConfigurable
     {
@@ -523,6 +523,7 @@ namespace HBP.Module3D
                 if (value != m_IsGeneratorUpToDate)
                 {
                     m_IsGeneratorUpToDate = value;
+                    BrainMaterial.SetInt("_Activity", value ? 1 : 0);
                     if (!value)
                     {
                         foreach (Column3DDynamic column in ColumnsDynamic)

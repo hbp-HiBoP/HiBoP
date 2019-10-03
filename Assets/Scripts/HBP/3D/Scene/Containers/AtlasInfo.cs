@@ -3,9 +3,11 @@
 namespace HBP.Module3D
 {
     /// <summary>
-    /// Small class containing information about an area of the JuBrain Atlas (see <seealso cref="DLL.JuBrainAtlas"/>)
-    /// This is used to get information and transfer it to the UI when hovering an area with the mouse
+    /// Small class containing information about an area of the JuBrain Atlas
     /// </summary>
+    /// <remarks>
+    /// This is used to get information and transfer it to the UI when hovering an area with the mouse <seealso cref="DLL.JuBrainAtlas"/>
+    /// </remarks>
     public class AtlasInfo
     {
         #region Properties

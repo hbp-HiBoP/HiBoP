@@ -3,14 +3,37 @@ using UnityEngine;
 
 namespace HBP.UI.Module3D
 {
+    /// <summary>
+    /// Base class for the UI of the 3D
+    /// </summary>
     public class Module3DUI : MonoBehaviour
     {
         #region Properties
+        /// <summary>
+        /// Reference to the SiteInfoDisplayer of the software
+        /// </summary>
         [SerializeField] private SiteInfoDisplayer m_SiteInfoDisplayer;
+        /// <summary>
+        /// Reference to the AtlasInfoDisplayer of the software
+        /// </summary>
         [SerializeField] private AtlasInfoDisplayer m_AtlasInfoDisplayer;
-        public ColorPicker ColorPicker;
 
-        public GameObject SceneWindowPrefab;
+        [SerializeField] private ColorPicker m_ColorPicker;
+        /// <summary>
+        /// Reference to the ColorPicker of the software
+        /// </summary>
+        public ColorPicker ColorPicker
+        {
+            get
+            {
+                return m_ColorPicker;
+            }
+        }
+
+        /// <summary>
+        /// Prefab for the Scene3DWindow object
+        /// </summary>
+        [SerializeField] private GameObject m_SceneWindowPrefab;
         #endregion
 
         #region Private Methods
@@ -18,11 +41,10 @@ namespace HBP.UI.Module3D
         {
             m_SiteInfoDisplayer.Initialize();
             m_AtlasInfoDisplayer.Initialize();
-
-
+            
             ApplicationState.Module3D.OnAddScene.AddListener((scene) =>
             {
-                Scene3DWindow sceneWindow = Instantiate(SceneWindowPrefab, transform).GetComponentInChildren<Scene3DWindow>();
+                Scene3DWindow sceneWindow = Instantiate(m_SceneWindowPrefab, transform).GetComponent<Scene3DWindow>();
                 sceneWindow.Initialize(scene);
                 m_SiteInfoDisplayer.transform.SetAsLastSibling();
                 sceneWindow.gameObject.SetActive(false);
