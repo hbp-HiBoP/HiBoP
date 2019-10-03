@@ -96,11 +96,6 @@ namespace HBP.Module3D
             /// Material used if the site is not a source for CCEP and is highlighted
             /// </summary>
             public static Material NotASourceHighlighted { get; private set; }
-
-            /// <summary>
-            /// Material used for the selection ring
-            /// </summary>
-            public static Material SelectionRing { get; private set; }
             #endregion
 
             #region Public Methods
@@ -120,7 +115,6 @@ namespace HBP.Module3D
                 SourceHighlighted = Instantiate(Resources.Load("Materials/Sites/SourceHighlighted", typeof(Material))) as Material;
                 NotASource = Instantiate(Resources.Load("Materials/Sites/NotASource", typeof(Material))) as Material;
                 NotASourceHighlighted = Instantiate(Resources.Load("Materials/Sites/NotASourceHighlighted", typeof(Material))) as Material;
-                SelectionRing = Instantiate(Resources.Load("Materials/Rings/Selected", typeof(Material))) as Material;
             }
             /// <summary>
             /// Get the site material corresponding to the input color

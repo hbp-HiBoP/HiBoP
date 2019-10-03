@@ -3,10 +3,10 @@ using UnityEngine;
 
 namespace HBP.Module3D
 {
-    [System.Serializable]
     /// <summary>
-    /// A simple plane class using a normal and a point
+    /// This class defines a plane with a point and a normal
     /// </summary>
+    [System.Serializable]
     public class Plane
     {
         #region Properties
@@ -21,19 +21,11 @@ namespace HBP.Module3D
         #endregion
 
         #region Constructors
-        /// <summary>
-        /// Plane default constructor
-        /// </summary>
         public Plane()
         {
             Point = new Vector3(0, 0, 0);
             Normal = new Vector3(1, 0, 0);
         }
-        /// <summary>
-        /// Plane constructor
-        /// </summary>
-        /// <param name="point">Point on the plane</param>
-        /// <param name="normal">Normal to the plane</param>
         public Plane(Vector3 point, Vector3 normal)
         {
             Point = point;
@@ -45,7 +37,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Convert to float array for DLL use
         /// </summary>
-        /// <returns>Array of values (PointX, PointY, PointZ, NormalX, NormalY, NormalZ)</returns>
+        /// <returns>Array of values [PointX, PointY, PointZ, NormalX, NormalY, NormalZ]</returns>
         public float[] ConvertToArray()
         {
             return new float[] { Point[0], Point[1], Point[2], Normal[0], Normal[1], Normal[2] };
@@ -53,6 +45,9 @@ namespace HBP.Module3D
         #endregion
     }
 
+    /// <summary>
+    /// This class defines a segment between two points
+    /// </summary>
     public class Segment3
     {
         #region Properties
@@ -64,6 +59,16 @@ namespace HBP.Module3D
         /// Second end of the segment
         /// </summary>
         public Vector3 End2 { get; set; }
+        /// <summary>
+        /// Length of the segment
+        /// </summary>
+        public float Length
+        {
+            get
+            {
+                return (End2 - End1).magnitude;
+            }
+        }
         #endregion
 
         #region Constructors
@@ -76,13 +81,13 @@ namespace HBP.Module3D
     }
 
     /// <summary>
-    /// Static geometry methods
+    /// This class contains utility functions concerning geometry
     /// </summary>
     public class Geometry
     {
         #region Public Methods
         /// <summary>
-        /// Create a circle mesh
+        /// Create an array of points reprensentinf a circle
         /// </summary>
         /// <param name="center">Center of the circle</param>
         /// <param name="radius">Radius of the circle</param>
@@ -106,7 +111,7 @@ namespace HBP.Module3D
         /// <param name="radius">Radius of the sphere</param>
         /// <param name="nbLong">Number of longitudinal segments</param>
         /// <param name="nbLat">Number of latitudinal segments</param>
-        /// <returns>Sphere mesh</returns>
+        /// <returns>The resulting mesh</returns>
         public static Mesh CreateSphereMesh(float radius, int nbLong = 24, int nbLat = 16)
         {
             Mesh mesh = new Mesh();
@@ -207,7 +212,7 @@ namespace HBP.Module3D
             return mesh;
         }
         /// <summary>
-        /// Display the normals of a gameobject
+        /// Display the normals of a gameobject in the scene view
         /// </summary>
         /// <param name="obj">Object to display the normals</param>
         public static void DisplayNormalDebug(GameObject obj)
@@ -232,10 +237,12 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Display a bounding box
+        /// Display a bounding box in the scene view
         /// </summary>
         /// <param name="bbox">Bounding box to display</param>
         /// <param name="offset">Offset for the center of the bouding box</param>
+        /// <param name="color">Color to use to display the bounding box</param>
+        /// <param name="duration">Duration for which the bounding box is displayed</param>
         public static void DisplayBBoxDebug(DLL.BBox bbox, Vector3 offset, Color color, float duration = 50)
         {
             List<Segment3> rawSegments = bbox.Segments;
@@ -308,7 +315,7 @@ namespace HBP.Module3D
         /// Create a tetrahedron mesh
         /// </summary>
         /// <param name="height">Height of the tetrahedron</param>
-        /// <returns>The mesh of the tetrahedron</returns>
+        /// <returns>The resulting mesh</returns>
         public static Mesh CreateTetrahedronMesh(float height)
         {
             Mesh mesh = new Mesh();
@@ -343,7 +350,7 @@ namespace HBP.Module3D
         /// <param name="innerRadius">Inner radius of the tube</param>
         /// <param name="height">Height of the tube</param>
         /// <param name="nbSides">Number of sides</param>
-        /// <returns>Mesh of the tube</returns>
+        /// <returns>The resulting mesh</returns>
         public static Mesh CreateTube(float outerRadius = 1.7f, float innerRadius = 0.15f, float height = 0.1f, int nbSides = 60)
         {
             Mesh mesh = new Mesh();

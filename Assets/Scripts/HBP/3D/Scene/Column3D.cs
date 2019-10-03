@@ -121,12 +121,6 @@ namespace HBP.Module3D
         /// </summary>
         public Dictionary<string, SiteState> SiteStateBySiteID = new Dictionary<string, SiteState>();
 
-        [SerializeField] protected SiteRing m_SelectRing;
-        /// <summary>
-        /// Selection ring feedback
-        /// </summary>
-        public SiteRing SelectRing { get { return m_SelectRing; } }
-
         /// <summary>
         /// List of the ROIs of this column
         /// </summary>
@@ -260,7 +254,6 @@ namespace HBP.Module3D
         {
             Layer = "Column" + idColumn;
             ColumnData = baseColumn;
-            m_SelectRing.SetLayer(Layer);
             UpdateSites(sites, sceneSitePatientParent);
             AddView();
             IsRenderingUpToDate = false;

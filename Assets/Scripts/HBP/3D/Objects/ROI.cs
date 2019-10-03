@@ -180,7 +180,7 @@ namespace HBP.Module3D
             m_Layer = LayerMask.NameToLayer(layer);
             Sphere sphere = Instantiate(m_SpherePrefab, transform).GetComponent<Sphere>();
             sphere.Initialize(m_Layer, name, radius, position);
-            sphere.OnChangeROIVolumeRadius.AddListener(() =>
+            sphere.OnChangeRadius.AddListener(() =>
             {
                 OnChangeSphereParameters.Invoke();
             });

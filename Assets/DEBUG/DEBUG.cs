@@ -2,6 +2,7 @@
 using UnityEditor;
 using HBP.Data.Tags;
 
+#if UNITY_EDITOR
 public static class DEBUG
 {
     [MenuItem("DEBUG/Adrien/Main")]
@@ -17,3 +18,4 @@ public static class DEBUG
         Debug.Log(poids.Value);
     }
 }
+#endif
