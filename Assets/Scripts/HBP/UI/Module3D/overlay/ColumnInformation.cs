@@ -1,21 +1,40 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using HBP.Module3D;
+﻿using HBP.Module3D;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
+    /// <summary>
+    /// Overlay element to display some information about the column
+    /// </summary>
     public class ColumnInformation : ColumnOverlayElement
     {
         #region Properties
+        /// <summary>
+        /// Displays the protocol used in this column
+        /// </summary>
         [SerializeField] private Text m_Protocol;
+        /// <summary>
+        /// Displays the bloc used in this column
+        /// </summary>
         [SerializeField] private Text m_Bloc;
+        /// <summary>
+        /// Displays the dataset used in this column
+        /// </summary>
         [SerializeField] private Text m_Dataset;
+        /// <summary>
+        /// Displays the data used in this column
+        /// </summary>
         [SerializeField] private Text m_Data;
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Setup the overlay element
+        /// </summary>
+        /// <param name="scene">Associated 3D scene</param>
+        /// <param name="column">Associated 3D column</param>
+        /// <param name="columnUI">Parent UI column</param>
         public override void Setup(Base3DScene scene, Column3D column, Column3DUI columnUI)
         {
             base.Setup(scene, column, columnUI);

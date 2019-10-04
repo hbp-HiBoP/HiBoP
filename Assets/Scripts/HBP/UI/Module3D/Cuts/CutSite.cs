@@ -1,28 +1,46 @@
 ﻿using HBP.Module3D;
-using NewTheme.Components;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
+    /// <summary>
+    /// Class representing a site on the cut image in the cuts panel
+    /// </summary>
     public class CutSite : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
     {
         #region Properties
-        private bool m_IsInside;
+        /// <summary>
+        /// True if the cursor is currently inside the site
+        /// </summary>
+        private bool m_IsCursorInside;
+        /// <summary>
+        /// Corresponding site in the 3D scene
+        /// </summary>
         private Site m_Site;
+        /// <summary>
+        /// Parent scene of the cuts panel
+        /// </summary>
         private Base3DScene m_Scene;
+        /// <summary>
+        /// Image used to display the site on the texture
+        /// </summary>
         [SerializeField] private Image m_Image;
+        /// <summary>
+        /// Reference to the RectTransform of this gameObject
+        /// </summary>
         [SerializeField] private RectTransform m_RectTransform;
+        /// <summary>
+        /// Prefab to show feedback of the selected site on the cut image
+        /// </summary>
         [SerializeField] private GameObject m_SelectionPrefab;
         #endregion
 
         #region Private Methods
         private void Update()
         {
-            if (m_IsInside)
+            if (m_IsCursorInside)
             {
                 ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(m_Site, true, Input.mousePosition, Data.Enums.SiteInformationDisplayMode.Anatomy));
             }
@@ -30,6 +48,12 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Initialize the cut site
+        /// </summary>
+        /// <param name="scene">Parent scene of the cut parameter controller</param>
+        /// <param name="site">Site to display on the cut image</param>
+        /// <param name="position">Position ratio of the cut site on the image</param>
         public void Initialize(Base3DScene scene, Site site, Vector2 position)
         {
             m_Scene = scene;
@@ -50,12 +74,12 @@ namespace HBP.UI.Module3D
         }
         public void OnPointerEnter(PointerEventData eventData)
         {
-            m_IsInside = true;
+            m_IsCursorInside = true;
         }
         public void OnPointerExit(PointerEventData eventData)
         {
             ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition));
-            m_IsInside = false;
+            m_IsCursorInside = false;
         }
         public void OnPointerDown(PointerEventData eventData)
         {
