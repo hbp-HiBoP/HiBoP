@@ -58,7 +58,6 @@ namespace HBP.Module3D.DLL
             clean();
             reset(retrieveDLLOutput, writeOutputInLogFile);
         }
-
  
         void Update()
         {
@@ -77,6 +76,10 @@ namespace HBP.Module3D.DLL
             }
         }
 
+        private void OnDestroy()
+        {
+            clean();
+        }
         #endregion
 
         #region function
