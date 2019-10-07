@@ -5,6 +5,9 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
+    /// <summary>
+    /// Class used to define a set of conditions to check on the sites from a string
+    /// </summary>
     public class AdvancedSiteConditions : BaseSiteConditions
     {
         #region Properties
@@ -31,12 +34,22 @@ namespace HBP.UI.Module3D
         public const string MIN = "MIN";
         public const string STANDARD_DEVIATION = "STDEV";
 
+        /// <summary>
+        /// InputField used to write the string to be parsed as a set of conditions
+        /// </summary>
         [SerializeField] InputField m_InputField;
-
+        /// <summary>
+        /// Boolean expression parsed from the string
+        /// </summary>
         private BooleanExpression m_BooleanExpression;
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Check all the set conditions for a specific site
+        /// </summary>
+        /// <param name="site">Site to check</param>
+        /// <returns>True if the conditions are met</returns>
         protected override bool CheckConditions(Site site)
         {
             foreach (var booleanValue in m_BooleanExpression.GetAllBooleanValuesUnderThisOne())
@@ -45,6 +58,12 @@ namespace HBP.UI.Module3D
             }
             return m_BooleanExpression.Evaluate();
         }
+        /// <summary>
+        /// Parse the string containing the conditions and get the value 
+        /// </summary>
+        /// <param name="site">Site to check</param>
+        /// <param name="s">String to be parsed</param>
+        /// <returns>True if the site matches the set of conditions</returns>
         private bool ParseConditionAndCheckValue(Site site, string s)
         {
             s = s.ToUpper();
@@ -249,6 +268,9 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Parse the whole string and store it to a BooleanExpression object
+        /// </summary>
         public void ParseConditions()
         {
             m_BooleanExpression = Parser.Parse(m_InputField.text);

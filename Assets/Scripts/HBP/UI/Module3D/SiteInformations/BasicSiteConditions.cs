@@ -1,15 +1,12 @@
-﻿using CielaSpike;
-using HBP.Module3D;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using Tools.CSharp;
+﻿using HBP.Module3D;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
+    /// <summary>
+    /// Class used to define a set of conditions to check on the sites from the UI
+    /// </summary>
     public class BasicSiteConditions : BaseSiteConditions
     {
         #region Properties
@@ -64,6 +61,11 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Check conditions on the state of the site
+        /// </summary>
+        /// <param name="site">Site to check</param>
+        /// <returns>True if all conditions match</returns>
         private bool CheckState(Site site)
         {
             bool result = true;
@@ -74,6 +76,11 @@ namespace HBP.UI.Module3D
             if (m_Label.isOn) result &= CheckLabel(site, m_LabelFilter.text);
             return result;
         }
+        /// <summary>
+        /// Check conditions on the position of the site
+        /// </summary>
+        /// <param name="site">Site to check</param>
+        /// <returns>True if all conditions match</returns>
         private bool CheckPosition(Site site)
         {
             bool result = true;
@@ -87,6 +94,11 @@ namespace HBP.UI.Module3D
             if (m_NotOnPlane.isOn) result &= !CheckOnPlane(site);
             return result;
         }
+        /// <summary>
+        /// Check conditions on the information of the site
+        /// </summary>
+        /// <param name="site">Site to check</param>
+        /// <returns>True if all conditions match</returns>
         private bool CheckInformation(Site site)
         {
             bool result = true;
@@ -111,6 +123,11 @@ namespace HBP.UI.Module3D
             if (m_Freesurfer.isOn) result &= CheckFreesurferName(site, m_FreesurferFilter.text);
             return result;
         }
+        /// <summary>
+        /// Check conditions on the values of the channel associated with the site
+        /// </summary>
+        /// <param name="site">Site to check</param>
+        /// <returns>True if all conditions match</returns>
         private bool CheckValues(Site site)
         {
             bool result = true;
@@ -121,6 +138,11 @@ namespace HBP.UI.Module3D
             if (m_StandardDeviation.isOn) result &= CheckStandardDeviation(site, m_StandardDeviationSuperior.isOn, m_StandardDeviationValue.text);
             return result;
         }
+        /// <summary>
+        /// Check all the set conditions for a specific site
+        /// </summary>
+        /// <param name="site">Site to check</param>
+        /// <returns>True if the conditions are met</returns>
         protected override bool CheckConditions(Site site)
         {
             return CheckState(site) && CheckPosition(site) && CheckInformation(site) && CheckValues(site);
