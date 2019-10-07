@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 using UnityEngine.Events;
+using UnityEngine.UI.Extensions;
 
 namespace HBP.UI.Module3D
 {
@@ -49,7 +50,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Time between two position updates if the mouse is being held on the minus or plus button
         /// </summary>
-        private float m_TimeBetweenTwoUpdates = 0.2f;
+        private float m_TimeBetweenTwoUpdates = 0.1f;
         /// <summary>
         /// Has the object been requested to be destroyed ?
         /// </summary>
@@ -73,11 +74,11 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Button to slightly increase the position of the cut
         /// </summary>
-        [SerializeField] private Button m_PlusPosition;
+        [SerializeField] private PressableButton m_PlusPosition;
         /// <summary>
         /// Button to slightly decrease the position of the cut
         /// </summary>
-        [SerializeField] private Button m_MinusPosition;
+        [SerializeField] private PressableButton m_MinusPosition;
         /// <summary>
         /// Toggle to change the flip of the cut
         /// </summary>
@@ -148,12 +149,7 @@ namespace HBP.UI.Module3D
         #region Private Methods
         private void Update()
         {
-            if (!Input.GetMouseButton(0))
-            {
-                m_ClickedOnMinus = false;
-                m_ClickedOnPlus = false;
-            }
-            else if (m_ClickedOnPlus || m_ClickedOnMinus)
+            if (m_ClickedOnPlus || m_ClickedOnMinus)
             {
                 m_TimeSinceLastUpdate += Time.deltaTime;
                 if (m_TimeSinceLastUpdate > m_TimeBetweenTwoUpdates)
@@ -210,14 +206,30 @@ namespace HBP.UI.Module3D
                 if (m_IsUIUpdating) return;
 
                 m_Position.value -= 1.0f / Cut.NumberOfCuts;
+            });
+            m_MinusPosition.onPress.AddListener(() =>
+            {
                 m_ClickedOnMinus = true;
+                m_TimeSinceLastUpdate = -0.5f;
+            });
+            m_MinusPosition.onRelease.AddListener(() =>
+            {
+                m_ClickedOnMinus = false;
             });
             m_PlusPosition.onClick.AddListener(() =>
             {
                 if (m_IsUIUpdating) return;
 
                 m_Position.value += 1.0f / Cut.NumberOfCuts;
+            });
+            m_PlusPosition.onPress.AddListener(() =>
+            {
                 m_ClickedOnPlus = true;
+                m_TimeSinceLastUpdate = -0.5f;
+            });
+            m_PlusPosition.onRelease.AddListener(() =>
+            {
+                m_ClickedOnPlus = false;
             });
             m_Orientation.onValueChanged.AddListener((value) =>
             {
