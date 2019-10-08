@@ -10,48 +10,127 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
+    /// <summary>
+    /// This class defines the object used to apply an action on the filtered sites (change their respective states or export information about them in a csv file)
+    /// </summary>
     public class SiteActions : MonoBehaviour
     {
         #region Properties
+        /// <summary>
+        /// Associated 3D scene
+        /// </summary>
         private Base3DScene m_Scene;
+        /// <summary>
+        /// Currently computing coroutine (for the export of the sites to a csv file)
+        /// </summary>
         private Coroutine m_Coroutine;
 
+        /// <summary>
+        /// Progress bar used to display a feedback when filtering or applying an action
+        /// </summary>
         [SerializeField] private SiteConditionsProgressBar m_ProgressBar;
 
+        /// <summary>
+        /// Toggle used to display or hide the actions panel
+        /// </summary>
         [SerializeField] private Toggle m_OnOffToggle;
+        /// <summary>
+        /// Object containing all the buttons to apply an action to the filtered sites
+        /// </summary>
         [SerializeField] private GameObject m_ActionsPanel;
 
+        /// <summary>
+        /// Toggle to specify that the action to be apply is an export to a csv file
+        /// </summary>
         [SerializeField] private Toggle m_ExportSitesToggle;
+        /// <summary>
+        /// Object containing all the UI used to export the sites to a csv file
+        /// </summary>
         [SerializeField] private GameObject m_ExportSitesPanel;
+        /// <summary>
+        /// Toggle to specify that the action to be apply is a change in the states of the sites
+        /// </summary>
         [SerializeField] private Toggle m_ChangeStateToggle;
+        /// <summary>
+        /// Object containing all the UI used to change the states of the sites
+        /// </summary>
         [SerializeField] private GameObject m_ChangeStatePanel;
 
+        /// <summary>
+        /// Used to highlight the filtered sites
+        /// </summary>
         [SerializeField] private Toggle m_Highlight;
+        /// <summary>
+        /// Used to unhighlight the filtered sites
+        /// </summary>
         [SerializeField] private Toggle m_Unhighlight;
+        /// <summary>
+        /// Used to blacklist the filtered sites
+        /// </summary>
         [SerializeField] private Toggle m_Blacklist;
+        /// <summary>
+        /// Used to unblacklist the filtered sites
+        /// </summary>
         [SerializeField] private Toggle m_Unblacklist;
+        /// <summary>
+        /// Used to change the color of the filtered sites
+        /// </summary>
         [SerializeField] private Toggle m_ColorToggle;
+        /// <summary>
+        /// Used to select the color to be applied to the selected sites
+        /// </summary>
         [SerializeField] private Button m_ColorPickerButton;
+        /// <summary>
+        /// Image to show the selected color
+        /// </summary>
         [SerializeField] private Image m_ColorPickedImage;
+        /// <summary>
+        /// Used to add a label to the filtered sites
+        /// </summary>
         [SerializeField] private Toggle m_AddLabelToggle;
+        /// <summary>
+        /// Used to remove a label from the filtered sites
+        /// </summary>
         [SerializeField] private Toggle m_RemoveLabelToggle;
+        /// <summary>
+        /// InputField used to type in the label to be added to or removed from the filtered sites
+        /// </summary>
         [SerializeField] private InputField m_LabelInputField;
+        /// <summary>
+        /// Toggle to choose to apply the modifications in the states of the filtered sites to the selected column or to all columns at once
+        /// </summary>
         [SerializeField] private Toggle m_AllColumnsToggle;
 
+        /// <summary>
+        /// Button to trigger the application of the action
+        /// </summary>
         [SerializeField] private Button m_ApplyButton;
 
+        /// <summary>
+        /// Do we need an update in the progress bar ?
+        /// </summary>
         private bool m_UpdateUI = true;
         #endregion
 
         #region Events
+        /// <summary>
+        /// Event called when requesting an update in the sites list
+        /// </summary>
         public UnityEvent OnRequestListUpdate = new UnityEvent();
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Initialize this object
+        /// </summary>
+        /// <param name="scene">Associated 3D scene</param>
         public void Initialize(Base3DScene scene)
         {
             m_Scene = scene;
         }
+        /// <summary>
+        /// Apply the configured action to the filitered sites
+        /// </summary>
         public void ApplyAction()
         {
             try
@@ -97,6 +176,9 @@ namespace HBP.UI.Module3D
         {
             m_UpdateUI = true;
         }
+        /// <summary>
+        /// Change the states of the filtered sites
+        /// </summary>
         private void ChangeSitesStates()
         {
             List<Site> sites = new List<Site>();
@@ -125,6 +207,9 @@ namespace HBP.UI.Module3D
 
             OnRequestListUpdate.Invoke();
         }
+        /// <summary>
+        /// Export the filtered sites to a csv file
+        /// </summary>
         private void ExportSites()
         {
             string csvPath = "";
@@ -135,6 +220,9 @@ namespace HBP.UI.Module3D
             List<Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered).ToList();
             m_Coroutine = this.StartCoroutineAsync(c_ExportSites(sites, csvPath));
         }
+        /// <summary>
+        /// Cancel the export of the filtered sites
+        /// </summary>
         private void StopExport()
         {
             m_Coroutine = null;
@@ -143,6 +231,12 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Coroutines
+        /// <summary>
+        /// Coroutine used to export the filtered sites to a csv file in asynchronous mode
+        /// </summary>
+        /// <param name="sites">List of the sites to export</param>
+        /// <param name="csvPath">Path to the csv file</param>
+        /// <returns>Coroutine return</returns>
         private IEnumerator c_ExportSites(List<Site> sites, string csvPath)
         {
             int length = sites.Count;
