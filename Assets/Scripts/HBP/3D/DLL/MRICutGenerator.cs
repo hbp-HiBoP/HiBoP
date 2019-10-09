@@ -42,7 +42,6 @@ namespace HBP.Module3D.DLL
             }
 
             reset__MRIGeometryCutGenerator(_handle, volume.getHandle(), planeF, 1.0f);
-            ApplicationState.DLLDebugManager.check_error();
         }
         /// <summary>
         /// Update the UVs of the cut mesh
@@ -51,7 +50,6 @@ namespace HBP.Module3D.DLL
         public void UpdateCutMeshUV(Surface mesh)
         {
             update_cut_mesh_UV__MRIGeometryCutGenerator(_handle, mesh.getHandle());
-            ApplicationState.DLLDebugManager.check_error();
         }
         /// <summary>
         /// Get the horizontal and vertical ratio (between 0 and 1) of a 3D point in the referential of the texture of the cut
@@ -164,7 +162,6 @@ namespace HBP.Module3D.DLL
         public void FillTextureWithVolume(Volume volume, Texture colorScheme, float calMin, float calMax)
         {
             fill_texture_with_volume__MRITextureCutGenerator(_handle, volume.getHandle(), colorScheme.getHandle(), calMin, calMax);
-            ApplicationState.DLLDebugManager.check_error();
         }
         /// <summary>
         /// Fill the pixels of the cut texture with the currently selected fMRI
@@ -177,7 +174,6 @@ namespace HBP.Module3D.DLL
         {
             bool noError = false;
             noError = fill_texture_with_IRMF__MRITextureCutGenerator(_handle, volume.getHandle(), calMin, calMax, alpha) == 1;
-            ApplicationState.DLLDebugManager.check_error();
 
             if (!noError)
                 Debug.LogError("fill_texture_with_IRMF__MRITextureCutGenerator failed ! (check DLL console debug output)");
@@ -192,7 +188,6 @@ namespace HBP.Module3D.DLL
         {
             bool noError = false;
             noError = fill_texture_with_Atlas__MRITextureCutGenerator(_handle, atlas.getHandle(), alpha, selectedArea) == 1;
-            ApplicationState.DLLDebugManager.check_error();
 
             if (!noError)
                 Debug.LogError("fill_texture_with_Atlas__MRITextureCutGenerator failed ! (check DLL console debug output)");
@@ -204,7 +199,6 @@ namespace HBP.Module3D.DLL
         public void InitializeOctree(RawSiteList sites)
         {
             init_octree__MRITextureCutGenerator(_handle, sites.getHandle());
-            ApplicationState.DLLDebugManager.check_error();
         }
         /// <summary>
         /// Compute the distance from each site to each vertex in range (distance less than maximum influence distance set in <see cref="DynamicDataParameters"/>)
@@ -216,7 +210,6 @@ namespace HBP.Module3D.DLL
         {
             bool noError = false;
             noError = compute_distances__MRITextureCutGenerator(_handle, maxDistance, multiCPU?1:0)==1;
-            ApplicationState.DLLDebugManager.check_error();
 
             if (!noError)
                 Debug.LogError("compute_distances__MRITextureCutGenerator failed ! (check DLL console debug output)");
@@ -234,7 +227,6 @@ namespace HBP.Module3D.DLL
             bool noError = false;
             noError = compute_influences__MRITextureCutGenerator(_handle, dynamicColumn.ActivityValues, dynamicColumn.Timeline.Length, dynamicColumn.Sites.Count, dynamicColumn.DynamicParameters.InfluenceDistance,
                 multiCPU?1:0, addValues?1:0, (int)siteInfluenceByDistanceType, dynamicColumn.DynamicParameters.Middle, dynamicColumn.DynamicParameters.SpanMin, dynamicColumn.DynamicParameters.SpanMax)== 1;
-            ApplicationState.DLLDebugManager.check_error();
 
             if (!noError)
                 Debug.LogError("compute_influences__MRITextureCutGenerator failed ! (check DLL console debug output)");
@@ -252,7 +244,6 @@ namespace HBP.Module3D.DLL
             bool noError = false;
             noError = fill_texture_with_SSEG__MRITextureCutGenerator(_handle, dynamicColumn.Timeline.CurrentIndex, colorScheme.getHandle(), 
             dynamicColumn.DynamicParameters.AlphaMin, dynamicColumn.DynamicParameters.AlphaMax, new float[] { 0, 0, 0 })==1;
-            ApplicationState.DLLDebugManager.check_error();
 
             if (!noError)
                 Debug.LogError("fill_texture_with_SSEG__MRITextureCutGenerator failed ! (check DLL console debug output)");

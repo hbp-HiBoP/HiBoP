@@ -78,7 +78,6 @@ namespace HBP.Module3D.DLL
         public void Reset(Surface surface, Volume volume)
         {
             reset_BrainSurfaceTextureGenerator(_handle, surface.getHandle(), volume.getHandle());
-            ApplicationState.DLLDebugManager.check_error();
         }
         /// <summary>
         /// Initialize the octree of the surface to make further computations faster
@@ -87,7 +86,6 @@ namespace HBP.Module3D.DLL
         public void InitializeOctree(RawSiteList rawSiteList)
         {
             initOctree_BrainSurfaceTextureGenerator(_handle, rawSiteList.getHandle());
-            ApplicationState.DLLDebugManager.check_error();
         }
         /// <summary>
         /// Compute the distance from each site to each vertex in range (distance less than maximum influence distance set in <see cref="DynamicDataParameters"/>)
@@ -99,7 +97,6 @@ namespace HBP.Module3D.DLL
         {
             bool noError = false;
             noError = computeDistances_BrainSurfaceTextureGenerator( _handle, maxDistance, multiCPU ? 1 : 0) == 1;
-            ApplicationState.DLLDebugManager.check_error();
 
             if (!noError)
                 Debug.LogError("computeDistances_BrainSurfaceTextureGenerator failed ! (check DLL console debug output)");
@@ -119,7 +116,6 @@ namespace HBP.Module3D.DLL
             bool noError = false;
             noError = computeInfluences_BrainSurfaceTextureGenerator(_handle, dynamicColumn.ActivityValues, dynamicColumn.Timeline.Length, dynamicColumn.Sites.Count, dynamicColumn.DynamicParameters.InfluenceDistance, multiCPU ? 1 : 0, addValues ? 1 : 0, (int)siteInfluenceByDistanceType,
                 dynamicColumn.DynamicParameters.Middle, dynamicColumn.DynamicParameters.SpanMin, dynamicColumn.DynamicParameters.SpanMax) == 1;
-            ApplicationState.DLLDebugManager.check_error();
 
             if (!noError)
                 Debug.LogError("computeInfluences_BrainSurfaceTextureGenerator failed ! (check DLL console debug output)");
@@ -188,7 +184,6 @@ namespace HBP.Module3D.DLL
             }
             updateUVAlpha_BrainSurfaceTextureGenerator(_handle, m_UVAlphaHandle.AddrOfPinnedObject());
 
-            ApplicationState.DLLDebugManager.check_error();
             if (!noError)
                 Debug.LogError("computeSurfaceTextCoordAmplitudes_BrainSurfaceTextureGenerator failed ! (check DLL console debug output)");
 

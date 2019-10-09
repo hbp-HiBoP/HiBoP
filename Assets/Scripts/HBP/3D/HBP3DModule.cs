@@ -204,7 +204,6 @@ namespace HBP.Module3D
         {
             MarsAtlasIndex?.Dispose();
             JuBrainAtlas?.Dispose();
-            ApplicationState.DLLDebugManager.clean();
         }
         #endregion
 

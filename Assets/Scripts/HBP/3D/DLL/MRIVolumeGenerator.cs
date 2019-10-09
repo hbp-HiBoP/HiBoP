@@ -58,7 +58,6 @@ namespace HBP.Module3D.DLL
         public static void ResetAll(MRIVolumeGenerator[] generators, Volume volume, int dimension)
         {
             reset_all_MRIVolumeGenerator(generators.Select(g => g.getHandle()).ToArray(), generators.Length, volume.getHandle(), dimension);
-            ApplicationState.DLLDebugManager.check_error();
         }
         /// <summary>
         /// Reset the generator with a volume and given a size
@@ -68,7 +67,6 @@ namespace HBP.Module3D.DLL
         public void Reset(Volume volume, int dimension)
         {
             reset_MRIVolumeGenerator(_handle, volume.getHandle(), dimension);
-            ApplicationState.DLLDebugManager.check_error();
         }
         /// <summary>
         /// Initialize the octree for the cut mesh
@@ -77,7 +75,6 @@ namespace HBP.Module3D.DLL
         public void InitializeOctree(RawSiteList rawPlotList)
         {
             initOctree_MRIVolumeGenerator(_handle, rawPlotList.getHandle());
-            ApplicationState.DLLDebugManager.check_error();
         }
         /// <summary>
         /// Compute the distance from each site to each vertex in range (distance less than maximum influence distance set in <see cref="DynamicDataParameters"/>)
@@ -89,7 +86,6 @@ namespace HBP.Module3D.DLL
         {
             bool noError = false;
             noError = computeDistances_MRIVolumeGenerator(_handle, maxDistance, multiCPU ? 1 : 0) == 1;
-            ApplicationState.DLLDebugManager.check_error();
 
             if (!noError)
                 Debug.LogError("computeDistances_BrainSurfaceTextureGenerator failed ! (check DLL console debug output)");
@@ -119,7 +115,6 @@ namespace HBP.Module3D.DLL
             bool noError = false;
             noError = computeInfluences_MRIVolumeGenerator(_handle, dynamicColumn.ActivityValues, dynamicColumn.Timeline.Length, dynamicColumn.Sites.Count, dynamicColumn.DynamicParameters.InfluenceDistance, multiCPU ? 1 : 0, addValues ? 1 : 0, ratioDistances,
                 dynamicColumn.DynamicParameters.Middle, dynamicColumn.DynamicParameters.SpanMin, dynamicColumn.DynamicParameters.SpanMax) == 1;
-            ApplicationState.DLLDebugManager.check_error();
 
             if (!noError)
                 Debug.LogError("computeInfluences_BrainSurfaceTextureGenerator failed ! (check DLL console debug output)");

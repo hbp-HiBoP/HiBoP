@@ -32,7 +32,7 @@ namespace HBP.Module3D
         {
             Name = name;
             IsLoaded = PatientElectrodesList.LoadPTSFiles(pts.ToArray(), marsAtlas.ToArray(), patientIDs.ToArray(), ApplicationState.Module3D.MarsAtlasIndex);
-            PatientElectrodesList.ExtractRawSiteList(RawSiteList);
+            if (IsLoaded) PatientElectrodesList.ExtractRawSiteList(RawSiteList);
         }
         #endregion
 
