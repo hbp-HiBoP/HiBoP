@@ -82,7 +82,7 @@ namespace HBP.UI.Anatomy
 
                 stringBuilder = new StringBuilder();
                 stringBuilder.AppendLine("Implantations :");
-                string[] implantations = (from implantation in m_Object.Implantations where implantation.WasUsable select implantation.Name).ToArray();
+                string[] implantations = (from implantation in m_Object.Sites where implantation.WasUsable select implantation.Name).ToArray();
                 for (int i = 0; i < implantations.Length; i++)
                 {
                     if (i < implantations.Length - 1) stringBuilder.AppendLine("  \u2022 " + implantations[i]);

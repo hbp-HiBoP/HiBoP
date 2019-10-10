@@ -229,12 +229,12 @@ namespace HBP.UI.Anatomy
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Implantations.FindAll(i => i.WasUsable).Count).ToList();
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Sites.FindAll(i => i.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.Implantation;
                     m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Implantations.FindAll(i => i.WasUsable).Count).ToList();
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Sites.FindAll(i => i.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.DescendingImplantation;
                     m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;

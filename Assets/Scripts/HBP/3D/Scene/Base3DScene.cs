@@ -1894,8 +1894,8 @@ namespace HBP.Module3D
                 string implantationName = commonImplantations[i];
                 try
                 {
-                    IEnumerable<string> ptsFiles = from patient in patients select patient.Implantations.Find((imp) => imp.Name == implantationName).File;
-                    IEnumerable<string> marsAtlasFiles = from patient in patients select patient.Implantations.Find((imp) => imp.Name == implantationName).MarsAtlas;
+                    IEnumerable<string> ptsFiles = from patient in patients select patient.Sites.Find((imp) => imp.Name == implantationName).File;
+                    IEnumerable<string> marsAtlasFiles = from patient in patients select patient.Sites.Find((imp) => imp.Name == implantationName).MarsAtlas;
                     IEnumerable<string> patientIDs = from patient in patients select patient.ID;
 
                     m_ImplantationManager.Add(implantationName, ptsFiles, marsAtlasFiles, patientIDs);

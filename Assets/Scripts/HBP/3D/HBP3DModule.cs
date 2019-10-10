@@ -269,13 +269,13 @@ namespace HBP.Module3D
             {
                 visualizationToLoad.Configuration.MRIName = patient.MRIs.First().Name;
             }
-            if (patient.Implantations.FirstOrDefault(m => m.Name == ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization) != null)
+            if (patient.Sites.FirstOrDefault(m => m.Name == ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization) != null)
             {
                 visualizationToLoad.Configuration.ImplantationName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization;
             }
-            else if (patient.Implantations.Count > 0)
+            else if (patient.Sites.Count > 0)
             {
-                visualizationToLoad.Configuration.ImplantationName = patient.Implantations.First().Name;
+                visualizationToLoad.Configuration.ImplantationName = patient.Sites.First().Name;
             }
             LoadScenes(new Data.Visualization.Visualization[] { visualizationToLoad });
         }

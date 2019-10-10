@@ -1008,10 +1008,10 @@ namespace HBP.Data.General
                             mri.File = mri.File.CopyToDirectory(mriDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
                         }
                     }
-                    if (patient.Implantations.Count > 0)
+                    if (patient.Sites.Count > 0)
                     {
                         DirectoryInfo implantationsDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "Implantations"));
-                        foreach (var implantation in patient.Implantations)
+                        foreach (var implantation in patient.Sites)
                         {
                             implantation.File = implantation.File.CopyToDirectory(implantationsDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
                             implantation.MarsAtlas = implantation.MarsAtlas.CopyToDirectory(implantationsDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);

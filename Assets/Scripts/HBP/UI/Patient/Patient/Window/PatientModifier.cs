@@ -91,7 +91,7 @@ namespace HBP.UI.Anatomy
 
 
             m_MeshListGestion.Objects = objectToDisplay.Meshes;
-            m_ImplantationListGestion.Objects = objectToDisplay.Implantations;
+            m_ImplantationListGestion.Objects = objectToDisplay.Sites;
             m_MRIListGestion.Objects = objectToDisplay.MRIs;
             m_TagValueListGestion.Tags = ApplicationState.ProjectLoaded.Settings.PatientsTags.Concat(ApplicationState.ProjectLoaded.Settings.GeneralTags).ToArray();
             m_TagValueListGestion.Objects = objectToDisplay.Tags;
