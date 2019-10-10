@@ -591,54 +591,68 @@ namespace HBP.Data.General
             yield return Ninja.JumpBack;
 
             // Test patient TagValues;
-            int count = 0;
-            int length = tags.Count();
-            foreach (var tag in tags)
+            int length = m_Patients.Count();
+            for (int p = 0; p < length; p++)
             {
-                onChangeProgress.Invoke((float)(count + 1) / length, 0.1f, new LoadingText("Checking ", tag.Name, " [" + (count + 1) + "/" + length + "]"));
-                for (int p = 0; p < m_Patients.Count; p++)
+                var patient = m_Patients[p];
+                onChangeProgress.Invoke((float)(p + 1) / length, 0.1f, new LoadingText("Checking ", patient.Name, " [" + (p + 1) + "/" + length + "]"));
+                patient.Tags.RemoveAll(t => t.Tag == null || !Settings.Tags.Contains(t.Tag));
+                Tags.BaseTagValue[] tagsToUpdate = patient.Tags.Where(t => tags.Contains(t.Tag)).ToArray();
+                foreach (var tagValue in tagsToUpdate)
                 {
-                    var patient = m_Patients[p];
-                    for (int t = 0; t < patient.Tags.Count; t++)
+                    if (tagValue.Tag is Tags.IntTag && !(tagValue is Tags.IntTagValue))
                     {
-                        Tags.BaseTagValue tagValue = patient.Tags[t];
-                        if(tagValue.Tag == tag)
-                        {
-                            if (tag is Tags.IntTag && !(tagValue is Tags.IntTagValue))
-                            {
-                                patient.Tags[t] = new Tags.IntTagValue();
-                                patient.Tags[t].Copy(tagValue);
-                            }
-                            else if (tag is Tags.FloatTag && !(tagValue is Tags.FloatTagValue))
-                            {
-                                patient.Tags[t] = new Tags.FloatTagValue();
-                                patient.Tags[t].Copy(tagValue);
-                            }
-                            else if (tag is Tags.BoolTag && !(tagValue is Tags.BoolTagValue))
-                            {
-                                patient.Tags[t] = new Tags.BoolTagValue();
-                                patient.Tags[t].Copy(tagValue);
-                            }
-                            else if (tag is Tags.EmptyTag && !(tagValue is Tags.EmptyTagValue))
-                            {
-                                patient.Tags[t] = new Tags.EmptyTagValue();
-                                patient.Tags[t].Copy(tagValue);
-                            }
-                            else if (tag is Tags.EnumTag && !(tagValue is Tags.EnumTagValue))
-                            {
-                                patient.Tags[t] = new Tags.EnumTagValue();
-                                patient.Tags[t].Copy(tagValue);
-                            }
-                            else if (tag is Tags.StringTag && !(tagValue is Tags.StringTagValue))
-                            {
-                                patient.Tags[t] = new Tags.StringTagValue();
-                                patient.Tags[t].Copy(tagValue);
-                            }
-                            patient.Tags[t].UpdateValue();
-                        }
+                        patient.Tags.Remove(tagValue);
+                        var newTagValue = new Tags.IntTagValue();
+                        newTagValue.Copy(tagValue);
+                        patient.Tags.Add(newTagValue);
+                        newTagValue.UpdateValue();
+                    }
+                    else if (tagValue.Tag is Tags.FloatTag && !(tagValue is Tags.FloatTagValue))
+                    {
+                        patient.Tags.Remove(tagValue);
+                        var newTagValue = new Tags.FloatTagValue();
+                        newTagValue.Copy(tagValue);
+                        patient.Tags.Add(newTagValue);
+                        newTagValue.UpdateValue();
+                    }
+                    else if (tagValue.Tag is Tags.BoolTag && !(tagValue is Tags.BoolTagValue))
+                    {
+                        patient.Tags.Remove(tagValue);
+                        var newTagValue = new Tags.BoolTagValue();
+                        newTagValue.Copy(tagValue);
+                        patient.Tags.Add(newTagValue);
+                        newTagValue.UpdateValue();
+                    }
+                    else if (tagValue.Tag is Tags.EmptyTag && !(tagValue is Tags.EmptyTagValue))
+                    {
+                        patient.Tags.Remove(tagValue);
+                        var newTagValue = new Tags.EmptyTagValue();
+                        newTagValue.Copy(tagValue);
+                        patient.Tags.Add(newTagValue);
+                        newTagValue.UpdateValue();
+                    }
+                    else if (tagValue.Tag is Tags.EnumTag && !(tagValue is Tags.EnumTagValue))
+                    {
+                        patient.Tags.Remove(tagValue);
+                        var newTagValue = new Tags.EnumTagValue();
+                        newTagValue.Copy(tagValue);
+                        patient.Tags.Add(newTagValue);
+                        newTagValue.UpdateValue();
+                    }
+                    else if (tagValue.Tag is Tags.StringTag && !(tagValue is Tags.StringTagValue))
+                    {
+                        patient.Tags.Remove(tagValue);
+                        var newTagValue = new Tags.StringTagValue();
+                        newTagValue.Copy(tagValue);
+                        patient.Tags.Add(newTagValue);
+                        newTagValue.UpdateValue();
+                    }
+                    else
+                    {
+                        tagValue.UpdateValue();
                     }
                 }
-                count++;
             }
         }
         #endregion
@@ -658,7 +672,7 @@ namespace HBP.Data.General
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogException(e);
+                Debug.LogException(e);
                 throw new CanNotReadSettingsFileException(settingsFiles[0].Name);
             }
             onChangeProgress.Invoke(1.0f, 0, new LoadingText("Settings loaded successfully"));
@@ -677,14 +691,14 @@ namespace HBP.Data.General
             for (int i = 0; i < patientFiles.Length; ++i)
             {
                 FileInfo patientFile = patientFiles[i];
-                onChangeProgress.Invoke((float)(i / patientFiles.Length) * LOADING_PROGRESS, 0, new LoadingText("Loading patient ", Path.GetFileNameWithoutExtension(patientFile.Name), " [" + (i + 1).ToString() + "/" + patientFiles.Length + "]"));
+                onChangeProgress.Invoke((float)(i + 1) / patientFiles.Length * LOADING_PROGRESS, 0, new LoadingText("Loading patient ", Path.GetFileNameWithoutExtension(patientFile.Name), " [" + (i + 1).ToString() + "/" + patientFiles.Length + "]"));
                 try
                 {
                     patients.Add(ClassLoaderSaver.LoadFromJson<Patient>(patientFile.FullName));
                 }
                 catch (Exception e)
                 {
-                    UnityEngine.Debug.LogException(e);
+                    Debug.LogException(e);
                     throw new CanNotReadPatientFileException(Path.GetFileNameWithoutExtension(patientFile.Name));
                 }
             }
@@ -705,7 +719,7 @@ namespace HBP.Data.General
             for (int i = 0; i < groupFiles.Length; ++i)
             {
                 FileInfo groupFile = groupFiles[i];
-                onChangeProgress.Invoke((float)i / groupFiles.Length, 0, new LoadingText("Loading group ", Path.GetFileNameWithoutExtension(groupFile.Name), " [" + (i + 1).ToString() + "/" + groupFiles.Length + "]"));
+                onChangeProgress.Invoke((float)(i + 1) / groupFiles.Length, 0, new LoadingText("Loading group ", Path.GetFileNameWithoutExtension(groupFile.Name), " [" + (i + 1).ToString() + "/" + groupFiles.Length + "]"));
                 try
                 {
                     groups.Add(ClassLoaderSaver.LoadFromJson<Group>(groupFile.FullName));
@@ -729,7 +743,7 @@ namespace HBP.Data.General
             for (int i = 0; i < protocolFiles.Length; ++i)
             {
                 FileInfo protocolFile = protocolFiles[i];
-                onChangeProgress.Invoke((float)i / protocolFiles.Length, 0, new LoadingText("Loading protocol ", Path.GetFileNameWithoutExtension(protocolFile.Name), " [" + (i + 1).ToString() + "/" + protocolFiles.Length + "]"));
+                onChangeProgress.Invoke((float)(i + 1) / protocolFiles.Length, 0, new LoadingText("Loading protocol ", Path.GetFileNameWithoutExtension(protocolFile.Name), " [" + (i + 1).ToString() + "/" + protocolFiles.Length + "]"));
                 try
                 {
                     protocols.Add(ClassLoaderSaver.LoadFromJson<Protocol>(protocolFile.FullName));
@@ -755,7 +769,7 @@ namespace HBP.Data.General
             for (int i = 0; i < datasetFiles.Length; ++i)
             {
                 FileInfo datasetFile = datasetFiles[i];
-                onChangeProgress.Invoke((float)i / datasetFiles.Length * LOADING_TIME, 0, new LoadingText("Loading dataset ", Path.GetFileNameWithoutExtension(datasetFile.Name), " [" + (i + 1).ToString() + "/" + datasetFiles.Length + "]"));
+                onChangeProgress.Invoke((float)(i + 1) / datasetFiles.Length * LOADING_TIME, 0, new LoadingText("Loading dataset ", Path.GetFileNameWithoutExtension(datasetFile.Name), " [" + (i + 1).ToString() + "/" + datasetFiles.Length + "]"));
                 try
                 {
                     datasets.Add(ClassLoaderSaver.LoadFromJson<Dataset>(datasetFile.FullName));
@@ -783,7 +797,7 @@ namespace HBP.Data.General
             for (int i = 0; i < visualizationFiles.Length; ++i)
             {
                 FileInfo visualizationFile = visualizationFiles[i];
-                onChangeProgress.Invoke((float)i / visualizationFiles.Length, 0, new LoadingText("Loading visualization ", Path.GetFileNameWithoutExtension(visualizationFile.Name), " [" + (i + 1).ToString() + "/" + visualizationFiles.Length + "]"));
+                onChangeProgress.Invoke((float)(i + 1) / visualizationFiles.Length, 0, new LoadingText("Loading visualization ", Path.GetFileNameWithoutExtension(visualizationFile.Name), " [" + (i + 1).ToString() + "/" + visualizationFiles.Length + "]"));
                 try
                 {
                     visualizations.Add(ClassLoaderSaver.LoadFromJson<Visualization.Visualization>(visualizationFile.FullName));
