@@ -5,7 +5,7 @@ using d = HBP.Data.Experience.Protocol;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class EventModifier : ItemModifier<d.Event>
+    public class EventModifier : ObjectModifier<d.Event>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;

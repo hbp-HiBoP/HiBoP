@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Tags
 {
-    public class TagValueModifier : ItemModifier<BaseTagValue>
+    public class TagValueModifier : ObjectModifier<BaseTagValue>
     {
         #region Properties
         [SerializeField] Dropdown m_TagDropdown;

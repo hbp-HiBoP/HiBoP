@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace HBP.UI.Anatomy
 {
-    public class PatientModifier : ItemModifier<Data.Patient>
+    public class PatientModifier : ObjectModifier<Data.Patient>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -42,7 +42,7 @@ namespace HBP.UI.Anatomy
         #region Public Methods
         public override void Save()
         {
-            SubWindowsManager.SaveAll();
+            WindowsReferencer.SaveAll();
             itemTemp.Meshes = m_MeshListGestion.List.Objects.ToList();
             itemTemp.MRIs = m_MRIListGestion.List.Objects.ToList();
             itemTemp.Sites = m_SiteListGestion.List.Objects.ToList();
@@ -56,10 +56,10 @@ namespace HBP.UI.Anatomy
         {
             base.Initialize();
 
-            m_MeshListGestion.SubWindowsManager.OnOpenSubWindow.AddListener(window => SubWindowsManager.Add(window));
-            m_SiteListGestion.SubWindowsManager.OnOpenSubWindow.AddListener(window => SubWindowsManager.Add(window));
-            m_MRIListGestion.SubWindowsManager.OnOpenSubWindow.AddListener(window => SubWindowsManager.Add(window));
-            m_TagValueListGestion.SubWindowsManager.OnOpenSubWindow.AddListener(window => SubWindowsManager.Add(window));
+            m_MeshListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
+            m_SiteListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
+            m_MRIListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
+            m_TagValueListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
 
             m_NameInputField.onValueChanged.AddListener((value) => ItemTemp.Name = value);
             m_PlaceInputField.onValueChanged.AddListener((value) => ItemTemp.Place = value);

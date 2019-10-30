@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace HBP.UI.Experience.Dataset
 {
-    public class DataInfoModifier : ItemModifier<DataInfo>
+    public class DataInfoModifier : ObjectModifier<DataInfo>
     {
         #region Properties
         public UnityEvent OnCanSave { get; set; } = new UnityEvent();

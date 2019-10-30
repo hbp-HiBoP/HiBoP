@@ -6,7 +6,7 @@ using System.Globalization;
 
 namespace HBP.UI.Anatomy
 {
-    public class CoordinateModifier : ItemModifier<Coordinate>
+    public class CoordinateModifier : ObjectModifier<Coordinate>
     {
         #region Properties
         [SerializeField] InputField m_ReferenceSystemInputField;

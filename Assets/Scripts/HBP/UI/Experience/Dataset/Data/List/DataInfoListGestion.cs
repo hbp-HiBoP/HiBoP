@@ -29,7 +29,7 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Protected Methods
-        protected override ItemModifier<DataInfo> OpenModifier(DataInfo item, bool interactable)
+        protected override ObjectModifier<DataInfo> OpenModifier(DataInfo item, bool interactable)
         {
             DataInfoModifier modifier = base.OpenModifier(item, interactable) as DataInfoModifier;
             modifier.OnCanSave.AddListener(() => OnCanSaveModifier(modifier));

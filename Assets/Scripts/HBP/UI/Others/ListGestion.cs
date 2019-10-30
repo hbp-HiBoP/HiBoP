@@ -25,8 +25,8 @@ namespace Tools.Unity.Components
         public abstract Lists.SelectableListWithItemAction<T> List { get; }
         public abstract ObjectCreator<T> ObjectCreator { get; }
 
-        [SerializeField] protected SubWindowsManager m_SubWindowsManager = new SubWindowsManager();
-        public virtual SubWindowsManager SubWindowsManager { get => m_SubWindowsManager; }
+        [SerializeField] protected WindowsReferencer m_WindowsReferencer = new WindowsReferencer();
+        public virtual WindowsReferencer WindowsReferencer { get => m_WindowsReferencer; }
         #endregion
 
         #region Public Methods
@@ -48,13 +48,13 @@ namespace Tools.Unity.Components
             List.OnRemoveObject.AddListener(obj => ObjectCreator.ExistingItems.Remove(obj));
             ObjectCreator.ExistingItems = List.Objects.ToList();
             ObjectCreator.OnObjectCreated.AddListener(Add);
-            ObjectCreator.SubWindowsManager.OnOpenSubWindow.AddListener(window => SubWindowsManager.Add(window));
+            ObjectCreator.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
         }
-        protected virtual ItemModifier<T> OpenModifier(T item, bool interactable)
+        protected virtual ObjectModifier<T> OpenModifier(T item, bool interactable)
         {
-            ItemModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(item, interactable);
+            ObjectModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(item, interactable);
             modifier.OnSave.AddListener(() => Add(modifier.Item));
-            SubWindowsManager.Add(modifier);
+            WindowsReferencer.Add(modifier);
             return modifier;
         }
         protected virtual void Add(T obj)

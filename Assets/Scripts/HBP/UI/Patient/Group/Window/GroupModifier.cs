@@ -8,7 +8,7 @@ namespace HBP.UI.Anatomy
 	/// <summary>
 	/// Display/Modify group.
 	/// </summary>
-	public class GroupModifier : ItemModifier<Group> 
+	public class GroupModifier : ObjectModifier<Group> 
 	{
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -34,17 +34,9 @@ namespace HBP.UI.Anatomy
         #region Public Methods
         public virtual void OpenPatientsSelector()
         {
-            ObjectSelector<Patient> selector = ApplicationState.WindowsManager.OpenSelector<Patient>();
-            selector.OnSave.AddListener(() => OnSaveSelector(selector));
-            selector.Objects = ApplicationState.ProjectLoaded.Patients.ToArray();
-            selector.MultiSelection = true;
-            selector.OpenModifierWhenSave = false;
-            SubWindowsManager.Add(selector);
-        }
-        protected virtual void OnSaveSelector(ObjectSelector<Patient> selector)
-        {
-            m_PatientListGestion.List.Add(selector.ObjectsSelected);
-            SubWindowsManager.Remove(selector);
+            ObjectSelector<Patient> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Patients);
+            selector.OnSave.AddListener(() => m_PatientListGestion.List.Add(selector.ObjectsSelected));
+            WindowsReferencer.Add(selector);
         }
         public override void Save()
         {
@@ -59,8 +51,7 @@ namespace HBP.UI.Anatomy
             base.Initialize();
 
             m_NameInputField.onValueChanged.AddListener((value) => ItemTemp.Name = value);
-
-            m_PatientListGestion.SubWindowsManager.OnOpenSubWindow.AddListener(window => SubWindowsManager.Add(window));
+            m_PatientListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
         }
         protected override void SetFields(Group objectToDisplay)
         {

@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace HBP.UI.Experience.Protocol
 {
-	public class BlocModifier : ItemModifier<d.Bloc> 
+	public class BlocModifier : ObjectModifier<d.Bloc> 
 	{
 		#region Properties
 		[SerializeField] InputField m_NameInputField, m_SortInputField, m_OrderInputField;
@@ -80,7 +80,7 @@ namespace HBP.UI.Experience.Protocol
         protected override void Initialize()
         {
             base.Initialize();
-            m_SubBlocListGestion.SubWindowsManager.OnOpenSubWindow.AddListener(window => SubWindowsManager.Add(window));
+            m_SubBlocListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
         }
         protected void SetError()
         {

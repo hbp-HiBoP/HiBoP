@@ -25,14 +25,14 @@ namespace HBP.UI
             }
         }
 
-        [SerializeField] protected SubWindowsManager m_SubWindowsManager = new SubWindowsManager();
-        public SubWindowsManager SubWindowsManager { get => m_SubWindowsManager; }
+        [SerializeField] protected WindowsReferencer m_WindowsReferencer = new WindowsReferencer();
+        public WindowsReferencer WindowsReferencer { get => m_WindowsReferencer; }
         #endregion
 
         #region Public Methods
         public virtual void Close()
         {
-            SubWindowsManager.CloseAll();
+            WindowsReferencer.CloseAll();
             OnClose.Invoke();
             Destroy(gameObject);
         }

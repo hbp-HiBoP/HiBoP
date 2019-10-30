@@ -8,7 +8,7 @@ using HBP.Data.Visualization;
 
 namespace HBP.UI.Visualization
 {
-    public class VisualizationModifier : ItemModifier<Data.Visualization.Visualization>
+    public class VisualizationModifier : ObjectModifier<Data.Visualization.Visualization>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -62,11 +62,9 @@ namespace HBP.UI.Visualization
         }
         public void AddPatients()
         {
-            ObjectSelector<Patient> selector = ApplicationState.WindowsManager.OpenSelector<Patient>();
-            selector.Objects = ApplicationState.ProjectLoaded.Patients.Where(p => !itemTemp.Patients.Contains(p)).ToArray();
+            ObjectSelector<Patient> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Patients.Where(p => !itemTemp.Patients.Contains(p)));
             selector.OnSave.AddListener(() => m_PatientList.Add(selector.ObjectsSelected));
-            selector.OnClose.AddListener(() => SubWindowsManager.Remove(selector));
-            SubWindowsManager.Add(selector);
+            WindowsReferencer.Add(selector);
         }
         public void RemovePatients()
         {
@@ -74,19 +72,15 @@ namespace HBP.UI.Visualization
         }
         public void AddGroups()
         {
-            ObjectSelector<Group> selector = ApplicationState.WindowsManager.OpenSelector<Group>();
-            selector.Objects = ApplicationState.ProjectLoaded.Groups.ToArray();
+            ObjectSelector<Group> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Groups);
             selector.OnSave.AddListener(() => AddGroups(selector.ObjectsSelected));
-            selector.OnClose.AddListener(() => SubWindowsManager.Remove(selector));
-            SubWindowsManager.Add(selector);
+            WindowsReferencer.Add(selector);
         }
         public void RemoveGroups()
         {
-            ObjectSelector<Group> selector = ApplicationState.WindowsManager.OpenSelector<Group>();
-            selector.Objects = ApplicationState.ProjectLoaded.Groups.ToArray();
+            ObjectSelector<Group> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Groups);
             selector.OnSave.AddListener(() => RemoveGroups(selector.ObjectsSelected));
-            selector.OnClose.AddListener(() => SubWindowsManager.Remove(selector));
-            SubWindowsManager.Add(selector);
+            WindowsReferencer.Add(selector);
         }
 
         public void AddColumn()

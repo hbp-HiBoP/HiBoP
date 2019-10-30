@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Alias
 {
-    public class AliasModifier : ItemModifier<Data.Preferences.Alias>
+    public class AliasModifier : ObjectModifier<Data.Preferences.Alias>
     {
         #region Properties
         [SerializeField] InputField m_KeyInputField;

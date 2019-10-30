@@ -25,7 +25,7 @@ namespace HBP.UI.General
         {
             base.Initialize();
 
-            m_AliasListGestion.SubWindowsManager.OnOpenSubWindow.AddListener(window => SubWindowsManager.Add(window));
+            m_AliasListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
         }
         #endregion
 

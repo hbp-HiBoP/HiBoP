@@ -25,8 +25,8 @@ namespace Tools.Unity.Components
             }
         }
 
-        [SerializeField] protected SubWindowsManager m_SubWindowsManager = new SubWindowsManager();
-        public virtual SubWindowsManager SubWindowsManager { get => m_SubWindowsManager; }
+        [SerializeField] protected WindowsReferencer m_WindowsReferencer = new WindowsReferencer();
+        public virtual WindowsReferencer WindowsReferencer { get => m_WindowsReferencer; }
 
         public UnityEvent<T> OnObjectCreated { get; protected set; } = new GenericEvent<T>();
         #endregion
@@ -38,7 +38,7 @@ namespace Tools.Unity.Components
             creatorWindow.IsLoadableFromFile = typeof(T).GetInterfaces().Contains(typeof(ILoadable<T>));
             creatorWindow.IsLoadableFromDatabase = typeof(T).GetInterfaces().Contains(typeof(ILoadableFromDatabase<T>));
             creatorWindow.OnSave.AddListener(() => OnSaveCreator(creatorWindow));
-            SubWindowsManager.Add(creatorWindow);
+            WindowsReferencer.Add(creatorWindow);
         }
         public virtual void CreateFromScratch()
         {
@@ -80,14 +80,11 @@ namespace Tools.Unity.Components
                     break;
             }
         }
-        protected virtual void OpenSelector(IEnumerable<T> objects, bool multiSelection = false, bool openSelected = true, bool generateNewIDs = true)
+        protected virtual void OpenSelector(IEnumerable<T> objects, bool multiSelection = false, bool openModifiers = true, bool generateNewIDs = true)
         {
-            ObjectSelector<T> selector = ApplicationState.WindowsManager.OpenSelector<T>();
+            ObjectSelector<T> selector = ApplicationState.WindowsManager.OpenSelector<T>(objects, multiSelection, openModifiers);
             selector.OnSave.AddListener(() => OnSaveSelector(selector, generateNewIDs));
-            selector.Objects = objects.ToArray();
-            selector.MultiSelection = multiSelection;
-            selector.OpenModifierWhenSave = openSelected;
-            SubWindowsManager.Add(selector);
+            WindowsReferencer.Add(selector);
         }
         protected virtual void OnSaveSelector(ObjectSelector<T> selector, bool generateNewIDs = true)
         {
@@ -104,7 +101,7 @@ namespace Tools.Unity.Components
                 }
                 if (clone != null)
                 {
-                    if (selector.OpenModifierWhenSave)
+                    if (selector.OpenModifiers)
                     {
                         OpenModifier(clone);
                     }
@@ -116,14 +113,14 @@ namespace Tools.Unity.Components
             }
         }
 
-        protected virtual ItemModifier<T> OpenModifier(T item)
+        protected virtual ObjectModifier<T> OpenModifier(T item)
         {
-            ItemModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(item, true);
+            ObjectModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(item, true);
             modifier.OnSave.AddListener(() => OnSaveModifier(modifier));
-            SubWindowsManager.Add(modifier);
+            WindowsReferencer.Add(modifier);
             return modifier;
         }
-        protected virtual void OnSaveModifier(ItemModifier<T> modifier)
+        protected virtual void OnSaveModifier(ObjectModifier<T> modifier)
         {
             OnObjectCreated.Invoke(modifier.Item);
         }

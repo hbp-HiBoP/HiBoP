@@ -25,7 +25,7 @@ namespace HBP.UI.Experience.Protocol
             set
             {
                 m_Window = value;
-                foreach(var modifier in SubWindowsManager.Windows.OfType<IconModifier>())
+                foreach(var modifier in WindowsReferencer.Windows.OfType<IconModifier>())
                 {
                     modifier.Window = value;
                 }
@@ -34,7 +34,7 @@ namespace HBP.UI.Experience.Protocol
         #endregion
 
         #region Protected Methods
-        protected override ItemModifier<Icon> OpenModifier(Icon item, bool interactable)
+        protected override ObjectModifier<Icon> OpenModifier(Icon item, bool interactable)
         {
             IconModifier modifier = base.OpenModifier(item, interactable) as IconModifier;
             modifier.Window = Window;

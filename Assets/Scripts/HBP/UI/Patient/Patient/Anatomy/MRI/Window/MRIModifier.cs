@@ -5,7 +5,7 @@ using HBP.Data.Anatomy;
 
 namespace HBP.UI.Anatomy
 {
-    public class MRIModifier : ItemModifier<MRI>
+    public class MRIModifier : ObjectModifier<MRI>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;

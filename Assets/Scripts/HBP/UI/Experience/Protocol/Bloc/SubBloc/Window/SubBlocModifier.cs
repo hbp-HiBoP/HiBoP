@@ -6,7 +6,7 @@ using d = HBP.Data.Experience.Protocol;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class SubBlocModifier : ItemModifier<d.SubBloc>
+    public class SubBlocModifier : ObjectModifier<d.SubBloc>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -54,9 +54,9 @@ namespace HBP.UI.Experience.Protocol
             m_WindowSlider.onValueChanged.AddListener(OnChangeWindow);
             m_BaselineSlider.onValueChanged.AddListener(OnChangeBaseline);
 
-            m_EventListGestion.SubWindowsManager.OnOpenSubWindow.AddListener(window => SubWindowsManager.Add(window));
-            m_IconListGestion.SubWindowsManager.OnOpenSubWindow.AddListener(window => SubWindowsManager.Add(window));
-            m_TreatmentListGestion.SubWindowsManager.OnOpenSubWindow.AddListener(window => SubWindowsManager.Add(window));
+            m_EventListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
+            m_IconListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
+            m_TreatmentListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
         }
         protected override void SetFields(d.SubBloc objectToDisplay)
         {

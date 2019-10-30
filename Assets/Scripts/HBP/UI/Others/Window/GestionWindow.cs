@@ -23,7 +23,7 @@ namespace HBP.UI
         protected override void Initialize()
         {
             base.Initialize();
-            ListGestion.SubWindowsManager.OnOpenSubWindow.AddListener(window => SubWindowsManager.Add(window));
+            ListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
         }
         #endregion
     }

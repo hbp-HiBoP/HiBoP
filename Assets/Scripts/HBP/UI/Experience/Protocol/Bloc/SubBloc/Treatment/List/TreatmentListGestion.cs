@@ -25,7 +25,7 @@ namespace HBP.UI.Experience.Protocol
             set
             {
                 m_Window = value;
-                foreach (var modifier in SubWindowsManager.Windows.OfType<TreatmentModifier>())
+                foreach (var modifier in WindowsReferencer.Windows.OfType<TreatmentModifier>())
                 {
                     modifier.Window = value;
                 }
@@ -42,7 +42,7 @@ namespace HBP.UI.Experience.Protocol
             set
             {
                 m_Baseline = value;
-                foreach (var modifier in SubWindowsManager.Windows.OfType<TreatmentModifier>())
+                foreach (var modifier in WindowsReferencer.Windows.OfType<TreatmentModifier>())
                 {
                     modifier.Baseline = value;
                 }
@@ -51,7 +51,7 @@ namespace HBP.UI.Experience.Protocol
         #endregion
 
         #region Public Methods
-        protected override ItemModifier<Treatment> OpenModifier(Treatment item, bool interactable)
+        protected override ObjectModifier<Treatment> OpenModifier(Treatment item, bool interactable)
         {
             TreatmentModifier modifier = base.OpenModifier(item, interactable) as TreatmentModifier;
             modifier.Window = Window;

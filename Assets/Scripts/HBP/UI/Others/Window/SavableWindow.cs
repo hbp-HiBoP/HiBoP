@@ -27,7 +27,7 @@ namespace HBP.UI
         #region Public Methods
         public virtual void Save()
         {
-            SubWindowsManager.SaveAll();
+            WindowsReferencer.SaveAll();
             OnSave.Invoke();
             base.Close();
         }

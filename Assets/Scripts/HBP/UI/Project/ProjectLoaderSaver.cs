@@ -11,6 +11,7 @@ namespace HBP.UI
         #region Public Methods  
         public void Load(ProjectInfo projectInfo)
         {
+            UnityEngine.Profiling.Profiler.BeginSample("1");
             Project projectToLoad = new Project();
 
             DataManager.Clear();
@@ -18,6 +19,9 @@ namespace HBP.UI
             string projectLoadedLocation = ApplicationState.ProjectLoadedLocation;
             ApplicationState.ProjectLoaded = projectToLoad;
             ApplicationState.ProjectLoadedLocation = Directory.GetParent(projectInfo.Path).FullName;
+
+            UnityEngine.Profiling.Profiler.EndSample();
+            UnityEngine.Profiling.Profiler.BeginSample("2");
 
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
             ApplicationState.LoadingManager.Load(
@@ -35,6 +39,7 @@ namespace HBP.UI
                         ApplicationState.ProjectLoadedLocation = projectLoadedLocation;
                     }
                 });
+            UnityEngine.Profiling.Profiler.EndSample();
         }
         public void Save(string path)
         {

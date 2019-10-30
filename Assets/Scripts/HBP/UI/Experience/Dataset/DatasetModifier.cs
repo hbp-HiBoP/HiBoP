@@ -8,7 +8,7 @@ namespace HBP.UI.Experience.Dataset
     /// <summary>
     /// Display/Modify dataset.
     /// </summary>
-    public class DatasetModifier : ItemModifier<d.Dataset>
+    public class DatasetModifier : ObjectModifier<d.Dataset>
     {
         #region Properties		
         [SerializeField] InputField m_NameInputField;

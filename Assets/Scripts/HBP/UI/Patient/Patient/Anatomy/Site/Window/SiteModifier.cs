@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace HBP.UI.Anatomy
 {
-    public class SiteModifier : ItemModifier<Site>
+    public class SiteModifier : ObjectModifier<Site>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -33,7 +33,7 @@ namespace HBP.UI.Anatomy
         #region Public Methods
         public override void Save()
         {
-            foreach (var window in SubWindowsManager.Windows.OfType<SavableWindow>()) window.Save();
+            foreach (var window in WindowsReferencer.Windows.OfType<SavableWindow>()) window.Save();
             itemTemp.Coordinates = m_CoordinateListGestion.List.Objects.ToList();
             itemTemp.Tags = m_TagValueListGestion.List.Objects.ToList();
             base.Save();
@@ -55,8 +55,8 @@ namespace HBP.UI.Anatomy
 
             m_NameInputField.onValueChanged.AddListener((name) => ItemTemp.Name = name);
 
-            m_CoordinateListGestion.SubWindowsManager.OnOpenSubWindow.AddListener(window => SubWindowsManager.Add(window));
-            m_TagValueListGestion.SubWindowsManager.OnOpenSubWindow.AddListener(window => SubWindowsManager.Add(window));
+            m_CoordinateListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
+            m_TagValueListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
         }
         #endregion
     }

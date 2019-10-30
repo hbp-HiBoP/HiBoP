@@ -5,7 +5,7 @@ using Tools.Unity;
 
 namespace HBP.UI.Anatomy
 {
-    public class ImplantationModifier : ItemModifier<Implantation>
+    public class ImplantationModifier : ObjectModifier<Implantation>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;

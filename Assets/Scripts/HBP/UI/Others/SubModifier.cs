@@ -57,7 +57,7 @@ namespace HBP.UI
             }
         }
 
-        public virtual SubWindowsManager SubWindowsManager { get; protected set; } = new SubWindowsManager();
+        public virtual WindowsReferencer WindowsReferencer { get; protected set; } = new WindowsReferencer();
         #endregion
 
         #region Public Methods

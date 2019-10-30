@@ -6,7 +6,7 @@ using System;
 
 namespace HBP.UI.Anatomy
 {
-    public class MeshModifier : ItemModifier<Data.Anatomy.Mesh>
+    public class MeshModifier : ObjectModifier<Data.Anatomy.Mesh>
 {
         #region Properties
         [SerializeField] InputField m_NameInputField;

@@ -29,7 +29,7 @@ namespace HBP.UI.Tags
         #endregion
 
         #region Protected Methods
-        protected override ItemModifier<BaseTagValue> OpenModifier(BaseTagValue item, bool interactable)
+        protected override ObjectModifier<BaseTagValue> OpenModifier(BaseTagValue item, bool interactable)
         {
             TagValueModifier modifier = (TagValueModifier) base.OpenModifier(item, interactable);
             modifier.Tags = Tags.Where(t => !List.Objects.Any(o => o.Tag == t) || t == item.Tag).ToArray();

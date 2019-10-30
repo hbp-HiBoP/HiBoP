@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace HBP.UI.UserPreferences
 {
-    public class UserPreferencesModifier : ItemModifier<HBP.Data.Preferences.UserPreferences>
+    public class UserPreferencesModifier : ObjectModifier<HBP.Data.Preferences.UserPreferences>
     {
         #region Properties
         [SerializeField] ProjectPreferencesSubModifier m_ProjectPreferencesSubModifier;

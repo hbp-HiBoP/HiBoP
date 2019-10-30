@@ -5,7 +5,7 @@
     "Project": {
       "$type": "HBP.Data.Preferences.ProjectPreferences, Assembly-CSharp",
       "DefaultName": "New Project",
-      "DefaultLocation": "D:\\Programmation\\Travail\\Data\\Projects",
+      "DefaultLocation": "D:\\HiBoP\\Projects",
       "DefaultPatientDatabase": "",
       "DefaultLocalizerDatabase": "",
       "DefaultExportLocation": ""

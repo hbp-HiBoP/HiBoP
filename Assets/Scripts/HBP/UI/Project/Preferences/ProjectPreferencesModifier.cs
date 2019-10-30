@@ -4,7 +4,7 @@ using UnityEngine.Events;
 
 namespace HBP.UI.General
 {
-    public class ProjectPreferencesModifier : ItemModifier<ProjectSettings>
+    public class ProjectPreferencesModifier : ObjectModifier<ProjectSettings>
     {
         #region Properties
         [SerializeField] GeneralSubModifer m_GeneralSubModifier;

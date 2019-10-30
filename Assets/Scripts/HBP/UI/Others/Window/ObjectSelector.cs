@@ -40,7 +40,7 @@ namespace HBP.UI
                 List.MultiSelection = value;
             }
         }
-        public bool OpenModifierWhenSave { get; set; }
+        public bool OpenModifiers { get; set; }
 
         public override bool Interactable
         {

@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Tags
 {
-    public class TagModifier : ItemModifier<Tag>
+    public class TagModifier : ObjectModifier<Tag>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;

@@ -5,7 +5,7 @@ using d = HBP.Data.Experience.Protocol;
 
 namespace HBP.UI.Experience.Protocol
 {
-	public class ProtocolModifier : ItemModifier<d.Protocol> 
+	public class ProtocolModifier : ObjectModifier<d.Protocol> 
 	{
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -47,7 +47,7 @@ namespace HBP.UI.Experience.Protocol
             base.SetFields();
 
             m_BlocListGestion.List.Set(objectToDisplay.Blocs);
-            m_BlocListGestion.SubWindowsManager.OnOpenSubWindow.AddListener(window => SubWindowsManager.Add(window));
+            m_BlocListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
 
             m_NameInputField.text = objectToDisplay.Name;
             m_NameInputField.onEndEdit.AddListener((value) => objectToDisplay.Name = value);
