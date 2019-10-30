@@ -3,6 +3,7 @@ using d = HBP.Data.Experience.Protocol;
 using Tools.Unity;
 using UnityEngine;
 using NewTheme.Components;
+using System.Linq;
 
 namespace HBP.UI.Experience.Protocol
 {
@@ -43,6 +44,14 @@ namespace HBP.UI.Experience.Protocol
         }
         #endregion
 
+        #region Public Methods
+        public override void Save()
+        {
+            itemTemp.SubBlocs = m_SubBlocListGestion.List.Objects.ToList();
+            base.Save();
+        }
+        #endregion
+
         #region Private Methods
         protected override void SetFields(d.Bloc objectToDisplay)
         {
@@ -62,12 +71,16 @@ namespace HBP.UI.Experience.Protocol
             m_OrderInputField.text = objectToDisplay.Order.ToString();
             m_OrderInputField.onEndEdit.AddListener((value) => objectToDisplay.Order = int.Parse(value));
 
-            m_SubBlocListGestion.Initialize(m_SubWindows);
-            m_SubBlocListGestion.Objects = objectToDisplay.SubBlocs;
+            m_SubBlocListGestion.List.Set(objectToDisplay.SubBlocs);
 
             SetError();
 
             base.SetFields();
+        }
+        protected override void Initialize()
+        {
+            base.Initialize();
+            m_SubBlocListGestion.SubWindowsManager.OnOpenSubWindow.AddListener(window => SubWindowsManager.Add(window));
         }
         protected void SetError()
         {
