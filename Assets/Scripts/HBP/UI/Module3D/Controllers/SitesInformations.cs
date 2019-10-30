@@ -1,5 +1,4 @@
 ﻿using HBP.Module3D;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Tools.Unity.ResizableGrid;
@@ -122,7 +121,6 @@ namespace HBP.UI.Module3D
         public void Initialize(Base3DScene scene)
         {
             m_Scene = scene;
-            m_SiteList.Initialize();
             m_SiteFilters.Initialize(scene);
             m_SiteFilters.OnRequestListUpdate.AddListener(UpdateList);
             m_SiteFiltersToggle.onValueChanged.AddListener((isOn) =>

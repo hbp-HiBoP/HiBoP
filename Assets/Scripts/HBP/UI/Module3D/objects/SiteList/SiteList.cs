@@ -19,8 +19,8 @@ namespace HBP.UI.Module3D
             {
                 m_Objects = value;
                 m_NumberOfObjects = value.Count;
-                m_ScrollRect.content.sizeDelta = new Vector2(0, ItemHeight * m_NumberOfObjects);
-                m_ScrollRect.content.hasChanged = true;
+                ScrollRect.content.sizeDelta = new Vector2(0, ItemHeight * m_NumberOfObjects);
+                ScrollRect.content.hasChanged = true;
             }
         }
         #endregion
