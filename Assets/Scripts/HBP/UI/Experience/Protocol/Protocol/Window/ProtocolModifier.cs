@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 using UnityEngine.UI;
 using d = HBP.Data.Experience.Protocol;
 
@@ -32,16 +33,25 @@ namespace HBP.UI.Experience.Protocol
         }
         #endregion
 
+        #region Public Methods
+        public override void Save()
+        {
+            itemTemp.Blocs = m_BlocListGestion.List.Objects.ToList();
+            base.Save();
+        }
+        #endregion
+
         #region Private Methods
         protected override void SetFields(d.Protocol objectToDisplay)
         {
-            m_BlocListGestion.Initialize(m_SubWindows);
-            m_BlocListGestion.Objects =  objectToDisplay.Blocs;
+            base.SetFields();
+
+            m_BlocListGestion.List.Set(objectToDisplay.Blocs);
+            m_BlocListGestion.SubWindowsManager.OnOpenSubWindow.AddListener(window => SubWindowsManager.Add(window));
 
             m_NameInputField.text = objectToDisplay.Name;
             m_NameInputField.onEndEdit.AddListener((value) => objectToDisplay.Name = value);
 
-            base.SetFields();
         }
         #endregion
     }
