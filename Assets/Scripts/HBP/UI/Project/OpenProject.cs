@@ -68,7 +68,6 @@ namespace HBP.UI
         protected override void Initialize()
         {
             // Initialize project list.
-            m_ProjectList.Initialize();
             m_ProjectList.OnSelectionChanged.AddListener(() => m_LoadingButton.interactable = m_ProjectList.ObjectsSelected.Length > 0);
             m_ProjectList.OnAction.AddListener((info, i) => Load(info));
 
@@ -93,9 +92,9 @@ namespace HBP.UI
         {
             yield return Ninja.JumpToUnity;
             m_LoadingButton.interactable = false;
-            m_ProjectList.Objects = new ProjectInfo[0];
+            m_ProjectList.Set(new ProjectInfo[0]);
             yield return Ninja.JumpBack;
-            string[] paths = HBP.Data.General.Project.GetProject(path).ToArray();
+            string[] paths = Project.GetProject(path).ToArray();
             foreach (string projectPath in paths)
             {
                 ProjectInfo project = new ProjectInfo(projectPath);
