@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
@@ -28,7 +27,7 @@ namespace Tools.Unity.Lists
                 Select(from obj in m_Objects.Where((elt) => value.Contains(elt)) select obj);
             }
         }
-        protected Dictionary<T, bool> m_SelectedStateByObject;
+        protected Dictionary<T, bool> m_SelectedStateByObject = new Dictionary<T, bool>();
         [SerializeField] protected bool m_MultiSelection;
         public virtual bool MultiSelection
         {
@@ -145,15 +144,6 @@ namespace Tools.Unity.Lists
             }
             return false;
         }
-        public override bool Initialize()
-        {
-            if(base.Initialize())
-            {
-                m_SelectedStateByObject = new Dictionary<T, bool>();
-                return true;
-            }
-            return false;
-        }
         public override void Refresh()
         {
             Item<T>[] items = m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
@@ -194,7 +184,7 @@ namespace Tools.Unity.Lists
         protected virtual void OnSelectionChangeCallBack()
         {
             OnSelectionChanged.Invoke();
-            bool allSelected = Objects.Length == ObjectsSelected.Length && Objects.Length > 0;
+            bool allSelected = m_Objects.Count == ObjectsSelected.Length && m_Objects.Count > 0;
             if (m_AllSelected != allSelected)
             {
                 m_AllSelected = allSelected;
