@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
-using System.Linq;
 
 namespace HBP.UI
 {
@@ -28,7 +27,7 @@ namespace HBP.UI
         #region Public Methods
         public virtual void Save()
         {
-            foreach (var savableSubWindow in m_SubWindows.OfType<SavableWindow>().ToArray()) savableSubWindow.Save();
+            SubWindowsManager.SaveAll();
             OnSave.Invoke();
             base.Close();
         }

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Linq;
 using UnityEngine;
-using System.Reflection;
-using System.Collections.Generic;
 
 namespace HBP.UI
 {
@@ -23,12 +21,5 @@ namespace HBP.UI
             if(result == null) Debug.LogWarning("The prefab can not be found.");
             return result;
         }
-    }
-
-    [Serializable]
-    public struct Link
-    {
-        public string name;
-        public GameObject Prefab;
     }
 }

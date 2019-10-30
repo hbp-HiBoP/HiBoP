@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.Events;
-using System.Collections.Generic;
 
 namespace HBP.UI
 {
@@ -27,20 +25,21 @@ namespace HBP.UI
             }
         }
 
-        protected List<Window> m_SubWindows = new List<Window>();
+        [SerializeField] protected SubWindowsManager m_SubWindowsManager = new SubWindowsManager();
+        public SubWindowsManager SubWindowsManager { get => m_SubWindowsManager; }
         #endregion
 
         #region Public Methods
         public virtual void Close()
         {
-            foreach (var subWindow in m_SubWindows.ToArray()) subWindow.Close();
+            SubWindowsManager.CloseAll();
             OnClose.Invoke();
             Destroy(gameObject);
         }
         #endregion
 
         #region Private Methods
-        void Awake()
+        protected virtual void Awake()
         {
             Initialize();
         }

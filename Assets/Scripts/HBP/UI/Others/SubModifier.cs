@@ -56,12 +56,18 @@ namespace HBP.UI
                 SetFields(value);
             }
         }
+
+        public virtual SubWindowsManager SubWindowsManager { get; protected set; } = new SubWindowsManager();
         #endregion
 
         #region Public Methods
         public virtual void Initialize()
         {
             m_Initialized = true;
+        }
+        public virtual void Save()
+        {
+
         }
         #endregion
 

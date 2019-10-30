@@ -1,42 +1,43 @@
-﻿using Tools.Unity.Lists;
+﻿using System.Linq;
+using Tools.Unity.Lists;
 
 namespace HBP.UI
 {
-    public class ObjectSelector<T> : SavableWindow
+    public abstract class ObjectSelector<T> : SavableWindow
     {
         #region Properties
-        protected SelectableList<T> m_List;
+        protected abstract SelectableList<T> List { get; }
         public T[] Objects
         {
             get
             {
-                return m_List.Objects;
+                return List.Objects.ToArray();
             }
             set
             {
-                m_List.Objects = value;
+                List.Set(value);
             }
         }
         public T[] ObjectsSelected
         {
             get
             {
-                return m_List.ObjectsSelected;
+                return List.ObjectsSelected;
             }
             set
             {
-                m_List.ObjectsSelected = value;
+                List.ObjectsSelected = value;
             }
         }
         public bool MultiSelection
         {
             get
             {
-                return m_List.MultiSelection;
+                return List.MultiSelection;
             }
             set
             {
-                m_List.MultiSelection = value;
+                List.MultiSelection = value;
             }
         }
         public bool OpenModifierWhenSave { get; set; }
@@ -51,7 +52,7 @@ namespace HBP.UI
             set
             {
                 base.Interactable = value;
-                m_List.Interactable = value;
+                List.Interactable = value;
             }
         }
         #endregion
@@ -59,8 +60,7 @@ namespace HBP.UI
         #region Private Methods
         protected override void Initialize()
         {
-            m_List.Initialize();
-            m_List.OnSelectionChanged.AddListener(UpdateButtonState);
+            List.OnSelectionChanged.AddListener(UpdateButtonState);
             UpdateButtonState();
 
             base.Initialize();
