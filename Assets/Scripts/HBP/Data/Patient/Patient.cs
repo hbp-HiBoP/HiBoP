@@ -196,7 +196,8 @@ namespace HBP.Data
                 DirectoryInfo directory = new DirectoryInfo(path);
                 string[] directoryNameParts = directory.Name.Split(new char[1] { '_' }, StringSplitOptions.RemoveEmptyEntries);
                 int.TryParse(directoryNameParts[1], out int date);
-                result = new Patient(directoryNameParts[2], directoryNameParts[0], date, Mesh.LoadFromDirectory(path), MRI.LoadFromDirectory(path), Implantation.LoadFromDirectory(path), new BaseTagValue[0], directory.Name);
+                //result = new Patient(directoryNameParts[2], directoryNameParts[0], date, Mesh.LoadFromDirectory(path), MRI.LoadFromDirectory(path), Implantation.LoadFromDirectory(path), new BaseTagValue[0], directory.Name); // TODO
+                result = new Patient(directoryNameParts[2], directoryNameParts[0], date, Mesh.LoadFromDirectory(path), MRI.LoadFromDirectory(path), new Site[0], new BaseTagValue[0], directory.Name);
                 return true;
             }
             return false;

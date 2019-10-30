@@ -1,7 +1,7 @@
 ﻿using System.Runtime.Serialization;
 using UnityEngine;
 
-namespace HBP.Data
+namespace HBP.Data.Anatomy
 {
     [DataContract]
     public class Coordinate : BaseData

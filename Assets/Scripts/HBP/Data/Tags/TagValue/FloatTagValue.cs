@@ -65,7 +65,6 @@
         void RecalculateValue()
         {
             Value = Value;
-            UnityEngine.Debug.Log("tutu");
         }
         #endregion
     }

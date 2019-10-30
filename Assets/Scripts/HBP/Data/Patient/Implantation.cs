@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Linq;
 using Tools.Unity;
+using UnityEngine;
+using System;
 
 namespace HBP.Data.Anatomy
 {
@@ -44,7 +46,7 @@ namespace HBP.Data.Anatomy
         /// <summary>
         /// Extension of MarsAtlas files.
         /// </summary>
-        public const string MARSATLAS_EXTENSION = ".csv";     
+        public const string MARSATLAS_EXTENSION = ".csv";
         public enum Error { None, PathIsNullOrEmpty, FileNotFound, WrongExtension, CannotReadFile, WrongFormat, CannotReadAllSites };
 
         /// <summary>
@@ -139,7 +141,7 @@ namespace HBP.Data.Anatomy
         /// <param name="path">Path of the implantation file.</param>
         /// <param name="marsAtlas">Path of the marsAtlas file.</param>
         /// <param name="ID">Unique identifier to identify the implantation.</param>
-        public Implantation(string name, string path, string marsAtlas, string ID): base(ID)
+        public Implantation(string name, string path, string marsAtlas, string ID) : base(ID)
         {
             Name = name;
             File = path;
@@ -247,7 +249,7 @@ namespace HBP.Data.Anatomy
         bool IsCorrect(string[] lines)
         {
             int sites = 0;
-            return lines[0] == PTS_HEADER && int.TryParse(lines[2],out sites) && sites == (lines.Length - 3);
+            return lines[0] == PTS_HEADER && int.TryParse(lines[2], out sites) && sites == (lines.Length - 3);
         }
         bool ReadSites(IEnumerable<string> lines, out IEnumerable<Site> sites)
         {
@@ -256,7 +258,7 @@ namespace HBP.Data.Anatomy
             foreach (var line in lines)
             {
                 Site site;
-                if (Site.ReadLine(line,Patient, out site))
+                if (Site.ReadLine(line, Patient, out site))
                 {
                     ok &= true;
                     (sites as List<Site>).Add(site);
@@ -286,7 +288,7 @@ namespace HBP.Data.Anatomy
         public override void Copy(object obj)
         {
             base.Copy(obj);
-            if(obj is Implantation implantation)
+            if (obj is Implantation implantation)
             {
                 Name = implantation.Name;
                 File = implantation.File;
@@ -305,5 +307,65 @@ namespace HBP.Data.Anatomy
             RecalculateIsUsable();
         }
         #endregion
+
+        /**
+* \class Site
+* \author Adrien Gannerie
+* \version 1.0
+* \date 26 avril 2017
+* \brief Electrode site.
+* 
+* \details Class which define a electrode site  which contains:
+*   - \a Name.
+*   - \a Position.
+*   - \a Reference to his parent electrode.
+*/
+        public class Site
+        {
+            #region Properties
+            public string ID
+            {
+                get
+                {
+                    return Patient.ID + "_" + Name;
+                }
+            }
+            public string Name { get; set; }
+            public string Electrode
+            {
+                get
+                {
+                    return Name.Where((c) => !char.IsNumber(c)).ToString();
+                }
+            }
+            public Patient Patient { get; set; }
+            public Vector3 Position { get; set; }
+            #endregion
+
+            #region Constructors
+            public Site(string name, Patient patient, Vector3 position)
+            {
+                Name = name;
+                Patient = patient;
+                Position = position;
+            }
+            public Site() : this("New site", null, Vector3.zero) { }
+            #endregion
+
+            #region Public static Methods
+            public static bool ReadLine(string line, Patient patient, out Site site)
+            {
+                site = new Site();
+                string[] elements = line.Split(new char[] { '\t', ' ' }, StringSplitOptions.RemoveEmptyEntries); // Split line into elements.
+                float x, y, z;
+                if (elements.Length >= 4 && Tools.CSharp.NumberExtension.TryParseFloat(elements[1], out x) && Tools.CSharp.NumberExtension.TryParseFloat(elements[2], out y) && Tools.CSharp.NumberExtension.TryParseFloat(elements[3], out z))
+                {
+                    site = new Site(elements[0], patient, new Vector3(x, y, z));
+                    return true;
+                }
+                return false;
+            }
+            #endregion
+        }
     }
 }

@@ -344,7 +344,8 @@ namespace HBP.Data.Visualization
         /// <returns></returns>
         public List<string> FindUsableImplantations()
         {
-            return Patients.First().Sites.Where((i) => Patients.All(p => p.Sites.Any((ii) => ii.Name == i.Name && ii.WasUsable))).Select((i) => i.Name).ToList();
+            return new List<string>();
+            //return Patients.First().Sites.Where((i) => Patients.All(p => p.Sites.Any((ii) => ii.Name == i.Name && ii.WasUsable))).Select((i) => i.Name).ToList();
             // On a gardé le code pour tester si manque de performance.
             //List<string> commonImplantations = new List<string>();
             //foreach (Anatomy.Implantation implantation in Patients[0].Implantations)
