@@ -7,10 +7,10 @@ namespace HBP.UI.Anatomy
 	/// <summary>
 	/// Manage patient list.
 	/// </summary>
-	public class PatientList : Tools.Unity.Lists.SelectableListWithItemAction<Data.Patient>
+	public class PatientList : Tools.Unity.Lists.SelectableListWithItemAction<Patient>
 	{
         #region Properties
-        enum OrderBy { None, Name, DescendingName, Place, DescendingPlace, Date, DescendingDate, Mesh, DescendingMesh, MRI, DescendingMRI, Implantation, DescendingImplantation }
+        enum OrderBy { None, Name, DescendingName, Place, DescendingPlace, Date, DescendingDate, Mesh, DescendingMesh, MRI, DescendingMRI, Site, DescendingSite, Tag, DescendingTag }
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
@@ -18,7 +18,8 @@ namespace HBP.UI.Anatomy
         [SerializeField] SortingDisplayer m_DateSortingDisplayer;
         [SerializeField] SortingDisplayer m_MeshSortingDisplayer;
         [SerializeField] SortingDisplayer m_MRISortingDisplayer;
-        [SerializeField] SortingDisplayer m_ImplantationSortingDisplayer;
+        [SerializeField] SortingDisplayer m_SiteSortingDisplayer;
+        [SerializeField] SortingDisplayer m_TagSortingDisplayer;
         #endregion
 
         #region Public Methods
@@ -52,7 +53,8 @@ namespace HBP.UI.Anatomy
             m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
         /// Sort by name.
@@ -90,7 +92,8 @@ namespace HBP.UI.Anatomy
             m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
         /// Sort by place.
@@ -128,7 +131,8 @@ namespace HBP.UI.Anatomy
             m_PlaceSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
         /// Sort by date.
@@ -166,7 +170,8 @@ namespace HBP.UI.Anatomy
             m_PlaceSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
         /// Sort by mesh.
@@ -206,7 +211,8 @@ namespace HBP.UI.Anatomy
             m_PlaceSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
         /// Sort by MRI.
@@ -221,22 +227,22 @@ namespace HBP.UI.Anatomy
         }
 
         /// <summary>
-        /// Sort by implantation.
+        /// Sort by number of sites.
         /// </summary>
         /// <param name="sorting">Sorting</param>
-        public void SortByImplantation(Sorting sorting)
+        public void SortBySite(Sorting sorting)
         {
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Sites.FindAll(i => i.WasUsable).Count).ToList();
-                    m_OrderBy = OrderBy.Implantation;
-                    m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Sites.Count).ToList();
+                    m_OrderBy = OrderBy.Site;
+                    m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Sites.FindAll(i => i.WasUsable).Count).ToList();
-                    m_OrderBy = OrderBy.DescendingImplantation;
-                    m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Sites.Count).ToList();
+                    m_OrderBy = OrderBy.DescendingSite;
+                    m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
             Refresh();
@@ -245,16 +251,56 @@ namespace HBP.UI.Anatomy
             m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
-        /// Sort by implantation.
+        /// Sort by site.
         /// </summary>
-        public void SortByImplantation()
+        public void SortBySite()
         {
             switch (m_OrderBy)
             {
-                case OrderBy.DescendingImplantation: SortByImplantation(Sorting.Ascending); break;
-                default: SortByImplantation(Sorting.Descending); break;
+                case OrderBy.DescendingSite: SortBySite(Sorting.Ascending); break;
+                default: SortBySite(Sorting.Descending); break;
+            }
+        }
+
+        /// <summary>
+        /// Sort by number of tags.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
+        public void SortByTag(Sorting sorting)
+        {
+            switch (sorting)
+            {
+                case Sorting.Ascending:
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Tags.Count).ToList();
+                    m_OrderBy = OrderBy.Tag;
+                    m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
+                    break;
+                case Sorting.Descending:
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Tags.Count).ToList();
+                    m_OrderBy = OrderBy.DescendingTag;
+                    m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
+                    break;
+            }
+            Refresh();
+            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_PlaceSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+        }
+        /// <summary>
+        /// Sort by tag.
+        /// </summary>
+        public void SortByTag()
+        {
+            switch (m_OrderBy)
+            {
+                case OrderBy.DescendingSite: SortByTag(Sorting.Ascending); break;
+                default: SortByTag(Sorting.Descending); break;
             }
         }
 
@@ -268,7 +314,8 @@ namespace HBP.UI.Anatomy
             m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderBy = OrderBy.None;
         }
         #endregion

@@ -7,27 +7,14 @@ namespace HBP.UI.Anatomy
     public class PatientModifier : ItemModifier<Data.Patient>
     {
         #region Properties
-        // General.
         [SerializeField] InputField m_NameInputField;
         [SerializeField] InputField m_PlaceInputField;
         [SerializeField] InputField m_DateInputField;
 
-        // Meshes.
         [SerializeField] MeshListGestion m_MeshListGestion;
-        [SerializeField] Button m_AddMeshButton, m_RemoveMeshButton;
-
-        // MRI.
         [SerializeField] MRIListGestion m_MRIListGestion;
-        [SerializeField] Button m_AddMRIButton, m_RemoveMRIButton;
-
-        // Implantation.
-        [SerializeField] ImplantationListGestion m_ImplantationListGestion;
-        [SerializeField] Button m_AddImplantationButton, m_RemoveImplantationButton;
-
-        // Tags
+        [SerializeField] SiteListGestion m_SiteListGestion;
         [SerializeField] Tags.TagValueListGestion m_TagValueListGestion;
-        [SerializeField] Button m_AddTagValueButton, m_RemoveTagValueButton;
-
 
         public override bool Interactable
         {
@@ -40,31 +27,27 @@ namespace HBP.UI.Anatomy
             {
                 base.Interactable = value;
 
-                // General.
                 m_NameInputField.interactable = value;
                 m_PlaceInputField.interactable = value;
                 m_DateInputField.interactable = value;
 
-                // Mesh.
                 m_MeshListGestion.Interactable = value;
-                m_AddMeshButton.interactable = value;
-                m_RemoveMeshButton.interactable = value;
-
-                // MRI.
                 m_MRIListGestion.Interactable = value;
-                m_AddMRIButton.interactable = value;
-                m_RemoveMRIButton.interactable = value;
-
-                // Implantation.
-                m_ImplantationListGestion.Interactable = value;
-                m_AddImplantationButton.interactable = value;
-                m_RemoveImplantationButton.interactable = value;
-
-                // Tags.
+                m_SiteListGestion.Interactable = value;
                 m_TagValueListGestion.Interactable = value;
-                m_AddTagValueButton.interactable = value;
-                m_RemoveTagValueButton.interactable = value;
             }
+        }
+        #endregion
+
+        #region Public Methods
+        public override void Save()
+        {
+            SubWindowsManager.SaveAll();
+            itemTemp.Meshes = m_MeshListGestion.List.Objects.ToList();
+            itemTemp.MRIs = m_MRIListGestion.List.Objects.ToList();
+            itemTemp.Sites = m_SiteListGestion.List.Objects.ToList();
+            itemTemp.Tags = m_TagValueListGestion.List.Objects.ToList();
+            base.Save();
         }
         #endregion
 
@@ -73,15 +56,14 @@ namespace HBP.UI.Anatomy
         {
             base.Initialize();
 
-            m_MeshListGestion.Initialize(m_SubWindows);
-            m_ImplantationListGestion.Initialize(m_SubWindows);
-            m_MRIListGestion.Initialize(m_SubWindows);
-            m_TagValueListGestion.Initialize(m_SubWindows);
+            m_MeshListGestion.SubWindowsManager.OnOpenSubWindow.AddListener(window => SubWindowsManager.Add(window));
+            m_SiteListGestion.SubWindowsManager.OnOpenSubWindow.AddListener(window => SubWindowsManager.Add(window));
+            m_MRIListGestion.SubWindowsManager.OnOpenSubWindow.AddListener(window => SubWindowsManager.Add(window));
+            m_TagValueListGestion.SubWindowsManager.OnOpenSubWindow.AddListener(window => SubWindowsManager.Add(window));
 
             m_NameInputField.onValueChanged.AddListener((value) => ItemTemp.Name = value);
             m_PlaceInputField.onValueChanged.AddListener((value) => ItemTemp.Place = value);
             m_DateInputField.onValueChanged.AddListener((value) => ItemTemp.Date = int.Parse(value));
-
         }
         protected override void SetFields(Data.Patient objectToDisplay)
         {
@@ -89,12 +71,11 @@ namespace HBP.UI.Anatomy
             m_PlaceInputField.text = objectToDisplay.Place;
             m_DateInputField.text = objectToDisplay.Date.ToString();
 
-
-            m_MeshListGestion.Objects = objectToDisplay.Meshes;
-            m_ImplantationListGestion.Objects = objectToDisplay.Sites;
-            m_MRIListGestion.Objects = objectToDisplay.MRIs;
+            m_MeshListGestion.List.Set(objectToDisplay.Meshes);
+            m_MRIListGestion.List.Set(objectToDisplay.MRIs);
+            m_SiteListGestion.List.Set(objectToDisplay.Sites);
             m_TagValueListGestion.Tags = ApplicationState.ProjectLoaded.Settings.PatientsTags.Concat(ApplicationState.ProjectLoaded.Settings.GeneralTags).ToArray();
-            m_TagValueListGestion.Objects = objectToDisplay.Tags;
+            m_TagValueListGestion.List.Set(objectToDisplay.Tags);
         }
         #endregion
     }

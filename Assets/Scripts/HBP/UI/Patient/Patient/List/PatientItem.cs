@@ -22,8 +22,11 @@ namespace HBP.UI.Anatomy
         [SerializeField] Text m_MRIText;
         [SerializeField] Tooltip m_MRITooltip;
 
-        [SerializeField] Text m_ImplantationText;
-        [SerializeField] Tooltip m_ImplantationTooltip;
+        [SerializeField] Text m_SitesText;
+        [SerializeField] Tooltip m_SitesTooltip;
+
+        [SerializeField] Text m_TagsText;
+        [SerializeField] Tooltip m_TagsTooltip;
 
         [SerializeField] State m_ErrorState;
 
@@ -81,24 +84,44 @@ namespace HBP.UI.Anatomy
                 m_MRIText.text = MRIs.Length.ToString();
 
                 stringBuilder = new StringBuilder();
-                stringBuilder.AppendLine("Implantations :");
-                string[] implantations = (from implantation in m_Object.Sites where implantation.WasUsable select implantation.Name).ToArray();
-                for (int i = 0; i < implantations.Length; i++)
+                stringBuilder.AppendLine("Sites :");
+                string[] sites = m_Object.Sites.Select(s => s.Name).ToArray();
+                for (int i = 0; i < sites.Length; i++)
                 {
-                    if (i < implantations.Length - 1) stringBuilder.AppendLine("  \u2022 " + implantations[i]);
-                    else stringBuilder.Append("  \u2022 " + implantations[i]);
+                    if (i < sites.Length - 1) stringBuilder.AppendLine("  \u2022 " + sites[i]);
+                    else stringBuilder.Append("  \u2022 " + sites[i]);
                 }
-                if (implantations.Length == 0)
+                if (sites.Length == 0)
                 {
-                    m_ImplantationText.GetComponent<ThemeElement>().Set(m_ErrorState);
+                    m_SitesText.GetComponent<ThemeElement>().Set(m_ErrorState);
                     stringBuilder.Append("  \u2022 None");
                 }
                 else
                 {
-                    m_ImplantationText.GetComponent<ThemeElement>().Set();
+                    m_SitesText.GetComponent<ThemeElement>().Set();
                 }
-                m_ImplantationTooltip.Text = stringBuilder.ToString();
-                m_ImplantationText.text = implantations.Length.ToString();
+                m_SitesTooltip.Text = stringBuilder.ToString();
+                m_SitesText.text = sites.Length.ToString();
+
+                stringBuilder = new StringBuilder();
+                stringBuilder.AppendLine("Tags :");
+                string[] tags = m_Object.Tags.Select(s => s.Tag.Name).ToArray();
+                for (int i = 0; i < tags.Length; i++)
+                {
+                    if (i < tags.Length - 1) stringBuilder.AppendLine("  \u2022 " + tags[i]);
+                    else stringBuilder.Append("  \u2022 " + tags[i]);
+                }
+                if (tags.Length == 0)
+                {
+                    m_TagsText.GetComponent<ThemeElement>().Set(m_ErrorState);
+                    stringBuilder.Append("  \u2022 None");
+                }
+                else
+                {
+                    m_TagsText.GetComponent<ThemeElement>().Set();
+                }
+                m_TagsTooltip.Text = stringBuilder.ToString();
+                m_TagsText.text = tags.Length.ToString();
             }
         }
         #endregion

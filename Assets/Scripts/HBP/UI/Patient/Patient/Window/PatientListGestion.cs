@@ -1,33 +1,29 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Data;
 using Tools.Unity.Components;
+using Tools.Unity.Lists;
+using UnityEngine;
 
 namespace HBP.UI.Anatomy
 {
-    public class PatientListGestion : ListGestion<Data.Patient>
+    public class PatientListGestion : ListGestion<Patient>
     {
         #region Properties
-        public new PatientList List;
-        public override List<Data.Patient> Objects
+        [SerializeField] PatientList m_List;
+        public override SelectableListWithItemAction<Patient> List
         {
             get
             {
-                return base.Objects;
-            }
-
-            set
-            {
-                List.Initialize();
-                base.Objects = value;
-                List.SortByName(PatientList.Sorting.Descending);
+                return m_List;
             }
         }
-        #endregion
 
-        #region Public Methods
-        public override void Initialize()
+        [SerializeField] PatientCreator m_ObjectCreator;
+        public override ObjectCreator<Patient> ObjectCreator
         {
-            base.List = List;
-            base.Initialize();
+            get
+            {
+                return m_ObjectCreator;
+            }
         }
         #endregion
     }
