@@ -9,6 +9,7 @@ namespace HBP.UI.General
     {
         #region Properties
         [SerializeField] TagListGestion m_TagListGestion;
+        public TagListGestion TagListGestion { get { return m_TagListGestion; } }
 
         public override bool Interactable
         {
@@ -29,20 +30,12 @@ namespace HBP.UI.General
         }
         #endregion
 
-        #region Public Methods
-        public override void Initialize()
-        {
-            base.Initialize();
-            m_TagListGestion.Initialize();
-        }
-        #endregion
-
         #region Protected Methods
 
         protected override void SetFields(ProjectSettings objectToDisplay)
         {
             base.SetFields(objectToDisplay);
-            m_TagListGestion.Objects = objectToDisplay.PatientsTags;
+            m_TagListGestion.List.Set(objectToDisplay.PatientsTags);
         }
         #endregion
     }

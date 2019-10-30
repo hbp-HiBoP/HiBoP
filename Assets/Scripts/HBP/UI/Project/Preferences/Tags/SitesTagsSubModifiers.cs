@@ -29,19 +29,11 @@ namespace HBP.UI.General
         }
         #endregion
 
-        #region Public Methods
-        public override void Initialize()
-        {
-            base.Initialize();
-            m_TagListGestion.Initialize();
-        }
-        #endregion
-
         #region Protected Methods
         protected override void SetFields(ProjectSettings objectToDisplay)
         {
             base.SetFields(objectToDisplay);
-            m_TagListGestion.Objects = objectToDisplay.SitesTags;
+            m_TagListGestion.List.Set(objectToDisplay.SitesTags);
         }
         #endregion
     }

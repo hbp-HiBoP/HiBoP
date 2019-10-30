@@ -1,65 +1,35 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using HBP.Data.Tags;
 using Tools.Unity.Components;
+using UnityEngine;
 
 namespace HBP.UI.Tags
 {
-    public class TagListGestion : ListGestion<Data.Tags.Tag>
+    public class TagListGestion : ListGestion<Tag>
     {
         #region Properties
-        public new TagList List;
-        public override List<Data.Tags.Tag> Objects
+        [SerializeField] TagList m_List;
+        public override Tools.Unity.Lists.SelectableListWithItemAction<Tag> List => m_List;
+
+        [SerializeField] TagCreator m_ObjectCreator;
+        public override ObjectCreator<Tag> ObjectCreator => m_ObjectCreator;
+
+        [SerializeField] List<Tag> m_ModifiedTags = new List<Tag>();
+        public ReadOnlyCollection<Tag> ModifiedTags
         {
             get
             {
-                return base.Objects;
-            }
-
-            set
-            {
-                List.Initialize();
-                base.Objects = value;
-                List.SortByName(TagList.Sorting.Descending);
-            }
-        }
-
-        List<Data.Tags.Tag> m_ModifiedTags = new List<Data.Tags.Tag>();
-        public ReadOnlyCollection<Data.Tags.Tag> ModifiedTags
-        {
-            get
-            {
-                return new ReadOnlyCollection<Data.Tags.Tag>(m_ModifiedTags);
+                return new ReadOnlyCollection<Tag>(m_ModifiedTags);
             }
         }
         #endregion
 
-        #region Public Methods
-        public override void Initialize()
+        #region Protected Methods
+        protected override void Add(Tag obj)
         {
-            base.List = List;
-            base.Initialize();
-        }
-        protected override void OnSaveCreator(CreatorWindow creatorWindow)
-        {
-            Data.Enums.CreationType type = creatorWindow.Type;
-            Data.Tags.Tag item = new Data.Tags.EmptyTag();
-            switch (type)
-            {
-                case Data.Enums.CreationType.FromScratch:
-                    OpenModifier(item, true);
-                    break;
-                case Data.Enums.CreationType.FromExistingItem:
-                    OpenSelector(Objects.ToArray());
-                    break;
-                case Data.Enums.CreationType.FromFile:
-                    if (LoadFromFile(out item)) OpenModifier(item, true);
-                    break;
-            }
-        }
-        protected override void OnSaveModifier(ItemModifier<Data.Tags.Tag> modifier)
-        {
-            base.OnSaveModifier(modifier);
-            m_ModifiedTags.Add(modifier.Item);
+            m_ModifiedTags.Add(obj);
+            base.Add(obj);
         }
         #endregion
     }
