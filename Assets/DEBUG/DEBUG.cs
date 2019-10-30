@@ -1,19 +1,25 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using HBP.Data.Tags;
+using NewTheme.Components;
+using HBP.UI.Anatomy;
 
 public static class DEBUG
 {
     [MenuItem("DEBUG/Adrien/Main")]
     private static void Main()
     {
-        IntTag ageTag = new IntTag("age", true, 0, 100);
-        IntTag PoidsTag = new IntTag("poids", true, 0, 50);
-        EmptyTag emptyTag = new EmptyTag();
-        IntTagValue age = new IntTagValue(ageTag, 245);
-        IntTagValue poids = new IntTagValue(PoidsTag, 23);
-        poids.Copy(age);
-        Debug.Log(age.Value);
-        Debug.Log(poids.Value);
+        PatientModifier patientModifier = GameObject.FindObjectOfType<PatientModifier>();
+        patientModifier.Item = new HBP.Data.Patient();
+    }
+
+    [MenuItem("Tools/Theme/ActiveThemeElement")]
+    private static void ActiveThemeElement()
+    {
+        var selected = Selection.activeGameObject;
+        var themeElements = selected.GetComponentsInChildren<ThemeElement>(true);
+        foreach (var element in themeElements)
+        {
+            element.enabled = true;
+        }
     }
 }
