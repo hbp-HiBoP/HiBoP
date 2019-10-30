@@ -1,31 +1,21 @@
-﻿using System.Collections.Generic;
-using HBP.Data.Experience.Protocol;
+﻿using HBP.Data.Experience.Protocol;
 using Tools.Unity.Components;
 using UnityEngine;
 using System.Linq;
+using Tools.Unity.Lists;
 
 namespace HBP.UI.Experience.Protocol
 {
     public class IconListGestion : ListGestion<Icon>
     {
         #region Properties
-        [SerializeField] new IconList List;
-        public override List<Icon> Objects
-        {
-            get
-            {
-                return base.Objects;
-            }
+        [SerializeField] protected IconList m_List;
+        public override SelectableListWithItemAction<Icon> List => m_List;
 
-            set
-            {
-                List.Initialize();
-                base.Objects = value;
-                List.SortByName(IconList.Sorting.Descending);
-            }
-        }
+        [SerializeField] protected IconCreator m_ObjectCreator;
+        public override ObjectCreator<Icon> ObjectCreator => m_ObjectCreator;
 
-        Tools.CSharp.Window m_Window;
+        [SerializeField] Tools.CSharp.Window m_Window;
         public Tools.CSharp.Window Window
         {
             get
@@ -35,7 +25,7 @@ namespace HBP.UI.Experience.Protocol
             set
             {
                 m_Window = value;
-                foreach(var modifier in SubWindows.OfType<IconModifier>())
+                foreach(var modifier in SubWindowsManager.Windows.OfType<IconModifier>())
                 {
                     modifier.Window = value;
                 }
@@ -43,20 +33,11 @@ namespace HBP.UI.Experience.Protocol
         }
         #endregion
 
-        #region Public Methods
-        public override void Initialize()
-        {
-            base.List = List;
-            base.Initialize();
-        }
+        #region Protected Methods
         protected override ItemModifier<Icon> OpenModifier(Icon item, bool interactable)
         {
-            IconModifier modifier = ApplicationState.WindowsManager.OpenModifier(item, interactable) as IconModifier;
+            IconModifier modifier = base.OpenModifier(item, interactable) as IconModifier;
             modifier.Window = Window;
-            modifier.OnClose.AddListener(() => OnCloseSubWindow(modifier));
-            modifier.OnSave.AddListener(() => OnSaveModifier(modifier));
-            OnOpenSavableWindow.Invoke(modifier);
-            SubWindows.Add(modifier);
             return modifier;
         }
         #endregion
