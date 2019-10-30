@@ -1,11 +1,12 @@
 ﻿using HBP.Data.Experience.Protocol;
 using System.Globalization;
+using Tools.CSharp;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class OffsetTreatmentSubModifier : SubModifier<Data.Experience.Protocol.OffsetTreatment>
+    public class OffsetTreatmentSubModifier : SubModifier<OffsetTreatment>
     {
         #region Properties
         [SerializeField] InputField m_OffsetInputField;
@@ -28,18 +29,22 @@ namespace HBP.UI.Experience.Protocol
         public override void Initialize()
         {
             base.Initialize();
+
+            m_OffsetInputField.onEndEdit.AddListener(OnChangeOffset);
         }
-        public void OnChangeOffset(float offset)
+        public void OnChangeOffset(string value)
         {
-            Object.Offset = offset;
+            if (NumberExtension.TryParseFloat(value, out float floatResult))
+            {
+                Object.Offset = floatResult;
+            }
         }
         #endregion
 
         #region Protected Methods
         protected override void SetFields(OffsetTreatment objectToDisplay)
         {
-            CultureInfo cultureInfo = CultureInfo.GetCultureInfo("en-US");
-            m_OffsetInputField.text = objectToDisplay.Offset.ToString("0.##", cultureInfo);
+            m_OffsetInputField.text = objectToDisplay.Offset.ToString("0.##", CultureInfo.InvariantCulture);
         }
         #endregion
     }

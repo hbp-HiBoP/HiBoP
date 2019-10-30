@@ -1,5 +1,6 @@
 ﻿using HBP.Data.Experience.Protocol;
 using System.Globalization;
+using Tools.CSharp;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -25,17 +26,25 @@ namespace HBP.UI.Experience.Protocol
         #endregion
 
         #region Public Methods
-        public void OnChangeFactorValue(float value)
+        public override void Initialize()
         {
-            Object.Factor = value;
+            base.Initialize();
+
+            m_FactorInputField.onEndEdit.AddListener(OnChangeFactorValue);
         }
         #endregion
 
         #region Protected Methods
         protected override void SetFields(FactorTreatment objectToDisplay)
         {
-            CultureInfo cultureInfo = CultureInfo.GetCultureInfo("en-US");
-            m_FactorInputField.text = objectToDisplay.Factor.ToString("0.##", cultureInfo);
+            m_FactorInputField.text = objectToDisplay.Factor.ToString("0.##", CultureInfo.InvariantCulture);
+        }
+        void OnChangeFactorValue(string value)
+        {
+            if (NumberExtension.TryParseFloat(value, out float floatResult))
+            {
+                Object.Factor = floatResult;
+            }
         }
         #endregion
     }
