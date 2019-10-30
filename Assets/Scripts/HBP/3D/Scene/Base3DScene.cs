@@ -1886,27 +1886,27 @@ namespace HBP.Module3D
         /// <returns>Coroutine return</returns>
         private IEnumerator c_LoadImplantations(IEnumerable<Data.Patient> patients, List<string> commonImplantations, Action<int> updateCircle, Action<Exception> outPut)
         {
-            for (int i = 0; i < commonImplantations.Count; ++i)
-            {
-                yield return Ninja.JumpToUnity;
-                updateCircle(i);
-                yield return Ninja.JumpBack;
-                string implantationName = commonImplantations[i];
-                try
-                {
-                    IEnumerable<string> ptsFiles = from patient in patients select patient.Sites.Find((imp) => imp.Name == implantationName).File;
-                    IEnumerable<string> marsAtlasFiles = from patient in patients select patient.Sites.Find((imp) => imp.Name == implantationName).MarsAtlas;
-                    IEnumerable<string> patientIDs = from patient in patients select patient.ID;
+            //for (int i = 0; i < commonImplantations.Count; ++i)
+            //{
+            //    yield return Ninja.JumpToUnity;
+            //    updateCircle(i);
+            //    yield return Ninja.JumpBack;
+            //    string implantationName = commonImplantations[i];
+            //    try
+            //    {
+            //        IEnumerable<string> ptsFiles = from patient in patients select patient.Sites.Find((imp) => imp.Name == implantationName).File;
+            //        IEnumerable<string> marsAtlasFiles = from patient in patients select patient.Sites.Find((imp) => imp.Name == implantationName).MarsAtlas;
+            //        IEnumerable<string> patientIDs = from patient in patients select patient.ID;
 
-                    m_ImplantationManager.Add(implantationName, ptsFiles, marsAtlasFiles, patientIDs);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    outPut(new CanNotLoadImplantation(implantationName));
-                    yield break;
-                }
-            }
+            //        m_ImplantationManager.Add(implantationName, ptsFiles, marsAtlasFiles, patientIDs);
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        Debug.LogException(e);
+            //        outPut(new CanNotLoadImplantation(implantationName));
+            //        yield break;
+            //    }
+            //}
             
             yield return Ninja.JumpToUnity;
             m_ImplantationManager.Select("");
