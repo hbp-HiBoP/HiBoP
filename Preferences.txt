@@ -39,9 +39,9 @@
     "Anatomic": {
       "$type": "HBP.Data.Preferences.AnatomicPreferences, Assembly-CSharp",
       "SiteNameCorrection": true,
-      "MeshPreloading": true,
-      "MRIPreloading": true,
-      "ImplantationPreloading": true
+      "MeshPreloading": false,
+      "MRIPreloading": false,
+      "ImplantationPreloading": false
     }
   },
   "Visualization": {

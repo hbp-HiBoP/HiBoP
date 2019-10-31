@@ -87,7 +87,7 @@ namespace HBP.Data.Visualization
         /// </summary>
         public virtual bool IsVisualizable
         {
-            get { return Columns.Count > 0 && Patients.Count > 0 && Columns.All((column) => column.IsCompatible(Patients)) && FindUsableImplantations().Count > 0; }
+            get { return Columns.Count > 0 && Patients.Count > 0 && Columns.All((column) => column.IsCompatible(Patients)); }
         }
         /// <summary>
         /// Is the visualization opened in a scene ?
@@ -336,36 +336,6 @@ namespace HBP.Data.Visualization
         public IEnumerable<DataInfo> GetDataInfo(Patient patient)
         {
             return IEEGColumns.Select(c => GetDataInfo(patient, c)).Distinct();
-        }
-        /// <summary>
-        /// Find implantations that are usable in all patients
-        /// </summary>
-        /// <param name="patients"></param>
-        /// <returns></returns>
-        public List<string> FindUsableImplantations()
-        {
-            return new List<string>();
-            //return Patients.First().Sites.Where((i) => Patients.All(p => p.Sites.Any((ii) => ii.Name == i.Name && ii.WasUsable))).Select((i) => i.Name).ToList();
-            // On a gardé le code pour tester si manque de performance.
-            //List<string> commonImplantations = new List<string>();
-            //foreach (Anatomy.Implantation implantation in Patients[0].Implantations)
-            //{
-            //    string implantationName = implantation.Name;
-            //    bool isImplantationCommonToAllPatients = true;
-            //    foreach (Patient patient in Patients)
-            //    {
-            //        if (patient.Implantations.FindIndex((i) => i.Name == implantationName && i.WasUsable) == -1)
-            //        {
-            //            isImplantationCommonToAllPatients = false;
-            //            break;
-            //        }
-            //    }
-            //    if (isImplantationCommonToAllPatients)
-            //    {
-            //        commonImplantations.Add(implantation.Name);
-            //    }
-            //}
-            //return commonImplantations;
         }
         public override void GenerateID()
         {

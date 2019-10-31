@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace HBP.Module3D
 {
@@ -8,15 +9,54 @@ namespace HBP.Module3D
     /// </summary>
     public class Implantation3D
     {
+        #region Structs
+        /// <summary>
+        /// Struct containing basic information about a site
+        /// </summary>
+        public struct SiteInfo
+        {
+            /// <summary>
+            /// Name of the site
+            /// </summary>
+            public string Name { get; set; }
+            /// <summary>
+            /// Position of the site
+            /// </summary>
+            public Vector3 Position { get; set; }
+            /// <summary>
+            /// Index of this site within the electrode
+            /// </summary>
+            public int Index { get; set; }
+            /// <summary>
+            /// Position of the site in the Unity reference
+            /// </summary>
+            public Vector3 UnityPosition
+            {
+                get
+                {
+                    return new Vector3(-Position.x, Position.y, Position.z);
+                }
+            }
+            /// <summary>
+            /// Index of the patient in the visualization
+            /// </summary>
+            public int PatientIndex { get; set; }
+            /// <summary>
+            /// Patient this site belongs to
+            /// </summary>
+            public Data.Patient Patient { get; set; }
+        }
+        #endregion
+
         #region Properties
         /// <summary>
         /// Name of the implantation
         /// </summary>
         public string Name { get; set; }
         /// <summary>
-        /// List of the sites in the DLL
+        /// List of the sites of this implantation
         /// </summary>
-        public DLL.PatientElectrodesList PatientElectrodesList { get; set; } = new DLL.PatientElectrodesList();
+        public List<SiteInfo> SiteInfos { get; private set; }
         /// <summary>
         /// Raw list of all sites
         /// </summary>
@@ -28,21 +68,29 @@ namespace HBP.Module3D
         #endregion
 
         #region Constructors
-        public Implantation3D(string name, IEnumerable<string> pts, IEnumerable<string> marsAtlas, IEnumerable<string> patientIDs)
+        public Implantation3D(string name, List<SiteInfo> siteInfos, IEnumerable<Data.Patient> patients)
         {
             Name = name;
-            IsLoaded = PatientElectrodesList.LoadPTSFiles(pts.ToArray(), marsAtlas.ToArray(), patientIDs.ToArray(), ApplicationState.Module3D.MarsAtlasIndex);
-            if (IsLoaded) PatientElectrodesList.ExtractRawSiteList(RawSiteList);
+            SiteInfos = siteInfos;
+            RawSiteList.SetPatients(patients);
+            foreach (var siteInfo in siteInfos)
+            {
+                RawSiteList.AddSite(siteInfo.Name, siteInfo.Position, siteInfo.PatientIndex, siteInfo.Index);
+            }
+            IsLoaded = true;
         }
         #endregion
 
         #region Public Methods
+        public List<SiteInfo> GetSitesOfPatient(Data.Patient patient)
+        {
+            return SiteInfos.Where(s => s.Patient == patient).ToList();
+        }
         /// <summary>
         /// Dispose all the DLL objects
         /// </summary>
         public void Clean()
         {
-            PatientElectrodesList?.Dispose();
             RawSiteList?.Dispose();
         }
         #endregion

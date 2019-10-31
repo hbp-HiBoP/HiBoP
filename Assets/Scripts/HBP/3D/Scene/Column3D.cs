@@ -248,30 +248,30 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="idColumn">ID of the column</param>
         /// <param name="baseColumn">Data of the column</param>
-        /// <param name="sites">List of the sites in the DLL</param>
+        /// <param name="implantation">Selected implantation</param>
         /// <param name="sceneSitePatientParent">List of the patient parent of the sites as instantiated in the scene</param>
-        public void Initialize(int idColumn, Data.Visualization.Column baseColumn, PatientElectrodesList sites, List<GameObject> sceneSitePatientParent)
+        public void Initialize(int idColumn, Data.Visualization.Column baseColumn, Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             Layer = "Column" + idColumn;
             ColumnData = baseColumn;
-            UpdateSites(sites, sceneSitePatientParent);
+            UpdateSites(implantation, sceneSitePatientParent);
             AddView();
             IsRenderingUpToDate = false;
         }
         /// <summary>
         /// Update the sites of this column (when changing the implantation of the scene)
         /// </summary>
-        /// <param name="sites">List of the sites in the DLL</param>
+        /// <param name="implantation">Selected implantation</param>
         /// <param name="sceneSitePatientParent">List of the patient parent of the sites as instantiated in the scene</param>
-        public virtual void UpdateSites(PatientElectrodesList sites, List<GameObject> sceneSitePatientParent)
+        public virtual void UpdateSites(Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
-            sites.ExtractRawSiteList(RawElectrodes);
+            RawElectrodes = new RawSiteList(implantation.RawSiteList);
 
             foreach (Transform patientSite in m_SitesMeshesParent)
             {
                 Destroy(patientSite.gameObject);
             }
-            Sites = new List<Site>(sites.NumberOfSites);
+            Sites = new List<Site>(implantation.SiteInfos.Count);
             
             for (int i = 0; i < sceneSitePatientParent.Count; ++i)
             {
@@ -282,50 +282,45 @@ namespace HBP.Module3D
 
                 for (int j = 0; j < sceneSitePatient.childCount; ++j)
                 {
-                    Transform sceneSiteElectrode = sceneSitePatient.GetChild(j);
-                    Transform siteElectrode = sitePatient.GetChild(j);
-                    for (int k = 0; k < sceneSiteElectrode.childCount; ++k)
+                    GameObject sceneSiteGameObject = sceneSitePatient.GetChild(j).gameObject;
+                    GameObject siteGameObject = sitePatient.GetChild(j).gameObject;
+                    siteGameObject.layer = LayerMask.NameToLayer(Layer);
+                    Site site = siteGameObject.GetComponent<Site>();
+                    Site baseSite = sceneSiteGameObject.GetComponent<Site>();
+                    site.Information = baseSite.Information;
+                    // State
+                    if (!SiteStateBySiteID.TryGetValue(baseSite.Information.FullCorrectedID, out SiteState siteState))
                     {
-                        GameObject sceneSiteGameObject = sceneSiteElectrode.GetChild(k).gameObject;
-                        GameObject siteGameObject = siteElectrode.GetChild(k).gameObject;
-                        siteGameObject.layer = LayerMask.NameToLayer(Layer);
-                        Site site = siteGameObject.GetComponent<Site>();
-                        Site baseSite = sceneSiteGameObject.GetComponent<Site>();
-                        site.Information = baseSite.Information;
-                        // State
-                        if (!SiteStateBySiteID.TryGetValue(baseSite.Information.FullCorrectedID, out SiteState siteState))
+                        siteState = new SiteState();
+                        siteState.ApplyState(baseSite.State);
+                        SiteStateBySiteID.Add(baseSite.Information.FullCorrectedID, siteState);
+                    }
+                    site.State = siteState;
+                    site.State.OnChangeState.AddListener(() => OnChangeSiteState.Invoke(site));
+                    // Configuration
+                    if (ColumnData.BaseConfiguration.ConfigurationBySite.TryGetValue(site.Information.FullCorrectedID, out Data.Visualization.SiteConfiguration siteConfiguration))
+                    {
+                        site.Configuration = siteConfiguration;
+                    }
+                    else
+                    {
+                        ColumnData.BaseConfiguration.ConfigurationBySite.Add(site.Information.FullCorrectedID, site.Configuration);
+                    }
+                    site.IsActive = true;
+                    site.OnSelectSite.AddListener((selected) =>
+                    {
+                        if (selected)
                         {
-                            siteState = new SiteState();
-                            siteState.ApplyState(baseSite.State);
-                            SiteStateBySiteID.Add(baseSite.Information.FullCorrectedID, siteState);
-                        }
-                        site.State = siteState;
-                        site.State.OnChangeState.AddListener(() => OnChangeSiteState.Invoke(site));
-                        // Configuration
-                        if (ColumnData.BaseConfiguration.ConfigurationBySite.TryGetValue(site.Information.FullCorrectedID, out Data.Visualization.SiteConfiguration siteConfiguration))
-                        {
-                            site.Configuration = siteConfiguration;
+                            UnselectSite();
+                            SelectedSite = site;
                         }
                         else
                         {
-                            ColumnData.BaseConfiguration.ConfigurationBySite.Add(site.Information.FullCorrectedID, site.Configuration);
+                            SelectedSite = null;
                         }
-                        site.IsActive = true;
-                        site.OnSelectSite.AddListener((selected) =>
-                        {
-                            if (selected)
-                            {
-                                UnselectSite();
-                                SelectedSite = site;
-                            }
-                            else
-                            {
-                                SelectedSite = null;
-                            }
-                            OnSelectSite.Invoke(SelectedSite);
-                        });
-                        Sites.Add(site);
-                    }
+                        OnSelectSite.Invoke(SelectedSite);
+                    });
+                    Sites.Add(site);
                 }
             }
         }

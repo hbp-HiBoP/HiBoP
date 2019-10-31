@@ -1114,7 +1114,7 @@ namespace HBP.Module3D
                     });
                 }
             }
-            column.Initialize(Columns.Count, baseColumn, m_ImplantationManager.SelectedImplantation.PatientElectrodesList, m_DisplayedObjects.SitesPatientParent);
+            column.Initialize(Columns.Count, baseColumn, m_ImplantationManager.SelectedImplantation, m_DisplayedObjects.SitesPatientParent);
             column.ResetSplitsNumber(m_MeshManager.MeshSplitNumber);
             Columns.Add(column);
             OnAddColumn.Invoke();
@@ -1724,15 +1724,12 @@ namespace HBP.Module3D
         {
             Exception exception = null;
 
-            // Find all usable implantations
-            List<string> usableImplantations = visualization.FindUsableImplantations();
-
             // Compute progress variables
             float progress = 0f;
             float totalTime = 0, loadingMeshProgress = 0, loadingMeshTime = 0, loadingMRIProgress = 0, loadingMRITime = 0, loadingImplantationsProgress = 0, loadingImplantationsTime = 0, loadingMNIProgress = 0, loadingMNITime = 0, loadingIEEGProgress = 0, loadingIEEGTime = 0;
             if (Type == Data.Enums.SceneType.SinglePatient)
             {
-                totalTime = Visualization.Patients[0].Meshes.Count * LOADING_MESH_WEIGHT + Visualization.Patients[0].MRIs.Count * LOADING_MRI_WEIGHT + usableImplantations.Count * LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + LOADING_IEEG_WEIGHT;
+                totalTime = Visualization.Patients[0].Meshes.Count * LOADING_MESH_WEIGHT + Visualization.Patients[0].MRIs.Count * LOADING_MRI_WEIGHT + LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + LOADING_IEEG_WEIGHT;
                 loadingMeshProgress = LOADING_MESH_WEIGHT / totalTime;
                 loadingMeshTime = LOADING_MESH_WEIGHT / 1000.0f;
                 loadingMRIProgress = LOADING_MRI_WEIGHT / totalTime;
@@ -1746,7 +1743,7 @@ namespace HBP.Module3D
             }
             else
             {
-                totalTime = usableImplantations.Count * LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + Visualization.Patients.Count * LOADING_IEEG_WEIGHT;
+                totalTime = LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + Visualization.Patients.Count * LOADING_IEEG_WEIGHT;
                 loadingImplantationsProgress = (Visualization.Patients.Count * LOADING_IMPLANTATIONS_WEIGHT) / totalTime;
                 loadingImplantationsTime = (Visualization.Patients.Count * LOADING_IMPLANTATIONS_WEIGHT) / 1000.0f;
                 loadingMNIProgress = LOADING_MNI_WEIGHT / totalTime;
@@ -1816,10 +1813,10 @@ namespace HBP.Module3D
             }
 
             // Loading Sites
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadImplantations(visualization.Patients, usableImplantations, (i) =>
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadSites(visualization.Patients.ToArray(), (i) =>
             {
                 progress += loadingImplantationsProgress;
-                onChangeProgress.Invoke(progress, loadingImplantationsTime, new LoadingText("Loading implantations ", "", "[" + (i + 1).ToString() + "/" + usableImplantations.Count + "]"));
+                onChangeProgress.Invoke(progress, loadingImplantationsTime, new LoadingText("Loading implantations"));
             }, e => exception = e));
             if (exception != null)
             {
@@ -1892,29 +1889,41 @@ namespace HBP.Module3D
         /// <param name="updateCircle">Action to update the loading circle</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_LoadImplantations(IEnumerable<Data.Patient> patients, List<string> commonImplantations, Action<int> updateCircle, Action<Exception> outPut)
+        private IEnumerator c_LoadSites(IEnumerable<Data.Patient> patients, Action<int> updateCircle, Action<Exception> outPut)
         {
-            //for (int i = 0; i < commonImplantations.Count; ++i)
-            //{
-            //    yield return Ninja.JumpToUnity;
-            //    updateCircle(i);
-            //    yield return Ninja.JumpBack;
-            //    string implantationName = commonImplantations[i];
-            //    try
-            //    {
-            //        IEnumerable<string> ptsFiles = from patient in patients select patient.Sites.Find((imp) => imp.Name == implantationName).File;
-            //        IEnumerable<string> marsAtlasFiles = from patient in patients select patient.Sites.Find((imp) => imp.Name == implantationName).MarsAtlas;
-            //        IEnumerable<string> patientIDs = from patient in patients select patient.ID;
+            Dictionary<string, List<Implantation3D.SiteInfo>> siteInfoByImplantation = new Dictionary<string, List<Implantation3D.SiteInfo>>();
+            int patientIndex = 0;
+            foreach (var patient in patients)
+            {
+                int siteIndex = 0;
+                foreach (var site in patient.Sites)
+                {
+                    foreach (var coordinate in site.Coordinates)
+                    {
+                        if (!siteInfoByImplantation.TryGetValue(coordinate.ReferenceSystem, out List<Implantation3D.SiteInfo> siteInfos))
+                        {
+                            siteInfos = new List<Implantation3D.SiteInfo>();
+                            siteInfoByImplantation.Add(coordinate.ReferenceSystem, siteInfos);
+                        }
+                        Implantation3D.SiteInfo siteInfo = new Implantation3D.SiteInfo()
+                        {
+                            Name = site.Name,
+                            Position = coordinate.Value.ToVector3(),
+                            Patient = patient,
+                            PatientIndex = patientIndex,
+                            Index = siteIndex
+                        };
+                        siteInfos.Add(siteInfo);
+                    }
+                    siteIndex++;
+                }
+                patientIndex++;
+            }
 
-            //        m_ImplantationManager.Add(implantationName, ptsFiles, marsAtlasFiles, patientIDs);
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        Debug.LogException(e);
-            //        outPut(new CanNotLoadImplantation(implantationName));
-            //        yield break;
-            //    }
-            //}
+            foreach (var kv in siteInfoByImplantation)
+            {
+                m_ImplantationManager.Add(kv.Key, kv.Value, patients);
+            }
             
             yield return Ninja.JumpToUnity;
             m_ImplantationManager.Select("");

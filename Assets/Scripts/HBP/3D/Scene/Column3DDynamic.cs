@@ -128,11 +128,11 @@ namespace HBP.Module3D
         /// <summary>
         /// Update the sites of this column (when changing the implantation of the scene)
         /// </summary>
-        /// <param name="sites">List of the sites in the DLL</param>
+        /// <param name="implantation">Selected implantation</param>
         /// <param name="sceneSitePatientParent">List of the patient parent of the sites as instantiated in the scene</param>
-        public override void UpdateSites(PatientElectrodesList sites, List<GameObject> sceneSitePatientParent)
+        public override void UpdateSites(Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
-            base.UpdateSites(sites, sceneSitePatientParent);
+            base.UpdateSites(implantation, sceneSitePatientParent);
             
             m_ElectrodesSizeScale = new List<Vector3>(RawElectrodes.NumberOfSites);
             m_ElectrodesPositiveColor = new List<bool>(RawElectrodes.NumberOfSites);

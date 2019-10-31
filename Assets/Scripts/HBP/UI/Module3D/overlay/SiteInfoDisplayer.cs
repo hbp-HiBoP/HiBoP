@@ -234,7 +234,7 @@ namespace HBP.UI.Module3D
             if (siteInfo.Site)
             {
                 string marsAtlasText = siteInfo.Site.Information.MarsAtlasLabel;
-                if (!marsAtlasText.Contains("No info") && !marsAtlasText.Contains("not found"))
+                if (!string.IsNullOrEmpty(marsAtlasText) && !marsAtlasText.Contains("No info") && !marsAtlasText.Contains("not found"))
                 {
                     m_MarsAtlasText.transform.parent.gameObject.SetActive(true);
                     m_MarsAtlasText.text = marsAtlasText;
@@ -244,7 +244,7 @@ namespace HBP.UI.Module3D
                     m_MarsAtlasText.transform.parent.gameObject.SetActive(false);
                 }
                 string broadmanText = siteInfo.Site.Information.BrodmannAreaLabel;
-                if (!broadmanText.Contains("No info") && !broadmanText.Contains("not found"))
+                if (!string.IsNullOrEmpty(broadmanText) && !broadmanText.Contains("No info") && !broadmanText.Contains("not found"))
                 {
                     m_BroadmanText.transform.parent.gameObject.SetActive(true);
                     m_BroadmanText.text = broadmanText;
