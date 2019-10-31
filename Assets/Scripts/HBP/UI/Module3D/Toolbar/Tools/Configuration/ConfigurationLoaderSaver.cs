@@ -35,7 +35,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ObjectSelector<Data.Visualization.Visualization> selector = ApplicationState.WindowsManager.OpenSelector<Data.Visualization.Visualization>();
+                ObjectSelector<Data.Visualization.Visualization> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Visualizations,false);
                 selector.OnSave.AddListener(() =>
                 {
                     if (selector.ObjectsSelected.Length > 0)
@@ -44,8 +44,6 @@ namespace HBP.UI.Module3D.Tools
                         SelectedScene.LoadConfiguration();
                     }
                 });
-                selector.Objects = ApplicationState.ProjectLoaded.Visualizations.ToArray();
-                selector.MultiSelection = false;
             });
             m_Reset.onClick.AddListener(() =>
             {

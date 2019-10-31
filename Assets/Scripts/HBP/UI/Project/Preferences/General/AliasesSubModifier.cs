@@ -24,7 +24,8 @@ namespace HBP.UI.General
         public override void Initialize()
         {
             base.Initialize();
-            m_AliasListGestion.Initialize();
+
+            m_AliasListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
         }
         #endregion
 
@@ -33,7 +34,7 @@ namespace HBP.UI.General
         protected override void SetFields(ProjectSettings objectToDisplay)
         {
             base.SetFields(objectToDisplay);
-            m_AliasListGestion.Objects = objectToDisplay.Aliases;
+            m_AliasListGestion.List.Set(objectToDisplay.Aliases);
         }
         #endregion
     }

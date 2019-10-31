@@ -6,7 +6,7 @@ using d = HBP.Data.Experience.Protocol;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class SubBlocModifier : ItemModifier<d.SubBloc>
+    public class SubBlocModifier : ObjectModifier<d.SubBloc>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -54,9 +54,9 @@ namespace HBP.UI.Experience.Protocol
             m_WindowSlider.onValueChanged.AddListener(OnChangeWindow);
             m_BaselineSlider.onValueChanged.AddListener(OnChangeBaseline);
 
-            m_EventListGestion.Initialize(m_SubWindows);
-            m_IconListGestion.Initialize(m_SubWindows);
-            m_TreatmentListGestion.Initialize(m_SubWindows);
+            m_EventListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
+            m_IconListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
+            m_TreatmentListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
         }
         protected override void SetFields(d.SubBloc objectToDisplay)
         {
@@ -76,9 +76,9 @@ namespace HBP.UI.Experience.Protocol
             m_BaselineSlider.step = preferences.Step;
             m_BaselineSlider.Values = objectToDisplay.Baseline.ToVector2();
 
-            m_EventListGestion.Objects = objectToDisplay.Events;
-            m_IconListGestion.Objects = objectToDisplay.Icons;
-            m_TreatmentListGestion.Objects = objectToDisplay.Treatments;
+            m_EventListGestion.List.Set(objectToDisplay.Events);
+            m_IconListGestion.List.Set(objectToDisplay.Icons);
+            m_TreatmentListGestion.List.Set(objectToDisplay.Treatments);
         }
         void OnChangeWindow(float min, float max)
         {

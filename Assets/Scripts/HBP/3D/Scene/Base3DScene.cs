@@ -1720,7 +1720,7 @@ namespace HBP.Module3D
         /// <param name="onChangeProgress">Event to update the loading circle</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        public IEnumerator c_Initialize(Visualization visualization, GenericEvent<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
+        public IEnumerator c_Initialize(Visualization visualization, Action<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
         {
             Exception exception = null;
 
@@ -1728,7 +1728,7 @@ namespace HBP.Module3D
             List<string> usableImplantations = visualization.FindUsableImplantations();
 
             // Compute progress variables
-            float progress = 1.0f;
+            float progress = 0f;
             float totalTime = 0, loadingMeshProgress = 0, loadingMeshTime = 0, loadingMRIProgress = 0, loadingMRITime = 0, loadingImplantationsProgress = 0, loadingImplantationsTime = 0, loadingMNIProgress = 0, loadingMNITime = 0, loadingIEEGProgress = 0, loadingIEEGTime = 0;
             if (Type == Data.Enums.SceneType.SinglePatient)
             {
@@ -1755,10 +1755,10 @@ namespace HBP.Module3D
                 loadingIEEGTime = (Visualization.Patients.Count * LOADING_IEEG_WEIGHT) / 1000.0f;
             }
             yield return Ninja.JumpToUnity;
-            onChangeProgress.Invoke(progress, 0.0f, new LoadingText());
+            onChangeProgress(progress, 0.0f, new LoadingText());
 
             // Checking MNI
-            onChangeProgress.Invoke(progress, 0.0f, new LoadingText("Loading MNI"));
+            onChangeProgress(progress, 0.0f, new LoadingText("Loading MNI"));
             System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
             watch.Start();
             yield return new WaitUntil(delegate { return ApplicationState.Module3D.MNIObjects.IsLoaded || watch.ElapsedMilliseconds > 5000; });
@@ -1894,27 +1894,27 @@ namespace HBP.Module3D
         /// <returns>Coroutine return</returns>
         private IEnumerator c_LoadImplantations(IEnumerable<Data.Patient> patients, List<string> commonImplantations, Action<int> updateCircle, Action<Exception> outPut)
         {
-            for (int i = 0; i < commonImplantations.Count; ++i)
-            {
-                yield return Ninja.JumpToUnity;
-                updateCircle(i);
-                yield return Ninja.JumpBack;
-                string implantationName = commonImplantations[i];
-                try
-                {
-                    IEnumerable<string> ptsFiles = from patient in patients select patient.Implantations.Find((imp) => imp.Name == implantationName).File;
-                    IEnumerable<string> marsAtlasFiles = from patient in patients select patient.Implantations.Find((imp) => imp.Name == implantationName).MarsAtlas;
-                    IEnumerable<string> patientIDs = from patient in patients select patient.ID;
+            //for (int i = 0; i < commonImplantations.Count; ++i)
+            //{
+            //    yield return Ninja.JumpToUnity;
+            //    updateCircle(i);
+            //    yield return Ninja.JumpBack;
+            //    string implantationName = commonImplantations[i];
+            //    try
+            //    {
+            //        IEnumerable<string> ptsFiles = from patient in patients select patient.Sites.Find((imp) => imp.Name == implantationName).File;
+            //        IEnumerable<string> marsAtlasFiles = from patient in patients select patient.Sites.Find((imp) => imp.Name == implantationName).MarsAtlas;
+            //        IEnumerable<string> patientIDs = from patient in patients select patient.ID;
 
-                    m_ImplantationManager.Add(implantationName, ptsFiles, marsAtlasFiles, patientIDs);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    outPut(new CanNotLoadImplantation(implantationName));
-                    yield break;
-                }
-            }
+            //        m_ImplantationManager.Add(implantationName, ptsFiles, marsAtlasFiles, patientIDs);
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        Debug.LogException(e);
+            //        outPut(new CanNotLoadImplantation(implantationName));
+            //        yield break;
+            //    }
+            //}
             
             yield return Ninja.JumpToUnity;
             m_ImplantationManager.Select("");

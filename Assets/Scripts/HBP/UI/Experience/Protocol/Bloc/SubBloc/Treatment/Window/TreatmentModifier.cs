@@ -7,7 +7,7 @@ using d = HBP.Data.Experience.Protocol;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class TreatmentModifier : ItemModifier<d.Treatment>
+    public class TreatmentModifier : ObjectModifier<d.Treatment>
     {
         #region Properties
         [SerializeField] Toggle m_WindowToggle;

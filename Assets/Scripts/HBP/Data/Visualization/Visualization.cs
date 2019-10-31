@@ -93,10 +93,6 @@ namespace HBP.Data.Visualization
         /// Is the visualization opened in a scene ?
         /// </summary>
         public bool IsOpen { get { return ApplicationState.Module3D.Visualizations.Contains(this); } }
-
-        const float FIND_FILES_TO_READ_PROGRESS = 0.025f;
-        const float LOAD_DATA_PROGRESS = 0.8f;
-        const float LOAD_COLUMNS_PROGRESS = 0.175f;
         #endregion
 
         #region Constructors
@@ -232,22 +228,53 @@ namespace HBP.Data.Visualization
         /// Load the visualization.
         /// </summary>
         /// <returns></returns>
-        public IEnumerator c_Load(GenericEvent<float,float, LoadingText> onChangeProgress = null)
+        public IEnumerator c_Load(Action<float,float, LoadingText> onChangeProgress)
         {
-            if (onChangeProgress == null) onChangeProgress = new GenericEvent<float, float, LoadingText>();
-
-            Exception exception = null;
-            float progress = 0.0f;
-            yield return Ninja.JumpToUnity;
-            if (IEEGColumns.Count > 0 || CCEPColumns.Count > 0) // FIXME : this security should not exist
-            {
-                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadColumnsData(progress, onChangeProgress, e => { exception = e; }));
-            }
             yield return Ninja.JumpBack;
-            if (exception != null)
+
+            int nbDynamicColumns = CCEPColumns.Count + IEEGColumns.Count;
+
+            onChangeProgress(0, 0, new LoadingText("Loading Visualization"));
+
+            if (nbDynamicColumns > 0) // FIXME : this security should not exist
             {
-                throw exception;
+                Exception exception = null;
+                int nbPatients = m_PatientsID.Count;
+
+                float steps = 1 + 2 * nbPatients * nbDynamicColumns;
+                float progress = 0.0f;
+
+                float findDataInfoToReadProgress = 1 / steps;
+                float LoadDataProgress = nbPatients * nbDynamicColumns / steps;
+                float LoadColumnsProgress = nbPatients * nbDynamicColumns / steps;
+
+                // Find dataInfo.
+                Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn = new Dictionary<Column, IEnumerable<DataInfo>>();
+                yield return Ninja.JumpToUnity;
+                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_FindDataInfoToRead((localProgress, duration, text) => onChangeProgress(progress + localProgress * findDataInfoToReadProgress, duration, text), (value, e) => { dataInfoByColumn = value; exception = e; }));
+                progress += findDataInfoToReadProgress;
+
+                // Load Data.
+                if (exception == null)
+                {
+                    yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadData(dataInfoByColumn, (localProgress, duration, text) => onChangeProgress(progress + localProgress * LoadDataProgress, duration, text), (e) => { exception = e; }));
+                    progress += LoadDataProgress;
+                }
+                // Load Columns.
+                if (exception == null)
+                {
+                    yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadColumns(dataInfoByColumn, (localProgress, duration, text) => onChangeProgress(progress + localProgress * LoadColumnsProgress, duration, text), (e) => exception = e));
+                    progress += LoadColumnsProgress;
+                }
+
+                yield return Ninja.JumpBack;
+                if (exception != null)
+                {
+                    throw exception;
+                }
             }
+
+            onChangeProgress(1.0f, 0, new LoadingText("Visualization loaded successfully"));
         }
         /// <summary>
         /// Swap two columns by index.
@@ -317,7 +344,8 @@ namespace HBP.Data.Visualization
         /// <returns></returns>
         public List<string> FindUsableImplantations()
         {
-            return Patients.First().Implantations.Where((i) => Patients.All(p => p.Implantations.Any((ii) => ii.Name == i.Name && ii.WasUsable))).Select((i) => i.Name).ToList();
+            return new List<string>();
+            //return Patients.First().Sites.Where((i) => Patients.All(p => p.Sites.Any((ii) => ii.Name == i.Name && ii.WasUsable))).Select((i) => i.Name).ToList();
             // On a gardé le code pour tester si manque de performance.
             //List<string> commonImplantations = new List<string>();
             //foreach (Anatomy.Implantation implantation in Patients[0].Implantations)
@@ -381,50 +409,18 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Private Methods
-        IEnumerator c_LoadColumnsData(float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
+        IEnumerator c_FindDataInfoToRead(Action<float, float, LoadingText> onChangeProgress, Action<Dictionary<Column, IEnumerable<DataInfo>>, Exception> outPut)
         {
-            Exception exception = null;
-
-            // Find dataInfo.
-            Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn = new Dictionary<Column, IEnumerable<DataInfo>>();
-            yield return Ninja.JumpToUnity;
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_FindDataInfoToRead(progress, onChangeProgress, (value, progressValue, e) => { dataInfoByColumn = value; progress = progressValue; exception = e; }));
             yield return Ninja.JumpBack;
-
-            // Load Data.
-            if (exception == null)
-            {
-                yield return Ninja.JumpToUnity;
-                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadData(dataInfoByColumn, progress, onChangeProgress, (value, e) => { progress = value; exception = e; }));
-                yield return Ninja.JumpBack;
-            }
-            // Load Columns.
-            if (exception == null)
-            {
-                yield return Ninja.JumpToUnity;
-                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadColumns(dataInfoByColumn, progress, onChangeProgress, (value, e) => { progress = value; exception = e; }));
-                yield return Ninja.JumpBack;
-            }
-
-            if (exception != null)
-            {
-                outPut(exception);
-            }
-        }
-        IEnumerator c_FindDataInfoToRead(float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<Dictionary<Column, IEnumerable<DataInfo>>, float, Exception> outPut)
-        {
             Exception exception = null;
+
             // Find files to read.
             Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn = new Dictionary<Column, IEnumerable<DataInfo>>();
-            float progressStep = FIND_FILES_TO_READ_PROGRESS / Columns.Count;
+            int count = 0;
+            int length = Columns.Count;
             foreach (var column in Columns)
             {
-                // Update progress;
-                yield return Ninja.JumpToUnity;
-                progress += progressStep;
-                onChangeProgress.Invoke(progress, 0.0f, new LoadingText("Finding files to read."));
-                yield return Ninja.JumpBack;
-
+                onChangeProgress((float) count / length, 0.0f, new LoadingText("Finding dataInfo for ", column.Name, " [" + (count + 1) + "/" + length + "]"));
                 try
                 {
                     if (column is IEEGColumn iEEGColumn)
@@ -463,24 +459,26 @@ namespace HBP.Data.Visualization
                     UnityEngine.Debug.LogException(e);
                     exception = e;
                 }
+                count++;
             }
-            outPut(dataInfoByColumn, progress, exception);
+            outPut(dataInfoByColumn, exception);
         }
-        IEnumerator c_LoadData(Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn, float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<float, Exception> outPut)
+        IEnumerator c_LoadData(Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn, Action<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
         {
+            yield return Ninja.JumpBack;
+
             Exception exception = null;
             string additionalInformation = "";
-            yield return Ninja.JumpBack;
+
             IEnumerable<DataInfo> dataInfoCollection = dataInfoByColumn.SelectMany(d => d.Value).Distinct();
-            int i = 0;
-            int dataInfoCollectionLength = dataInfoCollection.Count();
-            float progressStep = LOAD_DATA_PROGRESS / (dataInfoCollectionLength + 1);
+            int count = 0;
+            int length = dataInfoCollection.Count();
+            const float LOADING_DATA_PROGRESS = 0.95f;
+            const float NORMALIZING_DATA_PROGRESS = 0.05f;
             foreach (var dataInfo in dataInfoCollection)
             {
-                yield return Ninja.JumpToUnity;
-                progress += progressStep;
-                onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading ", string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name) + (dataInfo is PatientDataInfo patientDataInfo ? " for " + patientDataInfo.Patient.Name : ""), " [" + (i + 1).ToString() + "/" + dataInfoCollectionLength + "]"));
-                yield return Ninja.JumpBack;
+                onChangeProgress(((float)count / length) * LOADING_DATA_PROGRESS, 1.0f, new LoadingText("Loading ", string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name) + (dataInfo is PatientDataInfo patientDataInfo ? " for " + patientDataInfo.Patient.Name : ""), " [" + (count + 1) + "/" + length + "]"));
+
                 try
                 {
                     // PROBABLY FIXME
@@ -491,7 +489,7 @@ namespace HBP.Data.Visualization
                         {
                             if (column is IEEGColumn iEEGColumn)
                             {
-                                if (epochedData.DataByBloc.ContainsKey(iEEGColumn.Bloc) && !epochedData.DataByBloc[iEEGColumn.Bloc].IsValid)
+                                if(epochedData.DataByBloc.TryGetValue(iEEGColumn.Bloc, out BlocData blocData) && !blocData.IsValid)
                                 {
                                     additionalInformation = "No bloc " + iEEGColumn.Bloc.Name + " could be epoched.";
                                     throw new Exception();
@@ -499,7 +497,7 @@ namespace HBP.Data.Visualization
                             }
                             else if (column is CCEPColumn ccepColumn)
                             {
-                                if (epochedData.DataByBloc.ContainsKey(ccepColumn.Bloc) && !epochedData.DataByBloc[ccepColumn.Bloc].IsValid)
+                                if (epochedData.DataByBloc.TryGetValue(ccepColumn.Bloc, out BlocData blocData) && !blocData.IsValid)
                                 {
                                     additionalInformation = "No bloc " + ccepColumn.Bloc.Name + " could be epoched.";
                                     throw new Exception();
@@ -514,38 +512,42 @@ namespace HBP.Data.Visualization
                     exception = new CannotLoadDataInfoException(string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name), (dataInfo is PatientDataInfo pDataInfo ? " for " + pDataInfo.Patient.ID : "Unkwown patient") , additionalInformation);
                     break;
                 }
-                i++;
+                count++;
             }
-            yield return Ninja.JumpToUnity;
-            progress += progressStep;
-            onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Normalizing data"));
-            yield return Ninja.JumpBack;
+            onChangeProgress.Invoke(LOADING_DATA_PROGRESS + NORMALIZING_DATA_PROGRESS, 1.0f, new LoadingText("Normalizing data"));
             if (exception == null)
             {
                 DataManager.NormalizeiEEGData();
             }
-            outPut(progress, exception);
+            outPut(exception);
         }
-        IEnumerator c_LoadColumns(Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn, float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<float, Exception> outPut)
+        IEnumerator c_LoadColumns(Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn, Action<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
         {
+            yield return Ninja.JumpBack;
+
             Exception exception = null;
 
             ReadOnlyCollection<IEEGColumn> iEEGColumns = IEEGColumns;
             int iEEGColumnsLength = iEEGColumns.Count;
             ReadOnlyCollection<CCEPColumn> ccepColumns = CCEPColumns;
             int ccepColumnsLength = ccepColumns.Count;
-            float progressStep = LOAD_COLUMNS_PROGRESS / (iEEGColumnsLength * 2 + ccepColumnsLength * 2);
+            int length = 2 * (iEEGColumnsLength + ccepColumnsLength);
 
+            float progress = 0;
+            const float LOADING_DATA_PROGRESS = 0.95f;
+            const float LOADING_TIMELINE_PROGRESS = 0.05f;
+            float ieegloadingDataProgressStep = LOADING_DATA_PROGRESS * iEEGColumnsLength;
+            float ieegloadingTimeLineProgressStep = LOADING_TIMELINE_PROGRESS * iEEGColumnsLength;
+            float cceploadingDataProgressStep = LOADING_DATA_PROGRESS * ccepColumnsLength;
+            float cceploadingTimeLineProgressStep = LOADING_TIMELINE_PROGRESS * ccepColumnsLength;
+            const float TIME_BY_DATAINFO = 0.15f;
             // iEEG Columns
             if (iEEGColumnsLength > 0)
             {
                 for (int i = 0; i < iEEGColumnsLength; ++i)
                 {
                     IEEGColumn iEEGColumn = iEEGColumns[i];
-                    yield return Ninja.JumpToUnity;
-                    progress += progressStep;
-                    onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading iEEG column ", iEEGColumn.Name, " [" + (i + 1).ToString() + "/" + iEEGColumnsLength + "]"));
-                    yield return Ninja.JumpBack;
+                    onChangeProgress(progress + ieegloadingDataProgressStep, TIME_BY_DATAINFO * dataInfoByColumn[iEEGColumn].Count() , new LoadingText("Loading iEEG column ", iEEGColumn.Name, " [" + (i + 1) + "/" + iEEGColumnsLength + "]"));
                     try
                     {
                         iEEGColumn.Data.Load(dataInfoByColumn[iEEGColumn].OfType<iEEGDataInfo>(), iEEGColumn.Bloc);
@@ -554,18 +556,16 @@ namespace HBP.Data.Visualization
                     {
                         UnityEngine.Debug.LogException(e);
                         exception = e;
-                        outPut(progress, exception);
+                        outPut(exception);
                         yield break;
                     }
+                    progress += ieegloadingDataProgressStep;
                 }
                 Tools.CSharp.EEG.Frequency maxiEEGFrequency = new Tools.CSharp.EEG.Frequency(iEEGColumns.Max(column => column.Data.Frequencies.Max(f => f.RawValue)));
                 for (int i = 0; i < iEEGColumnsLength; ++i)
                 {
                     IEEGColumn column = iEEGColumns[i];
-                    yield return Ninja.JumpToUnity;
-                    progress += progressStep;
-                    onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading timeline of iEEG column ", column.Name, " [" + (i + 1).ToString() + "/" + Columns.Count + "]"));
-                    yield return Ninja.JumpBack;
+                    onChangeProgress(progress, 0, new LoadingText("Loading timeline of iEEG column ", column.Name, " [" + (i + 1) + "/" + iEEGColumnsLength + "]"));
                     column.Data.SetTimeline(maxiEEGFrequency, column.Bloc, iEEGColumns.Select(c => c.Bloc).Distinct());
                     yield return Ninja.JumpToUnity;
                     try
@@ -576,9 +576,11 @@ namespace HBP.Data.Visualization
                     {
                         UnityEngine.Debug.LogException(e);
                         exception = e;
-                        outPut(progress, exception);
+                        outPut(exception);
                         yield break;
                     }
+                    yield return Ninja.JumpBack;
+                    progress += ieegloadingTimeLineProgressStep;
                 }
             }
 
@@ -588,10 +590,7 @@ namespace HBP.Data.Visualization
                 for (int i = 0; i < ccepColumnsLength; ++i)
                 {
                     CCEPColumn ccepColumn = ccepColumns[i];
-                    yield return Ninja.JumpToUnity;
-                    progress += progressStep;
-                    onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading CCEP column ", ccepColumn.Name, " [" + (i + 1).ToString() + "/" + ccepColumnsLength + "]"));
-                    yield return Ninja.JumpBack;
+                    onChangeProgress(progress + cceploadingDataProgressStep, TIME_BY_DATAINFO * dataInfoByColumn[ccepColumn].Count(), new LoadingText("Loading CCEP column ", ccepColumn.Name, " [" + (i + 1) + "/" + ccepColumnsLength + "]"));
                     try
                     {
                         ccepColumn.Data.Load(dataInfoByColumn[ccepColumn].OfType<CCEPDataInfo>(), ccepColumn.Bloc);
@@ -600,18 +599,16 @@ namespace HBP.Data.Visualization
                     {
                         UnityEngine.Debug.LogException(e);
                         exception = e;
-                        outPut(progress, exception);
+                        outPut(exception);
                         yield break;
                     }
+                    progress += cceploadingDataProgressStep;
                 }
                 Tools.CSharp.EEG.Frequency maxCCEPFrequency = new Tools.CSharp.EEG.Frequency(ccepColumns.Max(column => column.Data.Frequencies.Max(f => f.RawValue)));
                 for (int i = 0; i < ccepColumnsLength; ++i)
                 {
                     CCEPColumn column = ccepColumns[i];
-                    yield return Ninja.JumpToUnity;
-                    progress += progressStep;
-                    onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading timeline of CCEP column ", column.Name, " [" + (i + 1).ToString() + "/" + Columns.Count + "]"));
-                    yield return Ninja.JumpBack;
+                    onChangeProgress.Invoke(progress, 0, new LoadingText("Loading timeline of CCEP column ", column.Name, " [" + (i + 1) + "/" + ccepColumnsLength + "]"));
                     column.Data.SetTimeline(maxCCEPFrequency, column.Bloc, ccepColumns.Select(c => c.Bloc).Distinct());
                     yield return Ninja.JumpToUnity;
                     try
@@ -622,13 +619,14 @@ namespace HBP.Data.Visualization
                     {
                         UnityEngine.Debug.LogException(e);
                         exception = e;
-                        outPut(progress, exception);
+                        outPut(exception);
                         yield break;
                     }
+                    yield return Ninja.JumpBack;
+                    progress += cceploadingTimeLineProgressStep;
                 }
             }
-
-            outPut(progress, exception);
+            outPut(exception);
         }
         #endregion
 

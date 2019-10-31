@@ -1,11 +1,12 @@
 ﻿using HBP.Data.Experience.Protocol;
 using System.Globalization;
+using Tools.CSharp;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class RescaleTreatmentSubModifier : SubModifier<Data.Experience.Protocol.RescaleTreatment>
+    public class RescaleTreatmentSubModifier : SubModifier<RescaleTreatment>
     {
         #region Properties
         [SerializeField] InputField m_MinBeforeInputField;
@@ -32,34 +33,53 @@ namespace HBP.UI.Experience.Protocol
         #endregion
 
         #region Public Methods
-        public void OnChangeMinBeforeValue(float value)
+        public override void Initialize()
         {
-            Object.BeforeMin = value;
-        }
-        public void OnChangeMaxBeforeValue(float value)
-        {
-            Object.BeforeMax = value;
-        }
-        public void OnChangeMinAfterValue(float value)
-        {
-            Object.AfterMin = value;
-        }
-        public void OnChangeMaxAfterValue(float value)
-        {
-            Object.AfterMax = value;
+            base.Initialize();
+
+            m_MinBeforeInputField.onEndEdit.AddListener(OnChangeMinBeforeValue);
+            m_MaxBeforeInputField.onEndEdit.AddListener(OnChangeMaxBeforeValue);
+            m_MinAfterInputField.onEndEdit.AddListener(OnChangeMinAfterValue);
+            m_MaxAfterInputField.onEndEdit.AddListener(OnChangeMaxAfterValue);
         }
         #endregion
 
         #region Private Methods
-
+        void OnChangeMinBeforeValue(string value)
+        {
+            if (NumberExtension.TryParseFloat(value, out float floatResult))
+            {
+                Object.BeforeMin = floatResult;
+            }
+        }
+        void OnChangeMaxBeforeValue(string value)
+        {
+            if (NumberExtension.TryParseFloat(value, out float floatResult))
+            {
+                Object.BeforeMax = floatResult;
+            }
+        }
+        void OnChangeMinAfterValue(string value)
+        {
+            if (NumberExtension.TryParseFloat(value, out float floatResult))
+            {
+                Object.AfterMin = floatResult;
+            }
+        }
+        void OnChangeMaxAfterValue(string value)
+        {
+            if (NumberExtension.TryParseFloat(value, out float floatResult))
+            {
+                Object.AfterMax = floatResult;
+            }
+        }
         protected override void SetFields(RescaleTreatment objectToDisplay)
         {
-            CultureInfo cultureInfo = CultureInfo.GetCultureInfo("en-US");
-            m_MinBeforeInputField.text = objectToDisplay.BeforeMin.ToString("0.##", cultureInfo);
-            m_MaxBeforeInputField.text = objectToDisplay.BeforeMax.ToString("0.##", cultureInfo);
+            m_MinBeforeInputField.text = objectToDisplay.BeforeMin.ToString("0.##", CultureInfo.InvariantCulture);
+            m_MaxBeforeInputField.text = objectToDisplay.BeforeMax.ToString("0.##", CultureInfo.InvariantCulture);
 
-            m_MinAfterInputField.text = objectToDisplay.AfterMin.ToString("0.##", cultureInfo);
-            m_MaxAfterInputField.text = objectToDisplay.AfterMax.ToString("0.##", cultureInfo);
+            m_MinAfterInputField.text = objectToDisplay.AfterMin.ToString("0.##", CultureInfo.InvariantCulture);
+            m_MaxAfterInputField.text = objectToDisplay.AfterMax.ToString("0.##", CultureInfo.InvariantCulture);
         }
         #endregion
     }

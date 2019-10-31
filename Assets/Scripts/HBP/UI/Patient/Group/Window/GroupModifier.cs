@@ -8,13 +8,11 @@ namespace HBP.UI.Anatomy
 	/// <summary>
 	/// Display/Modify group.
 	/// </summary>
-	public class GroupModifier : ItemModifier<Group> 
+	public class GroupModifier : ObjectModifier<Group> 
 	{
         #region Properties
         [SerializeField] InputField m_NameInputField;
-
-        [SerializeField] Button m_AddButton, m_RemoveButton;
-        [SerializeField] PatientListGestion m_GroupPatientListGestion, m_ProjectPatientListGestion;
+        [SerializeField] PatientListGestion m_PatientListGestion;
 
         public override bool Interactable
         {
@@ -28,31 +26,22 @@ namespace HBP.UI.Anatomy
                 base.Interactable = value;
 
                 m_NameInputField.interactable = value;
-
-                m_GroupPatientListGestion.Interactable = false;
-                m_ProjectPatientListGestion.Interactable = false;
-
-                m_RemoveButton.interactable = value;
-                m_AddButton.interactable = value;
+                m_PatientListGestion.Interactable = value;
             }
         }
         #endregion
 
         #region Public Methods
+        public virtual void OpenPatientsSelector()
+        {
+            ObjectSelector<Patient> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Patients);
+            selector.OnSave.AddListener(() => m_PatientListGestion.List.Add(selector.ObjectsSelected));
+            WindowsReferencer.Add(selector);
+        }
         public override void Save()
         {
-            ItemTemp.SetPatients(m_GroupPatientListGestion.Objects);
+            itemTemp.SetPatients(m_PatientListGestion.List.Objects);
             base.Save();
-        }
-        public void AddPatients()
-		{
-            m_GroupPatientListGestion.Add(m_ProjectPatientListGestion.List.ObjectsSelected);
-            m_ProjectPatientListGestion.RemoveSelected();
-        }
-        public void RemovePatients()
-		{
-            m_ProjectPatientListGestion.Add(m_GroupPatientListGestion.List.ObjectsSelected);
-            m_GroupPatientListGestion.RemoveSelected();
         }
         #endregion
 
@@ -61,17 +50,13 @@ namespace HBP.UI.Anatomy
         {
             base.Initialize();
 
-            m_NameInputField.onValueChanged.RemoveAllListeners();
             m_NameInputField.onValueChanged.AddListener((value) => ItemTemp.Name = value);
-
-            m_ProjectPatientListGestion.Initialize(m_SubWindows);
-            m_GroupPatientListGestion.Initialize(m_SubWindows);
+            m_PatientListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
         }
         protected override void SetFields(Group objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
-            m_ProjectPatientListGestion.Objects = ApplicationState.ProjectLoaded.Patients.Where(p => !objectToDisplay.Patients.Contains(p)).ToList();
-            m_GroupPatientListGestion.Objects = objectToDisplay.Patients.ToList();
+            m_PatientListGestion.List.Set(objectToDisplay.Patients);
         }
         #endregion
     }

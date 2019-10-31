@@ -42,8 +42,12 @@ namespace HBP.Data
     /// <description>MRI scans of the patient.</description>
     /// </item>
     /// <item>
-    /// <term><b>Implantations</b></term>
-    /// <description>Electrodes implantations of the patient.</description>
+    /// <term><b>Sites</b></term>
+    /// <description>Sites of the patient.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Tags</b></term>
+    /// <description>Tags of the patient.</description>
     /// </item>
     /// </list>
     /// </remarks>
@@ -76,9 +80,9 @@ namespace HBP.Data
         /// </summary>
         [DataMember] public List<MRI> MRIs { get; set; }
         /// <summary>
-        /// Electrodes implantations of the patient.
+        /// Sites of the patient.
         /// </summary>
-        [DataMember] public List<Implantation> Implantations { get; set; }
+        [DataMember] public List<Site> Sites { get; set; }
         /// <summary>
         /// Tags of the patient.
         /// </summary>
@@ -98,16 +102,17 @@ namespace HBP.Data
         /// <param name="date">Year in which the patient was implanted.</param>
         /// <param name="meshes">Meshes of the patient.</param>
         /// <param name="MRIs">MRI scans of the patient.</param>
-        /// <param name="implantations">Electrodes implantations of the patient.</param>
+        /// <param name="sites">Sites of the patient.</param>
+        /// <param name="tags">Tags of the patient.</param>
         /// <param name="ID">Unique identifier to identify the patient.</param>
-        public Patient(string name, string place, int date, IEnumerable<Mesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Implantation> implantations, IEnumerable<BaseTagValue> tags, string ID) : base(ID)
+        public Patient(string name, string place, int date, IEnumerable<Mesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Site> sites, IEnumerable<BaseTagValue> tags, string ID) : base(ID)
         {
             Name = name;
             Place = place;
             Date = date;
             Meshes = meshes.ToList();
             this.MRIs = MRIs.ToList();
-            Implantations = implantations.ToList();
+            Sites = sites.ToList();
             Tags = tags.ToList();
         }
         /// <summary>
@@ -118,21 +123,22 @@ namespace HBP.Data
         /// <param name="date">Year in which the patient was implanted.</param>
         /// <param name="meshes">Meshes of the patient.</param>
         /// <param name="MRIs">MRI scans of the patient.</param>
-        /// <param name="implantations">Electrodes implantations of the patient.</param>
-        public Patient(string name, string place, int date, IEnumerable<Mesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Implantation> implantations, IEnumerable<BaseTagValue> tags) : base()
+        /// <param name="sites">Sites of the patient.</param>
+        /// <param name="tags">Tags of the patient.</param>
+        public Patient(string name, string place, int date, IEnumerable<Mesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Site> sites, IEnumerable<BaseTagValue> tags) : base()
         {
             Name = name;
             Place = place;
             Date = date;
             Meshes = meshes.ToList();
             this.MRIs = MRIs.ToList();
-            Implantations = implantations.ToList();
+            Sites = sites.ToList();
             Tags = tags.ToList();
         }
         /// <summary>
         /// Initializes a new instance of the Patient class.
         /// </summary>
-        public Patient() : this("Unknown", "Unknown", 0, new Mesh[0], new MRI[0], new Implantation[0], new BaseTagValue[0])
+        public Patient() : this("Unknown", "Unknown", 0, new Mesh[0], new MRI[0], new Site[0], new BaseTagValue[0])
         {
         }
         #endregion
@@ -146,7 +152,7 @@ namespace HBP.Data
             base.GenerateID();
             foreach (var mesh in Meshes) mesh.GenerateID();
             foreach (var mri in MRIs) mri.GenerateID();
-            foreach (var implantation in Implantations) implantation.GenerateID();
+            foreach (var site in Sites) site.GenerateID();
             foreach (var tag in Tags) tag.GenerateID();
         }
         #endregion
@@ -190,7 +196,8 @@ namespace HBP.Data
                 DirectoryInfo directory = new DirectoryInfo(path);
                 string[] directoryNameParts = directory.Name.Split(new char[1] { '_' }, StringSplitOptions.RemoveEmptyEntries);
                 int.TryParse(directoryNameParts[1], out int date);
-                result = new Patient(directoryNameParts[2], directoryNameParts[0], date, Mesh.LoadFromDirectory(path), MRI.LoadFromDirectory(path), Implantation.LoadFromDirectory(path), new BaseTagValue[0], directory.Name);
+                //result = new Patient(directoryNameParts[2], directoryNameParts[0], date, Mesh.LoadFromDirectory(path), MRI.LoadFromDirectory(path), Implantation.LoadFromDirectory(path), new BaseTagValue[0], directory.Name); // TODO
+                result = new Patient(directoryNameParts[2], directoryNameParts[0], date, Mesh.LoadFromDirectory(path), MRI.LoadFromDirectory(path), new Site[0], new BaseTagValue[0], directory.Name);
                 return true;
             }
             return false;
@@ -270,7 +277,6 @@ namespace HBP.Data
             OnChangeProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
             result(patients);
         }
-
         #endregion
 
         #region Operators
@@ -280,7 +286,7 @@ namespace HBP.Data
         /// <returns>object cloned.</returns>
         public override object Clone()
         {
-            return new Patient(Name, Place, Date, Meshes.DeepClone(), MRIs.DeepClone(), Implantations.DeepClone(), Tags.DeepClone(), ID);
+            return new Patient(Name, Place, Date, Meshes.DeepClone(), MRIs.DeepClone(), Sites.DeepClone(), Tags.DeepClone(), ID);
         }
         /// <summary>
         /// Copy the instance.
@@ -296,7 +302,7 @@ namespace HBP.Data
                 Place = patient.Place;
                 Meshes = patient.Meshes;
                 MRIs = patient.MRIs;
-                Implantations = patient.Implantations;
+                Sites = patient.Sites;
                 Tags = patient.Tags;
             }
         }

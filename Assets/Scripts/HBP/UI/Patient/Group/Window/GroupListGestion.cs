@@ -1,34 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Data;
 using Tools.Unity.Components;
+using Tools.Unity.Lists;
+using UnityEngine;
 
 namespace HBP.UI.Anatomy
 {
-    public class GroupListGestion : ListGestion<Data.Group>
+    public class GroupListGestion : ListGestion<Group>
     {
         #region Properties
-        public new GroupList List;
-        public override List<Data.Group> Objects
-        {
-            get
-            {
-                return base.Objects;
-            }
+        [SerializeField] protected GroupList m_List;
+        public override SelectableListWithItemAction<Group> List => m_List;
 
-            set
-            {
-                List.Initialize();
-                base.Objects = value;
-                List.SortByName(GroupList.Sorting.Descending);
-            }
-        }
-        #endregion
-
-        #region Public Methods
-        public override void Initialize()
-        {
-            base.List = List;
-            base.Initialize();
-        }
+        [SerializeField] protected GroupCreator m_ObjectCreator;
+        public override ObjectCreator<Group> ObjectCreator => m_ObjectCreator;
         #endregion
     }
 }

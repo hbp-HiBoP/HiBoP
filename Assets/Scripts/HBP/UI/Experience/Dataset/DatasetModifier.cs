@@ -5,16 +5,15 @@ using System.Linq;
 
 namespace HBP.UI.Experience.Dataset
 {
-	/// <summary>
-	/// Display/Modify dataset.
-	/// </summary>
-	public class DatasetModifier : ItemModifier<d.Dataset> 
-	{
+    /// <summary>
+    /// Display/Modify dataset.
+    /// </summary>
+    public class DatasetModifier : ObjectModifier<d.Dataset>
+    {
         #region Properties		
         [SerializeField] InputField m_NameInputField;
         [SerializeField] Dropdown m_ProtocolDropdown;
 
-        [SerializeField] Button m_CreateButton, m_RemoveButton;
         [SerializeField] DataInfoListGestion m_DataInfoListGestion;
 
         public override bool Interactable
@@ -31,8 +30,6 @@ namespace HBP.UI.Experience.Dataset
                 m_NameInputField.interactable = value;
                 m_ProtocolDropdown.interactable = value;
 
-                m_CreateButton.interactable = value;
-                m_RemoveButton.interactable = value;
                 m_DataInfoListGestion.Interactable = value;
             }
         }
@@ -41,7 +38,7 @@ namespace HBP.UI.Experience.Dataset
         #region Public Methods
         public override void Save()
         {
-            ItemTemp.SetData(m_DataInfoListGestion.Objects);
+            ItemTemp.SetData(m_DataInfoListGestion.List.Objects);
             base.Save();
         }
         #endregion
@@ -59,21 +56,13 @@ namespace HBP.UI.Experience.Dataset
             m_ProtocolDropdown.onValueChanged.RemoveAllListeners();
             m_ProtocolDropdown.onValueChanged.AddListener(OnChangeProtocol);
 
-            m_DataInfoListGestion.Initialize(m_SubWindows);
             m_DataInfoListGestion.OnDataInfoNeedCheckErrors.AddListener(CheckErrors);
-            m_DataInfoListGestion.OnAddDataInfo.AddListener((d) => ItemTemp.AddData(d));
-            m_DataInfoListGestion.OnRemoveDataInfo.AddListener((d) => ItemTemp.RemoveData(d));
-            m_DataInfoListGestion.OnUpdateDataInfo.AddListener((d) =>
-            {
-                ItemTemp.RemoveData(d);
-                ItemTemp.AddData(d);
-            });
         }
         protected override void SetFields(d.Dataset objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_ProtocolDropdown.value = ApplicationState.ProjectLoaded.Protocols.IndexOf(objectToDisplay.Protocol);
-            m_DataInfoListGestion.Objects = objectToDisplay.Data.ToList();
+            m_DataInfoListGestion.List.Set(objectToDisplay.Data);
         }
         protected virtual void OnChangeProtocol(int value)
         {

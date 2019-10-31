@@ -26,7 +26,7 @@ namespace HBP.UI.Tags
         public override void Initialize()
         {
             base.Initialize();
-            m_ValueInputField.onValueChanged.AddListener(OnChangeValue);
+            m_ValueInputField.onEndEdit.AddListener(OnChangeValue);
         }
         #endregion
 

@@ -2,26 +2,31 @@
 using HBP.Data.Experience.Dataset;
 using Tools.Unity;
 using UnityEngine;
-using System.Linq;
 using UnityEngine.Events;
 using System;
+using System.Collections.Generic;
 
 namespace HBP.UI.Experience.Dataset
 {
-    public class DataInfoModifier : ItemModifier<DataInfo>
+    public class DataInfoModifier : ObjectModifier<DataInfo>
     {
         #region Properties
         public UnityEvent OnCanSave { get; set; } = new UnityEvent();
         public bool CanSave { get; set; }
 
-        iEEGDataInfo m_IEEGDataInfoTemp;
-        CCEPDataInfo m_CCEPDataInfoTemp;
-        public new DataInfo ItemTemp { get { return itemTemp; } }
+        public new DataInfo ItemTemp { get => itemTemp; }
+
+        List<DataInfo> m_DataInfoTemp;
+        List<BaseSubModifier> m_SubModifiers;
+
         Type[] m_Types; 
+
         [SerializeField] InputField m_NameInputField;
-        [SerializeField] PatientDataInfoSubModifier m_PatientDataInfoGestion;
+        [SerializeField] PatientDataInfoSubModifier m_PatientDataInfoSubModifier;
         [SerializeField] Dropdown m_TypeDropdown;
+
         [SerializeField] DataContainerModifier m_DataContainerModifier;
+
         [SerializeField] iEEGDataInfoSubModifier m_iEEGDataInfoSubModifier;
         [SerializeField] CCEPDataInfoSubModifier m_CCEPDataInfoSubModifier;
 
@@ -36,7 +41,7 @@ namespace HBP.UI.Experience.Dataset
                 base.Interactable = value;
                 m_NameInputField.interactable = value;
                 m_TypeDropdown.interactable = value;
-                m_PatientDataInfoGestion.Interactable = value;
+                m_PatientDataInfoSubModifier.Interactable = value;
                 m_iEEGDataInfoSubModifier.Interactable = value;
                 m_CCEPDataInfoSubModifier.Interactable = value;
                 m_DataContainerModifier.Interactable = value;
@@ -50,7 +55,7 @@ namespace HBP.UI.Experience.Dataset
             OnCanSave.Invoke();
             if (CanSave)
             {
-                Item = ItemTemp;
+                item = ItemTemp;
                 OnSave.Invoke();
                 base.Close();
             }
@@ -58,92 +63,53 @@ namespace HBP.UI.Experience.Dataset
         }
         protected override void SetFields(DataInfo objectToDisplay)
         {
-            if (objectToDisplay is iEEGDataInfo iEEGDataInfo)
-            {
-                m_CCEPDataInfoTemp = new CCEPDataInfo(iEEGDataInfo.Name, iEEGDataInfo.DataContainer, iEEGDataInfo.Patient, "", iEEGDataInfo.ID);
-                m_IEEGDataInfoTemp = iEEGDataInfo;
-            }
-            else if(objectToDisplay is CCEPDataInfo CCEPDataInfo)
-            {
-                m_CCEPDataInfoTemp = CCEPDataInfo;
-                m_IEEGDataInfoTemp = new iEEGDataInfo(CCEPDataInfo.Name, CCEPDataInfo.DataContainer, CCEPDataInfo.Patient, iEEGDataInfo.NormalizationType.Auto, CCEPDataInfo.ID);
-            }
-            else if (objectToDisplay is PatientDataInfo patientDataInfo)
-            {
-                m_IEEGDataInfoTemp = new iEEGDataInfo(patientDataInfo.Name, new Data.Container.Elan(), patientDataInfo.Patient, iEEGDataInfo.NormalizationType.Auto, patientDataInfo.ID);
-                m_CCEPDataInfoTemp = new CCEPDataInfo(patientDataInfo.Name, new Data.Container.Elan(), patientDataInfo.Patient, "", patientDataInfo.ID);
-            }
-            else
-            {
-                m_IEEGDataInfoTemp = new iEEGDataInfo(objectToDisplay.Name, new Data.Container.Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), iEEGDataInfo.NormalizationType.Auto, objectToDisplay.ID);
-                m_CCEPDataInfoTemp = new CCEPDataInfo(objectToDisplay.Name, new Data.Container.Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), "", objectToDisplay.ID);
-            }
-
             m_NameInputField.text = objectToDisplay.Name;
             m_TypeDropdown.SetValue(Array.IndexOf(m_Types, objectToDisplay.GetType()));
         }
         protected override void Initialize()
         {
+            base.Initialize();
+
             m_NameInputField.onValueChanged.AddListener((name) => ItemTemp.Name = name);
+
             m_TypeDropdown.onValueChanged.AddListener(ChangeDataInfoType);
             m_DataContainerModifier.OnChangeDataType.AddListener(OnChangeDataContainerType);
             m_Types = m_TypeDropdown.Set(typeof(DataInfo));
-            base.Initialize();
+
+            m_iEEGDataInfoSubModifier.Initialize();
+            m_CCEPDataInfoSubModifier.Initialize();
+
+            m_SubModifiers = new List<BaseSubModifier>();
+            m_SubModifiers.Add(m_iEEGDataInfoSubModifier);
+            m_SubModifiers.Add(m_CCEPDataInfoSubModifier);
+
+            m_DataInfoTemp = new List<DataInfo>();
+            m_DataInfoTemp.Add(new iEEGDataInfo());
+            m_DataInfoTemp.Add(new CCEPDataInfo());
         }
         void ChangeDataInfoType(int value)
         {
             Type type = m_Types[value];
-            if(type == typeof(iEEGDataInfo))
-            {
-                if (itemTemp is CCEPDataInfo ccepDataInfo)
-                {
-                    m_IEEGDataInfoTemp.Name = ccepDataInfo.Name;
-                    m_IEEGDataInfoTemp.Patient = ccepDataInfo.Patient;
-                    m_IEEGDataInfoTemp.DataContainer = ccepDataInfo.DataContainer;
-                }
 
-                m_PatientDataInfoGestion.Object = m_IEEGDataInfoTemp;
-                m_PatientDataInfoGestion.IsActive = true;
+            m_SubModifiers.Find(s => s.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(ItemTemp.GetType()))).IsActive = false;
 
-                m_iEEGDataInfoSubModifier.Object = m_IEEGDataInfoTemp;
-                m_iEEGDataInfoSubModifier.IsActive = true;
-                m_CCEPDataInfoSubModifier.IsActive = false;
+            DataInfo dataInfo = m_DataInfoTemp.Find(d => d.GetType() == type);
+            dataInfo.Copy(itemTemp);
+            itemTemp = dataInfo;
 
-                m_DataContainerModifier.DataAttribute = new iEEG();
-                m_DataContainerModifier.Object = m_IEEGDataInfoTemp.DataContainer;
+            BaseSubModifier subModifier = m_SubModifiers.Find(s => s.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(type)));
+            subModifier.IsActive = true;
+            subModifier.Object = ItemTemp;
 
-                itemTemp = m_IEEGDataInfoTemp;
-            }
-            else if(type == typeof(CCEPDataInfo))
-            {
-                if (itemTemp is iEEGDataInfo ieegDataInfo)
-                {
-                    m_CCEPDataInfoTemp.Name = ieegDataInfo.Name;
-                    m_CCEPDataInfoTemp.Patient = ieegDataInfo.Patient;
-                    m_CCEPDataInfoTemp.DataContainer = ieegDataInfo.DataContainer;
-                }
-                m_PatientDataInfoGestion.Object = m_CCEPDataInfoTemp;
-                m_PatientDataInfoGestion.IsActive = true;
+            if (type == typeof(iEEGDataInfo)) m_DataContainerModifier.DataAttribute = new iEEG();
+            else if (type == typeof(CCEPDataInfo)) m_DataContainerModifier.DataAttribute = new CCEP();
 
-                m_CCEPDataInfoSubModifier.Object = m_CCEPDataInfoTemp;
-                m_CCEPDataInfoSubModifier.IsActive = true;
-                m_iEEGDataInfoSubModifier.IsActive = false;
-
-                m_DataContainerModifier.DataAttribute = new CCEP();
-                m_DataContainerModifier.Object = m_CCEPDataInfoTemp.DataContainer;
-
-                itemTemp = m_CCEPDataInfoTemp;
-            }
-            else
-            {
-                m_PatientDataInfoGestion.IsActive = false;
-                m_CCEPDataInfoSubModifier.IsActive = false;
-                m_iEEGDataInfoSubModifier.IsActive = false;
-            }
+            m_DataContainerModifier.Object = itemTemp.DataContainer;
+            if (itemTemp is PatientDataInfo patientDataInfo) m_PatientDataInfoSubModifier.Object = patientDataInfo;
         }
         void OnChangeDataContainerType()
         {
-            ItemTemp.DataContainer = m_DataContainerModifier.Object;
+            itemTemp.DataContainer = m_DataContainerModifier.Object;
         }
         #endregion
     }

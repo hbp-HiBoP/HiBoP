@@ -1,5 +1,6 @@
 ﻿using HBP.Data;
 using HBP.UI.Anatomy;
+using Tools.Unity.Lists;
 using UnityEngine;
 
 namespace HBP.UI
@@ -7,15 +8,8 @@ namespace HBP.UI
     public class PatientSelector : ObjectSelector<Patient>
     {
         #region Properties
-        [SerializeField] PatientList m_PatientList;
-        #endregion
-
-        #region Public Methods
-        protected override void Initialize()
-        {
-            m_List = m_PatientList;
-            base.Initialize();
-        }
+        [SerializeField] PatientList m_List;
+        protected override SelectableList<Patient> List => m_List;
         #endregion
     }
 }

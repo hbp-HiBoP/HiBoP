@@ -49,10 +49,16 @@
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            if(copy is TagValue<T,I> tagValue)
+            if (copy is BaseTagValue baseTagValue)
             {
-                Tag = tagValue.Tag;
-                Value = tagValue.Value;
+                if (baseTagValue.Tag is T tag)
+                {
+                    Tag = tag;
+                }
+                if (baseTagValue.Value is I value)
+                {
+                    Value = value;
+                }
             }
         }
         #endregion

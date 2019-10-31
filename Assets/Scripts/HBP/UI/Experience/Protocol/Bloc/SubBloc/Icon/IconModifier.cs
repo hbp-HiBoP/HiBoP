@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class IconModifier : ItemModifier<d.Icon>
+    public class IconModifier : ObjectModifier<d.Icon>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;

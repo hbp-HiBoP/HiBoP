@@ -1,31 +1,13 @@
-﻿using System.Linq;
+﻿using Tools.Unity.Components;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace HBP.UI.Experience.Dataset
 {
-	public class DatasetGestion : SavableWindow
+    public class DatasetGestion : GestionWindow<HBP.Data.Experience.Dataset.Dataset>
     {
         #region Properties
-        [SerializeField] DatasetListGestion m_datasetListGestion;
-        [SerializeField] Button m_CreateDatasetButton, m_RemoveDatasetButton;
-
-        public override bool Interactable
-        {
-            get
-            {
-                return base.Interactable;
-            }
-
-            set
-            {
-                base.Interactable = value;
-
-                m_datasetListGestion.Interactable = value;
-                m_CreateDatasetButton.interactable = value;
-                m_RemoveDatasetButton.interactable = value;
-            }
-        }
+        [SerializeField] DatasetListGestion m_ListGestion;
+        public override ListGestion<Data.Experience.Dataset.Dataset> ListGestion => m_ListGestion;
         #endregion
 
         #region Public Methods
@@ -35,16 +17,16 @@ namespace HBP.UI.Experience.Dataset
             {
                 ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
                 {
-                    ApplicationState.ProjectLoaded.SetDatasets(m_datasetListGestion.Objects);
                     base.Save();
+                    ApplicationState.ProjectLoaded.SetDatasets(m_ListGestion.List.Objects);
                     DataManager.Clear();
                     ApplicationState.Module3D.ReloadScenes();
                 });
             }
             else
             {
-                ApplicationState.ProjectLoaded.SetDatasets(m_datasetListGestion.Objects);
                 base.Save();
+                ApplicationState.ProjectLoaded.SetDatasets(m_ListGestion.List.Objects);
             }
             FindObjectOfType<MenuButtonState>().SetInteractables();
         }
@@ -53,8 +35,7 @@ namespace HBP.UI.Experience.Dataset
         #region Private Methods
         protected override void SetFields()
 		{
-            m_datasetListGestion.Initialize(m_SubWindows);
-            m_datasetListGestion.Objects = ApplicationState.ProjectLoaded.Datasets.ToList();
+            ListGestion.List.Set(ApplicationState.ProjectLoaded.Datasets);
             base.SetFields();
         }
         #endregion

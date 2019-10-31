@@ -56,12 +56,18 @@ namespace HBP.UI
                 SetFields(value);
             }
         }
+
+        public virtual WindowsReferencer WindowsReferencer { get; protected set; } = new WindowsReferencer();
         #endregion
 
         #region Public Methods
         public virtual void Initialize()
         {
             m_Initialized = true;
+        }
+        public virtual void Save()
+        {
+
         }
         #endregion
 

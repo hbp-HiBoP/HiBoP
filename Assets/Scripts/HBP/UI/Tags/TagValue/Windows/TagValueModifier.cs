@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Tags
 {
-    public class TagValueModifier : ItemModifier<BaseTagValue>
+    public class TagValueModifier : ObjectModifier<BaseTagValue>
     {
         #region Properties
         [SerializeField] Dropdown m_TagDropdown;
@@ -33,7 +33,18 @@ namespace HBP.UI.Tags
             set
             {
                 m_Tags = value;
-                m_TagDropdown.options = Tags.Select(t => new Dropdown.OptionData(t.Name)).ToList();
+                if(m_Tags.Length == 0)
+                {
+                    m_TagDropdown.options = new List<Dropdown.OptionData> { new Dropdown.OptionData("None") };
+                    m_TagDropdown.interactable = false;
+                    m_SaveButton.interactable = false;
+                }
+                else
+                {
+                    m_TagDropdown.options = Tags.Select(t => new Dropdown.OptionData(t.Name)).ToList();
+                    m_TagDropdown.interactable = Interactable;
+                    m_SaveButton.interactable = Interactable;
+                }
                 SetFields(ItemTemp);
             }
         }
@@ -109,52 +120,56 @@ namespace HBP.UI.Tags
             // Close old subModifier
             m_SubModifiers.Find(subModifier => subModifier.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(itemTemp.GetType()))).IsActive = false;
 
-            Tag tag = Tags[value];
+            if (value >= 0 && value < Tags.Length)
+            {
+                Tag tag = Tags[value];
 
-            BaseTagValue tagValue = null;
-            if (tag is EmptyTag emptyTag)
-            {
-                tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(EmptyTagValue));
-                tagValue.Copy(itemTemp);
-                (tagValue as EmptyTagValue).Tag = emptyTag;
-            }
-            else if (tag is BoolTag boolTag)
-            {
-                tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(BoolTagValue));
-                tagValue.Copy(itemTemp);
-                (tagValue as BoolTagValue).Tag = boolTag;
-            }
-            else if (tag is EnumTag enumTag)
-            {
-                tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(EnumTagValue));
-                tagValue.Copy(itemTemp);
-                (tagValue as EnumTagValue).Tag = enumTag;
-            }
-            else if (tag is FloatTag floatTag)
-            {
-                tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(FloatTagValue));
-                tagValue.Copy(itemTemp);
-                (tagValue as FloatTagValue).Tag = floatTag;
-            }
-            else if (tag is IntTag intTag)
-            {
-                tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(IntTagValue));
-                tagValue.Copy(itemTemp);
-                (tagValue as IntTagValue).Tag = intTag;
-            }
-            else if (tag is StringTag stringTag)
-            {
-                tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(StringTagValue));
-                tagValue.Copy(itemTemp);
-                (tagValue as StringTagValue).Tag = stringTag;
-            }
 
-            itemTemp = tagValue;
+                BaseTagValue tagValue = null;
+                if (tag is EmptyTag emptyTag)
+                {
+                    tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(EmptyTagValue));
+                    tagValue.Copy(itemTemp);
+                    (tagValue as EmptyTagValue).Tag = emptyTag;
+                }
+                else if (tag is BoolTag boolTag)
+                {
+                    tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(BoolTagValue));
+                    tagValue.Copy(itemTemp);
+                    (tagValue as BoolTagValue).Tag = boolTag;
+                }
+                else if (tag is EnumTag enumTag)
+                {
+                    tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(EnumTagValue));
+                    tagValue.Copy(itemTemp);
+                    (tagValue as EnumTagValue).Tag = enumTag;
+                }
+                else if (tag is FloatTag floatTag)
+                {
+                    tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(FloatTagValue));
+                    tagValue.Copy(itemTemp);
+                    (tagValue as FloatTagValue).Tag = floatTag;
+                }
+                else if (tag is IntTag intTag)
+                {
+                    tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(IntTagValue));
+                    tagValue.Copy(itemTemp);
+                    (tagValue as IntTagValue).Tag = intTag;
+                }
+                else if (tag is StringTag stringTag)
+                {
+                    tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(StringTagValue));
+                    tagValue.Copy(itemTemp);
+                    (tagValue as StringTagValue).Tag = stringTag;
+                }
 
-            // Open new subModifier;
-            BaseSubModifier newSubModifier = m_SubModifiers.Find(subModifier => subModifier.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(tagValue.GetType())));
-            newSubModifier.IsActive = true;
-            newSubModifier.Object = itemTemp;
+                itemTemp = tagValue;
+
+                // Open new subModifier;
+                BaseSubModifier newSubModifier = m_SubModifiers.Find(subModifier => subModifier.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(tagValue.GetType())));
+                newSubModifier.IsActive = true;
+                newSubModifier.Object = itemTemp;
+            }
         }
         #endregion
     }

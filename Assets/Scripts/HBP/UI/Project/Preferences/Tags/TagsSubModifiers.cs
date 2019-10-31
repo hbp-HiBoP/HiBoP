@@ -1,4 +1,6 @@
 ﻿using HBP.Data.General;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using UnityEngine;
 
 namespace HBP.UI.General
@@ -19,6 +21,18 @@ namespace HBP.UI.General
                 m_GeneralSubModifiers.Interactable = value;
                 m_PatientsSubModifiers.Interactable = value;
                 m_SitesSubModifiers.Interactable = value;
+            }
+        }
+
+        public ReadOnlyCollection<Data.Tags.Tag> ModifiedTags
+        {
+            get
+            {
+                List<Data.Tags.Tag> tags = new List<Data.Tags.Tag>();
+                tags.AddRange(m_GeneralSubModifiers.ModifiedTags);
+                tags.AddRange(m_PatientsSubModifiers.ModifiedTags);
+                tags.AddRange(m_SitesSubModifiers.ModifiedTags);
+                return new ReadOnlyCollection<Data.Tags.Tag>(tags);
             }
         }
         #endregion

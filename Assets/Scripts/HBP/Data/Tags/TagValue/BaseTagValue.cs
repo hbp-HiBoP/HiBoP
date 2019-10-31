@@ -53,12 +53,12 @@ namespace HBP.Data.Tags
         }
         public BaseTagValue(Tag tag, object value) : base()
         {
-            m_TagID = tag.ID;
+            m_TagID = tag?.ID;
             Value = value;
         }
         public BaseTagValue(Tag tag, object value, string ID) : base(ID)
         {
-            m_TagID = tag.ID;
+            m_TagID = tag?.ID;
             Value = value;
         }
         #endregion

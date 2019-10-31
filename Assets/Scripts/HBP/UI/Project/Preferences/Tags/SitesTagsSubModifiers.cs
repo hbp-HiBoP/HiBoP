@@ -1,5 +1,6 @@
 ﻿using HBP.Data.General;
 using HBP.UI.Tags;
+using System.Collections.ObjectModel;
 using UnityEngine;
 
 namespace HBP.UI.General
@@ -18,13 +19,13 @@ namespace HBP.UI.General
                 m_TagListGestion.Interactable = value;
             }
         }
-        #endregion
 
-        #region Public Methods
-        public override void Initialize()
+        public ReadOnlyCollection<Data.Tags.Tag> ModifiedTags
         {
-            base.Initialize();
-            m_TagListGestion.Initialize();
+            get
+            {
+                return m_TagListGestion.ModifiedTags;
+            }
         }
         #endregion
 
@@ -32,7 +33,7 @@ namespace HBP.UI.General
         protected override void SetFields(ProjectSettings objectToDisplay)
         {
             base.SetFields(objectToDisplay);
-            m_TagListGestion.Objects = objectToDisplay.SitesTags;
+            m_TagListGestion.List.Set(objectToDisplay.SitesTags);
         }
         #endregion
     }

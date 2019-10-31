@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using Tools.Unity.Components;
 using d = HBP.Data.Experience.Protocol;
 using UnityEngine;
@@ -9,60 +8,38 @@ namespace HBP.UI.Experience.Protocol
     public class EventListGestion : ListGestion<d.Event>
     {
         #region Properties
-        [SerializeField] new EventList List;
-        public override List<d.Event> Objects
-        {
-            get
-            {
-                return base.Objects;
-            }
+        [SerializeField] protected EventList m_List;
+        public override Tools.Unity.Lists.SelectableListWithItemAction<d.Event> List => m_List;
 
-            set
-            {
-                List.Initialize();
-                base.Objects = value;
-                List.SortByName(EventList.Sorting.Descending);
-            }
-        }
+        [SerializeField] protected EventCreator m_ObjectCreator;
+        public override ObjectCreator<d.Event> ObjectCreator => m_ObjectCreator;
         #endregion
 
-        #region Public Methods
-        public override void Initialize()
+        #region Protected Methods
+        protected override void Initialize()
         {
-            base.List = List;
             base.Initialize();
+            List.OnRemoveObject.AddListener(OnRemoveObject);
         }
-        public override void Create()
+        protected void OnRemoveObject(d.Event obj)
         {
-            if (m_Objects.Any((e) => e.Type == Data.Enums.MainSecondaryEnum.Main))
+            if (!List.Objects.Any((e) => e.Type == Data.Enums.MainSecondaryEnum.Main))
             {
-                OpenModifier(new d.Event(Data.Enums.MainSecondaryEnum.Secondary), Interactable);
-            }
-            else base.Create();
-        }
-        public override void Remove(d.Event item)
-        {
-            base.Remove(item);
-            if (m_Objects.All((e) => e.Type != Data.Enums.MainSecondaryEnum.Main))
-            {
-                d.Event firstEvent = m_Objects.FirstOrDefault();
+                d.Event firstEvent = List.Objects.FirstOrDefault();
                 if (firstEvent != null) firstEvent.Type = Data.Enums.MainSecondaryEnum.Main;
+                List.UpdateObject(firstEvent);
             }
         }
-        protected override void OnSaveModifier(ItemModifier<d.Event> modifier)
+        protected override void Add(d.Event obj)
         {
-            if(modifier.Item.Type == Data.Enums.MainSecondaryEnum.Main)
+            if(obj.Type == Data.Enums.MainSecondaryEnum.Main)
             {
-                foreach (var item in Objects)
+                foreach (var item in List.Objects.Where(e => e != obj))
                 {
-                    if(modifier.Item != item)
-                    {
-                        item.Type = Data.Enums.MainSecondaryEnum.Secondary;
-                    }
+                    item.Type = Data.Enums.MainSecondaryEnum.Secondary;
                 }
             }
-            List.Refresh();
-            base.OnSaveModifier(modifier);
+            base.Add(obj);
         }
         #endregion
     }
