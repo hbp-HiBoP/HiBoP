@@ -187,36 +187,6 @@ namespace HBP.UI.Module3D
             }
         }
         /// <summary>
-        /// Check if the site mars atlas contains the input string
-        /// </summary>
-        /// <param name="site">Site to check</param>
-        /// <param name="marsAtlasName">Mars atlas to use for the checking</param>
-        /// <returns>True if the site mars atlas contains the input string</returns>
-        protected bool CheckMarsAtlasName(Site site, string marsAtlasName)
-        {
-            return site.Information.MarsAtlasLabel.ToLower().Contains(marsAtlasName.ToLower());
-        }
-        /// <summary>
-        /// Check if the site brodmann contains the input string
-        /// </summary>
-        /// <param name="site">Site to check</param>
-        /// <param name="broadmanAreaName">Brodmann to use for the checking</param>
-        /// <returns>True if the site brodmann contains the input string</returns>
-        protected bool CheckBroadmanAreaName(Site site, string broadmanAreaName)
-        {
-            return site.Information.BrodmannAreaLabel.ToLower().Contains(broadmanAreaName.ToLower());
-        }
-        /// <summary>
-        /// Check if the site freesurfer contains the input string
-        /// </summary>
-        /// <param name="site">Site to check</param>
-        /// <param name="freesurferName">Freesurfer to use for the checking</param>
-        /// <returns>True if the site freesurfer contains the input string</returns>
-        protected bool CheckFreesurferName(Site site, string freesurferName)
-        {
-            return site.Information.FreesurferLabel.ToLower().Contains(freesurferName.ToLower());
-        }
-        /// <summary>
         /// Check if the mean of the values of the associated channel if above or under the input value
         /// </summary>
         /// <param name="site">Site to check</param>

@@ -20,7 +20,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// GameObject displaying information about the atlases of the hovered site
         /// </summary>
-        [SerializeField] GameObject m_Atlas;
+        [SerializeField] GameObject m_Tags;
         /// <summary>
         /// GameObject displaying information about the state of the hovered site
         /// </summary>
@@ -54,17 +54,9 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField] Text m_CCEPLatencyText;
         /// <summary>
-        /// Displays the Mars atlas area this site belongs to
+        /// Displays the tags of the site
         /// </summary>
-        [SerializeField] Text m_MarsAtlasText;
-        /// <summary>
-        /// Displays the Brodmann area this site belongs to
-        /// </summary>
-        [SerializeField] Text m_BroadmanText;
-        /// <summary>
-        /// Displays the Freesurfer area this site belongs to
-        /// </summary>
-        [SerializeField] Text m_FreesurferText;
+        [SerializeField] Text m_TagsText;
         /// <summary>
         /// Parent canvas of this object
         /// </summary>
@@ -89,7 +81,7 @@ namespace HBP.UI.Module3D
             m_RectTransform = GetComponent<RectTransform>();
             m_IEEG.SetActive(false);
             m_CCEP.SetActive(false);
-            m_Atlas.SetActive(true);
+            m_Tags.SetActive(true);
             ApplicationState.Module3D.OnDisplaySiteInformation.AddListener((siteInfo) =>
             {
                 Data.Enums.SiteInformationDisplayMode mode = siteInfo.Mode;
@@ -101,25 +93,25 @@ namespace HBP.UI.Module3D
                         case Data.Enums.SiteInformationDisplayMode.Anatomy:
                             m_IEEG.SetActive(false);
                             m_CCEP.SetActive(false);
-                            m_Atlas.SetActive(true);
+                            m_Tags.SetActive(true);
                             m_States.SetActive(true);
                             break;
                         case Data.Enums.SiteInformationDisplayMode.IEEG:
                             m_IEEG.SetActive(true);
                             m_CCEP.SetActive(false);
-                            m_Atlas.SetActive(true);
+                            m_Tags.SetActive(true);
                             m_States.SetActive(true);
                             break;
                         case Data.Enums.SiteInformationDisplayMode.CCEP:
                             m_IEEG.SetActive(false);
                             m_CCEP.SetActive(true);
-                            m_Atlas.SetActive(false);
+                            m_Tags.SetActive(true);
                             m_States.SetActive(true);
                             break;
                         case Data.Enums.SiteInformationDisplayMode.Light:
                             m_IEEG.SetActive(false);
                             m_CCEP.SetActive(false);
-                            m_Atlas.SetActive(false);
+                            m_Tags.SetActive(false);
                             m_States.SetActive(false);
                             break;
                     }
@@ -132,12 +124,12 @@ namespace HBP.UI.Module3D
                     switch (siteInfo.Mode)
                     {
                         case Data.Enums.SiteInformationDisplayMode.Anatomy:
-                            SetAtlas(siteInfo);
+                            SetTags(siteInfo);
                             SetStates(siteInfo.Site);
                             break;
                         case Data.Enums.SiteInformationDisplayMode.IEEG:
                             SetIEEG(siteInfo);
-                            SetAtlas(siteInfo);
+                            SetTags(siteInfo);
                             SetStates(siteInfo.Site);
                             break;
                         case Data.Enums.SiteInformationDisplayMode.CCEP:
@@ -229,40 +221,20 @@ namespace HBP.UI.Module3D
         /// Set the atlases of the site (Mars atlas, Brodmann, Freesurfer)
         /// </summary>
         /// <param name="siteInfo">Information about how to display the information of the site</param>
-        void SetAtlas(HBP.Module3D.SiteInfo siteInfo)
+        void SetTags(HBP.Module3D.SiteInfo siteInfo)
         {
-            if (siteInfo.Site)
+            if (siteInfo.Site && siteInfo.Site.Information.SiteData.Tags.Count > 0)
             {
-                string marsAtlasText = siteInfo.Site.Information.MarsAtlasLabel;
-                if (!string.IsNullOrEmpty(marsAtlasText) && !marsAtlasText.Contains("No info") && !marsAtlasText.Contains("not found"))
+                System.Text.StringBuilder stringBuilder = new System.Text.StringBuilder();
+                foreach (var tag in siteInfo.Site.Information.SiteData.Tags)
                 {
-                    m_MarsAtlasText.transform.parent.gameObject.SetActive(true);
-                    m_MarsAtlasText.text = marsAtlasText;
+                    stringBuilder.Append(string.Format("\t• <b>{0}</b>: {1}\n", tag.Tag.Name, tag.Value));
                 }
-                else
-                {
-                    m_MarsAtlasText.transform.parent.gameObject.SetActive(false);
-                }
-                string broadmanText = siteInfo.Site.Information.BrodmannAreaLabel;
-                if (!string.IsNullOrEmpty(broadmanText) && !broadmanText.Contains("No info") && !broadmanText.Contains("not found"))
-                {
-                    m_BroadmanText.transform.parent.gameObject.SetActive(true);
-                    m_BroadmanText.text = broadmanText;
-                }
-                else
-                {
-                    m_BroadmanText.transform.parent.gameObject.SetActive(false);
-                }
-                string freesurferText = siteInfo.Site.Information.FreesurferLabel;
-                if (!string.IsNullOrEmpty(freesurferText) && !freesurferText.Contains("not in a freesurfer parcel"))
-                {
-                    m_FreesurferText.transform.parent.gameObject.SetActive(true);
-                    m_FreesurferText.text = freesurferText;
-                }
-                else
-                {
-                    m_FreesurferText.transform.parent.gameObject.SetActive(false);
-                }
+                m_TagsText.text = stringBuilder.Remove(stringBuilder.Length - 1, 1).ToString();
+            }
+            else
+            {
+                m_Tags.SetActive(false);
             }
         }
         #endregion

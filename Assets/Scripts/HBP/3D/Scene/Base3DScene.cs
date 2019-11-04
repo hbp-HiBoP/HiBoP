@@ -1911,7 +1911,8 @@ namespace HBP.Module3D
                             Position = coordinate.Value.ToVector3(),
                             Patient = patient,
                             PatientIndex = patientIndex,
-                            Index = siteIndex
+                            Index = siteIndex,
+                            SiteData = site
                         };
                         siteInfos.Add(siteInfo);
                     }

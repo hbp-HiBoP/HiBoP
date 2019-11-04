@@ -16,6 +16,10 @@ namespace HBP.Module3D
     {
         #region Properties
         /// <summary>
+        /// Reference to the site data of this site
+        /// </summary>
+        public Data.Anatomy.Site SiteData { get; set; }
+        /// <summary>
         /// Reference to the patient this site belongs to
         /// </summary>
         public Data.Patient Patient { get; set; }
@@ -27,40 +31,6 @@ namespace HBP.Module3D
         /// Global Index of the site (same index as in the raw site list)
         /// </summary>
         public int Index { get; set; }
-
-        private int m_MarsAtlasIndex;
-        /// <summary>
-        /// Index of the MarsAtlas area of this site
-        /// </summary>
-        public int MarsAtlasIndex
-        {
-            get
-            {
-                return m_MarsAtlasIndex;
-            }
-            set
-            {
-                m_MarsAtlasIndex = value;
-                MarsAtlasLabel = string.Format("{0}/{1}/{2}/{3}",
-                    ApplicationState.Module3D.MarsAtlasIndex.Hemisphere(value).Replace('_', ' '),
-                    ApplicationState.Module3D.MarsAtlasIndex.Lobe(value).Replace('_', ' '),
-                    ApplicationState.Module3D.MarsAtlasIndex.NameFS(value).Replace('_', ' '),
-                    ApplicationState.Module3D.MarsAtlasIndex.FullName(value).Replace('_', ' '));
-                BrodmannAreaLabel = ApplicationState.Module3D.MarsAtlasIndex.BrodmannArea(value).Replace('_', ' ');
-            }
-        }
-        /// <summary>
-        /// Label of the MarsAtlas area this site belongs to
-        /// </summary>
-        public string MarsAtlasLabel { get; private set; }
-        /// <summary>
-        /// Label of the Brodmann area this site belongs to
-        /// </summary>
-        public string BrodmannAreaLabel { get; private set; }
-        /// <summary>
-        /// Label of the Freesurfer area this site belongs to
-        /// </summary>
-        public string FreesurferLabel { get; set; }
 
         /// <summary>
         /// ID of the patient this site belongs to

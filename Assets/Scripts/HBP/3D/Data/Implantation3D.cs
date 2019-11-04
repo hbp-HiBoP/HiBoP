@@ -13,7 +13,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Struct containing basic information about a site
         /// </summary>
-        public struct SiteInfo
+        public class SiteInfo
         {
             /// <summary>
             /// Name of the site
@@ -45,6 +45,10 @@ namespace HBP.Module3D
             /// Patient this site belongs to
             /// </summary>
             public Data.Patient Patient { get; set; }
+            /// <summary>
+            /// Reference to the site data
+            /// </summary>
+            public Data.Anatomy.Site SiteData { get; set; }
         }
         #endregion
 

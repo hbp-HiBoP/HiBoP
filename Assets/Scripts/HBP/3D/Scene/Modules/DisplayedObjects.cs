@@ -132,7 +132,7 @@ namespace HBP.Module3D
             }
             SitesPatientParent = new List<GameObject>();
             
-            int currPlotNb = 0;
+            int siteIndex = 0;
             foreach (var patient in m_Scene.Visualization.Patients)
             {
                 GameObject sitePatient = new GameObject(patient.ID);
@@ -152,8 +152,9 @@ namespace HBP.Module3D
 
                     Site site = siteGameObject.GetComponent<Site>();
                     site.Information.Patient = patient;
-                    site.Information.Name = siteGameObject.name;
-                    site.Information.Index = currPlotNb++;
+                    site.Information.Name = siteInfo.Name;
+                    site.Information.Index = siteIndex++;
+                    site.Information.SiteData = siteInfo.SiteData;
                     site.State.IsBlackListed = false;
                     site.State.IsHighlighted = false;
                     site.State.IsOutOfROI = true;

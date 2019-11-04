@@ -35,12 +35,6 @@ namespace HBP.UI.Module3D
         [SerializeField] InputField m_PatientNameFilter;
         [SerializeField] InputField m_PatientPlaceFilter;
         [SerializeField] InputField m_PatientDateFilter;
-        [SerializeField] Toggle m_MarsAtlas;
-        [SerializeField] InputField m_MarsAtlasFilter;
-        [SerializeField] Toggle m_Broadman;
-        [SerializeField] InputField m_BroadmanFilter;
-        [SerializeField] Toggle m_Freesurfer;
-        [SerializeField] InputField m_FreesurferFilter;
 
         // Values
         [SerializeField] Toggle m_Mean;
@@ -118,9 +112,6 @@ namespace HBP.UI.Module3D
                     result &= CheckPatientDate(site, m_PatientDateFilter.text);
                 }
             }
-            if (m_MarsAtlas.isOn) result &= CheckMarsAtlasName(site, m_MarsAtlasFilter.text);
-            if (m_Broadman.isOn) result &= CheckBroadmanAreaName(site, m_BroadmanFilter.text);
-            if (m_Freesurfer.isOn) result &= CheckFreesurferName(site, m_FreesurferFilter.text);
             return result;
         }
         /// <summary>
