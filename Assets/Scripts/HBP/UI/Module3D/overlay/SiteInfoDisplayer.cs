@@ -228,7 +228,7 @@ namespace HBP.UI.Module3D
                 System.Text.StringBuilder stringBuilder = new System.Text.StringBuilder();
                 foreach (var tag in siteInfo.Site.Information.SiteData.Tags)
                 {
-                    stringBuilder.Append(string.Format("\t• <b>{0}</b>: {1}\n", tag.Tag.Name, tag.Value));
+                    stringBuilder.Append(string.Format("\t• <b>{0}</b>: {1}\n", tag.Tag.Name, tag.DisplayableValue));
                 }
                 m_TagsText.text = stringBuilder.Remove(stringBuilder.Length - 1, 1).ToString();
             }

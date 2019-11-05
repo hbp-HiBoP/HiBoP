@@ -200,7 +200,7 @@ namespace HBP.UI.Module3D
                 Data.Tags.BaseTagValue tagValue = site.Information.SiteData.Tags.FirstOrDefault(t => t.Tag == tag);
                 if (tagValue != null)
                 {
-                    return tagValue.Value.ToString().ToUpper().Contains(tagValueToCompare.ToUpper());
+                    return tagValue.DisplayableValue.ToUpper().Contains(tagValueToCompare.ToUpper());
                 }
                 else return false;
             }
