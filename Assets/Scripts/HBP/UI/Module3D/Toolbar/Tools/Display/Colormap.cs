@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -10,8 +7,7 @@ namespace HBP.UI.Module3D.Tools
     public class Colormap : Tool
     {
         #region Properties
-        [SerializeField]
-        private Dropdown m_Dropdown;
+        [SerializeField] private Dropdown m_Dropdown;
         
         /// <summary>
         /// Correspondance between colormap dropdown options indices and color type

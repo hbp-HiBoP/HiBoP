@@ -1,4 +1,5 @@
 ﻿using HBP.Module3D;
+using System.Linq;
 using Tools.CSharp.BooleanExpressionParser;
 using UnityEngine;
 using UnityEngine.UI;
@@ -25,6 +26,7 @@ namespace HBP.UI.Module3D
         public const string PATIENT_NAME = "PAT_NAME";
         public const string PATIENT_PLACE = "PAT_PLACE";
         public const string PATIENT_DATE = "PAT_DATE";
+        public const string TAG = "TAG";
         public const string MEAN = "MEAN";
         public const string MEDIAN = "MEDIAN";
         public const string MAX = "MAX";
@@ -64,176 +66,144 @@ namespace HBP.UI.Module3D
         private bool ParseConditionAndCheckValue(Site site, string s)
         {
             s = s.ToUpper();
-            s = s.Replace(" ", "");
-            if (s == TRUE)
+            if (s.Contains("=") || s.Contains(">") || s.Contains("<"))
             {
-                return true;
-            }
-            else if (s == FALSE)
-            {
-                return false;
-            }
-            else if (s == HIGHLIGHTED)
-            {
-                return CheckHighlighted(site);
-            }
-            else if (s == BLACKLISTED)
-            {
-                return CheckBlacklisted(site);
-            }
-            else if (s.Contains(LABEL))
-            {
-                string[] array = s.Split('=');
-                if (array.Length == 2)
+                string[] elements = s.Split('=', '<', '>');
+                if (elements.Length == 2)
                 {
-                    return CheckLabel(site, array[1].Replace("\"", ""));
-                }
-            }
-            else if (s == IN_ROI)
-            {
-                return CheckInROI(site);
-            }
-            else if (s == IN_MESH)
-            {
-                return CheckInMesh(site);
-            }
-            else if (s == IN_LEFT_HEMISPHERE)
-            {
-                return CheckInLeftHemisphere(site);
-            }
-            else if (s == IN_RIGHT_HEMISPHERE)
-            {
-                return CheckInRightHemisphere(site);
-            }
-            else if (s == ON_PLANE)
-            {
-                return CheckOnPlane(site);
-            }
-            else if (s.Contains(NAME))
-            {
-                string[] array = s.Split('=');
-                if (array.Length == 2)
-                {
-                    return CheckName(site, array[1].Replace("\"", ""));
-                }
-            }
-            else if (s.Contains(PATIENT_NAME))
-            {
-                string[] array = s.Split('=');
-                if (array.Length == 2)
-                {
-                    return CheckPatientName(site, array[1].Replace("\"", ""));
-                }
-            }
-            else if (s.Contains(PATIENT_PLACE))
-            {
-                string[] array = s.Split('=');
-                if (array.Length == 2)
-                {
-                    return CheckPatientPlace(site, array[1].Replace("\"", ""));
-                }
-            }
-            else if (s.Contains(PATIENT_DATE))
-            {
-                string[] array = s.Split('=');
-                if (array.Length == 2)
-                {
-                    return CheckPatientDate(site, array[1].Replace("\"", ""));
-                }
-            }
-            else if (s.Contains(MEAN))
-            {
-                if (s.Contains("<"))
-                {
-                    string[] array = s.Split('<');
-                    if (array.Length == 2)
+                    string label = elements[0].Replace(" ", "").Replace("\"", "").Replace("[", "").Replace("]", "");
+                    string value = elements[1].Replace("\"", "");
+                    string deblankedValue = System.Text.RegularExpressions.Regex.Replace(value, "^\\s+", "");
+                    deblankedValue = System.Text.RegularExpressions.Regex.Replace(deblankedValue, "\\s+$", "");
+                    if (label == LABEL)
                     {
-                        return CheckMean(site, false, array[1].Replace("\"", "").Replace(" ", ""));
+                        return CheckLabel(site, deblankedValue);
                     }
-                }
-                else if (s.Contains(">"))
-                {
-                    string[] array = s.Split('>');
-                    if (array.Length == 2)
+                    else if (label == NAME)
                     {
-                        return CheckMean(site, true, array[1].Replace("\"", "").Replace(" ", ""));
+                        return CheckName(site, deblankedValue);
                     }
-                }
-            }
-            else if (s.Contains(MEDIAN))
-            {
-                if (s.Contains("<"))
-                {
-                    string[] array = s.Split('<');
-                    if (array.Length == 2)
+                    else if (label == PATIENT_NAME)
                     {
-                        return CheckMedian(site, false, array[1].Replace("\"", "").Replace(" ", ""));
+                        return CheckPatientName(site, deblankedValue);
                     }
-                }
-                else if (s.Contains(">"))
-                {
-                    string[] array = s.Split('>');
-                    if (array.Length == 2)
+                    else if (label == PATIENT_PLACE)
                     {
-                        return CheckMedian(site, true, array[1].Replace("\"", "").Replace(" ", ""));
+                        return CheckPatientPlace(site, deblankedValue);
+                    }
+                    else if (label == PATIENT_DATE)
+                    {
+                        return CheckPatientDate(site, deblankedValue);
+                    }
+                    else if (label == TAG)
+                    {
+                        string[] splits = deblankedValue.Split(':');
+                        if (splits.Length == 2)
+                        {
+                            string tagName = System.Text.RegularExpressions.Regex.Replace(splits[0], "^\\s+", "");
+                            tagName = System.Text.RegularExpressions.Regex.Replace(tagName, "\\s+$", "");
+                            string tagValue = System.Text.RegularExpressions.Regex.Replace(splits[1], "^\\s+", "");
+                            tagValue = System.Text.RegularExpressions.Regex.Replace(tagValue, "\\s+$", "");
+                            Data.Tags.Tag tag = ApplicationState.ProjectLoaded.Settings.SitesTags.FirstOrDefault(t => t.Name.ToUpper() == tagName);
+                            if (tag == null) tag = ApplicationState.ProjectLoaded.Settings.GeneralTags.FirstOrDefault(t => t.Name.ToUpper() == tagName);
+                            return CheckTag(site, tag, tagValue);
+                        }
+                    }
+                    else if (label == MEAN)
+                    {
+                        if (s.Contains("<"))
+                        {
+                            return CheckMean(site, false, deblankedValue);
+                        }
+                        else if (s.Contains(">"))
+                        {
+                            return CheckMean(site, true, deblankedValue);
+                        }
+                    }
+                    else if (label == MEDIAN)
+                    {
+                        if (s.Contains("<"))
+                        {
+                            return CheckMedian(site, false, deblankedValue);
+                        }
+                        else if (s.Contains(">"))
+                        {
+                            return CheckMedian(site, true, deblankedValue);
+                        }
+                    }
+                    else if (label == MAX)
+                    {
+                        if (s.Contains("<"))
+                        {
+                            return CheckMax(site, false, deblankedValue);
+                        }
+                        else if (s.Contains(">"))
+                        {
+                            return CheckMax(site, true, deblankedValue);
+                        }
+                    }
+                    else if (label == MIN)
+                    {
+                        if (s.Contains("<"))
+                        {
+                            return CheckMin(site, false, deblankedValue);
+                        }
+                        else if (s.Contains(">"))
+                        {
+                            return CheckMin(site, true, deblankedValue);
+                        }
+                    }
+                    else if (label == STANDARD_DEVIATION)
+                    {
+                        if (s.Contains("<"))
+                        {
+                            return CheckStandardDeviation(site, false, deblankedValue);
+                        }
+                        else if (s.Contains(">"))
+                        {
+                            return CheckStandardDeviation(site, true, deblankedValue);
+                        }
                     }
                 }
             }
-            else if (s.Contains(MAX))
+            else
             {
-                if (s.Contains("<"))
+                s = s.Replace(" ", "").Replace("\"", "").Replace("[", "").Replace("]", "");
+                if (s == TRUE)
                 {
-                    string[] array = s.Split('<');
-                    if (array.Length == 2)
-                    {
-                        return CheckMax(site, false, array[1].Replace("\"", "").Replace(" ", ""));
-                    }
+                    return true;
                 }
-                else if (s.Contains(">"))
+                else if (s == FALSE)
                 {
-                    string[] array = s.Split('>');
-                    if (array.Length == 2)
-                    {
-                        return CheckMax(site, true, array[1].Replace("\"", "").Replace(" ", ""));
-                    }
+                    return false;
                 }
-            }
-            else if (s.Contains(MIN))
-            {
-                if (s.Contains("<"))
+                else if (s == HIGHLIGHTED)
                 {
-                    string[] array = s.Split('<');
-                    if (array.Length == 2)
-                    {
-                        return CheckMin(site, false, array[1].Replace("\"", "").Replace(" ", ""));
-                    }
+                    return CheckHighlighted(site);
                 }
-                else if (s.Contains(">"))
+                else if (s == BLACKLISTED)
                 {
-                    string[] array = s.Split('>');
-                    if (array.Length == 2)
-                    {
-                        return CheckMin(site, true, array[1].Replace("\"", "").Replace(" ", ""));
-                    }
+                    return CheckBlacklisted(site);
                 }
-            }
-            else if (s.Contains(STANDARD_DEVIATION))
-            {
-                if (s.Contains("<"))
+                else if (s == IN_ROI)
                 {
-                    string[] array = s.Split('<');
-                    if (array.Length == 2)
-                    {
-                        return CheckStandardDeviation(site, false, array[1].Replace("\"", "").Replace(" ", ""));
-                    }
+                    return CheckInROI(site);
                 }
-                else if (s.Contains(">"))
+                else if (s == IN_MESH)
                 {
-                    string[] array = s.Split('>');
-                    if (array.Length == 2)
-                    {
-                        return CheckStandardDeviation(site, true, array[1].Replace("\"", "").Replace(" ", ""));
-                    }
+                    return CheckInMesh(site);
+                }
+                else if (s == IN_LEFT_HEMISPHERE)
+                {
+                    return CheckInLeftHemisphere(site);
+                }
+                else if (s == IN_RIGHT_HEMISPHERE)
+                {
+                    return CheckInRightHemisphere(site);
+                }
+                else if (s == ON_PLANE)
+                {
+                    return CheckOnPlane(site);
                 }
             }
             throw new InvalidAdvancedConditionException(s);

@@ -1,4 +1,5 @@
 ﻿using HBP.Module3D;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -35,6 +36,10 @@ namespace HBP.UI.Module3D
         [SerializeField] InputField m_PatientNameFilter;
         [SerializeField] InputField m_PatientPlaceFilter;
         [SerializeField] InputField m_PatientDateFilter;
+        [SerializeField] Toggle m_Tag;
+        [SerializeField] Dropdown m_TagDropdown;
+        [SerializeField] InputField m_TagFilter;
+        private Data.Tags.Tag m_SelectedTag;
 
         // Values
         [SerializeField] Toggle m_Mean;
@@ -52,6 +57,38 @@ namespace HBP.UI.Module3D
         [SerializeField] Toggle m_StandardDeviation;
         [SerializeField] Toggle m_StandardDeviationSuperior;
         [SerializeField] InputField m_StandardDeviationValue;
+        #endregion
+
+        #region Public Methods
+        /// <summary>
+        /// Initialize this object
+        /// </summary>
+        /// <param name="scene">Parent scene of this object</param>
+        public override void Initialize(Base3DScene scene)
+        {
+            base.Initialize(scene);
+            m_TagDropdown.options.Clear();
+            foreach (var tag in ApplicationState.ProjectLoaded.Settings.GeneralTags)
+            {
+                m_TagDropdown.options.Add(new Dropdown.OptionData(tag.Name));
+            }
+            foreach (var tag in ApplicationState.ProjectLoaded.Settings.SitesTags)
+            {
+                m_TagDropdown.options.Add(new Dropdown.OptionData(tag.Name));
+            }
+            m_TagDropdown.onValueChanged.AddListener((selected) =>
+            {
+                if (selected < ApplicationState.ProjectLoaded.Settings.GeneralTags.Count)
+                {
+                    m_SelectedTag = ApplicationState.ProjectLoaded.Settings.GeneralTags[selected];
+                }
+                else
+                {
+                    m_SelectedTag = ApplicationState.ProjectLoaded.Settings.SitesTags[selected - ApplicationState.ProjectLoaded.Settings.GeneralTags.Count];
+                }
+            });
+            m_SelectedTag = ApplicationState.ProjectLoaded.Settings.GeneralTags.Count > 0 ? ApplicationState.ProjectLoaded.Settings.GeneralTags[0] : ApplicationState.ProjectLoaded.Settings.SitesTags.Count > 0 ? ApplicationState.ProjectLoaded.Settings.SitesTags[0] : null;
+        }
         #endregion
 
         #region Private Methods
@@ -112,6 +149,7 @@ namespace HBP.UI.Module3D
                     result &= CheckPatientDate(site, m_PatientDateFilter.text);
                 }
             }
+            if (m_Tag.isOn) result &= CheckTag(site, m_SelectedTag, m_TagFilter.text);
             return result;
         }
         /// <summary>

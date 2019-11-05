@@ -187,6 +187,26 @@ namespace HBP.UI.Module3D
             }
         }
         /// <summary>
+        /// Check if the site has the input tag and if the value of this tag contains the input string
+        /// </summary>
+        /// <param name="site">Site to check</param>
+        /// <param name="tag">Tag to be checked</param>
+        /// <param name="tagValueToCompare">Value to be compared to the value of the tag</param>
+        /// <returns></returns>
+        protected bool CheckTag(Site site, Data.Tags.Tag tag, string tagValueToCompare)
+        {
+            if (tag != null)
+            {
+                Data.Tags.BaseTagValue tagValue = site.Information.SiteData.Tags.FirstOrDefault(t => t.Tag == tag);
+                if (tagValue != null)
+                {
+                    return tagValue.Value.ToString().ToUpper().Contains(tagValueToCompare.ToUpper());
+                }
+                else return false;
+            }
+            else return false;
+        }
+        /// <summary>
         /// Check if the mean of the values of the associated channel if above or under the input value
         /// </summary>
         /// <param name="site">Site to check</param>
