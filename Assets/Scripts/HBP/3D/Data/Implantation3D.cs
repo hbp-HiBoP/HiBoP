@@ -86,9 +86,9 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
-        public List<SiteInfo> GetSitesOfPatient(Data.Patient patient)
+        public IEnumerable<SiteInfo> GetSitesOfPatient(Data.Patient patient)
         {
-            return SiteInfos.Where(s => s.Patient == patient).ToList();
+            return SiteInfos.Where(s => s.Patient == patient);
         }
         /// <summary>
         /// Dispose all the DLL objects
