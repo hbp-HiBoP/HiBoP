@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using HBP.Data.General;
 using UnityEngine.UI;
 using NewTheme.Components;
 
@@ -8,7 +7,7 @@ namespace HBP.UI
 	/// <summary>
 	/// Manage the project item.
 	/// </summary>
-	public class ProjectItem : Tools.Unity.Lists.ActionnableItem<ProjectInfo> 
+	public class ProjectItem : Tools.Unity.Lists.ActionnableItem<Data.ProjectInfo> 
 	{
         #region Properties
         [SerializeField] Text m_NameText;
@@ -21,7 +20,7 @@ namespace HBP.UI
 
         [SerializeField] State Error;
 
-        public override ProjectInfo Object
+        public override Data.ProjectInfo Object
         {
             get
             {

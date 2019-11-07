@@ -14,7 +14,7 @@ namespace HBP.UI.Module3D
     {
         #region Properties
         protected Base3DScene m_Scene;
-        private Queue<Site> m_MatchingSites = new Queue<Site>();
+        private Queue<HBP.Module3D.Site> m_MatchingSites = new Queue<HBP.Module3D.Site>();
         private bool m_UpdateUI;
         #endregion
 
@@ -24,29 +24,29 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
-        protected abstract bool CheckConditions(Site site);
+        protected abstract bool CheckConditions(HBP.Module3D.Site site);
 
-        protected bool CheckHighlighted(Site site)
+        protected bool CheckHighlighted(HBP.Module3D.Site site)
         {
             return site.State.IsHighlighted;
         }
-        protected bool CheckBlacklisted(Site site)
+        protected bool CheckBlacklisted(HBP.Module3D.Site site)
         {
             return site.State.IsBlackListed;
         }
-        protected bool CheckLabel(Site site, string label)
+        protected bool CheckLabel(HBP.Module3D.Site site, string label)
         {
             return site.State.Labels.Any(l => l.ToLower().Contains(label.ToLower()));
         }
-        protected bool CheckInROI(Site site)
+        protected bool CheckInROI(HBP.Module3D.Site site)
         {
             return !site.State.IsOutOfROI;
         }
-        protected bool CheckInMesh(Site site)
+        protected bool CheckInMesh(HBP.Module3D.Site site)
         {
             return m_Scene.MeshManager.SelectedMesh.SimplifiedBoth.IsPointInside(m_Scene.ImplantationManager.SelectedImplantation.RawSiteList, site.Information.GlobalID);
         }
-        protected bool CheckInLeftHemisphere(Site site)
+        protected bool CheckInLeftHemisphere(HBP.Module3D.Site site)
         {
             if (m_Scene.MeshManager.SelectedMesh is LeftRightMesh3D mesh)
             {
@@ -57,7 +57,7 @@ namespace HBP.UI.Module3D
                 throw new InvalidBasicConditionException("The selected mesh is a single file mesh.\nYou can not filter by hemisphere.");
             }
         }
-        protected bool CheckInRightHemisphere(Site site)
+        protected bool CheckInRightHemisphere(HBP.Module3D.Site site)
         {
             if (m_Scene.MeshManager.SelectedMesh is LeftRightMesh3D mesh)
             {
@@ -68,23 +68,23 @@ namespace HBP.UI.Module3D
                 throw new InvalidBasicConditionException("The selected mesh is a single file mesh.\nYou can not filter by hemisphere.");
             }
         }
-        protected bool CheckOnPlane(Site site)
+        protected bool CheckOnPlane(HBP.Module3D.Site site)
         {
             return m_Scene.ImplantationManager.SelectedImplantation.RawSiteList.IsSiteOnAnyPlane(site, from cut in m_Scene.Cuts select cut as HBP.Module3D.Plane, 1.0f);
         }
-        protected bool CheckName(Site site, string name)
+        protected bool CheckName(HBP.Module3D.Site site, string name)
         {
             return site.Information.ChannelName.ToUpper().Contains(name.ToUpper());
         }
-        protected bool CheckPatientName(Site site, string patientName)
+        protected bool CheckPatientName(HBP.Module3D.Site site, string patientName)
         {
             return site.Information.Patient.Name.ToUpper().Contains(patientName.ToUpper());
         }
-        protected bool CheckPatientPlace(Site site, string patientPlace)
+        protected bool CheckPatientPlace(HBP.Module3D.Site site, string patientPlace)
         {
             return site.Information.Patient.Place.ToUpper().Contains(patientPlace.ToUpper());
         }
-        protected bool CheckPatientDate(Site site, string patientDateString)
+        protected bool CheckPatientDate(HBP.Module3D.Site site, string patientDateString)
         {
             if (global::Tools.CSharp.NumberExtension.TryParseFloat(patientDateString, out float patientDate))
             {
@@ -95,19 +95,19 @@ namespace HBP.UI.Module3D
                 throw new ParsingValueException(patientDateString);
             }
         }
-        protected bool CheckMarsAtlasName(Site site, string marsAtlasName)
+        protected bool CheckMarsAtlasName(HBP.Module3D.Site site, string marsAtlasName)
         {
             return site.Information.MarsAtlasLabel.ToLower().Contains(marsAtlasName.ToLower());
         }
-        protected bool CheckBroadmanAreaName(Site site, string broadmanAreaName)
+        protected bool CheckBroadmanAreaName(HBP.Module3D.Site site, string broadmanAreaName)
         {
             return site.Information.BrodmannAreaName.ToLower().Contains(broadmanAreaName.ToLower());
         }
-        protected bool CheckFreesurferName(Site site, string freesurferName)
+        protected bool CheckFreesurferName(HBP.Module3D.Site site, string freesurferName)
         {
             return site.Information.FreesurferLabel.ToLower().Contains(freesurferName.ToLower());
         }
-        protected bool CheckMean(Site site, bool superior, string stringValue)
+        protected bool CheckMean(HBP.Module3D.Site site, bool superior, string stringValue)
         {
             if (site.Statistics != null)
             {
@@ -119,7 +119,7 @@ namespace HBP.UI.Module3D
             }
             return false;
         }
-        protected bool CheckMedian(Site site, bool superior, string stringValue)
+        protected bool CheckMedian(HBP.Module3D.Site site, bool superior, string stringValue)
         {
             if (site.Statistics != null)
             {
@@ -131,7 +131,7 @@ namespace HBP.UI.Module3D
             }
             return false;
         }
-        protected bool CheckMax(Site site, bool superior, string stringValue)
+        protected bool CheckMax(HBP.Module3D.Site site, bool superior, string stringValue)
         {
             if (site.Statistics != null)
             {
@@ -143,7 +143,7 @@ namespace HBP.UI.Module3D
             }
             return false;
         }
-        protected bool CheckMin(Site site, bool superior, string stringValue)
+        protected bool CheckMin(HBP.Module3D.Site site, bool superior, string stringValue)
         {
             if (site.Statistics != null)
             {
@@ -155,7 +155,7 @@ namespace HBP.UI.Module3D
             }
             return false;
         }
-        protected bool CheckStandardDeviation(Site site, bool superior, string stringValue)
+        protected bool CheckStandardDeviation(HBP.Module3D.Site site, bool superior, string stringValue)
         {
             if (site.Statistics != null)
             {
@@ -192,7 +192,7 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Coroutines
-        public IEnumerator c_FilterSitesWithConditions(List<Site> sites)
+        public IEnumerator c_FilterSitesWithConditions(List<HBP.Module3D.Site> sites)
         {
             int length = sites.Count;
             Exception exception = null;
@@ -200,7 +200,7 @@ namespace HBP.UI.Module3D
             {
                 try
                 {
-                    Site site = sites[i];
+                    HBP.Module3D.Site site = sites[i];
                     bool match = CheckConditions(site);
                     if (match)
                     {
@@ -221,7 +221,7 @@ namespace HBP.UI.Module3D
                     yield return Ninja.JumpToUnity;
                     while (m_MatchingSites.Count > 0)
                     {
-                        Site filteredSite = m_MatchingSites.Dequeue();
+                        HBP.Module3D.Site filteredSite = m_MatchingSites.Dequeue();
                         filteredSite.State.IsFiltered = true;
                     }
                     OnFilter.Invoke((float)(i + 1) / length);

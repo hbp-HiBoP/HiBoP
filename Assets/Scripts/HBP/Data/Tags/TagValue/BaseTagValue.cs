@@ -1,18 +1,18 @@
 ﻿using System.Linq;
 using System.Runtime.Serialization;
 
-namespace HBP.Data.Tags
+namespace HBP.Data
 {
     [DataContract]
     public class BaseTagValue : BaseData
     {
         #region Properties
-        [DataMember(Name = "Tag")] protected string m_TagID;
-        public Tag Tag
+        [DataMember(Name = "BaseTag")] protected string m_TagID;
+        public BaseTag Tag
         {
             get
             {
-                return ApplicationState.ProjectLoaded.Settings.Tags.FirstOrDefault(t => t.ID == m_TagID);
+                return ApplicationState.ProjectLoaded.Preferences.Tags.FirstOrDefault(t => t.ID == m_TagID);
             }
             set
             {
@@ -47,16 +47,16 @@ namespace HBP.Data.Tags
         {
 
         }
-        public BaseTagValue(Tag tag) : this(tag, null)
+        public BaseTagValue(BaseTag tag) : this(tag, null)
         {
 
         }
-        public BaseTagValue(Tag tag, object value) : base()
+        public BaseTagValue(BaseTag tag, object value) : base()
         {
             m_TagID = tag?.ID;
             Value = value;
         }
-        public BaseTagValue(Tag tag, object value, string ID) : base(ID)
+        public BaseTagValue(BaseTag tag, object value, string ID) : base(ID)
         {
             m_TagID = tag?.ID;
             Value = value;

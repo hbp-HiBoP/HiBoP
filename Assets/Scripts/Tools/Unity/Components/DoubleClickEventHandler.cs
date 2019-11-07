@@ -5,7 +5,7 @@ using UnityEngine.Events;
 
 namespace Tools.Unity.Components
 {
-	public class DoubleClickEventHandler : MonoBehaviour , IPointerClickHandler
+	public class DoubleClickEventHandler : MonoBehaviour //, IPointerClickHandler
 	{
         #region Properties
         public float DelayBetweenClick = 0.1f;
@@ -17,8 +17,8 @@ namespace Tools.Unity.Components
         #endregion
 
         #region Public Methods
-        public void OnPointerClick(PointerEventData eventData)
-		{
+        public void Click()
+        {
             if (!m_IsWaiting)
             {
                 m_IsWaiting = true;
@@ -29,6 +29,18 @@ namespace Tools.Unity.Components
                 m_IsSecondClick = true;
             }
         }
+  //      public void OnPointerClick(PointerEventData eventData)
+		//{
+  //          if (!m_IsWaiting)
+  //          {
+  //              m_IsWaiting = true;
+  //              StartCoroutine(c_WaitForClick(DelayBetweenClick));
+  //          }
+  //          else
+  //          {
+  //              m_IsSecondClick = true;
+  //          }
+  //      }
         #endregion
 
         #region Private Methods		

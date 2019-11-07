@@ -1,10 +1,10 @@
 ﻿using System;
 using System.ComponentModel;
 
-namespace HBP.Data.Tags
+namespace HBP.Data
 {
     [DisplayName("Boolean")]
-    public class BoolTag : Tag
+    public class BoolTag : BaseTag
     {
         #region Properties
         #endregion

@@ -12,7 +12,7 @@ namespace HBP.UI.Module3D
     {
         #region Properties
         private bool m_IsInside;
-        private Site m_Site;
+        private HBP.Module3D.Site m_Site;
         private Base3DScene m_Scene;
         [SerializeField] private Image m_Image;
         [SerializeField] private RectTransform m_RectTransform;
@@ -30,7 +30,7 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
-        public void Initialize(Base3DScene scene, Site site, Vector2 position)
+        public void Initialize(Base3DScene scene, HBP.Module3D.Site site, Vector2 position)
         {
             m_Scene = scene;
             m_Site = site;

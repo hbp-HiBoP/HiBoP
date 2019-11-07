@@ -1,6 +1,6 @@
-﻿namespace HBP.Data.Tags
+﻿namespace HBP.Data
 {
-    public abstract class TagValue<T, I> : BaseTagValue where T : Tag
+    public abstract class TagValue<T, I> : BaseTagValue where T : BaseTag
     {
         #region Properties
         public virtual new T Tag

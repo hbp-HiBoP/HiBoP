@@ -1,8 +1,4 @@
-﻿using HBP.Module3D;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Events;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -13,7 +9,7 @@ namespace HBP.UI.Module3D.Tools
         [SerializeField]
         private Button m_Button;
 
-        private Site m_LastSelectedSite;
+        private HBP.Module3D.Site m_LastSelectedSite;
         #endregion
 
         #region Public Methods

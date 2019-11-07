@@ -110,13 +110,13 @@ namespace HBP.Module3D
         /// Add a mesh to the mesh manager
         /// </summary>
         /// <param name="mesh">Mesh data to be converted to 3D mesh</param>
-        public void Add(Data.Anatomy.Mesh mesh)
+        public void Add(Data.BaseMesh mesh)
         {
             if (mesh.IsUsable)
             {
-                if (mesh is Data.Anatomy.LeftRightMesh)
+                if (mesh is Data.LeftRightMesh)
                 {
-                    LeftRightMesh3D mesh3D = new LeftRightMesh3D((Data.Anatomy.LeftRightMesh)mesh, Data.Enums.MeshType.Patient);
+                    LeftRightMesh3D mesh3D = new LeftRightMesh3D((Data.LeftRightMesh)mesh, Data.Enums.MeshType.Patient);
 
                     if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
                     {
@@ -136,9 +136,9 @@ namespace HBP.Module3D
                         Meshes.Add(mesh3D);
                     }
                 }
-                else if (mesh is Data.Anatomy.SingleMesh)
+                else if (mesh is Data.SingleMesh)
                 {
-                    SingleMesh3D mesh3D = new SingleMesh3D((Data.Anatomy.SingleMesh)mesh, Data.Enums.MeshType.Patient);
+                    SingleMesh3D mesh3D = new SingleMesh3D((Data.SingleMesh)mesh, Data.Enums.MeshType.Patient);
 
                     if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
                     {

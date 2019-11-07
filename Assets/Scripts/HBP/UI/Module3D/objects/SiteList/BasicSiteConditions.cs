@@ -64,7 +64,7 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
-        private bool CheckState(Site site)
+        private bool CheckState(HBP.Module3D.Site site)
         {
             bool result = true;
             if (m_Highlighted.isOn) result &= CheckHighlighted(site);
@@ -74,7 +74,7 @@ namespace HBP.UI.Module3D
             if (m_Label.isOn) result &= CheckLabel(site, m_LabelFilter.text);
             return result;
         }
-        private bool CheckPosition(Site site)
+        private bool CheckPosition(HBP.Module3D.Site site)
         {
             bool result = true;
             if (m_InROI.isOn) result &= CheckInROI(site);
@@ -87,7 +87,7 @@ namespace HBP.UI.Module3D
             if (m_NotOnPlane.isOn) result &= !CheckOnPlane(site);
             return result;
         }
-        private bool CheckInformation(Site site)
+        private bool CheckInformation(HBP.Module3D.Site site)
         {
             bool result = true;
             if (m_SiteName.isOn) result &= CheckName(site, m_SiteNameFilter.text);
@@ -111,7 +111,7 @@ namespace HBP.UI.Module3D
             if (m_Freesurfer.isOn) result &= CheckFreesurferName(site, m_FreesurferFilter.text);
             return result;
         }
-        private bool CheckValues(Site site)
+        private bool CheckValues(HBP.Module3D.Site site)
         {
             bool result = true;
             if (m_Mean.isOn) result &= CheckMean(site, m_MeanSuperior.isOn, m_MeanValue.text);
@@ -121,7 +121,7 @@ namespace HBP.UI.Module3D
             if (m_StandardDeviation.isOn) result &= CheckStandardDeviation(site, m_StandardDeviationSuperior.isOn, m_StandardDeviationValue.text);
             return result;
         }
-        protected override bool CheckConditions(Site site)
+        protected override bool CheckConditions(HBP.Module3D.Site site)
         {
             return CheckState(site) && CheckPosition(site) && CheckInformation(site) && CheckValues(site);
         }

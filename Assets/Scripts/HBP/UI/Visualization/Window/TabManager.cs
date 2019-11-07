@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.Events;
 using System.Collections.Generic;
 
-namespace HBP.UI.Visualization
+namespace HBP.UI
 {
     [RequireComponent(typeof(ToggleGroup))]
     public class TabManager : MonoBehaviour

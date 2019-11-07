@@ -1,11 +1,10 @@
-﻿using HBP.Data.General;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
 
-namespace HBP.UI.General
+namespace HBP.UI
 {
-    public class TagsSubModifiers : SubModifier<ProjectSettings>
+    public class TagsSubModifiers : SubModifier<Data.ProjectPreferences>
     {
         #region Properties
         [SerializeField] GeneralTagsSubModifiers m_GeneralSubModifiers;
@@ -24,15 +23,15 @@ namespace HBP.UI.General
             }
         }
 
-        public ReadOnlyCollection<Data.Tags.Tag> ModifiedTags
+        public ReadOnlyCollection<Data.BaseTag> ModifiedTags
         {
             get
             {
-                List<Data.Tags.Tag> tags = new List<Data.Tags.Tag>();
+                List<Data.BaseTag> tags = new List<Data.BaseTag>();
                 tags.AddRange(m_GeneralSubModifiers.ModifiedTags);
                 tags.AddRange(m_PatientsSubModifiers.ModifiedTags);
                 tags.AddRange(m_SitesSubModifiers.ModifiedTags);
-                return new ReadOnlyCollection<Data.Tags.Tag>(tags);
+                return new ReadOnlyCollection<Data.BaseTag>(tags);
             }
         }
         #endregion
@@ -45,10 +44,17 @@ namespace HBP.UI.General
             m_PatientsSubModifiers.Initialize();
             m_SitesSubModifiers.Initialize();
         }
+        public override void Save()
+        {
+            m_GeneralSubModifiers.Save();
+            m_PatientsSubModifiers.Save();
+            m_SitesSubModifiers.Save();
+            base.Save();
+        }
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(ProjectSettings objectToDisplay)
+        protected override void SetFields(Data.ProjectPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
             m_GeneralSubModifiers.Object = objectToDisplay;

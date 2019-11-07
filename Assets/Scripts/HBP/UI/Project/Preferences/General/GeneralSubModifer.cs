@@ -1,9 +1,8 @@
-﻿using HBP.Data.General;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace HBP.UI.General
+namespace HBP.UI
 {
-    public class GeneralSubModifer : SubModifier<ProjectSettings>
+    public class GeneralSubModifer : SubModifier<Data.ProjectPreferences>
     {
         #region Properties
         [SerializeField] InfoSubModifier m_InfoSubModifier;
@@ -24,6 +23,13 @@ namespace HBP.UI.General
         #endregion
 
         #region Public Methods
+        public override void Save()
+        {
+            m_InfoSubModifier.Save();
+            m_DatabaseSubModifier.Save();
+            m_AliasesSubModifier.Save();
+            base.Save();
+        }
         public override void Initialize()
         {
             base.Initialize();
@@ -34,7 +40,7 @@ namespace HBP.UI.General
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(ProjectSettings objectToDisplay)
+        protected override void SetFields(Data.ProjectPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
             m_InfoSubModifier.Object = objectToDisplay;

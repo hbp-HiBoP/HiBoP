@@ -1,10 +1,9 @@
 ﻿using UnityEngine;
-using HBP.Data.General;
 using UnityEngine.Events;
 
-namespace HBP.UI.General
+namespace HBP.UI
 {
-    public class ProjectPreferencesModifier : ObjectModifier<ProjectSettings>
+    public class ProjectPreferencesModifier : ObjectModifier<Data.ProjectPreferences>
     {
         #region Properties
         [SerializeField] GeneralSubModifer m_GeneralSubModifier;
@@ -25,6 +24,8 @@ namespace HBP.UI.General
         #region Public Methods
         public override void Save()
         {
+            m_GeneralSubModifier.Save();
+            m_TagsSubModifier.Save();
             base.Save();
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
             ApplicationState.LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckPatientTagValues(m_TagsSubModifier.ModifiedTags, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
@@ -38,7 +39,7 @@ namespace HBP.UI.General
             m_GeneralSubModifier.Initialize();
             m_TagsSubModifier.Initialize();
         }
-        protected override void SetFields(ProjectSettings objectToDisplay)
+        protected override void SetFields(Data.ProjectPreferences objectToDisplay)
         {
             m_GeneralSubModifier.Object = objectToDisplay;
             m_TagsSubModifier.Object = objectToDisplay;

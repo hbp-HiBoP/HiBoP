@@ -84,11 +84,11 @@ namespace HBP.Module3D
         /// <summary>
         /// Data of the mesh (paths etc.)
         /// </summary>
-        protected Data.Anatomy.Mesh m_Mesh;
+        protected Data.BaseMesh m_Mesh;
         #endregion
 
         #region Constructors
-        public Mesh3D(Data.Anatomy.Mesh mesh, Data.Enums.MeshType type)
+        public Mesh3D(Data.BaseMesh mesh, Data.Enums.MeshType type)
         {
             m_Mesh = mesh;
             Name = mesh.Name;
@@ -125,7 +125,7 @@ namespace HBP.Module3D
     public class SingleMesh3D : Mesh3D
     {
         #region Constructors
-        public SingleMesh3D(Data.Anatomy.SingleMesh mesh, Data.Enums.MeshType type) : base(mesh, type) { }
+        public SingleMesh3D(Data.SingleMesh mesh, Data.Enums.MeshType type) : base(mesh, type) { }
         public SingleMesh3D() { }
         #endregion
 
@@ -136,7 +136,7 @@ namespace HBP.Module3D
         public override void Load()
         {
             m_IsLoading = true;
-            Data.Anatomy.SingleMesh mesh = m_Mesh as Data.Anatomy.SingleMesh;
+            Data.SingleMesh mesh = m_Mesh as Data.SingleMesh;
 
             m_Both = new DLL.Surface();
             if (m_Both.LoadGIIFile(mesh.Path, true, mesh.Transformation))
@@ -244,7 +244,7 @@ namespace HBP.Module3D
         #endregion
 
         #region Constructors
-        public LeftRightMesh3D(Data.Anatomy.LeftRightMesh mesh, Data.Enums.MeshType type) : base(mesh, type) { }
+        public LeftRightMesh3D(Data.LeftRightMesh mesh, Data.Enums.MeshType type) : base(mesh, type) { }
         public LeftRightMesh3D(string name, DLL.Surface left, DLL.Surface right, DLL.Surface both, Data.Enums.MeshType type)
         {
             Name = name;
@@ -267,7 +267,7 @@ namespace HBP.Module3D
         public override void Load()
         {
             m_IsLoading = true;
-            Data.Anatomy.LeftRightMesh mesh = m_Mesh as Data.Anatomy.LeftRightMesh;
+            Data.LeftRightMesh mesh = m_Mesh as Data.LeftRightMesh;
             m_Left = new DLL.Surface();
             if (m_Left.LoadGIIFile(mesh.LeftHemisphere, true, mesh.Transformation))
             {

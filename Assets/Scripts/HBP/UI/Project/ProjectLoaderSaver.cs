@@ -2,20 +2,19 @@
 using UnityEngine.Events;
 using System.IO;
 using CielaSpike;
-using HBP.Data.General;
 
 namespace HBP.UI
 {
     public class ProjectLoaderSaver : MonoBehaviour
     {
         #region Public Methods  
-        public void Load(ProjectInfo projectInfo)
+        public void Load(Data.ProjectInfo projectInfo)
         {
             UnityEngine.Profiling.Profiler.BeginSample("1");
-            Project projectToLoad = new Project();
+            Data.Project projectToLoad = new Data.Project();
 
             DataManager.Clear();
-            Project projectLoaded = ApplicationState.ProjectLoaded;
+            Data.Project projectLoaded = ApplicationState.ProjectLoaded;
             string projectLoadedLocation = ApplicationState.ProjectLoadedLocation;
             ApplicationState.ProjectLoaded = projectToLoad;
             ApplicationState.ProjectLoadedLocation = Directory.GetParent(projectInfo.Path).FullName;

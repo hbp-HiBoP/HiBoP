@@ -143,7 +143,7 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Coroutines
-        private IEnumerator c_ExportSites(List<Site> sites, string csvPath)
+        private IEnumerator c_ExportSites(List<HBP.Module3D.Site> sites, string csvPath)
         {
             int length = sites.Count;
 
@@ -151,7 +151,7 @@ namespace HBP.UI.Module3D
             Dictionary<Data.Patient, Data.Experience.Dataset.DataInfo>  dataInfoByPatient = new Dictionary<Data.Patient, Data.Experience.Dataset.DataInfo>();
             for (int i = 0; i < length; i++)
             {
-                Site site = sites[i];
+                HBP.Module3D.Site site = sites[i];
                 if (!dataInfoByPatient.ContainsKey(site.Information.Patient))
                 {
                     if (m_Scene.SelectedColumn is Column3DIEEG columnIEEG)
@@ -187,7 +187,7 @@ namespace HBP.UI.Module3D
             for (int i = 0; i < length; i++)
             {
                 // Get required values
-                Site site = sites[i];
+                HBP.Module3D.Site site = sites[i];
                 Vector3 sitePosition = sitePositions[i];
                 Data.Experience.Dataset.DataInfo dataInfo = null;
                 if (m_Scene.SelectedColumn is Column3DDynamic columnIEEG)

@@ -5,10 +5,10 @@ using System.Runtime.Serialization;
 using System.Linq;
 using UnityEngine;
 
-namespace HBP.Data.Tags
+namespace HBP.Data
 {
     [DisplayName("Enumerable")]
-    public class EnumTag : Tag
+    public class EnumTag : BaseTag
     {
         #region Properties
         [DataMember] public string[] Values { get; set; } = new string[0];

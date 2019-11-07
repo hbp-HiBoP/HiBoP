@@ -1,10 +1,9 @@
-﻿using HBP.Data.General;
-using Tools.Unity;
+﻿using Tools.Unity;
 using UnityEngine;
 
-namespace HBP.UI.General
+namespace HBP.UI
 {
-    public class DatabaseSubModifier : SubModifier<ProjectSettings>
+    public class DatabaseSubModifier : SubModifier<Data.ProjectPreferences>
     {
         #region Properties
         [SerializeField] FolderSelector m_PatientsDatabaseFolderSelector;
@@ -31,7 +30,7 @@ namespace HBP.UI.General
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(ProjectSettings objectToDisplay)
+        protected override void SetFields(Data.ProjectPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
             m_PatientsDatabaseFolderSelector.Folder = objectToDisplay.PatientDatabase;

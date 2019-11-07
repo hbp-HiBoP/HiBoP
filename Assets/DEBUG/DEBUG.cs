@@ -1,15 +1,12 @@
-﻿using UnityEngine;
-using UnityEditor;
+﻿using UnityEditor;
 using NewTheme.Components;
-using HBP.UI.Anatomy;
 
 public static class DEBUG
 {
     [MenuItem("DEBUG/Adrien/Main")]
     private static void Main()
     {
-        PatientModifier patientModifier = GameObject.FindObjectOfType<PatientModifier>();
-        patientModifier.Item = new HBP.Data.Patient();
+        ApplicationState.WindowsManager.OpenModifier(ApplicationState.ProjectLoaded.Patients[0], false);
     }
 
     [MenuItem("Tools/Theme/ActiveThemeElement")]

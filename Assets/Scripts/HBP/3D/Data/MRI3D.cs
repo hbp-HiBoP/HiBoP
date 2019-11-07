@@ -70,11 +70,11 @@ namespace HBP.Module3D
         /// <summary>
         /// Data of the MRI (paths etc.)
         /// </summary>
-        protected Data.Anatomy.MRI m_MRI;
+        protected Data.MRI m_MRI;
         #endregion
 
         #region Constructors
-        public MRI3D(Data.Anatomy.MRI mri)
+        public MRI3D(Data.MRI mri)
         {
             Name = mri.Name;
             m_MRI = mri;

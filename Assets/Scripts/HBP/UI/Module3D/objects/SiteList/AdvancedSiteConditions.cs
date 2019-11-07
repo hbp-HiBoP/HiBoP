@@ -43,7 +43,7 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
-        protected override bool CheckConditions(Site site)
+        protected override bool CheckConditions(HBP.Module3D.Site site)
         {
             foreach (var booleanValue in m_BooleanExpression.GetAllBooleanValuesUnderThisOne())
             {
@@ -51,7 +51,7 @@ namespace HBP.UI.Module3D
             }
             return m_BooleanExpression.Evaluate();
         }
-        private bool ParseConditionAndCheckValue(Site site, string s)
+        private bool ParseConditionAndCheckValue(HBP.Module3D.Site site, string s)
         {
             s = s.ToUpper();
             s = s.Replace(" ", "");

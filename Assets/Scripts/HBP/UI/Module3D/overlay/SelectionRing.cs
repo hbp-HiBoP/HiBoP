@@ -1,14 +1,11 @@
-﻿using HBP.Module3D;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace HBP.UI.Module3D
 {
     public class SelectionRing : MonoBehaviour
     {
         #region Properties
-        public Site Site { get; set; }
+        public HBP.Module3D.Site Site { get; set; }
         public Camera ViewCamera { get; set; }
         public RectTransform Viewport { get; set; }
         RectTransform m_RectTransform;

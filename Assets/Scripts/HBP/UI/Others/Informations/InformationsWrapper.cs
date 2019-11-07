@@ -180,7 +180,7 @@ namespace HBP.UI.Informations
             }
             m_DataStructs = dataStructs.ToArray();
         }
-        void GenerateChannelStructs(IEnumerable<Site> sites)
+        void GenerateChannelStructs(IEnumerable<HBP.Module3D.Site> sites)
         {
             m_ChannelStructs = sites.Where(s => !s.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray(); // FIXME: it is better to show a "No data for site X" message instead of filtering by IsMasked
         }
@@ -194,7 +194,7 @@ namespace HBP.UI.Informations
         #endregion
 
         #region Handlers
-        void OnSiteInformationRequestHandler(IEnumerable<Site> sites)
+        void OnSiteInformationRequestHandler(IEnumerable<HBP.Module3D.Site> sites)
         {
             GenerateChannelStructs(sites);
             GenerateDataStructs();

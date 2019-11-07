@@ -1,6 +1,4 @@
 ﻿using CielaSpike;
-using HBP.Data.Anatomy;
-using HBP.Data.Tags;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -52,7 +50,7 @@ namespace HBP.Data
     /// </list>
     /// </remarks>
     [DataContract]
-    public class Patient : BaseData, ILoadable<Patient>, ILoadableFromDatabase<Patient>
+    public class Patient : BaseData, ILoadable<Patient>, ILoadableFromDatabase<Patient>, INameable
     {
         #region Properties
         /// <summary>
@@ -74,7 +72,7 @@ namespace HBP.Data
         /// <summary>
         /// Meshes of the patient.
         /// </summary>
-        [DataMember] public List<Mesh> Meshes { get; set; }
+        [DataMember] public List<BaseMesh> Meshes { get; set; }
         /// <summary>
         /// MRI scans of the patient.
         /// </summary>
@@ -105,7 +103,7 @@ namespace HBP.Data
         /// <param name="sites">Sites of the patient.</param>
         /// <param name="tags">Tags of the patient.</param>
         /// <param name="ID">Unique identifier to identify the patient.</param>
-        public Patient(string name, string place, int date, IEnumerable<Mesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Site> sites, IEnumerable<BaseTagValue> tags, string ID) : base(ID)
+        public Patient(string name, string place, int date, IEnumerable<BaseMesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Site> sites, IEnumerable<BaseTagValue> tags, string ID) : base(ID)
         {
             Name = name;
             Place = place;
@@ -125,7 +123,7 @@ namespace HBP.Data
         /// <param name="MRIs">MRI scans of the patient.</param>
         /// <param name="sites">Sites of the patient.</param>
         /// <param name="tags">Tags of the patient.</param>
-        public Patient(string name, string place, int date, IEnumerable<Mesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Site> sites, IEnumerable<BaseTagValue> tags) : base()
+        public Patient(string name, string place, int date, IEnumerable<BaseMesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Site> sites, IEnumerable<BaseTagValue> tags) : base()
         {
             Name = name;
             Place = place;
@@ -138,7 +136,7 @@ namespace HBP.Data
         /// <summary>
         /// Initializes a new instance of the Patient class.
         /// </summary>
-        public Patient() : this("Unknown", "Unknown", 0, new Mesh[0], new MRI[0], new Site[0], new BaseTagValue[0])
+        public Patient() : this("Unknown", "Unknown", 0, new BaseMesh[0], new MRI[0], new Site[0], new BaseTagValue[0])
         {
         }
         #endregion
@@ -197,7 +195,7 @@ namespace HBP.Data
                 string[] directoryNameParts = directory.Name.Split(new char[1] { '_' }, StringSplitOptions.RemoveEmptyEntries);
                 int.TryParse(directoryNameParts[1], out int date);
                 //result = new Patient(directoryNameParts[2], directoryNameParts[0], date, Mesh.LoadFromDirectory(path), MRI.LoadFromDirectory(path), Implantation.LoadFromDirectory(path), new BaseTagValue[0], directory.Name); // TODO
-                result = new Patient(directoryNameParts[2], directoryNameParts[0], date, Mesh.LoadFromDirectory(path), MRI.LoadFromDirectory(path), new Site[0], new BaseTagValue[0], directory.Name);
+                result = new Patient(directoryNameParts[2], directoryNameParts[0], date, BaseMesh.LoadFromDirectory(path), MRI.LoadFromDirectory(path), new Site[0], new BaseTagValue[0], directory.Name);
                 return true;
             }
             return false;

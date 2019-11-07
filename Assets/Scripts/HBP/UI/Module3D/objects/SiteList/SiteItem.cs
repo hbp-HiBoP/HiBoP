@@ -1,12 +1,10 @@
-﻿using HBP.Module3D;
-using Tools.Unity;
-using Tools.Unity.Lists;
+﻿using Tools.Unity.Lists;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
-    public class SiteItem : Item<Site>
+    public class SiteItem : Item<HBP.Module3D.Site>
     {
         #region Properties
         [SerializeField] private Button m_Site;
@@ -21,7 +19,7 @@ namespace HBP.UI.Module3D
         [SerializeField] private Image m_ColorImage;
         [SerializeField] private GameObject m_ColorPickerPrefab;
 
-        public override Site Object
+        public override HBP.Module3D.Site Object
         {
             get
             {

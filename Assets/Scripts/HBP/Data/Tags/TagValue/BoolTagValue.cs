@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace HBP.Data.Tags
+namespace HBP.Data
 {
     public class BoolTagValue : TagValue<BoolTag, bool>
     {

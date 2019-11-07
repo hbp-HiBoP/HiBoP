@@ -105,7 +105,7 @@ namespace HBP.UI.Module3D
                     screenshotsPath += "/";
                 }
                 if (!Directory.Exists(screenshotsPath)) Directory.CreateDirectory(screenshotsPath);
-                screenshotsPath += ApplicationState.ProjectLoaded.Settings.Name + "/";
+                screenshotsPath += ApplicationState.ProjectLoaded.Preferences.Name + "/";
                 if (!Directory.Exists(screenshotsPath)) Directory.CreateDirectory(screenshotsPath);
                 screenshotsPath += m_Scene.Name + "/";
                 if (!Directory.Exists(screenshotsPath)) Directory.CreateDirectory(screenshotsPath);
@@ -136,7 +136,7 @@ namespace HBP.UI.Module3D
         {
             yield return new WaitForEndOfFrame();
 
-            string openedProjectName = ApplicationState.ProjectLoaded.Settings.Name;
+            string openedProjectName = ApplicationState.ProjectLoaded.Preferences.Name;
 
             if (multipleFiles) // TODO : add iconic scenario and / or scales
             {
