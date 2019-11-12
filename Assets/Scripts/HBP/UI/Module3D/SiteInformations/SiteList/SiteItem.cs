@@ -69,7 +69,7 @@ namespace HBP.UI.Module3D
         }
         private void UpdateFields()
         {
-            m_Site.GetComponentInChildren<Text>().text = Object.Information.ChannelName;
+            m_Site.GetComponentInChildren<Text>().text = Object.Information.Name;
             m_SiteLabel.Initialize(Object);
             m_SelectedImage.gameObject.SetActive(Object.IsSelected);
             m_LabelsText.text = Object.State.Labels.Count.ToString();

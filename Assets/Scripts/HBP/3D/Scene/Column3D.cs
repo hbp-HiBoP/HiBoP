@@ -289,22 +289,22 @@ namespace HBP.Module3D
                     Site baseSite = sceneSiteGameObject.GetComponent<Site>();
                     site.Information = baseSite.Information;
                     // State
-                    if (!SiteStateBySiteID.TryGetValue(baseSite.Information.FullCorrectedID, out SiteState siteState))
+                    if (!SiteStateBySiteID.TryGetValue(baseSite.Information.FullID, out SiteState siteState))
                     {
                         siteState = new SiteState();
                         siteState.ApplyState(baseSite.State);
-                        SiteStateBySiteID.Add(baseSite.Information.FullCorrectedID, siteState);
+                        SiteStateBySiteID.Add(baseSite.Information.FullID, siteState);
                     }
                     site.State = siteState;
                     site.State.OnChangeState.AddListener(() => OnChangeSiteState.Invoke(site));
                     // Configuration
-                    if (ColumnData.BaseConfiguration.ConfigurationBySite.TryGetValue(site.Information.FullCorrectedID, out Data.Visualization.SiteConfiguration siteConfiguration))
+                    if (ColumnData.BaseConfiguration.ConfigurationBySite.TryGetValue(site.Information.FullID, out Data.Visualization.SiteConfiguration siteConfiguration))
                     {
                         site.Configuration = siteConfiguration;
                     }
                     else
                     {
-                        ColumnData.BaseConfiguration.ConfigurationBySite.Add(site.Information.FullCorrectedID, site.Configuration);
+                        ColumnData.BaseConfiguration.ConfigurationBySite.Add(site.Information.FullID, site.Configuration);
                     }
                     site.IsActive = true;
                     site.OnSelectSite.AddListener((selected) =>
@@ -666,7 +666,7 @@ namespace HBP.Module3D
             Site site;
             if (!string.IsNullOrEmpty(siteName))
             {
-                site = Sites.FirstOrDefault(s => s.Information.ChannelName == siteName);
+                site = Sites.FirstOrDefault(s => s.Information.Name == siteName);
             }
             else
             {

@@ -47,7 +47,7 @@ namespace HBP.Data.Informations
         }
         public ChannelStruct(Module3D.Site site)
         {
-            Channel = site.Information.ChannelName;
+            Channel = site.Information.Name;
             Patient = site.Information.Patient;
         }
 

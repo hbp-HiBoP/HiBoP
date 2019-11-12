@@ -318,7 +318,7 @@ namespace HBP.UI.Module3D
                 }
                 // Write in string builder
                 csvBuilder.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}",
-                        site.Information.ChannelName,
+                        site.Information.Name,
                         site.Information.Patient.Name,
                         site.Information.Patient.Place,
                         site.Information.Patient.Date,

@@ -107,7 +107,7 @@ namespace HBP.UI.Module3D
         private void UpdateIEEGHistogram(Column3DDynamic column)
         {
             UnityEngine.Profiling.Profiler.BeginSample("IEEG HISTOGRAM");
-            string histogramID = column.name + "_" + (column is Column3DCCEP columnCCEP && columnCCEP.IsSourceSelected ? columnCCEP.SelectedSource.Information.ChannelName : "");
+            string histogramID = column.name + "_" + (column is Column3DCCEP columnCCEP && columnCCEP.IsSourceSelected ? columnCCEP.SelectedSource.Information.Name : "");
             if (!m_HistogramByColumn.TryGetValue(histogramID, out m_IEEGHistogram))
             {
                 float[] iEEGValues = column.ActivityValuesOfUnmaskedSites;
@@ -290,18 +290,18 @@ namespace HBP.UI.Module3D
                 }
             });
 
-            ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
+            ApplicationState.Module3D.OnRemoveScene.AddListener((UnityAction<Base3DScene>)((s) =>
             {
                 foreach (var column in s.ColumnsDynamic)
                 {
-                    string histogramID = column.name + "_" + (column is Column3DCCEP columnCCEP && columnCCEP.IsSourceSelected ? columnCCEP.SelectedSource.Information.ChannelName : "");
+                    string histogramID = column.name + "_" + (column is Column3DCCEP columnCCEP && columnCCEP.IsSourceSelected ? columnCCEP.SelectedSource.Information.Name : "");
                     if (m_HistogramByColumn.TryGetValue(histogramID, out Texture2D texture))
                     {
                         Destroy(texture);
                         m_HistogramByColumn.Remove(histogramID);
                     }
                 }
-            });
+            }));
         }
         /// <summary>
         /// Update IEEG values

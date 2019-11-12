@@ -123,14 +123,14 @@ namespace HBP.Module3D
             }
 
             // Retrieve values
-            if (!ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullCorrectedID, out Dictionary<string, float[]> processedValuesByChannel)) return;
-            if (!ColumnCCEPData.Data.UnityByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullCorrectedID, out Dictionary<string, string> unitByChannel)) return;
-            if (!ColumnCCEPData.Data.DataByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullCorrectedID, out Dictionary<string, Data.Experience.Dataset.BlocChannelData> dataByChannel)) return;
-            if (!ColumnCCEPData.Data.StatisticsByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullCorrectedID, out Dictionary<string, Data.Experience.Dataset.BlocChannelStatistics> statisticsByChannel)) return;
+            if (!ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullID, out Dictionary<string, float[]> processedValuesByChannel)) return;
+            if (!ColumnCCEPData.Data.UnityByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullID, out Dictionary<string, string> unitByChannel)) return;
+            if (!ColumnCCEPData.Data.DataByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullID, out Dictionary<string, Data.Experience.Dataset.BlocChannelData> dataByChannel)) return;
+            if (!ColumnCCEPData.Data.StatisticsByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullID, out Dictionary<string, Data.Experience.Dataset.BlocChannelStatistics> statisticsByChannel)) return;
 
             foreach (Site site in Sites)
             {
-                if (processedValuesByChannel.TryGetValue(site.Information.FullCorrectedID, out float[] values))
+                if (processedValuesByChannel.TryGetValue(site.Information.FullID, out float[] values))
                 {
                     if (values.Length > 0)
                     {
@@ -149,7 +149,7 @@ namespace HBP.Module3D
                     ActivityValuesBySiteID[site.Information.Index] = new float[timelineLength];
                     site.State.IsMasked = true;
                 }
-                if (unitByChannel.TryGetValue(site.Information.FullCorrectedID, out string unit))
+                if (unitByChannel.TryGetValue(site.Information.FullID, out string unit))
                 {
                     ActivityUnitsBySiteID[site.Information.Index] = unit;
                 }
@@ -157,11 +157,11 @@ namespace HBP.Module3D
                 {
                     ActivityUnitsBySiteID[site.Information.Index] = "";
                 }
-                if (dataByChannel.TryGetValue(site.Information.FullCorrectedID, out Data.Experience.Dataset.BlocChannelData blocChannelData))
+                if (dataByChannel.TryGetValue(site.Information.FullID, out Data.Experience.Dataset.BlocChannelData blocChannelData))
                 {
                     site.Data = blocChannelData;
                 }
-                if (statisticsByChannel.TryGetValue(site.Information.FullCorrectedID, out Data.Experience.Dataset.BlocChannelStatistics blocChannelStatistics))
+                if (statisticsByChannel.TryGetValue(site.Information.FullID, out Data.Experience.Dataset.BlocChannelStatistics blocChannelStatistics))
                 {
                     site.Statistics = blocChannelStatistics;
                     Data.Experience.Dataset.ChannelSubTrialStat trial = blocChannelStatistics.Trial.ChannelSubTrialBySubBloc[ColumnCCEPData.Bloc.MainSubBloc];
@@ -234,7 +234,7 @@ namespace HBP.Module3D
         public override void UpdateSites(Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             base.UpdateSites(implantation, sceneSitePatientParent);
-            Sources = Sites.Where(s => ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.Keys.Contains(s.Information.FullCorrectedID)).ToList();
+            Sources = Sites.Where(s => ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.Keys.Contains(s.Information.FullID)).ToList();
         }
         /// <summary>
         /// Update the visibility, the size and the color of the sites depending on their state
@@ -274,7 +274,7 @@ namespace HBP.Module3D
                 else if (!IsSourceSelected)
                 {
                     site.transform.localScale = Vector3.one;
-                    siteType = ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.ContainsKey(site.Information.FullCorrectedID) ? SiteType.Source : SiteType.NotASource;
+                    siteType = ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.ContainsKey(site.Information.FullID) ? SiteType.Source : SiteType.NotASource;
                 }
                 else
                 {

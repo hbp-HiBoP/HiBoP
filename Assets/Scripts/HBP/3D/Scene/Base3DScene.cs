@@ -1499,7 +1499,7 @@ namespace HBP.Module3D
             }
             if (SelectedColumn.SelectedSite)
             {
-                Visualization.Configuration.FirstSiteToSelect = SelectedColumn.SelectedSite.Information.ChannelName;
+                Visualization.Configuration.FirstSiteToSelect = SelectedColumn.SelectedSite.Information.Name;
                 Visualization.Configuration.FirstColumnToSelect = Columns.FindIndex(c => c = SelectedColumn);
             }
         }
@@ -1571,7 +1571,7 @@ namespace HBP.Module3D
                 if (column == selectedColumn) continue;
                 foreach (Site site in column.Sites)
                 {
-                    site.State.ApplyState(selectedColumn.SiteStateBySiteID[site.Information.FullCorrectedID]);
+                    site.State.ApplyState(selectedColumn.SiteStateBySiteID[site.Information.FullID]);
                 }
             }
             ResetIEEG(false);

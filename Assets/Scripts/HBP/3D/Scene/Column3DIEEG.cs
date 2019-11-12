@@ -46,7 +46,7 @@ namespace HBP.Module3D
             int numberOfSitesWithValues = 0;
             foreach (Site site in Sites)
             {
-                if (ColumnIEEGData.Data.ProcessedValuesByChannel.TryGetValue(site.Information.FullCorrectedID, out float[] values))
+                if (ColumnIEEGData.Data.ProcessedValuesByChannel.TryGetValue(site.Information.FullID, out float[] values))
                 {
                     if (values.Length > 0)
                     {
@@ -65,7 +65,7 @@ namespace HBP.Module3D
                     ActivityValuesBySiteID[site.Information.Index] = new float[timelineLength];
                     site.State.IsMasked = true;
                 }
-                if (ColumnIEEGData.Data.UnitByChannelID.TryGetValue(site.Information.FullCorrectedID, out string unit))
+                if (ColumnIEEGData.Data.UnitByChannelID.TryGetValue(site.Information.FullID, out string unit))
                 {
                     ActivityUnitsBySiteID[site.Information.Index] = unit;
                 }
@@ -73,11 +73,11 @@ namespace HBP.Module3D
                 {
                     ActivityUnitsBySiteID[site.Information.Index] = "";
                 }
-                if (ColumnIEEGData.Data.DataByChannelID.TryGetValue(site.Information.FullCorrectedID, out Data.Experience.Dataset.BlocChannelData blocChannelData))
+                if (ColumnIEEGData.Data.DataByChannelID.TryGetValue(site.Information.FullID, out Data.Experience.Dataset.BlocChannelData blocChannelData))
                 {
                     site.Data = blocChannelData;
                 }
-                if (ColumnIEEGData.Data.StatisticsByChannelID.TryGetValue(site.Information.FullCorrectedID, out Data.Experience.Dataset.BlocChannelStatistics blocChannelStatistics))
+                if (ColumnIEEGData.Data.StatisticsByChannelID.TryGetValue(site.Information.FullID, out Data.Experience.Dataset.BlocChannelStatistics blocChannelStatistics))
                 {
                     site.Statistics = blocChannelStatistics;
                 }

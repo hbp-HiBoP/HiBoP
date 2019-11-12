@@ -156,7 +156,7 @@ namespace HBP.UI.Module3D
             List<Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered && !s.State.IsMasked).ToList();
             if (!string.IsNullOrEmpty(m_Name))
             {
-                sites.RemoveAll(s => !s.Information.ChannelName.ToUpper().Contains(m_Name.ToUpper()));
+                sites.RemoveAll(s => !s.Information.Name.ToUpper().Contains(m_Name.ToUpper()));
             }
             if (!string.IsNullOrEmpty(m_Label))
             {

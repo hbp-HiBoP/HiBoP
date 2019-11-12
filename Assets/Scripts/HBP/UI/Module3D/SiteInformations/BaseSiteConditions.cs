@@ -147,7 +147,7 @@ namespace HBP.UI.Module3D
         /// <returns>True if the site name contains the input string</returns>
         protected bool CheckName(Site site, string name)
         {
-            return site.Information.ChannelName.ToUpper().Contains(name.ToUpper());
+            return site.Information.Name.ToUpper().Contains(name.ToUpper());
         }
         /// <summary>
         /// Check if the site patient name contains the input string

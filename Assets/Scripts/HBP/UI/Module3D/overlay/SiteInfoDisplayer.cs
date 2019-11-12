@@ -178,7 +178,7 @@ namespace HBP.UI.Module3D
         /// <param name="site">Site to display information of</param>
         void SetSite(HBP.Module3D.Site site)
         {
-            m_SiteNameText.text = site.Information.ChannelName;
+            m_SiteNameText.text = site.Information.Name;
         }
         /// <summary>
         /// Set the patient information (name, place, date)

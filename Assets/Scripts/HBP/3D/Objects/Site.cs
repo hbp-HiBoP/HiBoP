@@ -53,55 +53,14 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Full corrected ID of this site
-        /// </summary>
-        /// <remarks>
-        /// The ID is corrected only if <see cref="ApplicationState.UserPreferences.Data.Anatomic.SiteNameCorrection"/> is set as true
-        /// Otherwise, this returns the same value than <see cref="FullID"/>
-        /// </remarks>
-        public string FullCorrectedID
-        {
-            get
-            {
-                if (ApplicationState.UserPreferences.Data.Anatomic.SiteNameCorrection)
-                {
-                    string siteName = Name.ToUpper();
-                    int prime = siteName.LastIndexOf('P');
-                    if (prime > 0)
-                    {
-                        return PatientID + "_" + siteName.Remove(prime, 1).Insert(prime, "\'");
-                    }
-                    else
-                    {
-                        return PatientID + "_" + siteName;
-                    }
-                }
-                else
-                {
-                    return FullID;
-                }
-            }
-        }
-        /// <summary>
         /// Format the name of the string with information from the patient it is from in order to display it properly
         /// </summary>
         public string DisplayedName
         {
             get
             {
-                return ChannelName + " (" + Patient.Name + " - " + Patient.Place + " - " + Patient.Date + ")";
+                return Name + " (" + Patient.Name + " - " + Patient.Place + " - " + Patient.Date + ")";
             }
-        }
-        /// <summary>
-        /// Name of the channel associated with this site
-        /// </summary>
-        /// <remarks>
-        /// If <see cref="ApplicationState.UserPreferences.Data.Anatomic.SiteNameCorrection"/> is set as true, this returns the corrected name of the site
-        /// Otherwise, this returns the same value as <see cref="Name"/>
-        /// </remarks>
-        public string ChannelName
-        {
-            get { return FullCorrectedID.Replace(PatientID + "_", ""); }
         }
         #endregion
     }

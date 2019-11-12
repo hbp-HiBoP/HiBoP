@@ -61,7 +61,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ccepColumn.IsSourceSelected)
                 {
-                    m_Text.text = string.Format("{0} ({1})", ccepColumn.SelectedSource.Information.ChannelName, ccepColumn.SelectedSource.Information.Patient.Name);
+                    m_Text.text = string.Format("{0} ({1})", ccepColumn.SelectedSource.Information.Name, ccepColumn.SelectedSource.Information.Patient.Name);
                 }
                 else
                 {
