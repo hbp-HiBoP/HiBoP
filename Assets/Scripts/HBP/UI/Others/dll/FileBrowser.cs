@@ -1,12 +1,13 @@
-﻿using UnityEngine;
-using System.IO;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.IO;
 
 namespace HBP.UI
 {
     public class FileBrowser
     {
+        #region Properties
+        private static string m_LastSelectedDirectory = "";
+        #endregion
+
         #region Public Methods
         /// <summary>
         /// Open a qt file dialog and return the path of an existing directory.
@@ -16,8 +17,8 @@ namespace HBP.UI
         /// <returns> return an empty path if no directory has been choosen or if an error occurs </returns>
         public static string GetExistingDirectoryName(string message = "Select a directory", string directoryPath = "")
         {
-            string[] paths = SFB.StandaloneFileBrowser.OpenFolderPanel(message, directoryPath, false);
-            return paths.Length > 0 ? paths[0] : string.Empty;
+            string[] paths = SFB.StandaloneFileBrowser.OpenFolderPanel(message, string.IsNullOrEmpty(directoryPath) ? m_LastSelectedDirectory : directoryPath, false);
+            return paths.Length > 0 ? (m_LastSelectedDirectory = paths[0]) : string.Empty;
         }
         /// <summary>
         /// Open a qt file dialog and return the path of a selected file.
@@ -28,8 +29,16 @@ namespace HBP.UI
         /// <returns> return an empty path if no file has been choosen or if an error occurs </returns>
         public static string GetExistingFileName(string[] filtersArray = null, string message = "Select a file", string filePath = "")
         {
-            string[] paths = SFB.StandaloneFileBrowser.OpenFilePanel(message, string.IsNullOrEmpty(filePath) ? "" : new FileInfo(filePath).DirectoryName, new SFB.ExtensionFilter[] { new SFB.ExtensionFilter("Files", filtersArray) }, false);
-            return paths.Length > 0 ? paths[0] : string.Empty;
+            string[] paths = SFB.StandaloneFileBrowser.OpenFilePanel(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, new SFB.ExtensionFilter[] { new SFB.ExtensionFilter("Files", filtersArray) }, false);
+            if (paths.Length > 0)
+            {
+                m_LastSelectedDirectory = new FileInfo(paths[0]).DirectoryName;
+                return paths[0];
+            }
+            else
+            {
+                return string.Empty;
+            }
         }
         /// <summary>
         /// Open a qt file dialog and return the list of path of the selected files.

@@ -6,8 +6,8 @@
       "$type": "HBP.Data.Preferences.ProjectPreferences, Assembly-CSharp",
       "DefaultName": "New Project",
       "DefaultLocation": "D:\\HBPProjects",
-      "DefaultPatientDatabase": "",
-      "DefaultLocalizerDatabase": "",
+      "DefaultPatientDatabase": "D:\\HBP\\BDD\\Patients",
+      "DefaultLocalizerDatabase": "D:\\HBP\\BDD\\Localizers",
       "DefaultExportLocation": ""
     },
     "Theme": {
