@@ -22,11 +22,11 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
-        public override void Save()
+        public override void OK()
         {
             m_GeneralSubModifier.Save();
             m_TagsSubModifier.Save();
-            base.Save();
+            base.OK();
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
             ApplicationState.LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckPatientTagValues(m_TagsSubModifier.ModifiedTags, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
         }

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace HBP.UI
 {
-    public class MeshList : SelectableListWithItemAction<Data.BaseMesh>
+    public class MeshList : ActionableList<Data.BaseMesh>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Mesh, DescendingMesh, MarsAtlas, DescendingMarsAtlas, Transformation, DescendingTransformation }
@@ -41,7 +41,7 @@ namespace HBP.UI
                     actionnableItem.Object = objectToUpdate;
                     actionnableItem.OnChangeSelected.RemoveAllListeners();
                     actionnableItem.Select(m_SelectedStateByObject[objectToUpdate]);
-                    actionnableItem.OnChangeSelected.AddListener((selected) => OnSelection(objectToUpdate, selected));
+                    actionnableItem.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(objectToUpdate, selected));
                     actionnableItem.OnAction.RemoveAllListeners();
                     actionnableItem.OnAction.AddListener((actionID) => m_OnAction.Invoke(objectToUpdate, actionID));
                     return true;

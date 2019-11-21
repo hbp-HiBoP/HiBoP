@@ -8,7 +8,7 @@ namespace HBP.UI
     {
         #region Properties
         [SerializeField] protected GroupList m_List;
-        public override SelectableListWithItemAction<Data.Group> List => m_List;
+        public override ActionableList<Data.Group> List => m_List;
 
         [SerializeField] protected GroupCreator m_ObjectCreator;
         public override ObjectCreator<Data.Group> ObjectCreator => m_ObjectCreator;

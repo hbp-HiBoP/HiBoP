@@ -8,7 +8,7 @@ namespace HBP.UI.Experience.Protocol
     {
         #region Properties
         [SerializeField] protected BlocList m_List;
-        public override Tools.Unity.Lists.SelectableListWithItemAction<Bloc> List => m_List;
+        public override Tools.Unity.Lists.ActionableList<Bloc> List => m_List;
 
         [SerializeField] protected BlocCreator m_ObjectCreator;
         public override ObjectCreator<Bloc> ObjectCreator => m_ObjectCreator;

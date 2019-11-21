@@ -9,7 +9,7 @@ namespace HBP.UI
     {
         #region Properties
         [SerializeField] TagList m_List;
-        public override Tools.Unity.Lists.SelectableListWithItemAction<Data.BaseTag> List => m_List;
+        public override Tools.Unity.Lists.ActionableList<Data.BaseTag> List => m_List;
 
         [SerializeField] TagCreator m_ObjectCreator;
         public override ObjectCreator<Data.BaseTag> ObjectCreator => m_ObjectCreator;

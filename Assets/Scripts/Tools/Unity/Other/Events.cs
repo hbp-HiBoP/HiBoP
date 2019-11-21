@@ -11,5 +11,5 @@ namespace UnityEngine.Events
     [Serializable] public class WindowArrayEvent : UnityEvent<Tools.CSharp.Window[]> { }
     [Serializable] public class StringEvent : UnityEvent<String> { }
     [Serializable] public class Texture2DEvent : UnityEvent<Texture2D> { }
-    [Serializable] public class SavableWindowEvent : UnityEvent<HBP.UI.SavableWindow> { }
+    [Serializable] public class SavableWindowEvent : UnityEvent<HBP.UI.DialogWindow> { }
 }

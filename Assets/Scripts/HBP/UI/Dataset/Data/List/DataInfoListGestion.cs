@@ -11,7 +11,7 @@ namespace HBP.UI.Experience.Dataset
     {
         #region Properties
         [SerializeField] protected DataInfoList m_List;
-        public override Tools.Unity.Lists.SelectableListWithItemAction<DataInfo> List => m_List;
+        public override Tools.Unity.Lists.ActionableList<DataInfo> List => m_List;
 
         [SerializeField] protected DataInfoCreator m_ObjectCreator;
         public override ObjectCreator<DataInfo> ObjectCreator => m_ObjectCreator;

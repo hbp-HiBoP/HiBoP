@@ -5,7 +5,7 @@ using Tools.Unity.Lists;
 
 namespace HBP.UI.Experience.Dataset
 {
-    public class DataInfoList : Tools.Unity.Lists.SelectableListWithItemAction<Data.Experience.Dataset.DataInfo>
+    public class DataInfoList : Tools.Unity.Lists.ActionableList<Data.Experience.Dataset.DataInfo>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Patient, DescendingPatient, State, DescendingState, Type, DescendingType }
@@ -42,7 +42,7 @@ namespace HBP.UI.Experience.Dataset
                     actionnableItem.Object = objectToUpdate;
                     actionnableItem.OnChangeSelected.RemoveAllListeners();
                     actionnableItem.Select(m_SelectedStateByObject[objectToUpdate]);
-                    actionnableItem.OnChangeSelected.AddListener((selected) => OnSelection(objectToUpdate, selected));
+                    actionnableItem.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(objectToUpdate, selected));
                     actionnableItem.OnAction.RemoveAllListeners();
                     actionnableItem.OnAction.AddListener((actionID) => m_OnAction.Invoke(objectToUpdate, actionID));
                     return true;

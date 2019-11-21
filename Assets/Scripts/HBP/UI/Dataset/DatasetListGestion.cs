@@ -8,7 +8,7 @@ namespace HBP.UI.Experience.Dataset
     {
         #region Properties
         [SerializeField] protected DatasetList m_List;
-        public override SelectableListWithItemAction<Data.Experience.Dataset.Dataset> List => m_List;
+        public override ActionableList<Data.Experience.Dataset.Dataset> List => m_List;
 
         [SerializeField] protected DatasetCreator m_ObjectCreator;
         public override ObjectCreator<Data.Experience.Dataset.Dataset> ObjectCreator => m_ObjectCreator;

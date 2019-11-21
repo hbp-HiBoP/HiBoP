@@ -9,7 +9,7 @@ namespace HBP.UI
     {
         #region Properties
         [SerializeField] protected CoordinateList m_List;
-        public override SelectableListWithItemAction<Data.Coordinate> List => m_List;
+        public override ActionableList<Data.Coordinate> List => m_List;
 
         [SerializeField] protected CoordinateCreator m_ObjectCreator;
         public override ObjectCreator<Data.Coordinate> ObjectCreator => m_ObjectCreator;

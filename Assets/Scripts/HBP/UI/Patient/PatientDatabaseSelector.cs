@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace HBP.UI
 {
-    public class PatientDatabaseSelector : SavableWindow
+    public class PatientDatabaseSelector : DialogWindow
     {
         #region Properties
         [SerializeField] FolderSelector m_DatabaseFolderSelector;

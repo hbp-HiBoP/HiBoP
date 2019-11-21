@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace HBP.UI
 {
-    public class AliasList : SelectableListWithItemAction<Data.Alias>
+    public class AliasList : ActionableList<Data.Alias>
     {
         #region Properties
         enum OrderBy { None, Key, DescendingKey, Value, DescendingValue }

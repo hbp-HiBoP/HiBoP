@@ -10,7 +10,7 @@ namespace HBP.UI.Experience.Protocol
     {
         #region Properties
         [SerializeField] protected IconList m_List;
-        public override SelectableListWithItemAction<Icon> List => m_List;
+        public override ActionableList<Icon> List => m_List;
 
         [SerializeField] protected IconCreator m_ObjectCreator;
         public override ObjectCreator<Icon> ObjectCreator => m_ObjectCreator;
@@ -35,9 +35,9 @@ namespace HBP.UI.Experience.Protocol
         #endregion
 
         #region Protected Methods
-        protected override ObjectModifier<Icon> OpenModifier(Icon item, bool interactable)
+        protected override ObjectModifier<Icon> OpenModifier(Icon item)
         {
-            IconModifier modifier = base.OpenModifier(item, interactable) as IconModifier;
+            IconModifier modifier = base.OpenModifier(item) as IconModifier;
             modifier.Window = Window;
             return modifier;
         }

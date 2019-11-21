@@ -9,7 +9,7 @@ namespace HBP.UI.Experience.Protocol
     {
         #region Properties
         [SerializeField] protected EventList m_List;
-        public override Tools.Unity.Lists.SelectableListWithItemAction<d.Event> List => m_List;
+        public override Tools.Unity.Lists.ActionableList<d.Event> List => m_List;
 
         [SerializeField] protected EventCreator m_ObjectCreator;
         public override ObjectCreator<d.Event> ObjectCreator => m_ObjectCreator;

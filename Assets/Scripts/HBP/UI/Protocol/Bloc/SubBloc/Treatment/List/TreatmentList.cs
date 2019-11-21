@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class TreatmentList : SelectableListWithItemAction<d.Treatment>
+    public class TreatmentList : ActionableList<d.Treatment>
     {
         #region Properties
         enum OrderBy { None, Type, DescendingType, StartWindow, DescendingStartWindow, EndWindow, DescendingEndWindow, Order, DescendingOrder }

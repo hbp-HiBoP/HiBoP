@@ -3,7 +3,7 @@ using UnityEngine.Events;
 
 namespace Tools.Unity.Lists
 {
-    public class SelectableListWithItemAction<T> : SelectableList<T>
+    public class ActionableList<T> : SelectableList<T>
     {
         #region Properties
         protected GenericEvent<T, int> m_OnAction = new GenericEvent<T, int>();
@@ -22,7 +22,7 @@ namespace Tools.Unity.Lists
                 actionnableItem.Object = objectToUpdate;
                 actionnableItem.OnChangeSelected.RemoveAllListeners();
                 actionnableItem.Select(m_SelectedStateByObject[objectToUpdate]);
-                actionnableItem.OnChangeSelected.AddListener((selected) => OnSelection(objectToUpdate, selected));
+                actionnableItem.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(objectToUpdate, selected));
                 actionnableItem.OnAction.RemoveAllListeners();
                 actionnableItem.OnAction.AddListener((actionID) => m_OnAction.Invoke(objectToUpdate, actionID));
                 return true;
@@ -40,7 +40,7 @@ namespace Tools.Unity.Lists
                 item.Object = obj;
                 item.OnChangeSelected.RemoveAllListeners();
                 item.Select(m_SelectedStateByObject[obj]);
-                item.OnChangeSelected.AddListener((selected) => OnSelection(obj, selected));
+                item.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(obj, selected));
                 item.OnAction.RemoveAllListeners();
                 item.OnAction.AddListener((actionID) => m_OnAction.Invoke(obj, actionID));
             }

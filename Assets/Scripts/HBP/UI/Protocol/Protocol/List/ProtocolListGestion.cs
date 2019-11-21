@@ -19,7 +19,7 @@ namespace HBP.UI.Experience.Protocol
         }
 
         [SerializeField]protected ProtocolList m_List;
-        public override Tools.Unity.Lists.SelectableListWithItemAction<d.Protocol> List => m_List;
+        public override Tools.Unity.Lists.ActionableList<d.Protocol> List => m_List;
 
         [SerializeField] protected ProtocolCreator m_ObjectCreator;
         public override ObjectCreator<d.Protocol> ObjectCreator => m_ObjectCreator;

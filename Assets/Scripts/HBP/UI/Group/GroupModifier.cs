@@ -33,7 +33,7 @@ namespace HBP.UI
         public virtual void OpenPatientsSelector()
         {
             ObjectSelector<Data.Patient> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Patients.Where(p => !ItemTemp.Patients.Contains(p)));
-            selector.OnSave.AddListener(() => m_PatientListGestion.List.Add(selector.ObjectsSelected));
+            selector.OnOk.AddListener(() => m_PatientListGestion.List.Add(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
         #endregion

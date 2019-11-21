@@ -6,7 +6,7 @@ namespace HBP.UI
 	/// <summary>
 	/// Manage patient list.
 	/// </summary>
-	public class PatientList : Tools.Unity.Lists.SelectableListWithItemAction<Data.Patient>
+	public class PatientList : Tools.Unity.Lists.ActionableList<Data.Patient>
 	{
         #region Properties
         enum OrderBy { None, Name, DescendingName, Place, DescendingPlace, Date, DescendingDate, Mesh, DescendingMesh, MRI, DescendingMRI, Site, DescendingSite, Tag, DescendingTag }

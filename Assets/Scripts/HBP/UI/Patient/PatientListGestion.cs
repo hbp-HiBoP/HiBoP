@@ -8,7 +8,7 @@ namespace HBP.UI
     {
         #region Properties
         [SerializeField] PatientList m_List;
-        public override SelectableListWithItemAction<Data.Patient> List => m_List;
+        public override ActionableList<Data.Patient> List => m_List;
 
         [SerializeField] PatientCreator m_ObjectCreator;
         public override ObjectCreator<Data.Patient> ObjectCreator => m_ObjectCreator;

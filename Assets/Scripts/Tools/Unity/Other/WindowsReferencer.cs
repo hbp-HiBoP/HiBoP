@@ -24,8 +24,8 @@ namespace HBP.UI
 
         public void SaveAll()
         {
-            SavableWindow[] windowsToSave = m_Windows.OfType<SavableWindow>().ToArray();
-            foreach (var window in windowsToSave) window.Save();
+            DialogWindow[] windowsToSave = m_Windows.OfType<DialogWindow>().ToArray();
+            foreach (var window in windowsToSave) window.OK();
         }
         public void CloseAll()
         {

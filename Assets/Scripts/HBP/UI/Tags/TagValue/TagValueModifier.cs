@@ -36,13 +36,13 @@ namespace HBP.UI
                 {
                     m_TagDropdown.options = new List<Dropdown.OptionData> { new Dropdown.OptionData("None") };
                     m_TagDropdown.interactable = false;
-                    m_SaveButton.interactable = false;
+                    m_OKButton.interactable = false;
                 }
                 else
                 {
                     m_TagDropdown.options = Tags.Select(t => new Dropdown.OptionData(t.Name)).ToList();
                     m_TagDropdown.interactable = Interactable;
-                    m_SaveButton.interactable = Interactable;
+                    m_OKButton.interactable = Interactable;
                 }
                 SetFields(ItemTemp);
             }
@@ -69,10 +69,10 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
-        public override void Save()
+        public override void OK()
         {
             item = ItemTemp;
-            base.Save();
+            base.OK();
         }
         #endregion
 

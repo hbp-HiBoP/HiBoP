@@ -20,11 +20,29 @@ namespace Tools.Unity.Components
             {
                 m_Interactable = value;
                 List.Interactable = value;
+                m_CreateButton.interactable = value;
+                m_RemoveButton.interactable = value;
             }
         }
 
+        [SerializeField] protected bool m_Modifiable;
+        public bool Modifiable
+        {
+            get
+            {
+                return m_Modifiable;
+            }
+            set
+            {
+                m_Modifiable = value;
+                foreach (var modifier in m_WindowsReferencer.Windows.OfType<ObjectModifier<T>>())
+                {
+                    modifier.Interactable = value;
+                }
+            }
+        }
 
-        public abstract Lists.SelectableListWithItemAction<T> List { get; }
+        public abstract Lists.ActionableList<T> List { get; }
         public abstract ObjectCreator<T> ObjectCreator { get; }
 
         [SerializeField] protected WindowsReferencer m_WindowsReferencer = new WindowsReferencer();
@@ -52,7 +70,7 @@ namespace Tools.Unity.Components
         }
         protected virtual void Initialize()
         {
-            List.OnAction.AddListener((item, v) => OpenModifier(item, Interactable));
+            List.OnAction.AddListener((item, v) => OpenModifier(item));
             List.OnAddObject.AddListener(obj => ObjectCreator.ExistingItems.Add(obj));
             List.OnRemoveObject.AddListener(obj => ObjectCreator.ExistingItems.Remove(obj));
             List.OnUpdateObject.AddListener(OnUpdateObject);
@@ -60,10 +78,10 @@ namespace Tools.Unity.Components
             ObjectCreator.OnObjectCreated.AddListener(OnSaveModifier);
             ObjectCreator.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
         }
-        protected virtual ObjectModifier<T> OpenModifier(T item, bool interactable)
+        protected virtual ObjectModifier<T> OpenModifier(T item)
         {
-            ObjectModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(item, interactable);
-            modifier.OnSave.AddListener(() => OnSaveModifier(modifier.Item));
+            ObjectModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(item, m_Modifiable);
+            modifier.OnOk.AddListener(() => OnSaveModifier(modifier.Item));
             WindowsReferencer.Add(modifier);
             return modifier;
         }

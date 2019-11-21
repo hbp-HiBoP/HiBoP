@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace HBP.UI
 {
-    public class MRIList : Tools.Unity.Lists.SelectableListWithItemAction<Data.MRI>
+    public class MRIList : Tools.Unity.Lists.ActionableList<Data.MRI>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, HasMRI, DescendingHasMRI }

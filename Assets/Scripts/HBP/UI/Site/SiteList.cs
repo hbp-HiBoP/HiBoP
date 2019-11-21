@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace HBP.UI
 {
-    public class SiteList : Tools.Unity.Lists.SelectableListWithItemAction<Data.Site>
+    public class SiteList : Tools.Unity.Lists.ActionableList<Data.Site>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Coordinate, DescendingCoordinate, Tag, DescendingTag }

@@ -8,7 +8,7 @@ namespace HBP.UI
     /// <summary>
     /// Manage the New Project window.
     /// </summary>
-    public class NewProject : Window
+    public class NewProject : DialogWindow
 	{
         #region Properties
 		[SerializeField] InputField m_NameInputField;
@@ -36,7 +36,7 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
-        public void Create()
+        public override void OK()
 		{
             if (ApplicationState.ProjectLoaded != null)
             {
@@ -58,6 +58,7 @@ namespace HBP.UI
             {
                 CreateNewProject();
             }
+            base.OK();
         }
         #endregion
 

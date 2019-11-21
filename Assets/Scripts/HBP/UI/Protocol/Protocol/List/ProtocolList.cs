@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class ProtocolList : Tools.Unity.Lists.SelectableListWithItemAction<d.Protocol>
+    public class ProtocolList : Tools.Unity.Lists.ActionableList<d.Protocol>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Blocs, DescendingBlocs }

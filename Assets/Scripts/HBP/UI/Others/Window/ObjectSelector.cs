@@ -1,9 +1,10 @@
 ﻿using System.Linq;
 using Tools.Unity.Lists;
+using UnityEngine;
 
 namespace HBP.UI
 {
-    public abstract class ObjectSelector<T> : SavableWindow
+    public abstract class ObjectSelector<T> : DialogWindow
     {
         #region Properties
         protected abstract SelectableList<T> List { get; }
@@ -29,15 +30,29 @@ namespace HBP.UI
                 List.ObjectsSelected = value;
             }
         }
-        public bool MultiSelection
+
+        public enum SelectionType { Single, Multi}
+        [SerializeField] SelectionType m_Selection;
+        public SelectionType Selection
         {
             get
             {
-                return List.MultiSelection;
+                return m_Selection;
             }
             set
             {
-                List.MultiSelection = value;
+                m_Selection = value;
+                switch (value)
+                {
+                    case SelectionType.Single:
+                        List.ItemSelection = SelectableList<T>.SelectionType.SingleItem;
+                        break;
+                    case SelectionType.Multi:
+                        List.ItemSelection = SelectableList<T>.SelectionType.MultipleItems;
+                        break;
+                    default:
+                        break;
+                }
             }
         }
         public bool OpenModifiers { get; set; }
@@ -60,14 +75,15 @@ namespace HBP.UI
         #region Private Methods
         protected override void Initialize()
         {
-            List.OnSelectionChanged.AddListener(UpdateButtonState);
+            List.OnSelect.AddListener((obj) => UpdateButtonState());
+            List.OnDeselect.AddListener((obj) => UpdateButtonState());
             UpdateButtonState();
 
             base.Initialize();
         }
         void UpdateButtonState()
         {
-            m_SaveButton.interactable = Interactable && ObjectsSelected.Length > 0;
+            m_OKButton.interactable = Interactable && ObjectsSelected.Length > 0;
         }
         #endregion
     }

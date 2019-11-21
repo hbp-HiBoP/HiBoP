@@ -11,9 +11,9 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
-        public override void Save()
+        public override void OK()
         {
-            base.Save();
+            base.OK();
             ApplicationState.ProjectLoaded.SetGroups(ListGestion.List.Objects);
             FindObjectOfType<MenuButtonState>().SetInteractables();
         }

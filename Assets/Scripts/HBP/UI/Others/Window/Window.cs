@@ -12,7 +12,7 @@ namespace HBP.UI
             get { return m_OnClose; }
         }
 
-        protected bool m_Interactable;
+        [SerializeField] protected bool m_Interactable = true;
         public virtual bool Interactable
         {
             get
@@ -50,6 +50,10 @@ namespace HBP.UI
         protected virtual void SetFields()
         {
 
+        }
+        void OnValidate()
+        {
+            Interactable = Interactable;
         }
         #endregion
     }

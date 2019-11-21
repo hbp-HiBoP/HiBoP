@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace HBP.UI.Experience.Dataset
 {
-	public class DatasetList : Tools.Unity.Lists.SelectableListWithItemAction<d.Dataset>
+	public class DatasetList : Tools.Unity.Lists.ActionableList<d.Dataset>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Protocol, DescendingProtocol, Data, DescendingData }

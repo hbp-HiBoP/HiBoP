@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace HBP.UI
 {
-    public class CoordinateList : Tools.Unity.Lists.SelectableListWithItemAction<Data.Coordinate>
+    public class CoordinateList : Tools.Unity.Lists.ActionableList<Data.Coordinate>
     {
         #region Properties
         enum OrderBy { None, ReferenceSystem, DescendingReferenceSystem, X, DescendingX, Y, DescendingY, Z, DescendingZ }

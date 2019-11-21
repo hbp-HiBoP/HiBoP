@@ -8,7 +8,7 @@ using Tools.CSharp;
 
 namespace HBP.UI
 {
-    public class CreatorWindow : SavableWindow
+    public class CreatorWindow : DialogWindow
     {
         #region Properties
         [SerializeField] bool m_IsLoadableFromFile = false;
@@ -102,7 +102,7 @@ namespace HBP.UI
             {
                 options.Add(new Dropdown.OptionData("None"));
                 m_TypeDropdown.interactable = false;
-                m_SaveButton.interactable = false;
+                m_OKButton.interactable = false;
             }
             else
             {

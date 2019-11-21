@@ -4,11 +4,11 @@ using UnityEngine.Events;
 
 namespace HBP.UI
 {
-    public abstract class SavableWindow : Window, ISavable
+    public abstract class DialogWindow : Window
     {
         #region Properties
-        public UnityEvent OnSave { get; set; }
-        [SerializeField] protected Button m_SaveButton;
+        [SerializeField] protected Button m_OKButton;
+        public UnityEvent OnOk { get; } = new UnityEvent();
         public override bool Interactable
         {
             get
@@ -19,25 +19,17 @@ namespace HBP.UI
             set
             {
                 base.Interactable = value;
-                m_SaveButton.interactable = value;
+                m_OKButton.interactable = value;
             }
         }
         #endregion
 
         #region Public Methods
-        public virtual void Save()
+        public virtual void OK()
         {
             WindowsReferencer.SaveAll();
-            OnSave.Invoke();
+            OnOk.Invoke();
             base.Close();
-        }
-        #endregion
-
-        #region Protected Methods
-        protected override void Initialize()
-        {
-            OnSave = new UnityEvent();
-            base.Initialize();
         }
         #endregion
     }

@@ -50,7 +50,7 @@ namespace Tools.Unity.Lists
             {
                 m_Objects.Add(obj);
                 m_NumberOfObjects++;
-                ScrollRect.content.sizeDelta += new Vector2(0, ItemHeight);
+                ScrollRect.content.sizeDelta += new Vector2(0, m_ItemHeight);
                 ScrollRect.content.hasChanged = true;
                 OnAddObject.Invoke(obj);
                 return true;
@@ -113,7 +113,7 @@ namespace Tools.Unity.Lists
             for (int i = m_FirstIndexDisplayed, j = 0; i <= m_LastIndexDisplayed && j < itemsLength; i++, j++)
             {
                 Item<T> item = m_Items[j];
-                item.transform.localPosition = new Vector3(item.transform.localPosition.x, -i * ItemHeight, item.transform.localPosition.z);
+                item.transform.localPosition = new Vector3(item.transform.localPosition.x, -i * m_ItemHeight, item.transform.localPosition.z);
             }
         }
         public virtual void ScrollToObject(T objectToScroll)
@@ -124,14 +124,14 @@ namespace Tools.Unity.Lists
 
             if (index > max - 2)
             {
-                float bottomOfTargetItem = ItemHeight * (index + 1);
+                float bottomOfTargetItem = m_ItemHeight * (index + 1);
                 float position = 1.0f - ((bottomOfTargetItem - ScrollRect.viewport.sizeDelta.y) / (ScrollRect.content.sizeDelta.y - ScrollRect.viewport.sizeDelta.y));
                 ScrollRect.verticalNormalizedPosition = Mathf.Clamp(position, 0f, 1f);
                 ScrollRect.content.hasChanged = true;
             }
             else if (index < min + 1)
             {
-                float topOfTargetItem = ItemHeight * index;
+                float topOfTargetItem = m_ItemHeight * index;
                 float position = 1.0f - (topOfTargetItem / (ScrollRect.content.sizeDelta.y - ScrollRect.viewport.sizeDelta.y));
                 ScrollRect.verticalNormalizedPosition = Mathf.Clamp(position, 0f, 1f);
                 ScrollRect.content.hasChanged = true;
@@ -182,18 +182,18 @@ namespace Tools.Unity.Lists
         }
         protected virtual void UpdateContent()
         {
-            ScrollRect.content.sizeDelta = new Vector2(ScrollRect.content.sizeDelta.x, ScrollRect.content.sizeDelta.y - ItemHeight);
-            if (ScrollRect.content.localPosition.y > ItemHeight)
+            ScrollRect.content.sizeDelta = new Vector2(ScrollRect.content.sizeDelta.x, ScrollRect.content.sizeDelta.y - m_ItemHeight);
+            if (ScrollRect.content.localPosition.y > m_ItemHeight)
             {
                 if (m_NumberOfObjects >= m_MaximumNumberOfItems - 1)
                 {
-                    ScrollRect.content.localPosition = new Vector3(ScrollRect.content.localPosition.x, ScrollRect.content.localPosition.y - ItemHeight, ScrollRect.content.localPosition.z);
+                    ScrollRect.content.localPosition = new Vector3(ScrollRect.content.localPosition.x, ScrollRect.content.localPosition.y - m_ItemHeight, ScrollRect.content.localPosition.z);
 
                     if (m_NumberOfObjects >= m_MaximumNumberOfItems)
                     {
                         foreach (var item in m_Items)
                         {
-                            item.transform.localPosition = new Vector3(item.transform.localPosition.x, item.transform.localPosition.y + ItemHeight, item.transform.localPosition.z);
+                            item.transform.localPosition = new Vector3(item.transform.localPosition.x, item.transform.localPosition.y + m_ItemHeight, item.transform.localPosition.z);
                         }
                     }
                 }
@@ -215,7 +215,7 @@ namespace Tools.Unity.Lists
             Item<T> item = Instantiate(ItemPrefab, ScrollRect.content).GetComponent<Item<T>>();
             RectTransform itemRectTransform = item.transform as RectTransform;
             itemRectTransform.sizeDelta = new Vector2(0, itemRectTransform.sizeDelta.y);
-            itemRectTransform.localPosition = new Vector3(itemRectTransform.localPosition.x, -index * ItemHeight, itemRectTransform.localPosition.z);
+            itemRectTransform.localPosition = new Vector3(itemRectTransform.localPosition.x, -index * m_ItemHeight, itemRectTransform.localPosition.z);
             item.Interactable = Interactable;
             m_Items.Add(item);
             m_NumberOfItems++;
@@ -251,7 +251,7 @@ namespace Tools.Unity.Lists
                 int objID = m_FirstIndexDisplayed - 1 - i;
                 Item<T> item = items[itemID];
                 T newObj = m_Objects[objID];
-                item.transform.localPosition = new Vector3(item.transform.localPosition.x, -objID * ItemHeight, item.transform.localPosition.z);
+                item.transform.localPosition = new Vector3(item.transform.localPosition.x, -objID * m_ItemHeight, item.transform.localPosition.z);
                 SetItem(item, newObj);
             }
         }
@@ -265,7 +265,7 @@ namespace Tools.Unity.Lists
                 int objID = m_LastIndexDisplayed + i;
                 Item<T> item = items[itemID];
                 T newObj = m_Objects[objID];
-                item.transform.localPosition = new Vector3(item.transform.localPosition.x, -objID * ItemHeight, item.transform.localPosition.z);
+                item.transform.localPosition = new Vector3(item.transform.localPosition.x, -objID * m_ItemHeight, item.transform.localPosition.z);
                 SetItem(item, newObj);
             }
         }
@@ -306,7 +306,7 @@ namespace Tools.Unity.Lists
         {
             if (ScrollRect.viewport.hasChanged)
             {
-                m_MaximumNumberOfItems = Mathf.CeilToInt(ScrollRect.viewport.rect.height / ItemHeight) + NUMBER_OF_ADDITIONAL_ITEMS;
+                m_MaximumNumberOfItems = Mathf.CeilToInt(ScrollRect.viewport.rect.height / m_ItemHeight) + NUMBER_OF_ADDITIONAL_ITEMS;
                 ScrollRect.verticalNormalizedPosition = Mathf.Clamp(ScrollRect.verticalNormalizedPosition, 0f, 1f);
                 ScrollRect.viewport.hasChanged = false;
             }

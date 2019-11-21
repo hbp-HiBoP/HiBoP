@@ -12,13 +12,13 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
-        public override void Save()
+        public override void OK()
         {
             if (DataManager.HasData)
             {
                 ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
                 {
-                    base.Save();
+                    base.OK();
                     ApplicationState.ProjectLoaded.SetPatients(ListGestion.List.Objects);
                     DataManager.Clear();
                     ApplicationState.Module3D.ReloadScenes();
@@ -26,7 +26,7 @@ namespace HBP.UI
             }
             else
             {
-                base.Save();
+                base.OK();
                 ApplicationState.ProjectLoaded.SetPatients(ListGestion.List.Objects);
             }
             FindObjectOfType<MenuButtonState>().SetInteractables();

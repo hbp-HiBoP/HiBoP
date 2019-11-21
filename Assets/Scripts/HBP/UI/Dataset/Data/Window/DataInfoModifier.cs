@@ -47,10 +47,10 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Private Methods
-        public override void Save()
+        public override void OK()
         {
             item = ItemTemp;
-            base.Save();
+            base.OK();
         }
         protected override void SetFields(DataInfo objectToDisplay)
         {

@@ -28,15 +28,15 @@ namespace HBP.UI.Visualization
         #endregion
 
         #region Public Methods
-        public override void Save()
+        public override void OK()
         {
             ApplicationState.ProjectLoaded.SetVisualizations(m_ListGestion.List.Objects);
-            base.Save();
+            base.OK();
         }
         public void Display()
         {
             ApplicationState.Module3D.LoadScenes(m_ListGestion.List.ObjectsSelected);
-            Save();
+            OK();
         }
         #endregion
 
@@ -44,7 +44,8 @@ namespace HBP.UI.Visualization
         protected override void Initialize()
         {
             base.Initialize();
-            ListGestion.List.OnSelectionChanged.AddListener(() => SetDisplay());
+            ListGestion.List.OnSelect.AddListener((visualization) => SetDisplay());
+            ListGestion.List.OnDeselect.AddListener((visualization) => SetDisplay());
         }
         void SetDisplay()
         {

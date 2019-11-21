@@ -2,7 +2,7 @@
 
 namespace HBP.UI
 {
-    public abstract class ObjectModifier<T> : SavableWindow where T : ICloneable , ICopiable
+    public abstract class ObjectModifier<T> : DialogWindow where T : ICloneable , ICopiable
     {
         #region Properties
         protected T item;
@@ -21,11 +21,11 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
-        public override void Save()
+        public override void OK()
         {
             WindowsReferencer.SaveAll();
             Item.Copy(ItemTemp);
-            OnSave.Invoke();
+            OnOk.Invoke();
             base.Close();
         }
         #endregion

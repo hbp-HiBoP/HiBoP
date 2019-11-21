@@ -14,7 +14,7 @@ namespace Tools.Unity.Lists
         {
             get { return m_OnChangeSelected; }
         }
-        public virtual bool selected
+        public virtual bool Selected
         {
             get { return m_Toggle.isOn; }
         }
@@ -38,7 +38,7 @@ namespace Tools.Unity.Lists
         }
         public void ChangeSelectionState()
         {
-            Select(!selected, m_Toggle.toggleTransition);
+            Select(!Selected, m_Toggle.toggleTransition);
         }
         #endregion
 

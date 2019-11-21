@@ -36,7 +36,7 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 ObjectSelector<Data.Visualization.Visualization> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Visualizations,false);
-                selector.OnSave.AddListener(() =>
+                selector.OnOk.AddListener(() =>
                 {
                     if (selector.ObjectsSelected.Length > 0)
                     {

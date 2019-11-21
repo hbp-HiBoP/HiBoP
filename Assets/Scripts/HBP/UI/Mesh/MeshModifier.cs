@@ -42,11 +42,11 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
-        public override void Save()
+        public override void OK()
         {
             item = ItemTemp;
             item.RecalculateUsable();
-            base.Save();
+            base.OK();
         }
         #endregion
 

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 using System.Collections;
 using CielaSpike;
 using Tools.Unity;
@@ -7,12 +6,11 @@ using System.Linq;
 
 namespace HBP.UI
 {
-	public class OpenProject : Window 
+	public class OpenProject : DialogWindow 
 	{
 		#region Properties
 		[SerializeField] FolderSelector m_LocationFolderSelector;
 		[SerializeField] ProjectList m_ProjectList;
-        [SerializeField] Button m_LoadingButton;
 
         public override bool Interactable
         {
@@ -27,7 +25,7 @@ namespace HBP.UI
 
                 m_LocationFolderSelector.interactable = value;
                 m_ProjectList.Interactable = value;
-                m_LoadingButton.interactable = value;
+                m_OKButton.interactable = value && m_ProjectList.ObjectsSelected.Length == 1;
             }
         }
         #endregion
@@ -38,7 +36,7 @@ namespace HBP.UI
             FindObjectOfType<ProjectLoaderSaver>().Load(info);
             base.Close();
         }
-        public void Load()
+        public override void OK()
 		{
             if (ApplicationState.ProjectLoaded != null)
             {
@@ -67,7 +65,8 @@ namespace HBP.UI
         protected override void Initialize()
         {
             // Initialize project list.
-            m_ProjectList.OnSelectionChanged.AddListener(() => m_LoadingButton.interactable = m_ProjectList.ObjectsSelected.Length > 0);
+            m_ProjectList.OnSelect.AddListener((project) => m_OKButton.interactable = m_ProjectList.ObjectsSelected.Length > 0);
+            m_ProjectList.OnDeselect.AddListener((project) => m_OKButton.interactable = m_ProjectList.ObjectsSelected.Length > 0);
             m_ProjectList.OnAction.AddListener((info, i) => Load(info));
 
             // Initialise location folder selector.
@@ -90,7 +89,7 @@ namespace HBP.UI
         IEnumerator c_DisplayProjects(string path)
         {
             yield return Ninja.JumpToUnity;
-            m_LoadingButton.interactable = false;
+            m_OKButton.interactable = false;
             m_ProjectList.Set(new Data.ProjectInfo[0]);
             yield return Ninja.JumpBack;
             string[] paths = Data.Project.GetProject(path).ToArray();
@@ -102,7 +101,7 @@ namespace HBP.UI
                 yield return Ninja.JumpBack;
             }
             yield return Ninja.JumpToUnity;
-            m_ProjectList.SortByName(ProjectList.Sorting.Descending);
+            m_ProjectList.SortByName(Tools.Unity.Lists.BaseList.Sorting.Descending);
         }
         #endregion
     }

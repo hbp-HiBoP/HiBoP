@@ -4,7 +4,7 @@ using d = HBP.Data.Experience.Protocol;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class BlocList : Tools.Unity.Lists.SelectableListWithItemAction<d.Bloc>
+    public class BlocList : Tools.Unity.Lists.ActionableList<d.Bloc>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Order, DescendingOrder , SubBlocs, DescendingSubBlocs, Image, DescendingImage }

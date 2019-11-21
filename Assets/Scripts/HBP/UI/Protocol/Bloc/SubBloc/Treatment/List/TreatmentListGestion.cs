@@ -10,7 +10,7 @@ namespace HBP.UI.Experience.Protocol
     {
         #region Properties
         [SerializeField] protected TreatmentList m_List;
-        public override SelectableListWithItemAction<Treatment> List => m_List;
+        public override ActionableList<Treatment> List => m_List;
 
         [SerializeField] protected TreatmentCreator m_ObjectCreator;
         public override ObjectCreator<Treatment> ObjectCreator => m_ObjectCreator;
@@ -54,9 +54,9 @@ namespace HBP.UI.Experience.Protocol
         #endregion
 
         #region Public Methods
-        protected override ObjectModifier<Treatment> OpenModifier(Treatment item, bool interactable)
+        protected override ObjectModifier<Treatment> OpenModifier(Treatment item)
         {
-            TreatmentModifier modifier = base.OpenModifier(item, interactable) as TreatmentModifier;
+            TreatmentModifier modifier = base.OpenModifier(item) as TreatmentModifier;
             modifier.Window = Window;
             modifier.Baseline = Baseline;
             return modifier;

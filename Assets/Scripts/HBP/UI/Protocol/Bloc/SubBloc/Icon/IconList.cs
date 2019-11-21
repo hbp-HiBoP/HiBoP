@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class IconList : Tools.Unity.Lists.SelectableListWithItemAction<Icon>
+    public class IconList : Tools.Unity.Lists.ActionableList<Icon>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Path, DescendingPath, Start, DescendingStart, End, DescendingEnd}

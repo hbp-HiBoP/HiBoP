@@ -101,7 +101,7 @@ namespace Tools.Unity.Components
                 creatorWindow.IsCreatableFromExistingObjects = createableFromExistingObjects;
                 creatorWindow.IsCreatableFromFile = createableFromFile;
                 creatorWindow.IsCreatableFromDatabase = createableFromDatabase;
-                creatorWindow.OnSave.AddListener(() => OnSaveCreator(creatorWindow));
+                creatorWindow.OnOk.AddListener(() => OnSaveCreator(creatorWindow));
                 WindowsReferencer.Add(creatorWindow);
             }
         }
@@ -148,7 +148,7 @@ namespace Tools.Unity.Components
         protected virtual void OpenSelector(IEnumerable<T> objects, bool multiSelection = false, bool openModifiers = true, bool generateNewIDs = true)
         {
             ObjectSelector<T> selector = ApplicationState.WindowsManager.OpenSelector<T>(objects, multiSelection, openModifiers);
-            selector.OnSave.AddListener(() => OnSaveSelector(selector, generateNewIDs));
+            selector.OnOk.AddListener(() => OnSaveSelector(selector, generateNewIDs));
             WindowsReferencer.Add(selector);
         }
         protected virtual void OnSaveSelector(ObjectSelector<T> selector, bool generateNewIDs = true)
@@ -181,7 +181,7 @@ namespace Tools.Unity.Components
         protected virtual ObjectModifier<T> OpenModifier(T item)
         {
             ObjectModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(item, true);
-            modifier.OnSave.AddListener(() => OnSaveModifier(modifier));
+            modifier.OnOk.AddListener(() => OnSaveModifier(modifier));
             WindowsReferencer.Add(modifier);
             return modifier;
         }

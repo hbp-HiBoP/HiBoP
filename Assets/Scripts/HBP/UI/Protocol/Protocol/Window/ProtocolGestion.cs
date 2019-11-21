@@ -12,13 +12,13 @@ namespace HBP.UI.Experience.Protocol
         #endregion
 
         #region Public Methods
-        public override void Save()
+        public override void OK()
         {
             if (DataManager.HasData)
             {
                 ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
                 {
-                    base.Save();
+                    base.OK();
                     ApplicationState.ProjectLoaded.SetProtocols(m_ListGestion.List.Objects);
                     FindObjectOfType<MenuButtonState>().SetInteractables();
                     GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
@@ -29,7 +29,7 @@ namespace HBP.UI.Experience.Protocol
             }
             else
             {
-                base.Save();
+                base.OK();
                 ApplicationState.ProjectLoaded.SetProtocols((m_ListGestion.List.Objects));
                 FindObjectOfType<MenuButtonState>().SetInteractables();
                 GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();

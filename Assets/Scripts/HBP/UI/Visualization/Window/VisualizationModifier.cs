@@ -42,26 +42,26 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
-        public override void Save()
+        public override void OK()
         {
             if (Item.IsOpen)
             {
                 ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Visualization already open", "The visualization you are trying to modify is already open. This visualization needs to be closed before saving the changes.\n\nWould you like to close it and save the changes ?", () =>
                 {
                     ApplicationState.Module3D.RemoveScene(Item);
-                    base.Save();
+                    base.OK();
                 },
                 "Close & Save");
             }
             else
             {
-                base.Save();
+                base.OK();
             }
         }
         public void AddPatients()
         {
             ObjectSelector<Data.Patient> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Patients.Where(p => !itemTemp.Patients.Contains(p)));
-            selector.OnSave.AddListener(() => m_PatientList.Add(selector.ObjectsSelected));
+            selector.OnOk.AddListener(() => m_PatientList.Add(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
         public void RemovePatients()
@@ -71,13 +71,13 @@ namespace HBP.UI
         public void AddGroups()
         {
             ObjectSelector<Data.Group> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Groups);
-            selector.OnSave.AddListener(() => AddGroups(selector.ObjectsSelected));
+            selector.OnOk.AddListener(() => AddGroups(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
         public void RemoveGroups()
         {
             ObjectSelector<Data.Group> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Groups);
-            selector.OnSave.AddListener(() => RemoveGroups(selector.ObjectsSelected));
+            selector.OnOk.AddListener(() => RemoveGroups(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
 

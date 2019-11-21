@@ -57,7 +57,8 @@ namespace HBP.UI
             {
                 selector = CreateWindow(prefab, interactable) as ObjectSelector<T>;
                 selector.Objects = objects.ToArray();
-                selector.MultiSelection = multiSelection;
+                if(multiSelection) selector.Selection = ObjectSelector<T>.SelectionType.Multi;
+                else selector.Selection = ObjectSelector<T>.SelectionType.Single;
                 selector.OpenModifiers = openModifiers;
             }
             return selector;

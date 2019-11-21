@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace HBP.UI
 {
-    public class TagList : SelectableListWithItemAction<Data.BaseTag>
+    public class TagList : ActionableList<Data.BaseTag>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Type, DescendingType }

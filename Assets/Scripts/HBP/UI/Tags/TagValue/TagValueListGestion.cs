@@ -8,7 +8,7 @@ namespace HBP.UI
     {
         #region Properties
         [SerializeField] protected TagValueList m_List;
-        public override Tools.Unity.Lists.SelectableListWithItemAction<Data.BaseTagValue> List => m_List;
+        public override Tools.Unity.Lists.ActionableList<Data.BaseTagValue> List => m_List;
 
         [SerializeField] protected TagValueCreator m_ObjectCreator;
         public override ObjectCreator<Data.BaseTagValue> ObjectCreator => m_ObjectCreator;
@@ -36,9 +36,9 @@ namespace HBP.UI
         #endregion
 
         #region Protected Methods
-        protected override ObjectModifier<Data.BaseTagValue> OpenModifier(Data.BaseTagValue item, bool interactable)
+        protected override ObjectModifier<Data.BaseTagValue> OpenModifier(Data.BaseTagValue item)
         {
-            TagValueModifier modifier = (TagValueModifier) base.OpenModifier(item, interactable);
+            TagValueModifier modifier = (TagValueModifier) base.OpenModifier(item);
             modifier.Tags = Tags.Where(t => !List.Objects.Any(o => o.Tag == t) || t == item.Tag).ToArray();
             return modifier;
         }

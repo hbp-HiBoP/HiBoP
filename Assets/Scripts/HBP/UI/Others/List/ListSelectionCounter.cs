@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace Tools.Unity.Components
 {
-    [RequireComponent(typeof(Lists.SelectableList<object>))]
+    [RequireComponent(typeof(SelectableList<>))]
     public class ListSelectionCounter : MonoBehaviour
     {
         #region Properties
@@ -31,15 +31,14 @@ namespace Tools.Unity.Components
         }
         void OnDisable()
         {
-            m_SelectionCountable.OnSelectionChanged.RemoveListener(m_Action);
-        }
-        void OnValidate()
-        {
-            if (!(List is ISelectionCountable)) List = null;
+            if(m_SelectionCountable != null) m_SelectionCountable.OnSelectionChanged.RemoveListener(m_Action);
         }
         void UpdateCounter()
         {
-            Counter.text = m_SelectionCountable.NumberOfItemSelected.ToString();
+            if(m_SelectionCountable != null)
+            {
+                Counter.text = m_SelectionCountable.NumberOfItemSelected.ToString();
+            }
         }
         #endregion
     }

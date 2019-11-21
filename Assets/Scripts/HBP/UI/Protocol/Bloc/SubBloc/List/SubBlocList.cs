@@ -4,7 +4,7 @@ using Tools.Unity.Lists;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class SubBlocList : SelectableListWithItemAction<Data.Experience.Protocol.SubBloc>
+    public class SubBlocList : ActionableList<Data.Experience.Protocol.SubBloc>
     {
         #region Properties
         enum OrderBy { None,

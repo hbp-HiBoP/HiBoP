@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace HBP.UI
 {
-    public class TagValueList : SelectableListWithItemAction<Data.BaseTagValue>
+    public class TagValueList : ActionableList<Data.BaseTagValue>
     {
         #region Properties
         enum OrderBy { None, Tag, DescendingTag, Value, DescendingValue }

@@ -44,9 +44,9 @@ namespace HBP.UI.UserPreferences
         #endregion
 
         #region Public Methods
-        public override  void Save()
+        public override  void OK()
         {
-            base.Save();
+            base.OK();
             ClassLoaderSaver.SaveToJSon(ApplicationState.UserPreferences, Data.Preferences.UserPreferences.PATH, true);
         }
         public override void Close()

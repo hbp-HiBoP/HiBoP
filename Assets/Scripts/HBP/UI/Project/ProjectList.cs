@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace HBP.UI
 {
-    public class ProjectList : Tools.Unity.Lists.SelectableListWithItemAction<Data.ProjectInfo>
+    public class ProjectList : Tools.Unity.Lists.ActionableList<Data.ProjectInfo>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Patients, DescendingPatients, Groups, DescendingGroups, Protocols, DescendingProtocols, Datasets, DescendingDatasets, Visualizations, DescendingVisualizations }

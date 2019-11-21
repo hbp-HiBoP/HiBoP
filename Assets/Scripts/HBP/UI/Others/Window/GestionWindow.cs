@@ -3,7 +3,7 @@ using Tools.Unity.Components;
 
 namespace HBP.UI
 {
-    public abstract class GestionWindow<T> : SavableWindow where T : ICloneable, ICopiable, new()
+    public abstract class GestionWindow<T> : DialogWindow where T : ICloneable, ICopiable, new()
     {
         #region Properties
         public abstract ListGestion<T> ListGestion { get; }
