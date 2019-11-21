@@ -1781,7 +1781,7 @@ namespace HBP.Module3D
             {
                 for (int i = 0; i < Visualization.Patients[0].Meshes.Count; ++i)
                 {
-                    Data.Anatomy.Mesh mesh = Visualization.Patients[0].Meshes[i];
+                    Data.BaseMesh mesh = Visualization.Patients[0].Meshes[i];
                     progress += loadingMeshProgress;
                     onChangeProgress.Invoke(progress, loadingMeshTime, new LoadingText("Loading Mesh ", mesh.Name, " [" + (i + 1).ToString() + "/" + Visualization.Patients[0].Meshes.Count + "]"));
                     yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainSurface(mesh, e => exception = e));
@@ -1800,7 +1800,7 @@ namespace HBP.Module3D
             {
                 for (int i = 0; i < Visualization.Patients[0].MRIs.Count; ++i)
                 {
-                    Data.Anatomy.MRI mri = Visualization.Patients[0].MRIs[i];
+                    Data.MRI mri = Visualization.Patients[0].MRIs[i];
                     progress += loadingMRIProgress;
                     onChangeProgress.Invoke(progress, loadingMRITime, new LoadingText("Loading MRI ", mri.Name, " [" + (i + 1).ToString() + "/" + Visualization.Patients[0].MRIs.Count + "]"));
                     yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainVolume(mri, e => exception = e));
@@ -1848,7 +1848,7 @@ namespace HBP.Module3D
         /// <param name="mri">MRI to load</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_LoadBrainVolume(Data.Anatomy.MRI mri, Action<Exception> outPut)
+        private IEnumerator c_LoadBrainVolume(Data.MRI mri, Action<Exception> outPut)
         {
             try
             {
@@ -1867,7 +1867,7 @@ namespace HBP.Module3D
         /// <param name="mesh">Mesh to be loaded</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_LoadBrainSurface(Data.Anatomy.Mesh mesh, Action<Exception> outPut)
+        private IEnumerator c_LoadBrainSurface(Data.BaseMesh mesh, Action<Exception> outPut)
         {
             try
             {

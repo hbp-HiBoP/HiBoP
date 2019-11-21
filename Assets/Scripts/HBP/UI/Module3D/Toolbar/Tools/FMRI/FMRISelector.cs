@@ -29,7 +29,7 @@ namespace HBP.UI.Module3D.Tools
                 if (!string.IsNullOrEmpty(path))
                 {
                     m_LastFMRIPath = path;
-                    SelectedScene.FMRIManager.FMRI = new MRI3D(new Data.Anatomy.MRI("FMRI", path));
+                    SelectedScene.FMRIManager.FMRI = new MRI3D(new Data.MRI("FMRI", path));
                 }
                 OnChangeFMRI.Invoke();
             });

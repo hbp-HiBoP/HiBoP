@@ -1,7 +1,7 @@
 ﻿using Tools.Unity;
 using UnityEngine;
 
-namespace HBP.UI.Visualization
+namespace HBP.UI
 {
     public class BugReporterMenu : MonoBehaviour
     {

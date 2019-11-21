@@ -193,11 +193,11 @@ namespace HBP.UI.Module3D
         /// <param name="tag">Tag to be checked</param>
         /// <param name="tagValueToCompare">Value to be compared to the value of the tag</param>
         /// <returns></returns>
-        protected bool CheckTag(Site site, Data.Tags.Tag tag, string tagValueToCompare)
+        protected bool CheckTag(Site site, Data.BaseTag tag, string tagValueToCompare)
         {
             if (tag != null)
             {
-                Data.Tags.BaseTagValue tagValue = site.Information.SiteData.Tags.FirstOrDefault(t => t.Tag == tag);
+                Data.BaseTagValue tagValue = site.Information.SiteData.Tags.FirstOrDefault(t => t.Tag == tag);
                 if (tagValue != null)
                 {
                     return tagValue.DisplayableValue.ToUpper().Contains(tagValueToCompare.ToUpper());

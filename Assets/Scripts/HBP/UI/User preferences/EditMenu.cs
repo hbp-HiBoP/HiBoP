@@ -11,7 +11,7 @@ namespace HBP.UI.UserPreferences
         }
         public void OpenProjectPreferences()
         {
-            var modifier = ApplicationState.WindowsManager.OpenModifier(ApplicationState.ProjectLoaded.Settings, true);
+            var modifier = ApplicationState.WindowsManager.OpenModifier(ApplicationState.ProjectLoaded.Preferences, true);
         }
         #endregion
     }

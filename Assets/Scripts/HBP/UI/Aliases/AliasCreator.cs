@@ -1,8 +1,8 @@
 ﻿using Tools.Unity.Components;
 
-namespace HBP.UI.Alias
+namespace HBP.UI
 {
-    public class AliasCreator : ObjectCreator<Data.Preferences.Alias>
+    public class AliasCreator : ObjectCreator<Data.Alias>
     {
     }
 }

@@ -1,15 +1,12 @@
-﻿using HBP.Module3D;
-using System.Linq;
-using Tools.Unity.Lists;
+﻿using Tools.Unity.Lists;
 using UnityEngine;
-using UnityEngine.Profiling;
 
 namespace HBP.UI.Module3D
 {
-    public class SiteList : List<Site>
+    public class SiteList : List<HBP.Module3D.Site>
     {
         #region Properties
-        public System.Collections.Generic.List<Site> ObjectsList
+        public System.Collections.Generic.List<HBP.Module3D.Site> ObjectsList
         {
             get
             {

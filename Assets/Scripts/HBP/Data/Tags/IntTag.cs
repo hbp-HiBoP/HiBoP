@@ -4,10 +4,10 @@ using System.Runtime.Serialization;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace HBP.Data.Tags
+namespace HBP.Data
 {
     [DisplayName("Integer")]
-    public class IntTag : Tag
+    public class IntTag : BaseTag
     {
         #region Properties
         [DataMember(Name = "Clamped")] bool m_Clamped;

@@ -3,7 +3,6 @@ using UnityEngine.UI;
 using System.Collections;
 using CielaSpike;
 using Tools.Unity;
-using HBP.Data.General;
 using System.Linq;
 
 namespace HBP.UI
@@ -34,7 +33,7 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
-        public void Load(ProjectInfo info)
+        public void Load(Data.ProjectInfo info)
         {
             FindObjectOfType<ProjectLoaderSaver>().Load(info);
             base.Close();
@@ -92,12 +91,12 @@ namespace HBP.UI
         {
             yield return Ninja.JumpToUnity;
             m_LoadingButton.interactable = false;
-            m_ProjectList.Set(new ProjectInfo[0]);
+            m_ProjectList.Set(new Data.ProjectInfo[0]);
             yield return Ninja.JumpBack;
-            string[] paths = Project.GetProject(path).ToArray();
+            string[] paths = Data.Project.GetProject(path).ToArray();
             foreach (string projectPath in paths)
             {
-                ProjectInfo project = new ProjectInfo(projectPath);
+                Data.ProjectInfo project = new Data.ProjectInfo(projectPath);
                 yield return Ninja.JumpToUnity;
                 m_ProjectList.Add(project);
                 yield return Ninja.JumpBack;

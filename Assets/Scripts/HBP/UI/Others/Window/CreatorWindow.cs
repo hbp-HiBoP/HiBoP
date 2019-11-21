@@ -11,8 +11,8 @@ namespace HBP.UI
     public class CreatorWindow : SavableWindow
     {
         #region Properties
-        bool m_IsLoadableFromFile = false;
-        public bool IsLoadableFromFile
+        [SerializeField] bool m_IsLoadableFromFile = false;
+        public bool IsCreatableFromFile
         {
             get
             {
@@ -25,8 +25,8 @@ namespace HBP.UI
             }
         }
 
-        bool m_IsLoadableFromDatabase = false;
-        public bool IsLoadableFromDatabase
+        [SerializeField] bool m_IsLoadableFromDatabase = false;
+        public bool IsCreatableFromDatabase
         {
             get
             {
@@ -35,6 +35,34 @@ namespace HBP.UI
             set
             {
                 m_IsLoadableFromDatabase = value;
+                Set();
+            }
+        }
+
+        [SerializeField] bool m_IsCreatableFromScratch = false;
+        public bool IsCreatableFromScratch
+        {
+            get
+            {
+                return m_IsCreatableFromScratch;
+            }
+            set
+            {
+                m_IsCreatableFromScratch = value;
+                Set();
+            }
+        }
+
+        [SerializeField] bool m_IsCreatableFromExistingObjects = false;
+        public bool IsCreatableFromExistingObjects
+        {
+            get
+            {
+                return m_IsCreatableFromExistingObjects;
+            }
+            set
+            {
+                m_IsCreatableFromExistingObjects = value;
                 Set();
             }
         }
@@ -57,17 +85,29 @@ namespace HBP.UI
         }
         #endregion
 
-        #region Private Methods
+        #region Protected Methods
         protected override void Initialize()
         {
             Set();
             base.Initialize();
         }
-        void Set()
+        protected virtual void Set()
         {
             List<Dropdown.OptionData> options = Enum.GetNames(typeof(CreationType)).Select((name) => new Dropdown.OptionData(StringExtension.CamelCaseToWords(name))).ToList();
-            if (!IsLoadableFromFile) options.RemoveAll(o => o.text == "From file");
-            if (!IsLoadableFromDatabase) options.RemoveAll(o => o.text == "From database");
+            if (!IsCreatableFromFile) options.RemoveAll(o => o.text == "From file");
+            if (!IsCreatableFromDatabase) options.RemoveAll(o => o.text == "From database");
+            if (!IsCreatableFromExistingObjects) options.RemoveAll(o => o.text == "From existing object");
+            if (!IsCreatableFromScratch) options.RemoveAll(o => o.text == "From scratch");
+            if (options.Count == 0)
+            {
+                options.Add(new Dropdown.OptionData("None"));
+                m_TypeDropdown.interactable = false;
+                m_SaveButton.interactable = false;
+            }
+            else
+            {
+                Interactable = Interactable;
+            }
             m_TypeDropdown.options = options;
             m_TypeDropdown.value = (int)Type;
             m_TypeDropdown.RefreshShownValue();

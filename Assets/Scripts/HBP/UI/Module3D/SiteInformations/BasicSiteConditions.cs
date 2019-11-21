@@ -39,7 +39,7 @@ namespace HBP.UI.Module3D
         [SerializeField] Toggle m_Tag;
         [SerializeField] Dropdown m_TagDropdown;
         [SerializeField] InputField m_TagFilter;
-        private Data.Tags.Tag m_SelectedTag;
+        private Data.BaseTag m_SelectedTag;
 
         // Values
         [SerializeField] Toggle m_Mean;
@@ -68,26 +68,26 @@ namespace HBP.UI.Module3D
         {
             base.Initialize(scene);
             m_TagDropdown.options.Clear();
-            foreach (var tag in ApplicationState.ProjectLoaded.Settings.GeneralTags)
+            foreach (var tag in ApplicationState.ProjectLoaded.Preferences.GeneralTags)
             {
                 m_TagDropdown.options.Add(new Dropdown.OptionData(tag.Name));
             }
-            foreach (var tag in ApplicationState.ProjectLoaded.Settings.SitesTags)
+            foreach (var tag in ApplicationState.ProjectLoaded.Preferences.SitesTags)
             {
                 m_TagDropdown.options.Add(new Dropdown.OptionData(tag.Name));
             }
             m_TagDropdown.onValueChanged.AddListener((selected) =>
             {
-                if (selected < ApplicationState.ProjectLoaded.Settings.GeneralTags.Count)
+                if (selected < ApplicationState.ProjectLoaded.Preferences.GeneralTags.Count)
                 {
-                    m_SelectedTag = ApplicationState.ProjectLoaded.Settings.GeneralTags[selected];
+                    m_SelectedTag = ApplicationState.ProjectLoaded.Preferences.GeneralTags[selected];
                 }
                 else
                 {
-                    m_SelectedTag = ApplicationState.ProjectLoaded.Settings.SitesTags[selected - ApplicationState.ProjectLoaded.Settings.GeneralTags.Count];
+                    m_SelectedTag = ApplicationState.ProjectLoaded.Preferences.SitesTags[selected - ApplicationState.ProjectLoaded.Preferences.GeneralTags.Count];
                 }
             });
-            m_SelectedTag = ApplicationState.ProjectLoaded.Settings.GeneralTags.Count > 0 ? ApplicationState.ProjectLoaded.Settings.GeneralTags[0] : ApplicationState.ProjectLoaded.Settings.SitesTags.Count > 0 ? ApplicationState.ProjectLoaded.Settings.SitesTags[0] : null;
+            m_SelectedTag = ApplicationState.ProjectLoaded.Preferences.GeneralTags.Count > 0 ? ApplicationState.ProjectLoaded.Preferences.GeneralTags[0] : ApplicationState.ProjectLoaded.Preferences.SitesTags.Count > 0 ? ApplicationState.ProjectLoaded.Preferences.SitesTags[0] : null;
         }
         #endregion
 

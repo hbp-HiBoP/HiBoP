@@ -78,7 +78,7 @@ namespace HBP.Module3D
         /// Add a MRI to the MRI manager
         /// </summary>
         /// <param name="mri">MRI to be added</param>
-        public void Add(Data.Anatomy.MRI mri)
+        public void Add(Data.MRI mri)
         {
             if (mri.IsUsable)
             {

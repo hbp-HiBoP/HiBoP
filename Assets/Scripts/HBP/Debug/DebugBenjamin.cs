@@ -1,5 +1,4 @@
-﻿using HBP.Data.Anatomy;
-using HBP.Data.Visualization;
+﻿using HBP.Data.Visualization;
 using System.Linq;
 using UnityEngine;
 

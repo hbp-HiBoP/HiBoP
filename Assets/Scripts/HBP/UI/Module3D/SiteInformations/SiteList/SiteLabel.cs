@@ -1,6 +1,4 @@
 ﻿using HBP.Module3D;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -9,7 +7,7 @@ namespace HBP.UI.Module3D
     public class SiteLabel : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         #region Properties
-        private Site m_Site;
+        private HBP.Module3D.Site m_Site;
         private bool m_IsInside;
         #endregion
 
@@ -24,7 +22,7 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
-        public void Initialize(Site site)
+        public void Initialize(HBP.Module3D.Site site)
         {
             m_Site = site;
         }

@@ -5,7 +5,7 @@ using Tools.Unity;
 using UnityEngine.Events;
 using System;
 
-namespace HBP.UI.Visualization
+namespace HBP.UI
 {
     public class ColumnModifier : SubModifier<Column>
     {

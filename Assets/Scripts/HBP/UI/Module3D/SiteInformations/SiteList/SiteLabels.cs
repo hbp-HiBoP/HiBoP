@@ -1,7 +1,4 @@
-﻿using HBP.Module3D;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
@@ -13,11 +10,11 @@ namespace HBP.UI.Module3D
         [SerializeField] private Button m_AddSiteLabelButton;
         [SerializeField] private RectTransform m_SiteLabelsContainer;
         [SerializeField] private GameObject m_SiteLabelPrefab;
-        private Site m_Site;
+        private HBP.Module3D.Site m_Site;
         #endregion
 
         #region Public Methods
-        public void Initialize(Site site)
+        public void Initialize(HBP.Module3D.Site site)
         {
             m_Site = site;
 

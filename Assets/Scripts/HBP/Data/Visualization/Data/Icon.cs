@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using Tools.Unity;
-using System.IO;
 
 namespace HBP.Data.Visualization
 {

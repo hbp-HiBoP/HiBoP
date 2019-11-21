@@ -3,7 +3,6 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using HBP.Data.Anatomy;
 
 namespace HBP.Data.Visualization
 {

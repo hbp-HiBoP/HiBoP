@@ -18,7 +18,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Reference to the site data of this site
         /// </summary>
-        public Data.Anatomy.Site SiteData { get; set; }
+        public Data.Site SiteData { get; set; }
         /// <summary>
         /// Reference to the patient this site belongs to
         /// </summary>

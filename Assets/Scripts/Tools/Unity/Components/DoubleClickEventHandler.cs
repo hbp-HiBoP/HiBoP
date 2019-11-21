@@ -2,9 +2,11 @@
 using System.Collections;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 namespace Tools.Unity.Components
 {
+    [RequireComponent(typeof(Selectable))]
 	public class DoubleClickEventHandler : MonoBehaviour , IPointerClickHandler
 	{
         #region Properties
@@ -14,25 +16,33 @@ namespace Tools.Unity.Components
 
         bool m_IsSecondClick = false;
 		bool m_IsWaiting = false;
+        Selectable m_Selectable;
         #endregion
 
         #region Public Methods
         public void OnPointerClick(PointerEventData eventData)
-		{
-            if (!m_IsWaiting)
+        {
+            if(isActiveAndEnabled && m_Selectable.interactable)
             {
-                m_IsWaiting = true;
-                StartCoroutine(c_WaitForClick(DelayBetweenClick));
-            }
-            else
-            {
-                m_IsSecondClick = true;
+                if (!m_IsWaiting)
+                {
+                    m_IsWaiting = true;
+                    StartCoroutine(c_WaitForClick(DelayBetweenClick));
+                }
+                else
+                {
+                    m_IsSecondClick = true;
+                }
             }
         }
         #endregion
 
-        #region Private Methods		
-		IEnumerator c_WaitForClick(float delay) 
+        #region Private Methods
+        void OnEnable()
+        {
+            m_Selectable = GetComponent<Selectable>();
+        }
+        IEnumerator c_WaitForClick(float delay) 
 		{
 			yield return new WaitForSeconds(delay);
             if (m_IsSecondClick == true && m_IsWaiting == true) OnDoubleClick.Invoke();

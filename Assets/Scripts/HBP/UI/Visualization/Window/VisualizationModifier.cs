@@ -2,11 +2,9 @@
 using UnityEngine.UI;
 using System.Linq;
 using System.Collections.Generic;
-using HBP.Data;
-using HBP.UI.Anatomy;
 using HBP.Data.Visualization;
 
-namespace HBP.UI.Visualization
+namespace HBP.UI
 {
     public class VisualizationModifier : ObjectModifier<Data.Visualization.Visualization>
     {
@@ -62,7 +60,7 @@ namespace HBP.UI.Visualization
         }
         public void AddPatients()
         {
-            ObjectSelector<Patient> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Patients.Where(p => !itemTemp.Patients.Contains(p)));
+            ObjectSelector<Data.Patient> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Patients.Where(p => !itemTemp.Patients.Contains(p)));
             selector.OnSave.AddListener(() => m_PatientList.Add(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
@@ -72,13 +70,13 @@ namespace HBP.UI.Visualization
         }
         public void AddGroups()
         {
-            ObjectSelector<Group> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Groups);
+            ObjectSelector<Data.Group> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Groups);
             selector.OnSave.AddListener(() => AddGroups(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
         public void RemoveGroups()
         {
-            ObjectSelector<Group> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Groups);
+            ObjectSelector<Data.Group> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Groups);
             selector.OnSave.AddListener(() => RemoveGroups(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
@@ -133,11 +131,11 @@ namespace HBP.UI.Visualization
                 m_TabGestion.ActiveTabIndex = 0;
             }
         }
-        protected void AddGroups(IEnumerable<Group> groups)
+        protected void AddGroups(IEnumerable<Data.Group> groups)
         {
             m_PatientList.Add(groups.SelectMany(g => g.Patients).Distinct().Where(p => !m_PatientList.Objects.Contains(p)));
         }
-        protected void RemoveGroups(IEnumerable<Group> groups)
+        protected void RemoveGroups(IEnumerable<Data.Group> groups)
         {
             m_PatientList.Remove(groups.SelectMany(g => g.Patients).Distinct().Where(p => m_PatientList.Objects.Contains(p)));
         }
@@ -168,12 +166,12 @@ namespace HBP.UI.Visualization
                 ItemTemp.Columns[m_TabGestion.ActiveTabIndex] = column;
             }
         }
-        protected void OnRemovePatient(Patient patient)
+        protected void OnRemovePatient(Data.Patient patient)
         {
             itemTemp.RemovePatient(patient);
             SelectColumn();
         }
-        protected void OnAddPatient(Patient patient)
+        protected void OnAddPatient(Data.Patient patient)
         {
             itemTemp.AddPatient(patient);
             SelectColumn();

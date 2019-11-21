@@ -1,15 +1,15 @@
-﻿using HBP.Data.General;
-using HBP.UI.Tags;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
+using System.Linq;
 using UnityEngine;
 
-namespace HBP.UI.General
+namespace HBP.UI
 {
-    public class GeneralTagsSubModifiers : SubModifier<ProjectSettings>
+    public class GeneralTagsSubModifiers : SubModifier<Data.ProjectPreferences>
     {
         #region Properties
         [SerializeField] TagListGestion m_TagListGestion;
-        public TagListGestion TagListGestion { get { return m_TagListGestion; } }
+        public TagListGestion TagListGestion => m_TagListGestion;
+        public ReadOnlyCollection<Data.BaseTag> ModifiedTags => m_TagListGestion.ModifiedTags;
 
         public override bool Interactable
         {
@@ -20,19 +20,18 @@ namespace HBP.UI.General
                 m_TagListGestion.Interactable = value;
             }
         }
+        #endregion
 
-        public ReadOnlyCollection<Data.Tags.Tag> ModifiedTags
+        #region Public Methods
+        public override void Save()
         {
-            get
-            {
-                return m_TagListGestion.ModifiedTags;
-            }
+            base.Save();
+            Object.GeneralTags = m_TagListGestion.List.Objects.ToList();
         }
         #endregion
 
         #region Protected Methods
-
-        protected override void SetFields(ProjectSettings objectToDisplay)
+        protected override void SetFields(Data.ProjectPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
             m_TagListGestion.List.Set(objectToDisplay.GeneralTags);

@@ -7,7 +7,7 @@ using HBP.Data.Experience.Dataset;
 using System.Linq;
 using Tools.Unity;
 
-namespace HBP.UI.Visualization
+namespace HBP.UI
 {
     public class CCEPColumnModifier : SubModifier<CCEPColumn>
     {

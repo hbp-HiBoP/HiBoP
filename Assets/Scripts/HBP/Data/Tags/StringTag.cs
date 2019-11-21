@@ -1,10 +1,10 @@
 ﻿using System;
 using System.ComponentModel;
 
-namespace HBP.Data.Tags
+namespace HBP.Data
 {
     [DisplayName("String")]
-    public class StringTag : Tag
+    public class StringTag : BaseTag
     {
         #region Properties
         #endregion

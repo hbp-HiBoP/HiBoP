@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Tools.Unity.Components
 {
@@ -22,14 +23,22 @@ namespace Tools.Unity.Components
             }
         }
 
+
         public abstract Lists.SelectableListWithItemAction<T> List { get; }
         public abstract ObjectCreator<T> ObjectCreator { get; }
 
         [SerializeField] protected WindowsReferencer m_WindowsReferencer = new WindowsReferencer();
         public virtual WindowsReferencer WindowsReferencer { get => m_WindowsReferencer; }
+
+        [SerializeField] Button m_CreateButton, m_RemoveButton;
         #endregion
 
         #region Public Methods
+        public virtual void Create()
+        {
+            ObjectCreator.ExistingItems = List.Objects.ToList();
+            ObjectCreator.Create();
+        }
         public virtual void RemoveSelected()
         {
             List.Remove(List.ObjectsSelected);
@@ -44,21 +53,36 @@ namespace Tools.Unity.Components
         protected virtual void Initialize()
         {
             List.OnAction.AddListener((item, v) => OpenModifier(item, Interactable));
-            List.OnAddObject.AddListener(ObjectCreator.ExistingItems.Add);
+            List.OnAddObject.AddListener(obj => ObjectCreator.ExistingItems.Add(obj));
             List.OnRemoveObject.AddListener(obj => ObjectCreator.ExistingItems.Remove(obj));
+            List.OnUpdateObject.AddListener(OnUpdateObject);
             ObjectCreator.ExistingItems = List.Objects.ToList();
-            ObjectCreator.OnObjectCreated.AddListener(Add);
+            ObjectCreator.OnObjectCreated.AddListener(OnSaveModifier);
             ObjectCreator.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
         }
         protected virtual ObjectModifier<T> OpenModifier(T item, bool interactable)
         {
             ObjectModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(item, interactable);
-            modifier.OnSave.AddListener(() => Add(modifier.Item));
+            modifier.OnSave.AddListener(() => OnSaveModifier(modifier.Item));
             WindowsReferencer.Add(modifier);
             return modifier;
         }
-        protected virtual void Add(T obj)
+        protected virtual void OnSaveModifier(T obj)
         {
+            if(obj is INameable nameable)
+            {
+                if (List.Objects.Any(c => (c as INameable).Name == nameable.Name && !c.Equals(obj)))
+                {
+                    int count = 1;
+                    string name = string.Format("{0}({1})", nameable.Name, count);
+                    while (List.Objects.OfType<INameable>().Any(c => c.Name == name))
+                    {
+                        count++;
+                        name = string.Format("{0}({1})", nameable.Name, count);
+                    }
+                    nameable.Name = name;
+                }
+            }
             if (!List.Objects.Contains(obj))
             {
                 List.Add(obj);
@@ -67,6 +91,11 @@ namespace Tools.Unity.Components
             {
                 List.UpdateObject(obj);
             }
+        }
+        protected virtual void OnUpdateObject(T obj)
+        {
+            int index = ObjectCreator.ExistingItems.FindIndex(o => o.Equals(obj));
+            ObjectCreator.ExistingItems[index] = obj;
         }
         #endregion
     }

@@ -1,4 +1,4 @@
-﻿namespace HBP.Data.Tags
+﻿namespace HBP.Data
 {
     public class StringTagValue : TagValue<StringTag, string>
     {

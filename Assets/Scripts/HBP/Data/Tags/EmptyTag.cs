@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel;
 
-namespace HBP.Data.Tags
+namespace HBP.Data
 {
     [DisplayName("Empty")]
-    public class EmptyTag : Tag
+    public class EmptyTag : BaseTag
     {
         #region Constructors
         public EmptyTag() : base()

@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace HBP.Data.Tags
+namespace HBP.Data
 {
     public class IntTagValue : TagValue<IntTag, int>
     {

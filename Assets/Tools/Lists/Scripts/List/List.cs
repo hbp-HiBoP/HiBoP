@@ -33,7 +33,7 @@ namespace Tools.Unity.Lists
             set
             {
                 base.Interactable = value;
-                foreach (var item in m_Items) item.interactable = value;
+                foreach (var item in m_Items) item.Interactable = value;
             }
         }
         #endregion
@@ -92,6 +92,8 @@ namespace Tools.Unity.Lists
             if (GetItemFromObject(obj, out Item<T> item))
             {
                 item.Object = obj;
+                int index = m_Objects.FindIndex(o => o.Equals(obj));
+                m_Objects[index] = obj;
                 OnUpdateObject.Invoke(obj);
                 return true;
             }
@@ -214,6 +216,7 @@ namespace Tools.Unity.Lists
             RectTransform itemRectTransform = item.transform as RectTransform;
             itemRectTransform.sizeDelta = new Vector2(0, itemRectTransform.sizeDelta.y);
             itemRectTransform.localPosition = new Vector3(itemRectTransform.localPosition.x, -index * ItemHeight, itemRectTransform.localPosition.z);
+            item.Interactable = Interactable;
             m_Items.Add(item);
             m_NumberOfItems++;
             SetItem(item, obj);

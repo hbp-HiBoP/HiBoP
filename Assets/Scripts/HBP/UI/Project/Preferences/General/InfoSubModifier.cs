@@ -1,10 +1,9 @@
-﻿using HBP.Data.General;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace HBP.UI.General
+namespace HBP.UI
 {
-    public class InfoSubModifier : SubModifier<ProjectSettings>
+    public class InfoSubModifier : SubModifier<Data.ProjectPreferences>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -33,7 +32,7 @@ namespace HBP.UI.General
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(ProjectSettings objectToDisplay)
+        protected override void SetFields(Data.ProjectPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
             m_NameInputField.text = objectToDisplay.Name;

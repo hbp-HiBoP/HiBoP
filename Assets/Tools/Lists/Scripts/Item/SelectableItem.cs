@@ -18,7 +18,7 @@ namespace Tools.Unity.Lists
         {
             get { return m_Toggle.isOn; }
         }
-        public override bool interactable
+        public override bool Interactable
         {
             get { return m_Toggle.interactable; }
             set { m_Toggle.interactable = value; }

@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
-//using UnityEngine.EventSystems;
 
-namespace HBP.UI.Visualization
+namespace HBP.UI
 {
     [RequireComponent(typeof(Toggle))]
     public class Tab : MonoBehaviour //, IBeginDragHandler, IDropHandler

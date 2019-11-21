@@ -62,7 +62,7 @@ namespace HBP
                 }
                 else
                 {
-                    FindObjectOfType<ProjectLoaderSaver>().Load(new Data.General.ProjectInfo(ApplicationState.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0] + Data.General.Project.EXTENSION));
+                    FindObjectOfType<ProjectLoaderSaver>().Load(new Data.ProjectInfo(ApplicationState.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0] + Data.Project.EXTENSION));
                 }
             }
             else if (action == "-pf") // Project File
@@ -73,7 +73,7 @@ namespace HBP
                 }
                 else
                 {
-                    FindObjectOfType<ProjectLoaderSaver>().Load(new Data.General.ProjectInfo(arguments[0]));
+                    FindObjectOfType<ProjectLoaderSaver>().Load(new Data.ProjectInfo(arguments[0]));
                 }
             }
             else if (action == "-v") // Visualization

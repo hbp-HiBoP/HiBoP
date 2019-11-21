@@ -12,6 +12,57 @@ namespace Tools.Unity.Components
     public class ObjectCreator<T> : MonoBehaviour where T : ICloneable, ICopiable, new()
     {
         #region Properties
+        [SerializeField] bool m_IsLoadableFromFile = true;
+        public bool IsCreatableFromFile
+        {
+            get
+            {
+                return m_IsLoadableFromFile;
+            }
+            set
+            {
+                m_IsLoadableFromFile = value;            }
+        }
+
+        [SerializeField] bool m_IsLoadableFromDatabase = true;
+        public bool IsCreatableFromDatabase
+        {
+            get
+            {
+                return m_IsLoadableFromDatabase;
+            }
+            set
+            {
+                m_IsLoadableFromDatabase = value;
+            }
+        }
+
+        [SerializeField] bool m_IsCreatableFromScratch = true;
+        public bool IsCreatableFromScratch
+        {
+            get
+            {
+                return m_IsCreatableFromScratch;
+            }
+            set
+            {
+                m_IsCreatableFromScratch = value;
+            }
+        }
+
+        [SerializeField] bool m_IsCreatableFromExistingObjects = true;
+        public bool IsCreatableFromExistingObjects
+        {
+            get
+            {
+                return m_IsCreatableFromExistingObjects;
+            }
+            set
+            {
+                m_IsCreatableFromExistingObjects = value;
+            }
+        }
+
         [SerializeField] List<T> m_ExistingItems = new List<T>();
         public List<T> ExistingItems
         {
@@ -23,7 +74,7 @@ namespace Tools.Unity.Components
             {
                 m_ExistingItems = value;
             }
-        }
+        } 
 
         [SerializeField] protected WindowsReferencer m_WindowsReferencer = new WindowsReferencer();
         public virtual WindowsReferencer WindowsReferencer { get => m_WindowsReferencer; }
@@ -34,11 +85,25 @@ namespace Tools.Unity.Components
         #region Public Methods
         public virtual void Create()
         {
-            CreatorWindow creatorWindow = ApplicationState.WindowsManager.Open<CreatorWindow>("Creator window", true);
-            creatorWindow.IsLoadableFromFile = typeof(T).GetInterfaces().Contains(typeof(ILoadable<T>));
-            creatorWindow.IsLoadableFromDatabase = typeof(T).GetInterfaces().Contains(typeof(ILoadableFromDatabase<T>));
-            creatorWindow.OnSave.AddListener(() => OnSaveCreator(creatorWindow));
-            WindowsReferencer.Add(creatorWindow);
+            bool createableFromScratch = IsCreatableFromScratch;
+            bool createableFromFile = IsCreatableFromFile && typeof(T).GetInterfaces().Contains(typeof(ILoadable<T>));
+            bool createableFromDatabase = IsCreatableFromDatabase && typeof(T).GetInterfaces().Contains(typeof(ILoadableFromDatabase<T>));
+            bool createableFromExistingObjects = IsCreatableFromExistingObjects && ExistingItems.Count > 0;
+
+            if (createableFromScratch && !createableFromFile && !createableFromDatabase && !createableFromExistingObjects) CreateFromScratch();
+            else if (!createableFromScratch && createableFromFile && !createableFromDatabase && !createableFromExistingObjects) CreateFromFile();
+            else if (!createableFromScratch && !createableFromFile && createableFromDatabase && !createableFromExistingObjects) CreateFromDatabase();
+            else if (!createableFromScratch && !createableFromFile && !createableFromDatabase && createableFromExistingObjects) CreateFromExistingItems();
+            else
+            {
+                CreatorWindow creatorWindow = ApplicationState.WindowsManager.Open<CreatorWindow>("Creator window", true);
+                creatorWindow.IsCreatableFromScratch = createableFromScratch;
+                creatorWindow.IsCreatableFromExistingObjects = createableFromExistingObjects;
+                creatorWindow.IsCreatableFromFile = createableFromFile;
+                creatorWindow.IsCreatableFromDatabase = createableFromDatabase;
+                creatorWindow.OnSave.AddListener(() => OnSaveCreator(creatorWindow));
+                WindowsReferencer.Add(creatorWindow);
+            }
         }
         public virtual void CreateFromScratch()
         {
@@ -69,7 +134,7 @@ namespace Tools.Unity.Components
                 case HBP.Data.Enums.CreationType.FromScratch:
                     CreateFromScratch();
                     break;
-                case HBP.Data.Enums.CreationType.FromExistingItem:
+                case HBP.Data.Enums.CreationType.FromExistingObject:
                     CreateFromExistingItems();
                     break;
                 case HBP.Data.Enums.CreationType.FromFile:
@@ -138,7 +203,6 @@ namespace Tools.Unity.Components
                     IIdentifiable identifiable = result as IIdentifiable;
                     if (identifiable.ID == "xxxxxxxxxxxxxxxxxxxxxxxxx")
                     {
-
                         identifiable.ID = Guid.NewGuid().ToString();
                     }
                 }

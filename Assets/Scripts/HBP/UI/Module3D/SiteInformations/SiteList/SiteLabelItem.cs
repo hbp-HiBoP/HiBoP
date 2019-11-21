@@ -1,7 +1,4 @@
-﻿using HBP.Module3D;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
@@ -14,7 +11,7 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
-        public void Initialize(Site site, string label)
+        public void Initialize(HBP.Module3D.Site site, string label)
         {
             m_LabelText.text = label;
             m_RemoveLabelButton.onClick.AddListener(() =>

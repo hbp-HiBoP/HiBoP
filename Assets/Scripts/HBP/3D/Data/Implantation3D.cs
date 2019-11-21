@@ -48,7 +48,7 @@ namespace HBP.Module3D
             /// <summary>
             /// Reference to the site data
             /// </summary>
-            public Data.Anatomy.Site SiteData { get; set; }
+            public Data.Site SiteData { get; set; }
         }
         #endregion
 

@@ -8,11 +8,16 @@ namespace HBP.UI
     public class WindowsManager : MonoBehaviour
     {
         #region Properties
+        [SerializeField] GameObject[] m_Windows;
         public RectTransform Container;
         public WindowsReferencer WindowsReferencer;
         #endregion
 
         #region Private Methods
+        private void Awake()
+        {
+            m_Windows = Resources.LoadAll<GameObject>("Prefabs/UI/Windows/");
+        }
         public Window Open(string name, bool interactable = true)
         {
             Window window = null;
@@ -72,11 +77,11 @@ namespace HBP.UI
         }
         GameObject GetWindowPrefab(string name)
         {
-            return Resources.Load<GameObject>("Prefabs/UI/Windows/" + name);
+            return m_Windows.First(w => w.name == name);
         }
         GameObject GetWindowPrefab(Type type)
         {
-            return Resources.LoadAll<GameObject>("Prefabs/UI/Windows/").FirstOrDefault(g => g.GetComponent(type) != null);
+            return m_Windows.FirstOrDefault(g => g.GetComponent(type) != null);
         }
         #endregion
     }

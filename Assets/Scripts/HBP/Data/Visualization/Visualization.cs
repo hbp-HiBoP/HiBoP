@@ -28,7 +28,7 @@ namespace HBP.Data.Visualization
     *   - \a Columns.   
     */
     [DataContract]
-    public class Visualization :  BaseData, ILoadable<Visualization>
+    public class Visualization :  BaseData, ILoadable<Visualization>, INameable
     {
         #region Properties
         public const string EXTENSION = ".visualization";
