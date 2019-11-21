@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using NewTheme.Components;
 
 namespace HBP.UI
 {
@@ -18,7 +17,7 @@ namespace HBP.UI
         [SerializeField] Text m_DatasetsText;
         [SerializeField] Text m_VisualizationsText;
 
-        [SerializeField] State Error;
+        [SerializeField] State m_EmptyState;
 
         public override Data.ProjectInfo Object
         {
@@ -32,26 +31,11 @@ namespace HBP.UI
                 base.Object = value;
 
                 m_NameText.text = value.Settings.Name;
-
-                m_PatientsText.text = value.Patients.ToString();
-                if (value.Patients == 0) m_PatientsText.GetComponent<ThemeElement>().Set(Error);
-                else m_PatientsText.GetComponent<ThemeElement>().Set();
-
-                m_GroupsText.text = value.Groups.ToString();
-                if (value.Groups == 0) m_GroupsText.GetComponent<ThemeElement>().Set(Error);
-                else m_GroupsText.GetComponent<ThemeElement>().Set();
-
-                m_ProtocolsText.text = value.Protocols.ToString();
-                if (value.Protocols == 0) m_ProtocolsText.GetComponent<ThemeElement>().Set(Error);
-                else m_ProtocolsText.GetComponent<ThemeElement>().Set();
-
-                m_DatasetsText.text = value.Datasets.ToString();
-                if (value.Datasets == 0) m_DatasetsText.GetComponent<ThemeElement>().Set(Error);
-                else m_DatasetsText.GetComponent<ThemeElement>().Set();
-
-                m_VisualizationsText.text = value.Visualizations.ToString();
-                if (value.Visualizations == 0) m_VisualizationsText.GetComponent<ThemeElement>().Set(Error);
-                else m_VisualizationsText.GetComponent<ThemeElement>().Set();
+                m_PatientsText.SetIEnumerableFieldInItem(value.Patients, m_EmptyState);
+                m_GroupsText.SetIEnumerableFieldInItem(value.Groups, m_EmptyState);
+                m_ProtocolsText.SetIEnumerableFieldInItem(value.Protocols, m_EmptyState);
+                m_DatasetsText.SetIEnumerableFieldInItem(value.Datasets, m_EmptyState);
+                m_VisualizationsText.SetIEnumerableFieldInItem(value.Visualizations, m_EmptyState);
             }
         }
         #endregion

@@ -6,6 +6,7 @@ using UnityEngine.Events;
 using Tools.Unity;
 using System.IO;
 using Tools.CSharp;
+using System.Collections.ObjectModel;
 
 namespace HBP.Data.Experience.Dataset
 {
@@ -22,7 +23,7 @@ namespace HBP.Data.Experience.Dataset
     *       - \a Unique ID.
     */
     [DataContract]
-    public class Dataset : BaseData, ILoadable<Dataset>
+    public class Dataset : BaseData, ILoadable<Dataset>, INameable
     {
         #region Properties
         public const string EXTENSION = ".dataset";
@@ -53,11 +54,11 @@ namespace HBP.Data.Experience.Dataset
         /// <summary>
         /// DataInfo of the dataset.
         /// </summary>
-        public DataInfo[] Data
+        public ReadOnlyCollection<DataInfo> Data
         {
             get
             {
-                return m_Data.ToArray();
+                return new ReadOnlyCollection<DataInfo>(m_Data);
             }
         }
         #endregion
@@ -128,6 +129,16 @@ namespace HBP.Data.Experience.Dataset
         public bool RemoveData(IEnumerable<DataInfo> data)
         {
             return data.All((d) => RemoveData(d));
+        }
+        public bool UpdateData(DataInfo data)
+        {
+            int index = m_Data.FindIndex(d => d.Equals(data));
+            if (index != -1)
+            {
+                m_Data[index] = data;
+                return true;
+            }
+            return false;
         }
         public bool SetData(IEnumerable<DataInfo> data)
         {

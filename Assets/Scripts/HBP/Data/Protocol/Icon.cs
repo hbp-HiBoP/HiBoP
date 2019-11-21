@@ -18,7 +18,7 @@ namespace HBP.Data.Experience.Protocol
     *     - \a Window.
     */
     [DataContract]
-    public class Icon : BaseData
+    public class Icon : BaseData, INameable
     {
         #region Properties
         /// <summary>
@@ -49,7 +49,7 @@ namespace HBP.Data.Experience.Protocol
         {
             get
             {
-                if(!m_Image)
+                if (!m_Image)
                 {
                     Sprite sprite;
                     if (SpriteExtension.LoadSpriteFromFile(out sprite, IllustrationPath)) m_Image = sprite;
@@ -78,7 +78,7 @@ namespace HBP.Data.Experience.Protocol
             IllustrationPath = path;
             Window = window;
         }
-        public Icon(string name, string path, Vector2Int window, string ID): this(name,path, new Window(window), ID)
+        public Icon(string name, string path, Vector2Int window, string ID) : this(name, path, new Window(window), ID)
         {
         }
         /// <summary>
@@ -87,13 +87,13 @@ namespace HBP.Data.Experience.Protocol
         /// <param name="name">Label of the icon.</param>
         /// <param name="path">Path of the icon illustration.</param>
         /// <param name="window">Window of the icon.</param>
-        public Icon(string name, string path, Vector2Int window): this(name, path, new Window(window))
+        public Icon(string name, string path, Vector2Int window) : this(name, path, new Window(window))
         {
         }
         /// <summary>
         /// Create a new instance of icon with default value.
         /// </summary>
-        public Icon() : this(string.Empty,string.Empty, new Vector2Int(-300,300))
+        public Icon() : this("New Icon", string.Empty, new Vector2Int(-300, 300))
         {
         }
         #endregion
@@ -110,7 +110,7 @@ namespace HBP.Data.Experience.Protocol
         public override void Copy(object obj)
         {
             base.Copy(obj);
-            if(obj is Icon icon)
+            if (obj is Icon icon)
             {
                 Name = icon.Name;
                 IllustrationPath = icon.IllustrationPath;

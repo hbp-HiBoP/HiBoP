@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.ComponentModel;
+using UnityEngine;
 using UnityEngine.UI;
 using d = HBP.Data.Experience.Protocol;
 
@@ -28,7 +29,7 @@ namespace HBP.UI.Experience.Protocol
                 m_EndWindowText.text = value.Window.End.ToString() + "ms";
 
                 m_OrderText.text = value.Order.ToString();
-                m_TypeText.text = value.GetType().Name;
+                m_TypeText.text = (value.GetType().GetCustomAttributes(typeof(DisplayNameAttribute), false)[0] as DisplayNameAttribute).DisplayName;
             }
         }
         #endregion

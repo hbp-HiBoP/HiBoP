@@ -102,16 +102,14 @@ namespace HBP.UI.Experience.Protocol
             item = ItemTemp;
             base.Save();
         }
-        public void OnChangeOrder(int order)
-        {
-            itemTemp.Order = order;
-        }
         #endregion
 
         #region Private Methods
         protected override void Initialize()
         {
             base.Initialize();
+
+            m_OrderInputField.onEndEdit.AddListener(OnChangeOrder);
 
             m_WindowToggle.onValueChanged.AddListener(OnChangeUseOnWindow);
             m_WindowSlider.onValueChanged.AddListener(OnChangeWindow);
@@ -133,29 +131,32 @@ namespace HBP.UI.Experience.Protocol
             m_ThresholdTreatmentSubModifier.Initialize();
             m_FactorTreatmentSubModifier.Initialize();
 
-            m_SubModifiers = new List<BaseSubModifier>();
-            m_SubModifiers.Add(m_ClampTreatmentSubModifier);
-            m_SubModifiers.Add(m_AbsTreatmentSubModifier);
-            m_SubModifiers.Add(m_MaxTreatmentSubModifier);
-            m_SubModifiers.Add(m_MinTreatmentSubModifier);
-            m_SubModifiers.Add(m_MeanTreatmentSubModifier);
-            m_SubModifiers.Add(m_MedianTreatmentSubModifier);
-            m_SubModifiers.Add(m_OffsetTreatmentSubModifier);
-            m_SubModifiers.Add(m_RescaleTreatmentSubModifier);
-            m_SubModifiers.Add(m_ThresholdTreatmentSubModifier);
-            m_SubModifiers.Add(m_FactorTreatmentSubModifier);
-
-            m_TreatmentsTemp = new List<d.Treatment>();
-            m_TreatmentsTemp.Add(new d.ClampTreatment());
-            m_TreatmentsTemp.Add(new d.AbsTreatment());
-            m_TreatmentsTemp.Add(new d.MaxTreatment());
-            m_TreatmentsTemp.Add(new d.MinTreatment());
-            m_TreatmentsTemp.Add(new d.MeanTreatment());
-            m_TreatmentsTemp.Add(new d.MedianTreatment());
-            m_TreatmentsTemp.Add(new d.OffsetTreatment());
-            m_TreatmentsTemp.Add(new d.RescaleTreatment());
-            m_TreatmentsTemp.Add(new d.ThresholdTreatment());
-            m_TreatmentsTemp.Add(new d.FactorTreatment());
+            m_SubModifiers = new List<BaseSubModifier>
+            {
+                m_ClampTreatmentSubModifier,
+                m_AbsTreatmentSubModifier,
+                m_MaxTreatmentSubModifier,
+                m_MinTreatmentSubModifier,
+                m_MeanTreatmentSubModifier,
+                m_MedianTreatmentSubModifier,
+                m_OffsetTreatmentSubModifier,
+                m_RescaleTreatmentSubModifier,
+                m_ThresholdTreatmentSubModifier,
+                m_FactorTreatmentSubModifier
+            };
+            m_TreatmentsTemp = new List<d.Treatment>
+            {
+                new d.ClampTreatment(),
+                new d.AbsTreatment(),
+                new d.MaxTreatment(),
+                new d.MinTreatment(),
+                new d.MeanTreatment(),
+                new d.MedianTreatment(),
+                new d.OffsetTreatment(),
+                new d.RescaleTreatment(),
+                new d.ThresholdTreatment(),
+                new d.FactorTreatment()
+            };
         }
         protected override void SetFields(d.Treatment objectToDisplay)
         {
@@ -177,7 +178,19 @@ namespace HBP.UI.Experience.Protocol
             m_BaselineSlider.step = ApplicationState.UserPreferences.Data.Protocol.Step;
             m_BaselineSlider.Values = objectToDisplay.Baseline.ToVector2();
         }
-        void OnChangeType(int value)
+
+        protected void OnChangeOrder(string value)
+        {
+            if(int.TryParse(value, out int order))
+            {
+                ItemTemp.Order = order;
+            }
+            else
+            {
+                m_OrderInputField.text = ItemTemp.Order.ToString();
+            }
+        }
+        protected void OnChangeType(int value)
         {
             Type type = m_Types[value];        
             
@@ -193,20 +206,20 @@ namespace HBP.UI.Experience.Protocol
             newSubModifier.IsActive = true;
             newSubModifier.Object = itemTemp;
         }
-        void OnChangeWindow(float min, float max)
+        protected void OnChangeWindow(float min, float max)
         {
             ItemTemp.Window = new Tools.CSharp.Window(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
         }
-        void OnChangeBaseline(float min, float max)
+        protected void OnChangeBaseline(float min, float max)
         {
             ItemTemp.Baseline = new Tools.CSharp.Window(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
         }
-        void OnChangeUseOnWindow(bool value)
+        protected void OnChangeUseOnWindow(bool value)
         {
             ItemTemp.UseOnWindow = value;
             m_WindowSlider.interactable = Interactable && value;
         }
-        void OnChangeUseOnBaseline(bool value)
+        protected void OnChangeUseOnBaseline(bool value)
         {
             ItemTemp.UseOnBaseline = value;
             m_BaselineSlider.interactable = Interactable && value;

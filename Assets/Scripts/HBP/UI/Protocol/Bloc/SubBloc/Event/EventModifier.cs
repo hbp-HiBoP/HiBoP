@@ -24,7 +24,7 @@ namespace HBP.UI.Experience.Protocol
                 base.Interactable = value;
                 m_NameInputField.interactable = value;
                 m_CodesInputField.interactable = value;
-                m_TypeDropdown.interactable = value && ItemTemp.Type == Data.Enums.MainSecondaryEnum.Secondary;
+                m_TypeDropdown.interactable = value && ItemTemp != null && ItemTemp.Type == Data.Enums.MainSecondaryEnum.Secondary;
             }
         }
         #endregion
@@ -34,15 +34,35 @@ namespace HBP.UI.Experience.Protocol
         {
             base.Initialize();
 
-            m_NameInputField.onValueChanged.AddListener((name) => ItemTemp.Name = name);
-            m_CodesInputField.onValueChanged.AddListener((codes) => ItemTemp.CodesString = codes);
-            m_TypeDropdown.onValueChanged.AddListener((i) => ItemTemp.Type = (Data.Enums.MainSecondaryEnum)i);
+            m_NameInputField.onEndEdit.AddListener(OnChangeName);
+            m_CodesInputField.onValueChanged.AddListener(OnChangeCodes);
+            m_TypeDropdown.onValueChanged.AddListener(OnChangeType);
         }
         protected override void SetFields(d.Event objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_CodesInputField.text = objectToDisplay.CodesString;
             m_TypeDropdown.Set(typeof(Data.Enums.MainSecondaryEnum), (int) objectToDisplay.Type);
+        }
+
+        protected void OnChangeName(string value)
+        {
+            if(value != "")
+            {
+                ItemTemp.Name = value;
+            }
+            else
+            {
+                m_NameInputField.text = ItemTemp.Name;
+            }
+        }
+        protected void OnChangeCodes(string value)
+        {
+            ItemTemp.CodesString = value;
+        }
+        protected void OnChangeType(int value)
+        {
+            ItemTemp.Type = (Data.Enums.MainSecondaryEnum)value;
         }
         #endregion
     }

@@ -29,7 +29,7 @@ namespace HBP.Data
     /// </list>
     /// </remarks>
     [DataContract]
-    public class Group : BaseData, ILoadable<Group>
+    public class Group : BaseData, ILoadable<Group>, INameable
     {
         #region Properties
         /// <summary>

@@ -85,6 +85,36 @@ namespace Tools.CSharp
         {
             return Regex.Replace(camelCase, @"\B[A-Z][a-z]", m => " " + m.ToString().ToLower());
         }
+        public static string ToTooltip(this IEnumerable<string> values, int max)
+        {
+            string[] array = values.ToArray();
+            StringBuilder stringBuilder = new StringBuilder();
+            if(array.Length > 0)
+            {
+                if (array.Length > max)
+                {
+                    for (int i = 0; i < max - 1; i++)
+                    {
+                        stringBuilder.AppendLine(string.Format("  • {0}", array[i]));
+                    }
+                    stringBuilder.AppendLine("  • [...]");
+                    stringBuilder.Append(string.Format("  • {0}", array.Last()));
+                }
+                else
+                {
+                    for (int i = 0; i < array.Length - 1; i++)
+                    {
+                        stringBuilder.AppendLine(string.Format("  • {0}", array[i]));
+                    }
+                    stringBuilder.Append(string.Format("  • {0}", array[array.Length - 1]));
+                }
+            }
+            else
+            {
+                stringBuilder.Append("  • None");
+            }
+            return stringBuilder.ToString();
+        }
     }
 
     public static class TypeExtension

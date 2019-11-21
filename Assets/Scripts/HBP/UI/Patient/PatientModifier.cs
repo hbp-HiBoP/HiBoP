@@ -44,14 +44,29 @@ namespace HBP.UI
         {
             base.Initialize();
 
-            m_NameInputField.onValueChanged.AddListener((value) => ItemTemp.Name = value);
-            m_PlaceInputField.onValueChanged.AddListener((value) => ItemTemp.Place = value);
-            m_DateInputField.onValueChanged.AddListener((value) => ItemTemp.Date = int.Parse(value));
+            m_NameInputField.onEndEdit.AddListener(OnChangeName);
+            m_PlaceInputField.onEndEdit.AddListener(OnChangePlace);
+            m_DateInputField.onEndEdit.AddListener(OnChangeDate);
 
-            m_MeshListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
-            m_SiteListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
-            m_MRIListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
-            m_TagValueListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
+            m_MeshListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
+            m_MeshListGestion.List.OnAddObject.AddListener(OnAddMesh);
+            m_MeshListGestion.List.OnRemoveObject.AddListener(OnRemoveMesh);
+            m_MeshListGestion.List.OnUpdateObject.AddListener(OnUpdateMesh);
+
+            m_MRIListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
+            m_MRIListGestion.List.OnAddObject.AddListener(OnAddMRI);
+            m_MRIListGestion.List.OnRemoveObject.AddListener(OnRemoveMRI);
+            m_MRIListGestion.List.OnUpdateObject.AddListener(OnUpdateMRI);
+
+            m_SiteListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
+            m_SiteListGestion.List.OnAddObject.AddListener(OnAddSite);
+            m_SiteListGestion.List.OnRemoveObject.AddListener(OnRemoveSite);
+            m_SiteListGestion.List.OnUpdateObject.AddListener(OnUpdateSite);
+
+            m_TagValueListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
+            m_TagValueListGestion.List.OnAddObject.AddListener(OnAddTag);
+            m_TagValueListGestion.List.OnRemoveObject.AddListener(OnRemoveTag);
+            m_TagValueListGestion.List.OnUpdateObject.AddListener(OnUpdateTag);
         }
         protected override void SetFields(Data.Patient objectToDisplay)
         {
@@ -60,25 +75,136 @@ namespace HBP.UI
             m_DateInputField.text = objectToDisplay.Date.ToString();
 
             m_MeshListGestion.List.Set(objectToDisplay.Meshes);
-            m_MeshListGestion.List.OnAddObject.AddListener(mesh => ItemTemp.Meshes.Add(mesh));
-            m_MeshListGestion.List.OnRemoveObject.AddListener(mesh => ItemTemp.Meshes.Remove(mesh));
-            m_MeshListGestion.List.OnUpdateObject.AddListener(mesh => { ItemTemp.Meshes[ItemTemp.Meshes.FindIndex(m => m.Equals(mesh))] = mesh; });
-
             m_MRIListGestion.List.Set(objectToDisplay.MRIs);
-            m_MRIListGestion.List.OnAddObject.AddListener(mri => ItemTemp.MRIs.Add(mri));
-            m_MRIListGestion.List.OnRemoveObject.AddListener(mri => ItemTemp.MRIs.Remove(mri));
-            m_MRIListGestion.List.OnUpdateObject.AddListener(mri => { ItemTemp.MRIs[ItemTemp.Meshes.FindIndex(m => m.Equals(mri))] = mri; });
-
             m_SiteListGestion.List.Set(objectToDisplay.Sites);
-            m_SiteListGestion.List.OnAddObject.AddListener(site => ItemTemp.Sites.Add(site));
-            m_SiteListGestion.List.OnRemoveObject.AddListener(site => ItemTemp.Sites.Remove(site));
-            m_SiteListGestion.List.OnUpdateObject.AddListener(site => { ItemTemp.Sites[ItemTemp.Sites.FindIndex(s => s.Equals(site))] = site; });
-
             m_TagValueListGestion.Tags = ApplicationState.ProjectLoaded.Preferences.PatientsTags.Concat(ApplicationState.ProjectLoaded.Preferences.GeneralTags).ToArray();
             m_TagValueListGestion.List.Set(objectToDisplay.Tags);
-            m_TagValueListGestion.List.OnAddObject.AddListener(tag => ItemTemp.Tags.Add(tag));
-            m_TagValueListGestion.List.OnRemoveObject.AddListener(tag => ItemTemp.Tags.Remove(tag));
-            m_TagValueListGestion.List.OnUpdateObject.AddListener(tag => { ItemTemp.Tags[ItemTemp.Tags.FindIndex(t => t.Equals(tag))] = tag; });
+        }
+
+        protected void OnChangeName(string value)
+        {
+            if(value != "")
+            {
+                ItemTemp.Name = value;
+            }
+            else
+            {
+                m_NameInputField.text = ItemTemp.Name;
+            }
+        }
+        protected void OnChangePlace(string value)
+        {
+            if(value != "")
+            {
+                ItemTemp.Place = value;
+            }
+            else
+            {
+                m_PlaceInputField.text = ItemTemp.Place;
+            }
+        }
+        protected void OnChangeDate(string value)
+        {
+            if(int.TryParse(value, out int date))
+            {
+                ItemTemp.Date = date;
+            }
+            else
+            {
+                m_DateInputField.text = ItemTemp.Date.ToString();
+            }
+        }
+
+        protected void OnAddMesh(Data.BaseMesh mesh)
+        {
+            if(!ItemTemp.Meshes.Contains(mesh))
+            {
+                ItemTemp.Meshes.Add(mesh);
+            }
+        }
+        protected void OnRemoveMesh(Data.BaseMesh mesh)
+        {
+            if(ItemTemp.Meshes.Contains(mesh))
+            {
+                ItemTemp.Meshes.Remove(mesh);
+            }
+        }
+        protected void OnUpdateMesh(Data.BaseMesh mesh)
+        {
+            int index = ItemTemp.Meshes.FindIndex(m => m.Equals(mesh));
+            if(index != -1)
+            {
+                ItemTemp.Meshes[index] = mesh;
+            }
+        }
+
+        protected void OnAddMRI(Data.MRI mri)
+        {
+            if (!ItemTemp.MRIs.Contains(mri))
+            {
+                ItemTemp.MRIs.Add(mri);
+            }
+        }
+        protected void OnRemoveMRI(Data.MRI mri)
+        {
+            if (ItemTemp.MRIs.Contains(mri))
+            {
+                ItemTemp.MRIs.Remove(mri);
+            }
+        }
+        protected void OnUpdateMRI(Data.MRI mri)
+        {
+            int index = ItemTemp.MRIs.FindIndex(m => m.Equals(mri));
+            if (index != -1)
+            {
+                ItemTemp.MRIs[index] = mri;
+            }
+        }
+
+        protected void OnAddSite(Data.Site site)
+        {
+            if (!ItemTemp.Sites.Contains(site))
+            {
+                ItemTemp.Sites.Add(site);
+            }
+        }
+        protected void OnRemoveSite(Data.Site site)
+        {
+            if (ItemTemp.Sites.Contains(site))
+            {
+                ItemTemp.Sites.Remove(site);
+            }
+        }
+        protected void OnUpdateSite(Data.Site site)
+        {
+            int index = ItemTemp.Sites.FindIndex(s => s.Equals(site));
+            if (index != -1)
+            {
+                ItemTemp.Sites[index] = site;
+            }
+        }
+
+        protected void OnAddTag(Data.BaseTagValue tag)
+        {
+            if (!ItemTemp.Tags.Contains(tag))
+            {
+                ItemTemp.Tags.Add(tag);
+            }
+        }
+        protected void OnRemoveTag(Data.BaseTagValue tag)
+        {
+            if (ItemTemp.Tags.Contains(tag))
+            {
+                ItemTemp.Tags.Remove(tag);
+            }
+        }
+        protected void OnUpdateTag(Data.BaseTagValue tag)
+        {
+            int index = ItemTemp.Tags.FindIndex(t => t.Equals(tag));
+            if (index != -1)
+            {
+                ItemTemp.Tags[index] = tag;
+            }
         }
         #endregion
     }

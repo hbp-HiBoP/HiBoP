@@ -55,7 +55,7 @@ namespace HBP.UI
         {
             base.Initialize();
 
-            m_NameInputField.onValueChanged.AddListener(OnChangeName);
+            m_NameInputField.onEndEdit.AddListener(OnChangeName);
             m_TransformationFileSelector.onValueChanged.AddListener(OnChangeTransformation);
 
             m_TypeDropdown.onValueChanged.AddListener(OnChangeType);
@@ -83,10 +83,20 @@ namespace HBP.UI
             m_MeshesTemp[index] = ItemTemp;
 
             m_NameInputField.text = objectToDisplay.Name;
-
             m_TypeDropdown.SetValue(Array.IndexOf(m_Types, objectToDisplay.GetType()));
-
             m_TransformationFileSelector.File = objectToDisplay.SavedTransformation;
+        }
+
+        protected void OnChangeName(string value)
+        {
+            if(value != "")
+            {
+                ItemTemp.Name = value;
+            }
+            else
+            {
+                m_NameInputField.text = ItemTemp.Name;
+            }
         }
         protected void OnChangeType(int value)
         {
@@ -104,13 +114,9 @@ namespace HBP.UI
             newSubModifier.IsActive = true;
             newSubModifier.Object = itemTemp;
         }
-        protected void OnChangeName(string name)
+        protected void OnChangeTransformation(string value)
         {
-            ItemTemp.Name = name;
-        }
-        protected void OnChangeTransformation(string path)
-        {
-            ItemTemp.Transformation = path;
+            ItemTemp.Transformation = value;
         }
         #endregion
     }

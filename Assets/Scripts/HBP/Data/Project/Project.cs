@@ -572,7 +572,7 @@ namespace HBP.Data
             int length = datasets.SelectMany(d => d.Data).Count();
             foreach (var dataset in datasets)
             {
-                for (int j = 0; j < dataset.Data.Length; ++j, ++count)
+                for (int j = 0; j < dataset.Data.Count; ++j, ++count)
                 {
                     DataInfo data = dataset.Data[j];
                     data.GetErrors(dataset.Protocol);
@@ -1015,7 +1015,7 @@ namespace HBP.Data
                 DirectoryInfo localizersDirectory = Directory.CreateDirectory(Path.Combine(dataDirectory.FullName, "Functional"));
                 foreach (var dataset in Datasets)
                 {
-                    if (dataset.Data.Length > 0)
+                    if (dataset.Data.Count > 0)
                     {
                         yield return Ninja.JumpToUnity;
                         progress += progressStep;

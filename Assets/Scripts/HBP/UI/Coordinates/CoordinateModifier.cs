@@ -33,6 +33,15 @@ namespace HBP.UI
         #endregion
 
         #region Private Methods
+        protected override void Initialize()
+        {
+            base.Initialize();
+
+            m_ReferenceSystemInputField.onEndEdit.AddListener(OnChangeReferenceSystem);
+            m_XInputField.onValueChanged.AddListener(OnChangeX);
+            m_YInputField.onValueChanged.AddListener(OnChangeY);
+            m_ZInputField.onValueChanged.AddListener(OnChangeZ);
+        }
         protected override void SetFields(Data.Coordinate objectToDisplay)
         {
             m_ReferenceSystemInputField.text = objectToDisplay.ReferenceSystem;
@@ -40,15 +49,17 @@ namespace HBP.UI
             m_YInputField.text = objectToDisplay.Value.y.ToString(CultureInfo.InvariantCulture);
             m_ZInputField.text = objectToDisplay.Value.z.ToString(CultureInfo.InvariantCulture);
         }
-        protected override void Initialize()
+
+        void OnChangeReferenceSystem(string value)
         {
-            base.Initialize();
-
-            m_ReferenceSystemInputField.onValueChanged.AddListener((referenceSystem) => ItemTemp.ReferenceSystem = referenceSystem);
-
-            m_XInputField.onValueChanged.AddListener(OnChangeX);
-            m_YInputField.onValueChanged.AddListener(OnChangeY);
-            m_ZInputField.onValueChanged.AddListener(OnChangeZ);
+            if(value != "")
+            {
+                ItemTemp.ReferenceSystem = value;
+            }
+            else
+            {
+                m_ReferenceSystemInputField.text = ItemTemp.ReferenceSystem;
+            }
         }
         void OnChangeX(string value)
         {

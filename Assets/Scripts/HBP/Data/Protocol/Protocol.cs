@@ -21,7 +21,7 @@ namespace HBP.Data.Experience.Protocol
     *     - \a Blocs.
     */
     [DataContract]
-	public class Protocol : BaseData, ILoadable<Protocol>
+	public class Protocol : BaseData, ILoadable<Protocol>, INameable
     {
         #region Properties
         public const string EXTENSION = ".prov";

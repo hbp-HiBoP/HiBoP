@@ -4,6 +4,7 @@ using Tools.Unity;
 using UnityEngine;
 using NewTheme.Components;
 using System.Linq;
+using Tools.CSharp;
 
 namespace HBP.UI.Experience.Protocol
 {
@@ -44,49 +45,71 @@ namespace HBP.UI.Experience.Protocol
         }
         #endregion
 
-        #region Public Methods
-        public override void Save()
-        {
-            itemTemp.SubBlocs = m_SubBlocListGestion.List.Objects.ToList();
-            base.Save();
-        }
-        #endregion
-
         #region Private Methods
-        protected override void SetFields(d.Bloc objectToDisplay)
-        {
-            m_NameInputField.text = objectToDisplay.Name;
-            m_NameInputField.onEndEdit.AddListener((value) => ItemTemp.Name = value);
-
-            m_ImageFileSelector.Path = objectToDisplay.IllustrationPath;
-            m_ImageFileSelector.onValueChanged.AddListener((value) => ItemTemp.IllustrationPath = value);
-
-            m_SortInputField.text = objectToDisplay.Sort;
-            m_SortInputField.onEndEdit.AddListener((value) =>
-            {
-                ItemTemp.Sort = value;
-                SetError();
-            });
-
-            m_OrderInputField.text = objectToDisplay.Order.ToString();
-            m_OrderInputField.onEndEdit.AddListener((value) => objectToDisplay.Order = int.Parse(value));
-
-            m_SubBlocListGestion.List.Set(objectToDisplay.SubBlocs);
-
-            SetError();
-
-            base.SetFields();
-        }
         protected override void Initialize()
         {
             base.Initialize();
-            m_SubBlocListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
+            m_NameInputField.onEndEdit.AddListener(OnChangeName);
+            m_ImageFileSelector.onValueChanged.AddListener(OnChangeImage);
+            m_SortInputField.onEndEdit.AddListener(OnChangeSort);
+            m_OrderInputField.onEndEdit.AddListener(OnChangeOrder);
+
+            m_SubBlocListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
+            m_SubBlocListGestion.List.OnAddObject.AddListener(OnAddSubBloc);
+            m_SubBlocListGestion.List.OnRemoveObject.AddListener(OnRemoveSubBloc);
         }
-        protected void SetError()
+        protected override void SetFields(d.Bloc objectToDisplay)
         {
+            base.SetFields();
+
+            m_NameInputField.text = objectToDisplay.Name;
+            m_ImageFileSelector.Path = objectToDisplay.IllustrationPath;
+            m_SortInputField.text = objectToDisplay.Sort;
+            m_OrderInputField.text = objectToDisplay.Order.ToString();
+            m_SubBlocListGestion.List.Set(objectToDisplay.SubBlocs);
+        }
+
+        protected void OnChangeName(string value)
+        {
+            if(value != "")
+            {
+                ItemTemp.Name = value;
+            }
+            else
+            {
+                m_NameInputField.text = ItemTemp.Name;
+            }
+        }
+        protected void OnChangeImage(string value)
+        {
+            ItemTemp.IllustrationPath = value;
+        }
+        protected void OnChangeSort(string value)
+        {
+            ItemTemp.Sort = value;
             d.Bloc.SortingMethodError error = ItemTemp.GetSortingMethodError();
             m_SortErrorText.Text = ItemTemp.GetSortingMethodErrorMessage(error);
             m_SortStateThemeElement.Set(error == d.Bloc.SortingMethodError.NoError ? m_OKState : m_ErrorState);
+        }
+        protected void OnChangeOrder(string value)
+        {
+            if(int.TryParse(value, out int order))
+            {
+                ItemTemp.Order = order;
+            }
+            else
+            {
+                m_OrderInputField.text = ItemTemp.Order.ToString();
+            }
+        }
+
+        protected void OnAddSubBloc(d.SubBloc subBloc)
+        {
+            ItemTemp.SubBlocs.AddIfAbsent(subBloc);
+        }
+        protected void OnRemoveSubBloc(d.SubBloc subBloc)
+        {
+            ItemTemp.SubBlocs.Remove(subBloc);
         }
         #endregion
     }

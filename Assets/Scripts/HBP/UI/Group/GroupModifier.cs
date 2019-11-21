@@ -43,15 +43,35 @@ namespace HBP.UI
         {
             base.Initialize();
 
-            m_NameInputField.onValueChanged.AddListener((value) => ItemTemp.Name = value);
-            m_PatientListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
+            m_NameInputField.onEndEdit.AddListener(OnChangeName);
+            m_PatientListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
+            m_PatientListGestion.List.OnAddObject.AddListener(OnAddPatient);
+            m_PatientListGestion.List.OnRemoveObject.AddListener(OnRemovePatient);
         }
         protected override void SetFields(Data.Group objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_PatientListGestion.List.Set(objectToDisplay.Patients);
-            m_PatientListGestion.List.OnAddObject.AddListener(patient => itemTemp.AddPatient(patient));
-            m_PatientListGestion.List.OnRemoveObject.AddListener(patient => itemTemp.RemovePatient(patient));
+        }
+
+        protected void OnChangeName(string value)
+        {
+            if(value != "")
+            {
+                ItemTemp.Name = value;
+            }
+            else
+            {
+                m_NameInputField.text = ItemTemp.Name;
+            }
+        }
+        protected void OnAddPatient(Data.Patient patient)
+        {
+            ItemTemp.AddPatient(patient);
+        }
+        protected void OnRemovePatient(Data.Patient patient)
+        {
+            ItemTemp.RemovePatient(patient);
         }
         #endregion
     }

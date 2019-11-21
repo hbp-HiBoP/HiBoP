@@ -35,28 +35,20 @@ namespace HBP.UI.Experience.Dataset
         }
         #endregion
 
-        #region Public Methods
-        public override void Save()
-        {
-            ItemTemp.SetData(m_DataInfoListGestion.List.Objects);
-            base.Save();
-        }
-        #endregion
-
         #region Protected Methods
-
         protected override void Initialize()
         {
             base.Initialize();
 
-            m_NameInputField.onValueChanged.RemoveAllListeners();
-            m_NameInputField.onValueChanged.AddListener((value) => ItemTemp.Name = value);
+            m_NameInputField.onEndEdit.AddListener(OnChangeName);
 
             m_ProtocolDropdown.options = (from protocol in ApplicationState.ProjectLoaded.Protocols select new Dropdown.OptionData(protocol.Name)).ToList();
-            m_ProtocolDropdown.onValueChanged.RemoveAllListeners();
             m_ProtocolDropdown.onValueChanged.AddListener(OnChangeProtocol);
 
             m_DataInfoListGestion.OnDataInfoNeedCheckErrors.AddListener(CheckErrors);
+            m_DataInfoListGestion.List.OnAddObject.AddListener(OnAddData);
+            m_DataInfoListGestion.List.OnRemoveObject.AddListener(OnRemoveData);
+            m_DataInfoListGestion.List.OnUpdateObject.AddListener(OnUpdateData);
         }
         protected override void SetFields(d.Dataset objectToDisplay)
         {
@@ -72,6 +64,30 @@ namespace HBP.UI.Experience.Dataset
         protected virtual void CheckErrors(d.DataInfo dataInfo)
         {
             dataInfo.GetErrors(ItemTemp.Protocol);
+        }
+
+        protected void OnChangeName(string value)
+        {
+            if (value != "")
+            {
+                ItemTemp.Name = value;
+            }
+            else
+            {
+                m_NameInputField.text = ItemTemp.Name;
+            }
+        }
+        protected void OnAddData(d.DataInfo data)
+        {
+            ItemTemp.AddData(data);
+        }
+        protected void OnRemoveData(d.DataInfo data)
+        {
+            ItemTemp.RemoveData(data);
+        }
+        protected void OnUpdateData(d.DataInfo data)
+        {
+            ItemTemp.UpdateData(data);
         }
         #endregion
     }

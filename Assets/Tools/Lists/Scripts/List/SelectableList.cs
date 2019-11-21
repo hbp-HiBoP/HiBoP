@@ -53,6 +53,23 @@ namespace Tools.Unity.Lists
             get { return ObjectsSelected.Length; }
         }
         protected bool m_AllSelected;
+
+        [SerializeField] bool m_Selectable = true;
+        public virtual bool Selectable
+        {
+            get
+            {
+                return m_Selectable;
+            }
+            set
+            {
+                m_Selectable = value;
+                //foreach (var item in m_Items.OfType<SelectableItem<T>>())
+                //{
+                //    item.sele
+                //}
+            }
+        }
         #endregion
 
         #region Public Methods

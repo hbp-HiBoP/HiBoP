@@ -3,6 +3,7 @@ using Tools.Unity.Components;
 using UnityEngine;
 using System.Linq;
 using UnityEngine.Events;
+using System.Collections.Generic;
 
 namespace HBP.UI.Experience.Dataset
 {
@@ -29,34 +30,61 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Protected Methods
-        protected override ObjectModifier<DataInfo> OpenModifier(DataInfo item, bool interactable)
+        protected override void OnSaveModifier(DataInfo obj)
         {
-            DataInfoModifier modifier = base.OpenModifier(item, interactable) as DataInfoModifier;
-            modifier.OnCanSave.AddListener(() => OnCanSaveModifier(modifier));
-            return modifier;
-        }
-        protected void OnCanSaveModifier(DataInfoModifier modifier)
-        {
-            if(modifier.ItemTemp is PatientDataInfo patientDataInfo)
+            OnDataInfoNeedCheckErrors.Invoke(obj);
+            if(obj is iEEGDataInfo ieegDataInfo)
             {
-                if (modifier.ItemTemp is iEEGDataInfo iEEGDataInfo)
+                IEnumerable<iEEGDataInfo> ieegDataInfos = List.Objects.OfType<iEEGDataInfo>();
+                if(ieegDataInfos.Any(p => p.Name == obj.Name && p.Patient == ieegDataInfo.Patient && !p.Equals(ieegDataInfo)))
                 {
-                    modifier.CanSave = !List.Objects.OfType<iEEGDataInfo>().Any(data => data.Patient == iEEGDataInfo.Patient && data.Name == iEEGDataInfo.Name && data != modifier.Item);
+                    int count = 1;
+                    string name = string.Format("{0}({1})", obj.Name, count);
+                    while (ieegDataInfos.Any(p => p.Name == name && p.Patient == ieegDataInfo.Patient && !p.Equals(ieegDataInfo)))
+                    {
+                        count++;
+                        name = string.Format("{0}({1})", obj.Name, count);
+                    }
+                    obj.Name = name;
                 }
-                else if (modifier.ItemTemp is CCEPDataInfo ccepDataInfo)
+            }
+            else if(obj is CCEPDataInfo ccepDataInfo)
+            {
+                IEnumerable<CCEPDataInfo> ccepDataInfos = List.Objects.OfType<CCEPDataInfo>();
+                if (ccepDataInfos.Any(p => p.Name == obj.Name && p.Patient == ccepDataInfo.Patient && p.StimulatedChannel == ccepDataInfo.StimulatedChannel && !p.Equals(ccepDataInfo)))
                 {
-                    modifier.CanSave = !List.Objects.OfType<CCEPDataInfo>().Any(data => data.Patient == ccepDataInfo.Patient && data.Name == ccepDataInfo.Name && data.StimulatedChannel == ccepDataInfo.StimulatedChannel && data != modifier.Item);
+                    int count = 1;
+                    string name = string.Format("{0}({1})", obj.Name, count);
+                    while (ccepDataInfos.Any(p => p.Name == name && p.Patient == ccepDataInfo.Patient && p.StimulatedChannel == ccepDataInfo.StimulatedChannel && !p.Equals(ccepDataInfo)))
+                    {
+                        count++;
+                        name = string.Format("{0}({1})", obj.Name, count);
+                    }
+                    obj.Name = name;
                 }
             }
             else
             {
-                modifier.CanSave = !List.Objects.Any(data => data.Name == modifier.ItemTemp.Name && data != modifier.Item); // FIXME
+                if (m_List.Objects.Any(p => p.GetType() == obj.GetType() && p.Name == obj.Name && !p.Equals(obj)))
+                {
+                    int count = 1;
+                    string name = string.Format("{0}({1})", obj.Name, count);
+                    while (m_List.Objects.Any(p => p.Name == name))
+                    {
+                        count++;
+                        name = string.Format("{0}({1})", obj.Name, count);
+                    }
+                    obj.Name = name;
+                }
             }
-        }
-        protected override void OnSaveModifier(DataInfo obj)
-        {
-            OnDataInfoNeedCheckErrors.Invoke(obj);
-            base.OnSaveModifier(obj);
+            if (!List.Objects.Contains(obj))
+            {
+                List.Add(obj);
+            }
+            else
+            {
+                List.UpdateObject(obj);
+            }
         }
         #endregion
     }

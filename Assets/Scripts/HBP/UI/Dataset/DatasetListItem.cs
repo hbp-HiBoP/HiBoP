@@ -15,9 +15,7 @@ namespace HBP.UI.Experience.Dataset
         #region Properties
         [SerializeField] Text m_NameText;
         [SerializeField] Text m_ProtocolText;
-
-        [SerializeField] Text m_DataInfosText;
-        [SerializeField] Tooltip m_DataInfosTooltip;
+        [SerializeField] Text m_DataText;
 
         [SerializeField] State m_ErrorState;
 
@@ -33,7 +31,6 @@ namespace HBP.UI.Experience.Dataset
 
                 m_NameText.text = value.Name;
                 m_ProtocolText.text = value.Protocol.Name;
-
                 StringBuilder stringBuilder = new StringBuilder();
                 stringBuilder.AppendLine("Data : ");
                 DataInfo[] data = value.Data.Where(s => s.IsOk).ToArray();
@@ -47,15 +44,15 @@ namespace HBP.UI.Experience.Dataset
                 }
                 if (data.Length == 0)
                 {
-                    m_DataInfosText.GetComponent<ThemeElement>().Set(m_ErrorState);
+                    m_DataText.GetComponent<ThemeElement>().Set(m_ErrorState);
                     stringBuilder.Append("  \u2022 None");
                 }
                 else
                 {
-                    m_DataInfosText.GetComponent<ThemeElement>().Set();
+                    m_DataText.GetComponent<ThemeElement>().Set();
                 }
-                m_DataInfosTooltip.Text = stringBuilder.ToString();
-                m_DataInfosText.text = data.Length.ToString();
+                m_DataText.GetComponent<Tooltip>().Text = stringBuilder.ToString();
+                m_DataText.text = data.Length.ToString();
             }
         }
         #endregion

@@ -95,12 +95,12 @@ namespace HBP.UI.Experience.Dataset
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Data.Length).ToList();
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Data.Count).ToList();
                     m_OrderBy = OrderBy.Data;
                     m_DataSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Data.Length).ToList();
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Data.Count).ToList();
                     m_OrderBy = OrderBy.DescendingData;
                     m_DataSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;

@@ -47,7 +47,7 @@ namespace HBP.UI.Experience.Protocol
         protected override void Initialize()
         {
             base.Initialize();
-            m_NameInputField.onValueChanged.AddListener(OnChangeName);
+            m_NameInputField.onEndEdit.AddListener(OnChangeName);
             m_WindowSlider.onValueChanged.AddListener(OnChangeWindow);
             m_ImageSelector.onValueChanged.AddListener(OnChangeImage);
         }
@@ -60,15 +60,23 @@ namespace HBP.UI.Experience.Protocol
             m_WindowSlider.Values = objectToDisplay.Window.ToVector2();
             m_ImageSelector.Path = objectToDisplay.IllustrationPath;
         }
-        void OnChangeName(string name)
+
+        protected void OnChangeName(string value)
         {
-            ItemTemp.Name = name;
+            if(value != "")
+            {
+                ItemTemp.Name = value;
+            }
+            else
+            {
+                m_NameInputField.text = ItemTemp.Name;
+            }
         }
-        void OnChangeWindow(float min, float max)
+        protected void OnChangeWindow(float min, float max)
         {
             ItemTemp.Window = new Tools.CSharp.Window((int)min, (int)max);
         }
-        void OnChangeImage(string path)
+        protected void OnChangeImage(string path)
         {
             ItemTemp.IllustrationPath = path;
         }

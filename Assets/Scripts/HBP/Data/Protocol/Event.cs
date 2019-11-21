@@ -17,7 +17,7 @@ namespace HBP.Data.Experience.Protocol
     *     - \a Codes ( Put ',' between codes in the UI).
     */
     [DataContract]
-	public class Event : BaseData
+	public class Event : BaseData, INameable
 	{
         #region Properties
         /** Code separator. */
@@ -70,7 +70,7 @@ namespace HBP.Data.Experience.Protocol
             Codes = codes.ToList();
             Type = type;
         }
-        public Event(Enums.MainSecondaryEnum type) : this("",new int[0],type)
+        public Event(Enums.MainSecondaryEnum type) : this("New Event",new int[0],type)
         {
 
         }

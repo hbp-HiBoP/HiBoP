@@ -24,7 +24,7 @@ namespace HBP.Data.Experience.Protocol
     *     - Treatments.
     */
     [DataContract]
-    public class SubBloc : BaseData
+    public class SubBloc : BaseData, INameable
     {
         #region Properties
         /// <summary> 
@@ -74,6 +74,7 @@ namespace HBP.Data.Experience.Protocol
                 return Window.Lenght > 0 && MainEvent != null && Events.All(e => e.IsVisualizable);
             }
         }
+
         #endregion
 
         #region Public Methods

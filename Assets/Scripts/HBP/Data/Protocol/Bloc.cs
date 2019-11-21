@@ -23,7 +23,7 @@ namespace HBP.Data.Experience.Protocol
     *     - Sorting.
     */
     [DataContract]
-    public class Bloc : BaseData
+    public class Bloc : BaseData, INameable
 	{
         #region Properties
         public enum SortingMethodError { NoError, NoSortingConditionFound, InvalidNumberOfElements, SubBlocNotFound, EventNotFound, InvalidCommand }

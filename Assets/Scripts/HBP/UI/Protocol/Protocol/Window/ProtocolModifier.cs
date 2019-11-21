@@ -1,4 +1,4 @@
-﻿using System.Linq;
+﻿using Tools.CSharp;
 using UnityEngine;
 using UnityEngine.UI;
 using d = HBP.Data.Experience.Protocol;
@@ -33,25 +33,43 @@ namespace HBP.UI.Experience.Protocol
         }
         #endregion
 
-        #region Public Methods
-        public override void Save()
-        {
-            itemTemp.Blocs = m_BlocListGestion.List.Objects.ToList();
-            base.Save();
-        }
-        #endregion
-
         #region Private Methods
+        protected override void Initialize()
+        {
+            base.Initialize();
+
+            m_NameInputField.onEndEdit.AddListener(OnChangeName);
+
+            m_BlocListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
+            m_BlocListGestion.List.OnAddObject.AddListener(OnAddBloc);
+            m_BlocListGestion.List.OnRemoveObject.AddListener(OnRemoveBloc);
+        }
         protected override void SetFields(d.Protocol objectToDisplay)
         {
             base.SetFields();
 
-            m_BlocListGestion.List.Set(objectToDisplay.Blocs);
-            m_BlocListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
-
             m_NameInputField.text = objectToDisplay.Name;
-            m_NameInputField.onEndEdit.AddListener((value) => objectToDisplay.Name = value);
+            m_BlocListGestion.List.Set(objectToDisplay.Blocs);
+        }
 
+        protected void OnChangeName(string value)
+        {
+            if(value != "")
+            {
+                ItemTemp.Name = value;
+            }
+            else
+            {
+                m_NameInputField.text = ItemTemp.Name;
+            }
+        }
+        protected void OnAddBloc(d.Bloc bloc)
+        {
+            ItemTemp.Blocs.AddIfAbsent(bloc);
+        }
+        protected void OnRemoveBloc(d.Bloc bloc)
+        {
+            ItemTemp.Blocs.Remove(bloc);
         }
         #endregion
     }

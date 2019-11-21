@@ -29,6 +29,7 @@ namespace HBP.UI.Experience.Protocol
                 {
                     modifier.Window = value;
                 }
+                m_ObjectCreator.Window = value;
             }
         }
 
@@ -46,6 +47,8 @@ namespace HBP.UI.Experience.Protocol
                 {
                     modifier.Baseline = value;
                 }
+                m_ObjectCreator.Baseline = value;
+
             }
         }
         #endregion

@@ -25,7 +25,8 @@ namespace HBP.UI.Experience.Protocol
             set
             {
                 m_Window = value;
-                foreach(var modifier in WindowsReferencer.Windows.OfType<IconModifier>())
+                m_ObjectCreator.Window = value;
+                foreach (var modifier in WindowsReferencer.Windows.OfType<IconModifier>())
                 {
                     modifier.Window = value;
                 }

@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using UnityEngine;
 using UnityEngine.Events;
 
 namespace Tools.Unity.Lists
@@ -8,6 +9,9 @@ namespace Tools.Unity.Lists
         #region Properties
         protected GenericEvent<T, int> m_OnAction = new GenericEvent<T, int>();
         public GenericEvent<T, int> OnAction { get { return m_OnAction; } }
+
+        [SerializeField] bool m_Selectable = true;
+        public virtual bool Selectable { get; set; } = true;
         #endregion
 
         #region Public Methods

@@ -11,9 +11,6 @@ namespace HBP.UI.Experience.Dataset
     public class DataInfoModifier : ObjectModifier<DataInfo>
     {
         #region Properties
-        public UnityEvent OnCanSave { get; set; } = new UnityEvent();
-        public bool CanSave { get; set; }
-
         public new DataInfo ItemTemp { get => itemTemp; }
 
         List<DataInfo> m_DataInfoTemp;
@@ -52,14 +49,8 @@ namespace HBP.UI.Experience.Dataset
         #region Private Methods
         public override void Save()
         {
-            OnCanSave.Invoke();
-            if (CanSave)
-            {
-                item = ItemTemp;
-                OnSave.Invoke();
-                base.Close();
-            }
-            else ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Warning, "Data already exists", "A data for this patient with the same name already exists.");
+            item = ItemTemp;
+            base.Save();
         }
         protected override void SetFields(DataInfo objectToDisplay)
         {
@@ -70,22 +61,26 @@ namespace HBP.UI.Experience.Dataset
         {
             base.Initialize();
 
-            m_NameInputField.onValueChanged.AddListener((name) => ItemTemp.Name = name);
+            m_SubModifiers = new List<BaseSubModifier>
+            {
+                m_iEEGDataInfoSubModifier,
+                m_CCEPDataInfoSubModifier
+            };
 
-            m_TypeDropdown.onValueChanged.AddListener(ChangeDataInfoType);
-            m_DataContainerModifier.OnChangeDataType.AddListener(OnChangeDataContainerType);
-            m_Types = m_TypeDropdown.Set(typeof(DataInfo));
+            m_DataInfoTemp = new List<DataInfo>
+            {
+                new iEEGDataInfo(),
+                new CCEPDataInfo()
+            };
 
             m_iEEGDataInfoSubModifier.Initialize();
             m_CCEPDataInfoSubModifier.Initialize();
 
-            m_SubModifiers = new List<BaseSubModifier>();
-            m_SubModifiers.Add(m_iEEGDataInfoSubModifier);
-            m_SubModifiers.Add(m_CCEPDataInfoSubModifier);
+            m_NameInputField.onEndEdit.AddListener(OnChangeName);
 
-            m_DataInfoTemp = new List<DataInfo>();
-            m_DataInfoTemp.Add(new iEEGDataInfo());
-            m_DataInfoTemp.Add(new CCEPDataInfo());
+            m_TypeDropdown.onValueChanged.AddListener(ChangeDataInfoType);
+            m_DataContainerModifier.OnChangeDataType.AddListener(OnChangeDataContainerType);
+            m_Types = m_TypeDropdown.Set(typeof(DataInfo)); 
         }
         void ChangeDataInfoType(int value)
         {
@@ -110,6 +105,17 @@ namespace HBP.UI.Experience.Dataset
         void OnChangeDataContainerType()
         {
             itemTemp.DataContainer = m_DataContainerModifier.Object;
+        }
+        protected void OnChangeName(string value)
+        {
+            if (value != "")
+            {
+                ItemTemp.Name = value;
+            }
+            else
+            {
+                m_NameInputField.text = ItemTemp.Name;
+            }
         }
         #endregion
     }

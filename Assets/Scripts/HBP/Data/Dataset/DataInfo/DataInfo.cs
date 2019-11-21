@@ -19,7 +19,7 @@ namespace HBP.Data.Experience.Dataset
     *     - Name.
     */
     [DataContract]
-    public class DataInfo : BaseData
+    public class DataInfo : BaseData, INameable
     {
         #region Properties
         [DataMember(Name = "Name")] protected string m_Name;

@@ -34,7 +34,7 @@ namespace HBP.Data.Experience.Dataset
         {
             StimulatedChannel = channel;
         }
-        public CCEPDataInfo() : this("Data", new Container.Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), "")
+        public CCEPDataInfo() : this("Data", new Container.Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), "Unknown")
         {
 
         }
