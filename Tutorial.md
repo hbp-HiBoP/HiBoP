@@ -3,9 +3,9 @@
 # HiBoP Tutorial: Getting Started
 This tutorial is aimed to help new users getting started into HiBoP with tested sample data. It consists of a step-by-step list of actions to perform in order to get everything working with the provided sample data. For more information about a specific feature, please refer to the documentation attached with the release of the software.
 ## Getting sample data (1~2 minutes)
-For this tutorial, we provide you with sample data that you will add to a project and visualize within HiBoP in order to showcase how you can do it with your own data. The sample data contains anatomical and function data for two patients on one experiments. You can download it [here](http://google.com).
+For this tutorial, we provide you with sample data that you will add to a project and visualize within HiBoP in order to showcase how you can do it with your own data. The sample data contains anatomical and functional data for two patients on one experiment. You can download it [here](http://google.com).
 
-The zip file contains two folder (one for each patient), each containing:
+The zip file contains two folders (one for each patient), each containing:
 * Files describing the anatomy of the patient
 	* **patient[AB]_Mesh_GreyMatterLeft.gii -** Left part of the pial surface
 	* **patient[AB]_Mesh_GreyMatterRight.gii -** Right part of the pial surface
@@ -28,12 +28,12 @@ The first step is to create a new project for the sample data.
 2. A new window opens, allowing to create a new project
 3. Fill all the required fields
    * In the *Name* field, type "SampleProject"
-   * In the *Location* field, either type the location where you want the project to be saved, or use the folder icon to browse to a folder. For this tutorial, you can set the location to the same folder as the *Database*
-   * In the *Patients* field, select the *Database* folder. This is a link to the folder containing the anatomical data.
-   * In the *Localizers* field, select the *Database* folder. This is a link to the folder containing the functional data.
+   * In the *Location* field, either type the location where you want the project to be saved, or use the folder icon to browse to a folder (this operation will then be called "browse to"). For this tutorial, you can set the location to the same folder as the *Database*
+   * In the *Patients* field, browse to the *Database* folder. This is a link to the folder containing the anatomical data.
+   * In the *Localizers* field, browse to the *Database* folder. This is a link to the folder containing the functional data.
 4. Click on *OK* to create the project
 ### Adding anatomical data
-The next step is to add *Patients* to the project in order to visualize them. A patient contains all the anatomical data, but no functional data. The next procedure explains how to add the patient *patientA* to the project, just replace every occurences of "patientA" with "patientB" in order to add the second patient to the project.
+The next step is to add *Patients* to the project in order to visualize them. A patient contains all the anatomical data, but no functional data. The next procedure explains how to add the patient *patientA* to the project; just replace every occurences of "patientA" with "patientB" in order to add the second patient to the project.
 1. On the top menu, click on *Patient > Patients...*
 2. A new window opens, allowing to add, remove and edit patients of the project
 3. Click on the *+* button on the left side of the window to create a new patient
@@ -97,7 +97,7 @@ The next step is to create a *Protocol* to tell HiBoP how to epoch the data. Eac
 	2. A new window opens, allowing the modification of a bloc
 	3. Fill all the required fields
 		* In the *Name* field, type "FRUIT"
-		* In the *Sort* field, type "Main_RESPONSE_LATENCY" (this means that the trials will be sorted by the latency of the "RESPONSE" event)
+		* In the *Sort* field, type "Main_RESPONSE_LATENCY" (this means that the trials will be sorted by the latency of the "RESPONSE" event of the "Main" sub-bloc)
 	4. Click on the *+* button on the left side to add the sub-bloc
 	5. A new window opens, allowing the modification of the sub-bloc
 	6. Fill all the required fields
