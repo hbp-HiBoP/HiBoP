@@ -312,6 +312,20 @@ namespace Tools.Unity
             byte[] pngBytes = texture.EncodeToPNG();
             File.WriteAllBytes(path, pngBytes);
         }
+        public static Texture2D Generate(int width = 1, int height = 1, float mipMapBias = -10f, int anisoLvl = 9, FilterMode filter = FilterMode.Trilinear, TextureWrapMode wrap = TextureWrapMode.Clamp)
+        {
+            Texture2D tex = new Texture2D(width, height)
+            {
+                wrapMode = wrap,
+                filterMode = filter
+            };
+
+            if (mipMapBias > -10)
+                tex.mipMapBias = mipMapBias;
+
+            tex.anisoLevel = anisoLvl;
+            return tex;
+        }
     }
 
     public static class PathExtension

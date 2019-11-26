@@ -4,7 +4,7 @@ using UnityEngine.Events;
 namespace HBP.Module3D
 {
     /// <summary>
-    /// Class for the cut plane
+    /// Class representing a cut on the scene
     /// </summary>
     public class Cut : Plane
     {
@@ -26,7 +26,7 @@ namespace HBP.Module3D
         /// </summary>
         public int NumberOfCuts { get; set; }
         /// <summary>
-        /// Position of the cut
+        /// Position of the cut (between 0 and 1)
         /// </summary>
         public float Position { get; set; }
         #endregion

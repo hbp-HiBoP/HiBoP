@@ -5,9 +5,9 @@
     "Project": {
       "$type": "HBP.Data.Preferences.ProjectPreferences, Assembly-CSharp",
       "DefaultName": "New Project",
-      "DefaultLocation": "D:\\HiBoP\\Projects",
-      "DefaultPatientDatabase": "",
-      "DefaultLocalizerDatabase": "",
+      "DefaultLocation": "D:\\HBPProjects",
+      "DefaultPatientDatabase": "D:\\HBP\\BDD\\Patients",
+      "DefaultLocalizerDatabase": "D:\\HBP\\BDD\\Localizers",
       "DefaultExportLocation": ""
     },
     "Theme": {
@@ -27,7 +27,7 @@
     "EEG": {
       "$type": "HBP.Data.Preferences.EEGPreferences, Assembly-CSharp",
       "Averaging": 1,
-      "Normalization": 1
+      "Normalization": 0
     },
     "Protocol": {
       "$type": "HBP.Data.Preferences.ProtocolPreferences, Assembly-CSharp",
@@ -39,16 +39,16 @@
     "Anatomic": {
       "$type": "HBP.Data.Preferences.AnatomicPreferences, Assembly-CSharp",
       "SiteNameCorrection": true,
-      "MeshPreloading": true,
-      "MRIPreloading": true,
-      "ImplantationPreloading": true
+      "MeshPreloading": false,
+      "MRIPreloading": false,
+      "ImplantationPreloading": false
     }
   },
   "Visualization": {
     "$type": "HBP.Data.Preferences.VisualizationPreferences, Assembly-CSharp",
     "_3D": {
       "$type": "HBP.Data.Preferences._3DPreferences, Assembly-CSharp",
-      "AutomaticEEGUpdate": true,
+      "AutomaticEEGUpdate": false,
       "SiteInfluenceByDistance": 2,
       "DefaultSelectedMRIInSinglePatientVisualization": "Preimplantation",
       "DefaultSelectedMeshInSinglePatientVisualization": "Grey matter",

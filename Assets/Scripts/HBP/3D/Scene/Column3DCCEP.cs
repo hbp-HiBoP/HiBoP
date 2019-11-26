@@ -1,4 +1,5 @@
-﻿using HBP.Data.Visualization;
+﻿using HBP.Data.Enums;
+using HBP.Data.Visualization;
 using HBP.Module3D.DLL;
 using System.Collections.Generic;
 using System.Linq;
@@ -116,51 +117,51 @@ namespace HBP.Module3D
             {
                 foreach (var site in Sites)
                 {
-                    site.State.IsMasked = !ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.ContainsKey(site.Information.FullCorrectedID);
+                    site.State.IsMasked = false;// !ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.ContainsKey(site.Information.FullCorrectedID);
                 }
                 return;
             }
 
             // Retrieve values
-            if (!ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullCorrectedID, out Dictionary<string, float[]> processedValuesByChannel)) return;
-            if (!ColumnCCEPData.Data.UnityByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullCorrectedID, out Dictionary<string, string> unitByChannel)) return;
-            if (!ColumnCCEPData.Data.DataByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullCorrectedID, out Dictionary<string, Data.Experience.Dataset.BlocChannelData> dataByChannel)) return;
-            if (!ColumnCCEPData.Data.StatisticsByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullCorrectedID, out Dictionary<string, Data.Experience.Dataset.BlocChannelStatistics> statisticsByChannel)) return;
+            if (!ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullID, out Dictionary<string, float[]> processedValuesByChannel)) return;
+            if (!ColumnCCEPData.Data.UnityByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullID, out Dictionary<string, string> unitByChannel)) return;
+            if (!ColumnCCEPData.Data.DataByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullID, out Dictionary<string, Data.Experience.Dataset.BlocChannelData> dataByChannel)) return;
+            if (!ColumnCCEPData.Data.StatisticsByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullID, out Dictionary<string, Data.Experience.Dataset.BlocChannelStatistics> statisticsByChannel)) return;
 
             foreach (Site site in Sites)
             {
-                if (processedValuesByChannel.TryGetValue(site.Information.FullCorrectedID, out float[] values))
+                if (processedValuesByChannel.TryGetValue(site.Information.FullID, out float[] values))
                 {
                     if (values.Length > 0)
                     {
                         numberOfSitesWithValues++;
-                        ActivityValuesBySiteID[site.Information.GlobalID] = values;
+                        ActivityValuesBySiteID[site.Information.Index] = values;
                         site.State.IsMasked = false;
                     }
                     else
                     {
-                        ActivityValuesBySiteID[site.Information.GlobalID] = new float[timelineLength];
+                        ActivityValuesBySiteID[site.Information.Index] = new float[timelineLength];
                         site.State.IsMasked = true;
                     }
                 }
                 else
                 {
-                    ActivityValuesBySiteID[site.Information.GlobalID] = new float[timelineLength];
+                    ActivityValuesBySiteID[site.Information.Index] = new float[timelineLength];
                     site.State.IsMasked = true;
                 }
-                if (unitByChannel.TryGetValue(site.Information.FullCorrectedID, out string unit))
+                if (unitByChannel.TryGetValue(site.Information.FullID, out string unit))
                 {
-                    ActivityUnitsBySiteID[site.Information.GlobalID] = unit;
+                    ActivityUnitsBySiteID[site.Information.Index] = unit;
                 }
                 else
                 {
-                    ActivityUnitsBySiteID[site.Information.GlobalID] = "";
+                    ActivityUnitsBySiteID[site.Information.Index] = "";
                 }
-                if (dataByChannel.TryGetValue(site.Information.FullCorrectedID, out Data.Experience.Dataset.BlocChannelData blocChannelData))
+                if (dataByChannel.TryGetValue(site.Information.FullID, out Data.Experience.Dataset.BlocChannelData blocChannelData))
                 {
                     site.Data = blocChannelData;
                 }
-                if (statisticsByChannel.TryGetValue(site.Information.FullCorrectedID, out Data.Experience.Dataset.BlocChannelStatistics blocChannelStatistics))
+                if (statisticsByChannel.TryGetValue(site.Information.FullID, out Data.Experience.Dataset.BlocChannelStatistics blocChannelStatistics))
                 {
                     site.Statistics = blocChannelStatistics;
                     Data.Experience.Dataset.ChannelSubTrialStat trial = blocChannelStatistics.Trial.ChannelSubTrialBySubBloc[ColumnCCEPData.Bloc.MainSubBloc];
@@ -169,8 +170,8 @@ namespace HBP.Module3D
                     {
                         if (trial.Values[i - 1] > trial.Values[i - 2] && trial.Values[i] > trial.Values[i - 1] && trial.Values[i] > trial.Values[i + 1] && trial.Values[i + 1] > trial.Values[i + 2]) // Maybe FIXME: method to compute amplitude and latency
                         {
-                            Amplitudes[site.Information.GlobalID] = trial.Values[i];
-                            Latencies[site.Information.GlobalID] = mainSubTimeline.Frequency.ConvertNumberOfSamplesToMilliseconds(i - mainSubTimeline.StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedIndexFromStart);
+                            Amplitudes[site.Information.Index] = trial.Values[i];
+                            Latencies[site.Information.Index] = mainSubTimeline.Frequency.ConvertNumberOfSamplesToMilliseconds(i - mainSubTimeline.StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedIndexFromStart);
                             break;
                         }
                     }
@@ -228,12 +229,62 @@ namespace HBP.Module3D
         /// <summary>
         /// Update the sites of this column (when changing the implantation of the scene)
         /// </summary>
-        /// <param name="sites">List of the sites in the DLL</param>
+        /// <param name="implantation">Selected implantation</param>
         /// <param name="sceneSitePatientParent">List of the patient parent of the sites as instantiated in the scene</param>
-        public override void UpdateSites(PatientElectrodesList sites, List<GameObject> sceneSitePatientParent)
+        public override void UpdateSites(Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
-            base.UpdateSites(sites, sceneSitePatientParent);
-            Sources = Sites.Where(s => ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.Keys.Contains(s.Information.FullCorrectedID)).ToList();
+            base.UpdateSites(implantation, sceneSitePatientParent);
+            Sources = Sites.Where(s => ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.Keys.Contains(s.Information.FullID)).ToList();
+        }
+        /// <summary>
+        /// Update the visibility, the size and the color of the sites depending on their state
+        /// </summary>
+        /// <param name="showAllSites">Do we show sites that are not in a ROI ?</param>
+        /// <param name="hideBlacklistedSites">Do we hide blacklisted sites ?</param>
+        /// <param name="isGeneratorUpToDate">Is the activity generator up to date ?</param>
+        public override void UpdateSitesRendering(bool showAllSites, bool hideBlacklistedSites, bool isGeneratorUpToDate)
+        {
+            UpdateSitesSizeAndColorOfSites(showAllSites);
+
+            for (int i = 0; i < Sites.Count; ++i)
+            {
+                Site site = Sites[i];
+                bool activity = site.IsActive;
+                SiteType siteType;
+                if (site.State.IsMasked || (site.State.IsOutOfROI && !showAllSites) || !site.State.IsFiltered)
+                {
+                    if (activity) site.IsActive = false;
+                    continue;
+                }
+                else if (site.State.IsBlackListed)
+                {
+                    site.transform.localScale = Vector3.one;
+                    siteType = SiteType.BlackListed;
+                    if (hideBlacklistedSites)
+                    {
+                        if (activity) site.IsActive = false;
+                        continue;
+                    }
+                }
+                else if (isGeneratorUpToDate)
+                {
+                    site.transform.localScale = m_ElectrodesSizeScale[i];
+                    siteType = m_ElectrodesPositiveColor[i] ? SiteType.Positive : SiteType.Negative;
+                }
+                else if (!IsSourceSelected)
+                {
+                    site.transform.localScale = Vector3.one;
+                    siteType = ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.ContainsKey(site.Information.FullID) ? SiteType.Source : SiteType.NotASource;
+                }
+                else
+                {
+                    site.transform.localScale = Vector3.one;
+                    siteType = SiteType.Normal;
+                }
+                if (!activity) site.IsActive = true;
+                site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
+                site.transform.localScale *= DynamicParameters.Gain;
+            }
         }
         /// <summary>
         /// Load the column configuration from the column data

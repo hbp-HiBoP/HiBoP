@@ -1,27 +1,47 @@
 ﻿using HBP.Module3D;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
+    /// <summary>
+    /// Overlay element to display the current icon of the iconic scenario of the bloc used for this column
+    /// </summary>
     public class Icon : ColumnOverlayElement
     {
         #region Properties
-        [SerializeField]
-        private Image m_Image;
-        [SerializeField]
-        private Text m_Text;
+        /// <summary>
+        /// Displays the image of the current icon
+        /// </summary>
+        [SerializeField] private Image m_Image;
+        /// <summary>
+        /// Displays the title of the current icon
+        /// </summary>
+        [SerializeField] private Text m_Text;
 
+        /// <summary>
+        /// Default sprite for the icon (used when no icon matches the current point in the timeline)
+        /// </summary>
         private Sprite m_DefaultSprite;
+        /// <summary>
+        /// Currently displayed icon
+        /// </summary>
         private Data.Visualization.Icon m_CurrentIcon;
+        /// <summary>
+        /// List of all icons used for this column
+        /// </summary>
         private List<Data.Visualization.Icon> m_Icons;
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Setup the overlay element
+        /// </summary>
+        /// <param name="scene">Associated 3D scene</param>
+        /// <param name="column">Associated 3D column</param>
+        /// <param name="columnUI">Parent UI column</param>
         public override void Setup(Base3DScene scene, Column3D column, Column3DUI columnUI)
         {
             base.Setup(scene, column, columnUI);

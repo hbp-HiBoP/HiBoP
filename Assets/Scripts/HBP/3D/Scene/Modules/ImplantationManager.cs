@@ -88,9 +88,9 @@ namespace HBP.Module3D
         /// <param name="pts">List of pts files (one by patient)</param>
         /// <param name="marsAtlas">List of Mars Atlas files (one by patient)</param>
         /// <param name="patientIDs">List of patients IDs</param>
-        public void Add(string name, IEnumerable<string> pts, IEnumerable<string> marsAtlas, IEnumerable<string> patientIDs)
+        public void Add(string name, List<Implantation3D.SiteInfo> siteInfos, IEnumerable<Data.Patient> patients)
         {
-            Implantation3D implantation3D = new Implantation3D(name, pts, marsAtlas, patientIDs);
+            Implantation3D implantation3D = new Implantation3D(name, siteInfos, patients);
             if (implantation3D.IsLoaded)
             {
                 Implantations.Add(implantation3D);
@@ -134,7 +134,7 @@ namespace HBP.Module3D
             {
                 Site site = hit.collider.GetComponent<Site>();
                 // Compute each required variable
-                int siteID = site.Information.GlobalID;
+                int siteID = site.Information.Index;
                 string CCEPLatency = "none", CCEPAmplitude = "none";
                 float iEEGActivity = -1;
                 string iEEGUnit = "";

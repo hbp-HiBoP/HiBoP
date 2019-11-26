@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
@@ -161,6 +162,25 @@ namespace HBP.Module3D
 
             #region Public Methods
             /// <summary>
+            /// Set the list of patients inside this raw site list
+            /// </summary>
+            /// <param name="patients">List of patients to be set</param>
+            public void SetPatients(IEnumerable<Data.Patient> patients)
+            {
+                set_patients_RawSiteList(_handle, string.Join("?", patients.Select(p => p.ID)));
+            }
+            /// <summary>
+            /// Add a site to this raw site list
+            /// </summary>
+            /// <param name="name">Name of the site</param>
+            /// <param name="position">Position of the site (openGL reference)</param>
+            /// <param name="patientIndex">Index of the patient of the site</param>
+            /// <param name="index">Index of the site within the parent electrode</param>
+            public void AddSite(string name, Vector3 position, int patientIndex, int index)
+            {
+                add_site_RawSiteList(_handle, name, position.x, position.y, position.z, patientIndex, index);
+            }
+            /// <summary>
             /// Save the raw site list to an obj file
             /// </summary>
             /// <param name="pathObjNameFile">Path to the obj file to be saved</param>
@@ -168,7 +188,6 @@ namespace HBP.Module3D
             public bool SaveToObj(string pathObjNameFile)
             {
                 bool success = saveToObj_RawPlotList(_handle, pathObjNameFile) == 1;
-                ApplicationState.DLLDebugManager.check_error();
                 return success;
             }
             /// <summary>
@@ -215,13 +234,15 @@ namespace HBP.Module3D
                         planeV[ii] = plane.Point[ii];
                         planeV[ii + 3] = plane.Normal[ii];
                     }
-                    result |= is_site_on_plane_RawSiteList(_handle, site.Information.GlobalID, planeV, precision) == 1;
+                    result |= is_site_on_plane_RawSiteList(_handle, site.Information.Index, planeV, precision) == 1;
                 }
                 return result;
             }
             #endregion
 
             #region Memory Management
+            public RawSiteList() : base() { }
+            public RawSiteList(RawSiteList other) : base(clone_RawSiteList(other.getHandle())) { }
             /// <summary>
             /// Allocate DLL memory
             /// </summary>
@@ -243,6 +264,12 @@ namespace HBP.Module3D
             static private extern IntPtr create_RawSiteList();
             [DllImport("hbp_export", EntryPoint = "delete_RawSiteList", CallingConvention = CallingConvention.Cdecl)]
             static private extern void delete_RawSiteList(HandleRef handleRawSiteLst);
+            [DllImport("hbp_export", EntryPoint = "clone_RawSiteList", CallingConvention = CallingConvention.Cdecl)]
+            static private extern IntPtr clone_RawSiteList(HandleRef handleRawSiteList);
+            [DllImport("hbp_export", EntryPoint = "set_patients_RawSiteList", CallingConvention = CallingConvention.Cdecl)]
+            static private extern void set_patients_RawSiteList(HandleRef handleRawSiteLst, string patients);
+            [DllImport("hbp_export", EntryPoint = "add_site_RawSiteList", CallingConvention = CallingConvention.Cdecl)]
+            static private extern void add_site_RawSiteList(HandleRef handleRawSiteLst, string name, float x, float y, float z, int patientIndex, int index);
             [DllImport("hbp_export", EntryPoint = "update_mask_RawSiteList", CallingConvention = CallingConvention.Cdecl)]
             static private extern void update_mask_RawSiteList(HandleRef handleRawSiteLst, int plotId, int mask);
             [DllImport("hbp_export", EntryPoint = "saveToObj_RawPlotList", CallingConvention = CallingConvention.Cdecl)]
@@ -305,7 +332,6 @@ namespace HBP.Module3D
 
                 // load in the DLL
                 bool fileLoaded = load_Pts_files_PatientElectrodesList(_handle, ptsFilesPathStr, marsAtlasStr, namesStr, marsAtlasIndex.getHandle()) == 1;
-                ApplicationState.DLLDebugManager.check_error();
 
                 if (!fileLoaded)
                 {

@@ -1,14 +1,17 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace HBP.UI.Module3D
 {
+    /// <summary>
+    /// Small bar at the bottom of the UI that displays all open scenes and allows to hide or close some of them
+    /// </summary>
     public class SceneBar : MonoBehaviour
     {
         #region Properties
-        [SerializeField]
-        private GameObject m_SceneBarElementPrefab;
+        /// <summary>
+        /// Prefab of the object on the scene bar that allows to hide or close a scene
+        /// </summary>
+        [SerializeField] private GameObject m_SceneBarElementPrefab;
         #endregion
 
         #region Private Methods

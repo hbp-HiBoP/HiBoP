@@ -1,28 +1,36 @@
 ﻿using HBP.Module3D;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using System;
-using Tools.Unity.ResizableGrid;
 
 namespace HBP.UI.Module3D
 {
+    /// <summary>
+    /// Overlay element to display the name of the column and allow swapping the columns on the UI
+    /// </summary>
     public class ColumnLabel : ColumnOverlayElement, IPointerDownHandler, IPointerUpHandler, IDragHandler
     {
         #region Properties
-        [SerializeField]
-        private Text m_Text;
-        [SerializeField]
-        private Button m_Left;
-        [SerializeField]
-        private Button m_Right;
+        /// <summary>
+        /// Displays the name of the column
+        /// </summary>
+        [SerializeField] private Text m_Text;
+        /// <summary>
+        /// Button to swap this column with the one at the left
+        /// </summary>
+        [SerializeField] private Button m_Left;
+        /// <summary>
+        /// Button to swap this column with the one at the right
+        /// </summary>
+        [SerializeField] private Button m_Right;
 
-        private bool m_RectTransformChanged;
-
-        [SerializeField]
-        private GameObject m_ColumnImagePrefab;
+        /// <summary>
+        /// Prefab of the object used when drag and dropping to swap the column
+        /// </summary>
+        [SerializeField] private GameObject m_ColumnImagePrefab;
+        /// <summary>
+        /// Currently instanced object used when drag and dropping to swap the column
+        /// </summary>
         private GameObject m_CurrentImage;
         #endregion
 
@@ -53,6 +61,12 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Setup the overlay element
+        /// </summary>
+        /// <param name="scene">Associated 3D scene</param>
+        /// <param name="column">Associated 3D column</param>
+        /// <param name="columnUI">Parent UI column</param>
         public override void Setup(Base3DScene scene, Column3D column, Column3DUI columnUI)
         {
             base.Setup(scene, column, columnUI);
@@ -77,7 +91,6 @@ namespace HBP.UI.Module3D
             m_CurrentImage = Instantiate(m_ColumnImagePrefab, m_ColumnUI.ParentGrid.transform);
             m_CurrentImage.transform.Find("Label").GetComponent<Text>().text = m_ColumnUI.Column.Name;
         }
-
         public void OnPointerUp(PointerEventData eventData)
         {
             if (m_CurrentImage)
@@ -87,7 +100,6 @@ namespace HBP.UI.Module3D
                 m_ColumnUI.UpdateBorderVisibility(true);
             }
         }
-        
         public void OnDrag(PointerEventData eventData)
         {
             m_ColumnUI.UpdateBorderVisibility();

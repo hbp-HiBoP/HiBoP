@@ -53,7 +53,7 @@ namespace HBP.Module3D
                 m_DisplayJuBrainAtlas = value;
                 UpdateAtlasColors();
                 m_Scene.BrainMaterial.SetInt("_Atlas", m_DisplayJuBrainAtlas ? 1 : 0);
-                m_Scene.ResetIEEG();
+                m_Scene.CutTexturesNeedUpdate = true;
             }
         }
         
@@ -83,7 +83,7 @@ namespace HBP.Module3D
                 {
                     m_HoveredArea = value;
                     UpdateAtlasColors();
-                    m_Scene.ComputeCutTextures();
+                    m_Scene.CutTexturesNeedUpdate = true;
                 }
             }
         }

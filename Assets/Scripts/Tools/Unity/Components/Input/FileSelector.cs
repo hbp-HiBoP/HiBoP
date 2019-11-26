@@ -10,7 +10,6 @@ namespace Tools.Unity
         #region Properties
         public string Message;
         public string Extension;
-        public string DefaultDirectory;
 
         public InputField.OnChangeEvent onValueChanged
         {
@@ -46,18 +45,7 @@ namespace Tools.Unity
         #region Public Methods
         public void Open()
         {
-            string path = m_InputField.text;
-            if (!string.IsNullOrEmpty(path))
-            {
-                FileInfo file = new FileInfo(path);
-                if (!file.Exists || file.Extension == Extension) path = DefaultDirectory;
-            }
-            else
-            {
-                path = DefaultDirectory;
-            }
-
-            string result = HBP.UI.FileBrowser.GetExistingFileName(Extension.Split(','), Message, path);
+            string result = HBP.UI.FileBrowser.GetExistingFileName(Extension.Split(','), Message, m_InputField.text);
             if (result != string.Empty)
             {
                 result = result.StandardizeToPath();

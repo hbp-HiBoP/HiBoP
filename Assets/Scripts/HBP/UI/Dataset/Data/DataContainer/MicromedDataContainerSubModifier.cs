@@ -26,7 +26,7 @@ namespace HBP.UI.Experience.Dataset
         #region Public Methods
         public override void Initialize()
         {
-            m_FileSelector.DefaultDirectory = ApplicationState.ProjectLoaded.Preferences.LocalizerDatabase;
+            base.Initialize();
             m_FileSelector.onValueChanged.AddListener((path) => { Object.Path = path; });
         }
         #endregion

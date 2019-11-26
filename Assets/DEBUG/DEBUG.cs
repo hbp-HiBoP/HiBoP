@@ -1,6 +1,7 @@
 ﻿using UnityEditor;
 using NewTheme.Components;
 
+#if UNITY_EDITOR
 public static class DEBUG
 {
     [MenuItem("DEBUG/Adrien/Main")]
@@ -20,3 +21,4 @@ public static class DEBUG
         }
     }
 }
+#endif

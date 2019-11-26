@@ -106,11 +106,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Currently selected site ID
         /// </summary>
-        public int SelectedSiteID { get { return SelectedSite != null ? SelectedSite.Information.GlobalID : -1; } }
-        /// <summary>
-        /// ID of the patient which site is currently selected
-        /// </summary>
-        public int SelectedPatientID { get { return SelectedSite != null ? SelectedSite.Information.PatientNumber : -1; } }
+        public int SelectedSiteID { get { return SelectedSite != null ? SelectedSite.Information.Index : -1; } }
 
         /// <summary>
         /// Raw site list (used for DLL operations)
@@ -124,12 +120,6 @@ namespace HBP.Module3D
         /// Site state by site ID (used when changing the implantation to keep the state of sites common to both implantations)
         /// </summary>
         public Dictionary<string, SiteState> SiteStateBySiteID = new Dictionary<string, SiteState>();
-
-        [SerializeField] protected SiteRing m_SelectRing;
-        /// <summary>
-        /// Selection ring feedback
-        /// </summary>
-        public SiteRing SelectRing { get { return m_SelectRing; } }
 
         /// <summary>
         /// List of the ROIs of this column
@@ -161,7 +151,6 @@ namespace HBP.Module3D
 
                     m_SelectedROI = value;
                     m_SelectedROI.SetVisibility(true);
-                    m_SelectedROI.StartAnimation();
                 }
                 UpdateROIMask();
             }
@@ -259,31 +248,30 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="idColumn">ID of the column</param>
         /// <param name="baseColumn">Data of the column</param>
-        /// <param name="sites">List of the sites in the DLL</param>
+        /// <param name="implantation">Selected implantation</param>
         /// <param name="sceneSitePatientParent">List of the patient parent of the sites as instantiated in the scene</param>
-        public void Initialize(int idColumn, Data.Visualization.Column baseColumn, PatientElectrodesList sites, List<GameObject> sceneSitePatientParent)
+        public void Initialize(int idColumn, Data.Visualization.Column baseColumn, Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             Layer = "Column" + idColumn;
             ColumnData = baseColumn;
-            m_SelectRing.SetLayer(Layer);
-            UpdateSites(sites, sceneSitePatientParent);
+            UpdateSites(implantation, sceneSitePatientParent);
             AddView();
             IsRenderingUpToDate = false;
         }
         /// <summary>
         /// Update the sites of this column (when changing the implantation of the scene)
         /// </summary>
-        /// <param name="sites">List of the sites in the DLL</param>
+        /// <param name="implantation">Selected implantation</param>
         /// <param name="sceneSitePatientParent">List of the patient parent of the sites as instantiated in the scene</param>
-        public virtual void UpdateSites(PatientElectrodesList sites, List<GameObject> sceneSitePatientParent)
+        public virtual void UpdateSites(Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
-            sites.ExtractRawSiteList(RawElectrodes);
+            RawElectrodes = new RawSiteList(implantation.RawSiteList);
 
             foreach (Transform patientSite in m_SitesMeshesParent)
             {
                 Destroy(patientSite.gameObject);
             }
-            Sites = new List<Site>(sites.NumberOfSites);
+            Sites = new List<Site>(implantation.SiteInfos.Count);
             
             for (int i = 0; i < sceneSitePatientParent.Count; ++i)
             {
@@ -294,48 +282,45 @@ namespace HBP.Module3D
 
                 for (int j = 0; j < sceneSitePatient.childCount; ++j)
                 {
-                    Transform sceneSiteElectrode = sceneSitePatient.GetChild(j);
-                    Transform siteElectrode = sitePatient.GetChild(j);
-                    for (int k = 0; k < sceneSiteElectrode.childCount; ++k)
+                    GameObject sceneSiteGameObject = sceneSitePatient.GetChild(j).gameObject;
+                    GameObject siteGameObject = sitePatient.GetChild(j).gameObject;
+                    siteGameObject.layer = LayerMask.NameToLayer(Layer);
+                    Site site = siteGameObject.GetComponent<Site>();
+                    Site baseSite = sceneSiteGameObject.GetComponent<Site>();
+                    site.Information = baseSite.Information;
+                    // State
+                    if (!SiteStateBySiteID.TryGetValue(baseSite.Information.FullID, out SiteState siteState))
                     {
-                        GameObject sceneSiteGameObject = sceneSiteElectrode.GetChild(k).gameObject;
-                        GameObject siteGameObject = siteElectrode.GetChild(k).gameObject;
-                        siteGameObject.layer = LayerMask.NameToLayer(Layer);
-                        Site site = siteGameObject.GetComponent<Site>();
-                        Site baseSite = sceneSiteGameObject.GetComponent<Site>();
-                        site.Information = baseSite.Information;
-                        // State
-                        if (!SiteStateBySiteID.ContainsKey(baseSite.Information.FullCorrectedID))
+                        siteState = new SiteState();
+                        siteState.ApplyState(baseSite.State);
+                        SiteStateBySiteID.Add(baseSite.Information.FullID, siteState);
+                    }
+                    site.State = siteState;
+                    site.State.OnChangeState.AddListener(() => OnChangeSiteState.Invoke(site));
+                    // Configuration
+                    if (ColumnData.BaseConfiguration.ConfigurationBySite.TryGetValue(site.Information.FullID, out Data.Visualization.SiteConfiguration siteConfiguration))
+                    {
+                        site.Configuration = siteConfiguration;
+                    }
+                    else
+                    {
+                        ColumnData.BaseConfiguration.ConfigurationBySite.Add(site.Information.FullID, site.Configuration);
+                    }
+                    site.IsActive = true;
+                    site.OnSelectSite.AddListener((selected) =>
+                    {
+                        if (selected)
                         {
-                            SiteStateBySiteID.Add(baseSite.Information.FullCorrectedID, new SiteState(baseSite.State));
-                        }
-                        site.State = SiteStateBySiteID[baseSite.Information.FullCorrectedID];
-                        site.State.OnChangeState.AddListener(() => OnChangeSiteState.Invoke(site));
-                        // Configuration
-                        if (ColumnData.BaseConfiguration.ConfigurationBySite.TryGetValue(site.Information.FullCorrectedID, out Data.Visualization.SiteConfiguration siteConfiguration))
-                        {
-                            site.Configuration = siteConfiguration;
+                            UnselectSite();
+                            SelectedSite = site;
                         }
                         else
                         {
-                            ColumnData.BaseConfiguration.ConfigurationBySite.Add(site.Information.FullCorrectedID, site.Configuration);
+                            SelectedSite = null;
                         }
-                        site.IsActive = true;
-                        site.OnSelectSite.AddListener((selected) =>
-                        {
-                            if (selected)
-                            {
-                                UnselectSite();
-                                SelectedSite = site;
-                            }
-                            else
-                            {
-                                SelectedSite = null;
-                            }
-                            OnSelectSite.Invoke(SelectedSite);
-                        });
-                        Sites.Add(site);
-                    }
+                        OnSelectSite.Invoke(SelectedSite);
+                    });
+                    Sites.Add(site);
                 }
             }
         }
@@ -569,16 +554,16 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="name">Name of the new ROI</param>
         /// <returns>Newly created ROI</returns>
-        public ROI AddROI(string name = ROI.DEFAULT_ROI_NAME)
+        public ROI AddROI(string name = "ROI")
         {
             GameObject roiGameObject = Instantiate(m_ROIPrefab, m_ROIParent);
             ROI roi = roiGameObject.GetComponent<ROI>();
             roi.Name = name;
-            roi.OnChangeNumberOfVolumeInROI.AddListener(() =>
+            roi.OnChangeNumberOfSpheres.AddListener(() =>
             {
                 UpdateROIMask();
             });
-            roi.OnChangeROISphereParameters.AddListener(() =>
+            roi.OnChangeSphereParameters.AddListener(() =>
             {
                 UpdateROIMask();
             });
@@ -598,7 +583,7 @@ namespace HBP.Module3D
             newROI.Name = roi.Name;
             foreach (Sphere bubble in roi.Spheres)
             {
-                newROI.AddBubble(Layer, "Bubble", bubble.Position, bubble.Radius);
+                newROI.AddSphere(Layer, "Bubble", bubble.Position, bubble.Radius);
             }
         }
         /// <summary>
@@ -681,7 +666,7 @@ namespace HBP.Module3D
             Site site;
             if (!string.IsNullOrEmpty(siteName))
             {
-                site = Sites.FirstOrDefault(s => s.Information.ChannelName == siteName);
+                site = Sites.FirstOrDefault(s => s.Information.Name == siteName);
             }
             else
             {
@@ -735,7 +720,7 @@ namespace HBP.Module3D
                 ROI newROI = AddROI(roi.Name);
                 foreach (Data.Visualization.Sphere sphere in roi.Spheres)
                 {
-                    newROI.AddBubble(Layer, "Bubble", sphere.Position.ToVector3(), sphere.Radius);
+                    newROI.AddSphere(Layer, "Bubble", sphere.Position.ToVector3(), sphere.Radius);
                 }
             }
             foreach (Site site in Sites)

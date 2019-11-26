@@ -132,63 +132,41 @@ namespace HBP.Module3D
             }
             SitesPatientParent = new List<GameObject>();
             
-            DLL.PatientElectrodesList electrodesList = implantation.PatientElectrodesList;
-
-            int currPlotNb = 0;
-            for (int ii = 0; ii < electrodesList.NumberOfPatients; ++ii)
+            int siteIndex = 0;
+            foreach (var patient in m_Scene.Visualization.Patients)
             {
-                int patientSiteID = 0;
-                string patientID = electrodesList.PatientName(ii);
-                Data.Patient patient = m_Scene.Visualization.Patients.FirstOrDefault((p) => p.ID == patientID);
-
-                GameObject sitePatient = new GameObject(patientID);
+                GameObject sitePatient = new GameObject(patient.ID);
                 sitePatient.transform.SetParent(m_SitesMeshesParent);
                 sitePatient.transform.localPosition = Vector3.zero;
                 SitesPatientParent.Add(sitePatient);
-
-                for (int jj = 0; jj < electrodesList.NumberOfElectrodesInPatient(ii); ++jj)
+                foreach (var siteInfo in implantation.GetSitesOfPatient(patient))
                 {
-                    GameObject siteElectrode = new GameObject(electrodesList.ElectrodeName(ii, jj));
-                    siteElectrode.transform.SetParent(sitePatient.transform);
-                    siteElectrode.transform.localPosition = Vector3.zero;
+                    GameObject siteGameObject = Instantiate(m_SitePrefab, sitePatient.transform);
+                    siteGameObject.name = siteInfo.Name;
 
-                    for (int kk = 0; kk < electrodesList.NumberOfSitesInElectrode(ii, jj); ++kk)
-                    {
-                        Vector3 invertedPosition = electrodesList.SitePosition(ii, jj, kk);
-                        invertedPosition.x = -invertedPosition.x;
+                    siteGameObject.transform.localPosition = siteInfo.UnityPosition;
+                    siteGameObject.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.Site;
 
-                        GameObject siteGameObject = Instantiate(m_SitePrefab, siteElectrode.transform);
-                        siteGameObject.name = electrodesList.SiteName(ii, jj, kk);
+                    siteGameObject.SetActive(true);
+                    siteGameObject.layer = LayerMask.NameToLayer("Inactive");
 
-                        siteGameObject.transform.localPosition = invertedPosition;
-                        siteGameObject.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.Site;
-
-                        siteGameObject.SetActive(true);
-                        siteGameObject.layer = LayerMask.NameToLayer("Inactive");
-
-                        Site site = siteGameObject.GetComponent<Site>();
-                        site.Information.Patient = patient;
-                        site.Information.Name = siteGameObject.name;
-                        site.Information.SitePatientID = patientSiteID++;
-                        site.Information.PatientNumber = ii;
-                        site.Information.ElectrodeNumber = jj;
-                        site.Information.SiteNumber = kk;
-                        site.Information.GlobalID = currPlotNb++;
-                        site.Information.MarsAtlasIndex = electrodesList.MarsAtlasLabelOfSite(ii, jj, kk);
-                        site.Information.FreesurferLabel = electrodesList.FreesurferLabelOfSite(ii, jj, kk).Replace('_', ' ');
-                        site.State.IsBlackListed = false;
-                        site.State.IsHighlighted = false;
-                        site.State.IsOutOfROI = true;
-                        site.State.IsMasked = false;
-                        site.State.Color = SiteState.DefaultColor;
-                        site.IsActive = true;
-                    }
+                    Site site = siteGameObject.GetComponent<Site>();
+                    site.Information.Patient = patient;
+                    site.Information.Name = siteInfo.Name;
+                    site.Information.Index = siteIndex++;
+                    site.Information.SiteData = siteInfo.SiteData;
+                    site.State.IsBlackListed = false;
+                    site.State.IsHighlighted = false;
+                    site.State.IsOutOfROI = true;
+                    site.State.IsMasked = false;
+                    site.State.Color = SiteState.DefaultColor;
+                    site.IsActive = true;
                 }
             }
 
             foreach (Column3D column in m_Scene.Columns)
             {
-                column.UpdateSites(electrodesList, SitesPatientParent);
+                column.UpdateSites(implantation, SitesPatientParent);
                 column.UpdateROIMask();
             }
         }

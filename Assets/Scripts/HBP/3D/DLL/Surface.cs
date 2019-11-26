@@ -1,38 +1,56 @@
-﻿
-/**
- * \file    Surface.cs
- * \author  Lance Florian
- * \date    2015
- * \brief   Define Surface class
- */
-
-// system
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-
-// unity
 using UnityEngine;
 
 namespace HBP.Module3D.DLL
 {
     /// <summary>
-    /// A DLL mesh class, for geometry computing purposes, can be converted to a Mesh
+    /// Class used to handle the different meshes of the scene within the DLL
     /// </summary>
+    /// <remarks>
+    /// This class allows the loading of mesh files and some heavy computation on the meshes
+    /// It is used to get and process information on the vertex / triangle level of the mesh
+    /// </remarks>
     public class Surface : Tools.DLL.CppDLLImportBase, ICloneable
     {
         #region Properties
-        private int[] m_TriangleID = new int[0];             /**< raw array of triangles id */
-        private Vector3[] m_Vertices = new Vector3[0];  /**< raw array of vertices */
-        private Vector3[] m_Normals = new Vector3[0];   /**< raw array of normals for each vertex */
-        private Vector2[] m_UV = new Vector2[0];        /**< raw array of texture uv for each vertex */
-        private Color[] m_Colors = new Color[0];        /**< raw array of colors for each vertex */
-
-        private int[] m_Sizes = new int[5];             /**< array for containing the sizes the mesh : */
-
+        /// <summary>
+        /// Raw array of triangles indices
+        /// </summary>
+        private int[] m_TriangleIndices = new int[0];
+        /// <summary>
+        /// Raw array of the vertices of the surface
+        /// </summary>
+        private Vector3[] m_Vertices = new Vector3[0];
+        /// <summary>
+        /// Raw array of the normals of the surface (one normal by vertex)
+        /// </summary>
+        private Vector3[] m_Normals = new Vector3[0];
+        /// <summary>
+        /// Raw array of the UVs of the surface (one UV value by vertex)
+        /// </summary>
+        private Vector2[] m_UV = new Vector2[0];
+        /// <summary>
+        /// Raw array of the colors of the surface (one color by vertex, this is used for Mars and JuBrain atlases)
+        /// </summary>
+        private Color[] m_Colors = new Color[0];
+        /// <summary>
+        /// Array of size 6 containing the dimensions of the surface (vertices, triangles, normals, UVs, colors, triangle indices)
+        /// </summary>
+        private int[] m_Sizes = new int[6];
+        /// <summary>
+        /// Is this surface completely loaded ?
+        /// </summary>
         public bool IsLoaded { get; private set; }
+        /// <summary>
+        /// Is mars atlas loaded for this surface ?
+        /// </summary>
         public bool IsMarsAtlasLoaded { get; private set; }
 
+        /// <summary>
+        /// Center of this surface
+        /// </summary>
         public Vector3 Center
         {
             get
@@ -64,7 +82,7 @@ namespace HBP.Module3D.DLL
             }
         }
         /// <summary>
-        /// Visibility mask of this surface
+        /// Visibility mask of this surface (true if the vertex is visible)
         /// </summary>
         public int[] VisibilityMask
         {
@@ -100,10 +118,25 @@ namespace HBP.Module3D.DLL
             }
         }
 
+        /// <summary>
+        /// Pointer to an array of vectors 3D containing the vertices of the surface
+        /// </summary>
         GCHandle m_verticesHandle;
+        /// <summary>
+        /// Pointer to an array of vectors 3D containing the vertices of the surface
+        /// </summary>
         GCHandle m_normalsHandle;
+        /// <summary>
+        /// Pointer to an array of vectors 2D containing the vertices of the surface
+        /// </summary>
         GCHandle m_uvHandle;
+        /// <summary>
+        /// Pointer to an array of integers containing the vertices of the surface
+        /// </summary>
         GCHandle m_triIdHandle;
+        /// <summary>
+        /// Pointer to an array of colors containing the vertices of the surface
+        /// </summary>
         GCHandle m_colorHandle;
         #endregion
 
@@ -111,30 +144,26 @@ namespace HBP.Module3D.DLL
         /// <summary>
         /// Initialize the surface by loading an obj mesh file
         /// </summary>
-        /// <param name="pathObjFile"></param>
-        /// <returns></returns>
-        public bool LoadOBJFile(string pathObjFile)
+        /// <param name="obj">Path to the obj file</param>
+        /// <returns>True if loading is complete</returns>
+        public bool LoadOBJFile(string obj)
         {
-            IsLoaded = load_OBJ_file_Surface(_handle, pathObjFile)==1;
+            IsLoaded = load_OBJ_file_Surface(_handle, obj)==1;
             if (!IsLoaded)
             {
-                Debug.LogError("-ERROR : Surface::loadObjFile -> can't load obj file to surface : " + pathObjFile);
+                Debug.LogError("-ERROR : Surface::loadObjFile -> can't load obj file to surface : " + obj);
             }
             return IsLoaded;
         }
         /// <summary>
-        /// Initialize the surface by loading a GIFTI mesh file and applying the optional transform file
+        /// Initialize the surface by loading a GIFTI mesh file and applying the optional transformation (to put the surface and the volume in the same reference)
         /// </summary>
-        /// <param name="gii">path of the GIFTI file </param>
-        /// <param name="transform">if true apply the transform </param>
-        /// <param name="transformation">transform file associated to the GIFTI file </param>
-        /// <returns>true if sucesse, else false</returns>
-        public bool LoadGIIFile(string gii, bool transform = false, string transformation = "")
+        /// <param name="gii">Path of the GIFTI file</param>
+        /// <param name="transformation">Transformation file associated to the GIFTI file</param>
+        /// <returns>True if loading is complete</returns>
+        public bool LoadGIIFile(string gii, string transformation = "")
         {
-            if (transformation.Length == 0)
-                transform = false;
-
-            IsLoaded = load_GII_file_Surface(_handle, gii, transform ? 1 : 0, transformation) == 1;
+            IsLoaded = load_GII_file_Surface(_handle, gii, !string.IsNullOrEmpty(transformation) ? 1 : 0, transformation) == 1;
             if (!IsLoaded)
             {
                 Debug.LogError("-ERROR : Surface::loadGIIFile -> can't load GII file to surface : " + gii + " " + transformation);
@@ -142,43 +171,40 @@ namespace HBP.Module3D.DLL
             return IsLoaded;
         }
         /// <summary>
-        /// Initialize the surface by loading a TRI mesh file and applying the optional transform file
+        /// Initialize the surface by loading a TRI mesh file and applying the optional transformation (to put the surface and the volume in the same reference)
         /// </summary>
-        /// <param name="pathGIIFile">path of the TRI file </param>
-        /// <param name="transform">if true apply the transform </param>
-        /// <param name="pathTransformFile">transform file associated to the TRI file </param>
-        /// <returns>true if sucesse, else false</returns>
-        public bool LoadTRIFile(string pathTriFile, bool transform = false, string pathTransformFile = "")
+        /// <param name="tri">Path of the TRI file</param>
+        /// <param name="transformation">Transformation file associated to the TRI file</param>
+        /// <returns>True if loading is complete</returns>
+        public bool LoadTRIFile(string tri, string transformation = "")
         {
-            if (pathTransformFile.Length == 0)
-                transform = false;
-
-            IsLoaded = load_TRI_file_Surface(_handle, pathTriFile, transform ? 1 : 0, pathTransformFile) == 1;
+            IsLoaded = load_TRI_file_Surface(_handle, tri, !string.IsNullOrEmpty(transformation) ? 1 : 0, transformation) == 1;
             if (!IsLoaded)
             {
-                Debug.LogError("-ERROR : Surface::loadTriFile -> can't load tri file to surface : " + pathTriFile);
+                Debug.LogError("-ERROR : Surface::loadTriFile -> can't load tri file to surface : " + tri);
             }
             return IsLoaded;
         }
         /// <summary>
-        /// Define the mars atlas parcels gii file to be used for coloring the vertices
+        /// Define the mars atlas parcels gii file to be used to color the vertices
         /// </summary>
-        /// <param name="pathMarsParcel"></param>
-        /// <returns>false if no mars parcles files found</returns>
+        /// <param name="index">Reference to the mars atlas index class</param>
+        /// <param name="pathMarsParcel">Path of the mars atlas file</param>
+        /// <returns>True if loading is complete</returns>
         public bool SearchMarsParcelFileAndUpdateColors(MarsAtlasIndex index, string pathMarsParcel)
         {
             IsMarsAtlasLoaded = seach_mars_parcel_file_and_update_colors_Surface(_handle, index.getHandle(), pathMarsParcel) == 1;
             return IsMarsAtlasLoaded;
         }
         /// <summary>
-        /// Save surface to an obj (wawefront) file
+        /// Save surface to an obj file
         /// </summary>
-        /// <param name="pathOBJFile"> path of the obj file</param>
-        /// <param name="textureName"> name of the associated texture specified in the material file</param>
+        /// <param name="pathOBJFile">Path to the obj file</param>
+        /// <param name="textureName">If not empty, also save the texture to another file</param>
         /// <returns></returns>
         public bool SaveToOBJ(string pathOBJFile, string textureName = "")
         {
-            bool fileSaved = save_to_OBJ_Surface( _handle, pathOBJFile, textureName) == 1;
+            bool fileSaved = save_to_OBJ_Surface(_handle, pathOBJFile, textureName) == 1;
             if (!fileSaved)
             {
                 Debug.LogError("-ERROR : Surface::saveToObj -> can't save surface to obj file. ");
@@ -186,14 +212,14 @@ namespace HBP.Module3D.DLL
             return fileSaved;
         }
         /// <summary>
-        /// 
+        /// Compute all normals for the surface
         /// </summary>
         public void ComputeNormals()
         {
             compute_normals_Surface(_handle);
         }
         /// <summary>
-        /// Flip the side of all the triangles
+        /// Flip the side of every triangles
         /// </summary>
         public void FlipTriangles()
         {
@@ -202,8 +228,12 @@ namespace HBP.Module3D.DLL
         /// <summary>
         /// Split the surface in n sub surfaces (the split is based on the triangles, not the vertices, be careful with the 65K vertices limit for GO)
         /// </summary>
-        /// <param name="nbSubSurfaces"></param>
-        /// <returns></returns>
+        /// <param name="nbSubSurfaces">Number of sub surfaces</param>
+        /// <returns>The list of the sub surfaces</returns>
+        /// <remarks>
+        /// The split is based on the triangles, not the vertices
+        /// Be careful when deciding on the number of splits
+        /// </remarks>
         public List<Surface> SplitToSurfaces(int nbSubSurfaces)
         {            
             HandleRef pSubSurfaces = new HandleRef(this, split_to_surfaces_Surface(_handle, nbSubSurfaces));
@@ -217,10 +247,10 @@ namespace HBP.Module3D.DLL
             return splits;
         }
         /// <summary>
-        /// Update the visibility triangle mask of the mesh with the input array and return a new mesh made with invisible triangles
+        /// Update the visibility triangle mask of the surface with the input array and return a new mesh made with invisible triangles
         /// </summary>
-        /// <param name="visibilityMask"></param>
-        /// <returns></returns>
+        /// <param name="visibilityMask">Array of 0 (triangle is invisible) and 1 (triangle is visible)</param>
+        /// <returns>New surface made with invisible triangles</returns>
         public Surface UpdateVisibilityMask(int[] visibilityMask)
         {
             Surface invisiblePartMesh = new Surface();
@@ -228,13 +258,13 @@ namespace HBP.Module3D.DLL
             return invisiblePartMesh;
         }
         /// <summary>
-        /// Update the visibility triangle mask of the mesh depending the input TriErased action
+        /// Update the visibility triangle mask of the surface depending the input triangle erasing action
         /// </summary>
-        /// <param name="rayDirection"></param>
-        /// <param name="hitPoint"></param>
-        /// <param name="mode"></param>
-        /// <param name="degrees"></param>
-        /// <returns></returns>
+        /// <param name="rayDirection">Direction of the triangle erasing action</param>
+        /// <param name="hitPoint">Position of the hit of the raycast</param>
+        /// <param name="mode">Currently selected triangle erasing mode</param>
+        /// <param name="degrees">Maximum angle in degrees for the area mode</param>
+        /// <returns>New surface made with invisible triangles</returns>
         public Surface UpdateVisibilityMask(Vector3 rayDirection, Vector3 hitPoint, Data.Enums.TriEraserMode mode, float degrees)
         {
             float[] hitPointArray = new float[3], rayDirectionArray = new float[3];
@@ -250,12 +280,12 @@ namespace HBP.Module3D.DLL
             return invisiblePartMesh;
         }
         /// <summary>
-        /// Cut the mesh with the input cut planes and return it:  Surface[0]: cut mesh result,  Surface[1]: plane cut mesh for the first plane, Surface[2]: plane cut mesh for the second plane...
+        /// Cut the surface with the input cut planes and return the resulting surfaces
         /// </summary>
-        /// <param name="cutPlanes"></param>
-        /// <param name="removeFrontPlane"> NOT USED </param>
-        /// <param name="noHoles"></param>
-        /// <returns></returns>
+        /// <param name="cutPlanes">Cut planes used to cut the surface</param>
+        /// <param name="noHoles">If true, the cut meshes will have no holes</param>
+        /// <param name="strongCuts">If true, everything in front of any cut will be cut; if false, everything in front of every cuts will be cut</param>
+        /// <returns>Resulting surfaces array (the first element is the cut mesh, every other elements are the different cut meshes</returns>
         public Surface[] Cut(Cut[] cutPlanes, bool noHoles = false, bool strongCuts = true)
         {
             // check planes
@@ -291,12 +321,12 @@ namespace HBP.Module3D.DLL
             return cuts;
         }
         /// <summary>
-        /// Only generate the cut surfaces (without cutting the mesh)
+        /// Generate the cut surfaces without cutting the mesh
         /// </summary>
-        /// <param name="cutPlanes"></param>
-        /// <param name="noHoles"></param>
-        /// <param name="strongCuts"></param>
-        /// <returns></returns>
+        /// <param name="cutPlanes">Cut planes used to cut the surface</param>
+        /// <param name="noHoles">If true, the cut meshes will have no holes</param>
+        /// <param name="strongCuts">If true, everything in front of any cut will be cut; if false, everything in front of every cuts will be cut</param>
+        /// <returns>Array of the cut meshes</returns>
         public List<Surface> GenerateCutSurfaces(List<Cut> cutPlanes, bool noHoles = false, bool strongCuts = true)
         {
             // check planes
@@ -332,9 +362,9 @@ namespace HBP.Module3D.DLL
             return cuts;
         }
         /// <summary>
-        /// Merge the mesh with the input one
+        /// Merge the surface with the input one
         /// </summary>
-        /// <param name="surfaceToAdd"></param>
+        /// <param name="surfaceToAdd">Surface to be merged with this surface</param>
         public void Append(Surface surfaceToAdd)
         {
             merge_Surface(_handle, surfaceToAdd.getHandle());
@@ -342,24 +372,25 @@ namespace HBP.Module3D.DLL
             IsMarsAtlasLoaded &= surfaceToAdd.IsMarsAtlasLoaded;
         }
         /// <summary>
-        /// Return the computer offset for the input cut plane and the wanted number of cuts
+        /// Get the offset value for a cut plane given the number of cuts
         /// </summary>
-        /// <param name="cutPlane"></param>
-        /// <param name="nbCuts"></param>
-        /// <returns></returns>
+        /// <param name="cutPlane">Cut plane to compute the offset for</param>
+        /// <param name="nbCuts">Number of desired cuts</param>
+        /// <returns>Value of the offset</returns>
         public float SizeOffsetCutPlane(Plane cutPlane, int nbCuts)
         {            
             return size_offset_cut_plane_Surface(_handle, cutPlane.ConvertToArray(), nbCuts);
         }
         /// <summary>
-        /// 
+        /// Update the corresponding Unity mesh using the surface
         /// </summary>
-        /// <param name="mesh"></param>
-        /// <param name="all"></param>
-        /// <param name="vertices"></param>
-        /// <param name="normals"></param>
-        /// <param name="uv"></param>
-        /// <param name="triangles"></param>
+        /// <param name="mesh">Mesh to be updated</param>
+        /// <param name="all">Do we update evertyhing ?</param>
+        /// <param name="vertices">Do we update the vertices ?</param>
+        /// <param name="normals">Do we update the normals ?</param>
+        /// <param name="uv">Do we update the UVs ?</param>
+        /// <param name="triangles">Do we update the triangles ?</param>
+        /// <param name="colors">Do we update the colors ?</param>
         public void UpdateMeshFromDLL(Mesh mesh, bool all = true, bool vertices = true, bool normals = true, bool uv = true, bool triangles = true, bool colors = true)
         {
             try
@@ -391,11 +422,11 @@ namespace HBP.Module3D.DLL
                 }
 
                 int nbTri = (m_Sizes[1] * 3);
-                if (m_TriangleID.Length != nbTri || m_TriangleID.Length == 0)
+                if (m_TriangleIndices.Length != nbTri || m_TriangleIndices.Length == 0)
                 {
                     if (m_triIdHandle.IsAllocated) m_triIdHandle.Free();
-                    m_TriangleID = new int[nbTri];
-                    m_triIdHandle = GCHandle.Alloc(m_TriangleID, GCHandleType.Pinned);
+                    m_TriangleIndices = new int[nbTri];
+                    m_triIdHandle = GCHandle.Alloc(m_TriangleIndices, GCHandleType.Pinned);
                 }
 
                 if (m_Colors.Length != m_Sizes[4] || m_Colors.Length == 0)
@@ -436,7 +467,7 @@ namespace HBP.Module3D.DLL
 
                 if (all || triangles)
                 {
-                    mesh.triangles = m_TriangleID;
+                    mesh.triangles = m_TriangleIndices;
 
                 }
 
@@ -449,7 +480,7 @@ namespace HBP.Module3D.DLL
             }
         }
         /// <summary>
-        /// 
+        /// Debug method used to log the sizes of the surface
         /// </summary>
         public void DisplaySizes()
         {
@@ -465,9 +496,9 @@ namespace HBP.Module3D.DLL
             Debug.Log("debug surface : " + nbFloatVertices + " " + nbFloatNormals + " " + nbVisibleIntTriIndices + " " + nbFloatUV + " " + nbFLoatColors + " " + nbAllIntTriIndices);            
         }
         /// <summary>
-        /// 
+        /// Swap the pointer of this surface with another surface
         /// </summary>
-        /// <param name="surface"></param>
+        /// <param name="surface">Surface to swap the pointer with</param>
         public void SwapDLLHandle(Surface surface)
         {
             HandleRef buffer = surface.getHandle();
@@ -475,8 +506,10 @@ namespace HBP.Module3D.DLL
             _handle = buffer;
         }
         /// <summary>
-        /// Simplify mesh
+        /// Simplify this surface
         /// </summary>
+        /// <param name="numberOfTriangles">Target number of triangles for the new surface</param>
+        /// <param name="agressiveness">Agressiveness of the simplification </param>
         /// <returns></returns>
         public Surface Simplify(int numberOfTriangles = 10000, int agressiveness = 7)
         {
@@ -485,19 +518,20 @@ namespace HBP.Module3D.DLL
             return surface;
         }
         /// <summary>
-        /// Returns true if the point is inside the surface
+        /// Is the site inside of the surface ?
         /// </summary>
-        /// <param name="point"></param>
-        /// <returns></returns>
-        public bool IsPointInside(RawSiteList rawSiteList, int id)
+        /// <param name="rawSiteList">List of the sites of the scene</param>
+        /// <param name="index">Index of the considered site</param>
+        /// <returns>True if the site is inside the surface</returns>
+        public bool IsSiteInside(RawSiteList rawSiteList, int index)
         {
-            return is_point_inside_Surface(_handle, rawSiteList.getHandle(), id);
+            return is_point_inside_Surface(_handle, rawSiteList.getHandle(), index);
         }
         /// <summary>
         /// Returns a cube bbox around the mesh depending on the cuts used
         /// </summary>
-        /// <param name="cuts"></param>
-        /// <returns></returns>
+        /// <param name="cuts">Cuts to consider when computing the bounding box</param>
+        /// <returns>The cube bounding box created</returns>
         public BBox GetCubeBoundingBox(Cut[] cuts)
         {
             float[] planes = new float[cuts.Length * 6];
@@ -519,8 +553,8 @@ namespace HBP.Module3D.DLL
         /// <summary>
         /// Get the surface made of precision * precision * precision vertices inside the bounding box
         /// </summary>
-        /// <param name="precision"></param>
-        /// <returns></returns>
+        /// <param name="precision">Defines the number of vertices of the surface</param>
+        /// <returns>Newly created surface</returns>
         public Surface GetSurfaceFromBoundingBox(int precision)
         {
             return new Surface(get_mesh_from_bounding_box_Surface(_handle, precision));
@@ -528,19 +562,8 @@ namespace HBP.Module3D.DLL
         #endregion
 
         #region Memory Management
-        /// <summary>
-        /// Surface default constructor
-        /// </summary>
         public Surface() : base() { }
-        /// <summary>
-        /// Surface constructor with an already  allocated dll surface
-        /// </summary>
-        /// <param name="surfaceHandle"></param>
         public Surface(IntPtr surfaceHandle) : base(surfaceHandle) { }
-        /// <summary>
-        /// Surface copy constructor
-        /// </summary>
-        /// <param name="other"></param>
         public Surface(Surface other) : base(clone_Surface(other.getHandle()))
         {
             m_Vertices = new Vector3[other.m_Vertices.Length];
@@ -549,8 +572,8 @@ namespace HBP.Module3D.DLL
             m_Normals = new Vector3[other.m_Normals.Length];
             other.m_Normals.CopyTo(m_Normals, 0);
 
-            m_TriangleID = new int[other.m_TriangleID.Length];
-            other.m_TriangleID.CopyTo(m_TriangleID, 0);
+            m_TriangleIndices = new int[other.m_TriangleIndices.Length];
+            other.m_TriangleIndices.CopyTo(m_TriangleIndices, 0);
 
             m_UV = new Vector2[other.m_UV.Length];
             other.m_UV.CopyTo(m_UV, 0);
@@ -572,10 +595,6 @@ namespace HBP.Module3D.DLL
         {
             delete_Surface(_handle);
         }
-        /// <summary>
-        /// Clone the surface
-        /// </summary>
-        /// <returns></returns>
         public object Clone()
         {
             Surface clonedSurface = new Surface(this);
@@ -586,17 +605,12 @@ namespace HBP.Module3D.DLL
         #endregion
 
         #region DLLImport
-        #region Surface
-
-        // memory management
         [DllImport("hbp_export", EntryPoint = "create_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr create_Surface();
         [DllImport("hbp_export", EntryPoint = "delete_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern void delete_Surface(HandleRef handleSurface);
         [DllImport("hbp_export", EntryPoint = "clone_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr clone_Surface(HandleRef surfaceToClone);
-
-        // save / load
         [DllImport("hbp_export", EntryPoint = "save_to_OBJ_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern int save_to_OBJ_Surface(HandleRef handleSurface, string pathFile, string textureName);
         [DllImport("hbp_export", EntryPoint = "load_GII_file_Surface", CallingConvention = CallingConvention.Cdecl)]
@@ -606,9 +620,7 @@ namespace HBP.Module3D.DLL
         [DllImport("hbp_export", EntryPoint = "load_OBJ_file_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern int load_OBJ_file_Surface(HandleRef handleSurface, string pathFile);
         [DllImport("hbp_export", EntryPoint = "seach_mars_parcel_file_and_update_colors_Surface", CallingConvention = CallingConvention.Cdecl)]
-        static private extern int seach_mars_parcel_file_and_update_colors_Surface(HandleRef handleSurface, HandleRef handleMarsIndex, string pathMarsParcelsFile);        
-
-        // actions				
+        static private extern int seach_mars_parcel_file_and_update_colors_Surface(HandleRef handleSurface, HandleRef handleMarsIndex, string pathMarsParcelsFile);
         [DllImport("hbp_export", EntryPoint = "flip_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern void flip_Surface(HandleRef handleSurface);
         [DllImport("hbp_export", EntryPoint = "compute_normals_Surface", CallingConvention = CallingConvention.Cdecl)]
@@ -637,17 +649,12 @@ namespace HBP.Module3D.DLL
         static private extern void simplify_mesh_Surface(HandleRef handleSurface, int triangleCount, int agressiveness);
         [DllImport("hbp_export", EntryPoint = "is_point_inside_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern bool is_point_inside_Surface(HandleRef handleSurface, HandleRef handleRawSiteList, int id);
-
         [DllImport("hbp_export", EntryPoint = "update_visiblity_mask_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern void update_visiblity_mask_Surface(HandleRef handleSurface, HandleRef handleInvisiblePartSurface, int[] visibilityMask);
         [DllImport("hbp_export", EntryPoint = "update_visiblity_mask_with_ray", CallingConvention = CallingConvention.Cdecl)]
         static private extern void update_visiblity_mask_with_ray(HandleRef handleSurface, HandleRef handleInvisiblePartSurface, float[] rayDirection, float[] hitPoint, int mode, float degrees);
         [DllImport("hbp_export", EntryPoint = "retrieve_visibility_mask", CallingConvention = CallingConvention.Cdecl)]
         static private extern void retrieve_visibility_mask(HandleRef handleSurface, int[] visibilityMask);
-
-
-
-        // retrieve data						
         [DllImport("hbp_export", EntryPoint = "sizes_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern int sizes_Surface(HandleRef handleSurface, int[] sizes);
         [DllImport("hbp_export", EntryPoint = "vertices_nb_Surface", CallingConvention = CallingConvention.Cdecl)]
@@ -666,24 +673,14 @@ namespace HBP.Module3D.DLL
         static private extern float size_offset_cut_plane_Surface(HandleRef handleSurface, float[] planeCut, int nbCuts);
         [DllImport("hbp_export", EntryPoint = "get_mesh_from_bounding_box_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr get_mesh_from_bounding_box_Surface(HandleRef handleSurface, int precision);
-
-
-        #endregion
-        #region MultiSurface
-
-        // memory management
         [DllImport("hbp_export", EntryPoint = "delete_MultiSurface", CallingConvention = CallingConvention.Cdecl)]
         static private extern void delete_MultiSurface(HandleRef handleMultiSurface);
         [DllImport("hbp_export", EntryPoint = "move_MultiSurface", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr move_MultiSurface(HandleRef handleMultiSurface, int numSurface);
-        // retrieve data
         [DllImport("hbp_export", EntryPoint = "nb_MultiSurface", CallingConvention = CallingConvention.Cdecl)]
         static private extern int nb_MultiSurface(HandleRef handleMultiSurface);
-
         [DllImport("hbp_export", EntryPoint = "data_MultiSurface", CallingConvention = CallingConvention.Cdecl)]
         static private extern void data_MultiSurface(int numSurface, HandleRef handleMultiSurface, IntPtr verticesArray, IntPtr normalsArray, IntPtr triIndicesArray, IntPtr texturesUVArray);
-
-        #endregion
         #endregion
     }
 }

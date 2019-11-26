@@ -5,9 +5,15 @@ using HBP.Module3D;
 
 namespace HBP.UI.Module3D
 {
+    /// <summary>
+    /// This class is used to properly display a scene 3D in the UI
+    /// </summary>
     public class Scene3DUI : MonoBehaviour
     {
         #region Properties
+        /// <summary>
+        /// If the difference between the width of the scene and the default minimum width of a column in the ResizableGrid is less than this value, it is considered minimized
+        /// </summary>
         private const float MINIMIZED_THRESHOLD = 200.0f;
         /// <summary>
         /// Associated logical Base3DScene
@@ -17,19 +23,23 @@ namespace HBP.UI.Module3D
         /// Linked resizable grid
         /// </summary>
         private ResizableGrid m_ResizableGrid;
+        /// <summary>
+        /// Reference to the RectTransform of this object
+        /// </summary>
         private RectTransform m_RectTransform;
 
+        /// <summary>
+        /// Progress bar overlay element to show feedback when computing the activity on the brain
+        /// </summary>
         [SerializeField] private ProgressBar m_ProgressBar;
         /// <summary>
         /// Feedback for when the iEEG are not up to date
         /// </summary>
-        [SerializeField]
-        private IEEGOutdated m_IEEGOutdated;
+        [SerializeField] private IEEGOutdated m_IEEGOutdated;
         /// <summary>
-        /// GameObject to hide a minimized column
+        /// GameObject to hide a minimized scene
         /// </summary>
-        [SerializeField]
-        private GameObject m_MinimizedGameObject;
+        [SerializeField] private GameObject m_MinimizedGameObject;
         /// <summary>
         /// Is the scene minimzed ?
         /// </summary>

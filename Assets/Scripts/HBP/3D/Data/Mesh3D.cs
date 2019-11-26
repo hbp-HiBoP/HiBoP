@@ -139,7 +139,7 @@ namespace HBP.Module3D
             Data.SingleMesh mesh = m_Mesh as Data.SingleMesh;
 
             m_Both = new DLL.Surface();
-            if (m_Both.LoadGIIFile(mesh.Path, true, mesh.Transformation))
+            if (m_Both.LoadGIIFile(mesh.Path, mesh.Transformation))
             {
                 m_Both.FlipTriangles();
                 m_Both.ComputeNormals();
@@ -269,7 +269,7 @@ namespace HBP.Module3D
             m_IsLoading = true;
             Data.LeftRightMesh mesh = m_Mesh as Data.LeftRightMesh;
             m_Left = new DLL.Surface();
-            if (m_Left.LoadGIIFile(mesh.LeftHemisphere, true, mesh.Transformation))
+            if (m_Left.LoadGIIFile(mesh.LeftHemisphere, mesh.Transformation))
             {
                 m_Left.FlipTriangles();
                 m_Left.ComputeNormals();
@@ -278,7 +278,7 @@ namespace HBP.Module3D
             }
 
             m_Right = new DLL.Surface();
-            if (m_Right.LoadGIIFile(mesh.RightHemisphere, true, mesh.Transformation))
+            if (m_Right.LoadGIIFile(mesh.RightHemisphere, mesh.Transformation))
             {
                 m_Right.FlipTriangles();
                 m_Right.ComputeNormals();

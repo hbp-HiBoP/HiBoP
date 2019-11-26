@@ -113,7 +113,7 @@ namespace HBP.Module3D
             {
                 MRICalMinFactor = min;
                 MRICalMaxFactor = max;
-                m_Scene.ComputeCutTextures();
+                m_Scene.CutTexturesNeedUpdate = true;
             }
         }
         /// <summary>

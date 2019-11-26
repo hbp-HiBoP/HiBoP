@@ -103,11 +103,6 @@ namespace HBP.Data.Experience.Dataset
                 {
                     errors.Add(new BlocsCantBeEpochedError());
                 }
-                List<Tools.CSharp.EEG.Electrode> electrodes = file.Electrodes;
-                if (electrodes.All(e => e.Label != StimulatedChannel))
-                {
-                    errors.Add(new ChannelNotFoundError());
-                }
             }
             m_CCEPErrors = errors.ToArray();
             return m_CCEPErrors;

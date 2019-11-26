@@ -30,28 +30,17 @@ namespace HBP.UI.Experience.Dataset
         {
             base.Initialize();
 
-            m_EEGFileSelector.onValueChanged.AddListener((eeg) => { Object.EEG = eeg; SetDefaultDirectories(Object, eeg); });
-            m_POSFileSelector.onValueChanged.AddListener((pos) => { Object.POS = pos; SetDefaultDirectories(Object, pos); });
-            m_NotesFileSelector.onValueChanged.AddListener((notes) => { Object.Notes = notes; SetDefaultDirectories(Object, notes); });
-        }
-        void SetDefaultDirectories(container.Elan dataInfo, string path)
-        {
-            m_EEGFileSelector.DefaultDirectory = path;
-            m_POSFileSelector.DefaultDirectory = path;
-            m_NotesFileSelector.DefaultDirectory = path;
+            m_EEGFileSelector.onValueChanged.AddListener((eeg) => { Object.EEG = eeg; });
+            m_POSFileSelector.onValueChanged.AddListener((pos) => { Object.POS = pos; });
+            m_NotesFileSelector.onValueChanged.AddListener((notes) => { Object.Notes = notes; });
         }
         #endregion
 
         #region Protected Methods
         protected override void SetFields(container.Elan objectToDisplay)
         {
-            m_EEGFileSelector.DefaultDirectory = !string.IsNullOrEmpty(objectToDisplay.EEG) ? objectToDisplay.EEG : ApplicationState.ProjectLoaded.Preferences.LocalizerDatabase;
             m_EEGFileSelector.File = objectToDisplay.SavedEEG;
-
-            m_POSFileSelector.DefaultDirectory = !string.IsNullOrEmpty(objectToDisplay.POS) ? objectToDisplay.POS : ApplicationState.ProjectLoaded.Preferences.LocalizerDatabase;
             m_POSFileSelector.File = objectToDisplay.SavedPOS;
-
-            m_NotesFileSelector.DefaultDirectory = !string.IsNullOrEmpty(objectToDisplay.Notes) ? objectToDisplay.Notes : ApplicationState.ProjectLoaded.Preferences.LocalizerDatabase;
             m_NotesFileSelector.File = objectToDisplay.SavedNotes;
         }
         #endregion

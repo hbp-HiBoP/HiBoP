@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using HBP.Module3D.DLL;
+using Tools.Unity;
 using UnityEngine;
 
 namespace HBP.Module3D
@@ -16,13 +17,9 @@ namespace HBP.Module3D
         /// </summary>
         public DLL.Texture DLLCutColorScheme;
         /// <summary>
-        /// Color scheme for the FMRI
-        /// </summary>
-        public DLL.Texture DLLCutFMRIColorScheme;
-        /// <summary>
         /// Generator for the MRI textures of the cuts
         /// </summary>
-        public List<DLL.MRITextureCutGenerator> DLLMRITextureCutGenerators = new List<DLL.MRITextureCutGenerator>();
+        public List<MRITextureCutGenerator> DLLMRITextureCutGenerators = new List<DLL.MRITextureCutGenerator>();
         /// <summary>
         /// DLL textures for the cuts for the 3D
         /// </summary>
@@ -61,11 +58,11 @@ namespace HBP.Module3D
         {
             while (Size < size)
             {
-                BrainCutTextures.Add(Texture2Dutility.GenerateCut());
-                GUIBrainCutTextures.Add(Texture2Dutility.GenerateGUI());
+                BrainCutTextures.Add(Texture2DExtension.Generate());
+                GUIBrainCutTextures.Add(Texture2DExtension.Generate(1, 1, -10, 9, FilterMode.Point));
                 DLLBrainCutTextures.Add(new DLL.Texture());
                 DLLGUIBrainCutTextures.Add(new DLL.Texture());
-                DLLMRITextureCutGenerators.Add(new DLL.MRITextureCutGenerator());
+                DLLMRITextureCutGenerators.Add(new MRITextureCutGenerator());
                 Size++;
             }
             while (Size > size)
@@ -118,9 +115,9 @@ namespace HBP.Module3D
         {
             foreach (Cut cut in cuts)
             {
-                if (DLLBrainCutTextures[cut.ID].TextureSize[0] > 0)
+                if (DLLBrainCutTextures[cut.ID].Height > 0)
                 {
-                    DLLGUIBrainCutTextures[cut.ID].CopyAndRotate(DLLBrainCutTextures[cut.ID], cut.Orientation.ToString(), cut.Flip, false, cut.ID, cuts, DLLMRITextureCutGenerators[cut.ID]);
+                    DLLGUIBrainCutTextures[cut.ID].CloneAndRotate(DLLBrainCutTextures[cut.ID], cut.Orientation.ToString(), cut.Flip, false, cut.ID, cuts, DLLMRITextureCutGenerators[cut.ID]);
                 }
             }
         }
@@ -133,7 +130,7 @@ namespace HBP.Module3D
         {
             foreach (Cut cut in cuts)
             {
-                if (DLLBrainCutTextures[cut.ID].TextureSize[0] > 0)
+                if (DLLBrainCutTextures[cut.ID].Height > 0)
                 {
                     DLLBrainCutTextures[cut.ID].DrawSites(cut, rawList, 1, DLLMRITextureCutGenerators[cut.ID]);
                 }
@@ -150,7 +147,7 @@ namespace HBP.Module3D
             {
                 if (cut.Orientation != Data.Enums.CutOrientation.Custom)
                 {
-                    int textureMax = DLLGUIBrainCutTextures[cut.ID].TextureSize.Max();
+                    int textureMax = Mathf.Max(DLLGUIBrainCutTextures[cut.ID].Width, DLLGUIBrainCutTextures[cut.ID].Height);
                     if (textureMax > max)
                     {
                         max = textureMax;
@@ -185,11 +182,11 @@ namespace HBP.Module3D
 
             for (int i = 0; i < DLLMRITextureCutGenerators.Count; ++i)
             {
-                DLL.MRITextureCutGenerator generator = DLLMRITextureCutGenerators[i];
-                generator.FillTextureWithIEEG(column, DLLCutColorScheme);
+                MRITextureCutGenerator generator = DLLMRITextureCutGenerators[i];
+                generator.FillTextureWithActivity(column, DLLCutColorScheme);
 
                 DLL.Texture cutTexture = DLLBrainCutTextures[i];
-                generator.UpdateTextureWithIEEG(cutTexture);
+                generator.UpdateTextureWithActivity(cutTexture);
                 cutTexture.UpdateTexture2D(BrainCutTextures[i]);
             }
         }
@@ -205,7 +202,7 @@ namespace HBP.Module3D
         {
             UnityEngine.Profiling.Profiler.BeginSample("Compute FMRI textures");
             DLL.MRITextureCutGenerator generator = DLLMRITextureCutGenerators[indexCut];
-            generator.FillTextureWithFMRI(DLLCutFMRIColorScheme, volume, FMRICalMinFactor, FMRICalMaxFactor, FMRIAlpha);
+            generator.FillTextureWithFMRI(volume, FMRICalMinFactor, FMRICalMaxFactor, FMRIAlpha);
 
             DLL.Texture cutTexture = DLLBrainCutTextures[indexCut];
             generator.UpdateTextureWithFMRI(cutTexture);
@@ -232,8 +229,6 @@ namespace HBP.Module3D
         {
             DLLCutColorScheme?.Dispose();
             DLLCutColorScheme = DLL.Texture.Generate2DColorTexture(colorBrainCut, colormap);
-            DLLCutFMRIColorScheme?.Dispose();
-            DLLCutFMRIColorScheme = DLL.Texture.Generate2DColorTexture(colorBrainCut, colormap);
         }
         /// <summary>
         /// Set the DLL MRI Volume Generator
@@ -253,7 +248,6 @@ namespace HBP.Module3D
         {
             foreach (var dllMRITextureCutGenerator in DLLMRITextureCutGenerators) dllMRITextureCutGenerator?.Dispose();
             DLLCutColorScheme?.Dispose();
-            DLLCutFMRIColorScheme?.Dispose();
             foreach (var texture in DLLBrainCutTextures) texture?.Dispose();
             foreach (var texture in DLLGUIBrainCutTextures) texture?.Dispose();
         }

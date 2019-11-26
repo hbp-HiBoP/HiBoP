@@ -1,42 +1,44 @@
-﻿
-/* \file MNIObjects.cs
- * \author Lance Florian
- * \date    22/04/2016
- * \brief Define MNIObjects
- */
-
-// system
-using System;
-using System.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.Threading;
-
-// unity
+﻿using System.Collections;
 using UnityEngine;
-using UnityEngine.Events;
 using CielaSpike;
 
 namespace HBP.Module3D
 {
     /// <summary>
-    /// MNI meshes and MRI preloaded at start
+    /// Global class containing information about the MNI meshes and MRIs
     /// </summary>
     public class MNIObjects : MonoBehaviour
     {
         #region Properties
+        /// <summary>
+        /// Mesh of the Grey Matter
+        /// </summary>
         public LeftRightMesh3D GreyMatter { get; private set; }
+        /// <summary>
+        /// Mesh of the White Matter
+        /// </summary>
         public LeftRightMesh3D WhiteMatter { get; private set; }
+        /// <summary>
+        /// Mesh of the Inflated White Matter
+        /// </summary>
         public LeftRightMesh3D InflatedWhiteMatter { get; private set; }
+        /// <summary>
+        /// MRI of the MNI
+        /// </summary>
         public MRI3D MRI { get; private set; }
 
+        /// <summary>
+        /// Path to the files to load
+        /// </summary>
         private string m_DataPath = "";
-
-        public bool Loaded { get; private set; }
+        /// <summary>
+        /// Are the MNI objects completely loaded ?
+        /// </summary>
+        public bool IsLoaded { get; private set; }
         #endregion
 
         #region Private Methods
-        void Awake()
+        private void Awake()
         {
             m_DataPath = ApplicationState.DataPath;
             this.StartCoroutineAsync(c_Load());
@@ -49,26 +51,21 @@ namespace HBP.Module3D
             MRI?.Clean();
         }
         /// <summary>
-        /// 
+        /// Load the MNI objects
         /// </summary>
-        /// <param name="baseIRMDir"></param>
-        /// <param name="baseMeshDir"></param>
-        /// <param name="idScript"></param>
-        /// <param name="GOName"></param>
-        /// <param name="instanceID"></param>
-        void LoadData(string baseIRMDir, string baseMeshDir, string GOName, int instanceID)
+        /// <param name="mniMRIDir">Directory of the MRI of the MNI</param>
+        /// <param name="mniMeshDir">Directory of the meshes of the MNI</param>
+        private void LoadData(string mniMRIDir, string mniMeshDir)
         {
-            DLL.NIFTI nii = new DLL.NIFTI();
-            nii.LoadNIIFile(baseIRMDir + "MNI.nii");
             DLL.Volume volume = new DLL.Volume();
-            nii.ConvertToVolume(volume);
-            MRI = new MRI3D("MNI", nii, volume);
+            volume.LoadNIFTIFile(mniMRIDir + "MNI.nii");
+            MRI = new MRI3D("MNI", volume);
 
             DLL.Surface leftHemi = new DLL.Surface();
             DLL.Surface rightHemi = new DLL.Surface();
             DLL.Surface bothHemi;
-            leftHemi.LoadGIIFile(baseMeshDir + "MNI_Lhemi.gii", true, baseMeshDir + "MNI.trm"); leftHemi.FlipTriangles();
-            rightHemi.LoadGIIFile(baseMeshDir + "MNI_Rhemi.gii", true, baseMeshDir + "MNI.trm"); rightHemi.FlipTriangles();
+            leftHemi.LoadGIIFile(mniMeshDir + "MNI_Lhemi.gii", mniMeshDir + "MNI.trm"); leftHemi.FlipTriangles();
+            rightHemi.LoadGIIFile(mniMeshDir + "MNI_Rhemi.gii", mniMeshDir + "MNI.trm"); rightHemi.FlipTriangles();
             bothHemi = (DLL.Surface)leftHemi.Clone();
             bothHemi.Append(rightHemi);
             leftHemi.ComputeNormals();
@@ -79,8 +76,8 @@ namespace HBP.Module3D
             DLL.Surface leftWhite = new DLL.Surface();
             DLL.Surface rightWhite = new DLL.Surface();
             DLL.Surface bothWhite;
-            leftWhite.LoadGIIFile(baseMeshDir + "MNI_Lwhite.gii", true, baseMeshDir + "MNI.trm"); leftWhite.FlipTriangles();
-            rightWhite.LoadGIIFile(baseMeshDir + "MNI_Rwhite.gii", true, baseMeshDir + "MNI.trm"); rightWhite.FlipTriangles();
+            leftWhite.LoadGIIFile(mniMeshDir + "MNI_Lwhite.gii", mniMeshDir + "MNI.trm"); leftWhite.FlipTriangles();
+            rightWhite.LoadGIIFile(mniMeshDir + "MNI_Rwhite.gii", mniMeshDir + "MNI.trm"); rightWhite.FlipTriangles();
             bothWhite = (DLL.Surface)leftWhite.Clone();
             bothWhite.Append(rightWhite);
             leftWhite.ComputeNormals();
@@ -91,8 +88,8 @@ namespace HBP.Module3D
             DLL.Surface leftWhiteInflated = new DLL.Surface();
             DLL.Surface rightWhiteInflated = new DLL.Surface();
             DLL.Surface bothWhiteInflated;
-            leftWhiteInflated.LoadGIIFile(baseMeshDir + "MNI_Lwhite_inflated.gii", true, baseMeshDir + "MNI.trm"); leftWhiteInflated.FlipTriangles();
-            rightWhiteInflated.LoadGIIFile(baseMeshDir + "MNI_Rwhite_inflated.gii", true, baseMeshDir + "MNI.trm"); rightWhiteInflated.FlipTriangles();
+            leftWhiteInflated.LoadGIIFile(mniMeshDir + "MNI_Lwhite_inflated.gii", mniMeshDir + "MNI.trm"); leftWhiteInflated.FlipTriangles();
+            rightWhiteInflated.LoadGIIFile(mniMeshDir + "MNI_Rwhite_inflated.gii", mniMeshDir + "MNI.trm"); rightWhiteInflated.FlipTriangles();
             bothWhiteInflated = (DLL.Surface)leftWhiteInflated.Clone();
             bothWhiteInflated.Append(rightWhiteInflated);
             leftWhiteInflated.ComputeNormals();
@@ -103,16 +100,17 @@ namespace HBP.Module3D
         #endregion
 
         #region Coroutines
+        /// <summary>
+        /// Coroutine to load the MNI objects
+        /// </summary>
+        /// <returns>Coroutine return</returns>
         public IEnumerator c_Load()
         {
-            yield return Ninja.JumpToUnity;
-            int instanceID = GetInstanceID();
-            string nameGO = name;
             yield return Ninja.JumpBack;
             string baseIRMDir = m_DataPath + "IRM/", baseMeshDir = m_DataPath + "Meshes/";
-            LoadData(baseIRMDir, baseMeshDir, nameGO, instanceID);
+            LoadData(baseIRMDir, baseMeshDir);
             yield return Ninja.JumpToUnity;
-            Loaded = true;
+            IsLoaded = true;
         }
         #endregion
     }

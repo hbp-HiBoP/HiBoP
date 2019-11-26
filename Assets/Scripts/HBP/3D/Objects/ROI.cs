@@ -1,70 +1,64 @@
-﻿
-
-/**
- * \file    ROI.cs
- * \author  Lance Florian
- * \date    2015
- * \brief   Define Bubble and ROI classes
- */
-
-// system
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
-
-// unity
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
     /// <summary>
-    /// Define a ROI containing bubbles
+    /// Class containing information about a Region Of Interest in the scene
     /// </summary>
     public class ROI : MonoBehaviour
     {
         #region Properties
-        public const string DEFAULT_ROI_NAME = "ROI";
-        public string Name { get; set; } = DEFAULT_ROI_NAME;
+        /// <summary>
+        /// Name of the ROI
+        /// </summary>
+        public string Name { get; set; } = "ROI";
+        /// <summary>
+        /// Layer on which the ROI will be displayed
+        /// </summary>
         private int m_Layer;
 
+        /// <summary>
+        /// Index of the selected sphere of this ROI
+        /// </summary>
         public int SelectedSphereID { get; set; }
+        /// <summary>
+        /// Currently selected sphere of this ROI
+        /// </summary>
         public Sphere SelectedSphere
         {
             get
             {
-                return SelectedSphereID == -1 ? null : m_Spheres[SelectedSphereID];
-            }
-        }
-
-        private DLL.ROI m_DLLROI;
-        private List<Sphere> m_Spheres = new List<Sphere>();
-        public ReadOnlyCollection<Sphere> Spheres
-        {
-            get
-            {
-                return new ReadOnlyCollection<Sphere>(m_Spheres);
+                return SelectedSphereID == -1 ? null : Spheres[SelectedSphereID];
             }
         }
 
         /// <summary>
-        /// Number of bubbles in ROI
+        /// Pointer to the DLL object corresponding to this ROI
         /// </summary>
-        public int NumberOfBubbles
-        {
-            get
-            {
-                return m_Spheres.Count;
-            }
-        }
+        private DLL.ROI m_DLLROI;
+        /// <summary>
+        /// List of this spheres of this ROI
+        /// </summary>
+        public List<Sphere> Spheres { get; private set; } = new List<Sphere>();
 
-        public UnityEvent OnChangeNumberOfVolumeInROI = new UnityEvent();
-        public UnityEvent OnChangeROISphereParameters = new UnityEvent();
+        /// <summary>
+        /// Prefab for the sphere game object
+        /// </summary>
+        [SerializeField] private GameObject m_SpherePrefab;
+        #endregion
 
-        [SerializeField]
-        private GameObject m_SpherePrefab;
+        #region Events
+        /// <summary>
+        /// Event called when adding of removing a sphere in this ROI
+        /// </summary>
+        public UnityEvent OnChangeNumberOfSpheres = new UnityEvent();
+        /// <summary>
+        /// Event called when modifying a sphere of this ROI
+        /// </summary>
+        public UnityEvent OnChangeSphereParameters = new UnityEvent();
         #endregion
 
         #region Private Methods
@@ -78,13 +72,13 @@ namespace HBP.Module3D
             m_DLLROI?.Dispose();
         }
         /// <summary>
-        /// 
+        /// Unselect the currently selected sphere of this ROI
         /// </summary>
         private void UnselectSphere()
         {
-            if (SelectedSphereID != -1 && SelectedSphereID < m_Spheres.Count)
+            if (SelectedSphereID != -1 && SelectedSphereID < Spheres.Count)
             {
-                m_Spheres[SelectedSphereID].GetComponent<Sphere>().Selected = false;
+                Spheres[SelectedSphereID].Selected = false;
             }
             SelectedSphereID = -1;
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
@@ -93,85 +87,54 @@ namespace HBP.Module3D
 
         #region Public Methods
         /// <summary>
-        /// 
+        /// Display or hide all spheres of this ROI
         /// </summary>
-        public void Clean()
-        {
-            // Destroy the DLL
-            m_DLLROI.Dispose();
-
-            // Destroy each bubble gameobject
-            for (int ii = 0; ii < m_Spheres.Count; ++ii)
-            {
-                Destroy(m_Spheres[ii]);
-            }
-        }
-        /// <summary>
-        /// Set the visibility of all the bubbles
-        /// </summary>
-        /// <param name="visibility"></param>
+        /// <param name="visibility">True if the spheres will become visible</param>
         public void SetVisibility(bool visibility)
         {
-            for (int ii = 0; ii < m_Spheres.Count; ++ii)
+            for (int ii = 0; ii < Spheres.Count; ++ii)
             {
-                m_Spheres[ii].gameObject.SetActive(visibility);
+                Spheres[ii].gameObject.SetActive(visibility);
+                if (visibility)
+                {
+                    Spheres[ii].StartAnimation();
+                }
             }
         }
         /// <summary>
-        /// Enable of disable the rendering of the ROI
+        /// Enable or disable the rendering of the spheres of this ROI
         /// </summary>
-        /// <param name="state"></param>
+        /// <param name="state">True if spheres are supposed to be visible</param>
         public void SetRenderingState(bool state)
         {
             int inactiveLayer = LayerMask.NameToLayer("Inactive");
-            for (int ii = 0; ii < m_Spheres.Count; ++ii)
+            for (int ii = 0; ii < Spheres.Count; ++ii)
             {
-                m_Spheres[ii].gameObject.layer = (state ? m_Layer : inactiveLayer);
+                Spheres[ii].gameObject.layer = (state ? m_Layer : inactiveLayer);
             }
         }
         /// <summary>
-        /// Check if a collision occurs with the ROI bubbles
+        /// Update the ROI mask of the sites using this ROI
         /// </summary>
-        /// <param name="ray"></param>
-        /// <returns></returns>
-        public bool CheckCollision(Ray ray)
-        {
-            for (int ii = 0; ii < m_Spheres.Count; ++ii)
-            {
-                RaycastHit hitInfo;
-                if(m_Spheres[ii].GetComponent<Sphere>().CheckCollision(ray, out hitInfo))
-                    return true;
-            }
-
-            return false;
-        }
-        /// <summary>
-        /// Update the DLL ROI mask
-        /// </summary>
-        /// <param name="plots"></param>
-        /// <param name="mask"></param>
+        /// <param name="plots">Raw list of the sites of the scene</param>
+        /// <param name="mask">ROI mask for the sites (true if a site is not in this ROI)</param>
         public void UpdateMask(DLL.RawSiteList plots, bool[] mask)
         {
             m_DLLROI.UpdateMask(plots, mask);
         }
         /// <summary>
-        /// If collision with a bubble return the id of the closest, else return -1
+        /// Select the closest sphere from a raycast
         /// </summary>
-        /// <param name="ray"></param>
-        /// <returns></returns>
-        public int CollidedClosestBubbleID(Ray ray)
+        /// <param name="ray">Ray of the raycast</param>
+        public void SelectClosestSphere(Ray ray)
         {
-            bool collision = false;
             int minDistId = -1;
             float minDist = float.MaxValue;
 
-            for (int ii = 0; ii < m_Spheres.Count; ++ii)
+            for (int ii = 0; ii < Spheres.Count; ++ii)
             {
-                RaycastHit hitInfo;
-                if (m_Spheres[ii].GetComponent<Sphere>().CheckCollision(ray, out hitInfo))
+                if (Spheres[ii].CheckCollision(ray, out RaycastHit hitInfo))
                 {
-                    collision = true;
-
                     Vector3 p1 = hitInfo.point;
                     Vector3 p2 = ray.origin;
                     Vector3 vec = new Vector3(p1.x - p2.x, p1.y - p2.y, p1.z - p2.z);
@@ -185,61 +148,56 @@ namespace HBP.Module3D
                 }
             }
 
-            if (collision)
-            {
-                return minDistId;
-            }
-
-            return -1;
+            SelectSphere(minDistId);
         }
         /// <summary>
-        /// 
+        /// Select a sphere of this ROI given its index
         /// </summary>
-        /// <param name="sphereID"></param>
+        /// <param name="sphereID">Index of the sphere to be selected</param>
         public void SelectSphere(int sphereID)
         {
-            if (sphereID >= m_Spheres.Count)
+            if (sphereID >= Spheres.Count)
                 return;
 
             UnselectSphere();
 
             if (sphereID >= 0)
             {
-                m_Spheres[sphereID].GetComponent<Sphere>().Selected = true;
+                Spheres[sphereID].Selected = true;
                 SelectedSphereID = sphereID;
             }
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
-        /// 
+        /// Add a new sphere to this ROI
         /// </summary>
-        /// <param name="layer"></param>
-        /// <param name="GObubbleName"></param>
-        /// <param name="position"></param>
-        /// <param name="ray"></param>
-        public void AddBubble(string layer, string GObubbleName, Vector3 position, float ray)
+        /// <param name="layer">Layer of the sphere (corresponds to the layer of the column)</param>
+        /// <param name="name">Name of the sphere</param>
+        /// <param name="position">Position of the sphere</param>
+        /// <param name="radius">Radius of the sphere</param>
+        public void AddSphere(string layer, string name, Vector3 position, float radius)
         {
             m_Layer = LayerMask.NameToLayer(layer);
-            GameObject newBubble = Instantiate(m_SpherePrefab);
-            newBubble.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.ROISphere;
-            newBubble.name = GObubbleName;
-            newBubble.transform.SetParent(transform);
-            Sphere sphere = newBubble.GetComponent<Sphere>();
-            sphere.Initialize(m_Layer, ray, position);
-            sphere.OnChangeROIVolumeRadius.AddListener(() =>
+            Sphere sphere = Instantiate(m_SpherePrefab, transform).GetComponent<Sphere>();
+            sphere.Initialize(m_Layer, name, radius, position);
+            sphere.OnChangeRadius.AddListener(() =>
             {
-                OnChangeROISphereParameters.Invoke();
+                OnChangeSphereParameters.Invoke();
             });
-            m_Spheres.Add(sphere);
+            Spheres.Add(sphere);
 
             // DLL
             Vector3 positionBubble = sphere.transform.localPosition;
             positionBubble.x = -positionBubble.x;
-            m_DLLROI.AddBubble(ray, positionBubble);
+            m_DLLROI.AddSphere(radius, positionBubble);
 
-            OnChangeNumberOfVolumeInROI.Invoke();
-            SelectSphere(m_Spheres.Count - 1);
+            OnChangeNumberOfSpheres.Invoke();
+            SelectSphere(Spheres.Count - 1);
         }
+        /// <summary>
+        /// Move the selected sphere by a specific amount
+        /// </summary>
+        /// <param name="translation">Amount to move the sphere</param>
         public void MoveSelectedSphere(Vector3 translation)
         {
             if (SelectedSphereID != -1)
@@ -249,29 +207,29 @@ namespace HBP.Module3D
                 // DLL
                 Vector3 positionBubble = SelectedSphere.Position;
                 positionBubble.x = -positionBubble.x;
-                m_DLLROI.UpdateBubblePosition(SelectedSphereID, positionBubble);
+                m_DLLROI.UpdateSpherePosition(SelectedSphereID, positionBubble);
 
-                OnChangeROISphereParameters.Invoke();
+                OnChangeSphereParameters.Invoke();
             }
         }
         /// <summary>
-        /// 
+        /// Remove a sphere from this ROI given its index
         /// </summary>
-        /// <param name="sphereID"></param>
+        /// <param name="sphereID">Index of the sphere to be removed</param>
         public void RemoveSphere(int sphereID)
         {
             if (sphereID == -1) return;
 
             // remove the bubble
-            Destroy(m_Spheres[sphereID].gameObject);
-            m_Spheres.RemoveAt(sphereID);
+            Destroy(Spheres[sphereID].gameObject);
+            Spheres.RemoveAt(sphereID);
 
             // remove dll sphere
-            m_DLLROI.RemoveBubble(sphereID);
+            m_DLLROI.RemoveSphere(sphereID);
 
-            OnChangeNumberOfVolumeInROI.Invoke();
+            OnChangeNumberOfSpheres.Invoke();
             
-            if (SelectedSphereID - 1 == -1 && m_Spheres.Count > 0)
+            if (SelectedSphereID - 1 == -1 && Spheres.Count > 0)
             {
                 SelectSphere(SelectedSphereID);
             }
@@ -280,42 +238,29 @@ namespace HBP.Module3D
                 SelectSphere(SelectedSphereID - 1);
             }
         }
+        /// <summary>
+        /// Remove the currently selected sphere
+        /// </summary>
         public void RemoveSelectedSphere()
         {
             RemoveSphere(SelectedSphereID);
         }
         /// <summary>
-        /// 
+        /// Increase or decrease the size of the selected sphere by 10%
         /// </summary>
-        /// <param name="idBubble"></param>
-        /// <param name="coeff"></param>
-        public void ChangeBubbleSize(int idBubble, float coeff)
-        {
-            if (idBubble < 0 || idBubble >= m_Spheres.Count)
-                return;
-
-            m_Spheres[idBubble].GetComponent<Sphere>().Radius *= coeff;
-
-            // DLL
-            m_DLLROI.UpdateBubbleRadius(idBubble, m_Spheres[idBubble].GetComponent<Sphere>().Radius);
-
-            OnChangeROISphereParameters.Invoke();
-        }
+        /// <param name="direction">If negative, decrease the size of the sphere (direction must have an amplitude greater than 0.2 to be accounted for)</param>
         public void ChangeSelectedBubbleSize(float direction)
         {
+            if (SelectedSphereID == -1) return;
+
             if (Mathf.Abs(direction) > 0.2f)
             {
-                ChangeBubbleSize(SelectedSphereID, direction < 0 ? 0.9f : 1.1f);
-            }
-        }
-        /// <summary>
-        /// Start the growing animation
-        /// </summary>
-        public void StartAnimation()
-        {
-            foreach (Sphere sphere in Spheres)
-            {
-                sphere.StartAnimation();
+                SelectedSphere.Radius *= direction < 0 ? 0.9f : 1.1f;
+
+                // DLL
+                m_DLLROI.UpdateSphereRadius(SelectedSphereID, SelectedSphere.Radius);
+
+                OnChangeSphereParameters.Invoke();
             }
         }
         #endregion

@@ -204,7 +204,6 @@ namespace HBP.Module3D
         {
             MarsAtlasIndex?.Dispose();
             JuBrainAtlas?.Dispose();
-            ApplicationState.DLLDebugManager.clean();
         }
         #endregion
 
@@ -253,30 +252,9 @@ namespace HBP.Module3D
             visualizationToLoad.Name = patient.Name;
             visualizationToLoad.RemoveAllPatients();
             visualizationToLoad.AddPatient(patient);
-            if (patient.Meshes.FirstOrDefault(m => m.Name == ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization) != null)
-            {
-                visualizationToLoad.Configuration.MeshName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization;
-            }
-            else if (patient.Meshes.Count > 0)
-            {
-                visualizationToLoad.Configuration.MeshName = patient.Meshes.First().Name;
-            }
-            if (patient.MRIs.FirstOrDefault(m => m.Name == ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization) != null)
-            {
-                visualizationToLoad.Configuration.MRIName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization;
-            }
-            else if (patient.MRIs.Count > 0)
-            {
-                visualizationToLoad.Configuration.MRIName = patient.MRIs.First().Name;
-            }
-            if (patient.Sites.FirstOrDefault(m => m.Name == ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization) != null)
-            {
-                visualizationToLoad.Configuration.ImplantationName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization;
-            }
-            else if (patient.Sites.Count > 0)
-            {
-                visualizationToLoad.Configuration.ImplantationName = patient.Sites.First().Name;
-            }
+            visualizationToLoad.Configuration.MeshName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization;
+            visualizationToLoad.Configuration.MRIName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization;
+            visualizationToLoad.Configuration.ImplantationName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization;
             LoadScenes(new Data.Visualization.Visualization[] { visualizationToLoad });
         }
         /// <summary>
