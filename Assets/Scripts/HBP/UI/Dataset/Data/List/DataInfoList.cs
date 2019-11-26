@@ -44,7 +44,7 @@ namespace HBP.UI.Experience.Dataset
                     actionnableItem.Select(m_SelectedStateByObject[objectToUpdate]);
                     actionnableItem.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(objectToUpdate, selected));
                     actionnableItem.OnAction.RemoveAllListeners();
-                    actionnableItem.OnAction.AddListener((actionID) => m_OnAction.Invoke(objectToUpdate, actionID));
+                    actionnableItem.OnAction.AddListener((actionID) => OnAction.Invoke(objectToUpdate, actionID));
                     return true;
                 }
             }

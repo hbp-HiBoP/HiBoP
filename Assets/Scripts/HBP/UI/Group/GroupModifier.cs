@@ -24,7 +24,8 @@ namespace HBP.UI
                 base.Interactable = value;
 
                 m_NameInputField.interactable = value;
-                m_PatientListGestion.Interactable = false;
+                m_PatientListGestion.Interactable = value;
+                m_PatientListGestion.Modifiable = false;
             }
         }
         #endregion

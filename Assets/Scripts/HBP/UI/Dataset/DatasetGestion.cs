@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace HBP.UI.Experience.Dataset
 {
-    public class DatasetGestion : GestionWindow<HBP.Data.Experience.Dataset.Dataset>
+    public class DatasetGestion : GestionWindow<Data.Experience.Dataset.Dataset>
     {
         #region Properties
         [SerializeField] DatasetListGestion m_ListGestion;

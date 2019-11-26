@@ -12,7 +12,6 @@ namespace Tools.Unity.Lists
             set { m_Object = value; }
         }
 
-
         public virtual bool Interactable { get; set; }
         #endregion
     }

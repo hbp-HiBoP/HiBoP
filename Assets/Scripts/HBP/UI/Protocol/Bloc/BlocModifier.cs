@@ -3,18 +3,16 @@ using d = HBP.Data.Experience.Protocol;
 using Tools.Unity;
 using UnityEngine;
 using NewTheme.Components;
-using System.Linq;
 using Tools.CSharp;
 
 namespace HBP.UI.Experience.Protocol
 {
-	public class BlocModifier : ObjectModifier<d.Bloc> 
-	{
-		#region Properties
-		[SerializeField] InputField m_NameInputField, m_SortInputField, m_OrderInputField;
+    public class BlocModifier : ObjectModifier<d.Bloc>
+    {
+        #region Properties
+        [SerializeField] InputField m_NameInputField, m_SortInputField, m_OrderInputField;
         [SerializeField] SubBlocListGestion m_SubBlocListGestion;
         [SerializeField] ImageSelector m_ImageFileSelector;
-        [SerializeField] Button m_AddSubBloc, m_RemoveSubBloc;
 
         [SerializeField] ThemeElement m_SortStateThemeElement;
         [SerializeField] Tooltip m_SortErrorText;
@@ -37,10 +35,8 @@ namespace HBP.UI.Experience.Protocol
                 m_OrderInputField.interactable = value;
 
                 m_SubBlocListGestion.Interactable = value;
+                m_SubBlocListGestion.Modifiable = value;
                 m_ImageFileSelector.interactable = value;
-
-                m_AddSubBloc.interactable = value;
-                m_RemoveSubBloc.interactable = value;
             }
         }
         #endregion
@@ -71,7 +67,7 @@ namespace HBP.UI.Experience.Protocol
 
         protected void OnChangeName(string value)
         {
-            if(value != "")
+            if (value != "")
             {
                 ItemTemp.Name = value;
             }
@@ -93,7 +89,7 @@ namespace HBP.UI.Experience.Protocol
         }
         protected void OnChangeOrder(string value)
         {
-            if(int.TryParse(value, out int order))
+            if (int.TryParse(value, out int order))
             {
                 ItemTemp.Order = order;
             }

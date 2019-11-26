@@ -26,7 +26,6 @@ namespace Tools.Unity.Lists
         public GameObject ItemPrefab;
         public ScrollRect ScrollRect;
 
-
         protected int m_MaximumNumberOfItems;
         protected const int NUMBER_OF_ADDITIONAL_ITEMS = 1;
 
@@ -35,18 +34,22 @@ namespace Tools.Unity.Lists
         #endregion
 
         #region Private Methods
-        protected void OnValidate()
+        void OnValidate()
         {
-            Interactable = Interactable;
-            CalculateItemHeight();
+            Validate();
         }
         protected void CalculateItemHeight()
         {
-            if(ItemPrefab != null)
+            if (ItemPrefab != null)
             {
                 var layoutElement = ItemPrefab.GetComponent<LayoutElement>();
                 if (layoutElement != null) m_ItemHeight = layoutElement.preferredHeight;
             }
+        }
+        protected virtual void Validate()
+        {
+            Interactable = Interactable;
+            CalculateItemHeight();
         }
         #endregion
     }

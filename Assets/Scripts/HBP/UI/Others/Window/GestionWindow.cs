@@ -15,6 +15,7 @@ namespace HBP.UI
             {
                 base.Interactable = value;
                 ListGestion.Interactable = value;
+                ListGestion.Modifiable = value;
             }
         }
         #endregion

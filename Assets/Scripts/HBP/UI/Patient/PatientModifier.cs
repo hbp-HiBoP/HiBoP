@@ -32,9 +32,16 @@ namespace HBP.UI
                 m_DateInputField.interactable = value;
 
                 m_MeshListGestion.Interactable = value;
+                m_MeshListGestion.Modifiable = value;
+
                 m_MRIListGestion.Interactable = value;
+                m_MRIListGestion.Modifiable = value;
+
                 m_SiteListGestion.Interactable = value;
+                m_SiteListGestion.Modifiable = value;
+
                 m_TagValueListGestion.Interactable = value;
+                m_TagValueListGestion.Modifiable = value;
             }
         }
         #endregion

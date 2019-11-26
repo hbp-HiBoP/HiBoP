@@ -31,6 +31,7 @@ namespace HBP.UI.Experience.Dataset
                 m_ProtocolDropdown.interactable = value;
 
                 m_DataInfoListGestion.Interactable = value;
+                m_DataInfoListGestion.Modifiable = value;
             }
         }
         #endregion

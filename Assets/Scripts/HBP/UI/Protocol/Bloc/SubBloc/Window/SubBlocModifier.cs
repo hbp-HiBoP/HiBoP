@@ -35,9 +35,15 @@ namespace HBP.UI.Experience.Protocol
                 m_TypeDropdown.interactable = value && ItemTemp != null && ItemTemp.Type == Data.Enums.MainSecondaryEnum.Secondary;
                 m_WindowSlider.interactable = value;
                 m_BaselineSlider.interactable = value;
+
                 m_EventListGestion.Interactable = value;
+                m_EventListGestion.Modifiable = value;
+
                 m_IconListGestion.Interactable = value;
+                m_IconListGestion.Modifiable = value;
+
                 m_TreatmentListGestion.Interactable = value;
+                m_TreatmentListGestion.Modifiable = value;
             }
         }
         #endregion

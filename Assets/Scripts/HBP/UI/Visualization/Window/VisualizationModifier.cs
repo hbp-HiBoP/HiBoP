@@ -11,7 +11,7 @@ namespace HBP.UI
         #region Properties
         [SerializeField] InputField m_NameInputField;
 
-        [SerializeField] PatientList m_PatientList;
+        [SerializeField] PatientListGestion m_PatientListGestion;
         [SerializeField] Button m_AddPatientButton, m_RemovePatientButton, m_AddGroupButton, m_RemoveGroupButton;
 
         [SerializeField] TabManager m_TabGestion;
@@ -30,11 +30,11 @@ namespace HBP.UI
 
                 m_NameInputField.interactable = value;
 
-                m_AddPatientButton.interactable = value;
-                m_RemovePatientButton.interactable = value;
                 m_AddGroupButton.interactable = value;
                 m_RemoveGroupButton.interactable = value;
-                m_PatientList.Interactable = false;
+
+                m_PatientListGestion.Interactable = value;
+                m_PatientListGestion.Modifiable = false;
 
                 m_ColumnModifier.Interactable = value;
             }
@@ -61,12 +61,8 @@ namespace HBP.UI
         public void AddPatients()
         {
             ObjectSelector<Data.Patient> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Patients.Where(p => !itemTemp.Patients.Contains(p)));
-            selector.OnOk.AddListener(() => m_PatientList.Add(selector.ObjectsSelected));
+            selector.OnOk.AddListener(() => m_PatientListGestion.List.Add(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
-        }
-        public void RemovePatients()
-        {
-            m_PatientList.Remove(m_PatientList.ObjectsSelected);
         }
         public void AddGroups()
         {
@@ -83,9 +79,9 @@ namespace HBP.UI
 
         public void AddColumn()
         {
-            Column column = new IEEGColumn("Column n°"+(ItemTemp.Columns.Count + 1), new BaseConfiguration(), ItemTemp.Patients);
+            Column column = new IEEGColumn("Column n°" + (ItemTemp.Columns.Count + 1), new BaseConfiguration(), ItemTemp.Patients);
             ItemTemp.Columns.Add(column);
-            m_TabGestion.AddTab(column.Name, -1 , true);
+            m_TabGestion.AddTab(column.Name, -1, true);
             m_ColumnModifier.Object = column;
         }
         public void RemoveColumn()
@@ -105,8 +101,8 @@ namespace HBP.UI
             m_NameInputField.onEndEdit.AddListener((value) => ItemTemp.Name = value);
 
             // Patients.
-            m_PatientList.OnAddObject.AddListener(OnAddPatient);
-            m_PatientList.OnRemoveObject.AddListener(OnRemovePatient);
+            m_PatientListGestion.List.OnAddObject.AddListener(OnAddPatient);
+            m_PatientListGestion.List.OnRemoveObject.AddListener(OnRemovePatient);
 
             // Tabs.
             m_TabGestion.OnSwapColumns.AddListener((column1, column2) => ItemTemp.SwapColumns(column1, column2));
@@ -120,7 +116,7 @@ namespace HBP.UI
         {
             m_NameInputField.text = ItemTemp.Name;
 
-            m_PatientList.Set(itemTemp.Patients);
+            m_PatientListGestion.List.Set(itemTemp.Patients);
 
             if (objectToDisplay.Columns.Count > 0)
             {
@@ -133,11 +129,11 @@ namespace HBP.UI
         }
         protected void AddGroups(IEnumerable<Data.Group> groups)
         {
-            m_PatientList.Add(groups.SelectMany(g => g.Patients).Distinct().Where(p => !m_PatientList.Objects.Contains(p)));
+            m_PatientListGestion.List.Add(groups.SelectMany(g => g.Patients).Distinct());
         }
         protected void RemoveGroups(IEnumerable<Data.Group> groups)
         {
-            m_PatientList.Remove(groups.SelectMany(g => g.Patients).Distinct().Where(p => m_PatientList.Objects.Contains(p)));
+            m_PatientListGestion.List.Remove(groups.SelectMany(g => g.Patients).Distinct());
         }
         protected void SelectColumn()
         {
@@ -161,7 +157,7 @@ namespace HBP.UI
         }
         protected void OnChangeColumnHandler(Column column)
         {
-            if(ItemTemp != null)
+            if (ItemTemp != null)
             {
                 ItemTemp.Columns[m_TabGestion.ActiveTabIndex] = column;
             }

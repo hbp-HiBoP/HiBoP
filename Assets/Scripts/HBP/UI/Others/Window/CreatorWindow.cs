@@ -67,6 +67,7 @@ namespace HBP.UI
             }
         }
 
+        List<CreationType> m_EnabledTypes = new List<CreationType>();
         public CreationType Type { private set; get; }
         [SerializeField] Dropdown m_TypeDropdown;
 
@@ -93,11 +94,8 @@ namespace HBP.UI
         }
         protected virtual void Set()
         {
-            List<Dropdown.OptionData> options = Enum.GetNames(typeof(CreationType)).Select((name) => new Dropdown.OptionData(StringExtension.CamelCaseToWords(name))).ToList();
-            if (!IsCreatableFromFile) options.RemoveAll(o => o.text == "From file");
-            if (!IsCreatableFromDatabase) options.RemoveAll(o => o.text == "From database");
-            if (!IsCreatableFromExistingObjects) options.RemoveAll(o => o.text == "From existing object");
-            if (!IsCreatableFromScratch) options.RemoveAll(o => o.text == "From scratch");
+            SetEnabledTypes();
+            List<Dropdown.OptionData> options = m_EnabledTypes.Select(type => new Dropdown.OptionData(StringExtension.CamelCaseToWords(type.ToString()))).ToList();
             if (options.Count == 0)
             {
                 options.Add(new Dropdown.OptionData("None"));
@@ -109,9 +107,17 @@ namespace HBP.UI
                 Interactable = Interactable;
             }
             m_TypeDropdown.options = options;
-            m_TypeDropdown.value = (int)Type;
+            m_TypeDropdown.value = m_EnabledTypes.IndexOf(Type);
             m_TypeDropdown.RefreshShownValue();
-            m_TypeDropdown.onValueChanged.AddListener((value) => Type = (CreationType)value);
+            m_TypeDropdown.onValueChanged.AddListener((value) => Type = m_EnabledTypes[value]);
+        }
+        protected virtual void SetEnabledTypes()
+        {
+            m_EnabledTypes = new List<CreationType>();
+            if (IsCreatableFromScratch) m_EnabledTypes.Add(CreationType.FromScratch);
+            if (IsCreatableFromExistingObjects) m_EnabledTypes.Add(CreationType.FromExistingObject);
+            if (IsCreatableFromFile) m_EnabledTypes.Add(CreationType.FromFile);
+            if (IsCreatableFromDatabase) m_EnabledTypes.Add(CreationType.FromDatabase);
         }
         #endregion
     }

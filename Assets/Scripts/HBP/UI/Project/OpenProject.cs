@@ -25,7 +25,7 @@ namespace HBP.UI
 
                 m_LocationFolderSelector.interactable = value;
                 m_ProjectList.Interactable = value;
-                m_OKButton.interactable = value && m_ProjectList.ObjectsSelected.Length == 1;
+                SetLoadButton();
             }
         }
         #endregion
@@ -65,8 +65,8 @@ namespace HBP.UI
         protected override void Initialize()
         {
             // Initialize project list.
-            m_ProjectList.OnSelect.AddListener((project) => m_OKButton.interactable = m_ProjectList.ObjectsSelected.Length > 0);
-            m_ProjectList.OnDeselect.AddListener((project) => m_OKButton.interactable = m_ProjectList.ObjectsSelected.Length > 0);
+            m_ProjectList.OnSelect.AddListener((project) => SetLoadButton());
+            m_ProjectList.OnDeselect.AddListener((project) => SetLoadButton());
             m_ProjectList.OnAction.AddListener((info, i) => Load(info));
 
             // Initialise location folder selector.
@@ -102,6 +102,10 @@ namespace HBP.UI
             }
             yield return Ninja.JumpToUnity;
             m_ProjectList.SortByName(Tools.Unity.Lists.BaseList.Sorting.Descending);
+        }
+        void SetLoadButton()
+        {
+            m_OKButton.interactable = m_ProjectList.ObjectsSelected.Length == 1 && m_Interactable;
         }
         #endregion
     }

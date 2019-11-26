@@ -19,7 +19,6 @@ namespace Tools.Unity.Components
             set
             {
                 m_Interactable = value;
-                List.Interactable = value;
                 m_CreateButton.interactable = value;
                 m_RemoveButton.interactable = value;
             }
@@ -64,6 +63,11 @@ namespace Tools.Unity.Components
         #endregion
 
         #region Protected Methods
+        private void OnValidate()
+        {
+            Interactable = Interactable;
+            Modifiable = Modifiable;
+        }
         void Awake()
         {
             Initialize();

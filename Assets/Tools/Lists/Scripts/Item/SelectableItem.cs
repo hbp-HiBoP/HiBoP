@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace Tools.Unity.Lists
@@ -9,11 +10,9 @@ namespace Tools.Unity.Lists
         #region Properties
         Toggle m_Toggle;
         bool m_isLock;
-        protected Toggle.ToggleEvent m_OnChangeSelected = new Toggle.ToggleEvent();
-        public virtual Toggle.ToggleEvent OnChangeSelected
-        {
-            get { return m_OnChangeSelected; }
-        }
+
+        public virtual GenericEvent<bool> OnChangeSelected { get; } = new GenericEvent<bool>();
+
         public virtual bool Selected
         {
             get { return m_Toggle.isOn; }
@@ -24,7 +23,6 @@ namespace Tools.Unity.Lists
             set { m_Toggle.interactable = value; }
         }
         #endregion
-
 
         #region Public Methods
         public void Select(bool selected, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
@@ -46,13 +44,11 @@ namespace Tools.Unity.Lists
         private void Awake()
         {
             m_Toggle = GetComponent<Toggle>();
-            if (m_Toggle != null)
-            {
-                m_Toggle.onValueChanged.AddListener((value) =>
-                {
-                    if (!m_isLock) m_OnChangeSelected.Invoke(value);
-                });  
-            }
+            if (m_Toggle != null) m_Toggle.onValueChanged.AddListener(OnSelectionValueChanged);
+        }
+        void OnSelectionValueChanged(bool value)
+        {
+            if (!m_isLock) OnChangeSelected.Invoke(value);
         }
         #endregion
     }
