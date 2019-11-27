@@ -164,12 +164,12 @@ namespace HBP.UI
         }
         protected void OnRemovePatient(Data.Patient patient)
         {
-            itemTemp.RemovePatient(patient);
+            itemTemp.Patients.Remove(patient);
             SelectColumn();
         }
         protected void OnAddPatient(Data.Patient patient)
         {
-            itemTemp.AddPatient(patient);
+            itemTemp.Patients.Add(patient);
             SelectColumn();
         }
         #endregion

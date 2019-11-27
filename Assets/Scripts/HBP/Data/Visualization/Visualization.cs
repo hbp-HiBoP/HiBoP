@@ -1,5 +1,4 @@
-﻿using UnityEngine.Events;
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.ObjectModel;
@@ -41,14 +40,7 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Patients of the Visualization.
         /// </summary>
-        public ReadOnlyCollection<Patient> Patients
-        {
-            get
-            {
-                IEnumerable<Patient> patients = from patient in ApplicationState.ProjectLoaded.Patients where m_PatientsID.Contains(patient.ID) select patient;
-                return new ReadOnlyCollection<Patient>(patients.ToArray());
-            }
-        }
+        public List<Patient> Patients { get; set; }
 
         /// <summary>
         /// Configuration of the visualization.
@@ -105,8 +97,8 @@ namespace HBP.Data.Visualization
         public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, VisualizationConfiguration configuration, string ID) : base(ID)
         {
             Name = name;
+            Patients = patients.ToList();
             Columns = columns.ToList();
-            SetPatients(patients);
             Configuration = configuration;
         }
         /// <summary>
@@ -118,8 +110,8 @@ namespace HBP.Data.Visualization
         public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, VisualizationConfiguration configuration) : base()
         {
             Name = name;
+            Patients = patients.ToList();
             Columns = columns.ToList();
-            SetPatients(patients);
             Configuration = configuration;
         }
         /// <summary>
@@ -145,60 +137,6 @@ namespace HBP.Data.Visualization
         public Visualization() : this("Unknown", new Patient[0], new Column[0])
         {
 
-        }
-        #endregion
-
-        #region Getter/Setter
-        /// <summary>
-        /// Add a patient to the visualization.
-        /// </summary>
-        /// <param name="patient">Patient to add.</param>
-        public void AddPatient(Patient patient)
-        {
-            if (!m_PatientsID.Contains(patient.ID)) m_PatientsID.Add(patient.ID);
-        }
-        /// <summary>
-        /// Add patients to the visualization.
-        /// </summary>
-        /// <param name="patients">Patients to add.</param>
-        public void AddPatient(IEnumerable<Patient> patients)
-        {
-            foreach (Patient patient in patients)
-            {
-                AddPatient(patient);
-            }
-        }
-        /// <summary>
-        /// Remove a patient to the visualization.
-        /// </summary>
-        /// <param name="patient">Patient to remove.</param>
-        public void RemovePatient(Patient patient)
-        {
-            m_PatientsID.Remove(patient.ID);
-        }
-        /// <summary>
-        /// Remove patients to the visualization.
-        /// </summary>
-        /// <param name="patients">Patients to remove.</param>
-        public void RemovePatient(IEnumerable<Patient> patients)
-        {
-            foreach (Patient patient in patients) RemovePatient(patient);
-        }
-        /// <summary>
-        /// Set patients in the visualization.
-        /// </summary>
-        /// <param name="patients">Patients to set in the visualization.</param>
-        public void SetPatients(IEnumerable<Patient> patients)
-        {
-            m_PatientsID = new List<string>();
-            AddPatient(from patient in patients where !m_PatientsID.Contains(patient.ID) select patient);
-        }
-        /// <summary>
-        /// Remove all patients in the visualization.
-        /// </summary>
-        public void RemoveAllPatients()
-        {
-            RemovePatient(Patients);
         }
         #endregion
 
@@ -358,7 +296,7 @@ namespace HBP.Data.Visualization
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new Visualization(Name, Patients, Columns.DeepClone(), Configuration.Clone() as VisualizationConfiguration, ID);
+            return new Visualization(Name, Patients.ToList(), Columns.DeepClone(), Configuration.Clone() as VisualizationConfiguration, ID);
         }
         /// <summary>
         /// Copy an instance in this instance.
@@ -370,10 +308,10 @@ namespace HBP.Data.Visualization
             if(copy is Visualization visualization)
             {
                 Name = visualization.Name;
+                Patients = visualization.Patients;
                 Columns = visualization.Columns;
                 ID = visualization.ID;
                 Configuration = visualization.Configuration;
-                SetPatients(visualization.Patients);
             }
         }
         #endregion
@@ -608,6 +546,19 @@ namespace HBP.Data.Visualization
         string ILoadable<Visualization>.GetExtension()
         {
             return GetExtension();
+        }
+        #endregion
+
+        #region Serialization
+        protected override void OnSerializing()
+        {
+            base.OnSerializing();
+            m_PatientsID = Patients.Select(p => p.ID).ToList();
+        }
+        protected override void OnDeserialized()
+        {
+            base.OnDeserialized();
+            Patients = m_PatientsID.Select(id => ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == id)).ToList();
         }
         #endregion
     }

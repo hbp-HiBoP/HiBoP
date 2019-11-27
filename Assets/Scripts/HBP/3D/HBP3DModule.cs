@@ -250,8 +250,7 @@ namespace HBP.Module3D
             scene.SaveConfiguration();
             Data.Visualization.Visualization visualizationToLoad = visualization.Clone() as Data.Visualization.Visualization;
             visualizationToLoad.Name = patient.Name;
-            visualizationToLoad.RemoveAllPatients();
-            visualizationToLoad.AddPatient(patient);
+            visualizationToLoad.Patients = new List<Data.Patient>() { patient };
             visualizationToLoad.Configuration.MeshName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization;
             visualizationToLoad.Configuration.MRIName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization;
             visualizationToLoad.Configuration.ImplantationName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization;

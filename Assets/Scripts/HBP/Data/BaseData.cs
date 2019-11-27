@@ -79,5 +79,44 @@ namespace HBP.Data
             }
         }
         #endregion
+
+        #region Serialization
+        [OnSerializing()]
+        internal void OnSerializingMethod(StreamingContext context)
+        {
+            OnSerializing();
+        }
+        [OnSerialized()]
+        internal void OnSerializedMethod(StreamingContext context)
+        {
+            OnSerialized();
+        }
+        [OnDeserializing()]
+        internal void OnDeserializingMethod(StreamingContext context)
+        {
+            OnDeserializing();
+        }
+        [OnDeserialized()]
+        internal void OnDeserializedMethod(StreamingContext context)
+        {
+            OnDeserialized();
+        }
+        protected virtual void OnSerializing()
+        {
+
+        }
+        protected virtual void OnSerialized()
+        {
+
+        }
+        protected virtual void OnDeserializing()
+        {
+
+        }
+        protected virtual void OnDeserialized()
+        {
+
+        }
+        #endregion
     }
 }

@@ -68,11 +68,11 @@ namespace HBP.UI
         }
         protected void OnAddPatient(Data.Patient patient)
         {
-            ItemTemp.AddPatient(patient);
+            ItemTemp.Patients.Add(patient);
         }
         protected void OnRemovePatient(Data.Patient patient)
         {
-            ItemTemp.RemovePatient(patient);
+            ItemTemp.Patients.Remove(patient);
         }
         #endregion
     }

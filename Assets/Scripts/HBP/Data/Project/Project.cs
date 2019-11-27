@@ -150,7 +150,7 @@ namespace HBP.Data
         /// <param name="patients"></param>
         public void SetPatients(IEnumerable<Patient> patients)
         {
-            this.m_Patients = new List<Patient>();
+            m_Patients = new List<Patient>();
             AddPatient(patients);
             foreach (Dataset dataset in m_Datasets)
             {
@@ -158,11 +158,11 @@ namespace HBP.Data
             }
             foreach (Visualization.Visualization visualization in m_Visualizations)
             {
-                visualization.RemovePatient(from patient in visualization.Patients where !m_Patients.Contains(patient) select patient);
+                visualization.Patients.RemoveAll(patient => !m_Patients.Contains(patient));
             }
             foreach (Group _group in m_Groups)
             {
-                _group.RemovePatient((from patient in _group.Patients where !m_Patients.Contains(patient) select patient).ToArray());
+                _group.Patients.RemoveAll(patient => !m_Patients.Contains(patient));
             }
         }
         public void AddPatient(Patient patient)
@@ -180,7 +180,7 @@ namespace HBP.Data
         {
             foreach (Group group in m_Groups)
             {
-                group.RemovePatient(patient);
+                group.Patients.Remove(patient);
             }
             foreach (Dataset dataset in m_Datasets)
             {
@@ -188,7 +188,7 @@ namespace HBP.Data
             }
             foreach (Visualization.Visualization visualization in m_Visualizations)
             {
-                visualization.RemovePatient(patient);
+                visualization.Patients.Remove(patient);
             }
             m_Patients.Remove(patient);
         }

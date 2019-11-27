@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Tools.Unity;
 using System.IO;
-using Tools.CSharp;
-using System.Collections.ObjectModel;
 
 namespace HBP.Data
 {
@@ -43,14 +41,11 @@ namespace HBP.Data
         /// <summary>
         /// IDs of the patients of the group.
         /// </summary>
-        [DataMember(Name = "Patients",Order = 3)] List<string> m_Patients = new List<string>();
+        [DataMember(Name = "Patients",Order = 3)] List<string> m_PatientsID = new List<string>();
         /// <summary>
         /// Patients of the group.
         /// </summary>
-        [IgnoreDataMember] public ReadOnlyCollection<Patient> Patients
-        {
-            get { return new ReadOnlyCollection<Patient>((from patient in ApplicationState.ProjectLoaded.Patients where m_Patients.Contains(patient.ID) select patient).ToArray()); }
-        }
+        public List<Patient> Patients { get; set; }
         #endregion
 
         #region Constructors
@@ -63,7 +58,7 @@ namespace HBP.Data
         public Group(string name, IEnumerable<Patient> patients, string id) : base (id)
         {
             Name = name;
-            AddPatient(patients);
+            Patients = patients.ToList();
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="HBP.Data.Group">Group</see> class.
@@ -73,7 +68,7 @@ namespace HBP.Data
         public Group(string name, IEnumerable<Patient> patients): base()
         {
             Name = name;
-            AddPatient(patients);
+            Patients = patients.ToList();
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="HBP.Data.Group">Group</see> class.
@@ -81,67 +76,6 @@ namespace HBP.Data
         public Group() : this("New Group",new Patient[0])
 		{
 		}
-        #endregion
-
-        #region Public Methods
-        /// <summary>
-        /// Set patients of the group.
-        /// </summary>
-        /// <param name="patients"></param>
-        public void SetPatients(IEnumerable<Patient> patients)
-        {
-            ClearPatients();
-            AddPatient(patients);
-        }
-        /// <summary>
-        /// Clears patients of the group.
-        /// </summary>
-        public void ClearPatients()
-        {
-            m_Patients.Clear();
-        }
-        /// <summary>
-        /// Adds a patient to the group.
-        /// </summary>
-        /// <param name="patient">Patient to add.</param>
-        public bool AddPatient(Patient patient)
-        {
-            return m_Patients.AddIfAbsent(patient.ID);
-        }
-        /// <summary>
-        /// Adds patients to the group.
-        /// </summary>
-        /// <param name="patient">Patients to add.</param>
-        public bool AddPatient(IEnumerable<Patient> patients)
-        {
-            bool result = true;
-            foreach (Patient patient in patients)
-            {
-                result &= AddPatient(patient);
-            }
-            return result;
-        }
-        /// <summary>
-        /// Removes patient to the group.
-        /// </summary>
-        /// <param name="patient">Patient to remove.</param>
-        public bool RemovePatient(Patient patient)
-        {
-            return m_Patients.Remove(patient.ID);
-        }
-        /// <summary>
-        /// Removes patients to the group.
-        /// </summary>
-        /// <param name="patient">Patients to remove.</param>
-        public bool RemovePatient(IEnumerable<Patient> patients)
-        {
-            bool result = true;
-            foreach (Patient patient in patients)
-            {
-                result &= RemovePatient(patient);
-            }
-            return result;
-        }
         #endregion
 
         #region Public Static Methods
@@ -194,7 +128,7 @@ namespace HBP.Data
             if(obj is Group group)
             {
                 Name = group.Name;
-                AddPatient(group.Patients);
+                Patients = group.Patients.ToList();
             }
         }
         #endregion
@@ -217,6 +151,19 @@ namespace HBP.Data
         bool ILoadable<Group>.LoadFromFile(string path, out Group result)
         {
             return LoadFromFile(path, out result);
+        }
+        #endregion
+
+        #region Serialization
+        protected override void OnSerializing()
+        {
+            base.OnSerializing();
+            m_PatientsID = Patients.Select(p => p.ID).ToList();
+        }
+        protected override void OnDeserialized()
+        {
+            base.OnDeserialized();
+            Patients = m_PatientsID.Select(id => ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == id)).ToList();
         }
         #endregion
     }

@@ -33,6 +33,7 @@ namespace HBP.Data.Experience.Dataset
         [DataMember] public string Name { get; set; }
 
         [DataMember(Name = "Protocol", Order = 3)] string m_ProtocolID;
+        Protocol.Protocol m_Protocol;
         /// <summary>
         /// Protocol used during the experiment.
         /// </summary>
@@ -40,11 +41,11 @@ namespace HBP.Data.Experience.Dataset
         {
             get
             {
-                return ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.ID == m_ProtocolID);
+                return m_Protocol;
             }
             set
             {
-                m_ProtocolID = value.ID;
+                m_Protocol = value;
                 UpdateDataStates();
             }
         }
@@ -210,10 +211,17 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Serialization
-        [OnDeserialized()]
-        void SetListeners(StreamingContext context)
+        protected override void OnSerializing()
         {
-            if (Protocol == null) Protocol = ApplicationState.ProjectLoaded.Protocols.First();
+            base.OnSerializing();
+            m_ProtocolID = m_Protocol?.ID;
+        }
+        protected override void OnDeserialized()
+        {
+            base.OnDeserialized();
+            var protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.ID == m_ProtocolID);
+            if (protocol == null) protocol = ApplicationState.ProjectLoaded.Protocols.First();
+            Protocol = protocol;
             foreach (var data in m_Data)
             {
                 UnityAction action = new UnityAction(() => data.GetErrors(Protocol));
