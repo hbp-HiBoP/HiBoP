@@ -149,7 +149,7 @@ namespace HBP.UI.Informations
                     if (column.SelectedROI != null)
                     {
                         ROIStruct ROI = new ROIStruct(column.SelectedROI.Name, column.Sites.Where(s => !s.State.IsOutOfROI && !s.State.IsMasked).Select(site => new ChannelStruct(site)));
-                        data.Blocs.First(b => b == bloc).AddROI(ROI);
+                        data.Blocs.First(b => b.Bloc == bloc.Bloc).AddROI(ROI);
                     }
                 }
             }
