@@ -180,7 +180,7 @@ namespace HBP.UI.Informations
             }
             m_DataStructs = dataStructs.ToArray();
         }
-        void GenerateChannelStructs(IEnumerable<HBP.Module3D.Site> sites)
+        void GenerateChannelStructs(IEnumerable<Site> sites)
         {
             m_ChannelStructs = sites.Where(s => !s.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray(); // FIXME: it is better to show a "No data for site X" message instead of filtering by IsMasked
         }
@@ -191,10 +191,24 @@ namespace HBP.UI.Informations
                 ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
             }
         }
+        void DisplayTrialMatrices()
+        {
+            if (m_ChannelStructs.Length != 0 && m_DataStructs.Length != 0)
+            {
+                ChannelInformations.DisplayTrialMatrices(m_ChannelStructs, m_DataStructs);
+            }
+        }
+        void DisplayGraphs()
+        {
+            if (m_ChannelStructs.Length != 0 && m_DataStructs.Length != 0)
+            {
+                ChannelInformations.DisplayGraphs(m_ChannelStructs, m_DataStructs);
+            }
+        }
         #endregion
 
         #region Handlers
-        void OnSiteInformationRequestHandler(IEnumerable<HBP.Module3D.Site> sites)
+        void OnSiteInformationRequestHandler(IEnumerable<Site> sites)
         {
             GenerateChannelStructs(sites);
             GenerateDataStructs();
@@ -208,7 +222,7 @@ namespace HBP.UI.Informations
         void OnChangeROIHandler()
         {
             GenerateDataStructs();
-            Display();
+            DisplayGraphs();
         }
         void OnChangeColorMapHandler()
         {
