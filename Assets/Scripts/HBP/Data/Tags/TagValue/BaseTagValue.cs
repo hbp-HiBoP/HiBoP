@@ -73,7 +73,7 @@ namespace HBP.Data
         {
             base.OnDeserialized();
             Value = Value;
-            ApplicationState.ProjectLoaded.Preferences.Tags.FirstOrDefault(t => t.ID == m_TagID);
+            Tag = ApplicationState.ProjectLoaded.Preferences.Tags.FirstOrDefault(t => t.ID == m_TagID);
         }
         protected override void OnSerializing()
         {

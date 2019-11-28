@@ -590,7 +590,7 @@ namespace HBP.Data
             yield return Ninja.JumpBack;
 
             // Test patient TagValues;
-            int length = m_Patients.Count();
+            int length = m_Patients.Count;
             for (int p = 0; p < length; p++)
             {
                 var patient = m_Patients[p];
