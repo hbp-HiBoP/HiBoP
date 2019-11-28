@@ -41,8 +41,9 @@ namespace Tools.Unity.Lists
         #region Public Methods
         public virtual void Set(IEnumerable<T> objects)
         {
+            var obj = objects.ToArray();
             Remove(m_Objects.ToArray());
-            Add(objects);
+            Add(obj);
         }
         public virtual bool Add(T obj)
         {
@@ -60,7 +61,7 @@ namespace Tools.Unity.Lists
         public virtual bool Add(IEnumerable<T> objectsToAdd)
         {
             bool result = true;
-            foreach (T obj in objectsToAdd) result &= Add(obj);
+            foreach (T obj in objectsToAdd.ToArray()) result &= Add(obj);
             return result;
         }
         public virtual bool Remove(T obj)
@@ -84,7 +85,7 @@ namespace Tools.Unity.Lists
         public virtual bool Remove(IEnumerable<T> objectsToRemove)
         {
             bool result = true;
-            foreach (T obj in objectsToRemove) result &= Remove(obj);
+            foreach (T obj in objectsToRemove.ToArray()) result &= Remove(obj);
             return result;
         }
         public virtual bool UpdateObject(T obj)

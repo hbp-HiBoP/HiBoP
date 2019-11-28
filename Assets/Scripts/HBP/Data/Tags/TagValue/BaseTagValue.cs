@@ -7,7 +7,7 @@ namespace HBP.Data
     public class BaseTagValue : BaseData
     {
         #region Properties
-        [DataMember(Name = "BaseTag")] protected string m_TagID;
+        [DataMember(Name = "Tag")] protected string m_TagID;
         public BaseTag Tag { get; set; }
 
         [DataMember(Name = "Value")] protected object m_Value;

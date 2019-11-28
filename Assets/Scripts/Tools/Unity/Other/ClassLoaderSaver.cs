@@ -84,7 +84,7 @@ namespace Tools.Unity
                 if(!overwrite) GenerateUniqueSavePath(ref path);
                 using (StreamWriter streamWriter = new StreamWriter(path))
                 {
-                    string json = JsonConvert.SerializeObject(instance, Formatting.Indented, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All, TypeNameAssemblyFormat = System.Runtime.Serialization.Formatters.FormatterAssemblyStyle.Simple });
+                    string json = JsonConvert.SerializeObject(instance, Formatting.Indented, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, TypeNameAssemblyFormat = System.Runtime.Serialization.Formatters.FormatterAssemblyStyle.Simple });
                     streamWriter.Write(json);
                     streamWriter.Close();
                 }

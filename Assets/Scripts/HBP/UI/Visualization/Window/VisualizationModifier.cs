@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using System.Linq;
 using System.Collections.Generic;
 using HBP.Data.Visualization;
+using Tools.CSharp;
 
 namespace HBP.UI
 {
@@ -17,6 +18,7 @@ namespace HBP.UI
         [SerializeField] TabManager m_TabGestion;
         [SerializeField] ColumnModifier m_ColumnModifier;
 
+        bool m_NeedToUpdate = false;
         public override bool Interactable
         {
             get
@@ -100,7 +102,7 @@ namespace HBP.UI
             // General.
             m_NameInputField.onEndEdit.AddListener((value) => ItemTemp.Name = value);
 
-            // Patients.
+            // Patient.
             m_PatientListGestion.List.OnAddObject.AddListener(OnAddPatient);
             m_PatientListGestion.List.OnRemoveObject.AddListener(OnRemovePatient);
 
@@ -117,6 +119,7 @@ namespace HBP.UI
             m_NameInputField.text = ItemTemp.Name;
 
             m_PatientListGestion.List.Set(itemTemp.Patients);
+
 
             if (objectToDisplay.Columns.Count > 0)
             {
@@ -165,12 +168,20 @@ namespace HBP.UI
         protected void OnRemovePatient(Data.Patient patient)
         {
             itemTemp.Patients.Remove(patient);
-            SelectColumn();
+            m_NeedToUpdate = true;
         }
         protected void OnAddPatient(Data.Patient patient)
         {
-            itemTemp.Patients.Add(patient);
-            SelectColumn();
+            itemTemp.Patients.AddIfAbsent(patient);
+            m_NeedToUpdate = true;
+        }
+        private void Update()
+        {
+            if(m_NeedToUpdate)
+            {
+                SelectColumn();
+                m_NeedToUpdate = false;
+            }
         }
         #endregion
     }

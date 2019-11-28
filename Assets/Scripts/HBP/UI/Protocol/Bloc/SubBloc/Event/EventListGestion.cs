@@ -20,6 +20,14 @@ namespace HBP.UI.Experience.Protocol
         {
             base.Initialize();
             List.OnRemoveObject.AddListener(OnRemoveObject);
+            List.OnAddObject.AddListener(OnAddObject);
+            if (List.Objects.Count == 0) m_ObjectCreator.Type = Data.Enums.MainSecondaryEnum.Main;
+            else m_ObjectCreator.Type = Data.Enums.MainSecondaryEnum.Secondary;
+        }
+        protected void OnAddObject(d.Event obj)
+        {
+            if (List.Objects.Count == 0) m_ObjectCreator.Type = Data.Enums.MainSecondaryEnum.Main;
+            else m_ObjectCreator.Type = Data.Enums.MainSecondaryEnum.Secondary;
         }
         protected void OnRemoveObject(d.Event obj)
         {
@@ -29,6 +37,8 @@ namespace HBP.UI.Experience.Protocol
                 if (firstEvent != null) firstEvent.Type = Data.Enums.MainSecondaryEnum.Main;
                 List.UpdateObject(firstEvent);
             }
+            if (List.Objects.Count == 0) m_ObjectCreator.Type = Data.Enums.MainSecondaryEnum.Main;
+            else m_ObjectCreator.Type = Data.Enums.MainSecondaryEnum.Secondary;
         }
         protected override void OnSaveModifier(d.Event obj)
         {
@@ -40,6 +50,7 @@ namespace HBP.UI.Experience.Protocol
                 }
             }
             base.OnSaveModifier(obj);
+            List.Refresh();
         }
         #endregion
     }
