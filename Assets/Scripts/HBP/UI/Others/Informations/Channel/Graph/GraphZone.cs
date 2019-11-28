@@ -347,28 +347,33 @@ namespace HBP.UI.Informations
                 }
             }
 
-            Dictionary<ChannelStruct, BlocChannelStatistics> StatsByChannel = new Dictionary<ChannelStruct, BlocChannelStatistics>(ROI.Channels.Count);
-            foreach (var channel in ROI.Channels)
-            {
-                StatsByChannel.Add(channel, DataManager.GetStatistics(DataInfoByPatient[channel.Patient], bloc, channel.Channel));
-            }
-
             Color color = m_ColorsByROI[new Tuple<ROIStruct, DataStruct, Data.Experience.Protocol.Bloc>(ROI, data, bloc)];
             if (ROI.Channels.Count > 1)
             {
-
-                float[] values = new float[StatsByChannel[ROI.Channels.First()].Trial.ChannelSubTrialBySubBloc[subBloc].Values.Length];
-                float[] standardDeviations = new float[values.Length];
-                for (int i = 0; i < values.Length; i++)
+                ChannelStruct firstChannel = ROI.Channels[0];
+                int length = DataManager.GetStatistics(DataInfoByPatient[firstChannel.Patient], bloc, firstChannel.Channel).Trial.ChannelSubTrialBySubBloc[subBloc].Values.Length;
+                float[] values = new float[length];
+                float[] standardDeviations = new float[length];
+                int channelCount = ROI.Channels.Count;
+                float[][] sum = new float[length][];
+                for (int i = 0; i < length; i++)
                 {
-                    List<float> sum = new List<float>();
-                    foreach (var channel in ROI.Channels)
-                    {
-                        sum.Add(StatsByChannel[channel].Trial.ChannelSubTrialBySubBloc[subBloc].Values[i]);
+                    sum[i] = new float[channelCount];
+                }
 
+                for (int c = 0; c < channelCount; ++c)
+                {
+                    ChannelStruct channel = ROI.Channels[c];
+                    BlocChannelStatistics stats = DataManager.GetStatistics(DataInfoByPatient[channel.Patient], bloc, channel.Channel);
+                    for (int i = 0; i < length; i++)
+                    {
+                        sum[i][c] = stats.Trial.ChannelSubTrialBySubBloc[subBloc].Values[i];
                     }
-                    values[i] = sum.ToArray().Mean();
-                    standardDeviations[i] = sum.ToArray().SEM();
+                }
+                for (int i = 0; i < length; i++)
+                {
+                    values[i] = sum[i].Mean();
+                    standardDeviations[i] = sum[i].SEM();
                 }
 
                 // Generate points.
@@ -385,7 +390,8 @@ namespace HBP.UI.Informations
             }
             else if (ROI.Channels.Count == 1)
             {
-                ChannelSubTrialStat stat = StatsByChannel[ROI.Channels.First()].Trial.ChannelSubTrialBySubBloc[subBloc];
+                ChannelStruct channel = ROI.Channels[0];
+                ChannelSubTrialStat stat = DataManager.GetStatistics(DataInfoByPatient[channel.Patient], bloc, channel.Channel).Trial.ChannelSubTrialBySubBloc[subBloc];
                 float[] values = stat.Values;
 
                 // Generate points.
