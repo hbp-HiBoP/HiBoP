@@ -319,7 +319,15 @@ namespace HBP.Module3D
                 if (visualizationLoadingTask.State == TaskState.Done)
                 {
                     yield return this.StartCoroutineAsync(c_LoadScene(visualization, (localProgress, duration, text) => onChangeProgress(progress + (LOADING_VISUALIZATION_PROGRESS + localProgress * LOADING_SCENE_PROGRESS) * visualizationWeight, duration, text)), out Task sceneLoadingTask);
-                    if (sceneLoadingTask.State == TaskState.Error) visualization.Unload();
+                    if (sceneLoadingTask.State == TaskState.Error)
+                    {
+                        visualization.Unload();
+                        throw sceneLoadingTask.Exception;
+                    }
+                }
+                else
+                {
+                    throw visualizationLoadingTask.Exception;
                 }
                 progress += visualizationWeight;
             }
