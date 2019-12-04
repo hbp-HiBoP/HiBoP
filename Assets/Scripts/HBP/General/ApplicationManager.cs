@@ -22,14 +22,14 @@ namespace HBP
             }
             ClassLoaderSaver.SaveToJSon(ApplicationState.UserPreferences, UserPreferences.PATH, true);
             ApplicationState.CoroutineManager = FindObjectOfType<CoroutineManager>();
-            ApplicationState.Module3D = FindObjectOfType<HBP.Module3D.HBP3DModule>();
-            ApplicationState.DLLDebugManager = FindObjectOfType<HBP.Module3D.DLL.DLLDebugManager>();
+            ApplicationState.Module3D = FindObjectOfType<Module3D.HBP3DModule>();
+            ApplicationState.DLLDebugManager = FindObjectOfType<Module3D.DLL.DLLDebugManager>();
             ApplicationState.DialogBoxManager = FindObjectOfType<DialogBoxManager>();
             ApplicationState.LoadingManager = FindObjectOfType<LoadingManager>();
             ApplicationState.TooltipManager = FindObjectOfType<TooltipManager>();
             ApplicationState.MemoryManager = FindObjectOfType<MemoryManager>();
             ApplicationState.WindowsManager = FindObjectOfType<WindowsManager>();
-            ApplicationState.Module3DUI = FindObjectOfType<HBP.UI.Module3D.Module3DUI>();
+            ApplicationState.Module3DUI = FindObjectOfType<UI.Module3D.Module3DUI>();
             ApplicationState.ProjectTMPFolder = GetProjectTMPDirectory();
         }
 
@@ -45,7 +45,7 @@ namespace HBP
 
         private string GetProjectTMPDirectory()
         {
-            string tmpDir = Application.dataPath + "/" + ".tmp";
+            string tmpDir = Path.Combine(Application.persistentDataPath, ".tmp");
             if (!Directory.Exists(tmpDir))
             {
                 DirectoryInfo di = Directory.CreateDirectory(tmpDir);
