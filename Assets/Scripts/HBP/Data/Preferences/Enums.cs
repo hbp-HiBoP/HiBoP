@@ -30,7 +30,7 @@ namespace HBP.Data.Enums
         White = 16,
         SoftGrayscale = 17
     }
-    public enum CutOrientation { Axial = 0, Coronal = 1, Sagital = 2, Custom = 3 } // Same as above
+    public enum CutOrientation { Axial = 0, Coronal = 1, Sagittal = 2, Custom = 3 } // Same as above
     public enum SiteInformationDisplayMode { Anatomy, IEEG, CCEP, IEEGCCEP, Light }
     public enum MeshPart { Left, Right, Both, None };
     public enum MeshType { Patient, MNI }

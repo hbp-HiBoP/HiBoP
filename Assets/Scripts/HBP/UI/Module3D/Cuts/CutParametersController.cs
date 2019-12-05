@@ -357,7 +357,7 @@ namespace HBP.UI.Module3D
                     m_PositionTitle.text = "Y";
                     m_PositionValue.text = Mathf.RoundToInt(Cut.Point.y).ToString();
                     break;
-                case Data.Enums.CutOrientation.Sagital:
+                case Data.Enums.CutOrientation.Sagittal:
                     m_PositionTitle.text = "X";
                     m_PositionValue.text = Mathf.RoundToInt(Cut.Point.x).ToString();
                     break;
@@ -435,7 +435,7 @@ namespace HBP.UI.Module3D
                         horizontalRatio = Cut.Flip ? 1.0f - ratio.x : ratio.x;
                         verticalRatio = Cut.Flip ? 1.0f - ratio.y : ratio.y;
                         break;
-                    case Data.Enums.CutOrientation.Sagital:
+                    case Data.Enums.CutOrientation.Sagittal:
                         horizontalRatio = Cut.Flip ? 1.0f - ratio.y : ratio.y;
                         verticalRatio = Cut.Flip ? ratio.x : 1.0f - ratio.x;
                         break;
@@ -481,7 +481,7 @@ namespace HBP.UI.Module3D
                                     horizontalRatio = Cut.Flip ? 1.0f - ratio.x : ratio.x;
                                     verticalRatio = Cut.Flip ? 1.0f - ratio.y : ratio.y;
                                     break;
-                                case Data.Enums.CutOrientation.Sagital:
+                                case Data.Enums.CutOrientation.Sagittal:
                                     horizontalRatio = Cut.Flip ? 1.0f - ratio.y : ratio.y;
                                     verticalRatio = Cut.Flip ? ratio.x : 1.0f - ratio.x;
                                     break;
@@ -491,7 +491,7 @@ namespace HBP.UI.Module3D
                         addRatioOfPoint(segment.End1);
                         addRatioOfPoint(segment.End2);
                     }
-                    UnityEngine.UI.Extensions.UILineRenderer lineRenderer = Instantiate(m_CutLinePrefab, m_CutLinesRectTransform).GetComponent<UnityEngine.UI.Extensions.UILineRenderer>();
+                    UILineRenderer lineRenderer = Instantiate(m_CutLinePrefab, m_CutLinesRectTransform).GetComponent<UILineRenderer>();
                     RectTransform lineRectTransform = lineRenderer.GetComponent<RectTransform>();
                     lineRectTransform.anchorMin = Vector2.zero;
                     lineRectTransform.anchorMax = Vector2.one;

@@ -177,7 +177,7 @@ namespace HBP.Data.Visualization
             if (nbDynamicColumns > 0) // FIXME : this security should not exist
             {
                 Exception exception = null;
-                int nbPatients = m_PatientsID.Count;
+                int nbPatients = Patients.Count;
 
                 float steps = 1 + 2 * nbPatients * nbDynamicColumns;
                 float progress = 0.0f;
