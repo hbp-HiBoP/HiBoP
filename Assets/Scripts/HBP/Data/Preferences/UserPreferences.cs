@@ -22,7 +22,7 @@ namespace HBP.Data.Preferences
     public class UserPreferences: ICopiable, ICloneable
     {
         #region Properties
-        public static string PATH = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "Preferences.txt");
+        public static string PATH = Path.Combine(Application.persistentDataPath, "Preferences.txt");
         public Theme Theme;
         [DataMember] public GeneralPreferences General { get; set; }
         [DataMember] public DataPreferences Data { get; set; }

@@ -64,6 +64,10 @@ namespace HBP.Data.Experience.Dataset
                 throw new Exception("Invalid data container type");
             }
             Tools.CSharp.EEG.File file = new Tools.CSharp.EEG.File(type, true, files);
+            if (file.getHandle().Handle == IntPtr.Zero)
+            {
+                throw new Exception("Data file could not be loaded");
+            }
             List<Tools.CSharp.EEG.Electrode> channels = file.Electrodes;
             foreach (var channel in channels)
             {

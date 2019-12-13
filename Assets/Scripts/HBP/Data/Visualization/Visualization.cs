@@ -177,7 +177,7 @@ namespace HBP.Data.Visualization
             if (nbDynamicColumns > 0) // FIXME : this security should not exist
             {
                 Exception exception = null;
-                int nbPatients = m_PatientsID.Count;
+                int nbPatients = Patients.Count;
 
                 float steps = 1 + 2 * nbPatients * nbDynamicColumns;
                 float progress = 0.0f;
@@ -417,7 +417,7 @@ namespace HBP.Data.Visualization
                 catch (Exception e)
                 {
                     UnityEngine.Debug.LogException(e);
-                    exception = new CannotLoadDataInfoException(string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name), (dataInfo is PatientDataInfo pDataInfo ? " for " + pDataInfo.Patient.ID : "Unkwown patient") , additionalInformation);
+                    exception = new CannotLoadDataInfoException(string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name), (dataInfo is PatientDataInfo pDataInfo ? pDataInfo.Patient.ID : "Unkwown patient"), additionalInformation);
                     break;
                 }
                 count++;

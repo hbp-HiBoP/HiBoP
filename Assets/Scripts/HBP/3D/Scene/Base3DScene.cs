@@ -1215,7 +1215,7 @@ namespace HBP.Module3D
                     cut.Position = 0.5f;
                     break;
                 case 2:
-                    cut.Orientation = Data.Enums.CutOrientation.Sagital;
+                    cut.Orientation = Data.Enums.CutOrientation.Sagittal;
                     cut.Flip = false;
                     cut.Position = 0.5f;
                     break;
@@ -1355,16 +1355,16 @@ namespace HBP.Module3D
             }
             UpdateCutPlane(coronalCut);
 
-            Cut sagitalCut = AddCutPlane();
-            Vector3 sagitalPoint = MeshManager.MeshCenter + (Vector3.Dot(sitePosition - MeshManager.MeshCenter, sagitalCut.Normal) / Vector3.Dot(sagitalCut.Normal, sagitalCut.Normal)) * sagitalCut.Normal;
-            float sagitalOffset = MeshManager.MeshToDisplay.SizeOffsetCutPlane(sagitalCut, sagitalCut.NumberOfCuts) * 1.05f;
-            sagitalCut.Position = ((sagitalPoint.x - MeshManager.MeshCenter.x) / (sagitalCut.Normal.x * sagitalOffset * sagitalCut.NumberOfCuts)) + 0.5f;
-            if (sagitalCut.Position < 0.5f)
+            Cut sagittalCut = AddCutPlane();
+            Vector3 sagittalPoint = MeshManager.MeshCenter + (Vector3.Dot(sitePosition - MeshManager.MeshCenter, sagittalCut.Normal) / Vector3.Dot(sagittalCut.Normal, sagittalCut.Normal)) * sagittalCut.Normal;
+            float sagittalOffset = MeshManager.MeshToDisplay.SizeOffsetCutPlane(sagittalCut, sagittalCut.NumberOfCuts) * 1.05f;
+            sagittalCut.Position = ((sagittalPoint.x - MeshManager.MeshCenter.x) / (sagittalCut.Normal.x * sagittalOffset * sagittalCut.NumberOfCuts)) + 0.5f;
+            if (sagittalCut.Position < 0.5f)
             {
-                sagitalCut.Flip = true;
-                sagitalCut.Position = 1 - sagitalCut.Position;
+                sagittalCut.Flip = true;
+                sagittalCut.Position = 1 - sagittalCut.Position;
             }
-            UpdateCutPlane(sagitalCut);
+            UpdateCutPlane(sagittalCut);
 
             m_CutsNeedUpdate = true;
         }

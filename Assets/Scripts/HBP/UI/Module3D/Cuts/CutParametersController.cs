@@ -291,10 +291,9 @@ namespace HBP.UI.Module3D
 
                 if (Cut.Orientation == Data.Enums.CutOrientation.Custom)
                 {
-                    float x = 1, y = 0, z = 0;
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomX.text, out x);
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomY.text, out y);
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomZ.text, out z);
+                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomX.text, out float x);
+                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomY.text, out float y);
+                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
                     Cut.Normal = new Vector3(x, y, z);
                 }
                 m_Scene.UpdateCutPlane(Cut, true);
@@ -358,7 +357,7 @@ namespace HBP.UI.Module3D
                     m_PositionTitle.text = "Y";
                     m_PositionValue.text = Mathf.RoundToInt(Cut.Point.y).ToString();
                     break;
-                case Data.Enums.CutOrientation.Sagital:
+                case Data.Enums.CutOrientation.Sagittal:
                     m_PositionTitle.text = "X";
                     m_PositionValue.text = Mathf.RoundToInt(Cut.Point.x).ToString();
                     break;
@@ -436,7 +435,7 @@ namespace HBP.UI.Module3D
                         horizontalRatio = Cut.Flip ? 1.0f - ratio.x : ratio.x;
                         verticalRatio = Cut.Flip ? 1.0f - ratio.y : ratio.y;
                         break;
-                    case Data.Enums.CutOrientation.Sagital:
+                    case Data.Enums.CutOrientation.Sagittal:
                         horizontalRatio = Cut.Flip ? 1.0f - ratio.y : ratio.y;
                         verticalRatio = Cut.Flip ? ratio.x : 1.0f - ratio.x;
                         break;
@@ -482,7 +481,7 @@ namespace HBP.UI.Module3D
                                     horizontalRatio = Cut.Flip ? 1.0f - ratio.x : ratio.x;
                                     verticalRatio = Cut.Flip ? 1.0f - ratio.y : ratio.y;
                                     break;
-                                case Data.Enums.CutOrientation.Sagital:
+                                case Data.Enums.CutOrientation.Sagittal:
                                     horizontalRatio = Cut.Flip ? 1.0f - ratio.y : ratio.y;
                                     verticalRatio = Cut.Flip ? ratio.x : 1.0f - ratio.x;
                                     break;
@@ -492,7 +491,7 @@ namespace HBP.UI.Module3D
                         addRatioOfPoint(segment.End1);
                         addRatioOfPoint(segment.End2);
                     }
-                    UnityEngine.UI.Extensions.UILineRenderer lineRenderer = Instantiate(m_CutLinePrefab, m_CutLinesRectTransform).GetComponent<UnityEngine.UI.Extensions.UILineRenderer>();
+                    UILineRenderer lineRenderer = Instantiate(m_CutLinePrefab, m_CutLinesRectTransform).GetComponent<UILineRenderer>();
                     RectTransform lineRectTransform = lineRenderer.GetComponent<RectTransform>();
                     lineRectTransform.anchorMin = Vector2.zero;
                     lineRectTransform.anchorMax = Vector2.one;

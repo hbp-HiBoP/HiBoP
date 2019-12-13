@@ -31,17 +31,17 @@ namespace HBP.Module3D.DLL
         /// Reset the geometry generator with the chosen volume for a cut plane
         /// </summary>
         /// <param name="volume">Currently selected volume in the scene</param>
-        /// <param name="plane">Cut plane to consider for this generator</param>
-        public void Reset(Volume volume, Plane plane)
+        /// <param name="cut">Cut plane to consider for this generator</param>
+        public void Reset(Volume volume, Cut cut)
         {
             float[] planeF = new float[6];
             for (int ii = 0; ii < 3; ++ii)
             {
-                planeF[ii]     = plane.Point[ii];
-                planeF[ii + 3] = plane.Normal[ii];
+                planeF[ii]     = cut.Point[ii];
+                planeF[ii + 3] = cut.Normal[ii];
             }
 
-            reset__MRIGeometryCutGenerator(_handle, volume.getHandle(), planeF, 1.0f);
+            reset__MRIGeometryCutGenerator(_handle, volume.getHandle(), planeF, (int)cut.Orientation, cut.Flip, 1.0f);
         }
         /// <summary>
         /// Update the UVs of the cut mesh
@@ -89,7 +89,7 @@ namespace HBP.Module3D.DLL
         [DllImport("hbp_export", EntryPoint = "delete__MRIGeometryCutGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void delete__MRIGeometryCutGenerator(HandleRef handleMRIGeometryCutGenerator);
         [DllImport("hbp_export", EntryPoint = "reset__MRIGeometryCutGenerator", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void reset__MRIGeometryCutGenerator(HandleRef handleMRIGeometryCutGenerator, HandleRef handleVolume, float[] plane, float scaleFactor);
+        static private extern void reset__MRIGeometryCutGenerator(HandleRef handleMRIGeometryCutGenerator, HandleRef handleVolume, float[] plane, int idOrientation, bool flip, float scaleFactor);
         [DllImport("hbp_export", EntryPoint = "update_cut_mesh_UV__MRIGeometryCutGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void update_cut_mesh_UV__MRIGeometryCutGenerator(HandleRef handleMRIGeometryCutGenerator, HandleRef handleSurface);
         [DllImport("hbp_export", EntryPoint = "bounding_box_MRIGeometryCutGenerator", CallingConvention = CallingConvention.Cdecl)]
