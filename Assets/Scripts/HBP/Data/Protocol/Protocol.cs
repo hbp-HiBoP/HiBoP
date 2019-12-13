@@ -91,9 +91,9 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Public Static Methods
-        public static string GetExtension()
+        public static string[] GetExtensions()
         {
-            return EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION;
+            return new string[] { EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION };
         }
         public static bool LoadFromFile(string path, out Protocol result)
         {
@@ -137,13 +137,15 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Interfaces
-        string ILoadable<Protocol>.GetExtension()
+        string[] ILoadable<Protocol>.GetExtensions()
         {
-            return GetExtension();
+            return GetExtensions();
         }
-        bool ILoadable<Protocol>.LoadFromFile(string path, out Protocol result)
+        bool ILoadable<Protocol>.LoadFromFile(string path, out Protocol[] result)
         {
-            return LoadFromFile(path, out result);
+            bool success = LoadFromFile(path, out Protocol protocol);
+            result = new Protocol[] { protocol };
+            return success;
         }
         #endregion
     }

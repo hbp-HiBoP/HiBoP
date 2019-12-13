@@ -155,9 +155,9 @@ namespace HBP.Data.Visualization
                 throw new CanNotReadVisualizationFileException(Path.GetFileNameWithoutExtension(path));
             }
         }
-        public static string GetExtension()
+        public static string[] GetExtensions()
         {
-            return EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION;
+            return new string[] { EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION };
         }
         #endregion
 
@@ -539,13 +539,15 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Interfaces
-        bool ILoadable<Visualization>.LoadFromFile(string path, out Visualization result)
+        bool ILoadable<Visualization>.LoadFromFile(string path, out Visualization[] result)
         {
-            return LoadFromFile(path, out result);
+            bool success = LoadFromFile(path, out Visualization visualization);
+            result = new Visualization[] { visualization };
+            return success;
         }
-        string ILoadable<Visualization>.GetExtension()
+        string[] ILoadable<Visualization>.GetExtensions()
         {
-            return GetExtension();
+            return GetExtensions();
         }
         #endregion
 

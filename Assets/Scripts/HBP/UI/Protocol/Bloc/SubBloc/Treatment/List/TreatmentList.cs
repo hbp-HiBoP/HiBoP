@@ -64,8 +64,8 @@ namespace HBP.UI.Experience.Protocol
             }
             Refresh();
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         public void SortByStartWindow()
         {
@@ -93,9 +93,9 @@ namespace HBP.UI.Experience.Protocol
                     break;
             }
             Refresh();
+            m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         public void SortByEndWindow()
         {

@@ -165,9 +165,9 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Public static Methods
-        public static string GetExtension()
+        public static string[] GetExtensions()
         {
-            return EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION;
+            return new string[] { EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION };
         }
         public static bool LoadFromFile(string path, out Dataset result)
         {
@@ -232,13 +232,15 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Interfaces
-        string ILoadable<Dataset>.GetExtension()
+        string[] ILoadable<Dataset>.GetExtensions()
         {
-            return GetExtension();
+            return GetExtensions();
         }
-        bool ILoadable<Dataset>.LoadFromFile(string path, out Dataset result)
+        bool ILoadable<Dataset>.LoadFromFile(string path, out Dataset[] result)
         {
-            return LoadFromFile(path, out result);
+            bool success = LoadFromFile(path, out Dataset dataset);
+            result = new Dataset[] { dataset };
+            return success;
         }
         #endregion
     }

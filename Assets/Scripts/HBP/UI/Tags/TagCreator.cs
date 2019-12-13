@@ -17,7 +17,20 @@ namespace HBP.UI
                     OpenSelector(ExistingItems);
                     break;
                 case Data.Enums.CreationType.FromFile:
-                    if (LoadFromFile(out item)) OpenModifier(item);
+                    if (LoadFromFile(out Data.BaseTag[] items))
+                    {
+                        if (items.Length == 1)
+                        {
+                            OpenModifier(items[0]);
+                        }
+                        else
+                        {
+                            foreach (var i in items)
+                            {
+                                OnObjectCreated.Invoke(i);
+                            }
+                        }
+                    }
                     break;
             }
         }

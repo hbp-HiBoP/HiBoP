@@ -21,9 +21,19 @@ namespace HBP.UI.Experience.Protocol
                     OpenSelector(ExistingItems);
                     break;
                 case Data.Enums.CreationType.FromFile:
-                    if (LoadFromFile(out item))
+                    if (LoadFromFile(out SubBloc[] items))
                     {
-                        OpenModifier(item);
+                        if (items.Length == 1)
+                        {
+                            OpenModifier(items[0]);
+                        }
+                        else
+                        {
+                            foreach (var i in items)
+                            {
+                                OnObjectCreated.Invoke(i);
+                            }
+                        }
                     }
                     break;
             }

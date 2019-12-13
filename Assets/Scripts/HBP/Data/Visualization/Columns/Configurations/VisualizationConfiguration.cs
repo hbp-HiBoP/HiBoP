@@ -1,8 +1,6 @@
 ﻿using System.Runtime.Serialization;
 using System.Collections.Generic;
-using System;
 using HBP.Data.Enums;
-using HBP.Module3D;
 using System.Linq;
 
 namespace HBP.Data.Visualization

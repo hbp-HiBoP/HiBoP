@@ -44,9 +44,9 @@ namespace HBP.Data
                 throw new CanNotReadTagFileException(Path.GetFileNameWithoutExtension(path));
             }
         }
-        public static string GetExtension()
+        public static string[] GetExtensions()
         {
-            return EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION;
+            return new string[] { EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION };
         }
         #endregion
 
@@ -66,7 +66,7 @@ namespace HBP.Data
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            if(copy is BaseTag tag)
+            if (copy is BaseTag tag)
             {
                 Name = tag.Name;
             }
@@ -74,13 +74,15 @@ namespace HBP.Data
         #endregion
 
         #region Interfaces
-        string ILoadable<BaseTag>.GetExtension()
+        string[] ILoadable<BaseTag>.GetExtensions()
         {
-            return GetExtension();
+            return GetExtensions();
         }
-        bool ILoadable<BaseTag>.LoadFromFile(string path, out BaseTag result)
+        bool ILoadable<BaseTag>.LoadFromFile(string path, out BaseTag[] result)
         {
-            return LoadFromFile(path, out result);
+            bool success = LoadFromFile(path, out BaseTag baseTag);
+            result = new BaseTag[] { baseTag };
+            return success;
         }
         #endregion
     }

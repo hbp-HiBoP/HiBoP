@@ -212,9 +212,9 @@ namespace Tools.Unity.Lists
         }
         protected virtual void OnChangeSelectionState(T obj, bool selected)
         {
-            //if (!m_SelectionLock)
-            //{
-            //    m_SelectionLock = true;
+            if (!m_SelectionLock)
+            {
+                m_SelectionLock = true;
                 switch (m_ItemSelection)
                 {
                     case SelectionType.None:
@@ -230,8 +230,8 @@ namespace Tools.Unity.Lists
                 if (selected) OnSelect.Invoke(obj);
                 else OnDeselect.Invoke(obj);
                 OnSelectionChanged();
-            //    m_SelectionLock = false;
-            //}
+                m_SelectionLock = false;
+            }
         }
         protected virtual void OnSelectionChanged()
         {

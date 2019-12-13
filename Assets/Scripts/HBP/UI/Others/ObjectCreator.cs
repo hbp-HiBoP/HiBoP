@@ -21,7 +21,8 @@ namespace Tools.Unity.Components
             }
             set
             {
-                m_IsLoadableFromFile = value;            }
+                m_IsLoadableFromFile = value;
+            }
         }
 
         [SerializeField] bool m_IsLoadableFromDatabase = true;
@@ -74,7 +75,7 @@ namespace Tools.Unity.Components
             {
                 m_ExistingItems = value;
             }
-        } 
+        }
 
         [SerializeField] protected WindowsReferencer m_WindowsReferencer = new WindowsReferencer();
         public virtual WindowsReferencer WindowsReferencer { get => m_WindowsReferencer; }
@@ -115,9 +116,19 @@ namespace Tools.Unity.Components
         }
         public virtual void CreateFromFile()
         {
-            if (LoadFromFile(out T item))
+            if (LoadFromFile(out T[] items))
             {
-                OpenModifier(item);
+                if(items.Length == 1)
+                {
+                    OpenModifier(items[0]);
+                }
+                else
+                {
+                    foreach (var item in items)
+                    {
+                        OnObjectCreated.Invoke(item);
+                    }
+                }
             }
         }
         public virtual void CreateFromDatabase()
@@ -190,20 +201,22 @@ namespace Tools.Unity.Components
             OnObjectCreated.Invoke(modifier.Item);
         }
 
-        protected virtual bool LoadFromFile(out T result)
+        protected virtual bool LoadFromFile(out T[] result)
         {
-            result = new T();
-            ILoadable<T> loadable = result as ILoadable<T>;
-            string path = FileBrowser.GetExistingFileName(new string[] { loadable.GetExtension() }).StandardizeToPath();
+            result = new T[0];
+            string path = FileBrowser.GetExistingFileName((new T() as ILoadable<T>).GetExtensions()).StandardizeToPath();
             if (path != string.Empty)
             {
-                result = ClassLoaderSaver.LoadFromJson<T>(path);
-                if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
+                (new T() as ILoadable<T>).LoadFromFile(path, out result);
+                foreach (T t in result)
                 {
-                    IIdentifiable identifiable = result as IIdentifiable;
-                    if (identifiable.ID == "xxxxxxxxxxxxxxxxxxxxxxxxx")
+                    if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
                     {
-                        identifiable.ID = Guid.NewGuid().ToString();
+                        IIdentifiable identifiable = t as IIdentifiable;
+                        if (identifiable.ID == "xxxxxxxxxxxxxxxxxxxxxxxxx")
+                        {
+                            identifiable.ID = Guid.NewGuid().ToString();
+                        }
                     }
                 }
                 return true;

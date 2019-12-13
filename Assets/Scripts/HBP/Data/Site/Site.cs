@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,7 +9,7 @@ using Tools.CSharp;
 namespace HBP.Data
 {
     [DataContract]
-    public class Site : BaseData, INameable
+    public class Site : BaseData, INameable, ILoadable<Site>
     {
         #region Properties
         /// <summary>
@@ -58,7 +59,48 @@ namespace HBP.Data
         #endregion
 
         #region Public Methods
-        public static List<Site> LoadImplantationFromBIDSFile(string referenceSystem, string tsvFile)
+        public string[] GetExtensions()
+        {
+            return new string[] { "pts", "tsv" };
+        }
+        public static List<Site> LoadFromIntranatDirectory(string path)
+        {
+            var sites = new List<Site>();
+            var parent = new DirectoryInfo(path);
+            var implantationDirection = new DirectoryInfo(Path.Combine(path, "implantation"));
+            var ptsFiles = implantationDirection.GetFiles("*.pts", SearchOption.TopDirectoryOnly);
+            var csvFiles = implantationDirection.GetFiles("*.csv", SearchOption.TopDirectoryOnly);
+            foreach (var file in ptsFiles)
+            {
+                string referenceSystem = file.Name.Replace(parent.Name, "").Replace("_", "").Replace(".pts", "");
+                if (referenceSystem == "")
+                {
+                    referenceSystem = "Patient";
+                }
+                else if (referenceSystem.Contains("T1Post"))
+                {
+                    referenceSystem = "Post";
+                }
+                var ptsSites = LoadSitesFromPTSFIle(referenceSystem, file.FullName);
+                foreach (var site in ptsSites)
+                {
+                    var existingSite = sites.FirstOrDefault(s => s.Name == site.Name);
+                    if (existingSite == null) sites.Add(site);
+                    else existingSite.Coordinates.AddRange(site.Coordinates);
+                }
+            }
+            foreach (var file in csvFiles)
+            {
+                var csvSites = LoadSitesFromCSVFile(file.FullName);
+                foreach (var site in csvSites)
+                {
+                    var existingSite = sites.FirstOrDefault(s => s.Name == site.Name);
+                    if (existingSite != null) existingSite.Tags.AddRange(site.Tags);
+                }
+            }
+            return sites;
+        }
+        public static List<Site> LoadImplantationFromBIDSFile(string referenceSystem, string tsvFile, bool onlyCoordinates = false)
         {
             List<Site> result = new List<Site>();
             if (!string.IsNullOrEmpty(tsvFile))
@@ -70,18 +112,21 @@ namespace HBP.Data
                     string[] firstLineSplits = firstLine.Split('\t');
                     int[] indices = new int[4]
                     {
-                        System.Array.IndexOf(firstLineSplits, "name"),
-                        System.Array.IndexOf(firstLineSplits, "x"),
-                        System.Array.IndexOf(firstLineSplits, "y"),
-                        System.Array.IndexOf(firstLineSplits, "z")
+                        Array.IndexOf(firstLineSplits, "name"),
+                        Array.IndexOf(firstLineSplits, "x"),
+                        Array.IndexOf(firstLineSplits, "y"),
+                        Array.IndexOf(firstLineSplits, "z")
                     };
                     Dictionary<int, BaseTag> tagByColumnIndex = new Dictionary<int, BaseTag>();
-                    for (int i = 0; i < firstLineSplits.Length; i++)
+                    if (!onlyCoordinates)
                     {
-                        if (indices.Contains(i)) continue;
-                        BaseTag associatedTag = ApplicationState.ProjectLoaded.Preferences.SitesTags.FirstOrDefault(t => t.Name == firstLineSplits[i]);
-                        if (associatedTag == null) associatedTag = ApplicationState.ProjectLoaded.Preferences.GeneralTags.FirstOrDefault(t => t.Name == firstLineSplits[i]);
-                        tagByColumnIndex.Add(i, associatedTag);
+                        for (int i = 0; i < firstLineSplits.Length; i++)
+                        {
+                            if (indices.Contains(i)) continue;
+                            BaseTag associatedTag = ApplicationState.ProjectLoaded.Preferences.SitesTags.FirstOrDefault(t => t.Name == firstLineSplits[i]);
+                            if (associatedTag == null) associatedTag = ApplicationState.ProjectLoaded.Preferences.GeneralTags.FirstOrDefault(t => t.Name == firstLineSplits[i]);
+                            tagByColumnIndex.Add(i, associatedTag);
+                        }
                     }
                     // Create sites
                     string line;
@@ -169,9 +214,124 @@ namespace HBP.Data
             }
             return result;
         }
+        public static List<Site> LoadSitesFromPTSFIle(string referenceSystem, string ptsFile)
+        {
+            var sites = new List<Site>();
+            if (!string.IsNullOrEmpty(ptsFile))
+            {
+                using (StreamReader streamReader = new StreamReader(ptsFile))
+                {
+                    string line = streamReader.ReadLine();
+                    if (!line.Contains("ptsfile")) throw new System.Exception("Invalid PTS file");
+                    while ((line = streamReader.ReadLine()) != null)
+                    {
+                        Site site = new Site();
+                        string[] splits = Regex.Split(line, "[\\s\t]+");
+                        if (splits.Length < 4) continue;
+                        site.Name = ApplicationState.UserPreferences.Data.Anatomic.SiteNameCorrection ? FixName(splits[0]) : splits[0];
+                        if (!NumberExtension.TryParseFloat(splits[1], out float x)) continue;
+                        if (!NumberExtension.TryParseFloat(splits[2], out float y)) continue;
+                        if (!NumberExtension.TryParseFloat(splits[3], out float z)) continue;
+                        site.Coordinates.Add(new Coordinate(referenceSystem, new UnityEngine.Vector3(x, y, z)));
+                        sites.Add(site);
+                    }
+                }
+            }
+            return sites;
+        }
+        public static List<Site> LoadSitesFromCSVFile(string csvFile)
+        {
+            var sites = new List<Site>();
+            if (!string.IsNullOrEmpty(csvFile))
+            {
+                using (StreamReader streamReader = new StreamReader(csvFile))
+                {
+                    string file = streamReader.ReadToEnd();
+                    string[] lines = file.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                    int TitleLine = Array.FindIndex(lines, l => l.StartsWith("contact"));
+                    if (TitleLine > -1)
+                    {
+                        string[] tagNames = lines[TitleLine].Split('\t');
+                        BaseTag[] tags = new BaseTag[tagNames.Length];
+                        for (int i = 0; i < tagNames.Length; i++)
+                        {
+                            string tagName = tagNames[i];
+                            BaseTag tag = null;
+                            if (tagName != "MNI" && tagName != "Contact" && tagName != "contact")
+                            {
+                                tag = ApplicationState.ProjectLoaded.Preferences.SitesTags.Concat(ApplicationState.ProjectLoaded.Preferences.GeneralTags).FirstOrDefault(t => t.Name == tagName);
+                                if (tag == null)
+                                {
+                                    tag = new StringTag(tagNames[i]);
+                                    ApplicationState.ProjectLoaded.Preferences.SitesTags.Add(tag);
+                                }
+                            }
+                            tags[i] = tag;
+                        }
+                        for (int l = TitleLine + 1; l < lines.Length; l++)
+                        {
+                            string[] values = lines[l].Split('\t');
+                            string name = ApplicationState.UserPreferences.Data.Anatomic.SiteNameCorrection ? FixName(values[0]) : values[0];
+                            List<BaseTagValue> tagValues = new List<BaseTagValue>();
+                            for (int i = 1; i < values.Length; i++)
+                            {
+                                BaseTag tag = tags[i];
+                                string value = values[i];
+                                if (tag != null)
+                                {
+                                    BaseTagValue tagValue = null;
+                                    if (tag is EmptyTag emptyTag)
+                                    {
+                                        tagValue = new EmptyTagValue(emptyTag);
+                                    }
+                                    else if (tag is BoolTag boolTag)
+                                    {
+                                        if (bool.TryParse(value, out bool result))
+                                        {
+                                            tagValue = new BoolTagValue(boolTag, result);
+                                        }
+                                    }
+                                    else if (tag is EnumTag enumTag)
+                                    {
+                                        int index = Array.IndexOf(enumTag.Values, value);
+                                        tagValue = new EnumTagValue(enumTag, index);
+                                    }
+                                    else if (tag is FloatTag floatTag)
+                                    {
+                                        if (float.TryParse(value, out float result))
+                                        {
+                                            tagValue = new FloatTagValue(floatTag, result);
+                                        }
+                                    }
+                                    else if (tag is IntTag intTag)
+                                    {
+                                        if (int.TryParse(value, out int result))
+                                        {
+                                            tagValue = new IntTagValue(intTag, result);
+                                        }
+                                    }
+                                    else if (tag is StringTag stringTag)
+                                    {
+                                        tagValue = new StringTagValue(stringTag, value);
+                                    }
+                                    if (tagValue != null)
+                                    {
+                                        tagValues.Add(tagValue);
+                                    }
+                                }
+                            }
+                            sites.Add(new Site(name, new Coordinate[0], tagValues));
+                        }
+                    }
+                }
+            }
+            return sites;
+        }
+
         public static string FixName(string name)
         {
             string siteName = name.ToUpper();
+            siteName = siteName.Replace("PLOT", "");
             int prime = siteName.LastIndexOf('P');
             if (prime > 0)
             {
@@ -219,6 +379,40 @@ namespace HBP.Data
                 Coordinates = site.Coordinates;
                 Tags = site.Tags;
             }
+        }
+        #endregion
+
+        #region Interfaces
+        string[] ILoadable<Site>.GetExtensions()
+        {
+            return GetExtensions();
+        }
+        bool ILoadable<Site>.LoadFromFile(string path, out Site[] result)
+        {
+            result = new Site[0];
+            FileInfo fileInfo = new FileInfo(path);
+            if (fileInfo.Extension == ".pts")
+            {
+                string referenceSystem = "Unknown";
+                string[] splits = fileInfo.Name.Split('_');
+                if (splits.Length == 3)
+                {
+                    referenceSystem = "Patient";
+                }
+                else if (splits.Length == 4)
+                {
+                    referenceSystem = splits[3].Replace(fileInfo.Extension, "");
+                }
+                result = LoadImplantationFromIntrAnatFile(referenceSystem, path, "").ToArray();
+                return true;
+            }
+            else if (fileInfo.Extension == ".tsv")
+            {
+                string name = path.Split('_').FirstOrDefault(s => s.Contains("space")).Split('-')[1];
+                result = LoadImplantationFromBIDSFile(name, path, true).ToArray();
+                return true;
+            }
+            return false;
         }
         #endregion
     }

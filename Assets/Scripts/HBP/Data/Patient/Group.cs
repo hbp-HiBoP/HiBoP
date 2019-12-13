@@ -83,9 +83,9 @@ namespace HBP.Data
         /// Gets the extension of the group files.
         /// </summary>
         /// <returns></returns>
-        public static string GetExtension()
+        public static string[] GetExtensions()
         {
-            return EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION;
+            return new string[] { EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION };
         }
         /// <summary>
         /// Loads group from group file.
@@ -138,9 +138,9 @@ namespace HBP.Data
         /// Gets the extension of the group files.
         /// </summary>
         /// <returns></returns>
-        string ILoadable<Group>.GetExtension()
+        string[] ILoadable<Group>.GetExtensions()
         {
-            return GetExtension();
+            return GetExtensions();
         }
         /// <summary>
         /// Loads group from group file.
@@ -148,9 +148,11 @@ namespace HBP.Data
         /// <param name="path">The specified path of the group file.</param>
         /// <param name="result">The group in the group file.</param>
         /// <returns><see langword="true"/> if the method worked successfully; otherwise, <see langword="false"/></returns>
-        bool ILoadable<Group>.LoadFromFile(string path, out Group result)
+        bool ILoadable<Group>.LoadFromFile(string path, out Group[] result)
         {
-            return LoadFromFile(path, out result);
+            bool success = LoadFromFile(path, out Group group);
+            result = new Group[] { group };
+            return success;
         }
         #endregion
 
