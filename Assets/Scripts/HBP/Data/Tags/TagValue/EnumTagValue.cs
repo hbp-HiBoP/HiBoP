@@ -17,11 +17,18 @@ namespace HBP.Data
                 if (Tag != null) base.Value = Tag.Clamp(value);
             }
         }
+        public string StringValue
+        {
+            set
+            {
+                if (Tag != null) Value = Array.IndexOf(Tag.Values, value);
+            }
+        }
         public override string DisplayableValue
         {
             get
             {
-                if(Tag == null || Value < 0 || Value >= Tag.Values.Length)
+                if (Tag == null || Value < 0 || Value >= Tag.Values.Length)
                 {
                     return "None";
                 }
@@ -34,11 +41,15 @@ namespace HBP.Data
         #endregion
 
         #region Constructors
-        public EnumTagValue() : this(null, default)
+        public EnumTagValue() : this(null, default(int))
         {
         }
         public EnumTagValue(EnumTag tag, int value) : base(tag, value)
         {
+        }
+        public EnumTagValue(EnumTag tag, string value) : base(tag, 0)
+        {
+            StringValue = value;
         }
         public EnumTagValue(EnumTag tag, int value, string ID) : base(tag, value, ID)
         {
@@ -53,11 +64,11 @@ namespace HBP.Data
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            if(copy is FloatTagValue floatTagValue)
+            if (copy is FloatTagValue floatTagValue)
             {
                 Value = Mathf.RoundToInt(floatTagValue.Value);
             }
-            if(copy is StringTagValue stringTagValue)
+            if (copy is StringTagValue stringTagValue)
             {
                 Value = Array.FindIndex(Tag.Values, t => t == stringTagValue.Value);
             }

@@ -79,7 +79,7 @@ namespace Tools.Unity.Components
             List.OnRemoveObject.AddListener(obj => ObjectCreator.ExistingItems.Remove(obj));
             List.OnUpdateObject.AddListener(OnUpdateObject);
             ObjectCreator.ExistingItems = List.Objects.ToList();
-            ObjectCreator.OnObjectCreated.AddListener(OnSaveModifier);
+            ObjectCreator.OnObjectCreated.AddListener(OnObjectCreated);
             ObjectCreator.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
         }
         protected virtual ObjectModifier<T> OpenModifier(T item)
@@ -92,6 +92,31 @@ namespace Tools.Unity.Components
         protected virtual void OnSaveModifier(T obj)
         {
             if(obj is INameable nameable)
+            {
+                if (List.Objects.Any(c => (c as INameable).Name == nameable.Name && !c.Equals(obj)))
+                {
+                    int count = 1;
+                    string name = string.Format("{0}({1})", nameable.Name, count);
+                    while (List.Objects.OfType<INameable>().Any(c => c.Name == name))
+                    {
+                        count++;
+                        name = string.Format("{0}({1})", nameable.Name, count);
+                    }
+                    nameable.Name = name;
+                }
+            }
+            if (!List.Objects.Contains(obj))
+            {
+                List.Add(obj);
+            }
+            else
+            {
+                List.UpdateObject(obj);
+            }
+        }
+        protected virtual void OnObjectCreated(T obj)
+        {
+            if (obj is INameable nameable)
             {
                 if (List.Objects.Any(c => (c as INameable).Name == nameable.Name && !c.Equals(obj)))
                 {
