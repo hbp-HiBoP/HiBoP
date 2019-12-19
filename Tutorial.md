@@ -38,7 +38,7 @@ The next step is to add *Patients* to the project in order to visualize them. A 
 1. On the top menu, click on *Patient > Patients...*
 2. A new window opens, allowing to add, remove and edit patients of the project
 3. Click on the *+* button on the left side of the window to create a new patient
-4. Select "From scratch" and click on *OK* (on a side note, everytime you are presented with this dialog asking you to select the method you want to use to create an item, select "From scratch". You could be faster using other options, but we recommend you to always create items from scratch in this tutorial in order to get accustomed to the user interface)
+4. Select "From scratch" and click on *OK* (on a side note, everytime you are presented with this dialog asking you to select the method you want to use to create an item, select "From scratch", unless otherwise specified. You could be faster using other options, but we recommend you to always create items from scratch in this tutorial in order to get accustomed to the user interface)
 5. A new window opens, allowing the modification of the patient
 6. Fill all the required fields
 	* In the *Name* field, type "PatientA"
@@ -64,7 +64,11 @@ The next step is to add *Patients* to the project in order to visualize them. A 
 		* In the *MRI* field, browse to the MRI of the patient ("*Database*/patientA/patientA_MRI.nii")
 	5. Click on *OK* to save the newly created MRI
 9. Add the sites to the patient
-	1. **TODO**
+	1. Click on the *Sites* tab on the right of the *MRIs* tab
+	2. Click on the *+* button on the left side
+	3. This time, select "From file" to import the sites
+	4. Click on *OK* and browse to the patient electrodes coordinates file ("*Database*/patientA/patientA_Electrodes_Patient.pts")
+	5. Repeat steps 1. to 4. to also load "*Database*/patientA/patientA_Electrodes_MNI.pts" (coordinates of the electrodes in MNI reference system) and "*Database*/patientA/patientA_Electrodes.csv" (tags for the sites)
 10. Click on *OK* to save the patient
 11. Repeat steps 3. to 10. and replace every occurences of "patientA" by "patientB" to add the second patient
 12. Click *OK* to add the two patients to the project
