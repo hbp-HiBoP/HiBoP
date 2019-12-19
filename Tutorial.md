@@ -1,5 +1,6 @@
 
 
+
 # HiBoP Tutorial: Getting Started
 This tutorial is aimed to help new users getting started into HiBoP with tested sample data. It consists of a step-by-step list of actions to perform in order to get everything working with the provided sample data. For more information about a specific feature, please refer to the documentation attached with the release of the software.
 ## Getting sample data (1~2 minutes)
@@ -37,7 +38,7 @@ The next step is to add *Patients* to the project in order to visualize them. A 
 1. On the top menu, click on *Patient > Patients...*
 2. A new window opens, allowing to add, remove and edit patients of the project
 3. Click on the *+* button on the left side of the window to create a new patient
-4. Select "From scratch" and click on *OK* (as a side note, everytime you are presented with this dialog asking you to select the method you want to use to create an item, select "From scratch". You could be faster using other options, but we recommend you to always create items from scratch in this tutorial in order to get accustomed to the user interface)
+4. Select "From scratch" and click on *OK* (on a side note, everytime you are presented with this dialog asking you to select the method you want to use to create an item, select "From scratch". You could be faster using other options, but we recommend you to always create items from scratch in this tutorial in order to get accustomed to the user interface)
 5. A new window opens, allowing the modification of the patient
 6. Fill all the required fields
 	* In the *Name* field, type "PatientA"
@@ -183,3 +184,9 @@ The last step is to tell HiBoP what you want to visualize: this is done by creat
 
 If you followed all of this carefully, you are now ready to visualize the data within HiBoP.  
 ## Visualizing the data (10~15 minutes)
+The first step is to display the previously created visualization.
+1. On the top menu, click on *Visualization*
+2. Select the visualization by clicking on it
+3. Click on *Display* at the bottom of the window
+
+Once all data is loaded, the visualization should be displayed. If you did not alter the user preferences beforehand, another computation should start right after the opening of the visualization window. This corresponds to the projection of the iEEG activity on the brain mesh. Once this is finished, the MNI brain should be colored with the activity regarding the selected colormap.
