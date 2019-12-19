@@ -61,7 +61,7 @@ namespace HBP.Data
         #region Public Methods
         public string[] GetExtensions()
         {
-            return new string[] { "pts", "tsv" };
+            return new string[] { "pts", "tsv", "csv" };
         }
         public static List<Site> LoadFromIntranatDirectory(string path)
         {
@@ -100,54 +100,95 @@ namespace HBP.Data
             }
             return sites;
         }
-        public static List<Site> LoadImplantationFromBIDSFile(string referenceSystem, string tsvFile, bool onlyCoordinates = false)
+        public static List<Site> LoadImplantationFromBIDSFile(string referenceSystem, string tsvFile, bool loadTags = true)
         {
-            List<Site> result = new List<Site>();
+            List<Site> sites = new List<Site>();
             if (!string.IsNullOrEmpty(tsvFile))
             {
-                using (StreamReader sr = new StreamReader(tsvFile))
+                using (StreamReader streamReader = new StreamReader(tsvFile))
                 {
-                    // Find which column of the tsv corresponds to which mandatory argument
-                    string firstLine = sr.ReadLine();
-                    string[] firstLineSplits = firstLine.Split('\t');
-                    int[] indices = new int[4]
+                    string file = streamReader.ReadToEnd();
+                    string[] lines = file.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                    string[] columns = lines[0].Split('\t');
+
+                    // Add site tags to the project.
+                    if (loadTags)
                     {
-                        Array.IndexOf(firstLineSplits, "name"),
-                        Array.IndexOf(firstLineSplits, "x"),
-                        Array.IndexOf(firstLineSplits, "y"),
-                        Array.IndexOf(firstLineSplits, "z")
-                    };
-                    Dictionary<int, BaseTag> tagByColumnIndex = new Dictionary<int, BaseTag>();
-                    if (!onlyCoordinates)
-                    {
-                        for (int i = 0; i < firstLineSplits.Length; i++)
+                        IEnumerable<BaseTag> tags = ApplicationState.ProjectLoaded.Preferences.SitesTags.Concat(ApplicationState.ProjectLoaded.Preferences.GeneralTags);
+                        foreach (var column in columns)
                         {
-                            if (indices.Contains(i)) continue;
-                            BaseTag associatedTag = ApplicationState.ProjectLoaded.Preferences.SitesTags.FirstOrDefault(t => t.Name == firstLineSplits[i]);
-                            if (associatedTag == null) associatedTag = ApplicationState.ProjectLoaded.Preferences.GeneralTags.FirstOrDefault(t => t.Name == firstLineSplits[i]);
-                            tagByColumnIndex.Add(i, associatedTag);
+                            if (column != "name" && column != "x" && column != "y" && column != "z" && !tags.Any(t => t.Name == column))
+                            {
+                                ApplicationState.ProjectLoaded.Preferences.SitesTags.Add(new StringTag(column));
+                            }
                         }
                     }
-                    // Create sites
-                    string line;
-                    while ((line = sr.ReadLine()) != null)
+
+                    // Create sites.
+                    IEnumerable<BaseTag> projectTags = ApplicationState.ProjectLoaded.Preferences.SitesTags.Concat(ApplicationState.ProjectLoaded.Preferences.GeneralTags);
+                    for (int l = 1; l < lines.Length; l++)
                     {
-                        Site site = new Site();
-                        string[] args = line.Split('\t');
-                        site.Name = ApplicationState.UserPreferences.Data.Anatomic.SiteNameCorrection ? FixName(args[indices[0]]) : args[indices[0]];
-                        if (!NumberExtension.TryParseFloat(args[indices[1]], out float x)) continue;
-                        if (!NumberExtension.TryParseFloat(args[indices[2]], out float y)) continue;
-                        if (!NumberExtension.TryParseFloat(args[indices[3]], out float z)) continue;
-                        site.Coordinates.Add(new Coordinate(referenceSystem, new UnityEngine.Vector3(x, y, z)));
-                        foreach (var kvTag in tagByColumnIndex)
+                        Site site = new Site("", new Coordinate[] { new Coordinate(referenceSystem, new UnityEngine.Vector3()) }, new BaseTagValue[0]);
+                        string[] values = lines[l].Split('\t');
+                        for (int v = 0; v < values.Length && v < columns.Length; v++)
                         {
-                            site.Tags.Add(new BaseTagValue(kvTag.Value, args[kvTag.Key]));
+                            string column = columns[v];
+                            string value = values[v];
+                            if (column == "name") site.Name = value;
+                            else if (column == "x" && NumberExtension.TryParseFloat(value, out float x)) site.Coordinates[0].Value = new SerializableVector3(x, site.Coordinates[0].Value.y, site.Coordinates[0].Value.z);
+                            else if (column == "y" && NumberExtension.TryParseFloat(value, out float y)) site.Coordinates[0].Value = new SerializableVector3(site.Coordinates[0].Value.x, y, site.Coordinates[0].Value.z);
+                            else if (column == "z" && NumberExtension.TryParseFloat(value, out float z)) site.Coordinates[0].Value = new SerializableVector3(site.Coordinates[0].Value.x, site.Coordinates[0].Value.y, z);
+                            else if(loadTags)
+                            {
+                                BaseTag tag = projectTags.FirstOrDefault(t => t.Name == column);
+                                if (tag != null)
+                                {
+                                    BaseTagValue tagValue = null;
+                                    if (tag is EmptyTag emptyTag)
+                                    {
+                                        tagValue = new EmptyTagValue(emptyTag);
+                                    }
+                                    else if (tag is BoolTag boolTag)
+                                    {
+                                        if (bool.TryParse(value, out bool result))
+                                        {
+                                            tagValue = new BoolTagValue(boolTag, result);
+                                        }
+                                    }
+                                    else if (tag is EnumTag enumTag)
+                                    {
+                                        tagValue = new EnumTagValue(enumTag, value);
+                                    }
+                                    else if (tag is FloatTag floatTag)
+                                    {
+                                        if (NumberExtension.TryParseFloat(value, out float result))
+                                        {
+                                            tagValue = new FloatTagValue(floatTag, result);
+                                        }
+                                    }
+                                    else if (tag is IntTag intTag)
+                                    {
+                                        if (int.TryParse(value, out int result))
+                                        {
+                                            tagValue = new IntTagValue(intTag, result);
+                                        }
+                                    }
+                                    else if (tag is StringTag stringTag)
+                                    {
+                                        tagValue = new StringTagValue(stringTag, value);
+                                    }
+                                    if (tagValue != null)
+                                    {
+                                        site.Tags.Add(tagValue);
+                                    }
+                                }
+                            }
                         }
-                        result.Add(site);
+                        sites.Add(site);
                     }
                 }
             }
-            return result;
+            return sites;
         }
         public static List<Site> LoadImplantationFromIntrAnatFile(string referenceSystem, string ptsFile, string csvFile)
         {
@@ -293,12 +334,11 @@ namespace HBP.Data
                                     }
                                     else if (tag is EnumTag enumTag)
                                     {
-                                        int index = Array.IndexOf(enumTag.Values, value);
-                                        tagValue = new EnumTagValue(enumTag, index);
+                                        tagValue = new EnumTagValue(enumTag, value);
                                     }
                                     else if (tag is FloatTag floatTag)
                                     {
-                                        if (float.TryParse(value, out float result))
+                                        if (NumberExtension.TryParseFloat(value, out float result))
                                         {
                                             tagValue = new FloatTagValue(floatTag, result);
                                         }
@@ -409,7 +449,12 @@ namespace HBP.Data
             else if (fileInfo.Extension == ".tsv")
             {
                 string name = path.Split('_').FirstOrDefault(s => s.Contains("space")).Split('-')[1];
-                result = LoadImplantationFromBIDSFile(name, path, true).ToArray();
+                result = LoadImplantationFromBIDSFile(name, path).ToArray();
+                return true;
+            }
+            else if (fileInfo.Extension == ".csv")
+            {
+                result = LoadSitesFromCSVFile(path).ToArray();
                 return true;
             }
             return false;
