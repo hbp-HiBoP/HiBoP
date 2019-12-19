@@ -9,6 +9,7 @@
 		_Glossiness("Smoothness", Range(0,1)) = 0.5
 		_Metallic("Metallic", Range(0,1)) = 0.0
 		_Atlas("Atlas", int) = 0
+		_Activity("Activity", int) = 0
 		_Amount("Extrusion Amount", Range(0, 1)) = 0
 		_MaxRadius("Maximum extrusion radius", Range(0,100)) = 100
 	}
@@ -24,6 +25,7 @@
 			sampler2D _ColorTex;
 
 			int _Atlas;
+			int _Activity;
 			half _Glossiness;
 			half _Metallic;
 			fixed4 _Color;
@@ -120,8 +122,8 @@
 			void surf(Input IN, inout SurfaceOutputStandard o)
 			{
 				clip(is_clipped(IN));
-							
-				if (_Atlas)
+						
+				if (_Atlas & !_Activity)
 				{
 					display_atlas(IN, o);
 				}

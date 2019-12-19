@@ -1,25 +1,34 @@
 ﻿using HBP.Module3D;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
+    /// <summary>
+    /// Overlay element to display the current point on the timeline of the column
+    /// </summary>
     public class TimeDisplay : ColumnOverlayElement
     {
         #region Properties
-        [SerializeField]
-        private Text m_Text;
+        /// <summary>
+        /// Displays the current point on the timeline (index and time)
+        /// </summary>
+        [SerializeField] private Text m_Text;
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Setup the overlay element
+        /// </summary>
+        /// <param name="scene">Associated 3D scene</param>
+        /// <param name="column">Associated 3D column</param>
+        /// <param name="columnUI">Parent UI column</param>
         public override void Setup(Base3DScene scene, Column3D column, Column3DUI columnUI)
         {
             base.Setup(scene, column, columnUI);
             IsActive = false;
 
-            scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
+            scene.OnUpdateGeneratorState.AddListener((value) =>
             {
                 if (column is Column3DDynamic)
                 {

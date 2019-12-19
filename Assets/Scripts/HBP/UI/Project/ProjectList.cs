@@ -1,10 +1,9 @@
-﻿using HBP.Data.General;
-using System.Linq;
+﻿using System.Linq;
 using UnityEngine;
 
 namespace HBP.UI
 {
-    public class ProjectList : Tools.Unity.Lists.SelectableListWithItemAction<ProjectInfo>
+    public class ProjectList : Tools.Unity.Lists.ActionableList<Data.ProjectInfo>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Patients, DescendingPatients, Groups, DescendingGroups, Protocols, DescendingProtocols, Datasets, DescendingDatasets, Visualizations, DescendingVisualizations }

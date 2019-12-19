@@ -39,7 +39,7 @@ public class LoadingManager : MonoBehaviour
         switch (task.State)
         {
             case TaskState.Done:
-                yield return new WaitForSeconds(0.5f);
+                yield return new WaitForSeconds(0.2f);
                 break;
             case TaskState.Error:
                 Exception exception = task.Exception;

@@ -34,7 +34,7 @@ public class ShortcutManager : MonoBehaviour
         Base3DScene scene = ApplicationState.Module3D.SelectedScene;
         if (scene != null)
         {
-            Column3D selectedColumn = scene.ColumnManager.SelectedColumn;
+            Column3D selectedColumn = scene.SelectedColumn;
             int selectedId = selectedColumn.SelectedSiteID;
             if (selectedId != -1)
             {
@@ -56,7 +56,7 @@ public class ShortcutManager : MonoBehaviour
                     }
                     site = selectedColumn.Sites[id];
                 }
-                while ((!site.State.IsFiltered || site.State.IsMasked) && ++count < selectedColumn.Sites.Count);
+                while ((!site.State.IsFiltered || site.State.IsMasked || (!scene.ShowAllSites && selectedColumn.SelectedROI != null && site.State.IsOutOfROI)) && ++count < selectedColumn.Sites.Count);
                 site.IsSelected = true;
             }
         }
@@ -67,7 +67,7 @@ public class ShortcutManager : MonoBehaviour
         Base3DScene scene = ApplicationState.Module3D.SelectedScene;
         if (scene)
         {
-            Column3D column = scene.ColumnManager.SelectedColumn;
+            Column3D column = scene.SelectedColumn;
             if (column)
             {
                 Site selectedSite = column.SelectedSite;

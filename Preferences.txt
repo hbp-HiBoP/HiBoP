@@ -1,17 +1,17 @@
 {
   "General": {
     "Project": {
-      "DefaultName": "New project",
+      "DefaultName": "New Project",
       "DefaultLocation": "D:\\HiBoP\\Projects",
-      "DefaultPatientDatabase": "D:\\HiBoP\\Data\\Patients",
-      "DefaultLocalizerDatabase": "D:\\HiBoP\\Data\\Loca",
-      "DefaultExportLocation": "D:/ScreenShot"
+      "DefaultPatientDatabase": "D:\\HBP\\BDD\\Patients",
+      "DefaultLocalizerDatabase": "D:\\HBP\\BDD\\Localizers",
+      "DefaultExportLocation": ""
     },
     "Theme": {},
-    "Localization": {},
+    "Location": {},
     "System": {
       "MultiThreading": true,
-      "MemoryCacheLimit": 16345
+      "MemoryCacheLimit": 9225
     }
   },
   "Data": {
@@ -21,9 +21,9 @@
     },
     "Protocol": {
       "PositionAveraging": 1,
-      "MinLimit": -1500.0,
-      "MaxLimit": 3500.0,
-      "Step": 100
+      "MinLimit": -3000.0,
+      "MaxLimit": 3000.0,
+      "Step": 1
     },
     "Anatomic": {
       "SiteNameCorrection": true,
@@ -47,14 +47,14 @@
       "ShowWholeProtocol": false,
       "TrialsSynchronization": true,
       "TrialSmoothing": true,
-      "NumberOfIntermediateValues": 4,
-      "SubBlocFormat": 0,
-      "TrialHeight": 20,
-      "TrialRatio": 0.06969325,
-      "BlocRatio": 0.184049129
+      "NumberOfIntermediateValues": 3,
+      "SubBlocFormat": 2,
+      "TrialHeight": 13,
+      "TrialRatio": 0.02,
+      "BlocRatio": 1.0
     },
     "Graph": {
-      "ShowCurvesOfMinimizedColumns": true
+      "ShowCurvesOfMinimizedColumns": false
     },
     "Cut": {
       "ShowCutLines": true

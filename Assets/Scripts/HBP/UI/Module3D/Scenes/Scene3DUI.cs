@@ -1,19 +1,19 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using System.Linq;
 using Tools.Unity.ResizableGrid;
-using UnityEngine.UI;
-using UnityEngine.EventSystems;
-using System;
 using HBP.Module3D;
-using Tools.Unity;
 
 namespace HBP.UI.Module3D
 {
+    /// <summary>
+    /// This class is used to properly display a scene 3D in the UI
+    /// </summary>
     public class Scene3DUI : MonoBehaviour
     {
         #region Properties
+        /// <summary>
+        /// If the difference between the width of the scene and the default minimum width of a column in the ResizableGrid is less than this value, it is considered minimized
+        /// </summary>
         private const float MINIMIZED_THRESHOLD = 200.0f;
         /// <summary>
         /// Associated logical Base3DScene
@@ -23,19 +23,23 @@ namespace HBP.UI.Module3D
         /// Linked resizable grid
         /// </summary>
         private ResizableGrid m_ResizableGrid;
+        /// <summary>
+        /// Reference to the RectTransform of this object
+        /// </summary>
         private RectTransform m_RectTransform;
 
+        /// <summary>
+        /// Progress bar overlay element to show feedback when computing the activity on the brain
+        /// </summary>
         [SerializeField] private ProgressBar m_ProgressBar;
         /// <summary>
         /// Feedback for when the iEEG are not up to date
         /// </summary>
-        [SerializeField]
-        private IEEGOutdated m_IEEGOutdated;
+        [SerializeField] private IEEGOutdated m_IEEGOutdated;
         /// <summary>
-        /// GameObject to hide a minimized column
+        /// GameObject to hide a minimized scene
         /// </summary>
-        [SerializeField]
-        private GameObject m_MinimizedGameObject;
+        [SerializeField] private GameObject m_MinimizedGameObject;
         /// <summary>
         /// Is the scene minimzed ?
         /// </summary>
@@ -61,6 +65,15 @@ namespace HBP.UI.Module3D
                 m_MinimizedGameObject.SetActive(IsMinimized);
                 m_RectTransform.hasChanged = false;
             }
+
+            if (m_Scene.UpdatingGenerators)
+            {
+                m_ProgressBar.Open();
+            }
+            else
+            {
+                m_ProgressBar.Close();
+            }
         }
         #endregion
 
@@ -73,11 +86,11 @@ namespace HBP.UI.Module3D
         {
             m_Scene = scene;
             m_IEEGOutdated.Initialize();
-            for (int i = 0; i < m_Scene.ColumnManager.Columns.Count; i++)
+            for (int i = 0; i < m_Scene.Columns.Count; i++)
             {
                 m_ResizableGrid.AddColumn();
                 Column3DUI columnUI = m_ResizableGrid.Columns.Last().GetComponent<Column3DUI>();
-                columnUI.Initialize(m_Scene, m_Scene.ColumnManager.Columns[i]);
+                columnUI.Initialize(m_Scene, m_Scene.Columns[i]);
                 columnUI.OnChangeColumnSize.AddListener(() =>
                 {
                     columnUI.UpdateOverlayElementsPosition();
@@ -89,7 +102,7 @@ namespace HBP.UI.Module3D
             {
                 Column3DUI columnUI = m_ResizableGrid.Columns[i].GetComponent<Column3DUI>();
                 View3DUI viewUI = m_ResizableGrid.Columns[i].Views.Last().GetComponent<View3DUI>();
-                viewUI.Initialize(m_Scene, m_Scene.ColumnManager.Columns[i], m_Scene.ColumnManager.Columns[i].Views.Last());
+                viewUI.Initialize(m_Scene, m_Scene.Columns[i], m_Scene.Columns[i].Views.Last());
                 viewUI.OnChangeViewSize.AddListener(() =>
                 {
                     columnUI.UpdateOverlayElementsPosition();
@@ -98,21 +111,14 @@ namespace HBP.UI.Module3D
             }
 
             // Listeners
-            m_Scene.ColumnManager.OnAddColumn.AddListener(() =>
+            m_Scene.OnAddColumn.AddListener(() =>
             {
                 if (!m_Scene) return; // if the scene has not been initialized, don't proceed
 
                 m_ResizableGrid.AddColumn();
-                m_ResizableGrid.Columns.Last().GetComponent<Column3DUI>().Initialize(m_Scene, m_Scene.ColumnManager.Columns.Last());
+                m_ResizableGrid.Columns.Last().GetComponent<Column3DUI>().Initialize(m_Scene, m_Scene.Columns.Last());
             });
-            m_Scene.ColumnManager.OnRemoveColumn.AddListener((column) =>
-            {
-                if (!m_Scene) return;
-
-                int columnID = m_Scene.ColumnManager.Columns.ToList().FindIndex((c) => c == column);
-                m_ResizableGrid.RemoveColumn(m_ResizableGrid.Columns[columnID]);
-            });
-            m_Scene.ColumnManager.OnAddViewLine.AddListener(() =>
+            m_Scene.OnAddViewLine.AddListener(() =>
             {
                 if (!m_Scene) return;
 
@@ -130,7 +136,7 @@ namespace HBP.UI.Module3D
                     });
                 }
             });
-            m_Scene.ColumnManager.OnRemoveViewLine.AddListener((lineID) =>
+            m_Scene.OnRemoveViewLine.AddListener((lineID) =>
             {
                 if (!m_Scene) return;
 
@@ -141,17 +147,6 @@ namespace HBP.UI.Module3D
                 if (!m_Scene) return;
 
                 m_ResizableGrid.ResetPositions();
-            });
-            m_Scene.OnUpdatingGenerator.AddListener((value) =>
-            {
-                if (value)
-                {
-                    m_ProgressBar.Open();
-                }
-                else
-                {
-                    m_ProgressBar.Close();
-                }
             });
             m_Scene.OnProgressUpdateGenerator.AddListener((progress, message, duration) =>
             {

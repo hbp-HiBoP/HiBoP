@@ -7,7 +7,7 @@ using HBP.Data.Experience.Dataset;
 using System.Linq;
 using Tools.Unity;
 
-namespace HBP.UI.Visualization
+namespace HBP.UI
 {
     public class CCEPColumnModifier : SubModifier<CCEPColumn>
     {
@@ -85,7 +85,7 @@ namespace HBP.UI.Visualization
         // Protocol.
         void SetProtocolDropdown()
         {
-            m_Protocols = ApplicationState.ProjectLoaded.Protocols.ToList();
+            m_Protocols = ApplicationState.ProjectLoaded.Protocols.Where(p => p.IsVisualizable).ToList();
             SetProtocolDropdownInteractable(m_Protocols != null && m_Patients != null && m_Protocols.Count > 0 && m_Patients.Length > 0);
         }
         void OnChangeProtocol(int value)

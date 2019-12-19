@@ -1,45 +1,61 @@
-﻿using Tools.Unity.Lists;
+﻿using System.Linq;
+using Tools.Unity.Lists;
+using UnityEngine;
 
 namespace HBP.UI
 {
-    public class ObjectSelector<T> : SavableWindow
+    public abstract class ObjectSelector<T> : DialogWindow
     {
         #region Properties
-        protected SelectableList<T> m_List;
+        protected abstract SelectableList<T> List { get; }
         public T[] Objects
         {
             get
             {
-                return m_List.Objects;
+                return List.Objects.ToArray();
             }
             set
             {
-                m_List.Objects = value;
+                List.Set(value);
             }
         }
         public T[] ObjectsSelected
         {
             get
             {
-                return m_List.ObjectsSelected;
+                return List.ObjectsSelected;
             }
             set
             {
-                m_List.ObjectsSelected = value;
+                List.ObjectsSelected = value;
             }
         }
-        public bool MultiSelection
+
+        public enum SelectionType { Single, Multi}
+        [SerializeField] SelectionType m_Selection;
+        public SelectionType Selection
         {
             get
             {
-                return m_List.MultiSelection;
+                return m_Selection;
             }
             set
             {
-                m_List.MultiSelection = value;
+                m_Selection = value;
+                switch (value)
+                {
+                    case SelectionType.Single:
+                        List.ItemSelection = SelectableList<T>.SelectionType.SingleItem;
+                        break;
+                    case SelectionType.Multi:
+                        List.ItemSelection = SelectableList<T>.SelectionType.MultipleItems;
+                        break;
+                    default:
+                        break;
+                }
             }
         }
-        public bool OpenModifierWhenSave { get; set; }
+        public bool OpenModifiers { get; set; }
 
         public override bool Interactable
         {
@@ -51,7 +67,7 @@ namespace HBP.UI
             set
             {
                 base.Interactable = value;
-                m_List.Interactable = value;
+                List.Interactable = value;
             }
         }
         #endregion
@@ -59,15 +75,15 @@ namespace HBP.UI
         #region Private Methods
         protected override void Initialize()
         {
-            m_List.Initialize();
-            m_List.OnSelectionChanged.AddListener(UpdateButtonState);
+            List.OnSelect.AddListener((obj) => UpdateButtonState());
+            List.OnDeselect.AddListener((obj) => UpdateButtonState());
             UpdateButtonState();
 
             base.Initialize();
         }
         void UpdateButtonState()
         {
-            m_SaveButton.interactable = Interactable && ObjectsSelected.Length > 0;
+            m_OKButton.interactable = Interactable && ObjectsSelected.Length > 0;
         }
         #endregion
     }

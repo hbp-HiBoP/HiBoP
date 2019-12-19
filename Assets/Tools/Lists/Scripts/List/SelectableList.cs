@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
@@ -10,12 +9,41 @@ namespace Tools.Unity.Lists
     public class SelectableList<T> : List<T>, ISelectionCountable
     {
         #region Properties
-        protected UnityEvent m_OnSelectionChanged = new UnityEvent();
-        public virtual UnityEvent OnSelectionChanged
+        public enum SelectionType { None, SingleItem, MultipleItems }
+        [SerializeField] protected SelectionType m_ItemSelection = SelectionType.MultipleItems;
+        public SelectionType ItemSelection
         {
-            get { return m_OnSelectionChanged; }
+            get
+            {
+                return m_ItemSelection;
+            }
+            set
+            {
+                m_ItemSelection = value;
+                T[] objectSelected = ObjectsSelected;
+                switch (value)
+                {
+                    case SelectionType.None:
+                        if(m_SelectAllToggle) m_SelectAllToggle.interactable = false;
+                        DeselectAll();
+                        foreach (var item in m_Items) item.Interactable = false;
+                        break;
+                    case SelectionType.SingleItem:
+                        if (m_SelectAllToggle)  m_SelectAllToggle.interactable = false;
+                        for (int i = 1; i < objectSelected.Length; i++) Deselect(objectSelected[i]);
+                        foreach (var item in m_Items) item.Interactable = true;
+                        break;
+                    case SelectionType.MultipleItems:
+                        if (m_SelectAllToggle) m_SelectAllToggle.interactable = true;
+                        foreach (var item in m_Items) item.Interactable = true;
+                        break;
+                }
+            }
         }
-        public BoolEvent OnAllSelected = new BoolEvent();
+
+        [SerializeField] protected Toggle m_SelectAllToggle;
+
+        protected Dictionary<T, bool> m_SelectedStateByObject = new Dictionary<T, bool>();
         public virtual T[] ObjectsSelected
         {
             get
@@ -28,32 +56,26 @@ namespace Tools.Unity.Lists
                 Select(from obj in m_Objects.Where((elt) => value.Contains(elt)) select obj);
             }
         }
-        protected Dictionary<T, bool> m_SelectedStateByObject;
-        [SerializeField] protected bool m_MultiSelection;
-        public virtual bool MultiSelection
-        {
-            get
-            {
-                return m_MultiSelection;
-            }
-            set
-            {
-                m_MultiSelection = value;
-                if (!value)
-                {
-                    T[] objectSelected = ObjectsSelected;
-                    for (int i = 1; i < objectSelected.Length; i++)
-                    {
-                        Deselect(objectSelected[i]);
-                    }
-                }
-            }
-        }
-        public int NumberOfItemSelected
+
+        int ISelectionCountable.NumberOfItemSelected
         {
             get { return ObjectsSelected.Length; }
         }
-        protected bool m_AllSelected;
+        UnityEvent ISelectionCountable.OnSelectionChanged { get; } = new UnityEvent();
+
+        public virtual UnityEvent<T> OnSelect { get; } = new GenericEvent<T>();
+        public virtual UnityEvent<T> OnDeselect { get; } = new GenericEvent<T>();
+
+        public override bool Interactable
+        {
+            get => base.Interactable;
+            set
+            {
+                base.Interactable = value;
+                if (m_SelectAllToggle != null) m_SelectAllToggle.interactable = value && m_ItemSelection == SelectionType.MultipleItems;
+            }
+        }
+        bool m_SelectionLock;
         #endregion
 
         #region Public Methods
@@ -62,7 +84,7 @@ namespace Tools.Unity.Lists
             if (base.Add(obj))
             {
                 m_SelectedStateByObject.Add(obj, false);
-                OnSelectionChangeCallBack();
+                OnSelectionChanged();
                 return true;
             }
             return false;
@@ -72,7 +94,7 @@ namespace Tools.Unity.Lists
             if (base.Remove(obj))
             {
                 m_SelectedStateByObject.Remove(obj);
-                OnSelectionChangeCallBack();
+                OnSelectionChanged();
                 return true;
             }
             return false;
@@ -89,26 +111,31 @@ namespace Tools.Unity.Lists
         {
             DeselectAll(Toggle.ToggleTransition.None);
         }
-        public virtual void DeselectAll(Toggle.ToggleTransition transition) 
+        public virtual void DeselectAll(Toggle.ToggleTransition transition)
         {
             Deselect(m_Objects, transition);
         }
         public virtual void Select(T objectToSelect, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {
-            if (!m_MultiSelection)
+            switch (m_ItemSelection)
             {
-                Deselect(m_Objects.Where((o) => !o.Equals(objectToSelect)));
+                case SelectionType.None:
+                    DeselectAll();
+                    return;
+                case SelectionType.SingleItem:
+                    Deselect(m_Objects.Where((o) => !o.Equals(objectToSelect)));
+                    break;
             }
             if (m_SelectedStateByObject.ContainsKey(objectToSelect))
             {
                 m_SelectedStateByObject[objectToSelect] = true;
             }
-            Item<T> item;
-            if (GetItemFromObject(objectToSelect, out item))
+            if (GetItemFromObject(objectToSelect, out Item<T> item))
             {
                 (item as SelectableItem<T>).Select(true, transition);
             }
-            OnSelectionChangeCallBack();
+            OnSelect.Invoke(objectToSelect);
+            OnSelectionChanged();
         }
         public virtual void Select(IEnumerable<T> objectsToSelect, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {
@@ -120,12 +147,12 @@ namespace Tools.Unity.Lists
             {
                 m_SelectedStateByObject[objectToDeselect] = false;
             }
-            Item<T> item;
-            if (GetItemFromObject(objectToDeselect, out item))
+            if (GetItemFromObject(objectToDeselect, out Item<T> item))
             {
                 (item as SelectableItem<T>).Select(false, transition);
             }
-            OnSelectionChangeCallBack();
+            OnDeselect.Invoke(objectToDeselect);
+            OnSelectionChanged();
         }
         public virtual void Deselect(IEnumerable<T> objectsToDeselect, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {
@@ -133,23 +160,13 @@ namespace Tools.Unity.Lists
         }
         public override bool UpdateObject(T objectToUpdate)
         {
-            Item<T> item;
-            if (GetItemFromObject(objectToUpdate, out item))
+            if (GetItemFromObject(objectToUpdate, out Item<T> item))
             {
                 SelectableItem<T> selectableItem = item as SelectableItem<T>;
                 selectableItem.Object = objectToUpdate;
                 selectableItem.OnChangeSelected.RemoveAllListeners();
                 selectableItem.Select(m_SelectedStateByObject[objectToUpdate]);
-                selectableItem.OnChangeSelected.AddListener((selected) => OnSelection(objectToUpdate, selected));
-                return true;
-            }
-            return false;
-        }
-        public override bool Initialize()
-        {
-            if(base.Initialize())
-            {
-                m_SelectedStateByObject = new Dictionary<T, bool>();
+                selectableItem.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(objectToUpdate, selected));
                 return true;
             }
             return false;
@@ -165,40 +182,70 @@ namespace Tools.Unity.Lists
                 item.Object = obj;
                 item.OnChangeSelected.RemoveAllListeners();
                 item.Select(m_SelectedStateByObject[obj]);
-                item.OnChangeSelected.AddListener((selected) => OnSelection(obj, selected));
+                item.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(obj, selected));
             }
         }
         #endregion
 
         #region Private Methods
+        void OnValidate()
+        {
+            Validate();
+        }
+        void Awake()
+        {
+            if (m_SelectAllToggle != null) m_SelectAllToggle.onValueChanged.AddListener(OnSelectAllToggleValueChanged);
+            Validate();
+        }
+        protected override void Validate()
+        {
+            base.Validate();
+            ItemSelection = ItemSelection;
+        }
         protected override void SetItem(Item<T> item, T obj)
         {
             base.SetItem(item, obj);
             SelectableItem<T> selectableItem = item as SelectableItem<T>;
             selectableItem.OnChangeSelected.RemoveAllListeners();
             selectableItem.Select(m_SelectedStateByObject[obj]);
-            selectableItem.OnChangeSelected.AddListener((selected) => OnSelection(obj, selected));
+            selectableItem.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(obj, selected));
         }
-        protected virtual void OnSelection(T obj, bool selected)
+        protected virtual void OnChangeSelectionState(T obj, bool selected)
         {
-            if (!m_MultiSelection)
+            if (!m_SelectionLock)
             {
-                Deselect(m_Objects.Where((o) => !o.Equals(obj)), Toggle.ToggleTransition.Fade);
+                m_SelectionLock = true;
+                switch (m_ItemSelection)
+                {
+                    case SelectionType.None:
+                        return;
+                    case SelectionType.SingleItem:
+                        Deselect(m_Objects.Where((o) => !o.Equals(obj)), Toggle.ToggleTransition.Fade);
+                        break;
+                }
+                if (m_SelectedStateByObject.ContainsKey(obj))
+                {
+                    m_SelectedStateByObject[obj] = selected;
+                }
+                if (selected) OnSelect.Invoke(obj);
+                else OnDeselect.Invoke(obj);
+                OnSelectionChanged();
+                m_SelectionLock = false;
             }
-            if (m_SelectedStateByObject.ContainsKey(obj))
-            {
-                m_SelectedStateByObject[obj] = selected;
-            }
-            OnSelectionChangeCallBack();
         }
-        protected virtual void OnSelectionChangeCallBack()
+        protected virtual void OnSelectionChanged()
         {
-            OnSelectionChanged.Invoke();
-            bool allSelected = Objects.Length == ObjectsSelected.Length && Objects.Length > 0;
-            if (m_AllSelected != allSelected)
+            if (m_SelectAllToggle != null) m_SelectAllToggle.isOn = m_Objects.Count == ObjectsSelected.Length && m_Objects.Count > 0 && m_ItemSelection == SelectionType.MultipleItems;
+            (this as ISelectionCountable).OnSelectionChanged.Invoke();
+        }
+        protected virtual void OnSelectAllToggleValueChanged(bool toggle)
+        {
+            if (!m_SelectionLock && ItemSelection == SelectionType.MultipleItems)
             {
-                m_AllSelected = allSelected;
-                OnAllSelected.Invoke(allSelected);
+                m_SelectionLock = true;
+                if (toggle) SelectAll();
+                else DeselectAll();
+                m_SelectionLock = false;
             }
         }
         #endregion

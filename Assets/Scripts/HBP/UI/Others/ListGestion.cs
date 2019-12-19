@@ -1,33 +1,15 @@
 ﻿using HBP.UI;
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Events;
-using System.Linq;
-using Tools.CSharp;
 
 namespace Tools.Unity.Components
 {
     public abstract class ListGestion<T> : MonoBehaviour where T : ICloneable, ICopiable, new()
     {
         #region Properties
-        protected List<T> m_Objects = new List<T>();
-        public virtual List<T> Objects
-        {
-            get
-            {
-                return m_Objects;
-            }
-            set
-            {
-                m_Objects = value;
-                List.Objects = new T[0]; 
-                List.Add(m_Objects);
-            }
-        }
-        protected Lists.SelectableListWithItemAction<T> List;
-        protected bool m_Interactable;
+        [SerializeField] protected bool m_Interactable;
         public bool Interactable
         {
             get
@@ -37,198 +19,130 @@ namespace Tools.Unity.Components
             set
             {
                 m_Interactable = value;
-                List.Interactable = value;
+                m_CreateButton.interactable = value;
+                m_RemoveButton.interactable = value;
             }
         }
-        public List<SavableWindow> SubWindows = new List<SavableWindow>();
-        public SavableWindowEvent OnOpenSavableWindow = new SavableWindowEvent();
-        public SavableWindowEvent OnCloseSavableWindow = new SavableWindowEvent();
-        public Text Counter;
+
+        [SerializeField] protected bool m_Modifiable;
+        public bool Modifiable
+        {
+            get
+            {
+                return m_Modifiable;
+            }
+            set
+            {
+                m_Modifiable = value;
+                foreach (var modifier in m_WindowsReferencer.Windows.OfType<ObjectModifier<T>>())
+                {
+                    modifier.Interactable = value;
+                }
+            }
+        }
+
+        public abstract Lists.ActionableList<T> List { get; }
+        public abstract ObjectCreator<T> ObjectCreator { get; }
+
+        [SerializeField] protected WindowsReferencer m_WindowsReferencer = new WindowsReferencer();
+        public virtual WindowsReferencer WindowsReferencer { get => m_WindowsReferencer; }
+
+        [SerializeField] Button m_CreateButton, m_RemoveButton;
         #endregion
 
         #region Public Methods
-        public virtual void Initialize()
+        public virtual void Create()
         {
-            List.Initialize();
-            List.OnAction.AddListener((item, v) => OpenModifier(item, Interactable));
-            List.OnSelectionChanged.AddListener(UpdateCounter);
-        }
-        public virtual void Initialize(List<HBP.UI.Window> windows)
-        {
-            Initialize();
-            OnOpenSavableWindow.AddListener((window) => windows.Add(window));
-            OnCloseSavableWindow.AddListener((window) => windows.Remove(window));
-        }
-        public virtual void Add(IEnumerable<T> items)
-        {
-            foreach (var item in items) Add(item);
-        }
-        public virtual void Add(T item)
-        {
-            if(!Objects.Contains(item))
-            {
-                Objects.Add(item);
-                List.Add(item);
-            }
-        }
-        public virtual void UpdateItem(T item)
-        {
-            int index = Objects.FindIndex((t) => t.Equals(item));
-            Objects[index] = item;
-            List.UpdateObject(item);
-        }
-        public virtual void Remove(T item)
-        {
-            if(Objects.Contains(item))
-            {
-                Objects.Remove(item);
-                List.Remove(item);
-            }
-            UpdateCounter();
-        }
-        public virtual void Remove(IEnumerable<T> items)
-        {
-            foreach (var item in items) Remove(item);
+            ObjectCreator.ExistingItems = List.Objects.ToList();
+            ObjectCreator.Create();
         }
         public virtual void RemoveSelected()
         {
-            foreach (T item in List.ObjectsSelected) Remove(item);
-        }
-        public virtual void Create()
-        {
-            OpenCreatorWindow();
+            List.Remove(List.ObjectsSelected);
         }
         #endregion
 
-        #region Private Methods
-        protected virtual void OpenCreatorWindow()
+        #region Protected Methods
+        private void OnValidate()
         {
-            CreatorWindow creatorWindow = ApplicationState.WindowsManager.Open<CreatorWindow>("Creator window", true);
-            creatorWindow.IsLoadableFromFile = typeof(T).GetInterfaces().Contains(typeof(ILoadable<T>));
-            creatorWindow.IsLoadableFromDatabase = typeof(T).GetInterfaces().Contains(typeof(ILoadableFromDatabase<T>));
-            creatorWindow.OnSave.AddListener(() => OnSaveCreator(creatorWindow));
+            Interactable = Interactable;
+            Modifiable = Modifiable;
         }
-        protected virtual void OpenSelector(T[] objects, bool multiSelection = false, bool openSelected = true)
+        void Awake()
         {
-            ObjectSelector<T> selector = ApplicationState.WindowsManager.OpenSelector<T>();
-            SubWindows.Add(selector);
-            selector.OnClose.AddListener(() => OnCloseSubWindow(selector));
-            selector.OnSave.AddListener(() => OnSaveSelector(selector));
-            selector.Objects = objects;
-            selector.MultiSelection = multiSelection;
-            selector.OpenModifierWhenSave = openSelected;
-            OnOpenSavableWindow.Invoke(selector);
-            SubWindows.Add(selector);
+            Initialize();
         }
-        protected virtual void OpenModifier(T item, bool interactable)
+        protected virtual void Initialize()
         {
-            ItemModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(item, interactable);
-            modifier.OnClose.AddListener(() => OnCloseSubWindow(modifier));
-            modifier.OnSave.AddListener(() => OnSaveModifier(modifier));
-            OnOpenSavableWindow.Invoke(modifier);
-            SubWindows.Add(modifier);
+            List.OnAction.AddListener((item, v) => OpenModifier(item));
+            List.OnAddObject.AddListener(obj => ObjectCreator.ExistingItems.Add(obj));
+            List.OnRemoveObject.AddListener(obj => ObjectCreator.ExistingItems.Remove(obj));
+            List.OnUpdateObject.AddListener(OnUpdateObject);
+            ObjectCreator.ExistingItems = List.Objects.ToList();
+            ObjectCreator.OnObjectCreated.AddListener(OnObjectCreated);
+            ObjectCreator.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
         }
-        protected virtual void OnCloseSubWindow(SavableWindow subWindow)
+        protected virtual ObjectModifier<T> OpenModifier(T item)
         {
-            OnCloseSavableWindow.Invoke(subWindow);
-            SubWindows.Remove(subWindow);
+            ObjectModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(item, m_Modifiable);
+            modifier.OnOk.AddListener(() => OnSaveModifier(modifier.Item));
+            WindowsReferencer.Add(modifier);
+            return modifier;
         }
-        protected virtual void OnSaveModifier(ItemModifier<T> modifier)
+        protected virtual void OnSaveModifier(T obj)
         {
-            if (!Objects.Contains(modifier.Item))
+            if(obj is INameable nameable)
             {
-                Add(modifier.Item);
+                if (List.Objects.Any(c => (c as INameable).Name == nameable.Name && !c.Equals(obj)))
+                {
+                    int count = 1;
+                    string name = string.Format("{0}({1})", nameable.Name, count);
+                    while (List.Objects.OfType<INameable>().Any(c => c.Name == name))
+                    {
+                        count++;
+                        name = string.Format("{0}({1})", nameable.Name, count);
+                    }
+                    nameable.Name = name;
+                }
+            }
+            if (!List.Objects.Contains(obj))
+            {
+                List.Add(obj);
             }
             else
             {
-                UpdateItem(modifier.Item);
-            }
-            OnCloseSavableWindow.Invoke(modifier);
-            SubWindows.Remove(modifier);
-        }
-        protected virtual void OnSaveCreator(CreatorWindow creatorWindow)
-        {
-            HBP.Data.Enums.CreationType type = creatorWindow.Type;
-            T item = new T();
-            switch (type)
-            {
-                case HBP.Data.Enums.CreationType.FromScratch:
-                    OpenModifier(item, Interactable);
-                    break;
-                case HBP.Data.Enums.CreationType.FromExistingItem:
-                    OpenSelector(Objects.ToArray());
-                    break;
-                case HBP.Data.Enums.CreationType.FromFile:
-                    if (LoadFromFile(out item))
-                    {
-                        OpenModifier(item, Interactable);
-                    }
-                    break;
-                case HBP.Data.Enums.CreationType.FromDatabase:
-                    LoadFromDatabase(out T[] items);
-                    OpenSelector(items, true, false);
-                    break;
+                List.UpdateObject(obj);
             }
         }
-        protected virtual void OnSaveSelector(ObjectSelector<T> selector)
+        protected virtual void OnObjectCreated(T obj)
         {
-            foreach(var selectedItem in selector.ObjectsSelected)
+            if (obj is INameable nameable)
             {
-                T cloneItem = (T)selectedItem.Clone();
-                if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
+                if (List.Objects.Any(c => (c as INameable).Name == nameable.Name && !c.Equals(obj)))
                 {
-                    IIdentifiable identifiable = cloneItem as IIdentifiable;
-                    identifiable.GenerateID();
-                }
-                if (cloneItem != null)
-                {
-                    if(selector.OpenModifierWhenSave)
+                    int count = 1;
+                    string name = string.Format("{0}({1})", nameable.Name, count);
+                    while (List.Objects.OfType<INameable>().Any(c => c.Name == name))
                     {
-                        OpenModifier(cloneItem, true);
+                        count++;
+                        name = string.Format("{0}({1})", nameable.Name, count);
                     }
-                    else
-                    {
-                        Add(cloneItem);
-                    }
+                    nameable.Name = name;
                 }
             }
-            OnCloseSavableWindow.Invoke(selector);
-            SubWindows.Remove(selector);
-        }
-        protected virtual bool LoadFromFile(out T result)
-        {
-            result = new T();
-            ILoadable<T> loadable = result as ILoadable<T>;
-            string path = FileBrowser.GetExistingFileName(new string[] { loadable.GetExtension() }).StandardizeToPath();
-            if (path != string.Empty)
+            if (!List.Objects.Contains(obj))
             {
-                result = ClassLoaderSaver.LoadFromJson<T>(path);
-                if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
-                {
-                    IIdentifiable identifiable = result as IIdentifiable;
-                    if (identifiable.ID == "xxxxxxxxxxxxxxxxxxxxxxxxx" || Objects.Any(p => (p as IIdentifiable).ID == identifiable.ID))
-                    {
-
-                        identifiable.ID = Guid.NewGuid().ToString();
-                    }
-                }
-                return true;
+                List.Add(obj);
             }
-            return false;
-        }
-        protected virtual bool LoadFromDatabase(out T[] results)
-        {
-            string path = FileBrowser.GetExistingDirectoryName();
-            ILoadableFromDatabase<T> loadable = new T() as ILoadableFromDatabase<T>;
-            return loadable.LoadFromDatabase(path, out results);
-        }
-
-        protected virtual void UpdateCounter()
-        {
-            if(Counter != null)
+            else
             {
-                Counter.text = List.ObjectsSelected.Length.ToString();
+                List.UpdateObject(obj);
             }
+        }
+        protected virtual void OnUpdateObject(T obj)
+        {
+            int index = ObjectCreator.ExistingItems.FindIndex(o => o.Equals(obj));
+            ObjectCreator.ExistingItems[index] = obj;
         }
         #endregion
     }

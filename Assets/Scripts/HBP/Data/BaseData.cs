@@ -14,9 +14,9 @@ namespace HBP.Data
         public BaseData() : this(Guid.NewGuid().ToString())
         {
         }
-        public BaseData(string id)
+        public BaseData(string ID)
         {
-            ID = id;
+            this.ID = ID;
         }
         #endregion
 
@@ -35,9 +35,9 @@ namespace HBP.Data
         /// <returns>\a True if equals and \a false otherwise.</returns>
         public override bool Equals(object obj)
         {
-            if (obj.GetType() == GetType())
+            if (obj is BaseData baseData)
             {
-                return ID == (obj as BaseData).ID;
+                return ID == baseData.ID;
             }
             else
             {
@@ -77,6 +77,45 @@ namespace HBP.Data
             {
                 ID = baseData.ID;
             }
+        }
+        #endregion
+
+        #region Serialization
+        [OnSerializing()]
+        internal void OnSerializingMethod(StreamingContext context)
+        {
+            OnSerializing();
+        }
+        [OnSerialized()]
+        internal void OnSerializedMethod(StreamingContext context)
+        {
+            OnSerialized();
+        }
+        [OnDeserializing()]
+        internal void OnDeserializingMethod(StreamingContext context)
+        {
+            OnDeserializing();
+        }
+        [OnDeserialized()]
+        internal void OnDeserializedMethod(StreamingContext context)
+        {
+            OnDeserialized();
+        }
+        protected virtual void OnSerializing()
+        {
+
+        }
+        protected virtual void OnSerialized()
+        {
+
+        }
+        protected virtual void OnDeserializing()
+        {
+
+        }
+        protected virtual void OnDeserialized()
+        {
+
         }
         #endregion
     }

@@ -448,7 +448,10 @@ namespace HBP.UI.TrialMatrix.Grid
         }
         void SelectTrials(int startIndex, int endIndex, bool select, bool additive = false)
         {
+            startIndex = Mathf.Clamp(startIndex, 0, m_TrialIsSelected.Length - 1);
+            endIndex = Mathf.Clamp(endIndex, 0, m_TrialIsSelected.Length - 1);
             bool[] selection = additive ? m_TrialIsSelected.ToArray() : Enumerable.Repeat(false, m_TrialIsSelected.Length).ToArray();
+
             for (int i = startIndex; i <= endIndex; i++)
             {
                 selection[i] = select;

@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace Tools.Unity
 {
-    public class BugReporterWindow : SavableWindow
+    public class BugReporterWindow : DialogWindow
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -20,21 +20,21 @@ namespace Tools.Unity
         #endregion
 
         #region Public Methods
-        public override void Save()
+        public override void OK()
         {
             try
             {
                 if (string.IsNullOrEmpty(m_DescriptionInputField.text))
                 {
                     ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Empty description", "The description field is empty; we might not be able to help you properly.\nDo you still want to send the bug report without any description ?",
-                        () => { SendMail(); base.Save(); }, "Send",
+                        () => { SendMail(); base.OK(); }, "Send",
                         () => { }, "Cancel"
                         );
                 }
                 else
                 {
                     SendMail();
-                    base.Save();
+                    base.OK();
                 }
             }
             catch (Exception e)
@@ -48,7 +48,7 @@ namespace Tools.Unity
                 {
                     ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, e.Source, e.Message);
                 }
-                base.Save();
+                base.OK();
             }
         }
         #endregion
@@ -104,16 +104,16 @@ namespace Tools.Unity
                     switch (Application.platform)
                     {
                         case RuntimePlatform.OSXPlayer:
-                            logFile = "~/Library/Logs/Unity/Player.log";
+                            logFile = Path.Combine("~", "Library", "Logs", Application.companyName, Application.productName, "Player.log");
                             break;
                         case RuntimePlatform.WindowsPlayer:
-                            logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "..", "LocalLow", Application.companyName, Application.productName, "output_log.txt");
+                            logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "..", "LocalLow", Application.companyName, Application.productName, "Player.log");
                             break;
                         case RuntimePlatform.LinuxPlayer:
-                            logFile = "~/.config/unity3d/CRNL/HiBoP/Player.log";
+                            logFile = Path.Combine("~", ".config", "unity3d", Application.companyName, Application.productName, "Player.log");
                             break;
                         default:
-                            logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "..", "LocalLow", Application.companyName, Application.productName, "output_log.txt");
+                            logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "..", "LocalLow", Application.companyName, Application.productName, "Player.log");
                             break;
                     }
                     if (File.Exists(logFile))

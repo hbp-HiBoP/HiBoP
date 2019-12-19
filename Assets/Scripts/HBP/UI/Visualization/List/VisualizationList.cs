@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace HBP.UI.Visualization
 {
-    public class VisualizationList : Tools.Unity.Lists.SelectableListWithItemAction<Data.Visualization.Visualization>
+    public class VisualizationList : Tools.Unity.Lists.ActionableList<Data.Visualization.Visualization>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Patients, DescendingPatients, Columns, DescendingColumns }

@@ -1,50 +1,34 @@
 ﻿using HBP.Module3D;
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
+    /// <summary>
+    /// Overlay element to display the used colormap and the corresponding minimum, middle and maximum values
+    /// </summary>
     public class Colormap : ColumnOverlayElement
     {
         #region Properties
-        public Sprite Colormap0;
-        public Sprite Colormap1;
-        public Sprite Colormap2;
-        public Sprite Colormap3;
-        public Sprite Colormap4;
-        public Sprite Colormap5;
-        public Sprite Colormap6;
-        public Sprite Colormap7;
-        public Sprite Colormap8;
-        public Sprite Colormap9;
-        public Sprite Colormap10;
-        public Sprite Colormap11;
-        public Sprite Colormap12;
-        public Sprite Colormap13;
-        public Sprite Colormap14;
-        public Sprite Colormap15;
-        public Sprite Colormap16;
-        public Sprite Colormap17;
+        /// <summary>
+        /// Image containing the colormap sprite
+        /// </summary>
+        [SerializeField] private Image m_ColormapImage;
 
         /// <summary>
-        /// Icon of the colormap display
+        /// Displays the minimum value for the colormap
         /// </summary>
-        private Image m_Icon;
-
+        [SerializeField] private Text m_Min;
         /// <summary>
-        /// Minimum value
+        /// Displays the middle value for the colormap
         /// </summary>
-        private Text m_Min;
+        [SerializeField] private Text m_Mid;
         /// <summary>
-        /// Middle value
+        /// Displays the maximum value for the colormap
         /// </summary>
-        private Text m_Mid;
-        /// <summary>
-        /// Maximum value
-        /// </summary>
-        private Text m_Max;
+        [SerializeField] private Text m_Max;
 
         /// <summary>
         /// Links between the type of a color and its sprite
@@ -55,40 +39,26 @@ namespace HBP.UI.Module3D
         #region Private Methods
         private void Awake()
         {
-            m_SpriteByColorType.Add(Data.Enums.ColorType.Grayscale, Colormap0);
-            m_SpriteByColorType.Add(Data.Enums.ColorType.Hot, Colormap1);
-            m_SpriteByColorType.Add(Data.Enums.ColorType.Winter, Colormap2);
-            m_SpriteByColorType.Add(Data.Enums.ColorType.Warm, Colormap3);
-            m_SpriteByColorType.Add(Data.Enums.ColorType.Surface, Colormap4);
-            m_SpriteByColorType.Add(Data.Enums.ColorType.Cool, Colormap5);
-            m_SpriteByColorType.Add(Data.Enums.ColorType.RedYellow, Colormap6);
-            m_SpriteByColorType.Add(Data.Enums.ColorType.BlueGreen, Colormap7);
-            m_SpriteByColorType.Add(Data.Enums.ColorType.ACTC, Colormap8);
-            m_SpriteByColorType.Add(Data.Enums.ColorType.Bone, Colormap9);
-            m_SpriteByColorType.Add(Data.Enums.ColorType.GEColor, Colormap10);
-            m_SpriteByColorType.Add(Data.Enums.ColorType.Gold, Colormap11);
-            m_SpriteByColorType.Add(Data.Enums.ColorType.XRain, Colormap12);
-            m_SpriteByColorType.Add(Data.Enums.ColorType.MatLab, Colormap13);
-            m_SpriteByColorType.Add(Data.Enums.ColorType.Default, Colormap14);
-            m_SpriteByColorType.Add(Data.Enums.ColorType.BrainColor, Colormap15);
-            m_SpriteByColorType.Add(Data.Enums.ColorType.White, Colormap16);
-            m_SpriteByColorType.Add(Data.Enums.ColorType.SoftGrayscale, Colormap17);
-
-            m_Icon = transform.Find("Color").GetComponent<Image>();
-            Transform textTransform = transform.Find("Values");
-            m_Min = textTransform.Find("Min").GetComponent<Text>();
-            m_Mid = textTransform.Find("Mid").GetComponent<Text>();
-            m_Max = textTransform.Find("Max").GetComponent<Text>();
+            foreach (var colormap in System.Enum.GetValues(typeof(Data.Enums.ColorType)).Cast<Data.Enums.ColorType>())
+            {
+                m_SpriteByColorType.Add(colormap, Resources.Load<Sprite>(System.IO.Path.Combine("Colormaps", string.Format("colormap_{0}", ((int)colormap).ToString()))) as Sprite);
+            }
         }
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Setup the overlay element
+        /// </summary>
+        /// <param name="scene">Associated 3D scene</param>
+        /// <param name="column">Associated 3D column</param>
+        /// <param name="columnUI">Parent UI column</param>
         public override void Setup(Base3DScene scene, Column3D column, Column3DUI columnUI)
         {
             base.Setup(scene, column, columnUI);
             IsActive = false;
 
-            scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
+            scene.OnUpdateGeneratorState.AddListener((value) =>
             {
                 if (column is Column3DDynamic)
                 {
@@ -96,7 +66,7 @@ namespace HBP.UI.Module3D
                 }
             });
 
-            scene.OnChangeColormap.AddListener((color) => m_Icon.sprite = m_SpriteByColorType[color]);
+            scene.OnChangeColormap.AddListener((color) => m_ColormapImage.sprite = m_SpriteByColorType[color]);
 
             if (column is Column3DDynamic dynamicColumn)
             {

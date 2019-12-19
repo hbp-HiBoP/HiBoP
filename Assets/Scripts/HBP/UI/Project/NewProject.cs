@@ -1,16 +1,14 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using HBP.Data.General;
 using Tools.Unity;
 using System.Linq;
-using HBP.Data.Preferences;
 
 namespace HBP.UI
 {
     /// <summary>
     /// Manage the New Project window.
     /// </summary>
-    public class NewProject : Window
+    public class NewProject : DialogWindow
 	{
         #region Properties
 		[SerializeField] InputField m_NameInputField;
@@ -38,7 +36,7 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
-        public void Create()
+        public override void OK()
 		{
             if (ApplicationState.ProjectLoaded != null)
             {
@@ -60,13 +58,14 @@ namespace HBP.UI
             {
                 CreateNewProject();
             }
+            base.OK();
         }
         #endregion
 
         #region Private Methods
         protected override void SetFields()
 		{
-            ProjectPreferences preferences = ApplicationState.UserPreferences.General.Project;
+            Data.Preferences.ProjectPreferences preferences = ApplicationState.UserPreferences.General.Project;
 
             m_NameInputField.text = preferences.DefaultName;
             m_ProjectLocationFolderSelector.Folder = preferences.DefaultLocation;
@@ -75,8 +74,8 @@ namespace HBP.UI
         }
         void CreateNewProject()
         {
-            ProjectSettings settings = new ProjectSettings(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
-            ApplicationState.ProjectLoaded = new Project(settings);
+            Data.ProjectPreferences preferences = new Data.ProjectPreferences(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
+            ApplicationState.ProjectLoaded = new Data.Project(preferences);
             ApplicationState.ProjectLoadedLocation = m_ProjectLocationFolderSelector.Folder;
             FindObjectOfType<ProjectLoaderSaver>().SaveAndReload();
             Close();

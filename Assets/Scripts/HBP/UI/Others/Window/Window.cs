@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.Events;
-using System.Collections.Generic;
 
 namespace HBP.UI
 {
@@ -14,7 +12,7 @@ namespace HBP.UI
             get { return m_OnClose; }
         }
 
-        protected bool m_Interactable;
+        [SerializeField] protected bool m_Interactable = true;
         public virtual bool Interactable
         {
             get
@@ -27,20 +25,21 @@ namespace HBP.UI
             }
         }
 
-        protected List<Window> m_SubWindows = new List<Window>();
+        [SerializeField] protected WindowsReferencer m_WindowsReferencer = new WindowsReferencer();
+        public WindowsReferencer WindowsReferencer { get => m_WindowsReferencer; }
         #endregion
 
         #region Public Methods
         public virtual void Close()
         {
-            foreach (var subWindow in m_SubWindows.ToArray()) subWindow.Close();
+            WindowsReferencer.CloseAll();
             OnClose.Invoke();
             Destroy(gameObject);
         }
         #endregion
 
         #region Private Methods
-        void Awake()
+        protected virtual void Awake()
         {
             Initialize();
         }
@@ -51,6 +50,10 @@ namespace HBP.UI
         protected virtual void SetFields()
         {
 
+        }
+        void OnValidate()
+        {
+            Interactable = Interactable;
         }
         #endregion
     }

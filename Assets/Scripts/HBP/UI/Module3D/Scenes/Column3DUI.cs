@@ -1,27 +1,35 @@
 ﻿using HBP.Module3D;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Tools.Unity;
 using Tools.Unity.ResizableGrid;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using System;
 
 namespace HBP.UI.Module3D
 {
+    /// <summary>
+    /// This class is used to properly display a column 3D in the UI
+    /// </summary>
     public class Column3DUI : MonoBehaviour
     {
         #region Properties
-        private const int MINIMUM_SIZE_TO_DISPLAY_OVERLAY = 200;
+        /// <summary>
+        /// Minimum width of the column 3D ui in order to have enough space to display the overlay elements
+        /// </summary>
+        private const int MINIMUM_WIDTH_TO_DISPLAY_OVERLAY = 200;
+        /// <summary>
+        /// If the difference between the width of the column and the default minimum width of a column in the ResizableGrid is less than this value, it is considered minimized
+        /// </summary>
         private const float MINIMIZED_THRESHOLD = 10.0f;
         /// <summary>
-        /// Associated logical column 3D
+        /// Associated logical Column3D
         /// </summary>
         public Column3D Column { get; private set; }
 
+        /// <summary>
+        /// Corresponding column of the ResizableGrid
+        /// </summary>
         private Column m_GridColumn;
         /// <summary>
         /// Parent resizable grid
@@ -36,32 +44,41 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField] private GameObject m_MinimizedGameObject;
         /// <summary>
-        /// Associated label
+        /// Associated label overlay element
         /// </summary>
         [SerializeField] private ColumnLabel m_Label;
         /// <summary>
-        /// Associated colormap
+        /// Associated colormap overlay element
         /// </summary>
         [SerializeField] private Colormap m_Colormap;
         /// <summary>
-        /// Associated timeline
+        /// Associated timeline overlay element
         /// </summary>
         [SerializeField] private TimeDisplay m_TimeDisplay;
         /// <summary>
-        /// Associated Icon
+        /// Associated Icon overlay element
         /// </summary>
         [SerializeField] private Icon m_Icon;
         /// <summary>
-        /// Information about the column
+        /// Associated information overlay element
         /// </summary>
         [SerializeField] private ColumnInformation m_Information;
         /// <summary>
-        /// Column resizer
+        /// Associated resizer overlay element
         /// </summary>
         [SerializeField] private ColumnResizer m_Resizer;
         
+        /// <summary>
+        /// Used when drag and dropping a column onto this columnn
+        /// </summary>
         [SerializeField] private RectTransform m_Middle;
+        /// <summary>
+        /// Used when drag and dropping a column onto the left part of this columnn
+        /// </summary>
         [SerializeField] private RectTransform m_LeftBorder;
+        /// <summary>
+        /// Used when drag and dropping a column onto the right part of this columnn
+        /// </summary>
         [SerializeField] private RectTransform m_RightBorder;
 
 
@@ -72,7 +89,7 @@ namespace HBP.UI.Module3D
         {
             get
             {
-                return m_RectTransform.rect.width > MINIMUM_SIZE_TO_DISPLAY_OVERLAY;
+                return m_RectTransform.rect.width > MINIMUM_WIDTH_TO_DISPLAY_OVERLAY;
             }
         }
         /// <summary>
@@ -86,6 +103,9 @@ namespace HBP.UI.Module3D
             }
         }
 
+        /// <summary>
+        /// Is the mouse currently over this column ?
+        /// </summary>
         public bool IsHovered
         {
             get
@@ -95,6 +115,9 @@ namespace HBP.UI.Module3D
                 return mousePosition.x >= columnRect.x && mousePosition.x <= columnRect.x + columnRect.width && mousePosition.y >= columnRect.y && mousePosition.y <= columnRect.y + columnRect.height;
             }
         }
+        /// <summary>
+        /// Is the mouse currently over the left part of this column ?
+        /// </summary>
         public bool IsLeftBorderHovered
         {
             get
@@ -104,6 +127,9 @@ namespace HBP.UI.Module3D
                 return mousePosition.x >= borderRect.x && mousePosition.x <= borderRect.x + borderRect.width && mousePosition.y >= borderRect.y && mousePosition.y <= borderRect.y + borderRect.height;
             }
         }
+        /// <summary>
+        /// Is the mouse currently over the right part of this column ?
+        /// </summary>
         public bool IsRightBorderHovered
         {
             get
@@ -117,7 +143,7 @@ namespace HBP.UI.Module3D
 
         #region Events
         /// <summary>
-        /// Event called when changing the minimized state of the view
+        /// Event called when changing the size of the column (on the update after the change)
         /// </summary>
         public UnityEvent OnChangeColumnSize = new UnityEvent();
         #endregion
@@ -139,6 +165,9 @@ namespace HBP.UI.Module3D
                 m_RectTransform.hasChanged = false;
             }
         }
+        /// <summary>
+        /// Hide or display the overlay elements depending on the available space
+        /// </summary>
         private void UpdateOverlay()
         {
             m_Colormap.HandleEnoughSpace();
@@ -150,13 +179,15 @@ namespace HBP.UI.Module3D
 
         #region Public Methods
         /// <summary>
-        /// Initialize this column UI
+        /// Initialize the column UI
         /// </summary>
+        /// <param name="scene">Parent scene of the corresponding Column3D</param>
+        /// <param name="column">Corresponding Column3D</param>
         public void Initialize(Base3DScene scene, Column3D column)
         {
             Column = column;
 
-            m_MinimizedGameObject.GetComponentInChildren<Text>().text = Column.Label;
+            m_MinimizedGameObject.GetComponentInChildren<Text>().text = Column.Name;
             m_MinimizedGameObject.SetActive(false);
 
             m_Colormap.Setup(scene, column, this);
@@ -167,7 +198,7 @@ namespace HBP.UI.Module3D
             m_Resizer.Setup(scene, column, this);
         }
         /// <summary>
-        /// Expand this column
+        /// Expand this column (set the width becomes the maximum possible)
         /// </summary>
         public void Expand()
         {
@@ -235,7 +266,7 @@ namespace HBP.UI.Module3D
             }
         }
         /// <summary>
-        /// Minimize this column
+        /// Minimize this column (set the width to the minimum possible and put the column on the right)
         /// </summary>
         public void Minimize()
         {
@@ -318,9 +349,9 @@ namespace HBP.UI.Module3D
             ParentGrid.UpdateAnchors();
         }
         /// <summary>
-        /// Move the column in a specific direction
+        /// Move the column in a specific direction by a specific amount
         /// </summary>
-        /// <param name="direction"></param>
+        /// <param name="direction">Direction and amount to move the column (e.g. +2 will move this column to the right by 2 columns)</param>
         public void Move(int direction)
         {
             int id = ParentGrid.Columns.IndexOf(m_GridColumn);
@@ -379,7 +410,7 @@ namespace HBP.UI.Module3D
             }
         }
         /// <summary>
-        /// Update the visibility of the border regarding the position of the cursor
+        /// Update the visibility of the border depending on the position of the cursor
         /// </summary>
         public void UpdateBorderVisibility(bool forceInactive = false)
         {

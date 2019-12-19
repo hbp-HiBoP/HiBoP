@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace HBP.UI
@@ -7,94 +8,81 @@ namespace HBP.UI
     public class WindowsManager : MonoBehaviour
     {
         #region Properties
+        [SerializeField] GameObject[] m_Windows;
         public RectTransform Container;
-        public PrefabReferencer Referencer;
-        public List<Window> Windows;
+        public WindowsReferencer WindowsReferencer;
         #endregion
 
         #region Private Methods
+        private void Awake()
+        {
+            m_Windows = Resources.LoadAll<GameObject>("Prefabs/UI/Windows/");
+        }
         public Window Open(string name, bool interactable = true)
         {
             Window window = null;
-            GameObject prefab = Referencer.GetPrefab(name);
-            if(prefab)
+            GameObject prefab = GetWindowPrefab(name);
+            if (prefab)
             {
-                GameObject go = Instantiate(prefab, Container);
-                RectTransform rectTransform = go.transform as RectTransform;
-                go.transform.localPosition = (rectTransform.pivot-new Vector2(0.5f, 0.5f)) * rectTransform.rect.size; 
-
-                // SetWindow
-                window = go.GetComponent<Window>();
-                window.Interactable = interactable;
+                window = CreateWindow(prefab, interactable);
             }
-            OnOpen(window);
             return window;
         }
         public T Open<T>(string name, bool interactable = true) where T : Window
         {
-            T window = default(T);
-            GameObject prefab = Referencer.GetPrefab(name);
+            T window = default;
+            GameObject prefab = GetWindowPrefab(name);
             if (prefab)
             {
-                GameObject go = Instantiate(prefab, Container);
-                RectTransform rectTransform = go.transform as RectTransform;
-                go.transform.localPosition = (rectTransform.pivot - new Vector2(0.5f, 0.5f)) * rectTransform.rect.size;
-
-                // SetWindow
-                window = (T) go.GetComponent<Window>();
-                window.Interactable = interactable;
+                window = CreateWindow(prefab, interactable) as T;
             }
-            OnOpen(window);
             return window;
         }
-        public ItemModifier<T> OpenModifier<T>(T itemToModify, bool interactable) where T : ICopiable, ICloneable
+        public ObjectModifier<T> OpenModifier<T>(T obj, bool interactable = true) where T : ICopiable, ICloneable
         {
-            ItemModifier<T> modifier = default(ItemModifier<T>);
-            GameObject prefab = Referencer.GetPrefab(typeof(ItemModifier<T>));
+            ObjectModifier<T> modifier = default;
+            GameObject prefab = GetWindowPrefab(typeof(ObjectModifier<T>));
             if (prefab)
             {
-                GameObject go = Instantiate(prefab, Container);
-                RectTransform rectTransform = go.transform as RectTransform;
-                go.transform.localPosition = (rectTransform.pivot - new Vector2(0.5f, 0.5f)) * rectTransform.rect.size;
-
-                modifier = go.GetComponent<ItemModifier<T>>();
-                modifier.Item = itemToModify;
-                modifier.Interactable = interactable;
+                modifier = CreateWindow(prefab, interactable) as ObjectModifier<T>;
+                modifier.Item = obj;
             }
-            OnOpen(modifier);
             return modifier;
         }
-
-        public ObjectSelector<T> OpenSelector<T>(bool interactable = true)
+        public ObjectSelector<T> OpenSelector<T>(IEnumerable<T> objects, bool multiSelection = true, bool openModifiers = false, bool interactable = true)
         {
-            ObjectSelector<T> selector = default(ObjectSelector<T>);
-            GameObject prefab = Referencer.GetPrefab(typeof(ObjectSelector<T>));
+            ObjectSelector<T> selector = default;
+            GameObject prefab = GetWindowPrefab(typeof(ObjectSelector<T>));
             if (prefab)
             {
-                GameObject go = Instantiate(prefab, Container);
-                RectTransform rectTransform = go.transform as RectTransform;
-                go.transform.localPosition = (rectTransform.pivot - new Vector2(0.5f, 0.5f)) * rectTransform.rect.size;
-
-                selector = go.GetComponent<ObjectSelector<T>>();
-                selector.Interactable = interactable;
+                selector = CreateWindow(prefab, interactable) as ObjectSelector<T>;
+                selector.Objects = objects.ToArray();
+                if(multiSelection) selector.Selection = ObjectSelector<T>.SelectionType.Multi;
+                else selector.Selection = ObjectSelector<T>.SelectionType.Single;
+                selector.OpenModifiers = openModifiers;
             }
-            OnOpen(selector);
             return selector;
         }
         #endregion
 
         #region Private Methods
-        void OnOpen(Window window)
+        Window CreateWindow(GameObject prefab, bool interactable)
         {
-            if(window != null)
-            {
-                Windows.Add(window);
-                window.OnClose.AddListener(() => OnClose(window));
-            }
+            GameObject gameObject = Instantiate(prefab, Container);
+            RectTransform rectTransform = gameObject.transform as RectTransform;
+            gameObject.transform.localPosition = (rectTransform.pivot - new Vector2(0.5f, 0.5f)) * rectTransform.rect.size;
+            var window = gameObject.GetComponent<Window>();
+            window.Interactable = interactable;
+            WindowsReferencer.Add(window);
+            return window;
         }
-        void OnClose(Window window)
+        GameObject GetWindowPrefab(string name)
         {
-            Windows.Remove(window);
+            return m_Windows.First(w => w.name == name);
+        }
+        GameObject GetWindowPrefab(Type type)
+        {
+            return m_Windows.FirstOrDefault(g => g.GetComponent(type) != null);
         }
         #endregion
     }

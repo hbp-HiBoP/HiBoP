@@ -13,8 +13,6 @@ namespace Tools.Unity
         private static string m_Data = "Assets/Data/";
         private static string m_DataBuild = "Data/";
 
-        //private static string m_Tools = "tools/";
-
         public static void DefaultBuild()
         {
             BuildProjectAndZipIt(@"D:/HBP/HiBoP_builds/", false, BuildTarget.StandaloneWindows64);

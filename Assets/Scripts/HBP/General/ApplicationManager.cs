@@ -4,51 +4,54 @@ using Tools.Unity;
 using System.IO;
 using HBP.UI;
 
-public class ApplicationManager : MonoBehaviour
+namespace HBP
 {
-    private void Awake()
+    public class ApplicationManager : MonoBehaviour
     {
-        ApplicationState.ProjectLoaded = null;
-        ApplicationState.ProjectLoadedLocation = string.Empty;
-        if (new FileInfo(UserPreferences.PATH).Exists)
+        private void Awake()
         {
-            ApplicationState.UserPreferences = ClassLoaderSaver.LoadFromJson<UserPreferences>(UserPreferences.PATH);
+            ApplicationState.ProjectLoaded = null;
+            ApplicationState.ProjectLoadedLocation = string.Empty;
+            if (new FileInfo(UserPreferences.PATH).Exists)
+            {
+                ApplicationState.UserPreferences = ClassLoaderSaver.LoadFromJson<UserPreferences>(UserPreferences.PATH);
+            }
+            else
+            {
+                ApplicationState.UserPreferences = new UserPreferences();
+            }
+            ClassLoaderSaver.SaveToJSon(ApplicationState.UserPreferences, UserPreferences.PATH, true);
+            ApplicationState.CoroutineManager = FindObjectOfType<CoroutineManager>();
+            ApplicationState.Module3D = FindObjectOfType<Module3D.HBP3DModule>();
+            ApplicationState.DLLDebugManager = FindObjectOfType<Module3D.DLL.DLLDebugManager>();
+            ApplicationState.DialogBoxManager = FindObjectOfType<DialogBoxManager>();
+            ApplicationState.LoadingManager = FindObjectOfType<LoadingManager>();
+            ApplicationState.TooltipManager = FindObjectOfType<TooltipManager>();
+            ApplicationState.MemoryManager = FindObjectOfType<MemoryManager>();
+            ApplicationState.WindowsManager = FindObjectOfType<WindowsManager>();
+            ApplicationState.Module3DUI = FindObjectOfType<UI.Module3D.Module3DUI>();
+            ApplicationState.ProjectTMPFolder = GetProjectTMPDirectory();
         }
-        else
-        {
-            ApplicationState.UserPreferences = new UserPreferences();
-        }
-        ClassLoaderSaver.SaveToJSon(ApplicationState.UserPreferences, UserPreferences.PATH, true);
-        ApplicationState.CoroutineManager = FindObjectOfType<CoroutineManager>();
-        ApplicationState.Module3D = FindObjectOfType<HBP.Module3D.HBP3DModule>();
-        ApplicationState.DLLDebugManager = FindObjectOfType<HBP.Module3D.DLL.DLLDebugManager>();
-        ApplicationState.DialogBoxManager = FindObjectOfType<DialogBoxManager>();
-        ApplicationState.LoadingManager = FindObjectOfType<LoadingManager>();
-        ApplicationState.TooltipManager = FindObjectOfType<TooltipManager>();
-        ApplicationState.MemoryManager = FindObjectOfType<MemoryManager>();
-        ApplicationState.WindowsManager = FindObjectOfType<WindowsManager>();
-        ApplicationState.Module3DUI = FindObjectOfType<HBP.UI.Module3D.Module3DUI>();
-        ApplicationState.ProjectTMPFolder = GetProjectTMPDirectory();
-    }
 
-    private void OnDestroy()
-    {
-        DataManager.Clear();
-        string tmpDir = ApplicationState.ProjectLoadedTMPFullPath;
-        if (Directory.Exists(tmpDir))
+        private void OnDestroy()
         {
-            Directory.Delete(tmpDir, true);
+            DataManager.Clear();
+            string tmpDir = ApplicationState.ProjectLoadedTMPFullPath;
+            if (Directory.Exists(tmpDir))
+            {
+                Directory.Delete(tmpDir, true);
+            }
         }
-    }
 
-    private string GetProjectTMPDirectory()
-    {
-        string tmpDir = Application.dataPath + "/" + ".tmp";
-        if (!Directory.Exists(tmpDir))
+        private string GetProjectTMPDirectory()
         {
-            DirectoryInfo di = Directory.CreateDirectory(tmpDir);
-            di.Attributes |= FileAttributes.Hidden;
+            string tmpDir = Path.Combine(Application.persistentDataPath, ".tmp");
+            if (!Directory.Exists(tmpDir))
+            {
+                DirectoryInfo di = Directory.CreateDirectory(tmpDir);
+                di.Attributes |= FileAttributes.Hidden;
+            }
+            return tmpDir;
         }
-        return tmpDir;
     }
 }

@@ -32,6 +32,24 @@ namespace HBP.UI.Informations
             m_GraphZone.Display(channelStructs, dataStructs);
             UnityEngine.Profiling.Profiler.EndSample();
         }
+        public void DisplayTrialMatrices(data.ChannelStruct[] channelStructs, data.DataStruct[] dataStructs)
+        {
+            m_ChannelStructs = channelStructs;
+            m_DataStructs = dataStructs;
+
+            UnityEngine.Profiling.Profiler.BeginSample("TrialMatrixZone");
+            m_TrialMatrixZone.Display(channelStructs, dataStructs);
+            UnityEngine.Profiling.Profiler.EndSample();
+        }
+        public void DisplayGraphs(data.ChannelStruct[] channelStructs, data.DataStruct[] dataStructs)
+        {
+            m_ChannelStructs = channelStructs;
+            m_DataStructs = dataStructs;
+
+            UnityEngine.Profiling.Profiler.BeginSample("GraphZone");
+            m_GraphZone.Display(channelStructs, dataStructs);
+            UnityEngine.Profiling.Profiler.EndSample();
+        }
         #endregion
     }
 }

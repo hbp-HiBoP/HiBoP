@@ -1,12 +1,10 @@
-﻿using CielaSpike;
-using HBP.Data.Visualization;
+﻿using HBP.Data.Visualization;
 using HBP.UI;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace HBP
 {
@@ -64,12 +62,7 @@ namespace HBP
                 }
                 else
                 {
-                    Task projectLoadingTask;
-                    yield return this.StartCoroutineAsync(FindObjectOfType<ProjectLoaderSaver>().c_Load(new Data.General.ProjectInfo(ApplicationState.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0] + Data.General.Project.EXTENSION)), out projectLoadingTask);
-                    if (projectLoadingTask.State == TaskState.Error)
-                    {
-                        ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Couldn't open project", "No project named <color=red>" + arguments[0] + "</color> could be found in the default project directory (" + ApplicationState.UserPreferences.General.Project.DefaultLocation + ").\n\nPlease verify the project name or your default project directory.");
-                    }
+                    FindObjectOfType<ProjectLoaderSaver>().Load(new Data.ProjectInfo(ApplicationState.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0] + Data.Project.EXTENSION));
                 }
             }
             else if (action == "-pf") // Project File
@@ -80,12 +73,7 @@ namespace HBP
                 }
                 else
                 {
-                    Task projectLoadingTask;
-                    yield return this.StartCoroutineAsync(FindObjectOfType<ProjectLoaderSaver>().c_Load(new Data.General.ProjectInfo(arguments[0])), out projectLoadingTask);
-                    if (projectLoadingTask.State == TaskState.Error)
-                    {
-                        ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Couldn't open project", "The selected file <color=red>" + arguments[0] + "</color> is not a valid project.\n\nPlease verify the project file.");
-                    }
+                    FindObjectOfType<ProjectLoaderSaver>().Load(new Data.ProjectInfo(arguments[0]));
                 }
             }
             else if (action == "-v") // Visualization
@@ -109,14 +97,10 @@ namespace HBP
                     {
                         visualizations = from visu in ApplicationState.ProjectLoaded.Visualizations where arguments.Contains(visu.Name) select visu;
                     }
-                    Task visualizationLoadingTask;
-                    yield return this.StartCoroutineAsync(ApplicationState.Module3D.c_Load(visualizations), out visualizationLoadingTask);
-                    if (visualizationLoadingTask.State == TaskState.Error)
-                    {
-                        ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Couldn't load visualizations", "The specified visualizations could not be loaded.");
-                    }
+                    ApplicationState.Module3D.LoadScenes(visualizations);
                 }
             }
+            yield return null;
         }
         #endregion
     }

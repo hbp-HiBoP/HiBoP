@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace HBP.UI
 {
-    public class SaveProjectAs : Window
+    public class SaveProjectAs : DialogWindow
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -28,19 +28,19 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
-        public void SaveAs()
+        public override void OK()
         {
-            Data.Preferences.ProjectSettings l_ps = new Data.Preferences.ProjectSettings(m_NameInputField.text, ApplicationState.ProjectLoaded.Settings.PatientDatabase, ApplicationState.ProjectLoaded.Settings.LocalizerDatabase);
-            ApplicationState.ProjectLoaded.Settings = l_ps;
+            Data.ProjectPreferences l_ps = new Data.ProjectPreferences(m_NameInputField.text, ApplicationState.ProjectLoaded.Preferences.PatientDatabase, ApplicationState.ProjectLoaded.Preferences.LocalizerDatabase);
+            ApplicationState.ProjectLoaded.Preferences = l_ps;
             FindObjectOfType<ProjectLoaderSaver>().Save(m_LocationFolderSelector.Folder);
-            base.Close();
+            base.OK();
         }
         #endregion
 
         #region Private Methods
         protected override void Initialize()
         {
-            m_NameInputField.text = ApplicationState.ProjectLoaded.Settings.Name;
+            m_NameInputField.text = ApplicationState.ProjectLoaded.Preferences.Name;
             m_LocationFolderSelector.Folder = ApplicationState.ProjectLoadedLocation;
         }
         #endregion

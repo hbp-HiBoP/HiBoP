@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace HBP.Data.Visualization
+﻿namespace HBP.Data.Visualization
 {
     public abstract class Data
     {

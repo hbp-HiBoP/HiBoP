@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace Tools.Unity.Lists
@@ -9,22 +10,19 @@ namespace Tools.Unity.Lists
         #region Properties
         Toggle m_Toggle;
         bool m_isLock;
-        protected Toggle.ToggleEvent m_OnChangeSelected = new Toggle.ToggleEvent();
-        public virtual Toggle.ToggleEvent OnChangeSelected
-        {
-            get { return m_OnChangeSelected; }
-        }
-        public virtual bool selected
+
+        public virtual GenericEvent<bool> OnChangeSelected { get; } = new GenericEvent<bool>();
+
+        public virtual bool Selected
         {
             get { return m_Toggle.isOn; }
         }
-        public override bool interactable
+        public override bool Interactable
         {
             get { return m_Toggle.interactable; }
             set { m_Toggle.interactable = value; }
         }
         #endregion
-
 
         #region Public Methods
         public void Select(bool selected, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
@@ -38,7 +36,7 @@ namespace Tools.Unity.Lists
         }
         public void ChangeSelectionState()
         {
-            Select(!selected, m_Toggle.toggleTransition);
+            Select(!Selected, m_Toggle.toggleTransition);
         }
         #endregion
 
@@ -46,13 +44,11 @@ namespace Tools.Unity.Lists
         private void Awake()
         {
             m_Toggle = GetComponent<Toggle>();
-            if (m_Toggle != null)
-            {
-                m_Toggle.onValueChanged.AddListener((value) =>
-                {
-                    if (!m_isLock) m_OnChangeSelected.Invoke(value);
-                });  
-            }
+            if (m_Toggle != null) m_Toggle.onValueChanged.AddListener(OnSelectionValueChanged);
+        }
+        void OnSelectionValueChanged(bool value)
+        {
+            if (!m_isLock) OnChangeSelected.Invoke(value);
         }
         #endregion
     }

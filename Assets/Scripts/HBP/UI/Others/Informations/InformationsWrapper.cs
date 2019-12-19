@@ -101,6 +101,13 @@ namespace HBP.UI.Informations
 
         [SerializeField] DataStruct[] m_DataStructs;
         [SerializeField] ChannelStruct[] m_ChannelStructs;
+        public ChannelStruct[] ChannelStructs
+        {
+            get
+            {
+                return m_ChannelStructs;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -123,9 +130,9 @@ namespace HBP.UI.Informations
         }
         void GenerateDataStructs()
         {
-            if (!m_Scene.SceneInformation.IsSceneCompletelyLoaded) return;
+            if (!m_Scene.IsSceneCompletelyLoaded) return;
             List<DataStruct> dataStructs = new List<DataStruct>();
-            foreach (var column in m_Scene.ColumnManager.ColumnsIEEG)
+            foreach (var column in m_Scene.ColumnsIEEG)
             {
                 if (!column.IsMinimized || ApplicationState.UserPreferences.Visualization.Graph.ShowCurvesOfMinimizedColumns)
                 {
@@ -142,11 +149,11 @@ namespace HBP.UI.Informations
                     if (column.SelectedROI != null)
                     {
                         ROIStruct ROI = new ROIStruct(column.SelectedROI.Name, column.Sites.Where(s => !s.State.IsOutOfROI && !s.State.IsMasked).Select(site => new ChannelStruct(site)));
-                        data.Blocs.First(b => b == bloc).AddROI(ROI);
+                        data.Blocs.First(b => b.Bloc == bloc.Bloc).AddROI(ROI);
                     }
                 }
             }
-            foreach (var column in m_Scene.ColumnManager.ColumnsCCEP)
+            foreach (var column in m_Scene.ColumnsCCEP)
             {
                 if ((!column.IsMinimized || ApplicationState.UserPreferences.Visualization.Graph.ShowCurvesOfMinimizedColumns) && column.IsSourceSelected)
                 {
@@ -184,6 +191,20 @@ namespace HBP.UI.Informations
                 ChannelInformations.Display(m_ChannelStructs, m_DataStructs);
             }
         }
+        void DisplayTrialMatrices()
+        {
+            if (m_ChannelStructs.Length != 0 && m_DataStructs.Length != 0)
+            {
+                ChannelInformations.DisplayTrialMatrices(m_ChannelStructs, m_DataStructs);
+            }
+        }
+        void DisplayGraphs()
+        {
+            if (m_ChannelStructs.Length != 0 && m_DataStructs.Length != 0)
+            {
+                ChannelInformations.DisplayGraphs(m_ChannelStructs, m_DataStructs);
+            }
+        }
         #endregion
 
         #region Handlers
@@ -201,11 +222,11 @@ namespace HBP.UI.Informations
         void OnChangeROIHandler()
         {
             GenerateDataStructs();
-            Display();
+            DisplayGraphs();
         }
         void OnChangeColorMapHandler()
         {
-            ColorMap = m_Scene.ColumnManager.BrainColorMapTexture;
+            ColorMap = m_Scene.BrainColorMapTexture;
         }
         void OnChangeSourceHandler()
         {
@@ -220,12 +241,12 @@ namespace HBP.UI.Informations
             if (m_Scene != null)
             {
                 m_Scene.OnRequestSiteInformation.AddListener(sites => OnSiteInformationRequestHandler(sites));
-                m_Scene.ColumnManager.OnChangeColumnMinimizedState.AddListener(OnMinimizeColumnHandler);
-                m_Scene.ColumnManager.OnUpdateROIMask.AddListener(OnChangeROIHandler);
+                m_Scene.OnChangeColumnMinimizedState.AddListener(OnMinimizeColumnHandler);
+                m_Scene.OnUpdateROIMask.AddListener(OnChangeROIHandler);
                 m_Scene.OnChangeColormap.AddListener((t) => OnChangeColorMapHandler());
-                m_Scene.ColumnManager.OnSelectCCEPSource.AddListener(OnChangeSourceHandler);
+                m_Scene.OnSelectCCEPSource.AddListener(OnChangeSourceHandler);
 
-                int maxNumberOfTrialMatrixColumn = Mathf.Max(Bloc.GetNumberOfColumns(m_Scene.ColumnManager.ColumnsIEEG.Select(c => c.ColumnIEEGData.Bloc).Distinct()), Bloc.GetNumberOfColumns(m_Scene.ColumnManager.ColumnsCCEP.Select(c => c.ColumnCCEPData.Bloc).Distinct()));
+                int maxNumberOfTrialMatrixColumn = Mathf.Max(Bloc.GetNumberOfColumns(m_Scene.ColumnsIEEG.Select(c => c.ColumnIEEGData.Bloc).Distinct()), Bloc.GetNumberOfColumns(m_Scene.ColumnsCCEP.Select(c => c.ColumnCCEPData.Bloc).Distinct()));
                 ChannelInformations.SetMaxNumberOfTrialMatrixColumn(maxNumberOfTrialMatrixColumn);
                 OnChangeColorMapHandler();
 

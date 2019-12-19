@@ -70,9 +70,14 @@ namespace Tools.Unity.Components
             {
                 m_OnChangeFloatResult.Invoke(floatResult);
             }
-            if (int.TryParse(value, out int intResult))
+            else if (int.TryParse(value, out int intResult))
             {
                 m_OnChangeIntResult.Invoke(intResult);
+            }
+            else
+            {
+                m_OnChangeFloatResult.Invoke(0);
+                m_OnChangeIntResult.Invoke(0);
             }
         }
         public void ParseFromInt(int value)

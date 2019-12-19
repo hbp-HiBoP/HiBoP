@@ -1,23 +1,33 @@
 ﻿using HBP.Module3D;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
+    /// <summary>
+    /// Two invisible buttons that expand or minimize a column
+    /// </summary>
     public class ColumnResizer : ColumnOverlayElement, IPointerEnterHandler, IPointerExitHandler
     {
         #region Properties
-        [SerializeField]
-        private Button m_Expand;
-        [SerializeField]
-        private Button m_Minimize;
+        /// <summary>
+        /// Button used to completely expand a column
+        /// </summary>
+        [SerializeField] private Button m_Expand;
+        /// <summary>
+        /// Button used to minimize a column at most
+        /// </summary>
+        [SerializeField] private Button m_Minimize;
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Setup the overlay element
+        /// </summary>
+        /// <param name="scene">Associated 3D scene</param>
+        /// <param name="column">Associated 3D column</param>
+        /// <param name="columnUI">Parent UI column</param>
         public override void Setup(Base3DScene scene, Column3D column, Column3DUI columnUI)
         {
             base.Setup(scene, column, columnUI);

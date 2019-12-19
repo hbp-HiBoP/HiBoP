@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 namespace HBP.Data.Visualization
@@ -14,7 +13,7 @@ namespace HBP.Data.Visualization
     * \detail Visualization column is a class which contains the base information of the visualization column.
     */
     [DataContract]
-    public abstract class Column : ICloneable
+    public abstract class Column : BaseData
     {
         #region Properties
         /// <summary>
@@ -33,7 +32,17 @@ namespace HBP.Data.Visualization
         /// </summary>
         /// <param name="name">Name of the column.</param>
         /// <param name="baseConfiguration">Base configuration of the column.</param>
-        public Column(string name, BaseConfiguration baseConfiguration)
+        public Column(string name, BaseConfiguration baseConfiguration) : base()
+        {
+            Name = name;
+            BaseConfiguration = baseConfiguration;
+        }
+        /// <summary>
+        /// Create a new column.
+        /// </summary>
+        /// <param name="name">Name of the column.</param>
+        /// <param name="baseConfiguration">Base configuration of the column.</param>
+        public Column(string name, BaseConfiguration baseConfiguration, string ID) : base(ID)
         {
             Name = name;
             BaseConfiguration = baseConfiguration;
@@ -47,7 +56,20 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Public Methods
-        public abstract object Clone();
+        public override void GenerateID()
+        {
+            base.GenerateID();
+            BaseConfiguration.GenerateID();
+        }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+            if(copy is Column column)
+            {
+                Name = column.Name;
+                BaseConfiguration = column.BaseConfiguration;
+            }
+        }
         public abstract bool IsCompatible(IEnumerable<Patient> patients);
         public abstract void Unload();
         #endregion

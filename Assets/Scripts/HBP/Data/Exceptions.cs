@@ -98,6 +98,19 @@ public class CanNotReadSettingsFileException : HBPException
       System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 }
 
+[Serializable]
+public class CanNotReadTagFileException : HBPException
+{
+    public CanNotReadTagFileException() { }
+    public CanNotReadTagFileException(string file) : base("BaseTag <color=red>" + file + "</color> could not be loaded.\n\nPlease verify the file.")
+    {
+        Title = "Can not read BaseTag file.";
+    }
+    public CanNotReadTagFileException(string message, Exception inner) : base(message, inner) { }
+    protected CanNotReadTagFileException(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
 
 [Serializable]
 public class CanNotReadPatientFileException : HBPException
@@ -240,6 +253,20 @@ public class CanNotSaveDatasetException : HBPException
     }
     public CanNotSaveDatasetException(string message, Exception inner) : base(message, inner) { }
     protected CanNotSaveDatasetException(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
+[Serializable]
+public class CanNotSaveTagException : HBPException
+{
+    public CanNotSaveTagException() { }
+    public CanNotSaveTagException(string tag) : base(tag + " could not be saved.\n\nPlease verify your right.")
+    {
+        Title = "Can not save tag.";
+    }
+    public CanNotSaveTagException(string message, Exception inner) : base(message, inner) { }
+    protected CanNotSaveTagException(
       System.Runtime.Serialization.SerializationInfo info,
       System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 }

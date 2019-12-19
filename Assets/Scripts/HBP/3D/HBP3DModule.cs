@@ -43,12 +43,7 @@ namespace HBP.Module3D
         {
             get
             {
-                Base3DScene scene = SelectedScene;
-                if (scene)
-                {
-                    return scene.ColumnManager.SelectedColumn;
-                }
-                return null;
+                return SelectedScene?.SelectedColumn;
             }
         }
         /// <summary>
@@ -58,12 +53,7 @@ namespace HBP.Module3D
         {
             get
             {
-                Column3D column = SelectedColumn;
-                if (column)
-                {
-                    return column.SelectedView;
-                }
-                return null;
+                return SelectedColumn?.SelectedView;
             }
         }
 
@@ -182,15 +172,15 @@ namespace HBP.Module3D
         /// </summary>
         [HideInInspector] public GenericEvent<View3D> OnSelectView = new GenericEvent<View3D>();
         /// <summary>
-        /// Event called when changing the value of the timeline of the selected column
+        /// Event called when changing the index of the timeline of the selected column
         /// </summary>
-        [HideInInspector] public UnityEvent OnUpdateSelectedColumnTimeLineID = new UnityEvent();
+        [HideInInspector] public UnityEvent OnUpdateSelectedColumnTimeLineIndex = new UnityEvent();
         /// <summary>
         /// Event called when the timeline is stopped because it reached the end
         /// </summary>
         [HideInInspector] public UnityEvent OnStopTimelinePlay = new UnityEvent();
         /// <summary>
-        /// Event called when requesting an update in the UI
+        /// Event called when requesting an update in the toolbar
         /// </summary>
         [HideInInspector] public UnityEvent OnRequestUpdateInToolbar = new UnityEvent();
         #endregion
@@ -202,7 +192,7 @@ namespace HBP.Module3D
             QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
             QualitySettings.antiAliasing = 8;
 
-            // MarsAtlas index
+            // Atlases
             string dataDirectory = Application.dataPath + "/../Data/";
             #if UNITY_EDITOR
                 dataDirectory = Application.dataPath + "/Data/";
@@ -213,7 +203,7 @@ namespace HBP.Module3D
         void OnDestroy()
         {
             MarsAtlasIndex?.Dispose();
-            ApplicationState.DLLDebugManager.clean();
+            JuBrainAtlas?.Dispose();
         }
         #endregion
 
@@ -224,7 +214,8 @@ namespace HBP.Module3D
         /// <param name="visualizations">Visualizations to be loaded</param>
         public void LoadScenes(IEnumerable<Data.Visualization.Visualization> visualizations)
         {
-            this.StartCoroutineAsync(c_Load(visualizations));
+            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+            ApplicationState.LoadingManager.Load(c_Load(visualizations, (progress, duration, text) => onChangeProgress.Invoke(progress, duration,text)), onChangeProgress);
         }
         /// <summary>
         /// Remove every scenes corresponding to a visualization
@@ -246,7 +237,7 @@ namespace HBP.Module3D
         {
             OnRemoveScene.Invoke(scene);
             m_Scenes.Remove(scene);
-            this.StartCoroutine(scene.c_Destroy());
+            StartCoroutine(scene.c_Destroy());
         }
         /// <summary>
         /// Load a single patient scene extracted from a visualization
@@ -259,32 +250,10 @@ namespace HBP.Module3D
             scene.SaveConfiguration();
             Data.Visualization.Visualization visualizationToLoad = visualization.Clone() as Data.Visualization.Visualization;
             visualizationToLoad.Name = patient.Name;
-            visualizationToLoad.RemoveAllPatients();
-            visualizationToLoad.AddPatient(patient);
-            if (patient.Meshes.FirstOrDefault(m => m.Name == ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization) != null)
-            {
-                visualizationToLoad.Configuration.MeshName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization;
-            }
-            else if (patient.Meshes.Count > 0)
-            {
-                visualizationToLoad.Configuration.MeshName = patient.Meshes.First().Name;
-            }
-            if (patient.MRIs.FirstOrDefault(m => m.Name == ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization) != null)
-            {
-                visualizationToLoad.Configuration.MRIName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization;
-            }
-            else if (patient.MRIs.Count > 0)
-            {
-                visualizationToLoad.Configuration.MRIName = patient.MRIs.First().Name;
-            }
-            if (patient.Implantations.FirstOrDefault(m => m.Name == ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization) != null)
-            {
-                visualizationToLoad.Configuration.ImplantationName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization;
-            }
-            else if (patient.Implantations.Count > 0)
-            {
-                visualizationToLoad.Configuration.ImplantationName = patient.Implantations.First().Name;
-            }
+            visualizationToLoad.Patients = new List<Data.Patient>() { patient };
+            visualizationToLoad.Configuration.MeshName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization;
+            visualizationToLoad.Configuration.MRIName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization;
+            visualizationToLoad.Configuration.ImplantationName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization;
             LoadScenes(new Data.Visualization.Visualization[] { visualizationToLoad });
         }
         /// <summary>
@@ -330,43 +299,37 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="visualizations">Visualizations to be loaded</param>
         /// <returns></returns>
-        public IEnumerator c_Load(IEnumerable<Data.Visualization.Visualization> visualizations)
+        public IEnumerator c_Load(IEnumerable<Data.Visualization.Visualization> visualizations, Action<float,float,LoadingText> onChangeProgress)
         {
+            yield return Ninja.JumpBack;
+
+            Dictionary<Data.Visualization.Visualization, int> weightByVisualization = visualizations.ToDictionary(v => v, v => (v.CCEPColumns.Count + v.IEEGColumns.Count) * v.Patients.Count + v.AnatomicColumns.Count);
+            int totalWeight = weightByVisualization.Values.Sum();
+            float progress = 0;
+            const float LOADING_VISUALIZATION_PROGRESS = 0.5f;
+            const float LOADING_SCENE_PROGRESS = 0.5f;
             foreach (Data.Visualization.Visualization visualization in visualizations)
             {
+                float visualizationWeight = (float)weightByVisualization[visualization] / totalWeight;
                 if (!visualization.IsVisualizable) throw new CanNotLoadVisualization(visualization.Name);
 
                 yield return Ninja.JumpToUnity;
-                LoadingCircle loadingCircle = ApplicationState.LoadingManager.Open();
-                GenericEvent<float, float, LoadingText> OnChangeLoadingProgress = new GenericEvent<float, float, LoadingText>();
-                OnChangeLoadingProgress.AddListener((progress, time, message) => { loadingCircle.ChangePercentage(progress / 2.0f, time, message); });
-                yield return this.StartCoroutineAsync(visualization.c_Load(OnChangeLoadingProgress), out Task visualizationLoadingTask);
-                switch (visualizationLoadingTask.State)
-                {
-                    case TaskState.Done:
-                        break;
-                    case TaskState.Error:
-                        visualization.Unload();
-                        Exception exception = visualizationLoadingTask.Exception;
-                        ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
-                        break;
-                }
+                yield return this.StartCoroutineAsync(visualization.c_Load((localProgress, duration, text) => onChangeProgress(progress  + localProgress * visualizationWeight * LOADING_VISUALIZATION_PROGRESS, duration, text)), out Task visualizationLoadingTask);
+
                 if (visualizationLoadingTask.State == TaskState.Done)
                 {
-                    yield return this.StartCoroutineAsync(c_LoadScene(visualization, OnChangeLoadingProgress), out Task sceneLoadingTask);
-                    switch (sceneLoadingTask.State)
+                    yield return this.StartCoroutineAsync(c_LoadScene(visualization, (localProgress, duration, text) => onChangeProgress(progress + (LOADING_VISUALIZATION_PROGRESS + localProgress * LOADING_SCENE_PROGRESS) * visualizationWeight, duration, text)), out Task sceneLoadingTask);
+                    if (sceneLoadingTask.State == TaskState.Error)
                     {
-                        case TaskState.Done:
-                            yield return new WaitForSeconds(0.5f);
-                            break;
-                        case TaskState.Error:
-                            visualization.Unload();
-                            Exception exception = sceneLoadingTask.Exception;
-                            ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
-                            break;
+                        visualization.Unload();
+                        throw sceneLoadingTask.Exception;
                     }
                 }
-                loadingCircle.Close();
+                else
+                {
+                    throw visualizationLoadingTask.Exception;
+                }
+                progress += visualizationWeight;
             }
             OnFinishedAddingNewScenes.Invoke();
         }
@@ -376,9 +339,9 @@ namespace HBP.Module3D
         /// <param name="visualization">Visualization to be loaded</param>
         /// <param name="onChangeProgress">Event to update the loading circle</param>
         /// <returns></returns>
-        IEnumerator c_LoadScene(Data.Visualization.Visualization visualization, GenericEvent<float, float, LoadingText> onChangeProgress = null)
+        IEnumerator c_LoadScene(Data.Visualization.Visualization visualization, Action<float, float, LoadingText> onChangeProgress)
         {
-            if (onChangeProgress == null) onChangeProgress = new GenericEvent<float, float, LoadingText>();
+            yield return Ninja.JumpBack;
 
             Exception exception = null;
 

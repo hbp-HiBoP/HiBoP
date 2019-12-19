@@ -1,19 +1,16 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 using System.Collections;
 using CielaSpike;
 using Tools.Unity;
-using HBP.Data.General;
 using System.Linq;
 
 namespace HBP.UI
 {
-	public class OpenProject : Window 
+	public class OpenProject : DialogWindow 
 	{
 		#region Properties
 		[SerializeField] FolderSelector m_LocationFolderSelector;
 		[SerializeField] ProjectList m_ProjectList;
-        [SerializeField] Button m_LoadingButton;
 
         public override bool Interactable
         {
@@ -28,18 +25,18 @@ namespace HBP.UI
 
                 m_LocationFolderSelector.interactable = value;
                 m_ProjectList.Interactable = value;
-                m_LoadingButton.interactable = value;
+                SetLoadButton();
             }
         }
         #endregion
 
         #region Public Methods
-        public void Load(ProjectInfo info)
+        public void Load(Data.ProjectInfo info)
         {
             FindObjectOfType<ProjectLoaderSaver>().Load(info);
             base.Close();
         }
-        public void Load()
+        public override void OK()
 		{
             if (ApplicationState.ProjectLoaded != null)
             {
@@ -68,8 +65,8 @@ namespace HBP.UI
         protected override void Initialize()
         {
             // Initialize project list.
-            m_ProjectList.Initialize();
-            m_ProjectList.OnSelectionChanged.AddListener(() => m_LoadingButton.interactable = m_ProjectList.ObjectsSelected.Length > 0);
+            m_ProjectList.OnSelect.AddListener((project) => SetLoadButton());
+            m_ProjectList.OnDeselect.AddListener((project) => SetLoadButton());
             m_ProjectList.OnAction.AddListener((info, i) => Load(info));
 
             // Initialise location folder selector.
@@ -92,19 +89,23 @@ namespace HBP.UI
         IEnumerator c_DisplayProjects(string path)
         {
             yield return Ninja.JumpToUnity;
-            m_LoadingButton.interactable = false;
-            m_ProjectList.Objects = new ProjectInfo[0];
+            m_OKButton.interactable = false;
+            m_ProjectList.Set(new Data.ProjectInfo[0]);
             yield return Ninja.JumpBack;
-            string[] paths = Project.GetProject(path).ToArray();
+            string[] paths = Data.Project.GetProject(path).ToArray();
             foreach (string projectPath in paths)
             {
-                ProjectInfo project = new ProjectInfo(projectPath);
+                Data.ProjectInfo project = new Data.ProjectInfo(projectPath);
                 yield return Ninja.JumpToUnity;
                 m_ProjectList.Add(project);
                 yield return Ninja.JumpBack;
             }
             yield return Ninja.JumpToUnity;
-            m_ProjectList.SortByName(ProjectList.Sorting.Descending);
+            m_ProjectList.SortByName(Tools.Unity.Lists.BaseList.Sorting.Descending);
+        }
+        void SetLoadButton()
+        {
+            m_OKButton.interactable = m_ProjectList.ObjectsSelected.Length == 1 && m_Interactable;
         }
         #endregion
     }

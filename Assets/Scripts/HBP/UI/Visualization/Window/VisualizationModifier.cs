@@ -2,24 +2,23 @@
 using UnityEngine.UI;
 using System.Linq;
 using System.Collections.Generic;
-using HBP.Data;
-using HBP.UI.Anatomy;
 using HBP.Data.Visualization;
-using System.Collections.ObjectModel;
+using Tools.CSharp;
 
-namespace HBP.UI.Visualization
+namespace HBP.UI
 {
-    public class VisualizationModifier : ItemModifier<Data.Visualization.Visualization>
+    public class VisualizationModifier : ObjectModifier<Data.Visualization.Visualization>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
 
-        [SerializeField] PatientListGestion m_VisualizationPatientsListGestion, m_ProjectPatientsListGestion;
+        [SerializeField] PatientListGestion m_PatientListGestion;
         [SerializeField] Button m_AddPatientButton, m_RemovePatientButton, m_AddGroupButton, m_RemoveGroupButton;
 
         [SerializeField] TabManager m_TabGestion;
         [SerializeField] ColumnModifier m_ColumnModifier;
 
+        bool m_NeedToUpdate = false;
         public override bool Interactable
         {
             get
@@ -31,18 +30,13 @@ namespace HBP.UI.Visualization
             {
                 base.Interactable = value;
 
-                // General.
                 m_NameInputField.interactable = value;
-
-                // Patients.
-                m_AddPatientButton.interactable = value;
-                m_RemovePatientButton.interactable = value;
 
                 m_AddGroupButton.interactable = value;
                 m_RemoveGroupButton.interactable = value;
 
-                m_VisualizationPatientsListGestion.Interactable = false;
-                m_ProjectPatientsListGestion.Interactable = false;
+                m_PatientListGestion.Interactable = value;
+                m_PatientListGestion.Modifiable = false;
 
                 m_ColumnModifier.Interactable = value;
             }
@@ -50,51 +44,46 @@ namespace HBP.UI.Visualization
         #endregion
 
         #region Public Methods
-        public override void Save()
+        public override void OK()
         {
             if (Item.IsOpen)
             {
                 ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Visualization already open", "The visualization you are trying to modify is already open. This visualization needs to be closed before saving the changes.\n\nWould you like to close it and save the changes ?", () =>
                 {
                     ApplicationState.Module3D.RemoveScene(Item);
-                    base.Save();
+                    base.OK();
                 },
                 "Close & Save");
             }
             else
             {
-                base.Save();
+                base.OK();
             }
         }
         public void AddPatients()
         {
-            AddPatients(m_ProjectPatientsListGestion.List.ObjectsSelected);
-        }
-        public void RemovePatients()
-        {
-            RemovePatients(m_VisualizationPatientsListGestion.List.ObjectsSelected);
+            ObjectSelector<Data.Patient> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Patients.Where(p => !itemTemp.Patients.Contains(p)));
+            selector.OnOk.AddListener(() => m_PatientListGestion.List.Add(selector.ObjectsSelected));
+            WindowsReferencer.Add(selector);
         }
         public void AddGroups()
         {
-            ObjectSelector<Group> selector = ApplicationState.WindowsManager.OpenSelector<Group>();
-            selector.Objects = ApplicationState.ProjectLoaded.Groups.ToArray();
-            selector.OnSave.AddListener(() => AddGroups(selector.ObjectsSelected));
-            selector.OnClose.AddListener(() => m_SubWindows.Remove(selector));
-            m_SubWindows.Add(selector);
+            ObjectSelector<Data.Group> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Groups);
+            selector.OnOk.AddListener(() => AddGroups(selector.ObjectsSelected));
+            WindowsReferencer.Add(selector);
         }
         public void RemoveGroups()
         {
-            ObjectSelector<Group> selector = ApplicationState.WindowsManager.OpenSelector<Group>();
-            selector.Objects = ApplicationState.ProjectLoaded.Groups.ToArray();
-            selector.OnSave.AddListener(() => RemoveGroups(selector.ObjectsSelected));
-            selector.OnClose.AddListener(() => m_SubWindows.Remove(selector));
-            m_SubWindows.Add(selector);
+            ObjectSelector<Data.Group> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Groups);
+            selector.OnOk.AddListener(() => RemoveGroups(selector.ObjectsSelected));
+            WindowsReferencer.Add(selector);
         }
+
         public void AddColumn()
         {
-            Column column = new IEEGColumn("Column n°"+(ItemTemp.Columns.Count + 1), new BaseConfiguration(), ItemTemp.Patients);
+            Column column = new IEEGColumn("Column n°" + (ItemTemp.Columns.Count + 1), new BaseConfiguration(), ItemTemp.Patients);
             ItemTemp.Columns.Add(column);
-            m_TabGestion.AddTab(column.Name, -1 , true);
+            m_TabGestion.AddTab(column.Name, -1, true);
             m_ColumnModifier.Object = column;
         }
         public void RemoveColumn()
@@ -113,9 +102,9 @@ namespace HBP.UI.Visualization
             // General.
             m_NameInputField.onEndEdit.AddListener((value) => ItemTemp.Name = value);
 
-            // Patients.
-            m_VisualizationPatientsListGestion.Initialize(m_SubWindows);
-            m_ProjectPatientsListGestion.Initialize(m_SubWindows);
+            // Patient.
+            m_PatientListGestion.List.OnAddObject.AddListener(OnAddPatient);
+            m_PatientListGestion.List.OnRemoveObject.AddListener(OnRemovePatient);
 
             // Tabs.
             m_TabGestion.OnSwapColumns.AddListener((column1, column2) => ItemTemp.SwapColumns(column1, column2));
@@ -129,18 +118,8 @@ namespace HBP.UI.Visualization
         {
             m_NameInputField.text = ItemTemp.Name;
 
-            m_VisualizationPatientsListGestion.Objects = ItemTemp.Patients.ToList();
+            m_PatientListGestion.List.Set(itemTemp.Patients);
 
-            ReadOnlyCollection<Patient> visualizationPatients = objectToDisplay.Patients;
-            List<Patient> patients = new List<Patient>();
-            foreach (var patient in ApplicationState.ProjectLoaded.Patients)
-            {
-                if (!visualizationPatients.Contains(patient))
-                {
-                    patients.Add(patient);
-                }
-            }
-            m_ProjectPatientsListGestion.Objects = patients;
 
             if (objectToDisplay.Columns.Count > 0)
             {
@@ -151,28 +130,13 @@ namespace HBP.UI.Visualization
                 m_TabGestion.ActiveTabIndex = 0;
             }
         }
-
-        protected void AddPatients(IEnumerable<Patient> patients)
+        protected void AddGroups(IEnumerable<Data.Group> groups)
         {
-            ItemTemp.AddPatient(patients.ToArray());
-            m_ProjectPatientsListGestion.Remove(patients.ToArray());
-            m_VisualizationPatientsListGestion.Add(patients.ToArray());
-            SelectColumn();
+            m_PatientListGestion.List.Add(groups.SelectMany(g => g.Patients).Distinct());
         }
-        protected void RemovePatients(IEnumerable<Patient> patients)
+        protected void RemoveGroups(IEnumerable<Data.Group> groups)
         {
-            ItemTemp.RemovePatient(patients.ToArray());
-            m_ProjectPatientsListGestion.Add(patients.ToArray());
-            m_VisualizationPatientsListGestion.Remove(patients.ToArray());
-            SelectColumn();
-        }
-        protected void AddGroups(IEnumerable<Group> groups)
-        {
-            AddPatients(groups.SelectMany(g => g.Patients).Distinct().Where(p => !m_VisualizationPatientsListGestion.Objects.Contains(p)));
-        }
-        protected void RemoveGroups(IEnumerable<Group> groups)
-        {
-            RemovePatients(groups.SelectMany(g => g.Patients).Distinct().Where(p => m_VisualizationPatientsListGestion.Objects.Contains(p)));
+            m_PatientListGestion.List.Remove(groups.SelectMany(g => g.Patients).Distinct());
         }
         protected void SelectColumn()
         {
@@ -196,9 +160,27 @@ namespace HBP.UI.Visualization
         }
         protected void OnChangeColumnHandler(Column column)
         {
-            if(ItemTemp != null)
+            if (ItemTemp != null)
             {
                 ItemTemp.Columns[m_TabGestion.ActiveTabIndex] = column;
+            }
+        }
+        protected void OnRemovePatient(Data.Patient patient)
+        {
+            itemTemp.Patients.Remove(patient);
+            m_NeedToUpdate = true;
+        }
+        protected void OnAddPatient(Data.Patient patient)
+        {
+            itemTemp.Patients.AddIfAbsent(patient);
+            m_NeedToUpdate = true;
+        }
+        private void Update()
+        {
+            if(m_NeedToUpdate)
+            {
+                SelectColumn();
+                m_NeedToUpdate = false;
             }
         }
         #endregion

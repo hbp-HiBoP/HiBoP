@@ -12,15 +12,37 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
+    /// <summary>
+    /// This class is used to properly display a full visualization (3D, information, cuts, site list)
+    /// </summary>
     public class Scene3DWindow : MonoBehaviour
     {
         #region Properties
+        /// <summary>
+        /// Associated logical scene
+        /// </summary>
         private Base3DScene m_Scene;
+        /// <summary>
+        /// Reference the RectTransform of this object
+        /// </summary>
         [SerializeField] private RectTransform m_RectTransform;
-        public GameObject SceneUIPrefab;
-        public GameObject CutUIPrefab;
-        public GameObject GraphsUIPrefab;
-        public GameObject SitesInformationsPrefab;
+
+        /// <summary>
+        /// Prefab for the 3D scene column
+        /// </summary>
+        [SerializeField] private GameObject m_SceneUIPrefab;
+        /// <summary>
+        /// Prefab for the cuts panel column
+        /// </summary>
+        [SerializeField] private GameObject m_CutUIPrefab;
+        /// <summary>
+        /// Prefab for the informations panel column
+        /// </summary>
+        [SerializeField] private GameObject m_InformationsUIPrefab;
+        /// <summary>
+        /// Prefab for the site list column
+        /// </summary>
+        [SerializeField] private GameObject m_SitesInformationsPrefab;
         #endregion
 
         #region Private Methods
@@ -63,17 +85,17 @@ namespace HBP.UI.Module3D
             ResizableGrid grid = GetComponent<ResizableGrid>();
             // 3D
             grid.AddColumn();
-            grid.AddViewLine(SceneUIPrefab);
+            grid.AddViewLine(m_SceneUIPrefab);
             grid.Columns.Last().Views.Last().GetComponent<Scene3DUI>().Initialize(scene);
             // Information
-            grid.AddColumn(null, GraphsUIPrefab);
+            grid.AddColumn(null, m_InformationsUIPrefab);
             Informations.InformationsWrapper informations = grid.Columns.Last().Views.Last().GetComponent<Informations.InformationsWrapper>();
             informations.Scene = scene;
             // Sites
-            grid.AddColumn(null, SitesInformationsPrefab);
+            grid.AddColumn(null, m_SitesInformationsPrefab);
             grid.Columns.Last().Views.Last().GetComponent<SitesInformations>().Initialize(scene);
             // Cuts
-            grid.AddColumn(null, CutUIPrefab);
+            grid.AddColumn(null, m_CutUIPrefab);
             grid.Columns.Last().Views.Last().GetComponent<CutController>().Initialize(scene);
             // Positions
             grid.VerticalHandlers[0].MagneticPosition = 0.45f;
@@ -105,11 +127,11 @@ namespace HBP.UI.Module3D
                     screenshotsPath += "/";
                 }
                 if (!Directory.Exists(screenshotsPath)) Directory.CreateDirectory(screenshotsPath);
-                screenshotsPath += ApplicationState.ProjectLoaded.Settings.Name + "/";
+                screenshotsPath += ApplicationState.ProjectLoaded.Preferences.Name + "/";
                 if (!Directory.Exists(screenshotsPath)) Directory.CreateDirectory(screenshotsPath);
                 screenshotsPath += m_Scene.Name + "/";
                 if (!Directory.Exists(screenshotsPath)) Directory.CreateDirectory(screenshotsPath);
-                SaveSceneToPNG(screenshotsPath, multipleFiles);
+                Screenshot(screenshotsPath, multipleFiles);
             });
             informations.OnExpand.AddListener(() =>
             {
@@ -124,26 +146,36 @@ namespace HBP.UI.Module3D
                 grid.UpdateAnchors();
             });
         }
-
-        public void SaveSceneToPNG(string path, bool multipleFiles = false)
+        /// <summary>
+        /// Take a screenshot of this scene
+        /// </summary>
+        /// <param name="path">Path to the directory to save the screenshot</param>
+        /// <param name="multipleFiles">If true, multiple files (images, csv, svg ...) will be saved; if false, a simple screenshot of the whole window will be taken</param>
+        public void Screenshot(string path, bool multipleFiles = false)
         {
-            StartCoroutine(c_SaveSceneToPNG(path, multipleFiles));
+            StartCoroutine(c_Screenshot(path, multipleFiles));
         }
         #endregion
 
         #region Coroutines
-        private IEnumerator c_SaveSceneToPNG(string path, bool multipleFiles)
+        /// <summary>
+        /// Coroutine to take a screenshot of this scene
+        /// </summary>
+        /// <param name="path">Path to the directory to save the screenshot</param>
+        /// <param name="multipleFiles">If true, multiple files (images, csv, svg ...) will be saved; if false, a simple screenshot of the whole window will be taken</param>
+        /// <returns>Coroutine return</returns>
+        private IEnumerator c_Screenshot(string path, bool multipleFiles)
         {
             yield return new WaitForEndOfFrame();
 
-            string openedProjectName = ApplicationState.ProjectLoaded.Settings.Name;
+            string openedProjectName = ApplicationState.ProjectLoaded.Preferences.Name;
 
             if (multipleFiles) // TODO : add iconic scenario and / or scales
             {
                 // Scene
-                for (int c = 0; c < m_Scene.ColumnManager.Columns.Count; c++)
+                for (int c = 0; c < m_Scene.Columns.Count; c++)
                 {
-                    Column3D column = m_Scene.ColumnManager.Columns[c];
+                    Column3D column = m_Scene.Columns[c];
                     if (!column.IsMinimized)
                     {
                         for (int v = 0; v < column.Views.Count; v++)
@@ -153,7 +185,7 @@ namespace HBP.UI.Module3D
                             {
                                 try
                                 {
-                                    string viewFilePath = path + string.Format("{0}_{1}_{2}_Brain.png", openedProjectName, m_Scene.Name, column.Label);
+                                    string viewFilePath = path + string.Format("{0}_{1}_{2}_Brain.png", openedProjectName, m_Scene.Name, column.Name);
                                     ClassLoaderSaver.GenerateUniqueSavePath(ref viewFilePath);
                                     view.ScreenshotTexture.SaveToPNG(viewFilePath);
                                 }
@@ -196,7 +228,7 @@ namespace HBP.UI.Module3D
                         Texture2D graphTexture = Texture2DExtension.ScreenRectToTexture(graph.GetComponent<RectTransform>().ToScreenSpace());
                         try
                         {
-                            string graphFilePath = path + string.Format("{0}_{1}_Graph.png", openedProjectName, m_Scene.Name);
+                            string graphFilePath = path + string.Format("{0}_{1}_[{2}]_Graph.png", openedProjectName, m_Scene.Name, string.Join("-", informations.ChannelStructs.Select(cs => cs.Patient.Name + "_" + cs.Channel)));
                             ClassLoaderSaver.GenerateUniqueSavePath(ref graphFilePath);
                             graphTexture.SaveToPNG(graphFilePath);
                         }
@@ -208,7 +240,7 @@ namespace HBP.UI.Module3D
                         }
                         try
                         {
-                            string graphFilePath = path + string.Format("{0}_{1}_Graph.svg", openedProjectName, m_Scene.Name);
+                            string graphFilePath = path + string.Format("{0}_{1}_[{2}]_Graph.svg", openedProjectName, m_Scene.Name, string.Join("-", informations.ChannelStructs.Select(cs => cs.Patient.Name + "_" + cs.Channel)));
                             ClassLoaderSaver.GenerateUniqueSavePath(ref graphFilePath);
                             using (StreamWriter sw = new StreamWriter(graphFilePath))
                             {
@@ -273,7 +305,7 @@ namespace HBP.UI.Module3D
                         }
                         try
                         {
-                            string trialMatrixFilePath = path + string.Format("{0}_{1}_TrialMatrix.png", openedProjectName, m_Scene.Name);
+                            string trialMatrixFilePath = path + string.Format("{0}_{1}_[{2}]_TrialMatrix.png", openedProjectName, m_Scene.Name, string.Join("-", informations.ChannelStructs.Select(cs => cs.Patient.Name + "_" + cs.Channel)));
                             ClassLoaderSaver.GenerateUniqueSavePath(ref trialMatrixFilePath);
                             trialMatrixTexture.SaveToPNG(trialMatrixFilePath);
                         }

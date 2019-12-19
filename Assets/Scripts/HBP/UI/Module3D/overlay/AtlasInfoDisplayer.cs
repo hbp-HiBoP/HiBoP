@@ -1,24 +1,49 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
+    /// <summary>
+    /// Small window to display information about the hovered atlas area
+    /// </summary>
     public class AtlasInfoDisplayer : MonoBehaviour
     {
         #region Properties
+        /// <summary>
+        /// Display the name of the hovered area
+        /// </summary>
         [SerializeField] Text m_NameText;
+        /// <summary>
+        /// Display all the parent areas of the hovered area
+        /// </summary>
         [SerializeField] Text m_LocationText;
+        /// <summary>
+        /// Display the area label of the hovered area
+        /// </summary>
         [SerializeField] Text m_AreaLabelText;
+        /// <summary>
+        /// Display the status of the hovered area
+        /// </summary>
         [SerializeField] Text m_StatusText;
+        /// <summary>
+        /// Display the DOI of the hovered area
+        /// </summary>
         [SerializeField] Text m_DOIText;
 
+        /// <summary>
+        /// Parent canvas of this object
+        /// </summary>
         [SerializeField] RectTransform m_Canvas;
+        /// <summary>
+        /// Reference to the RectTransform of this object
+        /// </summary>
         RectTransform m_RectTransform;
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Initialize this object (add a listener to know when to display it)
+        /// </summary>
         public void Initialize()
         {
             m_RectTransform = GetComponent<RectTransform>();
@@ -40,6 +65,9 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Clamp this object to the parent canvas
+        /// </summary>
         void ClampToCanvas() // FIXME : high cost of performance
         {
             Vector3 l_pos = m_RectTransform.localPosition;

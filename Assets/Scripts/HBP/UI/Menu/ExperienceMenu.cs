@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.UI.Experience
+namespace HBP.UI
 {
     public class ExperienceMenu : MonoBehaviour
     {

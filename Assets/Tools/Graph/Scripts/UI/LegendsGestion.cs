@@ -160,7 +160,8 @@ namespace Tools.Unity.Graph
         #endregion
 
         #region Classes
-        [Serializable] public class Legend
+        [Serializable]
+        public class Legend
         {
             #region Properties
             [SerializeField] string m_Label;
@@ -226,8 +227,10 @@ namespace Tools.Unity.Graph
                     }
                 }
             }
-
-            [SerializeField] List<Legend> m_SubLegends = new List<Legend>();
+#if UNITY_EDITOR
+            [SerializeField]
+#endif
+            List<Legend> m_SubLegends = new List<Legend>();
             public ReadOnlyCollection<Legend> SubLegends
             {
                 get

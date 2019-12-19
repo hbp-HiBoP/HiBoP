@@ -42,6 +42,22 @@ namespace Tools.Unity
             }
             return result;
         }
+        public static T LoadFromJson2<T>(string path) where T : new()
+        {
+            T result = new T();
+            try
+            {
+                using (StreamReader streamReader = new StreamReader(path))
+                {
+                    result = JsonConvert.DeserializeObject<T>(streamReader.ReadToEnd(), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+            return result;
+        }
         public static bool SaveToXML<T>(T instance, string path,bool overwrite = false) where T : new()
         {
             try
