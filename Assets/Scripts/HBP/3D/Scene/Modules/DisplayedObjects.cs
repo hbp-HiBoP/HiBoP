@@ -66,6 +66,11 @@ namespace HBP.Module3D
         public GameObject SimplifiedBrain { get; private set; }
 
         /// <summary>
+        /// Parent for ROI GameObjects
+        /// </summary>
+        [SerializeField] protected Transform m_ROIParent;
+
+        /// <summary>
         /// Prefab for the 3D brain mesh part
         /// </summary>
         [SerializeField] private GameObject m_BrainPrefab;
@@ -85,6 +90,10 @@ namespace HBP.Module3D
         /// Prefab for the 3D site
         /// </summary>
         [SerializeField] private GameObject m_SitePrefab;
+        /// <summary>
+        /// Prefab for the ROI
+        /// </summary>
+        [SerializeField] private GameObject m_ROIPrefab;
         #endregion
 
         #region Private Methods
@@ -167,8 +176,8 @@ namespace HBP.Module3D
             foreach (Column3D column in m_Scene.Columns)
             {
                 column.UpdateSites(implantation, SitesPatientParent);
-                column.UpdateROIMask();
             }
+            m_Scene.ROIManager.UpdateROIMasks();
         }
         /// <summary>
         /// Instantiate the splits for the brain mesh
@@ -218,6 +227,14 @@ namespace HBP.Module3D
             cutGameObject.transform.localPosition = Vector3.zero;
             BrainCutMeshes.Add(cutGameObject);
             BrainCutMeshes.Last().layer = LayerMask.NameToLayer(HBP3DModule.DEFAULT_MESHES_LAYER);
+        }
+        /// <summary>
+        /// Instantiate a ROI on the scene
+        /// </summary>
+        /// <returns>The ROI object that has been instantiated</returns>
+        public ROI InstantiateROI()
+        {
+            return Instantiate(m_ROIPrefab, m_ROIParent).GetComponent<ROI>();
         }
         #endregion
     }

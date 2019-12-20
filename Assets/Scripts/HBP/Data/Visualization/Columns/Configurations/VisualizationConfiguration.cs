@@ -105,6 +105,11 @@ namespace HBP.Data.Visualization
         [DataMember(Name = "Views")]
         public List<View> Views { get; set; } = new List<View>();
 
+        /// <summary>
+        /// Region of interest.
+        /// </summary>
+        [DataMember] public List<RegionOfInterest> RegionsOfInterest { get; set; } = new List<RegionOfInterest>();
+
         [IgnoreDataMember]
         public string FirstSiteToSelect { get; set; }
         [IgnoreDataMember]
@@ -112,7 +117,7 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views) : base()
+        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, IEnumerable<RegionOfInterest> rois) : base()
         {
             BrainColor = brainColor;
             BrainCutColor = brainCutColor;
@@ -130,8 +135,9 @@ namespace HBP.Data.Visualization
             CameraType = cameraType;
             Cuts = cuts.ToList();
             Views = views.ToList();
+            RegionsOfInterest = rois.ToList();
         }
-        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, string ID) : base(ID)
+        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, IEnumerable<RegionOfInterest> rois, string ID) : base(ID)
         {
             BrainColor = brainColor;
             BrainCutColor = brainCutColor;
@@ -149,6 +155,7 @@ namespace HBP.Data.Visualization
             CameraType = cameraType;
             Cuts = cuts.ToList();
             Views = views.ToList();
+            RegionsOfInterest = rois.ToList();
         }
         public VisualizationConfiguration() : base()
         {
@@ -161,7 +168,7 @@ namespace HBP.Data.Visualization
             VisualizationConfiguration result = new VisualizationConfiguration(BrainColor, BrainCutColor, EEGColormap,
                 MeshPart, MeshName, MRIName, ImplantationName, ShowEdges, StrongCuts,
                 HideBlacklistedSites, ShowAllSites, MRICalMinFactor,
-                MRICalMaxFactor, CameraType, Cuts, Views, ID);
+                MRICalMaxFactor, CameraType, Cuts, Views, RegionsOfInterest, ID);
             result.FirstSiteToSelect = FirstSiteToSelect;
             result.FirstColumnToSelect = FirstColumnToSelect;
             return result;
@@ -187,6 +194,7 @@ namespace HBP.Data.Visualization
                 CameraType = visualizationConfiguration.CameraType;
                 Cuts = visualizationConfiguration.Cuts;
                 Views = visualizationConfiguration.Views;
+                RegionsOfInterest = visualizationConfiguration.RegionsOfInterest;
                 FirstColumnToSelect = visualizationConfiguration.FirstColumnToSelect;
                 FirstSiteToSelect = visualizationConfiguration.FirstSiteToSelect;
             }

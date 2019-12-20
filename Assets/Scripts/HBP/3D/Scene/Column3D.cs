@@ -120,56 +120,7 @@ namespace HBP.Module3D
         /// Site state by site ID (used when changing the implantation to keep the state of sites common to both implantations)
         /// </summary>
         public Dictionary<string, SiteState> SiteStateBySiteID = new Dictionary<string, SiteState>();
-
-        /// <summary>
-        /// List of the ROIs of this column
-        /// </summary>
-        public List<ROI> ROIs { get; protected set; } = new List<ROI>();
-
-        protected ROI m_SelectedROI = null;
-        /// <summary>
-        /// Currently selected ROI
-        /// </summary>
-        public ROI SelectedROI
-        {
-            get
-            {
-                return m_SelectedROI;
-            }
-            set
-            {
-                if (value == null)
-                {
-                    m_SelectedROI = null;
-                }
-                else
-                {
-                    if (m_SelectedROI != null)
-                    {
-                        m_SelectedROI.SetVisibility(false);
-                    }
-
-                    m_SelectedROI = value;
-                    m_SelectedROI.SetVisibility(true);
-                }
-                UpdateROIMask();
-            }
-        }
-        /// <summary>
-        /// ID of the currently selected ROI
-        /// </summary>
-        public int SelectedROIID
-        {
-            get
-            {
-                return ROIs.FindIndex((roi) => roi == SelectedROI);
-            }
-            set
-            {
-                SelectedROI = value == -1 ? null : ROIs[value];
-            }
-        }
-
+        
         /// <summary>
         /// Texture generator for the brain surface
         /// </summary>
@@ -192,17 +143,9 @@ namespace HBP.Module3D
         /// </summary>
         [SerializeField] private Transform m_SitesMeshesParent;
         /// <summary>
-        /// Parent for ROI GameObjects
-        /// </summary>
-        [SerializeField] protected Transform m_ROIParent;
-        /// <summary>
         /// View prefab
         /// </summary>
         [SerializeField] protected GameObject m_ViewPrefab;
-        /// <summary>
-        /// Prefab for the ROI
-        /// </summary>
-        [SerializeField] private GameObject m_ROIPrefab;
         #endregion
 
         #region Events
@@ -214,10 +157,6 @@ namespace HBP.Module3D
         /// Event called when a view is moved
         /// </summary>
         [HideInInspector] public GenericEvent<View3D> OnMoveView = new GenericEvent<View3D>();
-        /// <summary>
-        /// Event called when updating the ROI mask for this column
-        /// </summary>
-        [HideInInspector] public UnityEvent OnUpdateROIMask = new UnityEvent();
         /// <summary>
         /// Event called when minimizing a column
         /// </summary>
@@ -550,104 +489,6 @@ namespace HBP.Module3D
             Views.RemoveAt(lineID);
         }
         /// <summary>
-        /// Add a ROI to this column
-        /// </summary>
-        /// <param name="name">Name of the new ROI</param>
-        /// <returns>Newly created ROI</returns>
-        public ROI AddROI(string name = "ROI")
-        {
-            GameObject roiGameObject = Instantiate(m_ROIPrefab, m_ROIParent);
-            ROI roi = roiGameObject.GetComponent<ROI>();
-            roi.Name = name;
-            roi.OnChangeNumberOfSpheres.AddListener(() =>
-            {
-                UpdateROIMask();
-            });
-            roi.OnChangeSphereParameters.AddListener(() =>
-            {
-                UpdateROIMask();
-            });
-            ROIs.Add(roi);
-            UpdateROIMask();
-            SelectedROI = ROIs.Last();
-
-            return roi;
-        }
-        /// <summary>
-        /// Create a new ROI using the parameters of another ROI
-        /// </summary>
-        /// <param name="roi">ROI to copy parameters from</param>
-        public void CopyROI(ROI roi)
-        {
-            ROI newROI = AddROI();
-            newROI.Name = roi.Name;
-            foreach (Sphere bubble in roi.Spheres)
-            {
-                newROI.AddSphere(Layer, "Bubble", bubble.Position, bubble.Radius);
-            }
-        }
-        /// <summary>
-        /// Remove the currently selected ROI
-        /// </summary>
-        public void RemoveSelectedROI()
-        {
-            Destroy(m_SelectedROI.gameObject);
-            ROIs.Remove(m_SelectedROI);
-            UpdateROIMask();
-
-            if (ROIs.Count > 0)
-            {
-                SelectedROI = ROIs.Last();
-            }
-            else
-            {
-                SelectedROI = null;
-            }
-        }
-        /// <summary>
-        /// Move the selected sphere by a specific delta from a camera perspective
-        /// </summary>
-        /// <param name="camera">Reference camera</param>
-        /// <param name="delta">Distance and direction of the movement</param>
-        public void MoveSelectedROISphere(Camera camera, Vector3 delta)
-        {
-            if (m_SelectedROI)
-            {
-                if (m_SelectedROI.SelectedSphereID != -1)
-                {
-                    Vector3 position = camera.WorldToScreenPoint(m_SelectedROI.SelectedSphere.transform.position);
-                    position += delta;
-                    position = camera.ScreenToWorldPoint(position);
-                    position -= m_SelectedROI.SelectedSphere.transform.position;
-                    m_SelectedROI.MoveSelectedSphere(position);
-                }
-            }
-        }
-        /// <summary>
-        /// Update the ROI mask for this column
-        /// </summary>
-        public void UpdateROIMask()
-        {
-            if (SelectedROI == null)
-            {
-                for (int ii = 0; ii < Sites.Count; ++ii)
-                    Sites[ii].State.IsOutOfROI = true;
-            }
-            else
-            {
-                bool[] maskROI = new bool[Sites.Count];
-
-                // update mask ROI
-                for (int ii = 0; ii < maskROI.Length; ++ii)
-                    maskROI[ii] = Sites[ii].State.IsOutOfROI;
-
-                SelectedROI.UpdateMask(RawElectrodes, maskROI);
-                for (int ii = 0; ii < Sites.Count; ++ii)
-                    Sites[ii].State.IsOutOfROI = maskROI[ii];
-            }
-            OnUpdateROIMask.Invoke();
-        }
-        /// <summary>
         /// Unselect the selected site
         /// </summary>
         public void UnselectSite()
@@ -680,9 +521,8 @@ namespace HBP.Module3D
         /// <summary>
         /// Update the sites mask of the DLL using the state of each site
         /// </summary>
-        public void UpdateDLLSitesMask()
+        public void UpdateDLLSitesMask(bool isROI)
         {
-            bool isROI = ROIs.Count > 0;
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
                 RawElectrodes.UpdateMask(ii, (Sites[ii].State.IsMasked || Sites[ii].State.IsBlackListed || (Sites[ii].State.IsOutOfROI && isROI) || !Sites[ii].State.IsFiltered));
@@ -715,14 +555,6 @@ namespace HBP.Module3D
         public virtual void LoadConfiguration(bool firstCall = true)
         {
             if (firstCall) ResetConfiguration();
-            foreach (Data.Visualization.RegionOfInterest roi in ColumnData.BaseConfiguration.RegionsOfInterest)
-            {
-                ROI newROI = AddROI(roi.Name);
-                foreach (Data.Visualization.Sphere sphere in roi.Spheres)
-                {
-                    newROI.AddSphere(Layer, "Bubble", sphere.Position.ToVector3(), sphere.Radius);
-                }
-            }
             foreach (Site site in Sites)
             {
                 site.LoadConfiguration(false);
@@ -735,12 +567,6 @@ namespace HBP.Module3D
         /// </summary>
         public virtual void SaveConfiguration()
         {
-            List<Data.Visualization.RegionOfInterest> rois = new List<Data.Visualization.RegionOfInterest>();
-            foreach (ROI roi in ROIs)
-            {
-                rois.Add(new Data.Visualization.RegionOfInterest(roi));
-            }
-            ColumnData.BaseConfiguration.RegionsOfInterest = rois;
             foreach (Site site in Sites)
             {
                 site.SaveConfiguration();
@@ -751,10 +577,6 @@ namespace HBP.Module3D
         /// </summary>
         public virtual void ResetConfiguration()
         {
-            while (ROIs.Count > 0)
-            {
-                RemoveSelectedROI();
-            }
             foreach (Site site in Sites)
             {
                 site.ResetConfiguration();

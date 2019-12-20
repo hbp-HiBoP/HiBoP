@@ -146,9 +146,9 @@ namespace HBP.UI.Informations
                         dataStructs.Add(data);
                     }
                     if (!data.Blocs.Any(b => b.Bloc == bloc.Bloc)) data.AddBloc(bloc);
-                    if (column.SelectedROI != null)
+                    if (m_Scene.ROIManager.SelectedROI != null)
                     {
-                        ROIStruct ROI = new ROIStruct(column.SelectedROI.Name, column.Sites.Where(s => !s.State.IsOutOfROI && !s.State.IsMasked).Select(site => new ChannelStruct(site)));
+                        ROIStruct ROI = new ROIStruct(m_Scene.ROIManager.SelectedROI.Name, column.Sites.Where(s => !s.State.IsOutOfROI && !s.State.IsMasked).Select(site => new ChannelStruct(site)));
                         data.Blocs.First(b => b.Bloc == bloc.Bloc).AddROI(ROI);
                     }
                 }
@@ -171,9 +171,9 @@ namespace HBP.UI.Informations
                         }
                     }
                     if (!data.Blocs.Contains(bloc)) data.AddBloc(bloc);
-                    if (column.SelectedROI != null)
+                    if (m_Scene.ROIManager.SelectedROI != null)
                     {
-                        ROIStruct ROI = new ROIStruct(column.SelectedROI.Name, column.Sites.Where(s => !s.State.IsOutOfROI && !s.State.IsMasked).Select(site => new ChannelStruct(site)));
+                        ROIStruct ROI = new ROIStruct(m_Scene.ROIManager.SelectedROI.Name, column.Sites.Where(s => !s.State.IsOutOfROI && !s.State.IsMasked).Select(site => new ChannelStruct(site)));
                         data.Blocs.First(b => b == bloc).AddROI(ROI);
                     }
                 }
