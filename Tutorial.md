@@ -4,7 +4,7 @@
 # HiBoP Tutorial: Getting Started
 This tutorial is aimed to help new users getting started into HiBoP with tested sample data. It consists of a step-by-step list of actions to perform in order to get everything working with the provided sample data. For more information about a specific feature, please refer to the documentation attached with the release of the software.
 ## Getting sample data (1~2 minutes)
-For this tutorial, we provide you with sample data that you will add to a project and visualize within HiBoP in order to showcase how you can do it with your own data. The sample data contains anatomical and functional data for two patients on one experiment. You can download it [here](http://google.com).
+For this tutorial, we provide you with sample data that you will add to a project and visualize within HiBoP in order to showcase how you can do it with your own data. The sample data contains anatomical and functional data for two patients on one experiment. You can download it [here](https://github.com/zigaroula/HiBoP/raw/master/Tutorial/sample_dataset.zip).
 
 The zip file contains two folders (one for each patient), each containing:
 * Files describing the anatomy of the patient

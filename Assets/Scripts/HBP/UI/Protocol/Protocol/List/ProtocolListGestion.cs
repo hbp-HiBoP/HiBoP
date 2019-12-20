@@ -31,6 +31,11 @@ namespace HBP.UI.Experience.Protocol
             m_ModifiedProtocols.Add(obj);
             base.OnSaveModifier(obj);
         }
+        protected override void OnObjectCreated(d.Protocol obj)
+        {
+            m_ModifiedProtocols.Add(obj);
+            base.OnObjectCreated(obj);
+        }
         #endregion
     }
 }
