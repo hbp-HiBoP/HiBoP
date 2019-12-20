@@ -1,6 +1,7 @@
 
 
 
+
 # HiBoP Tutorial: Getting Started
 This tutorial is aimed to help new users getting started into HiBoP with tested sample data. It consists of a step-by-step list of actions to perform in order to get everything working with the provided sample data. For more information about a specific feature, please refer to the documentation attached with the release of the software.
 ## Getting sample data (1~2 minutes)
@@ -193,4 +194,54 @@ The first step is to display the previously created visualization.
 2. Select the visualization by clicking on it
 3. Click on *Display* at the bottom of the window
 
-Once all data is loaded, the visualization should be displayed. If you did not alter the user preferences beforehand, another computation should start right after the opening of the visualization window. This corresponds to the projection of the iEEG activity on the brain mesh. Once this is finished, the MNI brain should be colored with the activity regarding the selected colormap.
+From now on, almost every features are represented by icons. If you want to know what a button does, put the mouse on an icon and do not move it for a short period of time: this will display a small tooltip telling you what the button does.
+
+Once all data is loaded, the visualization should be displayed. If you did not alter the user preferences beforehand, another computation should start right after the opening of the visualization window. This corresponds to the projection of the iEEG activity on the brain mesh. Once this is finished, the MNI brain should be colored with the activity regarding the selected colormap. The camera is currently showing the right hemisphere; however, the patients of this tutorial only have electrodes in the left hemisphere. Use the mouse and right click while dragging in order to move the MNI mesh to see the left hemisphere. You can click on the *Right Hemisphere* button on the top toolbar. This will trigger the computation once again.
+
+If the activity is not projected on the mesh, you can either change your preferences using the *Edit > User Preferences...* menu or you can manually compute them using the following procedure:
+1. On the left side menu, click on the *EEG settings* button
+2. This will change the top toolbar to the *EEG settings* toolbar
+3. Then, click on the *Project the EEG data on the brain* button; this will trigger the aforementioned computation
+
+Once the activity is computed, you can visualize it dynamically using the timeline. Click on the *Timeline* button on the left menu to display the timeline toolbar. There you can either use the slider to visualize each sample of the activity, or click on the *Play* button to make the timeline play. You can alter the speed by changing the number of samples to be displayed each second, and you can make the timeline loop using the *Loop* button. Do not forget to click on the *Apply changes to all columns* button in order to synchronize the timeline for the two conditions.
+
+Put the timeline slider on sample number 69 (578.13 milliseconds after the image was presented to the subject) for both columns. You should clearly see a difference in the activity between the two conditions in one specific area: it is completely activating (red) for the FRUIT condition and completely deactivating (blue) for the FACE condition. This seems to be a interesting region, so the best is to define a region of interest in that particular area:
+1. Click on the *Regions of Interest* button on the left menu
+2. This will change the top toolbar to the *Regions of Interest* toolbar
+3. Click on the *+* button to add a new ROI
+4. You can change the name of the ROI if you want
+5. Click next to the interesting region to spawn a ROI sphere
+6. You can control the size of the ROI sphere using the mouse wheel and you can drag and drop the ROI sphere to adjust its position: use these tools to match the interesting region
+7. If you spawned unwanted spheres, you can select an unwanted sphere by clicking on it in the 3D view or by selecting it in the spheres dropdown on the toolbar and press the *-* button on the right of the dropdown to remove it
+8. Once you are finished defining the ROI, click on any other button on the left menu to leave the ROI toolbar (for instance, you can click on the *Scene Settings* button)
+
+The next step is to inspect the different sites of this ROI. However the mesh is currently hiding most of the sites of this ROI: you will need to cut the mesh in order to see the sites. To do so:
+
+1. Drag and drop the limit between the *Sites* and the *Cuts* panels on the right to open the *Cuts* panel
+2. Click on the *Add Cut* button to add a cut to the visualization
+3. This should create an axial-oriented cut at the middle of the mesh
+4. You can change the direction of the cut using the dropdown and the flip toggle below the cut image on the Cuts panel
+5. You can change the position of the cut using the slider below the cut image
+
+You should now be able to see the sites within the region of interest. Expand the *Graphs and Trial Matrices* panel and click on a site in the 3D view. This will display the activity of the selected site inside this panel. You can go from site to site using the left and right arrow keys. The panel contains:
+ *  A graph containing curves representing:
+	 * The mean values of the trials of the FRUIT condition for the selected site
+	 * The mean values of the trials of the FACE condition for the selected site
+	 * The mean values of the ROI of the FRUIT condition
+	 * The mean values of the ROI of the FACE condition
+ *  A trial matrix containing the values of each trial of the two conditions for the selected site
+
+After inspecting the sites of the ROI, two sites seem really interesting: PatientA's Q'9 and Q'10. These two sites are close but have completely different responses. We can ask: why is that the case? One way to progress towards the answer of this question is to closely inspect the anatomy of the patient.
+1. Select Q'9 or Q'10 in the 3D view
+2. On the left side menu, click on the *Sites* button
+3. This will change the top toolbar to the *Sites* toolbar
+4. On the toolbar, click on the *Load the patient the selected site belongs to* button
+5. This will load a single patient visualization containing only PatientA
+6. Once the loading is finished, click on the *Eye* button close to the "VISU" label at the bottom of the software to temporary hide the multi-patient visualization
+7. In the single-patient visualization, select Q'10 in the 3D view
+8. On the toolbar, click on the *Cut the brain around the selected site* button
+9. This will create three cuts intersecting at the site position
+
+If you have a close look to Q'9 and Q'10 positions within PatientA's brain, you can see that they may belong to two different brain areas. That can be one reason why their activity is so different.
+
+All in all, this second part of the tutorial was made to demonstrate one use case of HiBoP and teach about some features of the software. All other features are explained in the documentation. If you followed this tutorial closely, you should be able to visualize your own data within HiBoP.
