@@ -25,6 +25,15 @@ namespace HBP.Module3D
 
             #region Public Methods
             /// <summary>
+            /// Get the label of the MarsAtlas region given its shortened name
+            /// </summary>
+            /// <param name="name">Shortened name of the MarsAtlas region</param>
+            /// <returns></returns>
+            public int Label(string name)
+            {
+                return get_label_MarsAtlasIndex(_handle, name);
+            }
+            /// <summary>
             /// Return the name of the hemisphere given a mars atlas label ID
             /// </summary>
             /// <param name="id">ID of mars atlas label</param>
@@ -122,6 +131,8 @@ namespace HBP.Module3D
             static private extern void delete_MarsAtlasIndex(HandleRef marsAtlasIndex);
             [DllImport("hbp_export", EntryPoint = "load_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
             static private extern int load_MarsAtlasIndex(HandleRef marsAtlasIndex, string pathFile);
+            [DllImport("hbp_export", EntryPoint = "get_label_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
+            static private extern int get_label_MarsAtlasIndex(HandleRef marsAtlasIndex, string name);
             [DllImport("hbp_export", EntryPoint = "hemisphere_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
             static private extern IntPtr hemisphere_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
             [DllImport("hbp_export", EntryPoint = "lobe_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
