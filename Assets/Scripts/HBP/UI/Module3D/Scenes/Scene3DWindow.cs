@@ -219,12 +219,12 @@ namespace HBP.UI.Module3D
                 }
                 // Graph and Trial Matrix
                 Informations.InformationsWrapper informations = GetComponentInChildren<Informations.InformationsWrapper>();
-                Informations.ChannelInformations siteInformations = informations.GetComponentInChildren<Informations.ChannelInformations>();
+                Informations.ChannelInformations channelInformations = informations.GetComponentInChildren<Informations.ChannelInformations>();
                 if (!informations.Minimized)
                 {
-                    if (!Mathf.Approximately(siteInformations.GetComponent<ZoneResizer>().Ratio, 1.0f))
+                    if (!Mathf.Approximately(channelInformations.GetComponent<ZoneResizer>().Ratio, 1.0f))
                     {
-                        global::Tools.Unity.Graph.Graph graph = siteInformations.transform.GetComponentInChildren<global::Tools.Unity.Graph.Graph>();
+                        global::Tools.Unity.Graph.Graph graph = channelInformations.transform.GetComponentInChildren<global::Tools.Unity.Graph.Graph>();
                         Texture2D graphTexture = Texture2DExtension.ScreenRectToTexture(graph.GetComponent<RectTransform>().ToScreenSpace());
                         try
                         {
@@ -273,9 +273,9 @@ namespace HBP.UI.Module3D
                             yield break;
                         }
                     }
-                    if (!Mathf.Approximately(siteInformations.GetComponent<ZoneResizer>().Ratio, 0.0f))
+                    if (!Mathf.Approximately(channelInformations.GetComponent<ZoneResizer>().Ratio, 0.0f))
                     {
-                        ScrollRect trialMatrixScrollRect = siteInformations.GetComponentInChildren<TrialMatrix.Grid.TrialMatrixGrid>().GetComponent<ScrollRect>();
+                        ScrollRect trialMatrixScrollRect = channelInformations.GetComponentInChildren<TrialMatrix.Grid.TrialMatrixGrid>().GetComponent<ScrollRect>();
                         Sprite mask = trialMatrixScrollRect.viewport.GetComponent<Image>().sprite;
                         trialMatrixScrollRect.viewport.GetComponent<Image>().sprite = null;
                         Texture2D trialMatrixTexture;

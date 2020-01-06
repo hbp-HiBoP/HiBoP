@@ -37,16 +37,16 @@ namespace Tools.Unity.Graph
             }
         }
 
-        [SerializeField] float m_Width;
+        [SerializeField] float m_Thickness;
         public float Thickness
         {
             get
             {
-                return m_Width;
+                return m_Thickness;
             }
             set
             {
-                SetPropertyUtility.SetStruct(ref m_Width, value);
+                SetPropertyUtility.SetStruct(ref m_Thickness, value);
             }
         }
 
@@ -65,16 +65,16 @@ namespace Tools.Unity.Graph
         #endregion
 
         #region Public Methods
-        public virtual void Init(IEnumerable<Vector2> points, Color color, float width = 3.0f)
+        public virtual void Init(IEnumerable<Vector2> points, Color color, float thickness = 3.0f)
         {
             m_Points = points.ToArray();
             m_Color = color;
-            m_Width = width;
+            m_Thickness = thickness;
         }
-        public static CurveData CreateInstance(IEnumerable<Vector2> points, Color color, float width = 3.0f)
+        public static CurveData CreateInstance(IEnumerable<Vector2> points, Color color, float thickness = 3.0f)
         {
             CurveData result = CreateInstance<CurveData>();
-            result.Init(points, color, width);
+            result.Init(points, color, thickness);
             return result;
         }
         #endregion

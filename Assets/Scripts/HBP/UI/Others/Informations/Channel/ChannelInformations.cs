@@ -11,7 +11,6 @@ namespace HBP.UI.Informations
 
         [SerializeField] GraphZone m_GraphZone;
         [SerializeField] TrialMatrixZone m_TrialMatrixZone;
-
         #endregion
 
         #region Public Methods
