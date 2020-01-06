@@ -210,9 +210,9 @@ namespace HBP.UI.Module3D
             switch (data.button)
             {
                 case PointerEventData.InputButton.Left:
-                    if (m_Scene.ROICreationMode)
+                    if (m_Scene.ROIManager.ROICreationMode)
                     {
-                        m_Column.MoveSelectedROISphere(m_View.Camera, data.delta);
+                        m_Scene.ROIManager.MoveSelectedROISphere(m_View.Camera, data.delta);
                     }
                     break;
                 case PointerEventData.InputButton.Right:
@@ -243,12 +243,12 @@ namespace HBP.UI.Module3D
         {
             if (IsMinimized) return;
 
-            ROI selectedROI = m_Column.SelectedROI;
-            if (m_Scene.ROICreationMode && selectedROI)
+            ROI selectedROI = m_Scene.ROIManager.SelectedROI;
+            if (m_Scene.ROIManager.ROICreationMode && selectedROI)
             {
                 if (selectedROI.SelectedSphereID != -1)
                 {
-                    selectedROI.ChangeSelectedBubbleSize(data.scrollDelta.y);
+                    selectedROI.ChangeSelectedSphereSize(data.scrollDelta.y);
                 }
                 else
                 {

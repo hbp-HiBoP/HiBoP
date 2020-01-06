@@ -1,10 +1,6 @@
 ﻿using HBP.Module3D;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using Tools.Unity;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 using T = Tools.Unity;
 
@@ -42,7 +38,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool hasROI = SelectedColumn.ROIs.Count > 0;
+            bool hasROI = SelectedScene.ROIManager.ROIs.Count > 0;
 
             m_Import.interactable = true;
             m_Export.interactable = hasROI;
@@ -55,9 +51,9 @@ namespace HBP.UI.Module3D.Tools
             string savePath = FileBrowser.GetSavedFileName(new string[] { "roi" }, "Save ROI to", Application.dataPath);
             if (!string.IsNullOrEmpty(savePath))
             {
-                Data.Visualization.RegionOfInterest ROI = new Data.Visualization.RegionOfInterest(SelectedColumn.SelectedROI);
+                Data.Visualization.RegionOfInterest ROI = new Data.Visualization.RegionOfInterest(SelectedScene.ROIManager.SelectedROI);
                 ClassLoaderSaver.SaveToJSon(ROI, savePath, true);
-                ApplicationState.DialogBoxManager.Open(T.DialogBoxManager.AlertType.Informational, "Region of Interest saved", "The selected ROI has been saved to <color=#3080ffff>" + savePath + "</color>");
+                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Region of Interest saved", "The selected ROI has been saved to <color=#3080ffff>" + savePath + "</color>");
             }
         }
         private void LoadROIToSelectedColumn()
@@ -66,10 +62,10 @@ namespace HBP.UI.Module3D.Tools
             if (!string.IsNullOrEmpty(loadPath))
             {
                 Data.Visualization.RegionOfInterest serializedROI = ClassLoaderSaver.LoadFromJson<Data.Visualization.RegionOfInterest>(loadPath);
-                ROI roi = SelectedColumn.AddROI(serializedROI.Name);
+                ROI roi = SelectedScene.ROIManager.AddROI(serializedROI.Name);
                 foreach (Data.Visualization.Sphere sphere in serializedROI.Spheres)
                 {
-                    roi.AddSphere(SelectedColumn.Layer, "Bubble", sphere.Position.ToVector3(), sphere.Radius);
+                    roi.AddSphere(SelectedColumn.Layer, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
                 }
             }
         }

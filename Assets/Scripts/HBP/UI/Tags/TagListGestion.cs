@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using HBP.Data;
 using Tools.Unity.Components;
 using UnityEngine;
 
@@ -29,6 +30,11 @@ namespace HBP.UI
         {
             m_ModifiedTags.Add(obj);
             base.OnSaveModifier(obj);
+        }
+        protected override void OnObjectCreated(BaseTag obj)
+        {
+            m_ModifiedTags.Add(obj);
+            base.OnObjectCreated(obj);
         }
         #endregion
     }

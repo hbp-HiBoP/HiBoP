@@ -111,6 +111,12 @@ namespace HBP.Module3D
         /// </summary>
         public FMRIManager FMRIManager { get { return m_FMRIManager; } }
 
+        [SerializeField] private ROIManager m_ROIManager;
+        /// <summary>
+        /// Object that handles the ROIs of the scene
+        /// </summary>
+        public ROIManager ROIManager { get { return m_ROIManager; } }
+
         /// <summary>
         /// Displayable objects of the scene
         /// </summary>
@@ -321,10 +327,7 @@ namespace HBP.Module3D
             set
             {
                 m_ShowAllSites = value;
-                foreach (var column in Columns)
-                {
-                    column.UpdateROIMask();
-                }
+                m_ROIManager.UpdateROIMasks();
                 m_SitesUpToDate = false;
             }
         }
@@ -436,25 +439,6 @@ namespace HBP.Module3D
                         view.CameraType = m_CameraType;
                     }
                 }
-            }
-        }
-        
-        private bool m_ROICreationMode;
-        /// <summary>
-        /// Is ROI creation mode activated ?
-        /// </summary>
-        public bool ROICreationMode
-        {
-            get
-            {
-                return m_ROICreationMode;
-            }
-            set
-            {
-                m_ROICreationMode = value;
-                for (int ii = 0; ii < Columns.Count; ++ii)
-                    if (Columns[ii].SelectedROI != null)
-                        Columns[ii].SelectedROI.SetRenderingState(value);
             }
         }
         
@@ -1036,12 +1020,6 @@ namespace HBP.Module3D
             {
                 SynchronizeViewsToReferenceView(view);
             });
-            column.OnUpdateROIMask.AddListener(() =>
-            {
-                ResetIEEG(false);
-                OnUpdateROIMask.Invoke();
-                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
-            });
             column.OnChangeMinimizedState.AddListener(() =>
             {
                 OnChangeColumnMinimizedState.Invoke();
@@ -1445,12 +1423,12 @@ namespace HBP.Module3D
                 }
             }
 
-            ROICreationMode = !ROICreationMode;
+            m_ROIManager.LoadROIsFromConfiguration(Visualization.Configuration.RegionsOfInterest);
+
             foreach (Column3D column in Columns)
             {
                 column.LoadConfiguration(false);
             }
-            ROICreationMode = !ROICreationMode;
 
             m_SitesUpToDate = false;
 
@@ -1492,6 +1470,13 @@ namespace HBP.Module3D
                 }
             }
             Visualization.Configuration.Views = views;
+
+            List<RegionOfInterest> rois = new List<RegionOfInterest>();
+            foreach (ROI roi in ROIManager.ROIs)
+            {
+                rois.Add(new RegionOfInterest(roi));
+            }
+            Visualization.Configuration.RegionsOfInterest = rois;
 
             foreach (Column3D column in Columns)
             {
@@ -1550,6 +1535,8 @@ namespace HBP.Module3D
                     view.Default();
                 }
             }
+
+            m_ROIManager.Clear();
 
             foreach (Column3D column in Columns)
             {
@@ -1689,9 +1676,9 @@ namespace HBP.Module3D
                 }
             }
 
-            if (m_ROICreationMode)
+            if (m_ROIManager.ROICreationMode)
             {
-                ROI selectedROI = SelectedColumn.SelectedROI;
+                ROI selectedROI = m_ROIManager.SelectedROI;
                 if (selectedROI)
                 {
                     if (raycastResult == Data.Enums.RaycastHitResult.ROI)
@@ -1700,7 +1687,7 @@ namespace HBP.Module3D
                     }
                     else if (raycastResult == Data.Enums.RaycastHitResult.Mesh || raycastResult == Data.Enums.RaycastHitResult.Cut)
                     {
-                        selectedROI.AddSphere(SelectedColumn.Layer, "Bubble", hitPoint, 5.0f);
+                        selectedROI.AddSphere(HBP3DModule.DEFAULT_MESHES_LAYER, "Sphere", hitPoint, 5.0f);
                         m_SitesUpToDate = false;
                     }
                     else
@@ -2055,7 +2042,7 @@ namespace HBP.Module3D
                 ColumnsDynamic[ii].SharedMaxInf = float.MinValue;
 
                 // update raw electrodes
-                ColumnsDynamic[ii].UpdateDLLSitesMask();
+                ColumnsDynamic[ii].UpdateDLLSitesMask(m_ROIManager.SelectedROI != null);
 
                 // splits
                 for (int jj = 0; jj < m_MeshManager.MeshSplitNumber; ++jj)

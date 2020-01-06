@@ -187,9 +187,9 @@ namespace HBP.Module3D
             Spheres.Add(sphere);
 
             // DLL
-            Vector3 positionBubble = sphere.transform.localPosition;
-            positionBubble.x = -positionBubble.x;
-            m_DLLROI.AddSphere(radius, positionBubble);
+            Vector3 positionSphere = sphere.transform.localPosition;
+            positionSphere.x = -positionSphere.x;
+            m_DLLROI.AddSphere(radius, positionSphere);
 
             OnChangeNumberOfSpheres.Invoke();
             SelectSphere(Spheres.Count - 1);
@@ -205,9 +205,9 @@ namespace HBP.Module3D
                 SelectedSphere.Position += translation;
 
                 // DLL
-                Vector3 positionBubble = SelectedSphere.Position;
-                positionBubble.x = -positionBubble.x;
-                m_DLLROI.UpdateSpherePosition(SelectedSphereID, positionBubble);
+                Vector3 positionSphere = SelectedSphere.Position;
+                positionSphere.x = -positionSphere.x;
+                m_DLLROI.UpdateSpherePosition(SelectedSphereID, positionSphere);
 
                 OnChangeSphereParameters.Invoke();
             }
@@ -220,7 +220,7 @@ namespace HBP.Module3D
         {
             if (sphereID == -1) return;
 
-            // remove the bubble
+            // remove the sphere
             Destroy(Spheres[sphereID].gameObject);
             Spheres.RemoveAt(sphereID);
 
@@ -249,7 +249,7 @@ namespace HBP.Module3D
         /// Increase or decrease the size of the selected sphere by 10%
         /// </summary>
         /// <param name="direction">If negative, decrease the size of the sphere (direction must have an amplitude greater than 0.2 to be accounted for)</param>
-        public void ChangeSelectedBubbleSize(float direction)
+        public void ChangeSelectedSphereSize(float direction)
         {
             if (SelectedSphereID == -1) return;
 

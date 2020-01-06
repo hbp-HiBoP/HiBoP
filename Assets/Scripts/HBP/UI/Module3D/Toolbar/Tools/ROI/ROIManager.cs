@@ -31,9 +31,9 @@ namespace HBP.UI.Module3D.Tools
         {
             m_ROISelector.options.Clear();
             m_ROISelector.options.Add(new Dropdown.OptionData("None"));
-            for (int i = 0; i < SelectedColumn.ROIs.Count; i++)
+            for (int i = 0; i < SelectedScene.ROIManager.ROIs.Count; i++)
             {
-                ROI roi = SelectedColumn.ROIs[i];
+                ROI roi = SelectedScene.ROIManager.ROIs[i];
                 if (roi.Name == "ROI")
                 {
                     m_ROISelector.options.Add(new Dropdown.OptionData("ROI " + i));
@@ -49,13 +49,13 @@ namespace HBP.UI.Module3D.Tools
         {
             m_VolumeSelector.options.Clear();
             m_VolumeSelector.options.Add(new Dropdown.OptionData("None"));
-            ROI selectedROI = SelectedColumn.SelectedROI;
+            ROI selectedROI = SelectedScene.ROIManager.SelectedROI;
             if (selectedROI)
             {
                 for (int i = 0; i < selectedROI.Spheres.Count; i++)
                 {
-                    Sphere bubble = selectedROI.Spheres[i];
-                    m_VolumeSelector.options.Add(new Dropdown.OptionData("Sphere " + i + " (R=" + bubble.Radius.ToString("N1") + ")"));
+                    Sphere sphere = selectedROI.Spheres[i];
+                    m_VolumeSelector.options.Add(new Dropdown.OptionData("Sphere " + i + " (R=" + sphere.Radius.ToString("N1") + ")"));
                 }
             }
             m_VolumeSelector.RefreshShownValue();
@@ -63,11 +63,11 @@ namespace HBP.UI.Module3D.Tools
         public void UpdateSelectedROIUI()
         {
             ListenerLock = true;
-            int roiID = SelectedColumn.SelectedROIID;
+            int roiID = SelectedScene.ROIManager.SelectedROIID;
             m_ROISelector.value = roiID + 1;
             if (roiID != -1)
             {
-                m_ROIName.text = SelectedColumn.SelectedROI.Name;
+                m_ROIName.text = SelectedScene.ROIManager.SelectedROI.Name;
             }
             else
             {
@@ -77,7 +77,7 @@ namespace HBP.UI.Module3D.Tools
             UpdateVolumeDropdownOptions();
             if (roiID != -1)
             {
-                m_VolumeSelector.value = SelectedColumn.SelectedROI.SelectedSphereID + 1;
+                m_VolumeSelector.value = SelectedScene.ROIManager.SelectedROI.SelectedSphereID + 1;
             }
             ListenerLock = false;
         }
@@ -90,38 +90,38 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedColumn.AddROI();
+                SelectedScene.ROIManager.AddROI();
             });
             m_RemoveROI.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
 
-                SelectedColumn.RemoveSelectedROI();
+                SelectedScene.ROIManager.RemoveSelectedROI();
             });
             m_ROISelector.onValueChanged.AddListener((value) =>
             {
                 if (ListenerLock) return;
 
-                SelectedColumn.SelectedROIID = value - 1;
+                SelectedScene.ROIManager.SelectedROIID = value - 1;
             });
             m_ROIName.onEndEdit.AddListener((value) =>
             {
                 if (ListenerLock) return;
 
-                SelectedColumn.SelectedROI.Name = value;
+                SelectedScene.ROIManager.SelectedROI.Name = value;
                 UpdateROIDropdownOptions();
             });
             m_VolumeSelector.onValueChanged.AddListener((value) =>
             {
                 if (ListenerLock) return;
 
-                SelectedColumn.SelectedROI.SelectSphere(value - 1);
+                SelectedScene.ROIManager.SelectedROI.SelectSphere(value - 1);
             });
             m_RemoveVolume.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
 
-                SelectedColumn.SelectedROI.RemoveSelectedSphere();
+                SelectedScene.ROIManager.SelectedROI.RemoveSelectedSphere();
             });
         }
         public override void DefaultState()
@@ -136,11 +136,11 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool hasROI = SelectedColumn.ROIs.Count > 0;
+            bool hasROI = SelectedScene.ROIManager.ROIs.Count > 0;
             bool hasVolume = false;
-            if (hasROI && SelectedColumn.SelectedROI)
+            if (hasROI && SelectedScene.ROIManager.SelectedROI)
             {
-                hasVolume = SelectedColumn.SelectedROI.Spheres.Count > 0;
+                hasVolume = SelectedScene.ROIManager.SelectedROI.Spheres.Count > 0;
             }
 
             m_AddROI.interactable = true;
