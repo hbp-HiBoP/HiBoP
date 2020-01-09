@@ -2,6 +2,7 @@
 using UnityEngine;
 using System.Linq;
 using Tools.Unity.Lists;
+using HBP.Data;
 
 namespace HBP.UI
 {
@@ -30,6 +31,21 @@ namespace HBP.UI
                 obj.ReferenceSystem = referenceSystem;
             }
             base.OnSaveModifier(obj);
+        }
+        protected override void OnObjectCreated(Coordinate obj)
+        {
+            if (List.Objects.Any(c => c.ReferenceSystem == obj.ReferenceSystem && c != obj))
+            {
+                int count = 1;
+                string referenceSystem = string.Format("{0}({1})", obj.ReferenceSystem, count);
+                while (List.Objects.Any(c => c.ReferenceSystem == referenceSystem))
+                {
+                    count++;
+                    referenceSystem = string.Format("{0}({1})", obj.ReferenceSystem, count);
+                }
+                obj.ReferenceSystem = referenceSystem;
+            }
+            base.OnObjectCreated(obj);
         }
         #endregion
     }

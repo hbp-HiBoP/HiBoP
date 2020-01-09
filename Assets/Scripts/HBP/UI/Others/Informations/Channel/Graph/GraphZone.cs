@@ -185,7 +185,6 @@ namespace HBP.UI.Informations
                 m_AbscissaDisplayRange[g] = graph.AbscissaDisplayRange;
             }
         }
-
         void OnChangeOrdinateDisplayRangeHandler(Vector2 ordinateDisplayRange)
         {
             if (!m_isLock)
@@ -310,7 +309,7 @@ namespace HBP.UI.Informations
         Graph.Curve GenerateROIsCurve(DataStruct data, Data.Experience.Protocol.Bloc bloc, SubBloc subBloc, string id)
         {
             id = id + "_ROI";
-            Graph.Curve result = new Graph.Curve("ROI", null, true, data.Data + "_" + bloc.Name + "_ROI", new Graph.Curve[0], new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1));
+            Graph.Curve result = new Graph.Curve("ROI", null, true, id, new Graph.Curve[0], new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1));
             BlocStruct blocStruct = data.Blocs.First(b => b.Bloc == bloc);
             foreach (var ROI in blocStruct.ROIs)
             {

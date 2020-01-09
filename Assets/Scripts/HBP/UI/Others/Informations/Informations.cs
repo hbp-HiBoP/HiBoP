@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using data = HBP.Data.Informations;
 
 namespace HBP.UI.Informations
 {

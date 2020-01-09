@@ -1,11 +1,10 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Tools.Unity.Lists;
 
 namespace HBP.UI.Experience.Dataset
 {
-    public class DataInfoList : Tools.Unity.Lists.ActionableList<Data.Experience.Dataset.DataInfo>
+    public class DataInfoList : ActionableList<Data.Experience.Dataset.DataInfo>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Patient, DescendingPatient, State, DescendingState, Type, DescendingType }
@@ -15,8 +14,6 @@ namespace HBP.UI.Experience.Dataset
         public SortingDisplayer m_PatientSortingDisplayer;
         public SortingDisplayer m_TypeSortingDisplayer;
         public SortingDisplayer m_StateSortingDisplayer;
-
-        public UnityEngine.Events.GenericEvent<Data.Experience.Dataset.DataInfo, int> OnUpdateObject = new UnityEngine.Events.GenericEvent<Data.Experience.Dataset.DataInfo, int>();
         #endregion
 
         #region Public Methods
@@ -28,27 +25,6 @@ namespace HBP.UI.Experience.Dataset
                 return true;
             }
             else return false;
-        }
-        public override bool UpdateObject(Data.Experience.Dataset.DataInfo objectToUpdate)
-        {
-            int index = m_Objects.FindIndex(obj => obj == objectToUpdate);
-            if (index != -1)
-            {
-                m_Objects[index] = objectToUpdate;
-                OnUpdateObject.Invoke(objectToUpdate, index);
-                if (GetItemFromObject(objectToUpdate, out Item<Data.Experience.Dataset.DataInfo> item))
-                {
-                    ActionnableItem<Data.Experience.Dataset.DataInfo> actionnableItem = item as ActionnableItem<Data.Experience.Dataset.DataInfo>;
-                    actionnableItem.Object = objectToUpdate;
-                    actionnableItem.OnChangeSelected.RemoveAllListeners();
-                    actionnableItem.Select(m_SelectedStateByObject[objectToUpdate]);
-                    actionnableItem.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(objectToUpdate, selected));
-                    actionnableItem.OnAction.RemoveAllListeners();
-                    actionnableItem.OnAction.AddListener((actionID) => OnAction.Invoke(objectToUpdate, actionID));
-                    return true;
-                }
-            }
-            return false;
         }
         #endregion
 

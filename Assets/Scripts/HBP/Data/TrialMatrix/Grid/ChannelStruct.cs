@@ -249,13 +249,6 @@ namespace HBP.Data.Informations
         #region Properties
         public string Name { get; set; }
         public List<ChannelStruct> Channels { get; set; }
-        //public ReadOnlyCollection<ChannelStruct> Channels
-        //{
-        //    get
-        //    {
-        //        return new ReadOnlyCollection<ChannelStruct>(m_Channels);
-        //    }
-        //}
         #endregion
 
         #region Constructors
@@ -295,6 +288,57 @@ namespace HBP.Data.Informations
             return EqualityComparer<ROIStruct>.Default.Equals(struct1, struct2);
         } 
         public static bool operator !=(ROIStruct struct1, ROIStruct struct2)
+        {
+            return !(struct1 == struct2);
+        }
+        #endregion
+    }
+
+    [Serializable]
+    public class SceneROIStruct : IEquatable<SceneROIStruct>
+    {
+        #region Properties
+        public string Name { get; set; }
+        public Dictionary<DataStruct,List<ChannelStruct>> ChannelsByData { get; set; }
+        #endregion
+
+        #region Constructors
+        public SceneROIStruct(string name, Dictionary<DataStruct, List<ChannelStruct>> channelsByData)
+        {
+            Name = name;
+            ChannelsByData = new Dictionary<DataStruct, List<ChannelStruct>>(channelsByData);
+        }
+        #endregion
+
+        #region Public Methods
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as SceneROIStruct);
+        }
+        public bool Equals(SceneROIStruct other)
+        {
+            bool notNull = other != null;
+            if (notNull)
+            {
+                bool sameName = Name == other.Name;
+                bool collection = EqualityComparer<Dictionary<DataStruct, List<ChannelStruct>>>.Default.Equals(ChannelsByData, other.ChannelsByData);
+            }
+            return other != null &&
+                   Name == other.Name &&
+                   EqualityComparer<Dictionary<DataStruct, List<ChannelStruct>>>.Default.Equals(ChannelsByData, other.ChannelsByData);
+        }
+        public override int GetHashCode()
+        {
+            var hashCode = 252110562;
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
+            hashCode = hashCode * -1521134295 + EqualityComparer<Dictionary<DataStruct, List<ChannelStruct>>>.Default.GetHashCode(ChannelsByData);
+            return hashCode;
+        }
+        public static bool operator ==(SceneROIStruct struct1, SceneROIStruct struct2)
+        {
+            return EqualityComparer<SceneROIStruct>.Default.Equals(struct1, struct2);
+        }
+        public static bool operator !=(SceneROIStruct struct1, SceneROIStruct struct2)
         {
             return !(struct1 == struct2);
         }

@@ -14,11 +14,6 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private Tools.ROIManager m_ROIManager;
         /// <summary>
-        /// Tool to copy all ROIs from a column to every others
-        /// </summary>
-        [SerializeField]
-        private Tools.ROICopy m_ROICopy;
-        /// <summary>
         /// Tool to import/export ROIs
         /// </summary>
         [SerializeField]
@@ -29,7 +24,6 @@ namespace HBP.UI.Module3D
         protected override void AddTools()
         {
             m_Tools.Add(m_ROIManager);
-            m_Tools.Add(m_ROICopy);
             m_Tools.Add(m_ROIExport);
         }
         #endregion
@@ -39,14 +33,14 @@ namespace HBP.UI.Module3D
         {
             foreach (HBP.Module3D.Base3DScene scene in ApplicationState.Module3D.Scenes)
             {
-                scene.ROICreationMode = true;
+                scene.ROIManager.ROICreationMode = true;
             }
         }
         public override void HideToolbarCallback()
         {
             foreach (HBP.Module3D.Base3DScene scene in ApplicationState.Module3D.Scenes)
             {
-                scene.ROICreationMode = false;
+                scene.ROIManager.ROICreationMode = false;
             }
         }
         #endregion

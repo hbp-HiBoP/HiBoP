@@ -22,7 +22,8 @@ namespace HBP.UI.Experience.Dataset
         #region Public Methods
         public void UpdateAllObjects()
         {
-            foreach (var obj in List.Objects)
+            DataInfo[] dataInfos = List.Objects.ToArray();
+            foreach (var obj in dataInfos)
             {
                 List.UpdateObject(obj);
             }
@@ -49,6 +50,62 @@ namespace HBP.UI.Experience.Dataset
                 }
             }
             else if(obj is CCEPDataInfo ccepDataInfo)
+            {
+                IEnumerable<CCEPDataInfo> ccepDataInfos = List.Objects.OfType<CCEPDataInfo>();
+                if (ccepDataInfos.Any(p => p.Name == obj.Name && p.Patient == ccepDataInfo.Patient && p.StimulatedChannel == ccepDataInfo.StimulatedChannel && !p.Equals(ccepDataInfo)))
+                {
+                    int count = 1;
+                    string name = string.Format("{0}({1})", obj.Name, count);
+                    while (ccepDataInfos.Any(p => p.Name == name && p.Patient == ccepDataInfo.Patient && p.StimulatedChannel == ccepDataInfo.StimulatedChannel && !p.Equals(ccepDataInfo)))
+                    {
+                        count++;
+                        name = string.Format("{0}({1})", obj.Name, count);
+                    }
+                    obj.Name = name;
+                }
+            }
+            else
+            {
+                if (m_List.Objects.Any(p => p.GetType() == obj.GetType() && p.Name == obj.Name && !p.Equals(obj)))
+                {
+                    int count = 1;
+                    string name = string.Format("{0}({1})", obj.Name, count);
+                    while (m_List.Objects.Any(p => p.Name == name))
+                    {
+                        count++;
+                        name = string.Format("{0}({1})", obj.Name, count);
+                    }
+                    obj.Name = name;
+                }
+            }
+            if (!List.Objects.Contains(obj))
+            {
+                List.Add(obj);
+            }
+            else
+            {
+                List.UpdateObject(obj);
+            }
+        }
+        protected override void OnObjectCreated(DataInfo obj)
+        {
+            OnDataInfoNeedCheckErrors.Invoke(obj);
+            if (obj is iEEGDataInfo ieegDataInfo)
+            {
+                IEnumerable<iEEGDataInfo> ieegDataInfos = List.Objects.OfType<iEEGDataInfo>();
+                if (ieegDataInfos.Any(p => p.Name == obj.Name && p.Patient == ieegDataInfo.Patient && !p.Equals(ieegDataInfo)))
+                {
+                    int count = 1;
+                    string name = string.Format("{0}({1})", obj.Name, count);
+                    while (ieegDataInfos.Any(p => p.Name == name && p.Patient == ieegDataInfo.Patient && !p.Equals(ieegDataInfo)))
+                    {
+                        count++;
+                        name = string.Format("{0}({1})", obj.Name, count);
+                    }
+                    obj.Name = name;
+                }
+            }
+            else if (obj is CCEPDataInfo ccepDataInfo)
             {
                 IEnumerable<CCEPDataInfo> ccepDataInfos = List.Objects.OfType<CCEPDataInfo>();
                 if (ccepDataInfos.Any(p => p.Name == obj.Name && p.Patient == ccepDataInfo.Patient && p.StimulatedChannel == ccepDataInfo.StimulatedChannel && !p.Equals(ccepDataInfo)))

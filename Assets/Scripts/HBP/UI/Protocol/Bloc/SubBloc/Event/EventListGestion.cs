@@ -52,6 +52,18 @@ namespace HBP.UI.Experience.Protocol
             base.OnSaveModifier(obj);
             List.Refresh();
         }
+        protected override void OnObjectCreated(d.Event obj)
+        {
+            if (obj.Type == Data.Enums.MainSecondaryEnum.Main)
+            {
+                foreach (var item in List.Objects.Where(e => e != obj))
+                {
+                    item.Type = Data.Enums.MainSecondaryEnum.Secondary;
+                }
+            }
+            base.OnObjectCreated(obj);
+            List.Refresh();
+        }
         #endregion
     }
 }
