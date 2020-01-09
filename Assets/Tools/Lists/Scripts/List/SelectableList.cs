@@ -167,6 +167,7 @@ namespace Tools.Unity.Lists
                 selectableItem.OnChangeSelected.RemoveAllListeners();
                 selectableItem.Select(m_SelectedStateByObject[objectToUpdate]);
                 selectableItem.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(objectToUpdate, selected));
+                OnUpdateObject.Invoke(objectToUpdate);
                 return true;
             }
             return false;

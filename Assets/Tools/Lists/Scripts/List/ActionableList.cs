@@ -42,6 +42,7 @@ namespace Tools.Unity.Lists
                 actionnableItem.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(objectToUpdate, selected));
                 actionnableItem.OnAction.RemoveAllListeners();
                 actionnableItem.OnAction.AddListener((action) => OnActionHandler(action, objectToUpdate));
+                OnUpdateObject.Invoke(objectToUpdate);
                 return true;
             }
             return false;

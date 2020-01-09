@@ -22,7 +22,8 @@ namespace HBP.UI.Experience.Dataset
         #region Public Methods
         public void UpdateAllObjects()
         {
-            foreach (var obj in List.Objects)
+            DataInfo[] dataInfos = List.Objects.ToArray();
+            foreach (var obj in dataInfos)
             {
                 List.UpdateObject(obj);
             }
