@@ -25,6 +25,19 @@ namespace HBP.Data.Informations
             }
         }
 
+        [SerializeField] bool m_IsBlacklisted;
+        public bool IsBlacklisted
+        {
+            get
+            {
+                return m_IsBlacklisted;
+            }
+            set
+            {
+                SetPropertyUtility.SetStruct(ref m_IsBlacklisted, value);
+            }
+        }
+
         [SerializeField] Patient m_Patient;
         public Patient Patient
         {
@@ -40,15 +53,17 @@ namespace HBP.Data.Informations
         #endregion
 
         #region Constructors
-        public ChannelStruct(string channel, Patient patient)
+        public ChannelStruct(string channel, Patient patient, bool isBlacklisted)
         {
             Channel = channel;
             Patient = patient;
+            IsBlacklisted = isBlacklisted;
         }
         public ChannelStruct(Module3D.Site site)
         {
             Channel = site.Information.Name;
             Patient = site.Information.Patient;
+            IsBlacklisted = site.State.IsBlackListed;
         }
 
         public override bool Equals(object obj)
