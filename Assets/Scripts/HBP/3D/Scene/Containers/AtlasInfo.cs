@@ -11,6 +11,8 @@ namespace HBP.Module3D
     public class AtlasInfo
     {
         #region Properties
+        public enum AtlasType { MarsAtlas, JuBrainAtlas }
+        public AtlasType Type;
         /// <summary>
         /// Do we display information about this area ?
         /// </summary>
@@ -42,10 +44,11 @@ namespace HBP.Module3D
         #endregion
 
         #region Constructor
-        public AtlasInfo(bool enabled, Vector3 position, string name = "", string location = "", string areaLabel = "", string status = "", string doi = "")
+        public AtlasInfo(bool enabled, Vector3 position, AtlasType type = AtlasType.MarsAtlas, string name = "", string location = "", string areaLabel = "", string status = "", string doi = "")
         {
             Enabled = enabled;
             Position = position;
+            Type = type;
             Name = name;
             Location = location;
             AreaLabel = areaLabel;

@@ -184,7 +184,21 @@ namespace HBP.Module3D.DLL
         /// <param name="atlas">Reference to the atlas object</param>
         /// <param name="alpha">Alpha of the colors on the cut texture</param>
         /// <param name="selectedArea">Currently selected (hovered with mouse) atlas area</param>
-        public void FillTextureWithAtlas(JuBrainAtlas atlas, float alpha, int selectedArea)
+        public void FillTextureWithJuBrainAtlas(JuBrainAtlas atlas, float alpha, int selectedArea)
+        {
+            bool noError = false;
+            noError = fill_texture_with_Atlas__MRITextureCutGenerator(_handle, atlas.getHandle(), alpha, selectedArea) == 1;
+
+            if (!noError)
+                Debug.LogError("fill_texture_with_Atlas__MRITextureCutGenerator failed ! (check DLL console debug output)");
+        }
+        /// <summary>
+        /// Fill the pixels of the cut texture with the MarsAtlas
+        /// </summary>
+        /// <param name="atlas">Reference to the atlas object</param>
+        /// <param name="alpha">Alpha of the colors on the cut texture</param>
+        /// <param name="selectedArea">Currently selected (hovered with mouse) atlas area</param>
+        public void FillTextureWithMarsAtlas(MarsAtlas atlas, float alpha, int selectedArea)
         {
             bool noError = false;
             noError = fill_texture_with_Atlas__MRITextureCutGenerator(_handle, atlas.getHandle(), alpha, selectedArea) == 1;

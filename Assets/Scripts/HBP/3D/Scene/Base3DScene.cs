@@ -723,7 +723,11 @@ namespace HBP.Module3D
                     column.CutTextures.CreateMRITexture(DLLMRIGeometryCutGeneratorList[cut.ID], MRIManager.SelectedMRI.Volume, cut.ID, MRIManager.MRICalMinFactor, MRIManager.MRICalMaxFactor, 3);
                     if (m_AtlasManager.DisplayJuBrainAtlas)
                     {
-                        column.CutTextures.ColorCutsTexturesWithAtlas(cut.ID, m_AtlasManager.AtlasAlpha, m_AtlasManager.HoveredArea);
+                        column.CutTextures.ColorCutsTexturesWithJuBrainAtlas(cut.ID, m_AtlasManager.AtlasAlpha, m_AtlasManager.HoveredArea);
+                    }
+                    else if (m_AtlasManager.DisplayMarsAtlasMNI)
+                    {
+                        column.CutTextures.ColorCutsTexturesWithMarsAtlas(cut.ID, m_AtlasManager.AtlasAlpha, m_AtlasManager.HoveredArea);
                     }
                     else if (FMRIManager.DisplayFMRI)
                     {
