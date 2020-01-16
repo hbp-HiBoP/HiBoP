@@ -19,7 +19,7 @@ namespace HBP.Module3D.DLL
         #region Constructors
         public JuBrainAtlas(string leftNIIPath, string rightNIIPath, string jsonPath) : base()
         {
-            if (!LoadJuBrainAtlas(leftNIIPath, rightNIIPath, jsonPath))
+            if (!Load(leftNIIPath, rightNIIPath, jsonPath))
             {
                 Debug.LogError("Can't load JuBrain Atlas.");
             }
@@ -34,7 +34,7 @@ namespace HBP.Module3D.DLL
         /// <param name="rightNIIPath">Path of the NIFTI file for the right side of the atlas</param>
         /// <param name="jsonPath">Path to the json containing information about the areas of the atlas</param>
         /// <returns></returns>
-        public bool LoadJuBrainAtlas(string leftNIIPath, string rightNIIPath, string jsonPath)
+        public bool Load(string leftNIIPath, string rightNIIPath, string jsonPath)
         {
             return Loaded = load_JuBrainAtlas(_handle, leftNIIPath, rightNIIPath, jsonPath) == 1;
         }

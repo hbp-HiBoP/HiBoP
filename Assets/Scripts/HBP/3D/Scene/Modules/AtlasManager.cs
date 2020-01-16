@@ -138,7 +138,6 @@ namespace HBP.Module3D
                         column.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().sharedMesh.colors = colors;
                     }
                 }
-                m_Scene.CutTexturesNeedUpdate = true;
             }
             else if (m_DisplayMarsAtlas)
             {
@@ -151,8 +150,8 @@ namespace HBP.Module3D
                         column.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().sharedMesh.colors = colors;
                     }
                 }
-                m_Scene.CutTexturesNeedUpdate = true;
             }
+            m_Scene.CutTexturesNeedUpdate = true;
         }
         /// <summary>
         /// Display the information about the atlas area under the mouse

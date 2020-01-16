@@ -9,10 +9,17 @@ namespace HBP.Module3D.DLL
     /// </summary>
     public class MarsAtlas : Tools.DLL.CppDLLImportBase
     {
+        #region Properties
+        /// <summary>
+        /// Is the MarsAtlas loaded ?
+        /// </summary>
+        public bool Loaded { get; private set; }
+        #endregion
+
         #region Constructors
         public MarsAtlas(string path, string pathBrodmann, string pathNifti) : base()
         {
-            if (load_MarsAtlasIndex(_handle, path, pathBrodmann, pathNifti) != 1)
+            if (!Load(path, pathBrodmann, pathNifti))
             {
                 Debug.LogError("Can't load mars atlas index.");
             }
@@ -147,6 +154,20 @@ namespace HBP.Module3D.DLL
                 colors[i] = new Color(result[4 * i] / 255, result[4 * i + 1] / 255, result[4 * i + 2] / 255, result[4 * i + 3] / 255);
             }
             return colors;
+        }
+        #endregion
+
+        #region Private Methods
+        /// <summary>
+        /// Load the mars atlas
+        /// </summary>
+        /// <param name="path">Path to mars atlas csv file</param>
+        /// <param name="pathBrodmann">Path to brodmann txt file</param>
+        /// <param name="pathNifti">Path to mars atlas nifti file</param>
+        /// <returns>True if the mars atlas is correctly loaded</returns>
+        private bool Load(string path, string pathBrodmann, string pathNifti)
+        {
+            return Loaded = load_MarsAtlasIndex(_handle, path, pathBrodmann, pathNifti) == 1;
         }
         #endregion
 

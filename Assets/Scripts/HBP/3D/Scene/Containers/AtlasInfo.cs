@@ -24,23 +24,23 @@ namespace HBP.Module3D
         /// <summary>
         /// Name of the area
         /// </summary>
-        public string Name { get; set; }
+        public string Information1 { get; set; }
         /// <summary>
         /// Precise location of the area within the brain
         /// </summary>
-        public string Location { get; set; }
+        public string Information2 { get; set; }
         /// <summary>
         /// Label of the area (as described in the json file)
         /// </summary>
-        public string AreaLabel { get; set; }
+        public string Information3 { get; set; }
         /// <summary>
         /// Status of this area
         /// </summary>
-        public string Status { get; set; }
+        public string Information4 { get; set; }
         /// <summary>
         /// DOI of the area
         /// </summary>
-        public string DOI { get; set; }
+        public string Information5 { get; set; }
         #endregion
 
         #region Constructor
@@ -49,11 +49,11 @@ namespace HBP.Module3D
             Enabled = enabled;
             Position = position;
             Type = type;
-            Name = name;
-            Location = location;
-            AreaLabel = areaLabel;
-            Status = status;
-            DOI = doi;
+            Information1 = name;
+            Information2 = location;
+            Information3 = areaLabel;
+            Information4 = status;
+            Information5 = doi;
         }
         #endregion
     }

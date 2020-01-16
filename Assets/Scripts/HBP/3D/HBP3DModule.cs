@@ -186,19 +186,9 @@ namespace HBP.Module3D
         #endregion
 
         #region Private Methods
-        void Awake()
+        private void Awake()
         {
-            // Graphic Settings
-            QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
-            QualitySettings.antiAliasing = 8;
-
-            // Atlases
-            string dataDirectory = Application.dataPath + "/../Data/";
-            #if UNITY_EDITOR
-                dataDirectory = Application.dataPath + "/Data/";
-            #endif
-            MarsAtlasIndex = new DLL.MarsAtlas(dataDirectory + "Atlases/MarsAtlas/mars_atlas_index.csv", dataDirectory + "Atlases/MarsAtlas/brodmann_areas.txt", dataDirectory + "Atlases/MarsAtlas/colin27_MNI_MarsAtlas.nii");
-            JuBrainAtlas = new DLL.JuBrainAtlas(dataDirectory + "Atlases/JuBrain/jubrain_left_nlin2Stdcolin27.nii.gz", dataDirectory + "Atlases/JuBrain/jubrain_right_nlin2Stdcolin27.nii.gz", dataDirectory + "Atlases/JuBrain/jubrain.json");
+            this.StartCoroutineAsync(c_Preload3D());
         }
         void OnDestroy()
         {
@@ -339,7 +329,7 @@ namespace HBP.Module3D
         /// <param name="visualization">Visualization to be loaded</param>
         /// <param name="onChangeProgress">Event to update the loading circle</param>
         /// <returns></returns>
-        IEnumerator c_LoadScene(Data.Visualization.Visualization visualization, Action<float, float, LoadingText> onChangeProgress)
+        private IEnumerator c_LoadScene(Data.Visualization.Visualization visualization, Action<float, float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
 
@@ -380,6 +370,24 @@ namespace HBP.Module3D
             {
                 throw exception;
             }
+        }
+
+        private IEnumerator c_Preload3D()
+        {
+            yield return Ninja.JumpToUnity;
+            // Graphic Settings
+            QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
+            QualitySettings.antiAliasing = 8;
+
+            // Atlases
+            string dataDirectory = Application.dataPath + "/../Data/";
+            #if UNITY_EDITOR
+            dataDirectory = Application.dataPath + "/Data/";
+            #endif
+
+            yield return Ninja.JumpBack;
+            MarsAtlasIndex = new DLL.MarsAtlas(dataDirectory + "Atlases/MarsAtlas/mars_atlas_index.csv", dataDirectory + "Atlases/MarsAtlas/brodmann_areas.txt", dataDirectory + "Atlases/MarsAtlas/colin27_MNI_MarsAtlas.nii");
+            JuBrainAtlas = new DLL.JuBrainAtlas(dataDirectory + "Atlases/JuBrain/jubrain_left_nlin2Stdcolin27.nii.gz", dataDirectory + "Atlases/JuBrain/jubrain_right_nlin2Stdcolin27.nii.gz", dataDirectory + "Atlases/JuBrain/jubrain.json");
         }
         #endregion
     }

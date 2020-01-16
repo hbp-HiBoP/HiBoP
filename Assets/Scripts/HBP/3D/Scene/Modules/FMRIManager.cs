@@ -245,21 +245,20 @@ namespace HBP.Module3D
         /// </summary>
         private void ChangeFMRICallback()
         {
-            if (CurrentVolume == null)
-                return;
-
-            switch (m_CurrentCalType)
+            if (CurrentVolume != null)
             {
-                case CalType.Value:
-                    m_FMRICalMinFactor = (m_FMRICalMin - CurrentVolume.ExtremeValues.ComputedCalMin) / (CurrentVolume.ExtremeValues.ComputedCalMax - CurrentVolume.ExtremeValues.ComputedCalMin);
-                    m_FMRICalMaxFactor = (m_FMRICalMax - CurrentVolume.ExtremeValues.ComputedCalMin) / (CurrentVolume.ExtremeValues.ComputedCalMax - CurrentVolume.ExtremeValues.ComputedCalMin);
-                    break;
-                case CalType.Factor:
-                    m_FMRICalMin = m_FMRICalMinFactor * (CurrentVolume.ExtremeValues.ComputedCalMax - CurrentVolume.ExtremeValues.ComputedCalMin) + CurrentVolume.ExtremeValues.ComputedCalMin;
-                    m_FMRICalMax = m_FMRICalMaxFactor * (CurrentVolume.ExtremeValues.ComputedCalMax - CurrentVolume.ExtremeValues.ComputedCalMin) + CurrentVolume.ExtremeValues.ComputedCalMin;
-                    break;
+                switch (m_CurrentCalType)
+                {
+                    case CalType.Value:
+                        m_FMRICalMinFactor = (m_FMRICalMin - CurrentVolume.ExtremeValues.ComputedCalMin) / (CurrentVolume.ExtremeValues.ComputedCalMax - CurrentVolume.ExtremeValues.ComputedCalMin);
+                        m_FMRICalMaxFactor = (m_FMRICalMax - CurrentVolume.ExtremeValues.ComputedCalMin) / (CurrentVolume.ExtremeValues.ComputedCalMax - CurrentVolume.ExtremeValues.ComputedCalMin);
+                        break;
+                    case CalType.Factor:
+                        m_FMRICalMin = m_FMRICalMinFactor * (CurrentVolume.ExtremeValues.ComputedCalMax - CurrentVolume.ExtremeValues.ComputedCalMin) + CurrentVolume.ExtremeValues.ComputedCalMin;
+                        m_FMRICalMax = m_FMRICalMaxFactor * (CurrentVolume.ExtremeValues.ComputedCalMax - CurrentVolume.ExtremeValues.ComputedCalMin) + CurrentVolume.ExtremeValues.ComputedCalMin;
+                        break;
+                }
             }
-
             m_Scene.ResetIEEG();
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
