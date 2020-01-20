@@ -101,6 +101,14 @@ namespace HBP.Module3D.DLL
             IntPtr result = BA_MarsAtlasIndex(_handle, label);
             return Marshal.PtrToStringAnsi(result);
         }
+        /// <summary>
+        /// Generate a sites list for group CCEP depending on the MarsAtlas
+        /// </summary>
+        /// <param name="dimension">Maximum dimension of one direction</param>
+        public RawSiteList GenerateAtlasRawSiteList(int dimension)
+        {
+            return new RawSiteList(generate_atlas_sites_list_MarsAtlasIndex(_handle, dimension));
+        }
         #endregion
 
         #region Private Methods
@@ -155,6 +163,8 @@ namespace HBP.Module3D.DLL
         static private extern IntPtr fullName_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
         [DllImport("hbp_export", EntryPoint = "BA_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr BA_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
+        [DllImport("hbp_export", EntryPoint = "generate_atlas_sites_list_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
+        static private extern IntPtr generate_atlas_sites_list_MarsAtlasIndex(HandleRef marsAtlasIndex, int dimension);
         #endregion
 
     }

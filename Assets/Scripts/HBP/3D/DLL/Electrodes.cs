@@ -113,6 +113,10 @@ namespace HBP.Module3D
             #region Memory Management
             public RawSiteList() : base() { }
             public RawSiteList(RawSiteList other) : base(clone_RawSiteList(other.getHandle())) { }
+            public RawSiteList(IntPtr ptr)
+            {
+                _handle = new HandleRef(this, ptr);
+            }
             /// <summary>
             /// Allocate DLL memory
             /// </summary>
