@@ -97,7 +97,7 @@ namespace HBP.Module3D
         /// Mars Atlas Index DLL Object
         /// This is used to get information about Mars Atlas and Brodmann areas (name, color etc.)
         /// </summary>
-        public DLL.MarsAtlas MarsAtlasIndex { get; private set; }
+        public DLL.MarsAtlas MarsAtlas { get; private set; }
         /// <summary>
         /// JuBrain Atlas DLL Object
         /// This is used to get information about JuBrain Atlas areas (name, color etc.)
@@ -192,7 +192,7 @@ namespace HBP.Module3D
         }
         void OnDestroy()
         {
-            MarsAtlasIndex?.Dispose();
+            MarsAtlas?.Dispose();
             JuBrainAtlas?.Dispose();
         }
         #endregion
@@ -386,7 +386,7 @@ namespace HBP.Module3D
             #endif
 
             yield return Ninja.JumpBack;
-            MarsAtlasIndex = new DLL.MarsAtlas(dataDirectory + "Atlases/MarsAtlas/mars_atlas_index.csv", dataDirectory + "Atlases/MarsAtlas/brodmann_areas.txt", dataDirectory + "Atlases/MarsAtlas/colin27_MNI_MarsAtlas.nii");
+            MarsAtlas = new DLL.MarsAtlas(dataDirectory + "Atlases/MarsAtlas/mars_atlas_index.csv", dataDirectory + "Atlases/MarsAtlas/brodmann_areas.txt", dataDirectory + "Atlases/MarsAtlas/colin27_MNI_MarsAtlas.nii");
             JuBrainAtlas = new DLL.JuBrainAtlas(dataDirectory + "Atlases/JuBrain/jubrain_left_nlin2Stdcolin27.nii.gz", dataDirectory + "Atlases/JuBrain/jubrain_right_nlin2Stdcolin27.nii.gz", dataDirectory + "Atlases/JuBrain/jubrain.json");
         }
         #endregion

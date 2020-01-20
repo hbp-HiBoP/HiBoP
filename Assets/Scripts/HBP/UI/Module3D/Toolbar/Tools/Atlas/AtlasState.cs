@@ -52,7 +52,7 @@ namespace HBP.UI.Module3D.Tools
         {
             bool isIBCAvailable = ApplicationState.Module3D.IBCObjects.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == Data.Enums.MeshType.MNI;
             bool isJuBrainAtlasAvailable = ApplicationState.Module3D.JuBrainAtlas.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == Data.Enums.MeshType.MNI;
-            bool canUseMarsAtlas = ApplicationState.Module3D.MarsAtlasIndex.Loaded && (SelectedScene.MeshManager.SelectedMesh.IsMarsAtlasLoaded || SelectedScene.MeshManager.SelectedMesh.Type == Data.Enums.MeshType.MNI);
+            bool canUseMarsAtlas = ApplicationState.Module3D.MarsAtlas.Loaded && (SelectedScene.MeshManager.SelectedMesh.IsMarsAtlasLoaded || SelectedScene.MeshManager.SelectedMesh.Type == Data.Enums.MeshType.MNI);
 
             m_IBCToggle.interactable = isIBCAvailable;
             m_JubrainToggle.interactable = isJuBrainAtlasAvailable;
