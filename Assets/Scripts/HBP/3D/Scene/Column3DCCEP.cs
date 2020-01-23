@@ -46,7 +46,28 @@ namespace HBP.Module3D
         {
             get
             {
-                return IsSourceAreaSelected ? m_AtlasRawSiteList : RawElectrodes;
+                return IsSourceMarsAtlasLabelSelected ? m_AtlasRawSiteList : RawElectrodes;
+            }
+        }
+
+        public enum CCEPMode { Site, MarsAtlas }
+        private CCEPMode m_Mode = CCEPMode.Site;
+        /// <summary>
+        /// Current mode of CCEP
+        /// </summary>
+        public CCEPMode Mode
+        {
+            get
+            {
+                return m_Mode;
+            }
+            set
+            {
+                m_Mode = value;
+                m_SelectedSiteSource = null;
+                m_SelectedSourceMarsAtlasLabel = -1;
+                OnSelectSource.Invoke();
+                SetActivityData();
             }
         }
 
@@ -54,7 +75,7 @@ namespace HBP.Module3D
         /// List of all possible sources for this column
         /// </summary>
         public List<Site> Sources { get; private set; } = new List<Site>();
-        private Site m_SelectedSource = null;
+        private Site m_SelectedSiteSource = null;
         /// <summary>
         /// Currently selected source site
         /// </summary>
@@ -62,13 +83,13 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_SelectedSource;
+                return m_SelectedSiteSource;
             }
             set
             {
-                if (m_SelectedSource != value)
+                if (m_SelectedSiteSource != value)
                 {
-                    m_SelectedSource = value;
+                    m_SelectedSiteSource = value;
                     OnSelectSource.Invoke();
                     SetActivityData();
                 }
@@ -81,25 +102,25 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_SelectedSource != null;
+                return m_SelectedSiteSource != null;
             }
         }
 
-        private string m_SelectedSourceArea = "";
+        private int m_SelectedSourceMarsAtlasLabel = -1;
         /// <summary>
         /// Currently selected source area
         /// </summary>
-        public string SelectedSourceArea
+        public int SelectedSourceMarsAtlasLabel
         {
             get
             {
-                return m_SelectedSourceArea;
+                return m_SelectedSourceMarsAtlasLabel;
             }
             set
             {
-                if (m_SelectedSourceArea != value)
+                if (m_SelectedSourceMarsAtlasLabel != value)
                 {
-                    m_SelectedSourceArea = value;
+                    m_SelectedSourceMarsAtlasLabel = value;
                     OnSelectSource.Invoke();
                     SetActivityData();
                 }
@@ -108,11 +129,11 @@ namespace HBP.Module3D
         /// <summary>
         /// Is a source area selected in this column ?
         /// </summary>
-        public bool IsSourceAreaSelected
+        public bool IsSourceMarsAtlasLabelSelected
         {
             get
             {
-                return !string.IsNullOrEmpty(m_SelectedSourceArea);
+                return m_SelectedSourceMarsAtlasLabel != -1;
             }
         }
 
@@ -123,7 +144,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return IsSourceSiteSelected || IsSourceAreaSelected;
+                return IsSourceSiteSelected || IsSourceMarsAtlasLabelSelected;
             }
         }
 
@@ -145,12 +166,6 @@ namespace HBP.Module3D
         #endregion
         
         #region Private Methods
-        protected override void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.A)) SelectedSourceArea = "R_ICC";
-            if (Input.GetKeyDown(KeyCode.Z)) SelectedSourceArea = "";
-            base.Update();
-        }
         /// <summary>
         /// Set activity data for each site
         /// </summary>
@@ -174,7 +189,7 @@ namespace HBP.Module3D
             {
                 SetActivityDataSourceSite();
             }
-            else if (IsSourceAreaSelected)
+            else if (IsSourceMarsAtlasLabelSelected)
             {
                 SetActivityDataSourceArea();
             }
@@ -328,8 +343,7 @@ namespace HBP.Module3D
             }
 
             // Get all values when sites are in the selected source area
-            int sourceMarsAtlasLabel = ApplicationState.Module3D.MarsAtlas.Label(m_SelectedSourceArea);
-            List<Site> sitesInSelectedSourceArea = sitesByMarsAtlasLabel[sourceMarsAtlasLabel];
+            List<Site> sitesInSelectedSourceArea = sitesByMarsAtlasLabel[m_SelectedSourceMarsAtlasLabel];
             Dictionary<int, List<float[]>> valuesByMarsAtlasArea = new Dictionary<int, List<float[]>>();
             Dictionary<int, bool> maskByMarsAtlasArea = new Dictionary<int, bool>();
             foreach (var label in marsAtlasLabels)
@@ -344,7 +358,7 @@ namespace HBP.Module3D
                 foreach (var label in marsAtlasLabels)
                 {
                     List<float[]> valuesOfMarsAtlasArea = new List<float[]>();
-                    if (label != sourceMarsAtlasLabel)
+                    if (label != m_SelectedSourceMarsAtlasLabel)
                     {
                         foreach (var site in sitesByMarsAtlasLabel[label])
                         {

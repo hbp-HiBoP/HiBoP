@@ -175,7 +175,7 @@ namespace HBP.UI.Module3D
             if (column is Column3DCCEP columnCCEP)
             {
                 if (columnCCEP.IsSourceSiteSelected) histogramID += columnCCEP.SelectedSourceSite.Information.Name;
-                else if (columnCCEP.IsSourceAreaSelected) histogramID += columnCCEP.SelectedSourceArea;
+                else if (columnCCEP.IsSourceMarsAtlasLabelSelected) histogramID += columnCCEP.SelectedSourceMarsAtlasLabel;
             }
             return histogramID;
         }

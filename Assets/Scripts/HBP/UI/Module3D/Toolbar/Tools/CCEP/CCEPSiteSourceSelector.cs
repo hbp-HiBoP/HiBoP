@@ -1,14 +1,10 @@
 ﻿using HBP.Module3D;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
 {
-    public class CCEPSourceSelector : Tool
+    public class CCEPSiteSourceSelector : Tool
     {
         #region Properties
         [SerializeField] private Text m_Text;
@@ -40,7 +36,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            if (SelectedColumn is Column3DCCEP ccepColumn)
+            if (SelectedColumn is Column3DCCEP ccepColumn && ccepColumn.Mode == Column3DCCEP.CCEPMode.Site)
             {
                 bool isSourceSelected = ccepColumn.IsSourceSiteSelected;
                 bool isSelectedSiteASource = ccepColumn.Sources.Contains(ccepColumn.SelectedSite);
