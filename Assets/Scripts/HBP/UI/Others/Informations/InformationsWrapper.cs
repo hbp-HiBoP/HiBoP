@@ -155,10 +155,10 @@ namespace HBP.UI.Informations
             }
             foreach (var column in m_Scene.ColumnsCCEP)
             {
-                if ((!column.IsMinimized || ApplicationState.UserPreferences.Visualization.Graph.ShowCurvesOfMinimizedColumns) && column.IsSourceSelected)
+                if ((!column.IsMinimized || ApplicationState.UserPreferences.Visualization.Graph.ShowCurvesOfMinimizedColumns) && column.IsSourceSiteSelected)
                 {
                     Data.Experience.Dataset.Dataset dataset = column.ColumnCCEPData.Dataset;
-                    ChannelStruct source = new ChannelStruct(column.SelectedSource);
+                    ChannelStruct source = new ChannelStruct(column.SelectedSourceSite);
                     string dataName = column.ColumnCCEPData.DataName;
                     BlocStruct bloc = new BlocStruct(column.ColumnCCEPData.Bloc);
                     CCEPDataStruct data = dataStructs.OfType<CCEPDataStruct>().FirstOrDefault(d => d.Dataset == dataset && d.Data == dataName && d.Source == source);

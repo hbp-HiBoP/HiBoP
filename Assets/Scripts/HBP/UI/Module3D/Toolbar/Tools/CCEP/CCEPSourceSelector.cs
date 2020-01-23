@@ -23,13 +23,13 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ((Column3DCCEP)SelectedColumn).SelectedSource = SelectedColumn.SelectedSite;
+                ((Column3DCCEP)SelectedColumn).SelectedSourceSite = SelectedColumn.SelectedSite;
             });
             m_UnselectSource.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
 
-                ((Column3DCCEP)SelectedColumn).SelectedSource = null;
+                ((Column3DCCEP)SelectedColumn).SelectedSourceSite = null;
             });
         }
 
@@ -42,7 +42,7 @@ namespace HBP.UI.Module3D.Tools
         {
             if (SelectedColumn is Column3DCCEP ccepColumn)
             {
-                bool isSourceSelected = ccepColumn.IsSourceSelected;
+                bool isSourceSelected = ccepColumn.IsSourceSiteSelected;
                 bool isSelectedSiteASource = ccepColumn.Sources.Contains(ccepColumn.SelectedSite);
 
                 m_SelectSource.interactable = isSelectedSiteASource;
@@ -59,9 +59,9 @@ namespace HBP.UI.Module3D.Tools
         {
             if (SelectedColumn is Column3DCCEP ccepColumn)
             {
-                if (ccepColumn.IsSourceSelected)
+                if (ccepColumn.IsSourceSiteSelected)
                 {
-                    m_Text.text = string.Format("{0} ({1})", ccepColumn.SelectedSource.Information.Name, ccepColumn.SelectedSource.Information.Patient.Name);
+                    m_Text.text = string.Format("{0} ({1})", ccepColumn.SelectedSourceSite.Information.Name, ccepColumn.SelectedSourceSite.Information.Patient.Name);
                 }
                 else
                 {

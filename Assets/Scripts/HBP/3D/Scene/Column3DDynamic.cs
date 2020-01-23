@@ -47,6 +47,16 @@ namespace HBP.Module3D
         /// Units of the signal values of each site
         /// </summary>
         public string[] ActivityUnitsBySiteID { get; protected set; } = new string[0];
+        /// <summary>
+        /// Raw site list used for activity projection
+        /// </summary>
+        public virtual RawSiteList RawElectrodesForActivityComputation
+        {
+            get
+            {
+                return RawElectrodes;
+            }
+        }
 
         /// <summary>
         /// Size of each site depending on its activity

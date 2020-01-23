@@ -808,7 +808,7 @@ namespace HBP.Module3D
                 sites.Add(site);
                 if (SelectedColumn is Column3DCCEP ccepColumn)
                 {
-                    if (ccepColumn.IsSourceSelected)
+                    if (ccepColumn.IsSourceSiteSelected)
                     {
                         OnRequestSiteInformation.Invoke(sites);
                     }
@@ -2051,7 +2051,7 @@ namespace HBP.Module3D
                     OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + ColumnsDynamic[ii].Name, timeByProgress);
                     yield return Ninja.JumpBack;
                     if (m_GeneratorNeedsUpdate) yield break;
-                    ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].InitializeOctree(ColumnsDynamic[ii].RawElectrodes);
+                    ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].InitializeOctree(ColumnsDynamic[ii].RawElectrodesForActivityComputation);
                     if (m_GeneratorNeedsUpdate) yield break;
                     ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].ComputeDistances(ColumnsDynamic[ii].DynamicParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
                     if (m_GeneratorNeedsUpdate) yield break;
@@ -2079,7 +2079,7 @@ namespace HBP.Module3D
                 OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + ColumnsDynamic[ii].Name, timeByProgress * 10);
                 yield return Ninja.JumpBack;
                 if (m_GeneratorNeedsUpdate) yield break;
-                ColumnsDynamic[ii].DLLMRIVolumeGenerator.InitializeOctree(ColumnsDynamic[ii].RawElectrodes);
+                ColumnsDynamic[ii].DLLMRIVolumeGenerator.InitializeOctree(ColumnsDynamic[ii].RawElectrodesForActivityComputation);
                 if (m_GeneratorNeedsUpdate) yield break;
                 ColumnsDynamic[ii].DLLMRIVolumeGenerator.ComputeDistances(ColumnsDynamic[ii].DynamicParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
                 if (m_GeneratorNeedsUpdate) yield break;

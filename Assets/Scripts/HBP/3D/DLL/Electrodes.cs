@@ -108,6 +108,15 @@ namespace HBP.Module3D
                 }
                 return result;
             }
+            /// <summary>
+            /// Return the mars atlas label of the site
+            /// </summary>
+            /// <param name="siteID">ID of the site</param>
+            /// <returns>MarsAtlas label</returns>
+            public int GetMarsAtlasLabelOfSite(int siteID)
+            {
+                return get_mars_atlas_label_of_site_RawSiteList(_handle, siteID);
+            }
             #endregion
 
             #region Memory Management
@@ -154,6 +163,8 @@ namespace HBP.Module3D
             static private extern int is_site_on_plane_RawSiteList(HandleRef handleRawSiteLst, int siteID, float[] planeV, float precision);
             [DllImport("hbp_export", EntryPoint = "sites_on_plane_RawSiteList", CallingConvention = CallingConvention.Cdecl)]
             static private extern void sites_on_plane_RawSiteList(HandleRef handleRawSiteLst, float[] planeV, float precision, int[] result);
+            [DllImport("hbp_export", EntryPoint = "get_mars_atlas_label_of_site_RawSiteList", CallingConvention = CallingConvention.Cdecl)]
+            static private extern int get_mars_atlas_label_of_site_RawSiteList(HandleRef handleRawSiteLst, int siteID);
             #endregion
         }
 

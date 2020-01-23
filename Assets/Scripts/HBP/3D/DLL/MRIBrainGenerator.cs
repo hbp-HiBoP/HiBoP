@@ -114,7 +114,7 @@ namespace HBP.Module3D.DLL
         public bool ComputeInfluences(Column3DDynamic dynamicColumn, bool multiCPU, bool addValues = false, Data.Enums.SiteInfluenceByDistanceType siteInfluenceByDistanceType = 0)
         {
             bool noError = false;
-            noError = computeInfluences_BrainSurfaceTextureGenerator(_handle, dynamicColumn.ActivityValues, dynamicColumn.Timeline.Length, dynamicColumn.Sites.Count, dynamicColumn.DynamicParameters.InfluenceDistance, multiCPU ? 1 : 0, addValues ? 1 : 0, (int)siteInfluenceByDistanceType,
+            noError = computeInfluences_BrainSurfaceTextureGenerator(_handle, dynamicColumn.ActivityValues, dynamicColumn.Timeline.Length, dynamicColumn.RawElectrodesForActivityComputation.NumberOfSites, dynamicColumn.DynamicParameters.InfluenceDistance, multiCPU ? 1 : 0, addValues ? 1 : 0, (int)siteInfluenceByDistanceType,
                 dynamicColumn.DynamicParameters.Middle, dynamicColumn.DynamicParameters.SpanMin, dynamicColumn.DynamicParameters.SpanMax) == 1;
 
             if (!noError)

@@ -30,6 +30,16 @@ namespace HBP.Module3D.DLL
             return get_label_MarsAtlasIndex(_handle, name);
         }
         /// <summary>
+        /// Return all the labels of the mars atlas file
+        /// </summary>
+        /// <returns>Array of all labels</returns>
+        public int[] Labels()
+        {
+            int[] labels = new int[get_label_count_MarsAtlasIndex(_handle)];
+            get_all_labels_MarsAtlasIndex(_handle, labels);
+            return labels;
+        }
+        /// <summary>
         /// Return the name of the hemisphere given a mars atlas label ID
         /// </summary>
         /// <param name="id">ID of mars atlas label</param>
@@ -109,6 +119,7 @@ namespace HBP.Module3D.DLL
         {
             return new RawSiteList(generate_atlas_sites_list_MarsAtlasIndex(_handle, dimension));
         }
+
         #endregion
 
         #region Private Methods
@@ -147,6 +158,10 @@ namespace HBP.Module3D.DLL
         static private extern IntPtr create_MarsAtlasIndex();
         [DllImport("hbp_export", EntryPoint = "delete_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
         static private extern void delete_MarsAtlasIndex(HandleRef marsAtlasIndex);
+        [DllImport("hbp_export", EntryPoint = "get_label_count_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
+        static private extern int get_label_count_MarsAtlasIndex(HandleRef marsAtlasIndex);
+        [DllImport("hbp_export", EntryPoint = "get_all_labels_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void get_all_labels_MarsAtlasIndex(HandleRef marsAtlasIndex, int[] labels);
         [DllImport("hbp_export", EntryPoint = "load_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
         static private extern int load_MarsAtlasIndex(HandleRef marsAtlasIndex, string pathFile, string pathBrodmannFile, string pathNiftiFile);
         [DllImport("hbp_export", EntryPoint = "get_label_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]

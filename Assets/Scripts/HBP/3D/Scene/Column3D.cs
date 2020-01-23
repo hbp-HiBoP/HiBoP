@@ -189,7 +189,7 @@ namespace HBP.Module3D
         /// <param name="baseColumn">Data of the column</param>
         /// <param name="implantation">Selected implantation</param>
         /// <param name="sceneSitePatientParent">List of the patient parent of the sites as instantiated in the scene</param>
-        public void Initialize(int idColumn, Data.Visualization.Column baseColumn, Implantation3D implantation, List<GameObject> sceneSitePatientParent)
+        public virtual void Initialize(int idColumn, Data.Visualization.Column baseColumn, Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             Layer = "Column" + idColumn;
             ColumnData = baseColumn;
