@@ -119,7 +119,6 @@ namespace HBP.Module3D.DLL
         {
             return new RawSiteList(generate_atlas_sites_list_MarsAtlasIndex(_handle, dimension));
         }
-
         #endregion
 
         #region Private Methods
@@ -132,7 +131,9 @@ namespace HBP.Module3D.DLL
         /// <returns>True if the mars atlas is correctly loaded</returns>
         private bool Load(string path, string pathBrodmann, string pathNifti)
         {
-            return Loaded = load_MarsAtlasIndex(_handle, path, pathBrodmann, pathNifti) == 1;
+            Loaded = load_MarsAtlasIndex(_handle, path, pathBrodmann, pathNifti) == 1;
+            apply_offset_MarsAtlasIndex(_handle, 1.7f, 0f, 1f);
+            return Loaded;
         }
         #endregion
 
@@ -180,6 +181,8 @@ namespace HBP.Module3D.DLL
         static private extern IntPtr BA_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
         [DllImport("hbp_export", EntryPoint = "generate_atlas_sites_list_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr generate_atlas_sites_list_MarsAtlasIndex(HandleRef marsAtlasIndex, int dimension);
+        [DllImport("hbp_export", EntryPoint = "apply_offset_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
+        static private extern IntPtr apply_offset_MarsAtlasIndex(HandleRef marsAtlasIndex, float x, float y, float z);
         #endregion
 
     }
