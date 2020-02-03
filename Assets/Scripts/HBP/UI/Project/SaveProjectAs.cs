@@ -30,8 +30,9 @@ namespace HBP.UI
         #region Public Methods
         public override void OK()
         {
-            Data.ProjectPreferences l_ps = new Data.ProjectPreferences(m_NameInputField.text, ApplicationState.ProjectLoaded.Preferences.PatientDatabase, ApplicationState.ProjectLoaded.Preferences.LocalizerDatabase);
-            ApplicationState.ProjectLoaded.Preferences = l_ps;
+            var preferences = ApplicationState.ProjectLoaded.Preferences.Clone() as Data.ProjectPreferences;
+            preferences.Name = m_NameInputField.text;
+            ApplicationState.ProjectLoaded.Preferences = preferences;
             FindObjectOfType<ProjectLoaderSaver>().Save(m_LocationFolderSelector.Folder);
             base.OK();
         }

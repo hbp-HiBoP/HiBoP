@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Events;
+using static HBP.Data.TrialMatrix.Grid.TrialMatrixGrid;
 using p = HBP.Data.Experience.Protocol;
 
 namespace HBP.Data.TrialMatrix.Grid
@@ -32,16 +33,16 @@ namespace HBP.Data.TrialMatrix.Grid
         #endregion
 
         #region Constructors
-        public ChannelBloc(p.Bloc bloc, DataStruct data, ChannelStruct channel)
+        public ChannelBloc(p.Bloc bloc, TrialMatrixData data, ChannelStruct channel)
         {
             DataInfo dataInfo = null;
-            if(data is IEEGDataStruct iEEGDataStruct)
+            if(data is IEEGTrialMatrixData iEEGDataStruct)
             {
-                dataInfo = iEEGDataStruct.Dataset.GetIEEGDataInfos().FirstOrDefault(d => d.Name == iEEGDataStruct.Data && d.Patient == channel.Patient);
+                dataInfo = iEEGDataStruct.Dataset.GetIEEGDataInfos().FirstOrDefault(d => d.Name == iEEGDataStruct.Name && d.Patient == channel.Patient);
             }
-            else if(data is CCEPDataStruct ccepDataStruct)
+            else if(data is CCEPTrialMatrixData ccepDataStruct)
             {
-                dataInfo = ccepDataStruct.Dataset.GetCCEPDataInfos().FirstOrDefault(d => d.Name == ccepDataStruct.Data && d.Patient == channel.Patient && d.Patient == ccepDataStruct.Source.Patient && d.StimulatedChannel == ccepDataStruct.Source.Channel);
+                dataInfo = ccepDataStruct.Dataset.GetCCEPDataInfos().FirstOrDefault(d => d.Name == ccepDataStruct.Name && d.Patient == channel.Patient && d.Patient == ccepDataStruct.Source.Patient && d.StimulatedChannel == ccepDataStruct.Source.Channel);
             }
 
             UnityEngine.Profiling.Profiler.BeginSample("GetData");
@@ -74,13 +75,13 @@ namespace HBP.Data.TrialMatrix.Grid
                 SubBlocs = subBlocs.ToArray();
             }
         }
-        public void Standardize(Tuple<p.SubBloc[],Tools.CSharp.Window>[] subBlocsAndWindowByColumn)
+        public void Standardize(Tuple<Tuple<p.Bloc,p.SubBloc>[],Tools.CSharp.Window>[] subBlocsAndWindowByColumn)
         {
             List<SubBloc> subBlocs = SubBlocs.ToList();
             for (int c = 0; c < subBlocsAndWindowByColumn.Length; c++)
             {
-                Tuple<p.SubBloc[], Tools.CSharp.Window> pair = subBlocsAndWindowByColumn[c];
-                SubBloc subBloc = subBlocs.FirstOrDefault(s => pair.Item1.Contains(s.SubBlocProtocol));
+                Tuple<Tuple<p.Bloc,p.SubBloc>[], Tools.CSharp.Window> pair = subBlocsAndWindowByColumn[c];
+                SubBloc subBloc = subBlocs.FirstOrDefault(s => pair.Item1.Any(v => v.Item2 == s.SubBlocProtocol));
                 if (subBloc == null)
                 {
                     subBlocs.Insert(c, new SubBloc(pair.Item2));

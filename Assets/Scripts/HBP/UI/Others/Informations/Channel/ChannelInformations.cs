@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 using data = HBP.Data.Informations;
 
 namespace HBP.UI.Informations
@@ -6,8 +7,8 @@ namespace HBP.UI.Informations
     public class ChannelInformations : MonoBehaviour
     {
         #region Properties
-        [SerializeField] data.ChannelStruct[] m_ChannelStructs;
-        [SerializeField] data.DataStruct[] m_DataStructs;
+        [SerializeField] data.ChannelStruct[] m_Channels;
+        [SerializeField] data.Column[] m_Columns;
 
         [SerializeField] GraphZone m_GraphZone;
         [SerializeField] TrialMatrixZone m_TrialMatrixZone;
@@ -18,36 +19,47 @@ namespace HBP.UI.Informations
         {
             m_GraphZone.CreateGraphPool(max);
         }
-        public void Display(data.ChannelStruct[] channelStructs, data.DataStruct[] dataStructs)
+        public void Display(data.ChannelStruct[] channels, data.Column[] columns)
         {
-            m_ChannelStructs = channelStructs;
-            m_DataStructs = dataStructs;
+            m_Channels = channels;
+            m_Columns = columns;
 
-            UnityEngine.Profiling.Profiler.BeginSample("TrialMatrixZone");
-            m_TrialMatrixZone.Display(channelStructs, dataStructs);
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            UnityEngine.Profiling.Profiler.BeginSample("GraphZone");
-            m_GraphZone.Display(channelStructs, dataStructs);
-            UnityEngine.Profiling.Profiler.EndSample();
+            if(isActiveAndEnabled)
+            {
+                m_TrialMatrixZone.Display(channels, columns.Select(column => column.Data).ToArray());
+                m_GraphZone.Display(channels, m_Columns);
+            }
         }
-        public void DisplayTrialMatrices(data.ChannelStruct[] channelStructs, data.DataStruct[] dataStructs)
+        public void DisplayTrialMatrices(data.ChannelStruct[] channels, data.Column[] columns)
         {
-            m_ChannelStructs = channelStructs;
-            m_DataStructs = dataStructs;
+            m_Channels = channels;
+            m_Columns = columns;
 
-            UnityEngine.Profiling.Profiler.BeginSample("TrialMatrixZone");
-            m_TrialMatrixZone.Display(channelStructs, dataStructs);
-            UnityEngine.Profiling.Profiler.EndSample();
+            if(isActiveAndEnabled)
+            {
+                m_TrialMatrixZone.Display(channels, columns.Select(column => column.Data).ToArray());
+            }
         }
-        public void DisplayGraphs(data.ChannelStruct[] channelStructs, data.DataStruct[] dataStructs)
+        public void DisplayGraphs(data.ChannelStruct[] channels, data.Column[] columns)
         {
-            m_ChannelStructs = channelStructs;
-            m_DataStructs = dataStructs;
+            m_Channels = channels;
+            m_Columns = columns;
 
-            UnityEngine.Profiling.Profiler.BeginSample("GraphZone");
-            m_GraphZone.Display(channelStructs, dataStructs);
-            UnityEngine.Profiling.Profiler.EndSample();
+            if(isActiveAndEnabled)
+            {
+                m_GraphZone.Display(channels, columns);
+            }
+        }
+        #endregion
+
+        #region Private Methods
+        void OnEnable()
+        {
+            if(m_Channels != null && m_Columns != null)
+            {
+                m_TrialMatrixZone.Display(m_Channels, m_Columns.Select(column => column.Data).ToArray());
+                m_GraphZone.Display(m_Channels, m_Columns);
+            }
         }
         #endregion
     }

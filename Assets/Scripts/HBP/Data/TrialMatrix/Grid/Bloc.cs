@@ -1,5 +1,6 @@
 ﻿using HBP.Data.Informations;
 using System.Linq;
+using static HBP.Data.TrialMatrix.Grid.TrialMatrixGrid;
 using p = HBP.Data.Experience.Protocol;
 
 namespace HBP.Data.TrialMatrix.Grid
@@ -13,7 +14,7 @@ namespace HBP.Data.TrialMatrix.Grid
         #endregion
 
         #region Constructors
-        public Bloc(p.Bloc bloc, DataStruct dataStruct, ChannelStruct[] channels)
+        public Bloc(p.Bloc bloc, TrialMatrixData dataStruct, ChannelStruct[] channels)
         {
             Title = bloc.Name;
             Data = bloc;

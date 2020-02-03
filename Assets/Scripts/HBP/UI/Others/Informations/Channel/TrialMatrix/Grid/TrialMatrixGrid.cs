@@ -66,7 +66,7 @@ namespace HBP.UI.TrialMatrix.Grid
         {
             Clear();
             m_TrialMatrixGridData = trialMatrixGridData;
-            DisplayChannels(trialMatrixGridData.ChannelStructs);
+            DisplayChannels(trialMatrixGridData.Channels);
             if(colormap != null) Colormap = colormap;
             foreach (var data in trialMatrixGridData.Data) AddData(data);
         }
