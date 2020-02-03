@@ -113,13 +113,22 @@ namespace HBP.Module3D.DLL
         public bool ComputeInfluences(Column3DDynamic dynamicColumn, bool multiCPU, bool addValues = false, int ratioDistances = 0)
         {
             bool noError = false;
-            noError = computeInfluences_MRIVolumeGenerator(_handle, dynamicColumn.ActivityValues, dynamicColumn.Timeline.Length, dynamicColumn.RawElectrodesForActivityComputation.NumberOfSites, dynamicColumn.DynamicParameters.InfluenceDistance, multiCPU ? 1 : 0, addValues ? 1 : 0, ratioDistances,
+            noError = computeInfluences_MRIVolumeGenerator(_handle, dynamicColumn.ActivityValues, dynamicColumn.Timeline.Length, dynamicColumn.RawElectrodes.NumberOfSites, dynamicColumn.DynamicParameters.InfluenceDistance, multiCPU ? 1 : 0, addValues ? 1 : 0, ratioDistances,
                 dynamicColumn.DynamicParameters.Middle, dynamicColumn.DynamicParameters.SpanMin, dynamicColumn.DynamicParameters.SpanMax) == 1;
 
             if (!noError)
                 Debug.LogError("computeInfluences_BrainSurfaceTextureGenerator failed ! (check DLL console debug output)");
 
             return noError;
+        }
+        /// <summary>
+        /// Compute the influence using mars atlas
+        /// </summary>
+        /// <param name="ccepColumn">Parent column of the generator</param>
+        /// <returns>True if no error has been triggered</returns>
+        public bool ComputeInfluencesWithAtlas(Column3DCCEP ccepColumn)
+        {
+            return compute_influences_with_atlas_MRIVolumeGenerator(_handle, ccepColumn.ActivityValues, ccepColumn.Timeline.Length, ccepColumn.AreaMask, ApplicationState.Module3D.MarsAtlas.getHandle()) == 1;
         }
         /// <summary>
         /// Transform the influence values to a ratio between 0 and 1 to match the activity colormap
@@ -171,6 +180,8 @@ namespace HBP.Module3D.DLL
         static private extern int computeDistances_MRIVolumeGenerator(HandleRef handleBrainSurfaceTextureGenerator, float maxDistance, int multiCPU);
         [DllImport("hbp_export", EntryPoint = "computeInfluences_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern int computeInfluences_MRIVolumeGenerator(HandleRef handleBrainSurfaceTextureGenerator, float[] timelineAmplitudes, int timelineLength, int sitesNumber, float maxDistance, int multiCPU, int addValues, int ratioDistances, float middle, float spanMin, float spanMax);
+        [DllImport("hbp_export", EntryPoint = "compute_influences_with_atlas_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern int compute_influences_with_atlas_MRIVolumeGenerator(HandleRef handleBrainSurfaceTextureGenerator, float[] activity, int timelineLength, int[] mask, HandleRef marsAtlasHandle);
         [DllImport("hbp_export", EntryPoint = "ajustInfluencesToColormap_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void ajustInfluencesToColormap_MRIVolumeGenerator(HandleRef handleBrainSurfaceTextureGenerator, float middle, float min, float max);
         [DllImport("hbp_export", EntryPoint = "synchronizeWithOthersGenerators_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]

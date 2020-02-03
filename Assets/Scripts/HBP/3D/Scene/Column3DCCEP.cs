@@ -35,21 +35,6 @@ namespace HBP.Module3D
             }
         }
 
-        /// <summary>
-        /// List of unreal sites used to compute group CCEP
-        /// </summary>
-        private RawSiteList m_AtlasRawSiteList = new RawSiteList();
-        /// <summary>
-        /// Raw site list used for activity projection
-        /// </summary>
-        public override RawSiteList RawElectrodesForActivityComputation
-        {
-            get
-            {
-                return IsSourceMarsAtlasLabelSelected ? m_AtlasRawSiteList : RawElectrodes;
-            }
-        }
-
         public enum CCEPMode { Site, MarsAtlas }
         private CCEPMode m_Mode = CCEPMode.Site;
         /// <summary>
@@ -136,6 +121,10 @@ namespace HBP.Module3D
                 return m_SelectedSourceMarsAtlasLabel != -1;
             }
         }
+        /// <summary>
+        /// Mask for the mars atlas areas
+        /// </summary>
+        public int[] AreaMask { get; private set; }
 
         /// <summary>
         /// Is a source selected ? (site or area)
@@ -397,21 +386,21 @@ namespace HBP.Module3D
                 }
                 activityByMarsAtlasArea.Add(label, result);
             }
-            int sitesCount = m_AtlasRawSiteList.NumberOfSites;
-            int length = timelineLength * sitesCount;
             DynamicParameters.MinimumAmplitude = float.MaxValue;
             DynamicParameters.MaximumAmplitude = float.MinValue;
-            ActivityValues = new float[length];
+            int highestLabel = marsAtlasLabels.Max();
+            ActivityValues = new float[timelineLength * (highestLabel + 1)];
+            AreaMask = new int[highestLabel + 1];
             List<float> unmaskedActivity = new List<float>();
-            for (int s = 0; s < sitesCount; ++s)
+            foreach(var label in marsAtlasLabels)
             {
-                int marsAtlasLabelOfSite = m_AtlasRawSiteList.GetMarsAtlasLabelOfSite(s);
-                float[] activityOfSite = activityByMarsAtlasArea[marsAtlasLabelOfSite];
-                bool isMasked = maskByMarsAtlasArea[marsAtlasLabelOfSite];
+                float[] activityOfArea = activityByMarsAtlasArea[label];
+                bool isMasked = maskByMarsAtlasArea[label];
+                AreaMask[label] = isMasked ? 1 : 0;
                 for (int t = 0; t < timelineLength; ++t)
                 {
-                    float val = activityOfSite[t];
-                    ActivityValues[t * sitesCount + s] = val;
+                    float val = activityOfArea[t];
+                    ActivityValues[label * timelineLength + t] = val;
                     if (!isMasked)
                     {
                         unmaskedActivity.Add(val);
@@ -421,33 +410,14 @@ namespace HBP.Module3D
                             DynamicParameters.MinimumAmplitude = val;
                     }
                 }
-                m_AtlasRawSiteList.UpdateMask(s, isMasked);
             }
             ActivityValuesOfUnmaskedSites = unmaskedActivity.ToArray();
             DynamicParameters.ResetSpanValues(this);
+            ApplicationState.Module3D.SelectedScene.AtlasManager.debug_atlas(AreaMask);
         }
         #endregion
 
         #region Public Methods
-        /// <summary>
-        /// Initialize the column with all the required parameters
-        /// </summary>
-        /// <param name="idColumn">ID of the column</param>
-        /// <param name="baseColumn">Data of the column</param>
-        /// <param name="implantation">Selected implantation</param>
-        /// <param name="sceneSitePatientParent">List of the patient parent of the sites as instantiated in the scene</param>
-        public override void Initialize(int idColumn, Column baseColumn, Implantation3D implantation, List<GameObject> sceneSitePatientParent)
-        {
-            base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
-            m_AtlasRawSiteList = ApplicationState.Module3D.MarsAtlas.GenerateAtlasRawSiteList(100);
-            int length = m_AtlasRawSiteList.NumberOfSites;
-            int count = 0;
-            for (int i = 0; i < length; ++i)
-            {
-                if (m_AtlasRawSiteList.GetMarsAtlasLabelOfSite(i) == 0) count++;
-            }
-            Debug.Log(count);
-        }
         /// <summary>
         /// Update the sites of this column (when changing the implantation of the scene)
         /// </summary>
