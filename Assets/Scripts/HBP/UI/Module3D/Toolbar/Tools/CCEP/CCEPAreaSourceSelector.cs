@@ -37,6 +37,8 @@ namespace HBP.UI.Module3D.Tools
         public override void DefaultState()
         {
             m_MarsAtlasDropdown.value = 0;
+            m_MarsAtlasDropdown.interactable = false;
+            gameObject.SetActive(false);
         }
 
         public override void UpdateInteractable()

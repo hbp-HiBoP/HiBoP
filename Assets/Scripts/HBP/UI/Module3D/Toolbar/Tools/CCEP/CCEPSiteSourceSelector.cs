@@ -32,6 +32,9 @@ namespace HBP.UI.Module3D.Tools
         public override void DefaultState()
         {
             m_Text.text = "No source selected";
+            m_SelectSource.interactable = false;
+            m_UnselectSource.interactable = false;
+            gameObject.SetActive(true);
         }
 
         public override void UpdateInteractable()

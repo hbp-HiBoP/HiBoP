@@ -196,7 +196,7 @@ namespace HBP.Module3D
         /// <param name="showAllSites">Display sites that are not in a ROI</param>
         protected override void UpdateSitesSizeAndColorOfSites(bool showAllSites)
         {
-            if (IsSourceSiteSelected)
+            if (IsSourceSelected)
             {
                 base.UpdateSitesSizeAndColorOfSites(showAllSites);
             }
@@ -301,6 +301,7 @@ namespace HBP.Module3D
         private void SetActivityDataSourceArea()
         {
             int timelineLength = Timeline.Length;
+            int sitesCount = Sites.Count;
 
             foreach (var site in Sites)
             {
@@ -320,7 +321,7 @@ namespace HBP.Module3D
             {
                 string labelName = string.Format("{0}_{1}", ApplicationState.Module3D.MarsAtlas.Hemisphere(label), ApplicationState.Module3D.MarsAtlas.Name(label));
                 List<Site> sitesOfLabel = new List<Site>();
-                for (int i = 0; i < Sites.Count; i++)
+                for (int i = 0; i < sitesCount; i++)
                 {
                     Data.StringTagValue marsAtlasTagValue = marsAtlasTagValues[i];
                     if (marsAtlasTagValue != null && marsAtlasTagValue.Value == labelName)
@@ -332,6 +333,11 @@ namespace HBP.Module3D
             }
 
             // Get all values when sites are in the selected source area
+            bool[] sitesMask = new bool[sitesCount];
+            for (int i = 0; i < sitesCount; i++)
+            {
+                sitesMask[i] = true;
+            }
             List<Site> sitesInSelectedSourceArea = sitesByMarsAtlasLabel[m_SelectedSourceMarsAtlasLabel];
             Dictionary<int, List<float[]>> valuesByMarsAtlasArea = new Dictionary<int, List<float[]>>();
             Dictionary<int, bool> maskByMarsAtlasArea = new Dictionary<int, bool>();
@@ -356,6 +362,7 @@ namespace HBP.Module3D
                                 if (values.Length > 0)
                                 {
                                     valuesOfMarsAtlasArea.Add(values);
+                                    sitesMask[site.Information.Index] = false;
                                 }
                             }
                         }
@@ -413,7 +420,31 @@ namespace HBP.Module3D
             }
             ActivityValuesOfUnmaskedSites = unmaskedActivity.ToArray();
             DynamicParameters.ResetSpanValues(this);
-            ApplicationState.Module3D.SelectedScene.AtlasManager.debug_atlas(AreaMask);
+
+            // Set value by site ID
+            int mainEventIndex = Timeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc].StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedIndexFromStart;
+            int subTimelineLength = Timeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc].Length;
+            foreach (var kv in sitesByMarsAtlasLabel)
+            {
+                float[] areaActivity = activityByMarsAtlasArea[kv.Key];
+                float amplitude = 0, latency = 0;
+                for (int i = mainEventIndex + 2; i < subTimelineLength; i++)
+                {
+                    if (areaActivity[i - 1] > areaActivity[i - 2] && areaActivity[i] > areaActivity[i - 1] && areaActivity[i] > areaActivity[i + 1] && areaActivity[i + 1] > areaActivity[i + 2]) // Maybe FIXME: method to compute amplitude and latency
+                    {
+                        amplitude = areaActivity[i];
+                        latency = Timeline.Frequency.ConvertNumberOfSamplesToMilliseconds(i - mainEventIndex);
+                        break;
+                    }
+                }
+                foreach (var site in kv.Value)
+                {
+                    ActivityValuesBySiteID[site.Information.Index] = areaActivity;
+                    Amplitudes[site.Information.Index] = amplitude;
+                    Latencies[site.Information.Index] = latency;
+                    site.State.IsMasked = sitesMask[site.Information.Index];
+                }
+            }
         }
         #endregion
 
@@ -463,7 +494,7 @@ namespace HBP.Module3D
                     site.transform.localScale = m_ElectrodesSizeScale[i];
                     siteType = m_ElectrodesPositiveColor[i] ? SiteType.Positive : SiteType.Negative;
                 }
-                else if (!IsSourceSiteSelected)
+                else if (!IsSourceSelected)
                 {
                     site.transform.localScale = Vector3.one;
                     siteType = ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.ContainsKey(site.Information.FullID) ? SiteType.Source : SiteType.NotASource;

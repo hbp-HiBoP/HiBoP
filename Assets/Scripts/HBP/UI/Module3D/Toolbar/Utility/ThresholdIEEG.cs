@@ -312,7 +312,7 @@ namespace HBP.UI.Module3D
                     string histogramID = GenerateHistogramID(column);
                     if (m_HistogramByColumn.TryGetValue(histogramID, out Texture2D texture))
                     {
-                        Destroy(texture);
+                        DestroyImmediate(texture);
                         m_HistogramByColumn.Remove(histogramID);
                     }
                 }

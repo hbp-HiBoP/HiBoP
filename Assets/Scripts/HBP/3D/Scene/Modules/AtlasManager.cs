@@ -134,7 +134,6 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateAtlasIndices()
         {
-            Debug.Log("UpdateAtlasIndices");
             m_SplitJuBrainAtlasIndices = new List<int[]>();
             m_SplitMarsAtlasIndices = new List<int[]>();
             for (int ii = 0; ii < m_Scene.MeshManager.MeshSplitNumber; ++ii)
@@ -168,11 +167,10 @@ namespace HBP.Module3D
         }
         public void debug_atlas(int[] mask)
         {
-            Debug.Log("debug atlas");
             List<int[]> indices = new List<int[]>();
             for (int ii = 0; ii < m_Scene.MeshManager.MeshSplitNumber; ++ii)
             {
-                indices.Add(ApplicationState.Module3D.JuBrainAtlas.GetSurfaceAreaLabels(m_Scene.MeshManager.SplittedMeshes[ii]));
+                indices.Add(ApplicationState.Module3D.MarsAtlas.GetSurfaceAreaLabels(m_Scene.MeshManager.SplittedMeshes[ii]));
             }
             m_Scene.BrainMaterial.SetInt("_Atlas", 1);
             for (int ii = 0; ii < m_Scene.MeshManager.MeshSplitNumber; ++ii)
@@ -182,7 +180,7 @@ namespace HBP.Module3D
                 {
                     try
                     {
-                        if (indices[ii][jj] > 0 && mask[indices[ii][jj]] == 0) colors[jj] = new Color(1, 0, 0);
+                        if (indices[ii][jj] > 0 && indices[ii][jj] < mask.Length && mask[indices[ii][jj]] == 0) colors[jj] = new Color(1, 0, 0);
                     }
                     catch (System.Exception e)
                     {

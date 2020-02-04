@@ -111,7 +111,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Raw site list (used for DLL operations)
         /// </summary>
-        public RawSiteList RawElectrodes { get; protected set; } = new RawSiteList();
+        public RawSiteList RawElectrodes { get; protected set; }
         /// <summary>
         /// Sites of this column
         /// </summary>

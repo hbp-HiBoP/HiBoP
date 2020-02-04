@@ -37,6 +37,8 @@ namespace HBP.UI.Module3D.Tools
         public override void DefaultState()
         {
             m_Site.isOn = true;
+            m_Site.interactable = false;
+            m_MarsAtlas.interactable = false;
         }
         public override void UpdateInteractable()
         {
