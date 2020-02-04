@@ -257,11 +257,11 @@ namespace HBP.Data.Visualization
             }
 
             // Indexes
-            Before = maxBefore - StatisticsByEvent[subBloc.MainEvent].RoundedIndexFromStart;
+            Before = maxBefore - Frequency.ConvertToRoundedNumberOfSamples(StatisticsByEvent[subBloc.MainEvent].RoundedTimeFromStart);
             m_GlobalMinIndex = startIndex;
             Length = frequency.ConvertToFlooredNumberOfSamples(subBloc.Window.End) - frequency.ConvertToCeiledNumberOfSamples(subBloc.Window.Start) + 1;
             m_GlobalMaxIndex = startIndex + Length - 1;
-            After = maxAfter - (Length - 1 - StatisticsByEvent[subBloc.MainEvent].RoundedIndexFromStart);
+            After = maxAfter - (Length - 1 - Frequency.ConvertToRoundedNumberOfSamples(StatisticsByEvent[subBloc.MainEvent].RoundedTimeFromStart));
 
             // Time
             MinTime = subBloc.Window.Start;

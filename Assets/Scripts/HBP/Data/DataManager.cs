@@ -336,8 +336,7 @@ public static class DataManager
     {
         if (request.IsValid)
         {
-            BlocData result;
-            if (m_BlocDataByRequest.TryGetValue(request, out result))
+            if (m_BlocDataByRequest.TryGetValue(request, out BlocData result))
             {
                 return result;
             }
@@ -466,8 +465,7 @@ public static class DataManager
     {
         if (request.IsValid)
         {
-            EventsStatistics result;
-            if (m_EventsStatisticsByRequest.TryGetValue(request, out result))
+            if (m_EventsStatisticsByRequest.TryGetValue(request, out EventsStatistics result))
             {
                 return result;
             }
@@ -485,14 +483,13 @@ public static class DataManager
     {
         if (request.IsValid)
         {
-            BlocEventsStatistics result;
-            if (m_BlocEventsStatisticsByRequest.TryGetValue(request, out result))
+            if (m_BlocEventsStatisticsByRequest.TryGetValue(request, out BlocEventsStatistics result))
             {
                 return result;
             }
             else
             {
-                BlocEventsStatistics blocEventsStatistics = new BlocEventsStatistics(request.DataInfo,request.Bloc);
+                BlocEventsStatistics blocEventsStatistics = new BlocEventsStatistics(request.DataInfo, request.Bloc);
                 m_BlocEventsStatisticsByRequest.Add(request, blocEventsStatistics);
                 return blocEventsStatistics;
             }
