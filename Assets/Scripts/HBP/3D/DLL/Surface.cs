@@ -191,7 +191,7 @@ namespace HBP.Module3D.DLL
         /// <param name="index">Reference to the mars atlas index class</param>
         /// <param name="pathMarsParcel">Path of the mars atlas file</param>
         /// <returns>True if loading is complete</returns>
-        public bool SearchMarsParcelFileAndUpdateColors(MarsAtlasIndex index, string pathMarsParcel)
+        public bool SearchMarsParcelFileAndUpdateColors(MarsAtlas index, string pathMarsParcel)
         {
             IsMarsAtlasLoaded = seach_mars_parcel_file_and_update_colors_Surface(_handle, index.getHandle(), pathMarsParcel) == 1;
             return IsMarsAtlasLoaded;

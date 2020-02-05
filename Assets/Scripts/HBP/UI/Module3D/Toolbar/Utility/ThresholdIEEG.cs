@@ -107,7 +107,7 @@ namespace HBP.UI.Module3D
         private void UpdateIEEGHistogram(Column3DDynamic column)
         {
             UnityEngine.Profiling.Profiler.BeginSample("IEEG HISTOGRAM");
-            string histogramID = column.name + "_" + (column is Column3DCCEP columnCCEP && columnCCEP.IsSourceSelected ? columnCCEP.SelectedSource.Information.Name : "");
+            string histogramID = GenerateHistogramID(column);
             if (!m_HistogramByColumn.TryGetValue(histogramID, out m_IEEGHistogram))
             {
                 float[] iEEGValues = column.ActivityValuesOfUnmaskedSites;
@@ -163,6 +163,21 @@ namespace HBP.UI.Module3D
             {
                 OnChangeValues.Invoke(SpanMin, Middle, SpanMax);
             }
+        }
+        /// <summary>
+        /// Generate a unique histogram ID for the column
+        /// </summary>
+        /// <param name="column">Column of the histogram</param>
+        /// <returns>Unique ID</returns>
+        private string GenerateHistogramID(Column3D column)
+        {
+            string histogramID = column.ColumnData.ID;
+            if (column is Column3DCCEP columnCCEP)
+            {
+                if (columnCCEP.IsSourceSiteSelected) histogramID += columnCCEP.SelectedSourceSite.Information.Name;
+                else if (columnCCEP.IsSourceMarsAtlasLabelSelected) histogramID += columnCCEP.SelectedSourceMarsAtlasLabel;
+            }
+            return histogramID;
         }
         #endregion
 
@@ -290,18 +305,18 @@ namespace HBP.UI.Module3D
                 }
             });
 
-            ApplicationState.Module3D.OnRemoveScene.AddListener((UnityAction<Base3DScene>)((s) =>
+            ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
             {
                 foreach (var column in s.ColumnsDynamic)
                 {
-                    string histogramID = column.name + "_" + (column is Column3DCCEP columnCCEP && columnCCEP.IsSourceSelected ? columnCCEP.SelectedSource.Information.Name : "");
+                    string histogramID = GenerateHistogramID(column);
                     if (m_HistogramByColumn.TryGetValue(histogramID, out Texture2D texture))
                     {
-                        Destroy(texture);
+                        DestroyImmediate(texture);
                         m_HistogramByColumn.Remove(histogramID);
                     }
                 }
-            }));
+            });
         }
         /// <summary>
         /// Update IEEG values

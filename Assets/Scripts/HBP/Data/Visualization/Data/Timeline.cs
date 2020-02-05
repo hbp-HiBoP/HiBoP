@@ -255,18 +255,18 @@ namespace HBP.Data.Visualization
             {
                 StatisticsByEvent.Add(e, EventStatistics.Average(eventStatistics.Select(es => es.StatisticsByEvent[e])));
             }
+            int mainEventIndex = Frequency.ConvertToRoundedNumberOfSamples(StatisticsByEvent[subBloc.MainEvent].RoundedTimeFromStart) - 1;
 
             // Indexes
-            Before = maxBefore - StatisticsByEvent[subBloc.MainEvent].RoundedIndexFromStart;
+            Before = maxBefore - mainEventIndex;
             m_GlobalMinIndex = startIndex;
             Length = frequency.ConvertToFlooredNumberOfSamples(subBloc.Window.End) - frequency.ConvertToCeiledNumberOfSamples(subBloc.Window.Start) + 1;
             m_GlobalMaxIndex = startIndex + Length - 1;
-            After = maxAfter - (Length - 1 - StatisticsByEvent[subBloc.MainEvent].RoundedIndexFromStart);
+            After = maxAfter - (Length - 1 - mainEventIndex);
 
             // Time
             MinTime = subBloc.Window.Start;
             MaxTime = subBloc.Window.End;
-            int mainEventIndex = StatisticsByEvent[subBloc.MainEvent].RoundedIndexFromStart;
             FirstSampleTime = frequency.ConvertNumberOfSamplesToMilliseconds(-mainEventIndex);
             LastSampleTime = frequency.ConvertNumberOfSamplesToMilliseconds(Length - 1 - mainEventIndex);
             TimeStep = (LastSampleTime - FirstSampleTime) / (Length - 1);

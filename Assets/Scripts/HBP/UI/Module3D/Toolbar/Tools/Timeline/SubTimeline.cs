@@ -77,14 +77,15 @@ namespace HBP.UI.Module3D.Tools
                 {
                     eventGameObject = Instantiate(m_SecondaryEventPrefab, m_Events);
                 }
-                float eventPosition = Mathf.InverseLerp(0, m_SubTimeline.Length - 1, eventStatistics.IndexFromStart);
+                int eventIndex = m_SubTimeline.Frequency.ConvertToRoundedNumberOfSamples(eventStatistics.RoundedTimeFromStart) - 1;
+                float eventPosition = Mathf.InverseLerp(0, m_SubTimeline.Length - 1, eventIndex);
                 RectTransform eventRectTransform = eventGameObject.GetComponent<RectTransform>();
                 eventRectTransform.anchorMin = new Vector2(eventPosition, eventRectTransform.anchorMin.y);
                 eventRectTransform.anchorMax = new Vector2(eventPosition, eventRectTransform.anchorMax.y);
                 eventRectTransform.GetComponent<Tooltip>().Text = string.Format("{0} | {1} ({2}{3}) | {4}%",
                     e.Name,
-                    eventStatistics.RoundedIndexFromStart,
-                    m_SubTimeline.TimeStep * eventStatistics.RoundedIndexFromStart + m_SubTimeline.MinTime,
+                    eventIndex,
+                    m_SubTimeline.TimeStep * eventIndex + m_SubTimeline.MinTime,
                     m_Timeline.Unit,
                     eventStatistics.NumberOfOccurenceBySubTrial * 100);
             }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Module3D.DLL;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace HBP.Module3D
@@ -35,6 +36,10 @@ namespace HBP.Module3D
             {
                 m_DisplayMarsAtlas = value;
                 m_Scene.BrainMaterial.SetInt("_Atlas", m_DisplayMarsAtlas ? 1 : 0);
+                if (m_Scene.MeshManager.SelectedMesh.Type == Data.Enums.MeshType.MNI)
+                {
+                    UpdateAtlasColors();
+                }
             }
         }
 
@@ -51,16 +56,51 @@ namespace HBP.Module3D
             set
             {
                 m_DisplayJuBrainAtlas = value;
-                UpdateAtlasColors();
                 m_Scene.BrainMaterial.SetInt("_Atlas", m_DisplayJuBrainAtlas ? 1 : 0);
-                m_Scene.CutTexturesNeedUpdate = true;
+                UpdateAtlasColors();
             }
         }
-        
+
         /// <summary>
-        /// Atlas indices for the splitted meshes
+        /// Do we display an atlas ?
         /// </summary>
-        private List<int[]> m_SplitAtlasIndices = new List<int[]>();
+        public bool DisplayAtlas
+        {
+            get
+            {
+                return m_DisplayJuBrainAtlas || (m_DisplayMarsAtlas && m_Scene.MeshManager.SelectedMesh.Type == Data.Enums.MeshType.MNI);
+            }
+        }
+        /// <summary>
+        /// Currently selected atlas
+        /// </summary>
+        public BrainAtlas SelectedAtlas
+        {
+            get
+            {
+                if (m_DisplayMarsAtlas)
+                {
+                    return ApplicationState.Module3D.MarsAtlas;
+                }
+                else if (m_DisplayJuBrainAtlas)
+                {
+                    return ApplicationState.Module3D.JuBrainAtlas;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// JuBrain Atlas indices for the splitted meshes
+        /// </summary>
+        private List<int[]> m_SplitJuBrainAtlasIndices = new List<int[]>();
+        /// <summary>
+        /// MarsAtlas indices for the splitted meshes
+        /// </summary>
+        private List<int[]> m_SplitMarsAtlasIndices = new List<int[]>();
 
         /// <summary>
         /// Transparency of the atlas on the brain and on the cuts
@@ -83,7 +123,6 @@ namespace HBP.Module3D
                 {
                     m_HoveredArea = value;
                     UpdateAtlasColors();
-                    m_Scene.CutTexturesNeedUpdate = true;
                 }
             }
         }
@@ -95,10 +134,15 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateAtlasIndices()
         {
-            m_SplitAtlasIndices = new List<int[]>();
+            m_SplitJuBrainAtlasIndices = new List<int[]>();
+            m_SplitMarsAtlasIndices = new List<int[]>();
             for (int ii = 0; ii < m_Scene.MeshManager.MeshSplitNumber; ++ii)
             {
-                m_SplitAtlasIndices.Add(ApplicationState.Module3D.JuBrainAtlas.GetSurfaceAreaLabels(m_Scene.MeshManager.SplittedMeshes[ii]));
+                m_SplitJuBrainAtlasIndices.Add(ApplicationState.Module3D.JuBrainAtlas.GetSurfaceAreaLabels(m_Scene.MeshManager.SplittedMeshes[ii]));
+            }
+            for (int ii = 0; ii < m_Scene.MeshManager.MeshSplitNumber; ++ii)
+            {
+                m_SplitMarsAtlasIndices.Add(ApplicationState.Module3D.MarsAtlas.GetSurfaceAreaLabels(m_Scene.MeshManager.SplittedMeshes[ii]));
             }
         }
         /// <summary>
@@ -106,15 +150,50 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateAtlasColors()
         {
+            if (SelectedAtlas != null)
+            {
+                List<int[]> splittedIndices = SelectedAtlas is MarsAtlas ? m_SplitMarsAtlasIndices : m_SplitJuBrainAtlasIndices;
+                for (int ii = 0; ii < m_Scene.MeshManager.MeshSplitNumber; ++ii)
+                {
+                    Color[] colors = SelectedAtlas.ConvertIndicesToColors(splittedIndices[ii], HoveredArea);
+                    m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.colors = colors;
+                    foreach (Column3D column in m_Scene.Columns)
+                    {
+                        column.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().sharedMesh.colors = colors;
+                    }
+                }
+            }
+            m_Scene.CutTexturesNeedUpdate = true;
+        }
+        public void debug_atlas(int[] mask)
+        {
+            List<int[]> indices = new List<int[]>();
             for (int ii = 0; ii < m_Scene.MeshManager.MeshSplitNumber; ++ii)
             {
-                Color[] colors = ApplicationState.Module3D.JuBrainAtlas.ConvertIndicesToColors(m_SplitAtlasIndices[ii], HoveredArea);
+                indices.Add(ApplicationState.Module3D.MarsAtlas.GetSurfaceAreaLabels(m_Scene.MeshManager.SplittedMeshes[ii]));
+            }
+            m_Scene.BrainMaterial.SetInt("_Atlas", 1);
+            for (int ii = 0; ii < m_Scene.MeshManager.MeshSplitNumber; ++ii)
+            {
+                Color[] colors = new Color[indices[ii].Length];
+                for (int jj = 0; jj < indices[ii].Length; ++jj)
+                {
+                    try
+                    {
+                        if (indices[ii][jj] > 0 && indices[ii][jj] < mask.Length && mask[indices[ii][jj]] == 0) colors[jj] = new Color(1, 0, 0);
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogException(e);
+                    }
+                }
                 m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.colors = colors;
                 foreach (Column3D column in m_Scene.Columns)
                 {
                     column.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().sharedMesh.colors = colors;
                 }
             }
+            m_Scene.CutTexturesNeedUpdate = true;
         }
         /// <summary>
         /// Display the information about the atlas area under the mouse
@@ -123,13 +202,13 @@ namespace HBP.Module3D
         /// <param name="hitPoint">Point on the mesh or on the cut where the atlas area has to be considered</param>
         public void DisplayAtlasInformation(bool canDisplay, Vector3 hitPoint)
         {
-            if (canDisplay && DisplayJuBrainAtlas)
+            if (canDisplay && SelectedAtlas != null)
             {
-                HoveredArea = ApplicationState.Module3D.JuBrainAtlas.GetClosestAreaIndex(hitPoint);
-                string[] information = ApplicationState.Module3D.JuBrainAtlas.GetInformation(HoveredArea);
+                HoveredArea = SelectedAtlas.GetClosestAreaIndex(hitPoint);
+                string[] information = SelectedAtlas.GetInformation(HoveredArea);
                 if (information.Length == 5)
                 {
-                    ApplicationState.Module3D.OnDisplayAtlasInformation.Invoke(new AtlasInfo(true, Input.mousePosition, information[0], information[1], information[2], information[3], information[4]));
+                    ApplicationState.Module3D.OnDisplayAtlasInformation.Invoke(new AtlasInfo(true, Input.mousePosition, SelectedAtlas is MarsAtlas ? AtlasInfo.AtlasType.MarsAtlas : AtlasInfo.AtlasType.JuBrainAtlas, information[0] + "(" + HoveredArea + ")", information[1], information[2], information[3], information[4]));
                 }
                 else
                 {
