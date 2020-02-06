@@ -208,7 +208,10 @@ namespace HBP.Data
                                     }
                                     else if (tag is StringTag stringTag)
                                     {
-                                        tagValue = new StringTagValue(stringTag, value);
+                                        if (!string.IsNullOrEmpty(value))
+                                        {
+                                            tagValue = new StringTagValue(stringTag, value);
+                                        }
                                     }
                                     if (tagValue != null)
                                     {
@@ -257,8 +260,8 @@ namespace HBP.Data
                         string[] firstLineSplits = firstLine.Split('\t');
                         int[] indices = new int[2]
                         {
-                            System.Array.IndexOf(firstLineSplits, "contact"),
-                            System.Array.IndexOf(firstLineSplits, "MNI")
+                            Array.IndexOf(firstLineSplits, "contact"),
+                            Array.IndexOf(firstLineSplits, "MNI")
                         };
                         Dictionary<int, BaseTag> tagByColumnIndex = new Dictionary<int, BaseTag>();
                         for (int i = 0; i < firstLineSplits.Length; i++)
@@ -296,7 +299,7 @@ namespace HBP.Data
                 using (StreamReader streamReader = new StreamReader(ptsFile))
                 {
                     string line = streamReader.ReadLine();
-                    if (!line.Contains("ptsfile")) throw new System.Exception("Invalid PTS file");
+                    if (!line.Contains("ptsfile")) throw new Exception("Invalid PTS file");
                     while ((line = streamReader.ReadLine()) != null)
                     {
                         Site site = new Site();
@@ -419,7 +422,10 @@ namespace HBP.Data
                                     }
                                     else if (tag is StringTag stringTag)
                                     {
-                                        tagValue = new StringTagValue(stringTag, value);
+                                        if (!string.IsNullOrEmpty(value))
+                                        {
+                                            tagValue = new StringTagValue(stringTag, value);
+                                        }
                                     }
                                     if (tagValue != null)
                                     {
