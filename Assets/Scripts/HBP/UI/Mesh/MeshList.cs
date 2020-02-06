@@ -14,8 +14,6 @@ namespace HBP.UI
         [SerializeField] SortingDisplayer m_MeshSortingDisplayer;
         [SerializeField] SortingDisplayer m_MarsAtlasSortingDisplayer;
         [SerializeField] SortingDisplayer m_TransformationSortingDisplayer;
-
-        public UnityEngine.Events.GenericEvent<Data.BaseMesh, int> OnUpdateObject = new UnityEngine.Events.GenericEvent<Data.BaseMesh, int>();
         #endregion
 
         #region Public Methods
@@ -27,27 +25,6 @@ namespace HBP.UI
                 return true;
             }
             else return false;
-        }
-        public override bool UpdateObject(Data.BaseMesh objectToUpdate)
-        {
-            int index = m_Objects.FindIndex(obj => obj == objectToUpdate);
-            if (index != -1)
-            {
-                m_Objects[index] = objectToUpdate;
-                OnUpdateObject.Invoke(objectToUpdate, index);
-                if (GetItemFromObject(objectToUpdate, out Item<Data.BaseMesh> item))
-                {
-                    ActionnableItem<Data.BaseMesh> actionnableItem = item as ActionnableItem<Data.BaseMesh>;
-                    actionnableItem.Object = objectToUpdate;
-                    actionnableItem.OnChangeSelected.RemoveAllListeners();
-                    actionnableItem.Select(m_SelectedStateByObject[objectToUpdate]);
-                    actionnableItem.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(objectToUpdate, selected));
-                    actionnableItem.OnAction.RemoveAllListeners();
-                    actionnableItem.OnAction.AddListener((actionID) => OnAction.Invoke(objectToUpdate, actionID));
-                    return true;
-                }
-            }
-            return false;
         }
         #endregion
 

@@ -209,11 +209,11 @@ namespace HBP.Module3D
             cutTexture.UpdateTexture2D(BrainCutTextures[indexCut]);
             UnityEngine.Profiling.Profiler.EndSample();
         }
-        public void ColorCutsTexturesWithAtlas(int indexCut, float alpha, int selectedArea)
+        public void ColorCutsTexturesWithBrainAtlas(int indexCut, BrainAtlas selectedAtlas, float alpha, int selectedArea)
         {
             UnityEngine.Profiling.Profiler.BeginSample("Compute Alpha textures");
             MRITextureCutGenerator generator = DLLMRITextureCutGenerators[indexCut];
-            generator.FillTextureWithAtlas(ApplicationState.Module3D.JuBrainAtlas, alpha, selectedArea);
+            generator.FillTextureWithBrainAtlas(selectedAtlas, alpha, selectedArea);
 
             DLL.Texture cutTexture = DLLBrainCutTextures[indexCut];
             generator.UpdateTextureWithAtlas(cutTexture);

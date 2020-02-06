@@ -109,9 +109,42 @@ namespace HBP.Data
                 {
                     string file = streamReader.ReadToEnd();
                     string[] lines = file.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-                    string[] columns = lines[0].Split('\t');
+                    // Split the lines before handling them
+                    List<List<string>> splittedLines = new List<List<string>>(lines.Length);
+                    splittedLines.Add(lines[0].Split('\t').ToList());
+                    for (int i = 1; i < lines.Length; ++i)
+                    {
+                        List<string> splittedLine = lines[i].Split('\t').ToList();
+                        if (splittedLine.Count == splittedLines[0].Count)
+                        {
+                            splittedLines.Add(splittedLine);
+                        }
+                    }
+                    // Look for Mars Atlas specific case and add more information
+                    if (ApplicationState.Module3D.MarsAtlas.Loaded)
+                    {
+                        int marsAtlasIndex = splittedLines[0].IndexOf("MarsAtlas");
+                        if (marsAtlasIndex != -1)
+                        {
+                            splittedLines[0].Insert(marsAtlasIndex + 1, "Hemisphere (MarsAtlas)");
+                            splittedLines[0].Insert(marsAtlasIndex + 2, "Lobe (MarsAtlas)");
+                            splittedLines[0].Insert(marsAtlasIndex + 3, "Name_FS (MarsAtlas)");
+                            splittedLines[0].Insert(marsAtlasIndex + 4, "Full name (MarsAtlas)");
+                            splittedLines[0].Insert(marsAtlasIndex + 5, "Brodmann Area (MarsAtlas)");
+                            for (int i = 1; i < splittedLines.Count; ++i)
+                            {
+                                int marsAtlasLabel = ApplicationState.Module3D.MarsAtlas.Label(splittedLines[i][marsAtlasIndex]);
+                                splittedLines[i].Insert(marsAtlasIndex + 1, ApplicationState.Module3D.MarsAtlas.Hemisphere(marsAtlasLabel));
+                                splittedLines[i].Insert(marsAtlasIndex + 2, ApplicationState.Module3D.MarsAtlas.Lobe(marsAtlasLabel));
+                                splittedLines[i].Insert(marsAtlasIndex + 3, ApplicationState.Module3D.MarsAtlas.NameFS(marsAtlasLabel));
+                                splittedLines[i].Insert(marsAtlasIndex + 4, ApplicationState.Module3D.MarsAtlas.FullName(marsAtlasLabel));
+                                splittedLines[i].Insert(marsAtlasIndex + 5, ApplicationState.Module3D.MarsAtlas.BrodmannArea(marsAtlasLabel));
+                            }
+                        }
+                    }
 
                     // Add site tags to the project.
+                    List<string> columns = splittedLines[0];
                     if (loadTags)
                     {
                         IEnumerable<BaseTag> tags = ApplicationState.ProjectLoaded.Preferences.SitesTags.Concat(ApplicationState.ProjectLoaded.Preferences.GeneralTags);
@@ -126,11 +159,11 @@ namespace HBP.Data
 
                     // Create sites.
                     IEnumerable<BaseTag> projectTags = ApplicationState.ProjectLoaded.Preferences.SitesTags.Concat(ApplicationState.ProjectLoaded.Preferences.GeneralTags);
-                    for (int l = 1; l < lines.Length; l++)
+                    for (int l = 1; l < splittedLines.Count; l++)
                     {
                         Site site = new Site("", new Coordinate[] { new Coordinate(referenceSystem, new UnityEngine.Vector3()) }, new BaseTagValue[0]);
-                        string[] values = lines[l].Split('\t');
-                        for (int v = 0; v < values.Length && v < columns.Length; v++)
+                        List<string> values = splittedLines[l];
+                        for (int v = 0; v < values.Count && v < columns.Count; v++)
                         {
                             string column = columns[v];
                             string value = values[v];
@@ -289,12 +322,46 @@ namespace HBP.Data
                 {
                     string file = streamReader.ReadToEnd();
                     string[] lines = file.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-                    int TitleLine = Array.FindIndex(lines, l => l.StartsWith("contact"));
-                    if (TitleLine > -1)
+                    int titleLine = Array.FindIndex(lines, l => l.StartsWith("contact"));
+                    if (titleLine > -1)
                     {
-                        string[] tagNames = lines[TitleLine].Split('\t');
-                        BaseTag[] tags = new BaseTag[tagNames.Length];
-                        for (int i = 0; i < tagNames.Length; i++)
+                        // Split the lines before handling them
+                        List<List<string>> splittedLines = new List<List<string>>(lines.Length - titleLine);
+                        splittedLines.Add(lines[titleLine].Split('\t').ToList());
+                        for (int i = titleLine + 1; i < lines.Length; ++i)
+                        {
+                            List<string> splittedLine = lines[i].Split('\t').ToList();
+                            if (splittedLine.Count == splittedLines[0].Count)
+                            {
+                                splittedLines.Add(splittedLine);
+                            }
+                        }
+                        // Look for Mars Atlas specific case and add more information
+                        if (ApplicationState.Module3D.MarsAtlas.Loaded)
+                        {
+                            int marsAtlasIndex = splittedLines[0].IndexOf("MarsAtlas");
+                            if (marsAtlasIndex != -1)
+                            {
+                                splittedLines[0].Insert(marsAtlasIndex + 1, "Hemisphere (MarsAtlas)");
+                                splittedLines[0].Insert(marsAtlasIndex + 2, "Lobe (MarsAtlas)");
+                                splittedLines[0].Insert(marsAtlasIndex + 3, "Name_FS (MarsAtlas)");
+                                splittedLines[0].Insert(marsAtlasIndex + 4, "Full name (MarsAtlas)");
+                                splittedLines[0].Insert(marsAtlasIndex + 5, "Brodmann Area (MarsAtlas)");
+                                for (int i = 1; i < splittedLines.Count; ++i)
+                                {
+                                    int marsAtlasLabel = ApplicationState.Module3D.MarsAtlas.Label(splittedLines[i][marsAtlasIndex]);
+                                    splittedLines[i].Insert(marsAtlasIndex + 1, ApplicationState.Module3D.MarsAtlas.Hemisphere(marsAtlasLabel));
+                                    splittedLines[i].Insert(marsAtlasIndex + 2, ApplicationState.Module3D.MarsAtlas.Lobe(marsAtlasLabel));
+                                    splittedLines[i].Insert(marsAtlasIndex + 3, ApplicationState.Module3D.MarsAtlas.NameFS(marsAtlasLabel));
+                                    splittedLines[i].Insert(marsAtlasIndex + 4, ApplicationState.Module3D.MarsAtlas.FullName(marsAtlasLabel));
+                                    splittedLines[i].Insert(marsAtlasIndex + 5, ApplicationState.Module3D.MarsAtlas.BrodmannArea(marsAtlasLabel));
+                                }
+                            }
+                        }
+                        // Create tags and tagValues
+                        List<string> tagNames = splittedLines[0];
+                        BaseTag[] tags = new BaseTag[tagNames.Count];
+                        for (int i = 0; i < tagNames.Count; i++)
                         {
                             string tagName = tagNames[i];
                             BaseTag tag = null;
@@ -309,12 +376,12 @@ namespace HBP.Data
                             }
                             tags[i] = tag;
                         }
-                        for (int l = TitleLine + 1; l < lines.Length; l++)
+                        for (int l = 1; l < splittedLines.Count; l++)
                         {
-                            string[] values = lines[l].Split('\t');
+                            List<string> values = splittedLines[l];
                             string name = ApplicationState.UserPreferences.Data.Anatomic.SiteNameCorrection ? FixName(values[0]) : values[0];
                             List<BaseTagValue> tagValues = new List<BaseTagValue>();
-                            for (int i = 1; i < values.Length; i++)
+                            for (int i = 1; i < values.Count; i++)
                             {
                                 BaseTag tag = tags[i];
                                 string value = values[i];

@@ -121,15 +121,14 @@ namespace HBP.UI.Module3D
                     SetPosition(siteInfo);
                     SetSite(siteInfo.Site);
                     SetPatient(siteInfo.Site.Information.Patient);
+                    SetTags(siteInfo);
                     switch (siteInfo.Mode)
                     {
                         case Data.Enums.SiteInformationDisplayMode.Anatomy:
-                            SetTags(siteInfo);
                             SetStates(siteInfo.Site);
                             break;
                         case Data.Enums.SiteInformationDisplayMode.IEEG:
                             SetIEEG(siteInfo);
-                            SetTags(siteInfo);
                             SetStates(siteInfo.Site);
                             break;
                         case Data.Enums.SiteInformationDisplayMode.CCEP:

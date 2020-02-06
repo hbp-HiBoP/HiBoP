@@ -11,6 +11,8 @@ namespace HBP.Module3D
     public class AtlasInfo
     {
         #region Properties
+        public enum AtlasType { MarsAtlas, JuBrainAtlas }
+        public AtlasType Type;
         /// <summary>
         /// Do we display information about this area ?
         /// </summary>
@@ -22,35 +24,36 @@ namespace HBP.Module3D
         /// <summary>
         /// Name of the area
         /// </summary>
-        public string Name { get; set; }
+        public string Information1 { get; set; }
         /// <summary>
         /// Precise location of the area within the brain
         /// </summary>
-        public string Location { get; set; }
+        public string Information2 { get; set; }
         /// <summary>
         /// Label of the area (as described in the json file)
         /// </summary>
-        public string AreaLabel { get; set; }
+        public string Information3 { get; set; }
         /// <summary>
         /// Status of this area
         /// </summary>
-        public string Status { get; set; }
+        public string Information4 { get; set; }
         /// <summary>
         /// DOI of the area
         /// </summary>
-        public string DOI { get; set; }
+        public string Information5 { get; set; }
         #endregion
 
         #region Constructor
-        public AtlasInfo(bool enabled, Vector3 position, string name = "", string location = "", string areaLabel = "", string status = "", string doi = "")
+        public AtlasInfo(bool enabled, Vector3 position, AtlasType type = AtlasType.MarsAtlas, string name = "", string location = "", string areaLabel = "", string status = "", string doi = "")
         {
             Enabled = enabled;
             Position = position;
-            Name = name;
-            Location = location;
-            AreaLabel = areaLabel;
-            Status = status;
-            DOI = doi;
+            Type = type;
+            Information1 = name;
+            Information2 = location;
+            Information3 = areaLabel;
+            Information4 = status;
+            Information5 = doi;
         }
         #endregion
     }

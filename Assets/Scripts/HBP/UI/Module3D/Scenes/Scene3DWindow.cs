@@ -88,9 +88,9 @@ namespace HBP.UI.Module3D
             grid.AddViewLine(m_SceneUIPrefab);
             grid.Columns.Last().Views.Last().GetComponent<Scene3DUI>().Initialize(scene);
             // Information
-            //grid.AddColumn(null, m_InformationsUIPrefab);
-            //Informations.InformationsWrapper informations = grid.Columns.Last().Views.Last().GetComponent<Informations.InformationsWrapper>();
-            //informations.Scene = scene;
+            grid.AddColumn(null, m_InformationsUIPrefab);
+            Informations.InformationsWrapper informations = grid.Columns.Last().Views.Last().GetComponent<Informations.InformationsWrapper>();
+            informations.Scene = scene;
             // Sites
             grid.AddColumn(null, m_SitesInformationsPrefab);
             grid.Columns.Last().Views.Last().GetComponent<SitesInformations>().Initialize(scene);
@@ -100,7 +100,7 @@ namespace HBP.UI.Module3D
             // Positions
             grid.VerticalHandlers[0].MagneticPosition = 0.45f;
             grid.VerticalHandlers[1].MagneticPosition = 0.75f;
-            //grid.VerticalHandlers[2].MagneticPosition = 0.9f;
+            grid.VerticalHandlers[2].MagneticPosition = 0.9f;
             grid.VerticalHandlers[0].Position = 1.0f;
             grid.SetVerticalHandlersPosition(0);
 
@@ -133,18 +133,18 @@ namespace HBP.UI.Module3D
                 if (!Directory.Exists(screenshotsPath)) Directory.CreateDirectory(screenshotsPath);
                 Screenshot(screenshotsPath, multipleFiles);
             });
-            //informations.OnExpand.AddListener(() =>
-            //{
-            //    grid.VerticalHandlers[0].Position = grid.VerticalHandlers[0].MagneticPosition;
-            //    grid.SetVerticalHandlersPosition(1);
-            //    grid.UpdateAnchors();
-            //});
-            //informations.OnMinimize.AddListener(() =>
-            //{
-            //    grid.VerticalHandlers[0].Position = grid.VerticalHandlers[1].Position - (grid.MinimumViewWidth / grid.RectTransform.rect.width);
-            //    grid.SetVerticalHandlersPosition(1);
-            //    grid.UpdateAnchors();
-            //});
+            informations.OnExpand.AddListener(() =>
+            {
+                grid.VerticalHandlers[0].Position = grid.VerticalHandlers[0].MagneticPosition;
+                grid.SetVerticalHandlersPosition(1);
+                grid.UpdateAnchors();
+            });
+            informations.OnMinimize.AddListener(() =>
+            {
+                grid.VerticalHandlers[0].Position = grid.VerticalHandlers[1].Position - (grid.MinimumViewWidth / grid.RectTransform.rect.width);
+                grid.SetVerticalHandlersPosition(1);
+                grid.UpdateAnchors();
+            });
         }
         /// <summary>
         /// Take a screenshot of this scene

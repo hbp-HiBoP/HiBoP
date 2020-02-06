@@ -9,136 +9,6 @@ namespace HBP.Module3D
     namespace DLL
     {
         /// <summary>
-        /// Mars atlas index, used to identify sites mars IDs and areas on the brain
-        /// </summary>
-        public class MarsAtlasIndex : Tools.DLL.CppDLLImportBase
-        {
-            #region Constructors
-            public MarsAtlasIndex(string path) : base()
-            {
-                if (load_MarsAtlasIndex(_handle, path) != 1)
-                {
-                    Debug.LogError("Can't load mars atlas index.");
-                }
-            }
-            #endregion
-
-            #region Public Methods
-            /// <summary>
-            /// Return the name of the hemisphere given a mars atlas label ID
-            /// </summary>
-            /// <param name="id">ID of mars atlas label</param>
-            /// <returns>Name of the hemipshere</returns>
-            public string Hemisphere(int id)
-            {
-                if (id < 0) return "not found";
-
-                IntPtr result = hemisphere_MarsAtlasIndex(_handle, id);
-                return Marshal.PtrToStringAnsi(result);
-            }
-            /// <summary>
-            /// Return the name of the lobe given a mars atlas label ID
-            /// </summary>
-            /// <param name="id">ID of mars atlas label</param>
-            /// <returns>Name of the lobe</returns>
-            public string Lobe(int label)
-            {
-                if (label < 0) return "not found";
-
-                IntPtr result = lobe_MarsAtlasIndex(_handle, label);
-                return Marshal.PtrToStringAnsi(result);
-            }
-            /// <summary>
-            /// Return the name of the name fs given a mars atlas label ID
-            /// </summary>
-            /// <param name="id">ID of mars atlas label</param>
-            /// <returns>Name of the name fs</returns>
-            public string NameFS(int label)
-            {
-                if (label < 0) return "not found";
-
-                IntPtr result = nameFS_MarsAtlasIndex(_handle, label);
-                return Marshal.PtrToStringAnsi(result);
-            }
-            /// <summary>
-            /// Return the name of a mars atlas area given a mars atlas label ID
-            /// </summary>
-            /// <param name="id">ID of mars atlas label</param>
-            /// <returns>Name of the mars atlas area</returns>
-            public string Name(int label)
-            {
-                if (label < 0) return "not found";
-
-                IntPtr result = name_MarsAtlasIndex(_handle, label);
-                return Marshal.PtrToStringAnsi(result);
-            }
-            /// <summary>
-            /// Return the full name of a mars atlas area given a mars atlas label ID
-            /// </summary>
-            /// <param name="id">ID of mars atlas label</param>
-            /// <returns>Full name of the mars atlas area</returns>
-            public string FullName(int label)
-            {
-                if (label < 0) return "not found";
-
-                IntPtr result = fullName_MarsAtlasIndex(_handle, label);
-                return Marshal.PtrToStringAnsi(result);
-            }
-            /// <summary>
-            /// Return the name of the brodmann area given a mars atlas label ID
-            /// </summary>
-            /// <param name="id">ID of mars atlas label</param>
-            /// <returns>Name of the brodmann area</returns>
-            public string BrodmannArea(int label)
-            {
-                if (label < 0) return "not found";
-
-                IntPtr result = BA_MarsAtlasIndex(_handle, label);
-                return Marshal.PtrToStringAnsi(result);
-            }
-            #endregion
-
-            #region Memory Management
-            /// <summary>
-            /// Allocate DLL memory
-            /// </summary>
-            protected override void create_DLL_class()
-            {
-                _handle = new HandleRef(this, create_MarsAtlasIndex());
-            }
-            /// <summary>
-            /// Clean DLL memory
-            /// </summary>
-            protected override void delete_DLL_class()
-            {
-                delete_MarsAtlasIndex(_handle);
-            }
-            #endregion
-
-            #region DLLImport
-            [DllImport("hbp_export", EntryPoint = "create_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
-            static private extern IntPtr create_MarsAtlasIndex();
-            [DllImport("hbp_export", EntryPoint = "delete_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void delete_MarsAtlasIndex(HandleRef marsAtlasIndex);
-            [DllImport("hbp_export", EntryPoint = "load_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
-            static private extern int load_MarsAtlasIndex(HandleRef marsAtlasIndex, string pathFile);
-            [DllImport("hbp_export", EntryPoint = "hemisphere_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
-            static private extern IntPtr hemisphere_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
-            [DllImport("hbp_export", EntryPoint = "lobe_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
-            static private extern IntPtr lobe_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
-            [DllImport("hbp_export", EntryPoint = "nameFS_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
-            static private extern IntPtr nameFS_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
-            [DllImport("hbp_export", EntryPoint = "name_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
-            static private extern IntPtr name_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
-            [DllImport("hbp_export", EntryPoint = "fullName_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
-            static private extern IntPtr fullName_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
-            [DllImport("hbp_export", EntryPoint = "BA_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
-            static private extern IntPtr BA_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
-            #endregion
-
-        }
-
-        /// <summary>
         /// A raw version of <see cref="PatientElectrodesList"/>, meant to be used in the C++ DLL
         /// </summary>
         /// <remarks>
@@ -238,11 +108,24 @@ namespace HBP.Module3D
                 }
                 return result;
             }
+            /// <summary>
+            /// Return the mars atlas label of the site
+            /// </summary>
+            /// <param name="siteID">ID of the site</param>
+            /// <returns>MarsAtlas label</returns>
+            public int GetMarsAtlasLabelOfSite(int siteID)
+            {
+                return get_mars_atlas_label_of_site_RawSiteList(_handle, siteID);
+            }
             #endregion
 
             #region Memory Management
             public RawSiteList() : base() { }
             public RawSiteList(RawSiteList other) : base(clone_RawSiteList(other.getHandle())) { }
+            public RawSiteList(IntPtr ptr)
+            {
+                _handle = new HandleRef(this, ptr);
+            }
             /// <summary>
             /// Allocate DLL memory
             /// </summary>
@@ -280,6 +163,8 @@ namespace HBP.Module3D
             static private extern int is_site_on_plane_RawSiteList(HandleRef handleRawSiteLst, int siteID, float[] planeV, float precision);
             [DllImport("hbp_export", EntryPoint = "sites_on_plane_RawSiteList", CallingConvention = CallingConvention.Cdecl)]
             static private extern void sites_on_plane_RawSiteList(HandleRef handleRawSiteLst, float[] planeV, float precision, int[] result);
+            [DllImport("hbp_export", EntryPoint = "get_mars_atlas_label_of_site_RawSiteList", CallingConvention = CallingConvention.Cdecl)]
+            static private extern int get_mars_atlas_label_of_site_RawSiteList(HandleRef handleRawSiteLst, int siteID);
             #endregion
         }
 
@@ -324,7 +209,7 @@ namespace HBP.Module3D
             /// <param name="names">List of the names of the patients</param>
             /// <param name="marsAtlasIndex">Reference to the mars atlas index</param>
             /// <returns>True if the files have been correctly loaded</returns>
-            public bool LoadPTSFiles(string[] ptsFilesPath, string[] marsAtlas, string[] names, MarsAtlasIndex marsAtlasIndex)
+            public bool LoadPTSFiles(string[] ptsFilesPath, string[] marsAtlas, string[] names, MarsAtlas marsAtlasIndex)
             {
                 string ptsFilesPathStr = string.Join("?", ptsFilesPath);
                 string marsAtlasStr = string.Join("?", marsAtlas);

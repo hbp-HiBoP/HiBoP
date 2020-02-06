@@ -721,9 +721,9 @@ namespace HBP.Module3D
                 foreach (Cut cut in Cuts)
                 {
                     column.CutTextures.CreateMRITexture(DLLMRIGeometryCutGeneratorList[cut.ID], MRIManager.SelectedMRI.Volume, cut.ID, MRIManager.MRICalMinFactor, MRIManager.MRICalMaxFactor, 3);
-                    if (m_AtlasManager.DisplayJuBrainAtlas)
+                    if (m_AtlasManager.DisplayAtlas)
                     {
-                        column.CutTextures.ColorCutsTexturesWithAtlas(cut.ID, m_AtlasManager.AtlasAlpha, m_AtlasManager.HoveredArea);
+                        column.CutTextures.ColorCutsTexturesWithBrainAtlas(cut.ID, m_AtlasManager.SelectedAtlas, m_AtlasManager.AtlasAlpha, m_AtlasManager.HoveredArea);
                     }
                     else if (FMRIManager.DisplayFMRI)
                     {
@@ -808,7 +808,7 @@ namespace HBP.Module3D
                 sites.Add(site);
                 if (SelectedColumn is Column3DCCEP ccepColumn)
                 {
-                    if (ccepColumn.IsSourceSelected)
+                    if (ccepColumn.IsSourceSiteSelected)
                     {
                         OnRequestSiteInformation.Invoke(sites);
                     }
@@ -2051,15 +2051,22 @@ namespace HBP.Module3D
                     OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + ColumnsDynamic[ii].Name, timeByProgress);
                     yield return Ninja.JumpBack;
                     if (m_GeneratorNeedsUpdate) yield break;
-                    ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].InitializeOctree(ColumnsDynamic[ii].RawElectrodes);
-                    if (m_GeneratorNeedsUpdate) yield break;
-                    ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].ComputeDistances(ColumnsDynamic[ii].DynamicParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
-                    if (m_GeneratorNeedsUpdate) yield break;
-                    ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(ColumnsDynamic[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                    if (ColumnsDynamic[ii] is Column3DCCEP ccepColumn3D && ccepColumn3D.IsSourceMarsAtlasLabelSelected)
+                    {
+                        ccepColumn3D.DLLBrainTextureGenerators[jj].ComputeInfluencesWithAtlas(ccepColumn3D);
+                    }
+                    else
+                    {
+                        ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].InitializeOctree(ColumnsDynamic[ii].RawElectrodes);
+                        if (m_GeneratorNeedsUpdate) yield break;
+                        ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].ComputeDistances(ColumnsDynamic[ii].DynamicParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
+                        if (m_GeneratorNeedsUpdate) yield break;
+                        ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(ColumnsDynamic[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                    }
                     if (m_GeneratorNeedsUpdate) yield break;
 
                     currentMaxDensity = ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].MaximumDensity;
-                    currentMinInfluence = ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].MinimumInfluence;
+                    currentMinInfluence = ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].MinimumInfluence; 
                     currentMaxInfluence = ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].MaximumInfluence;
 
                     if (currentMaxDensity > maxDensity)
@@ -2070,7 +2077,6 @@ namespace HBP.Module3D
 
                     if (currentMaxInfluence > ColumnsDynamic[ii].SharedMaxInf)
                         ColumnsDynamic[ii].SharedMaxInf = currentMaxInfluence;
-
                 }
 
                 // volume
@@ -2079,11 +2085,18 @@ namespace HBP.Module3D
                 OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + ColumnsDynamic[ii].Name, timeByProgress * 10);
                 yield return Ninja.JumpBack;
                 if (m_GeneratorNeedsUpdate) yield break;
-                ColumnsDynamic[ii].DLLMRIVolumeGenerator.InitializeOctree(ColumnsDynamic[ii].RawElectrodes);
-                if (m_GeneratorNeedsUpdate) yield break;
-                ColumnsDynamic[ii].DLLMRIVolumeGenerator.ComputeDistances(ColumnsDynamic[ii].DynamicParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
-                if (m_GeneratorNeedsUpdate) yield break;
-                ColumnsDynamic[ii].DLLMRIVolumeGenerator.ComputeInfluences(ColumnsDynamic[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                if (ColumnsDynamic[ii] is Column3DCCEP ccepColumn && ccepColumn.IsSourceMarsAtlasLabelSelected)
+                {
+                    ccepColumn.DLLMRIVolumeGenerator.ComputeInfluencesWithAtlas(ccepColumn);
+                }
+                else
+                {
+                    ColumnsDynamic[ii].DLLMRIVolumeGenerator.InitializeOctree(ColumnsDynamic[ii].RawElectrodes);
+                    if (m_GeneratorNeedsUpdate) yield break;
+                    ColumnsDynamic[ii].DLLMRIVolumeGenerator.ComputeDistances(ColumnsDynamic[ii].DynamicParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
+                    if (m_GeneratorNeedsUpdate) yield break;
+                    ColumnsDynamic[ii].DLLMRIVolumeGenerator.ComputeInfluences(ColumnsDynamic[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                }
                 if (m_GeneratorNeedsUpdate) yield break;
 
                 currentMaxDensity = ColumnsDynamic[ii].DLLMRIVolumeGenerator.MaximumDensity;

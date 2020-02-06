@@ -1,36 +1,39 @@
 ﻿using HBP.Data.Visualization;
 using System.Linq;
 using UnityEngine;
+using System.IO;
+using System;
+using HBP.Data;
 
 public class DebugBenjamin : MonoBehaviour
 {
 #if UNITY_EDITOR
-    void Update()
+    private void Update()
     {
         if (Input.GetKeyDown(KeyCode.F1))
         {
-            //ApplicationState.ProjectLoaded.Settings.GeneralTags.Add(new HBP.Data.Tags.StringTag("ToastGeneral"));
-            //ApplicationState.ProjectLoaded.Settings.SitesTags.Add(new HBP.Data.Tags.StringTag("MarsAtlas"));
-            //ApplicationState.ProjectLoaded.Settings.SitesTags.Add(new HBP.Data.Tags.StringTag("Freesurfer"));
-            //ApplicationState.ProjectLoaded.Settings.SitesTags.Add(new HBP.Data.Tags.BoolTag("Salut"));
-            //ApplicationState.ProjectLoaded.Patients.First().Sites.First().Tags.Add(new HBP.Data.Tags.StringTagValue(ApplicationState.ProjectLoaded.Settings.SitesTags[0] as HBP.Data.Tags.StringTag, "Gyrus"));
-            //ApplicationState.ProjectLoaded.Patients.First().Sites.First().Tags.Add(new HBP.Data.Tags.StringTagValue(ApplicationState.ProjectLoaded.Settings.SitesTags[1] as HBP.Data.Tags.StringTag, "Toast"));
-            //ApplicationState.ProjectLoaded.Patients.First().Sites.First().Tags.Add(new HBP.Data.Tags.BoolTagValue(ApplicationState.ProjectLoaded.Settings.SitesTags[2] as HBP.Data.Tags.BoolTag, true));
-            //ApplicationState.ProjectLoaded.Patients.First().Sites[1].Tags.Add(new HBP.Data.Tags.BoolTagValue(ApplicationState.ProjectLoaded.Settings.SitesTags[2] as HBP.Data.Tags.BoolTag, false));
-            //ApplicationState.ProjectLoaded.Patients.First().Sites[1].Tags.Add(new HBP.Data.Tags.StringTagValue(ApplicationState.ProjectLoaded.Settings.GeneralTags[0] as HBP.Data.Tags.StringTag, "toto"));
-            ApplicationState.ProjectLoaded.AddVisualization(
-                new Visualization("debug",
-                    ApplicationState.ProjectLoaded.Groups[0].Patients.Where(p => !p.Name.Contains("BOEa")),
-                    new Column[]
-                    {
-                        new AnatomicColumn("anat", new BaseConfiguration()), new AnatomicColumn("column", new BaseConfiguration()),
-                        new IEEGColumn("ieeg1", new BaseConfiguration(), ApplicationState.ProjectLoaded.Datasets[0], "gamma_sm0", ApplicationState.ProjectLoaded.Protocols[0].Blocs[0], new DynamicConfiguration()),
-                        new IEEGColumn("ieeg2", new BaseConfiguration(), ApplicationState.ProjectLoaded.Datasets[0], "gamma_sm0", ApplicationState.ProjectLoaded.Protocols[0].Blocs[1], new DynamicConfiguration())
-                    }
-                )
-            );
-            ApplicationState.Module3D.LoadScenes(ApplicationState.ProjectLoaded.Visualizations);
-            //ApplicationState.ProjectLoaded.Patients[0].Sites = Site.LoadImplantationFromIntrAnatFile("Patient", @"D:\HBP\BDD\Patients\LYONNEURO_2018_DEVn\implantation\LYONNEURO_2018_DEVn.pts", @"D:\HBP\BDD\Patients\LYONNEURO_2018_DEVn\implantation\LYONNEURO_2018_DEVn.csv");
+            GetAllCCEPData();
+        }
+    }
+    private void GetAllCCEPData()
+    {
+        string ccepDB = @"D:\HBP\CCEP\07-bids_20190416\07-bids";
+        DirectoryInfo baseDir = new DirectoryInfo(ccepDB);
+        DirectoryInfo[] patientDirs = baseDir.GetDirectories("sub-*");
+        foreach (var dir in patientDirs)
+        {
+            string patientName = dir.Name.Substring(4);
+            Patient patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.Name == patientName);
+            if (patient == null) continue;
+            DirectoryInfo ieegDir = new DirectoryInfo(Path.Combine(dir.FullName, "ses-postimp01", "ieeg"));
+            FileInfo[] files = ieegDir.GetFiles("*.vhdr").Where(f => f.FullName.Contains("ccep")).ToArray();
+            foreach (var file in files)
+            {
+                string site = file.Name.Split('_')[3].Substring(4, 8);
+                if (!site.Contains("p")) site = site.Substring(0, 6);
+                site = site.Insert(site.Length / 2, "-");
+                ApplicationState.ProjectLoaded.Datasets[0].AddData(new HBP.Data.Experience.Dataset.CCEPDataInfo("ccep", new HBP.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), patient, site));
+            }
         }
     }
 #endif

@@ -174,7 +174,7 @@ namespace HBP.Module3D
             if (meshID == -1) meshID = 0;
 
             SelectedMeshID = meshID;
-            if (m_Scene.AtlasManager.DisplayMarsAtlas && !SelectedMesh.IsMarsAtlasLoaded)
+            if (m_Scene.AtlasManager.DisplayMarsAtlas && (!SelectedMesh.IsMarsAtlasLoaded || SelectedMesh.Type != Data.Enums.MeshType.MNI))
             {
                 m_Scene.AtlasManager.DisplayMarsAtlas = false;
             }

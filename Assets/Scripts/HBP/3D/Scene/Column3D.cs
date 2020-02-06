@@ -111,7 +111,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Raw site list (used for DLL operations)
         /// </summary>
-        public RawSiteList RawElectrodes { get; protected set; } = new RawSiteList();
+        public RawSiteList RawElectrodes { get; protected set; }
         /// <summary>
         /// Sites of this column
         /// </summary>
@@ -128,7 +128,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Volume generator for cut textures
         /// </summary>
-        public MRIVolumeGenerator DLLMRIVolumeGenerator { get; protected set; } = new MRIVolumeGenerator();
+        public MRIVolumeGenerator DLLMRIVolumeGenerator { get; set; } = new MRIVolumeGenerator();
         /// <summary>
         /// Cut Textures Utility
         /// </summary>
@@ -189,7 +189,7 @@ namespace HBP.Module3D
         /// <param name="baseColumn">Data of the column</param>
         /// <param name="implantation">Selected implantation</param>
         /// <param name="sceneSitePatientParent">List of the patient parent of the sites as instantiated in the scene</param>
-        public void Initialize(int idColumn, Data.Visualization.Column baseColumn, Implantation3D implantation, List<GameObject> sceneSitePatientParent)
+        public virtual void Initialize(int idColumn, Data.Visualization.Column baseColumn, Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             Layer = "Column" + idColumn;
             ColumnData = baseColumn;
