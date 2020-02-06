@@ -128,7 +128,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Volume generator for cut textures
         /// </summary>
-        public MRIVolumeGenerator DLLMRIVolumeGenerator { get; protected set; } = new MRIVolumeGenerator();
+        public MRIVolumeGenerator DLLMRIVolumeGenerator { get; set; } = new MRIVolumeGenerator();
         /// <summary>
         /// Cut Textures Utility
         /// </summary>
