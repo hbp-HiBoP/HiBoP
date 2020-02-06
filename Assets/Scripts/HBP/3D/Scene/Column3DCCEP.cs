@@ -251,7 +251,7 @@ namespace HBP.Module3D
                     site.Statistics = blocChannelStatistics;
                     Data.Experience.Dataset.ChannelSubTrialStat trial = blocChannelStatistics.Trial.ChannelSubTrialBySubBloc[ColumnCCEPData.Bloc.MainSubBloc];
                     SubTimeline mainSubTimeline = Timeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc];
-                    int mainEventIndex = mainSubTimeline.Frequency.ConvertToRoundedNumberOfSamples(mainSubTimeline.StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedTimeFromStart) - 1;
+                    int mainEventIndex = mainSubTimeline.Frequency.ConvertToFlooredNumberOfSamples(mainSubTimeline.StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedTimeFromStart);
                     for (int i = mainEventIndex + 2; i < mainSubTimeline.Length - 2; i++)
                     {
                         if (trial.Values[i - 1] > trial.Values[i - 2] && trial.Values[i] > trial.Values[i - 1] && trial.Values[i] > trial.Values[i + 1] && trial.Values[i + 1] > trial.Values[i + 2]) // Maybe FIXME: method to compute amplitude and latency
@@ -423,7 +423,7 @@ namespace HBP.Module3D
             DynamicParameters.ResetSpanValues(this);
 
             // Set value by site ID
-            int mainEventIndex = Timeline.Frequency.ConvertToRoundedNumberOfSamples(Timeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc].StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedTimeFromStart) - 1;
+            int mainEventIndex = Timeline.Frequency.ConvertToFlooredNumberOfSamples(Timeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc].StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedTimeFromStart);
             int subTimelineLength = Timeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc].Length;
             foreach (var kv in sitesByMarsAtlasLabel)
             {

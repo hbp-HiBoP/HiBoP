@@ -77,7 +77,7 @@ namespace HBP.UI.Module3D.Tools
                 {
                     eventGameObject = Instantiate(m_SecondaryEventPrefab, m_Events);
                 }
-                int eventIndex = m_SubTimeline.Frequency.ConvertToRoundedNumberOfSamples(eventStatistics.RoundedTimeFromStart) - 1;
+                int eventIndex = m_SubTimeline.Frequency.ConvertToFlooredNumberOfSamples(eventStatistics.RoundedTimeFromStart);
                 float eventPosition = Mathf.InverseLerp(0, m_SubTimeline.Length - 1, eventIndex);
                 RectTransform eventRectTransform = eventGameObject.GetComponent<RectTransform>();
                 eventRectTransform.anchorMin = new Vector2(eventPosition, eventRectTransform.anchorMin.y);
