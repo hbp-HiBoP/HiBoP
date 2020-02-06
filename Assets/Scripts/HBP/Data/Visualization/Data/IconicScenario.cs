@@ -40,7 +40,7 @@ namespace HBP.Data.Visualization
                 SubTimeline subTimeline = timeline.SubTimelinesBySubBloc[subBloc];
                 foreach (var subBlocIcon in subBloc.Icons)
                 {
-                    int mainEventIndex = subTimeline.Frequency.ConvertToRoundedNumberOfSamples(subTimeline.StatisticsByEvent[subBloc.MainEvent].RoundedTimeFromStart) - 1;
+                    int mainEventIndex = subTimeline.Frequency.ConvertToFlooredNumberOfSamples(subTimeline.StatisticsByEvent[subBloc.MainEvent].RoundedTimeFromStart);
                     Icon icon = new Icon(subBlocIcon, frequency, mainEventIndex + subTimeline.GlobalMinIndex, timeline.Length);
                     m_Icons.Add(icon);
                 }

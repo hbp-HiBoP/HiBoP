@@ -255,7 +255,7 @@ namespace HBP.Data.Visualization
             {
                 StatisticsByEvent.Add(e, EventStatistics.Average(eventStatistics.Select(es => es.StatisticsByEvent[e])));
             }
-            int mainEventIndex = Frequency.ConvertToRoundedNumberOfSamples(StatisticsByEvent[subBloc.MainEvent].RoundedTimeFromStart) - 1;
+            int mainEventIndex = Frequency.ConvertToFlooredNumberOfSamples(StatisticsByEvent[subBloc.MainEvent].RoundedTimeFromStart);
 
             // Indexes
             Before = maxBefore - mainEventIndex;
