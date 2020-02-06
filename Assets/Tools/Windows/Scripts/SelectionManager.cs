@@ -15,6 +15,7 @@ public class SelectionManager : MonoBehaviour
     {
         m_Selectors.Add(selector);
         selector.OnChangeValue.AddListener((selected) => OnChangeSelection(selected, selector));
+        selector.Selected = true;
     }
     public void Remove(Selector selector)
     {
@@ -44,6 +45,38 @@ public class SelectionManager : MonoBehaviour
         else
         {
             if (m_Selection == selector) m_Selection = null;
+        }
+    }
+    void Update()
+    {
+        if(Input.GetMouseButtonDown(0))
+        {
+            Selector selector = null;
+            RectTransform selectorRectTransform = null;
+            foreach (var item in m_Selectors)
+            {
+                RectTransform rectTransform = item.GetComponent<RectTransform>();
+                if(RectTransformUtility.RectangleContainsScreenPoint(rectTransform, Input.mousePosition))
+                {
+                    if(selector == null || (selector != null && selectorRectTransform != null && selectorRectTransform.GetSiblingIndex() < rectTransform.GetSiblingIndex()))
+                    {
+                        selector = item;
+                        selectorRectTransform = rectTransform;
+                    }
+                }
+            }
+            if(selector != null)
+            {
+                selector.Selected = true;
+            }
+            else
+            {
+                if(m_Selection != null)
+                {
+                    m_Selection.Selected = false;
+                    m_Selection = null;
+                }
+            }
         }
     }
 	#endregion
