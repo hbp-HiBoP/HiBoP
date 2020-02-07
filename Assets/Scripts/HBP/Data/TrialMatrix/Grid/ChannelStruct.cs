@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System;
 using UnityEngine;
 using UnityEngine.UI.Extensions;
-using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace HBP.Data.Informations
 {
@@ -25,6 +23,19 @@ namespace HBP.Data.Informations
             }
         }
 
+        [SerializeField] bool m_IsBlacklisted;
+        public bool IsBlacklisted
+        {
+            get
+            {
+                return m_IsBlacklisted;
+            }
+            set
+            {
+                SetPropertyUtility.SetStruct(ref m_IsBlacklisted, value);
+            }
+        }
+
         [SerializeField] Patient m_Patient;
         public Patient Patient
         {
@@ -40,15 +51,17 @@ namespace HBP.Data.Informations
         #endregion
 
         #region Constructors
-        public ChannelStruct(string channel, Patient patient)
+        public ChannelStruct(string channel, Patient patient, bool isBlacklisted)
         {
             Channel = channel;
             Patient = patient;
+            IsBlacklisted = isBlacklisted;
         }
         public ChannelStruct(Module3D.Site site)
         {
             Channel = site.Information.Name;
             Patient = site.Information.Patient;
+            IsBlacklisted = site.State.IsBlackListed;
         }
 
         public override bool Equals(object obj)
@@ -80,7 +93,7 @@ namespace HBP.Data.Informations
     }
 
     [Serializable]
-    public class DataStruct : IEquatable<DataStruct>
+    public class Data : IEquatable<Data>
     {
         #region Properties
         [SerializeField] Dataset m_Dataset;
@@ -95,80 +108,66 @@ namespace HBP.Data.Informations
                 SetPropertyUtility.SetClass(ref m_Dataset, value);
             }
         }
-        [SerializeField] string m_Data;
-        public string Data
+
+        [SerializeField] string m_Name;
+        public string Name
         {
             get
             {
-                return m_Data;
+                return m_Name;
             }
             set
             {
-                SetPropertyUtility.SetClass(ref m_Data, value);
+                SetPropertyUtility.SetClass(ref m_Name, value);
             }
         }
 
-        [SerializeField] List<BlocStruct> m_Blocs = new List<BlocStruct>();
-        public ReadOnlyCollection<BlocStruct> Blocs
+        [SerializeField] Experience.Protocol.Bloc m_Bloc;
+        public Experience.Protocol.Bloc Bloc
         {
             get
             {
-                return new ReadOnlyCollection<BlocStruct>(m_Blocs);
+                return m_Bloc;
+            }
+            set
+            {
+                SetPropertyUtility.SetClass(ref m_Bloc, value);
             }
         }
         #endregion
 
         #region Constructors
-        public DataStruct(Dataset dataset, string data, IEnumerable<BlocStruct> blocs = null)
+        public Data(Dataset dataset, string data, Experience.Protocol.Bloc bloc)
         {
             m_Dataset = dataset;
-            m_Data = data;
-            if(blocs != null)
-            {
-                SetBlocs(blocs);
-            }
+            m_Name = data;
+            m_Bloc = bloc;
         }
         #endregion
 
         #region Public Methods
-        public void AddBloc(BlocStruct bloc)
+        public override bool Equals(object obj)
         {
-            if(!m_Blocs.Contains(bloc))
-            {
-                m_Blocs.Add(bloc);
-            }
+            return Equals(obj as Data);
         }
-        public void RemoveBloc(BlocStruct bloc)
-        {
-            m_Blocs.Remove(bloc);
-        }
-        public void SetBlocs(IEnumerable<BlocStruct> blocs)
-        {
-            m_Blocs = blocs.ToList();
-        }
-
-        public override bool  Equals(object obj)
-        {
-            return Equals(obj as DataStruct);
-        }
-        public bool Equals(DataStruct other)
+        public bool Equals(Data other)
         {
             return other != null &&
                    EqualityComparer<Dataset>.Default.Equals(Dataset, other.Dataset) &&
-                   Data == other.Data;
+                   Name == other.Name;
         }
         public override int GetHashCode()
         {
             var hashCode = 139406400;
             hashCode = hashCode * -1521134295 + EqualityComparer<Dataset>.Default.GetHashCode(Dataset);
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Data);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
             return hashCode;
         }
-        public static bool operator ==(DataStruct struct1, DataStruct struct2)
+        public static bool operator ==(Data struct1, Data struct2)
         {
-            return EqualityComparer<DataStruct>.Default.Equals(struct1, struct2);
+            return EqualityComparer<Data>.Default.Equals(struct1, struct2);
         }
-        public static bool operator !=(DataStruct struct1, DataStruct struct2)
+        public static bool operator !=(Data struct1, Data struct2)
         {
             return !(struct1 == struct2);
         }
@@ -176,7 +175,7 @@ namespace HBP.Data.Informations
     }
 
     [Serializable]
-    public class CCEPDataStruct : DataStruct
+    public class CCEPData : Data
     {
         #region Properties
         [SerializeField] ChannelStruct m_Source;
@@ -194,32 +193,32 @@ namespace HBP.Data.Informations
         #endregion
 
         #region Constructors
-        public CCEPDataStruct(Dataset dataset, string data, ChannelStruct channel, IEnumerable<BlocStruct> blocs = null) : base(dataset, data, blocs)
+        public CCEPData(Dataset dataset, string data, ChannelStruct source, Experience.Protocol.Bloc bloc) : base(dataset, data, bloc)
         {
-            Source = channel;
+            Source = source;
         }
         #endregion
 
         #region Public Methods
         public override bool Equals(object obj)
         {
-            return Equals(obj as CCEPDataStruct);
+            return Equals(obj as CCEPData);
         }
-        public bool Equals(CCEPDataStruct other)
+        public bool Equals(CCEPData other)
         {
-            return base.Equals(other) && EqualityComparer<ChannelStruct>.Default.Equals(Source, other.Source);
+            return base.Equals(other) && Source.Equals(other.Source);
         }
         public override int GetHashCode()
         {
             var hashCode = 139406400 + base.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<ChannelStruct>.Default.GetHashCode(Source);
+            hashCode = hashCode * -1521134295 + Source.GetHashCode();
             return hashCode;
         }
-        public static bool operator ==(CCEPDataStruct struct1, CCEPDataStruct struct2)
+        public static bool operator ==(CCEPData struct1, CCEPData struct2)
         {
-            return EqualityComparer<CCEPDataStruct>.Default.Equals(struct1, struct2);
+            return EqualityComparer<CCEPData>.Default.Equals(struct1, struct2);
         }
-        public static bool operator !=(CCEPDataStruct struct1, CCEPDataStruct struct2)
+        public static bool operator !=(CCEPData struct1, CCEPData struct2)
         {
             return !(struct1 == struct2);
         }
@@ -227,16 +226,16 @@ namespace HBP.Data.Informations
     }
 
     [Serializable]
-    public class IEEGDataStruct : DataStruct
+    public class IEEGData : Data
     {
         #region Constructors
-        public IEEGDataStruct(Dataset dataset, string data, IEnumerable<BlocStruct> blocs = null) : base(dataset, data, blocs)
+        public IEEGData(Dataset dataset, string data, Experience.Protocol.Bloc bloc) : base(dataset, data, bloc)
         {
         }
         #endregion
 
         #region Public Methods
-        public bool Equals(IEEGDataStruct other)
+        public bool Equals(IEEGData other)
         {
             return base.Equals(other);
         }
@@ -244,15 +243,38 @@ namespace HBP.Data.Informations
     }
 
     [Serializable]
-    public class ROIStruct : IEquatable<ROIStruct>
+    public class ROI : IEquatable<ROI>
     {
         #region Properties
-        public string Name { get; set; }
-        public List<ChannelStruct> Channels { get; set; }
+        [SerializeField] string m_Name;
+        public string Name
+        {
+            get
+            {
+                return m_Name;
+            }
+            set
+            {
+                m_Name = value;
+            }
+        }
+
+        [SerializeField] List<ChannelStruct> m_Channels;
+        public List<ChannelStruct> Channels
+        {
+            get
+            {
+                return m_Channels;
+            }
+            set
+            {
+                m_Channels = value;
+            }
+        }
         #endregion
 
         #region Constructors
-        public ROIStruct(string name, IEnumerable<ChannelStruct> channels)
+        public ROI(string name, IEnumerable<ChannelStruct> channels)
         {
             Name = name;
             Channels = new List<ChannelStruct>(channels);
@@ -262,12 +284,12 @@ namespace HBP.Data.Informations
         #region Public Methods
         public override bool Equals(object obj)
         {
-            return Equals(obj as ROIStruct);
+            return Equals(obj as ROI);
         }
-        public bool Equals(ROIStruct other)
+        public bool Equals(ROI other)
         {
             bool notNull = other != null;
-            if(notNull)
+            if (notNull)
             {
                 bool sameName = Name == other.Name;
                 bool collection = EqualityComparer<List<ChannelStruct>>.Default.Equals(Channels, other.Channels);
@@ -283,11 +305,11 @@ namespace HBP.Data.Informations
             hashCode = hashCode * -1521134295 + EqualityComparer<List<ChannelStruct>>.Default.GetHashCode(Channels);
             return hashCode;
         }
-        public static bool operator ==(ROIStruct struct1, ROIStruct struct2)
+        public static bool operator ==(ROI struct1, ROI struct2)
         {
-            return EqualityComparer<ROIStruct>.Default.Equals(struct1, struct2);
-        } 
-        public static bool operator !=(ROIStruct struct1, ROIStruct struct2)
+            return EqualityComparer<ROI>.Default.Equals(struct1, struct2);
+        }
+        public static bool operator !=(ROI struct1, ROI struct2)
         {
             return !(struct1 == struct2);
         }
@@ -299,14 +321,14 @@ namespace HBP.Data.Informations
     {
         #region Properties
         public string Name { get; set; }
-        public Dictionary<DataStruct,List<ChannelStruct>> ChannelsByData { get; set; }
+        public Dictionary<Data, List<ChannelStruct>> ChannelsByData { get; set; }
         #endregion
 
         #region Constructors
-        public SceneROIStruct(string name, Dictionary<DataStruct, List<ChannelStruct>> channelsByData)
+        public SceneROIStruct(string name, Dictionary<Data, List<ChannelStruct>> channelsByData)
         {
             Name = name;
-            ChannelsByData = new Dictionary<DataStruct, List<ChannelStruct>>(channelsByData);
+            ChannelsByData = new Dictionary<Data, List<ChannelStruct>>(channelsByData);
         }
         #endregion
 
@@ -321,17 +343,17 @@ namespace HBP.Data.Informations
             if (notNull)
             {
                 bool sameName = Name == other.Name;
-                bool collection = EqualityComparer<Dictionary<DataStruct, List<ChannelStruct>>>.Default.Equals(ChannelsByData, other.ChannelsByData);
+                bool collection = EqualityComparer<Dictionary<Data, List<ChannelStruct>>>.Default.Equals(ChannelsByData, other.ChannelsByData);
             }
             return other != null &&
                    Name == other.Name &&
-                   EqualityComparer<Dictionary<DataStruct, List<ChannelStruct>>>.Default.Equals(ChannelsByData, other.ChannelsByData);
+                   EqualityComparer<Dictionary<Data, List<ChannelStruct>>>.Default.Equals(ChannelsByData, other.ChannelsByData);
         }
         public override int GetHashCode()
         {
             var hashCode = 252110562;
             hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
-            hashCode = hashCode * -1521134295 + EqualityComparer<Dictionary<DataStruct, List<ChannelStruct>>>.Default.GetHashCode(ChannelsByData);
+            hashCode = hashCode * -1521134295 + EqualityComparer<Dictionary<Data, List<ChannelStruct>>>.Default.GetHashCode(ChannelsByData);
             return hashCode;
         }
         public static bool operator ==(SceneROIStruct struct1, SceneROIStruct struct2)
@@ -346,85 +368,56 @@ namespace HBP.Data.Informations
     }
 
     [Serializable]
-    public class BlocStruct : IEquatable<BlocStruct>
+    public class Column : IEquatable<Column>
     {
-        #region Properties
-        [SerializeField] Experience.Protocol.Bloc m_Bloc;
-        public Experience.Protocol.Bloc Bloc
-        {
-            get
-            {
-                return m_Bloc;
-            }
-            set
-            {
-                SetPropertyUtility.SetClass(ref m_Bloc, value);
-            }
-        }
+        public string Name;
+        public Data Data;
+        public ROI ROI;
 
-        [SerializeField] List<ROIStruct> m_ROIs = new List<ROIStruct>();
-        public ReadOnlyCollection<ROIStruct> ROIs
+        public Column(string name, Data data, ROI roi)
         {
-            get
-            {
-                return new ReadOnlyCollection<ROIStruct>(m_ROIs);
-            }
+            Name = name;
+            Data = data;
+            ROI = roi;
         }
-        #endregion
-
-        #region Constructors
-        public BlocStruct(Experience.Protocol.Bloc bloc, IEnumerable<ROIStruct> ROI = null)
-        {
-            Bloc = bloc;
-            if(ROI != null)
-            {
-                SetROIs(ROI);
-            }
-        }
-        #endregion
 
         #region Public Methods
-        public void AddROI(ROIStruct ROI)
-        {
-            if (!m_ROIs.Contains(ROI))
-            {
-                m_ROIs.Add(ROI);
-            }
-        }
-        public void RemoveROI(ROIStruct ROI)
-        {
-            m_ROIs.Remove(ROI);
-        }
-        public void SetROIs(IEnumerable<ROIStruct> ROIs)
-        {
-            m_ROIs = ROIs.ToList();
-        }
-
         public override bool Equals(object obj)
         {
-            return Equals(obj as BlocStruct);
+            return Equals(obj as Column);
         }
-        public bool Equals(BlocStruct other)
+        public bool Equals(Column other)
         {
             return other != null &&
-                   Bloc == other.Bloc &&
-                   EqualityComparer<ReadOnlyCollection<ROIStruct>>.Default.Equals(ROIs, other.ROIs);
+                   Name == other.Name &&
+                   Data == other.Data;
         }
         public override int GetHashCode()
         {
-            var hashCode = 252110562;
-            hashCode = hashCode * -1521134295 + EqualityComparer<Experience.Protocol.Bloc>.Default.GetHashCode(Bloc);
-            hashCode = hashCode * -1521134295 + EqualityComparer<IEnumerable<ROIStruct>>.Default.GetHashCode(ROIs);
+            var hashCode = 139406400;
+            hashCode = hashCode * -1521134295 + EqualityComparer<Data>.Default.GetHashCode(Data);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
             return hashCode;
         }
-        public static bool operator ==(BlocStruct struct1, BlocStruct struct2)
+        public static bool operator ==(Column struct1, Column struct2)
         {
-            return EqualityComparer<BlocStruct>.Default.Equals(struct1, struct2);
+            return EqualityComparer<Column>.Default.Equals(struct1, struct2);
         }
-        public static bool operator !=(BlocStruct struct1, BlocStruct struct2)
+        public static bool operator !=(Column struct1, Column struct2)
         {
             return !(struct1 == struct2);
         }
         #endregion
+    }
+
+    [Serializable]
+    public class SceneData
+    {
+        public List<Column> Columns;
+
+        public SceneData(List<Column> columns)
+        {
+            Columns = columns;
+        }
     }
 }

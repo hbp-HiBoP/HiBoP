@@ -241,6 +241,7 @@ namespace HBP.UI.TrialMatrix
                 rectTransform.anchorMax = new Vector2(1, 1);
                 rectTransform.offsetMin = new Vector2(0, 0);
                 rectTransform.offsetMax = new Vector2(0, 0);
+                rectTransform.localScale = new Vector3(1, 1, 1);
                 if (_event.Type == HBP.Data.Enums.MainSecondaryEnum.Main)
                 {
                     data.SubTrial subTrial = subBloc.SubTrials[0];

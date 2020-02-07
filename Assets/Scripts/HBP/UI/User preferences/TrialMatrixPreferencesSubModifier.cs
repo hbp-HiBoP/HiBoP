@@ -48,14 +48,6 @@ namespace HBP.UI.UserPreferences
         {
             base.Initialize();
 
-            m_ShowWholeProtocolToggle.onValueChanged.AddListener(value => Object.ShowWholeProtocol = value);
-            m_TrialSynchronizationToggle.onValueChanged.AddListener(value => Object.TrialsSynchronization = value);
-            m_SmoothTrialToggle.onValueChanged.AddListener(value => Object.TrialSmoothing = value);
-            m_NumberOfIntermediateValuesSlider.onValueChanged.AddListener(value => Object.NumberOfIntermediateValues = Mathf.RoundToInt(value));
-            m_BlocFormatDropdown.onValueChanged.AddListener(OnChangeBlocFormat);
-            m_TrialHeightSlider.onValueChanged.AddListener(value => Object.TrialHeight = Mathf.RoundToInt(value));
-            m_TrialRatioSlider.onValueChanged.AddListener(value => Object.TrialRatio = value);
-            m_BlocRatioSlider.onValueChanged.AddListener(value => Object.BlocRatio = value);
         }
         public void OnChangeBlocFormat(int value)
         {
@@ -88,39 +80,47 @@ namespace HBP.UI.UserPreferences
 
             // Show whole protocol.
             m_ShowWholeProtocolToggle.isOn = objectToDisplay.ShowWholeProtocol;
+            m_ShowWholeProtocolToggle.onValueChanged.AddListener(value => Object.ShowWholeProtocol = value);
 
             // Trial synchronization.
             m_TrialSynchronizationToggle.isOn = objectToDisplay.TrialsSynchronization;
+            m_TrialSynchronizationToggle.onValueChanged.AddListener(value => Object.TrialsSynchronization = value);
 
             // Trial smoothing.
             m_SmoothTrialToggle.isOn = objectToDisplay.TrialSmoothing;
+            m_SmoothTrialToggle.onValueChanged.AddListener(value => Object.TrialSmoothing = value);
 
             // Intermediate values.
             m_NumberOfIntermediateValuesSlider.interactable = objectToDisplay.TrialSmoothing;
             m_NumberOfIntermediateValuesSlider.value = objectToDisplay.NumberOfIntermediateValues;
+            m_NumberOfIntermediateValuesSlider.onValueChanged.AddListener(value => Object.NumberOfIntermediateValues = Mathf.RoundToInt(value));
 
             // Bloc format.
             m_BlocFormatDropdown.Set(typeof(Data.Enums.BlocFormatType), (int)objectToDisplay.SubBlocFormat);
             m_BlocFormatDropdown.onValueChanged.AddListener(OnChangeBlocFormat);
             OnChangeBlocFormat(m_BlocFormatDropdown.value);
+            m_BlocFormatDropdown.onValueChanged.AddListener(OnChangeBlocFormat);
 
             // Trial height.
             m_TrialHeightSlider.minValue = TrialMatrixPreferences.MINIMUM_TRIAL_HEIGHT;
             m_TrialHeightSlider.maxValue = TrialMatrixPreferences.MAXIMUM_TRIAL_HEIGHT;
             m_TrialHeightSlider.wholeNumbers = true;
             m_TrialHeightSlider.value = objectToDisplay.TrialHeight;
+            m_TrialHeightSlider.onValueChanged.AddListener(value => Object.TrialHeight = Mathf.RoundToInt(value));
 
             // Trial ratio.
             m_TrialRatioSlider.minValue = TrialMatrixPreferences.MINIMUM_TRIAL_RATIO;
             m_TrialRatioSlider.maxValue = TrialMatrixPreferences.MAXIMUM_TRIAL_RATIO;
             m_TrialRatioSlider.wholeNumbers = false;
             m_TrialRatioSlider.value = objectToDisplay.TrialRatio;
+            m_TrialRatioSlider.onValueChanged.AddListener(value => Object.TrialRatio = value);
 
             // Bloc ratio.
             m_BlocRatioSlider.minValue = TrialMatrixPreferences.MINIMUM_BLOC_RATIO;
             m_BlocRatioSlider.maxValue = TrialMatrixPreferences.MAXIMUM_BLOC_RATIO;
             m_BlocRatioSlider.wholeNumbers = false;
             m_BlocRatioSlider.value = objectToDisplay.BlocRatio;
+            m_BlocRatioSlider.onValueChanged.AddListener(value => Object.BlocRatio = value);
         }
 
         #endregion
