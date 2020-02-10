@@ -57,73 +57,105 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
 \caption{\label{projectDirectory}Project directory hierarchy}
 \end{figure}
 \subsection{Settings}
-\paragraph{} The .settings file at the root of the project archive describes some project settings (Figure \ref{projectSettings}). This file contains the name of the project, a default path for the anatomical data of the patients and a default path for the functional data (iEEG), as well as aliases to shorten paths in other files.
+\paragraph{} The .settings file at the root of the project archive describes some project settings (Figure \ref{projectSettings}). This file contains the name of the project, a default path for the anatomical data of the patients and a default path for the functional data (iEEG), as well as aliases to shorten paths in other files. It also contains all the tags defined in the project. These tags are used to add more information on the patients or on the sites of the patients.
 \begin{figure}[H]
 \begin{lstlisting}
 {
-  "ID": "41001a8a-23a5-409b-8b87-099dbb727a18",
   "Name": "ProjectName",
-  "PatientDatabase": "Y:/BrainVisaDB/Epilepsy",
-  "LocalizerDatabase": "Y:/LOCA_DATABASE",
+  "PatientDatabase": "D:/DB/Patients",
+  "LocalizerDatabase": "D:/DB/Localizers",
   "Aliases": [
     {
       "Key": "[PATIENT_DATABASE]",
-      "Value": "Y:/BrainVisaDB/Epilepsy"
+      "Value": "D:/DB/Patients",
+      "ID": "032d22f1-68bd-4e62-8a56-ed6c676e1a5d"
     },
     {
       "Key": "[LOCALIZERS_DATABASE]",
-      "Value": "Y:/LOCA_DATABASE"
+      "Value": "D:/DB/Localizers",
+      "ID": "065501cf-667c-4ddb-8420-29ce822a2305"
     }
-  ]
+  ],
+  "GeneralTags": [],
+  "PatientsTags": [],
+  "SitesTags": [
+    {
+      "$type": "HBP.Data.StringTag, Assembly-CSharp",
+      "ID": "{35250f26-8cc4-47d8-b4a0-e60914e4b49f}",
+      "Name": "MarsAtlas"
+    },
+    {
+      "$type": "HBP.Data.StringTag, Assembly-CSharp",
+      "ID": "{2df83a44-5823-439b-a5f7-3c31d225a2a6}",
+      "Name": "Brodmann"
+    },
+    {
+      "$type": "HBP.Data.StringTag, Assembly-CSharp",
+      "ID": "{f7d90e62-7423-47df-b58d-ba29fe6b8ead}",
+      "Name": "Freesurfer"
+    }
+  ],
+  "ID": "0a4054b7-72cb-4c41-8396-5aa1676c42f6"
 }
 \end{lstlisting}
 \caption{\label{projectSettings}Example project settings file}
 \end{figure}
 \subsection{Patients}
-\paragraph{} This subfolder contains .patient files, which contains metadata of the patients and full paths towards anatomical files for each patient (Figure \ref{patientFile}). A 3D mesh can be a single mesh (only one file) or a left-right mesh (one file for the left part and one for the right part of the brain). These files are in GIfTI format (.gii). You can also provide aditional files to show MarsAtlas parcels (.gii), or a transformation file (to align the mesh and its respective MRI, .trm). The MRIs must be in the NIfTI-1 format (.nii). The implantations must be in the PTS format. The connectivities files are CCEP (amplitude / latencies) text files.
+\paragraph{} This subfolder contains .patient files, each containing metadata for the patient and its full anatomical description (Figure \ref{patientFile}). A 3D mesh can be a single mesh (only one file) or a left-right mesh (one file for the left part and one for the right part of the brain). These files are in GIfTI format (.gii). You can also provide additional files to show MarsAtlas parcels (.gii), or a transformation file (to align the mesh and its respective MRI, .trm). The MRIs must be in the NIfTI-1 format (.nii). These files also contain information about the sites of the patient (position and metadata as tags).
 \begin{figure}[H]
 \begin{lstlisting}
 {
-  "ID": "LYONNEURO_2013_CHAj",
-  "Name": "CHAj",
-  "Date": 2013,
-  "Place": "LYONNEURO",
-  "Brain": {
-    "Meshes": [
-      {
-        "$type": "HBP.Data.Anatomy.LeftRightMesh, Assembly-CSharp",
-        "ID": "bb1ee4e1-b96b-4973-814d-fb30c4d0d512",
-        "Name": "Grey matter",
-        "LeftHemisphere": "[...]/LYONNEURO_2013_CHAj_Left.gii",
-        "RightHemisphere": "[...]/LYONNEURO_2013_CHAj_Right.gii",
-        "LeftMarsAtlasHemisphere": "",
-        "RightMarsAtlasHemisphere": "",
-        "Transformation": "[...]/LYONNEURO_2013_CHAj.trm"
-      }
-    ],
-    "MRIs": [
-      {
-        "Name": "Preimplantation",
-        "File": "[...]/LYONNEURO_2013_CHAj.nii"
-      }
-    ],
-    "Connectivities": [],
-    "Implantations": [
-      {
-        "Name": "Patient",
-        "File": "[...]/LYONNEURO_2013_CHAj.pts",
-        "MarsAtlas": "[...]/LYONNEURO_2013_CHAj.csv"
-      },
-      {
-        "Name": "MNI",
-        "File": "[...]/LYONNEURO_2013_CHAj_MNI.pts",
-        "MarsAtlas": "[...]/LYONNEURO_2013_CHAj.csv"
-      }
-    ],
-    "Epilepsy": {
-      "Type": 5
+  "Name": "PatientA",
+  "Date": 2000,
+  "Place": "Mars",
+  "Meshes": [
+    {
+      "$type": "HBP.Data.LeftRightMesh, Assembly-CSharp",
+      "ID": "e3aa507b-451c-43f2-ab48-bcab292534ef",
+      "Name": "Grey matter",
+      "LeftHemisphere": "[...]\\Left.gii",
+      "RightHemisphere": "[...]\\Right.gii",
+      "LeftMarsAtlasHemisphere": "",
+      "RightMarsAtlasHemisphere": "",
+      "Transformation": "[...]\\Transformation.trm"
     }
-  }
+  ],
+  "MRIs": [
+    {
+      "Name": "MRI",
+      "File": "[...]\\MRI.nii",
+      "ID": "404b0eb7-34af-4194-9fde-765c3436735a"
+    }
+  ],
+  "Sites": [
+    {
+      "Name": "A2",
+      "Coordinates": [
+        {
+          "ReferenceSystem": "Patient",
+          "Value": {
+            "x": -50.48,
+            "y": 22.36,
+            "z": 14.27
+          },
+          "ID": "b775a894-8299-4075-a86a-ad6d424012d6"
+        },
+        {
+          "ReferenceSystem": "MNI",
+          "Value": {
+            "x": -42.59,
+            "y": 25.96,
+            "z": 12.69
+          },
+          "ID": "bdbfb696-4c5f-4e4a-b8a6-aa53fedcb7c8"
+        }
+      ],
+      "Tags": [],
+      "ID": "1f43863e-a9c2-447e-bd2e-17ef746050da"
+    }
+  ],
+  "Tags": [],
+  "ID": "a85b0652-d5d1-4695-bcd5-dacd56718612"
 }
 \end{lstlisting}
 \caption{\label{patientFile}Example patient file}
@@ -134,49 +166,47 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
 \begin{lstlisting}
 {
   "ID": "{813cbd0a-550c-40de-95c7-b387626f9a96}",
-  "Name": "VISU",
+  "Name": "GroupA",
   "Patients": [
-    "Gre_2013_BONn",
-    "Gre_2015_BARr",
-    "LYONNEURO_2013_CARj",
-    "LYONNEURO_2017_PECv",
-    "Gre_2015_PATa",
-    "LYONNEURO_2014_REId"
+    "PatientA",
+    "PatientC",
+    "PatientD",
+    "PatientF",
+    "PatientT",
+    "PatientY"
   ]
 }
 \end{lstlisting}
 \caption{\label{groupFile}Example group file}
 \end{figure}
 \subsection{Protocols}
-\paragraph{} This subfolder contains .prov files (Figure \ref{provFile}). The .prov extension stands for \textbf{protocol visualization}. Typically, a functional data file in HiBoP is a set of time series (one for each channel) with data for each sample from the beginning to the end of the recording session. Such data are stored in the .eeg/.eeg.ent\footnote{\label{ELAN}ELAN format – ELAN is freely available at http://elan.lyon.inserm.fr} files.
-\paragraph{} In addition, information about the events of the experimental paradigm is stored in .pos files: event codes occurred at specific samples (e.g. an event of type 10 occurred at sample 134567).
+\paragraph{} This subfolder contains .prov files (Figure \ref{provFile}). The .prov extension stands for \textbf{protocol visualization}. Typically, a functional data file in HiBoP is a set of time series (one for each channel) with data for each sample from the beginning to the end of the recording session. In addition, information about the events of the experimental paradigm is stored, each event being identified using a code (e.g. an event of code 10 occured at sample 134567).
+\paragraph{} Some file formats allow for such data to be stored conveniently. The formats supported by HiBoP are ELAN\footnote{\label{ELAN}ELAN format – ELAN is freely available at http://elan.lyon.inserm.fr}, Micromed, BrainVision and EDF.
 \paragraph{} The .prov file instructs HiBoP on how to epoch the data based on the .pos file. It consists of blocs which contain a list of subblocs. Each bloc or subbloc will be sorted using first their respective order and then alphabetically using their respective names.
 \paragraph{} Each subbloc is centered around a specific event, called \textbf{main event}, for a specific time window (for instance, consider all events with code 10 and extract for each of them a window ranging from 200ms before to 700ms after that event). You can specify secondary events which do not interfere in the epoching. You can also set a baseline window, which is used for the baseline correction (described in more details in Section \ref{preferences}). 
-\paragraph{} Each bloc also has a sorting method, which is used to sort the trials obtained from the epoching according to specific conditions (code of the main event, latency of the secondary event...). The syntax used here for a condition is \textit{SUBBLOC\_EVENT\_COMMAND} where SUBBLOC is the name of the sub-bloc, EVENT the name of the event and COMMAND the sorting parameter (which can be LATENCY or CODE). You can specify multiple conditions which are separated by a semi-colon, each of which are interpreted in the order they have been written. The rest of the .prov file is straightforward: you can ask HiBoP to show images (.png or .jpg) at specific time windows, or to associate an image to a bloc.
+\paragraph{} Each bloc also has a sorting method, which is used to sort the trials obtained from the epoching according to specific conditions (code of the main event, latency of the secondary event...). The syntax used here for a condition is \textit{SUBBLOC\_EVENT\_COMMAND} where SUBBLOC is the name of the sub-bloc, EVENT the name of the event and COMMAND the sorting parameter (which can be LATENCY or CODE). You can specify multiple conditions which are separated by a semi-colon, each of which are interpreted in the order they have been written. The rest of the .prov file is straightforward: you can ask HiBoP to show images (.png or .jpg) at specific time windows, or to associate an image to a bloc. You can also apply treatments on some time windows of the epoched values (e.g. you can compute the absolute value of the values from 100ms to 400ms after the main event).
 \begin{figure}[H]
 \begin{lstlisting}
 {
-  "ID": "ae8d96d8-eb58-4927-b8b9-8d9ba8ec0208",
   "Name": "VISU",
   "Blocs": [
     {
-      "IllustrationPath": "./Protocols/Icons/VISU_FRUIT.jpg",
-      "ID": "7aebbbee-e2d1-4b65-9337-b2ce67322ae6",
+      "IllustrationPath": "",
       "Name": "FRUIT",
       "Order": 0,
-      "Sort": "FRUIT_RESPONSE_LATENCY",
+      "Sort": "",
       "SubBlocs": [
         {
-          "ID": "32a8f1c1-de0d-4c10-86e2-427f82cdceb7",
-          "Name": "FRUIT",
+          "Name": "Main",
           "Order": 0,
+          "Type": 0,
           "Window": {
-            "Start": -500.0,
-            "End": 1000.0
+            "Start": -500,
+            "End": 1000
           },
           "Baseline": {
-            "Start": -200.0,
-            "End": 0.0
+            "Start": -300,
+            "End": 0
           },
           "Events": [
             {
@@ -184,67 +214,44 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
               "Codes": [
                 80
               ],
-              "Type": 0
-            },
-            {
-              "Name": "RESPONSE",
-              "Codes": [
-                1
-              ],
-              "Type": 0
+              "Type": 0,
+              "ID": "6b8840d6-54e1-4a52-bb00-4d78f71a3a26"
             }
           ],
-          "Icons": [
-            {
-              "IllustrationPath": "./Protocols/Icons/VISU_FRUIT.jpg",
-              "Name": "PIC",
-              "Window": {
-                "Start": 0.0,
-                "End": 200.0
-              }
-            }
-          ]
+          "Icons": [],
+          "Treatments": [],
+          "ID": "a06c0d6e-e6f4-411f-810a-547df6d5ad19"
         }
-      ]
+      ],
+      "ID": "bf97172d-6351-48bb-8399-6a1e9bccd18a"
     }
-  ]
+  ],
+  "ID": "e86143f2-17e6-45f4-a519-45e0dd2ace67"
 }
 \end{lstlisting}
-\caption{\label{provFile}Example prov file (one bloc of the VISU LOCA)}
+\caption{\label{provFile}Example prov file}
 \end{figure}
 \subsection{Datasets}
 \paragraph{} This subfolder contains .dataset files, which summarize and link together anatomical and functional data for a given cognitive task (Figure \ref{datasetFile}).
-A dataset is a list of data information, each of them connecting one patient (and its anatomical data) with functional data (.eeg and .pos files) for a single experiment. Each data information can be normalized independently from what is set in the preferences (see Section \ref{preferences} for detailed information about normalization).
+A dataset is a list of data information, each of them connecting one patient (and its anatomical data) to functional data for a single experiment. Each data information can be normalized independently from what is set in the preferences (see Section \ref{preferences} for detailed information about normalization).
 \begin{figure}[H]
 \begin{lstlisting}
 {
-  "ID": "{dfad2720-a0ec-49d8-b552-787f28c78c3b}",
   "Name": "VISU_dataset",
-  "Protocol": "{9d12c695-7ce6-49d4-82d0-a9da12ba776a}",
+  "ID": "033f332d-694b-47f6-93b9-ae22e72b333c",
+  "Protocol": "e86143f2-17e6-45f4-a519-45e0dd2ace67",
   "Data": [
     {
-      "Name": "alpha_beta",
-      "Patient": "Gre_2013_BONn",
-      "Measure": "EEG data",
-      "EEG": "[...]/Gre_2013_BONn_VISU_f8f24_ds8_sm0.eeg",
-      "POS": "[...]/Gre_2013_BONn_VISU_ds8.pos",
-      "Normalization": 4
-    },
-    {
-      "Name": "alpha_beta",
-      "Patient": "Gre_2015_BARr",
-      "Measure": "EEG data",
-      "EEG": "[...]/GRE_2015_BARr_VISU_f8f24_ds16_sm0.eeg",
-      "POS": "[...]/GRE_2015_BARr_VISU_ds16.pos",
-      "Normalization": 4
-    },
-    {
-      "Name": "alpha_beta",
-      "Patient": "Gre_2014_MADl",
-      "Measure": "EEG data",
-      "EEG": "[...]/GRE_2014_MADl_VISU_f8f24_ds8_sm0.eeg",
-      "POS": "[...]/GRE_2014_MADl_VISU_ds8.pos",
-      "Normalization": 4
+      "$type": "HBP.Data.Experience.Dataset.iEEGDataInfo, Assembly-CSharp",
+      "Patient": "a85b0652-d5d1-4695-bcd5-dacd56718612",
+      "Name": "gamma",
+      "DataContainer": {
+        "$type": "HBP.Data.Container.BrainVision, Assembly-CSharp",
+        "Header": "[...]/PatientA_VISU_gamma.vhdr",
+        "ID": "8fc99c84-ed41-4818-bd4c-22080e728965"
+      },
+      "Normalization": 6,
+      "ID": "3c4809ff-d39b-4257-b2f8-b114e0ea0d46"
     }
   ]
 }
@@ -256,46 +263,53 @@ A dataset is a list of data information, each of them connecting one patient (an
 \begin{figure}[H]
 \begin{lstlisting}
 {
-  "ID": "25c11585-fb23-4c70-b4d3-504f9851da11",
-  "Name": "Visualization",
+  "ID": "b23f57c2-0c10-4cd8-8839-8d8c8c0545d1",
+  "Name": "VISU",
   "Patients": [
-    "Gre_2009_CHIm",
-    "Gre_2009_MWAm",
-    "LYONNEURO_2013_CARj",
-    "LYONNEURO_2013_DUMp"
+    "a85b0652-d5d1-4695-bcd5-dacd56718612"
   ],
   "Configuration": {
     "Brain Color": 15,
     "Brain Cut Color": 14,
-    "Colormap": 13,
+    "EEG Colormap": 13,
     "Mesh Part": 2,
-    "Mesh": "MNI",
-    "MRI": "MNI",
-    "Implantation": "MNI",
+    "Mesh": null,
+    "MRI": null,
+    "Implantation": null,
     "Edges": false,
-    "Sites": false,
+    "Strong Cuts": false,
+    "Hide Blacklisted Sites": false,
+    "ShowAllSites": false,
     "MRI Min": 0.0,
     "MRI Max": 1.0,
     "Camera Type": 0,
     "Cuts": [],
-    "Views": []
+    "Views": [],
+    "RegionsOfInterest": [],
+    "ID": "0518bdbb-5523-4719-80b7-3703c8e73991"
   },
   "Columns": [
     {
-      "Dataset": "{dfad2720-a0ec-49d8-b552-787f28c78c3b}",
-      "Protocol": "{9d12c695-7ce6-49d4-82d0-a9da12ba776a}",
-      "Bloc": "3916b0a0-7ebc-4934-94e5-2308bf511f7c",
-      "Label": "alpha_beta",
-      "Configuration": {
-        "ConfigurationBySite": {},
+      "$type": "HBP.Data.Visualization.IEEGColumn, Assembly-CSharp",
+      "Dataset": "033f332d-694b-47f6-93b9-ae22e72b333c",
+      "Bloc": "bf97172d-6351-48bb-8399-6a1e9bccd18a",
+      "DataName": "gamma",
+      "DynamicConfiguration": {
         "Site Gain": 1.0,
         "Site Maximum Influence": 15.0,
         "Transparency": 0.8,
         "Span Min": 0.0,
         "Middle": 0.0,
         "Span Max": 0.0,
-        "Regions Of Interest": []
-      }
+        "ID": "e0cde4fa-6d03-4664-a22c-497efe071456"
+      },
+      "Name": "FRUIT",
+      "BaseConfiguration": {
+        "SiteSize": 1.0,
+        "ConfigurationBySite": {},
+        "ID": "d43dde98-ad6f-4c55-8924-a43bde3cc3c5"
+      },
+      "ID": "1fb4ef86-41e4-460f-950b-e53c0199e316"
     }
   ]
 }
