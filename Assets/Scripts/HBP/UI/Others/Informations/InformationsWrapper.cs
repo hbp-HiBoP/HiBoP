@@ -155,7 +155,7 @@ namespace HBP.UI.Informations
                         IEEGData data = new IEEGData(ieegColumn.ColumnIEEGData.Dataset, ieegColumn.ColumnIEEGData.DataName, ieegColumn.ColumnIEEGData.Bloc);
                         columns.Add(new Column(column.Name, data, ROI));
                     }
-                    else if(column is Column3DCCEP ccepColumn && ccepColumn.IsSourceSelected)
+                    else if(column is Column3DCCEP ccepColumn && ccepColumn.IsSourceSiteSelected)
                     {
                         CCEPData data = new CCEPData(ccepColumn.ColumnCCEPData.Dataset, ccepColumn.ColumnCCEPData.DataName, new ChannelStruct(ccepColumn.SelectedSourceSite), ccepColumn.ColumnCCEPData.Bloc);
                         columns.Add(new Column(column.Name, data, ROI));
