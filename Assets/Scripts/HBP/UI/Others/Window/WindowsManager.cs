@@ -93,7 +93,8 @@ namespace HBP.UI
             Window selectedWindow = WindowsReferencer.Windows.FirstOrDefault(w => w.GetComponent<Selector>().Selected);
             if (selectedWindow != null)
             {
-                rectTransform.anchoredPosition = selectedWindow.GetComponent<RectTransform>().anchoredPosition + Offset;
+                if (selectedWindow is CreatorWindow) rectTransform.anchoredPosition = selectedWindow.GetComponent<RectTransform>().anchoredPosition;
+                else rectTransform.anchoredPosition = selectedWindow.GetComponent<RectTransform>().anchoredPosition + Offset;
             }
             else
             {
