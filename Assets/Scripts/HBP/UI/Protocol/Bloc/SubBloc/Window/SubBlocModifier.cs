@@ -80,6 +80,7 @@ namespace HBP.UI.Experience.Protocol
             m_NameInputField.text = objectToDisplay.Name;
             m_OrderInputField.text = objectToDisplay.Order.ToString();
             m_TypeDropdown.Set(typeof(Data.Enums.MainSecondaryEnum), (int)objectToDisplay.Type);
+            m_TypeDropdown.interactable = m_Interactable && ItemTemp != null && ItemTemp.Type == Data.Enums.MainSecondaryEnum.Secondary;
 
             ProtocolPreferences preferences = ApplicationState.UserPreferences.Data.Protocol;
             m_WindowSlider.minLimit = preferences.MinLimit;
