@@ -24,12 +24,12 @@ namespace Tools.Unity.Lists
                 switch (value)
                 {
                     case SelectionType.None:
-                        if(m_SelectAllToggle) m_SelectAllToggle.interactable = false;
+                        if (m_SelectAllToggle) m_SelectAllToggle.interactable = false;
                         DeselectAll();
                         foreach (var item in m_Items) item.Interactable = false;
                         break;
                     case SelectionType.SingleItem:
-                        if (m_SelectAllToggle)  m_SelectAllToggle.interactable = false;
+                        if (m_SelectAllToggle) m_SelectAllToggle.interactable = false;
                         for (int i = 1; i < objectSelected.Length; i++) Deselect(objectSelected[i]);
                         foreach (var item in m_Items) item.Interactable = true;
                         break;
@@ -76,6 +76,7 @@ namespace Tools.Unity.Lists
             }
         }
         bool m_SelectionLock;
+        T m_LastSelectedObject;
         #endregion
 
         #region Public Methods
@@ -222,6 +223,23 @@ namespace Tools.Unity.Lists
                         return;
                     case SelectionType.SingleItem:
                         Deselect(m_Objects.Where((o) => !o.Equals(obj)), Toggle.ToggleTransition.Fade);
+                        break;
+                    case SelectionType.MultipleItems:
+                        if (Input.GetKey(KeyCode.LeftShift))
+                        {
+                            int lastIndex = m_Objects.IndexOf(m_LastSelectedObject);
+                            int actualIndex = m_Objects.IndexOf(obj);
+                            int min = Mathf.Min(lastIndex, actualIndex);
+                            int max = Mathf.Max(lastIndex, actualIndex);
+                            for (int i = min; i < max; i++)
+                            {
+                                Select(m_Objects[i]);
+                            }
+                        }
+                        else
+                        {
+                            if (selected) m_LastSelectedObject = obj;
+                        }
                         break;
                 }
                 if (m_SelectedStateByObject.ContainsKey(obj))
