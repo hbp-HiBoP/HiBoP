@@ -15,6 +15,7 @@ namespace HBP.Data.Experience.Dataset
                 return Trials.Length > 0 && Trials.Any(t => t.IsValid);
             }
         }
+        public Tools.CSharp.EEG.Frequency Frequency { get; set; }
         public Trial[] Trials { get; set; }
         #endregion
 
@@ -40,6 +41,7 @@ namespace HBP.Data.Experience.Dataset
             }
             Trials = SortTrials(bloc, trials).ToArray();
 
+            Frequency = data.Frequency;
             // TODO : Treatments
         }
         #endregion

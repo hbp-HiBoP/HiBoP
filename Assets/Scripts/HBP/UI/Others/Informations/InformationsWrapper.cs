@@ -28,6 +28,8 @@ namespace HBP.UI.Informations
             }
         }
 
+        [SerializeField] Dictionary<Column3DDynamic, Column> m_ColumnDataBy3DColumn = new Dictionary<Column3DDynamic, Column>();
+
         [SerializeField] Texture2D m_ColorMap;
         public Texture2D ColorMap
         {
@@ -140,6 +142,7 @@ namespace HBP.UI.Informations
         {
             if (!m_Scene.IsSceneCompletelyLoaded) return;
             List<Column> columns = new List<Column>();
+            m_ColumnDataBy3DColumn = new Dictionary<Column3DDynamic, Column>();
             foreach (var column in m_Scene.Columns)
             {
                 if(!column.IsMinimized ||ApplicationState.UserPreferences.Visualization.Graph.ShowCurvesOfMinimizedColumns)
@@ -153,12 +156,16 @@ namespace HBP.UI.Informations
                     if (column is Column3DIEEG ieegColumn)
                     {
                         IEEGData data = new IEEGData(ieegColumn.ColumnIEEGData.Dataset, ieegColumn.ColumnIEEGData.DataName, ieegColumn.ColumnIEEGData.Bloc);
-                        columns.Add(new Column(column.Name, data, ROI));
+                        Column columnData = new Column(column.Name, data, ROI);
+                        m_ColumnDataBy3DColumn.Add(column as Column3DDynamic, columnData);
+                        columns.Add(columnData);
                     }
                     else if(column is Column3DCCEP ccepColumn && ccepColumn.IsSourceSelected)
                     {
                         CCEPData data = new CCEPData(ccepColumn.ColumnCCEPData.Dataset, ccepColumn.ColumnCCEPData.DataName, new ChannelStruct(ccepColumn.SelectedSourceSite), ccepColumn.ColumnCCEPData.Bloc);
-                        columns.Add(new Column(column.Name, data, ROI));
+                        Column columnData = new Column(column.Name, data, ROI);
+                        m_ColumnDataBy3DColumn.Add(column as Column3DDynamic, columnData);
+                        columns.Add(columnData);
                     }
                 }
             }
@@ -196,6 +203,13 @@ namespace HBP.UI.Informations
             GenerateSceneData();
             Display();
         }
+        void OnChangeSelectedColumn(Column3D column)
+        {
+            if(column is Column3DDynamic dynamicColumn)
+            {
+                UpdateTime(dynamicColumn.Timeline.CurrentIndex, dynamicColumn);
+            }
+        }
         void OnChangeROIHandler()
         {
             GenerateSceneData();
@@ -222,6 +236,14 @@ namespace HBP.UI.Informations
                 m_Scene.OnUpdateROIMask.AddListener(OnChangeROIHandler);
                 m_Scene.OnChangeColormap.AddListener((t) => OnChangeColorMapHandler());
                 m_Scene.OnSelectCCEPSource.AddListener(OnChangeSourceHandler);
+                foreach (var column in m_Scene.Columns)
+                {
+                    column.OnSelect.AddListener(() => OnChangeSelectedColumn(column));
+                }
+                foreach(var column in m_Scene.ColumnsDynamic)
+                {
+                    column.Timeline.OnUpdateCurrentIndex.AddListener(() => UpdateTime(column.Timeline.CurrentIndex, column));
+                }
 
                 int maxNumberOfTrialMatrixColumn = Mathf.Max(Bloc.GetNumberOfColumns(m_Scene.ColumnsIEEG.Select(c => c.ColumnIEEGData.Bloc).Distinct()), Bloc.GetNumberOfColumns(m_Scene.ColumnsCCEP.Select(c => c.ColumnCCEPData.Bloc).Distinct()));
                 ChannelInformations.SetMaxNumberOfTrialMatrixColumn(maxNumberOfTrialMatrixColumn);
@@ -238,6 +260,24 @@ namespace HBP.UI.Informations
         void SetMinimized()
         {
             m_OnChangeMinimized.Invoke(m_Minimized);
+        }
+        void UpdateTime(int index, Column3DDynamic column)
+        {
+            if(column.IsSelected)
+            {
+                SubBloc subBloc = null;
+                foreach (var key in column.Timeline.SubTimelinesBySubBloc.Keys)
+                {
+                    if (column.Timeline.SubTimelinesBySubBloc[key] == column.Timeline.CurrentSubtimeline)
+                    {
+                        subBloc = key;
+                        break;
+                    }
+                }
+                float currentTime = column.Timeline.CurrentSubtimeline.GetLocalTime(index);
+                Column columnData = m_ColumnDataBy3DColumn[column];
+                ChannelInformations.UpdateTime(columnData, subBloc, currentTime);
+            }
         }
         #endregion
     }

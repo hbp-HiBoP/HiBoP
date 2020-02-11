@@ -24,6 +24,8 @@ namespace HBP.UI.Informations
         [SerializeField] RectTransform m_ToggleContainer;
 
         [SerializeField] List<Color> m_Colors;
+
+        Tuple<Tuple<Data.Experience.Protocol.Bloc, SubBloc>[], Tools.CSharp.Window>[] m_SubBlocsAndWindowByColumn;
         Dictionary<Tuple<int, Column>, Color> m_ColorsByColumn = new Dictionary<Tuple<int, Column>, Color>();
         Dictionary<Column, Color> m_ColorsByROIColumn = new Dictionary<Column, Color>();
         Dictionary<string, bool> m_StatesByCurves = new Dictionary<string, bool>();
@@ -69,6 +71,12 @@ namespace HBP.UI.Informations
             GenerateColors(channels, columns);
 
             SetGraphs();
+        }
+        public void UpdateTime(Column column, SubBloc subBloc, float currentTime)
+        {
+            int index = Array.FindIndex(m_SubBlocsAndWindowByColumn, item => item.Item1.Any(t => t.Item1 == column.Data.Bloc && t.Item2 == subBloc));
+            Graph graph = m_Graphs[index];
+            graph.CurrentTime = currentTime;
         }
         #endregion
 
@@ -228,10 +236,10 @@ namespace HBP.UI.Informations
         {
             // Find all visualized blocs and sort by column.
             IEnumerable<Data.Experience.Protocol.Bloc> blocs = columns.Select(c => c.Data.Bloc);
-            Tuple<Tuple<Data.Experience.Protocol.Bloc, SubBloc>[], Tools.CSharp.Window>[] subBlocsAndWindowByColumn = Data.Experience.Protocol.Bloc.GetSubBlocsAndWindowByColumn(blocs);
+            m_SubBlocsAndWindowByColumn = Data.Experience.Protocol.Bloc.GetSubBlocsAndWindowByColumn(blocs);
 
             List<Tuple<Graph.Curve[], Tools.CSharp.Window, bool>> result = new List<Tuple<Graph.Curve[], Tools.CSharp.Window, bool>>();
-            foreach (var subBlocsAndWindow in subBlocsAndWindowByColumn)
+            foreach (var subBlocsAndWindow in m_SubBlocsAndWindowByColumn)
             {
                 List<Graph.Curve> curves = new List<Graph.Curve>();
                 foreach (var column in columns)
@@ -403,6 +411,7 @@ namespace HBP.UI.Informations
             {
                 dataInfo = ccepDataStruct.Dataset.GetCCEPDataInfos().First(d => (d.Patient == channel.Patient && d.StimulatedChannel == ccepDataStruct.Source.Channel && d.Patient == ccepDataStruct.Source.Patient && d.Name == ccepDataStruct.Name));
             }
+            BlocData blocData = DataManager.GetData(dataInfo, column.Data.Bloc);
             BlocChannelData blocChannelData = DataManager.GetData(dataInfo, column.Data.Bloc, channel.Channel);
             Color color = m_ColorsByColumn.FirstOrDefault(k => k.Key.Item1 == Array.IndexOf(m_Channels, channel) && k.Key.Item2 == column).Value;
 
@@ -413,6 +422,9 @@ namespace HBP.UI.Informations
                 if (selected[i]) trialsToUse.Add(validTrials[i]);
 
             }
+
+            float start = blocData.Frequency.ConvertNumberOfSamplesToMilliseconds(blocData.Frequency.ConvertToCeiledNumberOfSamples(subBloc.Window.Start));
+            float end = blocData.Frequency.ConvertNumberOfSamplesToMilliseconds(blocData.Frequency.ConvertToFlooredNumberOfSamples(subBloc.Window.End));
 
             if (trialsToUse.Count > 1)
             {
@@ -432,8 +444,6 @@ namespace HBP.UI.Informations
                 }
 
                 // Generate points.
-                int start = subBloc.Window.Start;
-                int end = subBloc.Window.End;
                 Vector2[] points = new Vector2[values.Length];
                 for (int i = 0; i < points.Length; i++)
                 {
@@ -449,8 +459,6 @@ namespace HBP.UI.Informations
                 float[] values = channelSubTrial.Values;
 
                 // Generate points.
-                int start = subBloc.Window.Start;
-                int end = subBloc.Window.End;
                 Vector2[] points = new Vector2[values.Length];
                 for (int i = 0; i < points.Length; i++)
                 {
