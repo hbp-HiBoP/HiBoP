@@ -20,7 +20,7 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-This document is the user manual of the Human Intracranial Brain Observation Player (HiBoP). HiBoP is being developed by the Centre de Recherche en Neurosciences de Lyon (CRNL), with funds from the Human Brain Project (HBP) to visualize large datasets of intracranial electroencephalography (iEEG) data. This document has been written for the 2.1.2 version of HiBoP.
+This document is the user manual of the Human Intracranial Brain Observation Player (HiBoP). HiBoP is being developed by the Centre de Recherche en Neurosciences de Lyon (CRNL), with funds from the Human Brain Project (HBP) to visualize large datasets of intracranial electroencephalography (iEEG) data. This document has been written for the 2.2.3 version of HiBoP.
 \end{abstract}
 \tableofcontents
 \section{HiBoP project} \label{data}
@@ -317,9 +317,9 @@ A dataset is a list of data information, each of them connecting one patient (an
 \caption{\label{visualizationFile}Example visualization file}
 \end{figure}
 \section{HiBoP description}\label{UI}
-\paragraph{} This section will describe in details how to use HiBoP to create a HiBoP project and how to visualize the iEEG data. To open HiBoP, double click on HiBoP.exe (for Windows; for Linux and MacOS, read the README.md file located next to the executable). If you have any doubt about what an interface element does, you can hover it for a second and a tooltip will appear telling you what it does.
+\paragraph{} This section will describe in details how to use HiBoP to create a HiBoP project and how to visualize the iEEG data. The first thing to do is to open HiBoP (if you need them, instructions are in the README.md file located next to the executable). If you have any doubt about what an interface element does, you can hover it for a second and a tooltip will appear telling you what it does.
 \subsection{User Preferences}\label{preferences}
-\paragraph{} A lot of global parameters shared through all projects can be set using the preferences menu (Figure \ref{preferencesUI}). The menu contains 3 tabs each containing submenus. These parameters are stored in a file located next to the HiBoP executable (Preferences.txt).
+\paragraph{} A lot of global parameters shared through all projects can be set using the preferences menu (Figure \ref{preferencesUI}). The menu contains 3 tabs each containing submenus. These parameters are stored in the persistent data folder of HiBoP (e.g. for Windows, it is within the AppData folder).
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{Preferences.png}
@@ -365,7 +365,14 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item \textbf{Normalizing method}: The following formula is applied to each value $v$ $$v = \frac{v - \mu_{b}}{\sigma_{b}}$$ where $b$ is an array of the baseline values depending on this parameter, $\mu_b$ is their mean and $\sigma_b$ is their standard deviation
 \end{itemize}
 \end{itemize}
-\item \textbf{Event}
+\item \textbf{Protocol}
+\begin{itemize}
+\item \textbf{Time window}
+\begin{itemize}
+\item \textbf{Maximum range}: The maximum range for the time window of a subbloc of a protocol
+\item \textbf{Step}: The step between two positions of the range slider when editing the time window of a protocol
+\end{itemize}
+\end{itemize}
 \begin{itemize}
 \item \textbf{Processing}
 \begin{itemize}
@@ -382,7 +389,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \end{itemize}
 \item \textbf{Processing}
 \begin{itemize}
-\item \textbf{Enable site name correction}: Change the name of a certain patern of site names (for instance "xp4" becomes "X'4")
+\item \textbf{Enable site name correction}: Change the name of a certain patern of site names when importing sites from a file (for instance "xp4" becomes "X'4")
 \end{itemize}
 \end{itemize}
 \end{itemize}
@@ -432,10 +439,6 @@ A dataset is a list of data information, each of them connecting one patient (an
 \begin{itemize}
 \item \textbf{Enable cut lines}: Display other cuts by lines on cut textures
 \end{itemize}
-\item \textbf{Performance}
-\begin{itemize}
-\item \textbf{Enable simplified mesh during cuts}: Change the currently used mesh to a simplified one to optimize the cutting process
-\end{itemize}
 \end{itemize}
 \end{itemize}
 \end{itemize}
@@ -464,10 +467,10 @@ A dataset is a list of data information, each of them connecting one patient (an
 \end{figure}
 \paragraph{} All of these menus are located in the File menu at the top of the screen.
 \subsubsection{Patients management}
-\paragraph{} To add patients to the opened project, you have to use the patients manager (Figure \ref{patientGestionUI}). The window has two panels: the left panel displays all available patients in the database (found in the folder you specify at the top of the window) whereas the right panel displays patients added to this project. For each patient, numbers indicate the status of their respective anatomical data (Meshes, MRIs, Implantations and Connectivities). To add or remove patients, you can either select them in any list and use the arrows to add or remove them, or you can create new patients from scratch using the "+" button in the center. In order for the anatomical database to be correctly loaded, you have to use a specific hierarchy described in appendix \ref{bddhierarchy}.
+\paragraph{} To add patients to the opened project, you have to use the patients manager (Figure \ref{patientGestionUI}). This window is composed of a list of all patients in the project, a button to add new patients and a button to remove the selected patients from the list. For each patient, numbers indicate the status of their respective anatomical data (Meshes, MRIs, Sites and Tags). To add or remove patients, follow the instructions described in appendix \ref{addobjects}.
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.3]{PatientGestion.png}
+\includegraphics[scale=0.5]{PatientGestion.png}
 \end{center}
 \caption{\label{patientGestionUI}Patients manager}
 \end{figure}
@@ -478,14 +481,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \end{center}
 \caption{\label{patientModifierUI}Patient modifier}
 \end{figure}
-\paragraph{} If you want to add a mesh, you can use the "+" button located to the left; if you want to edit a mesh, you can double click the mesh item, and this will open a mesh modifier window (Figure \ref{meshModifierUI}) which will allow you to edit the path to the GIfTI files or to the transformation file. Adding and editing other types of anatomical data is very similar.
-\begin{figure}[H]
-\begin{center}
-\includegraphics[scale=0.5]{MeshModifier.png}
-\end{center}
-\caption{\label{meshModifierUI}Mesh modifier}
-\end{figure}
-\paragraph{} As stated in section \ref{data}, you can also create groups of patients to add them more easily to the visualizations. This is done through the groups manager window (Figure \ref{groupGestionUI}). To create a new group, use the "+" button on the left. To remove existing groups, select the group(s) you want to remove, and use the "-" button on the left\footnote{The process of using "+" button to add and "-" button to remove is common to most windows of HiBoP}. Adding and removing patients from a group is very similar to the patients manager window (Figure \ref{groupModifierUI}).
+\paragraph{} As stated in section \ref{data}, you can also create groups of patients to add them more easily to the visualizations. This is done through the groups manager window (Figure \ref{groupGestionUI}). Adding and removing patients from a group is very similar to the patients manager window (Figure \ref{groupModifierUI}).
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{GroupGestion.png}
@@ -494,22 +490,22 @@ A dataset is a list of data information, each of them connecting one patient (an
 \end{figure}
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.3]{GroupModifier.png}
+\includegraphics[scale=0.5]{GroupModifier.png}
 \end{center}
 \caption{\label{groupModifierUI}Group modifier}
 \end{figure}
-\subsubsection{Data management}
-\paragraph{} First thing to do concerning data management is to create a protocol that will epoch the iEEG data. You can do that using the protocol manager window (Figure \ref{protocolGestionUI}). You can also import an existing .prov file to the project by using the "Import..." button on the bottom.
+\subsubsection{Functional data management}
+\paragraph{} First thing to do concerning functional data management is to create a protocol that will epoch the iEEG data. You can do that using the protocol manager window (Figure \ref{protocolGestionUI}).
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{ProtocolGestion.png}
 \end{center}
 \caption{\label{protocolGestionUI}Protocols manager}
 \end{figure}
-\paragraph{} Editing a protocol consists of defining the blocs for this protocol. This is done with the protocol modifier window (Figure \ref{protocolModifierUI}). To create a new bloc, click on an empty box. To edit a bloc, double click on an existing bloc.
+\paragraph{} Editing a protocol consists of defining the blocs for this protocol. This is done with the protocol modifier window (Figure \ref{protocolModifierUI}).
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.4]{ProtocolModifier.png}
+\includegraphics[scale=0.5]{ProtocolModifier.png}
 \end{center}
 \caption{\label{protocolModifierUI}Protocol modifier}
 \end{figure}
@@ -533,14 +529,15 @@ A dataset is a list of data information, each of them connecting one patient (an
 \end{center}
 \caption{\label{datasetGestionUI}Datasets manager}
 \end{figure}
-\paragraph{} For a given dataset, you need to give it a name and assign a protocol. All the data included in this dataset will be epoched regarding the chosen protocol. With the dataset modifier window (Figure \ref{datasetModifierUI}), you can add and edit data information. Each data information has a little colored box which indicates the status of the data information : red means it is unsuable, whereas green means you can visualize it. You can click on this box to have more information about the data information.
+\paragraph{} For a given dataset, you need to give it a name and assign a protocol. All the data included in this dataset will be epoched regarding the chosen protocol. With the dataset modifier window (Figure \ref{datasetModifierUI}), you can add and edit data information. Each data information has a little colored box which indicates the status of the data information : red means it is unsuable, whereas green means you can visualize it. You can hover this box to have more information about the data information status.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{DatasetModifier.png}
 \end{center}
 \caption{\label{datasetModifierUI}Dataset modifier}
 \end{figure}
-\paragraph{} A data information has a name and is linked to a patient. A single dataset can not have two data information with the same pair [name, patient]. Data are identified by their names, so if you want to visualize data of several patients in the same column, you have to give them the same name (since their respective patient will be different, the pairs [name, patient] will be different). Then, you have to fill in the paths to the functional data files (.eeg and .pos). The label in front of the EEG file path corresponds to the label of the data you want to extract from the EEG file (usually, it is "EEG data"). You can also change how this particular data will be normalized (this overwrites the global parameter for normalization).
+\paragraph{} A data information has a name and is linked to a patient. A data information can be either an iEEG or a CCEP data information. In the case of an iEEG data information, you can specify the normalization method for this specific data (this overwrites the global parameter for normalization unless "Auto" is selected), and there can only be one data information for each [name, patient]. In the case of a CCEP data information, you have to specify the stimulated site for this data, and there can only be one data information for each [name, patient, stimulated site].
+\paragraph{} Data information are identified by their names, so if you want to visualize data of several patients in the same column, you have to give them the same name. As for the data you can choose the data format and fill all the required fields.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{DataInfoModifier.png}
@@ -555,10 +552,10 @@ A dataset is a list of data information, each of them connecting one patient (an
 \end{center}
 \caption{\label{visuGestionUI}Visualizations manager}
 \end{figure}
-\paragraph{} A visualization has a name, patients and columns. To edit all of this information, you can use the visualization modifier window (Figure \ref{visuModifierUI}). To add patients to the visualization, use the arrows (same process than adding patients to the project). To add a column, click on the "+" button under the "Columns" panel. You can then edit the column by setting the name, the type (anatomy only or iEEG), the protocol, the bloc, the dataset and the data name to be used in this column. Do not forget that if multiple patients are added to the visualization, they must have at least one data information with the same name.
+\paragraph{} A visualization has a name, patients and columns. To edit all of this information, you can use the visualization modifier window (Figure \ref{visuModifierUI}). To add a column, click on the "+" button under the "Columns" panel. You can then edit the column by setting the name, the type (Anatomy, iEEG or CCEP), the protocol, the bloc, the dataset and the data name to be used in this column. Do not forget that if multiple patients are added to the visualization, they must have at least one data information with the same name.
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.3]{VisualizationModifier.png}
+\includegraphics[scale=0.4]{VisualizationModifier.png}
 \end{center}
 \caption{\label{visuModifierUI}Visualization modifier}
 \end{figure}
@@ -604,11 +601,12 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Scene settings
 \item Display settings
 \item iEEG settings
+\item CCEP settings
 \item Timeline
 \item Sites
 \item Regions of Interest
-\item CCEP
 \item fMRI
+\item Atlas
 \item Triangle eraser
 \item Configuration
 \end{itemize}
@@ -622,47 +620,44 @@ A dataset is a list of data information, each of them connecting one patient (an
 \caption{\label{cut}Cut parameters panel}
 \end{figure}
 \subsubsection{Sites list}\label{sitesList}
-\paragraph{} A list of all the sites of the scene is available in the corresponding panel (Figure \ref{sitesListPanel}). This list displays all sites found in the PTS files and their states, even if they do not have a corresponding channel in an EEG file (sites with no value will have their name in grey and will not be selectable). You can filter the sites by name, patient name and states.  Available states are :
-\begin{itemize}
-\item Excluded : an excluded site is not in the iEEG computations, but it remains visible in the scene
-\item Highlighted : a highlighted site appears without transparency in the scene
-\item Marked : a marked site appears in green when the iEEG are not computed (the behaviour is the same as an included site)
-\item Blacklisted : a blacklisted site is barely visible and not included in any calculation
-\item Suspicious : a suspicious site appears orange in the scene
-\end{itemize}
-\paragraph{} This panel also allows you to change the states of some sites directly by clicking on the corresponding dots.
+\paragraph{} A list of all the sites of the scene is available in the corresponding panel (Figure \ref{sitesListPanel}). This list displays all sites of the visualization and their attributes. You can highlight or blacklist a site, change its color and set labels.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{SitesList.png}
 \end{center}
 \caption{\label{sitesListPanel}Sites list panel}
 \end{figure}
-\paragraph{} This panel also contains a submenu called "Apply action on sites" which allows you to filter the sites using various criteria. There are two ways of filtering the sites:
+\paragraph{} This panel also contains a submenu called "Filter sites" which allows you to filter the sites using various criteria. Only the filtered sites will then appear in the list and on the 3D scene. There are two ways of filtering the sites:
 \begin{itemize}
-\item You can filter sites using specific conditions concerning their current states, their location, information about them or their EEG signal, and apply states by selecting the icons of the states and clicking on the apply button. This process correspond to the "Basic" way of setting multiple states at once (Figure \ref{basicStates}).
+\item You can filter sites using specific conditions concerning their current states, their location, information about them or the EEG signal of the associated channel (Figure \ref{basicStates}).
 \item The "Advanced" way can be accessed through the Advanced tab of the aforementioned submenu. While the Basic tab can only filter sites with a global AND between all conditions (which means that all conditions must be fulfilled for a site in order to apply the states), the Advanced tab can be used to create more complex conditions. You can click on the "?" icon to have a detailed description on how it works, alongside examples.
 \end{itemize}
-\paragraph{} Once you have filtered the sites you want to apply an action on, you have multiple actions available:
+\paragraph{} Once you have filtered the sites you can apply an action on them using the "Apply action on filtered sites". There are multiple actions available:
 \begin{itemize}
-\item You can set the states of the filtered sites. This allows you to set the states of multiple sites at once, which is conveniant compared to setting the states one by one.
-\item You can export a list of the filtered sites as a csv file. This file contains the name, the patient name, place and date, the coordinates of the site and the coordinate system used, and the related eeg and pos files for each site.
+\item You can highlight, unhighlight, blacklist, unblacklist, change the color and add labels to the filtered sites. This allows you to set the states of multiple sites at once, which is conveniant compared to setting the states one by one (Figure \ref{sitesAction}).
+\item You can export a list of the filtered sites to a csv file. This file contains the name, the patient name, place and date, the coordinates of the site and the coordinate system used, the data files of the corresponding channel and every tags of the site.
 \end{itemize}
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{BasicStates.png}
 \end{center}
-\caption{\label{basicStates}Apply action on sites submenu (in this example, sites that are in the selected ROI (Section \ref{roi}) and which values have a mean above 110 will be marked suspicious)}
+\caption{\label{basicStates}"Filter sites" submenu}
+\end{figure}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{SitesAction.png}
+\end{center}
+\caption{\label{sitesAction}"Apply action on filtered sites" submenu}
 \end{figure}
 \paragraph{} The following sections will explain the different functionalities of each toolbar.
 \subsubsection{Scene settings}
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.45]{SceneSettings.png}
+\includegraphics[scale=0.5]{SceneSettings.png}
 \end{center}
 \end{figure}
 \begin{itemize}
 \item Display both parts, only the left part or only the right part of the selected mesh (only works for left-right meshes).
-\item Display mars atlas on the mesh (only works if the mars atlas field of the mesh is valid).
 \item Display the edges of the mesh.
 \item Switch between the soft cut mode (keep everything behind a cut) and the hard cut mode (cut everything in front of a cut).
 \item Change the colormap of the iEEG values.
@@ -676,7 +671,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \subsubsection{Display settings}
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.45]{DisplaySettings.png}
+\includegraphics[scale=0.5]{DisplaySettings.png}
 \end{center}
 \end{figure}
 \begin{itemize}
@@ -692,7 +687,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \subsubsection{iEEG settings}
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.45]{iEEGSettings.png}
+\includegraphics[scale=0.5]{iEEGSettings.png}
 \end{center}
 \end{figure}
 \begin{itemize}
@@ -703,10 +698,21 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Change the threshold values for the iEEG (anything less than the minimum value will be of the same color as the minimum value, the same apply for the maximum value; the rest of the values will increase linearly from minimum to middle and then increase linearly from middle to maximum). You can change these values by either using the sliders or editing the numbers in the boxes. There are 2 modes : the symmetric mode allows you to set the middle value and the amplitude, whereas the asymmetric mode allows you to set each value independently.
 \item Compute the iEEG values on the brain surface or clean the brain.
 \end{itemize}
+\subsubsection{CCEP settings}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{CCEPSettings.png}
+\end{center}
+\end{figure}
+\begin{itemize}
+\item Toggle between single site source or MarsAtlas area source
+\item Set or unset the selected site as source
+\item Select the MarsAtlas area to be used as source
+\end{itemize}
 \subsubsection{Timeline}
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.45]{Timeline.png}
+\includegraphics[scale=0.3]{Timeline.png}
 \end{center}
 \end{figure}
 \begin{itemize}
@@ -714,12 +720,12 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Make the timeline play automatically.
 \item Increase the current timeline ID by a specific amount of samples (this also controls the speed of the play, X samples will be played each second).
 \item Loop the timeline (when playing automatically).
-\item Slider to control the timeline precisely; the red mark indicates the main event, the blue marks indicates the secondary events (as defined in the .prov file).
+\item Slider to control the timeline precisely; the red mark indicates the main event, the blue marks indicates the secondary events (as defined in the protocol).
 \end{itemize}
 \subsubsection{Sites}
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.45]{Sites.png}
+\includegraphics[scale=0.5]{Sites.png}
 \end{center}
 \end{figure}
 \begin{itemize}
@@ -738,7 +744,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \paragraph{} Regions of Interest (ROI) are useful if you only want to study a small group of sites. They are composed of multiple spheres with different positions and radiuses. If the option "Show All Sites" of the sites toolbar is not enabled, only the sites of the selected ROI will be included in the iEEG computations on the brain. A curve will also be generated for the selected ROI of each column (section \ref{graphs}).
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.45]{ROI.png}
+\includegraphics[scale=0.5]{ROI.png}
 \end{center}
 \end{figure}
 \begin{itemize}
@@ -753,12 +759,10 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Load a .roi file to the selected column.
 \end{itemize}
 \paragraph{} After adding a ROI to the selected column, you can left click on the mesh to add spheres to this ROI. You can select a sphere using either the toolbar or by left clicking on it. You can change the position of the selected sphere by draging and droping it and its size using the scroll wheel.
-\subsubsection{CCEP}
-\paragraph{} This toolbar will allow you to enable CCEP mode (which will disable iEEG mode) and choose from the Connectivity files which one you want to display. To select a source, simply select the site you want as source.
 \subsubsection{fMRI}
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.45]{fMRI.png}
+\includegraphics[scale=0.5]{fMRI.png}
 \end{center}
 \end{figure}
 \begin{itemize}
@@ -766,10 +770,21 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Change the threshold values of the fMRI.
 \item Change the transparency of the fMRI.
 \end{itemize}
+\subsubsection{Atlas}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{Atlas.png}
+\end{center}
+\end{figure}
+\begin{itemize}
+\item Toggle between IBC Functional Atlas, JuBrain Cytoarchitectonic Atlas and MarsAtlas.
+\item For the IBC Functional Atlas, you can select the contrast you want to visualize and change the thresholds values.
+\item For the JuBrainCytoarchitectonic Atlas and the MarsAtlas, you can visualize the different areas on the 3D brain and hover them to get more information.
+\end{itemize}
 \subsubsection{Triangle eraser}
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.45]{TriEraser.png}
+\includegraphics[scale=0.5]{TriEraser.png}
 \end{center}
 \end{figure}
 \begin{itemize}
@@ -778,23 +793,30 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Expand the erased zone.
 \item Invert the erased zone.
 \item Revert last action.
+\item Save the state of each triangle (invisible or visible) to a .trimask file.
+\item Load a .trimask file to apply the states to the triangles of the displayed brain mesh.
 \end{itemize}
 \subsubsection{Configuration}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{Configuration.png}
+\end{center}
+\end{figure}
 \paragraph{} This toolbar allow you to save, load or reset the configuration of the selected scene. Beware, saving the configuration will just save it to the loaded visualization: to write the changes in the corresponding file, you still have to save the whole project.
 \subsection{Graphs and Trial Matrices}\label{graphs}
 \paragraph{} The middle panel allows you to examine more precise information about the iEEG data of specific sites. You can open it using the handlers or if it is closed, it will automatically open once you select a site.
 \subsubsection{Graphs}
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.5]{Graph.png}
+\includegraphics[scale=0.35]{Graph.png}
 \end{center}
-\caption{\label{graph}Graph for a protocol and two blocs (site G8)}
+\caption{\label{graph}Graph for a protocol and three blocs (site U'8)}
 \end{figure}
-\paragraph{} Curves are generated for each column (or not minimized columns, depending on the chosen preferences) :
+\paragraph{} Curves are generated for each column (or not minimized columns, depending on the chosen preferences):
 \begin{itemize}
 \item One curve for the last selected site (the column in which the site has been selected does not matter)
 \item One curve for the compared site if you are comparing two sites using the "Compare Site" tool in the site toolbar
-\item One curve for the ROI if it exists. The ROI is considered as a single site which has the combined activity of all sites (excluding excluded or blacklisted sites) within it. (WARNING: this is not yet reimplemented)
+\item One curve for the ROI if it exists. The ROI is considered as a single site which has the combined activity of all sites (excluding excluded or blacklisted sites) within it.
 \end{itemize}
 \paragraph{} An example of graph can be found at Figure \ref{graph}. A curve is the mean or median (depending on global preferences) of the iEEG activity of a site. The shapes around the single site curves correspond to the standard error of the mean (SEM). You can interact with the graph in order to get the most of it :
 \begin{itemize}
@@ -817,158 +839,24 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Move the selection with the scroll wheel
 \end{itemize}
 \appendix
-\section{HiBoP Database Manager}\label{bddmanager}
-\paragraph{} The HiBoP Database Manager (DB Manager) can be used to manage the anatomical and functional databases (as long as they respect the hierarchy described in appendix \ref{bddhierarchy}), create HiBoP projects using huge amounts of data in no time or convert the databases to the Brain Imaging Data Structure (BIDS) format\footnote{More information about BIDS can be found at http://bids.neuroimaging.io/}. The main window (Figure \ref{dbManagerMain}) of the DB Manager has two main columns. The left column allows you to select patients to visualize their anatomical data, the right column is for functional data.
-\begin{figure}[H]
-\begin{center}
-\includegraphics[scale=0.3]{DBManagerMain.png}
-\end{center}
-\caption{\label{dbManagerMain}Main window of the DB Manager}
-\end{figure}
-\subsection{Anatomical data}
-\paragraph{} Click « Set Directory » in the first column to select the folder containing the anatomical database. After choosing a folder, patients found within that database will appear in the first column. Selecting one patient will display in the middle panel (Figure \ref{dbManagerPatient}) a list of files types and their status (present in green or absent in red). Some of the files can be visualized or opened directly from that interface. The display allows the user to quickly browse through patients and identify missing files.
-\begin{figure}[H]
-\begin{center}
-\includegraphics[scale=0.5]{DBManagerPatient.png}
-\end{center}
-\caption{\label{dbManagerPatient}Patient panel}
-\end{figure}
-\subsection{Functional data}
-\paragraph{} Click « Set Directory » in the second column to select the folder containing the functional database. Once loaded, the database can be inspected patient by patient in a way similar to anatomical data (Figure \ref{dbManagerLoca}). Missing files can be quickly identified this way.
-\begin{figure}[H]
-\begin{center}
-\includegraphics[scale=0.5]{DBManagerLoca.png}
-\end{center}
-\caption{\label{dbManagerLoca}Localizer (iEEG data) panel}
-\end{figure}
-\subsection{Exporting data}
-\paragraph{} A panel in the right part (Figure \ref{dbManagerFilters}) of the window allows the user to filter patients. By checking boxes, you can quickly identify patients matching certain criteria (e.g. all patients with task LEC2, with gamma envelopes and anatomical MRIs).
-\begin{figure}[H]
-\begin{center}
-\includegraphics[scale=0.5]{DBManagerFilters.png}
-\end{center}
-\caption{\label{dbManagerFilters}Export panel}
-\end{figure}
-\paragraph{} You can filter using the following parameters:
+\section{Adding and removing data of a HiBoP project}\label{addobjects}
+\subsection{General rule}
+\paragraph{} Adding data to a HiBoP project is done using the "+" button to the left of a list containing data objects. Clicking this button will ask you how you want to add data to the project:
 \begin{itemize}
-\item \textbf{Year}: Choose patients of specific years.
-\item \textbf{Experience}: Choose patients based on the tasks they performed.
-\item \textbf{Files}: Choose patients with specific functional files (.TRC, .eeg, .pos)
-\item \textbf{Frequency}: Choose patients with processed data using specific frequency range\footnote{Hilbert transform: f8f24 combines the alpha and beta frequency bands, f50f150 corresponds to the gamma band.}.
-\item \textbf{Smoothing}: Choose patients with data with a specific temporal smoothing.
-\item \textbf{Patient}: Choose patients with specific anatomical criteria: pre implantation files, post implantation files, presence of a site in a specific Mars Atlas area etc.
+\item \textbf{From scratch}: this is the default behaviour when other options are not available. This will create a new object for the given data type that will be completely empty. You will then have to fill the different fields using the object modifier that pops up and save it to add it to the project.
+\item \textbf{From existing object}: this option allows you to select an already existing object of the project for the given data type. It will then clone this object to a new object. This can increase the efficiency when creating different objects that have common fields.
+\item \textbf{From file}: this allows you to select a file that contains information about an object of a specific data type. The description of the files for every data types is available at section \ref{data}.
+\item \textbf{From database}: this allows you to add multiple objects at once using the path to a database. Selecting this option will ask you to browse to a database formatted for the data type you are adding. Once the database is loaded, you can select which objects you want to add and press "OK" to add them all to the project.
 \end{itemize}
-\paragraph{} Once you have selected the patients you want to study (using the boxes next to their names; a red name means this patient does not match one of the parameters you chose), you can create a HiBoP project using these patients, export these patients to BIDS format, export the anatomical files (section \ref{exportAnatomical}) or the functional files (section \ref{exportFunctional}) to another folder.
-\subsubsection{Anatomical data}\label{exportAnatomical}
-\paragraph{} If you click on the "Export patients" button, you will see the window presented in figure \ref{dbManagerExportPatient}. There you can choose which files you want to export (MRI, Implantations, Meshes etc.) or you can export the whole database (even files which are not recognized by the database manager). When you are ready to export, click on the "Start export" button and select the folder that will be containing your exported anatomical database. You can cancel the export at any time.
-\begin{figure}[H]
-\begin{center}
-\includegraphics[scale=0.5]{ExportPatient.png}
-\end{center}
-\caption{\label{dbManagerExportPatient}Export patients window}
-\end{figure}
-\subsubsection{Functional data}\label{exportFunctional}
-\paragraph{} Exporting functional data is very similar to exporting anatomical data (Figure \ref{dbManagerExportLoca}).
-\begin{figure}[H]
-\begin{center}
-\includegraphics[scale=0.5]{ExportLoca.png}
-\end{center}
-\caption{\label{dbManagerExportLoca}Export localizers window}
-\end{figure}
-\subsection{Resources files}
-\paragraph{} A folder called "resources" is present next to the executable of the DB Manager. It contains useful files for the DB Manager to work. These files can either be edited using a text editor or, for some files only, you can edit them safely using Settings/Edit experiences sub-menu. They contain:
+\paragraph{} Removing data is done by selecting the elements to be removed in the list and using the "-" button to the left of the list.
+\subsection{Specific cases}
+\subsubsection{Patients}
+\paragraph{} Patients are commonly added using a database, because otherwise it is a lot of work adding all the anatomical data one file at a time for all patients of a project. The supported format for the database is the Brain Imaging Data Structure (BIDS) format\footnote{More information about BIDS can be found at http://bids.neuroimaging.io/}. Thus when selecting "From database", you have to browse to a database that is BIDS-compatible.
+\subsubsection{Sites}
+\paragraph{} While it is possible to select "From file" to add sites to a patient, there is no specific file described in section \ref{data} that concerns sites directly. However, you can still use this option to add multiple sites at once using a specific file format:
 \begin{itemize}
-\item \textbf{broadman\_areas.txt}: links between the name of a broadman area and its respective index
-\item \textbf{corr\_nomenclature.txt}: links between the names of the same patient in the anatomical database (right) and in the functional database (left)
-\item \textbf{Downsamplings.txt}: list of possible values for the downsamplings
-\item \textbf{Experiences.txt}: list of experiences to find in the functional database
-\item \textbf{Frequencies.txt}: list of possible values for frequency ranges
-\item \textbf{localizers.tsv}: metadata for the localizers used to convert the database to BIDS
-\item \textbf{mars\_atlas\_index.csv}: links between the name of a mars atlas area and its respective index
-\item \textbf{TemporalSmoothings.txt}: list of possible values for the temporal smoothings
-\item \textbf{Years.txt}: list of possible values for the years
-\item \textbf{Images localizers}: this folder contains illustrations for the localizers (these images are exported into the HiBoP project created with the DB Manager)
-\item \textbf{Protocols}: this folder contains .prov files readable by HiBoP to describe the localizers (these protocol files are exported into the HiBoP project created with the DB Manager)
-\end{itemize}
-\section{HiBoP Database Hierarchy}\label{bddhierarchy}
-\paragraph{} In order to use HiBoP and the DB Manager with automatic loading of patients, a specific hierarchy of the database must be respected. There is a specific hierarchy for the anatomical database (usable in both HiBoP and the Database Manager) and for the functional database (usable only in the Database Manager). These are presented in the following sections. Note that BIDS format will be supported in a near future.
-\subsection{Anatomical database}
-\begin{figure}[H]
-\framebox[\textwidth]{%
-\begin{minipage}{0.9\textwidth}
-\dirtree{%
-	.1 Database/.
-	.2 <PATIENT>/.
-	.3 implantation/.
-	.4 <PATIENT>.pts.
-	.4 <PATIENT>\_MNI.pts.
-	.4 <PATIENT>\_ACPC.pts.
-	.4 <PATIENT>.csv.
-	.3 t1mri/.
-	.4 T1pre\_<DATEFULL>/.
-	.5 <PATIENT>.nii.
-	.5 registration/.
-	.6 RawT1-<PATIENT>\_T1pre\_<DATEFULL>\\\_TO\_Scanner\_Based.trm.
-	.5 default\_analysis/.
-	.6 segmentation/.
-	.7 mesh/.
-	.8 <PATIENT>\_Lhemi.gii.
-	.8 <PATIENT>\_Rhemi.gii.
-	.8 <PATIENT>\_Lwhite.gii.
-	.8 <PATIENT>\_Rwhite.gii.
-	.8 surface\_analysis/.
-	.9 <PATIENT>\_Lwhite\_parcels\\\_marsAtlas.gii.
-	.9 <PATIENT>\_Rwhite\_parcels\\\_marsAtlas.gii.
-	.4 T1post\_<DATEFULL>/.
-	.5 <PATIENT>.nii.
-	.5 registration/.
-	.6 RawT1-<PATIENT>\_T1post\_<DATEFULL>\\\_TO\_Scanner\_Based.trm.
-}
-\end{minipage}
-}
-\caption{\label{patientsHierarchy}Anatomical database hierarchy}
-\end{figure}
-\paragraph{} On the figure \ref{patientsHierarchy}:
-\begin{itemize}
-\item \textbf{<PATIENT>} corresponds to the patient ID, which is of the form\\<PLACE>\_<DATE>\_<NAME> (e.g. LYONNEURO\_2014\_THUv)
-\item \textbf{<PLACE>} is where the patient data comes from (e.g. LYONNEURO)
-\item \textbf{<DATE>} is the year the data has been acquired (e.g. 2014)
-\item \textbf{<NAME>} is the anonymized name of the patient (e.g. THUv)
-\item \textbf{<DATEFULL>} is the complete date (e.g. 2015-5-20)
-\end{itemize}
-\subsection{Functional database}
-\begin{figure}[H]
-\framebox[\textwidth]{%
-\begin{minipage}{0.9\textwidth}
-\dirtree{%
-	.1 Database/.
-	.2 <DATE>/.
-	.3 <LOCA>/.
-	.4 <LOCA>.TRC.
-	.4 <LOCA>.eeg.
-	.4 <LOCA>.eeg.ent.
-	.4 <LOCA>.pos.
-	.4 <LOCA>\_<DS>.pos.
-	.4 <LOCA>\_<FF>/.
-	.5 <LOCA>\_<FF>\_<DS>\_<SM>.eeg.
-	.5 <LOCA>\_<FF>\_<DS>\_<SM>.eeg.ent.
-	.5 <LOCA>\_<FF>\_trials/.
-	.6 <LOCA>\_<FF>\_<DS>\_<SM>\_trials\_<SITE>.jpg.
-}
-\end{minipage}
-}
-\caption{\label{locasHierarchy}Functional database hierarchy}
-\end{figure}
-\paragraph{} The figure \ref{locasHierarchy} explains the hierarchy for the data we commonly use. It may not be adapted to every kinds of iEEG data. On this figure:
-\begin{itemize}
-\item \textbf{<LOCA>} is the name of the localizer which is usually of the form\\<PATIENT>\_<EXP> (e.g. LYONNEURO\_2014\_THUV\_LEC1).\\<PATIENT> is usually the same as in the anatomical database; if their names are different (case sensitive), you need to create a link in the corr\_nomenclature.txt file of the DB Manager if you wish to use this database with the DB Manager.
-\item \textbf{<PATIENT>} corresponds to the patient ID, which is of the form\\<PLACE>\_<DATE>\_<NAME> (e.g. LYONNEURO\_2014\_THUv)
-\item \textbf{<PLACE>} is where the patient data comes from (e.g. LYONNEURO)
-\item \textbf{<DATE>} is the year the data has been acquired (e.g. 2014)
-\item \textbf{<NAME>} is the anonymized name of the patient (e.g. THUv)
-\item \textbf{<FF>} is the frequency range of the processed data (e.g. f8f24 for alpha-beta or f50f150 for gamma)
-\item \textbf{<DS>} is the downsampling frequency of the processed data (e.g. ds8, ds16 or ds32)
-\item \textbf{<SM>} is the temporal smoothing of the processed data (e.g. sm0, sm250, sm500, sm1000, sm2500 or sm5000)
-\item \textbf{<SITE>} is the name of the channel (e.g. E5)
+\item \textbf{IntrAnat PTS}: this *.pts file contains information about sites positions. It is defined by the IntrAnat format specification.
+\item \textbf{IntrAnat CSV}: this *.csv file which separator is tabulation also comes from IntrAnat and is used to get tags for the sites (the name of the tag being in the header of the csv).
+\item \textbf{BIDS TSV}: this *\_electrodes.tsv file specified in the BIDS format can be used to add positions and tags at once.
 \end{itemize}
 \end{document}

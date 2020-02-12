@@ -1,0 +1,23 @@
+\babel@toc {english}{}
+\contentsline {section}{\numberline {1}HiBoP Database Manager}{1}
+\contentsline {paragraph}{}{1}
+\contentsline {subsection}{\numberline {1.1}Anatomical data}{2}
+\contentsline {paragraph}{}{2}
+\contentsline {subsection}{\numberline {1.2}Functional data}{3}
+\contentsline {paragraph}{}{3}
+\contentsline {subsection}{\numberline {1.3}Exporting data}{4}
+\contentsline {paragraph}{}{4}
+\contentsline {paragraph}{}{5}
+\contentsline {paragraph}{}{5}
+\contentsline {subsubsection}{\numberline {1.3.1}Anatomical data}{5}
+\contentsline {paragraph}{}{5}
+\contentsline {subsubsection}{\numberline {1.3.2}Functional data}{6}
+\contentsline {paragraph}{}{6}
+\contentsline {subsection}{\numberline {1.4}Resources files}{6}
+\contentsline {paragraph}{}{6}
+\contentsline {section}{\numberline {2}HiBoP Database Hierarchy}{7}
+\contentsline {paragraph}{}{7}
+\contentsline {subsection}{\numberline {2.1}Anatomical database}{8}
+\contentsline {paragraph}{}{8}
+\contentsline {subsection}{\numberline {2.2}Functional database}{9}
+\contentsline {paragraph}{}{9}

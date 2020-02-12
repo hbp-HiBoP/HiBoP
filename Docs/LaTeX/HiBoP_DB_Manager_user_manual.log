@@ -1,7 +1,7 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (MiKTeX 2.9.6600 64-bit) (preloaded format=pdflatex 2018.2.27)  12 FEB 2020 15:50
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (MiKTeX 2.9.6600 64-bit) (preloaded format=pdflatex 2018.2.27)  12 FEB 2020 11:33
 entering extended mode
-**./HiBoP_user_manual.tex
-(HiBoP_user_manual.tex
+**./HiBoP_DB_Manager_user_manual.tex
+(HiBoP_DB_Manager_user_manual.tex
 LaTeX2e <2017-04-15>
 Babel <3.17> and hyphenation patterns for 75 language(s) loaded.
 ("C:\Program Files\MiKTeX 2.9\tex\latex\base\article.cls"
@@ -541,8 +541,8 @@ Package: ifxetex 2010/09/12 v0.6 Provides ifxetex conditional
 \Gm@dimlist=\toks20
 
 ("C:\Program Files\MiKTeX 2.9\tex\latex\geometry\geometry.cfg"))
-(HiBoP_user_manual.aux)
-\openout1 = `HiBoP_user_manual.aux'.
+(HiBoP_DB_Manager_user_manual.aux)
+\openout1 = `HiBoP_DB_Manager_user_manual.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 20.
 LaTeX Font Info:    ... okay on input line 20.
@@ -557,7 +557,8 @@ LaTeX Font Info:    ... okay on input line 20.
 LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 20.
 LaTeX Font Info:    ... okay on input line 20.
 LaTeX Font Info:    Try loading font information for T1+lmr on input line 20.
- ("C:\Program Files\MiKTeX 2.9\tex\latex\lm\t1lmr.fd"
+
+("C:\Program Files\MiKTeX 2.9\tex\latex\lm\t1lmr.fd"
 File: t1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
 \c@lstlisting=\count108
@@ -688,273 +689,97 @@ LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <8> on input line 21.
 LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <6> on input line 21.
- (HiBoP_user_manual.toc
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 5.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 5.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 5.
 
-[1
-
-{C:/Users/Benjamin BONTEMPS/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
+(HiBoP_DB_Manager_user_manual.toc
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <10> on input line 4.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <7> on input line 4.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <5> on input line 4.
 )
 \tf@toc=\write3
-\openout3 = `HiBoP_user_manual.toc'.
+\openout3 = `HiBoP_DB_Manager_user_manual.toc'.
 
+<DBManagerMain.png, id=1, 782.925pt x 670.75594pt>
+File: DBManagerMain.png Graphic file (type png)
+<use DBManagerMain.png>
+Package pdftex.def Info: DBManagerMain.png  used on input line 30.
+(pdftex.def)             Requested size: 234.8793pt x 201.22833pt.
+ [1
 
+{C:/Users/Benjamin BONTEMPS/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
+<DBManagerPatient.png, id=18, 457.71pt x 688.82344pt>
+File: DBManagerPatient.png Graphic file (type png)
+<use DBManagerPatient.png>
+Package pdftex.def Info: DBManagerPatient.png  used on input line 38.
+(pdftex.def)             Requested size: 228.85445pt x 344.41087pt.
+ [2 <./DBManagerMain.png>]
+<DBManagerLoca.png, id=23, 456.20438pt x 688.07062pt>
+File: DBManagerLoca.png Graphic file (type png)
+<use DBManagerLoca.png>
+Package pdftex.def Info: DBManagerLoca.png  used on input line 46.
+(pdftex.def)             Requested size: 228.10162pt x 344.03447pt.
+ [3 <./DBManagerPatient.png>]
+<DBManagerFilters.png, id=28, 358.33875pt x 683.55376pt>
+File: DBManagerFilters.png Graphic file (type png)
+<use DBManagerFilters.png>
+Package pdftex.def Info: DBManagerFilters.png  used on input line 54.
+(pdftex.def)             Requested size: 179.16893pt x 341.77605pt.
+ [4 <./DBManagerLoca.png>]
+LaTeX Font Info:    Try loading font information for OMS+lmr on input line 60.
 
-LaTeX Warning: Reference `bddmanager' on page 2 undefined on input line 27.
-
-LaTeX Font Info:    Try loading font information for T1+lmtt on input line 56.
-("C:\Program Files\MiKTeX 2.9\tex\latex\lm\t1lmtt.fd"
-File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
-) [2] [3] [4] [5] [6]
-[7]
-<Preferences.png, id=38, 602.25pt x 319.1925pt>
-File: Preferences.png Graphic file (type png)
-<use Preferences.png>
-Package pdftex.def Info: Preferences.png  used on input line 325.
-(pdftex.def)             Requested size: 301.12425pt x 159.59586pt.
- [8]
-LaTeX Font Info:    Try loading font information for OMS+lmr on input line 330.
-
- ("C:\Program Files\MiKTeX 2.9\tex\latex\lm\omslmr.fd"
+("C:\Program Files\MiKTeX 2.9\tex\latex\lm\omslmr.fd"
 File: omslmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
 LaTeX Font Info:    Font shape `OMS/lmr/m/n' in size <10> not available
-(Font)              Font shape `OMS/lmsy/m/n' tried instead on input line 330.
- [9 <./Preferences.png (PNG copy)>]
-<NewProject.png, id=49, 567.11874pt x 220.825pt>
-File: NewProject.png Graphic file (type png)
-<use NewProject.png>
-Package pdftex.def Info: NewProject.png  used on input line 450.
-(pdftex.def)             Requested size: 283.55867pt x 110.41222pt.
- [10]
-<OpenProject.png, id=53, 501.875pt x 314.17375pt>
-File: OpenProject.png Graphic file (type png)
-<use OpenProject.png>
-Package pdftex.def Info: OpenProject.png  used on input line 457.
-(pdftex.def)             Requested size: 250.93687pt x 157.08649pt.
-<SaveAs.png, id=54, 567.11874pt x 168.63pt>
-File: SaveAs.png Graphic file (type png)
-<use SaveAs.png>
-Package pdftex.def Info: SaveAs.png  used on input line 464.
-(pdftex.def)             Requested size: 283.55867pt x 84.31479pt.
-<PatientGestion.png, id=55, 547.04375pt x 310.15875pt>
-File: PatientGestion.png Graphic file (type png)
-<use PatientGestion.png>
-Package pdftex.def Info: PatientGestion.png  used on input line 473.
-(pdftex.def)             Requested size: 273.5212pt x 155.079pt.
- [11 <./NewProject.png (PNG copy)> <./OpenProject.png (PNG copy)> <./SaveAs.png
- (PNG copy)>]
-<PatientModifier.png, id=59, 501.875pt x 447.6725pt>
-File: PatientModifier.png Graphic file (type png)
-<use PatientModifier.png>
-Package pdftex.def Info: PatientModifier.png  used on input line 480.
-(pdftex.def)             Requested size: 250.93687pt x 223.8357pt.
-<GroupGestion.png, id=60, 501.875pt x 288.07625pt>
-File: GroupGestion.png Graphic file (type png)
-<use GroupGestion.png>
-Package pdftex.def Info: GroupGestion.png  used on input line 487.
-(pdftex.def)             Requested size: 250.93687pt x 144.03777pt.
-<GroupModifier.png, id=61, 547.04375pt x 369.38pt>
-File: GroupModifier.png Graphic file (type png)
-<use GroupModifier.png>
-Package pdftex.def Info: GroupModifier.png  used on input line 493.
-(pdftex.def)             Requested size: 273.5212pt x 184.68954pt.
- [12 <./PatientGestion.png (PNG copy)> <./PatientModifier.png (PNG copy)>]
-<ProtocolGestion.png, id=65, 501.875pt x 288.07625pt>
-File: ProtocolGestion.png Graphic file (type png)
-<use ProtocolGestion.png>
-Package pdftex.def Info: ProtocolGestion.png  used on input line 501.
-(pdftex.def)             Requested size: 250.93687pt x 144.03777pt.
-<ProtocolModifier.png, id=66, 501.875pt x 399.4925pt>
-File: ProtocolModifier.png Graphic file (type png)
-<use ProtocolModifier.png>
-Package pdftex.def Info: ProtocolModifier.png  used on input line 508.
-(pdftex.def)             Requested size: 250.93687pt x 199.74576pt.
- [13 <./GroupGestion.png (PNG copy)> <./GroupModifier.png (PNG copy)> <./Protoc
-olGestion.png (PNG copy)>]
-<BlocModifier.png, id=71, 543.02875pt x 396.48125pt>
-File: BlocModifier.png Graphic file (type png)
-<use BlocModifier.png>
-Package pdftex.def Info: BlocModifier.png  used on input line 515.
-(pdftex.def)             Requested size: 271.5137pt x 198.24013pt.
-<SubBlocModifier.png, id=72, 471.7625pt x 473.77pt>
-File: SubBlocModifier.png Graphic file (type png)
-<use SubBlocModifier.png>
-Package pdftex.def Info: SubBlocModifier.png  used on input line 521.
-(pdftex.def)             Requested size: 235.88066pt x 236.88441pt.
- [14 <./ProtocolModifier.png (PNG copy)> <./BlocModifier.png (PNG copy)>]
-<DatasetGestion.png, id=76, 501.875pt x 288.07625pt>
-File: DatasetGestion.png Graphic file (type png)
-<use DatasetGestion.png>
-Package pdftex.def Info: DatasetGestion.png  used on input line 528.
-(pdftex.def)             Requested size: 250.93687pt x 144.03777pt.
-<DatasetModifier.png, id=77, 501.875pt x 395.4775pt>
-File: DatasetModifier.png Graphic file (type png)
-<use DatasetModifier.png>
-Package pdftex.def Info: DatasetModifier.png  used on input line 535.
-(pdftex.def)             Requested size: 250.93687pt x 197.73827pt.
- [15 <./SubBlocModifier.png (PNG copy)> <./DatasetGestion.png (PNG copy)>]
-<DataInfoModifier.png, id=81, 501.875pt x 354.32375pt>
-File: DataInfoModifier.png Graphic file (type png)
-<use DataInfoModifier.png>
-Package pdftex.def Info: DataInfoModifier.png  used on input line 543.
-(pdftex.def)             Requested size: 250.93687pt x 177.16144pt.
-<VisualizationGestion.png, id=82, 501.875pt x 288.07625pt>
-File: VisualizationGestion.png Graphic file (type png)
-<use VisualizationGestion.png>
-Package pdftex.def Info: VisualizationGestion.png  used on input line 551.
-(pdftex.def)             Requested size: 250.93687pt x 144.03777pt.
- [16 <./DatasetModifier.png (PNG copy)> <./DataInfoModifier.png (PNG copy)>]
-<VisualizationModifier.png, id=86, 552.0625pt x 591.20876pt>
-File: VisualizationModifier.png Graphic file (type png)
-<use VisualizationModifier.png>
-Package pdftex.def Info: VisualizationModifier.png  used on input line 558.
-(pdftex.def)             Requested size: 220.82108pt x 236.47931pt.
-<GlobalUI.png, id=87, 1494.33281pt x 876.27374pt>
-File: GlobalUI.png Graphic file (type png)
-<use GlobalUI.png>
-Package pdftex.def Info: GlobalUI.png  used on input line 567.
-(pdftex.def)             Requested size: 328.75424pt x 192.7808pt.
- [17 <./VisualizationGestion.png (PNG copy)> <./VisualizationModifier.png (PNG 
-copy)>]
-<ToolbarSelector.png, id=92, 27.10126pt x 281.55188pt>
-File: ToolbarSelector.png Graphic file (type png)
-<use ToolbarSelector.png>
-Package pdftex.def Info: ToolbarSelector.png  used on input line 595.
-(pdftex.def)             Requested size: 20.32588pt x 211.16338pt.
- [18 <./GlobalUI.png>]
-<Cut.png, id=97, 202.50656pt x 272.51813pt>
-File: Cut.png Graphic file (type png)
-<use Cut.png>
-Package pdftex.def Info: Cut.png  used on input line 618.
-(pdftex.def)             Requested size: 101.25302pt x 136.25873pt.
-<SitesList.png, id=98, 222.8325pt x 277.035pt>
-File: SitesList.png Graphic file (type png)
-<use SitesList.png>
-Package pdftex.def Info: SitesList.png  used on input line 626.
-(pdftex.def)             Requested size: 111.41597pt x 138.51715pt.
+(Font)              Font shape `OMS/lmsy/m/n' tried instead on input line 60.
+<ExportPatient.png, id=33, 366.61969pt x 420.06938pt>
+File: ExportPatient.png Graphic file (type png)
+<use ExportPatient.png>
+Package pdftex.def Info: ExportPatient.png  used on input line 72.
+(pdftex.def)             Requested size: 183.30939pt x 210.03418pt.
+ [5 <./DBManagerFilters.png>]
+<ExportLoca.png, id=39, 475.02469pt x 453.19313pt>
+File: ExportLoca.png Graphic file (type png)
+<use ExportLoca.png>
+Package pdftex.def Info: ExportLoca.png  used on input line 80.
+(pdftex.def)             Requested size: 237.51175pt x 226.59601pt.
+ [6 <./ExportPatient.png> <./ExportLoca.png>]
+LaTeX Font Info:    Try loading font information for T1+lmtt on input line 134.
 
-[19 <./ToolbarSelector.png> <./Cut.png>]
-<BasicStates.png, id=105, 222.07968pt x 452.4403pt>
-File: BasicStates.png Graphic file (type png)
-<use BasicStates.png>
-Package pdftex.def Info: BasicStates.png  used on input line 642.
-(pdftex.def)             Requested size: 111.03957pt x 226.2196pt.
-<SitesAction.png, id=106, 221.32687pt x 133.24782pt>
-File: SitesAction.png Graphic file (type png)
-<use SitesAction.png>
-Package pdftex.def Info: SitesAction.png  used on input line 648.
-(pdftex.def)             Requested size: 110.66315pt x 66.62373pt.
- [20 <./SitesList.png>]
-<SceneSettings.png, id=111, 856.70062pt x 27.85406pt>
-File: SceneSettings.png Graphic file (type png)
-<use SceneSettings.png>
-Package pdftex.def Info: SceneSettings.png  used on input line 656.
-(pdftex.def)             Requested size: 428.34926pt x 13.92699pt.
- [21 <./BasicStates.png> <./SitesAction.png> <./SceneSettings.png>]
-<DisplaySettings.png, id=118, 238.64156pt x 27.85406pt>
-File: DisplaySettings.png Graphic file (type png)
-<use DisplaySettings.png>
-Package pdftex.def Info: DisplaySettings.png  used on input line 674.
-(pdftex.def)             Requested size: 119.32048pt x 13.92699pt.
-<iEEGSettings.png, id=119, 335.75438pt x 27.85406pt>
-File: iEEGSettings.png Graphic file (type png)
-<use iEEGSettings.png>
-Package pdftex.def Info: iEEGSettings.png  used on input line 690.
-(pdftex.def)             Requested size: 167.87677pt x 13.92699pt.
-<CCEPSettings.png, id=120, 292.09125pt x 28.60687pt>
-File: CCEPSettings.png Graphic file (type png)
-<use CCEPSettings.png>
-Package pdftex.def Info: CCEPSettings.png  used on input line 704.
-(pdftex.def)             Requested size: 146.04526pt x 14.30339pt.
-<Timeline.png, id=121, 1445.4pt x 24.84282pt>
-File: Timeline.png Graphic file (type png)
-<use Timeline.png>
-Package pdftex.def Info: Timeline.png  used on input line 715.
-(pdftex.def)             Requested size: 433.62335pt x 7.4529pt.
- [22 <./DisplaySettings.png> <./iEEGSettings.png> <./CCEPSettings.png>]
-<Sites.png, id=128, 429.10312pt x 28.60687pt>
-File: Sites.png Graphic file (type png)
-<use Sites.png>
-Package pdftex.def Info: Sites.png  used on input line 728.
-(pdftex.def)             Requested size: 214.55103pt x 14.30339pt.
-<ROI.png, id=129, 508.14844pt x 27.85406pt>
-File: ROI.png Graphic file (type png)
-<use ROI.png>
-Package pdftex.def Info: ROI.png  used on input line 747.
-(pdftex.def)             Requested size: 254.0736pt x 13.92699pt.
- [23 <./Timeline.png> <./Sites.png> <./ROI.png>]
-<fMRI.png, id=136, 534.49687pt x 27.85406pt>
-File: fMRI.png Graphic file (type png)
-<use fMRI.png>
-Package pdftex.def Info: fMRI.png  used on input line 765.
-(pdftex.def)             Requested size: 267.24777pt x 13.92699pt.
-<Atlas.png, id=137, 779.16093pt x 28.60687pt>
-File: Atlas.png Graphic file (type png)
-<use Atlas.png>
-Package pdftex.def Info: Atlas.png  used on input line 776.
-(pdftex.def)             Requested size: 389.57951pt x 14.30339pt.
-<TriEraser.png, id=138, 186.6975pt x 27.10126pt>
-File: TriEraser.png Graphic file (type png)
-<use TriEraser.png>
-Package pdftex.def Info: TriEraser.png  used on input line 787.
-(pdftex.def)             Requested size: 93.34851pt x 13.55058pt.
-<Configuration.png, id=139, 80.55093pt x 25.59563pt>
-File: Configuration.png Graphic file (type png)
-<use Configuration.png>
-Package pdftex.def Info: Configuration.png  used on input line 802.
-(pdftex.def)             Requested size: 40.27536pt x 12.79778pt.
- [24 <./fMRI.png> <./Atlas.png> <./TriEraser.png>]
-<Graph.png, id=146, 901.3675pt x 525.965pt>
-File: Graph.png Graphic file (type png)
-<use Graph.png>
-Package pdftex.def Info: Graph.png  used on input line 811.
-(pdftex.def)             Requested size: 315.48334pt x 184.0905pt.
- [25 <./Configuration.png> <./Graph.png (PNG copy)>]
-<TrialMatrix.png, id=152, 879.285pt x 708.6475pt>
-File: TrialMatrix.png Graphic file (type png)
-<use TrialMatrix.png>
-Package pdftex.def Info: TrialMatrix.png  used on input line 831.
-(pdftex.def)             Requested size: 307.75436pt x 248.03033pt.
- [26 <./TrialMatrix.png>] [27]
-(HiBoP_user_manual.aux)
 
-LaTeX Warning: There were undefined references.
+("C:\Program Files\MiKTeX 2.9\tex\latex\lm\t1lmtt.fd"
+File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
+) [7] [8] [9]
+(HiBoP_DB_Manager_user_manual.aux)
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
 
  ) 
 Here is how much of TeX's memory you used:
- 6215 strings out of 493303
- 89446 string characters out of 3138818
- 203118 words of memory out of 3000000
- 9607 multiletter control sequences out of 15000+200000
- 69871 words of font info for 50 fonts, out of 3000000 for 9000
+ 5786 strings out of 493303
+ 84566 string characters out of 3138818
+ 157794 words of memory out of 3000000
+ 9210 multiletter control sequences out of 15000+200000
+ 65287 words of font info for 48 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 41i,8n,39p,922b,1133s stack positions out of 5000i,500n,10000p,200000b,50000s
-{C:/Program Files/MiKTeX 2.9/fonts/enc/dvips/lm/lm-mathit.enc}{C:/Program Fil
-es/MiKTeX 2.9/fonts/enc/dvips/lm/lm-rm.enc}{C:/Program Files/MiKTeX 2.9/fonts/e
-nc/dvips/lm/lm-mathsy.enc}{C:/Program Files/MiKTeX 2.9/fonts/enc/dvips/lm/lm-ec
-.enc}<C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmbx10.pfb><C:/Program 
-Files/MiKTeX 2.9/fonts/type1/public/lm/lmbx12.pfb><C:/Program Files/MiKTeX 2.9/
-fonts/type1/public/lm/lmbx9.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public
-/lm/lmcsc10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmmi10.pfb><
-C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmmi7.pfb><C:/Program Files/M
-iKTeX 2.9/fonts/type1/public/lm/lmr10.pfb><C:/Program Files/MiKTeX 2.9/fonts/ty
-pe1/public/lm/lmr12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmr1
-7.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmr6.pfb><C:/Program F
-iles/MiKTeX 2.9/fonts/type1/public/lm/lmr7.pfb><C:/Program Files/MiKTeX 2.9/fon
-ts/type1/public/lm/lmr8.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/
-lmr9.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmri10.pfb><C:/Prog
-ram Files/MiKTeX 2.9/fonts/type1/public/lm/lmsy10.pfb><C:/Program Files/MiKTeX 
-2.9/fonts/type1/public/lm/lmtt10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/p
-ublic/lm/lmtt8.pfb>
-Output written on HiBoP_user_manual.pdf (27 pages, 2269459 bytes).
+ 41i,8n,39p,676b,334s stack positions out of 5000i,500n,10000p,200000b,50000s
+{C:/Program Files/MiKTeX 2.9/fonts/enc/dvips/lm/lm-ec.enc}{C:/Program Files/M
+iKTeX 2.9/fonts/enc/dvips/lm/lm-mathsy.enc}<C:/Program Files/MiKTeX 2.9/fonts/t
+ype1/public/lm/lmbx10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lm
+bx12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmbx9.pfb><C:/Progr
+am Files/MiKTeX 2.9/fonts/type1/public/lm/lmcsc10.pfb><C:/Program Files/MiKTeX 
+2.9/fonts/type1/public/lm/lmr10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/pu
+blic/lm/lmr12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmr17.pfb>
+<C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmr6.pfb><C:/Program Files/M
+iKTeX 2.9/fonts/type1/public/lm/lmr7.pfb><C:/Program Files/MiKTeX 2.9/fonts/typ
+e1/public/lm/lmr8.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmr9.p
+fb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmsy10.pfb><C:/Program Fi
+les/MiKTeX 2.9/fonts/type1/public/lm/lmtt10.pfb>
+Output written on HiBoP_DB_Manager_user_manual.pdf (9 pages, 413959 bytes).
 PDF statistics:
- 218 PDF objects out of 1000 (max. 8388607)
+ 99 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
- 181 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 31 words of extra memory for PDF output out of 10000 (max. 10000000)
 
