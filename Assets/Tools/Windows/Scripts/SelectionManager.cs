@@ -1,6 +1,8 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public class SelectionManager : MonoBehaviour
 {
@@ -8,9 +10,10 @@ public class SelectionManager : MonoBehaviour
     static SelectionManager m_Instance;
     public Selector m_Selection;
     List<Selector> m_Selectors = new List<Selector>();
-	#endregion
+    public GraphicRaycaster GraphicRaycaster;
+    #endregion
 
-	#region Public Methods
+    #region Public Methods
     public void Add(Selector selector)
     {
         m_Selectors.Add(selector);
@@ -26,7 +29,7 @@ public class SelectionManager : MonoBehaviour
     #region Private Methods
     void Awake()
     {
-        if(m_Instance != null && m_Instance != this)
+        if (m_Instance != null && m_Instance != this)
         {
             Destroy(gameObject);
         }
@@ -34,7 +37,7 @@ public class SelectionManager : MonoBehaviour
     }
     void OnChangeSelection(bool selected, Selector selector)
     {
-        if(selected)
+        if (selected)
         {
             m_Selection = selector;
             foreach (var s in m_Selectors.Where((s) => s != selector))
@@ -49,29 +52,26 @@ public class SelectionManager : MonoBehaviour
     }
     void Update()
     {
-        if(Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0))
         {
             Selector selector = null;
-            RectTransform selectorRectTransform = null;
-            foreach (var item in m_Selectors)
+            PointerEventData pointerEventData = new PointerEventData(EventSystem.current);
+            pointerEventData.position = Input.mousePosition;
+            var raycasters = FindObjectsOfType<GraphicRaycaster>();
+            var results = raycasters.SelectMany(r => { List<RaycastResult> res = new List<RaycastResult>(); r.Raycast(pointerEventData, res); return res; }).OrderByDescending(r => r.sortingOrder).ThenByDescending(r => r.depth);
+            foreach (var result in results)
             {
-                RectTransform rectTransform = item.GetComponent<RectTransform>();
-                if(RectTransformUtility.RectangleContainsScreenPoint(rectTransform, Input.mousePosition))
-                {
-                    if(selector == null || (selector != null && selectorRectTransform != null && selectorRectTransform.GetSiblingIndex() < rectTransform.GetSiblingIndex()))
-                    {
-                        selector = item;
-                        selectorRectTransform = rectTransform;
-                    }
-                }
+                selector = result.gameObject.GetComponentInParent<Selector>();
+                if (selector != null) break;
             }
-            if(selector != null)
+
+            if (selector != null)
             {
                 selector.Selected = true;
             }
             else
             {
-                if(m_Selection != null)
+                if (m_Selection != null)
                 {
                     m_Selection.Selected = false;
                     m_Selection = null;
@@ -79,5 +79,18 @@ public class SelectionManager : MonoBehaviour
             }
         }
     }
-	#endregion
+
+    static public Rect GetWorldRect(RectTransform rt, Vector2 scale)
+    {
+        // Convert the rectangle to world corners and grab the top left
+        Vector3[] corners = new Vector3[4];
+        rt.GetWorldCorners(corners);
+        Vector3 topLeft = corners[0];
+
+        // Rescale the size appropriately based on the current Canvas scale
+        Vector2 scaledSize = new Vector2(scale.x * rt.rect.size.x, scale.y * rt.rect.size.y);
+
+        return new Rect(topLeft, scaledSize);
+    }
+    #endregion
 }
