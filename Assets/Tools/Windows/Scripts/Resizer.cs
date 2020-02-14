@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using HBP.UI.Theme;
 using NewTheme;
 
 namespace Tools.Unity.Window
@@ -139,18 +138,23 @@ namespace Tools.Unity.Window
         {
             float w = resize.x;
             float h = resize.y;
+
+            Vector3[] corners = new Vector3[4];
+            m_RectTransform.GetWorldCorners(corners);
+            Debug.Log(m_RectTransform.rect);
+            Debug.Log(m_RectTransform.sizeDelta);
+            Vector2 size = corners[2] - corners[0];
+
             if(resize.x <= 0) w = Mathf.Sign(resize.x) * Mathf.Min(m_RectTransform.rect.width - m_LayoutElement.minWidth, -resize.x);
             if (resize.y <= 0) h = Mathf.Sign(resize.y) * Mathf.Min(m_RectTransform.rect.height - m_LayoutElement.minHeight, -resize.y);
             Vector2 realResize = new Vector2(w,h);
             m_RectTransform.sizeDelta += realResize;
-            float xDeplacement = sides.x * m_RectTransform.pivot.x * realResize.x;
-            float yDeplacement = sides.y * m_RectTransform.pivot.y * realResize.y;
             float xPivot = 0, yPivot = 0;
             if (sides.x == 1) xPivot = m_RectTransform.pivot.x;
             else if(sides.x == -1) xPivot = 1 - m_RectTransform.pivot.x;
             if(sides.y == 1) yPivot = m_RectTransform.pivot.y;
             else if(sides.y == -1) yPivot = 1 - m_RectTransform.pivot.y;    
-            m_RectTransform.position += new Vector3(sides.x * xPivot * realResize.x, sides.y * yPivot * realResize.y, 0);
+            m_RectTransform.anchoredPosition += new Vector2(sides.x * xPivot * realResize.x, sides.y * yPivot * realResize.y);
         }
         Limits GetLimits()
         {
