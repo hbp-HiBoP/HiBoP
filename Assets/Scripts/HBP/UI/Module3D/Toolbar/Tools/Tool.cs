@@ -11,8 +11,17 @@ namespace HBP.UI.Module3D.Tools
         /// Lock to prevent the calls to the listeners when only changing the selected scene / column / view
         /// </summary>
         [HideInInspector] public bool ListenerLock;
+        /// <summary>
+        /// Reference to the selected scene
+        /// </summary>
         public Base3DScene SelectedScene { protected get; set; }
+        /// <summary>
+        /// Reference to the selected column
+        /// </summary>
         public Column3D SelectedColumn { protected get; set; }
+        /// <summary>
+        /// Reference to the selected view
+        /// </summary>
         public View3D SelectedView { protected get; set; }
         #endregion
 
@@ -54,6 +63,11 @@ namespace HBP.UI.Module3D.Tools
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Get either the selected column or all columns
+        /// </summary>
+        /// <param name="isGlobal">Get all columns</param>
+        /// <returns>List containing the selected column or all columns</returns>
         protected List<Column3DDynamic> GetColumnsDependingOnTypeAndGlobal(bool isGlobal)
         {
             List<Column3DDynamic> columns = new List<Column3DDynamic>();

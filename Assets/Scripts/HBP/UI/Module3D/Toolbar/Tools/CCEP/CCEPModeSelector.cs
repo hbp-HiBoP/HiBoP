@@ -1,6 +1,4 @@
 ﻿using HBP.Module3D;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
@@ -11,12 +9,27 @@ namespace HBP.UI.Module3D.Tools
     public class CCEPModeSelector : Tool
     {
         #region Properties
+        /// <summary>
+        /// Set the source mode to "Site source"
+        /// </summary>
         [SerializeField] private Toggle m_Site;
+        /// <summary>
+        /// Set the source mode to "MarsAtlas area source"
+        /// </summary>
         [SerializeField] private Toggle m_MarsAtlas;
+        #endregion
+
+        #region Events
+        /// <summary>
+        /// Event called when the mode is changed
+        /// </summary>
         public GenericEvent<Column3DCCEP.CCEPMode> OnChangeValue = new GenericEvent<Column3DCCEP.CCEPMode>();
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Initialize the toolbar
+        /// </summary>
         public override void Initialize()
         {
             m_Site.onValueChanged.AddListener(isOn =>
@@ -34,12 +47,18 @@ namespace HBP.UI.Module3D.Tools
                 OnChangeValue.Invoke(Column3DCCEP.CCEPMode.MarsAtlas);
             });
         }
+        /// <summary>
+        /// Set the default state of this tool
+        /// </summary>
         public override void DefaultState()
         {
             m_Site.isOn = true;
             m_Site.interactable = false;
             m_MarsAtlas.interactable = false;
         }
+        /// <summary>
+        /// Update the interactable state of the tool
+        /// </summary>
         public override void UpdateInteractable()
         {
             bool isColumnCCEP = SelectedColumn is Column3DCCEP;

@@ -412,6 +412,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Update the visibility of the border depending on the position of the cursor
         /// </summary>
+        /// <param name="forceInactive">Disable all borders</param>
         public void UpdateBorderVisibility(bool forceInactive = false)
         {
             UnityEngine.Profiling.Profiler.BeginSample("border visibility");

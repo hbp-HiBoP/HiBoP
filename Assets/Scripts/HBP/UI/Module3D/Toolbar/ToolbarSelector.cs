@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,80 +10,55 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Toolbar menu
         /// </summary>
-        [SerializeField]
-        private ToolbarMenu m_ToolbarMenu;
-
+        [SerializeField] private ToolbarMenu m_ToolbarMenu;
         /// <summary>
         /// Scene configuration toggle
         /// </summary>
-        [SerializeField]
-        private Toggle m_ConfigurationToggle;
-
+        [SerializeField] private Toggle m_ConfigurationToggle;
         /// <summary>
         /// Scene toggle
         /// </summary>
-        [SerializeField]
-        private Toggle m_SceneToggle;
-
+        [SerializeField] private Toggle m_SceneToggle;
         /// <summary>
         /// Display toggle
         /// </summary>
-        [SerializeField]
-        private Toggle m_DisplayToggle;
-
+        [SerializeField] private Toggle m_DisplayToggle;
         /// <summary>
         /// IEEG toggle
         /// </summary>
-        [SerializeField]
-        private Toggle m_IEEGToggle;
-
+        [SerializeField] private Toggle m_IEEGToggle;
         /// <summary>
         /// Timeline toggle
         /// </summary>
-        [SerializeField]
-        private Toggle m_TimelineToggle;
-
+        [SerializeField] private Toggle m_TimelineToggle;
         /// <summary>
         /// Site toggle
         /// </summary>
-        [SerializeField]
-        private Toggle m_SiteToggle;
-
+        [SerializeField] private Toggle m_SiteToggle;
         /// <summary>
         /// CCEP toggle
         /// </summary>
-        [SerializeField]
-        private Toggle m_CCEPToggle;
-
+        [SerializeField] private Toggle m_CCEPToggle;
         /// <summary>
         /// IBC toggle
         /// </summary>
-        [SerializeField]
-        private Toggle m_IBCToggle;
-
+        [SerializeField] private Toggle m_IBCToggle;
         /// <summary>
         /// ROI Toggle
         /// </summary>
-        [SerializeField]
-        private Toggle m_ROIToggle;
-
+        [SerializeField] private Toggle m_ROIToggle;
         /// <summary>
         /// Triangle erasing Toggle
         /// </summary>
-        [SerializeField]
-        private Toggle m_TriangleToggle;
-
+        [SerializeField] private Toggle m_TriangleToggle;
         /// <summary>
         /// FMRI Toggle
         /// </summary>
-        [SerializeField]
-        private Toggle m_FMRIToggle;
-
+        [SerializeField] private Toggle m_FMRIToggle;
         /// <summary>
         /// Toggle group associated to the left menu toggles
         /// </summary>
         private ToggleGroup m_ToggleGroup;
-
         /// <summary>
         /// Link toggle to its respective toolbar
         /// </summary>

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace HBP.UI.Module3D
 {
@@ -9,6 +6,9 @@ namespace HBP.UI.Module3D
     {
         #region Properties
         private bool m_IsGlobal = false;
+        /// <summary>
+        /// Are the changes applied with this toolbar applied to all columns at once?
+        /// </summary>
         public bool IsGlobal
         {
             get
@@ -26,31 +26,29 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// IEEG Global setter
         /// </summary>
-        [SerializeField]
-        private Tools.IEEGGlobal m_IEEGGlobal;
+        [SerializeField] private Tools.IEEGGlobal m_IEEGGlobal;
         /// <summary>
         /// Threshold IEEG parameters
         /// </summary>
-        [SerializeField]
-        private Tools.ThresholdIEEG m_ThresholdIEEG;
+        [SerializeField] private Tools.ThresholdIEEG m_ThresholdIEEG;
         /// <summary>
         /// IEEG Transparency parameters
         /// </summary>
-        [SerializeField]
-        private Tools.IEEGTransparency m_IEEGTransparency;
+        [SerializeField] private Tools.IEEGTransparency m_IEEGTransparency;
         /// <summary>
         /// IEEG Sites Parameters
         /// </summary>
-        [SerializeField]
-        private Tools.IEEGSitesParameters m_IEEGSitesParameters;
+        [SerializeField] private Tools.IEEGSitesParameters m_IEEGSitesParameters;
         /// <summary>
         /// Compute IEEG values
         /// </summary>
-        [SerializeField]
-        private Tools.ComputeIEEG m_ComputeIEEG;
+        [SerializeField] private Tools.ComputeIEEG m_ComputeIEEG;
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Link elements to the toolbar
+        /// </summary>
         protected override void AddTools()
         {
             m_Tools.Add(m_IEEGGlobal);
@@ -59,6 +57,9 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_IEEGSitesParameters);
             m_Tools.Add(m_ComputeIEEG);
         }
+        /// <summary>
+        /// Add the listeners to the elements of the toolbar
+        /// </summary>
         protected override void AddListeners()
         {
             base.AddListeners();
@@ -71,6 +72,9 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Called when showing this toolbar
+        /// </summary>
         public override void ShowToolbarCallback()
         {
             m_IEEGGlobal.Set(m_ToolbarMenu.TimelineToolbar.IsGlobal);

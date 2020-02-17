@@ -1,9 +1,5 @@
 ﻿using HBP.Module3D;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -11,12 +7,17 @@ namespace HBP.UI.Module3D.Tools
     public class BrainMeshes : Tool
     {
         #region Properties
-        [SerializeField]
-        private Toggle m_Left;
-
-        [SerializeField]
-        private Toggle m_Right;
-
+        /// <summary>
+        /// Display left part of the mesh
+        /// </summary>
+        [SerializeField] private Toggle m_Left;
+        /// <summary>
+        /// Display right part of the mesh
+        /// </summary>
+        [SerializeField] private Toggle m_Right;
+        /// <summary>
+        /// Is the currently selected mesh left-right or single ?
+        /// </summary>
         private bool m_IsMeshLeftRight;
         #endregion
 
@@ -37,6 +38,9 @@ namespace HBP.UI.Module3D.Tools
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Initialize the toolbar
+        /// </summary>
         public override void Initialize()
         {
             m_Left.onValueChanged.AddListener((display) =>
@@ -85,6 +89,9 @@ namespace HBP.UI.Module3D.Tools
                 }
             });
         }
+        /// <summary>
+        /// Set the default state of this tool
+        /// </summary>
         public override void DefaultState()
         {
             m_Left.isOn = false;
@@ -92,6 +99,9 @@ namespace HBP.UI.Module3D.Tools
             m_Right.isOn = false;
             m_Right.interactable = false;
         }
+        /// <summary>
+        /// Update the interactable state of the tool
+        /// </summary>
         public override void UpdateInteractable()
         {
             bool isMeshLeftRight = SelectedScene.MeshManager.SelectedMesh is LeftRightMesh3D;
@@ -99,6 +109,9 @@ namespace HBP.UI.Module3D.Tools
             m_Left.interactable = isMeshLeftRight;
             m_Right.interactable = isMeshLeftRight;
         }
+        /// <summary>
+        /// Update the status of the tool
+        /// </summary>
         public override void UpdateStatus()
         {
             ChangeBrainTypeCallback();
@@ -124,6 +137,9 @@ namespace HBP.UI.Module3D.Tools
                     break;
             }
         }
+        /// <summary>
+        /// Callback method when the brain has been changed
+        /// </summary>
         public void ChangeBrainTypeCallback()
         {
             m_IsMeshLeftRight = SelectedScene.MeshManager.SelectedMesh is LeftRightMesh3D;

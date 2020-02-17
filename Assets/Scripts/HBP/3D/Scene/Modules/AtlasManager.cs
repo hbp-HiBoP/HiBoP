@@ -165,36 +165,6 @@ namespace HBP.Module3D
             }
             m_Scene.CutTexturesNeedUpdate = true;
         }
-        public void debug_atlas(int[] mask)
-        {
-            List<int[]> indices = new List<int[]>();
-            for (int ii = 0; ii < m_Scene.MeshManager.MeshSplitNumber; ++ii)
-            {
-                indices.Add(ApplicationState.Module3D.MarsAtlas.GetSurfaceAreaLabels(m_Scene.MeshManager.SplittedMeshes[ii]));
-            }
-            m_Scene.BrainMaterial.SetInt("_Atlas", 1);
-            for (int ii = 0; ii < m_Scene.MeshManager.MeshSplitNumber; ++ii)
-            {
-                Color[] colors = new Color[indices[ii].Length];
-                for (int jj = 0; jj < indices[ii].Length; ++jj)
-                {
-                    try
-                    {
-                        if (indices[ii][jj] > 0 && indices[ii][jj] < mask.Length && mask[indices[ii][jj]] == 0) colors[jj] = new Color(1, 0, 0);
-                    }
-                    catch (System.Exception e)
-                    {
-                        Debug.LogException(e);
-                    }
-                }
-                m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.colors = colors;
-                foreach (Column3D column in m_Scene.Columns)
-                {
-                    column.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().sharedMesh.colors = colors;
-                }
-            }
-            m_Scene.CutTexturesNeedUpdate = true;
-        }
         /// <summary>
         /// Display the information about the atlas area under the mouse
         /// </summary>

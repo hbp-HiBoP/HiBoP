@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Events;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -10,15 +6,24 @@ namespace HBP.UI.Module3D.Tools
     public class AutoRotate : Tool
     {
         #region Properties
-        [SerializeField]
-        private Button m_Button;
-        [SerializeField]
-        private Toggle m_Toggle;
-        [SerializeField]
-        private Slider m_Slider;
+        /// <summary>
+        /// Button to show the panel
+        /// </summary>
+        [SerializeField] private Button m_Button;
+        /// <summary>
+        /// Toggle auto rotate
+        /// </summary>
+        [SerializeField] private Toggle m_Toggle;
+        /// <summary>
+        /// Slider to control the speed
+        /// </summary>
+        [SerializeField] private Slider m_Slider;
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Initialize the toolbar
+        /// </summary>
         public override void Initialize()
         {
             m_Toggle.onValueChanged.AddListener((isOn) =>
@@ -35,7 +40,9 @@ namespace HBP.UI.Module3D.Tools
                 SelectedScene.AutomaticRotationSpeed = value;
             });
         }
-
+        /// <summary>
+        /// Set the default state of this tool
+        /// </summary>
         public override void DefaultState()
         {
             m_Button.interactable = false;
@@ -44,14 +51,18 @@ namespace HBP.UI.Module3D.Tools
             m_Slider.value = 30.0f;
             m_Slider.interactable = false;
         }
-
+        /// <summary>
+        /// Update the interactable state of the tool
+        /// </summary>
         public override void UpdateInteractable()
         {
             m_Button.interactable = true;
             m_Toggle.interactable = true;
             m_Slider.interactable = true;
         }
-
+        /// <summary>
+        /// Update the status of the tool
+        /// </summary>
         public override void UpdateStatus()
         {
             m_Toggle.isOn = SelectedScene.AutomaticRotation;

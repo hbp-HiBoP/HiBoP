@@ -1,6 +1,4 @@
 ﻿using HBP.Module3D;
-using System.Collections;
-using System.Collections.Generic;
 using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,24 +8,62 @@ namespace HBP.UI.Module3D.Tools
     public class SubTimeline : MonoBehaviour
     {
         #region Properties
+        /// <summary>
+        /// Text to display the minimum time of the subtimeline
+        /// </summary>
         [SerializeField] private Text m_MinText;
+        /// <summary>
+        /// Text to display the maximum time of the subtimeline
+        /// </summary>
         [SerializeField] private Text m_MaxText;
+        /// <summary>
+        /// Text to display the current time of the subtimeline
+        /// </summary>
         [SerializeField] private Text m_Current;
+        /// <summary>
+        /// Container for the events
+        /// </summary>
         [SerializeField] private RectTransform m_Events;
+        /// <summary>
+        /// RectTransform to represent the time before the subtimeline
+        /// </summary>
         [SerializeField] private RectTransform m_Before;
+        /// <summary>
+        /// RectTransform to contain information of the subtimeline
+        /// </summary>
         [SerializeField] private RectTransform m_During;
+        /// <summary>
+        /// RectTransform to represent the time after the subtimeline
+        /// </summary>
         [SerializeField] private RectTransform m_After;
+        /// <summary>
+        /// Timeline data of the parent timeline
+        /// </summary>
         private Data.Visualization.Timeline m_Timeline;
+        /// <summary>
+        /// Subtimeline data of the subtimeline
+        /// </summary>
         private Data.Visualization.SubTimeline m_SubTimeline;
-        private Column3DDynamic m_Column;
+
+        /// <summary>
+        /// Prefab for the main event
+        /// </summary>
         [SerializeField] private GameObject m_MainEventPrefab;
+        /// <summary>
+        /// Prefab for the secondary events
+        /// </summary>
         [SerializeField] private GameObject m_SecondaryEventPrefab;
         #endregion
 
         #region Public Methods
-        public void Initialize(Column3DDynamic column, Data.Visualization.Timeline timeline, Data.Visualization.SubTimeline subTimeline, float offset)
+        /// <summary>
+        /// Initialize the subtimeline
+        /// </summary>
+        /// <param name="column">Column to be considered</param>
+        /// <param name="timeline">Data timeline of the parent timeline</param>
+        /// <param name="subTimeline">Subtimeline data</param>
+        public void Initialize(Column3DDynamic column, Data.Visualization.Timeline timeline, Data.Visualization.SubTimeline subTimeline)
         {
-            m_Column = column;
             m_Timeline = timeline;
             m_SubTimeline = subTimeline;
             m_MinText.text = subTimeline.MinTime.ToString("N0") + timeline.Unit;
@@ -43,6 +79,9 @@ namespace HBP.UI.Module3D.Tools
             m_After.anchorMax = new Vector2(1, 1);
             ShowEvents();
         }
+        /// <summary>
+        /// Update the text displaying the current time of the subtimeline
+        /// </summary>
         public void UpdateCurrentTime()
         {
             if (m_Timeline.CurrentSubtimeline == m_SubTimeline)
@@ -58,6 +97,9 @@ namespace HBP.UI.Module3D.Tools
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Display the events on the subtimeline
+        /// </summary>
         private void ShowEvents()
         {
             DeleteEvents();
@@ -90,6 +132,9 @@ namespace HBP.UI.Module3D.Tools
                     eventStatistics.NumberOfOccurenceBySubTrial * 100);
             }
         }
+        /// <summary>
+        /// Remove the events of the subtimeline
+        /// </summary>
         private void DeleteEvents()
         {
             foreach (Transform timelineEvent in m_Events)

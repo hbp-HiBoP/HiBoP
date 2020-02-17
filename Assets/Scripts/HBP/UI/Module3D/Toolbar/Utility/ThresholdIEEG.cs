@@ -45,15 +45,17 @@ namespace HBP.UI.Module3D
         /// Is the module initialized ?
         /// </summary>
         private bool m_Initialized = false;
-
-        private Dictionary<string, Texture2D> m_HistogramByColumn = new Dictionary<string, Texture2D>();
+        /// <summary>
+        /// Textures of the histograms (iEEG: one per column; CCEP: one per column per selected source))
+        /// </summary>
+        private Dictionary<string, Texture2D> m_Histograms = new Dictionary<string, Texture2D>();
 
         /// <summary>
-        /// IEEG Histogram
+        /// Used to display the current histogram
         /// </summary>
         [SerializeField] private RawImage m_Histogram;
         /// <summary>
-        /// Symmetry toggle
+        /// Used to set the thresholds either with min/middle/max (assymmetry) or middle/amplitude (symmetry)
         /// </summary>
         [SerializeField] private Toggle m_SymmetryToggle;
         /// <summary>
@@ -96,7 +98,12 @@ namespace HBP.UI.Module3D
         /// Handler responsible for the maximum value
         /// </summary>
         [SerializeField] private ThresholdHandler m_MaxHandler;
+        #endregion
 
+        #region Events
+        /// <summary>
+        /// Event called when changing at least one of the three threshold values
+        /// </summary>
         public GenericEvent<float, float, float> OnChangeValues = new GenericEvent<float, float, float>();
         #endregion
 
@@ -108,7 +115,7 @@ namespace HBP.UI.Module3D
         {
             UnityEngine.Profiling.Profiler.BeginSample("IEEG HISTOGRAM");
             string histogramID = GenerateHistogramID(column);
-            if (!m_HistogramByColumn.TryGetValue(histogramID, out m_IEEGHistogram))
+            if (!m_Histograms.TryGetValue(histogramID, out m_IEEGHistogram))
             {
                 float[] iEEGValues = column.ActivityValuesOfUnmaskedSites;
                 if (!m_IEEGHistogram)
@@ -125,7 +132,7 @@ namespace HBP.UI.Module3D
                 {
                     m_IEEGHistogram = Texture2D.blackTexture;
                 }
-                m_HistogramByColumn.Add(histogramID, m_IEEGHistogram);
+                m_Histograms.Add(histogramID, m_IEEGHistogram);
             }
             m_Histogram.texture = m_IEEGHistogram;
             UnityEngine.Profiling.Profiler.EndSample();
@@ -182,6 +189,9 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Initialize this module
+        /// </summary>
         public void Initialize()
         {
             m_IEEGHistogram = new Texture2D(1, 1);
@@ -310,10 +320,10 @@ namespace HBP.UI.Module3D
                 foreach (var column in s.ColumnsDynamic)
                 {
                     string histogramID = GenerateHistogramID(column);
-                    if (m_HistogramByColumn.TryGetValue(histogramID, out Texture2D texture))
+                    if (m_Histograms.TryGetValue(histogramID, out Texture2D texture))
                     {
                         DestroyImmediate(texture);
-                        m_HistogramByColumn.Remove(histogramID);
+                        m_Histograms.Remove(histogramID);
                     }
                 }
             });

@@ -2,50 +2,26 @@
 using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
-using T = Tools.Unity;
 
 namespace HBP.UI.Module3D.Tools
 {
     public class ROIExport : Tool
     {
         #region Properties
-        [SerializeField]
-        private Button m_Import;
-        [SerializeField]
-        private Button m_Export;
-        #endregion
-
-        #region Public Methods
-        public override void Initialize()
-        {
-            m_Import.onClick.AddListener(() =>
-            {
-                if (ListenerLock) return;
-
-                LoadROIToSelectedColumn();
-            });
-            m_Export.onClick.AddListener(() =>
-            {
-                if (ListenerLock) return;
-
-                SaveSelectedROI();
-            });
-        }
-        public override void DefaultState()
-        {
-            m_Import.interactable = false;
-            m_Export.interactable = false;
-        }
-        public override void UpdateInteractable()
-        {
-            bool hasROI = SelectedScene.ROIManager.ROIs.Count > 0;
-
-            m_Import.interactable = true;
-            m_Export.interactable = hasROI;
-        }
+        /// <summary>
+        /// Import a ROI from a file
+        /// </summary>
+        [SerializeField] private Button m_Import;
+        /// <summary>
+        /// Export the selected ROI to a file
+        /// </summary>
+        [SerializeField] private Button m_Export;
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Save the selected ROI to a file
+        /// </summary>
         private void SaveSelectedROI()
         {
             string savePath = FileBrowser.GetSavedFileName(new string[] { "roi" }, "Save ROI to", Application.dataPath);
@@ -56,7 +32,10 @@ namespace HBP.UI.Module3D.Tools
                 ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Region of Interest saved", "The selected ROI has been saved to <color=#3080ffff>" + savePath + "</color>");
             }
         }
-        private void LoadROIToSelectedColumn()
+        /// <summary>
+        /// Load a ROI from a file to the scene
+        /// </summary>
+        private void LoadROI()
         {
             string loadPath = FileBrowser.GetExistingFileName(new string[] { "roi" }, "Load ROI file", Application.dataPath);
             if (!string.IsNullOrEmpty(loadPath))
@@ -68,6 +47,45 @@ namespace HBP.UI.Module3D.Tools
                     roi.AddSphere(SelectedColumn.Layer, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
                 }
             }
+        }
+        #endregion
+
+        #region Public Methods
+        /// <summary>
+        /// Initialize the toolbar
+        /// </summary>
+        public override void Initialize()
+        {
+            m_Import.onClick.AddListener(() =>
+            {
+                if (ListenerLock) return;
+
+                LoadROI();
+            });
+            m_Export.onClick.AddListener(() =>
+            {
+                if (ListenerLock) return;
+
+                SaveSelectedROI();
+            });
+        }
+        /// <summary>
+        /// Set the default state of this tool
+        /// </summary>
+        public override void DefaultState()
+        {
+            m_Import.interactable = false;
+            m_Export.interactable = false;
+        }
+        /// <summary>
+        /// Update the interactable state of the tool
+        /// </summary>
+        public override void UpdateInteractable()
+        {
+            bool hasROI = SelectedScene.ROIManager.ROIs.Count > 0;
+
+            m_Import.interactable = true;
+            m_Export.interactable = hasROI;
         }
         #endregion
     }

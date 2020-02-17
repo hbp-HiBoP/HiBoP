@@ -35,7 +35,9 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_CCEPSiteSourceSelector);
             m_Tools.Add(m_CCEPAreaSourceSelector);
         }
-
+        /// <summary>
+        /// Add the listeners to the elements of the toolbar
+        /// </summary>
         protected override void AddListeners()
         {
             base.AddListeners();

@@ -7,12 +7,24 @@ namespace HBP.UI.Module3D.Tools
     public class CCEPSiteSourceSelector : Tool
     {
         #region Properties
+        /// <summary>
+        /// Text to display the name of the selected source
+        /// </summary>
         [SerializeField] private Text m_Text;
+        /// <summary>
+        /// Set the currently selected site as source
+        /// </summary>
         [SerializeField] private Button m_SelectSource;
+        /// <summary>
+        /// Unselect the current source
+        /// </summary>
         [SerializeField] private Button m_UnselectSource;
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Initialize the toolbar
+        /// </summary>
         public override void Initialize()
         {
             m_SelectSource.onClick.AddListener(() =>
@@ -28,7 +40,9 @@ namespace HBP.UI.Module3D.Tools
                 ((Column3DCCEP)SelectedColumn).SelectedSourceSite = null;
             });
         }
-
+        /// <summary>
+        /// Set the default state of this tool
+        /// </summary>
         public override void DefaultState()
         {
             m_Text.text = "No source selected";
@@ -36,7 +50,9 @@ namespace HBP.UI.Module3D.Tools
             m_UnselectSource.interactable = false;
             gameObject.SetActive(true);
         }
-
+        /// <summary>
+        /// Update the interactable state of the tool
+        /// </summary>
         public override void UpdateInteractable()
         {
             if (SelectedColumn is Column3DCCEP ccepColumn && ccepColumn.Mode == Column3DCCEP.CCEPMode.Site)
@@ -53,7 +69,9 @@ namespace HBP.UI.Module3D.Tools
                 m_UnselectSource.interactable = false;
             }
         }
-
+        /// <summary>
+        /// Update the status of the tool
+        /// </summary>
         public override void UpdateStatus()
         {
             if (SelectedColumn is Column3DCCEP ccepColumn)

@@ -1,14 +1,11 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace HBP.UI.Module3D
 {
     public class ToolbarMenu : MonoBehaviour
     {
         #region Properties
-        [SerializeField]
-        private ConfigurationToolbar m_ConfigurationToolbar;
+        [SerializeField] private ConfigurationToolbar m_ConfigurationToolbar;
         /// <summary>
         /// Toolbar for the scene settings
         /// </summary>
@@ -24,8 +21,7 @@ namespace HBP.UI.Module3D
             }
         }
 
-        [SerializeField]
-        private SceneSettingsToolbar m_SceneSettingsToolbar;
+        [SerializeField] private SceneSettingsToolbar m_SceneSettingsToolbar;
         /// <summary>
         /// Toolbar for the scene settings
         /// </summary>
@@ -41,8 +37,7 @@ namespace HBP.UI.Module3D
             }
         }
 
-        [SerializeField]
-        private DisplaySettingsToolbar m_DisplaySettingsToolbar;
+        [SerializeField] private DisplaySettingsToolbar m_DisplaySettingsToolbar;
         /// <summary>
         /// Toolbar for the display settings
         /// </summary>
@@ -58,8 +53,7 @@ namespace HBP.UI.Module3D
             }
         }
 
-        [SerializeField]
-        private IEEGSettingsToolbar m_IEEGSettingsToolbar;
+        [SerializeField] private IEEGSettingsToolbar m_IEEGSettingsToolbar;
         /// <summary>
         /// Toolbar for the IEEG settings
         /// </summary>
@@ -75,8 +69,7 @@ namespace HBP.UI.Module3D
             }
         }
 
-        [SerializeField]
-        private TimelineToolbar m_TimelineToolbar;
+        [SerializeField] private TimelineToolbar m_TimelineToolbar;
         /// <summary>
         /// Toolbar for the Timeline control
         /// </summary>
@@ -92,8 +85,7 @@ namespace HBP.UI.Module3D
             }
         }
 
-        [SerializeField]
-        private SiteToolbar m_SiteToolbar;
+        [SerializeField] private SiteToolbar m_SiteToolbar;
         /// <summary>
         /// Toolbar for the sites settings
         /// </summary>
@@ -109,8 +101,7 @@ namespace HBP.UI.Module3D
             }
         }
 
-        [SerializeField]
-        private CCEPToolbar m_CCEPToolbar;
+        [SerializeField] private CCEPToolbar m_CCEPToolbar;
         /// <summary>
         /// Toolbar for the sites settings
         /// </summary>
@@ -126,8 +117,7 @@ namespace HBP.UI.Module3D
             }
         }
 
-        [SerializeField]
-        private AtlasToolbar m_AtlasToolbar;
+        [SerializeField] private AtlasToolbar m_AtlasToolbar;
         /// <summary>
         /// Toolbar for the sites settings
         /// </summary>
@@ -143,8 +133,7 @@ namespace HBP.UI.Module3D
             }
         }
 
-        [SerializeField]
-        private FMRIToolbar m_FMRIToolbar;
+        [SerializeField] private FMRIToolbar m_FMRIToolbar;
         /// <summary>
         /// Toolbar for the sites settings
         /// </summary>
@@ -160,8 +149,7 @@ namespace HBP.UI.Module3D
             }
         }
 
-        [SerializeField]
-        private ROIToolbar m_ROIToolbar;
+        [SerializeField] private ROIToolbar m_ROIToolbar;
         /// <summary>
         /// Toolbar for the regions of interest settings
         /// </summary>
@@ -177,8 +165,7 @@ namespace HBP.UI.Module3D
             }
         }
 
-        [SerializeField]
-        private TriangleErasingToolbar m_TriangleToolbar;
+        [SerializeField] private TriangleErasingToolbar m_TriangleToolbar;
         /// <summary>
         /// Toolbar to erase triangles
         /// </summary>

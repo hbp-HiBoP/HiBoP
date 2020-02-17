@@ -13,45 +13,37 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Handle automatic rotation
         /// </summary>
-        [SerializeField]
-        private Tools.AutoRotate m_AutoRotate;
+        [SerializeField] private Tools.AutoRotate m_AutoRotate;
         /// <summary>
         /// Add / remove views from the selected scene
         /// </summary>
-        [SerializeField]
-        private Tools.Views m_Views;
+        [SerializeField] private Tools.Views m_Views;
         /// <summary>
         /// Set the scene to the standard views
         /// </summary>
-        [SerializeField]
-        private Tools.StandardViews m_StandardViews;
+        [SerializeField] private Tools.StandardViews m_StandardViews;
         /// <summary>
         /// Set the scene to the standard views
         /// </summary>
-        [SerializeField]
-        private Tools.DefaultView m_DefaultView;
+        [SerializeField] private Tools.DefaultView m_DefaultView;
         /// <summary>
         /// Set the scene to the standard views
         /// </summary>
-        [SerializeField]
-        private Tools.ResetViews m_ResetViews;
+        [SerializeField] private Tools.ResetViews m_ResetViews;
         /// <summary>
         /// Set the camera control type
         /// </summary>
-        [SerializeField]
-        private Tools.CameraTypes m_CameraTypes;
+        [SerializeField] private Tools.CameraTypes m_CameraTypes;
         /// <summary>
         /// Take a screenshot of the selected scene
         /// </summary>
-        [SerializeField]
-        private Tools.Screenshot m_Screenshot;
+        [SerializeField] private Tools.Screenshot m_Screenshot;
         #endregion
 
         #region Private Methods
         /// <summary>
         /// Link elements to the toolbar
         /// </summary>
-        /// <param name="parent">Transform of the toolbar</param>
         protected override void AddTools()
         {
             m_Tools.Add(m_AutoRotate);
