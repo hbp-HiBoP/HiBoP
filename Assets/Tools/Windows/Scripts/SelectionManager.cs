@@ -57,8 +57,7 @@ public class SelectionManager : MonoBehaviour
             Selector selector = null;
             PointerEventData pointerEventData = new PointerEventData(EventSystem.current);
             pointerEventData.position = Input.mousePosition;
-            var raycasters = FindObjectsOfType<GraphicRaycaster>();
-            var results = raycasters.SelectMany(r => { List<RaycastResult> res = new List<RaycastResult>(); r.Raycast(pointerEventData, res); return res; }).OrderByDescending(r => r.sortingOrder).ThenByDescending(r => r.depth);
+            var results = FindObjectsOfType<GraphicRaycaster>().SelectMany(r => { List<RaycastResult> res = new List<RaycastResult>(); r.Raycast(pointerEventData, res); return res; }).OrderByDescending(r => r.sortingOrder).ThenByDescending(r => r.depth);
             foreach (var result in results)
             {
                 selector = result.gameObject.GetComponentInParent<Selector>();
