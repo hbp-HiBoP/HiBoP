@@ -160,7 +160,7 @@ namespace HBP.UI.Informations
                         m_ColumnDataBy3DColumn.Add(column as Column3DDynamic, columnData);
                         columns.Add(columnData);
                     }
-                    else if(column is Column3DCCEP ccepColumn && ccepColumn.IsSourceSelected)
+                    else if(column is Column3DCCEP ccepColumn && ccepColumn.IsSourceSiteSelected)
                     {
                         CCEPData data = new CCEPData(ccepColumn.ColumnCCEPData.Dataset, ccepColumn.ColumnCCEPData.DataName, new ChannelStruct(ccepColumn.SelectedSourceSite), ccepColumn.ColumnCCEPData.Bloc);
                         Column columnData = new Column(column.Name, data, ROI);
