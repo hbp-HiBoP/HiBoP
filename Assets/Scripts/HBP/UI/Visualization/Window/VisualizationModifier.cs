@@ -32,6 +32,9 @@ namespace HBP.UI
 
                 m_NameInputField.interactable = value;
 
+                m_AddPatientButton.interactable = value;
+                m_RemovePatientButton.interactable = value;
+
                 m_AddGroupButton.interactable = value;
                 m_RemoveGroupButton.interactable = value;
 
@@ -103,6 +106,7 @@ namespace HBP.UI
             m_NameInputField.onEndEdit.AddListener((value) => ItemTemp.Name = value);
 
             // Patient.
+            m_PatientListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
             m_PatientListGestion.List.OnAddObject.AddListener(OnAddPatient);
             m_PatientListGestion.List.OnRemoveObject.AddListener(OnRemovePatient);
 
