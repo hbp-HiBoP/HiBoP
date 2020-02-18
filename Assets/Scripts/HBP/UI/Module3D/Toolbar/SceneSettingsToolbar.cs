@@ -8,60 +8,49 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Hide / show the left / right parts of the brain mesh
         /// </summary>
-        [SerializeField]
-        private Tools.BrainMeshes m_BrainMeshes;
+        [SerializeField] private Tools.BrainMeshes m_BrainMeshes;
         /// <summary>
         /// Change brain type (grey, white, inflated)
         /// </summary>
-        [SerializeField]
-        private Tools.BrainSelector m_BrainSelector;
+        [SerializeField] private Tools.BrainSelector m_BrainSelector;
         /// <summary>
         /// Change brain type (grey, white, inflated)
         /// </summary>
-        [SerializeField]
-        private Tools.MRISelector m_MRISelector;
+        [SerializeField] private Tools.MRISelector m_MRISelector;
         /// <summary>
         /// Change brain type (grey, white, inflated)
         /// </summary>
-        [SerializeField]
-        private Tools.ImplantationSelector m_ImplantationSelector;
+        [SerializeField] private Tools.ImplantationSelector m_ImplantationSelector;
         /// <summary>
         /// Threshold MRI parameters
         /// </summary>
-        [SerializeField]
-        private Tools.ThresholdMRI m_ThresholdMRI;
+        [SerializeField] private Tools.ThresholdMRI m_ThresholdMRI;
         /// <summary>
         /// Change IEEG colormap
         /// </summary>
-        [SerializeField]
-        private Tools.Colormap m_Colormap;
+        [SerializeField] private Tools.Colormap m_Colormap;
         /// <summary>
         /// Change brain surface color
         /// </summary>
-        [SerializeField]
-        private Tools.BrainColor m_BrainColor;
+        [SerializeField] private Tools.BrainColor m_BrainColor;
         /// <summary>
         /// Change brain cut color
         /// </summary>
-        [SerializeField]
-        private Tools.CutColor m_CutColor;
+        [SerializeField] private Tools.CutColor m_CutColor;
         /// <summary>
         /// Show / hide edges
         /// </summary>
-        [SerializeField]
-        private Tools.EdgeMode m_EdgeMode;
+        [SerializeField] private Tools.EdgeMode m_EdgeMode;
         /// <summary>
         /// Show / hide edges
         /// </summary>
-        [SerializeField]
-        private Tools.CutMode m_CutMode;
+        [SerializeField] private Tools.CutMode m_CutMode;
         #endregion
 
         #region Private Methods
         /// <summary>
         /// Link elements to the toolbar
         /// </summary>
-        /// <param name="parent">Transform of the toolbar</param>
         protected override void AddTools()
         {
             m_Tools.Add(m_BrainMeshes);

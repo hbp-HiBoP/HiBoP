@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
-using UnityEngine.Events;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -11,12 +6,18 @@ namespace HBP.UI.Module3D.Tools
     public class TimelineStep : Tool
     {
         #region Properties
-        [SerializeField]
-        private Button m_Minus;
-        [SerializeField]
-        private Button m_Plus;
-        [SerializeField]
-        private InputField m_InputField;
+        /// <summary>
+        /// Decrease the current sample
+        /// </summary>
+        [SerializeField] private Button m_Minus;
+        /// <summary>
+        /// Increase the current sample
+        /// </summary>
+        [SerializeField] private Button m_Plus;
+        /// <summary>
+        /// Change the step of increase/decrease
+        /// </summary>
+        [SerializeField] private InputField m_InputField;
 
         private bool m_IsGlobal = false;
         /// <summary>
@@ -40,6 +41,9 @@ namespace HBP.UI.Module3D.Tools
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Initialize the toolbar
+        /// </summary>
         public override void Initialize()
         {
             m_Minus.onClick.AddListener(() =>
@@ -90,7 +94,9 @@ namespace HBP.UI.Module3D.Tools
                 }
             });
         }
-
+        /// <summary>
+        /// Set the default state of this tool
+        /// </summary>
         public override void DefaultState()
         {
             m_Minus.interactable = false;
@@ -98,7 +104,9 @@ namespace HBP.UI.Module3D.Tools
             m_InputField.text = "1";
             m_InputField.interactable = false;
         }
-
+        /// <summary>
+        /// Update the interactable state of the tool
+        /// </summary>
         public override void UpdateInteractable()
         {
             bool isColumnDynamic = SelectedColumn is HBP.Module3D.Column3DDynamic;
@@ -108,7 +116,9 @@ namespace HBP.UI.Module3D.Tools
             m_InputField.interactable = isColumnDynamic && areAmplitudesComputed;
             m_Plus.interactable = isColumnDynamic && areAmplitudesComputed;
         }
-
+        /// <summary>
+        /// Update the status of the tool
+        /// </summary>
         public override void UpdateStatus()
         {
             if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)

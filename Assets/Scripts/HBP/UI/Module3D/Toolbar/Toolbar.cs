@@ -1,8 +1,5 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
-using UnityEngine.UI;
-using UnityEngine.Events;
 using HBP.Module3D;
 
 namespace HBP.UI.Module3D
@@ -10,6 +7,9 @@ namespace HBP.UI.Module3D
     public abstract class Toolbar : MonoBehaviour
     {
         #region Properties
+        /// <summary>
+        /// Reference to the toolbar menu
+        /// </summary>
         protected ToolbarMenu m_ToolbarMenu;
         /// <summary>
         /// List of the tools of the toolbar
@@ -25,7 +25,6 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Link elements to the toolbar
         /// </summary>
-        /// <param name="parent">Transform of the toolbar</param>
         protected abstract void AddTools();
         /// <summary>
         /// Add the listeners to the elements of the toolbar
@@ -74,6 +73,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Callback when the selected scene is changed
         /// </summary>
+        /// <param name="scene">Scene that has been selected</param>
         protected void OnChangeScene(Base3DScene scene)
         {
             foreach (Tools.Tool tool in m_Tools)
@@ -85,6 +85,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Callback when the selected column is changed
         /// </summary>
+        /// <param name="column">Column that has been selected</param>
         protected void OnChangeColumn(Column3D column)
         {
             foreach (Tools.Tool tool in m_Tools)
@@ -96,6 +97,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Callback when the selected view is changed
         /// </summary>
+        /// <param name="view">View that has been selected</param>
         protected void OnChangeView(View3D view)
         {
             foreach (Tools.Tool tool in m_Tools)

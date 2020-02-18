@@ -61,7 +61,7 @@ namespace HBP.UI
         /// <returns> return an empty path if no file has been choosen or if an error occurs </returns>
         public static string GetSavedFileName(string[] filtersArray = null, string message = "Save to", string filePath = "", string defaultName = "")
         {
-            string path = SFB.StandaloneFileBrowser.SaveFilePanel(message, string.IsNullOrEmpty(filePath) ? "" : new FileInfo(filePath).DirectoryName, defaultName, new SFB.ExtensionFilter[] { new SFB.ExtensionFilter("Files", filtersArray) });
+            string path = SFB.StandaloneFileBrowser.SaveFilePanel(message, string.IsNullOrEmpty(filePath) ? "" : new FileInfo(filePath).DirectoryName, defaultName, filtersArray == null ? null : new SFB.ExtensionFilter[] { new SFB.ExtensionFilter("Files", filtersArray) });
             return path;
         }
         #endregion

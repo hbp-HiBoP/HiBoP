@@ -1,10 +1,4 @@
-﻿using HBP.Module3D;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
-using UnityEngine.Events;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using T = Tools.Unity;
 
@@ -13,15 +7,24 @@ namespace HBP.UI.Module3D.Tools
     public class ConfigurationLoaderSaver : Tool
     {
         #region Properties
-        [SerializeField]
-        private Button m_Save;
-        [SerializeField]
-        private Button m_Load;
-        [SerializeField]
-        private Button m_Reset;
+        /// <summary>
+        /// Save the configuration to the visualization
+        /// </summary>
+        [SerializeField] private Button m_Save;
+        /// <summary>
+        /// Load the configuration from a visualization
+        /// </summary>
+        [SerializeField] private Button m_Load;
+        /// <summary>
+        /// Reset the configuration of this scene
+        /// </summary>
+        [SerializeField] private Button m_Reset;
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Initialize the toolbar
+        /// </summary>
         public override void Initialize()
         {
             m_Save.onClick.AddListener(() =>
@@ -52,12 +55,18 @@ namespace HBP.UI.Module3D.Tools
                 SelectedScene.ResetConfiguration();
             });
         }
+        /// <summary>
+        /// Set the default state of this tool
+        /// </summary>
         public override void DefaultState()
         {
             m_Save.interactable = false;
             m_Load.interactable = false;
             m_Reset.interactable = false;
         }
+        /// <summary>
+        /// Update the interactable state of the tool
+        /// </summary>
         public override void UpdateInteractable()
         {
             m_Save.interactable = true;

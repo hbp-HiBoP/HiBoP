@@ -96,15 +96,10 @@
 
 			void display_atlas(Input IN, inout SurfaceOutputStandard o)
 			{
-				if (IN.vertex_col.a > 0)
-				{
-					o.Albedo = IN.vertex_col.rgb * _Color;
-				}
-				else
-				{
-					o.Albedo = tex2D(_MainTex, IN.uv_MainTex);
-				}
-				o.Alpha = 1.f;
+				float color = IN.vertex_col.a;
+				fixed4 col = (1 - color) * tex2D(_MainTex, IN.uv_MainTex) + (color * IN.vertex_col.rgba);
+				col *= _Color;
+				o.Albedo = col.rgb;
 			}
 
 			void display_ieeg(Input IN, inout SurfaceOutputStandard o)
@@ -116,13 +111,12 @@
 				col = (1 - color) * tex2D(_MainTex, IN.uv_MainTex) + (color)* tex2D(_ColorTex, IN.uv3_ColorTex);
 				col *= _Color;
 				o.Albedo = col.rgb;
-				o.Alpha = 1.f;
 			}
 
 			void surf(Input IN, inout SurfaceOutputStandard o)
 			{
 				clip(is_clipped(IN));
-						
+
 				if (_Atlas & !_Activity)
 				{
 					display_atlas(IN, o);
@@ -132,6 +126,7 @@
 					display_ieeg(IN, o);
 				}
 
+				o.Alpha = 1.f;
 				o.Metallic =  _Metallic;
 				o.Smoothness = _Glossiness;
 			}
