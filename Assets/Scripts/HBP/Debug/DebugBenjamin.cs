@@ -4,6 +4,9 @@ using UnityEngine;
 using System.IO;
 using System;
 using HBP.Data;
+using HBP.UI;
+using Tools.Unity;
+using System.Collections;
 
 public class DebugBenjamin : MonoBehaviour
 {
@@ -12,7 +15,7 @@ public class DebugBenjamin : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.F1))
         {
-            GetAllCCEPData();
+            ScreenshotWindow();
         }
     }
     private void GetAllCCEPData()
@@ -34,6 +37,22 @@ public class DebugBenjamin : MonoBehaviour
                 site = site.Insert(site.Length / 2, "-");
                 ApplicationState.ProjectLoaded.Datasets[0].AddData(new HBP.Data.Experience.Dataset.CCEPDataInfo("ccep", new HBP.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), patient, site));
             }
+        }
+    }
+    private void ScreenshotWindow()
+    {
+        string path = FileBrowser.GetSavedFileName();
+        StartCoroutine(c_ScreenshotWindow(path));
+    }
+    private IEnumerator c_ScreenshotWindow(string path)
+    {
+        yield return new WaitForEndOfFrame();
+        Window window = ApplicationState.WindowsManager.WindowsReferencer.Windows.FirstOrDefault(w => w.GetComponent<Selector>().Selected);
+        if (!string.IsNullOrEmpty(path))
+        {
+            Texture2D image = Texture2DExtension.ScreenRectToTexture(window.GetComponent<RectTransform>().ToScreenSpace());
+            image.filterMode = FilterMode.Trilinear;
+            image.SaveToPNG(path);
         }
     }
 #endif

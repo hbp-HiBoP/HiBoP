@@ -1,25 +1,32 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace HBP.UI.Module3D
 {
     public class FMRIToolbar : Toolbar
     {
         #region Properties
-        [SerializeField]
-        private Tools.FMRISelector m_FMRISelector;
-        [SerializeField]
-        private Tools.FMRIParameters m_FMRIParameters;
+        /// <summary>
+        /// Allows the selection of the fMRI to display
+        /// </summary>
+        [SerializeField] private Tools.FMRISelector m_FMRISelector;
+        /// <summary>
+        /// Allows to change the threshold values of the fMRI currently displayed
+        /// </summary>
+        [SerializeField] private Tools.FMRIParameters m_FMRIParameters;
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Link elements to the toolbar
+        /// </summary>
         protected override void AddTools()
         {
             m_Tools.Add(m_FMRISelector);
             m_Tools.Add(m_FMRIParameters);
         }
+        /// <summary>
+        /// Add the listeners to the elements of the toolbar
+        /// </summary>
         protected override void AddListeners()
         {
             base.AddListeners();

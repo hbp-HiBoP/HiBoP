@@ -1,8 +1,5 @@
 ﻿using HBP.Module3D;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -10,23 +7,40 @@ namespace HBP.UI.Module3D.Tools
     public class ROIManager : Tool
     {
         #region Properties
-        [SerializeField]
-        private Button m_AddROI;
-        [SerializeField]
-        private Dropdown m_ROISelector;
-        [SerializeField]
-        private RectTransform m_ROINameParent;
-        [SerializeField]
-        private InputField m_ROIName;
-        [SerializeField]
-        private Button m_RemoveROI;
-        [SerializeField]
-        private Dropdown m_VolumeSelector;
-        [SerializeField]
-        private Button m_RemoveVolume;
+        /// <summary>
+        /// Button to add a ROI to the scene
+        /// </summary>
+        [SerializeField] private Button m_AddROI;
+        /// <summary>
+        /// Dropdown to select a ROI
+        /// </summary>
+        [SerializeField] private Dropdown m_ROISelector;
+        /// <summary>
+        /// RectTransform of the label to display the name of the selected ROI
+        /// </summary>
+        [SerializeField] private RectTransform m_ROINameParent;
+        /// <summary>
+        /// Inputfield to change the name of the ROI
+        /// </summary>
+        [SerializeField] private InputField m_ROIName;
+        /// <summary>
+        /// Remove the selected ROI
+        /// </summary>
+        [SerializeField] private Button m_RemoveROI;
+        /// <summary>
+        /// Select a sphere of the selected ROI
+        /// </summary>
+        [SerializeField] private Dropdown m_SphereSelector;
+        /// <summary>
+        /// Remove the selected sphere of the selected ROI
+        /// </summary>
+        [SerializeField] private Button m_RemoveSphere;
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Update the available options on the ROI dropdown
+        /// </summary>
         public void UpdateROIDropdownOptions()
         {
             m_ROISelector.options.Clear();
@@ -45,21 +59,27 @@ namespace HBP.UI.Module3D.Tools
             }
             m_ROISelector.RefreshShownValue();
         }
+        /// <summary>
+        /// Update the available options on the sphere dropdown
+        /// </summary>
         public void UpdateVolumeDropdownOptions()
         {
-            m_VolumeSelector.options.Clear();
-            m_VolumeSelector.options.Add(new Dropdown.OptionData("None"));
+            m_SphereSelector.options.Clear();
+            m_SphereSelector.options.Add(new Dropdown.OptionData("None"));
             ROI selectedROI = SelectedScene.ROIManager.SelectedROI;
             if (selectedROI)
             {
                 for (int i = 0; i < selectedROI.Spheres.Count; i++)
                 {
                     Sphere sphere = selectedROI.Spheres[i];
-                    m_VolumeSelector.options.Add(new Dropdown.OptionData("Sphere " + i + " (R=" + sphere.Radius.ToString("N1") + ")"));
+                    m_SphereSelector.options.Add(new Dropdown.OptionData("Sphere " + i + " (R=" + sphere.Radius.ToString("N1") + ")"));
                 }
             }
-            m_VolumeSelector.RefreshShownValue();
+            m_SphereSelector.RefreshShownValue();
         }
+        /// <summary>
+        /// Update the tool for the selected ROI
+        /// </summary>
         public void UpdateSelectedROIUI()
         {
             ListenerLock = true;
@@ -77,13 +97,16 @@ namespace HBP.UI.Module3D.Tools
             UpdateVolumeDropdownOptions();
             if (roiID != -1)
             {
-                m_VolumeSelector.value = SelectedScene.ROIManager.SelectedROI.SelectedSphereID + 1;
+                m_SphereSelector.value = SelectedScene.ROIManager.SelectedROI.SelectedSphereID + 1;
             }
             ListenerLock = false;
         }
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Initialize the toolbar
+        /// </summary>
         public override void Initialize()
         {
             m_AddROI.onClick.AddListener(() =>
@@ -111,19 +134,22 @@ namespace HBP.UI.Module3D.Tools
                 SelectedScene.ROIManager.SelectedROI.Name = value;
                 UpdateROIDropdownOptions();
             });
-            m_VolumeSelector.onValueChanged.AddListener((value) =>
+            m_SphereSelector.onValueChanged.AddListener((value) =>
             {
                 if (ListenerLock) return;
 
                 SelectedScene.ROIManager.SelectedROI.SelectSphere(value - 1);
             });
-            m_RemoveVolume.onClick.AddListener(() =>
+            m_RemoveSphere.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
 
                 SelectedScene.ROIManager.SelectedROI.RemoveSelectedSphere();
             });
         }
+        /// <summary>
+        /// Set the default state of this tool
+        /// </summary>
         public override void DefaultState()
         {
             m_AddROI.interactable = false;
@@ -131,9 +157,12 @@ namespace HBP.UI.Module3D.Tools
             m_ROIName.interactable = false;
             m_ROIName.text = "";
             m_ROISelector.interactable = false;
-            m_VolumeSelector.interactable = false;
-            m_RemoveVolume.interactable = false;
+            m_SphereSelector.interactable = false;
+            m_RemoveSphere.interactable = false;
         }
+        /// <summary>
+        /// Update the interactable state of the tool
+        /// </summary>
         public override void UpdateInteractable()
         {
             bool hasROI = SelectedScene.ROIManager.ROIs.Count > 0;
@@ -147,9 +176,12 @@ namespace HBP.UI.Module3D.Tools
             m_RemoveROI.interactable = hasROI;
             m_ROIName.interactable = hasROI;
             m_ROISelector.interactable = hasROI;
-            m_VolumeSelector.interactable = hasVolume;
-            m_RemoveVolume.interactable = hasVolume;
+            m_SphereSelector.interactable = hasVolume;
+            m_RemoveSphere.interactable = hasVolume;
         }
+        /// <summary>
+        /// Update the status of the tool
+        /// </summary>
         public override void UpdateStatus()
         {
             UpdateROIDropdownOptions();

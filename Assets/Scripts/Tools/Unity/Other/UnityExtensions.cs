@@ -301,7 +301,7 @@ namespace Tools.Unity
         }
         public static Texture2D ScreenRectToTexture(Rect rect)
         {
-            Texture2D texture = new Texture2D((int)rect.width, (int)rect.height);
+            Texture2D texture = new Texture2D((int)rect.width, (int)rect.height, TextureFormat.RGB24, false);
             texture.ReadPixels(rect, 0, 0);
             texture.Apply();
             return texture;

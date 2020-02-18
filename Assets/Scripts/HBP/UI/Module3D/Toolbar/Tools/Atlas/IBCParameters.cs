@@ -1,9 +1,5 @@
 ﻿using HBP.Module3D;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -11,29 +7,40 @@ namespace HBP.UI.Module3D.Tools
     public class IBCParameters : Tool
     {
         #region Properties
-        [SerializeField]
-        private Text m_MinText;
-
-        [SerializeField]
-        private Text m_MaxText;
-
-        [SerializeField]
-        private InputField m_CalMinInputField;
-
-        [SerializeField]
-        private Slider m_CalMinSlider;
-
-        [SerializeField]
-        private InputField m_CalMaxInputField;
-
-        [SerializeField]
-        private Slider m_CalMaxSlider;
-
-        [SerializeField]
-        private Slider m_AlphaSlider;
+        /// <summary>
+        /// Text to display the minimum value of the contrast
+        /// </summary>
+        [SerializeField] private Text m_MinText;
+        /// <summary>
+        /// Text to display the maximum value of the contrast
+        /// </summary>
+        [SerializeField] private Text m_MaxText;
+        /// <summary>
+        /// Inputfield to set the minimum calibration value
+        /// </summary>
+        [SerializeField] private InputField m_CalMinInputField;
+        /// <summary>
+        /// Slider to set the minimum calibration value
+        /// </summary>
+        [SerializeField] private Slider m_CalMinSlider;
+        /// <summary>
+        /// Inputfield to set the maximum calibration value
+        /// </summary>
+        [SerializeField] private InputField m_CalMaxInputField;
+        /// <summary>
+        /// Slider to set the maximum calibration value
+        /// </summary>
+        [SerializeField] private Slider m_CalMaxSlider;
+        /// <summary>
+        /// Slider to set the alpha of the contrast
+        /// </summary>
+        [SerializeField] private Slider m_AlphaSlider;
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Initialize the toolbar
+        /// </summary>
         public override void Initialize()
         {
             m_CalMinInputField.onEndEdit.AddListener((value) =>
@@ -90,19 +97,25 @@ namespace HBP.UI.Module3D.Tools
                 ListenerLock = false;
             });
         }
-
+        /// <summary>
+        /// Set the default state of this tool
+        /// </summary>
         public override void DefaultState()
         {
             gameObject.SetActive(false);
         }
-
+        /// <summary>
+        /// Update the interactable state of the tool
+        /// </summary>
         public override void UpdateInteractable()
         {
             bool isIBC = SelectedScene.FMRIManager.DisplayIBCContrasts;
 
             gameObject.SetActive(isIBC);
         }
-
+        /// <summary>
+        /// Update the status of the tool
+        /// </summary>
         public override void UpdateStatus()
         {
             bool hasIBC = SelectedScene.FMRIManager.SelectedIBCContrast != null;

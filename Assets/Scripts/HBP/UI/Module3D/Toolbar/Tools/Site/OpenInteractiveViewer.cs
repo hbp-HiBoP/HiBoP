@@ -10,11 +10,20 @@ namespace HBP.UI.Module3D.Tools
     public class OpenInteractiveViewer : Tool
     {
         #region Properties
-        private string m_BaseURL = @"https://kg.humanbrainproject.org/viewer/?templateSelected=MNI+152+ICBM+2009c+Nonlinear+Asymmetric&parcellationSelected=Fibre+Bundle+Atlas+-+Long+Bundle";
+        /// <summary>
+        /// Base URL of the interactive viewer
+        /// </summary>
+        private string m_BaseURL = @"https://kg.humanbrainproject.org/viewer/?templateSelected=MNI+152+ICBM+2009c+Nonlinear+Asymmetric&parcellationSelected=Fibre+Bundle+Atlas+-+Long+Bundle&navigation={0}_{1}_{2}_{3}__{4}_{5}_{6}_{7}__{8}__{9}_{10}_{11}__{12}";
+        /// <summary>
+        /// Open the HBP interactive viewer
+        /// </summary>
         [SerializeField] private Button m_Button;
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Open the interactive viewer
+        /// </summary>
         private void Open()
         {
             // TODO : replace by correct values
@@ -25,8 +34,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 quaternion = view.LocalCameraRotation * Quaternion.Euler(0, 180, 0);
             }
-            string url = string.Format("{0}&navigation={1}_{2}_{3}_{4}__{5}_{6}_{7}_{8}__{9}__{10}_{11}_{12}__{13}",
-                m_BaseURL,
+            string url = string.Format(m_BaseURL,
                 0, 0, 0, 1,
                 quaternion.x.ToString("0.00", new CultureInfo("en-US")), (-quaternion.y).ToString("0.00", new CultureInfo("en-US")), (-quaternion.z).ToString("0.00", new CultureInfo("en-US")), quaternion.w.ToString("0.00", new CultureInfo("en-US")),
                 3000000,
@@ -37,6 +45,9 @@ namespace HBP.UI.Module3D.Tools
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Initialize the toolbar
+        /// </summary>
         public override void Initialize()
         {
             m_Button.onClick.AddListener(() =>
@@ -46,10 +57,16 @@ namespace HBP.UI.Module3D.Tools
                 Open();
             });
         }
+        /// <summary>
+        /// Set the default state of this tool
+        /// </summary>
         public override void DefaultState()
         {
             m_Button.interactable = false;
         }
+        /// <summary>
+        /// Update the interactable state of the tool
+        /// </summary>
         public override void UpdateInteractable()
         {
             bool isSiteSelected = SelectedColumn.SelectedSite != null;
