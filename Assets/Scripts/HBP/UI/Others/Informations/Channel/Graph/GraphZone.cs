@@ -75,8 +75,11 @@ namespace HBP.UI.Informations
         public void UpdateTime(Column column, SubBloc subBloc, float currentTime)
         {
             int index = Array.FindIndex(m_SubBlocsAndWindowByColumn, item => item.Item1.Any(t => t.Item1 == column.Data.Bloc && t.Item2 == subBloc));
-            Graph graph = m_Graphs[index];
-            graph.CurrentTime = currentTime;
+            if(index != -1)
+            {
+                Graph graph = m_Graphs[index];
+                graph.CurrentTime = currentTime;
+            }
         }
         #endregion
 

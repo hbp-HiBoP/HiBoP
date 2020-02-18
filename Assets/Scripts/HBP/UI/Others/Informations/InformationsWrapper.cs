@@ -145,7 +145,7 @@ namespace HBP.UI.Informations
             m_ColumnDataBy3DColumn = new Dictionary<Column3DDynamic, Column>();
             foreach (var column in m_Scene.Columns)
             {
-                if(!column.IsMinimized ||ApplicationState.UserPreferences.Visualization.Graph.ShowCurvesOfMinimizedColumns)
+                if(!column.IsMinimized || ApplicationState.UserPreferences.Visualization.Graph.ShowCurvesOfMinimizedColumns)
                 {
                     Data.Informations.ROI ROI = null;
                     if (m_Scene.ROIManager.SelectedROI != null)
@@ -205,7 +205,7 @@ namespace HBP.UI.Informations
         }
         void OnChangeSelectedColumn(Column3D column)
         {
-            if(column is Column3DDynamic dynamicColumn)
+            if(column is Column3DDynamic dynamicColumn && Scene.IsGeneratorUpToDate)
             {
                 UpdateTime(dynamicColumn.Timeline.CurrentIndex, dynamicColumn);
             }
@@ -263,7 +263,7 @@ namespace HBP.UI.Informations
         }
         void UpdateTime(int index, Column3DDynamic column)
         {
-            if(column.IsSelected)
+            if(column.IsSelected && !column.IsMinimized)
             {
                 SubBloc subBloc = null;
                 foreach (var key in column.Timeline.SubTimelinesBySubBloc.Keys)

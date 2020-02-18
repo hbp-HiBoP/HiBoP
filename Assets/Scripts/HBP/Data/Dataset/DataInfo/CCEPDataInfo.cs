@@ -104,6 +104,10 @@ namespace HBP.Data.Experience.Dataset
                     errors.Add(new BlocsCantBeEpochedError());
                 }
             }
+            if(!m_Patient.Sites.Any(site => site.Name == StimulatedChannel))
+            {
+                errors.Add(new ChannelNotFoundError());
+            }
             m_CCEPErrors = errors.ToArray();
             return m_CCEPErrors;
         }
@@ -130,7 +134,7 @@ namespace HBP.Data.Experience.Dataset
             {
 
             }
-            public ChannelNotFoundError(string message): base("The specified channel could not be found in the data container", message)
+            public ChannelNotFoundError(string message): base("The specified stimulated channel could not be found in the patient", message)
             {
 
             }
