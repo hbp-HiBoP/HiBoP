@@ -1,5 +1,4 @@
 ﻿using NewTheme.Components;
-using System;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
@@ -9,18 +8,22 @@ namespace HBP.UI.Module3D
     public class ThresholdHandler : MonoBehaviour, IDragHandler, IPointerEnterHandler, IPointerExitHandler
     {
         #region Properties
+        /// <summary>
+        /// Theme element to handle the skin of the cursor
+        /// </summary>
         [SerializeField] ThemeElement m_ThemeElement;
+        /// <summary>
+        /// State to be used for the left-right cursor
+        /// </summary>
         [SerializeField] State m_LeftRightState;
         /// <summary>
         /// RectTransform of this handler
         /// </summary>
-        [SerializeField]
-        private RectTransform m_RectTransform;
+        [SerializeField] private RectTransform m_RectTransform;
         /// <summary>
         /// RectTransform of the parent of this handler
         /// </summary>
-        [SerializeField]
-        private RectTransform m_ParentRectTransform;
+        [SerializeField] private RectTransform m_ParentRectTransform;
 
         private float m_Position;
         /// <summary>
@@ -55,13 +58,6 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
-        /// <summary>
-        /// Clamps the position of the handler between min and max
-        /// </summary>
-        public void ClampPosition()
-        {
-            Position = Position;
-        }
         public void OnDrag(PointerEventData data)
         {
             float currentPosition = Position;

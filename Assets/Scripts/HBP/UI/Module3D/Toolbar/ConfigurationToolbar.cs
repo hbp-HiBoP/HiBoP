@@ -10,8 +10,10 @@ namespace HBP.UI.Module3D
     public class ConfigurationToolbar : Toolbar
     {
         #region Properties
-        [SerializeField]
-        private Tools.ConfigurationLoaderSaver m_ConfigurationLoaderSaver;
+        /// <summary>
+        /// Tool that allows saving, loading and reseting the configuration of the selected scene
+        /// </summary>
+        [SerializeField] private Tools.ConfigurationLoaderSaver m_ConfigurationLoaderSaver;
         #endregion
 
         #region Private Methods

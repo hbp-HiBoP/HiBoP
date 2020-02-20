@@ -23,7 +23,6 @@ namespace HBP.UI
         #region Public Methods
         public override void OK()
         {
-            UnityEngine.Debug.Log("Ok");
             WindowsReferencer.SaveAll();
             Item.Copy(ItemTemp);
             OnOk.Invoke();

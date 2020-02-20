@@ -180,9 +180,8 @@ namespace Tools.Unity
         }
         public static Vector2 GetRatioPosition(this RectTransform rectTransform, Vector2 position)
         {
-            Vector2 localPosition = position - (Vector2)rectTransform.position - rectTransform.rect.min;
-            Vector2 ratio = new Vector2(localPosition.x / rectTransform.rect.width, localPosition.y / rectTransform.rect.height);
-            return ratio;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, position, null, out Vector2 pointInRectangle);
+            return new Vector2(pointInRectangle.x / rectTransform.rect.width, pointInRectangle.y / rectTransform.rect.height) + rectTransform.pivot;
         }
     }
 
@@ -302,7 +301,7 @@ namespace Tools.Unity
         }
         public static Texture2D ScreenRectToTexture(Rect rect)
         {
-            Texture2D texture = new Texture2D((int)rect.width, (int)rect.height);
+            Texture2D texture = new Texture2D((int)rect.width, (int)rect.height, TextureFormat.RGB24, false);
             texture.ReadPixels(rect, 0, 0);
             texture.Apply();
             return texture;

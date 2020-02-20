@@ -46,6 +46,7 @@ namespace HBP.UI.Experience.Dataset
             m_ProtocolDropdown.options = (from protocol in ApplicationState.ProjectLoaded.Protocols select new Dropdown.OptionData(protocol.Name)).ToList();
             m_ProtocolDropdown.onValueChanged.AddListener(OnChangeProtocol);
 
+            m_DataInfoListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
             m_DataInfoListGestion.OnDataInfoNeedCheckErrors.AddListener(CheckErrors);
             m_DataInfoListGestion.List.OnAddObject.AddListener(OnAddData);
             m_DataInfoListGestion.List.OnRemoveObject.AddListener(OnRemoveData);

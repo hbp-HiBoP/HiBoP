@@ -10,12 +10,14 @@ namespace HBP.UI.Module3D.Tools
     public class TimelinePlay : Tool
     {
         #region Properties
-        [SerializeField]
-        private Toggle m_Toggle;
+        /// <summary>
+        /// Make the timeline play
+        /// </summary>
+        [SerializeField] private Toggle m_Toggle;
 
         private bool m_IsGlobal = false;
         /// <summary>
-        /// Do we need to perform the actions on all columns ?
+        /// Are the changes applied to all columns ?
         /// </summary>
         public bool IsGlobal
         {
@@ -35,6 +37,9 @@ namespace HBP.UI.Module3D.Tools
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Initialize the toolbar
+        /// </summary>
         public override void Initialize()
         {
             ApplicationState.Module3D.OnStopTimelinePlay.AddListener(() =>
@@ -53,13 +58,17 @@ namespace HBP.UI.Module3D.Tools
                 }
             });
         }
-
+        /// <summary>
+        /// Set the default state of this tool
+        /// </summary>
         public override void DefaultState()
         {
             m_Toggle.isOn = false;
             m_Toggle.interactable = false;
         }
-
+        /// <summary>
+        /// Update the interactable state of the tool
+        /// </summary>
         public override void UpdateInteractable()
         {
             bool isColumnDynamic = SelectedColumn is HBP.Module3D.Column3DDynamic;
@@ -67,7 +76,9 @@ namespace HBP.UI.Module3D.Tools
 
             m_Toggle.interactable = isColumnDynamic && areAmplitudesComputed;
         }
-
+        /// <summary>
+        /// Update the status of the tool
+        /// </summary>
         public override void UpdateStatus()
         {
             if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)

@@ -271,7 +271,10 @@ namespace HBP.UI.Module3D
 
             // Create string builder
             System.Text.StringBuilder csvBuilder = new System.Text.StringBuilder();
-            csvBuilder.AppendLine("Site,Patient,Place,Date,X,Y,Z,CoordSystem,Labels,DataType,DataFiles");
+            string tagsString = "";
+            IEnumerable<Data.BaseTag> tags = ApplicationState.ProjectLoaded.Preferences.GeneralTags.Concat(ApplicationState.ProjectLoaded.Preferences.SitesTags);
+            if (tags.Count() > 0) tagsString = string.Format("\t{0}", string.Join("\t", tags.Select(t => t.Name)));
+            csvBuilder.AppendLine("Site\tPatient\tPlace\tDate\tX,Y\tZ\tCoordSystem\tLabels\tDataType\tDataFiles" + tagsString);
 
             // Prepare sites positions for performance increase
             yield return Ninja.JumpToUnity;
@@ -281,7 +284,7 @@ namespace HBP.UI.Module3D
             for (int i = 0; i < length; i++)
             {
                 // Get required values
-                HBP.Module3D.Site site = sites[i];
+                Site site = sites[i];
                 Vector3 sitePosition = sitePositions[i];
                 Data.Experience.Dataset.DataInfo dataInfo = null;
                 if (m_Scene.SelectedColumn is Column3DDynamic columnIEEG)
@@ -316,8 +319,20 @@ namespace HBP.UI.Module3D
                         throw new Exception("Invalid data container type");
                     }
                 }
+                IEnumerable<Data.BaseTagValue> tagValues = tags.Select(t => site.Information.SiteData.Tags.FirstOrDefault(tv => tv.Tag == t));
+                string tagValuesString = "";
+                if (tagValues.Count() > 0)
+                {
+                    System.Text.StringBuilder tagValuesStringBuilder = new System.Text.StringBuilder();
+                    foreach (var tagValue in tagValues)
+                    {
+                        tagValuesStringBuilder.Append("\t");
+                        if (tagValue != null) tagValuesStringBuilder.Append(tagValue.DisplayableValue);
+                    }
+                    tagValuesString = tagValuesStringBuilder.ToString();
+                }
                 // Write in string builder
-                csvBuilder.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}",
+                csvBuilder.AppendLine(string.Format("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}{11}",
                         site.Information.Name,
                         site.Information.Patient.Name,
                         site.Information.Patient.Place,
@@ -328,7 +343,8 @@ namespace HBP.UI.Module3D
                         m_Scene.ImplantationManager.SelectedImplantation.Name,
                         string.Join(";", site.State.Labels),
                         dataType,
-                        dataFiles));
+                        dataFiles,
+                        tagValuesString));
                 // Update progressbar
                 if (m_UpdateUI || i == length - 1)
                 {

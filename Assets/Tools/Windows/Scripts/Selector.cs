@@ -37,32 +37,10 @@ public class Selector : MonoBehaviour
         SelectionManager selectionManager = FindObjectOfType<SelectionManager>();
         if (selectionManager) selectionManager.Add(this);
     }
-    private void Update()
-    {
-#if UNITY_EDITOR
-        //if (Selected && Input.GetKeyDown(KeyCode.A))
-        //{
-        //    StartCoroutine(c_SaveWindowScreenshot());
-        //}
-#endif
-    }
     private void OnDestroy()
     {
         SelectionManager selectionManager = FindObjectOfType<SelectionManager>();
         if (selectionManager) selectionManager.Remove(this);
-    }
-    #endregion
-
-    #region Coroutines
-    private IEnumerator c_SaveWindowScreenshot()
-    {
-        yield return new WaitForEndOfFrame();
-        Rect rect = GetComponent<RectTransform>().ToScreenSpace();
-        rect = new Rect(rect.x + 1, rect.y + 1, rect.width - 1, rect.height - 1);
-        Texture2D sceneTexture = Texture2DExtension.ScreenRectToTexture(rect);
-        string screenshotPath = @"D:/HBP/HiBoP/Docs/LaTeX/Window.png";
-        ClassLoaderSaver.GenerateUniqueSavePath(ref screenshotPath);
-        sceneTexture.SaveToPNG(screenshotPath);
     }
     #endregion
 }

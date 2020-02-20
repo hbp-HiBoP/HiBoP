@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace HBP.UI.Module3D
 {
@@ -11,16 +8,17 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Tool to manage the Regions of Interest
         /// </summary>
-        [SerializeField]
-        private Tools.ROIManager m_ROIManager;
+        [SerializeField] private Tools.ROIManager m_ROIManager;
         /// <summary>
         /// Tool to import/export ROIs
         /// </summary>
-        [SerializeField]
-        private Tools.ROIExport m_ROIExport;
+        [SerializeField] private Tools.ROIExport m_ROIExport;
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Link elements to the toolbar
+        /// </summary>
         protected override void AddTools()
         {
             m_Tools.Add(m_ROIManager);
@@ -29,6 +27,9 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Called when showing this toolbar
+        /// </summary>
         public override void ShowToolbarCallback()
         {
             foreach (HBP.Module3D.Base3DScene scene in ApplicationState.Module3D.Scenes)
@@ -36,6 +37,9 @@ namespace HBP.UI.Module3D
                 scene.ROIManager.ROICreationMode = true;
             }
         }
+        /// <summary>
+        /// Called when hiding this toolbar
+        /// </summary>
         public override void HideToolbarCallback()
         {
             foreach (HBP.Module3D.Base3DScene scene in ApplicationState.Module3D.Scenes)

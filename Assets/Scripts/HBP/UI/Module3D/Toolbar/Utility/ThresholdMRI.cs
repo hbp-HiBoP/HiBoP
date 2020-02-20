@@ -22,29 +22,27 @@ namespace HBP.UI.Module3D
         /// Maximum Cal value
         /// </summary>
         private float m_MRICalMax = 1.0f;
-
+        /// <summary>
+        /// Textures of the histograms (one per MRI)
+        /// </summary>
         private Dictionary<MRI3D, Texture2D> m_HistogramByMRI = new Dictionary<MRI3D, Texture2D>();
 
         /// <summary>
-        /// MRI Histogram
+        /// Used to display the current histogram
         /// </summary>
-        [SerializeField]
-        private RawImage m_Histogram;
+        [SerializeField] private RawImage m_Histogram;
         /// <summary>
         /// Zone in which the handlers can move
         /// </summary>
-        [SerializeField]
-        private RectTransform m_HandlerZone;
+        [SerializeField] private RectTransform m_HandlerZone;
         /// <summary>
         /// Handler responsible for the minimum value
         /// </summary>
-        [SerializeField]
-        private ThresholdHandler m_MinHandler;
+        [SerializeField] private ThresholdHandler m_MinHandler;
         /// <summary>
         /// Handler responsible for the maximum value
         /// </summary>
-        [SerializeField]
-        private ThresholdHandler m_MaxHandler;
+        [SerializeField] private ThresholdHandler m_MaxHandler;
 
         /// <summary>
         /// Is the module initialized ?
@@ -57,53 +55,6 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
-        private void Awake()
-        {
-            m_MRIHistogram = new Texture2D(1, 1);
-
-            m_MinHandler.MinimumPosition = 0.0f;
-            m_MinHandler.MaximumPosition = 0.9f;
-            m_MaxHandler.MinimumPosition = 0.1f;
-            m_MaxHandler.MaximumPosition = 1.0f;
-
-            m_MinHandler.OnChangePosition.AddListener((deplacement) =>
-            {
-                m_MaxHandler.MinimumPosition = m_MinHandler.Position + 0.1f;
-                m_MaxHandler.ClampPosition();
-
-                m_MRICalMin = m_MinHandler.Position;
-
-                if (m_Initialized)
-                {
-                    OnChangeValues.Invoke(m_MRICalMin, m_MRICalMax);
-                }
-            });
-
-            m_MaxHandler.OnChangePosition.AddListener((deplacement) =>
-            {
-                m_MinHandler.MaximumPosition = m_MaxHandler.Position - 0.1f;
-                m_MinHandler.ClampPosition();
-
-                m_MRICalMax = m_MaxHandler.Position;
-
-                if (m_Initialized)
-                {
-                    OnChangeValues.Invoke(m_MRICalMin, m_MRICalMax);
-                }
-            });
-
-            ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
-            {
-                foreach (var mri in s.MRIManager.MRIs)
-                {
-                    if (m_HistogramByMRI.TryGetValue(mri, out Texture2D texture))
-                    {
-                        Destroy(texture);
-                        m_HistogramByMRI.Remove(mri);
-                    }
-                }
-            });
-        }
         /// <summary>
         /// Update MRI Histogram Texture
         /// </summary>
@@ -127,6 +78,52 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Initialize this module
+        /// </summary>
+        public void Initialize()
+        {
+            m_MRIHistogram = new Texture2D(1, 1);
+
+            m_MinHandler.MinimumPosition = 0.0f;
+            m_MinHandler.MaximumPosition = 0.95f;
+            m_MaxHandler.MinimumPosition = 0.05f;
+            m_MaxHandler.MaximumPosition = 1.0f;
+
+            m_MinHandler.OnChangePosition.AddListener((deplacement) =>
+            {
+                m_MaxHandler.MinimumPosition = m_MinHandler.Position + 0.05f;
+                m_MRICalMin = m_MinHandler.Position;
+
+                if (m_Initialized)
+                {
+                    OnChangeValues.Invoke(m_MRICalMin, m_MRICalMax);
+                }
+            });
+
+            m_MaxHandler.OnChangePosition.AddListener((deplacement) =>
+            {
+                m_MinHandler.MaximumPosition = m_MaxHandler.Position - 0.05f;
+                m_MRICalMax = m_MaxHandler.Position;
+
+                if (m_Initialized)
+                {
+                    OnChangeValues.Invoke(m_MRICalMin, m_MRICalMax);
+                }
+            });
+
+            ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
+            {
+                foreach (var mri in s.MRIManager.MRIs)
+                {
+                    if (m_HistogramByMRI.TryGetValue(mri, out Texture2D texture))
+                    {
+                        Destroy(texture);
+                        m_HistogramByMRI.Remove(mri);
+                    }
+                }
+            });
+        }
         /// <summary>
         /// Update Maximum and Minimum Cal value
         /// </summary>

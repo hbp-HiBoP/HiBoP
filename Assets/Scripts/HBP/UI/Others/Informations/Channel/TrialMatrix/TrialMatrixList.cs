@@ -12,8 +12,8 @@ namespace HBP.UI.TrialMatrix
     {
         #region Properties
         public Data.TrialMatrix.Group[] TrialMatrixGroups { get; private set; }
-        public GenericEvent<Vector2, data.DataStruct> OnLimitsChanged { get; set; }
-        public GenericEvent<bool, data.DataStruct> OnAutoLimitsChanged { get; set; }
+        public GenericEvent<Vector2, data.Data> OnLimitsChanged { get; set; }
+        public GenericEvent<bool, data.Data> OnAutoLimitsChanged { get; set; }
 
 
         #endregion

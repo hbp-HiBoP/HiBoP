@@ -12,46 +12,62 @@ namespace HBP.UI.Informations
         #region Properties
         [SerializeField] TrialMatrix.Grid.TrialMatrixGrid m_TrialMatrixGrid;
         data.TrialMatrixGrid m_TrialMatrixGridData;
-        Dictionary<DataStruct, Settings> m_SettingsByData;
+        Dictionary<data.TrialMatrixGrid.TrialMatrixData, Settings> m_SettingsByData;
         bool m_ShowWholeProtocolLastState;
         #endregion
 
         #region Public Methods
-        public void Display(ChannelStruct[] channelStructs, DataStruct[] dataStructs)
+        public void Display(ChannelStruct[] channelStructs, Data.Informations.Data[] dataStructs)
         {
-            DataStruct[] dataToDisplay = new DataStruct[dataStructs.Length];
+            List<data.TrialMatrixGrid.TrialMatrixData> dataToDisplay = new List<data.TrialMatrixGrid.TrialMatrixData>();
             if (ApplicationState.UserPreferences.Visualization.TrialMatrix.ShowWholeProtocol)
             {
-                for (int d = 0; d < dataStructs.Length; d++)
+                foreach (var data in dataStructs)
                 {
-                    DataStruct dataStruct = dataStructs[d];
-                    if (dataStruct is IEEGDataStruct)
+                    if (data is IEEGData)
                     {
-                        dataStruct = new IEEGDataStruct(dataStruct.Dataset, dataStruct.Data, dataStruct.Dataset.Protocol.Blocs.Select(b => new BlocStruct(b)));
+                        if (!dataToDisplay.OfType<data.TrialMatrixGrid.IEEGTrialMatrixData>().Any(d => d.Name == data.Name && d.Dataset == data.Dataset))
+                        {
+                            dataToDisplay.Add(new data.TrialMatrixGrid.IEEGTrialMatrixData(data.Dataset, data.Name, data.Dataset.Protocol.Blocs));
+                        }
                     }
-                    else if (dataStruct is CCEPDataStruct ccepDataStruct)
+                    else if (data is CCEPData ccepData)
                     {
-                        dataStruct = new CCEPDataStruct(ccepDataStruct.Dataset, ccepDataStruct.Data, ccepDataStruct.Source, ccepDataStruct.Dataset.Protocol.Blocs.Select(b => new BlocStruct(b)));
-
+                        if (!dataToDisplay.OfType<data.TrialMatrixGrid.CCEPTrialMatrixData>().Any(d => d.Name == data.Name && d.Dataset == data.Dataset && d.Source == ccepData.Source))
+                        {
+                            dataToDisplay.Add(new data.TrialMatrixGrid.CCEPTrialMatrixData(data.Dataset, data.Name, data.Dataset.Protocol.Blocs, ccepData.Source));
+                        }
                     }
-                    dataToDisplay[d] = dataStruct;
                 }
             }
             else
             {
-                for (int d = 0; d < dataStructs.Length; d++)
+                foreach (var data in dataStructs)
                 {
-                    DataStruct dataStruct = dataStructs[d];
-                    if (dataStruct is IEEGDataStruct)
+                    if (data is IEEGData)
                     {
-                        dataStruct = new IEEGDataStruct(dataStruct.Dataset, dataStruct.Data, dataStruct.Blocs.ToList());
+                        data.TrialMatrixGrid.IEEGTrialMatrixData trialMatrixData = dataToDisplay.OfType<data.TrialMatrixGrid.IEEGTrialMatrixData>().FirstOrDefault(d => d.Name == data.Name && d.Dataset == data.Dataset); 
+                        if(trialMatrixData == null)
+                        {
+                            dataToDisplay.Add(new data.TrialMatrixGrid.IEEGTrialMatrixData(data.Dataset, data.Name, new List<Data.Experience.Protocol.Bloc>() { data.Bloc }));
+                        }
+                        else
+                        {
+                            trialMatrixData.Blocs.Add(data.Bloc);
+                        }
                     }
-                    else if (dataStruct is CCEPDataStruct ccepDataStruct)
+                    else if (data is CCEPData ccepData)
                     {
-                        dataStruct = new CCEPDataStruct(ccepDataStruct.Dataset, ccepDataStruct.Data, ccepDataStruct.Source, ccepDataStruct.Blocs.ToList());
-
+                        data.TrialMatrixGrid.CCEPTrialMatrixData trialMatrixData = dataToDisplay.OfType<data.TrialMatrixGrid.CCEPTrialMatrixData>().FirstOrDefault(d => d.Name == data.Name && d.Dataset == data.Dataset && d.Source == ccepData.Source);
+                        if (trialMatrixData == null)
+                        {
+                            dataToDisplay.Add(new data.TrialMatrixGrid.CCEPTrialMatrixData(data.Dataset, data.Name,  new List<Data.Experience.Protocol.Bloc>() { data.Bloc }, ccepData.Source));
+                        }
+                        else
+                        {
+                            trialMatrixData.Blocs.Add(data.Bloc);
+                        }
                     }
-                    dataToDisplay[d] = dataStruct;
                 }
             }
             SaveSettings();
@@ -59,7 +75,7 @@ namespace HBP.UI.Informations
             {
                 m_SettingsByData.AddIfAbsent(data, new Settings());
             }
-            m_TrialMatrixGridData = new data.TrialMatrixGrid(channelStructs, dataToDisplay);
+            m_TrialMatrixGridData = new data.TrialMatrixGrid(channelStructs, dataToDisplay.ToArray());
             m_TrialMatrixGrid.gameObject.SetActive(true);
             m_TrialMatrixGrid.Display(m_TrialMatrixGridData);
             ApplySettings();
@@ -69,7 +85,7 @@ namespace HBP.UI.Informations
         #region Private Methods
         void Awake()
         {
-            m_SettingsByData = new Dictionary<DataStruct, Settings>();
+            m_SettingsByData = new Dictionary<data.TrialMatrixGrid.TrialMatrixData, Settings>();
             m_TrialMatrixGrid.gameObject.SetActive(false);
         }
         void SaveSettings()
@@ -78,7 +94,7 @@ namespace HBP.UI.Informations
             {
                 var settings = m_SettingsByData[data.GridData.DataStruct];
                 settings.UseDefaultLimit = data.UseDefaultLimits;
-                if(!settings.UseDefaultLimit)
+                if (!settings.UseDefaultLimit)
                 {
                     settings.Limits = data.Limits;
                 }
@@ -90,7 +106,7 @@ namespace HBP.UI.Informations
             foreach (var data in m_TrialMatrixGrid.Data)
             {
                 Settings settings = m_SettingsByData[data.GridData.DataStruct];
-                if(!settings.UseDefaultLimit)
+                if (!settings.UseDefaultLimit)
                 {
                     data.Limits = settings.Limits;
                 }
@@ -107,7 +123,7 @@ namespace HBP.UI.Informations
             #endregion
 
             #region Constructors
-            public Settings(): this(Vector2.zero, true)
+            public Settings() : this(Vector2.zero, true)
             {
 
             }
@@ -117,7 +133,7 @@ namespace HBP.UI.Informations
                 UseDefaultLimit = useDefaultLimits;
             }
             #endregion
-        }       
+        }
         #endregion
     }
 }

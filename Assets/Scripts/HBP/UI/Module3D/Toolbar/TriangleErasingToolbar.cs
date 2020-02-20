@@ -1,20 +1,33 @@
-﻿using HBP.UI.Module3D;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using System;
-using UnityEngine.UI;
+﻿using UnityEngine;
 
 namespace HBP.UI.Module3D
 {
     public class TriangleErasingToolbar : Toolbar
     {
         #region Properties
+        /// <summary>
+        /// Change the triangle erasing mode (triangle, area, cylinder) and the parameters
+        /// </summary>
         [SerializeField] private Tools.TriangleErasingMode m_TriangleErasingMode;
+        /// <summary>
+        /// Expand the erased area
+        /// </summary>
         [SerializeField] private Tools.ExpandErasing m_ExpandErasing;
+        /// <summary>
+        /// Invert the erased area
+        /// </summary>
         [SerializeField] private Tools.InvertErasing m_InvertErasing;
+        /// <summary>
+        /// Cancel the last erasing action
+        /// </summary>
         [SerializeField] private Tools.CancelErasing m_CancelErasing;
+        /// <summary>
+        /// Reset the erasing area
+        /// </summary>
         [SerializeField] private Tools.ResetErasing m_ResetErasing;
+        /// <summary>
+        /// Allows to save and load triangle erasing masks
+        /// </summary>
         [SerializeField] private Tools.TriangleErasingLoaderSaver m_TriangleErasingLoaderSaver;
         #endregion
 
@@ -31,6 +44,9 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_ResetErasing);
             m_Tools.Add(m_TriangleErasingLoaderSaver);
         }
+        /// <summary>
+        /// Called when showing this toolbar
+        /// </summary>
         public override void ShowToolbarCallback()
         {
             foreach (HBP.Module3D.Base3DScene scene in ApplicationState.Module3D.Scenes)
@@ -38,6 +54,9 @@ namespace HBP.UI.Module3D
                 scene.TriangleEraser.IsEnabled = true;
             }
         }
+        /// <summary>
+        /// Called when hiding this toolbar
+        /// </summary>
         public override void HideToolbarCallback()
         {
             foreach (HBP.Module3D.Base3DScene scene in ApplicationState.Module3D.Scenes)

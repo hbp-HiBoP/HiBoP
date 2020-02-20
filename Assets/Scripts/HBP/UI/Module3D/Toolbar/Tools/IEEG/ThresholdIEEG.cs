@@ -7,14 +7,28 @@ namespace HBP.UI.Module3D.Tools
     public class ThresholdIEEG : Tool
     {
         #region Properties
+        /// <summary>
+        /// Button to open the threshold iEEG panel
+        /// </summary>
         [SerializeField] private Button m_Button;
+        /// <summary>
+        /// Button to set the values automatically
+        /// </summary>
         [SerializeField] private Button m_Auto;
+        /// <summary>
+        /// Module to handle the threshold iEEG
+        /// </summary>
         [SerializeField] private Module3D.ThresholdIEEG m_ThresholdIEEG;
-        
+        /// <summary>
+        /// Are the changes applied to all columns ?
+        /// </summary>
         public bool IsGlobal { get; set; }
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Initialize the toolbar
+        /// </summary>
         public override void Initialize()
         {
             m_ThresholdIEEG.Initialize();
@@ -38,12 +52,16 @@ namespace HBP.UI.Module3D.Tools
                 }
             });
         }
-
+        /// <summary>
+        /// Set the default state of this tool
+        /// </summary>
         public override void DefaultState()
         {
             m_Button.interactable = false;
         }
-
+        /// <summary>
+        /// Update the interactable state of the tool
+        /// </summary>
         public override void UpdateInteractable()
         {
             bool isColumnIEEG = SelectedColumn is Column3DIEEG;
@@ -51,7 +69,9 @@ namespace HBP.UI.Module3D.Tools
 
             m_Button.interactable = isColumnIEEG || isColumnCCEPAndSourceSelected;
         }
-
+        /// <summary>
+        /// Update the status of the tool
+        /// </summary>
         public override void UpdateStatus()
         {
             if (SelectedColumn is Column3DDynamic dynamicColumn)

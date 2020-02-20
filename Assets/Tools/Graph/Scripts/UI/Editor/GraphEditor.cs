@@ -18,6 +18,9 @@ namespace Tools.Unity.Graph
         SerializedProperty m_AbscissaLabel;
         SerializedProperty m_AbscissaDisplayRange;
         SerializedProperty m_DefaultAbscissaDisplayRange;
+        SerializedProperty m_DisplayCurrentTime;
+        SerializedProperty m_CurrentTime;
+
 
         // Ordinate
         SerializedProperty m_OrdinateUnit;
@@ -40,6 +43,8 @@ namespace Tools.Unity.Graph
         SerializedProperty m_OnChangeOrdinateDisplayRange;
         SerializedProperty m_OnChangeAbscissaDisplayRange;
         SerializedProperty m_OnChangeUseDefaultRange;
+        SerializedProperty m_OnChangeDisplayCurrentTime;
+        SerializedProperty m_OnChangeCurrentTime;
         SerializedProperty m_OnChangeCurves;
         #endregion
 
@@ -59,6 +64,8 @@ namespace Tools.Unity.Graph
             m_DefaultOrdinateDisplayRange = serializedObject.FindProperty("m_DefaultOrdinateDisplayRange");
             m_DefaultAbscissaDisplayRange = serializedObject.FindProperty("m_DefaultAbscissaDisplayRange");
             m_UseDefaultDisplayRange = serializedObject.FindProperty("m_UseDefaultDisplayRange");
+            m_DisplayCurrentTime = serializedObject.FindProperty("m_DisplayCurrentTime");
+            m_CurrentTime = serializedObject.FindProperty("m_CurrentTime");
             m_Curves = serializedObject.FindProperty("m_Curves");
 
             // Events
@@ -72,6 +79,8 @@ namespace Tools.Unity.Graph
             m_OnChangeAbscissaDisplayRange = serializedObject.FindProperty("m_OnChangeAbscissaDisplayRange");
             m_OnChangeOrdinateDisplayRange = serializedObject.FindProperty("m_OnChangeOrdinateDisplayRange");
             m_OnChangeUseDefaultRange = serializedObject.FindProperty("m_OnChangeUseDefaultRange");
+            m_OnChangeDisplayCurrentTime = serializedObject.FindProperty("m_OnChangeDisplayCurrentTime");
+            m_OnChangeCurrentTime = serializedObject.FindProperty("m_OnChangeCurrentTime");
             m_OnChangeCurves = serializedObject.FindProperty("m_OnChangeCurves");
         }
         public override void OnInspectorGUI()
@@ -83,6 +92,8 @@ namespace Tools.Unity.Graph
             EditorGUILayout.PropertyField(m_FontColor);
             EditorGUILayout.PropertyField(m_BackgroundColor);
             EditorGUILayout.PropertyField(m_UseDefaultDisplayRange);
+            EditorGUILayout.PropertyField(m_DisplayCurrentTime);
+            EditorGUILayout.PropertyField(m_CurrentTime);
             EditorGUI.indentLevel--;
 
             EditorGUILayout.PrefixLabel("Abscissa");
@@ -117,6 +128,8 @@ namespace Tools.Unity.Graph
                 EditorGUILayout.PropertyField(m_OnChangeAbscissaDisplayRange);
                 EditorGUILayout.PropertyField(m_OnChangeOrdinateDisplayRange);
                 EditorGUILayout.PropertyField(m_OnChangeUseDefaultRange);
+                EditorGUILayout.PropertyField(m_OnChangeDisplayCurrentTime);
+                EditorGUILayout.PropertyField(m_OnChangeCurrentTime);
                 EditorGUILayout.PropertyField(m_OnChangeCurves);
             }
 

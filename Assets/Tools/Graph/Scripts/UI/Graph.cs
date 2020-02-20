@@ -203,6 +203,39 @@ namespace Tools.Unity.Graph
             }
         }
 
+
+        [SerializeField] private bool m_DisplayCurrentTime;
+        public bool DisplayCurrentTime
+        {
+            get
+            {
+                return m_DisplayCurrentTime;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_DisplayCurrentTime, value))
+                {
+                    SetCurrentTime();
+                }
+            }
+        }
+
+        [SerializeField] private float m_CurrentTime;
+        public float CurrentTime
+        {
+            get
+            {
+                return m_CurrentTime;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_CurrentTime, value))
+                {
+                    SetCurrentTime();
+                }
+            }
+        }
+
         [SerializeField] List<Curve> m_Curves = new List<Curve>();
         public ReadOnlyCollection<Curve> Curves
         {
@@ -300,6 +333,24 @@ namespace Tools.Unity.Graph
             get
             {
                 return m_OnChangeUseDefaultRange;
+            }
+        }
+
+        [SerializeField] private BoolEvent m_OnChangeDisplayCurrentTime;
+        public BoolEvent OnChangeDisplayCurrentTime
+        {
+            get
+            {
+                return m_OnChangeDisplayCurrentTime;
+            }
+        }
+
+        [SerializeField]  private FloatEvent m_OnChangeCurrentTime;
+        public FloatEvent OnChangeCurrentTime
+        {
+            get
+            {
+                return m_OnChangeCurrentTime;
             }
         }
 
@@ -664,6 +715,15 @@ namespace Tools.Unity.Graph
                 OrdinateDisplayRange = DefaultOrdinateDisplayRange;
             }
             m_OnChangeUseDefaultRange.Invoke(m_UseDefaultDisplayRange);
+        }
+        void SetCurrentTime()
+        {
+            OnChangeCurrentTime.Invoke(m_CurrentTime);
+        }
+
+        void SetDisplayCurrentTime()
+        {
+            OnChangeDisplayCurrentTime.Invoke(m_DisplayCurrentTime);
         }
         void SetCurves()
         {

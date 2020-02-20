@@ -24,7 +24,7 @@ namespace HBP.Data.Experience.Protocol
     */
     [DataContract]
     public class Bloc : BaseData, INameable
-	{
+    {
         #region Properties
         public enum SortingMethodError { NoError, NoSortingConditionFound, InvalidNumberOfElements, SubBlocNotFound, EventNotFound, InvalidCommand }
         /// <summary>
@@ -39,7 +39,8 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// Path of the bloc illustration.
         /// </summary>
-        [IgnoreDataMember] public string IllustrationPath
+        [IgnoreDataMember]
+        public string IllustrationPath
         {
             get
             {
@@ -58,7 +59,7 @@ namespace HBP.Data.Experience.Protocol
         {
             get
             {
-                if(m_NeedToReload || m_Image != null)
+                if (m_NeedToReload || m_Image != null)
                 {
                     if (SpriteExtension.LoadSpriteFromFile(out Sprite sprite, IllustrationPath)) m_Image = sprite;
                 }
@@ -141,12 +142,12 @@ namespace HBP.Data.Experience.Protocol
         /// Create a new bloc instance at a position with default values.
         /// </summary>
         public Bloc(int order) : this("New bloc", order, string.Empty, string.Empty, new List<SubBloc>())
-		{
-		}
+        {
+        }
         /// <summary>
         /// Create a new blocs instance with default values.
         /// </summary>
-        public Bloc() : this (0)
+        public Bloc() : this(0)
         {
 
         }
@@ -237,9 +238,9 @@ namespace HBP.Data.Experience.Protocol
             }
             return before + 1 + after;
         }
-        public static Tuple<SubBloc[], Window>[] GetSubBlocsAndWindowByColumn(IEnumerable<Bloc> blocs)
+        public static Tuple<Tuple<Bloc,SubBloc>[], Window>[] GetSubBlocsAndWindowByColumn(IEnumerable<Bloc> blocs)
         {
-            List<Tuple<int, List<SubBloc>>> subBlocsByColumns = new List<Tuple<int, List<SubBloc>>>();
+            List<Tuple<int, List<Tuple<Bloc, SubBloc>>>> subBlocsByColumns = new List<Tuple<int, List<Tuple<Bloc, SubBloc>>>>();
             foreach (var bloc in blocs)
             {
                 int mainSubBlocPosition = bloc.MainSubBlocPosition;
@@ -247,17 +248,17 @@ namespace HBP.Data.Experience.Protocol
                 for (int i = 0; i < orderedSubBlocs.Length; i++)
                 {
                     int column = i - mainSubBlocPosition;
-                    if (!subBlocsByColumns.Any(t => t.Item1 == column)) subBlocsByColumns.Add(new Tuple<int, List<SubBloc>>(column, new List<SubBloc>()));
-                    subBlocsByColumns.Find(t => t.Item1 == column).Item2.Add(orderedSubBlocs[i]);
+                    if (!subBlocsByColumns.Any(t => t.Item1 == column)) subBlocsByColumns.Add(new Tuple<int, List<Tuple<Bloc, SubBloc>>>(column, new List<Tuple<Bloc, SubBloc>>()));
+                    subBlocsByColumns.Find(t => t.Item1 == column).Item2.Add(new Tuple<Bloc, SubBloc>(bloc, orderedSubBlocs[i]));
                 }
             }
             subBlocsByColumns = subBlocsByColumns.OrderBy(t => t.Item1).ToList();
 
-            List<Tuple<SubBloc[], Tools.CSharp.Window>> timeLimitsByColumns = new List<Tuple<SubBloc[], Window>>();
+            List<Tuple<Tuple<Bloc,SubBloc>[], Window>> timeLimitsByColumns = new List<Tuple<Tuple<Bloc,SubBloc>[], Window>>();
             foreach (var tuple in subBlocsByColumns)
             {
-                Window window = new Window(tuple.Item2.Min(s => s.Window.Start), tuple.Item2.Max(s => s.Window.End));
-                timeLimitsByColumns.Add(new Tuple<SubBloc[], Window>(tuple.Item2.ToArray(), window));
+                Window window = new Window(tuple.Item2.Min(s => s.Item2.Window.Start), tuple.Item2.Max(s => s.Item2.Window.End));
+                timeLimitsByColumns.Add(new Tuple<Tuple<Bloc,SubBloc>[], Window>(tuple.Item2.ToArray(), window));
             }
             return timeLimitsByColumns.ToArray();
         }
@@ -271,7 +272,7 @@ namespace HBP.Data.Experience.Protocol
         public override void Copy(object obj)
         {
             base.Copy(obj);
-            if(obj is Bloc bloc)
+            if (obj is Bloc bloc)
             {
                 Name = bloc.Name;
                 Order = bloc.Order;

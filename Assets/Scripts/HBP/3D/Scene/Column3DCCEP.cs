@@ -35,25 +35,46 @@ namespace HBP.Module3D
             }
         }
 
+        public enum CCEPMode { Site, MarsAtlas }
+        private CCEPMode m_Mode = CCEPMode.Site;
+        /// <summary>
+        /// Current mode of CCEP
+        /// </summary>
+        public CCEPMode Mode
+        {
+            get
+            {
+                return m_Mode;
+            }
+            set
+            {
+                m_Mode = value;
+                m_SelectedSiteSource = null;
+                m_SelectedSourceMarsAtlasLabel = -1;
+                OnSelectSource.Invoke();
+                SetActivityData();
+            }
+        }
+
         /// <summary>
         /// List of all possible sources for this column
         /// </summary>
         public List<Site> Sources { get; private set; } = new List<Site>();
-        private Site m_SelectedSource = null;
+        private Site m_SelectedSiteSource = null;
         /// <summary>
-        /// Currently selected source
+        /// Currently selected source site
         /// </summary>
-        public Site SelectedSource
+        public Site SelectedSourceSite
         {
             get
             {
-                return m_SelectedSource;
+                return m_SelectedSiteSource;
             }
             set
             {
-                if (m_SelectedSource != value)
+                if (m_SelectedSiteSource != value)
                 {
-                    m_SelectedSource = value;
+                    m_SelectedSiteSource = value;
                     OnSelectSource.Invoke();
                     SetActivityData();
                 }
@@ -62,11 +83,57 @@ namespace HBP.Module3D
         /// <summary>
         /// Is a source selected in this column ?
         /// </summary>
+        public bool IsSourceSiteSelected
+        {
+            get
+            {
+                return m_SelectedSiteSource != null;
+            }
+        }
+
+        private int m_SelectedSourceMarsAtlasLabel = -1;
+        /// <summary>
+        /// Currently selected source area
+        /// </summary>
+        public int SelectedSourceMarsAtlasLabel
+        {
+            get
+            {
+                return m_SelectedSourceMarsAtlasLabel;
+            }
+            set
+            {
+                if (m_SelectedSourceMarsAtlasLabel != value)
+                {
+                    m_SelectedSourceMarsAtlasLabel = value;
+                    OnSelectSource.Invoke();
+                    SetActivityData();
+                }
+            }
+        }
+        /// <summary>
+        /// Is a source area selected in this column ?
+        /// </summary>
+        public bool IsSourceMarsAtlasLabelSelected
+        {
+            get
+            {
+                return m_SelectedSourceMarsAtlasLabel != -1;
+            }
+        }
+        /// <summary>
+        /// Mask for the mars atlas areas
+        /// </summary>
+        public int[] AreaMask { get; private set; }
+
+        /// <summary>
+        /// Is a source selected ? (site or area)
+        /// </summary>
         public bool IsSourceSelected
         {
             get
             {
-                return m_SelectedSource != null;
+                return IsSourceSiteSelected || IsSourceMarsAtlasLabelSelected;
             }
         }
 
@@ -86,23 +153,18 @@ namespace HBP.Module3D
         /// </summary>
         public UnityEvent OnSelectSource = new UnityEvent();
         #endregion
-
+        
         #region Private Methods
-        protected override void Update()
-        {
-            //if (Input.GetKeyDown(KeyCode.A)) SelectedSource = SelectedSite;
-            base.Update();
-        }
         /// <summary>
         /// Set activity data for each site
         /// </summary>
         protected override void SetActivityData()
         {
             if (ColumnCCEPData == null) return;
-            
+
+            // Reset values
             int timelineLength = Timeline.Length;
             int sitesCount = Sites.Count;
-            // Construct sites value array the old way, and set sites masks // maybe FIXME
             ActivityValuesBySiteID = new float[sitesCount][];
             for (int i = 0; i < sitesCount; i++)
             {
@@ -111,23 +173,46 @@ namespace HBP.Module3D
             ActivityUnitsBySiteID = new string[sitesCount];
             Latencies = new float[sitesCount];
             Amplitudes = new float[sitesCount];
-            int numberOfSitesWithValues = 0;
 
-            if (!IsSourceSelected)
+            if (IsSourceSiteSelected)
+            {
+                SetActivityDataSourceSite();
+            }
+            else if (IsSourceMarsAtlasLabelSelected)
+            {
+                SetActivityDataSourceArea();
+            }
+            else
             {
                 foreach (var site in Sites)
                 {
-                    site.State.IsMasked = false;// !ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.ContainsKey(site.Information.FullCorrectedID);
+                    site.State.IsMasked = false;
                 }
-                return;
             }
+        }
+        /// <summary>
+        /// Update sites sizes and colors arrays depending on the activity (to be called before the rendering update)
+        /// </summary>
+        /// <param name="showAllSites">Display sites that are not in a ROI</param>
+        protected override void UpdateSitesSizeAndColorOfSites(bool showAllSites)
+        {
+            if (IsSourceSelected)
+            {
+                base.UpdateSitesSizeAndColorOfSites(showAllSites);
+            }
+        }
+        private void SetActivityDataSourceSite()
+        {
+            int timelineLength = Timeline.Length;
+            int sitesCount = Sites.Count;
 
             // Retrieve values
-            if (!ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullID, out Dictionary<string, float[]> processedValuesByChannel)) return;
-            if (!ColumnCCEPData.Data.UnityByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullID, out Dictionary<string, string> unitByChannel)) return;
-            if (!ColumnCCEPData.Data.DataByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullID, out Dictionary<string, Data.Experience.Dataset.BlocChannelData> dataByChannel)) return;
-            if (!ColumnCCEPData.Data.StatisticsByChannelIDByStimulatedChannelID.TryGetValue(SelectedSource.Information.FullID, out Dictionary<string, Data.Experience.Dataset.BlocChannelStatistics> statisticsByChannel)) return;
+            if (!ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.TryGetValue(SelectedSourceSite.Information.FullID, out Dictionary<string, float[]> processedValuesByChannel)) return;
+            if (!ColumnCCEPData.Data.UnityByChannelIDByStimulatedChannelID.TryGetValue(SelectedSourceSite.Information.FullID, out Dictionary<string, string> unitByChannel)) return;
+            if (!ColumnCCEPData.Data.DataByChannelIDByStimulatedChannelID.TryGetValue(SelectedSourceSite.Information.FullID, out Dictionary<string, Data.Experience.Dataset.BlocChannelData> dataByChannel)) return;
+            if (!ColumnCCEPData.Data.StatisticsByChannelIDByStimulatedChannelID.TryGetValue(SelectedSourceSite.Information.FullID, out Dictionary<string, Data.Experience.Dataset.BlocChannelStatistics> statisticsByChannel)) return;
 
+            int numberOfSitesWithValues = 0;
             foreach (Site site in Sites)
             {
                 if (processedValuesByChannel.TryGetValue(site.Information.FullID, out float[] values))
@@ -166,12 +251,13 @@ namespace HBP.Module3D
                     site.Statistics = blocChannelStatistics;
                     Data.Experience.Dataset.ChannelSubTrialStat trial = blocChannelStatistics.Trial.ChannelSubTrialBySubBloc[ColumnCCEPData.Bloc.MainSubBloc];
                     SubTimeline mainSubTimeline = Timeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc];
-                    for (int i = mainSubTimeline.StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedIndexFromStart + 2; i < mainSubTimeline.Length - 2; i++)
+                    int mainEventIndex = mainSubTimeline.Frequency.ConvertToFlooredNumberOfSamples(mainSubTimeline.StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedTimeFromStart);
+                    for (int i = mainEventIndex + 2; i < mainSubTimeline.Length - 2; i++)
                     {
                         if (trial.Values[i - 1] > trial.Values[i - 2] && trial.Values[i] > trial.Values[i - 1] && trial.Values[i] > trial.Values[i + 1] && trial.Values[i + 1] > trial.Values[i + 2]) // Maybe FIXME: method to compute amplitude and latency
                         {
                             Amplitudes[site.Information.Index] = trial.Values[i];
-                            Latencies[site.Information.Index] = mainSubTimeline.Frequency.ConvertNumberOfSamplesToMilliseconds(i - mainSubTimeline.StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedIndexFromStart);
+                            Latencies[site.Information.Index] = mainSubTimeline.Frequency.ConvertNumberOfSamplesToMilliseconds(i - mainEventIndex);
                             break;
                         }
                     }
@@ -211,16 +297,154 @@ namespace HBP.Module3D
                 }
             }
             ActivityValuesOfUnmaskedSites = iEEGNotMasked.ToArray();
+            DynamicParameters.ResetSpanValues(this);
         }
-        /// <summary>
-        /// Update sites sizes and colors arrays depending on the activity (to be called before the rendering update)
-        /// </summary>
-        /// <param name="showAllSites">Display sites that are not in a ROI</param>
-        protected override void UpdateSitesSizeAndColorOfSites(bool showAllSites)
+        private void SetActivityDataSourceArea()
         {
-            if (IsSourceSelected)
+            int timelineLength = Timeline.Length;
+            int sitesCount = Sites.Count;
+
+            foreach (var site in Sites)
             {
-                base.UpdateSitesSizeAndColorOfSites(showAllSites);
+                site.State.IsMasked = true;
+            }
+
+            Data.StringTag marsAtlasTag = ApplicationState.ProjectLoaded.Preferences.Tags.FirstOrDefault(t => t.Name == "MarsAtlas") as Data.StringTag;
+            if (marsAtlasTag == null)
+                throw new System.Exception("MarsAtlas tag has not been found !");
+
+            int[] marsAtlasLabels = ApplicationState.Module3D.MarsAtlas.Labels();
+
+            // Sort sites by mars atlas label
+            Dictionary<int, List<Site>> sitesByMarsAtlasLabel = new Dictionary<int, List<Site>>();
+            List<Data.StringTagValue> marsAtlasTagValues = Sites.Select(s => s.Information.SiteData.Tags.FirstOrDefault(t => t.Tag == marsAtlasTag) as Data.StringTagValue).ToList(); // FIXME: try perf with linq
+            foreach (var label in marsAtlasLabels)
+            {
+                string labelName = string.Format("{0}_{1}", ApplicationState.Module3D.MarsAtlas.Hemisphere(label), ApplicationState.Module3D.MarsAtlas.Name(label));
+                List<Site> sitesOfLabel = new List<Site>();
+                for (int i = 0; i < sitesCount; i++)
+                {
+                    Data.StringTagValue marsAtlasTagValue = marsAtlasTagValues[i];
+                    if (marsAtlasTagValue != null && marsAtlasTagValue.Value == labelName)
+                    {
+                        sitesOfLabel.Add(Sites[i]);
+                    }
+                }
+                sitesByMarsAtlasLabel.Add(label, sitesOfLabel);
+            }
+
+            // Get all values when sites are in the selected source area
+            bool[] sitesMask = new bool[sitesCount];
+            for (int i = 0; i < sitesCount; i++)
+            {
+                sitesMask[i] = true;
+            }
+            List<Site> sitesInSelectedSourceArea = sitesByMarsAtlasLabel[m_SelectedSourceMarsAtlasLabel];
+            Dictionary<int, List<float[]>> valuesByMarsAtlasArea = new Dictionary<int, List<float[]>>();
+            Dictionary<int, bool> maskByMarsAtlasArea = new Dictionary<int, bool>();
+            foreach (var label in marsAtlasLabels)
+            {
+                valuesByMarsAtlasArea.Add(label, new List<float[]>());
+            }
+            foreach (var sourceSite in sitesInSelectedSourceArea)
+            {
+                // Retrieve values
+                if (!ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.TryGetValue(sourceSite.Information.FullID, out Dictionary<string, float[]> processedValuesByChannel)) continue;
+
+                foreach (var label in marsAtlasLabels)
+                {
+                    List<float[]> valuesOfMarsAtlasArea = new List<float[]>();
+                    if (label != m_SelectedSourceMarsAtlasLabel)
+                    {
+                        foreach (var site in sitesByMarsAtlasLabel[label])
+                        {
+                            if (processedValuesByChannel.TryGetValue(site.Information.FullID, out float[] values))
+                            {
+                                if (values.Length > 0)
+                                {
+                                    valuesOfMarsAtlasArea.Add(values);
+                                    sitesMask[site.Information.Index] = false;
+                                }
+                            }
+                        }
+                    }
+                    valuesByMarsAtlasArea[label].AddRange(valuesOfMarsAtlasArea);
+                }
+            }
+            foreach (var label in marsAtlasLabels)
+            {
+                maskByMarsAtlasArea.Add(label, valuesByMarsAtlasArea[label].Count == 0);
+            }
+
+            // Compute means, construct array of values and set mask
+            Dictionary<int, float[]> activityByMarsAtlasArea = new Dictionary<int, float[]>();
+            foreach (var label in marsAtlasLabels)
+            {
+                float[] result = new float[timelineLength];
+                List<float[]> values = valuesByMarsAtlasArea[label];
+                for (int i = 0; i < timelineLength; i++)
+                {
+                    result[i] = 0;
+                    for (int j = 0; j < values.Count; j++)
+                    {
+                        result[i] += values[j][i];
+                    }
+                    if (values.Count != 0)
+                        result[i] /= values.Count;
+                }
+                activityByMarsAtlasArea.Add(label, result);
+            }
+            DynamicParameters.MinimumAmplitude = float.MaxValue;
+            DynamicParameters.MaximumAmplitude = float.MinValue;
+            int highestLabel = marsAtlasLabels.Max();
+            ActivityValues = new float[timelineLength * (highestLabel + 1)];
+            AreaMask = new int[highestLabel + 1];
+            List<float> unmaskedActivity = new List<float>();
+            foreach(var label in marsAtlasLabels)
+            {
+                float[] activityOfArea = activityByMarsAtlasArea[label];
+                bool isMasked = maskByMarsAtlasArea[label];
+                AreaMask[label] = isMasked ? 1 : 0;
+                for (int t = 0; t < timelineLength; ++t)
+                {
+                    float val = activityOfArea[t];
+                    ActivityValues[label * timelineLength + t] = val;
+                    if (!isMasked)
+                    {
+                        unmaskedActivity.Add(val);
+                        if (val > DynamicParameters.MaximumAmplitude)
+                            DynamicParameters.MaximumAmplitude = val;
+                        else if (val < DynamicParameters.MinimumAmplitude)
+                            DynamicParameters.MinimumAmplitude = val;
+                    }
+                }
+            }
+            ActivityValuesOfUnmaskedSites = unmaskedActivity.ToArray();
+            DynamicParameters.ResetSpanValues(this);
+
+            // Set value by site ID
+            int mainEventIndex = Timeline.Frequency.ConvertToFlooredNumberOfSamples(Timeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc].StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedTimeFromStart);
+            int subTimelineLength = Timeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc].Length;
+            foreach (var kv in sitesByMarsAtlasLabel)
+            {
+                float[] areaActivity = activityByMarsAtlasArea[kv.Key];
+                float amplitude = 0, latency = 0;
+                for (int i = mainEventIndex + 2; i < subTimelineLength; i++)
+                {
+                    if (areaActivity[i - 1] > areaActivity[i - 2] && areaActivity[i] > areaActivity[i - 1] && areaActivity[i] > areaActivity[i + 1] && areaActivity[i + 1] > areaActivity[i + 2]) // Maybe FIXME: method to compute amplitude and latency
+                    {
+                        amplitude = areaActivity[i];
+                        latency = Timeline.Frequency.ConvertNumberOfSamplesToMilliseconds(i - mainEventIndex);
+                        break;
+                    }
+                }
+                foreach (var site in kv.Value)
+                {
+                    ActivityValuesBySiteID[site.Information.Index] = areaActivity;
+                    Amplitudes[site.Information.Index] = amplitude;
+                    Latencies[site.Information.Index] = latency;
+                    site.State.IsMasked = sitesMask[site.Information.Index];
+                }
             }
         }
         #endregion

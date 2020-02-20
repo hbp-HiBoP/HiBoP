@@ -11,12 +11,15 @@ namespace HBP.UI
         [SerializeField] GameObject[] m_Windows;
         public RectTransform Container;
         public WindowsReferencer WindowsReferencer;
+        public Dictionary<Type, Vector2> SizeDeltaByWindow = new Dictionary<Type, Vector2>();
+        public Vector2 Offset;
         #endregion
 
         #region Private Methods
         private void Awake()
         {
             m_Windows = Resources.LoadAll<GameObject>("Prefabs/UI/Windows/");
+            WindowsReferencer.OnCloseWindow.AddListener(OnCloseWindow);
         }
         public Window Open(string name, bool interactable = true)
         {
@@ -57,7 +60,7 @@ namespace HBP.UI
             {
                 selector = CreateWindow(prefab, interactable) as ObjectSelector<T>;
                 selector.Objects = objects.ToArray();
-                if(multiSelection) selector.Selection = ObjectSelector<T>.SelectionType.Multi;
+                if (multiSelection) selector.Selection = ObjectSelector<T>.SelectionType.Multi;
                 else selector.Selection = ObjectSelector<T>.SelectionType.Single;
                 selector.OpenModifiers = openModifiers;
             }
@@ -70,8 +73,33 @@ namespace HBP.UI
         {
             GameObject gameObject = Instantiate(prefab, Container);
             RectTransform rectTransform = gameObject.transform as RectTransform;
-            gameObject.transform.localPosition = (rectTransform.pivot - new Vector2(0.5f, 0.5f)) * rectTransform.rect.size;
+            rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+
             var window = gameObject.GetComponent<Window>();
+            Window existingWindow = WindowsReferencer.Windows.FirstOrDefault(w => w.GetType() == window.GetType());
+            if (existingWindow != null)
+            {
+                rectTransform.sizeDelta = existingWindow.GetComponent<RectTransform>().sizeDelta;
+            }
+            else
+            {
+                if(SizeDeltaByWindow.TryGetValue(window.GetType(), out Vector2 sizeDelta))
+                {
+                    rectTransform.sizeDelta = sizeDelta;
+                }
+            }
+
+            Window selectedWindow = WindowsReferencer.Windows.FirstOrDefault(w => w.GetComponent<Selector>().Selected);
+            if (selectedWindow != null)
+            {
+                if (selectedWindow is CreatorWindow) rectTransform.anchoredPosition = selectedWindow.GetComponent<RectTransform>().anchoredPosition;
+                else rectTransform.anchoredPosition = selectedWindow.GetComponent<RectTransform>().anchoredPosition + Offset;
+            }
+            else
+            {
+                rectTransform.anchoredPosition = (rectTransform.pivot - new Vector2(0.5f, 0.5f)) * rectTransform.sizeDelta;
+            }
             window.Interactable = interactable;
             WindowsReferencer.Add(window);
             return window;
@@ -83,6 +111,11 @@ namespace HBP.UI
         GameObject GetWindowPrefab(Type type)
         {
             return m_Windows.FirstOrDefault(g => g.GetComponent(type) != null);
+        }
+
+        void OnCloseWindow(Window window)
+        {
+            SizeDeltaByWindow[window.GetType()] = window.GetComponent<RectTransform>().sizeDelta;
         }
         #endregion
     }

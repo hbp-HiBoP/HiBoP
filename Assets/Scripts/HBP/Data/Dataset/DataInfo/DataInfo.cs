@@ -123,9 +123,27 @@ namespace HBP.Data.Experience.Dataset
             {
                 for (int i = 0; i < errors.Length - 1; i++)
                 {
-                    stringBuilder.AppendLine(string.Format("• {0}", errors[i].Message));
+                    if(errors[i].Message != "")
+                    {
+                        stringBuilder.AppendLine(string.Format("• {0}({1})", errors[i].Title, errors[i].Message));
+
+                    }
+                    else
+                    {
+                        stringBuilder.AppendLine(string.Format("• {0}", errors[i].Title));
+
+                    }
                 }
-                stringBuilder.Append(string.Format("• {0}", errors.Last().Message));
+                if (errors.Last().Message != "")
+                {
+                    stringBuilder.Append(string.Format("• {0}({1})", errors.Last().Title, errors.Last().Message));
+
+                }
+                else
+                {
+                    stringBuilder.Append(string.Format("• {0}", errors.Last().Title));
+
+                }
             }
             return stringBuilder.ToString();
         }
