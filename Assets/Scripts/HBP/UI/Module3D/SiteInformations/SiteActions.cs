@@ -273,8 +273,8 @@ namespace HBP.UI.Module3D
             System.Text.StringBuilder csvBuilder = new System.Text.StringBuilder();
             string tagsString = "";
             IEnumerable<Data.BaseTag> tags = ApplicationState.ProjectLoaded.Preferences.GeneralTags.Concat(ApplicationState.ProjectLoaded.Preferences.SitesTags);
-            if (tags.Count() > 0) tagsString = string.Format("\t{0}", string.Join("\t", tags.Select(t => t.Name)));
-            csvBuilder.AppendLine("Site\tPatient\tPlace\tDate\tX,Y\tZ\tCoordSystem\tLabels\tDataType\tDataFiles" + tagsString);
+            if (tags.Count() > 0) tagsString = string.Format(",{0}", string.Join(",", tags.Select(t => !t.Name.Contains(",") ? t.Name : string.Format("\"{0}\"", t.Name))));
+            csvBuilder.AppendLine("Site,Patient,Place,Date,X,Y,Z,CoordSystem,Labels,DataType,DataFiles" + tagsString);
 
             // Prepare sites positions for performance increase
             yield return Ninja.JumpToUnity;
@@ -326,13 +326,21 @@ namespace HBP.UI.Module3D
                     System.Text.StringBuilder tagValuesStringBuilder = new System.Text.StringBuilder();
                     foreach (var tagValue in tagValues)
                     {
-                        tagValuesStringBuilder.Append("\t");
-                        if (tagValue != null) tagValuesStringBuilder.Append(tagValue.DisplayableValue);
+                        tagValuesStringBuilder.Append(",");
+                        if (tagValue != null)
+                        {
+                            string value = tagValue.DisplayableValue;
+                            if (value.Contains(","))
+                            {
+                                value = string.Format("\"{0}\"", value);
+                            }
+                            tagValuesStringBuilder.Append(value);
+                        }
                     }
                     tagValuesString = tagValuesStringBuilder.ToString();
                 }
                 // Write in string builder
-                csvBuilder.AppendLine(string.Format("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}{11}",
+                csvBuilder.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}{11}",
                         site.Information.Name,
                         site.Information.Patient.Name,
                         site.Information.Patient.Place,
