@@ -6,27 +6,27 @@ namespace UnityEngine.UI
     {
         private float m_Width = 0;
         private RectTransform m_ListRectTransform = null;
-        private List<DropdownItem> m_Items = new List<DropdownItem>();
+        private List<DropdownItem> m_ItemsList = new List<DropdownItem>();
 
         protected override GameObject CreateDropdownList(GameObject template)
         {
             GameObject list = base.CreateDropdownList(template);
             m_ListRectTransform = list.GetComponent<RectTransform>();
             m_Width = GetComponent<RectTransform>().rect.width;
-            m_Items.Clear();
+            m_ItemsList.Clear();
             return list;
         }
         protected override DropdownItem CreateItem(DropdownItem itemTemplate)
         {
             DropdownItem item = base.CreateItem(itemTemplate);
-            m_Items.Add(item);
+            m_ItemsList.Add(item);
             return item;
         }
         private void Update()
         {
             if (m_ListRectTransform)
             {
-                foreach (var item in m_Items)
+                foreach (var item in m_ItemsList)
                 {
                     m_Width = Mathf.Max(item.text.preferredWidth, m_Width);
                 }

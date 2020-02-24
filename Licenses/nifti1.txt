@@ -1,0 +1,81 @@
+/*****************************************************************************
+      ** This file defines the "NIFTI-1" header format.               **
+      ** It is derived from 2 meetings at the NIH (31 Mar 2003 and    **
+      ** 02 Sep 2003) of the Data Format Working Group (DFWG),        **
+      ** chartered by the NIfTI (Neuroimaging Informatics Technology  **
+      ** Initiative) at the National Institutes of Health (NIH).      **
+      **--------------------------------------------------------------**
+      ** Neither the National Institutes of Health (NIH), the DFWG,   **
+      ** nor any of the members or employees of these institutions    **
+      ** imply any warranty of usefulness of this material for any    **
+      ** purpose, and do not assume any liability for damages,        **
+      ** incidental or otherwise, caused by any use of this document. **
+      ** If these conditions are not acceptable, do not use this!     **
+      **--------------------------------------------------------------**
+      ** Author:   Robert W Cox (NIMH, Bethesda)                      **
+      ** Advisors: John Ashburner (FIL, London),                      **
+      **           Stephen Smith (FMRIB, Oxford),                     **
+      **           Mark Jenkinson (FMRIB, Oxford)                     **
+******************************************************************************/
+
+/*---------------------------------------------------------------------------*/
+/* Note that the ANALYZE 7.5 file header (dbh.h) is
+         (c) Copyright 1986-1995
+         Biomedical Imaging Resource
+         Mayo Foundation
+   Incorporation of components of dbh.h are by permission of the
+   Mayo Foundation.
+
+   Changes from the ANALYZE 7.5 file header in this file are released to the
+   public domain, including the functional comments and any amusing asides.
+-----------------------------------------------------------------------------*/
+
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+
+/*****===================================================================*****/
+/*****         File nifti1_io.h == Declarations for nifti1_io.c          *****/
+/*****...................................................................*****/
+/*****            This code is released to the public domain.            *****/
+/*****...................................................................*****/
+/*****  Author: Robert W Cox, SSCC/DIRP/NIMH/NIH/DHHS/USA/EARTH          *****/
+/*****  Date:   August 2003                                              *****/
+/*****...................................................................*****/
+/*****  Neither the National Institutes of Health (NIH), nor any of its  *****/
+/*****  employees imply any warranty of usefulness of this software for  *****/
+/*****  any purpose, and do not assume any liability for damages,        *****/
+/*****  incidental or otherwise, caused by any use of this document.     *****/
+/*****===================================================================*****/
+
+/* 
+   Modified by: Mark Jenkinson (FMRIB Centre, University of Oxford, UK)
+   Date: July/August 2004 
+
+      Mainly adding low-level IO and changing things to allow gzipped files
+      to be read and written
+      Full backwards compatability should have been maintained
+
+   Modified by: Rick Reynolds (SSCC/DIRP/NIMH, National Institutes of Health)
+   Date: December 2004
+
+      Modified and added many routines for I/O.
+*/
+
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+
+znzlib.h  (zipped or non-zipped library)
+
+*****            This code is released to the public domain.            *****
+
+*****  Author: Mark Jenkinson, FMRIB Centre, University of Oxford       *****
+*****  Date:   September 2004                                           *****
+
+*****  Neither the FMRIB Centre, the University of Oxford, nor any of   *****
+*****  its employees imply any warranty of usefulness of this software  *****
+*****  for any purpose, and do not assume any liability for damages,    *****
+*****  incidental or otherwise, caused by any use of this document.     *****

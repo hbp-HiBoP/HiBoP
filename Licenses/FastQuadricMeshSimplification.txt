@@ -1,0 +1,6 @@
+Mesh Simplification Tutorial (C) by Sven Forstmann in 2014
+
+License : MIT
+http://opensource.org/licenses/MIT
+
+https://github.com/sp4cerat/Fast-Quadric-Mesh-Simplification
