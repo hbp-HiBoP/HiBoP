@@ -1,7 +1,3 @@
-
-
-
-
 # HiBoP Tutorial: Getting Started
 This tutorial is aimed to help new users getting started into HiBoP with tested sample data. It consists of a step-by-step list of actions to perform in order to get everything working with the provided sample data. For more information about a specific feature, please refer to the documentation attached with the release of the software.
 ## Getting sample data (1~2 minutes)

@@ -1,6 +1,11 @@
 # HiBoP: Human Intracranial Brain Observation Player
 
+![alt text](https://github.com/hbp-HiBoP/HiBoP/raw/develop/Media/Icon.png "HiBoP Icon")
 HiBoP is an application dedicated to the visualization of intracranial brain recordings such as intracranial electroencephalography (iEEG), cortico-cortical evoked potentials (CCEP) and functional magnetic resonance imaging (fMRI). This software is developped using [Unity](https://unity.com/), C# and C++ for Windows, Mac and Linux.
+
+[alt text](https://github.com/hbp-HiBoP/HiBoP/raw/develop/Media/GUI.png "HiBoP Main GUI")
+
+[alt text](https://github.com/hbp-HiBoP/HiBoP/raw/develop/Media/ROI.png "HiBoP ROI Example")
 
 ## Getting Started
 
