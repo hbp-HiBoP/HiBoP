@@ -35,7 +35,7 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         /// <param name="dataInfo">DataInfo to read.</param>
         /// <param name="MNI">\a True if MNI and \a false otherwise.</param>
-        public IEEGRawData(iEEGDataInfo dataInfo) : base(dataInfo)
+        public IEEGRawData(IEEGDataInfo dataInfo) : base(dataInfo)
         {
             Patient = dataInfo.Patient;
         }

@@ -7,7 +7,7 @@ namespace HBP.UI.Experience.Dataset
     {
         public override void CreateFromScratch()
         {
-            OpenModifier(new iEEGDataInfo());
+            OpenModifier(new IEEGDataInfo());
         }
     }
 }

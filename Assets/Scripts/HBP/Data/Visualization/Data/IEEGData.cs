@@ -19,9 +19,9 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Public Methods
-        public void Load(IEnumerable<iEEGDataInfo> columnData, Experience.Protocol.Bloc bloc)
+        public void Load(IEnumerable<IEEGDataInfo> columnData, Experience.Protocol.Bloc bloc)
         {
-            foreach (iEEGDataInfo dataInfo in columnData)
+            foreach (IEEGDataInfo dataInfo in columnData)
             {
                 Experience.Dataset.IEEGData data = DataManager.GetData(dataInfo) as Experience.Dataset.IEEGData;
                 // Values

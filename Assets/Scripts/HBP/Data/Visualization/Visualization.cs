@@ -255,7 +255,7 @@ namespace HBP.Data.Visualization
         {
             if (column is IEEGColumn iEEGColumn)
             {
-                return GetDataInfo(column).OfType<iEEGDataInfo>().First((dataInfo) => dataInfo.Patient == patient);
+                return GetDataInfo(column).OfType<IEEGDataInfo>().First((dataInfo) => dataInfo.Patient == patient);
             }
             else if (column is CCEPColumn ccepColumn)
             {
@@ -333,7 +333,7 @@ namespace HBP.Data.Visualization
                 {
                     if (column is IEEGColumn iEEGColumn)
                     {
-                        IEnumerable<iEEGDataInfo> dataInfoForThisColumn = GetDataInfo(iEEGColumn).OfType<iEEGDataInfo>();
+                        IEnumerable<IEEGDataInfo> dataInfoForThisColumn = GetDataInfo(iEEGColumn).OfType<IEEGDataInfo>();
                         if (dataInfoForThisColumn.Select(d => d.Patient).Distinct().Count() != Patients.Count)
                         {
                             foreach (Patient patient in Patients)
@@ -458,7 +458,7 @@ namespace HBP.Data.Visualization
                     onChangeProgress(progress + ieegloadingDataProgressStep, TIME_BY_DATAINFO * dataInfoByColumn[iEEGColumn].Count() , new LoadingText("Loading iEEG column ", iEEGColumn.Name, " [" + (i + 1) + "/" + iEEGColumnsLength + "]"));
                     try
                     {
-                        iEEGColumn.Data.Load(dataInfoByColumn[iEEGColumn].OfType<iEEGDataInfo>(), iEEGColumn.Bloc);
+                        iEEGColumn.Data.Load(dataInfoByColumn[iEEGColumn].OfType<IEEGDataInfo>(), iEEGColumn.Bloc);
                     }
                     catch (Exception e)
                     {

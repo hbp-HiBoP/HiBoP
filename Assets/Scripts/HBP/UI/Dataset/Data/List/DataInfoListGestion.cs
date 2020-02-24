@@ -34,9 +34,9 @@ namespace HBP.UI.Experience.Dataset
         protected override void OnSaveModifier(DataInfo obj)
         {
             OnDataInfoNeedCheckErrors.Invoke(obj);
-            if(obj is iEEGDataInfo ieegDataInfo)
+            if(obj is IEEGDataInfo ieegDataInfo)
             {
-                IEnumerable<iEEGDataInfo> ieegDataInfos = List.Objects.OfType<iEEGDataInfo>();
+                IEnumerable<IEEGDataInfo> ieegDataInfos = List.Objects.OfType<IEEGDataInfo>();
                 if(ieegDataInfos.Any(p => p.Name == obj.Name && p.Patient == ieegDataInfo.Patient && !p.Equals(ieegDataInfo)))
                 {
                     int count = 1;
@@ -90,9 +90,9 @@ namespace HBP.UI.Experience.Dataset
         protected override void OnObjectCreated(DataInfo obj)
         {
             OnDataInfoNeedCheckErrors.Invoke(obj);
-            if (obj is iEEGDataInfo ieegDataInfo)
+            if (obj is IEEGDataInfo ieegDataInfo)
             {
-                IEnumerable<iEEGDataInfo> ieegDataInfos = List.Objects.OfType<iEEGDataInfo>();
+                IEnumerable<IEEGDataInfo> ieegDataInfos = List.Objects.OfType<IEEGDataInfo>();
                 if (ieegDataInfos.Any(p => p.Name == obj.Name && p.Patient == ieegDataInfo.Patient && !p.Equals(ieegDataInfo)))
                 {
                     int count = 1;

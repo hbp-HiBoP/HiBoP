@@ -91,9 +91,9 @@ namespace HBP.Data.Experience.Dataset
         {
             return m_Data.OfType<PatientDataInfo>().Where(d => d.Patient == patient).ToArray();
         }
-        public iEEGDataInfo[] GetIEEGDataInfos()
+        public IEEGDataInfo[] GetIEEGDataInfos()
         {
-            return m_Data.OfType<iEEGDataInfo>().ToArray();
+            return m_Data.OfType<IEEGDataInfo>().ToArray();
         }
         public CCEPDataInfo[] GetCCEPDataInfos()
         {

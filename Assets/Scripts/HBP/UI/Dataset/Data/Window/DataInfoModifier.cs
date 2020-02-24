@@ -69,7 +69,7 @@ namespace HBP.UI.Experience.Dataset
 
             m_DataInfoTemp = new List<DataInfo>
             {
-                new iEEGDataInfo(),
+                new IEEGDataInfo(),
                 new CCEPDataInfo()
             };
 
@@ -96,7 +96,7 @@ namespace HBP.UI.Experience.Dataset
             subModifier.IsActive = true;
             subModifier.Object = ItemTemp;
 
-            if (type == typeof(iEEGDataInfo)) m_DataContainerModifier.DataAttribute = new iEEG();
+            if (type == typeof(IEEGDataInfo)) m_DataContainerModifier.DataAttribute = new iEEG();
             else if (type == typeof(CCEPDataInfo)) m_DataContainerModifier.DataAttribute = new CCEP();
 
             m_DataContainerModifier.Object = itemTemp.DataContainer;

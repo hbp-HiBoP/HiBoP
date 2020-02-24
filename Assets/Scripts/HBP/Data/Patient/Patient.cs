@@ -248,6 +248,12 @@ namespace HBP.Data
             patients = new Patient[0];
             return true;
         }
+        /// <summary>
+        /// Loads patients from intranat database.
+        /// </summary>
+        /// <param name="path">The specified path of the intranat database.</param>
+        /// <param name="patients">Patients loaded in the database.</param>
+        /// <returns></returns>
         public static bool LoadFromIntranatDatabase(string path, out Patient[] patients)
         {
             patients = new Patient[0];
@@ -266,6 +272,12 @@ namespace HBP.Data
             patients = patientsList.ToArray();
             return true;
         }
+        /// <summary>
+        /// Loads patients from BIDS database.
+        /// </summary>
+        /// <param name="path">The specified path of the BIDS database.</param>
+        /// <param name="patients"></param>
+        /// <returns></returns>
         public static bool LoadFromBIDSDatabase(string path, out Patient[] patients)
         {
             patients = new Patient[0];
@@ -430,6 +442,13 @@ namespace HBP.Data
             patients = patientsList.ToArray();
             return true;
         }
+        /// <summary>
+        /// Coroutine to load patients from database. Implementation of ILoadableFromDatabase.
+        /// </summary>
+        /// <param name="path">The specified path of the patient file.</param>
+        /// <param name="OnChangeProgress">Action called on change progress.</param>
+        /// <param name="result">The patients loaded.</param>
+        /// <returns></returns>
         public static IEnumerator c_LoadFromDatabase(string path, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Patient>> result)
         {
             yield return Ninja.JumpBack;
