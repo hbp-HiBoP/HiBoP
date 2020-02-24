@@ -6,11 +6,20 @@ using UnityEngine.UI;
 
 namespace Tools.Unity.Lists
 {
+    /// <summary>
+    /// Generic class to display elements which can be selected. 
+    /// </summary>
     public class SelectableList<T> : List<T>, ISelectionCountable
     {
         #region Properties
+        /// <summary>
+        /// All types of selection.
+        /// </summary>
         public enum SelectionType { None, SingleItem, MultipleItems }
         [SerializeField] protected SelectionType m_ItemSelection = SelectionType.MultipleItems;
+        /// <summary>
+        /// Selection Type.
+        /// </summary>
         public SelectionType ItemSelection
         {
             get
@@ -41,9 +50,15 @@ namespace Tools.Unity.Lists
             }
         }
 
+        /// <summary>
+        /// Toggle to select/deselect all items of the list.
+        /// </summary>
         [SerializeField] protected Toggle m_SelectAllToggle;
 
         protected Dictionary<T, bool> m_SelectedStateByObject = new Dictionary<T, bool>();
+        /// <summary>
+        /// Objects selected in the list.
+        /// </summary>
         public virtual T[] ObjectsSelected
         {
             get
@@ -57,13 +72,26 @@ namespace Tools.Unity.Lists
             }
         }
 
+        /// <summary>
+        /// Number of item selected.
+        /// </summary>
         int ISelectionCountable.NumberOfItemSelected
         {
             get { return ObjectsSelected.Length; }
         }
+
+        /// <summary>
+        /// Callback executed when selection is changed.
+        /// </summary> 
         UnityEvent ISelectionCountable.OnSelectionChanged { get; } = new UnityEvent();
 
+        /// <summary>
+        /// Callback executed when a object is selected.
+        /// </summary> 
         public virtual UnityEvent<T> OnSelect { get; } = new GenericEvent<T>();
+        /// <summary>
+        /// Callback executed when a object is deselected.
+        /// </summary> 
         public virtual UnityEvent<T> OnDeselect { get; } = new GenericEvent<T>();
 
         public override bool Interactable
@@ -75,7 +103,13 @@ namespace Tools.Unity.Lists
                 if (m_SelectAllToggle != null) m_SelectAllToggle.interactable = value && m_ItemSelection == SelectionType.MultipleItems;
             }
         }
+        /// <summary>
+        /// Locker to avoid loop selection.
+        /// </summary>
         bool m_SelectionLock;
+        /// <summary>
+        /// Last objet selected.
+        /// </summary>
         T m_LastSelectedObject;
         #endregion
 
@@ -100,22 +134,41 @@ namespace Tools.Unity.Lists
             }
             return false;
         }
+        /// <summary>
+        /// Select all objects.
+        /// </summary>
         public virtual void SelectAll()
         {
             SelectAll(Toggle.ToggleTransition.None);
         }
+        /// <summary>
+        /// Select all objects with a specified transition.
+        /// </summary>
+        /// <param name="transition">Transition</param>
         public virtual void SelectAll(Toggle.ToggleTransition transition)
         {
             Select(m_Objects, transition);
         }
+        /// <summary>
+        /// Deselect all objects.
+        /// </summary>
         public virtual void DeselectAll()
         {
             DeselectAll(Toggle.ToggleTransition.None);
         }
+        /// <summary>
+        /// Select all objects with a specified transition.
+        /// </summary>
+        /// <param name="transition">Transition</param>
         public virtual void DeselectAll(Toggle.ToggleTransition transition)
         {
             Deselect(m_Objects, transition);
         }
+        /// <summary>
+        /// Select a specified object with a specified transition.
+        /// </summary>
+        /// <param name="objectToSelect">Object to select</param>
+        /// <param name="transition">Transition</param>
         public virtual void Select(T objectToSelect, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {
             switch (m_ItemSelection)
@@ -138,10 +191,20 @@ namespace Tools.Unity.Lists
             OnSelect.Invoke(objectToSelect);
             OnSelectionChanged();
         }
+        /// <summary>
+        /// Select specified objects with a specified transition. 
+        /// </summary>
+        /// <param name="objectsToSelect">Objects to select</param>
+        /// <param name="transition">Transition</param>
         public virtual void Select(IEnumerable<T> objectsToSelect, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {
             foreach (var obj in objectsToSelect) Select(obj, transition);
         }
+        /// <summary>
+        /// Deselect a specified object with a specified transition.
+        /// </summary>
+        /// <param name="objectToDeselect">Object to deselect</param>
+        /// <param name="transition">Transition</param>
         public virtual void Deselect(T objectToDeselect, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {
             if (m_SelectedStateByObject.ContainsKey(objectToDeselect))
@@ -155,10 +218,20 @@ namespace Tools.Unity.Lists
             OnDeselect.Invoke(objectToDeselect);
             OnSelectionChanged();
         }
+        /// <summary>
+        /// Deselect specified objects with a specified transition.
+        /// </summary>
+        /// <param name="objectsToDeselect">Specified objects</param>
+        /// <param name="transition">Transition</param>
         public virtual void Deselect(IEnumerable<T> objectsToDeselect, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {
             foreach (var obj in objectsToDeselect) Deselect(obj, transition);
         }
+        /// <summary>
+        /// Update specified object.
+        /// </summary>
+        /// <param name="objectToUpdate">Object to update</param>
+        /// <returns>True if updated, False otherwise</returns>
         public override bool UpdateObject(T objectToUpdate)
         {
             if (GetItemFromObject(objectToUpdate, out Item<T> item))
@@ -173,6 +246,9 @@ namespace Tools.Unity.Lists
             }
             return false;
         }
+        /// <summary>
+        /// Refresh all the list.
+        /// </summary>
         public override void Refresh()
         {
             Item<T>[] items = m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
@@ -212,6 +288,9 @@ namespace Tools.Unity.Lists
             selectableItem.Select(m_SelectedStateByObject[obj]);
             selectableItem.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(obj, selected));
         }
+        /// <summary>
+        /// Callback executed when a object selection is changed.
+        /// </summary> 
         protected virtual void OnChangeSelectionState(T obj, bool selected)
         {
             if (!m_SelectionLock)
@@ -252,11 +331,17 @@ namespace Tools.Unity.Lists
                 m_SelectionLock = false;
             }
         }
+        /// <summary>
+        /// Callback executed when objects selection is changed.
+        /// </summary> 
         protected virtual void OnSelectionChanged()
         {
             if (m_SelectAllToggle != null) m_SelectAllToggle.isOn = m_Objects.Count == ObjectsSelected.Length && m_Objects.Count > 0 && m_ItemSelection == SelectionType.MultipleItems;
             (this as ISelectionCountable).OnSelectionChanged.Invoke();
         }
+        /// <summary>
+        /// Callback executed when select all toggle value is changed.
+        /// </summary> 
         protected virtual void OnSelectAllToggleValueChanged(bool toggle)
         {
             if (!m_SelectionLock && ItemSelection == SelectionType.MultipleItems)

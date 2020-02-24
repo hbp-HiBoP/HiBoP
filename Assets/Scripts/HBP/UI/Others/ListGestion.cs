@@ -6,10 +6,16 @@ using UnityEngine.UI;
 
 namespace Tools.Unity.Components
 {
+    /// <summary>
+    /// Abstract generic base class which manage a list of elements.
+    /// </summary>
     public abstract class ListGestion<T> : MonoBehaviour where T : ICloneable, ICopiable, new()
     {
         #region Properties
         [SerializeField] protected bool m_Interactable;
+        /// <summary>
+        /// Use to enable or disable the ability to select a selectable UI element (for example, a Button).
+        /// </summary>
         public bool Interactable
         {
             get
@@ -25,6 +31,9 @@ namespace Tools.Unity.Components
         }
 
         [SerializeField] protected bool m_Modifiable;
+        /// <summary>
+        /// Use to enable or disable the ability to modify elements of the list.
+        /// </summary>
         public bool Modifiable
         {
             get
@@ -41,21 +50,36 @@ namespace Tools.Unity.Components
             }
         }
 
+        /// <summary>
+        /// UI list which display the elements.
+        /// </summary>
         public abstract Lists.ActionableList<T> List { get; }
+        /// <summary>
+        /// ObjectCreator contains all the tools to create a new element.
+        /// </summary>
         public abstract ObjectCreator<T> ObjectCreator { get; }
 
         [SerializeField] protected WindowsReferencer m_WindowsReferencer = new WindowsReferencer();
+        /// <summary>
+        /// Children windows referencer.
+        /// </summary>
         public virtual WindowsReferencer WindowsReferencer { get => m_WindowsReferencer; }
 
         [SerializeField] Button m_CreateButton, m_RemoveButton;
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Create a new elements and add it to the list.
+        /// </summary>
         public virtual void Create()
         {
             ObjectCreator.ExistingItems = List.Objects.ToList();
             ObjectCreator.Create();
         }
+        /// <summary>
+        /// Remove all the selected elements to the list.
+        /// </summary>
         public virtual void RemoveSelected()
         {
             List.Remove(List.ObjectsSelected);
@@ -63,7 +87,7 @@ namespace Tools.Unity.Components
         #endregion
 
         #region Protected Methods
-        private void OnValidate()
+        void OnValidate()
         {
             Interactable = Interactable;
             Modifiable = Modifiable;
@@ -72,6 +96,9 @@ namespace Tools.Unity.Components
         {
             Initialize();
         }
+        /// <summary>
+        /// Called on Awake(). You can override this function and use this to initialize anything needed by your list gestion.
+        /// </summary>
         protected virtual void Initialize()
         {
             List.OnAction.AddListener((item, v) => OpenModifier(item));
@@ -82,13 +109,22 @@ namespace Tools.Unity.Components
             ObjectCreator.OnObjectCreated.AddListener(OnObjectCreated);
             ObjectCreator.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
         }
-        protected virtual ObjectModifier<T> OpenModifier(T item)
+        /// <summary>
+        /// Open a ObjectModifier to modify a object.
+        /// </summary>
+        /// <param name="obj">Object to modify</param>
+        /// <returns>ObjectModifier</returns>
+        protected virtual ObjectModifier<T> OpenModifier(T obj)
         {
-            ObjectModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(item, m_Modifiable);
+            ObjectModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(obj, m_Modifiable);
             modifier.OnOk.AddListener(() => OnSaveModifier(modifier.Item));
             WindowsReferencer.Add(modifier);
             return modifier;
         }
+        /// <summary>
+        /// Callback executed when a ObjectModifier is modified.
+        /// </summary>
+        /// <param name="obj">Object modified</param>
         protected virtual void OnSaveModifier(T obj)
         {
             if(obj is INameable nameable)
@@ -114,6 +150,10 @@ namespace Tools.Unity.Components
                 List.UpdateObject(obj);
             }
         }
+        /// <summary>
+        /// Callback executed when a object is created.
+        /// </summary>
+        /// <param name="obj">Object created</param>
         protected virtual void OnObjectCreated(T obj)
         {
             if (obj is INameable nameable)
@@ -139,6 +179,10 @@ namespace Tools.Unity.Components
                 List.UpdateObject(obj);
             }
         }
+        /// <summary>
+        /// Callback executed when a object is update.
+        /// </summary>
+        /// <param name="obj">Object to update</param>
         protected virtual void OnUpdateObject(T obj)
         {
             int index = ObjectCreator.ExistingItems.FindIndex(o => o.Equals(obj));

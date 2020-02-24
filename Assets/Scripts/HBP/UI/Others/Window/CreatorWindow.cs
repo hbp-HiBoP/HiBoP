@@ -2,7 +2,6 @@
 using UnityEngine.UI;
 using HBP.Data.Enums;
 using System.Collections.Generic;
-using System;
 using System.Linq;
 using Tools.CSharp;
 

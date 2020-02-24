@@ -3,16 +3,28 @@ using UnityEngine.Events;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// Abstract base class for every window.
+    /// </summary>
     public abstract class Window : MonoBehaviour, IClosable, IInteractable
     {
         #region Properties
-        protected UnityEvent m_OnClose = new UnityEvent();
+        [SerializeField] protected UnityEvent m_OnClose;
+        /// <summary>
+        /// Callback executed when the window is closed.
+        /// </summary>
         public UnityEvent OnClose
         {
-            get { return m_OnClose; }
+            get
+            {
+                return m_OnClose;
+            }
         }
 
         [SerializeField] protected bool m_Interactable = true;
+        /// <summary>
+        /// Use to enable or disable the ability to select a selectable UI element (for example, a Button).
+        /// </summary>
         public virtual bool Interactable
         {
             get
@@ -26,10 +38,16 @@ namespace HBP.UI
         }
 
         [SerializeField] protected WindowsReferencer m_WindowsReferencer = new WindowsReferencer();
+        /// <summary>
+        /// Children windows referencer.
+        /// </summary>
         public WindowsReferencer WindowsReferencer { get => m_WindowsReferencer; }
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Close the window and all its children.
+        /// </summary>
         public virtual void Close()
         {
             WindowsReferencer.CloseAll();
@@ -39,21 +57,27 @@ namespace HBP.UI
         #endregion
 
         #region Private Methods
-        protected virtual void Awake()
+        void Awake()
         {
             Initialize();
-        }
-        protected virtual void Initialize()
-        {
-            SetFields();
-        }
-        protected virtual void SetFields()
-        {
-
         }
         void OnValidate()
         {
             Interactable = Interactable;
+        }
+        /// <summary>
+        /// Called on Awake(). You can override this function and use this to initialize anything needed by your window.
+        /// </summary>
+        protected virtual void Initialize()
+        {
+            SetFields();
+        }
+        /// <summary>
+        /// Called on Initialize(). You can override this function and use this to set all the fields of your window.
+        /// </summary>
+        protected virtual void SetFields()
+        {
+
         }
         #endregion
     }
