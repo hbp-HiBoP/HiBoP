@@ -7,13 +7,25 @@ using UnityEngine.UI;
 
 namespace Tools.Unity.Lists
 {
+    /// <summary>
+    /// Base generic class for every UI list.
+    /// </summary>
     public class List<T> : BaseList
     {
         #region Properties
+        /// <summary>
+        /// UI items displayed by the list.
+        /// </summary>
         protected System.Collections.Generic.List<Item<T>> m_Items = new System.Collections.Generic.List<Item<T>>();
+        /// <summary>
+        /// Number of items instantiated.
+        /// </summary>
         protected int m_NumberOfItems;
 
         protected System.Collections.Generic.List<T> m_Objects = new System.Collections.Generic.List<T>();
+        /// <summary>
+        /// Objects of the list.
+        /// </summary>
         public virtual ReadOnlyCollection<T> Objects
         {
             get
@@ -21,12 +33,27 @@ namespace Tools.Unity.Lists
                 return new ReadOnlyCollection<T>(m_Objects);
             }
         }
+        /// <summary>
+        /// Number of objects.
+        /// </summary>
         protected int m_NumberOfObjects;
 
+        /// <summary>
+        /// Callback executed when a object is added.
+        /// </summary> 
         public UnityEvent<T> OnAddObject { get; } = new GenericEvent<T>();
+        /// <summary>
+        /// Callback executed when a object is removed.
+        /// </summary> 
         public UnityEvent<T> OnRemoveObject { get; } = new GenericEvent<T>();
+        /// <summary>
+        /// Callback executed when a object is updated.
+        /// </summary> 
         public UnityEvent<T> OnUpdateObject { get; } = new GenericEvent<T>();
 
+        /// <summary>
+        /// Use to enable or disable the ability to select a selectable UI element (for example, a Button).
+        /// </summary>
         public override bool Interactable
         {
             get => base.Interactable;
@@ -39,12 +66,21 @@ namespace Tools.Unity.Lists
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Set the objects of the list.
+        /// </summary>
+        /// <param name="objects"></param>
         public virtual void Set(IEnumerable<T> objects)
         {
             var obj = objects.ToArray();
             Remove(m_Objects.ToArray());
             Add(obj);
         }
+        /// <summary>
+        /// Add a object to the list.
+        /// </summary>
+        /// <param name="obj">Object to add</param>
+        /// <returns>True if added, False otherwise</returns>
         public virtual bool Add(T obj)
         {
             if (!m_Objects.Contains(obj))
@@ -58,12 +94,22 @@ namespace Tools.Unity.Lists
             }
             return false;
         }
+        /// <summary>
+        /// Add multiple objects to the list.
+        /// </summary>
+        /// <param name="objectsToAdd">Objects to add</param>
+        /// <returns>True if added, False otherwise</returns>
         public virtual bool Add(IEnumerable<T> objectsToAdd)
         {
             bool result = true;
             foreach (T obj in objectsToAdd.ToArray()) result &= Add(obj);
             return result;
         }
+        /// <summary>
+        /// Remove a object from the list.
+        /// </summary>
+        /// <param name="obj">Object to add</param>
+        /// <returns>True if removed, False otherwise</returns>
         public virtual bool Remove(T obj)
         {
             if (m_Objects.Contains(obj))
@@ -82,12 +128,22 @@ namespace Tools.Unity.Lists
             }
             return false;
         }
+        /// <summary>
+        /// Remove multiple objects from the list.
+        /// </summary>
+        /// <param name="objectsToRemove">Objects to remove</param>
+        /// <returns>True if removed, False otherwise</returns>
         public virtual bool Remove(IEnumerable<T> objectsToRemove)
         {
             bool result = true;
             foreach (T obj in objectsToRemove.ToArray()) result &= Remove(obj);
             return result;
         }
+        /// <summary>
+        /// Update a object from the list.
+        /// </summary>
+        /// <param name="obj">Object to update.</param>
+        /// <returns>True if updated, False otherwise</returns>
         public virtual bool UpdateObject(T obj)
         {
             if (GetItemFromObject(obj, out Item<T> item))
@@ -100,6 +156,9 @@ namespace Tools.Unity.Lists
             }
             return false;
         }
+        /// <summary>
+        /// Refresh all the list.
+        /// </summary>
         public virtual void Refresh()
         {
             Item<T>[] items =  m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
@@ -108,6 +167,9 @@ namespace Tools.Unity.Lists
                 items[j].Object = m_Objects[i];
             }
         }
+        /// <summary>
+        /// Refresh the position of the items.
+        /// </summary>
         public virtual void RefreshPosition()
         {
             int itemsLength = m_Items.Count;
@@ -117,6 +179,10 @@ namespace Tools.Unity.Lists
                 item.transform.localPosition = new Vector3(item.transform.localPosition.x, -i * m_ItemHeight, item.transform.localPosition.z);
             }
         }
+        /// <summary>
+        /// Scroll the list to the target object with the shortest scroll amount.
+        /// </summary>
+        /// <param name="objectToScroll">Target object</param>
         public virtual void ScrollToObject(T objectToScroll)
         {
             GetLimits(out int min, out int max);
@@ -141,6 +207,9 @@ namespace Tools.Unity.Lists
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Display all the items.
+        /// </summary>
         protected virtual void Display()
         {
             int newFirstIndexDisplayed, newLastIndexDisplayed; GetLimits(out newFirstIndexDisplayed, out newLastIndexDisplayed);
@@ -181,6 +250,9 @@ namespace Tools.Unity.Lists
 
             Refresh();
         }
+        /// <summary>
+        /// Update the content size and position to fit with the number of items displayed.
+        /// </summary>
         protected virtual void UpdateContent()
         {
             ScrollRect.content.sizeDelta = new Vector2(ScrollRect.content.sizeDelta.x, ScrollRect.content.sizeDelta.y - m_ItemHeight);
@@ -202,6 +274,11 @@ namespace Tools.Unity.Lists
             ScrollRect.verticalScrollbar = ScrollRect.verticalScrollbar;
             ScrollRect.content.hasChanged = true;
         }
+        /// <summary>
+        /// Spawn new items.
+        /// </summary>
+        /// <param name="numberOfItemToSpawn">Number of items to spawn</param>
+        /// <param name="spawnOnTop">True to spawn on top of the list view, False otherwise</param>
         protected virtual void SpawnItem(int numberOfItemToSpawn, bool spawnOnTop)
         {
             for (int i = 0; i < numberOfItemToSpawn; i++)
@@ -210,6 +287,10 @@ namespace Tools.Unity.Lists
                 SpawnItemAt(index);
             }
         }
+        /// <summary>
+        /// Spawn a item at a specified index.
+        /// </summary>
+        /// <param name="index">Index </param>
         protected virtual void SpawnItemAt(int index)
         {
             T obj = m_Objects[index];
@@ -222,10 +303,20 @@ namespace Tools.Unity.Lists
             m_NumberOfItems++;
             SetItem(item, obj);
         }
+        /// <summary>
+        /// Set a item with a object to display.
+        /// </summary>
+        /// <param name="item">Item to set.</param>
+        /// <param name="obj">Object to display</param>
         protected virtual void SetItem(Item<T> item, T obj)
         {
             item.Object = obj;
         }
+        /// <summary>
+        /// Destroy items.
+        /// </summary>
+        /// <param name="numberOfItemToDestroy">Number of items to destroy</param>
+        /// <param name="destroyOnTop">True to destroy on top of the list view, False otherwise</param>
         protected virtual void DestroyItem(int numberOfItemToDestroy, bool destroyOnTop)
         {
             Item<T>[] items = m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
@@ -236,12 +327,20 @@ namespace Tools.Unity.Lists
                 DestroyItem(items[index]);
             }
         }
+        /// <summary>
+        /// Destroy a specific item.
+        /// </summary>
+        /// <param name="item">Item to destroy</param>
         protected virtual void DestroyItem(Item<T> item)
         {
             Destroy(item.gameObject);
             m_Items.Remove(item);
             m_NumberOfItems--;
         }
+        /// <summary>
+        /// Move items upwards.
+        /// </summary>
+        /// <param name="deplacement">Steps</param>
         protected virtual void MoveItemsUpwards(int deplacement)
         {
             Item<T>[] items = m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
@@ -256,6 +355,10 @@ namespace Tools.Unity.Lists
                 SetItem(item, newObj);
             }
         }
+        /// <summary>
+        /// Move items downwards.
+        /// </summary>
+        /// <param name="deplacement">Steps</param>
         protected virtual void MoveItemsDownwards(int deplacement)
         {
             Item<T>[] items = m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
@@ -270,6 +373,11 @@ namespace Tools.Unity.Lists
                 SetItem(item, newObj);
             }
         }
+        /// <summary>
+        /// Get the limits of the elements displayed.
+        /// </summary>
+        /// <param name="firstIndexDisplayed">Index of the first element displayed</param>
+        /// <param name="lastIndexDisplayed">Index of the last element displayed</param>
         protected virtual void GetLimits(out int firstIndexDisplayed, out int lastIndexDisplayed)
         {
             firstIndexDisplayed = Mathf.FloorToInt((ScrollRect.content.localPosition.y / ScrollRect.content.sizeDelta.y) * m_NumberOfObjects);
@@ -290,6 +398,12 @@ namespace Tools.Unity.Lists
                 lastIndexDisplayed = Mathf.Clamp(lastIndexDisplayed, 0, lastIndexMaximumValue);
             }
         }
+        /// <summary>
+        /// Get the item which display a specified object.
+        /// </summary>
+        /// <param name="obj">Object displayed</param>
+        /// <param name="itemToReturn">Item which display </param>
+        /// <returns></returns>
         protected virtual bool GetItemFromObject(T obj, out Item<T> itemToReturn)
         {
             foreach (var item in m_Items)

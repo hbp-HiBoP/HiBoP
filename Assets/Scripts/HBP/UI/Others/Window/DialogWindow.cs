@@ -4,11 +4,26 @@ using UnityEngine.Events;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// Abstract base class for every dialog window. There is two choices in a dialog window : OK and Close.
+    /// </summary>
     public abstract class DialogWindow : Window
     {
         #region Properties
         [SerializeField] protected Button m_OKButton;
-        public UnityEvent OnOk { get; } = new UnityEvent();
+
+        [SerializeField] protected UnityEvent m_OnOk;
+        /// <summary>
+        /// Callback executed when the window is validate.
+        /// </summary>
+        public UnityEvent OnOk
+        {
+            get
+            {
+                return m_OnOk;
+            }
+        }
+
         public override bool Interactable
         {
             get
@@ -25,6 +40,9 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Valid and close the window and its children.
+        /// </summary>
         public virtual void OK()
         {
             WindowsReferencer.SaveAll();
