@@ -1,80 +1,76 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
-using System.Collections.Generic;
 
 namespace HBP.UI
 {
-    public class Menu : MonoBehaviour
+    public class Menu : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         #region Properties
-        [SerializeField]
-        RectTransform[] m_subMenu;
+        [SerializeField] RectTransform m_SubMenu;
+        [SerializeField] InteractableConditions m_InteractableConditions;
+        public InteractableConditions InteractableConditions { get { return m_InteractableConditions; } }
 
-        [SerializeField]
-        InteractableConditions[] m_buttonGestion;
+        bool m_IsOpen;
+        public bool IsOpen
+        {
+            get
+            {
+                return m_IsOpen;
+            }
+            set
+            {
+                if (m_IsOpen != value)
+                {
+                    m_IsOpen = value;
+                    if (m_SubMenu && m_InteractableConditions && m_InteractableConditions.interactable)
+                        m_SubMenu.gameObject.SetActive(value);
+                    OnChangeOpenState.Invoke(value);
+                }
+            }
+        }
 
-        bool m_isOnMenu;
+        bool m_IsHovered;
+        public bool IsHovered
+        {
+            get
+            {
+                return m_IsHovered;
+            }
+            set
+            {
+                if (m_IsHovered != value)
+                {
+                    m_IsHovered = value;
+                    OnHover.Invoke(value);
+                }
+            }
+        }
+
+        public GenericEvent<bool> OnChangeOpenState { get; } = new GenericEvent<bool>();
+        public GenericEvent<bool> OnHover { get; } = new GenericEvent<bool>();
         #endregion
 
         #region Public Methods
-        public void OnPointerEnter(int index)
+        public void Open()
         {
-            if(m_isOnMenu)
-            {
-                Set(index);
-            }
+            IsOpen = true;
         }
-        public void OnClick(int index)
+        public void Close()
         {
-            m_isOnMenu = !m_isOnMenu;
-            Set(index);
+            IsOpen = false;
         }
-        public void CloseAll()
+        public void SwapOpenState()
         {
-            m_isOnMenu = false;
-            foreach (RectTransform rect in m_subMenu)
-            {
-                rect.gameObject.SetActive(false);
-            }
+            IsOpen = !IsOpen;
         }
-        #endregion
-
-        #region Private Methods
-        void Set(int index)
+        public void OnPointerEnter(PointerEventData data)
         {
-            for (int i = 0; i < m_subMenu.Length; i++)
-            {
-                if (i == index && m_buttonGestion[i].interactable)
-                {
-                    m_subMenu[i].gameObject.SetActive(!m_subMenu[i].gameObject.activeSelf);
-                }
-                else
-                {
-                    m_subMenu[i].gameObject.SetActive(false);
-                }
-            }
+            IsHovered = true;
         }
-        #endregion
-
-        #region Unity Region
-        void Update()
+        public void OnPointerExit(PointerEventData data)
         {
-            if(Input.GetMouseButtonUp(0))
-            {
-                PointerEventData pointer = new PointerEventData(EventSystem.current);
-                // convert to a 2D position
-                pointer.position = Input.mousePosition;
-                List<RaycastResult> raycastResults = new List<RaycastResult>();
-                EventSystem.current.RaycastAll(pointer, raycastResults);
-                if (raycastResults.Count > 0)
-                {
-                    if(raycastResults[0].gameObject.layer != 23)
-                    {
-                        //Close All
-                        CloseAll();
-                    }
-                }
-            }
+            IsHovered = false;
         }
         #endregion
     }

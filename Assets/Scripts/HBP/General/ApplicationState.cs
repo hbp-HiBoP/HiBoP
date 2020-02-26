@@ -92,6 +92,8 @@ public static class ApplicationState
     /// </summary>
     public static HBP.UI.WindowsManager WindowsManager { get; set; }
 
+    public static Tools.Unity.GlobalExceptionManager GlobalExceptionManager { get; set; }
+
     static public string DataPath
     {
         get
