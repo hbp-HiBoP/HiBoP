@@ -43,7 +43,10 @@ namespace HBP
                     }
                     else
                     {
-                        arguments.Last().Add(arg);
+                        if (arguments.Count > 0)
+                        {
+                            arguments.Last().Add(arg);
+                        }
                     }
                 }
                 for (int i = 0; i < actions.Count; ++i)
