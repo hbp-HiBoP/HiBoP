@@ -207,6 +207,8 @@ namespace HBP.UI.Informations
         {
             if(column is Column3DDynamic dynamicColumn && Scene.IsGeneratorUpToDate)
             {
+                if (column is Column3DCCEP ccepColumn && !ccepColumn.IsSourceSiteSelected) return;
+
                 UpdateTime(dynamicColumn.Timeline.CurrentIndex, dynamicColumn);
             }
         }
@@ -242,7 +244,20 @@ namespace HBP.UI.Informations
                 }
                 foreach(var column in m_Scene.ColumnsDynamic)
                 {
-                    column.Timeline.OnUpdateCurrentIndex.AddListener(() => UpdateTime(column.Timeline.CurrentIndex, column));
+                    if (column is Column3DCCEP ccepColumn)
+                    {
+                        ccepColumn.Timeline.OnUpdateCurrentIndex.AddListener(() =>
+                        {
+                            if (ccepColumn.IsSourceSiteSelected)
+                            {
+                                UpdateTime(ccepColumn.Timeline.CurrentIndex, ccepColumn);
+                            }
+                        });
+                    }
+                    else
+                    {
+                        column.Timeline.OnUpdateCurrentIndex.AddListener(() => UpdateTime(column.Timeline.CurrentIndex, column));
+                    }
                 }
 
                 int maxNumberOfTrialMatrixColumn = Mathf.Max(Bloc.GetNumberOfColumns(m_Scene.ColumnsIEEG.Select(c => c.ColumnIEEGData.Bloc).Distinct()), Bloc.GetNumberOfColumns(m_Scene.ColumnsCCEP.Select(c => c.ColumnCCEPData.Bloc).Distinct()));

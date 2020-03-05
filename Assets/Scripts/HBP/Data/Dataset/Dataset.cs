@@ -77,7 +77,7 @@ namespace HBP.Data.Experience.Dataset
             Protocol = protocol;
             SetData(data);
         }
-        public Dataset() : this("New dataset", ApplicationState.ProjectLoaded.Protocols.First(), new DataInfo[0], Guid.NewGuid().ToString())
+        public Dataset() : this("New dataset", ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(), new DataInfo[0], Guid.NewGuid().ToString())
         {
         }
         #endregion

@@ -15,7 +15,16 @@ public class DebugBenjamin : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.F1))
         {
-            ScreenshotWindow();
+            MarsAtlasCCEP();
+        }
+    }
+    private void MarsAtlasCCEP()
+    {
+        DirectoryInfo dir = new DirectoryInfo(@"D:\HBP\CCEP\07-bids_20190416\converted");
+        FileInfo[] files = dir.GetFiles("*.vhdr");
+        foreach (var file in files)
+        {
+            ApplicationState.ProjectLoaded.Datasets[0].AddData(new HBP.Data.Experience.Dataset.CCEPDataInfo("ccep", new HBP.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), ApplicationState.ProjectLoaded.Patients[0], file.Name.Replace(file.Extension, "")));
         }
     }
     private void GetAllCCEPData()

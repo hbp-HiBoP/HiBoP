@@ -14,9 +14,9 @@ namespace HBP
         private void Awake()
         {
             string[] args = System.Environment.GetCommandLineArgs();
-#if UNITY_EDITOR
+            #if UNITY_EDITOR
             //args = new string[] { "HiBoP", "-p", "bugbenoit", "-v", "Unknown"};
-#endif
+            #endif
             StartCoroutine(c_InterpreteCommandLineArguments(args));
         }
         #endregion
