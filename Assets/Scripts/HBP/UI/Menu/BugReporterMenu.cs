@@ -1,13 +1,10 @@
-﻿using Tools.Unity;
-using UnityEngine;
-
-namespace HBP.UI
+﻿namespace HBP.UI
 {
-    public class BugReporterMenu : MonoBehaviour
+    public class BugReporterMenu : Menu
     {
         public void OpenBugReporter()
         {
-            FindObjectOfType<GlobalExceptionManager>().GetComponent<GlobalExceptionManager>().OpenBugReporter();
+            ApplicationState.GlobalExceptionManager.OpenBugReporter();
         }
     }
 }

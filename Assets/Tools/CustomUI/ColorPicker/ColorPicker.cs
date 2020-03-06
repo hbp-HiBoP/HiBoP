@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Linq;
 using Tools.Unity.Components;
 using UnityEngine;
 using UnityEngine.Events;
@@ -31,6 +30,12 @@ namespace Tools.Unity
         {
             gameObject.SetActive(false);
             m_OnColorPicked.Invoke(m_ColorPickerControl.CurrentColor);
+        }
+        public Color GetDefaultColor(int index)
+        {
+            Color[] defaultColors = GetComponentsInChildren<DefaultColor>().Select(dc => dc.GetComponent<UnityEngine.UI.Image>().color).ToArray();
+            if (index > defaultColors.Length) index = defaultColors.Length - 1;
+            return defaultColors[index];
         }
         #endregion
 
