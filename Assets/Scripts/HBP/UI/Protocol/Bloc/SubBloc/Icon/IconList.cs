@@ -64,12 +64,12 @@ namespace HBP.UI.Experience.Protocol
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.IllustrationPath).ToList();
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.ImagePath).ToList();
                     m_OrderBy = OrderBy.Path;
                     m_IllustrationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.IllustrationPath).ToList();
+                    m_Objects = m_Objects.OrderBy((elt) => elt.ImagePath).ToList();
                     m_OrderBy = OrderBy.DescendingPath;
                     m_IllustrationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;

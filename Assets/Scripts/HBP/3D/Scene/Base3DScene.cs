@@ -1895,7 +1895,7 @@ namespace HBP.Module3D
                         Implantation3D.SiteInfo siteInfo = new Implantation3D.SiteInfo()
                         {
                             Name = site.Name,
-                            Position = coordinate.Value.ToVector3(),
+                            Position = coordinate.Position.ToVector3(),
                             Patient = patient,
                             PatientIndex = patientIndex,
                             Index = siteIndex,

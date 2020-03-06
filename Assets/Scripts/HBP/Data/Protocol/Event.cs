@@ -5,39 +5,64 @@ using System.Runtime.Serialization;
 
 namespace HBP.Data.Experience.Protocol
 {
-    /**
-    * \class Event
-    * \author Adrien Gannerie
-    * \version 1.0
-    * \date 09 janvier 2017
-    * \brief Protocol Event.
-    * 
-    * \details Class which define a event in a protocol which contains :
-    *     - \a Label.
-    *     - \a Codes ( Put ',' between codes in the UI).
-    */
+    /// <summary>
+    /// Class which contains all the data about a experience Event.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <term><b>ID</b></term>
+    /// <description>Unique identifier</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Name</b></term> 
+    /// <description>Name</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Codes</b></term> 
+    /// <description>Codes of the Event</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Type</b></term> 
+    /// <description>Type of the event (main or secondary)</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     [DataContract]
 	public class Event : BaseData, INameable
 	{
         #region Properties
-        /** Code separator. */
+        /// <summary>
+        /// Code string separator.
+        /// </summary>
         private const char SEPARATOR = ',';
-        /** Name of the code. */
+        /// <summary>
+        /// Name.
+        /// </summary>
         [DataMember] public string Name { get; set; }
         /// <summary>
-        ///  Codes of the event.
+        /// Codes.
         /// </summary>
         [DataMember] public List<int> Codes { get; set; }
         /// <summary>
-        /// Type of event.
+        /// Type (main or secondary).
         /// </summary>
         [DataMember] public Enums.MainSecondaryEnum Type { get; set; }
-        /** Codes of the event in a string with code separate with ','. */
+        /// <summary>
+        /// Codes of the event in a string format with code separate with the string separator.
+        /// </summary>
         [IgnoreDataMember] public string CodesString
         {
             get { return GetStringFromCodes(Codes.ToArray()); }
             set {Codes = GetCodesFromString(value).ToList(); }
         }
+        /// <summary>
+        /// True if is visualizable, False otherwise.
+        /// </summary>
         public bool IsVisualizable
         {
             get
@@ -49,10 +74,12 @@ namespace HBP.Data.Experience.Protocol
 
         #region Constructors
         /// <summary>
-        /// Create a new instance of a event.
+        /// Create a new Event instance.
         /// </summary>
-        /// <param name="name">Label of the event.</param>
-        /// <param name="codes">Codes of the event.</param>
+        /// <param name="name">Name</param>
+        /// <param name="codes">Codes</param>
+        /// <param name="type">Type (main or secondary) </param>
+        /// <param name="ID">Unique identifier</param>
         public Event(string name, IEnumerable<int> codes, Enums.MainSecondaryEnum type, string ID) : base(ID)
         {
             Name = name;
@@ -60,22 +87,27 @@ namespace HBP.Data.Experience.Protocol
             Type = type;
         }
         /// <summary>
-        /// Create a new instance of a event.
+        /// Create a new Event instance.
         /// </summary>
-        /// <param name="name">Label of the event.</param>
-        /// <param name="codes">Codes of the event.</param>
+        /// <param name="name">Name</param>
+        /// <param name="codes">Codes</param>
+        /// <param name="type">Type (main or secondary)</param>
         public Event(string name, IEnumerable<int> codes, Enums.MainSecondaryEnum type) : base()
         {
             Name = name;
             Codes = codes.ToList();
             Type = type;
         }
+        /// <summary>
+        /// Create a new Event instance.
+        /// </summary>
+        /// <param name="type">Type (main or secondary)</param>
         public Event(Enums.MainSecondaryEnum type) : this("New Event",new int[0],type)
         {
 
         }
         /// <summary>
-        /// Create a new instance with a empty label and no codes.
+        /// Create a new Event instance with default parameters
         /// </summary>
         public Event() : this(Enums.MainSecondaryEnum.Main)
 		{

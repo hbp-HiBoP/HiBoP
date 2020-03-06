@@ -8,20 +8,33 @@ using UnityEngine;
 
 namespace HBP.Data.Experience.Protocol
 {
-    /**
-    * \class Bloc
-    * \author Adrien Gannerie
-    * \version 2.0
-    * \date 28 juin 2018
-    * \brief Bloc in a Protocol.
-    * 
-    * \details Class which define a bloc in a visualization protocol which contains : 
-    *     - Unique ID.
-    *     - Name
-    *     - Order.
-    *     - Image.
-    *     - Sorting.
-    */
+    /// <summary>
+    /// Class which contains all the data about a experience bloc used to epoch, and visualize data.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <term><b>ID</b></term>
+    /// <description>Unique identifier</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Name</b></term> 
+    /// <description>Name of the bloc</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Order</b></term> 
+    /// <description>Order of the blocs in the protocol. Used to display protocol trialMatrix</description>
+    /// </item>
+    /// <item>
+    /// <term><b>IllustrationPath</b></term> 
+    /// <description>Bloc illustration path</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     [DataContract]
     public class Bloc : BaseData, INameable
     {
@@ -52,9 +65,14 @@ namespace HBP.Data.Experience.Protocol
                 m_NeedToReload = true;
             }
         }
-
+        /// <summary>
+        /// True if the image need to be reload from the illustration path. False otherwise.
+        /// </summary>
         bool m_NeedToReload;
         Sprite m_Image;
+        /// <summary>
+        /// Image loaded from the illustration path.
+        /// </summary>
         public Sprite Image
         {
             get
@@ -74,6 +92,9 @@ namespace HBP.Data.Experience.Protocol
         /// The subBlocs of the bloc.
         /// </summary>
         [DataMember] public List<SubBloc> SubBlocs { get; set; }
+        /// <summary>
+        /// Main subBloc of the bloc.
+        /// </summary>
         public SubBloc MainSubBloc
         {
             get
@@ -81,6 +102,9 @@ namespace HBP.Data.Experience.Protocol
                 return SubBlocs.FirstOrDefault(s => s.Type == Enums.MainSecondaryEnum.Main);
             }
         }
+        /// <summary>
+        /// Subblocs ordered by SubBloc.Order.
+        /// </summary>
         public IOrderedEnumerable<SubBloc> OrderedSubBlocs
         {
             get
@@ -88,6 +112,9 @@ namespace HBP.Data.Experience.Protocol
                 return SubBlocs.OrderBy(s => s.Order).ThenBy(s => s.Name);
             }
         }
+        /// <summary>
+        /// Position of the main subBloc.
+        /// </summary>
         public int MainSubBlocPosition
         {
             get
@@ -95,6 +122,9 @@ namespace HBP.Data.Experience.Protocol
                 return Array.IndexOf(OrderedSubBlocs.ToArray(), MainSubBloc);
             }
         }
+        /// <summary>
+        /// True if the bloc is visualizable, False otherwise.
+        /// </summary>
         public bool IsVisualizable
         {
             get
@@ -108,13 +138,13 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// Create a new bloc instance.
         /// </summary>
-        /// <param name="name">Name of the bloc.</param>
-        /// <param name="order">Order of the bloc in the trial matrix.</param>
-        /// <param name="illustrationPath">Illustration path of the bloc.</param>
-        /// <param name="sort">Sorting  of the trials in the bloc.</param>
-        /// <param name="subBlocs">SubBlocs of the bloc.</param>
-        /// <param name="id">Unique ID of the bloc.</param>
-        public Bloc(string name, int order, string illustrationPath, string sort, IEnumerable<SubBloc> subBlocs, string id) : base(id)
+        /// <param name="name">Name of the bloc</param>
+        /// <param name="order">Order of the bloc in the trial matrix</param>
+        /// <param name="illustrationPath">Illustration path of the bloc</param>
+        /// <param name="sort">Sorting  of the trials in the bloc</param>
+        /// <param name="subBlocs">SubBlocs of the bloc</param>
+        /// <param name="ID">Unique identifier of the bloc</param>
+        public Bloc(string name, int order, string illustrationPath, string sort, IEnumerable<SubBloc> subBlocs, string ID) : base(ID)
         {
             Name = name;
             Order = order;
@@ -123,13 +153,13 @@ namespace HBP.Data.Experience.Protocol
             SubBlocs = subBlocs.ToList();
         }
         /// <summary>
-        /// Create a new bloc instance with a unique ID.
+        /// Create a new bloc instance.
         /// </summary>
-        /// <param name="name">Name of the bloc.</param>
-        /// <param name="order">Order of the bloc in the trial matrix.</param>
-        /// <param name="illustrationPath">Illustration path of the bloc.</param>
-        /// <param name="sort">Sorting  of the trials in the bloc.</param>
-        /// <param name="subBlocs">SubBlocs of the bloc.</param>
+        /// <param name="name">Name of the bloc</param>
+        /// <param name="order">Order of the bloc in the trial matrix</param>
+        /// <param name="illustrationPath">Illustration path of the bloc</param>
+        /// <param name="sort">Sorting  of the trials in the bloc</param>
+        /// <param name="subBlocs">SubBlocs of the bloc</param>
         public Bloc(string name, int order, string illustrationPath, string sort, IEnumerable<SubBloc> subBlocs) : base()
         {
             Name = name;
@@ -154,6 +184,10 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Get all the errors from the sorting.
+        /// </summary>
+        /// <returns>Sorting error</returns>
         public SortingMethodError GetSortingMethodError()
         {
             string[] orders = Sort.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
@@ -198,11 +232,19 @@ namespace HBP.Data.Experience.Protocol
             }
             return SortingMethodError.NoSortingConditionFound;
         }
+        /// <summary>
+        /// Generate unique identifier.
+        /// </summary>
         public override void GenerateID()
         {
             base.GenerateID();
             foreach (var subBloc in SubBlocs) subBloc.GenerateID();
         }
+        /// <summary>
+        /// Get sorting method error in a displayable form.
+        /// </summary>
+        /// <param name="error">Sorting method errors</param>
+        /// <returns>All sorting method errors in a displyable form</returns>
         public string GetSortingMethodErrorMessage(SortingMethodError error)
         {
             switch (error)
@@ -226,6 +268,11 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Public Static Methods
+        /// <summary>
+        /// Get number of trialMatrix columns to display these blocs.
+        /// </summary>
+        /// <param name="blocs">Blocs to display</param>
+        /// <returns>Number of columns needed</returns>
         public static int GetNumberOfColumns(IEnumerable<Bloc> blocs)
         {
             int before = 0;
@@ -238,6 +285,11 @@ namespace HBP.Data.Experience.Protocol
             }
             return before + 1 + after;
         }
+        /// <summary>
+        /// Get subBlocs and window by column.
+        /// </summary>
+        /// <param name="blocs">Blocs to display</param>
+        /// <returns>Tuple containing a array of tuple of bloc and subbloc</returns>
         public static Tuple<Tuple<Bloc,SubBloc>[], Window>[] GetSubBlocsAndWindowByColumn(IEnumerable<Bloc> blocs)
         {
             List<Tuple<int, List<Tuple<Bloc, SubBloc>>>> subBlocsByColumns = new List<Tuple<int, List<Tuple<Bloc, SubBloc>>>>();
@@ -292,8 +344,7 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Serialization
-        [OnDeserialized()]
-        public void OnDeserialized(StreamingContext context)
+        protected override void OnDeserialized()
         {
             m_IllustrationPath = m_IllustrationPath.ToPath();
         }

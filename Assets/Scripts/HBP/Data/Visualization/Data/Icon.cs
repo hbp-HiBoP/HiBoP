@@ -87,7 +87,7 @@ namespace HBP.Data.Visualization
         public Icon(Experience.Protocol.Icon icon, Tools.CSharp.EEG.Frequency frequency, int mainEventPosition, int timelineLength)
         {
             Label = icon.Name;
-            IllustrationPath = icon.IllustrationPath;
+            IllustrationPath = icon.ImagePath;
             StartPosition = Mathf.Clamp(frequency.ConvertToCeiledNumberOfSamples(icon.Window.Start) + mainEventPosition, 0, timelineLength - 1);
             EndPosition = Mathf.Clamp(frequency.ConvertToFlooredNumberOfSamples(icon.Window.End) + mainEventPosition, 0, timelineLength - 1);
         }

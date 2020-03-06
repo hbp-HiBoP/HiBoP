@@ -3,6 +3,25 @@ using UnityEngine;
 
 namespace HBP.Data
 {
+    /// <summary>
+    /// Class which contains all the data about a int value and its associated IntTag.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <term><b>Tag</b></term>
+    /// <description>Tag associated with the value.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Value</b></term>
+    /// <description>Integer value associated with the FloatTag.</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     public class IntTagValue : TagValue<IntTag, int>
     {
         #region Properties
@@ -26,12 +45,26 @@ namespace HBP.Data
         #endregion
 
         #region Constructors
+        /// <summary>
+        /// Create a new instance of IntTagValue.
+        /// </summary>
+        /// <param name="tag">Tag associated with the value</param>
+        /// <param name="value">Value associated with the tag</param>
+        /// <param name="ID">Unique identifier</param>
         public IntTagValue(IntTag tag, int value, string ID) : base(tag, value, ID)
         {
         }
+        /// <summary>
+        /// Create a new instance of IntTagValue.
+        /// </summary>
+        /// <param name="tag">Tag associated with the value</param>
+        /// <param name="value">Value associated with the tag</param>
         public IntTagValue(IntTag tag, int value) : base(tag, value)
         {
         }
+        /// <summary>
+        /// Create a new instance of IntTagValue.
+        /// </summary>
         public IntTagValue() : this(null, default)
         {
         }

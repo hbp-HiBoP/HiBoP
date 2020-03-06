@@ -5,46 +5,71 @@ using System.Runtime.Serialization;
 
 namespace HBP.Data.Experience.Protocol
 {
-    /**
-    * \class Icon
-    * \author Adrien Gannerie
-    * \version 1.0
-    * \date 09 janvier 2017
-    * \brief Icon of the iconic Scenario.
-    * 
-    * \details Class which define a Icon of the iconic Scenario which contains :
-    *     - \a Label.
-    *     - \a Illustration \a path.
-    *     - \a Window.
-    */
+    /// <summary>
+    /// Class which contains all the data about a Icon.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <term><b>ID</b></term>
+    /// <description>Unique identifier</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Name</b></term> 
+    /// <description>Name of the icon</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Image path</b></term> 
+    /// <description>Image path of the icon</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Image</b></term> 
+    /// <description>Image of the icon</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Window</b></term> 
+    /// <description>Window of the icon</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     [DataContract]
     public class Icon : BaseData, INameable
     {
         #region Properties
         /// <summary>
-        /// Icon name.
+        /// Name of the icon.
         /// </summary>
         [DataMember]
         public string Name { get; set; }
-        [DataMember(Name = "IllustrationPath")]
-        private string m_IllustrationPath = "";
         /// <summary>
-        /// Icon illustration path.
+        /// Path to the image icon with Aliases.
+        /// </summary>
+        [DataMember(Name = "ImagePath")]
+        private string m_ImagePath = "";
+        /// <summary>
+        /// Path of the image icon without Aliases.
         /// </summary>
         [IgnoreDataMember]
-        public string IllustrationPath
+        public string ImagePath
         {
             get
             {
-                return m_IllustrationPath.ConvertToFullPath();
+                return m_ImagePath.ConvertToFullPath();
             }
             set
             {
-                m_IllustrationPath = value.ConvertToShortPath();
+                m_ImagePath = value.ConvertToShortPath();
             }
         }
 
         Sprite m_Image;
+        /// <summary>
+        /// Image of the icon.
+        /// </summary>
         public Sprite Image
         {
             get
@@ -52,48 +77,59 @@ namespace HBP.Data.Experience.Protocol
                 if (!m_Image)
                 {
                     Sprite sprite;
-                    if (SpriteExtension.LoadSpriteFromFile(out sprite, IllustrationPath)) m_Image = sprite;
+                    if (SpriteExtension.LoadSpriteFromFile(out sprite, ImagePath)) m_Image = sprite;
                 }
                 return m_Image;
             }
         }
 
         /// <summary>
-        /// Icon window.
+        /// Temporal window when the icon is displayed.
         /// </summary>
         [DataMember]
         public Window Window { get; set; }
         #endregion
 
         #region Constructors
+        /// <summary>
+        /// Create a new Icon instance.
+        /// </summary>
+        /// <param name="name">Name of the icon</param>
+        /// <param name="path">Path of the image icon</param>
+        /// <param name="window">Window when the icon is displayed</param>
         public Icon(string name, string path, Window window) : base()
         {
             Name = name;
-            IllustrationPath = path;
+            ImagePath = path;
             Window = window;
         }
+        /// <summary>
+        /// Create a new Icon instance.
+        /// </summary>
+        /// <param name="name">Name of the icon</param>
+        /// <param name="path">Path of the image icon</param>
+        /// <param name="window">Window when the icon is displayed</param>
+        /// <param name="ID">Unique identifier</param>
         public Icon(string name, string path, Window window, string ID) : base(ID)
         {
             Name = name;
-            IllustrationPath = path;
+            ImagePath = path;
             Window = window;
         }
+        /// <summary>
+        /// Create a new Icon instance.
+        /// </summary>
+        /// <param name="name">Name of the icon</param>
+        /// <param name="path">Path of the image icon</param>
+        /// <param name="window">Window when the icon is displayed</param>
+        /// <param name="ID">Unique identifier</param>
         public Icon(string name, string path, Vector2Int window, string ID) : this(name, path, new Window(window), ID)
         {
         }
         /// <summary>
-        /// Create a new instance of icon.
+        /// Create a new Icon instance with default value.
         /// </summary>
-        /// <param name="name">Label of the icon.</param>
-        /// <param name="path">Path of the icon illustration.</param>
-        /// <param name="window">Window of the icon.</param>
-        public Icon(string name, string path, Vector2Int window) : this(name, path, new Window(window))
-        {
-        }
-        /// <summary>
-        /// Create a new instance of icon with default value.
-        /// </summary>
-        public Icon() : this("New Icon", string.Empty, new Vector2Int(-300, 300))
+        public Icon() : this("New Icon", string.Empty, new Window(-300, 300))
         {
         }
         #endregion
@@ -105,7 +141,7 @@ namespace HBP.Data.Experience.Protocol
         /// <returns>Icon clone.</returns>
         public override object Clone()
         {
-            return new Icon(Name, IllustrationPath, Window, ID);
+            return new Icon(Name, ImagePath, Window, ID);
         }
         public override void Copy(object obj)
         {
@@ -113,17 +149,16 @@ namespace HBP.Data.Experience.Protocol
             if (obj is Icon icon)
             {
                 Name = icon.Name;
-                IllustrationPath = icon.IllustrationPath;
+                ImagePath = icon.ImagePath;
                 Window = icon.Window;
             }
         }
         #endregion
 
         #region Serialization
-        [OnDeserialized()]
-        public void OnDeserialized(StreamingContext context)
+        protected override void OnDeserialized()
         {
-            m_IllustrationPath = m_IllustrationPath.ToPath();
+            m_ImagePath = m_ImagePath.ToPath();
         }
         #endregion
     }

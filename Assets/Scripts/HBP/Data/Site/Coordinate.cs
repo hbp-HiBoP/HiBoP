@@ -3,6 +3,29 @@ using UnityEngine;
 
 namespace HBP.Data
 {
+    /// <summary>
+    /// Class which contains all the data about a position in a specific reference system.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <term><b>ID</b></term>
+    /// <description>Unique identifier.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>ReferenceSystem</b></term> 
+    /// <description>Reference system of the coordinate.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Value</b></term> 
+    /// <description>Position in the reference system.</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     [DataContract]
     public class Coordinate : BaseData
     {
@@ -12,35 +35,35 @@ namespace HBP.Data
         /// </summary>
         [DataMember] public string ReferenceSystem { get; set; }
         /// <summary>
-        /// Value of the coordinate.
+        /// Position in the reference system.
         /// </summary>
-        [DataMember] public SerializableVector3 Value { get; set; }
+        [DataMember] public SerializableVector3 Position { get; set; }
         #endregion
 
         #region Constructors
         /// <summary>
-        /// Initializes a new instance of the coordinate class.
+        /// Create a new instance of coordinate.
         /// </summary>
-        /// <param name="referenceSystem">Reference system of the coordinate.</param>
-        /// <param name="value">Value of the coordinate.</param>
-        /// <param name="ID">Unique identifier to identify the coordinate.</param>
-        public Coordinate(string referenceSystem, Vector3 value, string ID) : base(ID)
+        /// <param name="referenceSystem">Reference system of the coordinate</param>
+        /// <param name="position">position in the reference system</param>
+        /// <param name="ID">Unique identifier</param>
+        public Coordinate(string referenceSystem, Vector3 position, string ID) : base(ID)
         {
             ReferenceSystem = referenceSystem;
-            Value = new SerializableVector3(value);
+            Position = new SerializableVector3(position);
         }
         /// <summary>
-        /// Initializes a new instance of the coordinate class.
+        /// Create a new instance of coordinate.
         /// </summary>
-        /// <param name="name">Name of the site.</param>
-        /// <param name="tags">Tags of the site.</param>
-        public Coordinate(string name, Vector3 value) : base()
+        /// <param name="referenceSystem">Reference system of the coordinate</param>
+        /// <param name="position">position in the reference system</param>
+        public Coordinate(string referenceSystem, Vector3 position) : base()
         {
-            ReferenceSystem = name;
-            Value = new SerializableVector3(value);
+            ReferenceSystem = referenceSystem;
+            Position = new SerializableVector3(position);
         }
         /// <summary>
-        /// Initializes a new instance of the coordinate class.
+        /// Create a new instance of coordinate.
         /// </summary>
         public Coordinate() : this("Unknown", new Vector3())
         {
@@ -54,7 +77,7 @@ namespace HBP.Data
         /// <returns>object cloned.</returns>
         public override object Clone()
         {
-            return new Coordinate(ReferenceSystem, Value.ToVector3(), ID);
+            return new Coordinate(ReferenceSystem, Position.ToVector3(), ID);
         }
         /// <summary>
         /// Copy the instance.
@@ -66,7 +89,7 @@ namespace HBP.Data
             if (obj is Coordinate coordinate)
             {
                 ReferenceSystem = coordinate.ReferenceSystem;
-                Value = coordinate.Value;
+                Position = coordinate.Position;
             }
         }
         #endregion
