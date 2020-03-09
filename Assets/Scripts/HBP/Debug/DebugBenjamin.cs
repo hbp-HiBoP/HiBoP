@@ -1,5 +1,4 @@
-﻿using HBP.Data.Visualization;
-using System.Linq;
+﻿using System.Linq;
 using UnityEngine;
 using System.IO;
 using System;
@@ -7,6 +6,7 @@ using HBP.Data;
 using HBP.UI;
 using Tools.Unity;
 using System.Collections;
+using HBP.Module3D;
 
 public class DebugBenjamin : MonoBehaviour
 {
@@ -15,7 +15,11 @@ public class DebugBenjamin : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.F1))
         {
-            MarsAtlasCCEP();
+            StartVideo();
+        }
+        if (Input.GetKeyDown(KeyCode.F2))
+        {
+            EndVideo();
         }
     }
     private void MarsAtlasCCEP()
@@ -62,6 +66,42 @@ public class DebugBenjamin : MonoBehaviour
             Texture2D image = Texture2DExtension.ScreenRectToTexture(window.GetComponent<RectTransform>().ToScreenSpace());
             image.filterMode = FilterMode.Trilinear;
             image.SaveToPNG(path);
+        }
+    }
+
+    private HBP.Module3D.DLL.VideoStream m_VideoStream;
+    private Coroutine m_VideoCoroutine = null;
+    [SerializeField] private Canvas m_Canvas;
+    private void StartVideo()
+    {
+        Rect sceneRect = m_Canvas.GetComponent<RectTransform>().ToScreenSpace();
+        m_VideoStream = new HBP.Module3D.DLL.VideoStream();
+        m_VideoStream.Open("D:/TestVideo.avi", (int)sceneRect.width, (int)sceneRect.height);
+        m_VideoCoroutine = StartCoroutine(c_Video(sceneRect));
+    }
+    private void EndVideo()
+    {
+        StopCoroutine(m_VideoCoroutine);
+        m_VideoCoroutine = null;
+        m_VideoStream.Dispose();
+        m_VideoStream = null;
+    }
+    private IEnumerator c_Video(Rect rect)
+    {
+        HBP.Module3D.DLL.Texture texture = new HBP.Module3D.DLL.Texture();
+        texture.Reset((int)rect.width, (int)rect.height);
+
+        float fps = 30;
+        Base3DScene scene = ApplicationState.Module3D.SelectedScene;
+        Column3DIEEG column = ApplicationState.Module3D.SelectedColumn as Column3DIEEG;
+
+        while (true)
+        {
+            yield return new WaitForEndOfFrame();
+
+            Texture2D sceneTexture = Texture2DExtension.ScreenRectToTexture(rect);
+            texture.FromTexture2D(sceneTexture);
+            m_VideoStream.WriteFrame(texture);
         }
     }
 #endif
