@@ -8,22 +8,36 @@ using System.IO;
 
 namespace HBP.Data.Experience.Protocol
 {
-    /**
-    * \class Protocol
-    * \author Adrien Gannerie
-    * \version 1.0
-    * \date 09 janvier 2017
-    * \brief Protocol of a Experience.
-    * 
-    * \details Class which define a visualization protocol which contains : 
-    *     - \a Unique \a ID.
-    *     - \a Label.
-    *     - \a Blocs.
-    */
+    /// <summary>
+    /// Class which contains all the data about a experience protocol used to epoch, and visualize data.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <term><b>ID</b></term>
+    /// <description>Unique identifier.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Name</b></term> 
+    /// <description>Name of the protocol.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Blocs</b></term> 
+    /// <description>Blocs of the protocol.</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     [DataContract]
 	public class Protocol : BaseData, ILoadable<Protocol>, INameable
     {
         #region Properties
+        /// <summary>
+        /// Protocol file extension.
+        /// </summary>
         public const string EXTENSION = ".prov";
         /// <summary>
         /// Name of the protocol.
@@ -33,6 +47,9 @@ namespace HBP.Data.Experience.Protocol
         /// Blocs of the protocol.
         /// </summary>
         [DataMember] public List<Bloc> Blocs { get; set; }
+        /// <summary>
+        /// Blocs ordered by Bloc.Order.
+        /// </summary>
         public IOrderedEnumerable<Bloc> OrderedBlocs
         {
             get
@@ -40,6 +57,9 @@ namespace HBP.Data.Experience.Protocol
                 return Blocs.OrderBy(s => s.Order).ThenBy(s => s.Name);
             }
         }
+        /// <summary>
+        /// Return True if the protocol is visualizable, False otherwise.
+        /// </summary>
         public bool IsVisualizable
         {
             get
@@ -51,11 +71,11 @@ namespace HBP.Data.Experience.Protocol
 
         #region Constructors
         /// <summary>
-        /// Create a new protocol.
+        /// Create a new protocol instance.
         /// </summary>
-        /// <param name="name">Name of the protocol.</param>
-        /// <param name="blocs">Blocs of the protocol.</param>
-        /// <param name="ID">Unique ID of the protocol.</param>
+        /// <param name="name">Name</param>
+        /// <param name="blocs">Blocs</param>
+        /// <param name="ID">Unique identifier</param>
         public Protocol(string name,IEnumerable<Bloc> blocs,string ID) : base(ID)
         {
             Name = name;
@@ -64,8 +84,8 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// Create a new protocol.
         /// </summary>
-        /// <param name="name">Name of the protocol.</param>
-        /// <param name="blocs">Blocs of the protocol.</param>
+        /// <param name="name">Name</param>
+        /// <param name="blocs">Blocs</param>
         public Protocol(string name, IEnumerable<Bloc> blocs) : base()
         {
             Name = name;
@@ -81,7 +101,7 @@ namespace HBP.Data.Experience.Protocol
 
         #region Public Methods
         /// <summary>
-        /// Generates  ID recursively.
+        /// Generates new unique identifier recursively.
         /// </summary>
         public override void GenerateID()
         {
@@ -91,10 +111,20 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Public Static Methods
+        /// <summary>
+        /// Get all the protocol file extensions.
+        /// </summary>
+        /// <returns>Array of extensions</returns>
         public static string[] GetExtensions()
         {
             return new string[] { EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION };
         }
+        /// <summary>
+        /// Load a protocol from a protocol file.
+        /// </summary>
+        /// <param name="path">Path to the protocol file</param>
+        /// <param name="result">Protocol loaded</param>
+        /// <returns>True if is ok, False otherwise</returns>
         public static bool LoadFromFile(string path, out Protocol result)
         {
             result = null;
@@ -124,7 +154,7 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// Copy the instance.
         /// </summary>
-        /// <param name="obj">instance to copy.</param>
+        /// <param name="obj">Instance to copy.</param>
         public override void Copy(object obj)
         {
             base.Copy(obj);
@@ -137,10 +167,20 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Interfaces
+        /// <summary>
+        /// Get all the protocol file extensions.
+        /// </summary>
+        /// <returns>Array of extensions</returns>
         string[] ILoadable<Protocol>.GetExtensions()
         {
             return GetExtensions();
         }
+        /// <summary>
+        /// Load a protocol from a protocol file.
+        /// </summary>
+        /// <param name="path">Path to the protocol file</param>
+        /// <param name="result">Protocol loaded</param>
+        /// <returns>True if is ok, False otherwise</returns>
         bool ILoadable<Protocol>.LoadFromFile(string path, out Protocol[] result)
         {
             bool success = LoadFromFile(path, out Protocol protocol);

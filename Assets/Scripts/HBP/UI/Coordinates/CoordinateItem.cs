@@ -24,9 +24,9 @@ namespace HBP.UI
                 base.Object = value;
 
                 m_ReferenceSystemText.text = value.ReferenceSystem;
-                m_XText.text = value.Value.x.ToString("0.##", CultureInfo.InvariantCulture);
-                m_YText.text = value.Value.y.ToString("0.##", CultureInfo.InvariantCulture);
-                m_ZText.text = value.Value.z.ToString("0.##", CultureInfo.InvariantCulture);
+                m_XText.text = value.Position.x.ToString("0.##", CultureInfo.InvariantCulture);
+                m_YText.text = value.Position.y.ToString("0.##", CultureInfo.InvariantCulture);
+                m_ZText.text = value.Position.z.ToString("0.##", CultureInfo.InvariantCulture);
             }
         }
         #endregion

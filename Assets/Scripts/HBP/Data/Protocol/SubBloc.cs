@@ -6,23 +6,53 @@ using Tools.CSharp;
 
 namespace HBP.Data.Experience.Protocol
 {
-    /**
-    * \class SubBloc
-    * \author Adrien Gannerie
-    * \version 1.0
-    * \date 28 juin 2018
-    * \brief SubBloc in a Bloc.
-    * 
-    * \details Class which define a subBloc in a visualization protocol bloc which contains : 
-    *     - Unique ID.
-    *     - Name
-    *     - Position.
-    *     - Window.
-    *     - Baseline.
-    *     - Events.
-    *     - Iconic Scenario.
-    *     - Treatments.
-    */
+    /// <summary>
+    /// Class which contains all the data about a experience subBloc used to epoch, and visualize data.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <term><b>ID</b></term>
+    /// <description>Unique identifier</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Name</b></term> 
+    /// <description>Name of the subBloc</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Order</b></term> 
+    /// <description>Order of the subBloc</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Type</b></term> 
+    /// <description>Type of the subBloc</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Window</b></term> 
+    /// <description>Window of the subBloc</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Baseline</b></term> 
+    /// <description>Baseline of the subBloc</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Events</b></term> 
+    /// <description>Events of the subBloc</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Icons</b></term> 
+    /// <description>Icons of the subBloc</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Treatments</b></term> 
+    /// <description>Treatments of the subBloc</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     [DataContract]
     public class SubBloc : BaseData, INameable
     {
@@ -67,6 +97,9 @@ namespace HBP.Data.Experience.Protocol
         /// Treatments of the subBloc.
         /// </summary>
         [DataMember] public List<Treatment> Treatments { get; set; }
+        /// <summary>
+        /// True if the subBloc is visualizable, False otherwise.
+        /// </summary>
         public bool IsVisualizable
         {
             get
@@ -89,16 +122,17 @@ namespace HBP.Data.Experience.Protocol
 
         #region Constructors
         /// <summary>
-        /// Create a new SubBloc.
+        /// Create a new SubBloc instance.
         /// </summary>
-        /// <param name="name">Name of the subBloc.</param>
-        /// <param name="position">Position of the subBloc.</param>
-        /// <param name="window">Window of the subBloc.</param>
-        /// <param name="baseline">Baseline of the subBloc.</param>
-        /// <param name="events">Events of the subBloc.</param>
-        /// <param name="scenario">Iconic Scenario of the subBloc.</param>
-        /// <param name="treatments">Treatments of the subBloc.</param>
-        /// <param name="ID">Unique ID of the subBloc.</param>
+        /// <param name="name">Name</param>
+        /// <param name="order">Order</param>
+        /// <param name="type">Type</param>
+        /// <param name="window">Window</param>
+        /// <param name="baseline">Baseline</param>
+        /// <param name="events">Events</param>
+        /// <param name="icons">Icons</param>
+        /// <param name="treatments">Treatments</param>
+        /// <param name="ID">Unique identifier</param>
         public SubBloc(string name, int order, Enums.MainSecondaryEnum type, Window window, Window baseline, IEnumerable<Event> events, IEnumerable<Icon> icons, IEnumerable<Treatment> treatments, string ID) : base(ID)
         {
             Name = name;
@@ -111,16 +145,16 @@ namespace HBP.Data.Experience.Protocol
             Treatments = treatments.ToList();
         }
         /// <summary>
-        /// Create a new SubBloc with a uniqueID.
+        /// Create a new SubBloc instance.
         /// </summary>
-        /// <param name="name">Name of the subBloc.</param>
-        /// <param name="position">Position of the subBloc.</param>
-        /// <param name="window">Window of the subBloc.</param>
-        /// <param name="baseline">Baseline of the subBloc.</param>
-        /// <param name="events">Events of the subBloc.</param>
-        /// <param name="scenario">Iconic Scenario of the subBloc.</param>
-        /// <param name="treatments">Treatments of the subBloc.</param>
-        /// <param name="id">Unique ID of the subBloc.</param>
+        /// <param name="name">Name</param>
+        /// <param name="order">Order</param>
+        /// <param name="type">Type</param>
+        /// <param name="window">Window</param>
+        /// <param name="baseline">Baseline</param>
+        /// <param name="events">Events</param>
+        /// <param name="icons">Icons</param>
+        /// <param name="treatments">Treatments</param>
         public SubBloc(string name, int order, Enums.MainSecondaryEnum type, Window window, Window baseline, IEnumerable<Event> events, IEnumerable<Icon> icons, IEnumerable<Treatment> treatments) : base()
         {
             Name = name;
@@ -133,11 +167,15 @@ namespace HBP.Data.Experience.Protocol
             Treatments = treatments.ToList();
         }
         /// <summary>
-        /// Create a new SubBloc with default value.
+        /// Create a new SubBloc instance with default value.
         /// </summary>
         public SubBloc() : this("New subBloc", 0, Enums.MainSecondaryEnum.Main, new Window(-300,300), new Window(-300,0), new List<Event>(), new List<Icon>(), new List<Treatment>())
         {
         }
+        /// <summary>
+        /// Create a new SubBloc instance with a specific type.
+        /// </summary>
+        /// <param name="type">Type</param>
         public SubBloc(Enums.MainSecondaryEnum type) : this()
         {
             Type = type;

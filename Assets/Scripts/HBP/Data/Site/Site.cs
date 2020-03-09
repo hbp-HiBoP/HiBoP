@@ -8,6 +8,33 @@ using Tools.CSharp;
 
 namespace HBP.Data
 {
+    /// <summary>
+    /// Class which contains all the data about a electrode contact point also known as site.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <term><b>ID</b></term>
+    /// <description>Unique identifier.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Name</b></term> 
+    /// <description>Name of the site.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Coordinates</b></term> 
+    /// <description>Coordinates of the site in specific reference systems.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Tags</b></term> 
+    /// <description>Tags of the site.</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     [DataContract]
     public class Site : BaseData, INameable, ILoadable<Site>
     {
@@ -17,7 +44,7 @@ namespace HBP.Data
         /// </summary>
         [DataMember] public string Name { get; set; }
         /// <summary>
-        /// Coordinates of the site.
+        /// Coordinates of the site in specific reference systems.
         /// </summary>
         [DataMember] public List<Coordinate> Coordinates { get; set; }
         /// <summary>
@@ -59,10 +86,19 @@ namespace HBP.Data
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Get all the possible extensions for site files.
+        /// </summary>
+        /// <returns></returns>
         public string[] GetExtensions()
         {
             return new string[] { "pts", "tsv", "csv" };
         }
+        /// <summary>
+        /// Load all sites from a intranat directory.
+        /// </summary>
+        /// <param name="path">Path to intranat directory</param>
+        /// <returns>Sites in the directory</returns>
         public static List<Site> LoadFromIntranatDirectory(string path)
         {
             var sites = new List<Site>();
@@ -100,6 +136,13 @@ namespace HBP.Data
             }
             return sites;
         }
+        /// <summary>
+        /// Load all sites from a BIDS directory.
+        /// </summary>
+        /// <param name="referenceSystem">reference system</param>
+        /// <param name="tsvFile">tvs file</param>
+        /// <param name="loadTags">True to load tags, False otherwise</param>
+        /// <returns>Sites in the directory</returns>
         public static List<Site> LoadImplantationFromBIDSFile(string referenceSystem, string tsvFile, bool loadTags = true)
         {
             List<Site> sites = new List<Site>();
@@ -168,9 +211,9 @@ namespace HBP.Data
                             string column = columns[v];
                             string value = values[v];
                             if (column == "name") site.Name = value;
-                            else if (column == "x" && NumberExtension.TryParseFloat(value, out float x)) site.Coordinates[0].Value = new SerializableVector3(x, site.Coordinates[0].Value.y, site.Coordinates[0].Value.z);
-                            else if (column == "y" && NumberExtension.TryParseFloat(value, out float y)) site.Coordinates[0].Value = new SerializableVector3(site.Coordinates[0].Value.x, y, site.Coordinates[0].Value.z);
-                            else if (column == "z" && NumberExtension.TryParseFloat(value, out float z)) site.Coordinates[0].Value = new SerializableVector3(site.Coordinates[0].Value.x, site.Coordinates[0].Value.y, z);
+                            else if (column == "x" && NumberExtension.TryParseFloat(value, out float x)) site.Coordinates[0].Position = new SerializableVector3(x, site.Coordinates[0].Position.y, site.Coordinates[0].Position.z);
+                            else if (column == "y" && NumberExtension.TryParseFloat(value, out float y)) site.Coordinates[0].Position = new SerializableVector3(site.Coordinates[0].Position.x, y, site.Coordinates[0].Position.z);
+                            else if (column == "z" && NumberExtension.TryParseFloat(value, out float z)) site.Coordinates[0].Position = new SerializableVector3(site.Coordinates[0].Position.x, site.Coordinates[0].Position.y, z);
                             else if(loadTags)
                             {
                                 BaseTag tag = projectTags.FirstOrDefault(t => t.Name == column);
@@ -226,6 +269,11 @@ namespace HBP.Data
             }
             return sites;
         }
+        /// <summary>
+        /// Load all sites from a intranat directory.
+        /// </summary>
+        /// <param name="path">Path to intranat directory</param>
+        /// <returns>Sites in the directory</returns>
         public static List<Site> LoadImplantationFromIntrAnatFile(string referenceSystem, string ptsFile, string csvFile)
         {
             List<Site> result = new List<Site>();
@@ -291,6 +339,12 @@ namespace HBP.Data
             }
             return result;
         }
+        /// <summary>
+        /// Load all sites from PTS file.
+        /// </summary>
+        /// <param name="referenceSystem">reference system</param>
+        /// <param name="ptsFile">pts file path</param>
+        /// <returns>All sites in the pts file</returns>
         public static List<Site> LoadSitesFromPTSFIle(string referenceSystem, string ptsFile)
         {
             var sites = new List<Site>();
@@ -316,6 +370,11 @@ namespace HBP.Data
             }
             return sites;
         }
+        /// <summary>
+        /// Load all sites from csv file.
+        /// </summary>
+        /// <param name="csvFile">CSV file path</param>
+        /// <returns>All sites in the csv file</returns>
         public static List<Site> LoadSitesFromCSVFile(string csvFile)
         {
             var sites = new List<Site>();
@@ -441,6 +500,11 @@ namespace HBP.Data
             return sites;
         }
 
+        /// <summary>
+        /// Fix the name (P,'p).
+        /// </summary>
+        /// <param name="name">Name</param>
+        /// <returns>Fixed name</returns>
         public static string FixName(string name)
         {
             string siteName = name.ToUpper();
@@ -496,10 +560,20 @@ namespace HBP.Data
         #endregion
 
         #region Interfaces
+        /// <summary>
+        /// Get all the possible extensions for site files.
+        /// </summary>
+        /// <returns></returns>
         string[] ILoadable<Site>.GetExtensions()
         {
             return GetExtensions();
         }
+        /// <summary>
+        /// Load all sites from file.
+        /// </summary>
+        /// <param name="path">file path</param>
+        /// <param name="result">All sites in the file</param>
+        /// <returns>True if isOk, False otherwise</returns>
         bool ILoadable<Site>.LoadFromFile(string path, out Site[] result)
         {
             result = new Site[0];

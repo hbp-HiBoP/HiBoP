@@ -5,17 +5,71 @@ using Tools.CSharp.EEG;
 
 namespace HBP.Data.Experience.Protocol
 {
+    /// <summary>
+    /// Class which define a ClampTreatment to apply at a subBloc.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <term><b>ID</b></term>
+    /// <description>Unique identifier.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Order</b></term> 
+    /// <description>Order of the treatment.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>UseOnWindow</b></term> 
+    /// <description>True if  of the protocol.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>UseMinClamp</b></term> 
+    /// <description>True to floor by a minimum value, False otherwise.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Min</b></term> 
+    /// <description>Minimum value to floor with.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>UseMaxClamp</b></term> 
+    /// <description>True to cap by a maximum value, False otherwise.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Max</b></term> 
+    /// <description>Maximum value to cap with.</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     [DataContract, DisplayName("Clamp")]
     public class ClampTreatment : Treatment
     {
         #region Properties
+        /// <summary>
+        /// True to floor by a minimum value, False otherwise.
+        /// </summary>
         [DataMember] public bool UseMinClamp { get; set; }
+        /// <summary>
+        /// Minimum value to floor with.
+        /// </summary>
         [DataMember] public float Min { get; set; }
+        /// <summary>
+        /// True to cap by a maximum value, False otherwise.
+        /// </summary>
         [DataMember] public bool UseMaxClamp { get; set; }
+        /// <summary>
+        /// Maximum value to cap with.
+        /// </summary>
         [DataMember] public float Max { get; set; }
         #endregion
 
         #region Constructors
+        /// <summary>
+        /// Create a new ClampTreatment instance with default values.
+        /// </summary>
         public ClampTreatment() : base()
         {
             UseMinClamp = false;
@@ -23,6 +77,10 @@ namespace HBP.Data.Experience.Protocol
             Min = 0;
             Max = 1;
         }
+        /// <summary>
+        /// Create a new ClampTreatment instance with a unique identifier.
+        /// </summary>
+        /// <param name="ID">Unique identifier</param>
         public ClampTreatment(string ID) :  base(ID)
         {
             UseMinClamp = false;
@@ -30,6 +88,18 @@ namespace HBP.Data.Experience.Protocol
             Min = 0;
             Max = 1;
         }
+        /// <summary>
+        /// Create a new ClampTreatment instance
+        /// </summary>
+        /// <param name="useOnWindow">True if we apply the treatment on the window, False otherwise</param>
+        /// <param name="window">Temporal window to apply the treatment on the window of the subBloc</param>
+        /// <param name="useOnBaseline">True if we apply the treatment on the baseline, False otherwise</param>
+        /// <param name="baseline">Temporal window to apply the treatment on the baseline of the subBloc</param>
+        /// <param name="useMinClamp"> True to floor by a minimum value, False otherwise.</param>
+        /// <param name="min">Minimum value to floor with</param>
+        /// <param name="useMaxClamp">True to cap by a maximum value, False otherwise.</param>
+        /// <param name="max">Maximum value to cap with</param>
+        /// <param name="order">Order of the treatmeants to apply to the subBloc</param>
         public ClampTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, bool useMinClamp, float min, bool useMaxClamp, float max, int order) : base(useOnWindow, window, useOnBaseline, baseline, order)
         {
             UseMinClamp = useMinClamp;
@@ -37,6 +107,19 @@ namespace HBP.Data.Experience.Protocol
             Min = min;
             Max = max;
         }
+        /// <summary>
+        /// Create a new ClampTreatment instance
+        /// </summary>
+        /// <param name="useOnWindow">True if we apply the treatment on the window, False otherwise</param>
+        /// <param name="window">Temporal window to apply the treatment on the window of the subBloc</param>
+        /// <param name="useOnBaseline">True if we apply the treatment on the baseline, False otherwise</param>
+        /// <param name="baseline">Temporal window to apply the treatment on the baseline of the subBloc</param>
+        /// <param name="useMinClamp"> True to floor by a minimum value, False otherwise.</param>
+        /// <param name="min">Minimum value to floor with</param>
+        /// <param name="useMaxClamp">True to cap by a maximum value, False otherwise.</param>
+        /// <param name="max">Maximum value to cap with</param>
+        /// <param name="order">Order of the treatmeants to apply to the subBloc</param>
+        /// <param name="ID">Unique identifier</param>
         public ClampTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, bool useMinClamp, float min , bool useMaxClamp, float max, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
         {
             UseMinClamp = useMinClamp;

@@ -94,7 +94,7 @@ namespace HBP.Data
 
         #region Constructors
         /// <summary>
-        /// Initializes a new instance of the Patient class.
+        /// Create a new instance of Patient.
         /// </summary>
         /// <param name="name">Name of the patient.</param>
         /// <param name="place">Place where the  patient had the operation.</param>
@@ -115,7 +115,7 @@ namespace HBP.Data
             Tags = tags.ToList();
         }
         /// <summary>
-        /// Initializes a new instance of the Patient class.
+        /// Create a new instance of Patient.
         /// </summary>
         /// <param name="name">Name of the patient.</param>
         /// <param name="place">Place where the  patient had the operation.</param>
@@ -135,7 +135,7 @@ namespace HBP.Data
             Tags = tags.ToList();
         }
         /// <summary>
-        /// Initializes a new instance of the Patient class.
+        /// Create a new instance of Patient.
         /// </summary>
         public Patient() : this("Unknown", "Unknown", 0, new BaseMesh[0], new MRI[0], new Site[0], new BaseTagValue[0])
         {

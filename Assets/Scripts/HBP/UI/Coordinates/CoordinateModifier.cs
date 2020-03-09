@@ -45,9 +45,9 @@ namespace HBP.UI
         protected override void SetFields(Data.Coordinate objectToDisplay)
         {
             m_ReferenceSystemInputField.text = objectToDisplay.ReferenceSystem;
-            m_XInputField.text = objectToDisplay.Value.x.ToString(CultureInfo.InvariantCulture);
-            m_YInputField.text = objectToDisplay.Value.y.ToString(CultureInfo.InvariantCulture);
-            m_ZInputField.text = objectToDisplay.Value.z.ToString(CultureInfo.InvariantCulture);
+            m_XInputField.text = objectToDisplay.Position.x.ToString(CultureInfo.InvariantCulture);
+            m_YInputField.text = objectToDisplay.Position.y.ToString(CultureInfo.InvariantCulture);
+            m_ZInputField.text = objectToDisplay.Position.z.ToString(CultureInfo.InvariantCulture);
         }
 
         void OnChangeReferenceSystem(string value)
@@ -65,21 +65,21 @@ namespace HBP.UI
         {
             if(NumberExtension.TryParseFloat(value, out float x))
             {
-                ItemTemp.Value = new SerializableVector3(x, ItemTemp.Value.y, ItemTemp.Value.z);
+                ItemTemp.Position = new SerializableVector3(x, ItemTemp.Position.y, ItemTemp.Position.z);
             }
         }
         void OnChangeY(string value)
         {
             if (NumberExtension.TryParseFloat(value, out float y))
             {
-                ItemTemp.Value = new SerializableVector3(ItemTemp.Value.x, y, ItemTemp.Value.z);
+                ItemTemp.Position = new SerializableVector3(ItemTemp.Position.x, y, ItemTemp.Position.z);
             }
         }
         void OnChangeZ(string value)
         {
             if (NumberExtension.TryParseFloat(value, out float z))
             {
-                ItemTemp.Value = new SerializableVector3(ItemTemp.Value.x, ItemTemp.Value.y,z);
+                ItemTemp.Position = new SerializableVector3(ItemTemp.Position.x, ItemTemp.Position.y,z);
             }
         }
         #endregion

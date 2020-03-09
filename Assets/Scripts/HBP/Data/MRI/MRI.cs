@@ -6,13 +6,48 @@ using Tools.Unity;
 
 namespace HBP.Data
 {
+    /// <summary>
+    /// A class which contains all the data about a Magnetic resonance imaging (MRI).
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <item>
+    /// <term><b>ID</b></term>
+    /// <description>Unique identifier.</description>
+    /// </item>
+    /// <term><b>Name</b></term> 
+    /// <description>Name of the MRI.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>File</b></term>
+    /// <description>MRI file</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     [DataContract]
     public class MRI : BaseData, INameable
     {
         #region Properties
+        /// <summary>
+        /// Extension of MRI files.
+        /// </summary>
         public const string EXTENSION = ".nii";
+        /// <summary>
+        /// Name of the MRI.
+        /// </summary>
         [DataMember] public string Name { get; set; }
+        /// <summary>
+        /// MRI file path with Alias.
+        /// </summary>
         [DataMember(Name = "File")] public string SavedFile { get; protected set; }
+        /// <summary>
+        /// MRI file path without Alias.
+        /// </summary>
         public string File
         {
             get
@@ -24,7 +59,13 @@ namespace HBP.Data
                 SavedFile = value.ConvertToShortPath();
             }
         }
+        /// <summary>
+        /// True if the MRI was usable, False otherwise.
+        /// </summary>
         public bool WasUsable { get; protected set; }
+        /// <summary>
+        /// True if the MRI is usable, False otherwise.
+        /// </summary>
         public bool IsUsable
         {
             get
@@ -34,6 +75,9 @@ namespace HBP.Data
                 return usable;
             }
         }
+        /// <summary>
+        /// True if the MRI has MRI file, False otherwise.
+        /// </summary>
         public virtual bool HasMRI
         {
             get
@@ -44,22 +88,40 @@ namespace HBP.Data
         #endregion
 
         #region Constructors
+        /// <summary>
+        /// Create a new MRI instance.
+        /// </summary>
+        /// <param name="name">Name</param>
+        /// <param name="path">MRI file path</param>
+        /// <param name="ID">Unique identifier</param>
         public MRI(string name, string path, string ID) : base(ID)
         {
             Name = name;
             File = path;
             RecalculateIsUsable();
         }
+        /// <summary>
+        /// Create a new MRI instance.
+        /// </summary>
+        /// <param name="name">Name</param>
+        /// <param name="path">MRI file path</param>
         public MRI(string name, string path) : base()
         {
             Name = name;
             File = path;
             RecalculateIsUsable();
         }
+        /// <summary>
+        /// Create a new MRI instance.
+        /// </summary>
         public MRI() : this("New MRI", string.Empty) { }
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Recalculate if the MRI is usable.
+        /// </summary>
+        /// <returns></returns>
         public bool RecalculateIsUsable()
         {
             return IsUsable;
@@ -67,6 +129,11 @@ namespace HBP.Data
         #endregion
 
         #region Public Static Methods
+        /// <summary>
+        /// Loads meshes from a directory.
+        /// </summary>
+        /// <param name="path">path of the directory.</param>
+        /// <returns>All MRI in the directory</returns>
         public static MRI[] LoadFromDirectory(string path)
         {
             List<MRI> MRIs = new List<MRI>();
@@ -120,11 +187,11 @@ namespace HBP.Data
         #endregion
 
         #region Serialization
-        [OnDeserialized()]
-        public void OnDeserialized(StreamingContext context)
+        protected override void OnDeserialized()
         {
             SavedFile = SavedFile.ToPath();
             RecalculateIsUsable();
+            base.OnDeserialized();
         }
         #endregion
     }

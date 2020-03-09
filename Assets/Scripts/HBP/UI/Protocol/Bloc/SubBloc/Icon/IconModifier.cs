@@ -58,7 +58,7 @@ namespace HBP.UI.Experience.Protocol
             m_WindowSlider.maxLimit = ApplicationState.UserPreferences.Data.Protocol.MaxLimit;
             m_WindowSlider.step = ApplicationState.UserPreferences.Data.Protocol.Step;
             m_WindowSlider.Values = objectToDisplay.Window.ToVector2();
-            m_ImageSelector.Path = objectToDisplay.IllustrationPath;
+            m_ImageSelector.Path = objectToDisplay.ImagePath;
         }
 
         protected void OnChangeName(string value)
@@ -78,7 +78,7 @@ namespace HBP.UI.Experience.Protocol
         }
         protected void OnChangeImage(string path)
         {
-            ItemTemp.IllustrationPath = path;
+            ItemTemp.ImagePath = path;
         }
         #endregion
     }

@@ -30,13 +30,13 @@ namespace HBP.Data
 
         #region Constructors
         /// <summary>
-        /// Initializes a new instance of the BaseData class.
+        /// Create a new BaseData instance.
         /// </summary>
         public BaseData() : this(Guid.NewGuid().ToString())
         {
         }
         /// <summary>
-        /// Initializes a new instance of the BaseData class.
+        /// Create a new BaseData instance.
         /// </summary>
         /// <param name="ID">Unique indentifier</param>
         public BaseData(string ID)

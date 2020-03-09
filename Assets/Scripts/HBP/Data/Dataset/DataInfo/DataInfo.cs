@@ -120,8 +120,8 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         /// <param name="name">Name of the dataInfo.</param>
         /// <param name="dataContainer">Data container of the dataInfo.</param>
-        /// <param name="id">Unique identifier of the dataInfo.</param>
-        public DataInfo(string name, Container.DataContainer dataContainer, string id) : base(id)
+        /// <param name="ID">Unique identifier of the dataInfo.</param>
+        public DataInfo(string name, Container.DataContainer dataContainer, string ID) : base(ID)
         {
             Name = name;
             DataContainer = dataContainer;
