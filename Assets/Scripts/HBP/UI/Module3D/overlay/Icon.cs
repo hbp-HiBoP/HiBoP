@@ -30,6 +30,10 @@ namespace HBP.UI.Module3D
         /// </summary>
         private Data.Visualization.Icon m_CurrentIcon;
         /// <summary>
+        /// Sprite of the current icon
+        /// </summary>
+        public Sprite Sprite { get { return m_CurrentIcon != null ? m_CurrentIcon.Illustration : null; } }
+        /// <summary>
         /// List of all icons used for this column
         /// </summary>
         private List<Data.Visualization.Icon> m_Icons;

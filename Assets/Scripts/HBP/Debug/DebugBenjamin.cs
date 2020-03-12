@@ -101,15 +101,15 @@ public class DebugBenjamin : MonoBehaviour
             yield return new WaitForEndOfFrame();
 
             int width = 1920 / numberOfColumns;
-            int height = 1060 / numberOfViewLines;
+            int height = 1080 / numberOfViewLines;
 
             for (int j = 0; j < numberOfColumns; ++j)
             {
-                int horizontalOffset = (numberOfColumns - 1 - j) * width;
+                int horizontalOffset = j * width;
                 // 3D
                 for (int k = 0; k < numberOfViewLines; ++k)
                 {
-                    int verticalOffset = (numberOfViewLines - 1 - k) * height + 20;
+                    int verticalOffset = (numberOfViewLines - 1 - k) * height;
                     Texture2D subTexture = scene.Columns[j].Views[k].GetTexture(width, height, new Color((float)40 / 255, (float)40 / 255, (float)40 / 255, 1.0f));
                     texture2D.SetPixels(horizontalOffset, verticalOffset, width, height, subTexture.GetPixels());
                 }
@@ -119,12 +119,21 @@ public class DebugBenjamin : MonoBehaviour
                 Texture2D colormapTexture = Texture2DExtension.ScreenRectToTexture(colormap.GetComponent<RectTransform>().ToScreenSpace());
                 texture2D.SetPixels(horizontalOffset + 5, 1080 - 5 - colormapTexture.height, colormapTexture.width, colormapTexture.height, colormapTexture.GetPixels());
                 Icon icon = ApplicationState.Module3DUI.Scenes[scene].Scene3DUI.Columns[j].Icon;
-                Texture2D iconTexture = icon.IsActive ? Texture2DExtension.ScreenRectToTexture(icon.GetComponent<RectTransform>().ToScreenSpace()) : null;
-                if (iconTexture) texture2D.SetPixels(horizontalOffset + width - 5, 1080 - 5 - iconTexture.height, iconTexture.width, iconTexture.height, iconTexture.GetPixels());
+                Texture2D iconTexture = icon.IsActive ? icon.Sprite.texture : null;
+                if (iconTexture)
+                {
+                    Texture2D newIconTexture = new Texture2D(iconTexture.width, iconTexture.height);
+                    newIconTexture.SetPixels(iconTexture.GetPixels());
+                    float resizeFactor = 1f / (Mathf.Max(newIconTexture.width, newIconTexture.height) / 200);
+                    newIconTexture.Resize((int)(resizeFactor * newIconTexture.width), (int)(resizeFactor * newIconTexture.height)); // does not work
+                    texture2D.SetPixels(horizontalOffset + width - 5 - newIconTexture.width, 1080 - 5 - newIconTexture.height, newIconTexture.width, newIconTexture.height, newIconTexture.GetPixels());
+                }
             }
+            /*
             texture2D.SetPixels(0, 0, 1920, 20, timeline);
             int cursorPosition = i * (1915 / (timelineLength - 1));
             texture2D.SetPixels(cursorPosition, 0, 5, 20, timelineCursor);
+            */
             texture.FromTexture2D(texture2D);
             m_VideoStream.WriteFrame(texture);
         }
