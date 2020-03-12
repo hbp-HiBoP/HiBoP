@@ -175,33 +175,6 @@ namespace HBP.Module3D
                 m_Camera3D.Camera.targetTexture = value;
             }
         }
-        /// <summary>
-        /// Get the texture for the screenshot
-        /// </summary>
-        public Texture2D ScreenshotTexture
-        {
-            get
-            {
-                // Save old parameters
-                RenderTexture currentRenderTexture = m_Camera3D.Camera.targetTexture;
-                float currentAspect = m_Camera3D.Camera.aspect;
-                Color currentBackground = m_Camera3D.Camera.backgroundColor;
-                // Get texture
-                RenderTexture screenshotRenderTexture = new RenderTexture(2048, 2048, 24);
-                screenshotRenderTexture.antiAliasing = 1;
-                m_Camera3D.Camera.targetTexture = screenshotRenderTexture;
-                m_Camera3D.Camera.aspect = 1.0f;
-                m_Camera3D.Camera.backgroundColor = new Color(0.0f, 0.0f, 0.0f, 0.0f);
-                m_Camera3D.Camera.Render();
-                Texture2D texture = m_Camera3D.Camera.targetTexture.ToTexture2D();
-                // Restore old parameters
-                m_Camera3D.Camera.targetTexture = currentRenderTexture;
-                m_Camera3D.Camera.aspect = currentAspect;
-                m_Camera3D.Camera.backgroundColor = currentBackground;
-                screenshotRenderTexture.Release();
-                return texture;
-            }
-        }
 
         /// <summary>
         /// Rotation of the camera in the view reference
@@ -390,6 +363,33 @@ namespace HBP.Module3D
                 default:
                     break;
             }
+        }
+        /// <summary>
+        /// Get a texture of the rendered image from the camera
+        /// </summary>
+        /// <param name="width">Width of the texture</param>
+        /// <param name="height">Height of the texture</param>
+        /// <returns>Texture</returns>
+        public Texture2D GetTexture(int width, int height, Color background)
+        {
+            // Save old parameters
+            RenderTexture currentRenderTexture = m_Camera3D.Camera.targetTexture;
+            float currentAspect = m_Camera3D.Camera.aspect;
+            Color currentBackground = m_Camera3D.Camera.backgroundColor;
+            // Get texture
+            RenderTexture screenshotRenderTexture = new RenderTexture(width, height, 24);
+            screenshotRenderTexture.antiAliasing = 1;
+            m_Camera3D.Camera.targetTexture = screenshotRenderTexture;
+            m_Camera3D.Camera.aspect = (float)width / height;
+            m_Camera3D.Camera.backgroundColor = background;
+            m_Camera3D.Camera.Render();
+            Texture2D texture = m_Camera3D.Camera.targetTexture.ToTexture2D();
+            // Restore old parameters
+            m_Camera3D.Camera.targetTexture = currentRenderTexture;
+            m_Camera3D.Camera.aspect = currentAspect;
+            m_Camera3D.Camera.backgroundColor = currentBackground;
+            screenshotRenderTexture.Release();
+            return texture;
         }
         #endregion
     }

@@ -7,6 +7,7 @@ using HBP.UI;
 using Tools.Unity;
 using System.Collections;
 using HBP.Module3D;
+using HBP.UI.Module3D;
 
 public class DebugBenjamin : MonoBehaviour
 {
@@ -16,10 +17,6 @@ public class DebugBenjamin : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.F1))
         {
             StartVideo();
-        }
-        if (Input.GetKeyDown(KeyCode.F2))
-        {
-            EndVideo();
         }
     }
     private void MarsAtlasCCEP()
@@ -70,39 +67,69 @@ public class DebugBenjamin : MonoBehaviour
     }
 
     private HBP.Module3D.DLL.VideoStream m_VideoStream;
-    private Coroutine m_VideoCoroutine = null;
     [SerializeField] private Canvas m_Canvas;
     private void StartVideo()
     {
-        Rect sceneRect = m_Canvas.GetComponent<RectTransform>().ToScreenSpace();
+        if (!(ApplicationState.Module3D.SelectedColumn is Column3DDynamic))
+            return;
+
+        float fps = ApplicationState.Module3D.SelectedScene.ColumnsDynamic[0].Timeline.Step;
         m_VideoStream = new HBP.Module3D.DLL.VideoStream();
-        m_VideoStream.Open("D:/TestVideo.avi", (int)sceneRect.width, (int)sceneRect.height);
-        m_VideoCoroutine = StartCoroutine(c_Video(sceneRect));
+        m_VideoStream.Open("D:/TestVideo.avi", 1920, 1080, fps);
+        StartCoroutine(c_Video());
     }
-    private void EndVideo()
-    {
-        StopCoroutine(m_VideoCoroutine);
-        m_VideoCoroutine = null;
-        m_VideoStream.Dispose();
-        m_VideoStream = null;
-    }
-    private IEnumerator c_Video(Rect rect)
+    private IEnumerator c_Video()
     {
         HBP.Module3D.DLL.Texture texture = new HBP.Module3D.DLL.Texture();
-        texture.Reset((int)rect.width, (int)rect.height);
+        Texture2D texture2D = new Texture2D(1920, 1080);
+        texture.Reset(1920, 1080);
 
-        float fps = 30;
         Base3DScene scene = ApplicationState.Module3D.SelectedScene;
-        Column3DIEEG column = ApplicationState.Module3D.SelectedColumn as Column3DIEEG;
+        int numberOfColumns = ApplicationState.Module3D.SelectedScene.Columns.Count;
+        int numberOfViewLines = ApplicationState.Module3D.SelectedScene.ViewLineNumber;
+        int timelineLength = scene.ColumnsDynamic[0].Timeline.Length;
 
-        while (true)
+        Color[] timeline = Enumerable.Repeat(Color.white, 20 * 1920).ToArray();
+        Color[] timelineCursor = Enumerable.Repeat(Color.black, 20 * 5).ToArray();
+        Color[] separator = Enumerable.Repeat(Color.black, 1080 * 3).ToArray();
+        for (int i = 0; i < timelineLength; i++)
         {
+            foreach (var column in scene.ColumnsDynamic)
+            {
+                column.Timeline.CurrentIndex = i;
+            }
             yield return new WaitForEndOfFrame();
 
-            Texture2D sceneTexture = Texture2DExtension.ScreenRectToTexture(rect);
-            texture.FromTexture2D(sceneTexture);
+            int width = 1920 / numberOfColumns;
+            int height = 1060 / numberOfViewLines;
+
+            for (int j = 0; j < numberOfColumns; ++j)
+            {
+                int horizontalOffset = (numberOfColumns - 1 - j) * width;
+                // 3D
+                for (int k = 0; k < numberOfViewLines; ++k)
+                {
+                    int verticalOffset = (numberOfViewLines - 1 - k) * height + 20;
+                    Texture2D subTexture = scene.Columns[j].Views[k].GetTexture(width, height, new Color((float)40 / 255, (float)40 / 255, (float)40 / 255, 1.0f));
+                    texture2D.SetPixels(horizontalOffset, verticalOffset, width, height, subTexture.GetPixels());
+                }
+                if (horizontalOffset != 0) texture2D.SetPixels(horizontalOffset - 1, 0, 3, 1080, separator);
+                // Overlay
+                Colormap colormap = ApplicationState.Module3DUI.Scenes[scene].Scene3DUI.Columns[j].Colormap;
+                Texture2D colormapTexture = Texture2DExtension.ScreenRectToTexture(colormap.GetComponent<RectTransform>().ToScreenSpace());
+                texture2D.SetPixels(horizontalOffset + 5, 1080 - 5 - colormapTexture.height, colormapTexture.width, colormapTexture.height, colormapTexture.GetPixels());
+                Icon icon = ApplicationState.Module3DUI.Scenes[scene].Scene3DUI.Columns[j].Icon;
+                Texture2D iconTexture = icon.IsActive ? Texture2DExtension.ScreenRectToTexture(icon.GetComponent<RectTransform>().ToScreenSpace()) : null;
+                if (iconTexture) texture2D.SetPixels(horizontalOffset + width - 5, 1080 - 5 - iconTexture.height, iconTexture.width, iconTexture.height, iconTexture.GetPixels());
+            }
+            texture2D.SetPixels(0, 0, 1920, 20, timeline);
+            int cursorPosition = i * (1915 / (timelineLength - 1));
+            texture2D.SetPixels(cursorPosition, 0, 5, 20, timelineCursor);
+            texture.FromTexture2D(texture2D);
             m_VideoStream.WriteFrame(texture);
         }
+        m_VideoStream.Dispose();
+        m_VideoStream = null;
     }
 #endif
 }

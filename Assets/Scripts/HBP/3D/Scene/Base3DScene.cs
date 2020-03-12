@@ -642,10 +642,6 @@ namespace HBP.Module3D
         /// </summary>
         [HideInInspector] public UnityEvent OnSelectCCEPSource = new UnityEvent();
         /// <summary>
-        /// Event called when adding a column
-        /// </summary>
-        [HideInInspector] public UnityEvent OnAddColumn = new UnityEvent();
-        /// <summary>
         /// Event called when adding a line of views
         /// </summary>
         [HideInInspector] public UnityEvent OnAddViewLine = new UnityEvent();
@@ -1095,7 +1091,6 @@ namespace HBP.Module3D
             column.Initialize(Columns.Count, baseColumn, m_ImplantationManager.SelectedImplantation, m_DisplayedObjects.SitesPatientParent);
             column.ResetSplitsNumber(m_MeshManager.MeshSplitNumber);
             Columns.Add(column);
-            OnAddColumn.Invoke();
         }
         /// <summary>
         /// Synchronize all cameras from the same view line
