@@ -172,6 +172,16 @@ namespace HBP.Module3D.DLL
             }
             set_colors_Texture(_handle, cols, colors.Length);
         }
+        /// <summary>
+        /// Write text to this texture
+        /// </summary>
+        /// <param name="text">Text to be written</param>
+        /// <param name="x">X position of the text</param>
+        /// <param name="y">Y position of the text</param>
+        public void WriteText(string text, int x, int y)
+        {
+            write_text_Texture(_handle, text, x, y);
+        }
         public void Reset(int width, int height)
         {
             reset_Texture(_handle, width, height);
@@ -275,6 +285,8 @@ namespace HBP.Module3D.DLL
         static private extern void update_Texture(HandleRef handleTexture, IntPtr colors, int alpha);
         [DllImport("hbp_export", EntryPoint = "set_colors_Texture", CallingConvention = CallingConvention.Cdecl)]
         static private extern void set_colors_Texture(HandleRef handleTexture, byte[] colors, int length);
+        [DllImport("hbp_export", EntryPoint = "write_text_Texture", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void write_text_Texture(HandleRef handleTexture, string text, int x, int y);
         [DllImport("hbp_export", EntryPoint = "reset_Texture", CallingConvention = CallingConvention.Cdecl)]
         static private extern void reset_Texture(HandleRef handleTexture, int width, int height);
         [DllImport("hbp_export", EntryPoint = "generate_distribution_histogram_Texture", CallingConvention = CallingConvention.Cdecl)]

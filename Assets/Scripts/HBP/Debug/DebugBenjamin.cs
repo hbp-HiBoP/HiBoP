@@ -8,6 +8,7 @@ using Tools.Unity;
 using System.Collections;
 using HBP.Module3D;
 using HBP.UI.Module3D;
+using HBP.Data.Visualization;
 
 public class DebugBenjamin : MonoBehaviour
 {
@@ -68,6 +69,9 @@ public class DebugBenjamin : MonoBehaviour
 
     private HBP.Module3D.DLL.VideoStream m_VideoStream;
     [SerializeField] private Canvas m_Canvas;
+    private int m_TotalWidth = 1920;
+    private int m_TotalHeight = 1080;
+    private int m_TimelineHeight = 20;
     private void StartVideo()
     {
         if (!(ApplicationState.Module3D.SelectedColumn is Column3DDynamic))
@@ -75,33 +79,35 @@ public class DebugBenjamin : MonoBehaviour
 
         float fps = ApplicationState.Module3D.SelectedScene.ColumnsDynamic[0].Timeline.Step;
         m_VideoStream = new HBP.Module3D.DLL.VideoStream();
-        m_VideoStream.Open("D:/TestVideo.avi", 1920, 1080, fps);
+        m_VideoStream.Open("D:/HBP/TestVideo.avi", m_TotalWidth, m_TotalHeight, fps);
         StartCoroutine(c_Video());
     }
     private IEnumerator c_Video()
     {
         HBP.Module3D.DLL.Texture texture = new HBP.Module3D.DLL.Texture();
-        Texture2D texture2D = new Texture2D(1920, 1080);
-        texture.Reset(1920, 1080);
+        Texture2D texture2D = new Texture2D(m_TotalWidth, m_TotalHeight);
+        texture.Reset(m_TotalWidth, m_TotalHeight);
 
         Base3DScene scene = ApplicationState.Module3D.SelectedScene;
         int numberOfColumns = ApplicationState.Module3D.SelectedScene.Columns.Count;
         int numberOfViewLines = ApplicationState.Module3D.SelectedScene.ViewLineNumber;
-        int timelineLength = scene.ColumnsDynamic[0].Timeline.Length;
+        Timeline timeline = scene.ColumnsDynamic[0].Timeline;
+        int timelineLength = timeline.Length;
 
-        Color[] timeline = Enumerable.Repeat(Color.white, 20 * 1920).ToArray();
-        Color[] timelineCursor = Enumerable.Repeat(Color.black, 20 * 5).ToArray();
-        Color[] separator = Enumerable.Repeat(Color.black, 1080 * 3).ToArray();
+        Color[] timelineColors = Enumerable.Repeat(Color.white, m_TimelineHeight * m_TotalWidth).ToArray();
+        Color[] timelineCursorColors = Enumerable.Repeat(Color.black, m_TimelineHeight * 5).ToArray();
+        Color[] verticalSeparatorColors = Enumerable.Repeat(Color.black, m_TotalHeight * 3).ToArray();
+        Color[] horizontalSeparatorColors = Enumerable.Repeat(Color.black, m_TotalWidth * 3).ToArray();
+
         for (int i = 0; i < timelineLength; i++)
         {
             foreach (var column in scene.ColumnsDynamic)
-            {
                 column.Timeline.CurrentIndex = i;
-            }
+
             yield return new WaitForEndOfFrame();
 
-            int width = 1920 / numberOfColumns;
-            int height = 1080 / numberOfViewLines;
+            int width = m_TotalWidth / numberOfColumns;
+            int height = m_TotalHeight / numberOfViewLines;
 
             for (int j = 0; j < numberOfColumns; ++j)
             {
@@ -113,28 +119,41 @@ public class DebugBenjamin : MonoBehaviour
                     Texture2D subTexture = scene.Columns[j].Views[k].GetTexture(width, height, new Color((float)40 / 255, (float)40 / 255, (float)40 / 255, 1.0f));
                     texture2D.SetPixels(horizontalOffset, verticalOffset, width, height, subTexture.GetPixels());
                 }
-                if (horizontalOffset != 0) texture2D.SetPixels(horizontalOffset - 1, 0, 3, 1080, separator);
                 // Overlay
                 Colormap colormap = ApplicationState.Module3DUI.Scenes[scene].Scene3DUI.Columns[j].Colormap;
                 Texture2D colormapTexture = Texture2DExtension.ScreenRectToTexture(colormap.GetComponent<RectTransform>().ToScreenSpace());
-                texture2D.SetPixels(horizontalOffset + 5, 1080 - 5 - colormapTexture.height, colormapTexture.width, colormapTexture.height, colormapTexture.GetPixels());
-                Icon icon = ApplicationState.Module3DUI.Scenes[scene].Scene3DUI.Columns[j].Icon;
-                Texture2D iconTexture = icon.IsActive ? icon.Sprite.texture : null;
-                if (iconTexture)
-                {
-                    Texture2D newIconTexture = new Texture2D(iconTexture.width, iconTexture.height);
-                    newIconTexture.SetPixels(iconTexture.GetPixels());
-                    float resizeFactor = 1f / (Mathf.Max(newIconTexture.width, newIconTexture.height) / 200);
-                    newIconTexture.Resize((int)(resizeFactor * newIconTexture.width), (int)(resizeFactor * newIconTexture.height)); // does not work
-                    texture2D.SetPixels(horizontalOffset + width - 5 - newIconTexture.width, 1080 - 5 - newIconTexture.height, newIconTexture.width, newIconTexture.height, newIconTexture.GetPixels());
-                }
+                texture2D.SetPixels(horizontalOffset + 5, m_TotalHeight - 5 - colormapTexture.height, colormapTexture.width, colormapTexture.height, colormapTexture.GetPixels());
+                //Icon icon = ApplicationState.Module3DUI.Scenes[scene].Scene3DUI.Columns[j].Icon;
+                //Texture2D iconTexture = icon.IsActive ? icon.Sprite.texture : null;
+                //if (iconTexture)
+                //{
+                //    Texture2D newIconTexture = new Texture2D(iconTexture.width, iconTexture.height);
+                //    newIconTexture.SetPixels(iconTexture.GetPixels());
+                //    float resizeFactor = 1f / (Mathf.Max(newIconTexture.width, newIconTexture.height) / 200);
+                //    newIconTexture.Resize((int)(resizeFactor * newIconTexture.width), (int)(resizeFactor * newIconTexture.height)); // does not work
+                //    texture2D.SetPixels(horizontalOffset + width - 5 - newIconTexture.width, 1080 - 5 - newIconTexture.height, newIconTexture.width, newIconTexture.height, newIconTexture.GetPixels());
+                //}
             }
+
+            for (int j = 1; j < numberOfColumns; ++j)
+                texture2D.SetPixels(j * width - 1, 0, 3, m_TotalHeight, verticalSeparatorColors);
+
+            for (int j = 1; j < numberOfViewLines; ++j)
+                texture2D.SetPixels(0, j * height - 1, m_TotalWidth, 3, horizontalSeparatorColors);
+            
             /*
-            texture2D.SetPixels(0, 0, 1920, 20, timeline);
+            texture2D.SetPixels(0, 0, 1920, m_TimelineHeight, timeline);
             int cursorPosition = i * (1915 / (timelineLength - 1));
-            texture2D.SetPixels(cursorPosition, 0, 5, 20, timelineCursor);
+            texture2D.SetPixels(cursorPosition, 0, 5, m_TimelineHeight, timelineCursor);
             */
+
             texture.FromTexture2D(texture2D);
+
+            for (int j = 0; j < numberOfColumns; j++)
+                texture.WriteText(scene.Columns[j].Name, j * width + (width / 2), 20);
+
+            texture.WriteText(string.Format("{0}ms", timeline.CurrentSubtimeline.GetLocalTime(timeline.CurrentIndex).ToString("N2")), m_TotalWidth / 2, m_TotalHeight - 20);
+
             m_VideoStream.WriteFrame(texture);
         }
         m_VideoStream.Dispose();
