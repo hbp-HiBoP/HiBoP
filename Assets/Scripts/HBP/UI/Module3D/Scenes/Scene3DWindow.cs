@@ -28,6 +28,23 @@ namespace HBP.UI.Module3D
         [SerializeField] private RectTransform m_RectTransform;
 
         /// <summary>
+        /// Scene UI of this scene window
+        /// </summary>
+        public Scene3DUI Scene3DUI { get; private set; }
+        /// <summary>
+        /// Informations panel (graphs and trial matrices)
+        /// </summary>
+        public Informations.InformationsWrapper Informations { get; private set; }
+        /// <summary>
+        /// Sites informations panel (list and filter)
+        /// </summary>
+        public SitesInformations SitesInformations { get; private set; }
+        /// <summary>
+        /// Cut controller of this scene
+        /// </summary>
+        public CutController CutController { get; private set; }
+
+        /// <summary>
         /// Prefab for the 3D scene column
         /// </summary>
         [SerializeField] private GameObject m_SceneUIPrefab;
@@ -86,17 +103,20 @@ namespace HBP.UI.Module3D
             // 3D
             grid.AddColumn();
             grid.AddViewLine(m_SceneUIPrefab);
-            grid.Columns.Last().Views.Last().GetComponent<Scene3DUI>().Initialize(scene);
+            Scene3DUI = grid.Columns.Last().Views.Last().GetComponent<Scene3DUI>();
+            Scene3DUI.Initialize(scene);
             // Information
             grid.AddColumn(null, m_InformationsUIPrefab);
-            Informations.InformationsWrapper informations = grid.Columns.Last().Views.Last().GetComponent<Informations.InformationsWrapper>();
-            informations.Scene = scene;
+            Informations = grid.Columns.Last().Views.Last().GetComponent<Informations.InformationsWrapper>();
+            Informations.Scene = scene;
             // Sites
             grid.AddColumn(null, m_SitesInformationsPrefab);
-            grid.Columns.Last().Views.Last().GetComponent<SitesInformations>().Initialize(scene);
+            SitesInformations = grid.Columns.Last().Views.Last().GetComponent<SitesInformations>();
+            SitesInformations.Initialize(scene);
             // Cuts
             grid.AddColumn(null, m_CutUIPrefab);
-            grid.Columns.Last().Views.Last().GetComponent<CutController>().Initialize(scene);
+            CutController = grid.Columns.Last().Views.Last().GetComponent<CutController>();
+            CutController.Initialize(scene);
             // Positions
             grid.VerticalHandlers[0].MagneticPosition = 0.45f;
             grid.VerticalHandlers[1].MagneticPosition = 0.75f;
@@ -133,13 +153,13 @@ namespace HBP.UI.Module3D
                 if (!Directory.Exists(screenshotsPath)) Directory.CreateDirectory(screenshotsPath);
                 Screenshot(screenshotsPath, multipleFiles);
             });
-            informations.OnExpand.AddListener(() =>
+            Informations.OnExpand.AddListener(() =>
             {
                 grid.VerticalHandlers[0].Position = grid.VerticalHandlers[0].MagneticPosition;
                 grid.SetVerticalHandlersPosition(1);
                 grid.UpdateAnchors();
             });
-            informations.OnMinimize.AddListener(() =>
+            Informations.OnMinimize.AddListener(() =>
             {
                 grid.VerticalHandlers[0].Position = grid.VerticalHandlers[1].Position - (grid.MinimumViewWidth / grid.RectTransform.rect.width);
                 grid.SetVerticalHandlersPosition(1);
@@ -187,7 +207,7 @@ namespace HBP.UI.Module3D
                                 {
                                     string viewFilePath = path + string.Format("{0}_{1}_{2}_Brain.png", openedProjectName, m_Scene.Name, column.Name);
                                     ClassLoaderSaver.GenerateUniqueSavePath(ref viewFilePath);
-                                    view.ScreenshotTexture.SaveToPNG(viewFilePath);
+                                    view.GetTexture(2048, 2048, new Color(0.0f, 0.0f, 0.0f, 0.0f)).SaveToPNG(viewFilePath);
                                 }
                                 catch (Exception e)
                                 {

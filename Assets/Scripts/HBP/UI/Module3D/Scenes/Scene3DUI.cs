@@ -2,6 +2,7 @@
 using System.Linq;
 using Tools.Unity.ResizableGrid;
 using HBP.Module3D;
+using System.Collections.Generic;
 
 namespace HBP.UI.Module3D
 {
@@ -50,6 +51,11 @@ namespace HBP.UI.Module3D
                 return Mathf.Abs(m_RectTransform.rect.width - m_ResizableGrid.MinimumViewWidth) <= MINIMIZED_THRESHOLD;
             }
         }
+
+        /// <summary>
+        /// List of all the columns of this scene UI
+        /// </summary>
+        public List<Column3DUI> Columns { get; private set; } = new List<Column3DUI>();
         #endregion
 
         #region Private Methods
@@ -90,6 +96,7 @@ namespace HBP.UI.Module3D
             {
                 m_ResizableGrid.AddColumn();
                 Column3DUI columnUI = m_ResizableGrid.Columns.Last().GetComponent<Column3DUI>();
+                Columns.Add(columnUI);
                 columnUI.Initialize(m_Scene, m_Scene.Columns[i]);
                 columnUI.OnChangeColumnSize.AddListener(() =>
                 {
@@ -102,6 +109,7 @@ namespace HBP.UI.Module3D
             {
                 Column3DUI columnUI = m_ResizableGrid.Columns[i].GetComponent<Column3DUI>();
                 View3DUI viewUI = m_ResizableGrid.Columns[i].Views.Last().GetComponent<View3DUI>();
+                columnUI.Views.Add(viewUI);
                 viewUI.Initialize(m_Scene, m_Scene.Columns[i], m_Scene.Columns[i].Views.Last());
                 viewUI.OnChangeViewSize.AddListener(() =>
                 {
@@ -111,13 +119,6 @@ namespace HBP.UI.Module3D
             }
 
             // Listeners
-            m_Scene.OnAddColumn.AddListener(() =>
-            {
-                if (!m_Scene) return; // if the scene has not been initialized, don't proceed
-
-                m_ResizableGrid.AddColumn();
-                m_ResizableGrid.Columns.Last().GetComponent<Column3DUI>().Initialize(m_Scene, m_Scene.Columns.Last());
-            });
             m_Scene.OnAddViewLine.AddListener(() =>
             {
                 if (!m_Scene) return;
@@ -125,9 +126,9 @@ namespace HBP.UI.Module3D
                 m_ResizableGrid.AddViewLine();
                 for (int i = 0; i < m_ResizableGrid.Columns.Count; i++)
                 {
-                    //m_ResizableGrid.Columns[i].Views.Last().GetComponent<View3DUI>().Initialize(m_Scene, m_ResizableGrid.Columns[i].GetComponent<Column3DUI>().Column, m_ResizableGrid.Columns[i].GetComponent<Column3DUI>().Column.Views.Last());
                     Column3DUI columnUI = m_ResizableGrid.Columns[i].GetComponent<Column3DUI>();
                     View3DUI viewUI = m_ResizableGrid.Columns[i].Views.Last().GetComponent<View3DUI>();
+                    columnUI.Views.Add(viewUI);
                     viewUI.Initialize(m_Scene, columnUI.Column, columnUI.Column.Views.Last());
                     viewUI.OnChangeViewSize.AddListener(() =>
                     {
@@ -141,6 +142,10 @@ namespace HBP.UI.Module3D
                 if (!m_Scene) return;
 
                 m_ResizableGrid.RemoveViewLine(lineID);
+                foreach (var columnUI in Columns)
+                {
+                    columnUI.Views.RemoveAt(lineID);
+                }
             });
             m_Scene.OnResetViewPositions.AddListener(() =>
             {

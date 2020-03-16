@@ -1,4 +1,6 @@
-﻿using Tools.Unity;
+﻿using HBP.Module3D;
+using System.Collections.Generic;
+using Tools.Unity;
 using UnityEngine;
 
 namespace HBP.UI.Module3D
@@ -31,6 +33,11 @@ namespace HBP.UI.Module3D
         }
 
         /// <summary>
+        /// Dictionary containing all scene windows by 3D scene
+        /// </summary>
+        public Dictionary<Base3DScene, Scene3DWindow> Scenes { get; private set; } = new Dictionary<Base3DScene, Scene3DWindow>();
+
+        /// <summary>
         /// Prefab for the Scene3DWindow object
         /// </summary>
         [SerializeField] private GameObject m_SceneWindowPrefab;
@@ -48,6 +55,7 @@ namespace HBP.UI.Module3D
                 sceneWindow.Initialize(scene);
                 m_SiteInfoDisplayer.transform.SetAsLastSibling();
                 sceneWindow.gameObject.SetActive(false);
+                Scenes.Add(scene, sceneWindow);
             });
         }
         #endregion

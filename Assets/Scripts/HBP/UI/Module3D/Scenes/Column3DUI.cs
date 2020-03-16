@@ -52,6 +52,10 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField] private Colormap m_Colormap;
         /// <summary>
+        /// Associated colormap overlay element
+        /// </summary>
+        public Colormap Colormap { get { return m_Colormap; } }
+        /// <summary>
         /// Associated timeline overlay element
         /// </summary>
         [SerializeField] private TimeDisplay m_TimeDisplay;
@@ -60,6 +64,10 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField] private Icon m_Icon;
         /// <summary>
+        /// Associated Icon overlay element
+        /// </summary>
+        public Icon Icon { get { return m_Icon; } }
+        /// <summary>
         /// Associated information overlay element
         /// </summary>
         [SerializeField] private ColumnInformation m_Information;
@@ -67,6 +75,10 @@ namespace HBP.UI.Module3D
         /// Associated resizer overlay element
         /// </summary>
         [SerializeField] private ColumnResizer m_Resizer;
+        /// <summary>
+        /// List of all the views of this column UI
+        /// </summary>
+        public List<View3DUI> Views { get; private set; } = new List<View3DUI>();
         
         /// <summary>
         /// Used when drag and dropping a column onto this columnn
