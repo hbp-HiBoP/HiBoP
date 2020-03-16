@@ -158,7 +158,7 @@ namespace HBP.Data.Experience.Dataset
                 else if (m_DataContainer is Container.EDF edfDataContainer)
                 {
                     type = Tools.CSharp.EEG.File.FileType.EDF;
-                    files = new string[] { edfDataContainer.Path };
+                    files = new string[] { edfDataContainer.File };
                 }
                 else if (m_DataContainer is Container.Elan elanDataContainer)
                 {

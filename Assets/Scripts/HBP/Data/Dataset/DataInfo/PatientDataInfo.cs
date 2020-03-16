@@ -80,8 +80,8 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="name">Name of the patient dataInfo.</param>
         /// <param name="dataContainer">Data container of the patient dataInfo.</param>
         /// <param name="patient">Patient related to the data.</param>
-        /// <param name="id">Unique identifier</param>
-        public PatientDataInfo(string name, DataContainer dataContainer, Patient patient, string id) : base(name, dataContainer, id)
+        /// <param name="ID">Unique identifier</param>
+        public PatientDataInfo(string name, DataContainer dataContainer, Patient patient, string ID) : base(name, dataContainer, ID)
         {
             Patient = patient;
         }
@@ -98,7 +98,7 @@ namespace HBP.Data.Experience.Dataset
         /// <summary>
         /// Create a new PatientDataInfo instance.
         /// </summary>
-        public PatientDataInfo() : this("Data", new DataContainer(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault())
+        public PatientDataInfo() : this("Data", new Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault())
         {
         }
         #endregion

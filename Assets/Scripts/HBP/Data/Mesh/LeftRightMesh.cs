@@ -207,10 +207,10 @@ namespace HBP.Data
         #region Serialization
         protected override void OnDeserialized()
         {
-            SavedLeftHemisphere = SavedLeftHemisphere.ToPath();
-            SavedRightHemisphere = SavedRightHemisphere.ToPath();
-            SavedLeftMarsAtlasHemisphere = SavedLeftMarsAtlasHemisphere.ToPath();
-            SavedRightMarsAtlasHemisphere = SavedRightMarsAtlasHemisphere.ToPath();
+            SavedLeftHemisphere = SavedLeftHemisphere.StandardizeToEnvironement();
+            SavedRightHemisphere = SavedRightHemisphere.StandardizeToEnvironement();
+            SavedLeftMarsAtlasHemisphere = SavedLeftMarsAtlasHemisphere.StandardizeToEnvironement();
+            SavedRightMarsAtlasHemisphere = SavedRightMarsAtlasHemisphere.StandardizeToEnvironement();
             base.OnDeserialized();
         }
         #endregion

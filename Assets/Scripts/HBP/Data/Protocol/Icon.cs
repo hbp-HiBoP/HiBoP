@@ -158,7 +158,7 @@ namespace HBP.Data.Experience.Protocol
         #region Serialization
         protected override void OnDeserialized()
         {
-            m_ImagePath = m_ImagePath.ToPath();
+            m_ImagePath = m_ImagePath.StandardizeToEnvironement();
         }
         #endregion
     }

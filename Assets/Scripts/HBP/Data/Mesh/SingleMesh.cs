@@ -156,8 +156,8 @@ namespace HBP.Data
         #region Serialization
         protected override void OnDeserialized()
         {
-            SavedPath = SavedPath.ToPath();
-            SavedMarsAtlasPath = SavedMarsAtlasPath.ToPath();
+            SavedPath = SavedPath.StandardizeToEnvironement();
+            SavedMarsAtlasPath = SavedMarsAtlasPath.StandardizeToEnvironement();
             base.OnDeserialized();
         }
         #endregion

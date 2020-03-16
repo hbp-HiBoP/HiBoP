@@ -302,7 +302,7 @@ namespace HBP.UI.Module3D
                     else if (dataInfo.DataContainer is Data.Container.EDF edfDataContainer)
                     {
                         dataType = "EDF";
-                        dataFiles = string.Join(";", new string[] { edfDataContainer.Path }.Where(s => !string.IsNullOrEmpty(s)));
+                        dataFiles = string.Join(";", new string[] { edfDataContainer.File }.Where(s => !string.IsNullOrEmpty(s)));
                     }
                     else if (dataInfo.DataContainer is Data.Container.Elan elanDataContainer)
                     {

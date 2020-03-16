@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using Tools.Unity;
@@ -9,59 +8,103 @@ using Tools.CSharp;
 
 namespace HBP.Data.Container
 {
-    [DataContract, DisplayName("Elan"), iEEG, CCEP]
+    /// <summary>
+    /// Class which contains IEEG or CCEP data in the EDF data format.
+    /// </summary>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <term><b>ID</b></term>
+    /// <description>Unique identifier.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Errors</b></term>
+    /// <description>Errors of the dataContainer.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>File</b></term>
+    /// <description>Path to the EDF file.</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    [DataContract, DisplayName("Elan"), IEEG, CCEP]
     public class Elan : DataContainer
     {
         #region Properties
+        /// <summary>
+        /// EEG files extension.
+        /// </summary>
         const string EEG_EXTENSION = ".eeg";
+        /// <summary>
+        /// EEG Header files extension.
+        /// </summary>
+        const string HEADER_EXTENSION = ".ent";
+        /// <summary>
+        /// POS files extension.
+        /// </summary>
         const string POS_EXTENSION = ".pos";
+        /// <summary>
+        /// Notes files extension.
+        /// </summary>
         const string NOTES_EXTENSION = ".txt";
 
-        [DataMember(Name = "EEG")] string m_EEG;
         /// <summary>
-        /// Path of the EEG file.
+        /// Path to the EEG file with Alias.
+        /// </summary>
+        [DataMember(Name = "EEG")] public string SavedEEG { get; protected set; }
+        /// <summary>
+        /// Path to the EEG file without Alias.
         /// </summary>
         public string EEG
         {
-            get { return m_EEG?.ConvertToFullPath(); }
-            set { m_EEG = value?.ConvertToShortPath(); OnRequestErrorCheck.Invoke(); }
+            get { return SavedEEG?.ConvertToFullPath(); }
+            set { SavedEEG = value?.ConvertToShortPath(); OnRequestErrorCheck.Invoke(); }
         }
-        public string SavedEEG { get { return m_EEG; } }
+        /// <summary>
+        /// Path to the EEG header file.
+        /// </summary>
         public string EEGHeader
         {
             get
             {
-                return EEG + ".ent";
+                return EEG + HEADER_EXTENSION;
             }
         }
 
-        [DataMember(Name = "POS")] string m_POS;
         /// <summary>
-        /// Path of the POS file.
+        /// Path to the POS file with Alias.
+        /// </summary>
+        [DataMember(Name = "POS")] public string SavedPOS { get; protected set; }
+        /// <summary>
+        /// Path of the POS file without Alias.
         /// </summary>
         public string POS
         {
-            get { return m_POS?.ConvertToFullPath(); }
-            set { m_POS = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
+            get { return SavedPOS?.ConvertToFullPath(); }
+            set { SavedPOS = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
         }
-        public string SavedPOS { get { return m_POS; } }
 
-        [DataMember(Name = "Notes")] string m_Notes;
         /// <summary>
-        /// Path of the POS file.
+        /// Path to the notes file with Alias.
+        /// </summary>
+        [DataMember(Name = "Notes")] public string SavedNotes { get; protected set; }
+        /// <summary>
+        /// Path of the notes file without Alias.
         /// </summary>
         public string Notes
         {
-            get { return m_Notes?.ConvertToFullPath(); }
-            set { m_Notes = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
+            get { return SavedNotes?.ConvertToFullPath(); }
+            set { SavedNotes = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
         }
-        public string SavedNotes { get { return m_Notes; } }
         #endregion
 
         #region Public Methods
         public override Error[] GetErrors()
         {
-            List<Error> errors = new List<Error>(base.GetErrors());
+            List<Error> errors = new List<Error>();
             if (string.IsNullOrEmpty(EEG))
             {
                 errors.Add(new RequieredFieldEmptyError("EEG file path is empty"));
@@ -117,35 +160,45 @@ namespace HBP.Data.Container
             m_Errors = errors.ToArray();
             return m_Errors;
         }
-        public override void CopyDataToDirectory(DirectoryInfo dataInfoDirectory, string projectDirectory, string oldProjectDirectory)
+        public override void CopyDataToDirectory(DirectoryInfo destinationDirectory, string projectDirectory, string oldProjectDirectory)
         {
-            EEGHeader.CopyToDirectory(dataInfoDirectory);
-            m_EEG = EEG.CopyToDirectory(dataInfoDirectory).Replace(projectDirectory, oldProjectDirectory);
-            m_POS = POS.CopyToDirectory(dataInfoDirectory).Replace(projectDirectory, oldProjectDirectory);
-            m_Notes = Notes.CopyToDirectory(dataInfoDirectory).Replace(projectDirectory, oldProjectDirectory);
+            EEGHeader.CopyToDirectory(destinationDirectory);
+            SavedEEG = EEG.CopyToDirectory(destinationDirectory).Replace(projectDirectory, oldProjectDirectory);
+            SavedPOS = POS.CopyToDirectory(destinationDirectory).Replace(projectDirectory, oldProjectDirectory);
+            SavedNotes = Notes.CopyToDirectory(destinationDirectory).Replace(projectDirectory, oldProjectDirectory);
         }
         #endregion
 
         #region Constructors
         /// <summary>
-        /// Create a new DataInfo instance.
+        /// Create a new Elan data container.
         /// </summary>
-        /// <param name="name">Name of the dataInfo.</param>
-        /// <param name="patient">Patient who passed the experiment.</param>
-        /// <param name="measure">Name of the measure in the EEG file.</param>
-        /// <param name="eeg">EEG file path.</param>
-        /// <param name="pos">POS file path.</param>
-        public Elan(string eeg, string pos, string notes, string id)
+        /// <param name="eeg">Path to the EEG file.</param>
+        /// <param name="pos">Path to the POS file.</param>
+        /// <param name="notes">Path to the notes file.</param>
+        /// <param name="ID">Unique identifier.</param>
+        public Elan(string eeg, string pos, string notes, string ID) : base(ID)
         {
             EEG = eeg;
             POS = pos;
             Notes = notes;
-            ID = id;
         }
         /// <summary>
-        /// Create a new DataInfo instance with default value.
+        /// Create a new Elan data container.
         /// </summary>
-        public Elan() : this(string.Empty, string.Empty, string.Empty, Guid.NewGuid().ToString())
+        /// <param name="eeg">Path to the EEG file.</param>
+        /// <param name="pos">Path to the POS file.</param>
+        /// <param name="notes">Path to the notes file.</param>
+        public Elan(string eeg, string pos, string notes) : base()
+        {
+            EEG = eeg;
+            POS = pos;
+            Notes = notes;
+        }
+        /// <summary>
+        /// Create a new Elan data container with default values.
+        /// </summary>
+        public Elan() : base()
         {
         }
         #endregion
@@ -170,12 +223,12 @@ namespace HBP.Data.Container
         #endregion
 
         #region Serialization
-        public override void OnDeserializedOperation(StreamingContext context)
+        protected override void OnDeserialized()
         {
-            m_EEG = m_EEG.ToPath();
-            m_POS = m_POS.ToPath();
-            m_Notes = m_Notes.ToPath();
-            base.OnDeserializedOperation(context);
+            SavedEEG = SavedEEG.StandardizeToEnvironement();
+            SavedPOS = SavedPOS.StandardizeToEnvironement();
+            SavedNotes = SavedNotes.StandardizeToEnvironement();
+            base.OnDeserialized();
         }
         #endregion
     }

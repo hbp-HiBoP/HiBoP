@@ -346,7 +346,7 @@ namespace HBP.Data.Experience.Protocol
         #region Serialization
         protected override void OnDeserialized()
         {
-            m_IllustrationPath = m_IllustrationPath.ToPath();
+            m_IllustrationPath = m_IllustrationPath.StandardizeToEnvironement();
         }
         #endregion
     }

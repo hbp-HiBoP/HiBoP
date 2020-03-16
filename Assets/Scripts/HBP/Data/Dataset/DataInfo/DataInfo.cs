@@ -139,7 +139,7 @@ namespace HBP.Data.Experience.Dataset
         /// <summary>
         /// Create a new DataInfo instance with default value.
         /// </summary>
-        public DataInfo() : this("Data", new Container.DataContainer(), Guid.NewGuid().ToString())
+        public DataInfo() : this("Data", new Container.Elan(), Guid.NewGuid().ToString())
         {
         }
         #endregion

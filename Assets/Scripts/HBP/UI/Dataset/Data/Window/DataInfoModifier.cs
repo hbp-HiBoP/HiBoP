@@ -96,7 +96,7 @@ namespace HBP.UI.Experience.Dataset
             subModifier.IsActive = true;
             subModifier.Object = ItemTemp;
 
-            if (type == typeof(IEEGDataInfo)) m_DataContainerModifier.DataAttribute = new iEEG();
+            if (type == typeof(IEEGDataInfo)) m_DataContainerModifier.DataAttribute = new IEEG();
             else if (type == typeof(CCEPDataInfo)) m_DataContainerModifier.DataAttribute = new CCEP();
 
             m_DataContainerModifier.Object = itemTemp.DataContainer;

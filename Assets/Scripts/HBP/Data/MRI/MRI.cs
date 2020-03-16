@@ -189,7 +189,7 @@ namespace HBP.Data
         #region Serialization
         protected override void OnDeserialized()
         {
-            SavedFile = SavedFile.ToPath();
+            SavedFile = SavedFile.StandardizeToEnvironement();
             RecalculateIsUsable();
             base.OnDeserialized();
         }

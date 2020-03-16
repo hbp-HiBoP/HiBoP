@@ -27,14 +27,14 @@ namespace HBP.UI.Experience.Dataset
         public override void Initialize()
         {
             base.Initialize();
-            m_FileSelector.onValueChanged.AddListener((path) => { Object.Path = path; });
+            m_FileSelector.onValueChanged.AddListener((path) => { Object.File = path; });
         }
         #endregion
 
         #region Protected Methods
         protected override void SetFields(container.EDF objectToDisplay)
         {
-            m_FileSelector.File = objectToDisplay.SavedEDF;
+            m_FileSelector.File = objectToDisplay.SavedFile;
         }
         #endregion
     }

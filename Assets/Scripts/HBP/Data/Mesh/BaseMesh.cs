@@ -229,7 +229,7 @@ namespace HBP.Data
         #region Serialization
         protected override void OnDeserialized()
         {
-            SavedTransformation = SavedTransformation.ToPath();
+            SavedTransformation = SavedTransformation.StandardizeToEnvironement();
             RecalculateUsable();
             base.OnDeserialized();
         }
