@@ -622,10 +622,6 @@ namespace HBP.Module3D
         /// </summary>
         [HideInInspector] public GenericEvent<IEnumerable<Site>> OnRequestSiteInformation = new GenericEvent<IEnumerable<Site>>();
         /// <summary>
-        /// Event called when requesting a screenshot of the scene (true if multi screenshots)
-        /// </summary>
-        [HideInInspector] public GenericEvent<bool> OnRequestScreenshot = new GenericEvent<bool>();
-        /// <summary>
         /// Event called when ieeg are outdated or not anymore
         /// </summary>
         [HideInInspector] public GenericEvent<bool> OnIEEGOutdated = new GenericEvent<bool>();
