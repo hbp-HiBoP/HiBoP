@@ -7,6 +7,9 @@ using Tools.CSharp;
 
 namespace HBP.UI.Experience.Protocol
 {
+    /// <summary>
+    /// Window to modify a bloc.
+    /// </summary>
     public class BlocModifier : ObjectModifier<d.Bloc>
     {
         #region Properties
@@ -19,6 +22,9 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] State m_OKState;
         [SerializeField] State m_ErrorState;
 
+        /// <summary>
+        /// True if interactable, False otherwise.
+        /// </summary>
         public override bool Interactable
         {
             get
@@ -42,18 +48,25 @@ namespace HBP.UI.Experience.Protocol
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Initialize the window.
+        /// </summary>
         protected override void Initialize()
         {
             base.Initialize();
-            m_NameInputField.onEndEdit.AddListener(OnChangeName);
-            m_ImageFileSelector.onValueChanged.AddListener(OnChangeImage);
-            m_SortInputField.onEndEdit.AddListener(OnChangeSort);
-            m_OrderInputField.onEndEdit.AddListener(OnChangeOrder);
+            m_NameInputField.onEndEdit.AddListener(ChangeName);
+            m_ImageFileSelector.onValueChanged.AddListener(ChangeImage);
+            m_SortInputField.onEndEdit.AddListener(ChangeSort);
+            m_OrderInputField.onEndEdit.AddListener(ChangeOrder);
 
             m_SubBlocListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
-            m_SubBlocListGestion.List.OnAddObject.AddListener(OnAddSubBloc);
-            m_SubBlocListGestion.List.OnRemoveObject.AddListener(OnRemoveSubBloc);
+            m_SubBlocListGestion.List.OnAddObject.AddListener(AddSubBloc);
+            m_SubBlocListGestion.List.OnRemoveObject.AddListener(RemoveSubBloc);
         }
+        /// <summary>
+        /// Set the fields.
+        /// </summary>
+        /// <param name="objectToDisplay">Bloc to display</param>
         protected override void SetFields(d.Bloc objectToDisplay)
         {
             base.SetFields();
@@ -64,48 +77,70 @@ namespace HBP.UI.Experience.Protocol
             m_OrderInputField.text = objectToDisplay.Order.ToString();
             m_SubBlocListGestion.List.Set(objectToDisplay.SubBlocs);
         }
-
-        protected void OnChangeName(string value)
+        /// <summary>
+        /// Change name.
+        /// </summary>
+        /// <param name="value">Name</param>
+        protected void ChangeName(string value)
         {
             if (value != "")
             {
-                ItemTemp.Name = value;
+                ObjectTemp.Name = value;
             }
             else
             {
-                m_NameInputField.text = ItemTemp.Name;
+                m_NameInputField.text = ObjectTemp.Name;
             }
         }
-        protected void OnChangeImage(string value)
+        /// <summary>
+        /// Change image.
+        /// </summary>
+        /// <param name="value">Path to the image file</param>
+        protected void ChangeImage(string value)
         {
-            ItemTemp.IllustrationPath = value;
+            ObjectTemp.IllustrationPath = value;
         }
-        protected void OnChangeSort(string value)
+        /// <summary>
+        /// Change sort.
+        /// </summary>
+        /// <param name="value">Sorting</param>
+        protected void ChangeSort(string value)
         {
-            ItemTemp.Sort = value;
-            d.Bloc.SortingMethodError error = ItemTemp.GetSortingMethodError();
-            m_SortErrorText.Text = ItemTemp.GetSortingMethodErrorMessage(error);
+            ObjectTemp.Sort = value;
+            d.Bloc.SortingMethodError error = ObjectTemp.GetSortingMethodError();
+            m_SortErrorText.Text = ObjectTemp.GetSortingMethodErrorMessage(error);
             m_SortStateThemeElement.Set(error == d.Bloc.SortingMethodError.NoError ? m_OKState : m_ErrorState);
         }
-        protected void OnChangeOrder(string value)
+        /// <summary>
+        /// Change order.
+        /// </summary>
+        /// <param name="value">Order</param>
+        protected void ChangeOrder(string value)
         {
             if (int.TryParse(value, out int order))
             {
-                ItemTemp.Order = order;
+                ObjectTemp.Order = order;
             }
             else
             {
-                m_OrderInputField.text = ItemTemp.Order.ToString();
+                m_OrderInputField.text = ObjectTemp.Order.ToString();
             }
         }
-
-        protected void OnAddSubBloc(d.SubBloc subBloc)
+        /// <summary>
+        /// Add subBloc to the bloc.
+        /// </summary>
+        /// <param name="subBloc">SubBloc to add</param>
+        protected void AddSubBloc(d.SubBloc subBloc)
         {
-            ItemTemp.SubBlocs.AddIfAbsent(subBloc);
+            ObjectTemp.SubBlocs.AddIfAbsent(subBloc);
         }
-        protected void OnRemoveSubBloc(d.SubBloc subBloc)
+        /// <summary>
+        /// Remove subBloc from the bloc.
+        /// </summary>
+        /// <param name="subBloc">SubBloc to remove</param>
+        protected void RemoveSubBloc(d.SubBloc subBloc)
         {
-            ItemTemp.SubBlocs.Remove(subBloc);
+            ObjectTemp.SubBlocs.Remove(subBloc);
         }
         #endregion
     }

@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace HBP.UI.Experience.Protocol
 {
+    /// <summary>
+    /// List to display icons.
+    /// </summary>
     public class IconList : Tools.Unity.Lists.ActionableList<Icon>
     {
         #region Properties

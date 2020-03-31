@@ -1,42 +1,40 @@
 ﻿using HBP.Data.Experience.Protocol;
 using Tools.Unity.Components;
+using UnityEngine;
 
 namespace HBP.UI.Experience.Protocol
 {
+    /// <summary>
+    /// Component to create subBlocs.
+    /// </summary>
     public class SubBlocCreator : ObjectCreator<SubBloc>
     {
-        public Data.Enums.MainSecondaryEnum Type;
-
-        protected override void OnSaveCreator(CreatorWindow creatorWindow)
+        #region Properties
+        [SerializeField] Data.Enums.MainSecondaryEnum m_Type;
+        /// <summary>
+        /// Default subBloc type created.
+        /// </summary>
+        public Data.Enums.MainSecondaryEnum Type
         {
-            Data.Enums.CreationType type = creatorWindow.Type;
-            //SubBloc item = m_Objects.Any((e) => e.Type == Data.Enums.MainSecondaryEnum.Main) ? new SubBloc(Data.Enums.MainSecondaryEnum.Secondary) : new SubBloc(Data.Enums.MainSecondaryEnum.Main);
-            SubBloc item = new SubBloc(Type);
-            switch (type)
+            get
             {
-                case Data.Enums.CreationType.FromScratch:
-                    OpenModifier(item);
-                    break;
-                case Data.Enums.CreationType.FromExistingObject:
-                    OpenSelector(ExistingItems);
-                    break;
-                case Data.Enums.CreationType.FromFile:
-                    if (LoadFromFile(out SubBloc[] items))
-                    {
-                        if (items.Length == 1)
-                        {
-                            OpenModifier(items[0]);
-                        }
-                        else
-                        {
-                            foreach (var i in items)
-                            {
-                                OnObjectCreated.Invoke(i);
-                            }
-                        }
-                    }
-                    break;
+                return m_Type;
+            }
+            set
+            {
+                m_Type = value;
             }
         }
+        #endregion
+
+        #region Public Methods
+        /// <summary>
+        /// Create subBlocs from scratch.
+        /// </summary>
+        public override void CreateFromScratch()
+        {
+            OpenModifier(new SubBloc(m_Type));
+        }
+        #endregion
     }
 }

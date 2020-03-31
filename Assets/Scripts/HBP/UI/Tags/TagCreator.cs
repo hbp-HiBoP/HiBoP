@@ -1,38 +1,21 @@
-﻿using Tools.Unity.Components;
+﻿using HBP.Data;
+using Tools.Unity.Components;
 
 namespace HBP.UI
 {
-    public class TagCreator : ObjectCreator<Data.BaseTag>
+    /// <summary>
+    /// Component to create tags.
+    /// </summary>
+    public class TagCreator : ObjectCreator<BaseTag>
     {
-        protected override void OnSaveCreator(CreatorWindow creatorWindow)
+        #region Public Methods
+        /// <summary>
+        /// Create a new Tag from scratch.
+        /// </summary>
+        public override void CreateFromScratch()
         {
-            Data.Enums.CreationType type = creatorWindow.Type;
-            Data.BaseTag item = new Data.EmptyTag();
-            switch (type)
-            {
-                case Data.Enums.CreationType.FromScratch:
-                    OpenModifier(item);
-                    break;
-                case Data.Enums.CreationType.FromExistingObject:
-                    OpenSelector(ExistingItems);
-                    break;
-                case Data.Enums.CreationType.FromFile:
-                    if (LoadFromFile(out Data.BaseTag[] items))
-                    {
-                        if (items.Length == 1)
-                        {
-                            OpenModifier(items[0]);
-                        }
-                        else
-                        {
-                            foreach (var i in items)
-                            {
-                                OnObjectCreated.Invoke(i);
-                            }
-                        }
-                    }
-                    break;
-            }
+            OpenModifier(new EmptyTag());
         }
+        #endregion
     }
 }

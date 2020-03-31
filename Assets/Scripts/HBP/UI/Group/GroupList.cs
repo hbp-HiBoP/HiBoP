@@ -4,7 +4,7 @@ using UnityEngine;
 namespace HBP.UI
 {
     /// <summary>
-    /// Manage group list
+    /// List to display groups.
     /// </summary>
     public class GroupList : Tools.Unity.Lists.ActionableList<Data.Group>
     {

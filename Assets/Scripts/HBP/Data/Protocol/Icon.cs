@@ -132,6 +132,14 @@ namespace HBP.Data.Experience.Protocol
         public Icon() : this("New Icon", string.Empty, new Window(-300, 300))
         {
         }
+        /// <summary>
+        /// Create a new Icon instance with a specified window.
+        /// </summary>
+        /// <param name="window">Window when the icon is displayed</param>
+        public Icon(Window window): this("New Icon", string.Empty, window)
+        {
+            
+        }
         #endregion
 
         #region Operators

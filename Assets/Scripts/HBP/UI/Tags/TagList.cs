@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// List to display tags.
+    /// </summary>
     public class TagList : ActionableList<Data.BaseTag>
     {
         #region Properties
@@ -15,6 +18,11 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Add tag.
+        /// </summary>
+        /// <param name="objectToAdd">Tag to add</param>
+        /// <returns>True if end without errors, False otherwise</returns>
         public override bool Add(Data.BaseTag objectToAdd)
         {
             SortByNone();

@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace HBP.UI.Experience.Protocol
 {
+    /// <summary>
+    /// Window to modify a Icon.
+    /// </summary>
     public class IconModifier : ObjectModifier<d.Icon>
     {
         #region Properties
@@ -13,6 +16,9 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] ImageSelector m_ImageSelector;
 
         Tools.CSharp.Window m_Window;
+        /// <summary>
+        /// Window of the subBloc.
+        /// </summary>
         public Tools.CSharp.Window Window
         {
             get
@@ -27,6 +33,9 @@ namespace HBP.UI.Experience.Protocol
             }
         }
 
+        /// <summary>
+        /// True if interactable, False otherwise.
+        /// </summary>
         public override bool Interactable
         {
             get
@@ -44,13 +53,20 @@ namespace HBP.UI.Experience.Protocol
         #endregion
 
         #region Protected Methods
+        /// <summary>
+        /// Initialize the window.
+        /// </summary>
         protected override void Initialize()
         {
             base.Initialize();
-            m_NameInputField.onEndEdit.AddListener(OnChangeName);
-            m_WindowSlider.onValueChanged.AddListener(OnChangeWindow);
-            m_ImageSelector.onValueChanged.AddListener(OnChangeImage);
+            m_NameInputField.onEndEdit.AddListener(ChangeName);
+            m_WindowSlider.onValueChanged.AddListener(ChangeWindow);
+            m_ImageSelector.onValueChanged.AddListener(ChangeImage);
         }
+        /// <summary>
+        /// Set the fields.
+        /// </summary>
+        /// <param name="objectToDisplay">Icon to modify</param>
         protected override void SetFields(d.Icon objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
@@ -60,25 +76,37 @@ namespace HBP.UI.Experience.Protocol
             m_WindowSlider.Values = objectToDisplay.Window.ToVector2();
             m_ImageSelector.Path = objectToDisplay.ImagePath;
         }
-
-        protected void OnChangeName(string value)
+        /// <summary>
+        /// Change the name of the icon.
+        /// </summary>
+        /// <param name="value">Name</param>
+        protected void ChangeName(string value)
         {
             if(value != "")
             {
-                ItemTemp.Name = value;
+                ObjectTemp.Name = value;
             }
             else
             {
-                m_NameInputField.text = ItemTemp.Name;
+                m_NameInputField.text = ObjectTemp.Name;
             }
         }
-        protected void OnChangeWindow(float min, float max)
+        /// <summary>
+        /// Change the window.
+        /// </summary>
+        /// <param name="min">Min window</param>
+        /// <param name="max">Max window</param>
+        protected void ChangeWindow(float min, float max)
         {
-            ItemTemp.Window = new Tools.CSharp.Window((int)min, (int)max);
+            ObjectTemp.Window = new Tools.CSharp.Window((int)min, (int)max);
         }
-        protected void OnChangeImage(string path)
+        /// <summary>
+        /// Change the image.
+        /// </summary>
+        /// <param name="path">Path to illustration path</param>
+        protected void ChangeImage(string path)
         {
-            ItemTemp.ImagePath = path;
+            ObjectTemp.ImagePath = path;
         }
         #endregion
     }

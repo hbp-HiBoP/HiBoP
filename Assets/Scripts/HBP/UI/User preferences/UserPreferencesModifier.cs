@@ -3,7 +3,10 @@ using UnityEngine;
 
 namespace HBP.UI.UserPreferences
 {
-    public class UserPreferencesModifier : ObjectModifier<HBP.Data.Preferences.UserPreferences>
+    /// <summary>
+    /// Window to modify the user preferences.
+    /// </summary>
+    public class UserPreferencesModifier : ObjectModifier<Data.Preferences.UserPreferences>
     {
         #region Properties
         [SerializeField] ProjectPreferencesSubModifier m_ProjectPreferencesSubModifier;
@@ -18,6 +21,9 @@ namespace HBP.UI.UserPreferences
         [SerializeField] GraphPreferencesSubModifier m_GraphPreferencesSubModifier;
         [SerializeField] CutPreferencesSubModifier m_CutPreferencesSubModifier;
 
+        /// <summary>
+        /// True if interactable, False otherwise.
+        /// </summary>
         public override bool Interactable
         {
             get
@@ -44,11 +50,17 @@ namespace HBP.UI.UserPreferences
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Save the modifications.
+        /// </summary>
         public override  void OK()
         {
             base.OK();
             ClassLoaderSaver.SaveToJSon(ApplicationState.UserPreferences, Data.Preferences.UserPreferences.PATH, true);
         }
+        /// <summary>
+        /// Close the window.
+        /// </summary>
         public override void Close()
         {
             Theme.Theme.UpdateThemeElements(ApplicationState.UserPreferences.Theme);
@@ -57,6 +69,10 @@ namespace HBP.UI.UserPreferences
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Set the fields.
+        /// </summary>
+        /// <param name="objectToDisplay">User pereferences to modify</param>
         protected override void SetFields(Data.Preferences.UserPreferences objectToDisplay)
         {
             // General

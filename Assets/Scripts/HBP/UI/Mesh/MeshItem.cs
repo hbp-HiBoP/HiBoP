@@ -5,6 +5,9 @@ using NewTheme.Components;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// Component to display mesh in list.
+    /// </summary>
     public class MeshItem : ActionnableItem<Data.BaseMesh>
     {
         #region Properties
@@ -15,6 +18,9 @@ namespace HBP.UI
 
         [SerializeField] State m_ErrorState;
 
+        /// <summary>
+        /// Object to display.
+        /// </summary>
         public override Data.BaseMesh Object
         {
             get

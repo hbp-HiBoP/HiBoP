@@ -10,7 +10,10 @@ using d = HBP.Data.Experience.Dataset;
 
 namespace HBP.UI.Experience.Dataset
 {
-    public class DatasetListItem : ActionnableItem<d.Dataset> 
+    /// <summary>
+    /// Component to display dataset in list.
+    /// </summary>
+    public class DatasetItem : ActionnableItem<d.Dataset> 
 	{
         #region Properties
         [SerializeField] Text m_NameText;
@@ -19,6 +22,9 @@ namespace HBP.UI.Experience.Dataset
 
         [SerializeField] State m_ErrorState;
 
+        /// <summary>
+        /// Object to display.
+        /// </summary>
         public override d.Dataset Object
         {
             get

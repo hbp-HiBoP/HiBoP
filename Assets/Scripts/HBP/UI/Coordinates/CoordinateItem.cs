@@ -5,6 +5,9 @@ using UnityEngine.UI;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// Component to display coordinate in list.
+    /// </summary>
     public class CoordinateItem : ActionnableItem<Data.Coordinate>
     {
         #region Properties
@@ -13,6 +16,9 @@ namespace HBP.UI
         [SerializeField] Text m_YText;
         [SerializeField] Text m_ZText;
 
+        /// <summary>
+        /// Object to display.
+        /// </summary>
         public override Data.Coordinate Object
         {
             get

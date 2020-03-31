@@ -74,7 +74,7 @@ namespace Tools.Unity.Components
         /// </summary>
         public virtual void Create()
         {
-            ObjectCreator.ExistingItems = List.Objects.ToList();
+            ObjectCreator.ExistingObjects = List.Objects.ToList();
             ObjectCreator.Create();
         }
         /// <summary>
@@ -102,10 +102,10 @@ namespace Tools.Unity.Components
         protected virtual void Initialize()
         {
             List.OnAction.AddListener((item, v) => OpenModifier(item));
-            List.OnAddObject.AddListener(obj => ObjectCreator.ExistingItems.Add(obj));
-            List.OnRemoveObject.AddListener(obj => ObjectCreator.ExistingItems.Remove(obj));
+            List.OnAddObject.AddListener(obj => ObjectCreator.ExistingObjects.Add(obj));
+            List.OnRemoveObject.AddListener(obj => ObjectCreator.ExistingObjects.Remove(obj));
             List.OnUpdateObject.AddListener(OnUpdateObject);
-            ObjectCreator.ExistingItems = List.Objects.ToList();
+            ObjectCreator.ExistingObjects = List.Objects.ToList();
             ObjectCreator.OnObjectCreated.AddListener(OnObjectCreated);
             ObjectCreator.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
         }
@@ -117,7 +117,7 @@ namespace Tools.Unity.Components
         protected virtual ObjectModifier<T> OpenModifier(T obj)
         {
             ObjectModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(obj, m_Modifiable);
-            modifier.OnOk.AddListener(() => OnSaveModifier(modifier.Item));
+            modifier.OnOk.AddListener(() => OnSaveModifier(modifier.Object));
             WindowsReferencer.Add(modifier);
             return modifier;
         }
@@ -185,8 +185,8 @@ namespace Tools.Unity.Components
         /// <param name="obj">Object to update</param>
         protected virtual void OnUpdateObject(T obj)
         {
-            int index = ObjectCreator.ExistingItems.FindIndex(o => o.Equals(obj));
-            ObjectCreator.ExistingItems[index] = obj;
+            int index = ObjectCreator.ExistingObjects.FindIndex(o => o.Equals(obj));
+            ObjectCreator.ExistingObjects[index] = obj;
         }
         #endregion
     }

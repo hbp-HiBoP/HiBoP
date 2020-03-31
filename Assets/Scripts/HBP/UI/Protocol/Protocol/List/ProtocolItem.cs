@@ -6,6 +6,9 @@ using System.Linq;
 
 namespace HBP.UI.Experience.Protocol
 {
+    /// <summary>
+    /// Component to display protocol in list.
+    /// </summary>
 	public class ProtocolItem : ActionnableItem<d.Protocol> 
 	{
 		#region Properties
@@ -13,6 +16,9 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] Text m_BlocsText;
         [SerializeField] State m_ErrorState;
 
+        /// <summary>
+        /// Object to display.
+        /// </summary>
         public override d.Protocol Object
         {
             get

@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace HBP.UI.Visualization
 {
+    /// <summary>
+    /// List to display visualizations.
+    /// </summary>
     public class VisualizationList : Tools.Unity.Lists.ActionableList<Data.Visualization.Visualization>
     {
         #region Properties

@@ -5,6 +5,9 @@ using d = HBP.Data.Experience.Protocol;
 
 namespace HBP.UI.Experience.Protocol
 {
+    /// <summary>
+    /// Window to modify a event.
+    /// </summary>
     public class EventModifier : ObjectModifier<d.Event>
     {
         #region Properties
@@ -12,6 +15,9 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] InputField m_CodesInputField;
         [SerializeField] Dropdown m_TypeDropdown;
 
+        /// <summary>
+        /// True if interactable, False otherwise.
+        /// </summary>
         public override bool Interactable
         {
             get
@@ -24,46 +30,65 @@ namespace HBP.UI.Experience.Protocol
                 base.Interactable = value;
                 m_NameInputField.interactable = value;
                 m_CodesInputField.interactable = value;
-                m_TypeDropdown.interactable = value && ItemTemp != null && ItemTemp.Type == Data.Enums.MainSecondaryEnum.Secondary;
+                m_TypeDropdown.interactable = value && ObjectTemp != null && ObjectTemp.Type == Data.Enums.MainSecondaryEnum.Secondary;
             }
         }
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Initialize the window.
+        /// </summary>
         protected override void Initialize()
         {
             base.Initialize();
 
-            m_NameInputField.onEndEdit.AddListener(OnChangeName);
-            m_CodesInputField.onValueChanged.AddListener(OnChangeCodes);
-            m_TypeDropdown.onValueChanged.AddListener(OnChangeType);
+            m_NameInputField.onEndEdit.AddListener(ChangeName);
+            m_CodesInputField.onValueChanged.AddListener(ChangeCodes);
+            m_TypeDropdown.onValueChanged.AddListener(ChangeType);
         }
-        protected override void SetFields(d.Event objectToDisplay)
+        /// <summary>
+        /// Set the fields.
+        /// </summary>
+        /// <param name="eventToModify">Event to modify</param>
+        protected override void SetFields(d.Event eventToModify)
         {
-            m_NameInputField.text = objectToDisplay.Name;
-            m_CodesInputField.text = objectToDisplay.CodesString;
-            m_TypeDropdown.Set(typeof(Data.Enums.MainSecondaryEnum), (int) objectToDisplay.Type);
-            m_TypeDropdown.interactable = m_Interactable && ItemTemp != null && ItemTemp.Type == Data.Enums.MainSecondaryEnum.Secondary;
+            m_NameInputField.text = eventToModify.Name;
+            m_CodesInputField.text = eventToModify.CodesString;
+            m_TypeDropdown.Set(typeof(Data.Enums.MainSecondaryEnum), (int) eventToModify.Type);
+            m_TypeDropdown.interactable = m_Interactable && ObjectTemp != null && ObjectTemp.Type == Data.Enums.MainSecondaryEnum.Secondary;
         }
 
-        protected void OnChangeName(string value)
+        /// <summary>
+        /// Change the name of the event.
+        /// </summary>
+        /// <param name="value">Name</param>
+        protected void ChangeName(string value)
         {
             if(value != "")
             {
-                ItemTemp.Name = value;
+                ObjectTemp.Name = value;
             }
             else
             {
-                m_NameInputField.text = ItemTemp.Name;
+                m_NameInputField.text = ObjectTemp.Name;
             }
         }
-        protected void OnChangeCodes(string value)
+        /// <summary>
+        /// Change the codes of the event.
+        /// </summary>
+        /// <param name="value">Codes</param>
+        protected void ChangeCodes(string value)
         {
-            ItemTemp.CodesString = value;
+            ObjectTemp.CodesString = value;
         }
-        protected void OnChangeType(int value)
+        /// <summary>
+        /// Change the type of the event.
+        /// </summary>
+        /// <param name="value">Event</param>
+        protected void ChangeType(int value)
         {
-            ItemTemp.Type = (Data.Enums.MainSecondaryEnum)value;
+            ObjectTemp.Type = (Data.Enums.MainSecondaryEnum)value;
         }
         #endregion
     }

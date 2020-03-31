@@ -1,9 +1,12 @@
-﻿using UnityEngine.UI;
+﻿using System.Linq;
 using UnityEngine;
-using System.Linq;
+using UnityEngine.UI;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// Window to modify a patient.
+    /// </summary>
     public class PatientModifier : ObjectModifier<Data.Patient>
     {
         #region Properties
@@ -16,6 +19,9 @@ namespace HBP.UI
         [SerializeField] SiteListGestion m_SiteListGestion;
         [SerializeField] TagValueListGestion m_TagValueListGestion;
 
+        /// <summary>
+        /// True if interactable, False otherwise.
+        /// </summary>
         public override bool Interactable
         {
             get
@@ -47,34 +53,41 @@ namespace HBP.UI
         #endregion
 
         #region Protected Methods
+        /// <summary>
+        /// Initialize the window.
+        /// </summary>
         protected override void Initialize()
         {
             base.Initialize();
 
-            m_NameInputField.onEndEdit.AddListener(OnChangeName);
-            m_PlaceInputField.onEndEdit.AddListener(OnChangePlace);
-            m_DateInputField.onEndEdit.AddListener(OnChangeDate);
+            m_NameInputField.onEndEdit.AddListener(ChangeName);
+            m_PlaceInputField.onEndEdit.AddListener(ChangePlace);
+            m_DateInputField.onEndEdit.AddListener(ChangeDate);
 
             m_MeshListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
-            m_MeshListGestion.List.OnAddObject.AddListener(OnAddMesh);
-            m_MeshListGestion.List.OnRemoveObject.AddListener(OnRemoveMesh);
-            m_MeshListGestion.List.OnUpdateObject.AddListener(OnUpdateMesh);
+            m_MeshListGestion.List.OnAddObject.AddListener(AddMesh);
+            m_MeshListGestion.List.OnRemoveObject.AddListener(RemoveMesh);
+            m_MeshListGestion.List.OnUpdateObject.AddListener(UpdateMesh);
 
             m_MRIListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
-            m_MRIListGestion.List.OnAddObject.AddListener(OnAddMRI);
-            m_MRIListGestion.List.OnRemoveObject.AddListener(OnRemoveMRI);
-            m_MRIListGestion.List.OnUpdateObject.AddListener(OnUpdateMRI);
+            m_MRIListGestion.List.OnAddObject.AddListener(AddMRI);
+            m_MRIListGestion.List.OnRemoveObject.AddListener(RemoveMRI);
+            m_MRIListGestion.List.OnUpdateObject.AddListener(UpdateMRI);
 
             m_SiteListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
-            m_SiteListGestion.List.OnAddObject.AddListener(OnAddSite);
-            m_SiteListGestion.List.OnRemoveObject.AddListener(OnRemoveSite);
-            m_SiteListGestion.List.OnUpdateObject.AddListener(OnUpdateSite);
+            m_SiteListGestion.List.OnAddObject.AddListener(AddSite);
+            m_SiteListGestion.List.OnRemoveObject.AddListener(RemoveSite);
+            m_SiteListGestion.List.OnUpdateObject.AddListener(UpdateSite);
 
             m_TagValueListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
-            m_TagValueListGestion.List.OnAddObject.AddListener(OnAddTag);
-            m_TagValueListGestion.List.OnRemoveObject.AddListener(OnRemoveTag);
-            m_TagValueListGestion.List.OnUpdateObject.AddListener(OnUpdateTag);
+            m_TagValueListGestion.List.OnAddObject.AddListener(AddTag);
+            m_TagValueListGestion.List.OnRemoveObject.AddListener(RemoveTag);
+            m_TagValueListGestion.List.OnUpdateObject.AddListener(UpdateTag);
         }
+        /// <summary>
+        /// Set the fields.
+        /// </summary>
+        /// <param name="objectToDisplay">Patient to display</param>
         protected override void SetFields(Data.Patient objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
@@ -87,132 +100,191 @@ namespace HBP.UI
             m_TagValueListGestion.Tags = ApplicationState.ProjectLoaded.Preferences.PatientsTags.Concat(ApplicationState.ProjectLoaded.Preferences.GeneralTags).ToArray();
             m_TagValueListGestion.List.Set(objectToDisplay.Tags);
         }
-
-        protected void OnChangeName(string value)
+        /// <summary>
+        /// Change the patient name.
+        /// </summary>
+        /// <param name="name">Name of the patient</param>
+        protected void ChangeName(string name)
         {
-            if(value != "")
+            if(name != "")
             {
-                ItemTemp.Name = value;
+                ObjectTemp.Name = name;
             }
             else
             {
-                m_NameInputField.text = ItemTemp.Name;
+                m_NameInputField.text = ObjectTemp.Name;
             }
         }
-        protected void OnChangePlace(string value)
+        /// <summary>
+        /// Change the patient place.
+        /// </summary>
+        /// <param name="place">Patient place</param>
+        protected void ChangePlace(string place)
         {
-            if(value != "")
+            if(place != "")
             {
-                ItemTemp.Place = value;
+                ObjectTemp.Place = place;
             }
             else
             {
-                m_PlaceInputField.text = ItemTemp.Place;
+                m_PlaceInputField.text = ObjectTemp.Place;
             }
         }
-        protected void OnChangeDate(string value)
+        /// <summary>
+        /// Change the patient date.
+        /// </summary>
+        /// <param name="date">Patient date</param>
+        protected void ChangeDate(string value)
         {
             if(int.TryParse(value, out int date))
             {
-                ItemTemp.Date = date;
+                ObjectTemp.Date = date;
             }
             else
             {
-                m_DateInputField.text = ItemTemp.Date.ToString();
+                m_DateInputField.text = ObjectTemp.Date.ToString();
             }
         }
 
-        protected void OnAddMesh(Data.BaseMesh mesh)
+        /// <summary>
+        /// Add mesh to the patient.
+        /// </summary>
+        /// <param name="mesh">Mesh to add</param>
+        protected void AddMesh(Data.BaseMesh mesh)
         {
-            if(!ItemTemp.Meshes.Contains(mesh))
+            if(!ObjectTemp.Meshes.Contains(mesh))
             {
-                ItemTemp.Meshes.Add(mesh);
+                ObjectTemp.Meshes.Add(mesh);
             }
         }
-        protected void OnRemoveMesh(Data.BaseMesh mesh)
+        /// <summary>
+        /// Remove mesh from the patient.
+        /// </summary>
+        /// <param name="mesh">Mesh to remove</param>
+        protected void RemoveMesh(Data.BaseMesh mesh)
         {
-            if(ItemTemp.Meshes.Contains(mesh))
+            if(ObjectTemp.Meshes.Contains(mesh))
             {
-                ItemTemp.Meshes.Remove(mesh);
+                ObjectTemp.Meshes.Remove(mesh);
             }
         }
-        protected void OnUpdateMesh(Data.BaseMesh mesh)
+        /// <summary>
+        /// Update mesh from the patient.
+        /// </summary>
+        /// <param name="mesh">Mesh to update</param>
+        protected void UpdateMesh(Data.BaseMesh mesh)
         {
-            int index = ItemTemp.Meshes.FindIndex(m => m.Equals(mesh));
+            int index = ObjectTemp.Meshes.FindIndex(m => m.Equals(mesh));
             if(index != -1)
             {
-                ItemTemp.Meshes[index] = mesh;
+                ObjectTemp.Meshes[index] = mesh;
             }
         }
 
-        protected void OnAddMRI(Data.MRI mri)
+        /// <summary>
+        /// Add MRI to the patient.
+        /// </summary>
+        /// <param name="mri">MRI to add</param>
+        protected void AddMRI(Data.MRI mri)
         {
-            if (!ItemTemp.MRIs.Contains(mri))
+            if (!ObjectTemp.MRIs.Contains(mri))
             {
-                ItemTemp.MRIs.Add(mri);
+                ObjectTemp.MRIs.Add(mri);
             }
         }
-        protected void OnRemoveMRI(Data.MRI mri)
+        /// <summary>
+        /// Remove MRI from the patient.
+        /// </summary>
+        /// <param name="mri">MRI to remove</param>
+        protected void RemoveMRI(Data.MRI mri)
         {
-            if (ItemTemp.MRIs.Contains(mri))
+            if (ObjectTemp.MRIs.Contains(mri))
             {
-                ItemTemp.MRIs.Remove(mri);
+                ObjectTemp.MRIs.Remove(mri);
             }
         }
-        protected void OnUpdateMRI(Data.MRI mri)
+        /// <summary>
+        /// Update MRI from the patient.
+        /// </summary>
+        /// <param name="mri">MRI to update</param>
+        protected void UpdateMRI(Data.MRI mri)
         {
-            int index = ItemTemp.MRIs.FindIndex(m => m.Equals(mri));
+            int index = ObjectTemp.MRIs.FindIndex(m => m.Equals(mri));
             if (index != -1)
             {
-                ItemTemp.MRIs[index] = mri;
+                ObjectTemp.MRIs[index] = mri;
             }
         }
 
-        protected void OnAddSite(Data.Site site)
+        /// <summary>
+        /// Add site to the patient.
+        /// </summary>
+        /// <param name="site">site to add</param>
+        protected void AddSite(Data.Site site)
         {
-            if (!ItemTemp.Sites.Contains(site))
+            if (!ObjectTemp.Sites.Contains(site))
             {
-                ItemTemp.Sites.Add(site);
+                ObjectTemp.Sites.Add(site);
             }
         }
-        protected void OnRemoveSite(Data.Site site)
+        /// <summary>
+        /// Remove site from the patient.
+        /// </summary>
+        /// <param name="site">site to remove</param>
+        protected void RemoveSite(Data.Site site)
         {
-            if (ItemTemp.Sites.Contains(site))
+            if (ObjectTemp.Sites.Contains(site))
             {
-                ItemTemp.Sites.Remove(site);
+                ObjectTemp.Sites.Remove(site);
             }
         }
-        protected void OnUpdateSite(Data.Site site)
+        /// <summary>
+        /// Update site from the patient.
+        /// </summary>
+        /// <param name="site">Site to update</param>
+        protected void UpdateSite(Data.Site site)
         {
-            int index = ItemTemp.Sites.FindIndex(s => s.Equals(site));
+            int index = ObjectTemp.Sites.FindIndex(s => s.Equals(site));
             if (index != -1)
             {
-                ItemTemp.Sites[index] = site;
+                ObjectTemp.Sites[index] = site;
             }
         }
 
-        protected void OnAddTag(Data.BaseTagValue tag)
+        /// <summary>
+        /// Add tag to the patient.
+        /// </summary>
+        /// <param name="tag">Tag to add</param>
+        protected void AddTag(Data.BaseTagValue tag)
         {
-            if (!ItemTemp.Tags.Contains(tag))
+            if (!ObjectTemp.Tags.Contains(tag))
             {
-                ItemTemp.Tags.Add(tag);
+                ObjectTemp.Tags.Add(tag);
             }
         }
-        protected void OnRemoveTag(Data.BaseTagValue tag)
+        /// <summary>
+        /// Remove tag from the patient.
+        /// </summary>
+        /// <param name="tag">Tag to remove</param>
+        protected void RemoveTag(Data.BaseTagValue tag)
         {
-            if (ItemTemp.Tags.Contains(tag))
+            if (ObjectTemp.Tags.Contains(tag))
             {
-                ItemTemp.Tags.Remove(tag);
+                ObjectTemp.Tags.Remove(tag);
             }
         }
-        protected void OnUpdateTag(Data.BaseTagValue tag)
+        /// <summary>
+        /// Update tag from the patient.
+        /// </summary>
+        /// <param name="tag">Tag to update</param>
+        protected void UpdateTag(Data.BaseTagValue tag)
         {
-            int index = ItemTemp.Tags.FindIndex(t => t.Equals(tag));
+            int index = ObjectTemp.Tags.FindIndex(t => t.Equals(tag));
             if (index != -1)
             {
-                ItemTemp.Tags[index] = tag;
+                ObjectTemp.Tags[index] = tag;
             }
         }
         #endregion
     }
-}
+} 

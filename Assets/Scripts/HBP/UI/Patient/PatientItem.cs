@@ -5,6 +5,9 @@ using System.Linq;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// Component to display patient in list.
+    /// </summary>
     public class PatientItem : ActionnableItem<Data.Patient>
     {
         #region Properties
@@ -19,6 +22,9 @@ namespace HBP.UI
 
         [SerializeField] State m_ErrorState;
 
+        /// <summary>
+        /// Object to display.
+        /// </summary>
         public override Data.Patient Object
         {
             get

@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace HBP.UI.Experience.Dataset
 {
+    /// <summary>
+    /// List to display datasets.
+    /// </summary>
 	public class DatasetList : Tools.Unity.Lists.ActionableList<d.Dataset>
     {
         #region Properties

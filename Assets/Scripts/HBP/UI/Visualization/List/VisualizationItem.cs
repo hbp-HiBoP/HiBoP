@@ -5,6 +5,9 @@ using System.Linq;
 
 namespace HBP.UI.Visualization
 {
+    /// <summary>
+    /// Component to display a visualization in list.
+    /// </summary>
     public class VisualizationItem : ActionnableItem<Data.Visualization.Visualization>
     {
         #region Properties
@@ -14,6 +17,9 @@ namespace HBP.UI.Visualization
 
         [SerializeField] State m_ErrorState;
 
+        /// <summary>
+        /// Object to Display.
+        /// </summary>
         public override Data.Visualization.Visualization Object
         {
             get

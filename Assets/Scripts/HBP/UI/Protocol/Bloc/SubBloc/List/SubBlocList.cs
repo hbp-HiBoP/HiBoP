@@ -4,6 +4,9 @@ using Tools.Unity.Lists;
 
 namespace HBP.UI.Experience.Protocol
 {
+    /// <summary>
+    /// List to display subBlocs.
+    /// </summary>
     public class SubBlocList : ActionableList<Data.Experience.Protocol.SubBloc>
     {
         #region Properties

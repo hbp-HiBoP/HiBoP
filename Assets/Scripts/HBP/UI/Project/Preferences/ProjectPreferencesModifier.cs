@@ -3,12 +3,18 @@ using UnityEngine.Events;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// Window to modify the project preferences.
+    /// </summary>
     public class ProjectPreferencesModifier : ObjectModifier<Data.ProjectPreferences>
     {
         #region Properties
         [SerializeField] GeneralSubModifer m_GeneralSubModifier;
         [SerializeField] TagsSubModifiers m_TagsSubModifier;
 
+        /// <summary>
+        /// True if interactable, False otherwise.
+        /// </summary>
         public override bool Interactable
         {
             get => base.Interactable;
@@ -22,6 +28,9 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Save the modifications.
+        /// </summary>
         public override void OK()
         {
             m_GeneralSubModifier.Save();
@@ -33,12 +42,19 @@ namespace HBP.UI
         #endregion
 
         #region Protected Methods
+        /// <summary>
+        /// Initialize the window.
+        /// </summary>
         protected override void Initialize()
         {
             base.Initialize();
             m_GeneralSubModifier.Initialize();
             m_TagsSubModifier.Initialize();
         }
+        /// <summary>
+        /// Set the fields.
+        /// </summary>
+        /// <param name="objectToDisplay">project preferences to display</param>
         protected override void SetFields(Data.ProjectPreferences objectToDisplay)
         {
             m_GeneralSubModifier.Object = objectToDisplay;

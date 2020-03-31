@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// List to display projects.
+    /// </summary>
     public class ProjectList : Tools.Unity.Lists.ActionableList<Data.ProjectInfo>
     {
         #region Properties

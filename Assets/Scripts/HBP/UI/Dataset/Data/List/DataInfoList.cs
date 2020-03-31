@@ -4,6 +4,9 @@ using Tools.Unity.Lists;
 
 namespace HBP.UI.Experience.Dataset
 {
+    /// <summary>
+    /// List to display DataInfos.
+    /// </summary>
     public class DataInfoList : ActionableList<Data.Experience.Dataset.DataInfo>
     {
         #region Properties
@@ -17,6 +20,11 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Add dataInfo.
+        /// </summary>
+        /// <param name="objectToAdd">DataInfo to add</param>
+        /// <returns>True if end without errors, False otherwise</returns>
         public override bool Add(Data.Experience.Dataset.DataInfo objectToAdd)
         {
             if (base.Add(objectToAdd))

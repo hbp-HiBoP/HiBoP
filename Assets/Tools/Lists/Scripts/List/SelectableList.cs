@@ -7,7 +7,7 @@ using UnityEngine.UI;
 namespace Tools.Unity.Lists
 {
     /// <summary>
-    /// Generic class to display elements which can be selected. 
+    /// List to display elements which can be selected. 
     /// </summary>
     public class SelectableList<T> : List<T>, ISelectionCountable
     {
@@ -186,7 +186,7 @@ namespace Tools.Unity.Lists
             }
             if (GetItemFromObject(objectToSelect, out Item<T> item))
             {
-                (item as SelectableItem<T>).Select(true, transition);
+                (item as SelectableItem<T>).ChangeSelectionValue(true, transition);
             }
             OnSelect.Invoke(objectToSelect);
             OnSelectionChanged();
@@ -213,7 +213,7 @@ namespace Tools.Unity.Lists
             }
             if (GetItemFromObject(objectToDeselect, out Item<T> item))
             {
-                (item as SelectableItem<T>).Select(false, transition);
+                (item as SelectableItem<T>).ChangeSelectionValue(false, transition);
             }
             OnDeselect.Invoke(objectToDeselect);
             OnSelectionChanged();
@@ -239,7 +239,7 @@ namespace Tools.Unity.Lists
                 SelectableItem<T> selectableItem = item as SelectableItem<T>;
                 selectableItem.Object = objectToUpdate;
                 selectableItem.OnChangeSelected.RemoveAllListeners();
-                selectableItem.Select(m_SelectedStateByObject[objectToUpdate]);
+                selectableItem.ChangeSelectionValue(m_SelectedStateByObject[objectToUpdate]);
                 selectableItem.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(objectToUpdate, selected));
                 OnUpdateObject.Invoke(objectToUpdate);
                 return true;
@@ -259,7 +259,7 @@ namespace Tools.Unity.Lists
                 T obj = m_Objects[i];
                 item.Object = obj;
                 item.OnChangeSelected.RemoveAllListeners();
-                item.Select(m_SelectedStateByObject[obj]);
+                item.ChangeSelectionValue(m_SelectedStateByObject[obj]);
                 item.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(obj, selected));
             }
         }
@@ -285,7 +285,7 @@ namespace Tools.Unity.Lists
             base.SetItem(item, obj);
             SelectableItem<T> selectableItem = item as SelectableItem<T>;
             selectableItem.OnChangeSelected.RemoveAllListeners();
-            selectableItem.Select(m_SelectedStateByObject[obj]);
+            selectableItem.ChangeSelectionValue(m_SelectedStateByObject[obj]);
             selectableItem.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(obj, selected));
         }
         /// <summary>

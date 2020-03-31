@@ -5,6 +5,9 @@ using System.Globalization;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// Window to modify a coordinate.
+    /// </summary>
     public class CoordinateModifier : ObjectModifier<Data.Coordinate>
     {
         #region Properties
@@ -13,6 +16,9 @@ namespace HBP.UI
         [SerializeField] InputField m_YInputField;
         [SerializeField] InputField m_ZInputField;
 
+        /// <summary>
+        /// True if interactable, False otherwise.
+        /// </summary>
         public override bool Interactable
         {
             get
@@ -33,53 +39,75 @@ namespace HBP.UI
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Initialize the window.
+        /// </summary>
         protected override void Initialize()
         {
             base.Initialize();
 
-            m_ReferenceSystemInputField.onEndEdit.AddListener(OnChangeReferenceSystem);
-            m_XInputField.onValueChanged.AddListener(OnChangeX);
-            m_YInputField.onValueChanged.AddListener(OnChangeY);
-            m_ZInputField.onValueChanged.AddListener(OnChangeZ);
+            m_ReferenceSystemInputField.onEndEdit.AddListener(ChangeReferenceSystem);
+            m_XInputField.onValueChanged.AddListener(ChangeX);
+            m_YInputField.onValueChanged.AddListener(ChangeY);
+            m_ZInputField.onValueChanged.AddListener(ChangeZ);
         }
-        protected override void SetFields(Data.Coordinate objectToDisplay)
+        /// <summary>
+        /// Set the fields.
+        /// </summary>
+        /// <param name="objectToModify">Coordinate to modify</param>
+        protected override void SetFields(Data.Coordinate objectToModify)
         {
-            m_ReferenceSystemInputField.text = objectToDisplay.ReferenceSystem;
-            m_XInputField.text = objectToDisplay.Position.x.ToString(CultureInfo.InvariantCulture);
-            m_YInputField.text = objectToDisplay.Position.y.ToString(CultureInfo.InvariantCulture);
-            m_ZInputField.text = objectToDisplay.Position.z.ToString(CultureInfo.InvariantCulture);
+            m_ReferenceSystemInputField.text = objectToModify.ReferenceSystem;
+            m_XInputField.text = objectToModify.Position.x.ToString(CultureInfo.InvariantCulture);
+            m_YInputField.text = objectToModify.Position.y.ToString(CultureInfo.InvariantCulture);
+            m_ZInputField.text = objectToModify.Position.z.ToString(CultureInfo.InvariantCulture);
         }
-
-        void OnChangeReferenceSystem(string value)
+        /// <summary>
+        /// Change the reference system.
+        /// </summary>
+        /// <param name="referenceSystem">Name of the reference system</param>
+        void ChangeReferenceSystem(string referenceSystem)
         {
-            if(value != "")
+            if(referenceSystem != "")
             {
-                ItemTemp.ReferenceSystem = value;
+                ObjectTemp.ReferenceSystem = referenceSystem;
             }
             else
             {
-                m_ReferenceSystemInputField.text = ItemTemp.ReferenceSystem;
+                m_ReferenceSystemInputField.text = ObjectTemp.ReferenceSystem;
             }
         }
-        void OnChangeX(string value)
+        /// <summary>
+        /// Change the x.
+        /// </summary>
+        /// <param name="value">Value</param>
+        void ChangeX(string value)
         {
             if(NumberExtension.TryParseFloat(value, out float x))
             {
-                ItemTemp.Position = new SerializableVector3(x, ItemTemp.Position.y, ItemTemp.Position.z);
+                ObjectTemp.Position = new SerializableVector3(x, ObjectTemp.Position.y, ObjectTemp.Position.z);
             }
         }
-        void OnChangeY(string value)
+        /// <summary>
+        /// Change the y.
+        /// </summary>
+        /// <param name="value">value</param>
+        void ChangeY(string value)
         {
             if (NumberExtension.TryParseFloat(value, out float y))
             {
-                ItemTemp.Position = new SerializableVector3(ItemTemp.Position.x, y, ItemTemp.Position.z);
+                ObjectTemp.Position = new SerializableVector3(ObjectTemp.Position.x, y, ObjectTemp.Position.z);
             }
         }
-        void OnChangeZ(string value)
+        /// <summary>
+        /// Change the z.
+        /// </summary>
+        /// <param name="value">value</param>
+        void ChangeZ(string value)
         {
             if (NumberExtension.TryParseFloat(value, out float z))
             {
-                ItemTemp.Position = new SerializableVector3(ItemTemp.Position.x, ItemTemp.Position.y,z);
+                ObjectTemp.Position = new SerializableVector3(ObjectTemp.Position.x, ObjectTemp.Position.y,z);
             }
         }
         #endregion

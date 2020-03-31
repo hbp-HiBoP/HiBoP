@@ -1,12 +1,12 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 using UnityEngine.UI;
 using d = HBP.Data.Experience.Dataset;
-using System.Linq;
 
 namespace HBP.UI.Experience.Dataset
 {
     /// <summary>
-    /// Display/Modify dataset.
+    /// Window to modify a dataset.
     /// </summary>
     public class DatasetModifier : ObjectModifier<d.Dataset>
     {
@@ -16,6 +16,9 @@ namespace HBP.UI.Experience.Dataset
 
         [SerializeField] DataInfoListGestion m_DataInfoListGestion;
 
+        /// <summary>
+        /// True if interactable, False otherwise.
+        /// </summary>
         public override bool Interactable
         {
             get
@@ -37,59 +40,89 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Protected Methods
+        /// <summary>
+        /// Initialize the window.
+        /// </summary>
         protected override void Initialize()
         {
             base.Initialize();
 
-            m_NameInputField.onEndEdit.AddListener(OnChangeName);
+            m_NameInputField.onEndEdit.AddListener(ChangeName);
 
             m_ProtocolDropdown.options = (from protocol in ApplicationState.ProjectLoaded.Protocols select new Dropdown.OptionData(protocol.Name)).ToList();
-            m_ProtocolDropdown.onValueChanged.AddListener(OnChangeProtocol);
+            m_ProtocolDropdown.onValueChanged.AddListener(ChangeProtocol);
 
             m_DataInfoListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
             m_DataInfoListGestion.OnDataInfoNeedCheckErrors.AddListener(CheckErrors);
-            m_DataInfoListGestion.List.OnAddObject.AddListener(OnAddData);
-            m_DataInfoListGestion.List.OnRemoveObject.AddListener(OnRemoveData);
-            m_DataInfoListGestion.List.OnUpdateObject.AddListener(OnUpdateData);
+            m_DataInfoListGestion.List.OnAddObject.AddListener(AddData);
+            m_DataInfoListGestion.List.OnRemoveObject.AddListener(RemoveData);
+            m_DataInfoListGestion.List.OnUpdateObject.AddListener(UpdateData);
         }
+        /// <summary>
+        /// Set the fields.
+        /// </summary>
+        /// <param name="objectToDisplay">Dataset to modify</param>
         protected override void SetFields(d.Dataset objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_ProtocolDropdown.value = ApplicationState.ProjectLoaded.Protocols.IndexOf(objectToDisplay.Protocol);
             m_DataInfoListGestion.List.Set(objectToDisplay.Data);
         }
-        protected virtual void OnChangeProtocol(int value)
+        /// <summary>
+        /// Change the porotocol.
+        /// </summary>
+        /// <param name="index">Index of the protocol</param>
+        protected virtual void ChangeProtocol(int index)
         {
-            ItemTemp.Protocol = ApplicationState.ProjectLoaded.Protocols[value];
+            ObjectTemp.Protocol = ApplicationState.ProjectLoaded.Protocols[index];
             m_DataInfoListGestion.UpdateAllObjects();
         }
+        /// <summary>
+        /// Check the errors.
+        /// </summary>
+        /// <param name="dataInfo">Check the the errors of the dataInfo</param>
         protected virtual void CheckErrors(d.DataInfo dataInfo)
         {
-            dataInfo.GetErrors(ItemTemp.Protocol);
+            dataInfo.GetErrors(ObjectTemp.Protocol);
         }
-
-        protected void OnChangeName(string value)
+        /// <summary>
+        /// Change the name.
+        /// </summary>
+        /// <param name="name">Name of the dataset</param>
+        protected void ChangeName(string name)
         {
-            if (value != "")
+            if (name != "")
             {
-                ItemTemp.Name = value;
+                ObjectTemp.Name = name;
             }
             else
             {
-                m_NameInputField.text = ItemTemp.Name;
+                m_NameInputField.text = ObjectTemp.Name;
             }
         }
-        protected void OnAddData(d.DataInfo data)
+        /// <summary>
+        /// Add data to the dataset.
+        /// </summary>
+        /// <param name="data">dataInfo to add</param>
+        protected void AddData(d.DataInfo data)
         {
-            ItemTemp.AddData(data);
+            ObjectTemp.AddData(data);
         }
-        protected void OnRemoveData(d.DataInfo data)
+        /// <summary>
+        /// Remove data from the dataset.
+        /// </summary>
+        /// <param name="data">dataInfo to remove</param>
+        protected void RemoveData(d.DataInfo data)
         {
-            ItemTemp.RemoveData(data);
+            ObjectTemp.RemoveData(data);
         }
-        protected void OnUpdateData(d.DataInfo data)
+        /// <summary>
+        /// Update data of the dataset.
+        /// </summary>
+        /// <param name="data">dataInfo to update</param>
+        protected void UpdateData(d.DataInfo data)
         {
-            ItemTemp.UpdateData(data);
+            ObjectTemp.UpdateData(data);
         }
         #endregion
     }

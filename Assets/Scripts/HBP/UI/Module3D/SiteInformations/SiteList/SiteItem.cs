@@ -4,6 +4,9 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
+    /// <summary>
+    /// Component to display a module3D site in a list.
+    /// </summary>
     public class SiteItem : Item<HBP.Module3D.Site>
     {
         #region Properties
@@ -19,6 +22,9 @@ namespace HBP.UI.Module3D
         [SerializeField] private Image m_ColorImage;
         [SerializeField] private GameObject m_ColorPickerPrefab;
 
+        /// <summary>
+        /// Site to display.
+        /// </summary>
         public override HBP.Module3D.Site Object
         {
             get
@@ -32,6 +38,9 @@ namespace HBP.UI.Module3D
                 value.State.OnChangeState.AddListener(() => m_UpdateRequired = true);
             }
         }
+        /// <summary>
+        /// True if a update if required, False otherwise.
+        /// </summary>
         private bool m_UpdateRequired;
         #endregion
 
@@ -65,6 +74,9 @@ namespace HBP.UI.Module3D
                 UpdateFields();
             }
         }
+        /// <summary>
+        /// Update all fields.
+        /// </summary>
         private void UpdateFields()
         {
             m_Site.GetComponentInChildren<Text>().text = Object.Information.Name;

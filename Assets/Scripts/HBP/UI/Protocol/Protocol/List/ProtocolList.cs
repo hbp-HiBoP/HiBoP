@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace HBP.UI.Experience.Protocol
 {
+    /// <summary>
+    /// List to display protocols.
+    /// </summary>
     public class ProtocolList : Tools.Unity.Lists.ActionableList<d.Protocol>
     {
         #region Properties

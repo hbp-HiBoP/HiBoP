@@ -8,11 +8,18 @@ using UnityEngine.Events;
 
 namespace Tools.Unity.Components
 {
+    /// <summary>
+    /// Component to create a new object ICloneable and ICopiable. 
+    /// </summary>
+    /// <typeparam name="T">Type of the object to create</typeparam>
     [Serializable]
     public class ObjectCreator<T> : MonoBehaviour where T : ICloneable, ICopiable, new()
     {
         #region Properties
-        [SerializeField] bool m_IsLoadableFromFile = true;
+        [SerializeField] public bool m_IsLoadableFromFile = true;
+        /// <summary>
+        /// True if the Object of type T is creatable from a file, False otherwise.
+        /// </summary>
         public bool IsCreatableFromFile
         {
             get
@@ -26,6 +33,9 @@ namespace Tools.Unity.Components
         }
 
         [SerializeField] bool m_IsLoadableFromDatabase = true;
+        /// <summary>
+        /// True if the Object of type T is creatable from a database, False otherwise.
+        /// </summary>
         public bool IsCreatableFromDatabase
         {
             get
@@ -39,6 +49,9 @@ namespace Tools.Unity.Components
         }
 
         [SerializeField] bool m_IsCreatableFromScratch = true;
+        /// <summary>
+        /// True if the Object of type T is creatable from scratch, False otherwise.
+        /// </summary>
         public bool IsCreatableFromScratch
         {
             get
@@ -51,50 +64,65 @@ namespace Tools.Unity.Components
             }
         }
 
-        [SerializeField] bool m_IsCreatableFromExistingObjects = true;
-        public bool IsCreatableFromExistingObjects
+        [SerializeField] bool m_IsCreatableFromExistingObject = true;
+        /// <summary>
+        /// True if the Object of type T is creatable from a existing object of type T, False otherwise.
+        /// </summary>
+        public bool IsCreatableFromExistingObject
         {
             get
             {
-                return m_IsCreatableFromExistingObjects;
+                return m_IsCreatableFromExistingObject;
             }
             set
             {
-                m_IsCreatableFromExistingObjects = value;
+                m_IsCreatableFromExistingObject = value;
             }
         }
 
-        [SerializeField] List<T> m_ExistingItems = new List<T>();
-        public List<T> ExistingItems
+        [SerializeField] List<T> m_ExistingObjects = new List<T>();
+        /// <summary>
+        /// Existing objects to create a new object if is creatable from existing objects.
+        /// </summary>
+        public List<T> ExistingObjects
         {
             get
             {
-                return m_ExistingItems;
+                return m_ExistingObjects;
             }
             set
             {
-                m_ExistingItems = value;
+                m_ExistingObjects = value;
             }
         }
 
         [SerializeField] protected WindowsReferencer m_WindowsReferencer = new WindowsReferencer();
+        /// <summary>
+        /// Windows references used to manage sub windows opened by the object creator.
+        /// </summary>
         public virtual WindowsReferencer WindowsReferencer { get => m_WindowsReferencer; }
 
+        /// <summary>
+        /// Event raised when a new object is created.
+        /// </summary>
         public UnityEvent<T> OnObjectCreated { get; protected set; } = new GenericEvent<T>();
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Create a new object. Use a creator window to select the creation type if needed.
+        /// </summary>
         public virtual void Create()
         {
             bool createableFromScratch = IsCreatableFromScratch;
             bool createableFromFile = IsCreatableFromFile && typeof(T).GetInterfaces().Contains(typeof(ILoadable<T>));
             bool createableFromDatabase = IsCreatableFromDatabase && typeof(T).GetInterfaces().Contains(typeof(ILoadableFromDatabase<T>));
-            bool createableFromExistingObjects = IsCreatableFromExistingObjects && ExistingItems.Count > 0;
+            bool createableFromExistingObjects = IsCreatableFromExistingObject && ExistingObjects.Count > 0;
 
             if (createableFromScratch && !createableFromFile && !createableFromDatabase && !createableFromExistingObjects) CreateFromScratch();
             else if (!createableFromScratch && createableFromFile && !createableFromDatabase && !createableFromExistingObjects) CreateFromFile();
             else if (!createableFromScratch && !createableFromFile && createableFromDatabase && !createableFromExistingObjects) CreateFromDatabase();
-            else if (!createableFromScratch && !createableFromFile && !createableFromDatabase && createableFromExistingObjects) CreateFromExistingItems();
+            else if (!createableFromScratch && !createableFromFile && !createableFromDatabase && createableFromExistingObjects) CreateFromExistingObject();
             else
             {
                 CreatorWindow creatorWindow = ApplicationState.WindowsManager.Open<CreatorWindow>("Creator window", true);
@@ -102,23 +130,54 @@ namespace Tools.Unity.Components
                 creatorWindow.IsCreatableFromExistingObjects = createableFromExistingObjects;
                 creatorWindow.IsCreatableFromFile = createableFromFile;
                 creatorWindow.IsCreatableFromDatabase = createableFromDatabase;
-                creatorWindow.OnOk.AddListener(() => OnSaveCreator(creatorWindow));
+                creatorWindow.OnOk.AddListener(() => Create(creatorWindow.Type));
                 WindowsReferencer.Add(creatorWindow);
             }
         }
+        /// <summary>
+        /// Create a new object with a specified creation type.
+        /// </summary>
+        /// <param name="type">Creation type.</param>
+        public virtual void Create(HBP.Data.Enums.CreationType type)
+        {
+            switch (type)
+            {
+                case HBP.Data.Enums.CreationType.FromScratch:
+                    CreateFromScratch();
+                    break;
+                case HBP.Data.Enums.CreationType.FromExistingObject:
+                    CreateFromExistingObject();
+                    break;
+                case HBP.Data.Enums.CreationType.FromFile:
+                    CreateFromFile();
+                    break;
+                case HBP.Data.Enums.CreationType.FromDatabase:
+                    CreateFromDatabase();
+                    break;
+            }
+        }
+        /// <summary>
+        /// Create a new object from scratch.
+        /// </summary>
         public virtual void CreateFromScratch()
         {
             OpenModifier(new T());
         }
-        public virtual void CreateFromExistingItems()
+        /// <summary>
+        /// Create a new object from a existing object.
+        /// </summary>
+        public virtual void CreateFromExistingObject()
         {
-            OpenSelector(ExistingItems);
+            OpenSelector(ExistingObjects);
         }
+        /// <summary>
+        /// Create a new object from file.
+        /// </summary>
         public virtual void CreateFromFile()
         {
             if (LoadFromFile(out T[] items))
             {
-                if(items.Length == 1)
+                if (items.Length == 1)
                 {
                     OpenModifier(items[0]);
                 }
@@ -131,6 +190,9 @@ namespace Tools.Unity.Components
                 }
             }
         }
+        /// <summary>
+        /// Create a new object from a database.
+        /// </summary>
         public virtual void CreateFromDatabase()
         {
             SelectDatabase();
@@ -138,31 +200,25 @@ namespace Tools.Unity.Components
         #endregion
 
         #region Private Methods
-        protected virtual void OnSaveCreator(CreatorWindow creatorWindow)
-        {
-            switch (creatorWindow.Type)
-            {
-                case HBP.Data.Enums.CreationType.FromScratch:
-                    CreateFromScratch();
-                    break;
-                case HBP.Data.Enums.CreationType.FromExistingObject:
-                    CreateFromExistingItems();
-                    break;
-                case HBP.Data.Enums.CreationType.FromFile:
-                    CreateFromFile();
-                    break;
-                case HBP.Data.Enums.CreationType.FromDatabase:
-                    CreateFromDatabase();
-                    break;
-            }
-        }
+        /// <summary>
+        /// Open a new object selector.
+        /// </summary>
+        /// <param name="objects"></param>
+        /// <param name="multiSelection"></param>
+        /// <param name="openModifiers"></param>
+        /// <param name="generateNewIDs"></param>
         protected virtual void OpenSelector(IEnumerable<T> objects, bool multiSelection = false, bool openModifiers = true, bool generateNewIDs = true)
         {
             ObjectSelector<T> selector = ApplicationState.WindowsManager.OpenSelector<T>(objects, multiSelection, openModifiers);
-            selector.OnOk.AddListener(() => OnSaveSelector(selector, generateNewIDs));
+            selector.OnOk.AddListener(() => SaveSelector(selector, generateNewIDs));
             WindowsReferencer.Add(selector);
         }
-        protected virtual void OnSaveSelector(ObjectSelector<T> selector, bool generateNewIDs = true)
+        /// <summary>
+        /// Create clone of the objects selected in the ObjectSelector.
+        /// </summary>
+        /// <param name="selector">Object selector</param> 
+        /// <param name="generateNewIDs">True if generate a new ID for every objects cloned, False otherwise.</param>
+        protected virtual void SaveSelector(ObjectSelector<T> selector, bool generateNewIDs = true)
         {
             foreach (var obj in selector.ObjectsSelected)
             {
@@ -189,40 +245,61 @@ namespace Tools.Unity.Components
             }
         }
 
-        protected virtual ObjectModifier<T> OpenModifier(T item)
+        /// <summary>
+        /// Open a new objectModifier.
+        /// </summary>
+        /// <param name="object">Object to modify</param>
+        /// <returns>Return the objectModifier.</returns>
+        protected virtual ObjectModifier<T> OpenModifier(T @object)
         {
-            ObjectModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(item, true);
-            modifier.OnOk.AddListener(() => OnSaveModifier(modifier));
+            ObjectModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(@object, true);
+            modifier.OnOk.AddListener(() => SaveModifier(modifier));
             WindowsReferencer.Add(modifier);
             return modifier;
         }
-        protected virtual void OnSaveModifier(ObjectModifier<T> modifier)
+        /// <summary>
+        /// Save Object modifier.
+        /// </summary>
+        /// <param name="modifier">Object modifier</param>
+        protected virtual void SaveModifier(ObjectModifier<T> modifier)
         {
-            OnObjectCreated.Invoke(modifier.Item);
+            OnObjectCreated.Invoke(modifier.Object);
         }
 
+        /// <summary>
+        /// Load objects from a file.
+        /// </summary>
+        /// <param name="result">Objects loaded from the file.</param>
+        /// <returns>True if the method end without errors, False otherwise.</returns>
         protected virtual bool LoadFromFile(out T[] result)
         {
             result = new T[0];
-            string path = FileBrowser.GetExistingFileName((new T() as ILoadable<T>).GetExtensions()).StandardizeToPath();
+            ILoadable<T> loadable = new T() as ILoadable<T>;
+            string path = FileBrowser.GetExistingFileName(loadable.GetExtensions()).StandardizeToPath();
             if (path != string.Empty)
             {
-                (new T() as ILoadable<T>).LoadFromFile(path, out result);
-                foreach (T t in result)
+                bool loadResult = loadable.LoadFromFile(path, out result);
+                if (loadResult)
                 {
                     if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
                     {
-                        IIdentifiable identifiable = t as IIdentifiable;
-                        if (identifiable.ID == "xxxxxxxxxxxxxxxxxxxxxxxxx")
+                        foreach (T t in result)
                         {
-                            identifiable.ID = Guid.NewGuid().ToString();
+                            IIdentifiable identifiable = t as IIdentifiable;
+                            if (identifiable.ID == "xxxxxxxxxxxxxxxxxxxxxxxxx")
+                            {
+                                identifiable.ID = Guid.NewGuid().ToString();
+                            }
                         }
                     }
                 }
-                return true;
+                return loadResult;
             }
             return false;
         }
+        /// <summary>
+        /// Open a browser to select a folder database and load objects asynchroniously.
+        /// </summary>
         protected virtual void SelectDatabase()
         {
             string path = FileBrowser.GetExistingDirectoryName();
@@ -233,6 +310,10 @@ namespace Tools.Unity.Components
                 ApplicationState.LoadingManager.Load(loadable.LoadFromDatabase(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => OnEndLoadFromDatabase(result.ToArray())), onChangeProgress);
             }
         }
+        /// <summary>
+        /// Called when the asynchronious method to load objects from the database are ended.
+        /// </summary>
+        /// <param name="result">Objects created from the database</param>
         protected virtual void OnEndLoadFromDatabase(T[] result)
         {
             if (result.Length > 0)

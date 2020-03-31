@@ -6,6 +6,9 @@ using System;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// Window to modify a mesh.
+    /// </summary>
     public class MeshModifier : ObjectModifier<Data.BaseMesh>
 {
         #region Properties
@@ -20,6 +23,9 @@ namespace HBP.UI
         List<BaseSubModifier> m_SubModifiers;
         List<Data.BaseMesh> m_MeshesTemp;
 
+        /// <summary>
+        /// True if interactable, False otherwise.
+        /// </summary>
         public override bool Interactable
         {
             get
@@ -42,23 +48,29 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Save the modifications.
+        /// </summary>
         public override void OK()
         {
-            item = ItemTemp;
-            item.RecalculateUsable();
+            m_Object = ObjectTemp;
+            m_Object.RecalculateUsable();
             base.OK();
         }
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Initialize the window.
+        /// </summary>
         protected override void Initialize()
         {
             base.Initialize();
 
-            m_NameInputField.onEndEdit.AddListener(OnChangeName);
-            m_TransformationFileSelector.onValueChanged.AddListener(OnChangeTransformation);
+            m_NameInputField.onEndEdit.AddListener(ChangeName);
+            m_TransformationFileSelector.onValueChanged.AddListener(ChangeTransformation);
 
-            m_TypeDropdown.onValueChanged.AddListener(OnChangeType);
+            m_TypeDropdown.onValueChanged.AddListener(ChangeType);
             m_Types = m_TypeDropdown.Set(typeof(Data.BaseMesh));
 
             m_SingleMeshSubModifier.Initialize();
@@ -77,46 +89,61 @@ namespace HBP.UI
             };
 
         }
+        /// <summary>
+        /// Set the fields.
+        /// </summary>
+        /// <param name="objectToDisplay">Mesh to modify</param>
         protected override void SetFields(Data.BaseMesh objectToDisplay)
         {
-            int index = m_MeshesTemp.FindIndex(t => t.GetType() == ItemTemp.GetType());
-            m_MeshesTemp[index] = ItemTemp;
+            int index = m_MeshesTemp.FindIndex(t => t.GetType() == ObjectTemp.GetType());
+            m_MeshesTemp[index] = ObjectTemp;
 
             m_NameInputField.text = objectToDisplay.Name;
             m_TypeDropdown.SetValue(Array.IndexOf(m_Types, objectToDisplay.GetType()));
             m_TransformationFileSelector.File = objectToDisplay.SavedTransformation;
         }
-
-        protected void OnChangeName(string value)
+        /// <summary>
+        /// Change the name of the mesh.
+        /// </summary>
+        /// <param name="name">Name</param>
+        protected void ChangeName(string name)
         {
-            if(value != "")
+            if(name != "")
             {
-                ItemTemp.Name = value;
+                ObjectTemp.Name = name;
             }
             else
             {
-                m_NameInputField.text = ItemTemp.Name;
+                m_NameInputField.text = ObjectTemp.Name;
             }
         }
-        protected void OnChangeType(int value)
+        /// <summary>
+        /// Change the type of the mesh.
+        /// </summary>
+        /// <param name="index">Index of the type</param>
+        protected void ChangeType(int index)
         {
-            Type type = m_Types[value];
+            Type type = m_Types[index];
 
             // Close old subModifier
-            m_SubModifiers.Find(subModifier => subModifier.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(itemTemp.GetType()))).IsActive = false;
+            m_SubModifiers.Find(subModifier => subModifier.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(m_ObjectTemp.GetType()))).IsActive = false;
 
             Data.BaseMesh mesh = m_MeshesTemp.Find(t => t.GetType() == type);
-            mesh.Copy(itemTemp);
-            itemTemp = mesh;
+            mesh.Copy(m_ObjectTemp);
+            m_ObjectTemp = mesh;
 
             // Open new subModifier;
             BaseSubModifier newSubModifier = m_SubModifiers.Find(subModifier => subModifier.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(type)));
             newSubModifier.IsActive = true;
-            newSubModifier.Object = itemTemp;
+            newSubModifier.Object = m_ObjectTemp;
         }
-        protected void OnChangeTransformation(string value)
+        /// <summary>
+        /// Change the path to the transformation file of the mesh.
+        /// </summary>
+        /// <param name="path">Path to the transformation file</param>
+        protected void ChangeTransformation(string path)
         {
-            ItemTemp.Transformation = value;
+            ObjectTemp.Transformation = path;
         }
         #endregion
     }

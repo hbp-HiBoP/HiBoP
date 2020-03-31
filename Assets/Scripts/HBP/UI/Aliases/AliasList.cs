@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// List to display Alias.
+    /// </summary>
     public class AliasList : ActionableList<Data.Alias>
     {
         #region Properties
@@ -15,6 +18,11 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Add alias.
+        /// </summary>
+        /// <param name="objectToAdd">Alias to add</param>
+        /// <returns>True if end without errors, False otherwise</returns>
         public override bool Add(Data.Alias objectToAdd)
         {
             SortByNone();

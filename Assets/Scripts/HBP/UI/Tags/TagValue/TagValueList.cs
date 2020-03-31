@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// List to display TagValues.
+    /// </summary>
     public class TagValueList : ActionableList<Data.BaseTagValue>
     {
         #region Properties
@@ -12,10 +15,14 @@ namespace HBP.UI
 
         [SerializeField] SortingDisplayer m_TagSortingDisplayer;
         [SerializeField] SortingDisplayer m_ValueSortingDisplayer;
-
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Add TagValue.
+        /// </summary>
+        /// <param name="objectToAdd">TagValue to add</param>
+        /// <returns>True if end without error, False otherwise</returns>
         public override bool Add(Data.BaseTagValue objectToAdd)
         {
             SortByNone();

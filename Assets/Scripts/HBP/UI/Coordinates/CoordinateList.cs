@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// List to display coordinates.
+    /// </summary>
     public class CoordinateList : Tools.Unity.Lists.ActionableList<Data.Coordinate>
     {
         #region Properties
@@ -16,6 +19,11 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Add a coordinate.
+        /// </summary>
+        /// <param name="obj">Coordinate to add</param>
+        /// <returns>True if end without errors, False otherwise</returns>
         public override bool Add(Data.Coordinate obj)
         {
             SortByNone();

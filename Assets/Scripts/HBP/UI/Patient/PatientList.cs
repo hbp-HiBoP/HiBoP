@@ -4,7 +4,7 @@ using UnityEngine;
 namespace HBP.UI
 {
 	/// <summary>
-	/// Manage patient list.
+	/// List to display patients.
 	/// </summary>
 	public class PatientList : Tools.Unity.Lists.ActionableList<Data.Patient>
 	{
@@ -22,6 +22,11 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Add patient to the list.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public override bool Add(Data.Patient obj)
         {
             SortByNone();

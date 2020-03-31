@@ -5,6 +5,9 @@ using System.Linq;
 
 namespace HBP.UI.Experience.Protocol
 {
+    /// <summary>
+    /// List to display treatments.
+    /// </summary>
     public class TreatmentList : ActionableList<d.Treatment>
     {
         #region Properties

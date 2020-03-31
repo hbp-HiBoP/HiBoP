@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace Tools.Unity.Lists
 {
     /// <summary>
-    /// Base generic class for every UI list.
+    /// Base generic component for every UI list.
     /// </summary>
     public class List<T> : BaseList
     {

@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// List to display MRIs.
+    /// </summary>
     public class MRIList : Tools.Unity.Lists.ActionableList<Data.MRI>
     {
         #region Properties

@@ -5,6 +5,9 @@ using d = HBP.Data.Experience.Protocol;
 
 namespace HBP.UI.Experience.Protocol
 {
+    /// <summary>
+    /// Component to display treatment in list.
+    /// </summary>
     public class TreatmentItem : Tools.Unity.Lists.ActionnableItem<d.Treatment>
     {
         #region Properties
@@ -15,6 +18,9 @@ namespace HBP.UI.Experience.Protocol
 
         [SerializeField] Text m_OrderText;
 
+        /// <summary>
+        /// Object to display.
+        /// </summary>
         public override d.Treatment Object
         {
             get

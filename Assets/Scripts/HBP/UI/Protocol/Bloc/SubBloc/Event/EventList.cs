@@ -4,7 +4,7 @@ using UnityEngine;
 namespace HBP.UI.Experience.Protocol
 {
 	/// <summary>
-	/// The scripts which manage the event list.
+	/// List to display events.
 	/// </summary>
 	public class EventList : Tools.Unity.Lists.ActionableList<Data.Experience.Protocol.Event> 
 	{

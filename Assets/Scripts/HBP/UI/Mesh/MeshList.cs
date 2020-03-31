@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// List to display Meshes.
+    /// </summary>
     public class MeshList : ActionableList<Data.BaseMesh>
     {
         #region Properties
@@ -17,14 +20,15 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Add mesh.
+        /// </summary>
+        /// <param name="objectToAdd">Mesh to add</param>
+        /// <returns>True if ended without errors, False otherwise</returns>
         public override bool Add(Data.BaseMesh objectToAdd)
         {
-            if(base.Add(objectToAdd))
-            {
-                SortByNone();
-                return true;
-            }
-            else return false;
+            SortByNone();
+            return base.Add(objectToAdd);
         }
         #endregion
 

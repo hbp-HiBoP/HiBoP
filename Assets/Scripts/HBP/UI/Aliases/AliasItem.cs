@@ -4,12 +4,18 @@ using UnityEngine.UI;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// Component to display alias in list.
+    /// </summary>
     public class AliasItem : ActionnableItem<Data.Alias>
     {
         #region Properties
         [SerializeField] Text m_KeyText;
         [SerializeField] Text m_ValueText;
 
+        /// <summary>
+        /// Object to display.
+        /// </summary>
         public override Data.Alias Object
         {
             get

@@ -5,6 +5,9 @@ using Tools.Unity.Lists;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// Component to display group in list.
+    /// </summary>
 	public class GroupItem : ActionnableItem<Data.Group> 
 	{
 		#region Properties
@@ -12,6 +15,9 @@ namespace HBP.UI
 		[SerializeField] Text m_PatientsText;
         [SerializeField] State m_ErrorState;
 
+        /// <summary>
+        /// Object to display.
+        /// </summary>
         public override Data.Group Object
         {
             get

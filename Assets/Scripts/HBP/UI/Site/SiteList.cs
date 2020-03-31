@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// List to display sites.
+    /// </summary>
     public class SiteList : Tools.Unity.Lists.ActionableList<Data.Site>
     {
         #region Properties
