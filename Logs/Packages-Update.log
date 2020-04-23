@@ -74,3 +74,12 @@ Update Mode: updateDependencies
 
 The following packages were updated:
   com.unity.test-framework from version 1.1.9 to 1.1.11
+
+=== Thu Apr 23 16:49:28 2020
+
+Packages were changed.
+Update Mode: updateDependencies
+
+The following packages were updated:
+  com.unity.ads from version 2.0.8 to 3.4.4
+  com.unity.test-framework from version 1.1.11 to 1.1.13
