@@ -254,23 +254,27 @@ namespace HBP.Data
         /// <param name="path">The specified path of the intranat database.</param>
         /// <param name="patients">Patients loaded in the database.</param>
         /// <returns></returns>
-        public static bool LoadFromIntranatDatabase(string path, out Patient[] patients)
+        public static void LoadFromIntranatDatabase(string path, out Patient[] patients, Action<float, float, LoadingText> OnChangeProgress = null)
         {
             patients = new Patient[0];
-            if (string.IsNullOrEmpty(path)) return false;
+            if (string.IsNullOrEmpty(path)) return;
             DirectoryInfo directory = new DirectoryInfo(path);
-            if (!directory.Exists) return false;
-            IEnumerable<string> patientDirectories = (from dir in directory.GetDirectories() where IsPatientDirectory(dir.FullName) select dir.FullName).ToArray();
-            List<Patient> patientsList = new List<Patient>(patientDirectories.Count());
-            foreach (string dir in patientDirectories)
+            if (!directory.Exists) return;
+            
+            IEnumerable<DirectoryInfo> patientDirectories = directory.GetDirectories().Where(d => IsPatientDirectory(d.FullName));
+            int length = patientDirectories.Count();
+            int progress = 0;
+            List<Patient> patientsList = new List<Patient>(length);
+            foreach (var dir in patientDirectories)
             {
-                if (LoadFromDirectory(dir, out Patient patient))
+                OnChangeProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading patient ", dir.Name, " [" + (progress + 1) + "/" + length + "]"));
+                if (LoadFromDirectory(dir.FullName, out Patient patient))
                 {
                     patientsList.Add(patient);
                 }
             }
             patients = patientsList.ToArray();
-            return true;
+            OnChangeProgress?.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
         }
         /// <summary>
         /// Loads patients from BIDS database.
@@ -278,21 +282,21 @@ namespace HBP.Data
         /// <param name="path">The specified path of the BIDS database.</param>
         /// <param name="patients"></param>
         /// <returns></returns>
-        public static bool LoadFromBIDSDatabase(string path, out Patient[] patients)
+        public static void LoadFromBIDSDatabase(string path, out Patient[] patients, Action<float, float, LoadingText> OnChangeProgress = null)
         {
             patients = new Patient[0];
-            if (string.IsNullOrEmpty(path)) return false;
+            if (string.IsNullOrEmpty(path)) return;
             DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(path);
-            if (!databaseDirectoryInfo.Exists) return false;
+            if (!databaseDirectoryInfo.Exists) return;
 
             // Read participants.tsv.
-            FileInfo participantsFileInfo = new FileInfo(databaseDirectoryInfo.FullName + "/participants.tsv");
-            if (!participantsFileInfo.Exists) return false;
+            OnChangeProgress?.Invoke(0, 0, new LoadingText("Reading participants.tsv file"));
+            FileInfo participantsFileInfo = new FileInfo(Path.Combine(databaseDirectoryInfo.FullName, "participants.tsv"));
             Dictionary<string, Dictionary<string, string>> tagValuesBySubjectID = new Dictionary<string, Dictionary<string, string>>();
             using (StreamReader streamReader = new StreamReader(participantsFileInfo.FullName))
             {
                 string[] lines = streamReader.ReadToEnd().Split(new string[] { Environment.NewLine, "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-                if (lines.Length == 0) return true;
+                if (lines.Length == 0) return;
                 string[] tags = lines[0].Split(new char[] { '\t' });
                 for (int l = 1; l < lines.Length; l++)
                 {
@@ -376,7 +380,7 @@ namespace HBP.Data
             Dictionary<string, List<BIDSElectrodeFile>> electrodesFilesBySubjectID = new Dictionary<string, List<BIDSElectrodeFile>>();
             foreach (var file in electrodesFiles)
             {
-                Match match = mriRegex.Match(file.FullName);
+                Match match = electrodesRegex.Match(file.FullName);
                 if (match.Success)
                 {
                     BIDSElectrodeFile electrodeFile = new BIDSElectrodeFile();
@@ -402,45 +406,146 @@ namespace HBP.Data
             }
 
             // Create patients.
+            int length = tagValuesBySubjectID.Count;
+            int progress = 0;
             List<Patient> patientsList = new List<Patient>(tagValuesBySubjectID.Count);
             foreach (var pair in tagValuesBySubjectID)
             {
+                OnChangeProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading patient ", pair.Key, " [" + (progress + 1) + "/" + length + "]"));
+
                 // Meshes.
                 List<BaseMesh> meshes = new List<BaseMesh>();
-                var subjectMeshFiles = meshesFilesBySubjectID[pair.Key];
-                foreach (var meshFile in subjectMeshFiles)
+                if (meshesFilesBySubjectID.TryGetValue(pair.Key, out List<BIDSMeshFile> subjectMeshFiles))
                 {
-                    if (meshFile.Hemisphere == "L" || meshFile.Hemisphere == "l" || meshFile.Hemisphere == "left" || meshFile.Hemisphere == "Left")
+                    List<BIDSMeshFile> usedMeshFiles = new List<BIDSMeshFile>(subjectMeshFiles.Count);
+                    foreach (var meshFile in subjectMeshFiles)
                     {
-                        var rightMeshFile = subjectMeshFiles.FirstOrDefault(f => f.Same(meshFile) && (f.Hemisphere == "R" || f.Hemisphere == "r" || f.Hemisphere == "right" || f.Hemisphere == "Right"));
-                        if (rightMeshFile == null) rightMeshFile = new BIDSMeshFile();
-                        meshes.Add(new LeftRightMesh(meshFile.Name, "", meshFile.Path, rightMeshFile.Path, "", ""));
-                    }
-                    else if (meshFile.Hemisphere == "R" || meshFile.Hemisphere == "r" || meshFile.Hemisphere == "right" || meshFile.Hemisphere == "Right")
-                    {
-                        var leftMeshFile = subjectMeshFiles.FirstOrDefault(f => f.Same(meshFile) && (f.Hemisphere == "L" || f.Hemisphere == "l" || f.Hemisphere == "left" || f.Hemisphere == "Left"));
-                        if (leftMeshFile == null) leftMeshFile = new BIDSMeshFile();
-                        meshes.Add(new LeftRightMesh(meshFile.Name, "", leftMeshFile.Path, meshFile.Path, "", ""));
-                    }
-                    else
-                    {
-                        meshes.Add(new SingleMesh(meshFile.Name, "", meshFile.Path, ""));
+                        if (!usedMeshFiles.Contains(meshFile))
+                        {
+                            if (meshFile.Hemisphere == "L" || meshFile.Hemisphere == "l" || meshFile.Hemisphere == "left" || meshFile.Hemisphere == "Left")
+                            {
+                                var rightMeshFile = subjectMeshFiles.FirstOrDefault(f => f.Same(meshFile) && (f.Hemisphere == "R" || f.Hemisphere == "r" || f.Hemisphere == "right" || f.Hemisphere == "Right"));
+                                if (rightMeshFile == null) rightMeshFile = new BIDSMeshFile();
+                                usedMeshFiles.Add(rightMeshFile);
+                                meshes.Add(new LeftRightMesh(meshFile.Name, "", meshFile.Path, rightMeshFile.Path, "", ""));
+                            }
+                            else if (meshFile.Hemisphere == "R" || meshFile.Hemisphere == "r" || meshFile.Hemisphere == "right" || meshFile.Hemisphere == "Right")
+                            {
+                                var leftMeshFile = subjectMeshFiles.FirstOrDefault(f => f.Same(meshFile) && (f.Hemisphere == "L" || f.Hemisphere == "l" || f.Hemisphere == "left" || f.Hemisphere == "Left"));
+                                if (leftMeshFile == null) leftMeshFile = new BIDSMeshFile();
+                                usedMeshFiles.Add(leftMeshFile);
+                                meshes.Add(new LeftRightMesh(meshFile.Name, "", leftMeshFile.Path, meshFile.Path, "", ""));
+                            }
+                            else
+                            {
+                                meshes.Add(new SingleMesh(meshFile.Name, "", meshFile.Path, ""));
+                            }
+                            usedMeshFiles.Add(meshFile);
+                        }
                     }
                 }
 
                 // MRIs.
-                var mris = mriFilesBySubjectID[pair.Key].Select(f => new MRI(f.Name, f.Path));
+                List<MRI> mris = new List<MRI>();
+                if (mriFilesBySubjectID.TryGetValue(pair.Key, out List<BIDSMRIFile> subjectMRIFiles))
+                {
+                    mris = subjectMRIFiles.Select(f => new MRI(string.Format("{0}{1}", f.Name, !string.IsNullOrEmpty(f.Session) ? string.Format(" ({0})", f.Session) : ""), f.Path)).ToList();
+                }
 
                 // Sites.
-                Site[] sites = new Site[0]; // Site.LoadImplantationFromBIDSFile(;
+                List<Site> sites = new List<Site>();
+                if (electrodesFilesBySubjectID.TryGetValue(pair.Key, out List<BIDSElectrodeFile> subjectElectrodesFiles))
+                {
+                    foreach (var electrodeFile in subjectElectrodesFiles)
+                    {
+                        (new Site() as ILoadable<Site>).LoadFromFile(electrodeFile.Path, out Site[] fileSites);
+                        foreach (var site in fileSites)
+                        {
+                            Site existingSite = sites.FirstOrDefault(s => s.Name == site.Name);
+                            if (existingSite != null)
+                            {
+                                existingSite.Coordinates.AddRange(site.Coordinates);
+                                existingSite.Tags.AddRange(site.Tags);
+                            }
+                            else
+                            {
+                                sites.Add(site);
+                            }
+                        }
+                    }
+                }
 
                 // Tags.
-                BaseTagValue[] tags = null;
+                List<BaseTagValue> tags = new List<BaseTagValue>();
+                if (tagValuesBySubjectID.TryGetValue(pair.Key, out Dictionary<string, string> subjectTags))
+                {
+                    // Add tags to project.
+                    IEnumerable<BaseTag> projectTags = ApplicationState.ProjectLoaded.Preferences.PatientsTags.Concat(ApplicationState.ProjectLoaded.Preferences.GeneralTags);
+                    foreach (var tagName in subjectTags.Keys)
+                    {
+                        if (!projectTags.Any(t => t.Name == tagName))
+                        {
+                            ApplicationState.ProjectLoaded.Preferences.PatientsTags.Add(new StringTag(tagName));
+                        }
+                    }
+                    // Add tags to patient
+                    projectTags = ApplicationState.ProjectLoaded.Preferences.PatientsTags.Concat(ApplicationState.ProjectLoaded.Preferences.GeneralTags);
+                    foreach (var subjectTag in subjectTags)
+                    {
+                        BaseTag tag = projectTags.FirstOrDefault(t => t.Name == subjectTag.Key);
+                        if (tag != null)
+                        {
+                            BaseTagValue tagValue = null;
+                            if (tag is EmptyTag emptyTag)
+                            {
+                                tagValue = new EmptyTagValue(emptyTag);
+                            }
+                            else if (tag is BoolTag boolTag)
+                            {
+                                if (bool.TryParse(subjectTag.Value, out bool result))
+                                {
+                                    tagValue = new BoolTagValue(boolTag, result);
+                                }
+                            }
+                            else if (tag is EnumTag enumTag)
+                            {
+                                tagValue = new EnumTagValue(enumTag, subjectTag.Value);
+                            }
+                            else if (tag is FloatTag floatTag)
+                            {
+                                if (NumberExtension.TryParseFloat(subjectTag.Value, out float result))
+                                {
+                                    tagValue = new FloatTagValue(floatTag, result);
+                                }
+                            }
+                            else if (tag is IntTag intTag)
+                            {
+                                if (int.TryParse(subjectTag.Value, out int result))
+                                {
+                                    tagValue = new IntTagValue(intTag, result);
+                                }
+                            }
+                            else if (tag is StringTag stringTag)
+                            {
+                                if (!string.IsNullOrEmpty(subjectTag.Value))
+                                {
+                                    tagValue = new StringTagValue(stringTag, subjectTag.Value);
+                                }
+                            }
+                            if (tagValue != null)
+                            {
+                                tags.Add(tagValue);
+                            }
+                        }
+                    }
+                }
+
+                // Create patient.
                 Patient patient = new Patient(pair.Key, "", 0, meshes, mris, sites, tags);
                 patientsList.Add(patient);
             }
             patients = patientsList.ToArray();
-            return true;
+            OnChangeProgress?.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
         }
         /// <summary>
         /// Coroutine to load patients from database. Implementation of ILoadableFromDatabase.
@@ -452,33 +557,24 @@ namespace HBP.Data
         public static IEnumerator c_LoadFromDatabase(string path, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Patient>> result)
         {
             yield return Ninja.JumpBack;
-
-            List<Patient> patients = new List<Patient>();
-            if (!string.IsNullOrEmpty(path))
-            {
-                DirectoryInfo directory = new DirectoryInfo(path);
-                if (directory.Exists)
-                {
-                    IEnumerable<DirectoryInfo> patientDirectories = directory.GetDirectories().Where(d => IsPatientDirectory(d.FullName));
-                    int length = patientDirectories.Count();
-                    int i = 0;
-                    foreach (var dir in patientDirectories)
-                    {
-                        yield return Ninja.JumpToUnity;
-                        OnChangeProgress.Invoke((float)i / length, 0, new LoadingText("Loading patient ", dir.Name, " [" + (i + 1) + "/" + length + "]"));
-                        yield return Ninja.JumpBack;
-                        if (LoadFromDirectory(dir.FullName, out Patient patient))
-                        {
-                            patients.Add(patient);
-                        }
-                        i++;
-                    }
-                }
-            }
-
+            Patient[] patients;
+            if (IsBIDSDirectory(path)) LoadFromBIDSDatabase(path, out patients, OnChangeProgress);
+            else LoadFromIntranatDatabase(path, out patients, OnChangeProgress);
             yield return Ninja.JumpToUnity;
-            OnChangeProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
             result(patients);
+        }
+        #endregion
+
+        #region Private Static Methods
+        /// <summary>
+        /// Checks if the input directory is a BIDS database
+        /// </summary>
+        /// <param name="path">Path to the input database</param>
+        /// <returns>True if the input database is a BIDS database</returns>
+        private static bool IsBIDSDirectory(string path)
+        {
+            FileInfo participantsFileInfo = new FileInfo(Path.Combine(path, "participants.tsv"));
+            return participantsFileInfo.Exists;
         }
         #endregion
 
