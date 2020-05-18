@@ -39,12 +39,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.ReferenceSystem).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.ReferenceSystem).ToList();
                     m_OrderBy = OrderBy.ReferenceSystem;
                     m_ReferenceSystemSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.ReferenceSystem).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.ReferenceSystem).ToList();
                     m_OrderBy = OrderBy.DescendingReferenceSystem;
                     m_ReferenceSystemSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -75,12 +75,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Position.x).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Position.x).ToList();
                     m_OrderBy = OrderBy.X;
                     m_XSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Position.x).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Position.x).ToList();
                     m_OrderBy = OrderBy.DescendingX;
                     m_XSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -111,12 +111,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Position.y).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Position.y).ToList();
                     m_OrderBy = OrderBy.Y;
                     m_YSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Position.y).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Position.y).ToList();
                     m_OrderBy = OrderBy.DescendingY;
                     m_YSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -147,12 +147,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Position.z).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Position.z).ToList();
                     m_OrderBy = OrderBy.Z;
                     m_ZSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Position.z).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Position.z).ToList();
                     m_OrderBy = OrderBy.DescendingZ;
                     m_ZSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;

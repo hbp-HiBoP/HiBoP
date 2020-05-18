@@ -17,10 +17,6 @@ namespace Tools.Unity.Lists
         /// UI items displayed by the list.
         /// </summary>
         protected System.Collections.Generic.List<Item<T>> m_Items = new System.Collections.Generic.List<Item<T>>();
-        /// <summary>
-        /// Number of items instantiated.
-        /// </summary>
-        protected int m_NumberOfItems;
 
         protected System.Collections.Generic.List<T> m_Objects = new System.Collections.Generic.List<T>();
         /// <summary>
@@ -34,9 +30,9 @@ namespace Tools.Unity.Lists
             }
         }
         /// <summary>
-        /// Number of objects.
+        /// List of the displayed objects.
         /// </summary>
-        protected int m_NumberOfObjects;
+        protected System.Collections.Generic.List<T> m_DisplayedObjects/* { get { return m_Objects; } set { m_Objects = value; } }*/ = new System.Collections.Generic.List<T>();
 
         /// <summary>
         /// Callback executed when a object is added.
@@ -86,9 +82,12 @@ namespace Tools.Unity.Lists
             if (!m_Objects.Contains(obj))
             {
                 m_Objects.Add(obj);
-                m_NumberOfObjects++;
-                ScrollRect.content.sizeDelta += new Vector2(0, m_ItemHeight);
-                ScrollRect.content.hasChanged = true;
+                if (!m_DisplayedObjects.Contains(obj))
+                {
+                    m_DisplayedObjects.Add(obj);
+                    ScrollRect.content.sizeDelta += new Vector2(0, m_ItemHeight);
+                    ScrollRect.content.hasChanged = true;
+                }
                 OnAddObject.Invoke(obj);
                 return true;
             }
@@ -114,15 +113,18 @@ namespace Tools.Unity.Lists
         {
             if (m_Objects.Contains(obj))
             {
-                if (m_NumberOfObjects <= m_MaximumNumberOfItems)
-                {
-                    DestroyItem(1,false);
-                }
                 m_Objects.Remove(obj);
-                m_NumberOfObjects--;
-                UpdateContent();
-                GetLimits(out m_FirstIndexDisplayed, out m_LastIndexDisplayed);
-                Refresh();
+                if (m_DisplayedObjects.Contains(obj))
+                {
+                    if (m_DisplayedObjects.Count <= m_MaximumNumberOfItems)
+                    {
+                        DestroyItem(1, false);
+                    }
+                    m_DisplayedObjects.Remove(obj);
+                    UpdateContent();
+                    GetLimits(out m_FirstIndexDisplayed, out m_LastIndexDisplayed);
+                    Refresh();
+                }
                 OnRemoveObject.Invoke(obj);
                 return true;
             }
@@ -149,8 +151,6 @@ namespace Tools.Unity.Lists
             if (GetItemFromObject(obj, out Item<T> item))
             {
                 item.Object = obj;
-                int index = m_Objects.FindIndex(o => o.Equals(obj));
-                m_Objects[index] = obj;
                 OnUpdateObject.Invoke(obj);
                 return true;
             }
@@ -162,9 +162,9 @@ namespace Tools.Unity.Lists
         public virtual void Refresh()
         {
             Item<T>[] items =  m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
-            for (int i = m_FirstIndexDisplayed, j=0; i < m_LastIndexDisplayed && j < m_NumberOfItems; i++, j++)
+            for (int i = m_FirstIndexDisplayed, j=0; i < m_LastIndexDisplayed && j < m_Items.Count; i++, j++)
             {
-                items[j].Object = m_Objects[i];
+                items[j].Object = m_DisplayedObjects[i];
             }
         }
         /// <summary>
@@ -186,7 +186,7 @@ namespace Tools.Unity.Lists
         public virtual void ScrollToObject(T objectToScroll)
         {
             GetLimits(out int min, out int max);
-            int index = m_Objects.IndexOf(objectToScroll);
+            int index = m_DisplayedObjects.IndexOf(objectToScroll);
             if (index == -1) return;
 
             if (index > max - 2)
@@ -204,6 +204,24 @@ namespace Tools.Unity.Lists
                 ScrollRect.content.hasChanged = true;
             }
         }
+        /// <summary>
+        /// Mask the list of objects to only display some of them
+        /// </summary>
+        /// <param name="mask">Mask for the list</param>
+        public virtual bool MaskList(bool[] mask)
+        {
+            if (mask.Length != m_Objects.Count) return false;
+
+            m_DisplayedObjects.Clear();
+            for (int i = 0; i < mask.Length; i++)
+            {
+                if (mask[i]) m_DisplayedObjects.Add(m_Objects[i]);
+            }
+            ScrollRect.content.sizeDelta = new Vector2(0, m_ItemHeight * m_DisplayedObjects.Count);
+            ScrollRect.content.hasChanged = true;
+
+            return true;
+        }
         #endregion
 
         #region Private Methods
@@ -220,7 +238,7 @@ namespace Tools.Unity.Lists
             int sizeDifference = lastIndexDifference - firstIndexDifference;
             if (sizeDifference > 0)
             {
-                int numberOfItemToSpawnOnBot = Mathf.Min(sizeDifference, m_NumberOfObjects - m_LastIndexDisplayed);
+                int numberOfItemToSpawnOnBot = Mathf.Min(sizeDifference, m_DisplayedObjects.Count - m_LastIndexDisplayed);
                 int numberOfItemToSpawnOnTop = sizeDifference - numberOfItemToSpawnOnBot;
                 SpawnItem(numberOfItemToSpawnOnBot, false);
                 SpawnItem(numberOfItemToSpawnOnTop, true);
@@ -258,11 +276,11 @@ namespace Tools.Unity.Lists
             ScrollRect.content.sizeDelta = new Vector2(ScrollRect.content.sizeDelta.x, ScrollRect.content.sizeDelta.y - m_ItemHeight);
             if (ScrollRect.content.localPosition.y > m_ItemHeight)
             {
-                if (m_NumberOfObjects >= m_MaximumNumberOfItems - 1)
+                if (m_DisplayedObjects.Count >= m_MaximumNumberOfItems - 1)
                 {
                     ScrollRect.content.localPosition = new Vector3(ScrollRect.content.localPosition.x, ScrollRect.content.localPosition.y - m_ItemHeight, ScrollRect.content.localPosition.z);
 
-                    if (m_NumberOfObjects >= m_MaximumNumberOfItems)
+                    if (m_DisplayedObjects.Count >= m_MaximumNumberOfItems)
                     {
                         foreach (var item in m_Items)
                         {
@@ -293,14 +311,13 @@ namespace Tools.Unity.Lists
         /// <param name="index">Index </param>
         protected virtual void SpawnItemAt(int index)
         {
-            T obj = m_Objects[index];
+            T obj = m_DisplayedObjects[index];
             Item<T> item = Instantiate(ItemPrefab, ScrollRect.content).GetComponent<Item<T>>();
             RectTransform itemRectTransform = item.transform as RectTransform;
             itemRectTransform.sizeDelta = new Vector2(0, itemRectTransform.sizeDelta.y);
             itemRectTransform.localPosition = new Vector3(itemRectTransform.localPosition.x, -index * m_ItemHeight, itemRectTransform.localPosition.z);
             item.Interactable = Interactable;
             m_Items.Add(item);
-            m_NumberOfItems++;
             SetItem(item, obj);
         }
         /// <summary>
@@ -320,7 +337,7 @@ namespace Tools.Unity.Lists
         protected virtual void DestroyItem(int numberOfItemToDestroy, bool destroyOnTop)
         {
             Item<T>[] items = m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
-            int numberOfItems = m_NumberOfItems;
+            int numberOfItems = m_Items.Count;
             for (int i = 0; i < numberOfItemToDestroy; i++)
             {
                 int index = destroyOnTop ? i : (numberOfItems - 1) - i;
@@ -335,7 +352,6 @@ namespace Tools.Unity.Lists
         {
             Destroy(item.gameObject);
             m_Items.Remove(item);
-            m_NumberOfItems--;
         }
         /// <summary>
         /// Move items upwards.
@@ -344,13 +360,14 @@ namespace Tools.Unity.Lists
         protected virtual void MoveItemsUpwards(int deplacement)
         {
             Item<T>[] items = m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
-            int startIndex = deplacement > m_NumberOfItems ?deplacement - m_NumberOfItems : 0;
+            int numberOfItems = items.Length;
+            int startIndex = deplacement > numberOfItems ? deplacement - numberOfItems : 0;
             for (int i = startIndex; i < deplacement; i++)
             {
-                int itemID = ((m_NumberOfItems - 1 - i) % m_NumberOfItems + m_NumberOfItems) % m_NumberOfItems;
+                int itemID = ((numberOfItems - 1 - i) % numberOfItems + numberOfItems) % numberOfItems;
                 int objID = m_FirstIndexDisplayed - 1 - i;
                 Item<T> item = items[itemID];
-                T newObj = m_Objects[objID];
+                T newObj = m_DisplayedObjects[objID];
                 item.transform.localPosition = new Vector3(item.transform.localPosition.x, -objID * m_ItemHeight, item.transform.localPosition.z);
                 SetItem(item, newObj);
             }
@@ -362,13 +379,14 @@ namespace Tools.Unity.Lists
         protected virtual void MoveItemsDownwards(int deplacement)
         {
             Item<T>[] items = m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
-            int startIndex = deplacement > m_NumberOfItems ? deplacement - m_NumberOfItems : 0;
+            int numberOfItems = items.Length;
+            int startIndex = deplacement > numberOfItems ? deplacement - numberOfItems : 0;
             for (int i = startIndex; i < deplacement; i++)
             {
-                int itemID = (i % m_NumberOfItems + m_NumberOfItems) % m_NumberOfItems;
+                int itemID = (i % numberOfItems + numberOfItems) % numberOfItems;
                 int objID = m_LastIndexDisplayed + i;
                 Item<T> item = items[itemID];
-                T newObj = m_Objects[objID];
+                T newObj = m_DisplayedObjects[objID];
                 item.transform.localPosition = new Vector3(item.transform.localPosition.x, -objID * m_ItemHeight, item.transform.localPosition.z);
                 SetItem(item, newObj);
             }
@@ -380,14 +398,14 @@ namespace Tools.Unity.Lists
         /// <param name="lastIndexDisplayed">Index of the last element displayed</param>
         protected virtual void GetLimits(out int firstIndexDisplayed, out int lastIndexDisplayed)
         {
-            firstIndexDisplayed = Mathf.FloorToInt((ScrollRect.content.localPosition.y / ScrollRect.content.sizeDelta.y) * m_NumberOfObjects);
-            lastIndexDisplayed = Mathf.CeilToInt(((ScrollRect.content.localPosition.y + ScrollRect.viewport.sizeDelta.y) / ScrollRect.content.sizeDelta.y) * m_NumberOfObjects);
+            firstIndexDisplayed = Mathf.FloorToInt((ScrollRect.content.localPosition.y / ScrollRect.content.sizeDelta.y) * m_DisplayedObjects.Count);
+            lastIndexDisplayed = Mathf.CeilToInt(((ScrollRect.content.localPosition.y + ScrollRect.viewport.sizeDelta.y) / ScrollRect.content.sizeDelta.y) * m_DisplayedObjects.Count);
 
-            int firstIndexMaximumValue = Mathf.Max(0, m_NumberOfObjects - 1);
-            int lastIndexMaximumValue = Mathf.Max(0, m_NumberOfObjects);
+            int firstIndexMaximumValue = Mathf.Max(0, m_DisplayedObjects.Count - 1);
+            int lastIndexMaximumValue = Mathf.Max(0, m_DisplayedObjects.Count);
             firstIndexDisplayed = Mathf.Clamp(firstIndexDisplayed, 0, firstIndexMaximumValue);
             lastIndexDisplayed = Mathf.Clamp(lastIndexDisplayed, 0, lastIndexMaximumValue);
-            if (lastIndexDisplayed >= m_NumberOfObjects && firstIndexDisplayed != 0)
+            if (lastIndexDisplayed >= m_DisplayedObjects.Count && firstIndexDisplayed != 0)
             {
                 firstIndexDisplayed = lastIndexDisplayed - m_MaximumNumberOfItems;
                 firstIndexDisplayed = Mathf.Clamp(firstIndexDisplayed, 0, firstIndexMaximumValue);

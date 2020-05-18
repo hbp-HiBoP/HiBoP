@@ -32,8 +32,6 @@ namespace Tools.Unity.Lists
         {
             if (GetItemFromObject(objectToUpdate, out Item<T> item))
             {
-                int index = m_Objects.FindIndex((obj) => obj.Equals(objectToUpdate));
-                m_Objects[index] = objectToUpdate;
                 ActionnableItem<T> actionnableItem = item as ActionnableItem<T>;
                 actionnableItem.Object = objectToUpdate;
                 actionnableItem.Actionable = Actionable;
@@ -54,7 +52,7 @@ namespace Tools.Unity.Lists
             for (int i = m_FirstIndexDisplayed, j = 0; i <= m_LastIndexDisplayed && j < itemsLength; i++, j++)
             {
                 ActionnableItem<T> item = items[j] as ActionnableItem<T>;
-                T obj = m_Objects[i];
+                T obj = m_DisplayedObjects[i];
                 item.Object = obj;
                 item.Actionable = Actionable;
                 item.OnChangeSelected.RemoveAllListeners();

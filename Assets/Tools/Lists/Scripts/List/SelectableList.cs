@@ -147,7 +147,7 @@ namespace Tools.Unity.Lists
         /// <param name="transition">Transition</param>
         public virtual void SelectAll(Toggle.ToggleTransition transition)
         {
-            Select(m_Objects, transition);
+            Select(m_DisplayedObjects, transition);
         }
         /// <summary>
         /// Deselect all objects.
@@ -162,7 +162,7 @@ namespace Tools.Unity.Lists
         /// <param name="transition">Transition</param>
         public virtual void DeselectAll(Toggle.ToggleTransition transition)
         {
-            Deselect(m_Objects, transition);
+            Deselect(m_DisplayedObjects, transition);
         }
         /// <summary>
         /// Select a specified object with a specified transition.
@@ -177,7 +177,7 @@ namespace Tools.Unity.Lists
                     DeselectAll();
                     return;
                 case SelectionType.SingleItem:
-                    Deselect(m_Objects.Where((o) => !o.Equals(objectToSelect)));
+                    Deselect(m_DisplayedObjects.Where((o) => !o.Equals(objectToSelect)));
                     break;
             }
             if (m_SelectedStateByObject.ContainsKey(objectToSelect))
@@ -256,12 +256,25 @@ namespace Tools.Unity.Lists
             for (int i = m_FirstIndexDisplayed, j = 0; i <= m_LastIndexDisplayed && j < itemsLength; i++, j++)
             {
                 SelectableItem<T> item = items[j] as SelectableItem<T>;
-                T obj = m_Objects[i];
+                T obj = m_DisplayedObjects[i];
                 item.Object = obj;
                 item.OnChangeSelected.RemoveAllListeners();
                 item.ChangeSelectionValue(m_SelectedStateByObject[obj]);
                 item.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(obj, selected));
             }
+        }
+        /// <summary>
+        /// Mask the list of objects to only display some of them
+        /// </summary>
+        /// <param name="mask">Mask for the list</param>
+        public override bool MaskList(bool[] mask)
+        {
+            if (base.MaskList(mask))
+            {
+                m_SelectedStateByObject = m_SelectedStateByObject.ToDictionary(s => s.Key, s => false);
+                return true;
+            }
+            return false;
         }
         #endregion
 
@@ -301,18 +314,18 @@ namespace Tools.Unity.Lists
                     case SelectionType.None:
                         return;
                     case SelectionType.SingleItem:
-                        Deselect(m_Objects.Where((o) => !o.Equals(obj)), Toggle.ToggleTransition.Fade);
+                        Deselect(m_DisplayedObjects.Where((o) => !o.Equals(obj)), Toggle.ToggleTransition.Fade);
                         break;
                     case SelectionType.MultipleItems:
                         if (Input.GetKey(KeyCode.LeftShift))
                         {
-                            int lastIndex = m_Objects.IndexOf(m_LastSelectedObject);
-                            int actualIndex = m_Objects.IndexOf(obj);
+                            int lastIndex = m_DisplayedObjects.IndexOf(m_LastSelectedObject);
+                            int actualIndex = m_DisplayedObjects.IndexOf(obj);
                             int min = Mathf.Min(lastIndex, actualIndex);
                             int max = Mathf.Max(lastIndex, actualIndex);
                             for (int i = min; i < max; i++)
                             {
-                                Select(m_Objects[i]);
+                                Select(m_DisplayedObjects[i]);
                             }
                         }
                         else
@@ -336,7 +349,7 @@ namespace Tools.Unity.Lists
         /// </summary> 
         protected virtual void OnSelectionChanged()
         {
-            if (m_SelectAllToggle != null) m_SelectAllToggle.isOn = m_Objects.Count == ObjectsSelected.Length && m_Objects.Count > 0 && m_ItemSelection == SelectionType.MultipleItems;
+            if (m_SelectAllToggle != null) m_SelectAllToggle.isOn = m_DisplayedObjects.Count == ObjectsSelected.Length && m_DisplayedObjects.Count > 0 && m_ItemSelection == SelectionType.MultipleItems;
             (this as ISelectionCountable).OnSelectionChanged.Invoke();
         }
         /// <summary>

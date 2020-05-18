@@ -206,7 +206,7 @@ namespace HBP.UI.Module3D
                     return CheckOnPlane(site);
                 }
             }
-            throw new InvalidAdvancedConditionException(s);
+            throw new InvalidConditionException(s);
         }
         #endregion
 
