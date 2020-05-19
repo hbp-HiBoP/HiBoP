@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Tools.CSharp.BooleanExpressionParser;
 using UnityEngine;
 using UnityEngine.Events;
@@ -101,52 +102,71 @@ namespace HBP.UI
         private bool ParseConditionAndCheckValue(Patient patient, string s)
         {
             s = s.ToUpper();
-            if (s.Contains("=") || s.Contains(">") || s.Contains("<"))
+            Regex conditionRegex = new Regex(@"(.+)([=><]{1})(.+)");
+            Match match = conditionRegex.Match(s);
+            if (match.Success)
             {
-                string[] elements = s.Split('=', '<', '>');
-                if (elements.Length == 2)
+                GroupCollection groups = match.Groups;
+                string label = groups[1].Value.Replace("\"", "");
+                string deblankedLabel = Regex.Replace(label, "^\\s+", "");
+                deblankedLabel = Regex.Replace(deblankedLabel, "\\s+$", "");
+                string value = groups[3].Value.Replace("\"", "");
+                string deblankedValue = Regex.Replace(value, "^\\s+", "");
+                deblankedValue = Regex.Replace(deblankedValue, "\\s+$", "");
+                if (deblankedLabel == "NAME")
                 {
-                    string label = elements[0].Replace("\"", "");
-                    string deblankedLabel = System.Text.RegularExpressions.Regex.Replace(label, "^\\s+", "");
-                    deblankedLabel = System.Text.RegularExpressions.Regex.Replace(deblankedLabel, "\\s+$", "");
-                    string value = elements[1].Replace("\"", "");
-                    string deblankedValue = System.Text.RegularExpressions.Regex.Replace(value, "^\\s+", "");
-                    deblankedValue = System.Text.RegularExpressions.Regex.Replace(deblankedValue, "\\s+$", "");
-                    if (deblankedLabel == "NAME")
-                    {
+                    if (groups[2].Value == "=")
                         return patient.Name.ToUpper().Contains(deblankedValue);
-                    }
-                    else if (deblankedLabel == "PLACE")
-                    {
+                    else if (groups[2].Value == ">")
+                        return patient.Name.ToUpper().CompareTo(deblankedValue) > 0;
+                    else if (groups[2].Value == "<")
+                        return patient.Name.ToUpper().CompareTo(deblankedValue) < 0;
+                }
+                else if (deblankedLabel == "PLACE")
+                {
+                    if (groups[2].Value == "=")
                         return patient.Place.ToUpper().Contains(deblankedValue);
-                    }
-                    else if (deblankedLabel == "DATE")
+                    else if (groups[2].Value == ">")
+                        return patient.Place.ToUpper().CompareTo(deblankedValue) > 0;
+                    else if (groups[2].Value == "<")
+                        return patient.Place.ToUpper().CompareTo(deblankedValue) < 0;
+                }
+                else if (deblankedLabel == "DATE")
+                {
+                    if (int.TryParse(deblankedValue, out int dateValue))
                     {
-                        if (int.TryParse(deblankedValue, out int dateValue))
-                        {
+                        if (groups[2].Value == "=")
                             return patient.Date == dateValue;
-                        }
+                        else if (groups[2].Value == ">")
+                            return patient.Date > dateValue;
+                        else if (groups[2].Value == "<")
+                            return patient.Date < dateValue;
                     }
-                    else
+                }
+                else
+                {
+                    BaseTag tag = ApplicationState.ProjectLoaded.Preferences.PatientsTags.FirstOrDefault(t => t.Name.ToUpper() == deblankedLabel);
+                    if (tag == null) tag = ApplicationState.ProjectLoaded.Preferences.GeneralTags.FirstOrDefault(t => t.Name.ToUpper() == deblankedLabel);
+                    if (tag != null)
                     {
-                        BaseTag tag = ApplicationState.ProjectLoaded.Preferences.PatientsTags.FirstOrDefault(t => t.Name.ToUpper() == deblankedLabel);
-                        if (tag == null) tag = ApplicationState.ProjectLoaded.Preferences.GeneralTags.FirstOrDefault(t => t.Name.ToUpper() == deblankedLabel);
-                        if (tag != null)
+                        BaseTagValue tagValue = patient.Tags.FirstOrDefault(t => t.Tag == tag);
+                        if (tagValue != null)
                         {
-                            BaseTagValue tagValue = patient.Tags.FirstOrDefault(t => t.Tag == tag);
-                            if (tagValue != null)
-                            {
+                            if (groups[2].Value == "=")
                                 return tagValue.DisplayableValue.ToUpper().Contains(deblankedValue);
-                            }
-                            else
-                            {
-                                return false;
-                            }
+                            else if (groups[2].Value == ">")
+                                return tagValue.DisplayableValue.ToUpper().CompareTo(deblankedValue) > 0;
+                            else if (groups[2].Value == "<")
+                                return tagValue.DisplayableValue.ToUpper().CompareTo(deblankedValue) < 0;
                         }
                         else
                         {
                             return false;
                         }
+                    }
+                    else
+                    {
+                        return false;
                     }
                 }
             }
