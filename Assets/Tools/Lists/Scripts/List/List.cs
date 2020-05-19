@@ -32,7 +32,7 @@ namespace Tools.Unity.Lists
         /// <summary>
         /// List of the displayed objects.
         /// </summary>
-        protected System.Collections.Generic.List<T> m_DisplayedObjects/* { get { return m_Objects; } set { m_Objects = value; } }*/ = new System.Collections.Generic.List<T>();
+        protected System.Collections.Generic.List<T> m_DisplayedObjects = new System.Collections.Generic.List<T>();
 
         /// <summary>
         /// Callback executed when a object is added.

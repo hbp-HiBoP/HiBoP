@@ -21,77 +21,7 @@ namespace HBP.UI.Module3D
         [SerializeField] private SiteActions m_SiteActions;
         [SerializeField] private GameObject m_MinimizedGameObject;
         private bool m_RectTransformChanged;
-
-        private string m_Name;
-        public string Name
-        {
-            get
-            {
-                return m_Name;
-            }
-            set
-            {
-                m_Name = value;
-                UpdateList();
-            }
-        }
-
-        private string m_Label;
-        public string Label
-        {
-            get
-            {
-                return m_Label;
-            }
-            set
-            {
-                m_Label = value;
-                UpdateList();
-            }
-        }
-
-        private string m_Patient;
-        public string Patient
-        {
-            get
-            {
-                return m_Patient;
-            }
-            set
-            {
-                m_Patient = value;
-                UpdateList();
-            }
-        }
-
-        private bool m_Blacklisted;
-        public bool Blacklisted
-        {
-            get
-            {
-                return m_Blacklisted;
-            }
-            set
-            {
-                m_Blacklisted = value;
-                UpdateList();
-            }
-        }
-
-        private bool m_Highlighted;
-        public bool Highlighted
-        {
-            get
-            {
-                return m_Highlighted;
-            }
-            set
-            {
-                m_Highlighted = value;
-                UpdateList();
-            }
-        }
-
+        
         public bool IsMinimized
         {
             get
@@ -114,6 +44,15 @@ namespace HBP.UI.Module3D
                 m_MinimizedGameObject.SetActive(IsMinimized);
                 m_RectTransform.hasChanged = false;
             }
+        }
+        private void SetList()
+        {
+            m_SiteList.ObjectsList = m_Scene.SelectedColumn.Sites.ToList();
+            m_SiteList.MaskList(m_Scene.SelectedColumn.Sites.Select(s => s.State.IsFiltered && !s.State.IsMasked).ToArray());
+        }
+        private void UpdateList()
+        {
+            m_SiteList.MaskList(m_Scene.SelectedColumn.Sites.Select(s => s.State.IsFiltered && !s.State.IsMasked).ToArray());
         }
         #endregion
 
@@ -139,8 +78,8 @@ namespace HBP.UI.Module3D
                     m_SiteFiltersToggle.isOn = false;
                 }
             });
-            m_Scene.OnSelect.AddListener(UpdateList);
-            m_Scene.OnSitesRenderingUpdated.AddListener(UpdateList);
+            m_Scene.OnSelect.AddListener(SetList);
+            m_Scene.OnSitesRenderingUpdated.AddListener(SetList);
             m_Scene.OnSelectSite.AddListener((s) =>
             {
                 UpdateList();
@@ -148,33 +87,8 @@ namespace HBP.UI.Module3D
             });
             foreach (var column in m_Scene.Columns)
             {
-                column.OnSelect.AddListener(UpdateList);
+                column.OnSelect.AddListener(SetList);
             }
-        }
-        public void UpdateList()
-        {
-            List<Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered && !s.State.IsMasked).ToList();
-            if (!string.IsNullOrEmpty(m_Name))
-            {
-                sites.RemoveAll(s => !s.Information.Name.ToUpper().Contains(m_Name.ToUpper()));
-            }
-            if (!string.IsNullOrEmpty(m_Label))
-            {
-                sites.RemoveAll(s => !s.State.Labels.Any(l => l.ToLower().Contains(m_Label.ToLower())));
-            }
-            if (!string.IsNullOrEmpty(m_Patient))
-            {
-                sites.RemoveAll(s => !s.Information.Patient.Name.ToUpper().Contains(m_Patient.ToUpper()));
-            }
-            if (m_Blacklisted)
-            {
-                sites.RemoveAll(s => !s.State.IsBlackListed);
-            }
-            if (m_Highlighted)
-            {
-                sites.RemoveAll(s => !s.State.IsHighlighted);
-            }
-            m_SiteList.ObjectsList = sites;
         }
         #endregion
     }
