@@ -95,28 +95,40 @@ namespace Tools.CSharp
             Interpolate(values, values.Length, newValues, size, before, after);
             return newValues;
         }
+        public static float Wilcoxon(float[] values1, float[] values2)
+        {
+            return Wilcoxon(values1, values1.Length, values2, values2.Length);
+        }
+        public static float Pearson(float[] baseline, float[] values)
+        {
+            return PearsonCorrelationCoefficient(baseline, baseline.Length, values, values.Length);
+        }
 
         #region DLL
-        [DllImport("HBP_Compute", EntryPoint = "MeanFloat", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        [DllImport("hbp_math", EntryPoint = "MeanFloat", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern float Mean(float[] values, int lenght);
-        [DllImport("HBP_Compute", EntryPoint = "MeanInt", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        [DllImport("hbp_math", EntryPoint = "MeanInt", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern int Mean(int[] values, int lenght);
-        [DllImport("HBP_Compute", EntryPoint = "MedianFloat", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        [DllImport("hbp_math", EntryPoint = "MedianFloat", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern float Median(float[] values, int lenght);
-        [DllImport("HBP_Compute", EntryPoint = "MedianInt", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        [DllImport("hbp_math", EntryPoint = "MedianInt", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern int Median(int[] values, int lenght);
-        [DllImport("HBP_Compute", EntryPoint = "StandardDeviation", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        [DllImport("hbp_math", EntryPoint = "StandardDeviation", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern float StandardDeviation(float[] values, int lenght);
-        [DllImport("HBP_Compute", EntryPoint = "SEM", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        [DllImport("hbp_math", EntryPoint = "SEM", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern float SEM(float[] values, int lenght);
-        [DllImport("HBP_Compute", EntryPoint = "Normalize", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        [DllImport("hbp_math", EntryPoint = "Normalize", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern void Normalize(float[] values, int length, float[] targetArray, float average, float standardDeviation);
-        [DllImport("HBP_Compute", EntryPoint = "Lerp", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        [DllImport("hbp_math", EntryPoint = "Lerp", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern float LerpDLL(float value1, float value2, float percentage);
-        [DllImport("HBP_Compute", EntryPoint = "LinearSmooth", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        [DllImport("hbp_math", EntryPoint = "LinearSmooth", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern void LinearSmooth(float[] values, int length, int smoothFactor, float[] newValues);
-        [DllImport("HBP_Compute", EntryPoint = "Interpolate", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        [DllImport("hbp_math", EntryPoint = "Interpolate", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern void Interpolate(float[] values, int length, float[] newValues, int newLength, int before, int after);
+        [DllImport("hbp_math", EntryPoint = "Wilcoxon", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern float Wilcoxon(float[] values1, int length1, float[] values2, int length2);
+        [DllImport("hbp_math", EntryPoint = "PearsonCorrelationCoefficient", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern float PearsonCorrelationCoefficient(float[] baseline, int baselineLength, float[] values, int valuesLength);
         #endregion
     }
 }
