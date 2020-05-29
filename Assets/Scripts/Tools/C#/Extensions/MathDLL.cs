@@ -95,13 +95,17 @@ namespace Tools.CSharp
             Interpolate(values, values.Length, newValues, size, before, after);
             return newValues;
         }
-        public static float Wilcoxon(float[] values1, float[] values2)
-        {
-            return Wilcoxon(values1, values1.Length, values2, values2.Length);
-        }
         public static float Pearson(float[] baseline, float[] values)
         {
             return PearsonCorrelationCoefficient(baseline, baseline.Length, values, values.Length);
+        }
+        public static float WilcoxonRankSum(float[] values1, float[] values2)
+        {
+            return WilcoxonRankSum(values1, values1.Length, values2, values2.Length);
+        }
+        public static float WilcoxonSignedRank(float[] values1, float[] values2)
+        {
+            return WilcoxonSignedRank(values1, values1.Length, values2, values2.Length);
         }
 
         #region DLL
@@ -125,10 +129,12 @@ namespace Tools.CSharp
         private static extern void LinearSmooth(float[] values, int length, int smoothFactor, float[] newValues);
         [DllImport("hbp_math", EntryPoint = "Interpolate", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern void Interpolate(float[] values, int length, float[] newValues, int newLength, int before, int after);
-        [DllImport("hbp_math", EntryPoint = "Wilcoxon", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern float Wilcoxon(float[] values1, int length1, float[] values2, int length2);
         [DllImport("hbp_math", EntryPoint = "PearsonCorrelationCoefficient", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern float PearsonCorrelationCoefficient(float[] baseline, int baselineLength, float[] values, int valuesLength);
+        [DllImport("hbp_math", EntryPoint = "WilcoxonRankSum", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern float WilcoxonRankSum(float[] values1, int length1, float[] values2, int length2);
+        [DllImport("hbp_math", EntryPoint = "WilcoxonSignedRank", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern float WilcoxonSignedRank(float[] values1, int length1, float[] values2, int length2);
         #endregion
     }
 }

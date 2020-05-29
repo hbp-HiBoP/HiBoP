@@ -9,6 +9,7 @@ using System.Collections;
 using HBP.Module3D;
 using HBP.UI.Module3D;
 using HBP.Data.Visualization;
+using Tools.CSharp;
 
 public class DebugBenjamin : MonoBehaviour
 {
@@ -17,7 +18,7 @@ public class DebugBenjamin : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.F1))
         {
-            ApplicationState.Module3DUI.Scenes[ApplicationState.Module3D.SelectedScene].Video();
+            (ApplicationState.Module3D.SelectedColumn as Column3DIEEG).ColumnIEEGData.Data.ComputeCorrelations();
         }
     }
     private void MarsAtlasCCEP()
@@ -58,7 +59,7 @@ public class DebugBenjamin : MonoBehaviour
     private IEnumerator c_ScreenshotWindow(string path)
     {
         yield return new WaitForEndOfFrame();
-        Window window = ApplicationState.WindowsManager.WindowsReferencer.Windows.FirstOrDefault(w => w.GetComponent<Selector>().Selected);
+        HBP.UI.Window window = ApplicationState.WindowsManager.WindowsReferencer.Windows.FirstOrDefault(w => w.GetComponent<Selector>().Selected);
         if (!string.IsNullOrEmpty(path))
         {
             Texture2D image = Texture2DExtension.ScreenRectToTexture(window.GetComponent<RectTransform>().ToScreenSpace());

@@ -1,5 +1,6 @@
 ﻿using HBP.Data.Experience.Dataset;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Tools.CSharp;
 
@@ -13,6 +14,7 @@ namespace HBP.Data.Visualization
         public Dictionary<string, BlocChannelStatistics> StatisticsByChannelID { get; set; } = new Dictionary<string, BlocChannelStatistics>();
         public Dictionary<string, float[]> ProcessedValuesByChannel { get; set; } = new Dictionary<string, float[]>();
         public Dictionary<string, string> UnitByChannelID { get; set; } = new Dictionary<string, string>();
+        public Dictionary<string, Dictionary<string, float>> CorrelationByChannelPair { get; set; } = new Dictionary<string, Dictionary<string, float>>();
 
         private Dictionary<string, Tools.CSharp.EEG.Frequency> m_FrequencyByChannelID = new Dictionary<string, Tools.CSharp.EEG.Frequency>();
         public List<Tools.CSharp.EEG.Frequency> Frequencies = new List<Tools.CSharp.EEG.Frequency>();
@@ -48,6 +50,7 @@ namespace HBP.Data.Visualization
             m_FrequencyByChannelID.Clear();
             Frequencies.Clear();
             ProcessedValuesByChannel.Clear();
+            CorrelationByChannelPair.Clear();
         }
         public void SetTimeline(Tools.CSharp.EEG.Frequency maxFrequency, Experience.Protocol.Bloc columnBloc, IEnumerable<Experience.Protocol.Bloc> blocs)
         {
@@ -100,6 +103,42 @@ namespace HBP.Data.Visualization
                     if (subTimeline.After > 0) values.AddRange(Enumerable.Repeat(subBlocValues[subBlocValues.Length - 1], subTimeline.After));
                 }
                 ProcessedValuesByChannel[channelID] = values.ToArray();
+            }
+        }
+        public void ComputeCorrelations()
+        {
+            CorrelationByChannelPair.Clear();
+            foreach (var kv1 in DataByChannelID)
+            {
+                Dictionary<string, float> correlationForFirstChannel = new Dictionary<string, float>();
+                foreach (var kv2 in DataByChannelID)
+                {
+                    if (kv1.Key == kv2.Key) continue;
+                    if (kv1.Value.Trials.Length != kv2.Value.Trials.Length) continue;
+
+                    int numberOfTrials = kv1.Value.Trials.Length;
+
+                    float[] blackData = new float[numberOfTrials];
+                    float[] greyData = new float[numberOfTrials * (numberOfTrials - 1)];
+                    int count = 0;
+                    for (int i = 0; i < numberOfTrials; i++)
+                    {
+                        for (int j = 0; j < numberOfTrials; j++)
+                        {
+                            if (i == j)
+                            {
+                                blackData[i] = MathDLL.Pearson(kv1.Value.Trials[i].Values, kv2.Value.Trials[i].Values);
+                            }
+                            else
+                            {
+                                greyData[count++] = MathDLL.Pearson(kv1.Value.Trials[i].Values, kv2.Value.Trials[j].Values);
+                            }
+                        }
+                    }
+                    
+                    correlationForFirstChannel.Add(kv2.Key, MathDLL.WilcoxonRankSum(blackData, greyData));
+                }
+                CorrelationByChannelPair.Add(kv1.Key, correlationForFirstChannel);
             }
         }
         #endregion
