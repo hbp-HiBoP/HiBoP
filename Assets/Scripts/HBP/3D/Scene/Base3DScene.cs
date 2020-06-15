@@ -441,7 +441,24 @@ namespace HBP.Module3D
                 }
             }
         }
-        
+
+        private bool m_DisplayCorrelations = false;
+        /// <summary>
+        /// Display correlations between sites
+        /// </summary>
+        public bool DisplayCorrelations
+        {
+            get
+            {
+                return m_DisplayCorrelations;
+            }
+            set
+            {
+                m_DisplayCorrelations = value;
+                OnChangeDisplayCorrelations.Invoke();
+            }
+        }
+
         /// <summary>
         /// True if we can compute and project the functional values on the mesh and on the MRI
         /// </summary>
@@ -653,6 +670,10 @@ namespace HBP.Module3D
         /// Event called when selecting a site on a column
         /// </summary>
         [HideInInspector] public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
+        /// <summary>
+        /// Event called when displaying the correlations
+        /// </summary>
+        [HideInInspector] public UnityEvent OnChangeDisplayCorrelations = new UnityEvent();
         #endregion
 
         #region Private Methods

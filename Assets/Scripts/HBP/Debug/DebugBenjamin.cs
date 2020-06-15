@@ -20,6 +20,10 @@ public class DebugBenjamin : MonoBehaviour
         {
             (ApplicationState.Module3D.SelectedColumn as Column3DIEEG).ColumnIEEGData.Data.ComputeCorrelations();
         }
+        if (Input.GetKeyDown(KeyCode.F2))
+        {
+            ApplicationState.Module3D.SelectedScene.DisplayCorrelations = !ApplicationState.Module3D.SelectedScene.DisplayCorrelations;
+        }
     }
     private void MarsAtlasCCEP()
     {

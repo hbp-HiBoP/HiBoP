@@ -6,6 +6,8 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using NewTheme.Components;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace HBP.UI.Module3D
 {
@@ -32,6 +34,14 @@ namespace HBP.UI.Module3D
         /// Reference to the selection ring used to display which site is currently selected in this view
         /// </summary>
         [SerializeField] private SelectionRing m_SelectionRing;
+        /// <summary>
+        /// Parent containing all correlation rings
+        /// </summary>
+        [SerializeField] private RectTransform m_CorrelationRingsParent;
+        /// <summary>
+        /// Prefab of the correlation ring
+        /// </summary>
+        [SerializeField] private GameObject m_CorrelationRingPrefab;
 
         /// <summary>
         /// Associated logical scene 3D
@@ -182,6 +192,43 @@ namespace HBP.UI.Module3D
                 m_Scene.PassiveRaycastOnScene(ray, m_Column);
             }
         }
+        /// <summary>
+        /// Callback method when selecting a site
+        /// </summary>
+        /// <param name="site">Site that has been selected</param>
+        private void OnSelectSite(Site site)
+        {
+            m_SelectionRing.Site = site;
+            if (m_Column is Column3DIEEG column)
+            {
+                foreach (Transform transfo in m_CorrelationRingsParent)
+                {
+                    Destroy(transfo.gameObject);
+                }
+                if (m_Scene.DisplayCorrelations && column.SelectedSite != null)
+                {
+                    Dictionary<string, float> correlationByChannel = column.ColumnIEEGData.Data.CorrelationByChannelPair[site.Information.FullID];
+                    List<Site> correlatedSites = new List<Site>();
+                    foreach (var s in column.Sites)
+                    {
+                        if (correlationByChannel.TryGetValue(s.Information.FullID, out float value))
+                        {
+                            if (value < 0.05f / (column.Sites.Count * (column.Sites.Count - 1) / 2))
+                            {
+                                correlatedSites.Add(s);
+                            }
+                        }
+                    }
+                    foreach (var correlatedSite in correlatedSites)
+                    {
+                        SelectionRing ring = Instantiate(m_CorrelationRingPrefab, m_CorrelationRingsParent).GetComponent<SelectionRing>();
+                        ring.ViewCamera = m_View.Camera;
+                        ring.Viewport = m_RectTransform;
+                        ring.Site = correlatedSite;
+                    }
+                }
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -308,7 +355,8 @@ namespace HBP.UI.Module3D
 
             m_SelectionRing.ViewCamera = view.Camera;
             m_SelectionRing.Viewport = m_RectTransform;
-            m_Column.OnSelectSite.AddListener((site) => { m_SelectionRing.Site = site; });
+            m_Column.OnSelectSite.AddListener(OnSelectSite);
+            m_Scene.OnChangeDisplayCorrelations.AddListener(() => { OnSelectSite(m_Column.SelectedSite); });
         }
         /// <summary>
         /// Create a ray corresponding to the mouse position in the viewport of the view

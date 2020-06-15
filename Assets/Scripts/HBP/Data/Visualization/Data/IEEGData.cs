@@ -108,16 +108,31 @@ namespace HBP.Data.Visualization
         public void ComputeCorrelations()
         {
             CorrelationByChannelPair.Clear();
-            foreach (var kv1 in DataByChannelID)
+            System.Diagnostics.Stopwatch sw1 = new System.Diagnostics.Stopwatch(), sw2 = new System.Diagnostics.Stopwatch(), sw3 = new System.Diagnostics.Stopwatch(), sw4 = new System.Diagnostics.Stopwatch();
+            sw4.Start();
+            Dictionary<string, List<float[]>> valuesByChannel = new Dictionary<string, List<float[]>>();
+            foreach (var kv in DataByChannelID)
+            {
+                List<float[]> values = new List<float[]>();
+                for (int i = 0; i < kv.Value.Trials.Length; i++)
+                {
+                    values.Add(kv.Value.Trials[i].Values);
+                }
+                valuesByChannel.Add(kv.Key, values);
+            }
+            sw4.Stop();
+            sw3.Start();
+            foreach (var kv1 in valuesByChannel)
             {
                 Dictionary<string, float> correlationForFirstChannel = new Dictionary<string, float>();
-                foreach (var kv2 in DataByChannelID)
+                int numberOfTrials = kv1.Value.Count;
+
+                foreach (var kv2 in valuesByChannel)
                 {
                     if (kv1.Key == kv2.Key) continue;
-                    if (kv1.Value.Trials.Length != kv2.Value.Trials.Length) continue;
+                    if (kv2.Value.Count != numberOfTrials) continue;
 
-                    int numberOfTrials = kv1.Value.Trials.Length;
-
+                    sw1.Start();
                     float[] blackData = new float[numberOfTrials];
                     float[] greyData = new float[numberOfTrials * (numberOfTrials - 1)];
                     int count = 0;
@@ -127,19 +142,23 @@ namespace HBP.Data.Visualization
                         {
                             if (i == j)
                             {
-                                blackData[i] = MathDLL.Pearson(kv1.Value.Trials[i].Values, kv2.Value.Trials[i].Values);
+                                blackData[i] = MathDLL.Pearson(kv1.Value[i], kv2.Value[i]);
                             }
                             else
                             {
-                                greyData[count++] = MathDLL.Pearson(kv1.Value.Trials[i].Values, kv2.Value.Trials[j].Values);
+                                greyData[count++] = MathDLL.Pearson(kv1.Value[i], kv2.Value[j]);
                             }
                         }
                     }
-                    
+                    sw1.Stop();
+                    sw2.Start();
                     correlationForFirstChannel.Add(kv2.Key, MathDLL.WilcoxonRankSum(blackData, greyData));
+                    sw2.Stop();
                 }
                 CorrelationByChannelPair.Add(kv1.Key, correlationForFirstChannel);
             }
+            sw3.Stop();
+            UnityEngine.Debug.Log(sw1.ElapsedMilliseconds + " (" + sw4.ElapsedMilliseconds + ") " + sw2.ElapsedMilliseconds + " " + sw3.ElapsedMilliseconds);
         }
         #endregion
     }
