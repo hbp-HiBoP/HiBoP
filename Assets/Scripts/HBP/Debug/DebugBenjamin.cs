@@ -18,7 +18,7 @@ public class DebugBenjamin : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.F1))
         {
-            (ApplicationState.Module3D.SelectedColumn as Column3DIEEG).ColumnIEEGData.Data.ComputeCorrelations();
+            //(ApplicationState.Module3D.SelectedColumn as Column3DIEEG).ColumnIEEGData.Data.ComputeCorrelations();
         }
         if (Input.GetKeyDown(KeyCode.F2))
         {

@@ -199,6 +199,13 @@ namespace HBP.UI.Module3D
         private void OnSelectSite(Site site)
         {
             m_SelectionRing.Site = site;
+            UpdateCorrelationsOverlay();
+        }
+        /// <summary>
+        /// Update the overlay circles to display the correlations between the selected site of the column and all other sites
+        /// </summary>
+        private void UpdateCorrelationsOverlay()
+        {
             if (m_Column is Column3DIEEG column)
             {
                 foreach (Transform transfo in m_CorrelationRingsParent)
@@ -207,19 +214,7 @@ namespace HBP.UI.Module3D
                 }
                 if (m_Scene.DisplayCorrelations && column.SelectedSite != null)
                 {
-                    Dictionary<string, float> correlationByChannel = column.ColumnIEEGData.Data.CorrelationByChannelPair[site.Information.FullID];
-                    List<Site> correlatedSites = new List<Site>();
-                    foreach (var s in column.Sites)
-                    {
-                        if (correlationByChannel.TryGetValue(s.Information.FullID, out float value))
-                        {
-                            if (value < 0.05f / (column.Sites.Count * (column.Sites.Count - 1) / 2))
-                            {
-                                correlatedSites.Add(s);
-                            }
-                        }
-                    }
-                    foreach (var correlatedSite in correlatedSites)
+                    foreach (var correlatedSite in column.CorrelatedSites(column.SelectedSite))
                     {
                         SelectionRing ring = Instantiate(m_CorrelationRingPrefab, m_CorrelationRingsParent).GetComponent<SelectionRing>();
                         ring.ViewCamera = m_View.Camera;
@@ -356,7 +351,8 @@ namespace HBP.UI.Module3D
             m_SelectionRing.ViewCamera = view.Camera;
             m_SelectionRing.Viewport = m_RectTransform;
             m_Column.OnSelectSite.AddListener(OnSelectSite);
-            m_Scene.OnChangeDisplayCorrelations.AddListener(() => { OnSelectSite(m_Column.SelectedSite); });
+            m_Scene.OnChangeDisplayCorrelations.AddListener(UpdateCorrelationsOverlay);
+            OnSelectSite(m_Column.SelectedSite);
         }
         /// <summary>
         /// Create a ray corresponding to the mouse position in the viewport of the view
