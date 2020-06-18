@@ -18,7 +18,7 @@ namespace HBP.UI
         /// <summary>
         /// Parent PatientListGestion of this list filter
         /// </summary>
-        private PatientList m_PatientList;
+        [SerializeField] private PatientList m_PatientList;
         /// <summary>
         /// Conditions to be used when filtering the corresponding list
         /// </summary>
@@ -40,18 +40,16 @@ namespace HBP.UI
         public GenericEvent<bool[]> OnApplyFilters = new GenericEvent<bool[]>();
         #endregion
 
-        #region Public Methods
-        /// <summary>
-        /// Initialize this MonoBehaviour
-        /// </summary>
-        public void Initialize(PatientList patientList)
-        {
-            m_PatientList = patientList;
-            m_Button.onClick.AddListener(ApplyFilters);
-        }
-        #endregion
-
         #region Private Methods
+        private void Awake()
+        {
+            m_Button.onClick.AddListener(ApplyFilters);
+            OnApplyFilters.AddListener(mask =>
+            {
+                m_PatientList.MaskList(mask);
+                m_PatientList.SortByNone();
+            });
+        }
         /// <summary>
         /// Apply the filters given the input conditions
         /// </summary>

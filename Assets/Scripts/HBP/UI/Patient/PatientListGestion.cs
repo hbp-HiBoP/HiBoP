@@ -12,21 +12,6 @@ namespace HBP.UI
 
         [SerializeField] PatientCreator m_ObjectCreator;
         public override ObjectCreator<Data.Patient> ObjectCreator => m_ObjectCreator;
-
-        [SerializeField] PatientListFilter m_ListFilter;
-        #endregion
-
-        #region Private Methods
-        protected override void Initialize()
-        {
-            base.Initialize();
-            m_ListFilter.Initialize(m_List);
-            m_ListFilter.OnApplyFilters.AddListener(mask =>
-            {
-                m_List.MaskList(mask);
-                m_List.SortByNone();
-            });
-        }
         #endregion
     }
 }
