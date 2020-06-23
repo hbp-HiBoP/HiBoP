@@ -61,11 +61,12 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateInteractable()
         {
+            bool isSinglePatientScene = SelectedScene.Type == Data.Enums.SceneType.SinglePatient;
             bool areCorrelationsComputed = SelectedColumn is Column3DIEEG column ? column.AreCorrelationsComputed : false;
 
-            m_Compute.interactable = !areCorrelationsComputed && !m_CorrelationsComputing;
+            m_Compute.interactable = !areCorrelationsComputed && !m_CorrelationsComputing && isSinglePatientScene;
             m_Compute.gameObject.SetActive(!areCorrelationsComputed);
-            m_Display.interactable = areCorrelationsComputed && !m_CorrelationsComputing;
+            m_Display.interactable = areCorrelationsComputed && !m_CorrelationsComputing && isSinglePatientScene;
             m_Display.gameObject.SetActive(areCorrelationsComputed);
         }
         /// <summary>
