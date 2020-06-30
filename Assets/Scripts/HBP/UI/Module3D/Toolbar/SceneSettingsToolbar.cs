@@ -45,6 +45,10 @@ namespace HBP.UI.Module3D
         /// Show / hide edges
         /// </summary>
         [SerializeField] private Tools.CutMode m_CutMode;
+        /// <summary>
+        /// Change the transparency of the brain
+        /// </summary>
+        [SerializeField] private Tools.TransparentBrain m_TransparentBrain;
         #endregion
 
         #region Private Methods
@@ -63,6 +67,7 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_EdgeMode);
             m_Tools.Add(m_ThresholdMRI);
             m_Tools.Add(m_CutMode);
+            m_Tools.Add(m_TransparentBrain);
         }
         /// <summary>
         /// Add the listeners to the elements of the toolbar

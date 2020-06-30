@@ -46,6 +46,10 @@ namespace HBP.Module3D
                 return IsTransparent ? m_TransparentCut : m_Cut;
             }
         }
+        /// <summary>
+        /// Alpha value of the transparent meshes
+        /// </summary>
+        public float Alpha { get; private set; } = 0.2f;
         #endregion
 
         #region Constructors
@@ -159,6 +163,7 @@ namespace HBP.Module3D
         /// <param name="alpha">Alpha value to be used</param>
         public void SetAlpha(float alpha)
         {
+            Alpha = alpha;
             Color color = new Color(1, 1, 1, alpha);
             m_TransparentBrain.SetColor("_Color", color);
             m_TransparentCut.SetColor("_Color", color);

@@ -295,7 +295,8 @@ namespace HBP.Module3D
                 {
                     cut.GetComponent<Renderer>().sharedMaterial = BrainMaterials.CutMaterial;
                 }
-                BrainMaterials.SetAlpha(0.2f);
+                BrainMaterials.SetAlpha(BrainMaterials.Alpha);
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
 
