@@ -198,7 +198,7 @@ namespace HBP.Module3D
             for (int i = 0; i < nbSplits; ++i)
             {
                 BrainSurfaceMeshes.Add(Instantiate(m_BrainPrefab));
-                BrainSurfaceMeshes[i].GetComponent<Renderer>().sharedMaterial = m_Scene.BrainMaterial;
+                BrainSurfaceMeshes[i].GetComponent<Renderer>().sharedMaterial = m_Scene.BrainMaterials.BrainMaterial;
                 BrainSurfaceMeshes[i].name = "brain_" + i;
                 BrainSurfaceMeshes[i].transform.parent = BrainSurfaceMeshesParent;
                 BrainSurfaceMeshes[i].transform.localPosition = Vector3.zero;
@@ -206,7 +206,6 @@ namespace HBP.Module3D
                 BrainSurfaceMeshes[i].SetActive(true);
             }
             SimplifiedBrain = Instantiate(m_SimplifiedBrainPrefab);
-            SimplifiedBrain.GetComponent<Renderer>().sharedMaterial = m_Scene.SimplifiedBrainMaterial;
             SimplifiedBrain.transform.name = "brain_simplified";
             SimplifiedBrain.transform.parent = BrainSurfaceMeshesParent;
             SimplifiedBrain.transform.localPosition = Vector3.zero;
@@ -219,7 +218,7 @@ namespace HBP.Module3D
         public void InstantiateCut()
         {
             GameObject cutGameObject = Instantiate(m_CutPrefab);
-            cutGameObject.GetComponent<Renderer>().sharedMaterial = m_Scene.CutMaterial;
+            cutGameObject.GetComponent<Renderer>().sharedMaterial = m_Scene.BrainMaterials.CutMaterial;
             cutGameObject.name = "Cut";
             cutGameObject.transform.parent = m_BrainCutMeshesParent.transform;
             cutGameObject.AddComponent<MeshCollider>();

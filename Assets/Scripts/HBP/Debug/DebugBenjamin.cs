@@ -6,10 +6,6 @@ using HBP.Data;
 using HBP.UI;
 using Tools.Unity;
 using System.Collections;
-using HBP.Module3D;
-using HBP.UI.Module3D;
-using HBP.Data.Visualization;
-using Tools.CSharp;
 
 public class DebugBenjamin : MonoBehaviour
 {
@@ -18,11 +14,7 @@ public class DebugBenjamin : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.F1))
         {
-            //(ApplicationState.Module3D.SelectedColumn as Column3DIEEG).ColumnIEEGData.Data.ComputeCorrelations();
-        }
-        if (Input.GetKeyDown(KeyCode.F2))
-        {
-            ApplicationState.Module3D.SelectedScene.DisplayCorrelations = !ApplicationState.Module3D.SelectedScene.DisplayCorrelations;
+            ApplicationState.Module3D.SelectedScene.IsBrainTransparent = !ApplicationState.Module3D.SelectedScene.IsBrainTransparent;
         }
     }
     private void MarsAtlasCCEP()

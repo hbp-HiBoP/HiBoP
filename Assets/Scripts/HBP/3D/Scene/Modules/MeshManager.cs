@@ -270,7 +270,7 @@ namespace HBP.Module3D
             }
             // get the middle
             MeshCenter = MeshToDisplay.Center;
-            m_Scene.BrainMaterial.SetVector("_Center", MeshCenter);
+            m_Scene.BrainMaterials.SetBrainCenter(MeshCenter);
 
             SplittedMeshes = MeshToDisplay.SplitToSurfaces(MeshSplitNumber);
 

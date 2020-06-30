@@ -35,7 +35,7 @@ namespace HBP.Module3D
             set
             {
                 m_DisplayMarsAtlas = value;
-                m_Scene.BrainMaterial.SetInt("_Atlas", m_DisplayMarsAtlas ? 1 : 0);
+                m_Scene.BrainMaterials.SetDisplayAtlas(m_DisplayMarsAtlas);
                 if (m_Scene.MeshManager.SelectedMesh.Type == Data.Enums.MeshType.MNI)
                 {
                     UpdateAtlasColors();
@@ -56,7 +56,7 @@ namespace HBP.Module3D
             set
             {
                 m_DisplayJuBrainAtlas = value;
-                m_Scene.BrainMaterial.SetInt("_Atlas", m_DisplayJuBrainAtlas ? 1 : 0);
+                m_Scene.BrainMaterials.SetDisplayAtlas(m_DisplayJuBrainAtlas);
                 UpdateAtlasColors();
             }
         }

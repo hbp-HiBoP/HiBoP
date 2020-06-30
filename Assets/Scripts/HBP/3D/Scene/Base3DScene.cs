@@ -176,15 +176,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Material used for the brain mesh
         /// </summary>
-        public Material BrainMaterial { get; private set; }
-        /// <summary>
-        /// Material used for the simplified mesh (not really used now, this is a bit legacy but could be useful)
-        /// </summary>
-        public Material SimplifiedBrainMaterial { get; private set; }
-        /// <summary>
-        /// Material used for the cut meshes
-        /// </summary>
-        public Material CutMaterial { get; private set; }
+        public BrainMaterials BrainMaterials { get; private set; }
 
         private Data.Enums.ColorType m_BrainColor = Data.Enums.ColorType.BrainColor;
         /// <summary>
@@ -205,7 +197,7 @@ namespace HBP.Module3D
                 tex.UpdateTexture2D(BrainColorTexture);
                 tex.Dispose();
 
-                BrainMaterial.SetTexture("_MainTex", BrainColorTexture);
+                BrainMaterials.SetBrainColorTexture(BrainColorTexture);
             }
         }
 
@@ -255,7 +247,7 @@ namespace HBP.Module3D
 
                 ResetColors();
 
-                BrainMaterial.SetTexture("_ColorTex", BrainColorMapTexture);
+                BrainMaterials.SetBrainColormapTexture(BrainColorMapTexture);
 
                 if (m_IsGeneratorUpToDate)
                 {
@@ -275,6 +267,37 @@ namespace HBP.Module3D
         /// Brain Unity texture
         /// </summary>
         public Texture2D BrainColorTexture { get; private set; }
+
+        /// <summary>
+        /// Is the brain transparent ?
+        /// </summary>
+        public bool IsBrainTransparent
+        {
+            get
+            {
+                return BrainMaterials.IsTransparent;
+            }
+            set
+            {
+                BrainMaterials.IsTransparent = value;
+                foreach (var surface in m_DisplayedObjects.BrainSurfaceMeshes)
+                {
+                    surface.GetComponent<Renderer>().sharedMaterial = BrainMaterials.BrainMaterial;
+                }
+                foreach (var column in Columns)
+                {
+                    foreach (var surface in column.BrainSurfaceMeshes)
+                    {
+                        surface.GetComponent<Renderer>().sharedMaterial = BrainMaterials.BrainMaterial;
+                    }
+                }
+                foreach (var cut in m_DisplayedObjects.BrainCutMeshes)
+                {
+                    cut.GetComponent<Renderer>().sharedMaterial = BrainMaterials.CutMaterial;
+                }
+                BrainMaterials.SetAlpha(0.2f);
+            }
+        }
 
         private bool m_CutHolesEnabled = true;
         /// <summary>
@@ -368,7 +391,7 @@ namespace HBP.Module3D
             set
             {
                 m_StrongCuts = value;
-                BrainMaterial.SetInt("_StrongCuts", m_StrongCuts ? 1 : 0);
+                BrainMaterials.SetStrongCuts(m_StrongCuts);
                 m_CutsNeedUpdate = true;
             }
         }
@@ -524,7 +547,7 @@ namespace HBP.Module3D
                 if (value != m_IsGeneratorUpToDate)
                 {
                     m_IsGeneratorUpToDate = value;
-                    BrainMaterial.SetInt("_Activity", value ? 1 : 0);
+                    BrainMaterials.SetActivity(value);
                     if (!value)
                     {
                         foreach (Column3DDynamic column in ColumnsDynamic)
@@ -850,36 +873,7 @@ namespace HBP.Module3D
 
             // Fill parameters in shader
             UnityEngine.Profiling.Profiler.BeginSample("cut_generator Fill shader");
-            BrainMaterial.SetInt("_CutCount", Cuts.Count);
-            if (Cuts.Count > 0)
-            {
-                List<Vector4> cutPoints = new List<Vector4>(20);
-                for (int i = 0; i < 20; ++i)
-                {
-                    if (i < Cuts.Count)
-                    {
-                        cutPoints.Add(new Vector4(-Cuts[i].Point.x, Cuts[i].Point.y, Cuts[i].Point.z));
-                    }
-                    else
-                    {
-                        cutPoints.Add(Vector4.zero);
-                    }
-                }
-                BrainMaterial.SetVectorArray("_CutPoints", cutPoints);
-                List<Vector4> cutNormals = new List<Vector4>(20);
-                for (int i = 0; i < 20; ++i)
-                {
-                    if (i < Cuts.Count)
-                    {
-                        cutNormals.Add(new Vector4(-Cuts[i].Normal.x, Cuts[i].Normal.y, Cuts[i].Normal.z));
-                    }
-                    else
-                    {
-                        cutNormals.Add(Vector4.zero);
-                    }
-                }
-                BrainMaterial.SetVectorArray("_CutNormals", cutNormals);
-            }
+            BrainMaterials.SetCuts(Cuts);
             UnityEngine.Profiling.Profiler.EndSample();
 
             // Update cut generators
@@ -1372,11 +1366,8 @@ namespace HBP.Module3D
 
             Visualization = visualization;
             gameObject.name = Visualization.Name;
-
-            // Init materials
-            BrainMaterial = Instantiate(Resources.Load("Materials/Brain/Brain", typeof(Material))) as Material;
-            SimplifiedBrainMaterial = Instantiate(Resources.Load("Materials/Brain/Simplified", typeof(Material))) as Material;
-            CutMaterial = Instantiate(Resources.Load("Materials/Brain/Cut", typeof(Material))) as Material;
+            
+            BrainMaterials = new BrainMaterials();
 
             transform.position = new Vector3(HBP3DModule.SPACE_BETWEEN_SCENES_GAME_OBJECTS * ApplicationState.Module3D.NumberOfScenesLoadedSinceStart++, transform.position.y, transform.position.z);
         }

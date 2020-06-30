@@ -1,4 +1,4 @@
-﻿Shader "Custom/Brain"
+﻿Shader "Custom/TransparentBrain"
 {
 	Properties
 	{
@@ -14,12 +14,12 @@
 		_MaxRadius("Maximum extrusion radius", Range(0,100)) = 100
 	}
 
-	SubShader
+		SubShader
 		{
-				Tags { "Queue" = "Geometry" }
+				Tags { "Queue" = "Transparent" "RenderType" = "Transparent" "IgnoreProjector" = "True" }
 
 			CGPROGRAM
-				#pragma surface surf Standard vertex:vert
+				#pragma surface surf Standard vertex:vert alpha
 				#pragma target 3.0
 
 				sampler2D _MainTex;
@@ -136,5 +136,5 @@
 			ENDCG
 		}
 
-		FallBack "Diffuse"
+			FallBack "Diffuse"
 }

@@ -13,7 +13,7 @@ Shader "SuperSystems/Wireframe-Transparent-Culled"
 	{
 		Tags {
             "IgnoreProjector"="True"
-            "Queue"="Transparent"
+            "Queue"="Transparent+1"
             "RenderType"="Transparent"
         }
 
