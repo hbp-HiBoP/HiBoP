@@ -42,6 +42,10 @@ namespace HBP.UI.Module3D
         /// Prefab of the correlation ring
         /// </summary>
         [SerializeField] private GameObject m_CorrelationRingPrefab;
+        /// <summary>
+        /// Prefab for the correlation ring of the selected site for correlations
+        /// </summary>
+        [SerializeField] private GameObject m_BaseCorrelationRingPrefab;
 
         /// <summary>
         /// Associated logical scene 3D
@@ -212,14 +216,23 @@ namespace HBP.UI.Module3D
                 {
                     Destroy(transfo.gameObject);
                 }
-                if (m_Scene.DisplayCorrelations && column.SelectedSite != null)
+                if (m_Scene.DisplayCorrelations)
                 {
-                    foreach (var correlatedSite in column.CorrelatedSites(column.SelectedSite))
+                    // If using the CompareSite feature, keep the site to compare focused
+                    Site baseSite = m_Scene.ImplantationManager.SiteToCompare != null ? m_Scene.ImplantationManager.SiteToCompare : column.SelectedSite;
+                    if (baseSite != null)
                     {
-                        SelectionRing ring = Instantiate(m_CorrelationRingPrefab, m_CorrelationRingsParent).GetComponent<SelectionRing>();
-                        ring.ViewCamera = m_View.Camera;
-                        ring.Viewport = m_RectTransform;
-                        ring.Site = correlatedSite;
+                        foreach (var correlatedSite in column.CorrelatedSites(baseSite))
+                        {
+                            SelectionRing ring = Instantiate(m_CorrelationRingPrefab, m_CorrelationRingsParent).GetComponent<SelectionRing>();
+                            ring.ViewCamera = m_View.Camera;
+                            ring.Viewport = m_RectTransform;
+                            ring.Site = correlatedSite;
+                        }
+                        SelectionRing baseRing = Instantiate(m_BaseCorrelationRingPrefab, m_CorrelationRingsParent).GetComponent<SelectionRing>();
+                        baseRing.ViewCamera = m_View.Camera;
+                        baseRing.Viewport = m_RectTransform;
+                        baseRing.Site = baseSite;
                     }
                 }
             }
