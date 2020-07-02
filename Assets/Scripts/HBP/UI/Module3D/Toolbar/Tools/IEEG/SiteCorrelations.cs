@@ -52,6 +52,7 @@ namespace HBP.UI.Module3D.Tools
         public override void DefaultState()
         {
             m_Compute.interactable = false;
+            m_Compute.gameObject.SetActive(true);
             m_Display.interactable = false;
             m_Display.isOn = false;
             m_Display.gameObject.SetActive(false);

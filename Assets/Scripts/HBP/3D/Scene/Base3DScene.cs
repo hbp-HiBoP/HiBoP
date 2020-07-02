@@ -295,6 +295,7 @@ namespace HBP.Module3D
                 {
                     cut.GetComponent<Renderer>().sharedMaterial = BrainMaterials.CutMaterial;
                 }
+                m_DisplayedObjects.SimplifiedBrain.SetActive(!value);
                 BrainMaterials.SetAlpha(BrainMaterials.Alpha);
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
