@@ -50,6 +50,8 @@ namespace HBP.UI.Module3D
         /// </summary>
         private Dictionary<string, Texture2D> m_Histograms = new Dictionary<string, Texture2D>();
 
+        private Queue<string> m_HistogramsToBeDestroyed = new Queue<string>();
+
         /// <summary>
         /// Used to display the current histogram
         /// </summary>
@@ -108,6 +110,18 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
+        private void Update()
+        {
+            while (m_HistogramsToBeDestroyed.Count > 0)
+            {
+                string histogramID = m_HistogramsToBeDestroyed.Dequeue();
+                if (m_Histograms.TryGetValue(histogramID, out Texture2D texture))
+                {
+                    DestroyImmediate(texture);
+                    m_Histograms.Remove(histogramID);
+                }
+            }
+        }
         /// <summary>
         /// Update IEEG Histogram Texture
         /// </summary>
@@ -319,12 +333,7 @@ namespace HBP.UI.Module3D
             {
                 foreach (var column in s.ColumnsDynamic)
                 {
-                    string histogramID = GenerateHistogramID(column);
-                    if (m_Histograms.TryGetValue(histogramID, out Texture2D texture))
-                    {
-                        DestroyImmediate(texture);
-                        m_Histograms.Remove(histogramID);
-                    }
+                    m_HistogramsToBeDestroyed.Enqueue(GenerateHistogramID(column));
                 }
             });
         }
