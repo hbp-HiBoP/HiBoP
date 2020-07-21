@@ -37,7 +37,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return Implantations[SelectedImplantationID];
+                return Implantations.Count > 0 ? Implantations[SelectedImplantationID] : null;
             }
         }
 

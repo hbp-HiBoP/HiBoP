@@ -140,7 +140,9 @@ namespace HBP.Module3D
                 Destroy(sitePatient.gameObject);
             }
             SitesPatientParent = new List<GameObject>();
-            
+
+            if (implantation == null) return;
+
             int siteIndex = 0;
             foreach (var patient in m_Scene.Visualization.Patients)
             {
