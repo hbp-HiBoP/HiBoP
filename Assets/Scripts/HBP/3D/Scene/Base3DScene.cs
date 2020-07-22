@@ -1395,6 +1395,8 @@ namespace HBP.Module3D
             Colormap = Visualization.Configuration.EEGColormap;
             m_MeshManager.SelectMeshPart(Visualization.Configuration.MeshPart);
             EdgeMode = Visualization.Configuration.ShowEdges;
+            IsBrainTransparent = Visualization.Configuration.TransparentBrain;
+            BrainMaterials.SetAlpha(Visualization.Configuration.BrainAlpha);
             StrongCuts = Visualization.Configuration.StrongCuts;
             HideBlacklistedSites = Visualization.Configuration.HideBlacklistedSites;
             ShowAllSites = Visualization.Configuration.ShowAllSites;
@@ -1452,6 +1454,8 @@ namespace HBP.Module3D
             Visualization.Configuration.MRIName = m_MRIManager.SelectedMRI.Name;
             Visualization.Configuration.ImplantationName = m_ImplantationManager.SelectedImplantation.Name;
             Visualization.Configuration.ShowEdges = EdgeMode;
+            Visualization.Configuration.TransparentBrain = IsBrainTransparent;
+            Visualization.Configuration.BrainAlpha = BrainMaterials.Alpha;
             Visualization.Configuration.StrongCuts = StrongCuts;
             Visualization.Configuration.HideBlacklistedSites = m_HideBlacklistedSites;
             Visualization.Configuration.ShowAllSites = ShowAllSites;
@@ -1503,6 +1507,8 @@ namespace HBP.Module3D
             Colormap = Data.Enums.ColorType.MatLab;
             m_MeshManager.SelectMeshPart(Data.Enums.MeshPart.Both);
             EdgeMode = false;
+            IsBrainTransparent = false;
+            BrainMaterials.SetAlpha(0.2f);
             StrongCuts = false;
             HideBlacklistedSites = false;
             m_MRIManager.SetCalValues(0, 1);
