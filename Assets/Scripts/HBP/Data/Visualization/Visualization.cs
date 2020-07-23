@@ -436,26 +436,26 @@ namespace HBP.Data.Visualization
             Exception exception = null;
 
             ReadOnlyCollection<IEEGColumn> iEEGColumns = IEEGColumns;
-            int iEEGColumnsLength = iEEGColumns.Count;
+            int nbIEEGColumns = iEEGColumns.Count;
             ReadOnlyCollection<CCEPColumn> ccepColumns = CCEPColumns;
-            int ccepColumnsLength = ccepColumns.Count;
-            int length = 2 * (iEEGColumnsLength + ccepColumnsLength);
+            int nbCCEPColumns = ccepColumns.Count;
+            int nbDynamicColumns = nbIEEGColumns + nbCCEPColumns;
 
             float progress = 0;
             const float LOADING_DATA_PROGRESS = 0.95f;
             const float LOADING_TIMELINE_PROGRESS = 0.05f;
-            float ieegloadingDataProgressStep = LOADING_DATA_PROGRESS * iEEGColumnsLength;
-            float ieegloadingTimeLineProgressStep = LOADING_TIMELINE_PROGRESS * iEEGColumnsLength;
-            float cceploadingDataProgressStep = LOADING_DATA_PROGRESS * ccepColumnsLength;
-            float cceploadingTimeLineProgressStep = LOADING_TIMELINE_PROGRESS * ccepColumnsLength;
             const float TIME_BY_DATAINFO = 0.15f;
+            float loadingDataStep = LOADING_DATA_PROGRESS / nbDynamicColumns;
+            float loadingTimelineStep = LOADING_TIMELINE_PROGRESS / nbDynamicColumns;
+
             // iEEG Columns
-            if (iEEGColumnsLength > 0)
+            if (nbIEEGColumns > 0)
             {
-                for (int i = 0; i < iEEGColumnsLength; ++i)
+                for (int i = 0; i < nbIEEGColumns; ++i)
                 {
                     IEEGColumn iEEGColumn = iEEGColumns[i];
-                    onChangeProgress(progress + ieegloadingDataProgressStep, TIME_BY_DATAINFO * dataInfoByColumn[iEEGColumn].Count() , new LoadingText("Loading iEEG column ", iEEGColumn.Name, " [" + (i + 1) + "/" + iEEGColumnsLength + "]"));
+                    progress += loadingDataStep;
+                    onChangeProgress(progress, TIME_BY_DATAINFO * dataInfoByColumn[iEEGColumn].Count() , new LoadingText("Loading iEEG column ", iEEGColumn.Name, " [" + (i + 1) + "/" + nbIEEGColumns + "]"));
                     try
                     {
                         iEEGColumn.Data.Load(dataInfoByColumn[iEEGColumn].OfType<IEEGDataInfo>(), iEEGColumn.Bloc);
@@ -467,13 +467,13 @@ namespace HBP.Data.Visualization
                         outPut(exception);
                         yield break;
                     }
-                    progress += ieegloadingDataProgressStep;
                 }
                 Tools.CSharp.EEG.Frequency maxiEEGFrequency = new Tools.CSharp.EEG.Frequency(iEEGColumns.Max(column => column.Data.Frequencies.Max(f => f.RawValue)));
-                for (int i = 0; i < iEEGColumnsLength; ++i)
+                for (int i = 0; i < nbIEEGColumns; ++i)
                 {
                     IEEGColumn column = iEEGColumns[i];
-                    onChangeProgress(progress, 0, new LoadingText("Loading timeline of iEEG column ", column.Name, " [" + (i + 1) + "/" + iEEGColumnsLength + "]"));
+                    progress += loadingTimelineStep;
+                    onChangeProgress(progress, 0, new LoadingText("Loading timeline of iEEG column ", column.Name, " [" + (i + 1) + "/" + nbIEEGColumns + "]"));
                     column.Data.SetTimeline(maxiEEGFrequency, column.Bloc, iEEGColumns.Select(c => c.Bloc).Distinct());
                     yield return Ninja.JumpToUnity;
                     try
@@ -488,17 +488,17 @@ namespace HBP.Data.Visualization
                         yield break;
                     }
                     yield return Ninja.JumpBack;
-                    progress += ieegloadingTimeLineProgressStep;
                 }
             }
 
             // CCEP Columns
-            if (ccepColumnsLength > 0)
+            if (nbCCEPColumns > 0)
             {
-                for (int i = 0; i < ccepColumnsLength; ++i)
+                for (int i = 0; i < nbCCEPColumns; ++i)
                 {
                     CCEPColumn ccepColumn = ccepColumns[i];
-                    onChangeProgress(progress + cceploadingDataProgressStep, TIME_BY_DATAINFO * dataInfoByColumn[ccepColumn].Count(), new LoadingText("Loading CCEP column ", ccepColumn.Name, " [" + (i + 1) + "/" + ccepColumnsLength + "]"));
+                    progress += loadingDataStep;
+                    onChangeProgress(progress, TIME_BY_DATAINFO * dataInfoByColumn[ccepColumn].Count(), new LoadingText("Loading CCEP column ", ccepColumn.Name, " [" + (i + 1) + "/" + nbCCEPColumns + "]"));
                     try
                     {
                         ccepColumn.Data.Load(dataInfoByColumn[ccepColumn].OfType<CCEPDataInfo>(), ccepColumn.Bloc);
@@ -510,13 +510,13 @@ namespace HBP.Data.Visualization
                         outPut(exception);
                         yield break;
                     }
-                    progress += cceploadingDataProgressStep;
                 }
                 Tools.CSharp.EEG.Frequency maxCCEPFrequency = new Tools.CSharp.EEG.Frequency(ccepColumns.Max(column => column.Data.Frequencies.Max(f => f.RawValue)));
-                for (int i = 0; i < ccepColumnsLength; ++i)
+                for (int i = 0; i < nbCCEPColumns; ++i)
                 {
                     CCEPColumn column = ccepColumns[i];
-                    onChangeProgress.Invoke(progress, 0, new LoadingText("Loading timeline of CCEP column ", column.Name, " [" + (i + 1) + "/" + ccepColumnsLength + "]"));
+                    progress += loadingTimelineStep;
+                    onChangeProgress.Invoke(progress, 0, new LoadingText("Loading timeline of CCEP column ", column.Name, " [" + (i + 1) + "/" + nbCCEPColumns + "]"));
                     column.Data.SetTimeline(maxCCEPFrequency, column.Bloc, ccepColumns.Select(c => c.Bloc).Distinct());
                     yield return Ninja.JumpToUnity;
                     try
@@ -531,7 +531,6 @@ namespace HBP.Data.Visualization
                         yield break;
                     }
                     yield return Ninja.JumpBack;
-                    progress += cceploadingTimeLineProgressStep;
                 }
             }
             outPut(exception);
