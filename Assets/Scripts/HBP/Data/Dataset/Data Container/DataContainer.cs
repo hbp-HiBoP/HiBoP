@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -8,13 +7,32 @@ using HBP.Errors;
 
 namespace HBP.Data.Container
 {
+    /// <summary>
+    /// Class which contains all the informations about a data.
+    /// </summary>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <term><b>ID</b></term>
+    /// <description>Unique identifier of the data.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Errors</b></term>
+    /// <description>Errors of the dataContainer.</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     [DataContract]
-    public class DataContainer : ICloneable, ICopiable, IIdentifiable
+    public abstract class DataContainer : BaseData
     {
         #region Properties
-        [DataMember] public string ID { get; set; }
-
         protected Error[] m_Errors = new Error[0];
+        /// <summary>
+        /// Errors of the dataContainer.
+        /// </summary>
         public virtual Error[] Errors
         {
             get
@@ -24,124 +42,54 @@ namespace HBP.Data.Container
                 return errors.Distinct().ToArray();
             }
         }
-        public bool IsOk
-        {
-            get
-            {
-                return Errors.Length == 0;
-            }
-        }
 
+        /// <summary>
+        /// True if the dataContainer is OK, False otherwise.
+        /// </summary>v 
+        public bool IsOk => Errors.Length == 0;
+
+        /// <summary>
+        /// Callback executed when error checking is required.
+        /// </summary>
         public UnityEvent OnRequestErrorCheck { get; } = new UnityEvent();
         #endregion
 
         #region Constructors
-        public DataContainer(string id)
+        /// <summary>
+        /// Create a new DataContainer instance with a specified ID.
+        /// </summary>
+        /// <param name="ID">Unique identifier</param>
+        public DataContainer(string ID) : base(ID)
         {
-            ID = id;
         }
-        public DataContainer() : this(Guid.NewGuid().ToString())
+        /// <summary>
+        /// Create a new DataContainer instance with default values.
+        /// </summary>
+        public DataContainer() : base()
         {
 
         }
         #endregion
 
         #region Public Methods
-        public virtual void CopyDataToDirectory(DirectoryInfo dataInfoDirectory, string projectDirectory, string oldProjectDirectory)
-        {
-        }
-        public virtual Error[] GetErrors()
-        {
-            return new Error[0];
-        }
+        /// <summary>
+        /// Copy all the files to specified directory.
+        /// </summary>
+        /// <param name="destinationDirectory">Destination directory to copy the data</param>
+        /// <param name="projectDirectory">Actual project directory</param>
+        /// <param name="oldProjectDirectory">Old project directory</param>
+        public abstract void CopyDataToDirectory(DirectoryInfo destinationDirectory, string projectDirectory, string oldProjectDirectory);
+        /// <summary>
+        /// Get all the dataContainer errors.
+        /// </summary>
+        /// <returns>DataContainer errors</returns>
+        public abstract Error[] GetErrors();
         #endregion
 
-        #region Operators
-        public void GenerateID()
-        {
-            ID = Guid.NewGuid().ToString();
-        }
+        #region Errors
         /// <summary>
-        /// Operator Equals.
+        /// Error raised when a required field is empty.
         /// </summary>
-        /// <param name="obj">Object to test.</param>
-        /// <returns>\a True if equals and \a false otherwise.</returns>
-        public override bool Equals(object obj)
-        {
-            DataContainer dataContainer = obj as DataContainer;
-            if (dataContainer != null && dataContainer.ID == ID)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        /// <summary>
-        /// Get hash code.
-        /// </summary>
-        /// <returns>HashCode.</returns>
-        public override int GetHashCode()
-        {
-            return ID.GetHashCode();
-        }
-        /// <summary>
-        /// Operator equals.
-        /// </summary>
-        /// <param name="a">First mesh to compare.</param>
-        /// <param name="b">Second mesh to compare.</param>
-        /// <returns>\a True if equals and \a false otherwise.</returns>
-        public static bool operator ==(DataContainer a, DataContainer b)
-        {
-            if (ReferenceEquals(a, b))
-            {
-                return true;
-            }
-
-            if (((object)a == null) || ((object)b == null))
-            {
-                return false;
-            }
-
-            return a.Equals(b);
-        }
-        /// <summary>
-        /// Operator not equals.
-        /// </summary>
-        /// <param name="a">First mesh to compare.</param>
-        /// <param name="b">Second mesh to compare.</param>
-        /// <returns>\a True if not equals and \a false otherwise.</returns>
-        public static bool operator !=(DataContainer a, DataContainer b)
-        {
-            return !(a == b);
-        }
-        /// <summary>
-        /// Clone this instance.
-        /// </summary>
-        /// <returns>Clone of this instance.</returns>
-        public virtual object Clone()
-        {
-            return new DataContainer(ID);
-        }
-        public virtual void Copy(object copy)
-        {
-            DataContainer dataInfo = copy as DataContainer;
-            ID = dataInfo.ID;
-        }
-        #endregion
-
-        #region Serialization
-        [OnDeserialized()]
-        public void OnDeserialized(StreamingContext context)
-        {
-            OnDeserializedOperation(context);
-        }
-        public virtual void OnDeserializedOperation(StreamingContext context)
-        {
-        }
-        #endregion
-
         public class RequieredFieldEmptyError : Error
         {
             #region Constructors
@@ -155,6 +103,9 @@ namespace HBP.Data.Container
             }
             #endregion
         }
+        /// <summary>
+        /// Error raised when a specified file doesn't exist.
+        /// </summary>
         public class FileDoesNotExistError : Error
         {
             #region Constructors
@@ -167,6 +118,9 @@ namespace HBP.Data.Container
             }
             #endregion
         }
+        /// <summary>
+        /// Error raised when a specified file has a wrong extension.
+        /// </summary>
         public class WrongExtensionError : Error
         {
             #region Constructors
@@ -179,6 +133,9 @@ namespace HBP.Data.Container
             }
             #endregion
         }
+        /// <summary>
+        /// Error raised there is not enough informations.
+        /// </summary>
         public class NotEnoughInformationError : Error
         {
             #region Constructors
@@ -191,5 +148,6 @@ namespace HBP.Data.Container
             }
             #endregion
         }
+        #endregion
     }
 }

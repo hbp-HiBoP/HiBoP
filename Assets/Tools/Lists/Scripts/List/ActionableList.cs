@@ -32,13 +32,11 @@ namespace Tools.Unity.Lists
         {
             if (GetItemFromObject(objectToUpdate, out Item<T> item))
             {
-                int index = m_Objects.FindIndex((obj) => obj.Equals(objectToUpdate));
-                m_Objects[index] = objectToUpdate;
                 ActionnableItem<T> actionnableItem = item as ActionnableItem<T>;
                 actionnableItem.Object = objectToUpdate;
                 actionnableItem.Actionable = Actionable;
                 actionnableItem.OnChangeSelected.RemoveAllListeners();
-                actionnableItem.Select(m_SelectedStateByObject[objectToUpdate]);
+                actionnableItem.ChangeSelectionValue(m_SelectedStateByObject[objectToUpdate]);
                 actionnableItem.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(objectToUpdate, selected));
                 actionnableItem.OnAction.RemoveAllListeners();
                 actionnableItem.OnAction.AddListener((action) => OnActionHandler(action, objectToUpdate));
@@ -54,11 +52,11 @@ namespace Tools.Unity.Lists
             for (int i = m_FirstIndexDisplayed, j = 0; i <= m_LastIndexDisplayed && j < itemsLength; i++, j++)
             {
                 ActionnableItem<T> item = items[j] as ActionnableItem<T>;
-                T obj = m_Objects[i];
+                T obj = m_DisplayedObjects[i];
                 item.Object = obj;
                 item.Actionable = Actionable;
                 item.OnChangeSelected.RemoveAllListeners();
-                item.Select(m_SelectedStateByObject[obj]);
+                item.ChangeSelectionValue(m_SelectedStateByObject[obj]);
                 item.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(obj, selected));
                 item.OnAction.RemoveAllListeners();
                 item.OnAction.AddListener((actionID) => OnAction.Invoke(obj, actionID));

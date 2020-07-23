@@ -1,10 +1,12 @@
-﻿using System.Linq;
-using Tools.Unity.Components;
+﻿using Tools.Unity.Components;
 using Tools.Unity.Lists;
 using UnityEngine;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// Component to manage a list of aliases (create, remove, list).
+    /// </summary>
     public class AliasListGestion : ListGestion<Data.Alias>
     {
         #region Properties

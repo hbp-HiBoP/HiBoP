@@ -5,7 +5,7 @@ using UnityEngine.UI;
 namespace HBP.UI
 {
 	/// <summary>
-	/// Display/Modify group.
+	/// Window to modify a group.
 	/// </summary>
 	public class GroupModifier : ObjectModifier<Data.Group> 
 	{
@@ -13,6 +13,9 @@ namespace HBP.UI
         [SerializeField] InputField m_NameInputField;
         [SerializeField] PatientListGestion m_PatientListGestion;
 
+        /// <summary>
+        /// True if interactable, False otherwise.
+        /// </summary>
         public override bool Interactable
         {
             get
@@ -31,48 +34,69 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Open a patient selector.
+        /// </summary>
         public virtual void OpenPatientsSelector()
         {
-            ObjectSelector<Data.Patient> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Patients.Where(p => !ItemTemp.Patients.Contains(p)));
+            ObjectSelector<Data.Patient> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Patients.Where(p => !ObjectTemp.Patients.Contains(p)));
             selector.OnOk.AddListener(() => m_PatientListGestion.List.Add(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Initialize the window.
+        /// </summary>
         protected override void Initialize()
         {
             base.Initialize();
 
-            m_NameInputField.onEndEdit.AddListener(OnChangeName);
+            m_NameInputField.onEndEdit.AddListener(ChangeName);
             m_PatientListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
-            m_PatientListGestion.List.OnAddObject.AddListener(OnAddPatient);
-            m_PatientListGestion.List.OnRemoveObject.AddListener(OnRemovePatient);
+            m_PatientListGestion.List.OnAddObject.AddListener(AddPatient);
+            m_PatientListGestion.List.OnRemoveObject.AddListener(RemovePatient);
         }
+        /// <summary>
+        /// Set the fields.
+        /// </summary>
+        /// <param name="objectToDisplay">Group to modify</param>
         protected override void SetFields(Data.Group objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_PatientListGestion.List.Set(objectToDisplay.Patients);
         }
-
-        protected void OnChangeName(string value)
+        /// <summary>
+        /// Change the name of the group.
+        /// </summary>
+        /// <param name="name">Name</param>
+        protected void ChangeName(string name)
         {
-            if(value != "")
+            if(name != "")
             {
-                ItemTemp.Name = value;
+                ObjectTemp.Name = name;
             }
             else
             {
-                m_NameInputField.text = ItemTemp.Name;
+                m_NameInputField.text = ObjectTemp.Name;
             }
         }
-        protected void OnAddPatient(Data.Patient patient)
+        /// <summary>
+        /// Add patient to the group.
+        /// </summary>
+        /// <param name="patient">Patient to add</param>
+        protected void AddPatient(Data.Patient patient)
         {
-            ItemTemp.Patients.Add(patient);
+            ObjectTemp.Patients.Add(patient);
         }
-        protected void OnRemovePatient(Data.Patient patient)
+        /// <summary>
+        /// Remove patient from the group.
+        /// </summary>
+        /// <param name="patient">Patient to remove</param>
+        protected void RemovePatient(Data.Patient patient)
         {
-            ItemTemp.Patients.Remove(patient);
+            ObjectTemp.Patients.Remove(patient);
         }
         #endregion
     }

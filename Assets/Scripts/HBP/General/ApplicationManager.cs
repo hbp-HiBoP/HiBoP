@@ -30,6 +30,7 @@ namespace HBP
             ApplicationState.MemoryManager = FindObjectOfType<MemoryManager>();
             ApplicationState.WindowsManager = FindObjectOfType<WindowsManager>();
             ApplicationState.Module3DUI = FindObjectOfType<UI.Module3D.Module3DUI>();
+            ApplicationState.GlobalExceptionManager = FindObjectOfType<GlobalExceptionManager>();
             ApplicationState.ProjectTMPFolder = GetProjectTMPDirectory();
         }
 

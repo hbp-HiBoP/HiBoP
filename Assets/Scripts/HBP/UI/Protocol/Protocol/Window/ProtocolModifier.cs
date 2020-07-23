@@ -5,6 +5,9 @@ using d = HBP.Data.Experience.Protocol;
 
 namespace HBP.UI.Experience.Protocol
 {
+    /// <summary>
+    /// Window to modify a protocol.
+    /// </summary>
 	public class ProtocolModifier : ObjectModifier<d.Protocol> 
 	{
         #region Properties
@@ -13,6 +16,9 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] Button m_CreateBlocButton;
         [SerializeField] Button m_RemoveBlocButton;
 
+        /// <summary>
+        /// True if interactable, False otherwise.
+        /// </summary>
         public override bool Interactable
         {
             get
@@ -34,16 +40,23 @@ namespace HBP.UI.Experience.Protocol
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Initialize the window.
+        /// </summary>
         protected override void Initialize()
         {
             base.Initialize();
 
-            m_NameInputField.onEndEdit.AddListener(OnChangeName);
+            m_NameInputField.onEndEdit.AddListener(ChangeName);
 
             m_BlocListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
-            m_BlocListGestion.List.OnAddObject.AddListener(OnAddBloc);
-            m_BlocListGestion.List.OnRemoveObject.AddListener(OnRemoveBloc);
+            m_BlocListGestion.List.OnAddObject.AddListener(AddBloc);
+            m_BlocListGestion.List.OnRemoveObject.AddListener(RemoveBloc);
         }
+        /// <summary>
+        /// Set the fields
+        /// </summary>
+        /// <param name="objectToDisplay">Protocol to display</param>
         protected override void SetFields(d.Protocol objectToDisplay)
         {
             base.SetFields();
@@ -51,25 +64,36 @@ namespace HBP.UI.Experience.Protocol
             m_NameInputField.text = objectToDisplay.Name;
             m_BlocListGestion.List.Set(objectToDisplay.Blocs);
         }
-
-        protected void OnChangeName(string value)
+        /// <summary>
+        /// Change the name.
+        /// </summary>
+        /// <param name="value">Name of the protocol</param>
+        protected void ChangeName(string value)
         {
             if(value != "")
             {
-                ItemTemp.Name = value;
+                ObjectTemp.Name = value;
             }
             else
             {
-                m_NameInputField.text = ItemTemp.Name;
+                m_NameInputField.text = ObjectTemp.Name;
             }
         }
-        protected void OnAddBloc(d.Bloc bloc)
+        /// <summary>
+        /// Add bloc to the protocol.
+        /// </summary>
+        /// <param name="bloc">Bloc to add</param>
+        protected void AddBloc(d.Bloc bloc)
         {
-            ItemTemp.Blocs.AddIfAbsent(bloc);
+            ObjectTemp.Blocs.AddIfAbsent(bloc);
         }
-        protected void OnRemoveBloc(d.Bloc bloc)
+        /// <summary>
+        /// Remove bloc to the protocol.
+        /// </summary>
+        /// <param name="bloc">Bloc to remove</param>
+        protected void RemoveBloc(d.Bloc bloc)
         {
-            ItemTemp.Blocs.Remove(bloc);
+            ObjectTemp.Blocs.Remove(bloc);
         }
         #endregion
     }

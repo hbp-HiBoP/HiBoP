@@ -5,17 +5,83 @@ using Tools.CSharp.EEG;
 
 namespace HBP.Data.Experience.Protocol
 {
+    /// <summary>
+    /// Class which define a rescale treatment to apply at a subBloc.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <term><b>ID</b></term>
+    /// <description>Unique identifier.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Order</b></term> 
+    /// <description>Order of the treatment.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>BeforeMin</b></term> 
+    /// <description>Minimum Value before rescaled the values.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>BeforeMax</b></term> 
+    /// <description>Maximum Value before rescaled the values.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>AfterMin</b></term> 
+    /// <description>Minimum Value after rescaled the values.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>AfterMax</b></term> 
+    /// <description>Maximum Value after rescaled the values.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>UseOnWindow</b></term> 
+    /// <description>True if we apply the treatment on the window, False otherwise.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Window</b></term> 
+    /// <description>Temporal window to apply the treatment on the window of the subBloc.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>UseOnBaseline</b></term> 
+    /// <description>True if we apply the treatment on the baseline, False otherwise.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Baseline</b></term> 
+    /// <description>Temporal window to apply the treatment on the baseline of the subBloc</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     [DataContract, DisplayName("Threshold")]
     public class ThresholdTreatment : Treatment
     {
         #region Properties
+        /// <summary>
+        /// True to set a minimun treshold, False otherwise.
+        /// </summary>
         [DataMember] public bool UseMinTreshold { get; set; }
+        /// <summary>
+        /// Minimum treshold.
+        /// </summary>
         [DataMember] public float Min { get; set; }
+        /// <summary>
+        /// True to set a maximum treshold, False otherwise.
+        /// </summary>
         [DataMember] public bool UseMaxTreshold { get; set; }
+        /// <summary>
+        /// Maximum treshold.
+        /// </summary>
         [DataMember] public float Max { get; set; }
         #endregion
 
         #region Constructors
+        /// <summary>
+        /// Create a new ThresholdTreatment instance with default values.
+        /// </summary>
         public ThresholdTreatment(): base()
         {
             UseMinTreshold = false;
@@ -23,6 +89,10 @@ namespace HBP.Data.Experience.Protocol
             Min = 0;
             Max = 1;
         }
+        /// <summary>
+        /// Create a new ThresholdTreatment instance with default values and a specified unique identifier.
+        /// </summary>
+        /// <param name="ID">Unique identifier</param>
         public ThresholdTreatment(string ID) : base(ID)
         {
             UseMinTreshold = false;
@@ -30,6 +100,19 @@ namespace HBP.Data.Experience.Protocol
             Min = 0;
             Max = 1;
         }
+        /// <summary>
+        /// Create a new MedianTreatment instance.
+        /// </summary>
+        /// <param name="useOnWindow">True if we apply the treatment on the window, False otherwise</param>
+        /// <param name="window">Temporal window to apply the treatment on the window of the subBloc</param>
+        /// <param name="useOnBaseline">True if we apply the treatment on the baseline, False otherwise</param>
+        /// <param name="baseline">Temporal window to apply the treatment on the baseline of the subBloc</param>
+        /// <param name="useMinTreshold">True to set a minimun treshold, False otherwise</param>
+        /// <param name="min">Minimum treshold</param>
+        /// <param name="useMaxTreshold">True to set a maximum treshold, False otherwise</param>
+        /// <param name="max">Maximum treshold</param>
+        /// <param name="order">Order of the treatment</param>
+        /// <param name="ID">Unique identifier</param>
         public ThresholdTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, bool useMinTreshold, float min, bool useMaxTreshold, float max, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
         {
             UseMinTreshold = useMinTreshold;

@@ -5,6 +5,9 @@ using Tools.CSharp;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// Window to modify site.
+    /// </summary>
     public class SiteModifier : ObjectModifier<Data.Site>
     {
         #region Properties
@@ -12,6 +15,9 @@ namespace HBP.UI
         [SerializeField] CoordinateListGestion m_CoordinateListGestion;
         [SerializeField] TagValueListGestion m_TagValueListGestion;
 
+        /// <summary>
+        /// True if interactable, False otherwise.
+        /// </summary>
         public override bool Interactable
         {
             get
@@ -31,6 +37,9 @@ namespace HBP.UI
         #endregion
 
         #region Protected Methods
+        /// <summary>
+        /// Initialize the window.
+        /// </summary>
         protected override void Initialize()
         {
             base.Initialize();
@@ -47,7 +56,10 @@ namespace HBP.UI
             m_TagValueListGestion.List.OnRemoveObject.AddListener(OnRemoveTag);
             m_TagValueListGestion.List.OnUpdateObject.AddListener(OnUpdateTag);
         }
-
+        /// <summary>
+        /// Set the fields.
+        /// </summary>
+        /// <param name="objectToDisplay">Site to display</param>
         protected override void SetFields(Data.Site objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
@@ -55,50 +67,75 @@ namespace HBP.UI
             m_TagValueListGestion.Tags = ApplicationState.ProjectLoaded.Preferences.SitesTags.Concat(ApplicationState.ProjectLoaded.Preferences.GeneralTags).ToArray();
             m_TagValueListGestion.List.Set(objectToDisplay.Tags);
         }
-
+        /// <summary>
+        /// Called when the value on the nameInputField changed.
+        /// </summary>
+        /// <param name="value"></param>
         protected void OnChangeName(string value)
         {
             if(value != "")
             {
-                ItemTemp.Name = value;
+                ObjectTemp.Name = value;
             }
             else
             {
-                m_NameInputField.text = ItemTemp.Name;
+                m_NameInputField.text = ObjectTemp.Name;
             }
         }
-
+        /// <summary>
+        /// Called when a coordinate is added to the site.
+        /// </summary>
+        /// <param name="coordinate">Coordinate added</param>
         protected void OnAddCoordinate(Data.Coordinate coordinate)
         {
-            ItemTemp.Coordinates.AddIfAbsent(coordinate);
+            ObjectTemp.Coordinates.AddIfAbsent(coordinate);
         }
+        /// <summary>
+        /// Called when a coordinate is removed from the site.
+        /// </summary>
+        /// <param name="coordinate">Coordinate removed</param>
         protected void OnRemoveCoordinate(Data.Coordinate coordinate)
         {
-            ItemTemp.Coordinates.Remove(coordinate);
+            ObjectTemp.Coordinates.Remove(coordinate);
         }
+        /// <summary>
+        /// Called when a coordinate is updated from the site.
+        /// </summary>
+        /// <param name="coordinate">Coordiate updated</param>
         protected void OnUpdateCoordinate(Data.Coordinate coordinate)
         {
-            int index = ItemTemp.Coordinates.FindIndex(c => c.Equals(coordinate));
+            int index = ObjectTemp.Coordinates.FindIndex(c => c.Equals(coordinate));
             if (index != -1)
             {
-                ItemTemp.Coordinates[index] = coordinate;
+                ObjectTemp.Coordinates[index] = coordinate;
             }
         }
-
+        /// <summary>
+        /// Called when a tag is added to the site.
+        /// </summary>
+        /// <param name="tag">Tag added</param>
         protected void OnAddTag(Data.BaseTagValue tag)
         {
-            ItemTemp.Tags.AddIfAbsent(tag);
+            ObjectTemp.Tags.AddIfAbsent(tag);
         }
+        /// <summary>
+        /// Called when a tag is removed from the site.
+        /// </summary>
+        /// <param name="tag">Tag removed</param>
         protected void OnRemoveTag(Data.BaseTagValue tag)
         {
-            ItemTemp.Tags.Remove(tag);
+            ObjectTemp.Tags.Remove(tag);
         }
+        /// <summary>
+        /// Called when a tag is updated from the site.
+        /// </summary>
+        /// <param name="tag"></param>
         protected void OnUpdateTag(Data.BaseTagValue tag)
         {
-            int index = ItemTemp.Tags.FindIndex(t => t.Equals(tag));
+            int index = ObjectTemp.Tags.FindIndex(t => t.Equals(tag));
             if(index != -1)
             {
-                ItemTemp.Tags[index] = tag;
+                ObjectTemp.Tags[index] = tag;
             }
         }
         #endregion

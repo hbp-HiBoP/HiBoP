@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace HBP.UI.Visualization
 {
+    /// <summary>
+    /// List to display visualizations.
+    /// </summary>
     public class VisualizationList : Tools.Unity.Lists.ActionableList<Data.Visualization.Visualization>
     {
         #region Properties
@@ -24,12 +27,12 @@ namespace HBP.UI.Visualization
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Name).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Name).ToList();
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     m_OrderBy = OrderBy.Name;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Name).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Name).ToList();
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     m_OrderBy = OrderBy.DescendingName;
                     break;
@@ -59,12 +62,12 @@ namespace HBP.UI.Visualization
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Patients.Count).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Patients.Count).ToList();
                     m_PatientsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     m_OrderBy = OrderBy.Patients;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Patients.Count).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Patients.Count).ToList();
                     m_PatientsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     m_OrderBy = OrderBy.DescendingPatients;
                     break;
@@ -94,12 +97,12 @@ namespace HBP.UI.Visualization
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Columns.Count).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Columns.Count).ToList();
                     m_ColumnsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     m_OrderBy = OrderBy.Columns;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Columns.Count).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Columns.Count).ToList();
                     m_ColumnsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     m_OrderBy = OrderBy.DescendingColumns;
                     break;

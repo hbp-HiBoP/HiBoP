@@ -4,6 +4,9 @@ using Tools.Unity.Lists;
 
 namespace HBP.UI.Experience.Protocol
 {
+    /// <summary>
+    /// List to display subBlocs.
+    /// </summary>
     public class SubBlocList : ActionableList<Data.Experience.Protocol.SubBloc>
     {
         #region Properties
@@ -11,26 +14,19 @@ namespace HBP.UI.Experience.Protocol
             Name, DescendingName,
             Order, DescendingOrder,
             Events, DescendingEvents,
-            /*Image, DescendingImage,*/
             Icons, DescendingIcons,
             Treatments, DescendingTreatments,
             StartWindow, DescendingStartWindow,
             EndWindow, DescendingEndWindow,
-            Type, DescendingType,
-            /*StartBaseline, DescendingStartBaseline,
-            EndBaseline, DescendingEndBaseline*/
+            Type, DescendingType
         }
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
         [SerializeField] SortingDisplayer m_OrderSortingDisplayer;
-        /*[SerializeField] SortingDisplayer m_ImageSortingDisplayer;*/
 
         [SerializeField] SortingDisplayer m_StartWindowSortingDisplayer;
         [SerializeField] SortingDisplayer m_EndWindowSortingDisplayer;
-
-        //[SerializeField] SortingDisplayer m_StartBaselineSortingDisplayer;
-        //[SerializeField] SortingDisplayer m_EndBaselineSortingDisplayer;
 
         [SerializeField] SortingDisplayer m_EventsSortingDisplayer;
         [SerializeField] SortingDisplayer m_IconsSortingDisplayer;
@@ -48,23 +44,20 @@ namespace HBP.UI.Experience.Protocol
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Name).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Name).ToList();
                     m_OrderBy = OrderBy.Name;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Name).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Name).ToList();
                     m_OrderBy = OrderBy.DescendingName;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
             Refresh();
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            /*m_ImageSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;*/
             m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            //m_StartBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            //m_EndBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_IconsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -91,23 +84,20 @@ namespace HBP.UI.Experience.Protocol
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Order).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Order).ToList();
                     m_OrderBy = OrderBy.Order;
                     m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Order).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Order).ToList();
                     m_OrderBy = OrderBy.DescendingOrder;
                     m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            /*m_ImageSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;*/
             m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            //m_StartBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            //m_EndBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_IconsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -125,50 +115,6 @@ namespace HBP.UI.Experience.Protocol
             }
         }
 
-        /*
-        /// <summary>
-        /// Sort by image.
-        /// </summary>
-        /// <param name="sorting">Sorting</param>
-        public void SortByImage(Sorting sorting)
-        {
-            switch (sorting)
-            {
-                case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Il).ToList();
-                    m_OrderBy = OrderBy.Image;
-                    m_ImageSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
-                    break;
-                case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.IllustrationPath).ToList();
-                    m_OrderBy = OrderBy.DescendingImage;
-                    m_ImageSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
-                    break;
-            }
-            Refresh();
-            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_MinWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_MaxWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_MinBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_MaxBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_IconsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        }
-        /// <summary>
-        /// Sort by image.
-        /// </summary>
-        public void SortByImage()
-        {
-            switch (m_OrderBy)
-            {
-                case OrderBy.DescendingImage: SortByImage(Sorting.Ascending); break;
-                default: SortByImage(Sorting.Descending); break;
-            }
-        }
-        */
-
         /// <summary>
         /// Sort by start window.
         /// </summary>
@@ -178,12 +124,12 @@ namespace HBP.UI.Experience.Protocol
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Window.Start).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Window.Start).ToList();
                     m_OrderBy = OrderBy.StartWindow;
                     m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Window.Start).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Window.Start).ToList();
                     m_OrderBy = OrderBy.DescendingStartWindow;
                     m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -192,8 +138,6 @@ namespace HBP.UI.Experience.Protocol
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            //m_StartBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            //m_EndBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_IconsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -220,12 +164,12 @@ namespace HBP.UI.Experience.Protocol
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Window.End).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Window.End).ToList();
                     m_OrderBy = OrderBy.StartWindow;
                     m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Window.End).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Window.End).ToList();
                     m_OrderBy = OrderBy.DescendingStartWindow;
                     m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -234,8 +178,6 @@ namespace HBP.UI.Experience.Protocol
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            //m_StartBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            //m_EndBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_IconsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -254,88 +196,6 @@ namespace HBP.UI.Experience.Protocol
         }
 
         /// <summary>
-        /// Sort by start baseline.
-        /// </summary>
-        /// <param name="sorting">Sorting</param>
-        //public void SortByStartBaseline(Sorting sorting)
-        //{
-        //    switch (sorting)
-        //    {
-        //        case Sorting.Ascending:
-        //            m_Objects = m_Objects.OrderByDescending((elt) => elt.Baseline.Start).ToList();
-        //            m_OrderBy = OrderBy.StartWindow;
-        //            m_StartBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
-        //            break;
-        //        case Sorting.Descending:
-        //            m_Objects = m_Objects.OrderBy((elt) => elt.Baseline.Start).ToList();
-        //            m_OrderBy = OrderBy.DescendingStartWindow;
-        //            m_StartBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
-        //            break;
-        //    }
-        //    Refresh();
-        //    m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //    m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //    m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //    m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //    //m_EndBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //    m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //    m_IconsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //    m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //}
-        /// <summary>
-        /// Sort by start baseline.
-        /// </summary>
-        //public void SortByStartBaseline()
-        //{
-        //    switch (m_OrderBy)
-        //    {
-        //        case OrderBy.DescendingStartWindow: SortByStartBaseline(Sorting.Ascending); break;
-        //        default: SortByStartBaseline(Sorting.Descending); break;
-        //    }
-        //}
-
-        /// <summary>
-        /// Sort by end window.
-        /// </summary>
-        /// <param name="sorting">Sorting</param>
-        //public void SortByEndBaseline(Sorting sorting)
-        //{
-        //    switch (sorting)
-        //    {
-        //        case Sorting.Ascending:
-        //            m_Objects = m_Objects.OrderByDescending((elt) => elt.Baseline.End).ToList();
-        //            m_OrderBy = OrderBy.StartWindow;
-        //            m_EndBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
-        //            break;
-        //        case Sorting.Descending:
-        //            m_Objects = m_Objects.OrderBy((elt) => elt.Baseline.End).ToList();
-        //            m_OrderBy = OrderBy.DescendingStartWindow;
-        //            m_EndBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
-        //            break;
-        //    }
-        //    Refresh();
-        //    m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //    m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //    m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //    m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //    m_StartBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //    m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //    m_IconsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //    m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        //}
-        /// <summary>
-        /// Sort by end window.
-        /// </summary>
-        //public void SortByEndBaseline()
-        //{
-        //    switch (m_OrderBy)
-        //    {
-        //        case OrderBy.DescendingStartWindow: SortByEndBaseline(Sorting.Ascending); break;
-        //        default: SortByEndBaseline(Sorting.Descending); break;
-        //    }
-        //}
-
-        /// <summary>
         /// Sort by events.
         /// </summary>
         /// <param name="sorting">Sorting</param>
@@ -344,12 +204,12 @@ namespace HBP.UI.Experience.Protocol
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Events.Count()).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Events.Count()).ToList();
                     m_OrderBy = OrderBy.Events;
                     m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Events.Count()).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Events.Count()).ToList();
                     m_OrderBy = OrderBy.DescendingEvents;
                     m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -359,8 +219,6 @@ namespace HBP.UI.Experience.Protocol
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            //m_StartBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            //m_EndBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_IconsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -386,12 +244,12 @@ namespace HBP.UI.Experience.Protocol
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Icons.Count()).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Icons.Count()).ToList();
                     m_OrderBy = OrderBy.Icons;
                     m_IconsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Icons.Count()).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Icons.Count()).ToList();
                     m_OrderBy = OrderBy.DescendingIcons;
                     m_IconsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -401,8 +259,6 @@ namespace HBP.UI.Experience.Protocol
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            //m_StartBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            //m_EndBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -428,12 +284,12 @@ namespace HBP.UI.Experience.Protocol
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Treatments.Count()).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Treatments.Count()).ToList();
                     m_OrderBy = OrderBy.Icons;
                     m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Treatments.Count()).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Treatments.Count()).ToList();
                     m_OrderBy = OrderBy.DescendingIcons;
                     m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -443,8 +299,6 @@ namespace HBP.UI.Experience.Protocol
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            //m_StartBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            //m_EndBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_IconsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -470,12 +324,12 @@ namespace HBP.UI.Experience.Protocol
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Type).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Type).ToList();
                     m_OrderBy = OrderBy.Type;
                     m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Type).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Type).ToList();
                     m_OrderBy = OrderBy.DescendingType;
                     m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -485,8 +339,6 @@ namespace HBP.UI.Experience.Protocol
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            //m_StartBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            //m_EndBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_IconsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -514,8 +366,6 @@ namespace HBP.UI.Experience.Protocol
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            //m_StartBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            //m_EndBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_IconsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;

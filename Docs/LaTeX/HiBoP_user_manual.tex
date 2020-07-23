@@ -133,7 +133,7 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
       "Coordinates": [
         {
           "ReferenceSystem": "Patient",
-          "Value": {
+          "Position": {
             "x": -50.48,
             "y": 22.36,
             "z": 14.27
@@ -142,7 +142,7 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
         },
         {
           "ReferenceSystem": "MNI",
-          "Value": {
+          "Position": {
             "x": -42.59,
             "y": 25.96,
             "z": 12.69
@@ -242,7 +242,7 @@ A dataset is a list of data information, each of them connecting one patient (an
   "Protocol": "e86143f2-17e6-45f4-a519-45e0dd2ace67",
   "Data": [
     {
-      "$type": "HBP.Data.Experience.Dataset.iEEGDataInfo, Assembly-CSharp",
+      "$type": "HBP.Data.Experience.Dataset.IEEGDataInfo, Assembly-CSharp",
       "Patient": "a85b0652-d5d1-4695-bcd5-dacd56718612",
       "Name": "gamma",
       "DataContainer": {
@@ -363,6 +363,11 @@ A dataset is a list of data information, each of them connecting one patient (an
 \begin{itemize}
 \item \textbf{Averaging method}: Method to average the data (mean or median)
 \item \textbf{Normalizing method}: The following formula is applied to each value $v$ $$v = \frac{v - \mu_{b}}{\sigma_{b}}$$ where $b$ is an array of the baseline values depending on this parameter, $\mu_b$ is their mean and $\sigma_b$ is their standard deviation
+\end{itemize}
+\item \textbf{Correlations}
+\begin{itemize}
+\item \textbf{Alpha threshold}: Alpha value to be compared to the p-values resulting from the Wilcoxon test when computing correlations between channels (see Appendix \ref{correlations} for more information)
+\item \textbf{Use Bonferroni correction}: If true, the alpha value set above will be divided by the number of Wilcoxon tests performed, that is $\frac{N \times (N - 1)}{2}$ for $N$ channels
 \end{itemize}
 \end{itemize}
 \item \textbf{Protocol}
@@ -660,6 +665,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Display both parts, only the left part or only the right part of the selected mesh (only works for left-right meshes).
 \item Display the edges of the mesh.
 \item Switch between the soft cut mode (keep everything behind a cut) and the hard cut mode (cut everything in front of a cut).
+\item Make the brain transparent (adjust the transparency using the slider). You can not display the edges when the brain is transparent.
 \item Change the colormap of the iEEG values.
 \item Change the color of the brain.
 \item Change the color of the cuts.
@@ -697,6 +703,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Change the transparency of the iEEG value on the brain surface
 \item Change the threshold values for the iEEG (anything less than the minimum value will be of the same color as the minimum value, the same apply for the maximum value; the rest of the values will increase linearly from minimum to middle and then increase linearly from middle to maximum). You can change these values by either using the sliders or editing the numbers in the boxes. There are 2 modes : the symmetric mode allows you to set the middle value and the amplitude, whereas the asymmetric mode allows you to set each value independently.
 \item Compute the iEEG values on the brain surface or clean the brain.
+\item Compute and display the correlations between all sites in a single patient visualization. See Appendix \ref{correlations} for more information about the computation method.
 \end{itemize}
 \subsubsection{CCEP settings}
 \begin{figure}[H]
@@ -859,4 +866,8 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item \textbf{IntrAnat CSV}: this *.csv file which separator is tabulation also comes from IntrAnat and is used to get tags for the sites (the name of the tag being in the header of the csv).
 \item \textbf{BIDS TSV}: this *\_electrodes.tsv file specified in the BIDS format can be used to add positions and tags at once.
 \end{itemize}
+\section{Channel correlations}\label{correlations}
+\paragraph{} This section explains how the correlations between channels are computed. This is the only statistical computation that is present within HiBoP.
+\paragraph{} Let $(A,B)$ be a pair of channels we want to compute correlations of. Let $S_A(i)$ (respectively $S_B(i)$) be the values of the signal of the channel A (respectively B) for the trial number $i$. We compute $R_{ij} = pearson(S_A(i),S_B(j))$ for each pair $(i,j)$ of trials, where $pearson$ represents the computation of the pearson coefficient for the two sets of values. We sort these values into two sets: one set $E_1$ is composed of all the $R_{ii}$, the other $E_2$ is composed of all the $R_{ij}$ where $i \neq j$.
+\paragraph{} Then we compute a Wilcoxon rank-sum test between $E_1$ and $E_2$. This gives us a p-value $p$. This p-value is then compared to the "Alpha threshold" value set in the User Preferences of HiBoP, eventually modified using the Bonferroni correction where appropriate.
 \end{document}

@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// List to display MRIs.
+    /// </summary>
     public class MRIList : Tools.Unity.Lists.ActionableList<Data.MRI>
     {
         #region Properties
@@ -23,12 +26,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Name).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Name).ToList();
                     m_OrderBy = OrderBy.Name;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Name).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Name).ToList();
                     m_OrderBy = OrderBy.DescendingName;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -57,12 +60,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.HasMRI).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.HasMRI).ToList();
                     m_OrderBy = OrderBy.HasMRI;
                     m_HasMRISortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.HasMRI).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.HasMRI).ToList();
                     m_OrderBy = OrderBy.DescendingHasMRI;
                     m_HasMRISortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;

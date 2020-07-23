@@ -40,24 +40,28 @@ namespace HBP.Data.Preferences
         #region Properties
         [DataMember] public AveragingType Averaging { get; set; }
         [DataMember] public NormalizationType Normalization { get; set; }
+        [DataMember] public float CorrelationAlpha { get; set; }
+        [DataMember] public bool BonferroniCorrection { get; set; }
         #endregion
 
         #region Constructors
-        public EEGPreferences() : this(AveragingType.Median, NormalizationType.None)
+        public EEGPreferences() : this(AveragingType.Median, NormalizationType.None, 0.05f, true)
         {
 
         }
-        public EEGPreferences(AveragingType averaging, NormalizationType normalization)
+        public EEGPreferences(AveragingType averaging, NormalizationType normalization, float correlationAlpha, bool bonferroniCorrection)
         {
             Averaging = averaging;
             Normalization = normalization;
+            CorrelationAlpha = correlationAlpha;
+            BonferroniCorrection = bonferroniCorrection;
         }
         #endregion
 
         #region Public Methods
         public object Clone()
         {
-            return new EEGPreferences(Averaging, Normalization);
+            return new EEGPreferences(Averaging, Normalization, CorrelationAlpha, BonferroniCorrection);
         }
         #endregion
     }

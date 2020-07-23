@@ -9,6 +9,13 @@ namespace HBP.Data.Experience.Dataset
         #region Properties
         public Dictionary<SubBloc, ChannelSubTrial> ChannelSubTrialBySubBloc { get; set; }
         public bool IsValid { get; set; }
+        public float[] Values
+        {
+            get
+            {
+                return ChannelSubTrialBySubBloc.OrderBy(kv => kv.Key.Order).SelectMany(kv => kv.Value.Values).ToArray();
+            }
+        }
         #endregion
 
         #region Constructor

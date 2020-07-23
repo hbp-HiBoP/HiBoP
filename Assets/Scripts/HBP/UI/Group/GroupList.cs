@@ -4,7 +4,7 @@ using UnityEngine;
 namespace HBP.UI
 {
     /// <summary>
-    /// Manage group list
+    /// List to display groups.
     /// </summary>
     public class GroupList : Tools.Unity.Lists.ActionableList<Data.Group>
     {
@@ -26,12 +26,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Name).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Name).ToList();
                     m_OrderBy = OrderBy.Name;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Name).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Name).ToList();
                     m_OrderBy = OrderBy.DescendingName;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -60,12 +60,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Patients.Count).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Patients.Count).ToList();
                     m_OrderBy = OrderBy.Patients;
                     m_PatientsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Patients.Count).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Patients.Count).ToList();
                     m_OrderBy = OrderBy.DescendingPatients;
                     m_PatientsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;

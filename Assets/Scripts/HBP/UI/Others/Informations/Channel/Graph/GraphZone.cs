@@ -300,7 +300,7 @@ namespace HBP.UI.Informations
             Dictionary<Patient, PatientDataInfo> dataInfoByPatient = new Dictionary<Patient, PatientDataInfo>(ChannelsByPatient.Count);
             if (column.Data is Data.Informations.IEEGData ieegDataStruct)
             {
-                iEEGDataInfo[] ieegDataInfo = ieegDataStruct.Dataset.GetIEEGDataInfos();
+                IEEGDataInfo[] ieegDataInfo = ieegDataStruct.Dataset.GetIEEGDataInfos();
                 foreach (var patient in ChannelsByPatient.Keys)
                 {
                     dataInfoByPatient.Add(patient, ieegDataInfo.First(d => d.Patient == patient && d.Name == ieegDataStruct.Name));

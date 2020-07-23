@@ -6,6 +6,8 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using NewTheme.Components;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace HBP.UI.Module3D
 {
@@ -32,6 +34,18 @@ namespace HBP.UI.Module3D
         /// Reference to the selection ring used to display which site is currently selected in this view
         /// </summary>
         [SerializeField] private SelectionRing m_SelectionRing;
+        /// <summary>
+        /// Parent containing all correlation rings
+        /// </summary>
+        [SerializeField] private RectTransform m_CorrelationRingsParent;
+        /// <summary>
+        /// Prefab of the correlation ring
+        /// </summary>
+        [SerializeField] private GameObject m_CorrelationRingPrefab;
+        /// <summary>
+        /// Prefab for the correlation ring of the selected site for correlations
+        /// </summary>
+        [SerializeField] private GameObject m_BaseCorrelationRingPrefab;
 
         /// <summary>
         /// Associated logical scene 3D
@@ -182,6 +196,47 @@ namespace HBP.UI.Module3D
                 m_Scene.PassiveRaycastOnScene(ray, m_Column);
             }
         }
+        /// <summary>
+        /// Callback method when selecting a site
+        /// </summary>
+        /// <param name="site">Site that has been selected</param>
+        private void OnSelectSite(Site site)
+        {
+            m_SelectionRing.Site = site;
+            UpdateCorrelationsOverlay();
+        }
+        /// <summary>
+        /// Update the overlay circles to display the correlations between the selected site of the column and all other sites
+        /// </summary>
+        private void UpdateCorrelationsOverlay()
+        {
+            if (m_Column is Column3DIEEG column)
+            {
+                foreach (Transform transfo in m_CorrelationRingsParent)
+                {
+                    Destroy(transfo.gameObject);
+                }
+                if (m_Scene.DisplayCorrelations)
+                {
+                    // If using the CompareSite feature, keep the site to compare focused
+                    Site baseSite = m_Scene.ImplantationManager.SiteToCompare != null ? m_Scene.ImplantationManager.SiteToCompare : column.SelectedSite;
+                    if (baseSite != null)
+                    {
+                        foreach (var correlatedSite in column.CorrelatedSites(baseSite))
+                        {
+                            SelectionRing ring = Instantiate(m_CorrelationRingPrefab, m_CorrelationRingsParent).GetComponent<SelectionRing>();
+                            ring.ViewCamera = m_View.Camera;
+                            ring.Viewport = m_RectTransform;
+                            ring.Site = correlatedSite;
+                        }
+                        SelectionRing baseRing = Instantiate(m_BaseCorrelationRingPrefab, m_CorrelationRingsParent).GetComponent<SelectionRing>();
+                        baseRing.ViewCamera = m_View.Camera;
+                        baseRing.Viewport = m_RectTransform;
+                        baseRing.Site = baseSite;
+                    }
+                }
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -308,7 +363,9 @@ namespace HBP.UI.Module3D
 
             m_SelectionRing.ViewCamera = view.Camera;
             m_SelectionRing.Viewport = m_RectTransform;
-            m_Column.OnSelectSite.AddListener((site) => { m_SelectionRing.Site = site; });
+            m_Column.OnSelectSite.AddListener(OnSelectSite);
+            m_Scene.OnChangeDisplayCorrelations.AddListener(UpdateCorrelationsOverlay);
+            OnSelectSite(m_Column.SelectedSite);
         }
         /// <summary>
         /// Create a ray corresponding to the mouse position in the viewport of the view

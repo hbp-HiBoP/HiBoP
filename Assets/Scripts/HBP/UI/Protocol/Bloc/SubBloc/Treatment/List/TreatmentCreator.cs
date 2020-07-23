@@ -6,7 +6,11 @@ namespace HBP.UI.Experience.Protocol
 {
     public class TreatmentCreator : ObjectCreator<Treatment>
     {
+        #region Properties
         Tools.CSharp.Window m_Window;
+        /// <summary>
+        /// SubBloc Window.
+        /// </summary>
         public Tools.CSharp.Window Window
         {
             get
@@ -24,6 +28,9 @@ namespace HBP.UI.Experience.Protocol
         }
 
         Tools.CSharp.Window m_Baseline;
+        /// <summary>
+        /// SubBloc Baseline.
+        /// </summary>
         public Tools.CSharp.Window Baseline
         {
             get
@@ -39,12 +46,24 @@ namespace HBP.UI.Experience.Protocol
                 }
             }
         }
+        #endregion
 
+        #region Public Methods
+        /// <summary>
+        /// Create Treatment from Scrath.
+        /// </summary>
         public override void CreateFromScratch()
         {
             OpenModifier(new AbsTreatment(true,Window,false,Baseline,0));
         }
+        #endregion
 
+        #region Protected Methods
+        /// <summary>
+        /// Open a Treatment modifier.
+        /// </summary>
+        /// <param name="item">Treatment to modify</param>
+        /// <returns>Treatment modifier</returns>
         protected override ObjectModifier<Treatment> OpenModifier(Treatment item)
         {
             TreatmentModifier modifier =  base.OpenModifier(item) as TreatmentModifier;
@@ -52,5 +71,6 @@ namespace HBP.UI.Experience.Protocol
             modifier.Baseline = Baseline;
             return modifier;
         }
+        #endregion
     }
 }

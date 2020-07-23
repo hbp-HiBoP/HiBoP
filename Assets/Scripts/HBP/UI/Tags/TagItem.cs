@@ -5,6 +5,9 @@ using UnityEngine.UI;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// Component to display tag in list.
+    /// </summary>
     public class TagItem : ActionnableItem<Data.BaseTag>
     {
         #region Properties

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using Tools.Unity;
@@ -8,28 +7,63 @@ using System.ComponentModel;
 
 namespace HBP.Data.Container
 {
-    [DataContract, DisplayName("BrainVision"), iEEG, CCEP]
+    /// <summary>
+    /// Class which contains IEEG or CCEP data in the BrainVision data format.
+    /// </summary>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <term><b>ID</b></term>
+    /// <description>Unique identifier.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Errors</b></term>
+    /// <description>Errors of the dataContainer.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Header</b></term>
+    /// <description>Path to the BrainVision header file.</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    [DataContract, DisplayName("BrainVision"), IEEG, CCEP]
     public class BrainVision : DataContainer
     {
         #region Properties
+        /// <summary>
+        /// Brain vision header extension.
+        /// </summary>
         const string HEADER_EXTENSION = ".vhdr";
 
-        [DataMember(Name = "Header")] string m_Header;
         /// <summary>
-        /// Path of the EEG file.
+        /// Path to the BrainVision header file with Alias.
+        /// </summary>
+        [DataMember(Name = "Header")] public string SavedHeader { get; protected set; }
+        /// <summary>
+        /// Path to the BrainVision format header file without Alias.
         /// </summary>
         public string Header
         {
-            get { return m_Header?.ConvertToFullPath(); }
-            set { m_Header = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
+            get
+            {
+                return SavedHeader?.ConvertToFullPath();
+            }
+            set
+            {
+                SavedHeader = value?.ConvertToShortPath();
+                GetErrors();
+                OnRequestErrorCheck.Invoke();
+            }
         }
-        public string SavedHeader { get { return m_Header; } }
         #endregion
 
         #region Public Methods
         public override Error[] GetErrors()
         {
-            List<Error> errors = new List<Error>(base.GetErrors());
+            List<Error> errors = new List<Error>();
             if (string.IsNullOrEmpty(Header))
             {
                 errors.Add(new RequieredFieldEmptyError("BrainVision header file path is empty"));
@@ -52,19 +86,34 @@ namespace HBP.Data.Container
             m_Errors = errors.ToArray();
             return m_Errors;
         }
-        public override void CopyDataToDirectory(DirectoryInfo dataInfoDirectory, string projectDirectory, string oldProjectDirectory)
+        public override void CopyDataToDirectory(DirectoryInfo destinationDirectory, string projectDirectory, string oldProjectDirectory)
         {
             // TODO
         }
         #endregion
 
         #region Constructors
-        public BrainVision(string header, string id)
+        /// <summary>
+        /// Create a new BrainVision data container.
+        /// </summary>
+        /// <param name="header">Path to the BrainVision format header file</param>
+        /// <param name="ID">Unique identifier</param>
+        public BrainVision(string header, string ID) : base(ID)
         {
             Header = header;
-            ID = id;
         }
-        public BrainVision() : this(string.Empty, Guid.NewGuid().ToString())
+        /// <summary>
+        /// Create a new BrainVision data container.
+        /// </summary>
+        /// <param name="header">Path to the BrainVision format header file</param>
+        public BrainVision(string header) : base()
+        {
+            Header = header;
+        }
+        /// <summary>
+        /// Create a new BrainVision data container with default values.
+        /// </summary>
+        public BrainVision() : base()
         {
         }
         #endregion
@@ -87,10 +136,10 @@ namespace HBP.Data.Container
         #endregion
 
         #region Serialization
-        public override void OnDeserializedOperation(StreamingContext context)
+        protected override void OnDeserialized()
         {
-            m_Header = m_Header.ToPath();
-            base.OnDeserializedOperation(context);
+            base.OnSerialized();
+            SavedHeader = SavedHeader.StandardizeToEnvironement();
         }
         #endregion
     }

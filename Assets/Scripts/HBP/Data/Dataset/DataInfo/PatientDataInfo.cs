@@ -6,6 +6,45 @@ using System.Runtime.Serialization;
 
 namespace HBP.Data.Experience.Dataset
 {
+    /// <summary>
+    /// Class containing paths to functional data files related to a patient.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <term><b>Name</b></term>
+    /// <description>Name of the data.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Patient</b></term>
+    /// <description>Patient who has passed the experiment.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Data container</b></term>
+    /// <description>Data container containing all the paths to functional data files.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Dataset</b></term>
+    /// <description>Dataset the dataInfo belongs to.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>IsOk</b></term>
+    /// <description>True if the dataInfo is visualizable, False otherwise.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Errors</b></term>
+    /// <description>All dataInfo errors.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>OnRequestErrorCheck</b></term>
+    /// <description>Callback executed when error checking is required.</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     [DataContract, Hide]
     public class PatientDataInfo : DataInfo
     {
@@ -35,15 +74,31 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Constructors
+        /// <summary>
+        /// Create a new PatientDataInfo instance.
+        /// </summary>
+        /// <param name="name">Name of the patient dataInfo.</param>
+        /// <param name="dataContainer">Data container of the patient dataInfo.</param>
+        /// <param name="patient">Patient related to the data.</param>
+        /// <param name="ID">Unique identifier</param>
         public PatientDataInfo(string name, DataContainer dataContainer, Patient patient, string ID) : base(name, dataContainer, ID)
         {
             Patient = patient;
         }
+        /// <summary>
+        /// Create a new PatientDataInfo instance.
+        /// </summary>
+        /// <param name="name">Name of the patient dataInfo.</param>
+        /// <param name="dataContainer">Data container of the patient dataInfo.</param>
+        /// <param name="patient">Patient related to the data.</param>
         public PatientDataInfo(string name, DataContainer dataContainer, Patient patient) : base(name, dataContainer)
         {
             Patient = patient;
         }
-        public PatientDataInfo() : this("Data", new DataContainer(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault())
+        /// <summary>
+        /// Create a new PatientDataInfo instance.
+        /// </summary>
+        public PatientDataInfo() : this("Data", new Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault())
         {
         }
         #endregion
@@ -74,6 +129,10 @@ namespace HBP.Data.Experience.Dataset
             errors.AddRange(GetPatientErrors());
             return errors.Distinct().ToArray();
         }
+        /// <summary>
+        /// Get all dataInfo errors related to the patient.
+        /// </summary>
+        /// <returns></returns>
         public Error[] GetPatientErrors()
         {
             List<Error> errors = new List<Error>();
@@ -84,9 +143,9 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Serialization
-        public override void OnDeserializedOperation(StreamingContext context)
+        protected override void OnDeserialized()
         {
-            base.OnDeserializedOperation(context);
+            base.OnDeserialized();
             m_Patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == m_PatientID);
         }
         #endregion

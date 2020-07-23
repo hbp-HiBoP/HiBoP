@@ -156,6 +156,37 @@ namespace HBP.Module3D.DLL
             texture.Apply();
         }
         /// <summary>
+        /// Apply the texture2D to this texture
+        /// </summary>
+        /// <param name="texture">Texture2D to apply</param>
+        public void FromTexture2D(Texture2D texture)
+        {
+            Color32[] colors = texture.GetPixels32();
+            byte[] cols = new byte[colors.Length * 3];
+            for (int i = 0; i < colors.Length; i++)
+            {
+                Color32 col = colors[i];
+                cols[3 * i] = col.r;
+                cols[3 * i + 1] = col.g;
+                cols[3 * i + 2] = col.b;
+            }
+            set_colors_Texture(_handle, cols, colors.Length);
+        }
+        /// <summary>
+        /// Write text to this texture
+        /// </summary>
+        /// <param name="text">Text to be written</param>
+        /// <param name="x">X position of the text</param>
+        /// <param name="y">Y position of the text</param>
+        public void WriteText(string text, int x, int y)
+        {
+            write_text_Texture(_handle, text, x, y);
+        }
+        public void Reset(int width, int height)
+        {
+            reset_Texture(_handle, width, height);
+        }
+        /// <summary>
         /// Generate a texture representing the values of the voxels of the input volume as a histogram
         /// </summary>
         /// <param name="volume">Volume to get values from</param>
@@ -252,6 +283,12 @@ namespace HBP.Module3D.DLL
         static private extern int get_height_Texture(HandleRef handleTexture);
         [DllImport("hbp_export", EntryPoint = "update_Texture", CallingConvention = CallingConvention.Cdecl)]
         static private extern void update_Texture(HandleRef handleTexture, IntPtr colors, int alpha);
+        [DllImport("hbp_export", EntryPoint = "set_colors_Texture", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void set_colors_Texture(HandleRef handleTexture, byte[] colors, int length);
+        [DllImport("hbp_export", EntryPoint = "write_text_Texture", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void write_text_Texture(HandleRef handleTexture, string text, int x, int y);
+        [DllImport("hbp_export", EntryPoint = "reset_Texture", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void reset_Texture(HandleRef handleTexture, int width, int height);
         [DllImport("hbp_export", EntryPoint = "generate_distribution_histogram_Texture", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr generate_distribution_histogram_Texture(HandleRef handleVolume, int height, int width);
         [DllImport("hbp_export", EntryPoint = "generate_distribution_histogram_with_data_Texture", CallingConvention = CallingConvention.Cdecl)]

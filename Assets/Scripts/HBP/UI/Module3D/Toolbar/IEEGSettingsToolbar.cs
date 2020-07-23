@@ -43,6 +43,10 @@ namespace HBP.UI.Module3D
         /// Compute IEEG values
         /// </summary>
         [SerializeField] private Tools.ComputeIEEG m_ComputeIEEG;
+        /// <summary>
+        /// Compute and display site correlations
+        /// </summary>
+        [SerializeField] private Tools.SiteCorrelations m_SiteCorrelations;
         #endregion
 
         #region Private Methods
@@ -56,6 +60,7 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_IEEGTransparency);
             m_Tools.Add(m_IEEGSitesParameters);
             m_Tools.Add(m_ComputeIEEG);
+            m_Tools.Add(m_SiteCorrelations);
         }
         /// <summary>
         /// Add the listeners to the elements of the toolbar

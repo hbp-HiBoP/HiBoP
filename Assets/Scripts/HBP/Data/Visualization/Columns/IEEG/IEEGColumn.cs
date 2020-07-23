@@ -112,7 +112,7 @@ namespace HBP.Data.Visualization
         {
             foreach (Dataset dataset in ApplicationState.ProjectLoaded.Datasets)
             {
-                iEEGDataInfo[] iEEGDataInfos = dataset.GetIEEGDataInfos();
+                IEEGDataInfo[] iEEGDataInfos = dataset.GetIEEGDataInfos();
                 foreach (var dataName in dataset.Data.Select(data => data.Name).Distinct())
                 {
                     if (patients.All((patient) => iEEGDataInfos.Any((data) => (data.Patient == patient && data.Name == dataName))))
@@ -137,7 +137,7 @@ namespace HBP.Data.Visualization
         #region Public Methods
         public override bool IsCompatible(IEnumerable<Patient> patients)
         {
-            iEEGDataInfo[] iEEGDataInfos = Dataset?.GetIEEGDataInfos();
+            IEEGDataInfo[] iEEGDataInfos = Dataset?.GetIEEGDataInfos();
             return Dataset != null && Dataset.Protocol != null && Dataset.Protocol.IsVisualizable && patients.All((patient) => iEEGDataInfos.Any((data) => data.Name == DataName && data.Patient == patient && data.IsOk));
         }
         public override void Unload()

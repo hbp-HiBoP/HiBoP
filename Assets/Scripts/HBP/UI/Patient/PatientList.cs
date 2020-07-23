@@ -4,7 +4,7 @@ using UnityEngine;
 namespace HBP.UI
 {
 	/// <summary>
-	/// Manage patient list.
+	/// List to display patients.
 	/// </summary>
 	public class PatientList : Tools.Unity.Lists.ActionableList<Data.Patient>
 	{
@@ -22,6 +22,11 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Add patient to the list.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public override bool Add(Data.Patient obj)
         {
             SortByNone();
@@ -37,12 +42,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Name).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Name).ToList();
                     m_OrderBy = OrderBy.Name;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Name).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Name).ToList();
                     m_OrderBy = OrderBy.DescendingName;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -76,12 +81,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Place).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Place).ToList();
                     m_OrderBy = OrderBy.Place;
                     m_PlaceSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Place).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Place).ToList();
                     m_OrderBy = OrderBy.DescendingPlace;
                     m_PlaceSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -115,12 +120,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Date).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Date).ToList();
                     m_OrderBy = OrderBy.Date;
                     m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Date).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Date).ToList();
                     m_OrderBy = OrderBy.DescendingDate;
                     m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -154,12 +159,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Meshes.FindAll(m => m.WasUsable).Count).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Meshes.FindAll(m => m.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.Mesh;
                     m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Meshes.FindAll(m => m.WasUsable).Count).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Meshes.FindAll(m => m.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.DescendingMesh;
                     m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -193,12 +198,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.MRIs.FindAll(m => m.WasUsable).Count).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.MRIs.FindAll(m => m.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.MRI;
                     m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.MRIs.FindAll(m => m.WasUsable).Count).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.MRIs.FindAll(m => m.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.DescendingMRI;
                     m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -234,12 +239,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Sites.Count).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Sites.Count).ToList();
                     m_OrderBy = OrderBy.Site;
                     m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Sites.Count).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Sites.Count).ToList();
                     m_OrderBy = OrderBy.DescendingSite;
                     m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -273,12 +278,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Tags.Count).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Tags.Count).ToList();
                     m_OrderBy = OrderBy.Tag;
                     m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Tags.Count).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Tags.Count).ToList();
                     m_OrderBy = OrderBy.DescendingTag;
                     m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;

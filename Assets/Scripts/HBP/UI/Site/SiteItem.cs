@@ -5,6 +5,9 @@ using System.Linq;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// Component to display site in list.
+    /// </summary>
     public class SiteItem : ActionnableItem<Data.Site>
     {
         #region Properties
@@ -13,6 +16,9 @@ namespace HBP.UI
         [SerializeField] Text m_TagsText;
         [SerializeField] State m_ErrorState;
 
+        /// <summary>
+        /// Object to display.
+        /// </summary>
         public override Data.Site Object
         {
             get

@@ -7,6 +7,9 @@ using d = HBP.Data.Experience.Protocol;
 
 namespace HBP.UI.Experience.Protocol
 {
+    /// <summary>
+    /// window to modify a treatment.
+    /// </summary>
     public class TreatmentModifier : ObjectModifier<d.Treatment>
     {
         #region Properties
@@ -29,6 +32,9 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] FactorTreatmentSubModifier m_FactorTreatmentSubModifier;
 
         Tools.CSharp.Window m_Window;
+        /// <summary>
+        /// SubBloc of the window.
+        /// </summary>
         public Tools.CSharp.Window Window
         {
             get
@@ -44,6 +50,9 @@ namespace HBP.UI.Experience.Protocol
         }
 
         Tools.CSharp.Window m_Baseline;
+        /// <summary>
+        /// Baseline of the subBloc.
+        /// </summary>
         public Tools.CSharp.Window Baseline
         {
             get
@@ -62,6 +71,9 @@ namespace HBP.UI.Experience.Protocol
         List<d.Treatment> m_TreatmentsTemp;
 
         Type[] m_Types;
+        /// <summary>
+        /// True if interactable, False otherwise.
+        /// </summary>
         public override bool Interactable
         {
             get
@@ -97,27 +109,33 @@ namespace HBP.UI.Experience.Protocol
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Save the modifications.
+        /// </summary>
         public override void OK()
         {
-            item = ItemTemp;
+            m_Object = ObjectTemp;
             base.OK();
         }
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Initialize the window.
+        /// </summary>
         protected override void Initialize()
         {
             base.Initialize();
 
-            m_OrderInputField.onEndEdit.AddListener(OnChangeOrder);
+            m_OrderInputField.onEndEdit.AddListener(ChangeOrder);
 
-            m_WindowToggle.onValueChanged.AddListener(OnChangeUseOnWindow);
-            m_WindowSlider.onValueChanged.AddListener(OnChangeWindow);
+            m_WindowToggle.onValueChanged.AddListener(ChangeUseOnWindow);
+            m_WindowSlider.onValueChanged.AddListener(ChangeWindow);
 
-            m_BaselineToggle.onValueChanged.AddListener(OnChangeUseOnBaseline);
-            m_BaselineSlider.onValueChanged.AddListener(OnChangeBaseline);
+            m_BaselineToggle.onValueChanged.AddListener(ChangeUseOnBaseline);
+            m_BaselineSlider.onValueChanged.AddListener(ChangeBaseline);
 
-            m_TypeDropdown.onValueChanged.AddListener(OnChangeType);
+            m_TypeDropdown.onValueChanged.AddListener(ChangeType);
             m_Types = m_TypeDropdown.Set(typeof(d.Treatment));
 
             m_ClampTreatmentSubModifier.Initialize();
@@ -158,10 +176,14 @@ namespace HBP.UI.Experience.Protocol
                 new d.FactorTreatment()
             };
         }
+        /// <summary>
+        /// Set the fields.
+        /// </summary>
+        /// <param name="objectToDisplay">Treatment to display</param>
         protected override void SetFields(d.Treatment objectToDisplay)
         {
-            int index = m_TreatmentsTemp.FindIndex(t => t.GetType() == ItemTemp.GetType());
-            m_TreatmentsTemp[index] = ItemTemp;
+            int index = m_TreatmentsTemp.FindIndex(t => t.GetType() == ObjectTemp.GetType());
+            m_TreatmentsTemp[index] = ObjectTemp;
 
             m_OrderInputField.text = objectToDisplay.Order.ToString();
             m_TypeDropdown.SetValue(Array.IndexOf(m_Types, objectToDisplay.GetType()));
@@ -178,50 +200,75 @@ namespace HBP.UI.Experience.Protocol
             m_BaselineSlider.step = ApplicationState.UserPreferences.Data.Protocol.Step;
             m_BaselineSlider.Values = objectToDisplay.Baseline.ToVector2();
         }
-
-        protected void OnChangeOrder(string value)
+        /// <summary>
+        /// Change the order of the treatment.
+        /// </summary>
+        /// <param name="order">Order</param>
+        protected void ChangeOrder(string value)
         {
             if(int.TryParse(value, out int order))
             {
-                ItemTemp.Order = order;
+                ObjectTemp.Order = order;
             }
             else
             {
-                m_OrderInputField.text = ItemTemp.Order.ToString();
+                m_OrderInputField.text = ObjectTemp.Order.ToString();
             }
         }
-        protected void OnChangeType(int value)
+        /// <summary>
+        /// Change the type of the treatment.
+        /// </summary>
+        /// <param name="index">Index of the treatment type</param>
+        protected void ChangeType(int index)
         {
-            Type type = m_Types[value];        
+            Type type = m_Types[index];        
             
             // Close old subModifier
-            m_SubModifiers.Find(subModifier => subModifier.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(itemTemp.GetType()))).IsActive = false;
+            m_SubModifiers.Find(subModifier => subModifier.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(m_ObjectTemp.GetType()))).IsActive = false;
 
             d.Treatment treatment = m_TreatmentsTemp.Find(t => t.GetType() == type);
-            treatment.Copy(itemTemp);
-            itemTemp = treatment;
+            treatment.Copy(m_ObjectTemp);
+            m_ObjectTemp = treatment;
 
             // Open new subModifier;
             BaseSubModifier newSubModifier = m_SubModifiers.Find(subModifier => subModifier.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(type)));
             newSubModifier.IsActive = true;
-            newSubModifier.Object = itemTemp;
+            newSubModifier.Object = m_ObjectTemp;
         }
-        protected void OnChangeWindow(float min, float max)
+        /// <summary>
+        /// Change the window.
+        /// </summary>
+        /// <param name="min">Start window</param>
+        /// <param name="max">End window</param>
+        protected void ChangeWindow(float min, float max)
         {
-            ItemTemp.Window = new Tools.CSharp.Window(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
+            ObjectTemp.Window = new Tools.CSharp.Window(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
         }
-        protected void OnChangeBaseline(float min, float max)
+        /// <summary>
+        /// Change the baseline.
+        /// </summary>
+        /// <param name="min">Start window</param>
+        /// <param name="max">End window</param>
+        protected void ChangeBaseline(float min, float max)
         {
-            ItemTemp.Baseline = new Tools.CSharp.Window(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
+            ObjectTemp.Baseline = new Tools.CSharp.Window(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
         }
-        protected void OnChangeUseOnWindow(bool value)
+        /// <summary>
+        /// Change use on window.
+        /// </summary>
+        /// <param name="value">True if useWindow, False otherwise</param>
+        protected void ChangeUseOnWindow(bool value)
         {
-            ItemTemp.UseOnWindow = value;
+            ObjectTemp.UseOnWindow = value;
             m_WindowSlider.interactable = Interactable && value;
         }
-        protected void OnChangeUseOnBaseline(bool value)
+        /// <summary>
+        /// Change use on baseline.
+        /// </summary>
+        /// <param name="value">True if useBaseline, False otherwise</param>
+        protected void ChangeUseOnBaseline(bool value)
         {
-            ItemTemp.UseOnBaseline = value;
+            ObjectTemp.UseOnBaseline = value;
             m_BaselineSlider.interactable = Interactable && value;
         }
         #endregion

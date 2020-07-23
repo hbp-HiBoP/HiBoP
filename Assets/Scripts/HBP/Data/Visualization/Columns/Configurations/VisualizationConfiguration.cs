@@ -58,6 +58,18 @@ namespace HBP.Data.Visualization
         public bool ShowEdges { get; set; }
 
         /// <summary>
+        /// Is the mesh invisible?
+        /// </summary>
+        [DataMember(Name = "Transparent Brain")]
+        public bool TransparentBrain { get; set; }
+
+        /// <summary>
+        /// Alpha value when the brain is invisible
+        /// </summary>
+        [DataMember(Name = "Brain Alpha")]
+        public float BrainAlpha { get; set; } = 0.2f;
+
+        /// <summary>
         /// Cut behaviour
         /// </summary>
         [DataMember(Name = "Strong Cuts")]
@@ -117,7 +129,7 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, IEnumerable<RegionOfInterest> rois) : base()
+        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool transparent, float alpha, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, IEnumerable<RegionOfInterest> rois) : base()
         {
             BrainColor = brainColor;
             BrainCutColor = brainCutColor;
@@ -127,6 +139,8 @@ namespace HBP.Data.Visualization
             MRIName = mRIName;
             ImplantationName = implantationName;
             ShowEdges = showEdges;
+            TransparentBrain = transparent;
+            BrainAlpha = alpha;
             StrongCuts = strongCuts;
             HideBlacklistedSites = hideBlacklistedSites;
             ShowAllSites = showAllSites;
@@ -137,7 +151,7 @@ namespace HBP.Data.Visualization
             Views = views.ToList();
             RegionsOfInterest = rois.ToList();
         }
-        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, IEnumerable<RegionOfInterest> rois, string ID) : base(ID)
+        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool transparent, float alpha, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, IEnumerable<RegionOfInterest> rois, string ID) : base(ID)
         {
             BrainColor = brainColor;
             BrainCutColor = brainCutColor;
@@ -147,6 +161,8 @@ namespace HBP.Data.Visualization
             MRIName = mRIName;
             ImplantationName = implantationName;
             ShowEdges = showEdges;
+            TransparentBrain = transparent;
+            BrainAlpha = alpha;
             StrongCuts = strongCuts;
             HideBlacklistedSites = hideBlacklistedSites;
             ShowAllSites = showAllSites;
@@ -166,7 +182,7 @@ namespace HBP.Data.Visualization
         public override object Clone()
         {
             VisualizationConfiguration result = new VisualizationConfiguration(BrainColor, BrainCutColor, EEGColormap,
-                MeshPart, MeshName, MRIName, ImplantationName, ShowEdges, StrongCuts,
+                MeshPart, MeshName, MRIName, ImplantationName, ShowEdges, TransparentBrain, BrainAlpha, StrongCuts,
                 HideBlacklistedSites, ShowAllSites, MRICalMinFactor,
                 MRICalMaxFactor, CameraType, Cuts, Views, RegionsOfInterest, ID);
             result.FirstSiteToSelect = FirstSiteToSelect;
@@ -186,6 +202,8 @@ namespace HBP.Data.Visualization
                 MRIName = visualizationConfiguration.MRIName;
                 ImplantationName = visualizationConfiguration.ImplantationName;
                 ShowEdges = visualizationConfiguration.ShowEdges;
+                TransparentBrain = visualizationConfiguration.TransparentBrain;
+                BrainAlpha = visualizationConfiguration.BrainAlpha;
                 StrongCuts = visualizationConfiguration.StrongCuts;
                 HideBlacklistedSites = visualizationConfiguration.HideBlacklistedSites;
                 ShowAllSites = visualizationConfiguration.ShowAllSites;

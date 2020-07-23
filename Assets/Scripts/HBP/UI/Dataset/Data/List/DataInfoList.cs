@@ -4,6 +4,9 @@ using Tools.Unity.Lists;
 
 namespace HBP.UI.Experience.Dataset
 {
+    /// <summary>
+    /// List to display DataInfos.
+    /// </summary>
     public class DataInfoList : ActionableList<Data.Experience.Dataset.DataInfo>
     {
         #region Properties
@@ -17,6 +20,11 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Add dataInfo.
+        /// </summary>
+        /// <param name="objectToAdd">DataInfo to add</param>
+        /// <returns>True if end without errors, False otherwise</returns>
         public override bool Add(Data.Experience.Dataset.DataInfo objectToAdd)
         {
             if (base.Add(objectToAdd))
@@ -38,12 +46,12 @@ namespace HBP.UI.Experience.Dataset
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Name).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Name).ToList();
                     m_OrderBy = OrderBy.Name;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Name).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Name).ToList();
                     m_OrderBy = OrderBy.DescendingName;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -76,18 +84,18 @@ namespace HBP.UI.Experience.Dataset
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    patientDataInfo = m_Objects.OfType<Data.Experience.Dataset.PatientDataInfo>().OrderByDescending((elt) => elt.Patient.Name);
-                    otherDataInfo = m_Objects.Where(elt => !patientDataInfo.Contains(elt));
-                    m_Objects = new System.Collections.Generic.List<Data.Experience.Dataset.DataInfo>(patientDataInfo);
-                    m_Objects.AddRange(otherDataInfo);
+                    patientDataInfo = m_DisplayedObjects.OfType<Data.Experience.Dataset.PatientDataInfo>().OrderByDescending((elt) => elt.Patient.Name);
+                    otherDataInfo = m_DisplayedObjects.Where(elt => !patientDataInfo.Contains(elt));
+                    m_DisplayedObjects = new System.Collections.Generic.List<Data.Experience.Dataset.DataInfo>(patientDataInfo);
+                    m_DisplayedObjects.AddRange(otherDataInfo);
                     m_OrderBy = OrderBy.Patient;
                     m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    patientDataInfo = m_Objects.OfType<Data.Experience.Dataset.PatientDataInfo>().OrderBy((elt) => elt.Patient.Name);
-                    otherDataInfo = m_Objects.Where(elt => !patientDataInfo.Contains(elt));
-                    m_Objects = new System.Collections.Generic.List<Data.Experience.Dataset.DataInfo>(patientDataInfo);
-                    m_Objects.AddRange(otherDataInfo);
+                    patientDataInfo = m_DisplayedObjects.OfType<Data.Experience.Dataset.PatientDataInfo>().OrderBy((elt) => elt.Patient.Name);
+                    otherDataInfo = m_DisplayedObjects.Where(elt => !patientDataInfo.Contains(elt));
+                    m_DisplayedObjects = new System.Collections.Generic.List<Data.Experience.Dataset.DataInfo>(patientDataInfo);
+                    m_DisplayedObjects.AddRange(otherDataInfo);
                     m_OrderBy = OrderBy.DescendingPatient;
                     m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -118,12 +126,12 @@ namespace HBP.UI.Experience.Dataset
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.IsOk).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.IsOk).ToList();
                     m_OrderBy = OrderBy.State;
                     m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.IsOk).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.IsOk).ToList();
                     m_OrderBy = OrderBy.DescendingState;
                     m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -154,12 +162,12 @@ namespace HBP.UI.Experience.Dataset
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.GetType().ToString()).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.GetType().ToString()).ToList();
                     m_OrderBy = OrderBy.Type;
                     m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.GetType().ToString()).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.GetType().ToString()).ToList();
                     m_OrderBy = OrderBy.DescendingType;
                     m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;

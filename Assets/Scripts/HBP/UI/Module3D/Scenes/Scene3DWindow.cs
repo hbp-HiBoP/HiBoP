@@ -1,4 +1,6 @@
-﻿using HBP.Module3D;
+﻿using CielaSpike;
+using HBP.Data.Visualization;
+using HBP.Module3D;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,6 +9,7 @@ using System.Linq;
 using Tools.Unity;
 using Tools.Unity.ResizableGrid;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
@@ -26,6 +29,23 @@ namespace HBP.UI.Module3D
         /// Reference the RectTransform of this object
         /// </summary>
         [SerializeField] private RectTransform m_RectTransform;
+
+        /// <summary>
+        /// Scene UI of this scene window
+        /// </summary>
+        public Scene3DUI Scene3DUI { get; private set; }
+        /// <summary>
+        /// Informations panel (graphs and trial matrices)
+        /// </summary>
+        public Informations.InformationsWrapper Informations { get; private set; }
+        /// <summary>
+        /// Sites informations panel (list and filter)
+        /// </summary>
+        public SitesInformations SitesInformations { get; private set; }
+        /// <summary>
+        /// Cut controller of this scene
+        /// </summary>
+        public CutController CutController { get; private set; }
 
         /// <summary>
         /// Prefab for the 3D scene column
@@ -71,6 +91,28 @@ namespace HBP.UI.Module3D
                 }
             }
         }
+        /// <summary>
+        /// Create all required folders and return the path to the folder used for export
+        /// </summary>
+        /// <returns>Folder that will contain exported files</returns>
+        private string GenerateExportDirectoryForThisScene()
+        {
+            string result = ApplicationState.UserPreferences.General.Project.DefaultExportLocation;
+            if (string.IsNullOrEmpty(result))
+            {
+                result = Path.GetFullPath(Application.dataPath + "/../Screenshots/");
+            }
+            else if (!result.EndsWith("/"))
+            {
+                result += "/";
+            }
+            if (!Directory.Exists(result)) Directory.CreateDirectory(result);
+            result += ApplicationState.ProjectLoaded.Preferences.Name + "/";
+            if (!Directory.Exists(result)) Directory.CreateDirectory(result);
+            result += m_Scene.Name + "/";
+            if (!Directory.Exists(result)) Directory.CreateDirectory(result);
+            return result;
+        }
         #endregion
 
         #region Public Methods
@@ -86,17 +128,20 @@ namespace HBP.UI.Module3D
             // 3D
             grid.AddColumn();
             grid.AddViewLine(m_SceneUIPrefab);
-            grid.Columns.Last().Views.Last().GetComponent<Scene3DUI>().Initialize(scene);
+            Scene3DUI = grid.Columns.Last().Views.Last().GetComponent<Scene3DUI>();
+            Scene3DUI.Initialize(scene);
             // Information
             grid.AddColumn(null, m_InformationsUIPrefab);
-            Informations.InformationsWrapper informations = grid.Columns.Last().Views.Last().GetComponent<Informations.InformationsWrapper>();
-            informations.Scene = scene;
+            Informations = grid.Columns.Last().Views.Last().GetComponent<Informations.InformationsWrapper>();
+            Informations.Scene = scene;
             // Sites
             grid.AddColumn(null, m_SitesInformationsPrefab);
-            grid.Columns.Last().Views.Last().GetComponent<SitesInformations>().Initialize(scene);
+            SitesInformations = grid.Columns.Last().Views.Last().GetComponent<SitesInformations>();
+            SitesInformations.Initialize(scene);
             // Cuts
             grid.AddColumn(null, m_CutUIPrefab);
-            grid.Columns.Last().Views.Last().GetComponent<CutController>().Initialize(scene);
+            CutController = grid.Columns.Last().Views.Last().GetComponent<CutController>();
+            CutController.Initialize(scene);
             // Positions
             grid.VerticalHandlers[0].MagneticPosition = 0.45f;
             grid.VerticalHandlers[1].MagneticPosition = 0.75f;
@@ -115,31 +160,13 @@ namespace HBP.UI.Module3D
             {
                 gameObject.SetActive(value);
             });
-            scene.OnRequestScreenshot.AddListener((multipleFiles) =>
-            {
-                string screenshotsPath = ApplicationState.UserPreferences.General.Project.DefaultExportLocation;
-                if (string.IsNullOrEmpty(screenshotsPath))
-                {
-                    screenshotsPath = Path.GetFullPath(Application.dataPath + "/../Screenshots/");
-                }
-                else if (!screenshotsPath.EndsWith("/"))
-                {
-                    screenshotsPath += "/";
-                }
-                if (!Directory.Exists(screenshotsPath)) Directory.CreateDirectory(screenshotsPath);
-                screenshotsPath += ApplicationState.ProjectLoaded.Preferences.Name + "/";
-                if (!Directory.Exists(screenshotsPath)) Directory.CreateDirectory(screenshotsPath);
-                screenshotsPath += m_Scene.Name + "/";
-                if (!Directory.Exists(screenshotsPath)) Directory.CreateDirectory(screenshotsPath);
-                Screenshot(screenshotsPath, multipleFiles);
-            });
-            informations.OnExpand.AddListener(() =>
+            Informations.OnExpand.AddListener(() =>
             {
                 grid.VerticalHandlers[0].Position = grid.VerticalHandlers[0].MagneticPosition;
                 grid.SetVerticalHandlersPosition(1);
                 grid.UpdateAnchors();
             });
-            informations.OnMinimize.AddListener(() =>
+            Informations.OnMinimize.AddListener(() =>
             {
                 grid.VerticalHandlers[0].Position = grid.VerticalHandlers[1].Position - (grid.MinimumViewWidth / grid.RectTransform.rect.width);
                 grid.SetVerticalHandlersPosition(1);
@@ -151,9 +178,18 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="path">Path to the directory to save the screenshot</param>
         /// <param name="multipleFiles">If true, multiple files (images, csv, svg ...) will be saved; if false, a simple screenshot of the whole window will be taken</param>
-        public void Screenshot(string path, bool multipleFiles = false)
+        public void Screenshot(bool multipleFiles = false)
         {
-            StartCoroutine(c_Screenshot(path, multipleFiles));
+            StartCoroutine(c_Screenshot(GenerateExportDirectoryForThisScene(), multipleFiles));
+        }
+        /// <summary>
+        /// Take a video of the timeline of the scene
+        /// </summary>
+        /// <param name="path">Path to the directory to save the video</param>
+        public void Video()
+        {
+            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+            ApplicationState.LoadingManager.Load(c_Video(GenerateExportDirectoryForThisScene(), onChangeProgress), onChangeProgress);
         }
         #endregion
 
@@ -187,7 +223,7 @@ namespace HBP.UI.Module3D
                                 {
                                     string viewFilePath = path + string.Format("{0}_{1}_{2}_Brain.png", openedProjectName, m_Scene.Name, column.Name);
                                     ClassLoaderSaver.GenerateUniqueSavePath(ref viewFilePath);
-                                    view.ScreenshotTexture.SaveToPNG(viewFilePath);
+                                    view.GetTexture(2048, 2048, new Color(0.0f, 0.0f, 0.0f, 0.0f)).SaveToPNG(viewFilePath);
                                 }
                                 catch (Exception e)
                                 {
@@ -339,6 +375,110 @@ namespace HBP.UI.Module3D
                 }
                 ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Screenshot saved", "A screenshot of the scene has been saved at " + screenshotPath);
             }
+        }
+        /// <summary>
+        /// Take a video of the current timeline
+        /// </summary>
+        /// <param name="path">Path to where to save the video</param>
+        /// <returns>Coroutine return</returns>
+        private IEnumerator c_Video(string path, GenericEvent<float, float, LoadingText> onChangeProgress)
+        {
+            yield return Ninja.JumpToUnity;
+
+            int totalWidth = 1920;
+            int totalHeight = 1080;
+            int timelineSize = 10;
+            int separatorSize = 3;
+
+            Column3DDynamic selectedColumnDynamic = m_Scene.SelectedColumn as Column3DDynamic;
+            Timeline timeline = selectedColumnDynamic.Timeline;
+            float fps = timeline.Step;
+            int numberOfColumns = m_Scene.Columns.Count;
+            int numberOfViewLines = m_Scene.ViewLineNumber;
+            int timelineLength = timeline.Length;
+
+            string videoPath = path + string.Format("{0}_{1}.avi", ApplicationState.ProjectLoaded.Preferences.Name, m_Scene.Name);
+            ClassLoaderSaver.GenerateUniqueSavePath(ref videoPath);
+
+            HBP.Module3D.DLL.VideoStream videoStream = new HBP.Module3D.DLL.VideoStream();
+            videoStream.Open(videoPath, totalWidth, totalHeight, fps);
+
+            HBP.Module3D.DLL.Texture texture = new HBP.Module3D.DLL.Texture();
+            Texture2D texture2D = new Texture2D(totalWidth, totalHeight);
+            texture.Reset(totalWidth, totalHeight);
+            
+            Color[] timelineColors = Enumerable.Repeat(new Color((float)220 / 255, (float)220 / 255, (float)220 / 255, 1.0f), timelineSize * totalWidth).ToArray();
+            Color[] mainEventColors = Enumerable.Repeat(new Color(1, 0, 0, 1.0f), timelineSize * timelineSize).ToArray();
+            Color[] timelineCursorColors = Enumerable.Repeat(Color.black, timelineSize * timelineSize).ToArray();
+            Color[] verticalSeparatorColors = Enumerable.Repeat(Color.black, totalHeight * separatorSize).ToArray();
+            Color[] horizontalSeparatorColors = Enumerable.Repeat(Color.black, totalWidth * separatorSize).ToArray();
+
+            for (int i = 0; i < timelineLength; i++)
+            {
+                onChangeProgress.Invoke((float)i / (timelineLength - 1), 0, new LoadingText("Taking video of the timeline"));
+
+                foreach (var column in m_Scene.ColumnsDynamic)
+                    column.Timeline.CurrentIndex = i;
+
+                yield return new WaitForEndOfFrame();
+
+                int width = totalWidth / numberOfColumns;
+                int height = totalHeight / numberOfViewLines;
+
+                for (int j = 0; j < numberOfColumns; ++j)
+                {
+                    int horizontalOffset = j * width;
+                    // 3D
+                    for (int k = 0; k < numberOfViewLines; ++k)
+                    {
+                        int verticalOffset = (numberOfViewLines - 1 - k) * height;
+                        Texture2D subTexture = m_Scene.Columns[j].Views[k].GetTexture(width, height, new Color((float)40 / 255, (float)40 / 255, (float)40 / 255, 1.0f));
+                        texture2D.SetPixels(horizontalOffset, verticalOffset, width, height, subTexture.GetPixels());
+                    }
+                    // Overlay - Not very good: needs a way to be drawn on its own
+                    //Colormap colormap = Scene3DUI.Columns[j].Colormap;
+                    //Texture2D colormapTexture = Texture2DExtension.ScreenRectToTexture(colormap.GetComponent<RectTransform>().ToScreenSpace());
+                    //texture2D.SetPixels(horizontalOffset + 5, totalHeight - 5 - colormapTexture.height, colormapTexture.width, colormapTexture.height, colormapTexture.GetPixels());
+                    //Icon icon = ApplicationState.Module3DUI.Scenes[scene].Scene3DUI.Columns[j].Icon;
+                    //Texture2D iconTexture = icon.IsActive ? icon.Sprite.texture : null;
+                    //if (iconTexture)
+                    //{
+                    //    Texture2D newIconTexture = new Texture2D(iconTexture.width, iconTexture.height);
+                    //    newIconTexture.SetPixels(iconTexture.GetPixels());
+                    //    float resizeFactor = 1f / (Mathf.Max(newIconTexture.width, newIconTexture.height) / 200);
+                    //    newIconTexture.Resize((int)(resizeFactor * newIconTexture.width), (int)(resizeFactor * newIconTexture.height)); // does not work
+                    //    texture2D.SetPixels(horizontalOffset + width - 5 - newIconTexture.width, 1080 - 5 - newIconTexture.height, newIconTexture.width, newIconTexture.height, newIconTexture.GetPixels());
+                    //}
+                }
+
+                for (int j = 1; j < numberOfColumns; ++j)
+                    texture2D.SetPixels(j * width - (separatorSize / 2), 0, separatorSize, totalHeight, verticalSeparatorColors);
+
+                for (int j = 1; j < numberOfViewLines; ++j)
+                    texture2D.SetPixels(0, j * height - (separatorSize / 2), totalWidth, separatorSize, horizontalSeparatorColors);
+
+                texture2D.SetPixels(0, 0, totalWidth, timelineSize, timelineColors);
+                foreach (var subTimeline in timeline.SubTimelinesBySubBloc.Values)
+                {
+                    int mainEventIndex = subTimeline.GlobalMinIndex + subTimeline.Frequency.ConvertToFlooredNumberOfSamples(subTimeline.StatisticsByEvent.FirstOrDefault(e => e.Key.Type == Data.Enums.MainSecondaryEnum.Main).Value.RoundedTimeFromStart);
+                    int mainEventPosition = mainEventIndex * ((totalWidth - timelineSize) / (timelineLength - 1));
+                    texture2D.SetPixels(mainEventPosition, 0, timelineSize, timelineSize, mainEventColors);
+                }
+                int cursorPosition = i * ((totalWidth - timelineSize) / (timelineLength - 1));
+                texture2D.SetPixels(cursorPosition, 0, timelineSize, timelineSize, timelineCursorColors);
+
+                texture.FromTexture2D(texture2D);
+
+                for (int j = 0; j < numberOfColumns; j++)
+                    texture.WriteText(m_Scene.Columns[j].Name, j * width + (width / 2), 20);
+
+                texture.WriteText(string.Format("{0}ms", timeline.CurrentSubtimeline.GetLocalTime(timeline.CurrentIndex).ToString("N2")), totalWidth / 2, totalHeight - 20);
+
+                videoStream.WriteFrame(texture);
+            }
+            videoStream.Dispose();
+            onChangeProgress.Invoke(1, 0, new LoadingText("Finished"));
+            ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Video saved", "A video of the scene has been saved at " + videoPath);
         }
         #endregion
     }

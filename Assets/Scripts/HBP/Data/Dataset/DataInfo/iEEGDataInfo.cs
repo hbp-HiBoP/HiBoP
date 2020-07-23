@@ -7,8 +7,51 @@ using System.Runtime.Serialization;
 
 namespace HBP.Data.Experience.Dataset
 {
+    /// <summary>
+    /// Class containing paths to iEEG data files.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <term><b>Name</b></term>
+    /// <description>Name of the data.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Patient</b></term>
+    /// <description>Patient who has passed the experiment.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Stimulated channel</b></term>
+    /// <description>Stimulated channel.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Data container</b></term>
+    /// <description>Data container containing all the paths to functional data files.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Dataset</b></term>
+    /// <description>Dataset the dataInfo belongs to.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>IsOk</b></term>
+    /// <description>True if the dataInfo is visualizable, False otherwise.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Errors</b></term>
+    /// <description>All dataInfo errors.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>OnRequestErrorCheck</b></term>
+    /// <description>Callback executed when error checking is required.</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     [DataContract, DisplayName("iEEG")]
-    public class iEEGDataInfo : PatientDataInfo, IEpochable
+    public class IEEGDataInfo : PatientDataInfo, IEpochable
     {
         #region Properties
         /// <summary>
@@ -19,10 +62,10 @@ namespace HBP.Data.Experience.Dataset
             None, SubTrial, Trial, SubBloc, Bloc, Protocol, Auto
         }
 
-        [DataMember(Name = "Normalization")]
         /// <summary>
         /// Normalization of the Data.
         /// </summary>
+        [DataMember(Name = "Normalization")]
         public NormalizationType Normalization { get; set; }
 
         protected Error[] m_iEEGErrors = new Error[0];
@@ -38,15 +81,33 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Constructors
-        public iEEGDataInfo(string name, Container.DataContainer dataContainer, Patient patient, NormalizationType normalization, string ID) : base(name, dataContainer, patient,ID)
+        /// <summary>
+        /// Create a new iEEG dataInfo instance.
+        /// </summary>
+        /// <param name="name">Name of the iEEG dataInfo.</param>
+        /// <param name="dataContainer">Data container of the iEEG data.</param>
+        /// <param name="patient">Patient related to the data.</param>
+        /// <param name="normalization">Normalization of the iEEG data.</param>
+        /// <param name="ID">Unique identifier</param>
+        public IEEGDataInfo(string name, Container.DataContainer dataContainer, Patient patient, NormalizationType normalization, string ID) : base(name, dataContainer, patient,ID)
         {
             Normalization = normalization;
         }
-        public iEEGDataInfo(string name, Container.DataContainer dataContainer, Patient patient, NormalizationType normalization) : base(name, dataContainer, patient)
+        /// <summary>
+        /// Create a new iEEG dataInfo instance.
+        /// </summary>
+        /// <param name="name">Name of the iEEG dataInfo.</param>
+        /// <param name="dataContainer">Data container of the iEEG data.</param>
+        /// <param name="patient">Patient related to the data.</param>
+        /// <param name="normalization">Normalization of the iEEG data.</param>
+        public IEEGDataInfo(string name, Container.DataContainer dataContainer, Patient patient, NormalizationType normalization) : base(name, dataContainer, patient)
         {
             Normalization = normalization;
         }
-        public iEEGDataInfo() : this("Data", new Container.Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), NormalizationType.Auto)
+        /// <summary>
+        /// Create a new iEEG dataInfo instance.
+        /// </summary>
+        public IEEGDataInfo() : this("Data", new Container.Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), NormalizationType.Auto)
         {
         }
         #endregion
@@ -58,12 +119,12 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new iEEGDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, Normalization, ID);
+            return new IEEGDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, Normalization, ID);
         }
         public override void Copy(object obj)
         {
             base.Copy(obj);
-            if(obj is iEEGDataInfo iEEGdataInfo)
+            if(obj is IEEGDataInfo iEEGdataInfo)
             {
                 Normalization = iEEGdataInfo.Normalization;
             }
@@ -77,6 +138,11 @@ namespace HBP.Data.Experience.Dataset
             errors.AddRange(GetiEEGErrors(protocol));
             return errors.Distinct().ToArray();
         }
+        /// <summary>
+        /// Get all dataInfo errors related to iEEG.
+        /// </summary>
+        /// <param name="protocol">Protocol of the dataset the dataInfo belongs to.</param>
+        /// <returns>iEEG related errors</returns>
         public virtual Error[] GetiEEGErrors(Protocol.Protocol protocol)
         {
             List<Error> errors = new List<Error>();
@@ -92,7 +158,7 @@ namespace HBP.Data.Experience.Dataset
                 else if (m_DataContainer is Container.EDF edfDataContainer)
                 {
                     type = Tools.CSharp.EEG.File.FileType.EDF;
-                    files = new string[] { edfDataContainer.Path };
+                    files = new string[] { edfDataContainer.File };
                 }
                 else if (m_DataContainer is Container.Elan elanDataContainer)
                 {

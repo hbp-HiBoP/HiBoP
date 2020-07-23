@@ -4,12 +4,18 @@ using UnityEngine.UI;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// Component to display TagValue in list.
+    /// </summary>
     public class TagValueItem : ActionnableItem<Data.BaseTagValue>
     {
         #region Properties
         [SerializeField] Text m_NameText;
         [SerializeField] Text m_ValueText;
 
+        /// <summary>
+        /// Object to display.
+        /// </summary>
         public override Data.BaseTagValue Object
         {
             get

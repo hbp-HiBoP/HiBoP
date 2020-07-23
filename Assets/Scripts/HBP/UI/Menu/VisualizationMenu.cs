@@ -2,12 +2,14 @@
 
 namespace HBP.UI
 {
-    public class VisualizationMenu : MonoBehaviour
+    public class VisualizationMenu : Menu
     {
+        #region Public Methods
         public void OpenVisualizationGestion()
         {
             ApplicationState.WindowsManager.Open("Visualization gestion window");
         }
+        #endregion
     }
 }
 

@@ -481,15 +481,15 @@ public class InvalidBasicConditionException : HBPException
 }
 
 [Serializable]
-public class InvalidAdvancedConditionException : HBPException
+public class InvalidConditionException : HBPException
 {
-    public InvalidAdvancedConditionException() { }
-    public InvalidAdvancedConditionException(string condition) : base("One of your conditions is not valid: \" " + condition + " \". Please fix it.")
+    public InvalidConditionException() { }
+    public InvalidConditionException(string condition) : base("One of your conditions is not valid: \" " + condition + " \". Please fix it.")
     {
         Title = "Invalid condition";
     }
-    public InvalidAdvancedConditionException(string message, Exception inner) : base(message, inner) { }
-    protected InvalidAdvancedConditionException(
+    public InvalidConditionException(string message, Exception inner) : base(message, inner) { }
+    protected InvalidConditionException(
       System.Runtime.Serialization.SerializationInfo info,
       System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 }

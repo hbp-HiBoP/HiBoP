@@ -176,15 +176,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Material used for the brain mesh
         /// </summary>
-        public Material BrainMaterial { get; private set; }
-        /// <summary>
-        /// Material used for the simplified mesh (not really used now, this is a bit legacy but could be useful)
-        /// </summary>
-        public Material SimplifiedBrainMaterial { get; private set; }
-        /// <summary>
-        /// Material used for the cut meshes
-        /// </summary>
-        public Material CutMaterial { get; private set; }
+        public BrainMaterials BrainMaterials { get; private set; }
 
         private Data.Enums.ColorType m_BrainColor = Data.Enums.ColorType.BrainColor;
         /// <summary>
@@ -205,7 +197,7 @@ namespace HBP.Module3D
                 tex.UpdateTexture2D(BrainColorTexture);
                 tex.Dispose();
 
-                BrainMaterial.SetTexture("_MainTex", BrainColorTexture);
+                BrainMaterials.SetBrainColorTexture(BrainColorTexture);
             }
         }
 
@@ -255,7 +247,7 @@ namespace HBP.Module3D
 
                 ResetColors();
 
-                BrainMaterial.SetTexture("_ColorTex", BrainColorMapTexture);
+                BrainMaterials.SetBrainColormapTexture(BrainColorMapTexture);
 
                 if (m_IsGeneratorUpToDate)
                 {
@@ -275,6 +267,39 @@ namespace HBP.Module3D
         /// Brain Unity texture
         /// </summary>
         public Texture2D BrainColorTexture { get; private set; }
+
+        /// <summary>
+        /// Is the brain transparent ?
+        /// </summary>
+        public bool IsBrainTransparent
+        {
+            get
+            {
+                return BrainMaterials.IsTransparent;
+            }
+            set
+            {
+                BrainMaterials.IsTransparent = value;
+                foreach (var surface in m_DisplayedObjects.BrainSurfaceMeshes)
+                {
+                    surface.GetComponent<Renderer>().sharedMaterial = BrainMaterials.BrainMaterial;
+                }
+                foreach (var column in Columns)
+                {
+                    foreach (var surface in column.BrainSurfaceMeshes)
+                    {
+                        surface.GetComponent<Renderer>().sharedMaterial = BrainMaterials.BrainMaterial;
+                    }
+                }
+                foreach (var cut in m_DisplayedObjects.BrainCutMeshes)
+                {
+                    cut.GetComponent<Renderer>().sharedMaterial = BrainMaterials.CutMaterial;
+                }
+                m_DisplayedObjects.SimplifiedBrain.SetActive(!value);
+                BrainMaterials.SetAlpha(BrainMaterials.Alpha);
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            }
+        }
 
         private bool m_CutHolesEnabled = true;
         /// <summary>
@@ -368,7 +393,7 @@ namespace HBP.Module3D
             set
             {
                 m_StrongCuts = value;
-                BrainMaterial.SetInt("_StrongCuts", m_StrongCuts ? 1 : 0);
+                BrainMaterials.SetStrongCuts(m_StrongCuts);
                 m_CutsNeedUpdate = true;
             }
         }
@@ -441,7 +466,24 @@ namespace HBP.Module3D
                 }
             }
         }
-        
+
+        private bool m_DisplayCorrelations = false;
+        /// <summary>
+        /// Display correlations between sites
+        /// </summary>
+        public bool DisplayCorrelations
+        {
+            get
+            {
+                return m_DisplayCorrelations;
+            }
+            set
+            {
+                m_DisplayCorrelations = value;
+                OnChangeDisplayCorrelations.Invoke();
+            }
+        }
+
         /// <summary>
         /// True if we can compute and project the functional values on the mesh and on the MRI
         /// </summary>
@@ -507,7 +549,7 @@ namespace HBP.Module3D
                 if (value != m_IsGeneratorUpToDate)
                 {
                     m_IsGeneratorUpToDate = value;
-                    BrainMaterial.SetInt("_Activity", value ? 1 : 0);
+                    BrainMaterials.SetActivity(value);
                     if (!value)
                     {
                         foreach (Column3DDynamic column in ColumnsDynamic)
@@ -622,10 +664,6 @@ namespace HBP.Module3D
         /// </summary>
         [HideInInspector] public GenericEvent<IEnumerable<Site>> OnRequestSiteInformation = new GenericEvent<IEnumerable<Site>>();
         /// <summary>
-        /// Event called when requesting a screenshot of the scene (true if multi screenshots)
-        /// </summary>
-        [HideInInspector] public GenericEvent<bool> OnRequestScreenshot = new GenericEvent<bool>();
-        /// <summary>
         /// Event called when ieeg are outdated or not anymore
         /// </summary>
         [HideInInspector] public GenericEvent<bool> OnIEEGOutdated = new GenericEvent<bool>();
@@ -642,10 +680,6 @@ namespace HBP.Module3D
         /// </summary>
         [HideInInspector] public UnityEvent OnSelectCCEPSource = new UnityEvent();
         /// <summary>
-        /// Event called when adding a column
-        /// </summary>
-        [HideInInspector] public UnityEvent OnAddColumn = new UnityEvent();
-        /// <summary>
         /// Event called when adding a line of views
         /// </summary>
         [HideInInspector] public UnityEvent OnAddViewLine = new UnityEvent();
@@ -661,6 +695,10 @@ namespace HBP.Module3D
         /// Event called when selecting a site on a column
         /// </summary>
         [HideInInspector] public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
+        /// <summary>
+        /// Event called when displaying the correlations
+        /// </summary>
+        [HideInInspector] public UnityEvent OnChangeDisplayCorrelations = new UnityEvent();
         #endregion
 
         #region Private Methods
@@ -837,36 +875,7 @@ namespace HBP.Module3D
 
             // Fill parameters in shader
             UnityEngine.Profiling.Profiler.BeginSample("cut_generator Fill shader");
-            BrainMaterial.SetInt("_CutCount", Cuts.Count);
-            if (Cuts.Count > 0)
-            {
-                List<Vector4> cutPoints = new List<Vector4>(20);
-                for (int i = 0; i < 20; ++i)
-                {
-                    if (i < Cuts.Count)
-                    {
-                        cutPoints.Add(new Vector4(-Cuts[i].Point.x, Cuts[i].Point.y, Cuts[i].Point.z));
-                    }
-                    else
-                    {
-                        cutPoints.Add(Vector4.zero);
-                    }
-                }
-                BrainMaterial.SetVectorArray("_CutPoints", cutPoints);
-                List<Vector4> cutNormals = new List<Vector4>(20);
-                for (int i = 0; i < 20; ++i)
-                {
-                    if (i < Cuts.Count)
-                    {
-                        cutNormals.Add(new Vector4(-Cuts[i].Normal.x, Cuts[i].Normal.y, Cuts[i].Normal.z));
-                    }
-                    else
-                    {
-                        cutNormals.Add(Vector4.zero);
-                    }
-                }
-                BrainMaterial.SetVectorArray("_CutNormals", cutNormals);
-            }
+            BrainMaterials.SetCuts(Cuts);
             UnityEngine.Profiling.Profiler.EndSample();
 
             // Update cut generators
@@ -1095,7 +1104,6 @@ namespace HBP.Module3D
             column.Initialize(Columns.Count, baseColumn, m_ImplantationManager.SelectedImplantation, m_DisplayedObjects.SitesPatientParent);
             column.ResetSplitsNumber(m_MeshManager.MeshSplitNumber);
             Columns.Add(column);
-            OnAddColumn.Invoke();
         }
         /// <summary>
         /// Synchronize all cameras from the same view line
@@ -1360,11 +1368,8 @@ namespace HBP.Module3D
 
             Visualization = visualization;
             gameObject.name = Visualization.Name;
-
-            // Init materials
-            BrainMaterial = Instantiate(Resources.Load("Materials/Brain/Brain", typeof(Material))) as Material;
-            SimplifiedBrainMaterial = Instantiate(Resources.Load("Materials/Brain/Simplified", typeof(Material))) as Material;
-            CutMaterial = Instantiate(Resources.Load("Materials/Brain/Cut", typeof(Material))) as Material;
+            
+            BrainMaterials = new BrainMaterials();
 
             transform.position = new Vector3(HBP3DModule.SPACE_BETWEEN_SCENES_GAME_OBJECTS * ApplicationState.Module3D.NumberOfScenesLoadedSinceStart++, transform.position.y, transform.position.z);
         }
@@ -1390,6 +1395,8 @@ namespace HBP.Module3D
             Colormap = Visualization.Configuration.EEGColormap;
             m_MeshManager.SelectMeshPart(Visualization.Configuration.MeshPart);
             EdgeMode = Visualization.Configuration.ShowEdges;
+            IsBrainTransparent = Visualization.Configuration.TransparentBrain;
+            BrainMaterials.SetAlpha(Visualization.Configuration.BrainAlpha);
             StrongCuts = Visualization.Configuration.StrongCuts;
             HideBlacklistedSites = Visualization.Configuration.HideBlacklistedSites;
             ShowAllSites = Visualization.Configuration.ShowAllSites;
@@ -1447,6 +1454,8 @@ namespace HBP.Module3D
             Visualization.Configuration.MRIName = m_MRIManager.SelectedMRI.Name;
             Visualization.Configuration.ImplantationName = m_ImplantationManager.SelectedImplantation.Name;
             Visualization.Configuration.ShowEdges = EdgeMode;
+            Visualization.Configuration.TransparentBrain = IsBrainTransparent;
+            Visualization.Configuration.BrainAlpha = BrainMaterials.Alpha;
             Visualization.Configuration.StrongCuts = StrongCuts;
             Visualization.Configuration.HideBlacklistedSites = m_HideBlacklistedSites;
             Visualization.Configuration.ShowAllSites = ShowAllSites;
@@ -1498,6 +1507,8 @@ namespace HBP.Module3D
             Colormap = Data.Enums.ColorType.MatLab;
             m_MeshManager.SelectMeshPart(Data.Enums.MeshPart.Both);
             EdgeMode = false;
+            IsBrainTransparent = false;
+            BrainMaterials.SetAlpha(0.2f);
             StrongCuts = false;
             HideBlacklistedSites = false;
             m_MRIManager.SetCalValues(0, 1);
@@ -1895,7 +1906,7 @@ namespace HBP.Module3D
                         Implantation3D.SiteInfo siteInfo = new Implantation3D.SiteInfo()
                         {
                             Name = site.Name,
-                            Position = coordinate.Value.ToVector3(),
+                            Position = coordinate.Position.ToVector3(),
                             Patient = patient,
                             PatientIndex = patientIndex,
                             Index = siteIndex,

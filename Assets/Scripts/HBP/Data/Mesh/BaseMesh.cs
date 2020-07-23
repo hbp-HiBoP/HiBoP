@@ -7,7 +7,7 @@ using Tools.Unity;
 namespace HBP.Data
 {
     /// <summary>
-    /// Contains all the data about a mesh.
+    /// A base class which contains all the data about a mesh.
     /// </summary>
     /// <remarks>
     /// <list type="table">
@@ -16,8 +16,16 @@ namespace HBP.Data
     /// <description>Description</description>
     /// </listheader>
     /// <item>
-    /// <term><b>Name</b></term>
+    /// <term><b>ID</b></term>
+    /// <description>Unique identifier.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Name</b></term> 
     /// <description>Name of the mesh.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Transformation</b></term> 
+    /// <description>Transformation file of the mesh.</description>
     /// </item>
     /// </list>
     /// </remarks>
@@ -73,6 +81,9 @@ namespace HBP.Data
             }
         }
         [DataMember(Order = 5, Name = "Transformation")] public string SavedTransformation { get; protected set; }
+        /// <summary>
+        /// Transformation file of the mesh.
+        /// </summary>
         public string Transformation
         {
             get
@@ -86,7 +97,7 @@ namespace HBP.Data
         }
         #endregion
 
-        #region Constructors
+        #region Constructors 
         /// <summary>
         /// Initializes a new instance of the Mesh class.
         /// </summary>
@@ -216,15 +227,11 @@ namespace HBP.Data
         #endregion
 
         #region Serialization
-        [OnDeserialized()]
-        public void OnDeserialized(StreamingContext context)
+        protected override void OnDeserialized()
         {
-            OnDeserializedOperation(context);
-        }
-        protected virtual void OnDeserializedOperation(StreamingContext context)
-        {
-            SavedTransformation = SavedTransformation.ToPath();
+            SavedTransformation = SavedTransformation.StandardizeToEnvironement();
             RecalculateUsable();
+            base.OnDeserialized();
         }
         #endregion
     }

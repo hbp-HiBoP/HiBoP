@@ -5,6 +5,9 @@ using NewTheme.Components;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// Component to display MRI in list.
+    /// </summary>
     public class MRIItem : ActionnableItem<Data.MRI>
     {
         #region Properties
@@ -13,6 +16,9 @@ namespace HBP.UI
 
         [SerializeField] State m_ErrorState;
 
+        /// <summary>
+        /// Object to display.
+        /// </summary>
         public override Data.MRI Object
         {
             get

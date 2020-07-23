@@ -44,6 +44,10 @@ namespace HBP.UI.Module3D
         /// Timeline play
         /// </summary>
         [SerializeField] private Tools.TimelinePlay m_TimelinePlay;
+        /// <summary>
+        /// Timeline record (used to record a video of the timeline)
+        /// </summary>
+        [SerializeField] private Tools.TimelineRecord m_TimelineRecord;
         #endregion
 
         #region Private Methods
@@ -57,6 +61,7 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_TimelineGlobal);
             m_Tools.Add(m_TimelineStep);
             m_Tools.Add(m_TimelinePlay);
+            m_Tools.Add(m_TimelineRecord);
         }
         /// <summary>
         /// Add the listeners to the elements of the toolbar

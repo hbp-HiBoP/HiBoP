@@ -1,5 +1,4 @@
-﻿using HBP.Data.Visualization;
-using System.Linq;
+﻿using System.Linq;
 using UnityEngine;
 using System.IO;
 using System;
@@ -15,7 +14,16 @@ public class DebugBenjamin : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.F1))
         {
-            ScreenshotWindow();
+            ApplicationState.Module3D.SelectedScene.IsBrainTransparent = !ApplicationState.Module3D.SelectedScene.IsBrainTransparent;
+        }
+    }
+    private void MarsAtlasCCEP()
+    {
+        DirectoryInfo dir = new DirectoryInfo(@"D:\HBP\CCEP\07-bids_20190416\converted");
+        FileInfo[] files = dir.GetFiles("*.vhdr");
+        foreach (var file in files)
+        {
+            ApplicationState.ProjectLoaded.Datasets[0].AddData(new HBP.Data.Experience.Dataset.CCEPDataInfo("ccep", new HBP.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), ApplicationState.ProjectLoaded.Patients[0], file.Name.Replace(file.Extension, "")));
         }
     }
     private void GetAllCCEPData()
@@ -47,7 +55,7 @@ public class DebugBenjamin : MonoBehaviour
     private IEnumerator c_ScreenshotWindow(string path)
     {
         yield return new WaitForEndOfFrame();
-        Window window = ApplicationState.WindowsManager.WindowsReferencer.Windows.FirstOrDefault(w => w.GetComponent<Selector>().Selected);
+        HBP.UI.Window window = ApplicationState.WindowsManager.WindowsReferencer.Windows.FirstOrDefault(w => w.GetComponent<Selector>().Selected);
         if (!string.IsNullOrEmpty(path))
         {
             Texture2D image = Texture2DExtension.ScreenRectToTexture(window.GetComponent<RectTransform>().ToScreenSpace());

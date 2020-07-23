@@ -112,7 +112,7 @@ namespace HBP.Data.Visualization
         {
             foreach (Dataset dataset in ApplicationState.ProjectLoaded.Datasets)
             {
-                iEEGDataInfo[] iEEGDataInfos = dataset.GetIEEGDataInfos();
+                IEEGDataInfo[] iEEGDataInfos = dataset.GetIEEGDataInfos();
                 foreach (var dataName in dataset.Data.Select(data => data.Name).Distinct())
                 {
                     if (patients.All((patient) => iEEGDataInfos.Any((data) => (data.Patient == patient && data.Name == dataName))))

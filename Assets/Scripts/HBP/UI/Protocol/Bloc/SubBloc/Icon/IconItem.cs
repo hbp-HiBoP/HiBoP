@@ -6,7 +6,7 @@ using Tools.Unity;
 namespace HBP.UI.Experience.Protocol
 {
     /// <summary>
-    /// The script which manage the icon panel.
+    /// Component to display Icon in list.
     /// </summary>
     public class IconItem : Tools.Unity.Lists.ActionnableItem<Icon>
     {
@@ -19,6 +19,9 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] Image m_ImageIcon;
         [SerializeField] Tooltip m_ImageTooltip;
 
+        /// <summary>
+        /// Object to display.
+        /// </summary>
         public override Icon Object
         {
             get

@@ -111,7 +111,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Raw site list (used for DLL operations)
         /// </summary>
-        public RawSiteList RawElectrodes { get; protected set; }
+        public RawSiteList RawElectrodes { get; protected set; } = new RawSiteList();
         /// <summary>
         /// Sites of this column
         /// </summary>
@@ -204,14 +204,16 @@ namespace HBP.Module3D
         /// <param name="sceneSitePatientParent">List of the patient parent of the sites as instantiated in the scene</param>
         public virtual void UpdateSites(Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
-            RawElectrodes = new RawSiteList(implantation.RawSiteList);
-
             foreach (Transform patientSite in m_SitesMeshesParent)
             {
                 Destroy(patientSite.gameObject);
             }
+            Sites = new List<Site>();
+
+            if (implantation == null) return;
+
             Sites = new List<Site>(implantation.SiteInfos.Count);
-            
+            RawElectrodes = new RawSiteList(implantation.RawSiteList);
             for (int i = 0; i < sceneSitePatientParent.Count; ++i)
             {
                 Transform sceneSitePatient = sceneSitePatientParent[i].transform;

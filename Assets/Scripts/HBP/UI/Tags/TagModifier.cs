@@ -6,6 +6,9 @@ using UnityEngine.UI;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// Window to modify a tag.
+    /// </summary>
     public class TagModifier : ObjectModifier<Data.BaseTag>
     {
         #region Properties
@@ -23,6 +26,9 @@ namespace HBP.UI
         List<Data.BaseTag> m_TagsTemp;
 
         Type[] m_Types;
+        /// <summary>
+        /// True if interactable, False otherwise.
+        /// </summary>
         public override bool Interactable
         {
             get => base.Interactable;
@@ -44,19 +50,25 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Save the modifications.
+        /// </summary>
         public override void OK()
         {
-            item = ItemTemp;
+            m_Object = ObjectTemp;
             base.OK();
         }
         #endregion
 
         #region Protected Methods
+        /// <summary>
+        /// Initialize the window.
+        /// </summary>
         protected override void Initialize()
         {
             base.Initialize();
 
-            m_NameInputField.onValueChanged.AddListener(OnChangeName);
+            m_NameInputField.onValueChanged.AddListener(ChangeName);
 
             m_EmptyTagSubModifier.Initialize();
             m_BoolTagSubModifier.Initialize();
@@ -65,7 +77,7 @@ namespace HBP.UI
             m_StringTagSubModifier.Initialize();
             m_EnumTagSubModifier.Initialize();
 
-            m_TypeDropdown.onValueChanged.AddListener(OnChangeType);
+            m_TypeDropdown.onValueChanged.AddListener(ChangeType);
             m_Types = m_TypeDropdown.Set(typeof(Data.BaseTag));
 
             m_SubModifiers = new List<BaseSubModifier>();
@@ -84,34 +96,46 @@ namespace HBP.UI
             m_TagsTemp.Add(new Data.StringTag());
             m_TagsTemp.Add(new Data.EnumTag());
         }
+        /// <summary>
+        /// Set the fields
+        /// </summary>
+        /// <param name="objectToDisplay"></param>
         protected override void SetFields(Data.BaseTag objectToDisplay)
         {
-            int index = m_TagsTemp.FindIndex(t => t.GetType() == ItemTemp.GetType());
-            m_TagsTemp[index] = ItemTemp;
+            int index = m_TagsTemp.FindIndex(t => t.GetType() == ObjectTemp.GetType());
+            m_TagsTemp[index] = ObjectTemp;
 
             m_NameInputField.text = objectToDisplay.Name;
 
             m_TypeDropdown.SetValue(Array.IndexOf(m_Types, objectToDisplay.GetType()));
         }
-        protected void OnChangeName(string value)
+        /// <summary>
+        /// Change the tag name.
+        /// </summary>
+        /// <param name="name">Name of the tag</param>
+        protected void ChangeName(string name)
         {
-            ItemTemp.Name = value;
+            ObjectTemp.Name = name;
         }
-        protected void OnChangeType(int value)
+        /// <summary>
+        /// Change the type of the tag.
+        /// </summary>
+        /// <param name="index">Index of the type</param>
+        protected void ChangeType(int index)
         {
-            Type type = m_Types[value];
+            Type type = m_Types[index];
 
             // Close old subModifier
-            m_SubModifiers.Find(s => s.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(itemTemp.GetType()))).IsActive = false;
+            m_SubModifiers.Find(s => s.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(m_ObjectTemp.GetType()))).IsActive = false;
 
             Data.BaseTag tag = m_TagsTemp.Find(t => t.GetType() == type);
-            tag.Copy(itemTemp);
-            itemTemp = tag;
+            tag.Copy(m_ObjectTemp);
+            m_ObjectTemp = tag;
 
             // Open new subModifier;
             BaseSubModifier subModifier = m_SubModifiers.Find(s => s.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(type)));
             subModifier.IsActive = true;
-            subModifier.Object = ItemTemp;
+            subModifier.Object = ObjectTemp;
         }
         #endregion
     }

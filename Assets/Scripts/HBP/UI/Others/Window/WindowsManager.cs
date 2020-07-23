@@ -48,7 +48,7 @@ namespace HBP.UI
             if (prefab)
             {
                 modifier = CreateWindow(prefab, interactable) as ObjectModifier<T>;
-                modifier.Item = obj;
+                modifier.Object = obj;
             }
             return modifier;
         }

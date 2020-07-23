@@ -26,13 +26,13 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedScene.OnRequestScreenshot.Invoke(false);
+                ApplicationState.Module3DUI.Scenes[SelectedScene].Screenshot(false);
             });
             m_MultiScreenshots.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
 
-                SelectedScene.OnRequestScreenshot.Invoke(true);
+                ApplicationState.Module3DUI.Scenes[SelectedScene].Screenshot(true);
             });
         }
         /// <summary>

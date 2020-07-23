@@ -7,6 +7,9 @@ using d = HBP.Data.Experience.Protocol;
 
 namespace HBP.UI.Experience.Protocol
 {
+    /// <summary>
+    /// Window to modify a subBloc.
+    /// </summary>
     public class SubBlocModifier : ObjectModifier<d.SubBloc>
     {
         #region Properties
@@ -20,6 +23,9 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] IconListGestion m_IconListGestion;
         [SerializeField] TreatmentListGestion m_TreatmentListGestion;
 
+        /// <summary>
+        /// True if interactable, False otherwise.
+        /// </summary>
         public override bool Interactable
         {
             get
@@ -32,7 +38,7 @@ namespace HBP.UI.Experience.Protocol
                 base.Interactable = value;
                 m_NameInputField.interactable = value;
                 m_OrderInputField.interactable = value;
-                m_TypeDropdown.interactable = value && ItemTemp != null && ItemTemp.Type == Data.Enums.MainSecondaryEnum.Secondary;
+                m_TypeDropdown.interactable = value && ObjectTemp != null && ObjectTemp.Type == Data.Enums.MainSecondaryEnum.Secondary;
                 m_WindowSlider.interactable = value;
                 m_BaselineSlider.interactable = value;
 
@@ -49,38 +55,45 @@ namespace HBP.UI.Experience.Protocol
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Initialize the window.
+        /// </summary>
         protected override void Initialize()
         {
             base.Initialize();
 
-            m_NameInputField.onEndEdit.AddListener(OnChangeName);
-            m_OrderInputField.onEndEdit.AddListener(OnChangeOrder);
-            m_TypeDropdown.onValueChanged.AddListener(OnChangeType);
+            m_NameInputField.onEndEdit.AddListener(ChangeName);
+            m_OrderInputField.onEndEdit.AddListener(ChangeOrder);
+            m_TypeDropdown.onValueChanged.AddListener(ChangeType);
 
-            m_WindowSlider.onValueChanged.AddListener(OnChangeWindow);
-            m_BaselineSlider.onValueChanged.AddListener(OnChangeBaseline);
+            m_WindowSlider.onValueChanged.AddListener(ChangeWindow);
+            m_BaselineSlider.onValueChanged.AddListener(ChangeBaseline);
 
             m_EventListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
-            m_EventListGestion.List.OnAddObject.AddListener(OnAddEvent);
-            m_EventListGestion.List.OnRemoveObject.AddListener(OnRemoveEvent);
-            m_EventListGestion.List.OnUpdateObject.AddListener(OnUpdateEvent);
+            m_EventListGestion.List.OnAddObject.AddListener(AddEvent);
+            m_EventListGestion.List.OnRemoveObject.AddListener(RemoveEvent);
+            m_EventListGestion.List.OnUpdateObject.AddListener(UpdateEvent);
 
             m_IconListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
-            m_IconListGestion.List.OnAddObject.AddListener(OnAddIcon);
-            m_IconListGestion.List.OnRemoveObject.AddListener(OnRemoveIcon);
-            m_IconListGestion.List.OnUpdateObject.AddListener(OnUpdateIcon);
+            m_IconListGestion.List.OnAddObject.AddListener(AddIcon);
+            m_IconListGestion.List.OnRemoveObject.AddListener(RemoveIcon);
+            m_IconListGestion.List.OnUpdateObject.AddListener(UpdateIcon);
 
             m_TreatmentListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
-            m_TreatmentListGestion.List.OnAddObject.AddListener(OnAddTreatment);
-            m_TreatmentListGestion.List.OnRemoveObject.AddListener(OnRemoveTreatment);
-            m_TreatmentListGestion.List.OnUpdateObject.AddListener(OnUpdateTreatment);
+            m_TreatmentListGestion.List.OnAddObject.AddListener(AddTreatment);
+            m_TreatmentListGestion.List.OnRemoveObject.AddListener(RemoveTreatment);
+            m_TreatmentListGestion.List.OnUpdateObject.AddListener(UpdateTreatment);
         }
+        /// <summary>
+        /// Set the fields.
+        /// </summary>
+        /// <param name="objectToDisplay">SubBloc to display</param>
         protected override void SetFields(d.SubBloc objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_OrderInputField.text = objectToDisplay.Order.ToString();
             m_TypeDropdown.Set(typeof(Data.Enums.MainSecondaryEnum), (int)objectToDisplay.Type);
-            m_TypeDropdown.interactable = m_Interactable && ItemTemp != null && ItemTemp.Type == Data.Enums.MainSecondaryEnum.Secondary;
+            m_TypeDropdown.interactable = m_Interactable && ObjectTemp != null && ObjectTemp.Type == Data.Enums.MainSecondaryEnum.Secondary;
 
             ProtocolPreferences preferences = ApplicationState.UserPreferences.Data.Protocol;
             m_WindowSlider.minLimit = preferences.MinLimit;
@@ -97,94 +110,148 @@ namespace HBP.UI.Experience.Protocol
             m_IconListGestion.List.Set(objectToDisplay.Icons);
             m_TreatmentListGestion.List.Set(objectToDisplay.Treatments);
         }
-
-        protected void OnChangeName(string value)
+        /// <summary>
+        /// Change the name.
+        /// </summary>
+        /// <param name="value">Name</param>
+        protected void ChangeName(string value)
         {
             if(value != "")
             {
-                ItemTemp.Name = value;
+                ObjectTemp.Name = value;
             }
             else
             {
-                m_NameInputField.text = ItemTemp.Name;
+                m_NameInputField.text = ObjectTemp.Name;
             }
         }
-        protected void OnChangeOrder(string value)
+        /// <summary>
+        /// Change the order.
+        /// </summary>
+        /// <param name="value">Order</param>
+        protected void ChangeOrder(string value)
         {
             if (int.TryParse(value, out int order))
             {
-                ItemTemp.Order = order;
+                ObjectTemp.Order = order;
             }
             else
             {
-                m_OrderInputField.text = ItemTemp.Order.ToString();
+                m_OrderInputField.text = ObjectTemp.Order.ToString();
             }
         }
-        protected void OnChangeType(int value)
+        /// <summary>
+        /// Change the type.
+        /// </summary>
+        /// <param name="value">Type</param>
+        protected void ChangeType(int value)
         {
-            ItemTemp.Type = (Data.Enums.MainSecondaryEnum)value;
+            ObjectTemp.Type = (Data.Enums.MainSecondaryEnum)value;
         }
-        protected void OnChangeWindow(float min, float max)
+        /// <summary>
+        /// Change the window.
+        /// </summary>
+        /// <param name="min">Start window</param>
+        /// <param name="max">End window</param>
+        protected void ChangeWindow(float min, float max)
         {
-            ItemTemp.Window = new Tools.CSharp.Window(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
-            m_IconListGestion.Window = itemTemp.Window;
-            m_TreatmentListGestion.Window = itemTemp.Window;
-            m_TreatmentListGestion.Baseline = itemTemp.Baseline;
+            ObjectTemp.Window = new Tools.CSharp.Window(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
+            m_IconListGestion.Window = m_ObjectTemp.Window;
+            m_TreatmentListGestion.Window = m_ObjectTemp.Window;
+            m_TreatmentListGestion.Baseline = m_ObjectTemp.Baseline;
         }
-        protected void OnChangeBaseline(float min, float max)
+        /// <summary>
+        /// Change the baseline.
+        /// </summary>
+        /// <param name="min">Start window</param>
+        /// <param name="max">End window</param>
+        protected void ChangeBaseline(float min, float max)
         {
-            ItemTemp.Baseline = new Tools.CSharp.Window(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
-            m_TreatmentListGestion.Baseline = itemTemp.Baseline;
+            ObjectTemp.Baseline = new Tools.CSharp.Window(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
+            m_TreatmentListGestion.Baseline = m_ObjectTemp.Baseline;
         }
-
-        protected void OnAddEvent(d.Event @event)
+        /// <summary>
+        /// Add event to the subBloc.
+        /// </summary>
+        /// <param name="event">Event to add</param>
+        protected void AddEvent(d.Event @event)
         {
-            ItemTemp.Events.AddIfAbsent(@event);
+            ObjectTemp.Events.AddIfAbsent(@event);
         }
-        protected void OnRemoveEvent(d.Event @event)
+        /// <summary>
+        /// Remove event to the subBloc.
+        /// </summary>
+        /// <param name="event">Event to remove</param>
+        protected void RemoveEvent(d.Event @event)
         {
-            ItemTemp.Events.Remove(@event);
+            ObjectTemp.Events.Remove(@event);
         }
-        protected void OnUpdateEvent(d.Event @event)
+        /// <summary>
+        /// Update event to the subBloc.
+        /// </summary>
+        /// <param name="event"></param>
+        protected void UpdateEvent(d.Event @event)
         {
-            int index = ItemTemp.Events.FindIndex(t => t.Equals(@event));
+            int index = ObjectTemp.Events.FindIndex(t => t.Equals(@event));
             if (index != -1)
             {
-                ItemTemp.Events[index] = @event;
+                ObjectTemp.Events[index] = @event;
             }
         }
-
-        protected void OnAddIcon(d.Icon icon)
+        /// <summary>
+        /// Add icon to the subBloc.
+        /// </summary>
+        /// <param name="icon">Icon to add</param>
+        protected void AddIcon(d.Icon icon)
         {
-            ItemTemp.Icons.AddIfAbsent(icon);
+            ObjectTemp.Icons.AddIfAbsent(icon);
         }
-        protected void OnRemoveIcon(d.Icon icon)
+        /// <summary>
+        /// Remove icon from the subBloc.
+        /// </summary>
+        /// <param name="icon">Icon to remove</param>
+        protected void RemoveIcon(d.Icon icon)
         {
-            ItemTemp.Icons.Remove(icon);
+            ObjectTemp.Icons.Remove(icon);
         }
-        protected void OnUpdateIcon(d.Icon icon)
+        /// <summary>
+        /// Update icon from the subBloc.
+        /// </summary>
+        /// <param name="icon">Icon to update</param>
+        protected void UpdateIcon(d.Icon icon)
         {
-            int index = ItemTemp.Icons.FindIndex(i => i.Equals(icon));
+            int index = ObjectTemp.Icons.FindIndex(i => i.Equals(icon));
             if (index != -1)
             {
-                ItemTemp.Icons[index] = icon;
+                ObjectTemp.Icons[index] = icon;
             }
         }
-
-        protected void OnAddTreatment(d.Treatment treatment)
+        /// <summary>
+        /// Add treatment to the subBloc.
+        /// </summary>
+        /// <param name="treatment">Treatment to add</param>
+        protected void AddTreatment(d.Treatment treatment)
         {
-            ItemTemp.Treatments.AddIfAbsent(treatment);
+            ObjectTemp.Treatments.AddIfAbsent(treatment);
         }
-        protected void OnRemoveTreatment(d.Treatment treatment)
+        /// <summary>
+        /// Remove treatment from the subBloc.
+        /// </summary>
+        /// <param name="treatment">Treatment to remove</param>
+        protected void RemoveTreatment(d.Treatment treatment)
         {
-            ItemTemp.Treatments.Remove(treatment);
+            ObjectTemp.Treatments.Remove(treatment);
         }
-        protected void OnUpdateTreatment(d.Treatment treatment)
+        /// <summary>
+        /// Update treatment to the subBloc.
+        /// </summary>
+        /// <param name="treatment">Treatment to update</param>
+        protected void UpdateTreatment(d.Treatment treatment)
         {
-            int index = ItemTemp.Treatments.FindIndex(t => t.Equals(treatment));
+            int index = ObjectTemp.Treatments.FindIndex(t => t.Equals(treatment));
             if(index != -1)
             {
-                ItemTemp.Treatments[index] = treatment;
+                ObjectTemp.Treatments[index] = treatment;
             }
         }
         #endregion

@@ -3,7 +3,7 @@
     public class IEEGData : EpochedData
     {
         #region Constructors
-        public IEEGData(iEEGDataInfo dataInfo) : base(dataInfo)
+        public IEEGData(IEEGDataInfo dataInfo) : base(dataInfo)
         {
         }
         #endregion

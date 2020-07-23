@@ -7,6 +7,9 @@ using System.Text;
 
 namespace HBP.UI.Experience.Protocol
 {
+    /// <summary>
+    /// Component to display event in list.
+    /// </summary>
 	public class EventItem : ActionnableItem<Data.Experience.Protocol.Event> 
 	{
 		#region Properties
@@ -18,6 +21,9 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] Text m_TypeText;
         [SerializeField] State m_ErrorState;
 
+        /// <summary>
+        /// Object to display.
+        /// </summary>
         public override Data.Experience.Protocol.Event Object
         {
             get

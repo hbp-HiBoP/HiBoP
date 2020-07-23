@@ -4,7 +4,7 @@ using UnityEngine.UI;
 namespace HBP.UI
 {
 	/// <summary>
-	/// Manage the project item.
+	/// Component to display project in list.
 	/// </summary>
 	public class ProjectItem : Tools.Unity.Lists.ActionnableItem<Data.ProjectInfo> 
 	{
@@ -19,6 +19,9 @@ namespace HBP.UI
 
         [SerializeField] State m_EmptyState;
 
+        /// <summary>
+        /// Object to display.
+        /// </summary>
         public override Data.ProjectInfo Object
         {
             get

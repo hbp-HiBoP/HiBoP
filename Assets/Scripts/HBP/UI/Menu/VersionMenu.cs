@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI
 {
-    public class VersionMenu : MonoBehaviour
+    public class VersionMenu : Menu
     {
         private void Awake()
         {

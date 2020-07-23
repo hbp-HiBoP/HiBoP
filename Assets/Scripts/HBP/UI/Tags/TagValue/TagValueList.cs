@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// List to display TagValues.
+    /// </summary>
     public class TagValueList : ActionableList<Data.BaseTagValue>
     {
         #region Properties
@@ -12,10 +15,14 @@ namespace HBP.UI
 
         [SerializeField] SortingDisplayer m_TagSortingDisplayer;
         [SerializeField] SortingDisplayer m_ValueSortingDisplayer;
-
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Add TagValue.
+        /// </summary>
+        /// <param name="objectToAdd">TagValue to add</param>
+        /// <returns>True if end without error, False otherwise</returns>
         public override bool Add(Data.BaseTagValue objectToAdd)
         {
             SortByNone();
@@ -33,12 +40,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Tag.Name).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Tag.Name).ToList();
                     m_OrderBy = OrderBy.Tag;
                     m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Tag.Name).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Tag.Name).ToList();
                     m_OrderBy = OrderBy.DescendingTag;
                     m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -67,12 +74,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.GetType().ToString()).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.GetType().ToString()).ToList();
                     m_OrderBy = OrderBy.Value;
                     m_ValueSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.GetType().ToString()).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.GetType().ToString()).ToList();
                     m_OrderBy = OrderBy.DescendingValue;
                     m_ValueSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;

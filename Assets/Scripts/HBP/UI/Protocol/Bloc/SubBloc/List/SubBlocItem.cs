@@ -6,6 +6,9 @@ using System.ComponentModel;
 
 namespace HBP.UI.Experience.Protocol
 {
+    /// <summary>
+    /// Component to display subBloc in list.
+    /// </summary>
     public class SubBlocItem : Tools.Unity.Lists.ActionnableItem<SubBloc>
     {
         #region Properties
@@ -23,6 +26,9 @@ namespace HBP.UI.Experience.Protocol
 
         [SerializeField] State m_ErrorState;
 
+        /// <summary>
+        /// Object to display.
+        /// </summary>
         public override SubBloc Object
         {
             get

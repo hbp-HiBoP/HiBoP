@@ -4,7 +4,7 @@ using UnityEngine.UI;
 namespace Tools.Unity.Lists
 {
     /// <summary>
-    /// Base class for every UI list.
+    /// Base component for every UI list.
     /// </summary>
     public class BaseList : MonoBehaviour
     {

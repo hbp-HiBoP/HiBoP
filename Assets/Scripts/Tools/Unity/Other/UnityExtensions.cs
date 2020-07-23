@@ -346,7 +346,7 @@ namespace Tools.Unity
                 alias.ConvertKeyToValue(ref localPath);
             }
 
-            return localPath.ToPath();
+            return localPath.StandardizeToEnvironement();
         }
         public static string ConvertToShortPath(this string path)
         {
@@ -362,9 +362,9 @@ namespace Tools.Unity
                 alias.ConvertValueToKey(ref localPath);
             }
 
-            return localPath.ToPath();
+            return localPath.StandardizeToEnvironement();
         }
-        public static string ToPath(this string path)
+        public static string StandardizeToEnvironement(this string path)
         {
             string result = path;
             result = result.Replace('\\', Path.DirectorySeparatorChar);

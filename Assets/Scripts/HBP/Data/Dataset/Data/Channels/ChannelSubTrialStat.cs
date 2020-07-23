@@ -1,13 +1,45 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using Tools.CSharp;
 
 namespace HBP.Data.Experience.Dataset
 {
+    /// <summary>
+    /// A Structure containing all the statistic data about subTrial in a specific channel.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <term><b>InformationsByEvent</b></term>
+    /// <description>Informations by event.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Unit</b></term>
+    /// <description>Unit of data contained in this channel.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Values</b></term>
+    /// <description>Values for this sub-trial contained in this channel.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Found</b></term>
+    /// <description>True if the sub-trial is found, False otherwise.</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     public struct ChannelSubTrialStat
     {
         #region Properties
+        /// <summary>
+        /// Statistical Values for this sub-trial contained in this channel.
+        /// </summary>
         public float[] Values { get; set; }
+        /// <summary>
+        /// Standard error of the mean for this sub-trial contained in this channel.
+        /// </summary>
         public float[] SEM { get; set; }
         public int TotalNumberOfSubTrials { get; set; }
         public int NumberOfFoundSubTrials { get; set; }

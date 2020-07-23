@@ -9,22 +9,46 @@ using Tools.CSharp;
 
 namespace HBP.Data.Container
 {
-    [DataContract, DisplayName("Micromed"), iEEG, CCEP]
+    /// <summary>
+    /// Class which contains IEEG or CCEP data in the Micromed data format.
+    /// </summary>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <term><b>ID</b></term>
+    /// <description>Unique identifier.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Errors</b></term>
+    /// <description>Errors of the dataContainer.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>File</b></term>
+    /// <description>File containing the NIFTI data.</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    [DataContract, DisplayName("Micromed"), IEEG, CCEP]
     public class Micromed : DataContainer
     {
         #region Properties
         const string MICROMED_EXTENSION = ".TRC";
 
-        [DataMember(Name = "TRC")] string m_Path;
         /// <summary>
-        /// Path of the EEG file.
+        /// Path to the EEG file with Alias.
+        /// </summary>
+        [DataMember(Name = "TRC")] public string SavedPath { get; protected set; }
+        /// <summary>
+        /// Path of the EEG file without Alias.
         /// </summary>
         public string Path
         {
-            get { return m_Path?.ConvertToFullPath(); }
-            set { m_Path = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
+            get { return SavedPath?.ConvertToFullPath(); }
+            set { SavedPath = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
         }
-        public string SavedPath { get { return m_Path; } }
         #endregion
 
         #region Public Methods
@@ -55,26 +79,30 @@ namespace HBP.Data.Container
         }
         public override void CopyDataToDirectory(DirectoryInfo dataInfoDirectory, string projectDirectory, string oldProjectDirectory)
         {
-            m_Path = Path.CopyToDirectory(dataInfoDirectory).Replace(projectDirectory, oldProjectDirectory);
+            SavedPath = Path.CopyToDirectory(dataInfoDirectory).Replace(projectDirectory, oldProjectDirectory);
         }
         #endregion
 
         #region Constructors
         /// <summary>
-        /// Create a new DataInfo instance.
+        /// 
         /// </summary>
-        /// <param name="name">Name of the dataInfo.</param>
-        /// <param name="patient">Patient who passed the experiment.</param>
-        /// <param name="measure">Name of the measure in the EEG file.</param>
-        /// <param name="trc">EEG file path.</param>
-        /// <param name="pos">POS file path.</param>
-        public Micromed(string trc, string id)
+        /// <param name="trc"></param>
+        /// <param name="ID"></param>
+        public Micromed(string trc, string ID) : base(ID)
         {
             Path = trc;
-            ID = id;
         }
         /// <summary>
-        /// Create a new DataInfo instance with default value.
+        /// 
+        /// </summary>
+        /// <param name="trc"></param>
+        public Micromed(string trc) : base()
+        {
+            Path = trc;
+        }
+        /// <summary>
+        /// 
         /// </summary>
         public Micromed() : this(string.Empty, Guid.NewGuid().ToString())
         {
@@ -92,17 +120,19 @@ namespace HBP.Data.Container
         }
         public override void Copy(object copy)
         {
-            Micromed dataInfo = copy as Micromed;
-            Path = dataInfo.Path;
-            ID = dataInfo.ID;
+            base.Copy(copy);
+            if(copy is Micromed micromed)
+            {
+                Path = micromed.Path;
+            }
         }
         #endregion
 
         #region Serialization
-        public override void OnDeserializedOperation(StreamingContext context)
+        protected override void OnDeserialized()
         {
-            m_Path = m_Path.ToPath();
-            base.OnDeserializedOperation(context);
+            base.OnDeserialized();
+            SavedPath = SavedPath.StandardizeToEnvironement();
         }
         #endregion
     }

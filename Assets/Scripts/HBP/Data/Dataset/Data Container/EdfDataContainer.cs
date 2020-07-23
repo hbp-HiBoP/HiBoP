@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using Tools.Unity;
@@ -9,35 +8,62 @@ using Tools.CSharp;
 
 namespace HBP.Data.Container
 {
-    [DataContract, DisplayName("EDF"), iEEG, CCEP]
+    /// <summary>
+    /// Class which contains IEEG or CCEP data in the EDF data format.
+    /// </summary>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <term><b>ID</b></term>
+    /// <description>Unique identifier.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Errors</b></term>
+    /// <description>Errors of the dataContainer.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>File</b></term>
+    /// <description>Path to the EDF file.</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    [DataContract, DisplayName("EDF"), IEEG, CCEP]
     public class EDF : DataContainer
     {
         #region Properties
+        /// <summary>
+        /// EDF files extension.
+        /// </summary>
         const string EDF_EXTENSION = ".edf";
 
-        [DataMember(Name = "EDF")] string m_Path;
         /// <summary>
-        /// Path of the EEG file.
+        /// Path to the EDF file with Alias.
         /// </summary>
-        public string Path
+        [DataMember(Name = "EDF")] public string SavedFile { get; protected set; }
+        /// <summary>
+        /// Path to the EDF file without Alias.
+        /// </summary>
+        public string File
         {
-            get { return m_Path?.ConvertToFullPath(); }
-            set { m_Path = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
+            get { return SavedFile?.ConvertToFullPath(); }
+            set { SavedFile = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
         }
-        public string SavedEDF { get { return m_Path; } }
         #endregion
 
         #region Public Methods
         public override Error[] GetErrors()
         {
-            List<Error> errors = new List<Error>(base.GetErrors());
-            if (string.IsNullOrEmpty(Path))
+            List<Error> errors = new List<Error>();
+            if (string.IsNullOrEmpty(File))
             {
                 errors.Add(new RequieredFieldEmptyError("EDF file path is empty"));
             }
             else
             {
-                FileInfo headerFile = new FileInfo(Path);
+                FileInfo headerFile = new FileInfo(File);
                 if (!headerFile.Exists)
                 {
                     errors.Add(new FileDoesNotExistError("EDF file does not exist"));
@@ -53,31 +79,36 @@ namespace HBP.Data.Container
             m_Errors = errors.ToArray();
             return m_Errors;
         }
-        public override void CopyDataToDirectory(DirectoryInfo dataInfoDirectory, string projectDirectory, string oldProjectDirectory)
+        public override void CopyDataToDirectory(DirectoryInfo destinationDirectory, string projectDirectory, string oldProjectDirectory)
         {
-            m_Path = Path.CopyToDirectory(dataInfoDirectory).Replace(projectDirectory, oldProjectDirectory);
+            SavedFile = File.CopyToDirectory(destinationDirectory).Replace(projectDirectory, oldProjectDirectory);
         }
         #endregion
 
         #region Constructors
         /// <summary>
-        /// Create a new DataInfo instance.
+        /// Create a new EDF data container.
         /// </summary>
-        /// <param name="name">Name of the dataInfo.</param>
-        /// <param name="patient">Patient who passed the experiment.</param>
-        /// <param name="measure">Name of the measure in the EEG file.</param>
-        /// <param name="edf">EEG file path.</param>
-        /// <param name="pos">POS file path.</param>
-        public EDF(string edf, string id)
+        /// <param name="file">Path to the EDF file</param>
+        /// <param name="ID"></param>
+        public EDF(string file, string ID) : base(ID)
         {
-            Path = edf;
-            ID = id;
+            File = file;
         }
         /// <summary>
-        /// Create a new DataInfo instance with default value.
+        /// Create a new EDF data container.
         /// </summary>
-        public EDF() : this(string.Empty, Guid.NewGuid().ToString())
+        /// <param name="file">Path to the EDF file</param>
+        public EDF(string file) : base()
         {
+            File = file;
+        }
+        /// <summary>
+        /// Create a new EDF data container.
+        /// </summary>
+        public EDF() : this("")
+        {
+
         }
         #endregion
 
@@ -88,21 +119,21 @@ namespace HBP.Data.Container
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new EDF(Path, ID);
+            return new EDF(File, ID);
         }
         public override void Copy(object copy)
         {
             EDF dataInfo = copy as EDF;
-            Path = dataInfo.Path;
+            File = dataInfo.File;
             ID = dataInfo.ID;
         }
         #endregion
 
         #region Serialization
-        public override void OnDeserializedOperation(StreamingContext context)
+        protected override void OnDeserialized()
         {
-            m_Path = m_Path.ToPath();
-            base.OnDeserializedOperation(context);
+            SavedFile = SavedFile.StandardizeToEnvironement();
+            base.OnDeserialized();
         }
         #endregion
     }

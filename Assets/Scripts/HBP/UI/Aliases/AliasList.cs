@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// List to display Alias.
+    /// </summary>
     public class AliasList : ActionableList<Data.Alias>
     {
         #region Properties
@@ -15,6 +18,11 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Add alias.
+        /// </summary>
+        /// <param name="objectToAdd">Alias to add</param>
+        /// <returns>True if end without errors, False otherwise</returns>
         public override bool Add(Data.Alias objectToAdd)
         {
             SortByNone();
@@ -32,12 +40,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Key).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Key).ToList();
                     m_OrderBy = OrderBy.Key;
                     m_KeySortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Key).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Key).ToList();
                     m_OrderBy = OrderBy.DescendingKey;
                     m_KeySortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -65,12 +73,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Value).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Value).ToList();
                     m_OrderBy = OrderBy.Value;
                     m_ValueSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Value).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Value).ToList();
                     m_OrderBy = OrderBy.DescendingValue;
                     m_ValueSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;

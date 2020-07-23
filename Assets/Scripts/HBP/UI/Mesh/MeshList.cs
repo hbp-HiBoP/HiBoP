@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace HBP.UI
 {
+    /// <summary>
+    /// List to display Meshes.
+    /// </summary>
     public class MeshList : ActionableList<Data.BaseMesh>
     {
         #region Properties
@@ -17,14 +20,15 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Add mesh.
+        /// </summary>
+        /// <param name="objectToAdd">Mesh to add</param>
+        /// <returns>True if ended without errors, False otherwise</returns>
         public override bool Add(Data.BaseMesh objectToAdd)
         {
-            if(base.Add(objectToAdd))
-            {
-                SortByNone();
-                return true;
-            }
-            else return false;
+            SortByNone();
+            return base.Add(objectToAdd);
         }
         #endregion
 
@@ -38,12 +42,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Name).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Name).ToList();
                     m_OrderBy = OrderBy.Name;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Name).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Name).ToList();
                     m_OrderBy = OrderBy.DescendingName;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -74,12 +78,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.HasMesh).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.HasMesh).ToList();
                     m_OrderBy = OrderBy.Mesh;
                     m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.HasMesh).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.HasMesh).ToList();
                     m_OrderBy = OrderBy.DescendingMesh;
                     m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -110,12 +114,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.HasMarsAtlas).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.HasMarsAtlas).ToList();
                     m_OrderBy = OrderBy.MarsAtlas;
                     m_MarsAtlasSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.HasMarsAtlas).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.HasMarsAtlas).ToList();
                     m_OrderBy = OrderBy.DescendingMarsAtlas;
                     m_MarsAtlasSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -146,12 +150,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.HasTransformation).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.HasTransformation).ToList();
                     m_OrderBy = OrderBy.Transformation;
                     m_TransformationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.HasTransformation).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.HasTransformation).ToList();
                     m_OrderBy = OrderBy.DescendingTransformation;
                     m_TransformationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;

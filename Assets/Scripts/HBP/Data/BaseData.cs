@@ -3,17 +3,42 @@ using System.Runtime.Serialization;
 
 namespace HBP.Data
 {
+    /// <summary>
+    /// Abstract base class for every HiBoP data.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <term><b>ID</b></term>
+    /// <description>Unique identifier.</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     [DataContract]
     public abstract class BaseData: ICopiable, ICloneable, IIdentifiable
     {
         #region Properties
+        /// <summary>
+        /// Unique identifier to identify the data.
+        /// </summary>
         [DataMember] public string ID { get; set; }
         #endregion
 
         #region Constructors
+        /// <summary>
+        /// Create a new BaseData instance.
+        /// </summary>
         public BaseData() : this(Guid.NewGuid().ToString())
         {
         }
+        /// <summary>
+        /// Create a new BaseData instance.
+        /// </summary>
+        /// <param name="ID">Unique indentifier</param>
         public BaseData(string ID)
         {
             this.ID = ID;
@@ -21,6 +46,9 @@ namespace HBP.Data
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Generate a new unique identifier.
+        /// </summary>
         public virtual void GenerateID()
         {
             ID = Guid.NewGuid().ToString();
@@ -101,18 +129,30 @@ namespace HBP.Data
         {
             OnDeserialized();
         }
+        /// <summary>
+        /// Called on OnSerializing(). You can override this function and use this to do anything needed before serializing.
+        /// </summary>
         protected virtual void OnSerializing()
         {
 
         }
+        /// <summary>
+        /// Called on OnSerialized(). You can override this function and use this to do anything needed after serializing.
+        /// </summary>
         protected virtual void OnSerialized()
         {
 
         }
+        /// <summary>
+        /// Called on OnDeserializing(). You can override this function and use this to do anything needed before deserializing.
+        /// </summary>
         protected virtual void OnDeserializing()
         {
 
         }
+        /// <summary>
+        /// Called on OnDeserialized(). You can override this function and use this to do anything needed before deserializing.
+        /// </summary>
         protected virtual void OnDeserialized()
         {
 

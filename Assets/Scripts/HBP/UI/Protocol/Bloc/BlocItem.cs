@@ -6,6 +6,9 @@ using System.Linq;
 
 namespace HBP.UI.Experience.Protocol
 {
+    /// <summary>
+    /// Component to display bloc in list.
+    /// </summary>
 	public class BlocItem : Tools.Unity.Lists.ActionnableItem<Bloc>
 	{
         #region Properties
@@ -14,9 +17,11 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] Tooltip m_ImageTooltip;
         [SerializeField] Text m_SubBlocsText;
         [SerializeField] Text m_OrderText;
-
         [SerializeField] State m_ErrorState;
 
+        /// <summary>
+        /// Object to display.
+        /// </summary>
         public override Bloc Object
         {
             get

@@ -160,35 +160,35 @@ public static class DataManager
 
     public static void NormalizeiEEGData()
     {
-        IEnumerable<iEEGDataInfo> dataInfoCollection = m_DataByRequest.Select((d) => d.Key.DataInfo).OfType<iEEGDataInfo>().Distinct();
+        IEnumerable<IEEGDataInfo> dataInfoCollection = m_DataByRequest.Select((d) => d.Key.DataInfo).OfType<IEEGDataInfo>().Distinct();
         foreach (var dataInfo in dataInfoCollection)
         {
             IEnumerable<BlocRequest> dataRequestCollection = m_BlocDataByRequest.Where((d) => d.Key.DataInfo == dataInfo).Select((d) => d.Key);
             switch (dataInfo.Normalization)
             {
-                case iEEGDataInfo.NormalizationType.None:
+                case IEEGDataInfo.NormalizationType.None:
                     foreach (var request in dataRequestCollection) if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.None) NormalizeByNone(request);
                     break;
-                case iEEGDataInfo.NormalizationType.SubTrial:
+                case IEEGDataInfo.NormalizationType.SubTrial:
                     foreach (var request in dataRequestCollection) if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.SubTrial) NormalizeBySubTrial(request);
                     break;
-                case iEEGDataInfo.NormalizationType.Trial:
+                case IEEGDataInfo.NormalizationType.Trial:
                     foreach (var request in dataRequestCollection) if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.Trial) NormalizeByTrial(request);
                     break;
-                case iEEGDataInfo.NormalizationType.SubBloc:
+                case IEEGDataInfo.NormalizationType.SubBloc:
                     foreach (var request in dataRequestCollection) if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.SubBloc) NormalizeBySubBloc(request);
                     break;
-                case iEEGDataInfo.NormalizationType.Bloc:
+                case IEEGDataInfo.NormalizationType.Bloc:
                     foreach (var request in dataRequestCollection) if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.Bloc) NormalizeByBloc(request);
                     break;
-                case iEEGDataInfo.NormalizationType.Protocol:
+                case IEEGDataInfo.NormalizationType.Protocol:
                     IEnumerable<Tuple<BlocRequest, bool>> dataRequestAndNeedToNormalize = from request in dataRequestCollection select new Tuple<BlocRequest, bool>(request, m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.Protocol);
                     if (dataRequestAndNeedToNormalize.Any((tuple) => tuple.Item2))
                     {
                         NormalizeByProtocol(dataRequestAndNeedToNormalize);
                     }
                     break;
-                case iEEGDataInfo.NormalizationType.Auto:
+                case IEEGDataInfo.NormalizationType.Auto:
                     switch (ApplicationState.UserPreferences.Data.EEG.Normalization)
                     {
                         case HBP.Data.Enums.NormalizationType.None:
@@ -232,7 +232,7 @@ public static class DataManager
     {
         if (request.IsValid && !m_DataByRequest.ContainsKey(request))
         {
-            if(request.DataInfo is iEEGDataInfo iEEGDataInfo)
+            if(request.DataInfo is IEEGDataInfo iEEGDataInfo)
             {
                 IEEGData data = new IEEGData(iEEGDataInfo);
                 m_DataByRequest.Add(request, data);

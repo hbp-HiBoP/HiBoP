@@ -8,16 +8,41 @@ using HBP.Errors;
 
 namespace HBP.Data.Experience.Dataset
 {
-    /**
-    * \class DataInfo
-    * \author Adrien Gannerie
-    * \version 1.0
-    * \date 09 janvier 2017
-    * \brief DataInfo.
-    * 
-    * \details Class which define a DataInfo which contains : 
-    *     - Name.
-    */
+    /// <summary>
+    /// A base class containing paths to functional data files.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <listheader>
+    /// <term>Data</term>
+    /// <description>Description</description>
+    /// </listheader>
+    /// <item>
+    /// <term><b>Name</b></term>
+    /// <description>Name of the data.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Data container</b></term>
+    /// <description>Data container containing all the paths to functional data files.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Dataset</b></term>
+    /// <description>Dataset the dataInfo belongs to.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>IsOk</b></term>
+    /// <description>True if the dataInfo is visualizable, False otherwise.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>Errors</b></term>
+    /// <description>All dataInfo errors.</description>
+    /// </item>
+    /// <item>
+    /// <term><b>OnRequestErrorCheck</b></term>
+    /// <description>Callback executed when error checking is required.</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     [DataContract]
     public class DataInfo : BaseData, INameable
     {
@@ -33,12 +58,18 @@ namespace HBP.Data.Experience.Dataset
         }
 
         [DataMember(Name = "DataContainer")] protected Container.DataContainer m_DataContainer;
+        /// <summary>
+        /// Data container containing all the paths to functional data files.
+        /// </summary>
         public Container.DataContainer DataContainer
         {
             get { return m_DataContainer; }
             set { m_DataContainer = value; m_DataContainer.GetErrors(); m_DataContainer.OnRequestErrorCheck.AddListener(OnRequestErrorCheck.Invoke); }
         }
 
+        /// <summary>
+        /// Dataset the dataInfo belongs to.
+        /// </summary>
         public Dataset Dataset
         {
             get
@@ -47,8 +78,14 @@ namespace HBP.Data.Experience.Dataset
             }
         }
 
+        /// <summary>
+        /// Naming-related errors.
+        /// </summary>
         protected Error[] m_NameErrors = new Error[0];
 
+        /// <summary>
+        /// True if the dataInfo is visualizable, False otherwise.
+        /// </summary>
         public bool IsOk
         {
             get
@@ -56,6 +93,10 @@ namespace HBP.Data.Experience.Dataset
                 return Errors.Length == 0;
             }
         }
+
+        /// <summary>
+        /// All dataInfo errors.
+        /// </summary>
         public virtual Error[] Errors
         {
             get
@@ -67,6 +108,9 @@ namespace HBP.Data.Experience.Dataset
             }
         }
 
+        /// <summary>
+        /// Callback executed when error checking is required.
+        /// </summary>
         public UnityEvent OnRequestErrorCheck { get; set; } = new UnityEvent();
         #endregion
 
@@ -76,8 +120,8 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         /// <param name="name">Name of the dataInfo.</param>
         /// <param name="dataContainer">Data container of the dataInfo.</param>
-        /// <param name="id">Unique ID of the subBloc.</param>
-        public DataInfo(string name, Container.DataContainer dataContainer, string id): base(id)
+        /// <param name="ID">Unique identifier of the dataInfo.</param>
+        public DataInfo(string name, Container.DataContainer dataContainer, string ID) : base(ID)
         {
             Name = name;
             DataContainer = dataContainer;
@@ -95,18 +139,27 @@ namespace HBP.Data.Experience.Dataset
         /// <summary>
         /// Create a new DataInfo instance with default value.
         /// </summary>
-        public DataInfo() : this("Data", new Container.DataContainer(), Guid.NewGuid().ToString())
+        public DataInfo() : this("Data", new Container.Elan(), Guid.NewGuid().ToString())
         {
         }
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Get all dataInfo errors.
+        /// </summary>
+        /// <param name="protocol">Protocol of the dataset the dataInfo belongs to.</param>
+        /// <returns>All dataInfo errors.</returns>
         public virtual Error[] GetErrors(Protocol.Protocol protocol)
         {
             List<Error> errors = new List<Error>(GetNameErrors());
             errors.AddRange(m_DataContainer.GetErrors());
             return errors.Distinct().ToArray();
         }
+        /// <summary>
+        /// Get all naming-related errors.
+        /// </summary>
+        /// <returns>All naming-related errors.</returns>
         public virtual Error[] GetNameErrors()
         {
             List<Error> errors = new List<Error>();
@@ -114,6 +167,10 @@ namespace HBP.Data.Experience.Dataset
             m_NameErrors = errors.ToArray();
             return m_NameErrors;
         }
+        /// <summary>
+        /// Get all message errors in a readable form.
+        /// </summary>
+        /// <returns></returns>
         public virtual string GetErrorsMessage()
         {
             Error[] errors = Errors;
@@ -123,7 +180,7 @@ namespace HBP.Data.Experience.Dataset
             {
                 for (int i = 0; i < errors.Length - 1; i++)
                 {
-                    if(errors[i].Message != "")
+                    if (errors[i].Message != "")
                     {
                         stringBuilder.AppendLine(string.Format("• {0}({1})", errors[i].Title, errors[i].Message));
 
@@ -147,6 +204,9 @@ namespace HBP.Data.Experience.Dataset
             }
             return stringBuilder.ToString();
         }
+        /// <summary>
+        /// Generate a new unique identifier.
+        /// </summary>
         public override void GenerateID()
         {
             base.GenerateID();
@@ -163,25 +223,18 @@ namespace HBP.Data.Experience.Dataset
         {
             return new DataInfo(Name, DataContainer.Clone() as Container.DataContainer, ID);
         }
+        /// <summary>
+        /// Copy an instance to this instance.
+        /// </summary>
+        /// <param name="copy"></param>
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            if(copy is DataInfo dataInfo)
+            if (copy is DataInfo dataInfo)
             {
                 Name = dataInfo.Name;
                 DataContainer = dataInfo.DataContainer;
             }
-        }
-        #endregion
-
-        #region Serialization
-        [OnDeserialized()]
-        public void OnDeserialized(StreamingContext context)
-        {
-            OnDeserializedOperation(context);
-        }
-        public virtual void OnDeserializedOperation(StreamingContext context)
-        {
         }
         #endregion
 
