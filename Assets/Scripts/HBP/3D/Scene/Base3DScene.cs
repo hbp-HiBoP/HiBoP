@@ -39,7 +39,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return Visualization.Patients.Count > 1 ? Data.Enums.SceneType.MultiPatients : Data.Enums.SceneType.SinglePatient;
+                return Visualization.Patients.Count == 1 ? Data.Enums.SceneType.SinglePatient : Data.Enums.SceneType.MultiPatients;
             }
         }
 
@@ -1636,7 +1636,7 @@ namespace HBP.Module3D
                 IsGeneratorUpToDate = false;
                 CutTexturesNeedUpdate = true;
             }
-            OnIEEGOutdated.Invoke(true);
+            OnIEEGOutdated.Invoke(Columns.Any(c => c is Column3DIEEG || c is Column3DCCEP));
         }
         /// <summary>
         /// Passive raycast on the scene (to hover sites for instance)
