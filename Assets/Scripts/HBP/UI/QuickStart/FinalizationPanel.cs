@@ -33,15 +33,6 @@ namespace HBP.UI.QuickStart
 
             ApplicationState.ProjectLoaded.Preferences.Name = m_ProjectName.text;
             ApplicationState.ProjectLoadedLocation = m_ProjectLocation.Folder;
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            ApplicationState.LoadingManager.Load(ApplicationState.ProjectLoaded.c_Save(ApplicationState.ProjectLoadedLocation, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress, (state) =>
-            {
-                if (state == TaskState.Done)
-                {
-                    FindObjectOfType<MenuButtonState>().SetInteractables();
-                    ApplicationState.Module3D.LoadScenes(ApplicationState.ProjectLoaded.Visualizations);
-                }
-            });
         }
         #endregion
     }

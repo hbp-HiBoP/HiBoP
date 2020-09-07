@@ -40,7 +40,6 @@ namespace HBP.UI.QuickStart
         {
             m_BIDSPatientListGestion.List.Set(patients);
             m_BIDSPatientListPanel.gameObject.SetActive(true);
-
         }
         #endregion
 

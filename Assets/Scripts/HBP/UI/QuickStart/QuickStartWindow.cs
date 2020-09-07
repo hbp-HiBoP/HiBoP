@@ -1,5 +1,7 @@
-﻿using HBP.Data;
+﻿using CielaSpike;
+using HBP.Data;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace HBP.UI.QuickStart
@@ -76,6 +78,15 @@ namespace HBP.UI.QuickStart
         private void Finish()
         {
             base.Close();
+            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+            ApplicationState.LoadingManager.Load(ApplicationState.ProjectLoaded.c_Save(ApplicationState.ProjectLoadedLocation, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress, (state) =>
+            {
+                if (state == TaskState.Done)
+                {
+                    FindObjectOfType<MenuButtonState>().SetInteractables();
+                    ApplicationState.Module3D.LoadScenes(ApplicationState.ProjectLoaded.Visualizations);
+                }
+            });
         }
         #endregion
 
