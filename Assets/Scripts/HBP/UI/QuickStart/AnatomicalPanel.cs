@@ -1,5 +1,8 @@
-﻿using Tools.Unity;
+﻿using HBP.Data;
+using System.Collections.Generic;
+using Tools.Unity;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace HBP.UI.QuickStart
@@ -29,7 +32,30 @@ namespace HBP.UI.QuickStart
         }
         private void LoadBIDSDatabase(string path)
         {
+            ILoadableFromDatabase<Patient> loadable = new Patient() as ILoadableFromDatabase<Patient>;
+            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+            ApplicationState.LoadingManager.Load(loadable.LoadFromDatabase(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => FinishedLoadingBIDSDatabase(result)), onChangeProgress);
+        }
+        private void FinishedLoadingBIDSDatabase(IEnumerable<Patient> patients)
+        {
+            m_BIDSPatientListGestion.List.Set(patients);
             m_BIDSPatientListPanel.gameObject.SetActive(true);
+
+        }
+        #endregion
+
+        #region Public Methods
+        public override void ClosePanel()
+        {
+            base.ClosePanel();
+            if (m_BIDS.isOn)
+            {
+                ApplicationState.ProjectLoaded.SetPatients(m_BIDSPatientListGestion.List.ObjectsSelected);
+            }
+            else if (m_NotBIDS.isOn)
+            {
+                ApplicationState.ProjectLoaded.SetPatients(m_NotBIDSPatientListGestion.List.Objects);
+            }
         }
         #endregion
     }

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HBP.Data;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.QuickStart
@@ -23,9 +24,9 @@ namespace HBP.UI.QuickStart
             }
             set
             {
-                m_CurrentPanel?.gameObject.SetActive(false);
+                m_CurrentPanel?.ClosePanel();
                 m_CurrentPanel = value;
-                m_CurrentPanel.gameObject.SetActive(true);
+                m_CurrentPanel.OpenPanel();
                 m_Back.gameObject.SetActive(m_CurrentPanel.PreviousPanel != null);
                 m_Next.GetComponentInChildren<Text>().text = m_CurrentPanel.NextPanel != null ? "Next >" : "Finish";
                 // Special case because we need to skip some panels
@@ -44,6 +45,9 @@ namespace HBP.UI.QuickStart
                 }
             }
         }
+
+        private Project m_CurrentlyOpenedProject;
+        private string m_CurrentlyOpenedProjectLocation;
         #endregion
 
         #region Private Methods
@@ -56,6 +60,7 @@ namespace HBP.UI.QuickStart
             {
                 if (CurrentPanel.NextPanel == null)
                 {
+                    CurrentPanel.ClosePanel();
                     Finish();
                 }
                 else
@@ -63,10 +68,23 @@ namespace HBP.UI.QuickStart
                     CurrentPanel = CurrentPanel.NextPanel;
                 }
             });
+            m_CurrentlyOpenedProject = ApplicationState.ProjectLoaded;
+            m_CurrentlyOpenedProjectLocation = ApplicationState.ProjectLoadedLocation;
+            ApplicationState.ProjectLoaded = new Project();
+            ApplicationState.ProjectLoadedLocation = Application.dataPath;
         }
         private void Finish()
         {
-            Close();
+            base.Close();
+        }
+        #endregion
+
+        #region Public Methods
+        public override void Close()
+        {
+            base.Close();
+            ApplicationState.ProjectLoaded = m_CurrentlyOpenedProject;
+            ApplicationState.ProjectLoadedLocation = m_CurrentlyOpenedProjectLocation;
         }
         #endregion
     }

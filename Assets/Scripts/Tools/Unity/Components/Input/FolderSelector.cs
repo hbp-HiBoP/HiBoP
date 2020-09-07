@@ -25,6 +25,7 @@ namespace Tools.Unity
             {
                 l_result = l_result.StandardizeToPath();
                 m_Inputfield.text = l_result;
+                m_Inputfield.onEndEdit.Invoke(l_result);
             }
         }
         #endregion
