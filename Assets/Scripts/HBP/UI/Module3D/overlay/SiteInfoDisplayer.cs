@@ -121,19 +121,21 @@ namespace HBP.UI.Module3D
                     SetPosition(siteInfo);
                     SetSite(siteInfo.Site);
                     SetPatient(siteInfo.Site.Information.Patient);
-                    SetTags(siteInfo);
                     switch (siteInfo.Mode)
                     {
                         case Data.Enums.SiteInformationDisplayMode.Anatomy:
                             SetStates(siteInfo.Site);
+                            SetTags(siteInfo);
                             break;
                         case Data.Enums.SiteInformationDisplayMode.IEEG:
                             SetIEEG(siteInfo);
                             SetStates(siteInfo.Site);
+                            SetTags(siteInfo);
                             break;
                         case Data.Enums.SiteInformationDisplayMode.CCEP:
                             SetCCEP(siteInfo);
                             SetStates(siteInfo.Site);
+                            SetTags(siteInfo);
                             break;
                         case Data.Enums.SiteInformationDisplayMode.Light:
                             break;
@@ -230,6 +232,7 @@ namespace HBP.UI.Module3D
                     stringBuilder.Append(string.Format("\t• <b>{0}</b>: {1}\n", tag.Tag.Name, tag.DisplayableValue));
                 }
                 m_TagsText.text = stringBuilder.Remove(stringBuilder.Length - 1, 1).ToString();
+                m_Tags.SetActive(true);
             }
             else
             {
