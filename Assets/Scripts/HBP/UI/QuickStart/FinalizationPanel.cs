@@ -1,6 +1,11 @@
 ﻿using CielaSpike;
+using HBP.Data;
+using HBP.Data.Experience.Dataset;
+using HBP.Data.Experience.Protocol;
+using HBP.Data.Visualization;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Tools.Unity;
 using UnityEngine;
 using UnityEngine.Events;
@@ -16,23 +21,37 @@ namespace HBP.UI.QuickStart
         #endregion
 
         #region Public Methods
-        public override void ClosePanel()
+        public override QuickStartPanel OpenNextPanel()
         {
-            base.ClosePanel();
-
             // Add visualization
             if (ApplicationState.ProjectLoaded.Protocols.Count == 0) // Anatomical
             {
-                Data.Visualization.Visualization visualization = new Data.Visualization.Visualization("Anatomy", ApplicationState.ProjectLoaded.Patients, new Data.Visualization.Column[] { new Data.Visualization.AnatomicColumn("Anatomy", new Data.Visualization.BaseConfiguration()) });
+                Data.Visualization.Visualization visualization = new Data.Visualization.Visualization("QuickStart Anatomy", ApplicationState.ProjectLoaded.Patients, new Data.Visualization.Column[] { new Data.Visualization.AnatomicColumn("Anatomy", new Data.Visualization.BaseConfiguration()) });
                 ApplicationState.ProjectLoaded.SetVisualizations(new Data.Visualization.Visualization[] { visualization });
             }
             else // Functional
             {
-
+                List<Patient> patients = new List<Patient>();
+                foreach (var patient in ApplicationState.ProjectLoaded.Patients)
+                {
+                    if (ApplicationState.ProjectLoaded.Datasets[0].Data.First(d => (d as IEEGDataInfo).Patient == patient).IsOk)
+                    {
+                        patients.Add(patient);
+                    }
+                }
+                List<IEEGColumn> columns = new List<IEEGColumn>();
+                Protocol protocol = ApplicationState.ProjectLoaded.Protocols[0];
+                foreach (var bloc in protocol.Blocs)
+                {
+                    IEEGColumn column = new IEEGColumn(string.Format("Code {0}", bloc.MainSubBloc.MainEvent.Codes[0]), new BaseConfiguration(), ApplicationState.ProjectLoaded.Datasets[0], "Data", bloc, new DynamicConfiguration());
+                    columns.Add(column);
+                }
+                Data.Visualization.Visualization visualization = new Data.Visualization.Visualization("QuickStart", patients, columns, new VisualizationConfiguration());
+                ApplicationState.ProjectLoaded.SetVisualizations(new Data.Visualization.Visualization[] { visualization });
             }
-
             ApplicationState.ProjectLoaded.Preferences.Name = m_ProjectName.text;
             ApplicationState.ProjectLoadedLocation = m_ProjectLocation.Folder;
+            return base.OpenNextPanel();
         }
         #endregion
     }

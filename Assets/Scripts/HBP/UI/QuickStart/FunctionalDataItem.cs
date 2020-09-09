@@ -82,15 +82,35 @@ namespace HBP.UI.QuickStart
                 m_EDFFile.File = value.EDFDataContainer.File;
 
                 m_BrainVisionHeader.onValueChanged.RemoveAllListeners();
-                m_BrainVisionHeader.onValueChanged.AddListener(t => value.BrainVisionDataContainer.Header = t);
+                m_BrainVisionHeader.onValueChanged.AddListener(t =>
+                {
+                    value.BrainVisionDataContainer.Header = t;
+                    value.DataInfo.GetErrors(ApplicationState.ProjectLoaded.Protocols[0]);
+                });
                 m_MicromedFile.onValueChanged.RemoveAllListeners();
-                m_MicromedFile.onValueChanged.AddListener(t => value.MicromedDataContainer.Path = t);
+                m_MicromedFile.onValueChanged.AddListener(t =>
+                {
+                    value.MicromedDataContainer.Path = t;
+                    value.DataInfo.GetErrors(ApplicationState.ProjectLoaded.Protocols[0]);
+                });
                 m_ELANEEGFile.onValueChanged.RemoveAllListeners();
-                m_ELANEEGFile.onValueChanged.AddListener(t => value.ElanDataContainer.EEG = t);
+                m_ELANEEGFile.onValueChanged.AddListener(t =>
+                {
+                    value.ElanDataContainer.EEG = t;
+                    value.DataInfo.GetErrors(ApplicationState.ProjectLoaded.Protocols[0]);
+                });
                 m_ELANPOSFile.onValueChanged.RemoveAllListeners();
-                m_ELANPOSFile.onValueChanged.AddListener(t => value.ElanDataContainer.POS = t);
+                m_ELANPOSFile.onValueChanged.AddListener(t =>
+                {
+                    value.ElanDataContainer.POS = t;
+                    value.DataInfo.GetErrors(ApplicationState.ProjectLoaded.Protocols[0]);
+                });
                 m_EDFFile.onValueChanged.RemoveAllListeners();
-                m_EDFFile.onValueChanged.AddListener(t => value.EDFDataContainer.File = t);
+                m_EDFFile.onValueChanged.AddListener(t =>
+                {
+                    value.EDFDataContainer.File = t;
+                    value.DataInfo.GetErrors(ApplicationState.ProjectLoaded.Protocols[0]);
+                });
 
                 m_ErrorText.Text = value.DataInfo.GetErrorsMessage();
                 m_StateThemeElement.Set(value.DataInfo.IsOk ? m_OKState : m_ErrorState);

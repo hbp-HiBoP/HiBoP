@@ -41,7 +41,7 @@ namespace HBP.Data.Container
         /// <summary>
         /// Path to the BrainVision header file with Alias.
         /// </summary>
-        [DataMember(Name = "Header")] public string SavedHeader { get; protected set; }
+        [DataMember(Name = "Header")] public string SavedHeader { get; protected set; } = "";
         /// <summary>
         /// Path to the BrainVision format header file without Alias.
         /// </summary>

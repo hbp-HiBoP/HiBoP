@@ -44,9 +44,8 @@ namespace HBP.UI.QuickStart
         #endregion
 
         #region Public Methods
-        public override void ClosePanel()
+        public override QuickStartPanel OpenNextPanel()
         {
-            base.ClosePanel();
             if (m_BIDS.isOn)
             {
                 ApplicationState.ProjectLoaded.SetPatients(m_BIDSPatientListGestion.List.ObjectsSelected);
@@ -55,6 +54,12 @@ namespace HBP.UI.QuickStart
             {
                 ApplicationState.ProjectLoaded.SetPatients(m_NotBIDSPatientListGestion.List.Objects);
             }
+            return base.OpenNextPanel();
+        }
+        public override QuickStartPanel OpenPreviousPanel()
+        {
+            ApplicationState.ProjectLoaded.SetPatients(new Patient[0]);
+            return base.OpenPreviousPanel();
         }
         #endregion
     }

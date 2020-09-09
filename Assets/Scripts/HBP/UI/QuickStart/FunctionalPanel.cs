@@ -37,9 +37,9 @@ namespace HBP.UI.QuickStart
         #endregion
 
         #region Public Methods
-        public override void OpenPanel()
+        public override void Open()
         {
-            base.OpenPanel();
+            base.Open();
 
             var functionalDataObjects = m_List.Objects;
             foreach (var functionalData in functionalDataObjects)
@@ -57,9 +57,16 @@ namespace HBP.UI.QuickStart
                 }
             }
         }
-        public override void ClosePanel()
+        public override QuickStartPanel OpenNextPanel()
         {
-            base.ClosePanel();
+            Dataset dataset = new Dataset("QuickStart", ApplicationState.ProjectLoaded.Protocols[0], m_List.Objects.Select(f => f.DataInfo));
+            ApplicationState.ProjectLoaded.SetDatasets(new Dataset[] { dataset });
+            return base.OpenNextPanel();
+        }
+        public override QuickStartPanel OpenPreviousPanel()
+        {
+            ApplicationState.ProjectLoaded.SetDatasets(new Dataset[0]);
+            return base.OpenPreviousPanel();
         }
         #endregion
     }

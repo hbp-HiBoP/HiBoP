@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using HBP.Data.Experience.Protocol;
+using System.Collections;
 using System.Collections.Generic;
+using Tools.CSharp;
 using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
@@ -25,6 +27,32 @@ namespace HBP.UI.QuickStart
             m_Window.maxLimit = ApplicationState.UserPreferences.Data.Protocol.MaxLimit;
             m_Window.step = ApplicationState.UserPreferences.Data.Protocol.Step;
             m_Window.Values = new Vector2(-500, 500);
+        }
+        #endregion
+
+        #region Public Methods
+        public override QuickStartPanel OpenNextPanel()
+        {
+            Tools.CSharp.Window window = new Tools.CSharp.Window((int)m_Window.Values.x, (int)m_Window.Values.y);
+            List<Bloc> blocs = new List<Bloc>();
+            foreach (var codeString in m_Codes.text.Split(','))
+            {
+                if (int.TryParse(codeString, out int code))
+                {
+                    Data.Experience.Protocol.Event ev = new Data.Experience.Protocol.Event(string.Format("QS{0}", code), new int[] { code },Data.Enums.MainSecondaryEnum.Main );
+                    SubBloc subBloc = new SubBloc(string.Format("QS{0}", code), 0, Data.Enums.MainSecondaryEnum.Main, window, new Tools.CSharp.Window(0, 0), new Data.Experience.Protocol.Event[] { ev }, new Icon[0], new Treatment[0]);
+                    Bloc bloc = new Bloc(string.Format("QS{0}", code), 0, "", "", new SubBloc[] { subBloc });
+                    blocs.Add(bloc);
+                }
+            }
+            Protocol protocol = new Protocol("QuickStart", blocs);
+            ApplicationState.ProjectLoaded.SetProtocols(new Protocol[] { protocol });
+            return base.OpenNextPanel();
+        }
+        public override QuickStartPanel OpenPreviousPanel()
+        {
+            ApplicationState.ProjectLoaded.SetProtocols(new Protocol[0]);
+            return base.OpenPreviousPanel();
         }
         #endregion
     }

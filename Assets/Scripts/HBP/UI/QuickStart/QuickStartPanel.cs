@@ -22,13 +22,21 @@ namespace HBP.UI.QuickStart
         #endregion
 
         #region Public Methods
-        public virtual void OpenPanel()
+        public virtual void Open()
         {
             gameObject.SetActive(true);
         }
-        public virtual void ClosePanel()
+        public virtual QuickStartPanel OpenPreviousPanel()
         {
             gameObject.SetActive(false);
+            PreviousPanel?.Open();
+            return PreviousPanel;
+        }
+        public virtual QuickStartPanel OpenNextPanel()
+        {
+            gameObject.SetActive(false);
+            NextPanel?.Open();
+            return NextPanel;
         }
         #endregion
     }

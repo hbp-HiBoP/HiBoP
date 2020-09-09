@@ -26,23 +26,24 @@ namespace HBP.UI.QuickStart
             }
             set
             {
-                m_CurrentPanel?.ClosePanel();
                 m_CurrentPanel = value;
-                m_CurrentPanel.OpenPanel();
-                m_Back.gameObject.SetActive(m_CurrentPanel.PreviousPanel != null);
-                m_Next.GetComponentInChildren<Text>().text = m_CurrentPanel.NextPanel != null ? "Next >" : "Finish";
-                // Special case because we need to skip some panels
-                if (m_CurrentPanel == m_AnatomicalPanel)
+                if (m_CurrentPanel != null)
                 {
-                    if (m_DataTypePanel.OnlyAnatomical)
+                    m_Back.gameObject.SetActive(m_CurrentPanel.PreviousPanel != null);
+                    m_Next.GetComponentInChildren<Text>().text = m_CurrentPanel.NextPanel != null ? "Next >" : "Finish";
+                    // Special case because we need to skip some panels
+                    if (m_CurrentPanel == m_AnatomicalPanel)
                     {
-                        m_AnatomicalPanel.NextPanel = m_FinalizationPanel;
-                        m_FinalizationPanel.PreviousPanel = m_AnatomicalPanel;
-                    }
-                    else
-                    {
-                        m_AnatomicalPanel.NextPanel = m_EpochingPanel;
-                        m_FinalizationPanel.PreviousPanel = m_FunctionalDataPanel;
+                        if (m_DataTypePanel.OnlyAnatomical)
+                        {
+                            m_AnatomicalPanel.NextPanel = m_FinalizationPanel;
+                            m_FinalizationPanel.PreviousPanel = m_AnatomicalPanel;
+                        }
+                        else
+                        {
+                            m_AnatomicalPanel.NextPanel = m_EpochingPanel;
+                            m_FinalizationPanel.PreviousPanel = m_FunctionalDataPanel;
+                        }
                     }
                 }
             }
@@ -57,18 +58,13 @@ namespace HBP.UI.QuickStart
         {
             base.Initialize();
             CurrentPanel = m_IntroductionPanel;
-            m_Back.onClick.AddListener(() => CurrentPanel = CurrentPanel.PreviousPanel);
+            m_IntroductionPanel.Open();
+            m_Back.onClick.AddListener(() => CurrentPanel = CurrentPanel.OpenPreviousPanel());
             m_Next.onClick.AddListener(() =>
             {
-                if (CurrentPanel.NextPanel == null)
-                {
-                    CurrentPanel.ClosePanel();
+                CurrentPanel = CurrentPanel.OpenNextPanel();
+                if (CurrentPanel == null)
                     Finish();
-                }
-                else
-                {
-                    CurrentPanel = CurrentPanel.NextPanel;
-                }
             });
             m_CurrentlyOpenedProject = ApplicationState.ProjectLoaded;
             m_CurrentlyOpenedProjectLocation = ApplicationState.ProjectLoadedLocation;
