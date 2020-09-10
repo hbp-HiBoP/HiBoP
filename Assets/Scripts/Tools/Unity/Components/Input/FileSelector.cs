@@ -45,7 +45,7 @@ namespace Tools.Unity
         #region Public Methods
         public void Open()
         {
-            string result = HBP.UI.FileBrowser.GetExistingFileName(Extension.Split(','), Message, m_InputField.text);
+            string result = HBP.UI.FileBrowser.GetExistingFileName(Extension.Split(','), Message, m_InputField.text.ConvertToFullPath());
             if (result != string.Empty)
             {
                 result = result.StandardizeToPath();

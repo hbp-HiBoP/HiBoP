@@ -16,7 +16,8 @@ namespace HBP.Data.Visualization
         public Dictionary<string, string> UnitByChannelID { get; set; } = new Dictionary<string, string>();
 
         private Dictionary<string, Tools.CSharp.EEG.Frequency> m_FrequencyByChannelID = new Dictionary<string, Tools.CSharp.EEG.Frequency>();
-        public List<Tools.CSharp.EEG.Frequency> Frequencies = new List<Tools.CSharp.EEG.Frequency>();
+        private List<Tools.CSharp.EEG.Frequency> m_Frequencies = new List<Tools.CSharp.EEG.Frequency>();
+        public float MaxFrequency { get { return m_Frequencies.Count > 0 ? m_Frequencies.Max(f => f.RawValue) : 0; } }
         #endregion
 
         #region Public Methods
@@ -34,7 +35,7 @@ namespace HBP.Data.Visualization
                     if (!m_FrequencyByChannelID.ContainsKey(channelID)) m_FrequencyByChannelID.Add(channelID, data.Frequency);
                     if (!UnitByChannelID.ContainsKey(channelID)) UnitByChannelID.Add(channelID, data.UnitByChannel[channel]);
                 }
-                if (!Frequencies.Contains(data.Frequency)) Frequencies.Add(data.Frequency);
+                if (!m_Frequencies.Contains(data.Frequency)) m_Frequencies.Add(data.Frequency);
                 // Events
                 EventStatistics.Add(DataManager.GetEventsStatistics(dataInfo, bloc));
             }
@@ -47,14 +48,14 @@ namespace HBP.Data.Visualization
             StatisticsByChannelID.Clear();
             UnitByChannelID.Clear();
             m_FrequencyByChannelID.Clear();
-            Frequencies.Clear();
+            m_Frequencies.Clear();
             ProcessedValuesByChannel.Clear();
         }
         public void SetTimeline(Tools.CSharp.EEG.Frequency maxFrequency, Experience.Protocol.Bloc columnBloc, IEnumerable<Experience.Protocol.Bloc> blocs)
         {
             // Process frequencies
-            Frequencies.Add(maxFrequency);
-            Frequencies = Frequencies.GroupBy(f => f.Value).Select(g => g.First()).ToList();
+            m_Frequencies.Add(maxFrequency);
+            m_Frequencies = m_Frequencies.GroupBy(f => f.Value).Select(g => g.First()).ToList();
 
             // Get index of each subBloc
             Dictionary<Experience.Protocol.SubBloc, int> indexBySubBloc = new Dictionary<Experience.Protocol.SubBloc, int>();

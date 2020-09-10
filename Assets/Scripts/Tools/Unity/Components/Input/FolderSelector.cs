@@ -8,6 +8,7 @@ namespace Tools.Unity
     {
         #region Properties
         public InputField.OnChangeEvent onValueChanged { get { return m_Inputfield.onValueChanged; } }
+        public InputField.SubmitEvent onEndEdit { get { return m_Inputfield.onEndEdit; } }
         public bool interactable { set { m_Inputfield.interactable = value; m_Button.interactable = value; } }
         public string Folder { get { return m_Inputfield.text; } set { m_Inputfield.text = value; } }
         public string Message;
@@ -24,6 +25,7 @@ namespace Tools.Unity
             {
                 l_result = l_result.StandardizeToPath();
                 m_Inputfield.text = l_result;
+                m_Inputfield.onEndEdit.Invoke(l_result);
             }
         }
         #endregion

@@ -14,6 +14,8 @@ namespace HBP.UI
         public InteractableConditions SaveProjectInteractableConditions { get { return m_SaveProjectInteractableConditions; } }
         [SerializeField] InteractableConditions m_SaveProjectAsInteractableConditions;
         public InteractableConditions SaveProjectAsInteractableConditions { get { return m_SaveProjectAsInteractableConditions; } }
+        [SerializeField] InteractableConditions m_QuickStartInteractableConditions;
+        public InteractableConditions QuickStartInteractableConditions { get { return m_QuickStartInteractableConditions; } }
         [SerializeField] InteractableConditions m_QuitInteractableConditions;
         public InteractableConditions QuitInteractableConditions { get { return m_QuitInteractableConditions; } }
         #endregion
@@ -34,6 +36,10 @@ namespace HBP.UI
         public void OpenSaveProjectAs()
         {
             ApplicationState.WindowsManager.Open("Save project as window");
+        }
+        public void QuickStart()
+        {
+            ApplicationState.WindowsManager.Open("Quick start window");
         }
         public void Quit()
         {

@@ -42,7 +42,7 @@ namespace HBP.Data.Container
         /// <summary>
         /// Path to the EDF file with Alias.
         /// </summary>
-        [DataMember(Name = "EDF")] public string SavedFile { get; protected set; }
+        [DataMember(Name = "EDF")] public string SavedFile { get; protected set; } = "";
         /// <summary>
         /// Path to the EDF file without Alias.
         /// </summary>
