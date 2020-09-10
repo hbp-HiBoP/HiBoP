@@ -44,19 +44,38 @@ namespace HBP.UI.QuickStart
         #endregion
 
         #region Public Methods
-        public override QuickStartPanel OpenNextPanel()
+        public override bool OpenNextPanel()
         {
             if (m_BIDS.isOn)
             {
-                ApplicationState.ProjectLoaded.SetPatients(m_BIDSPatientListGestion.List.ObjectsSelected);
+                var patients = m_BIDSPatientListGestion.List.ObjectsSelected;
+                if (patients.Length > 0)
+                    ApplicationState.ProjectLoaded.SetPatients(patients);
+                else
+                {
+                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "No patient have been selected", "You need to select at least one patient in order to continue.");
+                    return false;
+                }
             }
             else if (m_NotBIDS.isOn)
             {
-                ApplicationState.ProjectLoaded.SetPatients(m_NotBIDSPatientListGestion.List.Objects);
+                var patients = m_NotBIDSPatientListGestion.List.Objects;
+                if (patients.Count > 0)
+                    ApplicationState.ProjectLoaded.SetPatients(patients);
+                else
+                {
+                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "No patient have been added", "You need to add at least one patient to the list in order to continue.");
+                    return false;
+                }
+            }
+            else
+            {
+                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "No option selected", "You need to select an option in order to continue.");
+                return false;
             }
             return base.OpenNextPanel();
         }
-        public override QuickStartPanel OpenPreviousPanel()
+        public override bool OpenPreviousPanel()
         {
             ApplicationState.ProjectLoaded.SetPatients(new Patient[0]);
             return base.OpenPreviousPanel();

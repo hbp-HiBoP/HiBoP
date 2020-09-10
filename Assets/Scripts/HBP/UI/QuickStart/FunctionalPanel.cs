@@ -57,13 +57,18 @@ namespace HBP.UI.QuickStart
                 }
             }
         }
-        public override QuickStartPanel OpenNextPanel()
+        public override bool OpenNextPanel()
         {
+            if (m_List.Objects.All(o => !o.DataInfo.IsOk))
+            {
+                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "No valid data", "At least one data must be valid in order to continue.");
+                return false;
+            }
             Dataset dataset = new Dataset("QuickStart", ApplicationState.ProjectLoaded.Protocols[0], m_List.Objects.Select(f => f.DataInfo));
             ApplicationState.ProjectLoaded.SetDatasets(new Dataset[] { dataset });
             return base.OpenNextPanel();
         }
-        public override QuickStartPanel OpenPreviousPanel()
+        public override bool OpenPreviousPanel()
         {
             ApplicationState.ProjectLoaded.SetDatasets(new Dataset[0]);
             return base.OpenPreviousPanel();

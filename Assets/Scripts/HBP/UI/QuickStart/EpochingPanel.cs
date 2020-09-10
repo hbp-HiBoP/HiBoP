@@ -31,9 +31,14 @@ namespace HBP.UI.QuickStart
         #endregion
 
         #region Public Methods
-        public override QuickStartPanel OpenNextPanel()
+        public override bool OpenNextPanel()
         {
             Tools.CSharp.Window window = new Tools.CSharp.Window((int)m_Window.Values.x, (int)m_Window.Values.y);
+            if (window.Lenght == 0)
+            {
+                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Window length is zero", "The length of the window needs to be strictly above zero in order to continue.");
+                return false;
+            }
             List<Bloc> blocs = new List<Bloc>();
             foreach (var codeString in m_Codes.text.Split(','))
             {
@@ -44,12 +49,17 @@ namespace HBP.UI.QuickStart
                     Bloc bloc = new Bloc(string.Format("QS{0}", code), 0, "", "", new SubBloc[] { subBloc });
                     blocs.Add(bloc);
                 }
+                if (blocs.Count == 0)
+                {
+                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "No code found", "You need to put at least one code in the input field in order to continue.");
+                    return false;
+                }
             }
             Protocol protocol = new Protocol("QuickStart", blocs);
             ApplicationState.ProjectLoaded.SetProtocols(new Protocol[] { protocol });
             return base.OpenNextPanel();
         }
-        public override QuickStartPanel OpenPreviousPanel()
+        public override bool OpenPreviousPanel()
         {
             ApplicationState.ProjectLoaded.SetProtocols(new Protocol[0]);
             return base.OpenPreviousPanel();

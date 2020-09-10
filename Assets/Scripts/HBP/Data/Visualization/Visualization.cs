@@ -468,7 +468,7 @@ namespace HBP.Data.Visualization
                         yield break;
                     }
                 }
-                Tools.CSharp.EEG.Frequency maxiEEGFrequency = new Tools.CSharp.EEG.Frequency(iEEGColumns.Max(column => column.Data.Frequencies.Max(f => f.RawValue)));
+                Tools.CSharp.EEG.Frequency maxiEEGFrequency = new Tools.CSharp.EEG.Frequency(iEEGColumns.Max(column => column.Data.MaxFrequency));
                 for (int i = 0; i < nbIEEGColumns; ++i)
                 {
                     IEEGColumn column = iEEGColumns[i];

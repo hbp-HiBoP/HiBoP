@@ -5,6 +5,7 @@ using HBP.Data.Experience.Protocol;
 using HBP.Data.Visualization;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Tools.Unity;
 using UnityEngine;
@@ -21,8 +22,18 @@ namespace HBP.UI.QuickStart
         #endregion
 
         #region Public Methods
-        public override QuickStartPanel OpenNextPanel()
+        public override bool OpenNextPanel()
         {
+            if (string.IsNullOrEmpty(m_ProjectName.text))
+            {
+                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Name field must be filled", "You need to name your project in order to continue.");
+                return false;
+            }
+            if (string.IsNullOrEmpty(m_ProjectLocation.Folder) || !Directory.Exists(m_ProjectLocation.Folder))
+            {
+                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Directory does not exist", "The input directory does not exist.");
+                return false;
+            }
             // Add visualization
             if (ApplicationState.ProjectLoaded.Protocols.Count == 0) // Anatomical
             {

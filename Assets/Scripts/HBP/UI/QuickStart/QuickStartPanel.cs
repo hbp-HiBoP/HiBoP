@@ -26,17 +26,17 @@ namespace HBP.UI.QuickStart
         {
             gameObject.SetActive(true);
         }
-        public virtual QuickStartPanel OpenPreviousPanel()
+        public virtual bool OpenPreviousPanel()
         {
             gameObject.SetActive(false);
             PreviousPanel?.Open();
-            return PreviousPanel;
+            return true;
         }
-        public virtual QuickStartPanel OpenNextPanel()
+        public virtual bool OpenNextPanel()
         {
             gameObject.SetActive(false);
             NextPanel?.Open();
-            return NextPanel;
+            return true;
         }
         #endregion
     }

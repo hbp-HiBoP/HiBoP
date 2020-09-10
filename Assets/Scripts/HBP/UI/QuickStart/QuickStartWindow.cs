@@ -59,10 +59,15 @@ namespace HBP.UI.QuickStart
             base.Initialize();
             CurrentPanel = m_IntroductionPanel;
             m_IntroductionPanel.Open();
-            m_Back.onClick.AddListener(() => CurrentPanel = CurrentPanel.OpenPreviousPanel());
+            m_Back.onClick.AddListener(() =>
+            {
+                if (CurrentPanel.OpenPreviousPanel())
+                    CurrentPanel = CurrentPanel.PreviousPanel;
+            });
             m_Next.onClick.AddListener(() =>
             {
-                CurrentPanel = CurrentPanel.OpenNextPanel();
+                if (CurrentPanel.OpenNextPanel())
+                    CurrentPanel = CurrentPanel.NextPanel;
                 if (CurrentPanel == null)
                     Finish();
             });
