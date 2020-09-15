@@ -6,7 +6,7 @@ namespace HBP.UI.Informations
     {
         #region Properties
         public ChannelInformations ChannelInformations;
-        public ROIInformations ROIInformations;
+        public GridInformations ROIInformations;
         #endregion
 
         #region Public Methods

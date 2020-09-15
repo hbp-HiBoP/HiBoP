@@ -90,7 +90,7 @@ namespace HBP.UI.Informations
         }
 
         public ChannelInformations ChannelInformations;
-        public ROIInformations ROIInformations;
+        public GridInformations GridInformations;
 
         [SerializeField] Texture2DEvent m_OnChangeColorMap;
         public Texture2DEvent OnChangeColorMap
@@ -113,14 +113,6 @@ namespace HBP.UI.Informations
         #endregion
 
         #region Public Methods
-        public void ROI_DEBUG()
-        {
-            //Dictionary<Data.Informations.Data, List<Channel>> channelsByData = new Dictionary<Data.Informations.Data, List<Channel>>();
-            //foreach (var data in m_SceneData)
-            //{
-            //}
-            //ROIInformations.Display(sceneROIStruct);
-        }
         public void OnExpandHandler()
         {
             m_OnExpand.Invoke();
@@ -293,6 +285,14 @@ namespace HBP.UI.Informations
                 Column columnData = m_ColumnDataBy3DColumn[column];
                 ChannelInformations.UpdateTime(columnData, subBloc, currentTime);
             }
+        }
+        #endregion
+
+        #region DEBUG
+        public void DEBUG_ComputeGrid()
+        {
+            var channelStructs = ApplicationState.Module3D.SelectedColumn.Sites.Take(10).Where(s => !s.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray();
+            GridInformations.Display(channelStructs, m_SceneData.Columns.ToArray());
         }
         #endregion
     }
