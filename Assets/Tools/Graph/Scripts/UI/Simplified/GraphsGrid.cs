@@ -19,13 +19,13 @@ namespace Tools.Unity.Graph
         [SerializeField] private GridLayoutGroup m_GridLayoutGroup;
 
         [SerializeField] List<Color> m_Colors;
-        Dictionary<Tuple<int, Column>, Color> m_ColorsByColumn = new Dictionary<Tuple<int, Column>, Color>();
+        Dictionary<Column, Color> m_ColorsByColumn = new Dictionary<Column, Color>();
 
         [SerializeField] Column[] m_Columns;
         [SerializeField] ChannelStruct[] m_Channels;
         Color m_DefaultColor = new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1);
 
-        private int m_NumberOfGridColumns = 5;
+        private int m_NumberOfGridColumns = 2;
         #endregion
 
         #region Public Methods
@@ -33,7 +33,7 @@ namespace Tools.Unity.Graph
         {
             m_Columns = columns.ToArray();
             m_Channels = channels.ToArray();
-            GenerateColors(channels, columns);
+            GenerateColors(columns);
 
             SetGraphs();
         }
@@ -55,7 +55,7 @@ namespace Tools.Unity.Graph
         }
         void ClearGraphs()
         {
-            foreach (Transform child in transform)
+            foreach (Transform child in m_RectTransform)
             {
                 Destroy(child.gameObject);
             }
@@ -63,11 +63,6 @@ namespace Tools.Unity.Graph
 
         private void SetGraphs()
         {
-            //for (int r = 0; r < numberOfItems; r++)
-            //{
-            //    Instantiate(m_ItemAndContainerPrefab, transform);
-            //}
-
             ClearGraphs();
 
             Graph.Curve[][] curveByColumnByChannel = GenerateDataCurve(m_Columns, m_Channels);
@@ -102,16 +97,17 @@ namespace Tools.Unity.Graph
             for (int c = 0; c < curveByColumnByChannel.Length; c++)
             {
                 var curveByColumn = curveByColumnByChannel[c];
-                AddGraph(curveByColumn, abscissaDisplayRange, ordinateDisplayRangeByChannel[c]);
+                AddGraph(string.Format("{0} ({1})", m_Channels[c].Channel, m_Channels[c].Patient.Name), curveByColumn, abscissaDisplayRange, ordinateDisplayRangeByChannel[c]);
             }
         }
-        void AddGraph(Graph.Curve[] curves, Vector2 abscissa, Vector2 ordinate)
+        void AddGraph(string title, Graph.Curve[] curves, Vector2 abscissa, Vector2 ordinate)
         {
-            SimpleGraph graph = Instantiate(m_ItemAndContainerPrefab, transform).GetComponent<GraphsGridContainer>().Content.GetComponent<SimpleGraph>();
+            SimpleGraph graph = Instantiate(m_ItemAndContainerPrefab, m_RectTransform).GetComponent<GraphsGridContainer>().Content.GetComponent<SimpleGraph>();
             graph.DefaultAbscissaDisplayRange = abscissa;
             graph.AbscissaDisplayRange = abscissa;
             graph.DefaultOrdinateDisplayRange = ordinate;
             graph.OrdinateDisplayRange = ordinate;
+            graph.Title = title;
             foreach (var curve in curves)
             {
                 graph.AddCurve(curve);
@@ -163,7 +159,7 @@ namespace Tools.Unity.Graph
             }
             BlocData blocData = DataManager.GetData(dataInfo, column.Data.Bloc);
             BlocChannelData blocChannelData = DataManager.GetData(dataInfo, column.Data.Bloc, channel.Channel);
-            Color color = m_ColorsByColumn.FirstOrDefault(k => k.Key.Item1 == Array.IndexOf(m_Channels, channel) && k.Key.Item2 == column).Value;
+            Color color = m_ColorsByColumn.FirstOrDefault(k => k.Key == column).Value;
 
             ChannelTrial[] trials = blocChannelData.Trials.Where(t => t.IsValid).ToArray();
 
@@ -214,18 +210,15 @@ namespace Tools.Unity.Graph
             }
             return result;
         }
-        void GenerateColors(ChannelStruct[] channels, Column[] columns)
+        void GenerateColors(Column[] columns)
         {
             foreach (var column in columns)
             {
-                for (int channel = 0; channel < channels.Length; channel++)
+                if (!m_ColorsByColumn.Any(c => c.Key == column))
                 {
-                    if (!m_ColorsByColumn.Any(c => c.Key.Item1 == channel && c.Key.Item2 == column))
-                    {
-                        Color color = m_Colors.FirstOrDefault(col => !m_ColorsByColumn.ContainsValue(col));
-                        if (color == default) color = m_DefaultColor;
-                        m_ColorsByColumn.Add(new Tuple<int, Column>(channel, column), color);
-                    }
+                    Color color = m_Colors.FirstOrDefault(col => !m_ColorsByColumn.ContainsValue(col));
+                    if (color == default) color = m_DefaultColor;
+                    m_ColorsByColumn.Add(column, color);
                 }
             }
         }

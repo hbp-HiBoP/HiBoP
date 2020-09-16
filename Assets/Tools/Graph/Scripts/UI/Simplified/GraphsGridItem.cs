@@ -49,13 +49,6 @@ namespace Tools.Unity.Graph
             }
         }
         #endregion
-
-        #region Debug
-        private void Awake()
-        {
-            GetComponent<Image>().color = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f));
-        }
-        #endregion
     }
 }
 
