@@ -25,10 +25,30 @@ namespace Tools.Unity.Graph
         [SerializeField] ChannelStruct[] m_Channels;
         Color m_DefaultColor = new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1);
 
+        private List<SimpleGraph> m_Graphs = new List<SimpleGraph>(); 
+
         private int m_NumberOfGridColumns = 2;
         #endregion
 
+        #region Events
+        [SerializeField] private Graph.CurvesEvent m_OnSetGraphs;
+        public Graph.CurvesEvent OnSetGraphs
+        {
+            get
+            {
+                return m_OnSetGraphs;
+            }
+        }
+        #endregion
+
         #region Public Methods
+        public void SetEnabled(string id, bool enabled)
+        {
+            foreach (var graph in m_Graphs)
+            {
+                graph.SetEnabled(id, enabled);
+            }
+        }
         public void Display(ChannelStruct[] channels, Column[] columns)
         {
             m_Columns = columns.ToArray();
@@ -59,6 +79,7 @@ namespace Tools.Unity.Graph
             {
                 Destroy(child.gameObject);
             }
+            m_Graphs = new List<SimpleGraph>();
         }
 
         private void SetGraphs()
@@ -99,6 +120,11 @@ namespace Tools.Unity.Graph
                 var curveByColumn = curveByColumnByChannel[c];
                 AddGraph(string.Format("{0} ({1})", m_Channels[c].Channel, m_Channels[c].Patient.Name), curveByColumn, abscissaDisplayRange, ordinateDisplayRangeByChannel[c]);
             }
+
+            if (curveByColumnByChannel.Length > 0)
+            {
+                m_OnSetGraphs.Invoke(curveByColumnByChannel[0]);
+            }
         }
         void AddGraph(string title, Graph.Curve[] curves, Vector2 abscissa, Vector2 ordinate)
         {
@@ -112,6 +138,7 @@ namespace Tools.Unity.Graph
             {
                 graph.AddCurve(curve);
             }
+            m_Graphs.Add(graph);
         }
         private void UpdateLayout()
         {
@@ -139,9 +166,9 @@ namespace Tools.Unity.Graph
         }
         Graph.Curve GenerateChannelCurve(Column column, ChannelStruct channel, SubBloc subBloc)
         {
-            string ID = column.Name + "_" + column.Data.Name + "_" + column.Data.Bloc.Name + "_" + column.Data.Dataset.Name + "_" + channel.Patient.Name + "_" + channel.Channel;
+            string ID = column.Name + "_" + column.Data.Name + "_" + column.Data.Bloc.Name + "_" + column.Data.Dataset.Name;
             CurveData curveData = GetCurveData(column, subBloc, channel);
-            Graph.Curve result = new Graph.Curve(channel.Channel, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);
+            Graph.Curve result = new Graph.Curve(column.Name, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);
             return result;
         }
 

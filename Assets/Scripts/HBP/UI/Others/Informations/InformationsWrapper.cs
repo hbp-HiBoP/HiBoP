@@ -291,7 +291,7 @@ namespace HBP.UI.Informations
         #region DEBUG
         public void DEBUG_ComputeGrid()
         {
-            var channelStructs = ApplicationState.Module3D.SelectedColumn.Sites.Take(10).Where(s => !s.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray();
+            var channelStructs = ApplicationState.Module3D.SelectedColumn.Sites.Where(s => !s.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray();
             GridInformations.Display(channelStructs, m_SceneData.Columns.ToArray());
         }
         #endregion
