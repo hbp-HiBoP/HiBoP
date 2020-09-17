@@ -699,6 +699,10 @@ namespace HBP.Module3D
         /// Event called when displaying the correlations
         /// </summary>
         [HideInInspector] public UnityEvent OnChangeDisplayCorrelations = new UnityEvent();
+        /// <summary>
+        /// Event called when finished loading the scene completely
+        /// </summary>
+        [HideInInspector] public UnityEvent OnSceneCompletelyLoaded = new UnityEvent();
         #endregion
 
         #region Private Methods
@@ -736,6 +740,7 @@ namespace HBP.Module3D
             {
                 UpdateVisibleState(true);
                 IsSceneCompletelyLoaded = true;
+                OnSceneCompletelyLoaded.Invoke();
                 if (Visualization.Configuration.FirstColumnToSelect < Columns.Count)
                 {
                     Columns[Visualization.Configuration.FirstColumnToSelect].SelectFirstOrDefaultSiteByName(Visualization.Configuration.FirstSiteToSelect);

@@ -121,6 +121,11 @@ namespace HBP.UI.Informations
         {
             m_OnMinimize.Invoke();
         }
+        public void ComputeAndDisplayGridGraphs()
+        {
+            var channelStructs = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered && !s.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray();
+            GridInformations.Display(channelStructs);
+        }
         #endregion
 
         #region Private Methods
@@ -218,6 +223,11 @@ namespace HBP.UI.Informations
             GenerateSceneData();
             Display();
         }
+        void OnSceneCompletelyLoaded()
+        {
+            GenerateSceneData();
+            GridInformations.SetColumns(m_SceneData.Columns.ToArray());
+        }
         #endregion
 
         #region Setters
@@ -230,6 +240,7 @@ namespace HBP.UI.Informations
                 m_Scene.OnUpdateROIMask.AddListener(OnChangeROIHandler);
                 m_Scene.OnChangeColormap.AddListener((t) => OnChangeColorMapHandler());
                 m_Scene.OnSelectCCEPSource.AddListener(OnChangeSourceHandler);
+                m_Scene.OnSceneCompletelyLoaded.AddListener(OnSceneCompletelyLoaded);
                 foreach (var column in m_Scene.Columns)
                 {
                     column.OnSelect.AddListener(() => OnChangeSelectedColumn(column));
@@ -285,14 +296,6 @@ namespace HBP.UI.Informations
                 Column columnData = m_ColumnDataBy3DColumn[column];
                 ChannelInformations.UpdateTime(columnData, subBloc, currentTime);
             }
-        }
-        #endregion
-
-        #region DEBUG
-        public void DEBUG_ComputeGrid()
-        {
-            var channelStructs = ApplicationState.Module3D.SelectedColumn.Sites.Where(s => !s.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray();
-            GridInformations.Display(channelStructs, m_SceneData.Columns.ToArray());
         }
         #endregion
     }

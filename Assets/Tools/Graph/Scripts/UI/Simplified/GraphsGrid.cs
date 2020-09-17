@@ -7,7 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Tools.CSharp;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
+using UnityEngine.UI.Extensions;
 
 namespace Tools.Unity.Graph
 {
@@ -25,12 +27,82 @@ namespace Tools.Unity.Graph
         [SerializeField] ChannelStruct[] m_Channels;
         Color m_DefaultColor = new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1);
 
-        private List<SimpleGraph> m_Graphs = new List<SimpleGraph>(); 
+        private List<SimpleGraph> m_Graphs = new List<SimpleGraph>();
+
+        [SerializeField] private bool m_UseDefaultOrdinateRange;
+        public bool UseDefaultOrdinateRange
+        {
+            get
+            {
+                return m_UseDefaultOrdinateRange;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_UseDefaultOrdinateRange, value))
+                {
+                    m_OnChangeUseDefaultOrdinateRange.Invoke(value);
+                }
+            }
+        }
+        [SerializeField] private Vector2 m_OrdinateDisplayRange;
+        public Vector2 OrdinateDisplayRange
+        {
+            get
+            {
+                return m_OrdinateDisplayRange;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_OrdinateDisplayRange, value))
+                {
+                    m_OnChangeOrdinateDisplayRange.Invoke(value);
+                }
+            }
+        }
+        [SerializeField] private Vector2 m_AbscissaDisplayRange;
+        public Vector2 AbscissaDisplayRange
+        {
+            get
+            {
+                return m_AbscissaDisplayRange;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_AbscissaDisplayRange, value))
+                {
+                    m_OnChangeAbscissaDisplayRange.Invoke(value);
+                }
+            }
+        }
 
         private int m_NumberOfGridColumns = 2;
         #endregion
 
         #region Events
+        [SerializeField] private BoolEvent m_OnChangeUseDefaultOrdinateRange;
+        public BoolEvent OnChangeUseDefaultOrdinateRange
+        {
+            get
+            {
+                return m_OnChangeUseDefaultOrdinateRange;
+            }
+        }
+        [SerializeField] private Vector2Event m_OnChangeOrdinateDisplayRange;
+        public Vector2Event OnChangeOrdinateDisplayRange
+        {
+            get
+            {
+                return m_OnChangeOrdinateDisplayRange;
+            }
+        }
+        [SerializeField] private Vector2Event m_OnChangeAbscissaDisplayRange;
+        public Vector2Event OnChangeAbscissaDisplayRange
+        {
+            get
+            {
+                return m_OnChangeAbscissaDisplayRange;
+            }
+        }
         [SerializeField] private Graph.CurvesEvent m_OnSetGraphs;
         public Graph.CurvesEvent OnSetGraphs
         {
@@ -91,26 +163,19 @@ namespace Tools.Unity.Graph
             List<Vector2> ordinateDisplayRangeByChannel = new List<Vector2>();
             foreach (var curveByColumn in curveByColumnByChannel)
             {
-                List<float> values = new List<float>();
-                foreach (var curve in curveByColumn)
+                if (m_UseDefaultOrdinateRange)
                 {
-                    values.AddRange(GetValues(curve));
+                    List<float> values = new List<float>();
+                    foreach (var curve in curveByColumn)
+                    {
+                        values.AddRange(GetValues(curve));
+                    }
+                    Vector2 defaultOrdinateDisplayRange = values.ToArray().CalculateValueLimit(5);
+                    ordinateDisplayRangeByChannel.Add(defaultOrdinateDisplayRange);
                 }
-                Vector2 defaultOrdinateDisplayRange = values.ToArray().CalculateValueLimit(5);
-                ordinateDisplayRangeByChannel.Add(defaultOrdinateDisplayRange/*m_useDefaultDisplayRange ? defaultOrdinateDisplayRange : m_OrdinateDisplayRange*/);
-            }
-
-            Vector2 abscissaDisplayRange = new Vector2(float.MaxValue, float.MinValue);
-            foreach (var column in m_Columns)
-            {
-                SubBloc mainSubBloc = column.Data.Bloc.MainSubBloc;
-                if (mainSubBloc.Window.Start < abscissaDisplayRange.x)
+                else
                 {
-                    abscissaDisplayRange = new Vector2(mainSubBloc.Window.Start, abscissaDisplayRange.y);
-                }
-                if (mainSubBloc.Window.End > abscissaDisplayRange.y)
-                {
-                    abscissaDisplayRange = new Vector2(abscissaDisplayRange.x, mainSubBloc.Window.End);
+                    ordinateDisplayRangeByChannel.Add(m_OrdinateDisplayRange);
                 }
             }
 
@@ -118,7 +183,7 @@ namespace Tools.Unity.Graph
             for (int c = 0; c < curveByColumnByChannel.Length; c++)
             {
                 var curveByColumn = curveByColumnByChannel[c];
-                AddGraph(string.Format("{0} ({1})", m_Channels[c].Channel, m_Channels[c].Patient.Name), curveByColumn, abscissaDisplayRange, ordinateDisplayRangeByChannel[c]);
+                AddGraph(string.Format("{0} ({1})", m_Channels[c].Channel, m_Channels[c].Patient.Name), curveByColumn, m_AbscissaDisplayRange, ordinateDisplayRangeByChannel[c]);
             }
 
             if (curveByColumnByChannel.Length > 0)
