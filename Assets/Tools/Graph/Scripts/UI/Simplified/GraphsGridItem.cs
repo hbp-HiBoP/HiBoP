@@ -7,8 +7,8 @@ namespace Tools.Unity.Graph
     public class GraphsGridItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         #region Properties
-        [SerializeField] private LayoutElement m_LayoutElement;
         [SerializeField] private RectTransform m_RectTransform;
+        [SerializeField] private Selectable[] m_Selectables;
 
         private GraphsGridContainer m_LastContainer;
         #endregion
@@ -17,9 +17,12 @@ namespace Tools.Unity.Graph
         public void OnBeginDrag(PointerEventData eventData)
         {
             m_LastContainer = GetComponentInParent<GraphsGridContainer>();
-            m_LayoutElement.ignoreLayout = true;
             m_RectTransform.SetParent(transform.parent.parent);
             m_RectTransform.SetAsLastSibling();
+            foreach (var selectable in m_Selectables)
+            {
+                selectable.interactable = false;
+            }
         }
         public void OnDrag(PointerEventData eventData)
         {
@@ -27,7 +30,6 @@ namespace Tools.Unity.Graph
         }
         public void OnEndDrag(PointerEventData eventData)
         {
-            m_LayoutElement.ignoreLayout = false;
             System.Collections.Generic.List<RaycastResult> results = new System.Collections.Generic.List<RaycastResult>();
             EventSystem.current.RaycastAll(eventData, results);
             bool foundContainer = false;
@@ -46,6 +48,10 @@ namespace Tools.Unity.Graph
             if (!foundContainer)
             {
                 m_LastContainer.Content = gameObject;
+            }
+            foreach (var selectable in m_Selectables)
+            {
+                selectable.interactable = true;
             }
         }
         #endregion

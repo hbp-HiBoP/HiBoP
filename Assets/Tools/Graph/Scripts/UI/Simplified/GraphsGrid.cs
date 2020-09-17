@@ -17,8 +17,7 @@ namespace Tools.Unity.Graph
     {
         #region Properties
         [SerializeField] private GameObject m_ItemAndContainerPrefab;
-        [SerializeField] private RectTransform m_RectTransform;
-        [SerializeField] private GridLayoutGroup m_GridLayoutGroup;
+        [SerializeField] private ScrollRect m_ScrollRect;
 
         [SerializeField] List<Color> m_Colors;
         Dictionary<Column, Color> m_ColorsByColumn = new Dictionary<Column, Color>();
@@ -28,6 +27,7 @@ namespace Tools.Unity.Graph
         Color m_DefaultColor = new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1);
 
         private List<SimpleGraph> m_Graphs = new List<SimpleGraph>();
+        private List<GraphsGridContainer> m_Containers = new List<GraphsGridContainer>();
 
         [SerializeField] private bool m_UseDefaultOrdinateRange;
         public bool UseDefaultOrdinateRange
@@ -139,19 +139,21 @@ namespace Tools.Unity.Graph
         #region Private Methods
         private void Update()
         {
-            if (transform.hasChanged)
+            if (m_ScrollRect.viewport.hasChanged)
             {
-                UpdateLayout();
-                transform.hasChanged = false;
+                float ratio = Mathf.Ceil((float)m_Containers.Count / m_NumberOfGridColumns) / m_NumberOfGridColumns;
+                m_ScrollRect.content.sizeDelta = new Vector2(m_ScrollRect.content.sizeDelta.x, (m_ScrollRect.viewport.rect.width / 2) * ratio);
+                m_ScrollRect.viewport.hasChanged = false;
             }
         }
         void ClearGraphs()
         {
-            foreach (Transform child in m_RectTransform)
+            foreach (Transform child in m_ScrollRect.content)
             {
                 Destroy(child.gameObject);
             }
             m_Graphs = new List<SimpleGraph>();
+            m_Containers = new List<GraphsGridContainer>();
         }
 
         private void SetGraphs()
@@ -179,12 +181,13 @@ namespace Tools.Unity.Graph
                 }
             }
 
-            // Generate settings by columns
             for (int c = 0; c < curveByColumnByChannel.Length; c++)
             {
                 var curveByColumn = curveByColumnByChannel[c];
                 AddGraph(string.Format("{0} ({1})", m_Channels[c].Channel, m_Channels[c].Patient.Name), curveByColumn, m_AbscissaDisplayRange, ordinateDisplayRangeByChannel[c]);
             }
+
+            UpdateLayout();
 
             if (curveByColumnByChannel.Length > 0)
             {
@@ -193,7 +196,9 @@ namespace Tools.Unity.Graph
         }
         void AddGraph(string title, Graph.Curve[] curves, Vector2 abscissa, Vector2 ordinate)
         {
-            SimpleGraph graph = Instantiate(m_ItemAndContainerPrefab, m_RectTransform).GetComponent<GraphsGridContainer>().Content.GetComponent<SimpleGraph>();
+            GraphsGridContainer container = Instantiate(m_ItemAndContainerPrefab, m_ScrollRect.content).GetComponent<GraphsGridContainer>();
+            m_Containers.Add(container);
+            SimpleGraph graph = container.Content.GetComponent<SimpleGraph>();
             graph.DefaultAbscissaDisplayRange = abscissa;
             graph.AbscissaDisplayRange = abscissa;
             graph.DefaultOrdinateDisplayRange = ordinate;
@@ -207,9 +212,17 @@ namespace Tools.Unity.Graph
         }
         private void UpdateLayout()
         {
-            float width = m_RectTransform.rect.width / m_NumberOfGridColumns;
-            float height = width * 0.5f;
-            m_GridLayoutGroup.cellSize = new Vector2(width, height);
+            int numberOfLines = (int)Mathf.Ceil((float)m_Containers.Count / m_NumberOfGridColumns);
+            for (int i = 0; i < m_Containers.Count;)
+            {
+                for (int j = 0; j < m_NumberOfGridColumns && i < m_Containers.Count; ++j, ++i)
+                {
+                    RectTransform rectTransform = m_Containers[i].GetComponent<RectTransform>();
+                    rectTransform.anchorMin = new Vector2((float)j / m_NumberOfGridColumns, 1f - ((float)((i / m_NumberOfGridColumns) + 1) / numberOfLines));
+                    rectTransform.anchorMax = new Vector2((float)(j + 1) / m_NumberOfGridColumns, 1f - ((float)(i / m_NumberOfGridColumns) / numberOfLines));
+                }
+            }
+            m_ScrollRect.viewport.hasChanged = true;
         }
         Graph.Curve[][] GenerateDataCurve(Column[] columns, ChannelStruct[] channels)
         {
