@@ -110,6 +110,7 @@ namespace HBP.UI.Informations
                 return m_ChannelStructs;
             }
         }
+        private const int CHANNEL_WARNING_THRESHOLD = 50;
         #endregion
 
         #region Public Methods
@@ -124,7 +125,26 @@ namespace HBP.UI.Informations
         public void ComputeAndDisplayGridGraphs()
         {
             var channelStructs = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered && !s.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray();
-            GridInformations.Display(channelStructs);
+            if (channelStructs.Length > CHANNEL_WARNING_THRESHOLD)
+            {
+                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "High number of sites", string.Format("The number of sites you want to display is high ({0}). This can cause performance issues. Do you really want to display that many sites?", channelStructs.Length), () => { GridInformations.Display(channelStructs); }, "Display", () => { }, "Cancel");
+            }
+            else
+            {
+                GridInformations.Display(channelStructs);
+            }
+        }
+        public void ClearGrid()
+        {
+            GridInformations.Display(new ChannelStruct[0]);
+        }
+        public void DisplayChannelsGraphs(ChannelStruct[] channels)
+        {
+            m_ChannelStructs = channels;
+            if (m_ChannelStructs.Length != 0 && m_SceneData.Columns.Count > 0)
+            {
+                ChannelInformations.DisplayGraphs(m_ChannelStructs, m_SceneData.Columns.ToArray());
+            }
         }
         #endregion
 

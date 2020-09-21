@@ -420,4 +420,6 @@ namespace HBP.Data.Informations
             Columns = columns;
         }
     }
+
+    [Serializable] public class ChannelsEvent : UnityEngine.Events.UnityEvent<ChannelStruct[]> { }
 }

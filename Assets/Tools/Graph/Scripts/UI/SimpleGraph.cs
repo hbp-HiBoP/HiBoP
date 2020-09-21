@@ -139,6 +139,22 @@ namespace Tools.Unity.Graph
             }
         }
 
+        [SerializeField] bool m_IsSelected = false;
+        public bool IsSelected
+        {
+            get
+            {
+                return m_IsSelected;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_IsSelected, value))
+                {
+                    m_OnChangeSelected.Invoke(value);
+                }
+            }
+        }
+
         [SerializeField] List<Graph.Curve> m_Curves = new List<Graph.Curve>();
         public ReadOnlyCollection<Graph.Curve> Curves
         {
@@ -210,6 +226,15 @@ namespace Tools.Unity.Graph
             get
             {
                 return m_OnChangeCurves;
+            }
+        }
+        
+        [SerializeField] private BoolEvent m_OnChangeSelected;
+        public BoolEvent OnChangeSelected
+        {
+            get
+            {
+                return m_OnChangeSelected;
             }
         }
         #endregion

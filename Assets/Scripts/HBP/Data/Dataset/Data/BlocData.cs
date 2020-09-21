@@ -42,7 +42,6 @@ namespace HBP.Data.Experience.Dataset
             Trials = SortTrials(bloc, trials).ToArray();
 
             Frequency = data.Frequency;
-            // TODO : Treatments
         }
         #endregion
 
