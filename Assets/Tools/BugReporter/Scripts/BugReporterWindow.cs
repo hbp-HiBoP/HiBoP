@@ -56,18 +56,18 @@ namespace Tools.Unity
         #region Private Methods
         private void SendMail()
         {
-            using (SmtpClient smtpServer = new SmtpClient("smtp.gmail.com")
+            using (SmtpClient smtpServer = new SmtpClient("smtp-mail.outlook.com")
             {
                 Port = 587,
-                Credentials = new NetworkCredential("hibophelp@gmail.com", "hibop2017") as ICredentialsByHost,
+                Credentials = new NetworkCredential("hibophelp@outlook.fr", "54_%2QHjw") as ICredentialsByHost,
                 EnableSsl = true
             })
             {
                 ServicePointManager.ServerCertificateValidationCallback = delegate (object s, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) { return true; };
                 using (MailMessage mail = new MailMessage())
                 {
-                    mail.From = new MailAddress("hibophelp@gmail.com", "Bug Reporter");
-                    mail.To.Add("hibophelp@gmail.com");
+                    mail.From = new MailAddress("hibophelp@outlook.fr", "Bug Reporter");
+                    mail.To.Add("hibophelp@outlook.fr");
                     mail.Subject = "BUGREPORT " + DateTime.Now.ToString("yyyy-MM-dd HH:mm");
 
                     StringBuilder bodyBuilder = new StringBuilder();
