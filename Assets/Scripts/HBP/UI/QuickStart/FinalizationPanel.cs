@@ -64,6 +64,18 @@ namespace HBP.UI.QuickStart
             ApplicationState.ProjectLoadedLocation = m_ProjectLocation.Folder;
             return base.OpenNextPanel();
         }
+        public override void Open()
+        {
+            base.Open();
+            if (string.IsNullOrEmpty(m_ProjectName.text))
+            {
+                m_ProjectName.text = ApplicationState.UserPreferences.General.Project.DefaultName;
+            }
+            if (string.IsNullOrEmpty(m_ProjectLocation.Folder))
+            {
+                m_ProjectLocation.Folder = ApplicationState.UserPreferences.General.Project.DefaultLocation;
+            }
+        }
         #endregion
     }
 }
