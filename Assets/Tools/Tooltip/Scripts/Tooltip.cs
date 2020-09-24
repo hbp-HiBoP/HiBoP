@@ -43,8 +43,7 @@ namespace Tools.Unity
             get { return m_FollowMouse; }
             set { m_FollowMouse = value; }
         }
-
-
+        
         private bool m_Entered = false;
         private float m_TimeSinceEntered = 0.0f;
         #endregion
@@ -74,13 +73,17 @@ namespace Tools.Unity
         }
         public void OnPointerExit(PointerEventData data)
         {
-            if(Application.isPlaying && ApplicationState.TooltipManager != null) ApplicationState.TooltipManager.HideTooltip();
-            m_Entered = false;
-            m_TimeSinceEntered = 0.0f;
+            HideTooltip();
         }
         public void OnDestroy()
         {
             if(ApplicationState.TooltipManager != null) ApplicationState.TooltipManager.HideTooltip();
+            m_Entered = false;
+            m_TimeSinceEntered = 0.0f;
+        }
+        public void HideTooltip()
+        {
+            if (Application.isPlaying && ApplicationState.TooltipManager != null) ApplicationState.TooltipManager.HideTooltip();
             m_Entered = false;
             m_TimeSinceEntered = 0.0f;
         }

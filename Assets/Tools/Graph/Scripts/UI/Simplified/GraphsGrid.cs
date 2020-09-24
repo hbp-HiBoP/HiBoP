@@ -120,6 +120,14 @@ namespace Tools.Unity.Graph
                 return m_OnRequestDisplayChannelsOnGraph;
             }
         }
+        [SerializeField] private ChannelsEvent m_OnRequestFilterChannels;
+        public ChannelsEvent OnRequestFilterChannels
+        {
+            get
+            {
+                return m_OnRequestFilterChannels;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -147,6 +155,18 @@ namespace Tools.Unity.Graph
         {
             ChannelStruct[] channels = m_ChannelByGraph.Where(cbg => cbg.Key.IsSelected).Select(cbg => cbg.Value).ToArray();
             m_OnRequestDisplayChannelsOnGraph.Invoke(channels);
+        }
+        public void UnselectAll()
+        {
+            foreach (var graph in m_Graphs)
+            {
+                graph.IsSelected = false;
+            }
+        }
+        public void FilterSelectedSites()
+        {
+            ChannelStruct[] channels = m_ChannelByGraph.Where(cbg => cbg.Key.IsSelected).Select(cbg => cbg.Value).ToArray();
+            m_OnRequestFilterChannels.Invoke(channels);
         }
         #endregion
 

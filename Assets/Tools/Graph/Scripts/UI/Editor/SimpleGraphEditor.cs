@@ -25,7 +25,7 @@ namespace Tools.Unity.Graph
         // Curves
         SerializedProperty m_Curves;
 
-        // Eventss
+        // Events
         bool m_ShowEvents = false;
         SerializedProperty m_OnChangeTitle;
         SerializedProperty m_OnChangeFontColor;
@@ -33,6 +33,7 @@ namespace Tools.Unity.Graph
         SerializedProperty m_OnChangeOrdinateDisplayRange;
         SerializedProperty m_OnChangeAbscissaDisplayRange;
         SerializedProperty m_OnChangeUseDefaultRange;
+        SerializedProperty m_OnChangeSelected;
         SerializedProperty m_OnChangeCurves;
         #endregion
 
@@ -57,6 +58,7 @@ namespace Tools.Unity.Graph
             m_OnChangeAbscissaDisplayRange = serializedObject.FindProperty("m_OnChangeAbscissaDisplayRange");
             m_OnChangeOrdinateDisplayRange = serializedObject.FindProperty("m_OnChangeOrdinateDisplayRange");
             m_OnChangeUseDefaultRange = serializedObject.FindProperty("m_OnChangeUseDefaultRange");
+            m_OnChangeSelected = serializedObject.FindProperty("m_OnChangeSelected");
             m_OnChangeCurves = serializedObject.FindProperty("m_OnChangeCurves");
         }
         public override void OnInspectorGUI()
@@ -94,6 +96,7 @@ namespace Tools.Unity.Graph
                 EditorGUILayout.PropertyField(m_OnChangeAbscissaDisplayRange);
                 EditorGUILayout.PropertyField(m_OnChangeOrdinateDisplayRange);
                 EditorGUILayout.PropertyField(m_OnChangeUseDefaultRange);
+                EditorGUILayout.PropertyField(m_OnChangeSelected);
                 EditorGUILayout.PropertyField(m_OnChangeCurves);
             }
 

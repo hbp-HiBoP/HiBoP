@@ -127,7 +127,7 @@ namespace HBP.UI.Informations
             var channelStructs = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered && !s.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray();
             if (channelStructs.Length > CHANNEL_WARNING_THRESHOLD)
             {
-                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "High number of sites", string.Format("The number of sites you want to display is high ({0}). This can cause performance issues. Do you really want to display that many sites?", channelStructs.Length), () => { GridInformations.Display(channelStructs); }, "Display", () => { }, "Cancel");
+                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "High number of sites", string.Format("The number of sites you want to display is high ({0}): the recommended value is less than 50. This can cause performance issues. Do you really want to display that many sites?", channelStructs.Length), () => { GridInformations.Display(channelStructs); }, "Display", () => { }, "Cancel");
             }
             else
             {
@@ -144,6 +144,21 @@ namespace HBP.UI.Informations
             if (m_ChannelStructs.Length != 0 && m_SceneData.Columns.Count > 0)
             {
                 ChannelInformations.DisplayGraphs(m_ChannelStructs, m_SceneData.Columns.ToArray());
+            }
+        }
+        public void FilterChannels(ChannelStruct[] channels)
+        {
+            foreach (var column in m_Scene.Columns)
+            {
+                foreach (var site in column.Sites)
+                {
+                    site.State.IsFiltered = false;
+                }
+                var sites = column.Sites.Where(s => channels.Any(c => c.Channel == s.name && c.Patient == s.Information.Patient));
+                foreach (var site in sites)
+                {
+                    site.State.IsFiltered = true;
+                }
             }
         }
         #endregion
