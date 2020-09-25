@@ -154,6 +154,30 @@ namespace HBP.Data
             foreach (var site in Sites) site.GenerateID();
             foreach (var tag in Tags) tag.GenerateID();
         }
+        /// <summary>
+        /// Clean this patient by removing any invalid data
+        /// </summary>
+        public void CleanInvalidData()
+        {
+            // Patient tags
+            List<BaseTagValue> patientTagsToRemove = new List<BaseTagValue>();
+            foreach (var tag in Tags)
+                if (tag.Tag == null)
+                    patientTagsToRemove.Add(tag);
+            foreach (var tag in patientTagsToRemove)
+                Tags.Remove(tag);
+
+            // Site tags
+            foreach (var site in Sites)
+            {
+                List<BaseTagValue> siteTagsToRemove = new List<BaseTagValue>();
+                foreach (var tag in site.Tags)
+                    if (tag.Tag == null)
+                        siteTagsToRemove.Add(tag);
+                foreach (var tag in siteTagsToRemove)
+                    site.Tags.Remove(tag);
+            }
+        }
         #endregion
 
         #region Public Static Methods
@@ -229,6 +253,7 @@ namespace HBP.Data
             try
             {
                 result = ClassLoaderSaver.LoadFromJson<Patient>(path);
+                result.CleanInvalidData();
                 return result != null;
             }
             catch (Exception e)
