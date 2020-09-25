@@ -126,7 +126,7 @@ public class ShortcutManager : MonoBehaviour
     {
         get
         {
-            return IsControlPressed && Input.GetKeyDown(KeyCode.B);
+            return IsControlPressed && Input.GetKeyDown(KeyCode.E);
         }
     }
     private bool OpenDatasetsActionPerformed

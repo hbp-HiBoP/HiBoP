@@ -13,6 +13,7 @@ namespace HBP.UI
     {
         #region Properties
         [SerializeField] Dropdown m_ProtocolDropdown, m_BlocDropdown, m_DatasetDropdown, m_DataNameDropdown;
+        [SerializeField] Image m_InformationImage;
 
         List<Protocol> m_Protocols;
         Protocol m_SelectedProtocol;
@@ -184,13 +185,23 @@ namespace HBP.UI
             if(m_DataNames != null && m_DataNames.Count > value)
             {
                 Object.DataName = m_DataNames[value];
+                var invalidPatients = m_Patients.Where((patient) => !Object.Dataset.GetIEEGDataInfos().Any(d => d.Patient == patient && d.Name == Object.DataName && d.IsOk)).ToArray();
+                if (invalidPatients.Length > 0)
+                {
+                    m_InformationImage.gameObject.SetActive(true);
+                    m_InformationImage.GetComponent<Tooltip>().Text = string.Format("Some patients of this visualization have no valid data for the data name \"{0}\"\n{1}", Object.DataName, string.Join("\n", invalidPatients.Select(p => p.CompleteName)));
+                }
+                else
+                {
+                    m_InformationImage.gameObject.SetActive(false);
+                }
             }
         }
         void SetDataNameDropdown()
         {
             if(Object.Dataset != null)
             {
-                m_DataNames = (from data in Object.Dataset.Data select data.Name).Distinct().Where((name) => m_Patients.All((patient) => Object.Dataset.GetIEEGDataInfos().Any((dataInfo) => dataInfo.IsOk && dataInfo.Name == name && dataInfo.Patient == patient))).ToList();
+                m_DataNames = (from data in Object.Dataset.Data select data.Name).Distinct().Where((name) => m_Patients.Any((patient) => Object.Dataset.GetIEEGDataInfos().Any((dataInfo) => dataInfo.IsOk && dataInfo.Name == name && dataInfo.Patient == patient))).ToList();
             }
             else
             {

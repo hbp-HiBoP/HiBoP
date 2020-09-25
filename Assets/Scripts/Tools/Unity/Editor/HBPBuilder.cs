@@ -22,19 +22,20 @@ namespace Tools.Unity
 
         public static void BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target)
         {
-            string buildName = string.Format("{0} {1}", Application.productName, Application.version);
+            string os = "";
             switch (target)
             {
                 case BuildTarget.StandaloneWindows64:
-                    buildName += " win64";
+                    os = ".win64";
                     break;
                 case BuildTarget.StandaloneLinux64:
-                    buildName += " linux64";
+                    os = ".linux64";
                     break;
                 case BuildTarget.StandaloneOSX:
-                    buildName += " macos64";
+                    os = ".macos64";
                     break;
             }
+            string buildName = string.Format("{0}.{1}.{2}", Application.productName, Application.version, os);
             string buildDirectory = buildsDirectory + buildName + "/";
             string dataDirectory = buildDirectory;
             string hibopName = "HiBoP";

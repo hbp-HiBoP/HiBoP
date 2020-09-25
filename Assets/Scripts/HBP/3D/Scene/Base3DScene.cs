@@ -39,7 +39,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return Visualization.Patients.Count > 1 ? Data.Enums.SceneType.MultiPatients : Data.Enums.SceneType.SinglePatient;
+                return Visualization.Patients.Count == 1 ? Data.Enums.SceneType.SinglePatient : Data.Enums.SceneType.MultiPatients;
             }
         }
 
@@ -699,6 +699,10 @@ namespace HBP.Module3D
         /// Event called when displaying the correlations
         /// </summary>
         [HideInInspector] public UnityEvent OnChangeDisplayCorrelations = new UnityEvent();
+        /// <summary>
+        /// Event called when finished loading the scene completely
+        /// </summary>
+        [HideInInspector] public UnityEvent OnSceneCompletelyLoaded = new UnityEvent();
         #endregion
 
         #region Private Methods
@@ -736,6 +740,7 @@ namespace HBP.Module3D
             {
                 UpdateVisibleState(true);
                 IsSceneCompletelyLoaded = true;
+                OnSceneCompletelyLoaded.Invoke();
                 if (Visualization.Configuration.FirstColumnToSelect < Columns.Count)
                 {
                     Columns[Visualization.Configuration.FirstColumnToSelect].SelectFirstOrDefaultSiteByName(Visualization.Configuration.FirstSiteToSelect);
@@ -1636,7 +1641,7 @@ namespace HBP.Module3D
                 IsGeneratorUpToDate = false;
                 CutTexturesNeedUpdate = true;
             }
-            OnIEEGOutdated.Invoke(true);
+            OnIEEGOutdated.Invoke(Columns.Any(c => c is Column3DIEEG || c is Column3DCCEP));
         }
         /// <summary>
         /// Passive raycast on the scene (to hover sites for instance)

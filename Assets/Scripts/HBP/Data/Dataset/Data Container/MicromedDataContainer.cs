@@ -40,7 +40,7 @@ namespace HBP.Data.Container
         /// <summary>
         /// Path to the EEG file with Alias.
         /// </summary>
-        [DataMember(Name = "TRC")] public string SavedPath { get; protected set; }
+        [DataMember(Name = "TRC")] public string SavedPath { get; protected set; } = "";
         /// <summary>
         /// Path of the EEG file without Alias.
         /// </summary>

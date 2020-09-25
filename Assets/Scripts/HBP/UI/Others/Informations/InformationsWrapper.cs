@@ -90,7 +90,7 @@ namespace HBP.UI.Informations
         }
 
         public ChannelInformations ChannelInformations;
-        public ROIInformations ROIInformations;
+        public GridInformations GridInformations;
 
         [SerializeField] Texture2DEvent m_OnChangeColorMap;
         public Texture2DEvent OnChangeColorMap
@@ -110,17 +110,10 @@ namespace HBP.UI.Informations
                 return m_ChannelStructs;
             }
         }
+        private const int CHANNEL_WARNING_THRESHOLD = 50;
         #endregion
 
         #region Public Methods
-        public void ROI_DEBUG()
-        {
-            //Dictionary<Data.Informations.Data, List<Channel>> channelsByData = new Dictionary<Data.Informations.Data, List<Channel>>();
-            //foreach (var data in m_SceneData)
-            //{
-            //}
-            //ROIInformations.Display(sceneROIStruct);
-        }
         public void OnExpandHandler()
         {
             m_OnExpand.Invoke();
@@ -128,6 +121,45 @@ namespace HBP.UI.Informations
         public void OnMinimizeHandler()
         {
             m_OnMinimize.Invoke();
+        }
+        public void ComputeAndDisplayGridGraphs()
+        {
+            var channelStructs = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered && !s.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray();
+            if (channelStructs.Length > CHANNEL_WARNING_THRESHOLD)
+            {
+                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "High number of sites", string.Format("The number of sites you want to display is high ({0}): the recommended value is less than 50. This can cause performance issues. Do you really want to display that many sites?", channelStructs.Length), () => { GridInformations.Display(channelStructs); }, "Display", () => { }, "Cancel");
+            }
+            else
+            {
+                GridInformations.Display(channelStructs);
+            }
+        }
+        public void ClearGrid()
+        {
+            GridInformations.Display(new ChannelStruct[0]);
+        }
+        public void DisplayChannelsGraphs(ChannelStruct[] channels)
+        {
+            m_ChannelStructs = channels;
+            if (m_ChannelStructs.Length != 0 && m_SceneData.Columns.Count > 0)
+            {
+                ChannelInformations.DisplayGraphs(m_ChannelStructs, m_SceneData.Columns.ToArray());
+            }
+        }
+        public void FilterChannels(ChannelStruct[] channels)
+        {
+            foreach (var column in m_Scene.Columns)
+            {
+                foreach (var site in column.Sites)
+                {
+                    site.State.IsFiltered = false;
+                }
+                var sites = column.Sites.Where(s => channels.Any(c => c.Channel == s.name && c.Patient == s.Information.Patient));
+                foreach (var site in sites)
+                {
+                    site.State.IsFiltered = true;
+                }
+            }
         }
         #endregion
 
@@ -226,6 +258,11 @@ namespace HBP.UI.Informations
             GenerateSceneData();
             Display();
         }
+        void OnSceneCompletelyLoaded()
+        {
+            GenerateSceneData();
+            GridInformations.SetColumns(m_SceneData.Columns.ToArray());
+        }
         #endregion
 
         #region Setters
@@ -238,6 +275,7 @@ namespace HBP.UI.Informations
                 m_Scene.OnUpdateROIMask.AddListener(OnChangeROIHandler);
                 m_Scene.OnChangeColormap.AddListener((t) => OnChangeColorMapHandler());
                 m_Scene.OnSelectCCEPSource.AddListener(OnChangeSourceHandler);
+                m_Scene.OnSceneCompletelyLoaded.AddListener(OnSceneCompletelyLoaded);
                 foreach (var column in m_Scene.Columns)
                 {
                     column.OnSelect.AddListener(() => OnChangeSelectedColumn(column));

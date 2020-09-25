@@ -304,7 +304,7 @@ namespace HBP.Module3D
                 if (!visualization.IsVisualizable) throw new CanNotLoadVisualization(visualization.Name);
 
                 yield return Ninja.JumpToUnity;
-                yield return this.StartCoroutineAsync(visualization.c_Load((localProgress, duration, text) => { onChangeProgress(progress + localProgress * visualizationWeight * LOADING_VISUALIZATION_PROGRESS, duration, text); Debug.Log(localProgress); }), out Task visualizationLoadingTask);
+                yield return this.StartCoroutineAsync(visualization.c_Load((localProgress, duration, text) => onChangeProgress(progress + localProgress * visualizationWeight * LOADING_VISUALIZATION_PROGRESS, duration, text)), out Task visualizationLoadingTask);
 
                 if (visualizationLoadingTask.State == TaskState.Done)
                 {

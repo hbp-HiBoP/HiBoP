@@ -79,7 +79,7 @@ namespace HBP.Data.Visualization
         /// </summary>
         public virtual bool IsVisualizable
         {
-            get { return Columns.Count > 0 && Patients.Count > 0 && Columns.All((column) => column.IsCompatible(Patients)); }
+            get { return Columns.Count > 0 && Columns.All((column) => column.IsCompatible(Patients)); }
         }
         /// <summary>
         /// Is the visualization opened in a scene ?
@@ -468,7 +468,7 @@ namespace HBP.Data.Visualization
                         yield break;
                     }
                 }
-                Tools.CSharp.EEG.Frequency maxiEEGFrequency = new Tools.CSharp.EEG.Frequency(iEEGColumns.Max(column => column.Data.Frequencies.Max(f => f.RawValue)));
+                Tools.CSharp.EEG.Frequency maxiEEGFrequency = new Tools.CSharp.EEG.Frequency(iEEGColumns.Max(column => column.Data.MaxFrequency));
                 for (int i = 0; i < nbIEEGColumns; ++i)
                 {
                     IEEGColumn column = iEEGColumns[i];
