@@ -26,13 +26,13 @@ namespace Tools.Unity
             switch (target)
             {
                 case BuildTarget.StandaloneWindows64:
-                    os = ".win64";
+                    os = "win64";
                     break;
                 case BuildTarget.StandaloneLinux64:
-                    os = ".linux64";
+                    os = "linux64";
                     break;
                 case BuildTarget.StandaloneOSX:
-                    os = ".macos64";
+                    os = "macos64";
                     break;
             }
             string buildName = string.Format("{0}.{1}.{2}", Application.productName, Application.version, os);
