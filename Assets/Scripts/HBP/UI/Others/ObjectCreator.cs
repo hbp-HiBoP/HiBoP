@@ -273,29 +273,34 @@ namespace Tools.Unity.Components
         /// <returns>True if the method end without errors, False otherwise.</returns>
         protected virtual bool LoadFromFile(out T[] result)
         {
-            result = new T[0];
+            List<T> resultList = new List<T>();
             ILoadable<T> loadable = new T() as ILoadable<T>;
-            string path = FileBrowser.GetExistingFileName(loadable.GetExtensions()).StandardizeToPath();
-            if (path != string.Empty)
+            string[] paths = FileBrowser.GetExistingFileNames(loadable.GetExtensions());
+            foreach (var rawPath in paths)
             {
-                bool loadResult = loadable.LoadFromFile(path, out result);
-                if (loadResult)
+                string path = rawPath.StandardizeToPath();
+                if (path != string.Empty)
                 {
-                    if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
+                    bool loadResult = loadable.LoadFromFile(path, out T[] array);
+                    if (loadResult)
                     {
-                        foreach (T t in result)
+                        if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
                         {
-                            IIdentifiable identifiable = t as IIdentifiable;
-                            if (identifiable.ID == "xxxxxxxxxxxxxxxxxxxxxxxxx")
+                            foreach (T t in array)
                             {
-                                identifiable.ID = Guid.NewGuid().ToString();
+                                IIdentifiable identifiable = t as IIdentifiable;
+                                if (identifiable.ID == "xxxxxxxxxxxxxxxxxxxxxxxxx")
+                                {
+                                    identifiable.ID = Guid.NewGuid().ToString();
+                                }
                             }
                         }
+                        resultList.AddRange(array);
                     }
                 }
-                return loadResult;
             }
-            return false;
+            result = resultList.ToArray();
+            return result.Length > 0;
         }
         /// <summary>
         /// Open a browser to select a folder database and load objects asynchroniously.
