@@ -263,6 +263,8 @@ namespace HBP.Module3D.DLL
         static private extern void compute_UVMain_with_volume_BrainSurfaceTextureGenerator(HandleRef handleBrainSurfaceTextureGenerator, HandleRef handleVolume, HandleRef handleSurface, float calMin, float calMax);
         [DllImport("hbp_export", EntryPoint = "computeSurfaceTextCoordAmplitudes_BrainSurfaceTextureGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern int computeSurfaceTextCoordAmplitudes_BrainSurfaceTextureGenerator(HandleRef handleBrainSurfaceTextureGenerator, HandleRef handleSurface, int idTimeline, float alphaMin, float alphaMax);
+        [DllImport("hbp_export", EntryPoint = "computeSurfaceTextCoordDensity_BrainSurfaceTextureGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern int computeSurfaceTextCoordDensity_BrainSurfaceTextureGenerator(HandleRef handleBrainSurfaceTextureGenerator, HandleRef handleSurface, int idTimeline);
         [DllImport("hbp_export", EntryPoint = "getUVAmplitudes_BrainSurfaceTextureGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void getUVAmplitudes_BrainSurfaceTextureGenerator(HandleRef handleBrainSurfaceTextureGenerator, float[] textureCoordsArray);
         [DllImport("hbp_export", EntryPoint = "updateUVAmplitudes_BrainSurfaceTextureGenerator", CallingConvention = CallingConvention.Cdecl)]

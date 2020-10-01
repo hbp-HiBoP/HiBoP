@@ -348,7 +348,9 @@ namespace HBP.Module3D.DLL
         [DllImport("hbp_export", EntryPoint = "compute_influences__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern int compute_influences__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, float[] timelineAmplitudes, int timelineLength, int sitesNumber,float maxDistance, int multiCPU, int addValues, int ratioDistances, float middle, float spanMin, float spanMax);
         [DllImport("hbp_export", EntryPoint = "fill_texture_with_SSEG__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
-        static private extern int fill_texture_with_SSEG__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, int idTimeline, HandleRef handleColorSchemeTexture,float alphaMin, float alphaMax, float[] notInBrainColor);
+        static private extern int fill_texture_with_SSEG__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, int idTimeline, HandleRef handleColorSchemeTexture, float alphaMin, float alphaMax, float[] notInBrainColor);
+        [DllImport("hbp_export", EntryPoint = "fill_texture_with_Density__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern int fill_texture_with_Density__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, int idTimeline, HandleRef handleColorSchemeTexture, float[] notInBrainColor);
         [DllImport("hbp_export", EntryPoint = "min_inf__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern float min_inf__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator);
         [DllImport("hbp_export", EntryPoint = "max_inf__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
