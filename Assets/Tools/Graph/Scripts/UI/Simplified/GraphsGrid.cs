@@ -77,6 +77,7 @@ namespace Tools.Unity.Graph
         }
 
         private int m_NumberOfGridColumns = 2;
+        public int NumberOfGridLines { get { return (int)Mathf.Ceil((float)m_Containers.Count / m_NumberOfGridColumns); } }
         #endregion
 
         #region Events
@@ -248,7 +249,7 @@ namespace Tools.Unity.Graph
         }
         private void UpdateLayout()
         {
-            int numberOfLines = (int)Mathf.Ceil((float)m_Containers.Count / m_NumberOfGridColumns);
+            int numberOfLines = NumberOfGridLines;
             for (int i = 0; i < m_Containers.Count;)
             {
                 for (int j = 0; j < m_NumberOfGridColumns && i < m_Containers.Count; ++j, ++i)

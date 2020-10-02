@@ -256,102 +256,106 @@ namespace HBP.UI.Module3D
                 // Graph and Trial Matrix
                 Informations.InformationsWrapper informations = GetComponentInChildren<Informations.InformationsWrapper>();
                 Informations.ChannelInformations channelInformations = informations.GetComponentInChildren<Informations.ChannelInformations>();
+                Informations.GridInformations gridInformations = informations.GetComponentInChildren<Informations.GridInformations>();
                 if (!informations.Minimized)
                 {
-                    if (!Mathf.Approximately(channelInformations.GetComponent<ZoneResizer>().Ratio, 1.0f))
+                    if (channelInformations != null && channelInformations.isActiveAndEnabled)
                     {
-                        global::Tools.Unity.Graph.Graph graph = channelInformations.transform.GetComponentInChildren<global::Tools.Unity.Graph.Graph>();
-                        Texture2D graphTexture = Texture2DExtension.ScreenRectToTexture(graph.GetComponent<RectTransform>().ToScreenSpace());
-                        try
+                        if (!Mathf.Approximately(channelInformations.GetComponent<ZoneResizer>().Ratio, 1.0f))
                         {
-                            string graphFilePath = path + string.Format("{0}_{1}_[{2}]_Graph.png", openedProjectName, m_Scene.Name, string.Join("-", informations.ChannelStructs.Select(cs => cs.Patient.Name + "_" + cs.Channel)));
-                            ClassLoaderSaver.GenerateUniqueSavePath(ref graphFilePath);
-                            graphTexture.SaveToPNG(graphFilePath);
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.LogException(e);
-                            ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
-                            yield break;
-                        }
-                        try
-                        {
-                            string graphFilePath = path + string.Format("{0}_{1}_[{2}]_Graph.svg", openedProjectName, m_Scene.Name, string.Join("-", informations.ChannelStructs.Select(cs => cs.Patient.Name + "_" + cs.Channel)));
-                            ClassLoaderSaver.GenerateUniqueSavePath(ref graphFilePath);
-                            using (StreamWriter sw = new StreamWriter(graphFilePath))
+                            global::Tools.Unity.Graph.Graph graph = channelInformations.transform.GetComponentInChildren<global::Tools.Unity.Graph.Graph>();
+                            Texture2D graphTexture = Texture2DExtension.ScreenRectToTexture(graph.GetComponent<RectTransform>().ToScreenSpace());
+                            try
                             {
-                                sw.Write(graph.ToSVG());
+                                string graphFilePath = path + string.Format("{0}_{1}_[{2}]_Graph.png", openedProjectName, m_Scene.Name, string.Join("-", informations.ChannelStructs.Select(cs => cs.Patient.Name + "_" + cs.Channel)));
+                                ClassLoaderSaver.GenerateUniqueSavePath(ref graphFilePath);
+                                graphTexture.SaveToPNG(graphFilePath);
                             }
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.LogException(e);
-                            ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
-                            yield break;
-                        }
-                        Dictionary<string, string> curveValues = graph.ToCSV();
-                        try
-                        {
-                            foreach (var curve in curveValues)
+                            catch (Exception e)
                             {
-                                string curveFilePath = path + string.Format("{0}_{1}_{2}_Curve.csv", openedProjectName, m_Scene.Name, curve.Key);
-                                ClassLoaderSaver.GenerateUniqueSavePath(ref curveFilePath);
-                                using (StreamWriter sw = new StreamWriter(curveFilePath))
+                                Debug.LogException(e);
+                                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
+                                yield break;
+                            }
+                            try
+                            {
+                                string graphFilePath = path + string.Format("{0}_{1}_[{2}]_Graph.svg", openedProjectName, m_Scene.Name, string.Join("-", informations.ChannelStructs.Select(cs => cs.Patient.Name + "_" + cs.Channel)));
+                                ClassLoaderSaver.GenerateUniqueSavePath(ref graphFilePath);
+                                using (StreamWriter sw = new StreamWriter(graphFilePath))
                                 {
-                                    sw.Write(curve.Value);
+                                    sw.Write(graph.ToSVG());
                                 }
                             }
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.LogException(e);
-                            ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
-                            yield break;
-                        }
-                    }
-                    if (!Mathf.Approximately(channelInformations.GetComponent<ZoneResizer>().Ratio, 0.0f))
-                    {
-                        ScrollRect trialMatrixScrollRect = channelInformations.GetComponentInChildren<TrialMatrix.Grid.TrialMatrixGrid>().GetComponent<ScrollRect>();
-                        Sprite mask = trialMatrixScrollRect.viewport.GetComponent<Image>().sprite;
-                        trialMatrixScrollRect.viewport.GetComponent<Image>().sprite = null;
-                        Texture2D trialMatrixTexture;
-                        if (trialMatrixScrollRect.content.rect.height > trialMatrixScrollRect.viewport.rect.height)
-                        {
-                            trialMatrixTexture = new Texture2D((int)trialMatrixScrollRect.content.rect.width, (int)trialMatrixScrollRect.content.rect.height);
-                            float step = trialMatrixScrollRect.viewport.rect.height / trialMatrixScrollRect.content.rect.height;
-                            float position = 0.0f;
-                            bool isFinished = false;
-                            while (!isFinished)
+                            catch (Exception e)
                             {
-                                if (position > 1.0f)
+                                Debug.LogException(e);
+                                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
+                                yield break;
+                            }
+                            Dictionary<string, string> curveValues = graph.ToCSV();
+                            try
+                            {
+                                foreach (var curve in curveValues)
                                 {
-                                    position = 1.0f;
-                                    isFinished = true;
+                                    string curveFilePath = path + string.Format("{0}_{1}_{2}_Curve.csv", openedProjectName, m_Scene.Name, curve.Key);
+                                    ClassLoaderSaver.GenerateUniqueSavePath(ref curveFilePath);
+                                    using (StreamWriter sw = new StreamWriter(curveFilePath))
+                                    {
+                                        sw.Write(curve.Value);
+                                    }
                                 }
-                                trialMatrixScrollRect.verticalNormalizedPosition = position;
-                                yield return new WaitForEndOfFrame();
-                                Texture2D trialMatrixTextureFragment = Texture2DExtension.ScreenRectToTexture(trialMatrixScrollRect.viewport.ToScreenSpace());
-                                trialMatrixTexture.SetPixels(0, (int)(position * trialMatrixTexture.height - position * trialMatrixTextureFragment.height), trialMatrixTextureFragment.width, trialMatrixTextureFragment.height, trialMatrixTextureFragment.GetPixels());
-                                position += step;
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.LogException(e);
+                                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
+                                yield break;
                             }
                         }
-                        else
+                        if (!Mathf.Approximately(channelInformations.GetComponent<ZoneResizer>().Ratio, 0.0f))
                         {
-                            trialMatrixTexture = Texture2DExtension.ScreenRectToTexture(trialMatrixScrollRect.content.ToScreenSpace());
+                            ScrollRect trialMatrixScrollRect = channelInformations.GetComponentInChildren<TrialMatrix.Grid.TrialMatrixGrid>().GetComponent<ScrollRect>();
+                            Sprite mask = trialMatrixScrollRect.viewport.GetComponent<Image>().sprite;
+                            trialMatrixScrollRect.viewport.GetComponent<Image>().sprite = null;
+                            Texture2D trialMatrixTexture;
+                            if (trialMatrixScrollRect.content.rect.height > trialMatrixScrollRect.viewport.rect.height)
+                            {
+                                trialMatrixTexture = new Texture2D((int)trialMatrixScrollRect.content.rect.width, (int)trialMatrixScrollRect.content.rect.height);
+                                float step = trialMatrixScrollRect.viewport.rect.height / trialMatrixScrollRect.content.rect.height;
+                                float position = 0.0f;
+                                bool isFinished = false;
+                                while (!isFinished)
+                                {
+                                    if (position > 1.0f)
+                                    {
+                                        position = 1.0f;
+                                        isFinished = true;
+                                    }
+                                    trialMatrixScrollRect.verticalNormalizedPosition = position;
+                                    yield return new WaitForEndOfFrame();
+                                    Texture2D trialMatrixTextureFragment = Texture2DExtension.ScreenRectToTexture(trialMatrixScrollRect.viewport.ToScreenSpace());
+                                    trialMatrixTexture.SetPixels(0, (int)(position * trialMatrixTexture.height - position * trialMatrixTextureFragment.height), trialMatrixTextureFragment.width, trialMatrixTextureFragment.height, trialMatrixTextureFragment.GetPixels());
+                                    position += step;
+                                }
+                            }
+                            else
+                            {
+                                trialMatrixTexture = Texture2DExtension.ScreenRectToTexture(trialMatrixScrollRect.content.ToScreenSpace());
+                            }
+                            try
+                            {
+                                string trialMatrixFilePath = path + string.Format("{0}_{1}_[{2}]_TrialMatrix.png", openedProjectName, m_Scene.Name, string.Join("-", informations.ChannelStructs.Select(cs => cs.Patient.Name + "_" + cs.Channel)));
+                                ClassLoaderSaver.GenerateUniqueSavePath(ref trialMatrixFilePath);
+                                trialMatrixTexture.SaveToPNG(trialMatrixFilePath);
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.LogException(e);
+                                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
+                                yield break;
+                            }
+                            trialMatrixScrollRect.viewport.GetComponent<Image>().sprite = mask;
                         }
-                        try
-                        {
-                            string trialMatrixFilePath = path + string.Format("{0}_{1}_[{2}]_TrialMatrix.png", openedProjectName, m_Scene.Name, string.Join("-", informations.ChannelStructs.Select(cs => cs.Patient.Name + "_" + cs.Channel)));
-                            ClassLoaderSaver.GenerateUniqueSavePath(ref trialMatrixFilePath);
-                            trialMatrixTexture.SaveToPNG(trialMatrixFilePath);
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.LogException(e);
-                            ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
-                            yield break;
-                        }
-                        trialMatrixScrollRect.viewport.GetComponent<Image>().sprite = mask;
                     }
                 }
                 // Feedback

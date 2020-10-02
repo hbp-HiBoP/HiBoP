@@ -35,7 +35,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                string path = FileBrowser.GetExistingFileName(new string[] { "nii", "img" }, "Select an fMRI file");
+                string path = FileBrowser.GetExistingFileName(new string[] { "nii", "img", "nii.gz" }, "Select an fMRI file");
                 if (!string.IsNullOrEmpty(path))
                 {
                     SelectedScene.FMRIManager.FMRI = new MRI3D(new Data.MRI("FMRI", path));
