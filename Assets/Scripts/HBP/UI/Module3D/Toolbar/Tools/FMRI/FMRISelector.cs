@@ -34,13 +34,23 @@ namespace HBP.UI.Module3D.Tools
             m_AddFMRI.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
-
+#if UNITY_STANDALONE_OSX
+                FileBrowser.GetExistingFileNameAsync((path) =>
+                {
+                    if (!string.IsNullOrEmpty(path))
+                    {
+                        SelectedScene.FMRIManager.FMRI = new MRI3D(new Data.MRI("FMRI", path));
+                    }
+                    OnChangeFMRI.Invoke();
+                }, new string[] { "nii", "img", "nii.gz" }, "Select an fMRI file");
+#else
                 string path = FileBrowser.GetExistingFileName(new string[] { "nii", "img", "nii.gz" }, "Select an fMRI file");
                 if (!string.IsNullOrEmpty(path))
                 {
                     SelectedScene.FMRIManager.FMRI = new MRI3D(new Data.MRI("FMRI", path));
                 }
                 OnChangeFMRI.Invoke();
+#endif
             });
             m_RemoveFMRI.onClick.AddListener(() =>
             {

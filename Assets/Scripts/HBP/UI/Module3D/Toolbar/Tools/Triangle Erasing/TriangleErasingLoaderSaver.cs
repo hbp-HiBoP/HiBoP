@@ -29,39 +29,77 @@ namespace HBP.UI.Module3D.Tools
             m_Save.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
-
-                try
+#if UNITY_STANDALONE_OSX
+                FileBrowser.GetSavedFileNameAsync((file) =>
                 {
-                    string file = FileBrowser.GetSavedFileName(new string[] { "trimask" }, "Save brain state to");
                     if (!string.IsNullOrEmpty(file))
+                    {
+                        try
+                        {
+                            string fileContent = string.Join("\n", SelectedScene.TriangleEraser.CurrentMasks.Select(m => string.Join(" ", m)));
+                            File.WriteAllText(file, fileContent);
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogException(e);
+                            ApplicationState.DialogBoxManager.Open(T.DialogBoxManager.AlertType.Error, "Save Error", "The file could not be saved.");
+                        }
+                    }
+                }, new string[] { "trimask" }, "Save brain state to");
+#else
+                string file = FileBrowser.GetSavedFileName(new string[] { "trimask" }, "Save brain state to");
+                if (!string.IsNullOrEmpty(file))
+                {
+                    try
                     {
                         string fileContent = string.Join("\n", SelectedScene.TriangleEraser.CurrentMasks.Select(m => string.Join(" ", m)));
                         File.WriteAllText(file, fileContent);
                     }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                        ApplicationState.DialogBoxManager.Open(T.DialogBoxManager.AlertType.Error, "Save Error", "The file could not be saved.");
+                    }
                 }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    ApplicationState.DialogBoxManager.Open(T.DialogBoxManager.AlertType.Error, "Save Error", "The file could not be saved.");
-                }
+#endif
             });
             m_Load.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
-                try
+
+#if UNITY_STANDALONE_OSX
+                FileBrowser.GetExistingFileNameAsync((file) =>
                 {
-                    string file = FileBrowser.GetSavedFileName(new string[] { "trimask" }, "Load brain state from");
                     if (!string.IsNullOrEmpty(file))
+                    {
+                        try
+                        {
+                            string fileContent = File.ReadAllText(file);
+                            SelectedScene.TriangleEraser.CurrentMasks = fileContent.Split('\n').Select(s => s.Split(' ').Select(split => int.Parse(split)).ToArray()).ToList();
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogException(e);
+                            ApplicationState.DialogBoxManager.Open(T.DialogBoxManager.AlertType.Error, "Load Error", "The file could not be loaded.");
+                        }
+                    }
+                }, new string[] { "trimask" }, "Load brain state from");
+#else
+                string file = FileBrowser.GetExistingFileName(new string[] { "trimask" }, "Load brain state from");
+                if (!string.IsNullOrEmpty(file))
+                {
+                    try
                     {
                         string fileContent = File.ReadAllText(file);
                         SelectedScene.TriangleEraser.CurrentMasks = fileContent.Split('\n').Select(s => s.Split(' ').Select(split => int.Parse(split)).ToArray()).ToList();
                     }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                        ApplicationState.DialogBoxManager.Open(T.DialogBoxManager.AlertType.Error, "Load Error", "The file could not be loaded.");
+                    }
                 }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    ApplicationState.DialogBoxManager.Open(T.DialogBoxManager.AlertType.Error, "Load Error", "The file could not be loaded.");
-                }
+#endif
             });
         }
         /// <summary>

@@ -175,20 +175,7 @@ namespace Tools.Unity.Components
         /// </summary>
         public virtual void CreateFromFile()
         {
-            if (LoadFromFile(out T[] items))
-            {
-                if (items.Length == 1)
-                {
-                    OpenModifier(items[0]);
-                }
-                else
-                {
-                    foreach (var item in items)
-                    {
-                        OnObjectCreated.Invoke(item);
-                    }
-                }
-            }
+            LoadFromFile();
         }
         /// <summary>
         /// Create a new object from a database.
@@ -271,10 +258,52 @@ namespace Tools.Unity.Components
         /// </summary>
         /// <param name="result">Objects loaded from the file.</param>
         /// <returns>True if the method end without errors, False otherwise.</returns>
-        protected virtual bool LoadFromFile(out T[] result)
+        protected virtual void LoadFromFile()
         {
-            List<T> resultList = new List<T>();
+            List<T> items = new List<T>();
             ILoadable<T> loadable = new T() as ILoadable<T>;
+#if UNITY_STANDALONE_OSX
+            FileBrowser.GetExistingFileNamesAsync((paths) =>
+            {
+                foreach (var rawPath in paths)
+                {
+                    string path = rawPath.StandardizeToPath();
+                    if (path != string.Empty)
+                    {
+                        bool loadResult = loadable.LoadFromFile(path, out T[] array);
+                        if (loadResult)
+                        {
+                            if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
+                            {
+                                foreach (T t in array)
+                                {
+                                    IIdentifiable identifiable = t as IIdentifiable;
+                                    if (identifiable.ID == "xxxxxxxxxxxxxxxxxxxxxxxxx")
+                                    {
+                                        identifiable.ID = Guid.NewGuid().ToString();
+                                    }
+                                }
+                            }
+                            items.AddRange(array);
+                        }
+                    }
+                }
+                if (items.Count > 0)
+                {
+                    if (items.Count == 1)
+                    {
+                        OpenModifier(items[0]);
+                    }
+                    else
+                    {
+                        foreach (var item in items)
+                        {
+                            OnObjectCreated.Invoke(item);
+                        }
+                    }
+                }
+            }, loadable.GetExtensions());
+#else
             string[] paths = FileBrowser.GetExistingFileNames(loadable.GetExtensions());
             foreach (var rawPath in paths)
             {
@@ -295,18 +324,42 @@ namespace Tools.Unity.Components
                                 }
                             }
                         }
-                        resultList.AddRange(array);
+                        items.AddRange(array);
                     }
                 }
             }
-            result = resultList.ToArray();
-            return result.Length > 0;
+            if (items.Count > 0)
+            {
+                if (items.Count == 1)
+                {
+                    OpenModifier(items[0]);
+                }
+                else
+                {
+                    foreach (var item in items)
+                    {
+                        OnObjectCreated.Invoke(item);
+                    }
+                }
+            }
+#endif
         }
         /// <summary>
         /// Open a browser to select a folder database and load objects asynchroniously.
         /// </summary>
         protected virtual void SelectDatabase()
         {
+#if UNITY_STANDALONE_OSX
+            FileBrowser.GetExistingDirectoryNameAsync((path) =>
+            {
+                if (path != null)
+                {
+                    ILoadableFromDatabase<T> loadable = new T() as ILoadableFromDatabase<T>;
+                    GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+                    ApplicationState.LoadingManager.Load(loadable.LoadFromDatabase(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => OnEndLoadFromDatabase(result.ToArray())), onChangeProgress);
+                }
+            });
+#else
             string path = FileBrowser.GetExistingDirectoryName();
             if (path != null)
             {
@@ -314,6 +367,7 @@ namespace Tools.Unity.Components
                 GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
                 ApplicationState.LoadingManager.Load(loadable.LoadFromDatabase(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => OnEndLoadFromDatabase(result.ToArray())), onChangeProgress);
             }
+#endif
         }
         /// <summary>
         /// Called when the asynchronious method to load objects from the database are ended.
