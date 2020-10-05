@@ -405,6 +405,10 @@ namespace Tools.Unity.Graph
             m_Curves = new List<Curve>();
             SetCurves();
         }
+        public string[] GetEnabledCurvesName()
+        {
+            return GetEnabledCurves(m_Curves).Select(c => c.Name).ToArray();
+        }
         public string ToSVG()
         {
             System.Globalization.CultureInfo oldCulture = System.Globalization.CultureInfo.CurrentCulture;
@@ -415,7 +419,7 @@ namespace Tools.Unity.Graph
             Vector2 ratio = curveViewport.GetRatio(limits);
             svgBuilder.AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
             svgBuilder.AppendLine("<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" width=\"" + (curveViewport.x + curveViewport.width + 300.0f).ToString() + "\" height=\"" + (curveViewport.y + curveViewport.height + 150.0f).ToString() + "\">");
-            List<Curve> curves = GetAllCurves(m_Curves);
+            List<Curve> curves = GetEnabledCurves(m_Curves);
             foreach (var curve in curves.Where(c => c.Data != null).Select(c => c.Data))
             {
                 svgBuilder.AppendLine("<g>");
@@ -586,7 +590,7 @@ namespace Tools.Unity.Graph
         public Dictionary<string, string> ToCSV()
         {
             Dictionary<string, string> csv = new Dictionary<string, string>();
-            foreach (var curve in GetAllCurves(m_Curves))
+            foreach (var curve in GetEnabledCurves(m_Curves))
             {
                 if (curve.Data == null) continue;
 
@@ -729,15 +733,18 @@ namespace Tools.Unity.Graph
         {
             m_OnChangeCurves.Invoke(m_Curves.ToArray());
         }
-        List<Curve> GetAllCurves(IEnumerable<Curve> curves)
+        List<Curve> GetEnabledCurves(IEnumerable<Curve> curves)
         {
             if (curves.Count() == 0) return new List<Curve>();
 
             List<Curve> result = new List<Curve>();
             foreach (var curve in curves)
             {
-                result.Add(curve);
-                result.AddRange(GetAllCurves(curve.SubCurves));
+                if (curve.Enabled)
+                {
+                    result.Add(curve);
+                    result.AddRange(GetEnabledCurves(curve.SubCurves));
+                }
             }
             return result;
         }

@@ -386,7 +386,7 @@ namespace HBP.UI.Informations
         }
         Graph.Curve GeneratePatientCurve(Column column, ChannelStruct[] channels, SubBloc subBloc, string ID)
         {
-            ID += channels[0].Patient.Name;
+            ID += "_" + channels[0].Patient.Name;
             Graph.Curve[] subcurves = channels.Select(channel => GenerateChannelCurve(column, channel, subBloc, ID)).ToArray();
             return new Graph.Curve(channels[0].Patient.Name, null, true, ID, subcurves, m_DefaultColor);
         }

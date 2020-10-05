@@ -265,9 +265,10 @@ namespace HBP.UI.Module3D
                         {
                             global::Tools.Unity.Graph.Graph graph = channelInformations.transform.GetComponentInChildren<global::Tools.Unity.Graph.Graph>();
                             Texture2D graphTexture = Texture2DExtension.ScreenRectToTexture(graph.GetComponent<RectTransform>().ToScreenSpace());
+                            var curvesName = graph.GetEnabledCurvesName();
                             try
                             {
-                                string graphFilePath = path + string.Format("{0}_{1}_[{2}]_Graph.png", openedProjectName, m_Scene.Name, string.Join("-", informations.ChannelStructs.Select(cs => cs.Patient.Name + "_" + cs.Channel)));
+                                string graphFilePath = path + string.Format("{0}_{1}_[{2}]_Graph.png", openedProjectName, m_Scene.Name, string.Join("-", curvesName));
                                 ClassLoaderSaver.GenerateUniqueSavePath(ref graphFilePath);
                                 graphTexture.SaveToPNG(graphFilePath);
                             }
@@ -279,7 +280,7 @@ namespace HBP.UI.Module3D
                             }
                             try
                             {
-                                string graphFilePath = path + string.Format("{0}_{1}_[{2}]_Graph.svg", openedProjectName, m_Scene.Name, string.Join("-", informations.ChannelStructs.Select(cs => cs.Patient.Name + "_" + cs.Channel)));
+                                string graphFilePath = path + string.Format("{0}_{1}_[{2}]_Graph.svg", openedProjectName, m_Scene.Name, string.Join("-", curvesName));
                                 ClassLoaderSaver.GenerateUniqueSavePath(ref graphFilePath);
                                 using (StreamWriter sw = new StreamWriter(graphFilePath))
                                 {
