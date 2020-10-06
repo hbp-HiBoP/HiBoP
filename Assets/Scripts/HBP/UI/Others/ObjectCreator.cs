@@ -267,24 +267,27 @@ namespace Tools.Unity.Components
             {
                 foreach (var rawPath in paths)
                 {
-                    string path = rawPath.StandardizeToPath();
-                    if (path != string.Empty)
+                    if (rawPath != null)
                     {
-                        bool loadResult = loadable.LoadFromFile(path, out T[] array);
-                        if (loadResult)
+                        string path = rawPath.StandardizeToPath();
+                        if (path != string.Empty)
                         {
-                            if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
+                            bool loadResult = loadable.LoadFromFile(path, out T[] array);
+                            if (loadResult)
                             {
-                                foreach (T t in array)
+                                if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
                                 {
-                                    IIdentifiable identifiable = t as IIdentifiable;
-                                    if (identifiable.ID == "xxxxxxxxxxxxxxxxxxxxxxxxx")
+                                    foreach (T t in array)
                                     {
-                                        identifiable.ID = Guid.NewGuid().ToString();
+                                        IIdentifiable identifiable = t as IIdentifiable;
+                                        if (identifiable.ID == "xxxxxxxxxxxxxxxxxxxxxxxxx")
+                                        {
+                                            identifiable.ID = Guid.NewGuid().ToString();
+                                        }
                                     }
                                 }
+                                items.AddRange(array);
                             }
-                            items.AddRange(array);
                         }
                     }
                 }

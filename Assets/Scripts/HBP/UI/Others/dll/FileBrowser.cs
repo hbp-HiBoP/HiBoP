@@ -92,8 +92,15 @@ namespace HBP.UI
             {
                 if (paths.Length > 0)
                 {
-                    m_LastSelectedDirectory = new FileInfo(paths[0]).DirectoryName;
-                    callback(paths[0]);
+                    if (!string.IsNullOrEmpty(paths[0]))
+                    {
+                        m_LastSelectedDirectory = new FileInfo(paths[0]).DirectoryName;
+                        callback(paths[0]);
+                    }
+                    else
+                    {
+                        callback(string.Empty);
+                    }
                 }
                 else
                 {
