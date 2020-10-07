@@ -169,7 +169,7 @@ namespace HBP.UI.Module3D
             m_ApplyButton.onClick.AddListener(ApplyAction);
             m_ColorPickerButton.onClick.AddListener(() =>
             {
-                ApplicationState.Module3DUI.ColorPicker.Open(m_ColorPickedImage.color, (c) => m_ColorPickedImage.color = c);
+                ApplicationState.ColorPicker.Open(m_ColorPickedImage.color, (c) => m_ColorPickedImage.color = c);
             });
         }
         private void Update()

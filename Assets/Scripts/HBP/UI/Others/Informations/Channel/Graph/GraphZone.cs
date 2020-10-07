@@ -15,19 +15,15 @@ namespace HBP.UI.Informations
 {
     public class GraphZone : MonoBehaviour
     {
-         #region Properties
+        #region Properties
         [SerializeField] TrialMatrixGrid m_TrialMatrixGrid;
         [SerializeField] GameObject m_GraphPrefab;
         [SerializeField] RectTransform m_GraphContainer;
 
         [SerializeField] GameObject m_TogglesPrefab;
         [SerializeField] RectTransform m_ToggleContainer;
-
-        [SerializeField] List<Color> m_Colors;
-
+        
         Tuple<Tuple<Data.Experience.Protocol.Bloc, SubBloc>[], Tools.CSharp.Window>[] m_SubBlocsAndWindowByColumn;
-        Dictionary<Tuple<int, Column>, Color> m_ColorsByColumn = new Dictionary<Tuple<int, Column>, Color>();
-        Dictionary<Column, Color> m_ColorsByROIColumn = new Dictionary<Column, Color>();
         Dictionary<string, bool> m_StatesByCurves = new Dictionary<string, bool>();
 
         [SerializeField] Queue<Graph> m_GraphPool = new Queue<Graph>();
@@ -68,7 +64,6 @@ namespace HBP.UI.Informations
         {
             m_Columns = columns.ToArray();
             m_Channels = channels.ToArray();
-            GenerateColors(channels, columns);
 
             SetGraphs();
         }
@@ -315,7 +310,7 @@ namespace HBP.UI.Informations
                 }
             }
 
-            Color color = m_ColorsByROIColumn[column];
+            Color color = ApplicationState.UserPreferences.Visualization.Graph.GetColor(2, Array.IndexOf(m_Columns, column));
             if (column.ROI.Channels.Count > 1)
             {
                 int channelCount = column.ROI.Channels.Count;
@@ -416,7 +411,7 @@ namespace HBP.UI.Informations
             }
             BlocData blocData = DataManager.GetData(dataInfo, column.Data.Bloc);
             BlocChannelData blocChannelData = DataManager.GetData(dataInfo, column.Data.Bloc, channel.Channel);
-            Color color = m_ColorsByColumn.FirstOrDefault(k => k.Key.Item1 == Array.IndexOf(m_Channels, channel) && k.Key.Item2 == column).Value;
+            Color color = ApplicationState.UserPreferences.Visualization.Graph.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));// m_ColorsByColumn.FirstOrDefault(k => k.Key.Item1 == Array.IndexOf(m_Channels, channel) && k.Key.Item2 == column).Value;
 
             ChannelTrial[] validTrials = blocChannelData.Trials.Where(t => t.IsValid).ToArray();
             List<ChannelTrial> trialsToUse = new List<ChannelTrial>(blocChannelData.Trials.Length);
@@ -472,27 +467,6 @@ namespace HBP.UI.Informations
                 result = CurveData.CreateInstance(points, color);
             }
             return result;
-        }
-        void GenerateColors(ChannelStruct[] channels, Column[] columns)
-        {
-            foreach (var column in columns)
-            {
-                for (int channel = 0; channel < channels.Length; channel++)
-                {
-                    if (!m_ColorsByColumn.Any(c => c.Key.Item1 == channel && c.Key.Item2 == column))
-                    {
-                        Color color = m_Colors.FirstOrDefault(col => !m_ColorsByColumn.ContainsValue(col) && !m_ColorsByROIColumn.ContainsValue(col));
-                        if (color == default) color = m_DefaultColor;
-                        m_ColorsByColumn.Add(new Tuple<int, Column>(channel, column), color);
-                    }
-                }
-                if (column.ROI != null && !m_ColorsByROIColumn.Any(c => c.Key == column))
-                {
-                    Color color = m_Colors.FirstOrDefault(col => !m_ColorsByColumn.ContainsValue(col) && !m_ColorsByROIColumn.ContainsValue(col));
-                    if (color == default) color = m_DefaultColor;
-                    m_ColorsByROIColumn.Add(column, color);
-                }
-            }
         }
         List<float> GetValues(Graph.Curve curve)
         {

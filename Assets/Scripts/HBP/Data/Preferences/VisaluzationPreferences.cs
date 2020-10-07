@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.Serialization;
+using UnityEngine;
 
 namespace HBP.Data.Preferences
 {
@@ -127,20 +129,90 @@ namespace HBP.Data.Preferences
     public class GraphPreferences : ICloneable
     {
         #region Properties
+        [IgnoreDataMember] const int NUMBER_OF_COLORS = 24;
         [DataMember] public bool ShowCurvesOfMinimizedColumns { get; set; }
+        [DataMember] private SerializableColor[] m_Colors;
+        public Color[] Colors
+        {
+            get
+            {
+                return m_Colors.Select(c => c.ToColor()).ToArray();
+            }
+            set
+            {
+                if (value.Length == NUMBER_OF_COLORS)
+                {
+                    m_Colors = value.Select(c => new SerializableColor(c)).ToArray();
+                }
+            }
+        }
         #endregion
 
         #region Constructors
-        public GraphPreferences(bool showCurvesOfMinimizedColumns = false)
+        public GraphPreferences(bool showCurvesOfMinimizedColumns = false, Color[] colors = null)
         {
             ShowCurvesOfMinimizedColumns = showCurvesOfMinimizedColumns;
+            if (colors == null || colors.Length != NUMBER_OF_COLORS)
+                SetDefaultColors();
+            else
+                Colors = colors;
         }
         #endregion
 
         #region Public Methods
+        public void SetDefaultColors()
+        {
+            Colors = new Color[NUMBER_OF_COLORS]
+                {
+                    new Color(171f / 255f, 61f / 255f, 58f / 255f),
+                    new Color(171f / 255f, 152f / 255f, 58f / 255f),
+                    new Color(46f / 255f, 135f / 255f, 52f / 255f),
+                    new Color(66f / 255f, 49f / 255f, 118f / 255f),
+                    new Color(171f / 255f, 109f / 255f, 58f / 255f),
+                    new Color(171f / 255f, 171f / 255f, 58f / 255f),
+                    new Color(35f / 255f, 103f / 255f, 103f / 255f),
+                    new Color(89f / 255f, 43f / 255f, 114f / 255f),
+                    new Color(171f / 255f, 133f / 255f, 58f / 255f),
+                    new Color(123f / 255f, 160f / 255f, 54f / 255f),
+                    new Color(47f / 255f, 66f / 255f, 115f / 255f),
+                    new Color(137f / 255f, 47f / 255f, 98f / 255f),
+                    new Color(129f / 255f, 22f / 255f, 22f / 255f),
+                    new Color(129f / 255f, 111f / 255f, 22f / 255f),
+                    new Color(18f / 255f, 103f / 255f, 18f / 255f),
+                    new Color(39f / 255f, 24f / 255f, 89f / 255f),
+                    new Color(129f / 255f, 71f / 255f, 22f / 255f),
+                    new Color(129f / 255f, 129f / 255f, 22f / 255f),
+                    new Color(13f / 255f, 77f / 255f, 77f / 255f),
+                    new Color(62f / 255f, 19f / 255f, 86f / 255f),
+                    new Color(129f / 255f, 93f / 255f, 22f / 255f),
+                    new Color(87f / 255f, 120f / 255f, 21f / 255f),
+                    new Color(23f / 255f, 42f / 255f, 86f / 255f),
+                    new Color(103f / 255f, 18f / 255f, 66f / 255f)
+                };
+        }
+        public void SetColor(int position, Color color)
+        {
+            if (position >= 0 && position < 24)
+            {
+                m_Colors[position] = new SerializableColor(color);
+            }
+        }
+        public Color GetColor(int position)
+        {
+            if (position >= 0 && position < 24)
+            {
+                return m_Colors[position].ToColor();
+            }
+            return new Color(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f));
+        }
+        public Color GetColor(int row, int column)
+        {
+            int position = row * 8 + column;
+            return GetColor(position);
+        }
         public object Clone()
         {
-            return new GraphPreferences(ShowCurvesOfMinimizedColumns);
+            return new GraphPreferences(ShowCurvesOfMinimizedColumns, Colors);
         }
         #endregion
     }

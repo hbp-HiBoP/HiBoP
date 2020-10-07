@@ -18,10 +18,7 @@ namespace Tools.Unity.Graph
         #region Properties
         [SerializeField] private GameObject m_ItemAndContainerPrefab;
         [SerializeField] private ScrollRect m_ScrollRect;
-
-        [SerializeField] List<Color> m_Colors;
-        Dictionary<Column, Color> m_ColorsByColumn = new Dictionary<Column, Color>();
-
+        
         [SerializeField] Column[] m_Columns;
         [SerializeField] ChannelStruct[] m_Channels;
         Color m_DefaultColor = new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1);
@@ -143,7 +140,6 @@ namespace Tools.Unity.Graph
         {
             m_Columns = columns.ToArray();
             m_Channels = channels.ToArray();
-            GenerateColors(columns);
 
             SetGraphs();
         }
@@ -301,7 +297,7 @@ namespace Tools.Unity.Graph
             }
             BlocData blocData = DataManager.GetData(dataInfo, column.Data.Bloc);
             BlocChannelData blocChannelData = DataManager.GetData(dataInfo, column.Data.Bloc, channel.Channel);
-            Color color = m_ColorsByColumn.FirstOrDefault(k => k.Key == column).Value;
+            Color color = ApplicationState.UserPreferences.Visualization.Graph.GetColor(0, Array.IndexOf(m_Columns, column));
 
             ChannelTrial[] trials = blocChannelData.Trials.Where(t => t.IsValid).ToArray();
 
@@ -351,18 +347,6 @@ namespace Tools.Unity.Graph
                 result = CurveData.CreateInstance(points, color);
             }
             return result;
-        }
-        void GenerateColors(Column[] columns)
-        {
-            foreach (var column in columns)
-            {
-                if (!m_ColorsByColumn.Any(c => c.Key == column))
-                {
-                    Color color = m_Colors.FirstOrDefault(col => !m_ColorsByColumn.ContainsValue(col));
-                    if (color == default) color = m_DefaultColor;
-                    m_ColorsByColumn.Add(column, color);
-                }
-            }
         }
         List<float> GetValues(Graph.Curve curve)
         {
