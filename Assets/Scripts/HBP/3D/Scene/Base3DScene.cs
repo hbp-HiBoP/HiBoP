@@ -670,7 +670,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when updating the ROI mask for this column
         /// </summary>
-        [HideInInspector] public UnityEvent OnUpdateROIMask = new UnityEvent();
+        [HideInInspector] public UnityEvent OnUpdateROI = new UnityEvent();
         /// <summary>
         /// Event called when minimizing a column
         /// </summary>

@@ -272,7 +272,7 @@ namespace HBP.UI.Informations
             {
                 m_Scene.OnRequestSiteInformation.AddListener(sites => OnSiteInformationRequestHandler(sites));
                 m_Scene.OnChangeColumnMinimizedState.AddListener(OnMinimizeColumnHandler);
-                m_Scene.OnUpdateROIMask.AddListener(OnChangeROIHandler);
+                m_Scene.OnUpdateROI.AddListener(OnChangeROIHandler);
                 m_Scene.OnChangeColormap.AddListener((t) => OnChangeColorMapHandler());
                 m_Scene.OnSelectCCEPSource.AddListener(OnChangeSourceHandler);
                 m_Scene.OnSceneCompletelyLoaded.AddListener(OnSceneCompletelyLoaded);
