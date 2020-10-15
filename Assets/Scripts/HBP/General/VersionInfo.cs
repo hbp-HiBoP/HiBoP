@@ -13,5 +13,8 @@ namespace HBP
 
         [DataMember(Name = "html_url")]
         public string URL { get; set; }
+
+        [DataMember(Name = "body")]
+        public string Description { get; set; }
     }
 }
