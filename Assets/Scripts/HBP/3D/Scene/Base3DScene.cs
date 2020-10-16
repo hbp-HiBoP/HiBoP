@@ -1457,7 +1457,7 @@ namespace HBP.Module3D
             Visualization.Configuration.MeshPart = MeshManager.MeshPartToDisplay;
             Visualization.Configuration.MeshName = m_MeshManager.SelectedMesh.Name;
             Visualization.Configuration.MRIName = m_MRIManager.SelectedMRI.Name;
-            Visualization.Configuration.ImplantationName = m_ImplantationManager.SelectedImplantation.Name;
+            Visualization.Configuration.ImplantationName = m_ImplantationManager.SelectedImplantation != null ? m_ImplantationManager.SelectedImplantation.Name : "";
             Visualization.Configuration.ShowEdges = EdgeMode;
             Visualization.Configuration.TransparentBrain = IsBrainTransparent;
             Visualization.Configuration.BrainAlpha = BrainMaterials.Alpha;
