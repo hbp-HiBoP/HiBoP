@@ -149,7 +149,7 @@ namespace HBP.Module3D
                 m_FMRICalMinFactor = value;
                 if (CurrentVolume != null)
                 {
-                    m_FMRICalMin = m_FMRICalMinFactor * (CurrentVolume.ExtremeValues.ComputedCalMax - CurrentVolume.ExtremeValues.ComputedCalMin) + CurrentVolume.ExtremeValues.ComputedCalMin;
+                    m_FMRICalMin = m_FMRICalMinFactor *  CurrentVolume.ExtremeValues.Min;
                 }
                 m_CurrentCalType = CalType.Factor;
                 m_Scene.ResetIEEG();
@@ -172,7 +172,7 @@ namespace HBP.Module3D
                 m_FMRICalMin = value;
                 if (CurrentVolume != null)
                 {
-                    m_FMRICalMinFactor = (value - CurrentVolume.ExtremeValues.ComputedCalMin) / (CurrentVolume.ExtremeValues.ComputedCalMax - CurrentVolume.ExtremeValues.ComputedCalMin);
+                    m_FMRICalMinFactor = value / CurrentVolume.ExtremeValues.Min;
                 }
                 m_CurrentCalType = CalType.Value;
                 m_Scene.ResetIEEG();
@@ -195,7 +195,7 @@ namespace HBP.Module3D
                 m_FMRICalMaxFactor = value;
                 if (CurrentVolume != null)
                 {
-                    m_FMRICalMax = m_FMRICalMaxFactor * (CurrentVolume.ExtremeValues.ComputedCalMax - CurrentVolume.ExtremeValues.ComputedCalMin) + CurrentVolume.ExtremeValues.ComputedCalMin;
+                    m_FMRICalMax = m_FMRICalMaxFactor * CurrentVolume.ExtremeValues.Max;
                 }
                 m_CurrentCalType = CalType.Factor;
                 m_Scene.ResetIEEG();
@@ -218,7 +218,7 @@ namespace HBP.Module3D
                 m_FMRICalMax = value;
                 if (CurrentVolume != null)
                 {
-                    m_FMRICalMaxFactor = (value - CurrentVolume.ExtremeValues.ComputedCalMin) / (CurrentVolume.ExtremeValues.ComputedCalMax - CurrentVolume.ExtremeValues.ComputedCalMin);
+                    m_FMRICalMaxFactor = value / CurrentVolume.ExtremeValues.Max;
                 }
                 m_CurrentCalType = CalType.Value;
                 m_Scene.ResetIEEG();
@@ -250,12 +250,12 @@ namespace HBP.Module3D
                 switch (m_CurrentCalType)
                 {
                     case CalType.Value:
-                        m_FMRICalMinFactor = (m_FMRICalMin - CurrentVolume.ExtremeValues.ComputedCalMin) / (CurrentVolume.ExtremeValues.ComputedCalMax - CurrentVolume.ExtremeValues.ComputedCalMin);
-                        m_FMRICalMaxFactor = (m_FMRICalMax - CurrentVolume.ExtremeValues.ComputedCalMin) / (CurrentVolume.ExtremeValues.ComputedCalMax - CurrentVolume.ExtremeValues.ComputedCalMin);
+                        m_FMRICalMinFactor = m_FMRICalMin / CurrentVolume.ExtremeValues.Min;
+                        m_FMRICalMaxFactor = m_FMRICalMax / CurrentVolume.ExtremeValues.Max;
                         break;
                     case CalType.Factor:
-                        m_FMRICalMin = m_FMRICalMinFactor * (CurrentVolume.ExtremeValues.ComputedCalMax - CurrentVolume.ExtremeValues.ComputedCalMin) + CurrentVolume.ExtremeValues.ComputedCalMin;
-                        m_FMRICalMax = m_FMRICalMaxFactor * (CurrentVolume.ExtremeValues.ComputedCalMax - CurrentVolume.ExtremeValues.ComputedCalMin) + CurrentVolume.ExtremeValues.ComputedCalMin;
+                        m_FMRICalMin = m_FMRICalMinFactor * CurrentVolume.ExtremeValues.Min;
+                        m_FMRICalMax = m_FMRICalMaxFactor * CurrentVolume.ExtremeValues.Max;
                         break;
                 }
             }

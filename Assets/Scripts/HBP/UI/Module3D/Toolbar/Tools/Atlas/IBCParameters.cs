@@ -122,8 +122,8 @@ namespace HBP.UI.Module3D.Tools
             if (hasIBC)
             {
                 MRICalValues calValues = SelectedScene.FMRIManager.SelectedIBCContrast.Volume.ExtremeValues;
-                m_MinText.text = calValues.ComputedCalMin.ToString("N2");
-                m_MaxText.text = calValues.ComputedCalMax.ToString("N2");
+                m_MinText.text = calValues.Min.ToString("N2");
+                m_MaxText.text = calValues.Max.ToString("N2");
                 m_CalMinInputField.text = SelectedScene.FMRIManager.FMRICalMin.ToString("N2");
                 m_CalMaxInputField.text = SelectedScene.FMRIManager.FMRICalMax.ToString("N2");
                 m_CalMinSlider.value = SelectedScene.FMRIManager.FMRICalMinFactor;
