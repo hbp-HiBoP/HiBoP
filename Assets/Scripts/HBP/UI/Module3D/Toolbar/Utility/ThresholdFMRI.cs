@@ -104,7 +104,7 @@ namespace HBP.UI.Module3D
         public void Initialize()
         {
             m_MRIHistogram = new Texture2D(1, 1);
-
+            
             m_NegativeMinHandler.MinimumPosition = 0.0f;
             m_NegativeMinHandler.MaximumPosition = 1.0f;
             m_NegativeMaxHandler.MinimumPosition = 0.0f;
@@ -113,7 +113,7 @@ namespace HBP.UI.Module3D
             m_PositiveMinHandler.MaximumPosition = 1.0f;
             m_PositiveMaxHandler.MinimumPosition = 0.0f;
             m_PositiveMaxHandler.MaximumPosition = 1.0f;
-
+            
             m_NegativeMinHandler.OnChangePosition.AddListener((deplacement) =>
             {
                 m_NegativeMaxHandler.MaximumPosition = m_NegativeMinHandler.Position;
@@ -215,6 +215,11 @@ namespace HBP.UI.Module3D
             m_NegativeMaxHandler.Position = 1f - m_NegativeMax;
             m_PositiveMinHandler.Position = m_PositiveMin;
             m_PositiveMaxHandler.Position = m_PositiveMax;
+
+            m_NegativeMinHandler.MinimumPosition = m_NegativeMaxHandler.Position;
+            m_NegativeMaxHandler.MaximumPosition = m_NegativeMinHandler.Position;
+            m_PositiveMinHandler.MaximumPosition = m_PositiveMaxHandler.Position;
+            m_PositiveMaxHandler.MinimumPosition = m_PositiveMinHandler.Position;
 
             UpdateMRIHistogram(scene.FMRIManager.FMRI);
 
