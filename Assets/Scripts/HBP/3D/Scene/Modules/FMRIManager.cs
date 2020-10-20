@@ -116,7 +116,7 @@ namespace HBP.Module3D
             }
         }
 
-        private float m_FMRIAlpha = 0.5f;
+        private float m_FMRIAlpha = 0.2f;
         /// <summary>
         /// Alpha of the FMRI
         /// </summary>
@@ -134,22 +134,22 @@ namespace HBP.Module3D
             }
         }
 
-        private float m_FMRICalMinFactor = 0.4f;
+        private float m_FMRINegativeCalMinFactor = 0.05f;
         /// <summary>
         /// Calibration min factor of the FMRI (between 0 and 1)
         /// </summary>
-        public float FMRICalMinFactor
+        public float FMRINegativeCalMinFactor
         {
             get
             {
-                return m_FMRICalMinFactor;
+                return m_FMRINegativeCalMinFactor;
             }
             set
             {
-                m_FMRICalMinFactor = value;
+                m_FMRINegativeCalMinFactor = value;
                 if (CurrentVolume != null)
                 {
-                    m_FMRICalMin = m_FMRICalMinFactor *  CurrentVolume.ExtremeValues.Min;
+                    m_FMRINegativeCalMin = m_FMRINegativeCalMinFactor * CurrentVolume.ExtremeValues.Min;
                 }
                 m_CurrentCalType = CalType.Factor;
                 m_Scene.ResetIEEG();
@@ -157,22 +157,22 @@ namespace HBP.Module3D
             }
         }
 
-        private float m_FMRICalMin;
+        private float m_FMRINegativeCalMin;
         /// <summary>
         /// Calibration min value of the FMRI
         /// </summary>
-        public float FMRICalMin
+        public float FMRINegativeCalMin
         {
             get
             {
-                return m_FMRICalMin;
+                return m_FMRINegativeCalMin;
             }
             set
             {
-                m_FMRICalMin = value;
+                m_FMRINegativeCalMin = value;
                 if (CurrentVolume != null)
                 {
-                    m_FMRICalMinFactor = value / CurrentVolume.ExtremeValues.Min;
+                    m_FMRINegativeCalMinFactor = value / CurrentVolume.ExtremeValues.Min;
                 }
                 m_CurrentCalType = CalType.Value;
                 m_Scene.ResetIEEG();
@@ -180,22 +180,22 @@ namespace HBP.Module3D
             }
         }
 
-        private float m_FMRICalMaxFactor = 0.6f;
+        private float m_FMRINegativeCalMaxFactor = 0.5f;
         /// <summary>
-        /// Calibration max factor of the FMRI (between 0 and 1)
+        /// Calibration min factor of the FMRI (between 0 and 1)
         /// </summary>
-        public float FMRICalMaxFactor
+        public float FMRINegativeCalMaxFactor
         {
             get
             {
-                return m_FMRICalMaxFactor;
+                return m_FMRINegativeCalMaxFactor;
             }
             set
             {
-                m_FMRICalMaxFactor = value;
+                m_FMRINegativeCalMaxFactor = value;
                 if (CurrentVolume != null)
                 {
-                    m_FMRICalMax = m_FMRICalMaxFactor * CurrentVolume.ExtremeValues.Max;
+                    m_FMRINegativeCalMax = m_FMRINegativeCalMaxFactor * CurrentVolume.ExtremeValues.Min;
                 }
                 m_CurrentCalType = CalType.Factor;
                 m_Scene.ResetIEEG();
@@ -203,22 +203,114 @@ namespace HBP.Module3D
             }
         }
 
-        private float m_FMRICalMax;
+        private float m_FMRINegativeCalMax;
         /// <summary>
-        /// Calibration max value of the FMRI
+        /// Calibration min value of the FMRI
         /// </summary>
-        public float FMRICalMax
+        public float FMRINegativeCalMax
         {
             get
             {
-                return m_FMRICalMax;
+                return m_FMRINegativeCalMax;
             }
             set
             {
-                m_FMRICalMax = value;
+                m_FMRINegativeCalMax = value;
                 if (CurrentVolume != null)
                 {
-                    m_FMRICalMaxFactor = value / CurrentVolume.ExtremeValues.Max;
+                    m_FMRINegativeCalMaxFactor = value / CurrentVolume.ExtremeValues.Min;
+                }
+                m_CurrentCalType = CalType.Value;
+                m_Scene.ResetIEEG();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            }
+        }
+
+        private float m_FMRIPositiveCalMinFactor = 0.05f;
+        /// <summary>
+        /// Calibration max factor of the FMRI (between 0 and 1)
+        /// </summary>
+        public float FMRIPositiveCalMinFactor
+        {
+            get
+            {
+                return m_FMRIPositiveCalMinFactor;
+            }
+            set
+            {
+                m_FMRIPositiveCalMinFactor = value;
+                if (CurrentVolume != null)
+                {
+                    m_FMRIPositiveCalMin = m_FMRIPositiveCalMinFactor * CurrentVolume.ExtremeValues.Max;
+                }
+                m_CurrentCalType = CalType.Factor;
+                m_Scene.ResetIEEG();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            }
+        }
+
+        private float m_FMRIPositiveCalMin;
+        /// <summary>
+        /// Calibration max value of the FMRI
+        /// </summary>
+        public float FMRIPositiveCalMin
+        {
+            get
+            {
+                return m_FMRIPositiveCalMin;
+            }
+            set
+            {
+                m_FMRIPositiveCalMin = value;
+                if (CurrentVolume != null)
+                {
+                    m_FMRIPositiveCalMinFactor = value / CurrentVolume.ExtremeValues.Max;
+                }
+                m_CurrentCalType = CalType.Value;
+                m_Scene.ResetIEEG();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            }
+        }
+
+        private float m_FMRIPositiveCalMaxFactor = 0.5f;
+        /// <summary>
+        /// Calibration max factor of the FMRI (between 0 and 1)
+        /// </summary>
+        public float FMRIPositiveCalMaxFactor
+        {
+            get
+            {
+                return m_FMRIPositiveCalMaxFactor;
+            }
+            set
+            {
+                m_FMRIPositiveCalMaxFactor = value;
+                if (CurrentVolume != null)
+                {
+                    m_FMRIPositiveCalMax = m_FMRIPositiveCalMaxFactor * CurrentVolume.ExtremeValues.Max;
+                }
+                m_CurrentCalType = CalType.Factor;
+                m_Scene.ResetIEEG();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            }
+        }
+
+        private float m_FMRIPositiveCalMax;
+        /// <summary>
+        /// Calibration max value of the FMRI
+        /// </summary>
+        public float FMRIPositiveCalMax
+        {
+            get
+            {
+                return m_FMRIPositiveCalMax;
+            }
+            set
+            {
+                m_FMRIPositiveCalMax = value;
+                if (CurrentVolume != null)
+                {
+                    m_FMRIPositiveCalMaxFactor = value / CurrentVolume.ExtremeValues.Max;
                 }
                 m_CurrentCalType = CalType.Value;
                 m_Scene.ResetIEEG();
@@ -235,7 +327,7 @@ namespace HBP.Module3D
         /// <param name="cutID">ID of the cut to color</param>
         public void ColorCutTexture(Column3D column, int cutID)
         {
-            column.CutTextures.ColorCutsTexturesWithFMRI(CurrentVolume, cutID, m_FMRICalMinFactor, m_FMRICalMaxFactor, m_FMRIAlpha);
+            column.CutTextures.ColorCutsTexturesWithFMRI(CurrentVolume, cutID, m_FMRINegativeCalMinFactor, m_FMRINegativeCalMaxFactor, m_FMRIPositiveCalMinFactor, m_FMRIPositiveCalMaxFactor, m_FMRIAlpha);
         }
         #endregion
 
@@ -250,12 +342,12 @@ namespace HBP.Module3D
                 switch (m_CurrentCalType)
                 {
                     case CalType.Value:
-                        m_FMRICalMinFactor = m_FMRICalMin / CurrentVolume.ExtremeValues.Min;
-                        m_FMRICalMaxFactor = m_FMRICalMax / CurrentVolume.ExtremeValues.Max;
+                        m_FMRINegativeCalMinFactor = m_FMRINegativeCalMin / CurrentVolume.ExtremeValues.Min;
+                        m_FMRIPositiveCalMinFactor = m_FMRIPositiveCalMin / CurrentVolume.ExtremeValues.Max;
                         break;
                     case CalType.Factor:
-                        m_FMRICalMin = m_FMRICalMinFactor * CurrentVolume.ExtremeValues.Min;
-                        m_FMRICalMax = m_FMRICalMaxFactor * CurrentVolume.ExtremeValues.Max;
+                        m_FMRINegativeCalMin = m_FMRINegativeCalMinFactor * CurrentVolume.ExtremeValues.Min;
+                        m_FMRIPositiveCalMin = m_FMRIPositiveCalMinFactor * CurrentVolume.ExtremeValues.Max;
                         break;
                 }
             }

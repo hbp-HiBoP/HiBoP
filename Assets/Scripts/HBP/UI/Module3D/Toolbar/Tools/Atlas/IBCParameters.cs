@@ -50,7 +50,7 @@ namespace HBP.UI.Module3D.Tools
                 float floatValue;
                 if (global::Tools.CSharp.NumberExtension.TryParseFloat(value, out floatValue))
                 {
-                    SelectedScene.FMRIManager.FMRICalMin = floatValue;
+                    SelectedScene.FMRIManager.FMRINegativeCalMin = floatValue;
                 }
                 ListenerLock = true;
                 UpdateStatus();
@@ -60,7 +60,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedScene.FMRIManager.FMRICalMinFactor = value;
+                SelectedScene.FMRIManager.FMRINegativeCalMinFactor = value;
                 ListenerLock = true;
                 UpdateStatus();
                 ListenerLock = false;
@@ -72,7 +72,7 @@ namespace HBP.UI.Module3D.Tools
                 float floatValue;
                 if (global::Tools.CSharp.NumberExtension.TryParseFloat(value, out floatValue))
                 {
-                    SelectedScene.FMRIManager.FMRICalMax = floatValue;
+                    SelectedScene.FMRIManager.FMRIPositiveCalMin = floatValue;
                 }
                 ListenerLock = true;
                 UpdateStatus();
@@ -82,7 +82,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedScene.FMRIManager.FMRICalMaxFactor = value;
+                SelectedScene.FMRIManager.FMRIPositiveCalMinFactor = value;
                 ListenerLock = true;
                 UpdateStatus();
                 ListenerLock = false;
@@ -124,10 +124,10 @@ namespace HBP.UI.Module3D.Tools
                 MRICalValues calValues = SelectedScene.FMRIManager.SelectedIBCContrast.Volume.ExtremeValues;
                 m_MinText.text = calValues.Min.ToString("N2");
                 m_MaxText.text = calValues.Max.ToString("N2");
-                m_CalMinInputField.text = SelectedScene.FMRIManager.FMRICalMin.ToString("N2");
-                m_CalMaxInputField.text = SelectedScene.FMRIManager.FMRICalMax.ToString("N2");
-                m_CalMinSlider.value = SelectedScene.FMRIManager.FMRICalMinFactor;
-                m_CalMaxSlider.value = SelectedScene.FMRIManager.FMRICalMaxFactor;
+                m_CalMinInputField.text = SelectedScene.FMRIManager.FMRINegativeCalMin.ToString("N2");
+                m_CalMaxInputField.text = SelectedScene.FMRIManager.FMRIPositiveCalMin.ToString("N2");
+                m_CalMinSlider.value = SelectedScene.FMRIManager.FMRINegativeCalMinFactor;
+                m_CalMaxSlider.value = SelectedScene.FMRIManager.FMRIPositiveCalMinFactor;
                 m_AlphaSlider.value = SelectedScene.FMRIManager.FMRIAlpha;
             }
         }

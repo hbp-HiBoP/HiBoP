@@ -195,14 +195,14 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="volume">FMRI volume</param>
         /// <param name="indexCut">Index of the cut</param>
-        /// <param name="FMRICalMinFactor">FMRI Cal Min Factor</param>
-        /// <param name="FMRICalMaxFactor">FMRI Cal Max Factor</param>
+        /// <param name="FMRINegativeCalMinFactor">FMRI Cal Min Factor</param>
+        /// <param name="FMRINegativeCalMaxFactor">FMRI Cal Max Factor</param>
         /// <param name="FMRIAlpha">Transparency of the FMRI</param>
-        public void ColorCutsTexturesWithFMRI(DLL.Volume volume, int indexCut, float FMRICalMinFactor, float FMRICalMaxFactor, float FMRIAlpha)
+        public void ColorCutsTexturesWithFMRI(DLL.Volume volume, int indexCut, float FMRINegativeCalMinFactor, float FMRINegativeCalMaxFactor, float FMRIPositiveCalMinFactor, float FMRIPositiveCalMaxFactor, float FMRIAlpha)
         {
             UnityEngine.Profiling.Profiler.BeginSample("Compute FMRI textures");
             DLL.MRITextureCutGenerator generator = DLLMRITextureCutGenerators[indexCut];
-            generator.FillTextureWithFMRI(volume, FMRICalMinFactor, FMRICalMaxFactor, FMRIAlpha);
+            generator.FillTextureWithFMRI(volume, FMRINegativeCalMinFactor, FMRINegativeCalMaxFactor, FMRIPositiveCalMinFactor, FMRIPositiveCalMaxFactor, FMRIAlpha);
 
             DLL.Texture cutTexture = DLLBrainCutTextures[indexCut];
             generator.UpdateTextureWithFMRI(cutTexture);

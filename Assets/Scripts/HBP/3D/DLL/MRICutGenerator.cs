@@ -167,13 +167,13 @@ namespace HBP.Module3D.DLL
         /// Fill the pixels of the cut texture with the currently selected fMRI
         /// </summary>
         /// <param name="volume">Currently selected volume</param>
-        /// <param name="calMin">Minimum calibration value of the fMRI</param>
-        /// <param name="calMax">Maximum calibration value of the fMRI</param>
+        /// <param name="negativeCalMin">Minimum calibration value of the fMRI</param>
+        /// <param name="negativeCalMax">Maximum calibration value of the fMRI</param>
         /// <param name="alpha">Alpha value of the fMRI</param>
-        public void FillTextureWithFMRI(Volume volume, float calMin, float calMax, float alpha)
+        public void FillTextureWithFMRI(Volume volume, float negativeCalMin, float negativeCalMax, float positiveCalMin, float positiveCalMax, float alpha)
         {
             bool noError = false;
-            noError = fill_texture_with_IRMF__MRITextureCutGenerator(_handle, volume.getHandle(), calMin, calMax, alpha) == 1;
+            noError = fill_texture_with_IRMF__MRITextureCutGenerator(_handle, volume.getHandle(), negativeCalMin, negativeCalMax, positiveCalMin, positiveCalMax, alpha) == 1;
 
             if (!noError)
                 Debug.LogError("fill_texture_with_IRMF__MRITextureCutGenerator failed ! (check DLL console debug output)");
@@ -338,7 +338,7 @@ namespace HBP.Module3D.DLL
         [DllImport("hbp_export", EntryPoint = "fill_texture_with_volume__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void fill_texture_with_volume__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, HandleRef handleVolume, HandleRef handleColorSchemeTexture,float calMin, float calMax);
         [DllImport("hbp_export", EntryPoint = "fill_texture_with_IRMF__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
-        static private extern int fill_texture_with_IRMF__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, HandleRef handleVolume, float calMin, float calMax, float alpha);
+        static private extern int fill_texture_with_IRMF__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, HandleRef handleVolume, float negativeCalMin, float negativeCalMax, float positiveCalMin, float positiveCalMax, float alpha);
         [DllImport("hbp_export", EntryPoint = "fill_texture_with_Atlas__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern int fill_texture_with_Atlas__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, HandleRef handleAtlas, float alpha, int selectedArea);
         [DllImport("hbp_export", EntryPoint = "init_octree__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]

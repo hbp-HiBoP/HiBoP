@@ -1,16 +1,19 @@
-﻿using HBP.Module3D;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
 {
-    public class FMRIParameters : Tool
+    public class ThresholdFMRI : Tool
     {
         #region Properties
         /// <summary>
-        /// Slider to set the alpha of the contrast
+        /// Button to open the threshold MRI panel
         /// </summary>
-        [SerializeField] private Slider m_AlphaSlider;
+        [SerializeField] private Button m_Button;
+        /// <summary>
+        /// Module to handle the threshold MRI
+        /// </summary>
+        [SerializeField] private Module3D.ThresholdFMRI m_ThresholdFMRI;
         #endregion
 
         #region Public Methods
@@ -19,14 +22,15 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void Initialize()
         {
-            m_AlphaSlider.onValueChanged.AddListener((value) =>
+            m_ThresholdFMRI.Initialize();
+            m_ThresholdFMRI.OnChangeValues.AddListener((negativeMin, negativeMax, positiveMin, positiveMax) =>
             {
                 if (ListenerLock) return;
 
-                SelectedScene.FMRIManager.FMRIAlpha = value;
-                ListenerLock = true;
-                UpdateStatus();
-                ListenerLock = false;
+                SelectedScene.FMRIManager.FMRINegativeCalMinFactor = negativeMin;
+                SelectedScene.FMRIManager.FMRINegativeCalMaxFactor = negativeMax;
+                SelectedScene.FMRIManager.FMRIPositiveCalMinFactor = positiveMin;
+                SelectedScene.FMRIManager.FMRIPositiveCalMaxFactor = positiveMax;
             });
         }
         /// <summary>
@@ -34,6 +38,7 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void DefaultState()
         {
+            m_Button.interactable = false;
             gameObject.SetActive(false);
         }
         /// <summary>
@@ -44,17 +49,16 @@ namespace HBP.UI.Module3D.Tools
             bool hasFMRI = SelectedScene.FMRIManager.FMRI != null;
 
             gameObject.SetActive(hasFMRI);
+            m_Button.interactable = hasFMRI;
         }
         /// <summary>
         /// Update the status of the tool
         /// </summary>
         public override void UpdateStatus()
         {
-            bool hasFMRI = SelectedScene.FMRIManager.FMRI != null;
-            if (hasFMRI)
+            if (SelectedScene.FMRIManager.FMRI != null)
             {
-                MRICalValues calValues = SelectedScene.FMRIManager.FMRI.Volume.ExtremeValues;
-                m_AlphaSlider.value = SelectedScene.FMRIManager.FMRIAlpha;
+                m_ThresholdFMRI.UpdateFMRICalValues(SelectedScene);
             }
         }
         #endregion

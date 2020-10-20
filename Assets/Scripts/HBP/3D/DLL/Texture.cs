@@ -193,9 +193,9 @@ namespace HBP.Module3D.DLL
         /// <param name="height">Height of the resulting texture</param>
         /// <param name="width">Width of the resulting texture</param>
         /// <returns>Newly created texture</returns>
-        public static Texture GenerateDistributionHistogram(Volume volume, int height, int width)
+        public static Texture GenerateDistributionHistogram(Volume volume, int height, int width, bool withGreyArea = true)
         {
-            return new Texture(generate_distribution_histogram_Texture(volume.getHandle(), height, width));
+            return new Texture(generate_distribution_histogram_Texture(volume.getHandle(), height, width, withGreyArea));
         }
         /// <summary>
         /// Generate a texture representing the input set of values as a histogram
@@ -290,7 +290,7 @@ namespace HBP.Module3D.DLL
         [DllImport("hbp_export", EntryPoint = "reset_Texture", CallingConvention = CallingConvention.Cdecl)]
         static private extern void reset_Texture(HandleRef handleTexture, int width, int height);
         [DllImport("hbp_export", EntryPoint = "generate_distribution_histogram_Texture", CallingConvention = CallingConvention.Cdecl)]
-        static private extern IntPtr generate_distribution_histogram_Texture(HandleRef handleVolume, int height, int width);
+        static private extern IntPtr generate_distribution_histogram_Texture(HandleRef handleVolume, int height, int width, bool withGreyArea);
         [DllImport("hbp_export", EntryPoint = "generate_distribution_histogram_with_data_Texture", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr generate_distribution_histogram_with_data_Texture(float[] data, int dataSize, int height, int width, float min, float max);
         [DllImport("hbp_export", EntryPoint = "apply_blur_Texture", CallingConvention = CallingConvention.Cdecl)]
