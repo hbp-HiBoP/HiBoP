@@ -8,29 +8,9 @@ namespace HBP.UI.Module3D.Tools
     {
         #region Properties
         /// <summary>
-        /// Text to display the minimum value of the contrast
+        /// Module to handle the threshold MRI
         /// </summary>
-        [SerializeField] private Text m_MinText;
-        /// <summary>
-        /// Text to display the maximum value of the contrast
-        /// </summary>
-        [SerializeField] private Text m_MaxText;
-        /// <summary>
-        /// Inputfield to set the minimum calibration value
-        /// </summary>
-        [SerializeField] private InputField m_CalMinInputField;
-        /// <summary>
-        /// Slider to set the minimum calibration value
-        /// </summary>
-        [SerializeField] private Slider m_CalMinSlider;
-        /// <summary>
-        /// Inputfield to set the maximum calibration value
-        /// </summary>
-        [SerializeField] private InputField m_CalMaxInputField;
-        /// <summary>
-        /// Slider to set the maximum calibration value
-        /// </summary>
-        [SerializeField] private Slider m_CalMaxSlider;
+        [SerializeField] private Module3D.ThresholdFMRI m_ThresholdFMRI;
         /// <summary>
         /// Slider to set the alpha of the contrast
         /// </summary>
@@ -43,49 +23,15 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void Initialize()
         {
-            m_CalMinInputField.onEndEdit.AddListener((value) =>
+            m_ThresholdFMRI.Initialize();
+            m_ThresholdFMRI.OnChangeValues.AddListener((negativeMin, negativeMax, positiveMin, positiveMax) =>
             {
                 if (ListenerLock) return;
 
-                float floatValue;
-                if (global::Tools.CSharp.NumberExtension.TryParseFloat(value, out floatValue))
-                {
-                    SelectedScene.FMRIManager.FMRINegativeCalMin = floatValue;
-                }
-                ListenerLock = true;
-                UpdateStatus();
-                ListenerLock = false;
-            });
-            m_CalMinSlider.onValueChanged.AddListener((value) =>
-            {
-                if (ListenerLock) return;
-
-                SelectedScene.FMRIManager.FMRINegativeCalMinFactor = value;
-                ListenerLock = true;
-                UpdateStatus();
-                ListenerLock = false;
-            });
-            m_CalMaxInputField.onEndEdit.AddListener((value) =>
-            {
-                if (ListenerLock) return;
-
-                float floatValue;
-                if (global::Tools.CSharp.NumberExtension.TryParseFloat(value, out floatValue))
-                {
-                    SelectedScene.FMRIManager.FMRIPositiveCalMin = floatValue;
-                }
-                ListenerLock = true;
-                UpdateStatus();
-                ListenerLock = false;
-            });
-            m_CalMaxSlider.onValueChanged.AddListener((value) =>
-            {
-                if (ListenerLock) return;
-
-                SelectedScene.FMRIManager.FMRIPositiveCalMinFactor = value;
-                ListenerLock = true;
-                UpdateStatus();
-                ListenerLock = false;
+                SelectedScene.FMRIManager.FMRINegativeCalMinFactor = negativeMin;
+                SelectedScene.FMRIManager.FMRINegativeCalMaxFactor = negativeMax;
+                SelectedScene.FMRIManager.FMRIPositiveCalMinFactor = positiveMin;
+                SelectedScene.FMRIManager.FMRIPositiveCalMaxFactor = positiveMax;
             });
             m_AlphaSlider.onValueChanged.AddListener((value) =>
             {
@@ -121,13 +67,7 @@ namespace HBP.UI.Module3D.Tools
             bool hasIBC = SelectedScene.FMRIManager.SelectedIBCContrast != null;
             if (hasIBC)
             {
-                MRICalValues calValues = SelectedScene.FMRIManager.SelectedIBCContrast.Volume.ExtremeValues;
-                m_MinText.text = calValues.Min.ToString("N2");
-                m_MaxText.text = calValues.Max.ToString("N2");
-                m_CalMinInputField.text = SelectedScene.FMRIManager.FMRINegativeCalMin.ToString("N2");
-                m_CalMaxInputField.text = SelectedScene.FMRIManager.FMRIPositiveCalMin.ToString("N2");
-                m_CalMinSlider.value = SelectedScene.FMRIManager.FMRINegativeCalMinFactor;
-                m_CalMaxSlider.value = SelectedScene.FMRIManager.FMRIPositiveCalMinFactor;
+                m_ThresholdFMRI.UpdateFMRICalValues(SelectedScene.FMRIManager.SelectedIBCContrast.Volume, SelectedScene.FMRIManager.FMRINegativeCalMinFactor, SelectedScene.FMRIManager.FMRINegativeCalMaxFactor, SelectedScene.FMRIManager.FMRIPositiveCalMinFactor, SelectedScene.FMRIManager.FMRIPositiveCalMaxFactor);
                 m_AlphaSlider.value = SelectedScene.FMRIManager.FMRIAlpha;
             }
         }

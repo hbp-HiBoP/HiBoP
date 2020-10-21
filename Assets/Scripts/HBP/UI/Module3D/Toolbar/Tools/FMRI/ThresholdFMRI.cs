@@ -58,7 +58,7 @@ namespace HBP.UI.Module3D.Tools
         {
             if (SelectedScene.FMRIManager.FMRI != null)
             {
-                m_ThresholdFMRI.UpdateFMRICalValues(SelectedScene);
+                m_ThresholdFMRI.UpdateFMRICalValues(SelectedScene.FMRIManager.FMRI.Volume, SelectedScene.FMRIManager.FMRINegativeCalMinFactor, SelectedScene.FMRIManager.FMRINegativeCalMaxFactor, SelectedScene.FMRIManager.FMRIPositiveCalMinFactor, SelectedScene.FMRIManager.FMRIPositiveCalMaxFactor);
             }
         }
         #endregion

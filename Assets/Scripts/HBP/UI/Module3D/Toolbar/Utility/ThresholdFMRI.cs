@@ -1,4 +1,5 @@
 ﻿using HBP.Module3D;
+using HBP.Module3D.DLL;
 using System.Collections;
 using System.Collections.Generic;
 using Tools.CSharp;
@@ -46,7 +47,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Textures of the histograms (one per MRI)
         /// </summary>
-        private Dictionary<MRI3D, Texture2D> m_HistogramByMRI = new Dictionary<MRI3D, Texture2D>();
+        private Dictionary<Volume, Texture2D> m_HistogramByVolume = new Dictionary<Volume, Texture2D>();
 
         /// <summary>
         /// Used to display the current histogram
@@ -103,19 +104,19 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Update MRI Histogram Texture
         /// </summary>
-        private void UpdateMRIHistogram(MRI3D mri3D)
+        private void UpdateMRIHistogram(Volume volume)
         {
             UnityEngine.Profiling.Profiler.BeginSample("HISTOGRAM FMRI");
-            if (!m_HistogramByMRI.TryGetValue(mri3D, out m_MRIHistogram))
+            if (!m_HistogramByVolume.TryGetValue(volume, out m_MRIHistogram))
             {
                 if (!m_MRIHistogram)
                 {
                     m_MRIHistogram = new Texture2D(1, 1);
                 }
-                HBP.Module3D.DLL.Texture texture = HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(mri3D.Volume, 440, 440, false);
+                HBP.Module3D.DLL.Texture texture = HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(volume, 440, 440, false);
                 texture.UpdateTexture2D(m_MRIHistogram);
                 texture.Dispose();
-                m_HistogramByMRI.Add(mri3D, m_MRIHistogram);
+                m_HistogramByVolume.Add(volume, m_MRIHistogram);
             }
             m_Histogram.texture = m_MRIHistogram;
             UnityEngine.Profiling.Profiler.EndSample();
@@ -184,11 +185,11 @@ namespace HBP.UI.Module3D
 
             m_NegativeMinHandler.OnChangePosition.AddListener((deplacement) =>
             {
-                SetNegativeValues(m_NegativeMinHandler.Position, m_NegativeMax);
+                SetNegativeValues(1f - m_NegativeMinHandler.Position, m_NegativeMax);
             });
             m_NegativeMaxHandler.OnChangePosition.AddListener((deplacement) =>
             {
-                SetNegativeValues(m_NegativeMin, m_NegativeMaxHandler.Position);
+                SetNegativeValues(m_NegativeMin, 1f - m_NegativeMaxHandler.Position);
             });
             m_NegativeMinInputfield.onEndEdit.AddListener((value) =>
             {
@@ -248,28 +249,28 @@ namespace HBP.UI.Module3D
                 }
             });
 
-            ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
-            {
-                foreach (var mri in s.MRIManager.MRIs)
-                {
-                    if (m_HistogramByMRI.TryGetValue(mri, out Texture2D texture))
-                    {
-                        Destroy(texture);
-                        m_HistogramByMRI.Remove(mri);
-                    }
-                }
-            });
+            //ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
+            //{
+            //    foreach (var mri in s.MRIManager.MRIs)
+            //    {
+            //        if (m_HistogramByVolume.TryGetValue(mri, out Texture2D texture))
+            //        {
+            //            Destroy(texture);
+            //            m_HistogramByVolume.Remove(mri);
+            //        }
+            //    }
+            //});
         }
         /// <summary>
         /// Update Maximum and Minimum Cal value
         /// </summary>
         /// <param name="values">Cal values</param>
-        public void UpdateFMRICalValues(Base3DScene scene)
+        public void UpdateFMRICalValues(Volume volume, float negativeMin, float negativeMax, float positiveMin, float positiveMax)
         {
             m_Initialized = false;
 
             // Fixed values
-            MRICalValues values = scene.FMRIManager.FMRI.Volume.ExtremeValues;
+            MRICalValues values = volume.ExtremeValues;
             m_Min = values.Min;
             m_Max = values.Max;
             m_MinText.text = m_Min.ToString("N2");
@@ -300,10 +301,10 @@ namespace HBP.UI.Module3D
             }
 
             // Non-fixed values
-            SetNegativeValues(scene.FMRIManager.FMRINegativeCalMinFactor, scene.FMRIManager.FMRINegativeCalMaxFactor);
-            SetPositiveValues(scene.FMRIManager.FMRIPositiveCalMinFactor, scene.FMRIManager.FMRIPositiveCalMaxFactor);
+            SetNegativeValues(negativeMin, negativeMax);
+            SetPositiveValues(positiveMin, positiveMax);
 
-            UpdateMRIHistogram(scene.FMRIManager.FMRI);
+            UpdateMRIHistogram(volume);
 
             m_Initialized = true;
         }
