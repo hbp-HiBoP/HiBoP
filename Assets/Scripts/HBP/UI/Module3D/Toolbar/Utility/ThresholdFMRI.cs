@@ -1,6 +1,7 @@
 ﻿using HBP.Module3D;
 using System.Collections;
 using System.Collections.Generic;
+using Tools.CSharp;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -15,21 +16,33 @@ namespace HBP.UI.Module3D
         /// </summary>
         private Texture2D m_MRIHistogram;
         /// <summary>
+        /// Minimum value of the FMRI
+        /// </summary>
+        private float m_Min = -1f;
+        /// <summary>
+        /// Maximum value of the FMRI
+        /// </summary>
+        private float m_Max = 1f;
+        /// <summary>
         /// Minimum Cal value
         /// </summary>
         private float m_NegativeMin = 0.0f;
+        private float NegativeMinValue { get { return m_NegativeMin * m_Min; } }
         /// <summary>
         /// Maximum Cal value
         /// </summary>
         private float m_NegativeMax = 1.0f;
+        private float NegativeMaxValue { get { return m_NegativeMax * m_Min; } }
         /// <summary>
         /// Minimum Cal value
         /// </summary>
         private float m_PositiveMin = 0.0f;
+        private float PositiveMinValue { get { return m_PositiveMin * m_Max; } }
         /// <summary>
         /// Maximum Cal value
         /// </summary>
         private float m_PositiveMax = 1.0f;
+        private float PositiveMaxValue { get { return m_PositiveMax * m_Max; } }
         /// <summary>
         /// Textures of the histograms (one per MRI)
         /// </summary>
@@ -39,6 +52,18 @@ namespace HBP.UI.Module3D
         /// Used to display the current histogram
         /// </summary>
         [SerializeField] private RawImage m_Histogram;
+
+        [SerializeField] private Text m_MinText;
+        [SerializeField] private Text m_MaxText;
+        
+        [SerializeField] private RectTransform m_NegativeFields;
+        [SerializeField] private InputField m_NegativeMinInputfield;
+        [SerializeField] private InputField m_NegativeMaxInputfield;
+
+        [SerializeField] private RectTransform m_PositiveFields;
+        [SerializeField] private InputField m_PositiveMinInputfield;
+        [SerializeField] private InputField m_PositiveMaxInputfield;
+
         /// <summary>
         /// Zone in which the handlers can move
         /// </summary>
@@ -95,6 +120,51 @@ namespace HBP.UI.Module3D
             m_Histogram.texture = m_MRIHistogram;
             UnityEngine.Profiling.Profiler.EndSample();
         }
+
+        private void SetNegativeValues(float min, float max)
+        {
+            // Logical values
+            m_NegativeMin = min;
+            m_NegativeMax = max;
+
+            // Handlers
+            m_NegativeMinHandler.MinimumPosition = 1f - m_NegativeMax;
+            m_NegativeMaxHandler.MaximumPosition = 1f - m_NegativeMin;
+            m_NegativeMinHandler.Position = 1f - m_NegativeMin;
+            m_NegativeMaxHandler.Position = 1f - m_NegativeMax;
+
+            // Text fields
+            m_NegativeMinInputfield.text = NegativeMinValue.ToString("N2");
+            m_NegativeMaxInputfield.text = NegativeMaxValue.ToString("N2");
+
+            // Event
+            if (m_Initialized)
+            {
+                OnChangeValues.Invoke(m_NegativeMin, m_NegativeMax, m_PositiveMin, m_PositiveMax);
+            }
+        }
+        private void SetPositiveValues(float min, float max)
+        {
+            // Logical values
+            m_PositiveMin = min;
+            m_PositiveMax = max;
+
+            // Handlers
+            m_PositiveMinHandler.MaximumPosition = m_PositiveMax;
+            m_PositiveMaxHandler.MinimumPosition = m_PositiveMin;
+            m_PositiveMinHandler.Position = m_PositiveMin;
+            m_PositiveMaxHandler.Position = m_PositiveMax;
+
+            // Text fields
+            m_PositiveMinInputfield.text = PositiveMinValue.ToString("N2");
+            m_PositiveMaxInputfield.text = PositiveMaxValue.ToString("N2");
+
+            // Event
+            if (m_Initialized)
+            {
+                OnChangeValues.Invoke(m_NegativeMin, m_NegativeMax, m_PositiveMin, m_PositiveMax);
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -103,8 +173,6 @@ namespace HBP.UI.Module3D
         /// </summary>
         public void Initialize()
         {
-            m_MRIHistogram = new Texture2D(1, 1);
-            
             m_NegativeMinHandler.MinimumPosition = 0.0f;
             m_NegativeMinHandler.MaximumPosition = 1.0f;
             m_NegativeMaxHandler.MinimumPosition = 0.0f;
@@ -113,47 +181,70 @@ namespace HBP.UI.Module3D
             m_PositiveMinHandler.MaximumPosition = 1.0f;
             m_PositiveMaxHandler.MinimumPosition = 0.0f;
             m_PositiveMaxHandler.MaximumPosition = 1.0f;
-            
+
             m_NegativeMinHandler.OnChangePosition.AddListener((deplacement) =>
             {
-                m_NegativeMaxHandler.MaximumPosition = m_NegativeMinHandler.Position;
-                m_NegativeMin = 1 - m_NegativeMinHandler.Position;
-
-                if (m_Initialized)
-                {
-                    OnChangeValues.Invoke(m_NegativeMin, m_NegativeMax, m_PositiveMin, m_PositiveMax);
-                }
+                SetNegativeValues(m_NegativeMinHandler.Position, m_NegativeMax);
             });
-
             m_NegativeMaxHandler.OnChangePosition.AddListener((deplacement) =>
             {
-                m_NegativeMinHandler.MinimumPosition = m_NegativeMaxHandler.Position;
-                m_NegativeMax = 1 - m_NegativeMaxHandler.Position;
-
-                if (m_Initialized)
+                SetNegativeValues(m_NegativeMin, m_NegativeMaxHandler.Position);
+            });
+            m_NegativeMinInputfield.onEndEdit.AddListener((value) =>
+            {
+                if (NumberExtension.TryParseFloat(value, out float result))
                 {
-                    OnChangeValues.Invoke(m_NegativeMin, m_NegativeMax, m_PositiveMin, m_PositiveMax);
+                    float negativeMin = result / m_Min;
+                    SetNegativeValues(negativeMin, m_NegativeMax);
+                }
+                else
+                {
+                    SetNegativeValues(m_NegativeMin, m_NegativeMax);
                 }
             });
+            m_NegativeMaxInputfield.onEndEdit.AddListener((value) =>
+            {
+                if (NumberExtension.TryParseFloat(value, out float result))
+                {
+                    float negativeMax = result / m_Min;
+                    SetNegativeValues(m_NegativeMin, negativeMax);
+                }
+                else
+                {
+                    SetNegativeValues(m_NegativeMin, m_NegativeMax);
+                }
+            });
+
             m_PositiveMinHandler.OnChangePosition.AddListener((deplacement) =>
             {
-                m_PositiveMaxHandler.MinimumPosition = m_PositiveMinHandler.Position;
-                m_PositiveMin = m_PositiveMinHandler.Position;
-
-                if (m_Initialized)
-                {
-                    OnChangeValues.Invoke(m_NegativeMin, m_NegativeMax, m_PositiveMin, m_PositiveMax);
-                }
+                SetPositiveValues(m_PositiveMinHandler.Position, m_PositiveMax);
             });
-
             m_PositiveMaxHandler.OnChangePosition.AddListener((deplacement) =>
             {
-                m_PositiveMinHandler.MaximumPosition = m_PositiveMaxHandler.Position;
-                m_PositiveMax = m_PositiveMaxHandler.Position;
-
-                if (m_Initialized)
+                SetPositiveValues(m_PositiveMin, m_PositiveMaxHandler.Position);
+            });
+            m_PositiveMinInputfield.onEndEdit.AddListener((value) =>
+            {
+                if (NumberExtension.TryParseFloat(value, out float result))
                 {
-                    OnChangeValues.Invoke(m_NegativeMin, m_NegativeMax, m_PositiveMin, m_PositiveMax);
+                    float positiveMin = result / m_Max;
+                    SetPositiveValues(positiveMin, m_PositiveMax);
+                }
+                else
+                {
+                    SetPositiveValues(m_PositiveMin, m_PositiveMax);
+                }
+            });
+            m_PositiveMaxInputfield.onEndEdit.AddListener((value) =>
+            {
+                if (NumberExtension.TryParseFloat(value, out float result))
+                {
+                    float positiveMax = result / m_Max;
+                    SetPositiveValues(m_PositiveMin, positiveMax);
+                }
+                else
+                {
+                    SetPositiveValues(m_PositiveMin, m_PositiveMax);
                 }
             });
 
@@ -177,17 +268,28 @@ namespace HBP.UI.Module3D
         {
             m_Initialized = false;
 
-            m_NegativeHandlerZone.gameObject.SetActive(true);
-            m_PositiveHandlerZone.gameObject.SetActive(true);
+            // Fixed values
             MRICalValues values = scene.FMRIManager.FMRI.Volume.ExtremeValues;
-            if (values.Min >= 0)
+            m_Min = values.Min;
+            m_Max = values.Max;
+            m_MinText.text = m_Min.ToString("N2");
+            m_MaxText.text = m_Max.ToString("N2");
+
+            // Set UI elements
+            m_NegativeHandlerZone.gameObject.SetActive(true);
+            m_NegativeFields.gameObject.SetActive(true);
+            m_PositiveHandlerZone.gameObject.SetActive(true);
+            m_PositiveFields.gameObject.SetActive(true);
+            if (m_Min >= 0)
             {
                 m_NegativeHandlerZone.gameObject.SetActive(false);
+                m_NegativeFields.gameObject.SetActive(false);
                 m_PositiveHandlerZone.anchorMin = new Vector2(0, m_PositiveHandlerZone.anchorMin.y);
             }
-            else if (values.Max <= 0)
+            else if (m_Max <= 0)
             {
                 m_PositiveHandlerZone.gameObject.SetActive(false);
+                m_PositiveFields.gameObject.SetActive(false);
                 m_NegativeHandlerZone.anchorMax = new Vector2(1, m_NegativeHandlerZone.anchorMax.y);
             }
             else
@@ -197,29 +299,9 @@ namespace HBP.UI.Module3D
                 m_PositiveHandlerZone.anchorMin = new Vector2(negativeWeight, m_PositiveHandlerZone.anchorMin.y);
             }
 
-            m_NegativeMin = scene.FMRIManager.FMRINegativeCalMinFactor;
-            m_NegativeMax = scene.FMRIManager.FMRINegativeCalMaxFactor;
-            m_PositiveMin = scene.FMRIManager.FMRIPositiveCalMinFactor;
-            m_PositiveMax = scene.FMRIManager.FMRIPositiveCalMaxFactor;
-
-            m_NegativeMinHandler.MinimumPosition = 0.0f;
-            m_NegativeMinHandler.MaximumPosition = 1.0f;
-            m_NegativeMaxHandler.MinimumPosition = 0.0f;
-            m_NegativeMaxHandler.MaximumPosition = 1.0f;
-            m_PositiveMinHandler.MinimumPosition = 0.0f;
-            m_PositiveMinHandler.MaximumPosition = 1.0f;
-            m_PositiveMaxHandler.MinimumPosition = 0.0f;
-            m_PositiveMaxHandler.MaximumPosition = 1.0f;
-
-            m_NegativeMinHandler.Position = 1f - m_NegativeMin;
-            m_NegativeMaxHandler.Position = 1f - m_NegativeMax;
-            m_PositiveMinHandler.Position = m_PositiveMin;
-            m_PositiveMaxHandler.Position = m_PositiveMax;
-
-            m_NegativeMinHandler.MinimumPosition = m_NegativeMaxHandler.Position;
-            m_NegativeMaxHandler.MaximumPosition = m_NegativeMinHandler.Position;
-            m_PositiveMinHandler.MaximumPosition = m_PositiveMaxHandler.Position;
-            m_PositiveMaxHandler.MinimumPosition = m_PositiveMinHandler.Position;
+            // Non-fixed values
+            SetNegativeValues(scene.FMRIManager.FMRINegativeCalMinFactor, scene.FMRIManager.FMRINegativeCalMaxFactor);
+            SetPositiveValues(scene.FMRIManager.FMRIPositiveCalMinFactor, scene.FMRIManager.FMRIPositiveCalMaxFactor);
 
             UpdateMRIHistogram(scene.FMRIManager.FMRI);
 
