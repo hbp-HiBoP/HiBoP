@@ -916,6 +916,7 @@ namespace HBP.Module3D
             UpdateGeneratorsAndUnityMeshes();
             m_TriangleEraser.ResetEraser();
             m_AtlasManager.UpdateAtlasIndices();
+            m_FMRIManager.UpdateSurfaceFMRIValues();
 
             MeshGeometryNeedsUpdate = false;
         }
