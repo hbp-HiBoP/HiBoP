@@ -14,7 +14,11 @@ public class DebugBenjamin : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.F1))
         {
-            ApplicationState.Module3D.SelectedScene.IsBrainTransparent = !ApplicationState.Module3D.SelectedScene.IsBrainTransparent;
+            ApplicationState.Module3D.SelectedScene.FMRIManager.DisplayDiFuMo = true;
+        }
+        if (Input.GetKeyDown(KeyCode.F2))
+        {
+            ApplicationState.Module3D.SelectedScene.FMRIManager.SelectedDiFuMoArea = (ApplicationState.Module3D.SelectedScene.FMRIManager.SelectedDiFuMoArea + 1) % 64;
         }
     }
     private void MarsAtlasCCEP()

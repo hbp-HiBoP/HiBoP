@@ -91,6 +91,40 @@ namespace HBP.Module3D
             }
         }
 
+        private bool m_DisplayDiFuMo;
+        public bool DisplayDiFuMo
+        {
+            get
+            {
+                return m_DisplayDiFuMo;
+            }
+            set
+            {
+                m_DisplayDiFuMo = value;
+                ApplicationState.Module3D.DiFuMoObjects.UpdateCurrentVolume(m_SelectedDiFuMoArea);
+                UpdateSurfaceFMRIValues();
+                m_Scene.ResetIEEG();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            }
+        }
+
+        private int m_SelectedDiFuMoArea;
+        public int SelectedDiFuMoArea
+        {
+            get
+            {
+                return m_SelectedDiFuMoArea;
+            }
+            set
+            {
+                m_SelectedDiFuMoArea = value;
+                ApplicationState.Module3D.DiFuMoObjects.UpdateCurrentVolume(m_SelectedDiFuMoArea);
+                UpdateSurfaceFMRIValues();
+                m_Scene.ResetIEEG();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            }
+        }
+
         /// <summary>
         /// Currently used volume (depends on the type of fMRI we are displaying)
         /// </summary>
@@ -105,6 +139,10 @@ namespace HBP.Module3D
                 else if (m_DisplayIBCContrasts)
                 {
                     return SelectedIBCContrast.Volume;
+                }
+                else if (m_DisplayDiFuMo)
+                {
+                    return ApplicationState.Module3D.DiFuMoObjects.Volume;
                 }
                 else
                 {
@@ -253,7 +291,15 @@ namespace HBP.Module3D
             {
                 for (int ii = 0; ii < m_Scene.MeshManager.MeshSplitNumber; ++ii)
                 {
-                    Color[] colors = CurrentVolume.ConvertValuesToColors(m_SplitFMRIValues[ii], m_FMRINegativeCalMinFactor, m_FMRINegativeCalMaxFactor, m_FMRIPositiveCalMinFactor, m_FMRIPositiveCalMaxFactor, m_FMRIAlpha);
+                    Color[] colors;
+                    if (m_DisplayDiFuMo)
+                    {
+                        colors = CurrentVolume.ConvertValuesToColors(m_SplitFMRIValues[ii], 0, 1, 0, 1, 1);
+                    }
+                    else
+                    {
+                        colors = CurrentVolume.ConvertValuesToColors(m_SplitFMRIValues[ii], m_FMRINegativeCalMinFactor, m_FMRINegativeCalMaxFactor, m_FMRIPositiveCalMinFactor, m_FMRIPositiveCalMaxFactor, m_FMRIAlpha);
+                    }
                     m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.colors = colors;
                     foreach (Column3D column in m_Scene.Columns)
                     {

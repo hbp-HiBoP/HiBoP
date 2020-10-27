@@ -114,6 +114,8 @@ namespace HBP.Module3D
         /// Contains data for the IBC contrasts (fMRIs)
         /// </summary>
         public IBC.IBCObjects IBCObjects;
+
+        public DiFuMo.DiFuMoObjects DiFuMoObjects;
         
         /// <summary>
         /// Shared directional light between all scenes

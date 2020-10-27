@@ -18,6 +18,8 @@ namespace HBP.UI.Module3D.Tools
         /// Displays the MarsAtlas
         /// </summary>
         [SerializeField] private Toggle m_MarsAtlasToggle;
+
+        [SerializeField] private Toggle m_DiFuMoToggle;
         #endregion
 
         #region Public Methods
@@ -44,6 +46,12 @@ namespace HBP.UI.Module3D.Tools
 
                 SelectedScene.AtlasManager.DisplayMarsAtlas = isOn;
             });
+            m_DiFuMoToggle.onValueChanged.AddListener((isOn) =>
+            {
+                if (ListenerLock) return;
+
+                SelectedScene.FMRIManager.DisplayDiFuMo = isOn;
+            });
         }
         /// <summary>
         /// Set the default state of this tool
@@ -56,6 +64,8 @@ namespace HBP.UI.Module3D.Tools
             m_JubrainToggle.interactable = false;
             m_MarsAtlasToggle.isOn = false;
             m_MarsAtlasToggle.interactable = false;
+            m_DiFuMoToggle.isOn = false;
+            m_DiFuMoToggle.interactable = false;
         }
         /// <summary>
         /// Update the interactable state of the tool
@@ -65,10 +75,12 @@ namespace HBP.UI.Module3D.Tools
             bool isIBCAvailable = ApplicationState.Module3D.IBCObjects.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == Data.Enums.MeshType.MNI;
             bool isJuBrainAtlasAvailable = ApplicationState.Module3D.JuBrainAtlas.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == Data.Enums.MeshType.MNI;
             bool canUseMarsAtlas = ApplicationState.Module3D.MarsAtlas.Loaded && (SelectedScene.MeshManager.SelectedMesh.IsMarsAtlasLoaded || SelectedScene.MeshManager.SelectedMesh.Type == Data.Enums.MeshType.MNI);
+            bool isDiFuMoAvailable = ApplicationState.Module3D.DiFuMoObjects.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == Data.Enums.MeshType.MNI;
 
             m_IBCToggle.interactable = isIBCAvailable;
             m_JubrainToggle.interactable = isJuBrainAtlasAvailable;
             m_MarsAtlasToggle.interactable = canUseMarsAtlas;
+            m_DiFuMoToggle.interactable = isDiFuMoAvailable;
         }
         /// <summary>
         /// Update the status of the tool
@@ -78,6 +90,7 @@ namespace HBP.UI.Module3D.Tools
             m_IBCToggle.isOn = SelectedScene.FMRIManager.DisplayIBCContrasts;
             m_JubrainToggle.isOn = SelectedScene.AtlasManager.DisplayJuBrainAtlas;
             m_MarsAtlasToggle.isOn = SelectedScene.AtlasManager.DisplayMarsAtlas;
+            m_DiFuMoToggle.isOn = SelectedScene.FMRIManager.DisplayDiFuMo;
         }
         #endregion
     }
