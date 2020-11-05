@@ -728,7 +728,6 @@ namespace HBP.Module3D
             if (!m_SitesUpToDate)
             {
                 UpdateAllColumnsSitesRendering();
-                OnSitesRenderingUpdated.Invoke();
             }
 
             if (!m_IsGeneratorUpToDate && CanComputeFunctionalValues && ApplicationState.UserPreferences.Visualization._3D.AutomaticEEGUpdate)
@@ -912,13 +911,13 @@ namespace HBP.Module3D
         private void UpdateGeometry()
         {
             m_MeshManager.UpdateMeshesInformation();
-            UpdateCuts();
             UpdateGeneratorsAndUnityMeshes();
             m_TriangleEraser.ResetEraser();
             m_AtlasManager.UpdateAtlasIndices();
             m_FMRIManager.UpdateSurfaceFMRIValues();
-
+            
             MeshGeometryNeedsUpdate = false;
+            m_CutsNeedUpdate = true;
         }
         /// <summary>
         /// Update the cuts of the scene
@@ -964,6 +963,7 @@ namespace HBP.Module3D
                 column.UpdateSitesRendering(m_ShowAllSites, m_HideBlacklistedSites, m_IsGeneratorUpToDate);
             }
             m_SitesUpToDate = true;
+            OnSitesRenderingUpdated.Invoke();
         }
         /// <summary>
         /// Reset color schemes of every columns
@@ -1064,7 +1064,11 @@ namespace HBP.Module3D
                         dynamicColumn.DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap(dynamicColumn);
                     }
                     dynamicColumn.DLLMRIVolumeGenerator.AdjustInfluencesToColormap(dynamicColumn);
-                    CutTexturesNeedUpdate = true;
+                    ComputeIEEGTextures(dynamicColumn);
+                    if (dynamicColumn.IsSelected)
+                    {
+                        ComputeGUITextures();
+                    }
                     dynamicColumn.IsRenderingUpToDate = false;
                     m_SitesUpToDate = false;
                 });
