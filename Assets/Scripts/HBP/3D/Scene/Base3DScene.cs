@@ -1582,7 +1582,6 @@ namespace HBP.Module3D
                     site.State.ApplyState(selectedColumn.SiteStateBySiteID[site.Information.FullID]);
                 }
             }
-            ResetIEEG(false);
         }
         /// <summary>
         /// Update the data rendering for a column
