@@ -183,7 +183,7 @@ namespace HBP.Module3D
             for (int i = 0; i < DLLMRITextureCutGenerators.Count; ++i)
             {
                 MRITextureCutGenerator generator = DLLMRITextureCutGenerators[i];
-                generator.FillTextureWithActivity(column, DLLCutColorScheme);
+                generator.FillTextureWithActivity(column.Timeline.CurrentIndex, column.DynamicParameters.AlphaMin, column.DynamicParameters.AlphaMax, DLLCutColorScheme);
 
                 DLL.Texture cutTexture = DLLBrainCutTextures[i];
                 generator.UpdateTextureWithActivity(cutTexture);

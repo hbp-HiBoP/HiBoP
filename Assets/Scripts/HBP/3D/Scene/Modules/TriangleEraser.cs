@@ -66,7 +66,7 @@ namespace HBP.Module3D
                     m_IsEnabled = value;
                     for (int ii = 0; ii < m_DisplayedObjects.InvisibleBrainSurfaceMeshes.Count; ++ii)
                         m_DisplayedObjects.InvisibleBrainSurfaceMeshes[ii].SetActive(value);
-                    m_Scene.ColliderNeedsUpdate = true;
+                    m_Scene.SceneInformation.CollidersNeedUpdate = true;
                 }
             }
         }

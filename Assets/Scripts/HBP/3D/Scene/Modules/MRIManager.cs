@@ -113,7 +113,7 @@ namespace HBP.Module3D
             {
                 MRICalMinFactor = min;
                 MRICalMaxFactor = max;
-                m_Scene.CutTexturesNeedUpdate = true;
+                m_Scene.SceneInformation.BaseCutTexturesNeedUpdate = true;
             }
         }
         /// <summary>
@@ -133,12 +133,8 @@ namespace HBP.Module3D
             {
                 column.DLLMRIVolumeGenerator = new DLL.MRIVolumeGenerator(baseGenerator);
             }
-            m_Scene.MeshGeometryNeedsUpdate = true;
+            m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.ResetIEEG();
-            foreach (Column3D column in m_Scene.Columns)
-            {
-                column.IsRenderingUpToDate = false;
-            }
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>

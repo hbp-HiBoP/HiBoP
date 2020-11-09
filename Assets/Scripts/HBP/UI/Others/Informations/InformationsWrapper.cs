@@ -172,7 +172,7 @@ namespace HBP.UI.Informations
         }
         void GenerateSceneData()
         {
-            if (!m_Scene.IsSceneCompletelyLoaded) return;
+            if (!m_Scene.SceneInformation.CompletelyLoaded) return;
             List<Column> columns = new List<Column>();
             m_ColumnDataBy3DColumn = new Dictionary<Column3DDynamic, Column>();
             foreach (var column in m_Scene.Columns)

@@ -117,10 +117,6 @@ namespace HBP.Module3D
             }
 
             m_Scene.ResetIEEG();
-            foreach (Column3D column in m_Scene.Columns)
-            {
-                column.IsRenderingUpToDate = false;
-            }
         }
         /// <summary>
         /// Display information about the site under the mouse

@@ -163,7 +163,7 @@ namespace HBP.Module3D
                     }
                 }
             }
-            m_Scene.CutTexturesNeedUpdate = true;
+            m_Scene.SceneInformation.BaseCutTexturesNeedUpdate = true;
         }
         /// <summary>
         /// Display the information about the atlas area under the mouse

@@ -239,11 +239,10 @@ namespace HBP.Module3D.DLL
         /// <param name="dynamicColumn">Parent column of the generator</param>
         /// <param name="colorScheme">Colormap used for the activity</param>
         /// <returns></returns>
-        public bool FillTextureWithActivity(Column3DDynamic dynamicColumn, Texture colorScheme)
+        public bool FillTextureWithActivity(int currentIndex, float alphaMin, float alphaMax, Texture colorScheme)
         {
             bool noError = false;
-            noError = fill_texture_with_SSEG__MRITextureCutGenerator(_handle, dynamicColumn.Timeline.CurrentIndex, colorScheme.getHandle(), 
-            dynamicColumn.DynamicParameters.AlphaMin, dynamicColumn.DynamicParameters.AlphaMax, new float[] { 0, 0, 0 })==1;
+            noError = fill_texture_with_SSEG__MRITextureCutGenerator(_handle, currentIndex, colorScheme.getHandle(), alphaMin, alphaMax, new float[] { 0, 0, 0 })==1;
 
             if (!noError)
                 Debug.LogError("fill_texture_with_SSEG__MRITextureCutGenerator failed ! (check DLL console debug output)");

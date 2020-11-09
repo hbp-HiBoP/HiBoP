@@ -307,7 +307,7 @@ namespace HBP.Module3D
                     }
                 }
             }
-            m_Scene.CutTexturesNeedUpdate = true;
+            m_Scene.SceneInformation.BaseCutTexturesNeedUpdate = true;
         }
         #endregion
     }

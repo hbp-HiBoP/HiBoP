@@ -166,10 +166,10 @@ namespace HBP.Module3D.DLL
         /// <param name="surface">Surface to compute the UVs for</param>
         /// <param name="dynamicColumn">Parent column of the generator</param>
         /// <returns></returns>
-        public bool ComputeSurfaceActivityUV(Surface surface, Column3DDynamic dynamicColumn)
+        public bool ComputeSurfaceActivityUV(Surface surface, int currentIndex, float alphaMin, float alphaMax)
         {                
             bool noError = false;
-            noError = computeSurfaceTextCoordAmplitudes_BrainSurfaceTextureGenerator( _handle, surface.getHandle(), dynamicColumn.Timeline.CurrentIndex, dynamicColumn.DynamicParameters.AlphaMin, dynamicColumn.DynamicParameters.AlphaMax) == 1;
+            noError = computeSurfaceTextCoordAmplitudes_BrainSurfaceTextureGenerator( _handle, surface.getHandle(), currentIndex, alphaMin, alphaMax) == 1;
 
             int m_nbVertices = surface.NumberOfVertices;
             if (m_nbVertices == 0) // mesh is empty

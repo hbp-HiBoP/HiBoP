@@ -212,8 +212,7 @@ namespace HBP.Module3D
         public void ComputeSurfaceBrainUVWithActivity(List<Surface> splittedMeshes)
         {
             for (int ii = 0; ii < DLLBrainTextureGenerators.Count; ++ii)
-                DLLBrainTextureGenerators[ii].ComputeSurfaceActivityUV(splittedMeshes[ii], this);
-            CutTextures.ColorCutsTexturesWithIEEG(this);
+                DLLBrainTextureGenerators[ii].ComputeSurfaceActivityUV(splittedMeshes[ii], Timeline.CurrentIndex, DynamicParameters.AlphaMin, DynamicParameters.AlphaMax);
         }
         #endregion
     }

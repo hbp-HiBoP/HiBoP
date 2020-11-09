@@ -186,12 +186,8 @@ namespace HBP.Module3D
             {
                 m_Scene.FMRIManager.DisplayIBCContrasts = false;
             }
-            m_Scene.MeshGeometryNeedsUpdate = true;
+            m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.ResetIEEG();
-            foreach (Column3D column in m_Scene.Columns)
-            {
-                column.IsRenderingUpToDate = false;
-            }
 
             m_Scene.OnUpdateCameraTarget.Invoke(SelectedMesh.Both.Center);
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
@@ -203,12 +199,8 @@ namespace HBP.Module3D
         public void SelectMeshPart(Data.Enums.MeshPart meshPartToDisplay)
         {
             MeshPartToDisplay = meshPartToDisplay;
-            m_Scene.MeshGeometryNeedsUpdate = true;
+            m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.ResetIEEG();
-            foreach (Column3D column in m_Scene.Columns)
-            {
-                column.IsRenderingUpToDate = false;
-            }
         }
         /// <summary>
         /// Load every mesh that has not been loaded yet

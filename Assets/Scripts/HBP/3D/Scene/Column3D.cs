@@ -77,7 +77,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Does the column rendering need to be updated ?
         /// </summary>
-        public bool IsRenderingUpToDate { get; set; } = false;
+        public bool SurfaceNeedsUpdate { get; set; } = true;
 
         /// <summary>
         /// Surface meshes displayed in this column
@@ -195,7 +195,6 @@ namespace HBP.Module3D
             ColumnData = baseColumn;
             UpdateSites(implantation, sceneSitePatientParent);
             AddView();
-            IsRenderingUpToDate = false;
         }
         /// <summary>
         /// Update the sites of this column (when changing the implantation of the scene)
@@ -317,7 +316,6 @@ namespace HBP.Module3D
         {
             CutTextures.Resize(nbCuts);
             CutTextures.SetMRIVolumeGenerator(DLLMRIVolumeGenerator);
-            IsRenderingUpToDate = false;
         }
         /// <summary>
         /// Update the visibility, the size and the color of the sites depending on their state

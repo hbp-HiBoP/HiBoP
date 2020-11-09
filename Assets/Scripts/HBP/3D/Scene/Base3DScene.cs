@@ -74,6 +74,11 @@ namespace HBP.Module3D
         /// </summary>
         public List<Cut> Cuts { get; } = new List<Cut>();
 
+        /// <summary>
+        /// Information about the scene
+        /// </summary>
+        public SceneInformation SceneInformation { get; set; } = new SceneInformation();
+
         #region Managers
         [SerializeField] private MeshManager m_MeshManager;
         /// <summary>
@@ -214,15 +219,8 @@ namespace HBP.Module3D
             set
             {
                 m_CutColor = value;
-
                 ResetColors();
-
-                m_CutsNeedUpdate = true;
-                CutTexturesNeedUpdate = true;
-                foreach (Column3D column in Columns)
-                {
-                    column.IsRenderingUpToDate = false;
-                }
+                SceneInformation.CutsNeedUpdate = true;
             }
         }
 
@@ -246,15 +244,8 @@ namespace HBP.Module3D
                 tex.Dispose();
 
                 ResetColors();
-
                 BrainMaterials.SetBrainColormapTexture(BrainColorMapTexture);
-
-                if (m_IsGeneratorUpToDate)
-                {
-                    ComputeIEEGTextures();
-                    ComputeGUITextures();
-                }
-
+                SceneInformation.FunctionalCutTexturesNeedUpdate = true;
                 OnChangeColormap.Invoke(value);
             }
         }
@@ -301,27 +292,6 @@ namespace HBP.Module3D
             }
         }
 
-        private bool m_CutHolesEnabled = true;
-        /// <summary>
-        /// Are cut holes in MRI enabled (that means black zones are invisible) ?
-        /// </summary>
-        public bool CutHolesEnabled
-        {
-            get
-            {
-                return m_CutHolesEnabled;
-            }
-            set
-            {
-                m_CutHolesEnabled = value;
-                m_CutsNeedUpdate = true;
-                foreach (Column3D column in Columns)
-                {
-                    column.IsRenderingUpToDate = false;
-                }
-            }
-        }
-
         private bool m_HideBlacklistedSites = false;
         /// <summary>
         /// Are the blacklisted sites hidden ?
@@ -335,7 +305,7 @@ namespace HBP.Module3D
             set
             {
                 m_HideBlacklistedSites = value;
-                m_SitesUpToDate = false;
+                SceneInformation.SitesNeedUpdate = true;
             }
         }
 
@@ -353,7 +323,7 @@ namespace HBP.Module3D
             {
                 m_ShowAllSites = value;
                 m_ROIManager.UpdateROIMasks();
-                m_SitesUpToDate = false;
+                SceneInformation.SitesNeedUpdate = true;
             }
         }
         
@@ -394,7 +364,7 @@ namespace HBP.Module3D
             {
                 m_StrongCuts = value;
                 BrainMaterials.SetStrongCuts(m_StrongCuts);
-                m_CutsNeedUpdate = true;
+                SceneInformation.CutsNeedUpdate = true;
             }
         }
 
@@ -501,29 +471,9 @@ namespace HBP.Module3D
         /// </summary>
         public int LastPlaneModifiedIndex { get; private set; }
         /// <summary>
-        /// Does the mesh need a geometry update (changing vertices, computing cuts etc.)
-        /// </summary>
-        public bool MeshGeometryNeedsUpdate { get; set; }
-        /// <summary>
-        /// Does the collider of the brain mesh needs an update ?
-        /// </summary>
-        public bool ColliderNeedsUpdate { get; set; }
-        /// <summary>
         /// True if generator needs an update
         /// </summary>
         private bool m_GeneratorNeedsUpdate = true;
-        /// <summary>
-        /// True if sites rendering is up to date
-        /// </summary>
-        private bool m_SitesUpToDate = true;
-        /// <summary>
-        /// True if cuts need an update
-        /// </summary>
-        private bool m_CutsNeedUpdate = true;
-        /// <summary>
-        /// True if cut textures are not up to date
-        /// </summary>
-        public bool CutTexturesNeedUpdate { get; set; }
 
         /// <summary>
         /// Lock when updating colliders
@@ -557,7 +507,8 @@ namespace HBP.Module3D
                             column.Timeline.IsLooping = false;
                             column.Timeline.IsPlaying = false;
                             column.Timeline.OnUpdateCurrentIndex.Invoke();
-                            column.IsRenderingUpToDate = false;
+                            SceneInformation.FunctionalSurfaceNeedsUpdate = true;
+                            column.SurfaceNeedsUpdate = false;
                         }
                     }
                     OnUpdateGeneratorState.Invoke(value);
@@ -565,15 +516,7 @@ namespace HBP.Module3D
                 }
             }
         }
-
-        /// <summary>
-        /// Is the scene initialized (loading is finished but displaying may not be finished) ?
-        /// </summary>
-        private bool m_Initialized = false;
-        /// <summary>
-        /// Has the scene finished loading (everything is loaded, scene is ready to be used) ?
-        /// </summary>
-        public bool IsSceneCompletelyLoaded { get; private set; } = false;
+        
         /// <summary>
         /// True if the coroutine c_Destroy has been called
         /// </summary>
@@ -708,37 +651,28 @@ namespace HBP.Module3D
         #region Private Methods
         private void Update()
         {
-            if (!m_Initialized || m_DestroyRequested) return;
+            if (!SceneInformation.Initialized || m_DestroyRequested) return;
 
-            if (MeshGeometryNeedsUpdate)
+            if (SceneInformation.UpdateActionRequired)
             {
-                UpdateGeometry();
+                if (SceneInformation.GeometryNeedsUpdate) UpdateGeometry();
+                if (SceneInformation.CutsNeedUpdate) UpdateCuts();
+                if (SceneInformation.BaseCutTexturesNeedUpdate) ComputeBaseCutTextures();
+                if (SceneInformation.FunctionalCutTexturesNeedUpdate) ComputeFunctionalCutTextures();
+                if (SceneInformation.GUICutTexturesNeedUpdate) ComputeGUICutTextures();
+                if (SceneInformation.FunctionalSurfaceNeedsUpdate) ComputeFunctionalSurface();
+                if (SceneInformation.SitesNeedUpdate) UpdateAllColumnsSitesRendering();
+
+                if (!m_IsGeneratorUpToDate && CanComputeFunctionalValues && ApplicationState.UserPreferences.Visualization._3D.AutomaticEEGUpdate)
+                {
+                    UpdateGenerator();
+                }
             }
 
-            if (m_CutsNeedUpdate)
-            {
-                UpdateCuts();
-            }
-
-            if (CutTexturesNeedUpdate)
-            {
-                ComputeCutTextures();
-            }
-
-            if (!m_SitesUpToDate)
-            {
-                UpdateAllColumnsSitesRendering();
-            }
-
-            if (!m_IsGeneratorUpToDate && CanComputeFunctionalValues && ApplicationState.UserPreferences.Visualization._3D.AutomaticEEGUpdate)
-            {
-                UpdateGenerator();
-            }
-
-            if (!IsSceneCompletelyLoaded)
+            if (!SceneInformation.CompletelyLoaded)
             {
                 UpdateVisibleState(true);
-                IsSceneCompletelyLoaded = true;
+                SceneInformation.CompletelyLoaded = true;
                 OnSceneCompletelyLoaded.Invoke();
                 if (Visualization.Configuration.FirstColumnToSelect < Columns.Count)
                 {
@@ -754,10 +688,8 @@ namespace HBP.Module3D
         /// <summary>
         /// Compute the textures for the MRI (3D)
         /// </summary>
-        private void ComputeMRITextures()
+        private void ComputeBaseCutTextures()
         {
-            if (m_CutsNeedUpdate) return;
-
             foreach (Column3D column in Columns)
             {
                 foreach (Cut cut in Cuts)
@@ -773,30 +705,30 @@ namespace HBP.Module3D
                     }
                 }
             }
+            SceneInformation.BaseCutTexturesNeedUpdate = false;
         }
         /// <summary>
         /// Compute the textures for the MRI (3D) with the iEEG activity
         /// </summary>
         /// <param name="column">Specific column to update. If null, every columns will be updated.</param>
-        private void ComputeIEEGTextures(Column3DDynamic column = null)
+        private void ComputeFunctionalCutTextures()
         {
-            if (!m_IsGeneratorUpToDate) return;
-            
-            UnityEngine.Profiling.Profiler.BeginSample("Compute IEEG Textures");
-            List<Column3DDynamic> columns = column ? new List<Column3DDynamic>() { column } : ColumnsDynamic;
-            foreach (Column3DDynamic col in columns)
+            if (m_IsGeneratorUpToDate)
             {
-                col.ComputeSurfaceBrainUVWithActivity(m_MeshManager.SplittedMeshes);
+                UnityEngine.Profiling.Profiler.BeginSample("Compute IEEG Textures");
+                foreach (Column3DDynamic col in ColumnsDynamic)
+                {
+                    col.CutTextures.ColorCutsTexturesWithIEEG(col);
+                }
+                UnityEngine.Profiling.Profiler.EndSample();
             }
-            UnityEngine.Profiling.Profiler.EndSample();
+            SceneInformation.FunctionalCutTexturesNeedUpdate = false;
         }
         /// <summary>
         /// Compute the texture for the MRI (GUI)
         /// </summary>
-        private void ComputeGUITextures()
+        private void ComputeGUICutTextures()
         {
-            if (m_CutsNeedUpdate) return;
-
             Column3D column = SelectedColumn;
             if (column)
             {
@@ -807,16 +739,38 @@ namespace HBP.Module3D
                     cut.OnUpdateGUITextures.Invoke(column);
                 }
             }
+            SceneInformation.GUICutTexturesNeedUpdate = false;
         }
-        /// <summary>
-        /// Compute the cut textures (Cut mesh texture, activity coloration and GUI textures)
-        /// </summary>
-        private void ComputeCutTextures()
+        private void ComputeFunctionalSurface()
         {
-            ComputeMRITextures();
-            ComputeIEEGTextures();
-            ComputeGUITextures();
-            CutTexturesNeedUpdate = false;
+            if (m_IsGeneratorUpToDate)
+            {
+                foreach (Column3DDynamic col in ColumnsDynamic)
+                {
+                    col.ComputeSurfaceBrainUVWithActivity(m_MeshManager.SplittedMeshes);
+                }
+            }
+            foreach (Column3D col in Columns)
+            {
+                if (col.SurfaceNeedsUpdate)
+                {
+                    for (int i = 0; i < col.BrainSurfaceMeshes.Count; ++i)
+                    {
+                        if (!(col is Column3DDynamic) || !m_IsGeneratorUpToDate)
+                        {
+                            col.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv2 = DLLCommonBrainTextureGeneratorList[i].NullUV;
+                            col.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = DLLCommonBrainTextureGeneratorList[i].NullUV;
+                        }
+                        else
+                        {
+                            col.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv2 = ((Column3DDynamic)col).DLLBrainTextureGenerators[i].AlphaUV;
+                            col.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = ((Column3DDynamic)col).DLLBrainTextureGenerators[i].ActivityUV;
+                        }
+                    }
+                }
+                col.SurfaceNeedsUpdate = false;
+            }
+            SceneInformation.FunctionalSurfaceNeedsUpdate = false;
         }
         /// <summary>
         /// Finalize Generators Computing (method called at the end of the computing of the activity)
@@ -832,8 +786,9 @@ namespace HBP.Module3D
                 ColumnsDynamic[ii].Timeline.OnUpdateCurrentIndex.Invoke();
             }
 
-            // update plots visibility
-            m_SitesUpToDate = false;
+            SceneInformation.FunctionalCutTexturesNeedUpdate = true;
+            SceneInformation.FunctionalSurfaceNeedsUpdate = true;
+            SceneInformation.SitesNeedUpdate = true;
 
             OnIEEGOutdated.Invoke(false);
         }
@@ -860,7 +815,7 @@ namespace HBP.Module3D
                     OnRequestSiteInformation.Invoke(sites);
                 }
             }
-            m_SitesUpToDate = false;
+            SceneInformation.SitesNeedUpdate = true;
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
@@ -874,7 +829,7 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.BeginSample("cut_generator Create cut");
             List<DLL.Surface> generatedCutMeshes = new List<DLL.Surface>(Cuts.Count);
             if (Cuts.Count > 0)
-                generatedCutMeshes = MeshManager.MeshToDisplay.GenerateCutSurfaces(Cuts, !m_CutHolesEnabled, StrongCuts);
+                generatedCutMeshes = MeshManager.MeshToDisplay.GenerateCutSurfaces(Cuts, false, StrongCuts);
             UnityEngine.Profiling.Profiler.EndSample();
 
             // Fill parameters in shader
@@ -897,7 +852,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < Cuts.Count; ++ii)
                 m_DisplayedObjects.BrainCutMeshes[ii].SetActive(true);
 
-            ColliderNeedsUpdate = true;
+            SceneInformation.CollidersNeedUpdate = true;
 
             foreach (var cut in generatedCutMeshes)
             {
@@ -916,8 +871,7 @@ namespace HBP.Module3D
             m_AtlasManager.UpdateAtlasIndices();
             m_FMRIManager.UpdateSurfaceFMRIValues();
             
-            MeshGeometryNeedsUpdate = false;
-            m_CutsNeedUpdate = true;
+            SceneInformation.GeometryNeedsUpdate = false;
         }
         /// <summary>
         /// Update the cuts of the scene
@@ -925,9 +879,8 @@ namespace HBP.Module3D
         private void UpdateCuts()
         {
             ComputeMeshesCut();
-            m_CutsNeedUpdate = false;
+            SceneInformation.CutsNeedUpdate = false;
             OnUpdateCuts.Invoke();
-            CutTexturesNeedUpdate = true;
         }
         /// <summary>
         /// Update the generators for activity and the UV of the meshes
@@ -947,11 +900,8 @@ namespace HBP.Module3D
         /// </summary>
         private void UpdateMeshesColliders()
         {
-            if (ColliderNeedsUpdate)
-            {
-                this.StartCoroutineAsync(c_UpdateMeshesColliders());
-                ColliderNeedsUpdate = false;
-            }
+            this.StartCoroutineAsync(c_UpdateMeshesColliders());
+            SceneInformation.CollidersNeedUpdate = false;
         }
         /// <summary>
         /// Update the sites rendering for all columns
@@ -962,7 +912,7 @@ namespace HBP.Module3D
             {
                 column.UpdateSitesRendering(m_ShowAllSites, m_HideBlacklistedSites, m_IsGeneratorUpToDate);
             }
-            m_SitesUpToDate = true;
+            SceneInformation.SitesNeedUpdate = false;
             OnSitesRenderingUpdated.Invoke();
         }
         /// <summary>
@@ -1028,7 +978,7 @@ namespace HBP.Module3D
                     }
                 }
                 IsSelected = true;
-                ComputeGUITextures();
+                SceneInformation.GUICutTexturesNeedUpdate = true;
                 OnUpdateCuts.Invoke();
             });
             column.OnMoveView.AddListener((view) =>
@@ -1064,42 +1014,31 @@ namespace HBP.Module3D
                         dynamicColumn.DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap(dynamicColumn);
                     }
                     dynamicColumn.DLLMRIVolumeGenerator.AdjustInfluencesToColormap(dynamicColumn);
-                    ComputeIEEGTextures(dynamicColumn);
-                    if (dynamicColumn.IsSelected)
-                    {
-                        ComputeGUITextures();
-                    }
-                    dynamicColumn.IsRenderingUpToDate = false;
-                    m_SitesUpToDate = false;
+                    SceneInformation.FunctionalCutTexturesNeedUpdate = true;
+                    SceneInformation.FunctionalSurfaceNeedsUpdate = true;
+                    dynamicColumn.SurfaceNeedsUpdate = true;
+                    SceneInformation.SitesNeedUpdate = true;
                 });
                 dynamicColumn.DynamicParameters.OnUpdateAlphaValues.AddListener(() =>
                 {
-                    ComputeIEEGTextures(dynamicColumn);
-                    if (dynamicColumn.IsSelected)
-                    {
-                        ComputeGUITextures();
-                    }
-                    dynamicColumn.IsRenderingUpToDate = false;
+                    SceneInformation.FunctionalCutTexturesNeedUpdate = true;
+                    SceneInformation.FunctionalSurfaceNeedsUpdate = true;
+                    dynamicColumn.SurfaceNeedsUpdate = true;
                 });
                 dynamicColumn.DynamicParameters.OnUpdateGain.AddListener(() =>
                 {
-                    m_SitesUpToDate = false;
-                    dynamicColumn.IsRenderingUpToDate = false;
+                    SceneInformation.SitesNeedUpdate = true;
                 });
                 dynamicColumn.DynamicParameters.OnUpdateInfluenceDistance.AddListener(() =>
                 {
-                    ResetIEEG();
-                    dynamicColumn.IsRenderingUpToDate = false;
+                    ResetIEEG(false);
                 });
                 dynamicColumn.OnUpdateCurrentTimelineID.AddListener(() =>
                 {
-                    ComputeIEEGTextures(dynamicColumn);
-                    if (dynamicColumn.IsSelected)
-                    {
-                        ComputeGUITextures();
-                    }
-                    m_SitesUpToDate = false;
-                    dynamicColumn.IsRenderingUpToDate = false;
+                    SceneInformation.FunctionalCutTexturesNeedUpdate = true;
+                    SceneInformation.FunctionalSurfaceNeedsUpdate = true;
+                    SceneInformation.SitesNeedUpdate = true;
+                    dynamicColumn.SurfaceNeedsUpdate = true;
                 });
                 if (dynamicColumn is Column3DCCEP column3DCCEP)
                 {
@@ -1234,7 +1173,7 @@ namespace HBP.Module3D
 
             UpdateCutNumber(m_DisplayedObjects.BrainCutMeshes.Count);
 
-            m_CutsNeedUpdate = true;
+            SceneInformation.CutsNeedUpdate = true;
 
             OnAddCut.Invoke(cut);
             UpdateCutPlane(cut);
@@ -1258,7 +1197,7 @@ namespace HBP.Module3D
 
             UpdateCutNumber(m_DisplayedObjects.BrainCutMeshes.Count);
 
-            m_CutsNeedUpdate = true;
+            SceneInformation.CutsNeedUpdate = true;
 
             cut.OnRemoveCut.Invoke();
         }
@@ -1299,7 +1238,7 @@ namespace HBP.Module3D
 
             cut.Point = MeshManager.MeshCenter + cut.Normal.normalized * (cut.Position - 0.5f) * offset * cut.NumberOfCuts;
 
-            m_CutsNeedUpdate = true;
+            SceneInformation.CutsNeedUpdate = true;
 
             // update cameras cuts display
             OnModifyPlanesCuts.Invoke();
@@ -1362,7 +1301,7 @@ namespace HBP.Module3D
             }
             UpdateCutPlane(sagittalCut);
 
-            m_CutsNeedUpdate = true;
+            SceneInformation.CutsNeedUpdate = true;
         }
         #endregion
 
@@ -1390,7 +1329,7 @@ namespace HBP.Module3D
         {
             Columns[0].Views[0].IsSelected = true; // Select default view
             Columns[0].SelectFirstOrDefaultSiteByName();
-            m_Initialized = true;
+            SceneInformation.Initialized = true;
             this.StartCoroutineAsync(c_LoadMissingAnatomy());
         }
         /// <summary>
@@ -1447,7 +1386,7 @@ namespace HBP.Module3D
                 column.LoadConfiguration(false);
             }
 
-            m_SitesUpToDate = false;
+            SceneInformation.SitesNeedUpdate = true;
 
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
@@ -1589,42 +1528,24 @@ namespace HBP.Module3D
         /// <param name="column">Column to be updated</param>
         public void UpdateColumnRendering(Column3D column)
         {
-            if (MeshGeometryNeedsUpdate) return;
-
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender");
+            if (SceneInformation.GeometryNeedsUpdate)
+            {
+                Debug.Log("GeometryNeedsUpdate"); //FIXME : remove
+                return;
+            }
 
             // update cuts textures
             for (int i = 0; i < Cuts.Count; ++i)
             {
                 m_DisplayedObjects.BrainCutMeshes[i].GetComponent<Renderer>().material.mainTexture = column.CutTextures.BrainCutTextures[i];
             }
-
-            if (!column.IsRenderingUpToDate)
-            {
-                for (int i = 0; i < column.BrainSurfaceMeshes.Count; ++i)
-                {
-                    if (!(column is Column3DDynamic) || !m_IsGeneratorUpToDate)
-                    {
-                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv2 = DLLCommonBrainTextureGeneratorList[i].NullUV;
-                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = DLLCommonBrainTextureGeneratorList[i].NullUV;
-                    }
-                    else
-                    {
-                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv2 = ((Column3DDynamic)column).DLLBrainTextureGenerators[i].AlphaUV;
-                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = ((Column3DDynamic)column).DLLBrainTextureGenerators[i].ActivityUV;
-                    }
-                }
-            }
-
-            UnityEngine.Profiling.Profiler.EndSample();
-            column.IsRenderingUpToDate = true;
         }
         /// <summary>
         /// Update the textures generator for iEEG
         /// </summary>
         public void UpdateGenerator()
         {
-            if (MeshGeometryNeedsUpdate || UpdatingGenerators) // if update cut plane is pending, cancel action
+            if (SceneInformation.GeometryNeedsUpdate || UpdatingGenerators) // if update cut plane is pending, cancel action
                 return;
 
             OnIEEGOutdated.Invoke(false);
@@ -1639,11 +1560,11 @@ namespace HBP.Module3D
         public void ResetIEEG(bool hardReset = true)
         {
             m_GeneratorNeedsUpdate = true;
-            m_SitesUpToDate = false;
+            SceneInformation.SitesNeedUpdate = true;
             if (hardReset)
             {
                 IsGeneratorUpToDate = false;
-                CutTexturesNeedUpdate = true;
+                SceneInformation.BaseCutTexturesNeedUpdate = true;
             }
             OnIEEGOutdated.Invoke(Columns.Any(c => c is Column3DIEEG || c is Column3DCCEP));
         }
@@ -1654,7 +1575,7 @@ namespace HBP.Module3D
         /// <param name="column">Column on which the raycast in performed</param>
         public void PassiveRaycastOnScene(Ray ray, Column3D column)
         {
-            UpdateMeshesColliders();
+            if (SceneInformation.CollidersNeedUpdate) UpdateMeshesColliders();
 
             int layerMask = 0;
             layerMask |= 1 << LayerMask.NameToLayer(HBP3DModule.HIDDEN_MESHES_LAYER);
@@ -1708,7 +1629,7 @@ namespace HBP.Module3D
                     else if (raycastResult == Data.Enums.RaycastHitResult.Mesh || raycastResult == Data.Enums.RaycastHitResult.Cut)
                     {
                         selectedROI.AddSphere(HBP3DModule.DEFAULT_MESHES_LAYER, "Sphere", hitPoint, 5.0f);
-                        m_SitesUpToDate = false;
+                        SceneInformation.SitesNeedUpdate = true;
                     }
                     else
                     {
@@ -1800,7 +1721,6 @@ namespace HBP.Module3D
                 }
             }
             m_MeshManager.GenerateSplits(ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading || Type == Data.Enums.SceneType.MultiPatients);
-            MeshGeometryNeedsUpdate = true;
 
             // Loading MRIs
             if (Type == Data.Enums.SceneType.SinglePatient)
@@ -2018,8 +1938,6 @@ namespace HBP.Module3D
             if (!m_GeneratorNeedsUpdate)
             {
                 FinalizeGeneratorsComputing();
-                ComputeIEEGTextures();
-                ComputeGUITextures();
             }
         }
         /// <summary>
@@ -2169,7 +2087,7 @@ namespace HBP.Module3D
 
             yield return Ninja.JumpBack;
             List<DLL.Surface> cuts;
-            if (Cuts.Count > 0) cuts = new List<DLL.Surface>(MeshManager.SimplifiedMeshToUse.Cut(Cuts.ToArray(), !m_CutHolesEnabled, StrongCuts));
+            if (Cuts.Count > 0) cuts = new List<DLL.Surface>(MeshManager.SimplifiedMeshToUse.Cut(Cuts.ToArray(), false, StrongCuts));
             else cuts = new List<DLL.Surface>() { (DLL.Surface)MeshManager.SimplifiedMeshToUse.Clone() };
             yield return Ninja.JumpToUnity;
 
@@ -2206,6 +2124,154 @@ namespace HBP.Module3D
             Visualization.Unload();
             Destroy(gameObject);
         }
+        #endregion
+    }
+
+    public class SceneInformation
+    {
+        #region Properties
+        /// <summary>
+        /// Is the scene initialized (loading is finished but displaying may not be finished) ?
+        /// </summary>
+        public bool Initialized { get; set; }
+        private bool m_GeometryNeedsUpdate;
+        /// <summary>
+        /// Does the mesh need a geometry update (changing vertices, computing cuts etc.)
+        /// </summary>
+        public bool GeometryNeedsUpdate
+        {
+            get
+            {
+                return m_GeometryNeedsUpdate;
+            }
+            set
+            {
+                m_GeometryNeedsUpdate = value;
+                if (value)
+                {
+                    CutsNeedUpdate = true;
+                    UpdateActionRequired = true;
+                }
+            }
+        }
+        private bool m_CutsNeedUpdate;
+        public bool CutsNeedUpdate
+        {
+            get
+            {
+                return m_CutsNeedUpdate;
+            }
+            set
+            {
+                m_CutsNeedUpdate = value;
+                if (value)
+                {
+                    BaseCutTexturesNeedUpdate = true;
+                    UpdateActionRequired = true;
+                }
+            }
+        }
+        private bool m_BaseCutTexturesNeedUpdate;
+        public bool BaseCutTexturesNeedUpdate
+        {
+            get
+            {
+                return m_BaseCutTexturesNeedUpdate;
+            }
+            set
+            {
+                m_BaseCutTexturesNeedUpdate = value;
+                if (value)
+                {
+                    FunctionalCutTexturesNeedUpdate = true;
+                    UpdateActionRequired = true;
+                }
+            }
+        }
+        private bool m_FunctionalCutTexturesNeedUpdate;
+        public bool FunctionalCutTexturesNeedUpdate
+        {
+            get
+            {
+                return m_FunctionalCutTexturesNeedUpdate;
+            }
+            set
+            {
+                m_FunctionalCutTexturesNeedUpdate = value;
+                if (value)
+                {
+                    GUICutTexturesNeedUpdate = true;
+                    UpdateActionRequired = true;
+                }
+            }
+        }
+        private bool m_GUICutTexturesNeedUpdate;
+        public bool GUICutTexturesNeedUpdate
+        {
+            get
+            {
+                return m_GUICutTexturesNeedUpdate;
+            }
+            set
+            {
+                m_GUICutTexturesNeedUpdate = value;
+                if (value) UpdateActionRequired = true;
+            }
+        }
+        private bool m_FunctionalSurfaceNeedsUpdate;
+        public bool FunctionalSurfaceNeedsUpdate
+        {
+            get
+            {
+                return m_FunctionalSurfaceNeedsUpdate;
+            }
+            set
+            {
+                m_FunctionalSurfaceNeedsUpdate = value;
+                if (value) UpdateActionRequired = true;
+            }
+        }
+        private bool m_SitesNeedUpdate;
+        public bool SitesNeedUpdate
+        {
+            get
+            {
+                return m_SitesNeedUpdate;
+            }
+            set
+            {
+                m_SitesNeedUpdate = value;
+                if (value) UpdateActionRequired = true;
+            }
+        }
+        private bool m_GeneratorNeedsUpdate;
+        public bool GeneratorNeedsUpdate
+        {
+            get
+            {
+                return m_GeneratorNeedsUpdate;
+            }
+            set
+            {
+                m_GeneratorNeedsUpdate = value;
+                if (value) UpdateActionRequired = true;
+            }
+        }
+        private bool m_CollidersNeedUpdate;
+        public bool CollidersNeedUpdate
+        {
+            get
+            {
+                return m_CollidersNeedUpdate;
+            }
+            set
+            {
+                m_CollidersNeedUpdate = value;
+                if (value) UpdateActionRequired = true;
+            }
+        }
+        public bool CompletelyLoaded { get; set; }
+        public bool UpdateActionRequired { get; private set; }
         #endregion
     }
 }
