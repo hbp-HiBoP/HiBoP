@@ -470,10 +470,6 @@ namespace HBP.Module3D
         /// Index of the last cut plane that has been modified (this is used to show the cut circles)
         /// </summary>
         public int LastPlaneModifiedIndex { get; private set; }
-        /// <summary>
-        /// True if generator needs an update
-        /// </summary>
-        private bool m_GeneratorNeedsUpdate = true;
 
         /// <summary>
         /// Lock when updating colliders
@@ -482,7 +478,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Lock when updating generator
         /// </summary>
-        public bool UpdatingGenerators { get; private set; } = false;
+        private bool m_UpdatingGenerators = false;
 
         private bool m_IsGeneratorUpToDate = false;
         /// <summary>
@@ -496,24 +492,21 @@ namespace HBP.Module3D
             }
             set
             {
-                if (value != m_IsGeneratorUpToDate)
+                m_IsGeneratorUpToDate = value;
+                BrainMaterials.SetActivity(value);
+                if (!value)
                 {
-                    m_IsGeneratorUpToDate = value;
-                    BrainMaterials.SetActivity(value);
-                    if (!value)
+                    foreach (Column3DDynamic column in ColumnsDynamic)
                     {
-                        foreach (Column3DDynamic column in ColumnsDynamic)
-                        {
-                            column.Timeline.IsLooping = false;
-                            column.Timeline.IsPlaying = false;
-                            column.Timeline.OnUpdateCurrentIndex.Invoke();
-                            SceneInformation.FunctionalSurfaceNeedsUpdate = true;
-                            column.SurfaceNeedsUpdate = false;
-                        }
+                        column.Timeline.IsLooping = false;
+                        column.Timeline.IsPlaying = false;
+                        column.Timeline.OnUpdateCurrentIndex.Invoke();
+                        SceneInformation.FunctionalSurfaceNeedsUpdate = true;
+                        column.SurfaceNeedsUpdate = true;
                     }
-                    OnUpdateGeneratorState.Invoke(value);
-                    ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
                 }
+                OnUpdateGeneratorState.Invoke(value);
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
         
@@ -646,28 +639,16 @@ namespace HBP.Module3D
         /// Event called when finished loading the scene completely
         /// </summary>
         [HideInInspector] public UnityEvent OnSceneCompletelyLoaded = new UnityEvent();
+        /// <summary>
+        /// Event called when starting or ending the update of the generators
+        /// </summary>
+        [HideInInspector] public GenericEvent<bool> OnUpdatingGenerators = new GenericEvent<bool>();
         #endregion
 
         #region Private Methods
         private void Update()
         {
             if (!SceneInformation.Initialized || m_DestroyRequested) return;
-
-            if (SceneInformation.UpdateActionRequired)
-            {
-                if (SceneInformation.GeometryNeedsUpdate) UpdateGeometry();
-                if (SceneInformation.CutsNeedUpdate) UpdateCuts();
-                if (SceneInformation.BaseCutTexturesNeedUpdate) ComputeBaseCutTextures();
-                if (SceneInformation.FunctionalCutTexturesNeedUpdate) ComputeFunctionalCutTextures();
-                if (SceneInformation.GUICutTexturesNeedUpdate) ComputeGUICutTextures();
-                if (SceneInformation.FunctionalSurfaceNeedsUpdate) ComputeFunctionalSurface();
-                if (SceneInformation.SitesNeedUpdate) UpdateAllColumnsSitesRendering();
-
-                if (!m_IsGeneratorUpToDate && CanComputeFunctionalValues && ApplicationState.UserPreferences.Visualization._3D.AutomaticEEGUpdate)
-                {
-                    UpdateGenerator();
-                }
-            }
 
             if (!SceneInformation.CompletelyLoaded)
             {
@@ -679,6 +660,15 @@ namespace HBP.Module3D
                     Columns[Visualization.Configuration.FirstColumnToSelect].SelectFirstOrDefaultSiteByName(Visualization.Configuration.FirstSiteToSelect);
                 }
             }
+
+            if (SceneInformation.GeometryNeedsUpdate) UpdateGeometry();
+            if (SceneInformation.CutsNeedUpdate) UpdateCuts();
+            if (SceneInformation.BaseCutTexturesNeedUpdate) ComputeBaseCutTextures();
+            if (SceneInformation.FunctionalCutTexturesNeedUpdate) ComputeFunctionalCutTextures();
+            if (SceneInformation.GUICutTexturesNeedUpdate) ComputeGUICutTextures();
+            if (SceneInformation.FunctionalSurfaceNeedsUpdate) ComputeFunctionalSurface();
+            if (SceneInformation.SitesNeedUpdate) UpdateAllColumnsSitesRendering();
+            if (!m_IsGeneratorUpToDate && (ApplicationState.UserPreferences.Visualization._3D.AutomaticEEGUpdate || SceneInformation.GeneratorUpdateRequested)) UpdateGenerator();
         }
         private void OnDestroy()
         {
@@ -1003,7 +993,7 @@ namespace HBP.Module3D
             });
             column.OnChangeSiteState.AddListener((site) =>
             {
-                ResetIEEG(false);
+                ResetGenerators(false);
             });
             if (column is Column3DDynamic dynamicColumn)
             {
@@ -1031,7 +1021,7 @@ namespace HBP.Module3D
                 });
                 dynamicColumn.DynamicParameters.OnUpdateInfluenceDistance.AddListener(() =>
                 {
-                    ResetIEEG(false);
+                    ResetGenerators(false);
                 });
                 dynamicColumn.OnUpdateCurrentTimelineID.AddListener(() =>
                 {
@@ -1044,7 +1034,7 @@ namespace HBP.Module3D
                 {
                     column3DCCEP.OnSelectSource.AddListener(() =>
                     {
-                        ResetIEEG();
+                        ResetGenerators();
                         OnSelectCCEPSource.Invoke();
                         ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
                     });
@@ -1528,13 +1518,6 @@ namespace HBP.Module3D
         /// <param name="column">Column to be updated</param>
         public void UpdateColumnRendering(Column3D column)
         {
-            if (SceneInformation.GeometryNeedsUpdate)
-            {
-                Debug.Log("GeometryNeedsUpdate"); //FIXME : remove
-                return;
-            }
-
-            // update cuts textures
             for (int i = 0; i < Cuts.Count; ++i)
             {
                 m_DisplayedObjects.BrainCutMeshes[i].GetComponent<Renderer>().material.mainTexture = column.CutTextures.BrainCutTextures[i];
@@ -1545,28 +1528,29 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateGenerator()
         {
-            if (SceneInformation.GeometryNeedsUpdate || UpdatingGenerators) // if update cut plane is pending, cancel action
+            if (m_UpdatingGenerators || !CanComputeFunctionalValues)
                 return;
 
             OnIEEGOutdated.Invoke(false);
-            m_GeneratorNeedsUpdate = false;
+            SceneInformation.GeneratorNeedsUpdate = false;
             IsGeneratorUpToDate = false;
+            SceneInformation.GeneratorUpdateRequested = false;
             StartCoroutine(c_ComputeGenerators());
         }
         /// <summary>
         /// Function to be called everytime we want to reset IEEG
         /// </summary>
         /// <param name="hardReset">Do we need to hard reset (delete the activity on the brain) ?</param>
-        public void ResetIEEG(bool hardReset = true)
+        public void ResetGenerators(bool hardReset = true)
         {
-            m_GeneratorNeedsUpdate = true;
+            SceneInformation.GeneratorNeedsUpdate = true;
             SceneInformation.SitesNeedUpdate = true;
             if (hardReset)
             {
                 IsGeneratorUpToDate = false;
                 SceneInformation.BaseCutTexturesNeedUpdate = true;
             }
-            OnIEEGOutdated.Invoke(Columns.Any(c => c is Column3DIEEG || c is Column3DCCEP));
+            OnIEEGOutdated.Invoke(true);
         }
         /// <summary>
         /// Passive raycast on the scene (to hover sites for instance)
@@ -1931,14 +1915,13 @@ namespace HBP.Module3D
         /// <returns>Coroutine return</returns>
         private IEnumerator c_ComputeGenerators()
         {
-            UpdatingGenerators = true;
+            m_UpdatingGenerators = true;
+            OnUpdatingGenerators.Invoke(true);
             yield return this.StartCoroutineAsync(c_LoadIEEG());
-            UpdatingGenerators = false;
+            m_UpdatingGenerators = false;
+            OnUpdatingGenerators.Invoke(false);
 
-            if (!m_GeneratorNeedsUpdate)
-            {
-                FinalizeGeneratorsComputing();
-            }
+            if (!SceneInformation.GeneratorNeedsUpdate) FinalizeGeneratorsComputing();
         }
         /// <summary>
         /// Compute the iEEG values on the brain
@@ -1962,7 +1945,7 @@ namespace HBP.Module3D
                 {
                     ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].Dispose();
                     ColumnsDynamic[ii].DLLBrainTextureGenerators[jj] = (DLL.MRIBrainGenerator)DLLCommonBrainTextureGeneratorList[jj].Clone();
-                    if (m_GeneratorNeedsUpdate) yield break;
+                    if (SceneInformation.GeneratorNeedsUpdate) yield break;
                 }
             }
 
@@ -1988,7 +1971,7 @@ namespace HBP.Module3D
                     yield return Ninja.JumpToUnity;
                     OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + ColumnsDynamic[ii].Name, timeByProgress);
                     yield return Ninja.JumpBack;
-                    if (m_GeneratorNeedsUpdate) yield break;
+                    if (SceneInformation.GeneratorNeedsUpdate) yield break;
                     if (ColumnsDynamic[ii] is Column3DCCEP ccepColumn3D && ccepColumn3D.IsSourceMarsAtlasLabelSelected)
                     {
                         ccepColumn3D.DLLBrainTextureGenerators[jj].ComputeInfluencesWithAtlas(ccepColumn3D);
@@ -1996,12 +1979,12 @@ namespace HBP.Module3D
                     else
                     {
                         ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].InitializeOctree(ColumnsDynamic[ii].RawElectrodes);
-                        if (m_GeneratorNeedsUpdate) yield break;
+                        if (SceneInformation.GeneratorNeedsUpdate) yield break;
                         ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].ComputeDistances(ColumnsDynamic[ii].DynamicParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
-                        if (m_GeneratorNeedsUpdate) yield break;
+                        if (SceneInformation.GeneratorNeedsUpdate) yield break;
                         ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(ColumnsDynamic[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                     }
-                    if (m_GeneratorNeedsUpdate) yield break;
+                    if (SceneInformation.GeneratorNeedsUpdate) yield break;
 
                     currentMaxDensity = ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].MaximumDensity;
                     currentMinInfluence = ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].MinimumInfluence; 
@@ -2022,7 +2005,7 @@ namespace HBP.Module3D
                 currentProgress += 10;
                 OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + ColumnsDynamic[ii].Name, timeByProgress * 10);
                 yield return Ninja.JumpBack;
-                if (m_GeneratorNeedsUpdate) yield break;
+                if (SceneInformation.GeneratorNeedsUpdate) yield break;
                 if (ColumnsDynamic[ii] is Column3DCCEP ccepColumn && ccepColumn.IsSourceMarsAtlasLabelSelected)
                 {
                     ccepColumn.DLLMRIVolumeGenerator.ComputeInfluencesWithAtlas(ccepColumn);
@@ -2030,12 +2013,12 @@ namespace HBP.Module3D
                 else
                 {
                     ColumnsDynamic[ii].DLLMRIVolumeGenerator.InitializeOctree(ColumnsDynamic[ii].RawElectrodes);
-                    if (m_GeneratorNeedsUpdate) yield break;
+                    if (SceneInformation.GeneratorNeedsUpdate) yield break;
                     ColumnsDynamic[ii].DLLMRIVolumeGenerator.ComputeDistances(ColumnsDynamic[ii].DynamicParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
-                    if (m_GeneratorNeedsUpdate) yield break;
+                    if (SceneInformation.GeneratorNeedsUpdate) yield break;
                     ColumnsDynamic[ii].DLLMRIVolumeGenerator.ComputeInfluences(ColumnsDynamic[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                 }
-                if (m_GeneratorNeedsUpdate) yield break;
+                if (SceneInformation.GeneratorNeedsUpdate) yield break;
 
                 currentMaxDensity = ColumnsDynamic[ii].DLLMRIVolumeGenerator.MaximumDensity;
                 currentMinInfluence = ColumnsDynamic[ii].DLLMRIVolumeGenerator.MinimumInfluence;
@@ -2054,18 +2037,18 @@ namespace HBP.Module3D
                 for (int jj = 0; jj < m_MeshManager.MeshSplitNumber; ++jj)
                 {
                     ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, ColumnsDynamic[ii].SharedMinInf, ColumnsDynamic[ii].SharedMaxInf);
-                    if (m_GeneratorNeedsUpdate) yield break;
+                    if (SceneInformation.GeneratorNeedsUpdate) yield break;
                 }
                 ColumnsDynamic[ii].DLLMRIVolumeGenerator.SynchronizeWithOthersGenerators(maxDensity, ColumnsDynamic[ii].SharedMinInf, ColumnsDynamic[ii].SharedMaxInf);
-                if (m_GeneratorNeedsUpdate) yield break;
+                if (SceneInformation.GeneratorNeedsUpdate) yield break;
 
                 for (int jj = 0; jj < m_MeshManager.MeshSplitNumber; ++jj)
                 {
                     ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap(ColumnsDynamic[ii]);
-                    if (m_GeneratorNeedsUpdate) yield break;
+                    if (SceneInformation.GeneratorNeedsUpdate) yield break;
                 }
                 ColumnsDynamic[ii].DLLMRIVolumeGenerator.AdjustInfluencesToColormap(ColumnsDynamic[ii]);
-                if (m_GeneratorNeedsUpdate) yield break;
+                if (SceneInformation.GeneratorNeedsUpdate) yield break;
             }
             yield return Ninja.JumpToUnity;
             OnProgressUpdateGenerator.Invoke(1.0f, "Finalizing", timeByProgress);
@@ -2118,9 +2101,9 @@ namespace HBP.Module3D
         /// <returns>Coroutine return</returns>
         public IEnumerator c_Destroy()
         {
-            m_GeneratorNeedsUpdate = true;
+            SceneInformation.GeneratorNeedsUpdate = true;
             m_DestroyRequested = true;
-            yield return new WaitUntil(delegate { return !UpdatingGenerators; });
+            yield return new WaitUntil(delegate { return !m_UpdatingGenerators; });
             Visualization.Unload();
             Destroy(gameObject);
         }
@@ -2147,11 +2130,7 @@ namespace HBP.Module3D
             set
             {
                 m_GeometryNeedsUpdate = value;
-                if (value)
-                {
-                    CutsNeedUpdate = true;
-                    UpdateActionRequired = true;
-                }
+                if (value) CutsNeedUpdate = true;
             }
         }
         private bool m_CutsNeedUpdate;
@@ -2164,11 +2143,7 @@ namespace HBP.Module3D
             set
             {
                 m_CutsNeedUpdate = value;
-                if (value)
-                {
-                    BaseCutTexturesNeedUpdate = true;
-                    UpdateActionRequired = true;
-                }
+                if (value) BaseCutTexturesNeedUpdate = true;
             }
         }
         private bool m_BaseCutTexturesNeedUpdate;
@@ -2181,11 +2156,7 @@ namespace HBP.Module3D
             set
             {
                 m_BaseCutTexturesNeedUpdate = value;
-                if (value)
-                {
-                    FunctionalCutTexturesNeedUpdate = true;
-                    UpdateActionRequired = true;
-                }
+                if (value) FunctionalCutTexturesNeedUpdate = true;
             }
         }
         private bool m_FunctionalCutTexturesNeedUpdate;
@@ -2198,11 +2169,7 @@ namespace HBP.Module3D
             set
             {
                 m_FunctionalCutTexturesNeedUpdate = value;
-                if (value)
-                {
-                    GUICutTexturesNeedUpdate = true;
-                    UpdateActionRequired = true;
-                }
+                if (value) GUICutTexturesNeedUpdate = true;
             }
         }
         private bool m_GUICutTexturesNeedUpdate;
@@ -2215,7 +2182,6 @@ namespace HBP.Module3D
             set
             {
                 m_GUICutTexturesNeedUpdate = value;
-                if (value) UpdateActionRequired = true;
             }
         }
         private bool m_FunctionalSurfaceNeedsUpdate;
@@ -2228,7 +2194,6 @@ namespace HBP.Module3D
             set
             {
                 m_FunctionalSurfaceNeedsUpdate = value;
-                if (value) UpdateActionRequired = true;
             }
         }
         private bool m_SitesNeedUpdate;
@@ -2241,7 +2206,6 @@ namespace HBP.Module3D
             set
             {
                 m_SitesNeedUpdate = value;
-                if (value) UpdateActionRequired = true;
             }
         }
         private bool m_GeneratorNeedsUpdate;
@@ -2254,7 +2218,18 @@ namespace HBP.Module3D
             set
             {
                 m_GeneratorNeedsUpdate = value;
-                if (value) UpdateActionRequired = true;
+            }
+        }
+        private bool m_GeneratorUpdateRequested;
+        public bool GeneratorUpdateRequested
+        {
+            get
+            {
+                return m_GeneratorUpdateRequested;
+            }
+            set
+            {
+                m_GeneratorUpdateRequested = value;
             }
         }
         private bool m_CollidersNeedUpdate;
@@ -2267,11 +2242,9 @@ namespace HBP.Module3D
             set
             {
                 m_CollidersNeedUpdate = value;
-                if (value) UpdateActionRequired = true;
             }
         }
         public bool CompletelyLoaded { get; set; }
-        public bool UpdateActionRequired { get; private set; }
         #endregion
     }
 }

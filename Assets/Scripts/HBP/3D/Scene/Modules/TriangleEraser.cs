@@ -173,7 +173,7 @@ namespace HBP.Module3D
                     }
                     MeshHasInvisibleTriangles = m_Scene.MeshManager.MeshToDisplay.VisibilityMask.Contains(0);
 
-                    m_Scene.ResetIEEG();
+                    m_Scene.ResetGenerators();
                     m_Scene.MeshManager.UpdateMeshesFromDLL();
                     ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
                 }
@@ -207,7 +207,7 @@ namespace HBP.Module3D
             m_SimplifiedFullMasksStack.Clear();
             m_SplittedMasksStack.Clear();
 
-            m_Scene.ResetIEEG();
+            m_Scene.ResetGenerators();
             m_Scene.MeshManager.UpdateMeshesFromDLL();
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
@@ -251,7 +251,7 @@ namespace HBP.Module3D
 
             MeshHasInvisibleTriangles = m_Scene.MeshManager.MeshToDisplay.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
 
-            m_Scene.ResetIEEG();
+            m_Scene.ResetGenerators();
             m_Scene.MeshManager.UpdateMeshesFromDLL();
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
@@ -273,7 +273,7 @@ namespace HBP.Module3D
 
             MeshHasInvisibleTriangles = m_Scene.MeshManager.MeshToDisplay.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
 
-            m_Scene.ResetIEEG();
+            m_Scene.ResetGenerators();
             m_Scene.MeshManager.UpdateMeshesFromDLL();
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }

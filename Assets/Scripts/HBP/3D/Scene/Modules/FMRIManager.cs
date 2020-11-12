@@ -38,7 +38,6 @@ namespace HBP.Module3D
             {
                 m_FMRI = value;
                 UpdateSurfaceFMRIValues();
-                m_Scene.ResetIEEG();
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
@@ -57,7 +56,6 @@ namespace HBP.Module3D
             {
                 m_DisplayIBCContrasts = value;
                 UpdateSurfaceFMRIValues();
-                m_Scene.ResetIEEG();
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
@@ -76,7 +74,6 @@ namespace HBP.Module3D
             {
                 m_SelectedIBCContrastID = value;
                 UpdateSurfaceFMRIValues();
-                m_Scene.ResetIEEG();
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
@@ -103,7 +100,6 @@ namespace HBP.Module3D
                 m_DisplayDiFuMo = value;
                 ApplicationState.Module3D.DiFuMoObjects.UpdateCurrentVolume(m_SelectedDiFuMoArea);
                 UpdateSurfaceFMRIValues();
-                m_Scene.ResetIEEG();
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
@@ -120,7 +116,6 @@ namespace HBP.Module3D
                 m_SelectedDiFuMoArea = value;
                 ApplicationState.Module3D.DiFuMoObjects.UpdateCurrentVolume(m_SelectedDiFuMoArea);
                 UpdateSurfaceFMRIValues();
-                m_Scene.ResetIEEG();
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
@@ -177,7 +172,6 @@ namespace HBP.Module3D
             {
                 m_FMRIAlpha = value;
                 UpdateSurfaceFMRIColors();
-                m_Scene.ResetIEEG();
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
@@ -196,7 +190,6 @@ namespace HBP.Module3D
             {
                 m_FMRINegativeCalMinFactor = value;
                 UpdateSurfaceFMRIColors();
-                m_Scene.ResetIEEG();
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
@@ -215,7 +208,6 @@ namespace HBP.Module3D
             {
                 m_FMRINegativeCalMaxFactor = value;
                 UpdateSurfaceFMRIColors();
-                m_Scene.ResetIEEG();
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
@@ -234,7 +226,6 @@ namespace HBP.Module3D
             {
                 m_FMRIPositiveCalMinFactor = value;
                 UpdateSurfaceFMRIColors();
-                m_Scene.ResetIEEG();
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
@@ -253,7 +244,6 @@ namespace HBP.Module3D
             {
                 m_FMRIPositiveCalMaxFactor = value;
                 UpdateSurfaceFMRIColors();
-                m_Scene.ResetIEEG();
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }

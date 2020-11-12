@@ -316,6 +316,8 @@ namespace HBP.UI.Informations
         }
         void UpdateTime(int index, Column3DDynamic column)
         {
+            if (!m_Scene.SceneInformation.CompletelyLoaded) return;
+
             if(column.IsSelected && !column.IsMinimized)
             {
                 SubBloc subBloc = null;

@@ -26,15 +26,15 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedScene.ResetIEEG();
-                SelectedScene.UpdateGenerator();
+                SelectedScene.ResetGenerators();
+                SelectedScene.SceneInformation.GeneratorUpdateRequested = true;
                 UpdateInteractable();
             });
             m_Remove.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
 
-                SelectedScene.ResetIEEG();
+                SelectedScene.ResetGenerators();
                 UpdateInteractable();
             });
         }

@@ -205,7 +205,7 @@ namespace HBP.Module3D
                         column.Sites[ii].State.IsOutOfROI = maskROI[ii];
                 }
             }
-            m_Scene.ResetIEEG(false);
+            m_Scene.ResetGenerators(false);
             m_Scene.OnUpdateROI.Invoke();
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }

@@ -134,7 +134,7 @@ namespace HBP.Module3D
                 column.DLLMRIVolumeGenerator = new DLL.MRIVolumeGenerator(baseGenerator);
             }
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
-            m_Scene.ResetIEEG();
+            m_Scene.ResetGenerators();
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>

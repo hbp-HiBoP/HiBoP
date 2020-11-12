@@ -116,7 +116,7 @@ namespace HBP.Module3D
                 m_Scene.Columns[ii].UnselectSite();
             }
 
-            m_Scene.ResetIEEG();
+            m_Scene.ResetGenerators();
         }
         /// <summary>
         /// Display information about the site under the mouse

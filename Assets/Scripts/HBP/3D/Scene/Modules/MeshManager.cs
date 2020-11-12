@@ -187,7 +187,7 @@ namespace HBP.Module3D
                 m_Scene.FMRIManager.DisplayIBCContrasts = false;
             }
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
-            m_Scene.ResetIEEG();
+            m_Scene.ResetGenerators();
 
             m_Scene.OnUpdateCameraTarget.Invoke(SelectedMesh.Both.Center);
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
@@ -200,7 +200,7 @@ namespace HBP.Module3D
         {
             MeshPartToDisplay = meshPartToDisplay;
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
-            m_Scene.ResetIEEG();
+            m_Scene.ResetGenerators();
         }
         /// <summary>
         /// Load every mesh that has not been loaded yet
