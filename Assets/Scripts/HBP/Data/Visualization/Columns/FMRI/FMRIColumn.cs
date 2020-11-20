@@ -32,8 +32,13 @@ namespace HBP.Data.Visualization
                 }
             }
         }
-
+        
         [DataMember] public FMRIConfiguration FMRIConfiguration { get; set; }
+        
+        /// <summary>
+        /// Data of the column.
+        /// </summary>
+        [IgnoreDataMember] public FMRIData Data { get; set; } = new FMRIData();
         #endregion
 
         #region Constructors

@@ -74,6 +74,14 @@ namespace HBP.Data.Visualization
             }
         }
 
+        public ReadOnlyCollection<FMRIColumn> FMRIColumns
+        {
+            get
+            {
+                return new ReadOnlyCollection<FMRIColumn>(Columns.OfType<FMRIColumn>().ToArray());
+            }
+        }
+
         /// <summary>
         /// Test if the visualization is visualizable.
         /// </summary>
@@ -171,44 +179,59 @@ namespace HBP.Data.Visualization
             yield return Ninja.JumpBack;
 
             int nbDynamicColumns = CCEPColumns.Count + IEEGColumns.Count;
+            int nbFMRIColumns = FMRIColumns.Count;
 
             onChangeProgress(0, 0, new LoadingText("Loading Visualization"));
 
-            if (nbDynamicColumns > 0) // FIXME : this security should not exist
+            Exception exception = null;
+            int nbPatients = Patients.Count;
+
+            float steps = 1 + 2 * nbPatients * nbDynamicColumns + nbFMRIColumns;
+            float progress = 0.0f;
+
+            float findDataInfoToReadProgress = 1 / steps;
+            float loadDataProgress = nbPatients * nbDynamicColumns / steps;
+            float loadColumnsProgress = nbPatients * nbDynamicColumns / steps;
+            float loadFMRIColumnsProgress = nbFMRIColumns / steps;
+
+            yield return Ninja.JumpToUnity;
+
+            if (nbDynamicColumns > 0)
             {
-                Exception exception = null;
-                int nbPatients = Patients.Count;
-
-                float steps = 1 + 2 * nbPatients * nbDynamicColumns;
-                float progress = 0.0f;
-
-                float findDataInfoToReadProgress = 1 / steps;
-                float LoadDataProgress = nbPatients * nbDynamicColumns / steps;
-                float LoadColumnsProgress = nbPatients * nbDynamicColumns / steps;
+                Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn = new Dictionary<Column, IEnumerable<DataInfo>>();
 
                 // Find dataInfo.
-                Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn = new Dictionary<Column, IEnumerable<DataInfo>>();
-                yield return Ninja.JumpToUnity;
-                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_FindDataInfoToRead((localProgress, duration, text) => onChangeProgress(progress + localProgress * findDataInfoToReadProgress, duration, text), (value, e) => { dataInfoByColumn = value; exception = e; }));
-                progress += findDataInfoToReadProgress;
+                if (exception == null)
+                {
+                    yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_FindDataInfoToRead((localProgress, duration, text) => onChangeProgress(progress + localProgress * findDataInfoToReadProgress, duration, text), (value, e) => { dataInfoByColumn = value; exception = e; }));
+                    progress += findDataInfoToReadProgress;
+                }
 
                 // Load Data.
                 if (exception == null)
                 {
-                    yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadData(dataInfoByColumn, (localProgress, duration, text) => onChangeProgress(progress + localProgress * LoadDataProgress, duration, text), (e) => { exception = e; }));
-                    progress += LoadDataProgress;
+                    yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadData(dataInfoByColumn, (localProgress, duration, text) => onChangeProgress(progress + localProgress * loadDataProgress, duration, text), (e) => { exception = e; }));
+                    progress += loadDataProgress;
                 }
                 // Load Columns.
                 if (exception == null)
                 {
-                    yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadColumns(dataInfoByColumn, (localProgress, duration, text) => onChangeProgress(progress + localProgress * LoadColumnsProgress, duration, text), (e) => exception = e));
-                    progress += LoadColumnsProgress;
+                    yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadColumns(dataInfoByColumn, (localProgress, duration, text) => onChangeProgress(progress + localProgress * loadColumnsProgress, duration, text), (e) => exception = e));
+                    progress += loadColumnsProgress;
                 }
 
                 yield return Ninja.JumpBack;
                 if (exception != null)
                 {
                     throw exception;
+                }
+            }
+            if (nbFMRIColumns > 0)
+            {
+                if (exception == null)
+                {
+                    yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadFMRIColumns((localProgress, duration, text) => onChangeProgress(progress + localProgress * loadFMRIColumnsProgress, duration, text), (e) => { exception = e; }));
+                    progress += loadFMRIColumnsProgress;
                 }
             }
 
@@ -531,6 +554,42 @@ namespace HBP.Data.Visualization
                         yield break;
                     }
                     yield return Ninja.JumpBack;
+                }
+            }
+            outPut(exception);
+        }
+        IEnumerator c_LoadFMRIColumns(Action<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
+        {
+            yield return Ninja.JumpBack;
+
+            Exception exception = null;
+            
+            ReadOnlyCollection<FMRIColumn> fmriColumns = FMRIColumns;
+            int nbFMRIColumns = fmriColumns.Count;
+
+            float progress = 0;
+            const float TIME_BY_DATAINFO = 1f;
+            float loadingDataStep = 1f / nbFMRIColumns;
+            
+            if (nbFMRIColumns > 0)
+            {
+                for (int i = 0; i < nbFMRIColumns; ++i)
+                {
+                    FMRIColumn fmriColumn = fmriColumns[i];
+                    FMRIDataInfo[] dataInfos = fmriColumn.Dataset.GetFMRIDataInfos();
+                    progress += loadingDataStep;
+                    onChangeProgress(progress, TIME_BY_DATAINFO * dataInfos.Length, new LoadingText("Loading FMRI column ", fmriColumn.Name, " [" + (i + 1) + "/" + nbFMRIColumns + "]"));
+                    try
+                    {
+                        fmriColumn.Data.Load(dataInfos);
+                    }
+                    catch (Exception e)
+                    {
+                        UnityEngine.Debug.LogException(e);
+                        exception = e;
+                        outPut(exception);
+                        yield break;
+                    }
                 }
             }
             outPut(exception);

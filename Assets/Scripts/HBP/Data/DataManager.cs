@@ -256,6 +256,11 @@ public static class DataManager
                     m_NormalizeByRequest.Add(new BlocRequest(request.DataInfo, bloc), HBP.Data.Enums.NormalizationType.None);
                 }
             }
+            else if (request.DataInfo is FMRIDataInfo FMRIDataInfo)
+            {
+                FMRIData data = new FMRIData(FMRIDataInfo);
+                m_DataByRequest.Add(request, data);
+            }
         }
     }
     static void UnLoad(Request request)
