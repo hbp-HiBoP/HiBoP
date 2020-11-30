@@ -42,7 +42,7 @@ namespace HBP.Module3D.IBC
             {
                 RawName = fileInfo.Name.Replace("map_", "").Replace(".nii.gz", "");
                 IBCInformation.Labels labels = information.GetLabels(RawName);
-                Name = labels.PrettyName;
+                Name = string.Format("{0} / {1}", labels.Task, labels.RawName); // labels.PrettyName; // FIXME : replace by labels.PrettyName
                 ControlCondition = labels.ControlCondition;
                 TargetCondition = labels.TargetCondition;
                 Loaded = Volume.LoadNIFTIFile(file);

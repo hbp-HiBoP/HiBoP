@@ -78,6 +78,7 @@ namespace HBP.Module3D.IBC
             {
                 m_Contrasts.Add(new Contrast(file, Information));
             }
+            m_Contrasts.Sort(delegate(Contrast x, Contrast y) { return x.Name.CompareTo(y.Name); } );
 
             yield return Ninja.JumpToUnity;
             m_Loaded = true;

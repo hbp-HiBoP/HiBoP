@@ -16,15 +16,19 @@ namespace HBP.Module3D.IBC
         public struct Labels
         {
             #region Propreties
+            public string RawName { get; set; }
             public string PrettyName { get; private set; }
+            public string Task { get; private set; }
             public string ControlCondition { get; private set; }
             public string TargetCondition { get; private set; }
             #endregion
 
             #region Constructors
-            public Labels(string prettyName, string controlCondition, string targetCondition)
+            public Labels(string rawName, string prettyName, string task, string controlCondition, string targetCondition)
             {
+                RawName = rawName;
                 PrettyName = prettyName;
+                Task = task;
                 ControlCondition = controlCondition;
                 TargetCondition = targetCondition;
             }
@@ -51,11 +55,13 @@ namespace HBP.Module3D.IBC
                     while (!string.IsNullOrEmpty(line = sr.ReadLine()))
                     {
                         string[] splits = csvParser.Split(line);
-                        string rawName = splits.Length > 1 ? splits[1].TrimStart(' ', '"').TrimEnd('"') : "";
-                        string prettyName = splits.Length > 2 ? splits[2].TrimStart(' ', '"').TrimEnd('"') : "";
-                        string controlCondition = splits.Length > 3 ? splits[3].TrimStart(' ', '"').TrimEnd('"') : "";
-                        string targetCondition = splits.Length > 4 ? splits[4].TrimStart(' ', '"').TrimEnd('"') : "";
-                        m_LabelsByRawName.Add(rawName, new Labels(prettyName, controlCondition, targetCondition));
+                        string task = splits.Length > 1 ? splits[1].TrimStart(' ', '"').TrimEnd('"') : "";
+                        string rawName = splits.Length > 2 ? splits[2].TrimStart(' ', '"').TrimEnd('"') : "";
+                        string prettyName = splits.Length > 3 ? splits[3].TrimStart(' ', '"').TrimEnd('"') : "";
+                        string controlCondition = splits.Length > 4 ? splits[4].TrimStart(' ', '"').TrimEnd('"') : "";
+                        string targetCondition = splits.Length > 5 ? splits[5].TrimStart(' ', '"').TrimEnd('"') : "";
+                        if (!m_LabelsByRawName.ContainsKey(rawName))
+                            m_LabelsByRawName.Add(rawName, new Labels(rawName, prettyName, task, controlCondition, targetCondition));
                     }
                 }
             }
@@ -74,7 +80,7 @@ namespace HBP.Module3D.IBC
             {
                 return labels;
             }
-            return new Labels(rawName, "Unknown Condition", "Unknown Target");
+            return new Labels(rawName, "Unknown Contrast", "Unknown Task", "Unknown Control", "Unknown Target");
         }
         #endregion
     }
