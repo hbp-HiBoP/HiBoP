@@ -35,13 +35,13 @@ namespace HBP.Module3D.DiFuMo
         #endregion
 
         #region Coroutines
-        private IEnumerator c_LoadDiFuMo() // Only 64 for now
+        private IEnumerator c_LoadDiFuMo() // Only 256 for now
         {
             yield return Ninja.JumpToUnity;
 
-            string directory = ApplicationState.DataPath + "Atlases/DiFuMo/64";
-            string csvFile = ApplicationState.DataPath + "Atlases/DiFuMo/64/labels_64_dictionary.csv";
-            string file = ApplicationState.DataPath + "Atlases/DiFuMo/64/maps.nii.gz";
+            string directory = ApplicationState.DataPath + "Atlases/DiFuMo/256";
+            string csvFile = ApplicationState.DataPath + "Atlases/DiFuMo/256/labels_256_dictionary.csv";
+            string file = ApplicationState.DataPath + "Atlases/DiFuMo/256/maps.nii.gz";
 
             yield return Ninja.JumpBack;
 
