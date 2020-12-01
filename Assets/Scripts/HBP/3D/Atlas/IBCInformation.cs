@@ -16,19 +16,21 @@ namespace HBP.Module3D.IBC
         public struct Labels
         {
             #region Propreties
-            public string RawName { get; set; }
-            public string PrettyName { get; private set; }
+            public int Index { get; set; }
             public string Task { get; private set; }
+            public string Contrast { get; set; }
+            public string PrettyName { get; private set; }
             public string ControlCondition { get; private set; }
             public string TargetCondition { get; private set; }
             #endregion
 
             #region Constructors
-            public Labels(string rawName, string prettyName, string task, string controlCondition, string targetCondition)
+            public Labels(int index, string task, string contrast, string prettyName, string controlCondition, string targetCondition)
             {
-                RawName = rawName;
-                PrettyName = prettyName;
+                Index = index;
                 Task = task;
+                Contrast = contrast;
+                PrettyName = prettyName;
                 ControlCondition = controlCondition;
                 TargetCondition = targetCondition;
             }
@@ -37,10 +39,7 @@ namespace HBP.Module3D.IBC
         #endregion
 
         #region Properties
-        /// <summary>
-        /// Correspondance table between raw name (from the file name) and the corresponding <see cref="Labels"/> object
-        /// </summary>
-        private Dictionary<string, Labels> m_LabelsByRawName = new Dictionary<string, Labels>();
+        public List<Labels> AllLabels { get; } = new List<Labels>();
         #endregion
 
         #region Constructors
@@ -55,13 +54,13 @@ namespace HBP.Module3D.IBC
                     while (!string.IsNullOrEmpty(line = sr.ReadLine()))
                     {
                         string[] splits = csvParser.Split(line);
+                        int index = splits.Length > 0 ? int.Parse(splits[0]) - 1 : 0;
                         string task = splits.Length > 1 ? splits[1].TrimStart(' ', '"').TrimEnd('"') : "";
-                        string rawName = splits.Length > 2 ? splits[2].TrimStart(' ', '"').TrimEnd('"') : "";
+                        string contrast = splits.Length > 2 ? splits[2].TrimStart(' ', '"').TrimEnd('"') : "";
                         string prettyName = splits.Length > 3 ? splits[3].TrimStart(' ', '"').TrimEnd('"') : "";
                         string controlCondition = splits.Length > 4 ? splits[4].TrimStart(' ', '"').TrimEnd('"') : "";
                         string targetCondition = splits.Length > 5 ? splits[5].TrimStart(' ', '"').TrimEnd('"') : "";
-                        if (!m_LabelsByRawName.ContainsKey(rawName))
-                            m_LabelsByRawName.Add(rawName, new Labels(rawName, prettyName, task, controlCondition, targetCondition));
+                        AllLabels.Add(new Labels(index, task, contrast, prettyName, controlCondition, targetCondition));
                     }
                 }
             }
@@ -74,13 +73,9 @@ namespace HBP.Module3D.IBC
         /// </summary>
         /// <param name="rawName">Raw name (from the file name)</param>
         /// <returns>Corresponding Labels object</returns>
-        public Labels GetLabels(string rawName)
+        public Labels GetLabels(int index)
         {
-            if (m_LabelsByRawName.TryGetValue(rawName, out Labels labels))
-            {
-                return labels;
-            }
-            return new Labels(rawName, "Unknown Contrast", "Unknown Task", "Unknown Control", "Unknown Target");
+            return AllLabels[index];
         }
         #endregion
     }

@@ -23,7 +23,8 @@ namespace HBP.Module3D.DiFuMo
         }
         private void OnDestroy()
         {
-            NIFTI.Dispose();
+            NIFTI?.Dispose();
+            Volume?.Dispose();
         }
         #endregion
 
