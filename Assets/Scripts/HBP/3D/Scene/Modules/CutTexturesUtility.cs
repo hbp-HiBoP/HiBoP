@@ -191,6 +191,27 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
+        /// Color cuts with FMRI values
+        /// </summary>
+        /// <param name="column">Column from which iEEG values are taken</param>
+        public void ColorCutsTexturesWithFMRI(Column3DFMRI column)
+        {
+            if (column.CutTextures != this)
+            {
+                throw new System.Exception("Column and CutTexturesUtility do not match.");
+            }
+
+            for (int i = 0; i < DLLMRITextureCutGenerators.Count; ++i)
+            {
+                MRITextureCutGenerator generator = DLLMRITextureCutGenerators[i];
+                generator.FillTextureWithActivityFMRI(column.FMRIParameters.Alpha, DLLCutColorScheme);
+
+                DLL.Texture cutTexture = DLLBrainCutTextures[i];
+                generator.UpdateTextureWithActivity(cutTexture);
+                cutTexture.UpdateTexture2D(BrainCutTextures[i]);
+            }
+        }
+        /// <summary>
         /// Color cuts with FMRI
         /// </summary>
         /// <param name="volume">FMRI volume</param>

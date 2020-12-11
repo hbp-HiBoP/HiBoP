@@ -131,12 +131,28 @@ namespace HBP.Module3D.DLL
             return compute_influences_with_atlas_MRIVolumeGenerator(_handle, ccepColumn.ActivityValues, ccepColumn.Timeline.Length, ccepColumn.AreaMask, ApplicationState.Module3D.MarsAtlas.getHandle()) == 1;
         }
         /// <summary>
+        /// Compute activity with the input FMRI
+        /// </summary>
+        /// <param name="volume">Input FMRI</param>
+        public bool ComputeFMRIActivity(Volume volume)
+        {
+            return computeActivityWithFMRI_MRIVolumeGenerator(_handle, volume.getHandle()) == 1;
+        }
+        /// <summary>
         /// Transform the influence values to a ratio between 0 and 1 to match the activity colormap
         /// </summary>
         /// <param name="dynamicColumn">Parent column of the generator</param>
         public void AdjustInfluencesToColormap(Column3DDynamic dynamicColumn)
         {
-            ajustInfluencesToColormap_MRIVolumeGenerator(_handle, dynamicColumn.DynamicParameters.Middle, dynamicColumn.DynamicParameters.SpanMin, dynamicColumn.DynamicParameters.SpanMax);
+            ajustInfluencesToColormapIEEG_MRIVolumeGenerator(_handle, dynamicColumn.DynamicParameters.Middle, dynamicColumn.DynamicParameters.SpanMin, dynamicColumn.DynamicParameters.SpanMax);
+        }
+        /// <summary>
+        /// Transform the influence values to a ratio between 0 and 1 to match the activity colormap
+        /// </summary>
+        /// <param name="fmriColumn">Parent column of the generator</param>
+        public void AdjustInfluencesToColormap(Column3DFMRI fmriColumn)
+        {
+            ajustInfluencesToColormapFMRI_MRIVolumeGenerator(_handle, fmriColumn.FMRIParameters.FMRINegativeCalMinFactor, fmriColumn.FMRIParameters.FMRINegativeCalMaxFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMinFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMaxFactor);
         }
         #endregion
 
@@ -182,8 +198,12 @@ namespace HBP.Module3D.DLL
         static private extern int computeInfluences_MRIVolumeGenerator(HandleRef handleBrainSurfaceTextureGenerator, float[] timelineAmplitudes, int timelineLength, int sitesNumber, float maxDistance, int multiCPU, int addValues, int ratioDistances, float middle, float spanMin, float spanMax);
         [DllImport("hbp_export", EntryPoint = "compute_influences_with_atlas_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern int compute_influences_with_atlas_MRIVolumeGenerator(HandleRef handleBrainSurfaceTextureGenerator, float[] activity, int timelineLength, int[] mask, HandleRef marsAtlasHandle);
-        [DllImport("hbp_export", EntryPoint = "ajustInfluencesToColormap_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void ajustInfluencesToColormap_MRIVolumeGenerator(HandleRef handleBrainSurfaceTextureGenerator, float middle, float min, float max);
+        [DllImport("hbp_export", EntryPoint = "computeActivityWithFMRI_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern int computeActivityWithFMRI_MRIVolumeGenerator(HandleRef handleBrainSurfaceTextureGenerator, HandleRef volumeHandle);
+        [DllImport("hbp_export", EntryPoint = "ajustInfluencesToColormapIEEG_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void ajustInfluencesToColormapIEEG_MRIVolumeGenerator(HandleRef handleBrainSurfaceTextureGenerator, float middle, float min, float max);
+        [DllImport("hbp_export", EntryPoint = "ajustInfluencesToColormapFMRI_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void ajustInfluencesToColormapFMRI_MRIVolumeGenerator(HandleRef handleBrainSurfaceTextureGenerator, float negativeMin, float negativeMax, float positiveMin, float positiveMax);
         [DllImport("hbp_export", EntryPoint = "synchronizeWithOthersGenerators_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void synchronizeWithOthersGenerators_MRIVolumeGenerator(HandleRef handleBrainSurfaceTextureGenerator, float sharedMaxDensity, float sharedMinInf, float sharedMaxInf);                      
         [DllImport("hbp_export", EntryPoint = "getMaximumDensity_MRIVolumeGenerator", CallingConvention = CallingConvention.Cdecl)]

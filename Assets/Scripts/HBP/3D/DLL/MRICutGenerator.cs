@@ -192,6 +192,17 @@ namespace HBP.Module3D.DLL
             if (!noError)
                 Debug.LogError("fill_texture_with_Atlas__MRITextureCutGenerator failed ! (check DLL console debug output)");
         }
+        public bool FillTextureWithActivityFMRI(float alpha, Texture colorScheme)
+        {
+            bool noError = false;
+            noError = fill_texture_with_FMRI__MRITextureCutGenerator(_handle, alpha, colorScheme.getHandle(), new float[] { 0, 0, 0 }) == 1;
+
+            if (!noError)
+                Debug.LogError("fill_texture_with_FMRI__MRITextureCutGenerator failed ! (check DLL console debug output)");
+
+            return noError;
+        }
+
         /// <summary>
         /// Initialize the octree for the cut mesh
         /// </summary>
@@ -348,6 +359,8 @@ namespace HBP.Module3D.DLL
         static private extern int compute_influences__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, float[] timelineAmplitudes, int timelineLength, int sitesNumber,float maxDistance, int multiCPU, int addValues, int ratioDistances, float middle, float spanMin, float spanMax);
         [DllImport("hbp_export", EntryPoint = "fill_texture_with_SSEG__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern int fill_texture_with_SSEG__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, int idTimeline, HandleRef handleColorSchemeTexture, float alphaMin, float alphaMax, float[] notInBrainColor);
+        [DllImport("hbp_export", EntryPoint = "fill_texture_with_FMRI__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern int fill_texture_with_FMRI__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, float alpha, HandleRef handleColorSchemeTexture, float[] notInBrainColor);
         [DllImport("hbp_export", EntryPoint = "fill_texture_with_Density__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern int fill_texture_with_Density__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, int idTimeline, HandleRef handleColorSchemeTexture, float[] notInBrainColor);
         [DllImport("hbp_export", EntryPoint = "min_inf__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]

@@ -209,7 +209,7 @@ namespace HBP.Module3D
         /// Compute the UVs of the meshes for the brain activity
         /// </summary>
         /// <param name="splittedMeshes">DLL brain splitted meshes</param>
-        public void ComputeSurfaceBrainUVWithActivity(List<Surface> splittedMeshes)
+        public override void ComputeSurfaceBrainUVWithActivity(List<Surface> splittedMeshes)
         {
             for (int ii = 0; ii < DLLBrainTextureGenerators.Count; ++ii)
                 DLLBrainTextureGenerators[ii].ComputeSurfaceActivityUV(splittedMeshes[ii], Timeline.CurrentIndex, DynamicParameters.AlphaMin, DynamicParameters.AlphaMax);

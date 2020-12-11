@@ -107,7 +107,6 @@ namespace HBP.Module3D
                 if (value == Data.Enums.TriEraserMode.Expand || value == Data.Enums.TriEraserMode.Invert)
                 {
                     EraseTriangles(new Vector3(), new Vector3());
-                    m_Scene.MeshManager.UpdateMeshesFromDLL();
                     m_CurrentMode = previousMode;
                 }
             }
@@ -253,6 +252,7 @@ namespace HBP.Module3D
 
             m_Scene.ResetGenerators();
             m_Scene.MeshManager.UpdateMeshesFromDLL();
+            m_Scene.FMRIManager.UpdateSurfaceFMRIValues();
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>

@@ -132,6 +132,14 @@ namespace HBP.Module3D.DLL
             return compute_influences_with_atlas_BrainSurfaceTextureGenerator(_handle, ccepColumn.ActivityValues, ccepColumn.Timeline.Length, ccepColumn.AreaMask, ApplicationState.Module3D.MarsAtlas.getHandle()) == 1;
         }
         /// <summary>
+        /// Compute activity with the input FMRI
+        /// </summary>
+        /// <param name="volume">Input FMRI</param>
+        public bool ComputeFMRIActivity(Volume volume)
+        {
+            return computeActivityWithFMRI_BrainSurfaceTextureGenerator(_handle, volume.getHandle()) == 1;
+        }
+        /// <summary>
         /// Synchronize the generators of the columns to the same extreme values
         /// </summary>
         /// <param name="sharedMaxDensity">Maximum site density of a column</param>
@@ -147,7 +155,15 @@ namespace HBP.Module3D.DLL
         /// <param name="dynamicColumn">Parent column of the generator</param>
         public void AdjustInfluencesToColormap(Column3DDynamic dynamicColumn)
         {
-            ajustInfluencesToColormap_BrainSurfaceTextureGenerator( _handle, dynamicColumn.DynamicParameters.Middle, dynamicColumn.DynamicParameters.SpanMin, dynamicColumn.DynamicParameters.SpanMax);
+            ajustInfluencesToColormapIEEG_BrainSurfaceTextureGenerator(_handle, dynamicColumn.DynamicParameters.Middle, dynamicColumn.DynamicParameters.SpanMin, dynamicColumn.DynamicParameters.SpanMax);
+        }
+        /// <summary>
+        /// Transform the influence values to a ratio between 0 and 1 to match the activity colormap
+        /// </summary>
+        /// <param name="fmriColumn">Parent column of the generator</param>
+        public void AdjustInfluencesToColormap(Column3DFMRI fmriColumn)
+        {
+            ajustInfluencesToColormapFMRI_BrainSurfaceTextureGenerator(_handle, fmriColumn.FMRIParameters.FMRINegativeCalMinFactor, fmriColumn.FMRIParameters.FMRINegativeCalMaxFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMinFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMaxFactor);
         }
         /// <summary>
         /// Compute the main UVs of the surface depending of the value of the closest voxel of each vertex in the volume
@@ -167,9 +183,9 @@ namespace HBP.Module3D.DLL
         /// <param name="dynamicColumn">Parent column of the generator</param>
         /// <returns></returns>
         public bool ComputeSurfaceActivityUV(Surface surface, int currentIndex, float alphaMin, float alphaMax)
-        {                
+        {
             bool noError = false;
-            noError = computeSurfaceTextCoordAmplitudes_BrainSurfaceTextureGenerator( _handle, surface.getHandle(), currentIndex, alphaMin, alphaMax) == 1;
+            noError = computeSurfaceTextCoordAmplitudes_BrainSurfaceTextureGenerator(_handle, surface.getHandle(), currentIndex, alphaMin, alphaMax) == 1;
 
             int m_nbVertices = surface.NumberOfVertices;
             if (m_nbVertices == 0) // mesh is empty
@@ -180,7 +196,45 @@ namespace HBP.Module3D.DLL
             {
                 ActivityUV = new Vector2[m_nbVertices];
                 if (m_UVAmplitudesHandle.IsAllocated) m_UVAmplitudesHandle.Free();
-                m_UVAmplitudesHandle = GCHandle.Alloc(ActivityUV, GCHandleType.Pinned); 
+                m_UVAmplitudesHandle = GCHandle.Alloc(ActivityUV, GCHandleType.Pinned);
+            }
+            updateUVAmplitudes_BrainSurfaceTextureGenerator(_handle, m_UVAmplitudesHandle.AddrOfPinnedObject());
+
+            // alpha
+            if (AlphaUV.Length != m_nbVertices)
+            {
+                AlphaUV = new Vector2[m_nbVertices];
+                if (m_UVAlphaHandle.IsAllocated) m_UVAlphaHandle.Free();
+                m_UVAlphaHandle = GCHandle.Alloc(AlphaUV, GCHandleType.Pinned);
+            }
+            updateUVAlpha_BrainSurfaceTextureGenerator(_handle, m_UVAlphaHandle.AddrOfPinnedObject());
+
+            if (!noError)
+                Debug.LogError("computeSurfaceTextCoordAmplitudes_BrainSurfaceTextureGenerator failed ! (check DLL console debug output)");
+
+            return noError;
+        }
+        /// <summary>
+        /// Compute the UVs for the alpha and the activity of the surface
+        /// </summary>
+        /// <param name="surface">Surface to compute the UVs for</param>
+        /// <param name="dynamicColumn">Parent column of the generator</param>
+        /// <returns></returns>
+        public bool ComputeSurfaceActivityUVFMRI(Surface surface, float alpha)
+        {
+            bool noError = false;
+            noError = computeSurfaceTextCoordFMRI_BrainSurfaceTextureGenerator(_handle, surface.getHandle(), alpha) == 1;
+
+            int m_nbVertices = surface.NumberOfVertices;
+            if (m_nbVertices == 0) // mesh is empty
+                return true;
+
+            // amplitudes
+            if (ActivityUV.Length != m_nbVertices)
+            {
+                ActivityUV = new Vector2[m_nbVertices];
+                if (m_UVAmplitudesHandle.IsAllocated) m_UVAmplitudesHandle.Free();
+                m_UVAmplitudesHandle = GCHandle.Alloc(ActivityUV, GCHandleType.Pinned);
             }
             updateUVAmplitudes_BrainSurfaceTextureGenerator(_handle, m_UVAmplitudesHandle.AddrOfPinnedObject());
 
@@ -253,16 +307,22 @@ namespace HBP.Module3D.DLL
         static private extern int computeDistances_BrainSurfaceTextureGenerator(HandleRef handleBrainSurfaceTextureGenerator, float maxDistance, int multiCPU);
         [DllImport("hbp_export", EntryPoint = "computeInfluences_BrainSurfaceTextureGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern int computeInfluences_BrainSurfaceTextureGenerator(HandleRef handleBrainSurfaceTextureGenerator, float[] timelineAmplitudes, int timelineLength, int sitesNumber, float maxDistance, int multiCPU, int addValues, int ratioDistances, float middle, float spanMin, float spanMax);
+        [DllImport("hbp_export", EntryPoint = "computeActivityWithFMRI_BrainSurfaceTextureGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern int computeActivityWithFMRI_BrainSurfaceTextureGenerator(HandleRef handleBrainSurfaceTextureGenerator, HandleRef volumeHandle);
         [DllImport("hbp_export", EntryPoint = "compute_influences_with_atlas_BrainSurfaceTextureGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern int compute_influences_with_atlas_BrainSurfaceTextureGenerator(HandleRef handleBrainSurfaceTextureGenerator, float[] activity, int timelineLength, int[] mask, HandleRef marsAtlasHandle);
-        [DllImport("hbp_export", EntryPoint = "ajustInfluencesToColormap_BrainSurfaceTextureGenerator", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void ajustInfluencesToColormap_BrainSurfaceTextureGenerator(HandleRef handleBrainSurfaceTextureGenerator, float middle, float min, float max);
+        [DllImport("hbp_export", EntryPoint = "ajustInfluencesToColormapIEEG_BrainSurfaceTextureGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void ajustInfluencesToColormapIEEG_BrainSurfaceTextureGenerator(HandleRef handleBrainSurfaceTextureGenerator, float middle, float min, float max);
+        [DllImport("hbp_export", EntryPoint = "ajustInfluencesToColormapFMRI_BrainSurfaceTextureGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void ajustInfluencesToColormapFMRI_BrainSurfaceTextureGenerator(HandleRef handleBrainSurfaceTextureGenerator, float negativeMin, float negativeMax, float positiveMin, float positiveMax);
         [DllImport("hbp_export", EntryPoint = "synchronizeWithOthersGenerators_BrainSurfaceTextureGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void synchronizeWithOthersGenerators_BrainSurfaceTextureGenerator(HandleRef handleBrainSurfaceTextureGenerator, float sharedMaxDensity, float sharedMinInf, float sharedMaxInf);
         [DllImport("hbp_export", EntryPoint = "compute_UVMain_with_volume_BrainSurfaceTextureGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void compute_UVMain_with_volume_BrainSurfaceTextureGenerator(HandleRef handleBrainSurfaceTextureGenerator, HandleRef handleVolume, HandleRef handleSurface, float calMin, float calMax);
         [DllImport("hbp_export", EntryPoint = "computeSurfaceTextCoordAmplitudes_BrainSurfaceTextureGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern int computeSurfaceTextCoordAmplitudes_BrainSurfaceTextureGenerator(HandleRef handleBrainSurfaceTextureGenerator, HandleRef handleSurface, int idTimeline, float alphaMin, float alphaMax);
+        [DllImport("hbp_export", EntryPoint = "computeSurfaceTextCoordFMRI_BrainSurfaceTextureGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern int computeSurfaceTextCoordFMRI_BrainSurfaceTextureGenerator(HandleRef handleBrainSurfaceTextureGenerator, HandleRef handleSurface, float alpha);
         [DllImport("hbp_export", EntryPoint = "computeSurfaceTextCoordDensity_BrainSurfaceTextureGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern int computeSurfaceTextCoordDensity_BrainSurfaceTextureGenerator(HandleRef handleBrainSurfaceTextureGenerator, HandleRef handleSurface, int idTimeline);
         [DllImport("hbp_export", EntryPoint = "getUVAmplitudes_BrainSurfaceTextureGenerator", CallingConvention = CallingConvention.Cdecl)]

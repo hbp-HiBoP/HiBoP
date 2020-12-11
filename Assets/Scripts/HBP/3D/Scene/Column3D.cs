@@ -12,7 +12,7 @@ namespace HBP.Module3D
     /// <summary>
     /// Class containing information about the 3D column (specific meshes, sites, ROIs of the column)
     /// </summary>
-    public class Column3D : MonoBehaviour, IConfigurable
+    public abstract class Column3D : MonoBehaviour, IConfigurable
     {
         #region Properties
         /// <summary>
@@ -584,6 +584,11 @@ namespace HBP.Module3D
 
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
+        /// <summary>
+        /// Compute the UVs of the meshes for the brain activity
+        /// </summary>
+        /// <param name="splittedMeshes">DLL brain splitted meshes</param>
+        public abstract void ComputeSurfaceBrainUVWithActivity(List<Surface> splittedMeshes);
         #endregion
     }
 }
