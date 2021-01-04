@@ -17,43 +17,27 @@ namespace HBP.Module3D.IBC
         /// Contains information about labels of the contrasts
         /// </summary>
         public IBCInformation Information { get; private set; }
-
-        private List<Contrast> m_Contrasts;
-        /// <summary>
-        /// List of the contrasts of the IBC
-        /// </summary>
-        public List<Contrast> Contrasts
-        {
-            get
-            {
-                return m_Contrasts.Where(c => c.Loaded).ToList();
-            }
-        }
-
-        private bool m_Loaded = false;
-        /// <summary>
-        /// Are the constrats loaded ?
-        /// </summary>
-        public bool Loaded
-        {
-            get
-            {
-                return m_Loaded && m_Contrasts.Count > 0;
-            }
-        }
+        public DLL.NIFTI NIFTI { get; private set; } = new DLL.NIFTI();
+        public DLL.Volume Volume { get; private set; } = new DLL.Volume();
+        public bool Loaded { get; private set; } = false;
         #endregion
 
         #region Private Methods
         private void Awake()
         {
-            this.StartCoroutineAsync(c_LoadContrasts());
+            this.StartCoroutineAsync(c_LoadIBC());
         }
         private void OnDestroy()
         {
-            foreach (var contrast in m_Contrasts)
-            {
-                contrast.Clean();
-            }
+            NIFTI?.Dispose();
+            Volume?.Dispose();
+        }
+        #endregion
+
+        #region Public Methods
+        public void UpdateCurrentVolume(int component)
+        {
+            NIFTI.FillVolumeWithNifti(Volume, component);
         }
         #endregion
 
@@ -62,26 +46,22 @@ namespace HBP.Module3D.IBC
         /// Load all the contrast that are in the IBC directory
         /// </summary>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_LoadContrasts()
+        private IEnumerator c_LoadIBC()
         {
             yield return Ninja.JumpToUnity;
 
             string directory = ApplicationState.DataPath + "Atlases/IBC/";
             string csvFile = ApplicationState.DataPath + "Atlases/IBC/map_labels.csv";
-            string[] files = Directory.GetFiles(directory, "*.nii.gz");
+            string file = ApplicationState.DataPath + "Atlases/IBC/all_maps.nii.gz";
 
             yield return Ninja.JumpBack;
 
-            m_Contrasts = new List<Contrast>(files.Length);
+            NIFTI.Load(file);
             Information = new IBCInformation(csvFile);
-            foreach (var file in files)
-            {
-                m_Contrasts.Add(new Contrast(file, Information));
-            }
-            m_Contrasts.Sort(delegate(Contrast x, Contrast y) { return x.Name.CompareTo(y.Name); } );
+            UpdateCurrentVolume(0);
 
             yield return Ninja.JumpToUnity;
-            m_Loaded = true;
+            Loaded = true;
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion

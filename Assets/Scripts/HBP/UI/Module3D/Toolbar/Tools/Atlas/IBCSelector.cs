@@ -50,9 +50,9 @@ namespace HBP.UI.Module3D.Tools
             m_Dropdown.options.Clear();
             if (ApplicationState.Module3D.IBCObjects.Loaded)
             {
-                foreach (var contrast in ApplicationState.Module3D.IBCObjects.Contrasts)
+                foreach (var label in ApplicationState.Module3D.IBCObjects.Information.AllLabels)
                 {
-                    m_Dropdown.options.Add(new Dropdown.OptionData(contrast.Name));
+                    m_Dropdown.options.Add(new Dropdown.OptionData(label.PrettyName));
                 }
                 m_Dropdown.value = SelectedScene.FMRIManager.SelectedIBCContrastID;
             }

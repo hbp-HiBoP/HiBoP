@@ -55,6 +55,7 @@ namespace HBP.Module3D
             set
             {
                 m_DisplayIBCContrasts = value;
+                ApplicationState.Module3D.IBCObjects.UpdateCurrentVolume(m_SelectedIBCContrastID);
                 UpdateSurfaceFMRIValues();
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
@@ -73,18 +74,9 @@ namespace HBP.Module3D
             set
             {
                 m_SelectedIBCContrastID = value;
+                ApplicationState.Module3D.IBCObjects.UpdateCurrentVolume(m_SelectedIBCContrastID);
                 UpdateSurfaceFMRIValues();
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
-            }
-        }
-        /// <summary>
-        /// Selected IBC contrast (this object contains some information about the contrast)
-        /// </summary>
-        public IBC.Contrast SelectedIBCContrast
-        {
-            get
-            {
-                return ApplicationState.Module3D.IBCObjects.Contrasts[m_SelectedIBCContrastID];
             }
         }
 
@@ -133,7 +125,7 @@ namespace HBP.Module3D
                 }
                 else if (m_DisplayIBCContrasts)
                 {
-                    return SelectedIBCContrast.Volume;
+                    return ApplicationState.Module3D.IBCObjects.Volume;
                 }
                 else if (m_DisplayDiFuMo)
                 {

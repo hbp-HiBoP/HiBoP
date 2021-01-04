@@ -1,183 +1,183 @@
 ,task,contrast,pretty name,control condition,target condition
-19,archi_emotional,expression_gender-control,left vs. right hand button press,right hand,left hand
-20,archi_emotional,expression_intention-gender,button presses vs. narrative/computation,cognitive tasks,button presses
-21,archi_emotional,face_gender-control,read sentence vs. checkerboard,checkerboard,read sentence
-22,archi_emotional,face_trusty-gender,reading sentence vs. listening to sentence,listen to sentence,read sentence
-12,archi_social,false_belief-mechanistic_audio,object grasping vs. orientation reporting,mimic orientation,object grasping
-17,archi_social,false_belief-mechanistic_video,mental subtraction vs. sentence reading,sentence,mental subtraction
-14,archi_social,mechanistic_audio,image orientation reporting,fixation,mimic orientation
-15,archi_social,mechanistic_video,hand palm or back vs. fixation,fixation,hand palm or back
-16,archi_social,non_speech_sound,saccade vs. fixation,fixation,saccade
-18,archi_social,speech-non_speech,horizontal vs. vertical checkerboard,vertical checkerboard,horizontal checkerboard
-11,archi_social,triangle_mental-random,randomly drifting triangle,fixation,random motion
-13,archi_social,triangle_random,left or right hand vs. hand palm or back,hand palm or back,guess which hand
-8,archi_spatial,grasp-orientation,listen to natural sound,silence,natural sound
-7,archi_spatial,hand-side,reading a mechanistic story,fixation,mechanistic story
-10,archi_spatial,object_orientation,mental motion vs. random motion,random motion,mental motion
-9,archi_spatial,rotation_side,listen to voice sound vs. natural sound,natural sound,voice sound
-6,archi_spatial,saccades,listening to a mechanistic tale,fixation,mechanistic tale
-4,archi_standard,computation-sentences,false-belief tale vs. mechanistic tale,mechanistic tale,false-belief tale
-5,archi_standard,horizontal-vertical,false-belief story vs. mechanistic story,mechanistic story,false-belief story
-0,archi_standard,left-right_button_press,guess the gender from eyes image vs. view scrambled image,scrambled image,expression gender
-2,archi_standard,motor-cognitive,guess the gender from face image,scrambled image,face gender
-3,archi_standard,reading-checkerboard,assess face trustfulness vs. gender,face gender,face trusty
-1,archi_standard,reading-listening,guess intention vs. gender from eyes image,expression gender,expression intention
-167,attention,double_congruent,view a pseudoword,scrambled image,pseudoword image
-169,attention,double_cue,view a scrambled image,fixation,scrambled image
-168,attention,double_incongruent,view a scene,scrambled image,scene image
-166,attention,double_incongruent-double_congruent,view a house,scrambled image,house image
-165,attention,incongruent-congruent,view a face image,scrambled image,face image
-172,attention,spatial_congruent,movie with physically painful events,fixation,physical-pain movie
-164,attention,spatial_cue,view a characters,scrambled image,characters image
-163,attention,spatial_cue-double_cue,view an animal,scrambled image,animal image
-171,attention,spatial_incongruent,mental events vs. physically painful events,physical-pain movie,mental movie
-170,attention,spatial_incongruent-spatial_congruent,view a tool,scrambled image,tool image
-157,audio,animal-others,response,,response
-150,audio,animal-silence,read instructions,fixation,reading instructions
-156,audio,mean-silence,maintaining six letters vs. one,maintain 1 letter,maintain 6 letters
-158,audio,music-others,maintain position of two dots vs. one,maintain 1 position,maintain 2 positions
-151,audio,music-silence,saccade vs. any movement,any motion,saccade
-159,audio,nature-others,maintain position of four dots vs. one,maintain 1 position,maintain 4 positions
-152,audio,nature-silence,move tongue vs. any movement,any motion,tongue
-160,audio,speech-others,maintain position of six dots vs. two,maintain 2 positions,maintain 6 positions
-153,audio,speech-silence,maintaining two letters vs. one,maintain 1 letter,maintain 2 letters
-161,audio,tool-others,maintain position of six dots vs. one,maintain 1 position,maintain 6 positions
-154,audio,tool-silence,maintaining four letters vs. one,maintain 1 letter,maintain 4 letters
-162,audio,voice-others,response,,response
-155,audio,voice-silence,maintaining six letters vs. two,maintain 2 letters,maintain 6 letters
-85,bang,no_talk,effect of cognitive control,attend ,response
-84,bang,talk-no_talk,incorrect vs. correct probe with correct cue,response,response
-197,columbia_cards,gain,"task repeats, cue switch",fixation,cue switch
-196,columbia_cards,loss,both task and cue repeats,fixation,task repetition
-195,columbia_cards,num_loss_cards,effect of cue switch,cue switch,cue stay
-183,discount,amount,respond anyway even if the stop signal appears,fixation,ignore stop signal
-182,discount,delay,ignore stop signal vs. simply respond,ignore stop signal,response on ignore side
-199,dot_patterns,correct_cue_correct_probe,both task and cue switch,fixation,task switch
-200,dot_patterns,correct_cue_incorrect_probe,both task and cue switch,fixation,task switch
-203,dot_patterns,correct_cue_incorrect_probe-correct_cue_correct_probe,complex goal hierarchy + complex search depth,fixation,solve complex task
-205,dot_patterns,correct_cue_incorrect_probe-incorrect_cue_correct_probe,simple goal hierarchy + simple search depth,fixation,solve simple task
-198,dot_patterns,cue,effect of task switch,task switch,task stak
-207,dot_patterns,incorrect_cue-correct_cue,visual representation in the left half-plane of the visual field delimited by its vertical meridian,fixation,left_meridian
-201,dot_patterns,incorrect_cue_correct_probe,effect of goal hierarchy,solve simple hierarchy,solve complex hierarchy
-202,dot_patterns,incorrect_cue_incorrect_probe,complex goal hierarchy + simple search depth,fixation,solve complex hierarchy
-206,dot_patterns,incorrect_cue_incorrect_probe-correct_cue_incorrect_probe,simple goal hierarchy + complex search depth,fixation,solve complex depth
-204,dot_patterns,incorrect_cue_incorrect_probe-incorrect_cue_correct_probe,effect of search depth,solve simple depth,solve complex depth
-208,dot_patterns,incorrect_probe-correct_probe,visual representation in the lower-left quadrant of the visual field delimited by its vertical and horizontal meridians,fixation,lower_left
-69,emotional_pain,emotional-physical_pain,expected loss,large loss,small loss
-68,emotional_pain,physical_pain,expected gain,large gain,small gain
-75,enumeration,enumeration_constant,effect of delay on reward ,delayed reward,fast reward
-76,enumeration,enumeration_linear,both cue and probe are correct (AX),fixation,response
-77,enumeration,enumeration_quadratic,"the cue is correct, but the probe is not (AY)",fixation,response
-35,hcp_emotion,face-shape,listening to sounds vs. silence,silence,sound
-34,hcp_emotion,shape,listen to animals vs. silence,silence,animal sound
-27,hcp_gambling,punishment-reward,conflict between automatic and instructed response,automatic response,conflictive response
-28,hcp_gambling,reward,"cued  probe, no distractors",fixation,"spatial cue, no distractors"
-24,hcp_language,math,cues appear in both possible location of the probe at the same time,fixation,no spatial cue
-23,hcp_language,story-math,no spatial cue + no distractors in the probe,fixation,"no spatial cue, no distractors"
-31,hcp_motor,left_foot-avg,cued probe with distractors in the probe,fixation,"spatial cue, distractors"
-29,hcp_motor,left_hand-avg,cued probe,fixation,spatial cue
-32,hcp_motor,right_foot-avg,ignore distractors vs. no distractors with spatial cue,no distractors,ignore distractors
-30,hcp_motor,right_hand-avg,cued vs. uncued probe,visual cue,no cue
-33,hcp_motor,tongue-avg,listen to animals vs. other sounds,other sounds,animal sound
-37,hcp_relational,match,listen to music vs. silence,silence,music
-36,hcp_relational,relational-match,music-others,,music-others
-25,hcp_social,mental-random,no spatial cue + distractors in the probe,fixation,"no spatial cue, distractors"
-26,hcp_social,random,ignore distractors vs. no distractors without spatial cue,no distractors,ignore distractors
-38,hcp_wm,2back-0back,listen to nature vs. other sounds,other sounds,nature sound
-39,hcp_wm,body-avg,listen to nature vs. silence,silence,nature sound
-40,hcp_wm,face-avg,listen to speech vs. other sounds,other sounds,speech
-41,hcp_wm,place-avg,listen to speech vs. silence,silence,speech
-42,hcp_wm,tools-avg,listen to tool vs. other sounds,other sounds,tool sound
-111,lyon_audi,alphabet-silence,move tongue vs. hands and feet,any motion,tongue
-115,lyon_audi,animals-silence,random motion vs. fixation,fixation,random motion
-112,lyon_audi,cough-silence,visual feature matching vs. fixation,fixation,visual matching
-113,lyon_audi,environment-silence,relational comparison vs. matching,visual matching,relational processing
-106,lyon_audi,human-silence,listening to tale vs. mental additions,mental addition,tale
-114,lyon_audi,laugh-silence,mental motion vs. random motion,random motion,mental motion
-108,lyon_audi,music-silence,"move left hand vs. right hand, feet and tongue",any motion,left hand
-109,lyon_audi,reverse-silence,"move right foot vs. left foot, hands and tongue",any motion,right foot
-107,lyon_audi,silence,"move left foot vs. right foot, hands and tongue",any motion,left foot
-110,lyon_audi,speech-silence,"move right hand vs. left hand, feet and tongue",any motion,right hand
-104,lyon_audi,suomi-silence,gambling with positive outcome,fixation,reward
-103,lyon_audi,tear-silence,negative vs. positive gambling outcome,reward,punishment
-105,lyon_audi,yawn-silence,mental additions,fixation,mental addition
-127,lyon_lec1,pseudoword-random_string,listen to music vs. silence,silence,music
-124,lyon_lec1,random_string,listen to environment sounds,silence,environment sounds
-125,lyon_lec1,word-pseudoword,listen to human sounds,silence,human sounds
-126,lyon_lec1,word-random_string,listen to laugh,silence,laugh
-102,lyon_lec2,attend,shape comparison,fixation,shape outline
-101,lyon_lec2,attend-unattend,emotional face comparison vs. shape comparison,shape outline,face image
-100,lyon_lec2,unattend,quadratic effect of numerosity in enumeration,fixation,enumeration response to numerosity interaction
-148,lyon_mcse,low-high_salience,move left hand vs. any movement,any motion,left hand
-149,lyon_mcse,salience_left-right,move right hand vs. any movement,any motion,right hand
-141,lyon_moto,finger_left-fixation,response to unattended text,fixation,non-attended text
-140,lyon_moto,finger_right-fixation,response to attended vs. unattended text,non-attended text,attended text
-142,lyon_moto,foot_left-fixation,looking for a low-salient symbol,high salience,low salience
-143,lyon_moto,foot_right-fixation,looking for a symbol in left vs. right visual field,right visual field,left visual field
-144,lyon_moto,hand_left-fixation,left finger tapping vs. any movement,any motion,left finger
-145,lyon_moto,hand_right-fixation,right finger tapping vs. any movement,any motion,right finger
-138,lyon_moto,instructions,response to attended text,fixation,attended text
-146,lyon_moto,saccade-fixation,move left foot vs. any movement,any motion,left foot
-147,lyon_moto,tongue-fixation,move right foot vs. any movement,any motion,right foot
-129,lyon_mveb,2_letters_different-same,listen to silence,silence,silence
-130,lyon_mveb,4_letters_different-same,listen to speech vs. silence,silence,speech
-132,lyon_mveb,6_letters_different-2_letters_different,listen to tears,silence,tear sound
-131,lyon_mveb,6_letters_different-same,listen to unknown language,silence,unknown language
-128,lyon_mveb,response,listen to reversed speech,silence,reversed speech
-134,lyon_mvis,2_dots-2_dots_control,read a pseudoword vs. a random string,random string,pseudoword
-135,lyon_mvis,4_dots-4_dots_control,read a random string,fixation,random string
-137,lyon_mvis,6_dots-2_dots,read a word vs. a random string,random string,word
-136,lyon_mvis,6_dots-6_dots_control,read a word vs. a pseudoword,pseudoword,word
-133,lyon_mvis,response,listen to yawning,silence,yawning
-121,lyon_visu,animal-scrambled,listen to letters,silence,letters sounds
-118,lyon_visu,characters-scrambled,"face image versus body, place, tool image",any image,face image
-117,lyon_visu,face-scrambled,"body image versus face, place, tool image",any image,body image
-120,lyon_visu,house-scrambled,"tool image versus face, place, body image",any image,tool image
-122,lyon_visu,pseudoword-scrambled,listen to animals,silence,animals
-119,lyon_visu,scene-scrambled,"place image versus face, body, tool image",any image,place image
-116,lyon_visu,scrambled,2-back vs. 0-back,0-back,2-back
-123,lyon_visu,tool-scrambled,listen to coughing,silence,coughing
-71,pain_movie,movie_mental-pain,effect of reward gain,greater reward,smaller reward
-70,pain_movie,movie_pain,probability of losing,high risk,low risk
-63,preference,preference_constant,tool-silence,,tool-silence
-64,preference,preference_linear,listen to voice vs. other sounds ,other sounds,voice
-65,preference,preference_quadratic,listen to voice vs. sounds ,silence,voice
-97,ring,foveal,reading physical pain story,fixation,physical-pain story
-98,ring,middle,enumeration,fixation,enumeration response to constant numerosity
-99,ring,peripheral,linear effect of numerosity in enumeration,fixation,enumeration response to numerosity
-184,selective_stop_signal,go_critical,ignore stop signal vs. inhibit motor response,response stop,ignore stop signal
-188,selective_stop_signal,go_critical-stop,stop the response if the stop signal appears,fixation,response stop
-185,selective_stop_signal,go_noncritical,stop the response if the stop signal appears,fixation,response stop
-189,selective_stop_signal,go_noncritical-ignore,response inhibition,response,response stop
-187,selective_stop_signal,ignore,shape recognition,fixation,shape recognition
-190,selective_stop_signal,ignore-stop,word and word color are the same,fixation,automatic response
-186,selective_stop_signal,stop,inhibit motor response vs. ignore stop signal,ignore stop signal,response stop
-191,selective_stop_signal,stop-ignore,word and color are not the same,fixation,conflictive response
-173,stop_signal,go,object perception and evaluation,fixation,visual evaluation
-174,stop_signal,stop,linear effect of preference,no preference,visual preference
-175,stop_signal,stop-go,quadratic effect of preference,no confidence ,confidence in preference
-192,stroop,congruent,conflict between automatic and instructed response,automatic response,conflictive response
-193,stroop,incongruent,belief vs. factual judgments,fact judgments,belief judgments
-194,stroop,incongruent-congruent,manipulation of fact judgments,fixation,fact judgments
-67,theory_of_mind,belief-photo,speech vs. non-speech sections in movie watching,no speech,speech
-66,theory_of_mind,photo,non-speech section in movie watching,fixation,no speech
-181,two_by_two,cue_switch-stay,respond with the correct finger depending on the image displayed (side instructed to ignore the stop signal),fixation,response on ignore side
-176,two_by_two,task_stay_cue_stay,visual representation in the fovea,fixation,foveal
-179,two_by_two,task_stay_cue_switch,respond with the correct finger depending on the image displayed (side instructed to stop if the stop signal appears),fixation,response on stop side
-180,two_by_two,task_switch-stay,inhibit the motor response,response stop,response on stop side
-178,two_by_two,task_switch_cue_stay,visual representation in the far-periphery of the visual field,fixation,peripheral
-177,two_by_two,task_switch_cue_switch,visual representation in the mid-periphery of the visual field,fixation,middle
-214,ward_and_aliport,ambiguous-unambiguous,visual representation in the upper-right quadrant of the visual field delimited by its vertical and horizontal meridians,fixation,upper_right
-212,ward_and_aliport,ambiguous_direct,visual representation in the upper-left quadrant of the visual field delimited by its vertical and horizontal meridians,fixation,upper_left
-209,ward_and_aliport,ambiguous_intermediate,visual representation in the lower half-plane of the visual field delimited by its horizontal meridian,fixation,lower_meridian
-211,ward_and_aliport,intermediate-direct,visual representation in the right half-plane of the visual field delimited by its vertical meridian,fixation,right_meridian
-210,ward_and_aliport,unambiguous_direct,visual representation in the lower-right quadrant of the visual field delimited by its vertical and horizontal meridians,fixation,lower_right
-213,ward_and_aliport,unambiguous_intermediate,visual representation in the upper half-plane of the visual field delimited by its horizontal meridian,fixation,upper_meridian
-94,wedge,left_meridian,shape recognition,attend ,attend 
-96,wedge,lower_left,emotional vs. physical pain story,physical-pain story,emotional-pain story
-89,wedge,lower_meridian,attend to cue,fixation,cue perception
-91,wedge,lower_right,cue is incorrect but probe is correct (BX),fixation,attend 
-93,wedge,right_meridian,effect of cognitive control,reponse,attend 
-92,wedge,upper_left,both cue and probe are incorrect (BY),fixation,attend 
-90,wedge,upper_meridian,effect of cognitive control,non vigilance,vigilance
-95,wedge,upper_right,shape recognition,response,response
+0,archi_emotional,expression_gender-control,guess the gender from eyes image vs. view scrambled image,scrambled image,expression gender
+1,archi_emotional,expression_intention-gender,guess intention vs. gender from eyes image,expression gender,expression intention
+2,archi_emotional,face_gender-control,guess the gender from face image,scrambled image,face gender
+3,archi_emotional,face_trusty-gender,assess face trustfulness vs. gender,face gender,face trusty
+4,archi_social,false_belief-mechanistic_audio,false-belief tale vs. mechanistic tale,mechanistic tale,false-belief tale
+5,archi_social,false_belief-mechanistic_video,false-belief story vs. mechanistic story,mechanistic story,false-belief story
+6,archi_social,mechanistic_audio,listening to a mechanistic tale,fixation,mechanistic tale
+7,archi_social,mechanistic_video,reading a mechanistic story,fixation,mechanistic story
+8,archi_social,non_speech_sound,listen to natural sound,silence,natural sound
+9,archi_social,speech-non_speech,listen to voice sound vs. natural sound,natural sound,voice sound
+10,archi_social,triangle_mental-random,mental motion vs. random motion,random motion,mental motion
+11,archi_social,triangle_random,randomly drifting triangle,fixation,random motion
+12,archi_spatial,grasp-orientation,object grasping vs. orientation reporting,mimic orientation,object grasping
+13,archi_spatial,hand-side,left or right hand vs. hand palm or back,hand palm or back,guess which hand
+14,archi_spatial,object_orientation,image orientation reporting,fixation,mimic orientation
+15,archi_spatial,rotation_side,hand palm or back vs. fixation,fixation,hand palm or back
+16,archi_spatial,saccades,saccade vs. fixation,fixation,saccade
+17,archi_standard,computation-sentences,mental subtraction vs. sentence reading,sentence,mental subtraction
+18,archi_standard,horizontal-vertical,horizontal vs. vertical checkerboard,vertical checkerboard,horizontal checkerboard
+19,archi_standard,left-right_button_press,left vs. right hand button press,right hand,left hand
+20,archi_standard,motor-cognitive,button presses vs. narrative/computation,cognitive tasks,button presses
+21,archi_standard,reading-checkerboard,read sentence vs. checkerboard,checkerboard,read sentence
+22,archi_standard,reading-listening,reading sentence vs. listening to sentence,listen to sentence,read sentence
+23,attention,double_congruent,no spatial cue + no distractors in the probe,fixation,"no spatial cue, no distractors"
+24,attention,double_cue,cues appear in both possible location of the probe at the same time,fixation,no spatial cue
+25,attention,double_incongruent,no spatial cue + distractors in the probe,fixation,"no spatial cue, distractors"
+26,attention,double_incongruent-double_congruent,ignore distractors vs. no distractors without spatial cue,no distractors,ignore distractors
+27,attention,incongruent-congruent,conflict between automatic and instructed response,automatic response,conflictive response
+28,attention,spatial_congruent,"cued  probe, no distractors",fixation,"spatial cue, no distractors"
+29,attention,spatial_cue,cued probe,fixation,spatial cue
+30,attention,spatial_cue-double_cue,cued vs. uncued probe,visual cue,no cue
+31,attention,spatial_incongruent,cued probe with distractors in the probe,fixation,"spatial cue, distractors"
+32,attention,spatial_incongruent-spatial_congruent,ignore distractors vs. no distractors with spatial cue,no distractors,ignore distractors
+33,audio,animal-others,listen to animals vs. other sounds,other sounds,animal sound
+34,audio,animal-silence,listen to animals vs. silence,silence,animal sound
+35,audio,mean-silence,listening to sounds vs. silence,silence,sound
+36,audio,music-others,music-others,other sounds,music sound
+37,audio,music-silence,listen to music vs. silence,silence,music
+38,audio,nature-others,listen to nature vs. other sounds,other sounds,nature sound
+39,audio,nature-silence,listen to nature vs. silence,silence,nature sound
+40,audio,speech-others,listen to speech vs. other sounds,other sounds,speech
+41,audio,speech-silence,listen to speech vs. silence,silence,speech
+42,audio,tool-others,listen to tool vs. other sounds,other sounds,tool sound
+43,audio,tool-silence,tool-silence,silence,tool sound
+44,audio,voice-others,listen to voice vs. other sounds ,other sounds,voice
+45,audio,voice-silence,listen to voice vs. sounds ,silence,voice
+46,bang,no_talk,non-speech section in movie watching,fixation,no speech
+47,bang,talk-no_talk,speech vs. non-speech sections in movie watching,no speech,speech
+48,columbia_cards,gain,expected gain,large gain,small gain
+49,columbia_cards,loss,expected loss,large loss,small loss
+50,columbia_cards,num_loss_cards,probability of losing,high risk,low risk
+51,discount,amount,effect of reward gain,greater reward,smaller reward
+52,discount,delay,effect of delay on reward ,delayed reward,fast reward
+53,dot_patterns,correct_cue_correct_probe,both cue and probe are correct (AX),fixation,response
+54,dot_patterns,correct_cue_incorrect_probe,"the cue is correct, but the probe is not (AY)",fixation,response
+55,dot_patterns,correct_cue_incorrect_probe-correct_cue_correct_probe,incorrect vs. correct probe with correct cue,response,response
+56,dot_patterns,correct_cue_incorrect_probe-incorrect_cue_correct_probe,effect of cognitive control,attend ,response
+57,dot_patterns,cue,attend to cue,fixation,cue perception
+58,dot_patterns,incorrect_cue-correct_cue,effect of cognitive control,non vigilance,vigilance
+59,dot_patterns,incorrect_cue_correct_probe,cue is incorrect but probe is correct (BX),fixation,attend 
+60,dot_patterns,incorrect_cue_incorrect_probe,both cue and probe are incorrect (BY),fixation,attend 
+61,dot_patterns,incorrect_cue_incorrect_probe-correct_cue_incorrect_probe,effect of cognitive control,reponse,attend 
+62,dot_patterns,incorrect_cue_incorrect_probe-incorrect_cue_correct_probe,shape recognition,attend ,attend 
+63,dot_patterns,incorrect_probe-correct_probe,shape recognition,response,response
+64,emotional_pain,emotional-physical_pain,emotional vs. physical pain story,physical-pain story,emotional-pain story
+65,emotional_pain,physical_pain,reading physical pain story,fixation,physical-pain story
+66,enumeration,enumeration_constant,enumeration,fixation,enumeration response to constant numerosity
+67,enumeration,enumeration_linear,linear effect of numerosity in enumeration,fixation,enumeration response to numerosity
+68,enumeration,enumeration_quadratic,quadratic effect of numerosity in enumeration,fixation,enumeration response to numerosity interaction
+69,hcp_emotion,face-shape,emotional face comparison vs. shape comparison,shape outline,face image
+70,hcp_emotion,shape,shape comparison,fixation,shape outline
+71,hcp_gambling,punishment-reward,negative vs. positive gambling outcome,reward,punishment
+72,hcp_gambling,reward,gambling with positive outcome,fixation,reward
+73,hcp_language,math,mental additions,fixation,mental addition
+74,hcp_language,story-math,listening to tale vs. mental additions,mental addition,tale
+75,hcp_motor,left_foot-avg,"move left foot vs. right foot, hands and tongue",any motion,left foot
+76,hcp_motor,left_hand-avg,"move left hand vs. right hand, feet and tongue",any motion,left hand
+77,hcp_motor,right_foot-avg,"move right foot vs. left foot, hands and tongue",any motion,right foot
+78,hcp_motor,right_hand-avg,"move right hand vs. left hand, feet and tongue",any motion,right hand
+79,hcp_motor,tongue-avg,move tongue vs. hands and feet,any motion,tongue
+80,hcp_relational,match,visual feature matching vs. fixation,fixation,visual matching
+81,hcp_relational,relational-match,relational comparison vs. matching,visual matching,relational processing
+82,hcp_social,mental-random,mental motion vs. random motion,random motion,mental motion
+83,hcp_social,random,random motion vs. fixation,fixation,random motion
+84,hcp_wm,2back-0back,2-back vs. 0-back,0-back,2-back
+85,hcp_wm,body-avg,"body image versus face, place, tool image",any image,body image
+86,hcp_wm,face-avg,"face image versus body, place, tool image",any image,face image
+87,hcp_wm,place-avg,"place image versus face, body, tool image",any image,place image
+88,hcp_wm,tools-avg,"tool image versus face, place, body image",any image,tool image
+89,lyon_audi,alphabet-silence,listen to letters,silence,letters sounds
+90,lyon_audi,animals-silence,listen to animals,silence,animals
+91,lyon_audi,cough-silence,listen to coughing,silence,coughing
+92,lyon_audi,environment-silence,listen to environment sounds,silence,environment sounds
+93,lyon_audi,human-silence,listen to human sounds,silence,human sounds
+94,lyon_audi,laugh-silence,listen to laugh,silence,laugh
+95,lyon_audi,music-silence,listen to music vs. silence,silence,music
+96,lyon_audi,reverse-silence,listen to reversed speech,silence,reversed speech
+97,lyon_audi,silence,listen to silence,silence,silence
+98,lyon_audi,speech-silence,listen to speech vs. silence,silence,speech
+99,lyon_audi,suomi-silence,listen to unknown language,silence,unknown language
+100,lyon_audi,tear-silence,listen to tears,silence,tear sound
+101,lyon_audi,yawn-silence,listen to yawning,silence,yawning
+102,lyon_lec1,pseudoword-random_string,read a pseudoword vs. a random string,random string,pseudoword
+103,lyon_lec1,random_string,read a random string,fixation,random string
+104,lyon_lec1,word-pseudoword,read a word vs. a pseudoword,pseudoword,word
+105,lyon_lec1,word-random_string,read a word vs. a random string,random string,word
+106,lyon_lec2,attend,response to attended text,fixation,attended text
+107,lyon_lec2,attend-unattend,response to attended vs. unattended text,non-attended text,attended text
+108,lyon_lec2,unattend,response to unattended text,fixation,non-attended text
+109,lyon_mcse,low-high_salience,looking for a low-salient symbol,high salience,low salience
+110,lyon_mcse,salience_left-right,looking for a symbol in left vs. right visual field,right visual field,left visual field
+111,lyon_moto,finger_left-fixation,left finger tapping vs. any movement,any motion,left finger
+112,lyon_moto,finger_right-fixation,right finger tapping vs. any movement,any motion,right finger
+113,lyon_moto,foot_left-fixation,move left foot vs. any movement,any motion,left foot
+114,lyon_moto,foot_right-fixation,move right foot vs. any movement,any motion,right foot
+115,lyon_moto,hand_left-fixation,move left hand vs. any movement,any motion,left hand
+116,lyon_moto,hand_right-fixation,move right hand vs. any movement,any motion,right hand
+117,lyon_moto,instructions,read instructions,fixation,reading instructions
+118,lyon_moto,saccade-fixation,saccade vs. any movement,any motion,saccade
+119,lyon_moto,tongue-fixation,move tongue vs. any movement,any motion,tongue
+120,lyon_mveb,2_letters_different-same,maintaining two letters vs. one,maintain 1 letter,maintain 2 letters
+121,lyon_mveb,4_letters_different-same,maintaining four letters vs. one,maintain 1 letter,maintain 4 letters
+122,lyon_mveb,6_letters_different-2_letters_different,maintaining six letters vs. two,maintain 2 letters,maintain 6 letters
+123,lyon_mveb,6_letters_different-same,maintaining six letters vs. one,maintain 1 letter,maintain 6 letters
+124,lyon_mveb,response,response,fixation,response
+125,lyon_mvis,2_dots-2_dots_control,maintain position of two dots vs. one,maintain 1 position,maintain 2 positions
+126,lyon_mvis,4_dots-4_dots_control,maintain position of four dots vs. one,maintain 1 position,maintain 4 positions
+127,lyon_mvis,6_dots-2_dots,maintain position of six dots vs. two,maintain 2 positions,maintain 6 positions
+128,lyon_mvis,6_dots-6_dots_control,maintain position of six dots vs. one,maintain 1 position,maintain 6 positions
+129,lyon_mvis,response,response,fixation,response
+130,lyon_visu,animal-scrambled,view an animal,scrambled image,animal image
+131,lyon_visu,characters-scrambled,view a characters,scrambled image,characters image
+132,lyon_visu,face-scrambled,view a face image,scrambled image,face image
+133,lyon_visu,house-scrambled,view a house,scrambled image,house image
+134,lyon_visu,pseudoword-scrambled,view a pseudoword,scrambled image,pseudoword image
+135,lyon_visu,scene-scrambled,view a scene,scrambled image,scene image
+136,lyon_visu,scrambled,view a scrambled image,fixation,scrambled image
+137,lyon_visu,tool-scrambled,view a tool,scrambled image,tool image
+138,pain_movie,movie_mental-pain,mental events vs. physically painful events,physical-pain movie,mental movie
+139,pain_movie,movie_pain,movie with physically painful events,fixation,physical-pain movie
+140,preference,preference_constant,object perception and evaluation,fixation,visual evaluation
+141,preference,preference_linear,linear effect of preference,no preference,visual preference
+142,preference,preference_quadratic,quadratic effect of preference,no confidence ,confidence in preference
+143,ring,foveal,visual representation in the fovea,fixation,foveal
+144,ring,middle,visual representation in the mid-periphery of the visual field,fixation,middle
+145,ring,peripheral,visual representation in the far-periphery of the visual field,fixation,peripheral
+146,selective_stop_signal,go_critical,respond with the correct finger depending on the image displayed (side instructed to stop if the stop signal appears),fixation,response on stop side
+147,selective_stop_signal,go_critical-stop,inhibit the motor response,response stop,response on stop side
+148,selective_stop_signal,go_noncritical,respond with the correct finger depending on the image displayed (side instructed to ignore the stop signal),fixation,response on ignore side
+149,selective_stop_signal,go_noncritical-ignore,ignore stop signal vs. simply respond,ignore stop signal,response on ignore side
+150,selective_stop_signal,ignore,respond anyway even if the stop signal appears,fixation,ignore stop signal
+151,selective_stop_signal,ignore-stop,ignore stop signal vs. inhibit motor response,response stop,ignore stop signal
+152,selective_stop_signal,stop,stop the response if the stop signal appears,fixation,response stop
+153,selective_stop_signal,stop-ignore,inhibit motor response vs. ignore stop signal,ignore stop signal,response stop
+154,stop_signal,go,shape recognition,fixation,shape recognition
+155,stop_signal,stop,stop the response if the stop signal appears,fixation,response stop
+156,stop_signal,stop-go,response inhibition,response,response stop
+157,stroop,congruent,word and word color are the same,fixation,automatic response
+158,stroop,incongruent,word and color are not the same,fixation,conflictive response
+159,stroop,incongruent-congruent,conflict between automatic and instructed response,automatic response,conflictive response
+160,theory_of_mind,belief-photo,belief vs. factual judgments,fact judgments,belief judgments
+161,theory_of_mind,photo,manipulation of fact judgments,fixation,fact judgments
+162,two_by_two,cue_switch-stay,effect of cue switch,cue switch,cue stay
+163,two_by_two,task_stay_cue_stay,both task and cue repeats,fixation,task repetition
+164,two_by_two,task_stay_cue_switch,"task repeats, cue switch",fixation,cue switch
+165,two_by_two,task_switch-stay,effect of task switch,task switch,task stak
+166,two_by_two,task_switch_cue_stay,both task and cue switch,fixation,task switch
+167,two_by_two,task_switch_cue_switch,both task and cue switch,fixation,task switch
+168,ward_and_aliport,ambiguous-unambiguous,effect of goal hierarchy,solve simple hierarchy,solve complex hierarchy
+169,ward_and_aliport,ambiguous_direct,complex goal hierarchy + simple search depth,fixation,solve complex hierarchy
+170,ward_and_aliport,ambiguous_intermediate,complex goal hierarchy + complex search depth,fixation,solve complex task
+171,ward_and_aliport,intermediate-direct,effect of search depth,solve simple depth,solve complex depth
+172,ward_and_aliport,unambiguous_direct,simple goal hierarchy + simple search depth,fixation,solve simple task
+173,ward_and_aliport,unambiguous_intermediate,simple goal hierarchy + complex search depth,fixation,solve complex depth
+174,wedge,left_meridian,visual representation in the left half-plane of the visual field delimited by its vertical meridian,fixation,left_meridian
+175,wedge,lower_left,visual representation in the lower-left quadrant of the visual field delimited by its vertical and horizontal meridians,fixation,lower_left
+176,wedge,lower_meridian,visual representation in the lower half-plane of the visual field delimited by its horizontal meridian,fixation,lower_meridian
+177,wedge,lower_right,visual representation in the lower-right quadrant of the visual field delimited by its vertical and horizontal meridians,fixation,lower_right
+178,wedge,right_meridian,visual representation in the right half-plane of the visual field delimited by its vertical meridian,fixation,right_meridian
+179,wedge,upper_left,visual representation in the upper-left quadrant of the visual field delimited by its vertical and horizontal meridians,fixation,upper_left
+180,wedge,upper_meridian,visual representation in the upper half-plane of the visual field delimited by its horizontal meridian,fixation,upper_meridian
+181,wedge,upper_right,visual representation in the upper-right quadrant of the visual field delimited by its vertical and horizontal meridians,fixation,upper_right

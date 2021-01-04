@@ -265,7 +265,7 @@ namespace HBP.UI.Module3D
         /// Update Maximum and Minimum Cal value
         /// </summary>
         /// <param name="values">Cal values</param>
-        public void UpdateFMRICalValues(Volume volume, float negativeMin, float negativeMax, float positiveMin, float positiveMax)
+        public void UpdateFMRICalValues(Volume volume, float negativeMin, float negativeMax, float positiveMin, float positiveMax, bool updateHistogram = true)
         {
             m_Initialized = false;
 
@@ -304,7 +304,7 @@ namespace HBP.UI.Module3D
             SetNegativeValues(negativeMin, negativeMax);
             SetPositiveValues(positiveMin, positiveMax);
 
-            UpdateMRIHistogram(volume);
+            if (updateHistogram) UpdateMRIHistogram(volume);
 
             m_Initialized = true;
         }
