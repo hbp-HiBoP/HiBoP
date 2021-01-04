@@ -80,9 +80,9 @@ namespace HBP.Module3D
         public bool SurfaceNeedsUpdate { get; set; } = true;
 
         /// <summary>
-        /// Surface meshes displayed in this column
+        /// Surface mesh displayed in this column
         /// </summary>
-        public List<GameObject> BrainSurfaceMeshes { get; protected set; } = new List<GameObject>();
+        public GameObject BrainMesh { get; protected set; }
 
         /// <summary>
         /// Views of this column
@@ -124,7 +124,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Texture generator for the brain surface
         /// </summary>
-        public List<MRIBrainGenerator> DLLBrainTextureGenerators { get; protected set; } = new List<MRIBrainGenerator>();
+        public MRIBrainGenerator DLLBrainTextureGenerator { get; set; }
         /// <summary>
         /// Volume generator for cut textures
         /// </summary>
@@ -175,7 +175,7 @@ namespace HBP.Module3D
         private void OnDestroy()
         {
             RawElectrodes?.Dispose();
-            foreach (var dllBrainTextureGenerator in DLLBrainTextureGenerators) dllBrainTextureGenerator?.Dispose();
+            DLLBrainTextureGenerator?.Dispose();
             DLLMRIVolumeGenerator?.Dispose();
             CutTextures.Clean();
         }
@@ -195,6 +195,8 @@ namespace HBP.Module3D
             ColumnData = baseColumn;
             UpdateSites(implantation, sceneSitePatientParent);
             AddView();
+
+            DLLBrainTextureGenerator = new MRIBrainGenerator();
         }
         /// <summary>
         /// Update the sites of this column (when changing the implantation of the scene)
@@ -267,46 +269,22 @@ namespace HBP.Module3D
         /// <summary>
         /// Instantiate the brain meshes for this column (required because we need different UVs to display a different activity on each column)
         /// </summary>
-        /// <param name="brainMeshesParent">Parent of the meshes in the scene</param>
-        public void InitializeColumnMeshes(Transform brainMeshesParent)
+        /// <param name="brainMesh">Mesh of the base scene</param>
+        public void InitializeColumnMeshes(GameObject brainMesh)
         {
-            BrainSurfaceMeshes = new List<GameObject>();
-            foreach (Transform meshPart in brainMeshesParent.transform)
-            {
-                if (meshPart.GetComponent<MeshCollider>() == null) // if the gameobject does not have mesh collider
-                {
-                    GameObject brainPart = Instantiate(meshPart.gameObject, m_BrainSurfaceMeshesParent);
-                    brainPart.layer = LayerMask.NameToLayer(Layer);
-                    brainPart.GetComponent<MeshFilter>().mesh = Instantiate(meshPart.GetComponent<MeshFilter>().mesh);
-                    brainPart.SetActive(true);
-                    BrainSurfaceMeshes.Add(brainPart);
-                }
-            }
+            BrainMesh = Instantiate(brainMesh, m_BrainSurfaceMeshesParent);
+            BrainMesh.layer = LayerMask.NameToLayer(Layer);
+            BrainMesh.GetComponent<MeshFilter>().mesh = Instantiate(brainMesh.GetComponent<MeshFilter>().mesh);
+            BrainMesh.SetActive(true);
         }
         /// <summary>
         /// Update the meshes of this column (when updating the base meshes in the scene)
         /// </summary>
-        /// <param name="brainMeshes">Meshes of the base scene</param>
-        public void UpdateColumnMeshes(List<GameObject> brainMeshes)
+        /// <param name="brainMesh">Mesh of the base scene</param>
+        public void UpdateColumnBrainMesh(GameObject brainMesh)
         {
-            for (int i = 0; i < brainMeshes.Count; i++)
-            {
-                if (brainMeshes[i].GetComponent<MeshCollider>() == null) // if the gameobject does not have mesh collider
-                {
-                    DestroyImmediate(BrainSurfaceMeshes[i].GetComponent<MeshFilter>().sharedMesh);
-                    BrainSurfaceMeshes[i].GetComponent<MeshFilter>().sharedMesh = Instantiate(brainMeshes[i].GetComponent<MeshFilter>().mesh);
-                }
-            }
-        }
-        /// <summary>
-        /// Reset the splits number (called when changing the splits number in the scene)
-        /// </summary>
-        /// <param name="nbSplits">Number of splits</param>
-        public void ResetSplitsNumber(int nbSplits)
-        {
-            DLLBrainTextureGenerators = new List<MRIBrainGenerator>(nbSplits);
-            for (int ii = 0; ii < nbSplits; ++ii)
-                DLLBrainTextureGenerators.Add(new MRIBrainGenerator());
+            DestroyImmediate(BrainMesh.GetComponent<MeshFilter>().sharedMesh);
+            BrainMesh.GetComponent<MeshFilter>().sharedMesh = Instantiate(brainMesh.GetComponent<MeshFilter>().mesh);
         }
         /// <summary>
         /// Update the number of cuts (called when changing the number of cuts in the scene)
@@ -587,8 +565,8 @@ namespace HBP.Module3D
         /// <summary>
         /// Compute the UVs of the meshes for the brain activity
         /// </summary>
-        /// <param name="splittedMeshes">DLL brain splitted meshes</param>
-        public abstract void ComputeSurfaceBrainUVWithActivity(List<Surface> splittedMeshes);
+        /// <param name="brainSurface">Surface of the brain</param>
+        public abstract void ComputeSurfaceBrainUVWithActivity(Surface brainSurface);
         #endregion
     }
 }

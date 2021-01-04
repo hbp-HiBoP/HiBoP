@@ -148,7 +148,7 @@ namespace HBP.Module3D
             }
         }
 
-        private List<float[]> m_SplitFMRIValues;
+        private float[] m_FMRIValues;
 
         private float m_FMRIAlpha = 0.2f;
         /// <summary>
@@ -255,13 +255,8 @@ namespace HBP.Module3D
         {
             m_Scene.BrainMaterials.SetDisplayFMRI(DisplayFMRI);
             if (CurrentVolume != null)
-            {
-                m_SplitFMRIValues = new List<float[]>();
-                for (int ii = 0; ii < m_Scene.MeshManager.MeshSplitNumber; ++ii)
-                {
-                    m_SplitFMRIValues.Add(CurrentVolume.GetVerticesValues(m_Scene.MeshManager.SplittedMeshes[ii]));
-                }
-            }
+                m_FMRIValues = CurrentVolume.GetVerticesValues(m_Scene.MeshManager.BrainSurface);
+
             UpdateSurfaceFMRIColors();
         }
         /// <summary>
@@ -271,22 +266,19 @@ namespace HBP.Module3D
         {
             if (CurrentVolume != null)
             {
-                for (int ii = 0; ii < m_Scene.MeshManager.MeshSplitNumber; ++ii)
+                Color[] colors;
+                if (m_DisplayDiFuMo)
                 {
-                    Color[] colors;
-                    if (m_DisplayDiFuMo)
-                    {
-                        colors = CurrentVolume.ConvertValuesToColors(m_SplitFMRIValues[ii], 0, 1, 0, 1, 1);
-                    }
-                    else
-                    {
-                        colors = CurrentVolume.ConvertValuesToColors(m_SplitFMRIValues[ii], m_FMRINegativeCalMinFactor, m_FMRINegativeCalMaxFactor, m_FMRIPositiveCalMinFactor, m_FMRIPositiveCalMaxFactor, m_FMRIAlpha);
-                    }
-                    m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.colors = colors;
-                    foreach (Column3D column in m_Scene.Columns)
-                    {
-                        column.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().sharedMesh.colors = colors;
-                    }
+                    colors = CurrentVolume.ConvertValuesToColors(m_FMRIValues, 0, 1, 0, 1, 1);
+                }
+                else
+                {
+                    colors = CurrentVolume.ConvertValuesToColors(m_FMRIValues, m_FMRINegativeCalMinFactor, m_FMRINegativeCalMaxFactor, m_FMRIPositiveCalMinFactor, m_FMRIPositiveCalMaxFactor, m_FMRIAlpha);
+                }
+                m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh.colors = colors;
+                foreach (Column3D column in m_Scene.Columns)
+                {
+                    column.BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors = colors;
                 }
             }
             m_Scene.SceneInformation.BaseCutTexturesNeedUpdate = true;

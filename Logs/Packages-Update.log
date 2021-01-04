@@ -99,3 +99,17 @@ The following packages were updated:
   com.unity.purchasing from version 2.0.6 to 2.1.0
   com.unity.test-framework from version 1.1.13 to 1.1.16
   com.unity.textmeshpro from version 2.0.1 to 3.0.1
+
+=== Mon Jan  4 12:56:19 2021
+
+Packages were changed.
+Update Mode: updateDependencies
+
+The following packages were updated:
+  com.unity.ads from version 3.4.9 to 3.5.2
+  com.unity.analytics from version 3.3.5 to 3.5.3
+  com.unity.ide.visualstudio from version 2.0.2 to 2.0.5
+  com.unity.ide.vscode from version 1.2.1 to 1.2.3
+  com.unity.multiplayer-hlapi from version 1.0.4 to 1.0.6
+  com.unity.purchasing from version 2.1.0 to 2.2.1
+  com.unity.test-framework from version 1.1.16 to 1.1.19

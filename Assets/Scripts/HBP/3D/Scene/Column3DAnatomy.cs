@@ -24,8 +24,8 @@ namespace HBP.Module3D
         /// <summary>
         /// Compute the UVs of the meshes for the brain activity
         /// </summary>
-        /// <param name="splittedMeshes">DLL brain splitted meshes</param>
-        public override void ComputeSurfaceBrainUVWithActivity(List<Surface> splittedMeshes)
+        /// <param name="brainSurface">Surface of the brain</param>
+        public override void ComputeSurfaceBrainUVWithActivity(Surface brainSurface)
         {
             //TODO
         }

@@ -9,7 +9,7 @@ namespace HBP.Module3D
     /// </summary>
     /// <remarks>
     /// This class can load and store meshes for the corresponding scene.
-    /// It is also used to select which mesh to display on the scene, and in charge of splitting the mesh into smaller meshes.
+    /// It is also used to select which mesh to display on the scene.
     /// It also handles information about the JuBrain Atlas concerning the selected mesh.
     /// </remarks>
     public class MeshManager : MonoBehaviour
@@ -33,10 +33,6 @@ namespace HBP.Module3D
         /// </summary>
         public List<Mesh3D> LoadedMeshes { get { return (from mesh in Meshes where mesh.IsLoaded select mesh).ToList(); } }
         /// <summary>
-        /// Number of splits for the smaller meshes
-        /// </summary>
-        public int MeshSplitNumber { get; set; }
-        /// <summary>
         /// Selected Mesh3D ID
         /// </summary>
         public int SelectedMeshID { get; private set; }
@@ -50,10 +46,6 @@ namespace HBP.Module3D
                 return Meshes[SelectedMeshID];
             }
         }
-        /// <summary>
-        /// List of splitted meshes
-        /// </summary>
-        public List<DLL.Surface> SplittedMeshes = new List<DLL.Surface>();
 
         /// <summary>
         /// Mesh part to be displayed in the scene
@@ -62,7 +54,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Mesh being displayed in the scene
         /// </summary>
-        public DLL.Surface MeshToDisplay { get; private set; }
+        public DLL.Surface BrainSurface { get; private set; }
         /// <summary>
         /// Simplified mesh to be used in the scene
         /// </summary>
@@ -83,25 +75,7 @@ namespace HBP.Module3D
                     mesh.Clean();
                 }
             }
-            foreach (var mesh in SplittedMeshes)
-            {
-                mesh?.Dispose();
-            }
-        }
-        /// <summary>
-        /// Reset the number of splits of the brain mesh
-        /// </summary>
-        /// <param name="nbSplits">Number of splits</param>
-        private void ResetSplitsNumber(int nbSplits)
-        {
-            if (MeshSplitNumber == nbSplits) return;
-
-            MeshSplitNumber = nbSplits;
-            m_Scene.DLLCommonBrainTextureGeneratorList = new List<DLL.MRIBrainGenerator>(MeshSplitNumber);
-            for (int ii = 0; ii < MeshSplitNumber; ++ii)
-                m_Scene.DLLCommonBrainTextureGeneratorList.Add(new DLL.MRIBrainGenerator());
-
-            m_DisplayedObjects.InstantiateSplits(nbSplits);
+            BrainSurface.Dispose();
         }
         #endregion
 
@@ -217,19 +191,12 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateMeshesFromDLL()
         {
-            for (int ii = 0; ii < MeshSplitNumber; ++ii)
-            {
-                SplittedMeshes[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
-            }
-            UnityEngine.Profiling.Profiler.BeginSample("Update Columns Meshes");
+            BrainSurface.UpdateMeshFromDLL(m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh);
             foreach (Column3D column in m_Scene.Columns)
-            {
-                column.UpdateColumnMeshes(m_DisplayedObjects.BrainSurfaceMeshes);
-            }
-            UnityEngine.Profiling.Profiler.EndSample();
+                column.UpdateColumnBrainMesh(m_DisplayedObjects.Brain);
         }
         /// <summary>
-        /// Update meshes to display (fills information and splits the mesh)
+        /// Update meshes to display (fills information)
         /// </summary>
         public void UpdateMeshesInformation()
         {
@@ -239,52 +206,41 @@ namespace HBP.Module3D
                 {
                     case Data.Enums.MeshPart.Left:
                         SimplifiedMeshToUse = selectedMesh.SimplifiedLeft;
-                        MeshToDisplay = selectedMesh.Left;
+                        BrainSurface = selectedMesh.Left;
                         break;
                     case Data.Enums.MeshPart.Right:
                         SimplifiedMeshToUse = selectedMesh.SimplifiedRight;
-                        MeshToDisplay = selectedMesh.Right;
+                        BrainSurface = selectedMesh.Right;
                         break;
                     case Data.Enums.MeshPart.Both:
                         SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
-                        MeshToDisplay = selectedMesh.Both;
+                        BrainSurface = selectedMesh.Both;
                         break;
                     default:
                         SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
-                        MeshToDisplay = selectedMesh.Both;
+                        BrainSurface = selectedMesh.Both;
                         break;
                 }
             }
             else
             {
                 SimplifiedMeshToUse = SelectedMesh.SimplifiedBoth;
-                MeshToDisplay = SelectedMesh.Both;
+                BrainSurface = SelectedMesh.Both;
             }
             // get the middle
-            MeshCenter = MeshToDisplay.Center;
+            MeshCenter = BrainSurface.Center;
             m_Scene.BrainMaterials.SetBrainCenter(MeshCenter);
-
-            SplittedMeshes = MeshToDisplay.SplitToSurfaces(MeshSplitNumber);
 
             m_Scene.UpdateAllCutPlanes();
         }
         /// <summary>
-        /// Generate the split number regarding all meshes
+        /// Initialize the meshes of the scene
         /// </summary>
-        /// <param name="auto">If true, the number of splits will be automatically generated. Otherwise, 10 splits will be used.</param>
-        public void GenerateSplits(bool auto)
+        public void InitializeMeshes()
         {
-            int splits = 0;
-            if (auto)
-            {
-                int maxVertices = (from mesh in Meshes select mesh.Both.NumberOfVertices).Max();
-                splits = (maxVertices / 65000) + (((maxVertices % 60000) != 0) ? 3 : 2);
-            }
-            else
-            {
-                splits = 10;
-            }
-            ResetSplitsNumber(splits);
+            m_Scene.DLLCommonBrainTextureGenerator = new DLL.MRIBrainGenerator();
+            m_DisplayedObjects.InstantiateBrain();
+            m_DisplayedObjects.InstantiateSimplifiedBrain();
         }
         #endregion
     }

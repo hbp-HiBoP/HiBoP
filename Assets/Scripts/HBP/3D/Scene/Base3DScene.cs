@@ -178,9 +178,9 @@ namespace HBP.Module3D
         }
 
         /// <summary>
-        /// Common generator for each brain part
+        /// Common generator for the brain
         /// </summary>
-        public List<DLL.MRIBrainGenerator> DLLCommonBrainTextureGeneratorList { get; set; } = new List<DLL.MRIBrainGenerator>();
+        public DLL.MRIBrainGenerator DLLCommonBrainTextureGenerator { get; set; }
         /// <summary>
         /// Geometry generator for cuts
         /// </summary>
@@ -279,21 +279,11 @@ namespace HBP.Module3D
             set
             {
                 BrainMaterials.IsTransparent = value;
-                foreach (var surface in m_DisplayedObjects.BrainSurfaceMeshes)
-                {
-                    surface.GetComponent<Renderer>().sharedMaterial = BrainMaterials.BrainMaterial;
-                }
+                m_DisplayedObjects.Brain.GetComponent<Renderer>().sharedMaterial = BrainMaterials.BrainMaterial;
                 foreach (var column in Columns)
-                {
-                    foreach (var surface in column.BrainSurfaceMeshes)
-                    {
-                        surface.GetComponent<Renderer>().sharedMaterial = BrainMaterials.BrainMaterial;
-                    }
-                }
+                    column.BrainMesh.GetComponent<Renderer>().sharedMaterial = BrainMaterials.BrainMaterial;
                 foreach (var cut in m_DisplayedObjects.BrainCutMeshes)
-                {
                     cut.GetComponent<Renderer>().sharedMaterial = BrainMaterials.CutMaterial;
-                }
                 m_DisplayedObjects.SimplifiedBrain.SetActive(!value);
                 BrainMaterials.SetAlpha(BrainMaterials.Alpha);
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
@@ -686,7 +676,7 @@ namespace HBP.Module3D
         }
         private void OnDestroy()
         {
-            foreach (var dllCommonBrainTextureGenerator in DLLCommonBrainTextureGeneratorList) dllCommonBrainTextureGenerator.Dispose();
+            DLLCommonBrainTextureGenerator.Dispose();
             foreach (var dllMRIGeometryCutGenerator in DLLMRIGeometryCutGeneratorList) dllMRIGeometryCutGenerator.Dispose();
         }
         /// <summary>
@@ -755,25 +745,22 @@ namespace HBP.Module3D
             {
                 foreach (Column3D col in Columns)
                 {
-                    col.ComputeSurfaceBrainUVWithActivity(m_MeshManager.SplittedMeshes);
+                    col.ComputeSurfaceBrainUVWithActivity(m_MeshManager.BrainSurface);
                 }
             }
             foreach (Column3D col in Columns)
             {
                 if (col.SurfaceNeedsUpdate)
                 {
-                    for (int i = 0; i < col.BrainSurfaceMeshes.Count; ++i)
+                    if (!m_IsGeneratorUpToDate)
                     {
-                        if (!m_IsGeneratorUpToDate)
-                        {
-                            col.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv2 = DLLCommonBrainTextureGeneratorList[i].NullUV;
-                            col.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = DLLCommonBrainTextureGeneratorList[i].NullUV;
-                        }
-                        else
-                        {
-                            col.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv2 = col.DLLBrainTextureGenerators[i].AlphaUV;
-                            col.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = col.DLLBrainTextureGenerators[i].ActivityUV;
-                        }
+                        col.BrainMesh.GetComponent<MeshFilter>().mesh.uv2 = DLLCommonBrainTextureGenerator.NullUV;
+                        col.BrainMesh.GetComponent<MeshFilter>().mesh.uv3 = DLLCommonBrainTextureGenerator.NullUV;
+                    }
+                    else
+                    {
+                        col.BrainMesh.GetComponent<MeshFilter>().mesh.uv2 = col.DLLBrainTextureGenerator.AlphaUV;
+                        col.BrainMesh.GetComponent<MeshFilter>().mesh.uv3 = col.DLLBrainTextureGenerator.ActivityUV;
                     }
                 }
                 col.SurfaceNeedsUpdate = false;
@@ -831,13 +818,13 @@ namespace HBP.Module3D
         /// </summary>
         private void ComputeMeshesCut()
         {
-            if (MeshManager.MeshToDisplay == null) return;
+            if (MeshManager.BrainSurface == null) return;
 
             // Create the cuts
             UnityEngine.Profiling.Profiler.BeginSample("cut_generator Create cut");
             List<DLL.Surface> generatedCutMeshes = new List<DLL.Surface>(Cuts.Count);
             if (Cuts.Count > 0)
-                generatedCutMeshes = MeshManager.MeshToDisplay.GenerateCutSurfaces(Cuts, false, StrongCuts);
+                generatedCutMeshes = MeshManager.BrainSurface.GenerateCutSurfaces(Cuts, false, StrongCuts);
             UnityEngine.Profiling.Profiler.EndSample();
 
             // Fill parameters in shader
@@ -895,12 +882,9 @@ namespace HBP.Module3D
         /// </summary>
         private void UpdateGeneratorsAndUnityMeshes()
         {
-            for (int i = 0; i < m_MeshManager.MeshSplitNumber; ++i)
-            {
-                DLLCommonBrainTextureGeneratorList[i].Reset(m_MeshManager.SplittedMeshes[i], m_MRIManager.SelectedMRI.Volume);
-                DLLCommonBrainTextureGeneratorList[i].ComputeMainUVWithVolume(m_MeshManager.SplittedMeshes[i], m_MRIManager.SelectedMRI.Volume, m_MRIManager.MRICalMinFactor, m_MRIManager.MRICalMaxFactor);
-                DLLCommonBrainTextureGeneratorList[i].ComputeNullUV(m_MeshManager.SplittedMeshes[i]);
-            }
+            DLLCommonBrainTextureGenerator.Reset(m_MeshManager.BrainSurface, m_MRIManager.SelectedMRI.Volume);
+            DLLCommonBrainTextureGenerator.ComputeMainUVWithVolume(m_MeshManager.BrainSurface, m_MRIManager.SelectedMRI.Volume, m_MRIManager.MRICalMinFactor, m_MRIManager.MRICalMaxFactor);
+            DLLCommonBrainTextureGenerator.ComputeNullUV(m_MeshManager.BrainSurface);
             m_MeshManager.UpdateMeshesFromDLL();
         }
         /// <summary>
@@ -1021,10 +1005,7 @@ namespace HBP.Module3D
             {
                 dynamicColumn.DynamicParameters.OnUpdateSpanValues.AddListener(() =>
                 {
-                    for (int jj = 0; jj < m_MeshManager.MeshSplitNumber; ++jj)
-                    {
-                        dynamicColumn.DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap(dynamicColumn);
-                    }
+                    dynamicColumn.DLLBrainTextureGenerator.AdjustInfluencesToColormap(dynamicColumn);
                     dynamicColumn.DLLMRIVolumeGenerator.AdjustInfluencesToColormap(dynamicColumn);
                     SceneInformation.FunctionalCutTexturesNeedUpdate = true;
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
@@ -1063,7 +1044,6 @@ namespace HBP.Module3D
                 }
             }
             column.Initialize(Columns.Count, baseColumn, m_ImplantationManager.SelectedImplantation, m_DisplayedObjects.SitesPatientParent);
-            column.ResetSplitsNumber(m_MeshManager.MeshSplitNumber);
             Columns.Add(column);
         }
         /// <summary>
@@ -1238,11 +1218,11 @@ namespace HBP.Module3D
 
             // Cuts base on the mesh
             float offset;
-            if (MeshManager.MeshToDisplay != null)
+            if (MeshManager.BrainSurface != null)
             {
                 Plane plane = new Plane(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
                 m_MRIManager.SelectedMRI.Volume.SetPlaneWithOrientation(plane, cut.Orientation, false);
-                offset = MeshManager.MeshToDisplay.SizeOffsetCutPlane(plane, cut.NumberOfCuts);
+                offset = MeshManager.BrainSurface.SizeOffsetCutPlane(plane, cut.NumberOfCuts);
                 offset *= 1.05f; // upsize a little bit the bbox for planes
             }
             else
@@ -1282,7 +1262,7 @@ namespace HBP.Module3D
 
             Cut axialCut = AddCutPlane();
             Vector3 axialPoint = MeshManager.MeshCenter + (Vector3.Dot(sitePosition - MeshManager.MeshCenter, axialCut.Normal) / Vector3.Dot(axialCut.Normal, axialCut.Normal)) * axialCut.Normal;
-            float axialOffset = MeshManager.MeshToDisplay.SizeOffsetCutPlane(axialCut, axialCut.NumberOfCuts) * 1.05f;
+            float axialOffset = MeshManager.BrainSurface.SizeOffsetCutPlane(axialCut, axialCut.NumberOfCuts) * 1.05f;
             axialCut.Position = ((axialPoint.z - MeshManager.MeshCenter.z) / (axialCut.Normal.z * axialOffset * axialCut.NumberOfCuts)) + 0.5f;
             if (axialCut.Position < 0.5f)
             {
@@ -1293,7 +1273,7 @@ namespace HBP.Module3D
 
             Cut coronalCut = AddCutPlane();
             Vector3 coronalPoint = MeshManager.MeshCenter + (Vector3.Dot(sitePosition - MeshManager.MeshCenter, coronalCut.Normal) / Vector3.Dot(coronalCut.Normal, coronalCut.Normal)) * coronalCut.Normal;
-            float coronalOffset = MeshManager.MeshToDisplay.SizeOffsetCutPlane(coronalCut, coronalCut.NumberOfCuts) * 1.05f;
+            float coronalOffset = MeshManager.BrainSurface.SizeOffsetCutPlane(coronalCut, coronalCut.NumberOfCuts) * 1.05f;
             coronalCut.Position = ((coronalPoint.y - MeshManager.MeshCenter.y) / (coronalCut.Normal.y * coronalOffset * coronalCut.NumberOfCuts)) + 0.5f;
             if (coronalCut.Position < 0.5f)
             {
@@ -1304,7 +1284,7 @@ namespace HBP.Module3D
 
             Cut sagittalCut = AddCutPlane();
             Vector3 sagittalPoint = MeshManager.MeshCenter + (Vector3.Dot(sitePosition - MeshManager.MeshCenter, sagittalCut.Normal) / Vector3.Dot(sagittalCut.Normal, sagittalCut.Normal)) * sagittalCut.Normal;
-            float sagittalOffset = MeshManager.MeshToDisplay.SizeOffsetCutPlane(sagittalCut, sagittalCut.NumberOfCuts) * 1.05f;
+            float sagittalOffset = MeshManager.BrainSurface.SizeOffsetCutPlane(sagittalCut, sagittalCut.NumberOfCuts) * 1.05f;
             sagittalCut.Position = ((sagittalPoint.x - MeshManager.MeshCenter.x) / (sagittalCut.Normal.x * sagittalOffset * sagittalCut.NumberOfCuts)) + 0.5f;
             if (sagittalCut.Position < 0.5f)
             {
@@ -1726,7 +1706,7 @@ namespace HBP.Module3D
                     yield break;
                 }
             }
-            m_MeshManager.GenerateSplits(ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading || Type == Data.Enums.SceneType.MultiPatients);
+            m_MeshManager.InitializeMeshes();
 
             // Loading MRIs
             if (Type == Data.Enums.SceneType.SinglePatient)
@@ -1770,7 +1750,7 @@ namespace HBP.Module3D
             // Finalization
             foreach (Column3D column in Columns)
             {
-                column.InitializeColumnMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent);
+                column.InitializeColumnMeshes(m_DisplayedObjects.Brain);
             }
             OnUpdateCameraTarget.Invoke(m_MeshManager.SelectedMesh.Both.Center);
             outPut(exception);
@@ -1951,82 +1931,49 @@ namespace HBP.Module3D
         /// <returns>Coroutine return</returns>
         private IEnumerator c_LoadActivity()
         {
-            yield return Ninja.JumpToUnity;
             float totalTime = 0.075f * Visualization.Patients.Count + 1.5f; // Calculated by Linear Regression is 0.0593f * Patients.Count + 1.0956f
-            float totalProgress = Columns.Count * (1 + m_MeshManager.MeshSplitNumber + 10);
+            float totalProgress = Columns.Count * 16; // One step for the begining, five for the surface and ten for the volume
             float timeByProgress = totalTime / totalProgress;
             float currentProgress = 0.0f;
             OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Initializing", timeByProgress);
-            yield return Ninja.JumpBack;
-            bool addValues = false;
 
             // copy from main generators
             for (int ii = 0; ii < Columns.Count; ++ii)
             {
-                for (int jj = 0; jj < m_MeshManager.MeshSplitNumber; ++jj)
-                {
-                    Columns[ii].DLLBrainTextureGenerators[jj].Dispose();
-                    Columns[ii].DLLBrainTextureGenerators[jj] = (DLL.MRIBrainGenerator)DLLCommonBrainTextureGeneratorList[jj].Clone();
-                    if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                }
+                Columns[ii].DLLBrainTextureGenerator.Dispose();
+                Columns[ii].DLLBrainTextureGenerator = (DLL.MRIBrainGenerator)DLLCommonBrainTextureGenerator.Clone();
+                if (SceneInformation.GeneratorNeedsUpdate) yield break;
             }
 
             // Do your threaded task
             for (int ii = 0; ii < ColumnsDynamic.Count; ++ii)
             {
-                yield return Ninja.JumpToUnity;
                 OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + ColumnsDynamic[ii].Name, timeByProgress);
-                yield return Ninja.JumpBack;
-
-                float currentMaxDensity, currentMinInfluence, currentMaxInfluence;
-                float maxDensity = 1;
-
-                ColumnsDynamic[ii].SharedMinInf = float.MaxValue;
-                ColumnsDynamic[ii].SharedMaxInf = float.MinValue;
-
+                
                 // update raw electrodes
                 ColumnsDynamic[ii].UpdateDLLSitesMask(m_ROIManager.SelectedROI != null);
 
-                // splits
-                for (int jj = 0; jj < m_MeshManager.MeshSplitNumber; ++jj)
+                // surface
+                currentProgress += 5;
+                OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + ColumnsDynamic[ii].Name, timeByProgress);
+                if (SceneInformation.GeneratorNeedsUpdate) yield break;
+                if (ColumnsDynamic[ii] is Column3DCCEP ccepColumn3D && ccepColumn3D.IsSourceMarsAtlasLabelSelected)
                 {
-                    yield return Ninja.JumpToUnity;
-                    OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + ColumnsDynamic[ii].Name, timeByProgress);
-                    yield return Ninja.JumpBack;
-                    if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                    if (ColumnsDynamic[ii] is Column3DCCEP ccepColumn3D && ccepColumn3D.IsSourceMarsAtlasLabelSelected)
-                    {
-                        ccepColumn3D.DLLBrainTextureGenerators[jj].ComputeInfluencesWithAtlas(ccepColumn3D);
-                    }
-                    else
-                    {
-                        ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].InitializeOctree(ColumnsDynamic[ii].RawElectrodes);
-                        if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                        ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].ComputeDistances(ColumnsDynamic[ii].DynamicParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
-                        if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                        ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(ColumnsDynamic[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
-                    }
-                    if (SceneInformation.GeneratorNeedsUpdate) yield break;
-
-                    currentMaxDensity = ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].MaximumDensity;
-                    currentMinInfluence = ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].MinimumInfluence; 
-                    currentMaxInfluence = ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].MaximumInfluence;
-
-                    if (currentMaxDensity > maxDensity)
-                        maxDensity = currentMaxDensity;
-
-                    if (currentMinInfluence < ColumnsDynamic[ii].SharedMinInf)
-                        ColumnsDynamic[ii].SharedMinInf = currentMinInfluence;
-
-                    if (currentMaxInfluence > ColumnsDynamic[ii].SharedMaxInf)
-                        ColumnsDynamic[ii].SharedMaxInf = currentMaxInfluence;
+                    ccepColumn3D.DLLBrainTextureGenerator.ComputeInfluencesWithAtlas(ccepColumn3D);
                 }
+                else
+                {
+                    ColumnsDynamic[ii].DLLBrainTextureGenerator.InitializeOctree(ColumnsDynamic[ii].RawElectrodes);
+                    if (SceneInformation.GeneratorNeedsUpdate) yield break;
+                    ColumnsDynamic[ii].DLLBrainTextureGenerator.ComputeDistances(ColumnsDynamic[ii].DynamicParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
+                    if (SceneInformation.GeneratorNeedsUpdate) yield break;
+                    ColumnsDynamic[ii].DLLBrainTextureGenerator.ComputeInfluences(ColumnsDynamic[ii], ApplicationState.UserPreferences.General.System.MultiThreading, false, ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                }
+                if (SceneInformation.GeneratorNeedsUpdate) yield break;
 
                 // volume
-                yield return Ninja.JumpToUnity;
                 currentProgress += 10;
                 OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + ColumnsDynamic[ii].Name, timeByProgress * 10);
-                yield return Ninja.JumpBack;
                 if (SceneInformation.GeneratorNeedsUpdate) yield break;
                 if (ColumnsDynamic[ii] is Column3DCCEP ccepColumn && ccepColumn.IsSourceMarsAtlasLabelSelected)
                 {
@@ -2038,76 +1985,39 @@ namespace HBP.Module3D
                     if (SceneInformation.GeneratorNeedsUpdate) yield break;
                     ColumnsDynamic[ii].DLLMRIVolumeGenerator.ComputeDistances(ColumnsDynamic[ii].DynamicParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
                     if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                    ColumnsDynamic[ii].DLLMRIVolumeGenerator.ComputeInfluences(ColumnsDynamic[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                    ColumnsDynamic[ii].DLLMRIVolumeGenerator.ComputeInfluences(ColumnsDynamic[ii], ApplicationState.UserPreferences.General.System.MultiThreading, false, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                 }
                 if (SceneInformation.GeneratorNeedsUpdate) yield break;
 
-                currentMaxDensity = ColumnsDynamic[ii].DLLMRIVolumeGenerator.MaximumDensity;
-                currentMinInfluence = ColumnsDynamic[ii].DLLMRIVolumeGenerator.MinimumInfluence;
-                currentMaxInfluence = ColumnsDynamic[ii].DLLMRIVolumeGenerator.MaximumInfluence;
-
-                if (currentMaxDensity > maxDensity)
-                    maxDensity = currentMaxDensity;
-
-                if (currentMinInfluence < ColumnsDynamic[ii].SharedMinInf)
-                    ColumnsDynamic[ii].SharedMinInf = currentMinInfluence;
-
-                if (currentMaxInfluence > ColumnsDynamic[ii].SharedMaxInf)
-                    ColumnsDynamic[ii].SharedMaxInf = currentMaxInfluence;
-
-                // synchronize max density
-                for (int jj = 0; jj < m_MeshManager.MeshSplitNumber; ++jj)
-                {
-                    ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, ColumnsDynamic[ii].SharedMinInf, ColumnsDynamic[ii].SharedMaxInf);
-                    if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                }
-                ColumnsDynamic[ii].DLLMRIVolumeGenerator.SynchronizeWithOthersGenerators(maxDensity, ColumnsDynamic[ii].SharedMinInf, ColumnsDynamic[ii].SharedMaxInf);
+                ColumnsDynamic[ii].DLLBrainTextureGenerator.AdjustInfluencesToColormap(ColumnsDynamic[ii]);
                 if (SceneInformation.GeneratorNeedsUpdate) yield break;
-
-                for (int jj = 0; jj < m_MeshManager.MeshSplitNumber; ++jj)
-                {
-                    ColumnsDynamic[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap(ColumnsDynamic[ii]);
-                    if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                }
                 ColumnsDynamic[ii].DLLMRIVolumeGenerator.AdjustInfluencesToColormap(ColumnsDynamic[ii]);
                 if (SceneInformation.GeneratorNeedsUpdate) yield break;
             }
             for (int ii = 0; ii < ColumnsFMRI.Count; ++ii)
             {
-                yield return Ninja.JumpToUnity;
                 OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + ColumnsFMRI[ii].Name, timeByProgress);
-                yield return Ninja.JumpBack;
-                // splits
-                for (int jj = 0; jj < m_MeshManager.MeshSplitNumber; ++jj)
-                {
-                    yield return Ninja.JumpToUnity;
-                    OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + ColumnsFMRI[ii].Name, timeByProgress);
-                    yield return Ninja.JumpBack;
-                    if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                    ColumnsFMRI[ii].DLLBrainTextureGenerators[jj].ComputeFMRIActivity(ColumnsFMRI[ii].SelectedFMRI.Volume);
-                    if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                }
+
+                // surface
+                currentProgress += 5;
+                OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + ColumnsFMRI[ii].Name, timeByProgress);
+                if (SceneInformation.GeneratorNeedsUpdate) yield break;
+                ColumnsFMRI[ii].DLLBrainTextureGenerator.ComputeFMRIActivity(ColumnsFMRI[ii].SelectedFMRI.Volume);
+                if (SceneInformation.GeneratorNeedsUpdate) yield break;
 
                 // volume
-                yield return Ninja.JumpToUnity;
                 currentProgress += 10;
                 OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + ColumnsFMRI[ii].Name, timeByProgress * 10);
-                yield return Ninja.JumpBack;
                 if (SceneInformation.GeneratorNeedsUpdate) yield break;
                 ColumnsFMRI[ii].DLLMRIVolumeGenerator.ComputeFMRIActivity(ColumnsFMRI[ii].SelectedFMRI.Volume);
                 if (SceneInformation.GeneratorNeedsUpdate) yield break;
 
-                for (int jj = 0; jj < m_MeshManager.MeshSplitNumber; ++jj)
-                {
-                    ColumnsFMRI[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap(ColumnsFMRI[ii]);
-                    if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                }
+                ColumnsFMRI[ii].DLLBrainTextureGenerator.AdjustInfluencesToColormap(ColumnsFMRI[ii]);
+                if (SceneInformation.GeneratorNeedsUpdate) yield break;
                 ColumnsFMRI[ii].DLLMRIVolumeGenerator.AdjustInfluencesToColormap(ColumnsFMRI[ii]);
                 if (SceneInformation.GeneratorNeedsUpdate) yield break;
             }
-            yield return Ninja.JumpToUnity;
             OnProgressUpdateGenerator.Invoke(1.0f, "Finalizing", timeByProgress);
-            yield return Ninja.JumpBack;
             yield return new WaitForSeconds(0.1f);
         }
         /// <summary>

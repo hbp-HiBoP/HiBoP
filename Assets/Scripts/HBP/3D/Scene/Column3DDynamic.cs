@@ -18,15 +18,6 @@ namespace HBP.Module3D
         public abstract Data.Visualization.Timeline Timeline { get; }
 
         /// <summary>
-        /// Shared minimum influence between all dynamic columns
-        /// </summary>
-        public float SharedMinInf = 0f;
-        /// <summary>
-        /// Shared maximum influence between all dynamic columns
-        /// </summary>
-        public float SharedMaxInf = 0f;
-
-        /// <summary>
         /// Parameters on how to display the activity on the column
         /// </summary>
         public DynamicDataParameters DynamicParameters { get; } = new DynamicDataParameters();
@@ -208,11 +199,10 @@ namespace HBP.Module3D
         /// <summary>
         /// Compute the UVs of the meshes for the brain activity
         /// </summary>
-        /// <param name="splittedMeshes">DLL brain splitted meshes</param>
-        public override void ComputeSurfaceBrainUVWithActivity(List<Surface> splittedMeshes)
+        /// <param name="brainSurface">Surface of the brain</param>
+        public override void ComputeSurfaceBrainUVWithActivity(Surface brainSurface)
         {
-            for (int ii = 0; ii < DLLBrainTextureGenerators.Count; ++ii)
-                DLLBrainTextureGenerators[ii].ComputeSurfaceActivityUV(splittedMeshes[ii], Timeline.CurrentIndex, DynamicParameters.AlphaMin, DynamicParameters.AlphaMax);
+            DLLBrainTextureGenerator.ComputeSurfaceActivityUV(brainSurface, Timeline.CurrentIndex, DynamicParameters.AlphaMin, DynamicParameters.AlphaMax);
         }
         #endregion
     }
