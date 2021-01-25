@@ -176,15 +176,11 @@ namespace HBP.Module3D
                 return 0;
             }
         }
-
-        /// <summary>
-        /// Common generator for the brain
-        /// </summary>
-        public DLL.MRIBrainGenerator DLLCommonBrainTextureGenerator { get; set; }
+        
         /// <summary>
         /// Geometry generator for cuts
         /// </summary>
-        public List<DLL.MRIGeometryCutGenerator> DLLMRIGeometryCutGeneratorList { get; set; } = new List<DLL.MRIGeometryCutGenerator>();
+        public List<DLL.CutGeometryGenerator> CutGeometryGenerators { get; set; } = new List<DLL.CutGeometryGenerator>();
 
         /// <summary>
         /// Material used for the brain mesh
@@ -676,19 +672,19 @@ namespace HBP.Module3D
         }
         private void OnDestroy()
         {
-            DLLCommonBrainTextureGenerator.Dispose();
-            foreach (var dllMRIGeometryCutGenerator in DLLMRIGeometryCutGeneratorList) dllMRIGeometryCutGenerator.Dispose();
+            foreach (var dllMRIGeometryCutGenerator in CutGeometryGenerators) dllMRIGeometryCutGenerator.Dispose();
         }
         /// <summary>
         /// Compute the textures for the MRI (3D)
         /// </summary>
         private void ComputeBaseCutTextures()
         {
+            UnityEngine.Profiling.Profiler.BeginSample("ComputeBaseCutTextures");
             foreach (Column3D column in Columns)
             {
                 foreach (Cut cut in Cuts)
                 {
-                    column.CutTextures.CreateMRITexture(DLLMRIGeometryCutGeneratorList[cut.ID], MRIManager.SelectedMRI.Volume, cut.ID, MRIManager.MRICalMinFactor, MRIManager.MRICalMaxFactor, 3);
+                    column.CutTextures.CreateMRITexture(MRIManager.SelectedMRI.Volume, cut.ID, MRIManager.MRICalMinFactor, MRIManager.MRICalMaxFactor, 3);
                     if (m_AtlasManager.DisplayAtlas)
                     {
                         column.CutTextures.ColorCutsTexturesWithBrainAtlas(cut.ID, m_AtlasManager.SelectedAtlas, m_AtlasManager.AtlasAlpha, m_AtlasManager.HoveredArea);
@@ -700,6 +696,7 @@ namespace HBP.Module3D
                 }
             }
             SceneInformation.BaseCutTexturesNeedUpdate = false;
+            UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
         /// Compute the textures for the MRI (3D) with the iEEG activity
@@ -707,26 +704,25 @@ namespace HBP.Module3D
         /// <param name="column">Specific column to update. If null, every columns will be updated.</param>
         private void ComputeFunctionalCutTextures()
         {
+            UnityEngine.Profiling.Profiler.BeginSample("ComputeFunctionalCutTextures");
             if (m_IsGeneratorUpToDate)
             {
                 UnityEngine.Profiling.Profiler.BeginSample("Compute IEEG Textures");
                 foreach (Column3DDynamic col in ColumnsDynamic)
                 {
-                    col.CutTextures.ColorCutsTexturesWithIEEG(col);
-                }
-                foreach (Column3DFMRI col in ColumnsFMRI)
-                {
-                    col.CutTextures.ColorCutsTexturesWithFMRI(col);
+                    col.CutTextures.ColorCutsTexturesWithActivity(col);
                 }
                 UnityEngine.Profiling.Profiler.EndSample();
             }
             SceneInformation.FunctionalCutTexturesNeedUpdate = false;
+            UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
         /// Compute the texture for the MRI (GUI)
         /// </summary>
         private void ComputeGUICutTextures()
         {
+            UnityEngine.Profiling.Profiler.BeginSample("ComputeGUICutTextures");
             Column3D column = SelectedColumn;
             if (column)
             {
@@ -738,9 +734,11 @@ namespace HBP.Module3D
                 }
             }
             SceneInformation.GUICutTexturesNeedUpdate = false;
+            UnityEngine.Profiling.Profiler.EndSample();
         }
         private void ComputeFunctionalSurface()
         {
+            UnityEngine.Profiling.Profiler.BeginSample("ComputeFunctionalSurface");
             if (m_IsGeneratorUpToDate)
             {
                 foreach (Column3D col in Columns)
@@ -754,18 +752,19 @@ namespace HBP.Module3D
                 {
                     if (!m_IsGeneratorUpToDate)
                     {
-                        col.BrainMesh.GetComponent<MeshFilter>().mesh.uv2 = DLLCommonBrainTextureGenerator.NullUV;
-                        col.BrainMesh.GetComponent<MeshFilter>().mesh.uv3 = DLLCommonBrainTextureGenerator.NullUV;
+                        col.BrainMesh.GetComponent<MeshFilter>().mesh.uv2 = col.SurfaceGenerator.NullUV;
+                        col.BrainMesh.GetComponent<MeshFilter>().mesh.uv3 = col.SurfaceGenerator.NullUV;
                     }
                     else
                     {
-                        col.BrainMesh.GetComponent<MeshFilter>().mesh.uv2 = col.DLLBrainTextureGenerator.AlphaUV;
-                        col.BrainMesh.GetComponent<MeshFilter>().mesh.uv3 = col.DLLBrainTextureGenerator.ActivityUV;
+                        col.BrainMesh.GetComponent<MeshFilter>().mesh.uv2 = col.SurfaceGenerator.AlphaUV;
+                        col.BrainMesh.GetComponent<MeshFilter>().mesh.uv3 = col.SurfaceGenerator.ActivityUV;
                     }
                 }
                 col.SurfaceNeedsUpdate = false;
             }
             SceneInformation.FunctionalSurfaceNeedsUpdate = false;
+            UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
         /// Finalize Generators Computing (method called at the end of the computing of the activity)
@@ -836,8 +835,8 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.BeginSample("cut_generator Update generators");
             for (int ii = 0; ii < Cuts.Count; ++ii)
             {
-                DLLMRIGeometryCutGeneratorList[ii].Reset(m_MRIManager.SelectedMRI.Volume, Cuts[ii]);
-                DLLMRIGeometryCutGeneratorList[ii].UpdateCutMeshUV(generatedCutMeshes[ii]);
+                CutGeometryGenerators[ii].Initialize(m_MRIManager.SelectedMRI.Volume, Cuts[ii]);
+                CutGeometryGenerators[ii].UpdateSurfaceUV(generatedCutMeshes[ii]);
                 generatedCutMeshes[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
             }
             UnityEngine.Profiling.Profiler.EndSample();
@@ -873,18 +872,24 @@ namespace HBP.Module3D
         /// </summary>
         private void UpdateCuts()
         {
+            UnityEngine.Profiling.Profiler.BeginSample("UpdateCuts");
             ComputeMeshesCut();
             SceneInformation.CutsNeedUpdate = false;
             OnUpdateCuts.Invoke();
+            UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
         /// Update the generators for activity and the UV of the meshes
         /// </summary>
         private void UpdateGeneratorsAndUnityMeshes()
         {
-            DLLCommonBrainTextureGenerator.Reset(m_MeshManager.BrainSurface, m_MRIManager.SelectedMRI.Volume);
-            DLLCommonBrainTextureGenerator.ComputeMainUVWithVolume(m_MeshManager.BrainSurface, m_MRIManager.SelectedMRI.Volume, m_MRIManager.MRICalMinFactor, m_MRIManager.MRICalMaxFactor);
-            DLLCommonBrainTextureGenerator.ComputeNullUV(m_MeshManager.BrainSurface);
+            foreach (Column3D column in Columns) // FIXME : may have performance issues
+            {
+                column.ActivityGenerator.Initialize(m_MeshManager.BrainSurface, m_MRIManager.SelectedMRI.Volume, 120);
+                column.SurfaceGenerator.Initialize(column.ActivityGenerator);
+                column.SurfaceGenerator.ComputeMainUV(m_MRIManager.MRICalMinFactor, m_MRIManager.MRICalMaxFactor);
+                column.SurfaceGenerator.ComputeNullUV();
+            }
             m_MeshManager.UpdateMeshesFromDLL();
         }
         /// <summary>
@@ -921,19 +926,19 @@ namespace HBP.Module3D
         /// <param name="nbCuts">Number of cuts</param>
         private void UpdateCutNumber(int nbCuts)
         {
-            while (DLLMRIGeometryCutGeneratorList.Count < nbCuts)
+            while (CutGeometryGenerators.Count < nbCuts)
             {
-                DLLMRIGeometryCutGeneratorList.Add(new DLL.MRIGeometryCutGenerator());
+                CutGeometryGenerators.Add(new DLL.CutGeometryGenerator());
             }
-            while (DLLMRIGeometryCutGeneratorList.Count > nbCuts)
+            while (CutGeometryGenerators.Count > nbCuts)
             {
-                DLLMRIGeometryCutGeneratorList.Last().Dispose();
-                DLLMRIGeometryCutGeneratorList.RemoveAt(DLLMRIGeometryCutGeneratorList.Count - 1);
+                CutGeometryGenerators.Last().Dispose();
+                CutGeometryGenerators.RemoveAt(CutGeometryGenerators.Count - 1);
             }
 
             for (int c = 0; c < Columns.Count; c++)
             {
-                Columns[c].UpdateCutsPlanesNumber(nbCuts);
+                Columns[c].UpdateCutsPlanesNumber(nbCuts, CutGeometryGenerators);
             }
         }
         /// <summary>
@@ -1005,8 +1010,7 @@ namespace HBP.Module3D
             {
                 dynamicColumn.DynamicParameters.OnUpdateSpanValues.AddListener(() =>
                 {
-                    dynamicColumn.DLLBrainTextureGenerator.AdjustInfluencesToColormap(dynamicColumn);
-                    dynamicColumn.DLLMRIVolumeGenerator.AdjustInfluencesToColormap(dynamicColumn);
+                    ((DLL.IEEGGenerator)dynamicColumn.ActivityGenerator).AdjustValues(dynamicColumn);
                     SceneInformation.FunctionalCutTexturesNeedUpdate = true;
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     dynamicColumn.SurfaceNeedsUpdate = true;
@@ -1937,86 +1941,24 @@ namespace HBP.Module3D
             float currentProgress = 0.0f;
             OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Initializing", timeByProgress);
 
-            // copy from main generators
-            for (int ii = 0; ii < Columns.Count; ++ii)
+            for (int i = 0; i < ColumnsDynamic.Count; i++)
             {
-                Columns[ii].DLLBrainTextureGenerator.Dispose();
-                Columns[ii].DLLBrainTextureGenerator = (DLL.MRIBrainGenerator)DLLCommonBrainTextureGenerator.Clone();
+                Column3DDynamic column = ColumnsDynamic[i];
+                OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + column.Name, timeByProgress);
+                column.UpdateDLLSitesMask(m_ROIManager.SelectedROI != null);
+                currentProgress += 15;
+                OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + column.Name, timeByProgress);
+                DLL.IEEGGenerator generator = column.ActivityGenerator as DLL.IEEGGenerator;
                 if (SceneInformation.GeneratorNeedsUpdate) yield break;
-            }
-
-            // Do your threaded task
-            for (int ii = 0; ii < ColumnsDynamic.Count; ++ii)
-            {
-                OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + ColumnsDynamic[ii].Name, timeByProgress);
-                
-                // update raw electrodes
-                ColumnsDynamic[ii].UpdateDLLSitesMask(m_ROIManager.SelectedROI != null);
-
-                // surface
-                currentProgress += 5;
-                OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + ColumnsDynamic[ii].Name, timeByProgress);
-                if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                if (ColumnsDynamic[ii] is Column3DCCEP ccepColumn3D && ccepColumn3D.IsSourceMarsAtlasLabelSelected)
-                {
-                    ccepColumn3D.DLLBrainTextureGenerator.ComputeInfluencesWithAtlas(ccepColumn3D);
-                }
+                if (column is Column3DCCEP ccepColumn && ccepColumn.IsSourceMarsAtlasLabelSelected)
+                    generator.ComputeActivityAtlas(ccepColumn);
                 else
-                {
-                    ColumnsDynamic[ii].DLLBrainTextureGenerator.InitializeOctree(ColumnsDynamic[ii].RawElectrodes);
-                    if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                    ColumnsDynamic[ii].DLLBrainTextureGenerator.ComputeDistances(ColumnsDynamic[ii].DynamicParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
-                    if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                    ColumnsDynamic[ii].DLLBrainTextureGenerator.ComputeInfluences(ColumnsDynamic[ii], ApplicationState.UserPreferences.General.System.MultiThreading, false, ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
-                }
+                    generator.ComputeActivity(column.RawElectrodes, column.DynamicParameters.InfluenceDistance, column, ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                 if (SceneInformation.GeneratorNeedsUpdate) yield break;
-
-                // volume
-                currentProgress += 10;
-                OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + ColumnsDynamic[ii].Name, timeByProgress * 10);
-                if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                if (ColumnsDynamic[ii] is Column3DCCEP ccepColumn && ccepColumn.IsSourceMarsAtlasLabelSelected)
-                {
-                    ccepColumn.DLLMRIVolumeGenerator.ComputeInfluencesWithAtlas(ccepColumn);
-                }
-                else
-                {
-                    ColumnsDynamic[ii].DLLMRIVolumeGenerator.InitializeOctree(ColumnsDynamic[ii].RawElectrodes);
-                    if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                    ColumnsDynamic[ii].DLLMRIVolumeGenerator.ComputeDistances(ColumnsDynamic[ii].DynamicParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
-                    if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                    ColumnsDynamic[ii].DLLMRIVolumeGenerator.ComputeInfluences(ColumnsDynamic[ii], ApplicationState.UserPreferences.General.System.MultiThreading, false, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
-                }
-                if (SceneInformation.GeneratorNeedsUpdate) yield break;
-
-                ColumnsDynamic[ii].DLLBrainTextureGenerator.AdjustInfluencesToColormap(ColumnsDynamic[ii]);
-                if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                ColumnsDynamic[ii].DLLMRIVolumeGenerator.AdjustInfluencesToColormap(ColumnsDynamic[ii]);
+                generator.AdjustValues(column);
                 if (SceneInformation.GeneratorNeedsUpdate) yield break;
             }
-            for (int ii = 0; ii < ColumnsFMRI.Count; ++ii)
-            {
-                OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + ColumnsFMRI[ii].Name, timeByProgress);
 
-                // surface
-                currentProgress += 5;
-                OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + ColumnsFMRI[ii].Name, timeByProgress);
-                if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                ColumnsFMRI[ii].DLLBrainTextureGenerator.ComputeFMRIActivity(ColumnsFMRI[ii].SelectedFMRI.Volume);
-                if (SceneInformation.GeneratorNeedsUpdate) yield break;
-
-                // volume
-                currentProgress += 10;
-                OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + ColumnsFMRI[ii].Name, timeByProgress * 10);
-                if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                ColumnsFMRI[ii].DLLMRIVolumeGenerator.ComputeFMRIActivity(ColumnsFMRI[ii].SelectedFMRI.Volume);
-                if (SceneInformation.GeneratorNeedsUpdate) yield break;
-
-                ColumnsFMRI[ii].DLLBrainTextureGenerator.AdjustInfluencesToColormap(ColumnsFMRI[ii]);
-                if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                ColumnsFMRI[ii].DLLMRIVolumeGenerator.AdjustInfluencesToColormap(ColumnsFMRI[ii]);
-                if (SceneInformation.GeneratorNeedsUpdate) yield break;
-            }
             OnProgressUpdateGenerator.Invoke(1.0f, "Finalizing", timeByProgress);
             yield return new WaitForSeconds(0.1f);
         }

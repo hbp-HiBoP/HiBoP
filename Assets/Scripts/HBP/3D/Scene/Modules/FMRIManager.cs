@@ -249,7 +249,7 @@ namespace HBP.Module3D
         /// <param name="cutID">ID of the cut to color</param>
         public void ColorCutTexture(Column3D column, int cutID)
         {
-            column.CutTextures.ColorCutsTexturesWithFMRI(CurrentVolume, cutID, m_FMRINegativeCalMinFactor, m_FMRINegativeCalMaxFactor, m_FMRIPositiveCalMinFactor, m_FMRIPositiveCalMaxFactor, m_FMRIAlpha);
+            //column.CutTextures.ColorCutsTexturesWithFMRI(CurrentVolume, cutID, m_FMRINegativeCalMinFactor, m_FMRINegativeCalMaxFactor, m_FMRIPositiveCalMinFactor, m_FMRIPositiveCalMaxFactor, m_FMRIAlpha);
         }
         public void UpdateSurfaceFMRIValues()
         {

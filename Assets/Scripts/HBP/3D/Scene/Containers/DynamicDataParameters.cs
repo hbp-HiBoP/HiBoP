@@ -67,45 +67,26 @@ namespace HBP.Module3D
         /// </summary>
         public float MaximumAmplitude { get; set; } = float.MaxValue;
 
-        private float m_AlphaMin = 0.8f;
+        private float m_Alpha = 0.8f;
         /// <summary>
         /// Alpha of the activity for the lowest site density
         /// </summary>
-        public float AlphaMin
+        public float Alpha
         {
             get
             {
-                return m_AlphaMin;
+                return m_Alpha;
             }
             set
             {
-                if (m_AlphaMin != value)
+                if (m_Alpha != value)
                 {
-                    m_AlphaMin = value;
+                    m_Alpha = value;
                     OnUpdateAlphaValues.Invoke();
                 }
             }
         }
 
-        private float m_AlphaMax = 1.0f;
-        /// <summary>
-        /// Alpha of the activity for the highest site density
-        /// </summary>
-        public float AlphaMax
-        {
-            get
-            {
-                return m_AlphaMax;
-            }
-            set
-            {
-                if (m_AlphaMax != value)
-                {
-                    m_AlphaMax = value;
-                    OnUpdateAlphaValues.Invoke();
-                }
-            }
-        }
         /// <summary>
         /// Minimum span value (to adjust the colormap)
         /// </summary>

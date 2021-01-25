@@ -8,6 +8,16 @@ namespace HBP.Module3D.DLL
 {
     public class CutGeometryGenerator : Tools.DLL.CppDLLImportBase
     {
+        #region Properties
+        public BBox BoundingBox
+        {
+            get
+            {
+                return new BBox(bounding_box_CutGeometryGenerator(_handle));
+            }
+        }
+        #endregion
+
         #region Public Methods
         public void Initialize(Volume volume, Cut cut)
         {
@@ -60,6 +70,8 @@ namespace HBP.Module3D.DLL
         static private extern void update_mesh_UV_CutGeometryGenerator(HandleRef generator, HandleRef surface);
         [DllImport("hbp_export", EntryPoint = "get_position_ratio_on_texture_CutGeometryGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void get_position_ratio_on_texture_CutGeometryGenerator(HandleRef generator, float[] point, float[] result);
+        [DllImport("hbp_export", EntryPoint = "bounding_box_CutGeometryGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern IntPtr bounding_box_CutGeometryGenerator(HandleRef generator);
         #endregion
     }
 }

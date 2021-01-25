@@ -69,7 +69,7 @@ namespace HBP.Module3D.DLL
         /// <param name="indexCut">Index of the cut of this texture</param>
         /// <param name="cutPlanes">List of all cuts in the scene</param>
         /// <param name="generator">Texture generator of the considered cut</param>
-        public void CloneAndRotate(Texture texture, string orientation, bool flip, bool displayCutLines, int indexCut, List<Cut> cutPlanes, MRITextureCutGenerator generator)
+        public void CloneAndRotate(Texture texture, string orientation, bool flip, bool displayCutLines, int indexCut, List<Cut> cutPlanes, CutGenerator generator)
         {
             // init plane
             int nbPlanes = cutPlanes.Count - 1;
@@ -103,7 +103,7 @@ namespace HBP.Module3D.DLL
         /// <summary>
         /// Display sites on the texture as red pixels
         /// </summary>
-        public void DrawSites(Cut cut, RawSiteList rawList, float precision, MRITextureCutGenerator generator)
+        public void DrawSites(Cut cut, RawSiteList rawList, float precision, CutGenerator generator)
         {
             float[] plane = new float[6];
             plane[0] = cut.Point.x;

@@ -121,14 +121,11 @@ namespace HBP.Module3D
         /// </summary>
         public Dictionary<string, SiteState> SiteStateBySiteID = new Dictionary<string, SiteState>();
         
+        public virtual ActivityGenerator ActivityGenerator { get; protected set; }
         /// <summary>
         /// Texture generator for the brain surface
         /// </summary>
-        public MRIBrainGenerator DLLBrainTextureGenerator { get; set; }
-        /// <summary>
-        /// Volume generator for cut textures
-        /// </summary>
-        public MRIVolumeGenerator DLLMRIVolumeGenerator { get; set; } = new MRIVolumeGenerator();
+        public SurfaceGenerator SurfaceGenerator { get; set; }
         /// <summary>
         /// Cut Textures Utility
         /// </summary>
@@ -175,8 +172,8 @@ namespace HBP.Module3D
         private void OnDestroy()
         {
             RawElectrodes?.Dispose();
-            DLLBrainTextureGenerator?.Dispose();
-            DLLMRIVolumeGenerator?.Dispose();
+            ActivityGenerator?.Dispose();
+            SurfaceGenerator?.Dispose();
             CutTextures.Clean();
         }
         #endregion
@@ -196,7 +193,7 @@ namespace HBP.Module3D
             UpdateSites(implantation, sceneSitePatientParent);
             AddView();
 
-            DLLBrainTextureGenerator = new MRIBrainGenerator();
+            SurfaceGenerator = new SurfaceGenerator();
         }
         /// <summary>
         /// Update the sites of this column (when changing the implantation of the scene)
@@ -290,10 +287,9 @@ namespace HBP.Module3D
         /// Update the number of cuts (called when changing the number of cuts in the scene)
         /// </summary>
         /// <param name="nbCuts">Number of cuts</param>
-        public void UpdateCutsPlanesNumber(int nbCuts)
+        public void UpdateCutsPlanesNumber(int nbCuts, List<CutGeometryGenerator> cutGeometryGenerators)
         {
-            CutTextures.Resize(nbCuts);
-            CutTextures.SetMRIVolumeGenerator(DLLMRIVolumeGenerator);
+            CutTextures.Resize(nbCuts, cutGeometryGenerators, ActivityGenerator);
         }
         /// <summary>
         /// Update the visibility, the size and the color of the sites depending on their state

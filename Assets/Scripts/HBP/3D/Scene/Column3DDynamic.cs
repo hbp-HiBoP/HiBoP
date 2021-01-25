@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using HBP.Module3D.DLL;
 using HBP.Data.Enums;
+using HBP.Data.Visualization;
 
 namespace HBP.Module3D
 {
@@ -15,7 +16,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Timeline of this column (contains information about the length, the number of samples, the events etc.)
         /// </summary>
-        public abstract Data.Visualization.Timeline Timeline { get; }
+        public abstract Timeline Timeline { get; }
 
         /// <summary>
         /// Parameters on how to display the activity on the column
@@ -116,6 +117,12 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
+        public override void Initialize(int idColumn, Column baseColumn, Implantation3D implantation, List<GameObject> sceneSitePatientParent)
+        {
+            base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
+
+            ActivityGenerator = new IEEGGenerator();
+        }
         /// <summary>
         /// Update the sites of this column (when changing the implantation of the scene)
         /// </summary>
@@ -202,7 +209,7 @@ namespace HBP.Module3D
         /// <param name="brainSurface">Surface of the brain</param>
         public override void ComputeSurfaceBrainUVWithActivity(Surface brainSurface)
         {
-            DLLBrainTextureGenerator.ComputeSurfaceActivityUV(brainSurface, Timeline.CurrentIndex, DynamicParameters.AlphaMin, DynamicParameters.AlphaMax);
+            SurfaceGenerator.ComputeActivityUV(Timeline.CurrentIndex, DynamicParameters.Alpha);
         }
         #endregion
     }

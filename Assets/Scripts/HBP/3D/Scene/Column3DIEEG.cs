@@ -234,7 +234,7 @@ namespace HBP.Module3D
             if (firstCall) ResetConfiguration();
             DynamicParameters.Gain = ColumnIEEGData.DynamicConfiguration.Gain;
             DynamicParameters.InfluenceDistance = ColumnIEEGData.DynamicConfiguration.MaximumInfluence;
-            DynamicParameters.AlphaMin = ColumnIEEGData.DynamicConfiguration.Alpha;
+            DynamicParameters.Alpha = ColumnIEEGData.DynamicConfiguration.Alpha;
             DynamicParameters.SetSpanValues(ColumnIEEGData.DynamicConfiguration.SpanMin, ColumnIEEGData.DynamicConfiguration.Middle, ColumnIEEGData.DynamicConfiguration.SpanMax);
             base.LoadConfiguration(false);
         }
@@ -245,7 +245,7 @@ namespace HBP.Module3D
         {
             ColumnIEEGData.DynamicConfiguration.Gain = DynamicParameters.Gain;
             ColumnIEEGData.DynamicConfiguration.MaximumInfluence = DynamicParameters.InfluenceDistance;
-            ColumnIEEGData.DynamicConfiguration.Alpha = DynamicParameters.AlphaMin;
+            ColumnIEEGData.DynamicConfiguration.Alpha = DynamicParameters.Alpha;
             ColumnIEEGData.DynamicConfiguration.SpanMin = DynamicParameters.SpanMin;
             ColumnIEEGData.DynamicConfiguration.Middle = DynamicParameters.Middle;
             ColumnIEEGData.DynamicConfiguration.SpanMax = DynamicParameters.SpanMax;
@@ -258,7 +258,7 @@ namespace HBP.Module3D
         {
             DynamicParameters.Gain = 1.0f;
             DynamicParameters.InfluenceDistance = 15.0f;
-            DynamicParameters.AlphaMin = 0.8f;
+            DynamicParameters.Alpha = 0.8f;
             DynamicParameters.ResetSpanValues(this);
             base.ResetConfiguration();
         }

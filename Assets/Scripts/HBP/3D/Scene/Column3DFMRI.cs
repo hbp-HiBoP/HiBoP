@@ -44,7 +44,7 @@ namespace HBP.Module3D
         /// <param name="brainSurface">Surface of the brain</param>
         public override void ComputeSurfaceBrainUVWithActivity(Surface brainSurface)
         {
-            DLLBrainTextureGenerator.ComputeSurfaceActivityUVFMRI(brainSurface, FMRIParameters.Alpha);
+            //SurfaceGenerator.ComputeSurfaceActivityUVFMRI(brainSurface, FMRIParameters.Alpha);
         }
         #endregion
     }

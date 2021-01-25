@@ -127,12 +127,6 @@ namespace HBP.Module3D
 
             SelectedMRIID = mriID;
             VolumeCenter = SelectedMRI.Volume.Center;
-            DLL.MRIVolumeGenerator baseGenerator = new DLL.MRIVolumeGenerator();
-            baseGenerator.Reset(SelectedMRI.Volume, 120);
-            foreach (var column in m_Scene.Columns)
-            {
-                column.DLLMRIVolumeGenerator = new DLL.MRIVolumeGenerator(baseGenerator);
-            }
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.ResetGenerators();
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();

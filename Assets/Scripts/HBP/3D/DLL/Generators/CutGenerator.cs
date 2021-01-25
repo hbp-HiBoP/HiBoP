@@ -32,6 +32,18 @@ namespace HBP.Module3D.DLL
         {
             fill_texture_with_activity_CutGenerator(_handle, colorScheme.getHandle(), timelineIndex, alpha);
         }
+        public void UpdateTextureWithVolume(Texture texture)
+        {
+            update_texture_with_volume_CutGenerator(_handle, texture.getHandle());
+        }
+        public void UpdateTextureWithAtlas(Texture texture)
+        {
+            update_texture_with_atlas_CutGenerator(_handle, texture.getHandle());
+        }
+        public void UpdateTextureWithActivity(Texture texture)
+        {
+            update_texture_with_activity_CutGenerator(_handle, texture.getHandle());
+        }
         #endregion
 
         #region Memory Management
@@ -64,6 +76,12 @@ namespace HBP.Module3D.DLL
         static private extern void fill_texture_with_atlas_CutGenerator(HandleRef generator, HandleRef atlas, float alpha, int highlightedLabelIndex);
         [DllImport("hbp_export", EntryPoint = "fill_texture_with_activity_CutGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void fill_texture_with_activity_CutGenerator(HandleRef generator, HandleRef colorScheme, int timelineIndex, float alpha);
+        [DllImport("hbp_export", EntryPoint = "update_texture_with_volume_CutGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void update_texture_with_volume_CutGenerator(HandleRef generator, HandleRef texture);
+        [DllImport("hbp_export", EntryPoint = "update_texture_with_atlas_CutGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void update_texture_with_atlas_CutGenerator(HandleRef generator, HandleRef texture);
+        [DllImport("hbp_export", EntryPoint = "update_texture_with_activity_CutGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void update_texture_with_activity_CutGenerator(HandleRef generator, HandleRef texture);
         #endregion
     }
 }

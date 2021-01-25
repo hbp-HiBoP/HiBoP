@@ -519,7 +519,7 @@ namespace HBP.Module3D
             if (firstCall) ResetConfiguration();
             DynamicParameters.Gain = ColumnCCEPData.DynamicConfiguration.Gain;
             DynamicParameters.InfluenceDistance = ColumnCCEPData.DynamicConfiguration.MaximumInfluence;
-            DynamicParameters.AlphaMin = ColumnCCEPData.DynamicConfiguration.Alpha;
+            DynamicParameters.Alpha = ColumnCCEPData.DynamicConfiguration.Alpha;
             DynamicParameters.SetSpanValues(ColumnCCEPData.DynamicConfiguration.SpanMin, ColumnCCEPData.DynamicConfiguration.Middle, ColumnCCEPData.DynamicConfiguration.SpanMax);
             base.LoadConfiguration(false);
         }
@@ -530,7 +530,7 @@ namespace HBP.Module3D
         {
             ColumnCCEPData.DynamicConfiguration.Gain = DynamicParameters.Gain;
             ColumnCCEPData.DynamicConfiguration.MaximumInfluence = DynamicParameters.InfluenceDistance;
-            ColumnCCEPData.DynamicConfiguration.Alpha = DynamicParameters.AlphaMin;
+            ColumnCCEPData.DynamicConfiguration.Alpha = DynamicParameters.Alpha;
             ColumnCCEPData.DynamicConfiguration.SpanMin = DynamicParameters.SpanMin;
             ColumnCCEPData.DynamicConfiguration.Middle = DynamicParameters.Middle;
             ColumnCCEPData.DynamicConfiguration.SpanMax = DynamicParameters.SpanMax;
@@ -543,7 +543,7 @@ namespace HBP.Module3D
         {
             DynamicParameters.Gain = 1.0f;
             DynamicParameters.InfluenceDistance = 15.0f;
-            DynamicParameters.AlphaMin = 0.8f;
+            DynamicParameters.Alpha = 0.8f;
             DynamicParameters.ResetSpanValues(this);
             base.ResetConfiguration();
         }

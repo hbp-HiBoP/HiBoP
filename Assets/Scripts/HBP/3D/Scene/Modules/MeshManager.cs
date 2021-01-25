@@ -238,7 +238,6 @@ namespace HBP.Module3D
         /// </summary>
         public void InitializeMeshes()
         {
-            m_Scene.DLLCommonBrainTextureGenerator = new DLL.MRIBrainGenerator();
             m_DisplayedObjects.InstantiateBrain();
             m_DisplayedObjects.InstantiateSimplifiedBrain();
         }

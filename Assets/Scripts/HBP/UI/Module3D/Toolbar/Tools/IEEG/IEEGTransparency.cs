@@ -28,7 +28,7 @@ namespace HBP.UI.Module3D.Tools
                 
                 foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
-                    column.DynamicParameters.AlphaMin = value;
+                    column.DynamicParameters.Alpha = value;
                 }
             });
         }
@@ -56,7 +56,7 @@ namespace HBP.UI.Module3D.Tools
         {
             if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)
             {
-                m_Slider.value = dynamicColumn.DynamicParameters.AlphaMin;
+                m_Slider.value = dynamicColumn.DynamicParameters.Alpha;
             }
             else
             {
