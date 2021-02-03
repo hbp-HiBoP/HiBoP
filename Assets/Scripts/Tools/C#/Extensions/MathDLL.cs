@@ -14,6 +14,7 @@ namespace Tools.CSharp
             else
             {
                 float absStandardDeviation = Mathf.Abs(array.StandardDeviation());
+                if (float.IsNaN(absStandardDeviation) || float.IsInfinity(absStandardDeviation)) absStandardDeviation = 0;
                 float mean = array.Mean();
                 float offset = Zscore * absStandardDeviation;
                 if (offset == 0) offset = 1;

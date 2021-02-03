@@ -440,7 +440,7 @@ namespace HBP.Data.Visualization
                 catch (Exception e)
                 {
                     UnityEngine.Debug.LogException(e);
-                    exception = new CannotLoadDataInfoException(string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name), (dataInfo is PatientDataInfo pDataInfo ? pDataInfo.Patient.ID : "Unkwown patient"), additionalInformation);
+                    exception = new CannotLoadDataInfoException(string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name), (dataInfo is PatientDataInfo pDataInfo ? pDataInfo.Patient.Name : "Unkwown patient"), additionalInformation);
                     break;
                 }
                 count++;
