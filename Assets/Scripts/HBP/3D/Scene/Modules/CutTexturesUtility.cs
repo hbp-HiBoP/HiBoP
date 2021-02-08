@@ -12,6 +12,10 @@ namespace HBP.Module3D
     {
         #region Properties
         /// <summary>
+        /// Column linked to this CutTexturesUtility
+        /// </summary>
+        public Column3D Column { get; set; }
+        /// <summary>
         /// Color scheme for the cut
         /// </summary>
         public DLL.Texture DLLCutColorScheme;
@@ -158,17 +162,20 @@ namespace HBP.Module3D
         /// Color cuts with iEEG values
         /// </summary>
         /// <param name="column">Column from which iEEG values are taken</param>
-        public void ColorCutsTexturesWithActivity(Column3DDynamic column)
+        public void ColorCutsTexturesWithActivity()
         {
-            if (column.CutTextures != this)
+            int timelineIndex = 0;
+            float alpha = 0;
+            if (Column is Column3DDynamic dynamicColumn)
             {
-                throw new System.Exception("Column and CutTexturesUtility do not match.");
+                timelineIndex = dynamicColumn.Timeline.CurrentIndex;
+                alpha = dynamicColumn.DynamicParameters.Alpha;
             }
 
             for (int i = 0; i < CutGenerators.Count; ++i)
             {
                 CutGenerator generator = CutGenerators[i];
-                generator.FillTextureWithActivity(DLLCutColorScheme, column.Timeline.CurrentIndex, column.DynamicParameters.Alpha);
+                generator.FillTextureWithActivity(DLLCutColorScheme, timelineIndex, alpha);
 
                 DLL.Texture cutTexture = DLLBrainCutTextures[i];
                 generator.UpdateTextureWithActivity(cutTexture);

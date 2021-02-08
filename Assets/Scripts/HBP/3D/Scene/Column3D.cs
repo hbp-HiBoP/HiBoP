@@ -190,6 +190,7 @@ namespace HBP.Module3D
         {
             Layer = "Column" + idColumn;
             ColumnData = baseColumn;
+            CutTextures.Column = this;
             UpdateSites(implantation, sceneSitePatientParent);
             AddView();
 
@@ -562,7 +563,7 @@ namespace HBP.Module3D
         /// Compute the UVs of the meshes for the brain activity
         /// </summary>
         /// <param name="brainSurface">Surface of the brain</param>
-        public abstract void ComputeSurfaceBrainUVWithActivity(Surface brainSurface);
+        public abstract void ComputeSurfaceBrainUVWithActivity();
         #endregion
     }
 }

@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using HBP.Module3D.DLL;
 using HBP.Data.Enums;
+using HBP.Data.Visualization;
 
 namespace HBP.Module3D
 {
@@ -12,6 +13,10 @@ namespace HBP.Module3D
     public class Column3DAnatomy : Column3D
     {
         #region Properties
+        /// <summary>
+        /// Parameters on how to display the activity on the column
+        /// </summary>
+        public AnatomyDataParameters AnatomyParameters { get; } = new AnatomyDataParameters();
         #endregion
 
         #region Events
@@ -21,13 +26,19 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
+        public override void Initialize(int idColumn, Column baseColumn, Implantation3D implantation, List<GameObject> sceneSitePatientParent)
+        {
+            base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
+
+            ActivityGenerator = new DensityGenerator();
+        }
         /// <summary>
         /// Compute the UVs of the meshes for the brain activity
         /// </summary>
         /// <param name="brainSurface">Surface of the brain</param>
-        public override void ComputeSurfaceBrainUVWithActivity(Surface brainSurface)
+        public override void ComputeSurfaceBrainUVWithActivity()
         {
-            //TODO
+            SurfaceGenerator.ComputeActivityUV();
         }
         #endregion
     }

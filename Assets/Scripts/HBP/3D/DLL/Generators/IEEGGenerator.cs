@@ -9,9 +9,9 @@ namespace HBP.Module3D.DLL
     public class IEEGGenerator : ActivityGenerator
     {
         #region Public Methods
-        public void ComputeActivity(RawSiteList rawSiteList, float maxDistance, Column3DDynamic column, Data.Enums.SiteInfluenceByDistanceType siteInfluenceByDistanceType)
+        public void ComputeActivity(Column3DDynamic column)
         {
-            compute_activity_IEEGGenerator(_handle, rawSiteList.getHandle(), maxDistance, column.ActivityValues, column.Timeline.Length, column.RawElectrodes.NumberOfSites, (int)siteInfluenceByDistanceType);
+            compute_activity_IEEGGenerator(_handle, column.RawElectrodes.getHandle(), column.DynamicParameters.InfluenceDistance, column.ActivityValues, column.Timeline.Length, column.RawElectrodes.NumberOfSites, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
         }
         public void ComputeActivityAtlas(Column3DCCEP column)
         {

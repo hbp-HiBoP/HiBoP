@@ -455,9 +455,8 @@ namespace HBP.Module3D
         {
             get
             {
-                bool isOneColumnDynamic = ColumnsDynamic.Count > 0 || ColumnsFMRI.Count > 0;
                 bool areAllCCEPColumnsReady = ColumnsCCEP.All(c => c.IsSourceSelected);
-                return isOneColumnDynamic && areAllCCEPColumnsReady;
+                return areAllCCEPColumnsReady;
             }
         }
         /// <summary>
@@ -707,10 +706,10 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.BeginSample("ComputeFunctionalCutTextures");
             if (m_IsGeneratorUpToDate)
             {
-                UnityEngine.Profiling.Profiler.BeginSample("Compute IEEG Textures");
-                foreach (Column3DDynamic col in ColumnsDynamic)
+                UnityEngine.Profiling.Profiler.BeginSample("Compute Activity Textures");
+                foreach (Column3D col in Columns)
                 {
-                    col.CutTextures.ColorCutsTexturesWithActivity(col);
+                    col.CutTextures.ColorCutsTexturesWithActivity();
                 }
                 UnityEngine.Profiling.Profiler.EndSample();
             }
@@ -743,7 +742,7 @@ namespace HBP.Module3D
             {
                 foreach (Column3D col in Columns)
                 {
-                    col.ComputeSurfaceBrainUVWithActivity(m_MeshManager.BrainSurface);
+                    col.ComputeSurfaceBrainUVWithActivity();
                 }
             }
             foreach (Column3D col in Columns)
@@ -1006,7 +1005,18 @@ namespace HBP.Module3D
             {
                 ResetGenerators(false);
             });
-            if (column is Column3DDynamic dynamicColumn)
+            if (column is Column3DAnatomy anatomyColumn)
+            {
+                anatomyColumn.AnatomyParameters.OnUpdateGain.AddListener(() =>
+                {
+                    SceneInformation.SitesNeedUpdate = true;
+                });
+                anatomyColumn.AnatomyParameters.OnUpdateInfluenceDistance.AddListener(() =>
+                {
+                    ResetGenerators(false);
+                });
+            }
+            else if (column is Column3DDynamic dynamicColumn)
             {
                 dynamicColumn.DynamicParameters.OnUpdateSpanValues.AddListener(() =>
                 {
@@ -1941,6 +1951,18 @@ namespace HBP.Module3D
             float currentProgress = 0.0f;
             OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Initializing", timeByProgress);
 
+            for (int i = 0; i < ColumnsAnatomy.Count; i++)
+            {
+                Column3DAnatomy column = ColumnsAnatomy[i];
+                OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + column.Name, timeByProgress);
+                column.UpdateDLLSitesMask(m_ROIManager.SelectedROI != null);
+                currentProgress += 15;
+                OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + column.Name, timeByProgress);
+                DLL.DensityGenerator generator = column.ActivityGenerator as DLL.DensityGenerator;
+                if (SceneInformation.GeneratorNeedsUpdate) yield break;
+                generator.ComputeActivity(column);
+                if (SceneInformation.GeneratorNeedsUpdate) yield break;
+            }
             for (int i = 0; i < ColumnsDynamic.Count; i++)
             {
                 Column3DDynamic column = ColumnsDynamic[i];
@@ -1953,7 +1975,7 @@ namespace HBP.Module3D
                 if (column is Column3DCCEP ccepColumn && ccepColumn.IsSourceMarsAtlasLabelSelected)
                     generator.ComputeActivityAtlas(ccepColumn);
                 else
-                    generator.ComputeActivity(column.RawElectrodes, column.DynamicParameters.InfluenceDistance, column, ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                    generator.ComputeActivity(column);
                 if (SceneInformation.GeneratorNeedsUpdate) yield break;
                 generator.AdjustValues(column);
                 if (SceneInformation.GeneratorNeedsUpdate) yield break;

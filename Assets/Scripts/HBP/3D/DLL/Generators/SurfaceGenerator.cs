@@ -43,7 +43,7 @@ namespace HBP.Module3D.DLL
         {
             compute_UV_main_SurfaceGenerator(_handle, calMin, calMax);
         }
-        public void ComputeActivityUV(int timelineIndex, float alpha)
+        public void ComputeActivityUV(int timelineIndex = 0, float alpha = 0)
         {
             int nbVertices = ActivityGenerator.Surface.NumberOfVertices;
             if (ActivityUV.Length != nbVertices)
