@@ -38,13 +38,19 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
+        public override void Initialize(int idColumn, Column baseColumn, Implantation3D implantation, List<GameObject> sceneSitePatientParent)
+        {
+            base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
+
+            ActivityGenerator = new FMRIGenerator();
+        }
         /// <summary>
         /// Compute the UVs of the meshes for the brain activity
         /// </summary>
         /// <param name="brainSurface">Surface of the brain</param>
         public override void ComputeSurfaceBrainUVWithActivity()
         {
-            //SurfaceGenerator.ComputeSurfaceActivityUVFMRI(brainSurface, FMRIParameters.Alpha);
+            SurfaceGenerator.ComputeActivityUV(SelectedFMRIIndex, FMRIParameters.Alpha);
         }
         #endregion
     }

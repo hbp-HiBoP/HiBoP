@@ -1057,6 +1057,23 @@ namespace HBP.Module3D
                     });
                 }
             }
+            else if (column is Column3DFMRI fmriColumn)
+            {
+                fmriColumn.FMRIParameters.OnUpdateCalValues.AddListener(() =>
+                {
+                    ((DLL.FMRIGenerator)fmriColumn.ActivityGenerator).AdjustValues(fmriColumn);
+                    SceneInformation.FunctionalCutTexturesNeedUpdate = true;
+                    SceneInformation.FunctionalSurfaceNeedsUpdate = true;
+                    fmriColumn.SurfaceNeedsUpdate = true;
+                    SceneInformation.SitesNeedUpdate = true;
+                });
+                fmriColumn.FMRIParameters.OnUpdateAlphaValues.AddListener(() =>
+                {
+                    SceneInformation.FunctionalCutTexturesNeedUpdate = true;
+                    SceneInformation.FunctionalSurfaceNeedsUpdate = true;
+                    fmriColumn.SurfaceNeedsUpdate = true;
+                });
+            }
             column.Initialize(Columns.Count, baseColumn, m_ImplantationManager.SelectedImplantation, m_DisplayedObjects.SitesPatientParent);
             Columns.Add(column);
         }
@@ -1951,33 +1968,34 @@ namespace HBP.Module3D
             float currentProgress = 0.0f;
             OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Initializing", timeByProgress);
 
-            for (int i = 0; i < ColumnsAnatomy.Count; i++)
+            for (int i = 0; i < Columns.Count; i++)
             {
-                Column3DAnatomy column = ColumnsAnatomy[i];
+                Column3D column = Columns[i];
                 OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + column.Name, timeByProgress);
                 column.UpdateDLLSitesMask(m_ROIManager.SelectedROI != null);
                 currentProgress += 15;
                 OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + column.Name, timeByProgress);
-                DLL.DensityGenerator generator = column.ActivityGenerator as DLL.DensityGenerator;
                 if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                generator.ComputeActivity(column);
-                if (SceneInformation.GeneratorNeedsUpdate) yield break;
-            }
-            for (int i = 0; i < ColumnsDynamic.Count; i++)
-            {
-                Column3DDynamic column = ColumnsDynamic[i];
-                OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + column.Name, timeByProgress);
-                column.UpdateDLLSitesMask(m_ROIManager.SelectedROI != null);
-                currentProgress += 15;
-                OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + column.Name, timeByProgress);
-                DLL.IEEGGenerator generator = column.ActivityGenerator as DLL.IEEGGenerator;
-                if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                if (column is Column3DCCEP ccepColumn && ccepColumn.IsSourceMarsAtlasLabelSelected)
-                    generator.ComputeActivityAtlas(ccepColumn);
-                else
-                    generator.ComputeActivity(column);
-                if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                generator.AdjustValues(column);
+                if (column is Column3DAnatomy anatomyColumn)
+                {
+                    DLL.DensityGenerator generator = anatomyColumn.ActivityGenerator as DLL.DensityGenerator;
+                    generator.ComputeActivity(anatomyColumn);
+                }
+                else if (column is Column3DDynamic dynamicColumn)
+                {
+                    DLL.IEEGGenerator generator = dynamicColumn.ActivityGenerator as DLL.IEEGGenerator;
+                    if (dynamicColumn is Column3DCCEP ccepColumn && ccepColumn.IsSourceMarsAtlasLabelSelected)
+                        generator.ComputeActivityAtlas(ccepColumn);
+                    else
+                        generator.ComputeActivity(dynamicColumn);
+                    generator.AdjustValues(dynamicColumn);
+                }
+                else if (column is Column3DFMRI fmriColumn)
+                {
+                    DLL.FMRIGenerator generator = fmriColumn.ActivityGenerator as DLL.FMRIGenerator;
+                    generator.ComputeActivity(fmriColumn);
+                    generator.AdjustValues(fmriColumn);
+                }
                 if (SceneInformation.GeneratorNeedsUpdate) yield break;
             }
 
