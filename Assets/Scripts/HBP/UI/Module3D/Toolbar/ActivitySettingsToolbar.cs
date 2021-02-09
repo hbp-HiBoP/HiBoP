@@ -20,10 +20,11 @@ namespace HBP.UI.Module3D
                 m_IsGlobal = value;
                 m_ActivityTransparency.IsGlobal = value;
                 m_DynamicParameters.IsGlobal = value;
+                m_FMRIParameters.IsGlobal = value;
             }
         }
         /// <summary>
-        /// IEEG Global setter
+        /// Activity Global setter
         /// </summary>
         [SerializeField] private Tools.ActivityGlobal m_ActivityGlobal;
         /// <summary>
@@ -31,9 +32,13 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField] private Tools.ActivityTransparency m_ActivityTransparency;
         /// <summary>
-        /// IEEG Sites Parameters
+        /// Dynamic Parameters
         /// </summary>
         [SerializeField] private Tools.DynamicParameters m_DynamicParameters;
+        /// <summary>
+        /// FMRI Parameters
+        /// </summary>
+        [SerializeField] private Tools.FMRIParameters m_FMRIParameters;
         /// <summary>
         /// Compute IEEG values
         /// </summary>
@@ -53,6 +58,7 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_ActivityGlobal);
             m_Tools.Add(m_ActivityTransparency);
             m_Tools.Add(m_DynamicParameters);
+            m_Tools.Add(m_FMRIParameters);
             m_Tools.Add(m_ComputeActivity);
             m_Tools.Add(m_SiteCorrelations);
         }

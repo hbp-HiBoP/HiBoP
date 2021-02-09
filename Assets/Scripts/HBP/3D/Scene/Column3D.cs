@@ -131,6 +131,26 @@ namespace HBP.Module3D
         /// </summary>
         public CutTexturesUtility CutTextures { get; protected set; } = new CutTexturesUtility();
 
+        private float m_ActivityAlpha = 0.8f;
+        /// <summary>
+        /// Alpha of the activity for the lowest site density
+        /// </summary>
+        public float ActivityAlpha
+        {
+            get
+            {
+                return m_ActivityAlpha;
+            }
+            set
+            {
+                if (m_ActivityAlpha != value)
+                {
+                    m_ActivityAlpha = value;
+                    OnUpdateActivityAlpha.Invoke();
+                }
+            }
+        }
+
         /// <summary>
         /// Parent of the meshes displayed in this column
         /// </summary>
@@ -166,6 +186,10 @@ namespace HBP.Module3D
         /// Event called each time we change the state of a site
         /// </summary>
         [HideInInspector] public GenericEvent<Site> OnChangeSiteState = new GenericEvent<Site>();
+        /// <summary>
+        /// Event called when updating the alpha values
+        /// </summary>
+        [HideInInspector] public UnityEvent OnUpdateActivityAlpha = new UnityEvent();
         #endregion
 
         #region Private Methods
@@ -531,6 +555,7 @@ namespace HBP.Module3D
         public virtual void LoadConfiguration(bool firstCall = true)
         {
             if (firstCall) ResetConfiguration();
+            ActivityAlpha = ColumnData.BaseConfiguration.ActivityAlpha;
             foreach (Site site in Sites)
             {
                 site.LoadConfiguration(false);
@@ -543,6 +568,7 @@ namespace HBP.Module3D
         /// </summary>
         public virtual void SaveConfiguration()
         {
+            ColumnData.BaseConfiguration.ActivityAlpha = ActivityAlpha;
             foreach (Site site in Sites)
             {
                 site.SaveConfiguration();
@@ -553,6 +579,7 @@ namespace HBP.Module3D
         /// </summary>
         public virtual void ResetConfiguration()
         {
+            ActivityAlpha = 0.8f;
             foreach (Site site in Sites)
             {
                 site.ResetConfiguration();

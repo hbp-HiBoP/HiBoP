@@ -10,26 +10,6 @@ namespace HBP.Module3D
     public class FMRIDataParameters
     {
         #region Properties
-        private float m_Alpha = 1.0f;
-        /// <summary>
-        /// Alpha of the FMRI
-        /// </summary>
-        public float Alpha
-        {
-            get
-            {
-                return m_Alpha;
-            }
-            set
-            {
-                if (m_Alpha != value)
-                {
-                    m_Alpha = value;
-                    OnUpdateAlphaValues.Invoke();
-                }
-            }
-        }
-
         /// <summary>
         /// Calibration min factor of the FMRI (between 0 and 1)
         /// </summary>
@@ -53,10 +33,6 @@ namespace HBP.Module3D
         /// Event called when updating the span values (min, mid or max)
         /// </summary>
         public UnityEvent OnUpdateCalValues = new UnityEvent();
-        /// <summary>
-        /// Event called when updating the alpha values
-        /// </summary>
-        public UnityEvent OnUpdateAlphaValues = new UnityEvent();
         #endregion
 
         #region Public Methods

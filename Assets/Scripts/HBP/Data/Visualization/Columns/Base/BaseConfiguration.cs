@@ -9,21 +9,27 @@ namespace HBP.Data.Visualization
     {
         #region Properties
         /// <summary>
+        /// IEEG Transparency
+        /// </summary>
+        [DataMember(Name = "Activity Alpha")] public float ActivityAlpha { get; set; }
+        /// <summary>
         /// Configuration of the sites.
         /// </summary>
         [DataMember] public Dictionary<string, SiteConfiguration> ConfigurationBySite { get; set; }
         #endregion
 
         #region Constructors
-        public BaseConfiguration() : this(new Dictionary<string, SiteConfiguration>())
+        public BaseConfiguration() : this(0.8f, new Dictionary<string, SiteConfiguration>())
         {
         }
-        public BaseConfiguration(Dictionary<string,SiteConfiguration> configurationBySite) : base()
+        public BaseConfiguration(float alpha, Dictionary<string,SiteConfiguration> configurationBySite) : base()
         {
+            ActivityAlpha = alpha;
             ConfigurationBySite = configurationBySite;
         }
-        public BaseConfiguration(Dictionary<string, SiteConfiguration> configurationBySite, string ID) : base(ID)
+        public BaseConfiguration(float alpha, Dictionary<string, SiteConfiguration> configurationBySite, string ID) : base(ID)
         {
+            ActivityAlpha = alpha;
             ConfigurationBySite = configurationBySite;
         }
         #endregion
@@ -31,13 +37,14 @@ namespace HBP.Data.Visualization
         #region Public Methods
         public override object Clone()
         {
-            return new BaseConfiguration(ConfigurationBySite.ToDictionary((k) => k.Key,(k) => k.Value.Clone() as SiteConfiguration), ID);
+            return new BaseConfiguration(ActivityAlpha, ConfigurationBySite.ToDictionary((k) => k.Key,(k) => k.Value.Clone() as SiteConfiguration), ID);
         }
         public override void Copy(object copy)
         {
             base.Copy(copy);
             if (copy is BaseConfiguration baseConfiguration)
             {
+                ActivityAlpha = baseConfiguration.ActivityAlpha;
                 ConfigurationBySite = baseConfiguration.ConfigurationBySite;
             }
         }

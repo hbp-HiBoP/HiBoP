@@ -1025,6 +1025,12 @@ namespace HBP.Module3D
             {
                 ResetGenerators(false);
             });
+            column.OnUpdateActivityAlpha.AddListener(() =>
+            {
+                SceneInformation.FunctionalCutTexturesNeedUpdate = true;
+                SceneInformation.FunctionalSurfaceNeedsUpdate = true;
+                column.SurfaceNeedsUpdate = true;
+            });
             if (column is Column3DAnatomy anatomyColumn)
             {
                 anatomyColumn.AnatomyParameters.OnUpdateInfluenceDistance.AddListener(() =>
@@ -1041,12 +1047,6 @@ namespace HBP.Module3D
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     dynamicColumn.SurfaceNeedsUpdate = true;
                     SceneInformation.SitesNeedUpdate = true;
-                });
-                dynamicColumn.DynamicParameters.OnUpdateAlphaValues.AddListener(() =>
-                {
-                    SceneInformation.FunctionalCutTexturesNeedUpdate = true;
-                    SceneInformation.FunctionalSurfaceNeedsUpdate = true;
-                    dynamicColumn.SurfaceNeedsUpdate = true;
                 });
                 dynamicColumn.DynamicParameters.OnUpdateInfluenceDistance.AddListener(() =>
                 {
@@ -1078,12 +1078,6 @@ namespace HBP.Module3D
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     fmriColumn.SurfaceNeedsUpdate = true;
                     SceneInformation.SitesNeedUpdate = true;
-                });
-                fmriColumn.FMRIParameters.OnUpdateAlphaValues.AddListener(() =>
-                {
-                    SceneInformation.FunctionalCutTexturesNeedUpdate = true;
-                    SceneInformation.FunctionalSurfaceNeedsUpdate = true;
-                    fmriColumn.SurfaceNeedsUpdate = true;
                 });
             }
             column.Initialize(Columns.Count, baseColumn, m_ImplantationManager.SelectedImplantation, m_DisplayedObjects.SitesPatientParent);

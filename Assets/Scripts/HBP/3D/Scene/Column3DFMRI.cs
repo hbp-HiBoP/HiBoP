@@ -50,7 +50,7 @@ namespace HBP.Module3D
         /// <param name="brainSurface">Surface of the brain</param>
         public override void ComputeSurfaceBrainUVWithActivity()
         {
-            SurfaceGenerator.ComputeActivityUV(SelectedFMRIIndex, FMRIParameters.Alpha);
+            SurfaceGenerator.ComputeActivityUV(SelectedFMRIIndex, ActivityAlpha);
         }
         #endregion
     }

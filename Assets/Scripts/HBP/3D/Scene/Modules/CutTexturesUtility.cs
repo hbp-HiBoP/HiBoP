@@ -165,17 +165,15 @@ namespace HBP.Module3D
         public void ColorCutsTexturesWithActivity()
         {
             int timelineIndex = 0;
-            float alpha = 0;
             if (Column is Column3DDynamic dynamicColumn)
             {
                 timelineIndex = dynamicColumn.Timeline.CurrentIndex;
-                alpha = dynamicColumn.DynamicParameters.Alpha;
             }
 
             for (int i = 0; i < CutGenerators.Count; ++i)
             {
                 CutGenerator generator = CutGenerators[i];
-                generator.FillTextureWithActivity(DLLCutColorScheme, timelineIndex, alpha);
+                generator.FillTextureWithActivity(DLLCutColorScheme, timelineIndex, Column.ActivityAlpha);
 
                 DLL.Texture cutTexture = DLLBrainCutTextures[i];
                 generator.UpdateTextureWithActivity(cutTexture);

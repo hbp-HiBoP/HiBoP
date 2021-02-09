@@ -12,10 +12,6 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Allows to change the threshold values of the fMRI currently displayed
         /// </summary>
-        [SerializeField] private Tools.FMRIParameters m_FMRIParameters;
-        /// <summary>
-        /// Allows to change the threshold values of the fMRI currently displayed
-        /// </summary>
         [SerializeField] private Tools.ThresholdFMRI m_ThresholdFMRI;
         #endregion
 
@@ -26,7 +22,6 @@ namespace HBP.UI.Module3D
         protected override void AddTools()
         {
             m_Tools.Add(m_FMRISelector);
-            m_Tools.Add(m_FMRIParameters);
             m_Tools.Add(m_ThresholdFMRI);
         }
         /// <summary>

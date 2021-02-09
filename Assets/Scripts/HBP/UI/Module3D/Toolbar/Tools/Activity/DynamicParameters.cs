@@ -44,7 +44,7 @@ namespace HBP.UI.Module3D.Tools
                 
                 foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
-                    column.DynamicParameters.InfluenceDistance = val;
+                    ((Column3DDynamic)column).DynamicParameters.InfluenceDistance = val;
                 }
                 m_InputField.text = ((Column3DDynamic)SelectedColumn).DynamicParameters.InfluenceDistance.ToString("N2");
             });
@@ -55,7 +55,7 @@ namespace HBP.UI.Module3D.Tools
 
                 foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
-                    column.DynamicParameters.SetSpanValues(min, mid, max);
+                    ((Column3DDynamic)column).DynamicParameters.SetSpanValues(min, mid, max);
                 }
             });
             m_Auto.onClick.AddListener(() =>
@@ -64,8 +64,9 @@ namespace HBP.UI.Module3D.Tools
 
                 foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
-                    column.DynamicParameters.ResetSpanValues(column);
-                    m_ThresholdIEEG.UpdateIEEGValues(column);
+                    Column3DDynamic dynamicColumn = column as Column3DDynamic;
+                    dynamicColumn.DynamicParameters.ResetSpanValues(dynamicColumn);
+                    m_ThresholdIEEG.UpdateIEEGValues(dynamicColumn);
                 }
             });
         }
@@ -74,6 +75,7 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void DefaultState()
         {
+            gameObject.SetActive(false);
             m_InputField.text = "15.00";
             m_InputField.interactable = false;
             m_Button.interactable = false;
@@ -86,7 +88,8 @@ namespace HBP.UI.Module3D.Tools
             bool isColumnDynamic = SelectedColumn is Column3DDynamic;
             bool isColumnIEEG = SelectedColumn is Column3DIEEG;
             bool isColumnCCEPAndSourceSelected = SelectedColumn is HBP.Module3D.Column3DCCEP ccepColumn && ccepColumn.IsSourceSelected;
-            
+
+            gameObject.SetActive(isColumnDynamic);
             m_InputField.interactable = isColumnDynamic;
             m_Button.interactable = isColumnIEEG || isColumnCCEPAndSourceSelected;
         }

@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using HBP.Module3D;
+using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -25,10 +27,11 @@ namespace HBP.UI.Module3D.Tools
             m_Slider.onValueChanged.AddListener((value) =>
             {
                 if (ListenerLock) return;
-                
-                foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
+
+                List<Column3D> columns = IsGlobal ? SelectedScene.Columns : new List<Column3D>() { SelectedColumn };
+                foreach (var column in columns)
                 {
-                    column.DynamicParameters.Alpha = value;
+                    column.ActivityAlpha = value;
                 }
             });
         }
@@ -37,7 +40,7 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void DefaultState()
         {
-            m_Slider.value = 0.2f;
+            m_Slider.value = 0.8f;
             m_Slider.interactable = false;
         }
         /// <summary>
@@ -45,23 +48,14 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isColumnDynamic = SelectedColumn is HBP.Module3D.Column3DDynamic;
-
-            m_Slider.interactable = isColumnDynamic;
+            m_Slider.interactable = true;
         }
         /// <summary>
         /// Update the status of the tool
         /// </summary>
         public override void UpdateStatus()
         {
-            if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)
-            {
-                m_Slider.value = dynamicColumn.DynamicParameters.Alpha;
-            }
-            else
-            {
-                m_Slider.value = 0.2f;
-            }
+            m_Slider.value = SelectedColumn.ActivityAlpha;
         }
         #endregion
     }

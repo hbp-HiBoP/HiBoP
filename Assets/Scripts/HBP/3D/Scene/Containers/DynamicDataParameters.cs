@@ -47,27 +47,7 @@ namespace HBP.Module3D
         /// Maximum amplitude value (computed externally for this column when setting activity values)
         /// </summary>
         public float MaximumAmplitude { get; set; } = float.MaxValue;
-
-        private float m_Alpha = 0.8f;
-        /// <summary>
-        /// Alpha of the activity for the lowest site density
-        /// </summary>
-        public float Alpha
-        {
-            get
-            {
-                return m_Alpha;
-            }
-            set
-            {
-                if (m_Alpha != value)
-                {
-                    m_Alpha = value;
-                    OnUpdateAlphaValues.Invoke();
-                }
-            }
-        }
-
+        
         /// <summary>
         /// Minimum span value (to adjust the colormap)
         /// </summary>
@@ -87,10 +67,6 @@ namespace HBP.Module3D
         /// Event called when updating the span values (min, mid or max)
         /// </summary>
         public UnityEvent OnUpdateSpanValues = new UnityEvent();
-        /// <summary>
-        /// Event called when updating the alpha values
-        /// </summary>
-        public UnityEvent OnUpdateAlphaValues = new UnityEvent();
         /// <summary>
         /// Event called when updating the maximum influence
         /// </summary>

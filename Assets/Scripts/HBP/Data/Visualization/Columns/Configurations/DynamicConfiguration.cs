@@ -11,10 +11,6 @@ namespace HBP.Data.Visualization
         /// </summary>
         [DataMember(Name = "Site Maximum Influence")] public float MaximumInfluence { get; set; }
         /// <summary>
-        /// IEEG Transparency
-        /// </summary>
-        [DataMember(Name = "Transparency")] public float Alpha { get; set; }
-        /// <summary>
         /// IEEG Span Min
         /// </summary>
         [DataMember(Name = "Span Min")] public float SpanMin { get; set; }
@@ -29,23 +25,21 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructor
-        public DynamicConfiguration(float maximumInfluence, float alpha, float spanMin, float middle, float spanMax) : base()
+        public DynamicConfiguration(float maximumInfluence, float spanMin, float middle, float spanMax) : base()
         {
             MaximumInfluence = maximumInfluence;
-            Alpha = alpha;
             SpanMin = spanMin;
             Middle = middle;
             SpanMax = spanMax;
         }
-        public DynamicConfiguration(float maximumInfluence, float alpha, float spanMin, float middle, float spanMax, string ID) : base(ID)
+        public DynamicConfiguration(float maximumInfluence, float spanMin, float middle, float spanMax, string ID) : base(ID)
         {
             MaximumInfluence = maximumInfluence;
-            Alpha = alpha;
             SpanMin = spanMin;
             Middle = middle;
             SpanMax = spanMax;
         }
-        public DynamicConfiguration() : this(15, .8f, 0, 0, 0)
+        public DynamicConfiguration() : this(15, 0, 0, 0)
         {
         }
         #endregion
@@ -53,7 +47,7 @@ namespace HBP.Data.Visualization
         #region Public Methods
         public override object Clone()
         {
-            return new DynamicConfiguration(MaximumInfluence, Alpha, SpanMin, Middle, SpanMax, ID);
+            return new DynamicConfiguration(MaximumInfluence, SpanMin, Middle, SpanMax, ID);
         }
         public override void Copy(object copy)
         {
@@ -61,7 +55,6 @@ namespace HBP.Data.Visualization
             if(copy is DynamicConfiguration dynamicConfiguration)
             {
                 MaximumInfluence = dynamicConfiguration.MaximumInfluence;
-                Alpha = dynamicConfiguration.Alpha;
                 SpanMin = dynamicConfiguration.SpanMin;
                 Middle = dynamicConfiguration.Middle;
                 SpanMax = dynamicConfiguration.SpanMax;
