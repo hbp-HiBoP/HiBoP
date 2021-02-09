@@ -73,7 +73,7 @@ namespace HBP.UI.Module3D
             m_Toolbars.Add(m_ConfigurationToggle, m_ToolbarMenu.ConfigurationToolbar);
             m_Toolbars.Add(m_SceneToggle, m_ToolbarMenu.SceneSettingsToolbar);
             m_Toolbars.Add(m_DisplayToggle, m_ToolbarMenu.DisplaySettingsToolbar);
-            m_Toolbars.Add(m_IEEGToggle, m_ToolbarMenu.IEEGSettingsToolbar);
+            m_Toolbars.Add(m_IEEGToggle, m_ToolbarMenu.ActivitySettingsToolbar);
             m_Toolbars.Add(m_TimelineToggle, m_ToolbarMenu.TimelineToolbar);
             m_Toolbars.Add(m_SiteToggle, m_ToolbarMenu.SiteToolbar);
             m_Toolbars.Add(m_ROIToggle, m_ToolbarMenu.ROIToolbar);

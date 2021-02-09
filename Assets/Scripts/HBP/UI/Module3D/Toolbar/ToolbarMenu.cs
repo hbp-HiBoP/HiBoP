@@ -53,19 +53,19 @@ namespace HBP.UI.Module3D
             }
         }
 
-        [SerializeField] private IEEGSettingsToolbar m_IEEGSettingsToolbar;
+        [SerializeField] private ActivitySettingsToolbar m_ActivitySettingsToolbar;
         /// <summary>
-        /// Toolbar for the IEEG settings
+        /// Toolbar for the activity settings
         /// </summary>
-        public IEEGSettingsToolbar IEEGSettingsToolbar
+        public ActivitySettingsToolbar ActivitySettingsToolbar
         {
             get
             {
-                return m_IEEGSettingsToolbar;
+                return m_ActivitySettingsToolbar;
             }
             set
             {
-                m_IEEGSettingsToolbar = value;
+                m_ActivitySettingsToolbar = value;
             }
         }
 
@@ -200,7 +200,7 @@ namespace HBP.UI.Module3D
             {
                 m_SceneSettingsToolbar.UpdateToolbar();
                 m_DisplaySettingsToolbar.UpdateToolbar();
-                m_IEEGSettingsToolbar.UpdateToolbar();
+                m_ActivitySettingsToolbar.UpdateToolbar();
                 m_TimelineToolbar.UpdateToolbar();
                 m_SiteToolbar.UpdateToolbar();
                 m_ROIToolbar.UpdateToolbar();
@@ -228,7 +228,7 @@ namespace HBP.UI.Module3D
 
             m_SceneSettingsToolbar.Initialize();
             m_DisplaySettingsToolbar.Initialize();
-            m_IEEGSettingsToolbar.Initialize();
+            m_ActivitySettingsToolbar.Initialize();
             m_TimelineToolbar.Initialize();
             m_SiteToolbar.Initialize();
             m_ROIToolbar.Initialize();
@@ -242,7 +242,7 @@ namespace HBP.UI.Module3D
 
             m_SceneSettingsToolbar.gameObject.SetActive(true);
             m_DisplaySettingsToolbar.gameObject.SetActive(false);
-            m_IEEGSettingsToolbar.gameObject.SetActive(false);
+            m_ActivitySettingsToolbar.gameObject.SetActive(false);
             m_TimelineToolbar.gameObject.SetActive(false);
             m_SiteToolbar.gameObject.SetActive(false);
             m_ROIToolbar.gameObject.SetActive(false);

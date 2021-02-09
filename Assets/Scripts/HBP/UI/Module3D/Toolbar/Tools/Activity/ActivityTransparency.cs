@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
 {
-    public class IEEGTransparency : Tool
+    public class ActivityTransparency : Tool
     {
         #region Properties
         /// <summary>

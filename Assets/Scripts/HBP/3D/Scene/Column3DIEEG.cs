@@ -232,7 +232,6 @@ namespace HBP.Module3D
         public override void LoadConfiguration(bool firstCall = true)
         {
             if (firstCall) ResetConfiguration();
-            DynamicParameters.Gain = ColumnIEEGData.DynamicConfiguration.Gain;
             DynamicParameters.InfluenceDistance = ColumnIEEGData.DynamicConfiguration.MaximumInfluence;
             DynamicParameters.Alpha = ColumnIEEGData.DynamicConfiguration.Alpha;
             DynamicParameters.SetSpanValues(ColumnIEEGData.DynamicConfiguration.SpanMin, ColumnIEEGData.DynamicConfiguration.Middle, ColumnIEEGData.DynamicConfiguration.SpanMax);
@@ -243,7 +242,6 @@ namespace HBP.Module3D
         /// </summary>
         public override void SaveConfiguration()
         {
-            ColumnIEEGData.DynamicConfiguration.Gain = DynamicParameters.Gain;
             ColumnIEEGData.DynamicConfiguration.MaximumInfluence = DynamicParameters.InfluenceDistance;
             ColumnIEEGData.DynamicConfiguration.Alpha = DynamicParameters.Alpha;
             ColumnIEEGData.DynamicConfiguration.SpanMin = DynamicParameters.SpanMin;
@@ -256,7 +254,6 @@ namespace HBP.Module3D
         /// </summary>
         public override void ResetConfiguration()
         {
-            DynamicParameters.Gain = 1.0f;
             DynamicParameters.InfluenceDistance = 15.0f;
             DynamicParameters.Alpha = 0.8f;
             DynamicParameters.ResetSpanValues(this);

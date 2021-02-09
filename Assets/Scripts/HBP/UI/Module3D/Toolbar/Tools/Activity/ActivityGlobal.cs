@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
 {
-    public class IEEGGlobal : Tool
+    public class ActivityGlobal : Tool
     {
         #region Properties
         /// <summary>

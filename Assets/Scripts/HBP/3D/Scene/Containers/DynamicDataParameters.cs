@@ -39,25 +39,6 @@ namespace HBP.Module3D
             }
         }
 
-        private float m_Gain = 1.0f;
-        /// <summary>
-        /// Gain for the size of the sites
-        /// </summary>
-        public float Gain
-        {
-            get
-            {
-                return m_Gain;
-            }
-            set
-            {
-                if (m_Gain != value)
-                {
-                    m_Gain = value;
-                    OnUpdateGain.Invoke();
-                }
-            }
-        }
         /// <summary>
         /// Minimum amplitude value (computed externally for this column when setting activity values)
         /// </summary>
@@ -110,10 +91,6 @@ namespace HBP.Module3D
         /// Event called when updating the alpha values
         /// </summary>
         public UnityEvent OnUpdateAlphaValues = new UnityEvent();
-        /// <summary>
-        /// Event called when updating the sphere gain
-        /// </summary>
-        public UnityEvent OnUpdateGain = new UnityEvent();
         /// <summary>
         /// Event called when updating the maximum influence
         /// </summary>

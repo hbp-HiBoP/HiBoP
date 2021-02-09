@@ -107,7 +107,7 @@ namespace HBP.Module3D
         /// Currently selected site ID
         /// </summary>
         public int SelectedSiteID { get { return SelectedSite != null ? SelectedSite.Information.Index : -1; } }
-
+        
         /// <summary>
         /// Raw site list (used for DLL operations)
         /// </summary>
@@ -298,7 +298,7 @@ namespace HBP.Module3D
         /// <param name="showAllSites">Do we show sites that are not in a ROI ?</param>
         /// <param name="hideBlacklistedSites">Do we hide blacklisted sites ?</param>
         /// <param name="isGeneratorUpToDate">Is the activity generator up to date ?</param>
-        public virtual void UpdateSitesRendering(bool showAllSites, bool hideBlacklistedSites, bool isGeneratorUpToDate)
+        public virtual void UpdateSitesRendering(bool showAllSites, bool hideBlacklistedSites, bool isGeneratorUpToDate, float gain)
         {
             for (int i = 0; i < Sites.Count; ++i)
             {
@@ -327,6 +327,7 @@ namespace HBP.Module3D
                 }
                 if (!activity) site.IsActive = true;
                 site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
+                site.transform.localScale *= gain;
             }
         }
         /// <summary>

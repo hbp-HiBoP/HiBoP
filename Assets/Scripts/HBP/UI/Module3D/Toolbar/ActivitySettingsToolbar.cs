@@ -2,7 +2,7 @@
 
 namespace HBP.UI.Module3D
 {
-    public class IEEGSettingsToolbar : Toolbar
+    public class ActivitySettingsToolbar : Toolbar
     {
         #region Properties
         private bool m_IsGlobal = false;
@@ -18,31 +18,26 @@ namespace HBP.UI.Module3D
             set
             {
                 m_IsGlobal = value;
-                m_ThresholdIEEG.IsGlobal = value;
-                m_IEEGTransparency.IsGlobal = value;
-                m_IEEGSitesParameters.IsGlobal = value;
+                m_ActivityTransparency.IsGlobal = value;
+                m_DynamicParameters.IsGlobal = value;
             }
         }
         /// <summary>
         /// IEEG Global setter
         /// </summary>
-        [SerializeField] private Tools.IEEGGlobal m_IEEGGlobal;
-        /// <summary>
-        /// Threshold IEEG parameters
-        /// </summary>
-        [SerializeField] private Tools.ThresholdIEEG m_ThresholdIEEG;
+        [SerializeField] private Tools.ActivityGlobal m_ActivityGlobal;
         /// <summary>
         /// IEEG Transparency parameters
         /// </summary>
-        [SerializeField] private Tools.IEEGTransparency m_IEEGTransparency;
+        [SerializeField] private Tools.ActivityTransparency m_ActivityTransparency;
         /// <summary>
         /// IEEG Sites Parameters
         /// </summary>
-        [SerializeField] private Tools.IEEGSitesParameters m_IEEGSitesParameters;
+        [SerializeField] private Tools.DynamicParameters m_DynamicParameters;
         /// <summary>
         /// Compute IEEG values
         /// </summary>
-        [SerializeField] private Tools.ComputeIEEG m_ComputeIEEG;
+        [SerializeField] private Tools.ComputeActivity m_ComputeActivity;
         /// <summary>
         /// Compute and display site correlations
         /// </summary>
@@ -55,11 +50,10 @@ namespace HBP.UI.Module3D
         /// </summary>
         protected override void AddTools()
         {
-            m_Tools.Add(m_IEEGGlobal);
-            m_Tools.Add(m_ThresholdIEEG);
-            m_Tools.Add(m_IEEGTransparency);
-            m_Tools.Add(m_IEEGSitesParameters);
-            m_Tools.Add(m_ComputeIEEG);
+            m_Tools.Add(m_ActivityGlobal);
+            m_Tools.Add(m_ActivityTransparency);
+            m_Tools.Add(m_DynamicParameters);
+            m_Tools.Add(m_ComputeActivity);
             m_Tools.Add(m_SiteCorrelations);
         }
         /// <summary>
@@ -69,7 +63,7 @@ namespace HBP.UI.Module3D
         {
             base.AddListeners();
 
-            m_IEEGGlobal.OnChangeValue.AddListener((global) =>
+            m_ActivityGlobal.OnChangeValue.AddListener((global) =>
             {
                 IsGlobal = global;
             });
@@ -82,7 +76,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         public override void ShowToolbarCallback()
         {
-            m_IEEGGlobal.Set(m_ToolbarMenu.TimelineToolbar.IsGlobal);
+            m_ActivityGlobal.Set(m_ToolbarMenu.TimelineToolbar.IsGlobal);
         }
         #endregion
     }

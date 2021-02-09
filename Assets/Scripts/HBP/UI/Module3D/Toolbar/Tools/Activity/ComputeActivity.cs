@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
 {
-    public class ComputeIEEG : Tool
+    public class ComputeActivity : Tool
     {
         #region Properties
         /// <summary>

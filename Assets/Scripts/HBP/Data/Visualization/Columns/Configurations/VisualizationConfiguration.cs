@@ -24,8 +24,8 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// EEG colormap
         /// </summary>
-        [DataMember(Name = "EEG Colormap")]
-        public ColorType EEGColormap { get; set; } = ColorType.MatLab;
+        [DataMember(Name = "Colormap")]
+        public ColorType Colormap { get; set; } = ColorType.MatLab;
 
         /// <summary>
         /// Mesh part to display
@@ -88,6 +88,12 @@ namespace HBP.Data.Visualization
         public bool ShowAllSites { get; set; }
 
         /// <summary>
+        /// Sites Gain
+        /// </summary>
+        [DataMember(Name = "Site Gain")]
+        public float SiteGain { get; set; } = 1.0f;
+
+        /// <summary>
         /// MRI Cal Min Factor
         /// </summary>
         [DataMember(Name = "MRI Min")]
@@ -129,11 +135,11 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool transparent, float alpha, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, IEnumerable<RegionOfInterest> rois) : base()
+        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool transparent, float alpha, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, float siteGain, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, IEnumerable<RegionOfInterest> rois) : base()
         {
             BrainColor = brainColor;
             BrainCutColor = brainCutColor;
-            EEGColormap = eEGColormap;
+            Colormap = eEGColormap;
             MeshPart = meshPart;
             MeshName = meshName;
             MRIName = mRIName;
@@ -144,6 +150,7 @@ namespace HBP.Data.Visualization
             StrongCuts = strongCuts;
             HideBlacklistedSites = hideBlacklistedSites;
             ShowAllSites = showAllSites;
+            SiteGain = siteGain;
             MRICalMinFactor = mRICalMinFactor;
             MRICalMaxFactor = mRICalMaxFactor;
             CameraType = cameraType;
@@ -151,11 +158,11 @@ namespace HBP.Data.Visualization
             Views = views.ToList();
             RegionsOfInterest = rois.ToList();
         }
-        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool transparent, float alpha, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, IEnumerable<RegionOfInterest> rois, string ID) : base(ID)
+        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool transparent, float alpha, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, float siteGain, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, IEnumerable<RegionOfInterest> rois, string ID) : base(ID)
         {
             BrainColor = brainColor;
             BrainCutColor = brainCutColor;
-            EEGColormap = eEGColormap;
+            Colormap = eEGColormap;
             MeshPart = meshPart;
             MeshName = meshName;
             MRIName = mRIName;
@@ -166,6 +173,7 @@ namespace HBP.Data.Visualization
             StrongCuts = strongCuts;
             HideBlacklistedSites = hideBlacklistedSites;
             ShowAllSites = showAllSites;
+            SiteGain = siteGain;
             MRICalMinFactor = mRICalMinFactor;
             MRICalMaxFactor = mRICalMaxFactor;
             CameraType = cameraType;
@@ -181,9 +189,9 @@ namespace HBP.Data.Visualization
         #region Public Methods
         public override object Clone()
         {
-            VisualizationConfiguration result = new VisualizationConfiguration(BrainColor, BrainCutColor, EEGColormap,
+            VisualizationConfiguration result = new VisualizationConfiguration(BrainColor, BrainCutColor, Colormap,
                 MeshPart, MeshName, MRIName, ImplantationName, ShowEdges, TransparentBrain, BrainAlpha, StrongCuts,
-                HideBlacklistedSites, ShowAllSites, MRICalMinFactor,
+                HideBlacklistedSites, ShowAllSites, SiteGain, MRICalMinFactor,
                 MRICalMaxFactor, CameraType, Cuts, Views, RegionsOfInterest, ID);
             result.FirstSiteToSelect = FirstSiteToSelect;
             result.FirstColumnToSelect = FirstColumnToSelect;
@@ -196,7 +204,7 @@ namespace HBP.Data.Visualization
             {
                 BrainColor = visualizationConfiguration.BrainColor;
                 BrainCutColor = visualizationConfiguration.BrainCutColor;
-                EEGColormap = visualizationConfiguration.EEGColormap;
+                Colormap = visualizationConfiguration.Colormap;
                 MeshPart = visualizationConfiguration.MeshPart;
                 MeshName = visualizationConfiguration.MeshName;
                 MRIName = visualizationConfiguration.MRIName;
@@ -207,6 +215,7 @@ namespace HBP.Data.Visualization
                 StrongCuts = visualizationConfiguration.StrongCuts;
                 HideBlacklistedSites = visualizationConfiguration.HideBlacklistedSites;
                 ShowAllSites = visualizationConfiguration.ShowAllSites;
+                SiteGain = visualizationConfiguration.SiteGain;
                 MRICalMinFactor = visualizationConfiguration.MRICalMinFactor;
                 MRICalMaxFactor = visualizationConfiguration.MRICalMaxFactor;
                 CameraType = visualizationConfiguration.CameraType;

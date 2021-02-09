@@ -320,7 +320,27 @@ namespace HBP.Module3D
                 SceneInformation.SitesNeedUpdate = true;
             }
         }
-        
+
+        private float m_SiteGain = 1.0f;
+        /// <summary>
+        /// Gain for the size of the sites
+        /// </summary>
+        public float SiteGain
+        {
+            get
+            {
+                return m_SiteGain;
+            }
+            set
+            {
+                if (m_SiteGain != value)
+                {
+                    m_SiteGain = value;
+                    SceneInformation.SitesNeedUpdate = true;
+                }
+            }
+        }
+
         private bool m_EdgeMode = false;
         /// <summary>
         /// Are the edges displayed ?
@@ -906,7 +926,7 @@ namespace HBP.Module3D
         {
             foreach (Column3D column in Columns)
             {
-                column.UpdateSitesRendering(m_ShowAllSites, m_HideBlacklistedSites, m_IsGeneratorUpToDate);
+                column.UpdateSitesRendering(m_ShowAllSites, m_HideBlacklistedSites, m_IsGeneratorUpToDate, m_SiteGain);
             }
             SceneInformation.SitesNeedUpdate = false;
             OnSitesRenderingUpdated.Invoke();
@@ -1007,10 +1027,6 @@ namespace HBP.Module3D
             });
             if (column is Column3DAnatomy anatomyColumn)
             {
-                anatomyColumn.AnatomyParameters.OnUpdateGain.AddListener(() =>
-                {
-                    SceneInformation.SitesNeedUpdate = true;
-                });
                 anatomyColumn.AnatomyParameters.OnUpdateInfluenceDistance.AddListener(() =>
                 {
                     ResetGenerators(false);
@@ -1031,10 +1047,6 @@ namespace HBP.Module3D
                     SceneInformation.FunctionalCutTexturesNeedUpdate = true;
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     dynamicColumn.SurfaceNeedsUpdate = true;
-                });
-                dynamicColumn.DynamicParameters.OnUpdateGain.AddListener(() =>
-                {
-                    SceneInformation.SitesNeedUpdate = true;
                 });
                 dynamicColumn.DynamicParameters.OnUpdateInfluenceDistance.AddListener(() =>
                 {
@@ -1364,7 +1376,7 @@ namespace HBP.Module3D
             if (firstCall) ResetConfiguration();
             BrainColor = Visualization.Configuration.BrainColor;
             CutColor = Visualization.Configuration.BrainCutColor;
-            Colormap = Visualization.Configuration.EEGColormap;
+            Colormap = Visualization.Configuration.Colormap;
             m_MeshManager.SelectMeshPart(Visualization.Configuration.MeshPart);
             EdgeMode = Visualization.Configuration.ShowEdges;
             IsBrainTransparent = Visualization.Configuration.TransparentBrain;
@@ -1372,6 +1384,7 @@ namespace HBP.Module3D
             StrongCuts = Visualization.Configuration.StrongCuts;
             HideBlacklistedSites = Visualization.Configuration.HideBlacklistedSites;
             ShowAllSites = Visualization.Configuration.ShowAllSites;
+            SiteGain = Visualization.Configuration.SiteGain;
             m_MRIManager.SetCalValues(Visualization.Configuration.MRICalMinFactor, Visualization.Configuration.MRICalMaxFactor);
             CameraType = Visualization.Configuration.CameraType;
 
@@ -1420,7 +1433,7 @@ namespace HBP.Module3D
         {
             Visualization.Configuration.BrainColor = BrainColor;
             Visualization.Configuration.BrainCutColor = CutColor;
-            Visualization.Configuration.EEGColormap = Colormap;
+            Visualization.Configuration.Colormap = Colormap;
             Visualization.Configuration.MeshPart = MeshManager.MeshPartToDisplay;
             Visualization.Configuration.MeshName = m_MeshManager.SelectedMesh.Name;
             Visualization.Configuration.MRIName = m_MRIManager.SelectedMRI.Name;
@@ -1431,6 +1444,7 @@ namespace HBP.Module3D
             Visualization.Configuration.StrongCuts = StrongCuts;
             Visualization.Configuration.HideBlacklistedSites = m_HideBlacklistedSites;
             Visualization.Configuration.ShowAllSites = ShowAllSites;
+            Visualization.Configuration.SiteGain = SiteGain;
             Visualization.Configuration.MRICalMinFactor = m_MRIManager.MRICalMinFactor;
             Visualization.Configuration.MRICalMaxFactor = m_MRIManager.MRICalMaxFactor;
             Visualization.Configuration.CameraType = CameraType;
@@ -1483,6 +1497,8 @@ namespace HBP.Module3D
             BrainMaterials.SetAlpha(0.2f);
             StrongCuts = false;
             HideBlacklistedSites = false;
+            ShowAllSites = false;
+            SiteGain = 1.0f;
             m_MRIManager.SetCalValues(0, 1);
             CameraType = Data.Enums.CameraControl.Trackball;
 

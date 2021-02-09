@@ -164,7 +164,7 @@ namespace HBP.Module3D
         /// <param name="showAllSites">Do we show sites that are not in a ROI ?</param>
         /// <param name="hideBlacklistedSites">Do we hide blacklisted sites ?</param>
         /// <param name="isGeneratorUpToDate">Is the activity generator up to date ?</param>
-        public override void UpdateSitesRendering(bool showAllSites, bool hideBlacklistedSites, bool isGeneratorUpToDate)
+        public override void UpdateSitesRendering(bool showAllSites, bool hideBlacklistedSites, bool isGeneratorUpToDate, float gain)
         {
             UpdateSitesSizeAndColorOfSites(showAllSites);
 
@@ -200,7 +200,7 @@ namespace HBP.Module3D
                 }
                 if (!activity) site.IsActive = true;
                 site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
-                site.transform.localScale *= DynamicParameters.Gain;
+                site.transform.localScale *= gain;
             }
         }
         /// <summary>

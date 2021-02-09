@@ -7,10 +7,6 @@ namespace HBP.Data.Visualization
     {
         #region Properties
         /// <summary>
-        /// IEEG Sites Gain
-        /// </summary>
-        [DataMember(Name = "Site Gain")] public float Gain { get; set; }
-        /// <summary>
         /// Maximum site influence
         /// </summary>
         [DataMember(Name = "Site Maximum Influence")] public float MaximumInfluence { get; set; }
@@ -33,25 +29,23 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructor
-        public DynamicConfiguration(float gain, float maximumInfluence, float alpha, float spanMin, float middle, float spanMax) : base()
+        public DynamicConfiguration(float maximumInfluence, float alpha, float spanMin, float middle, float spanMax) : base()
         {
-            Gain = gain;
             MaximumInfluence = maximumInfluence;
             Alpha = alpha;
             SpanMin = spanMin;
             Middle = middle;
             SpanMax = spanMax;
         }
-        public DynamicConfiguration(float gain, float maximumInfluence, float alpha, float spanMin, float middle, float spanMax, string ID) : base(ID)
+        public DynamicConfiguration(float maximumInfluence, float alpha, float spanMin, float middle, float spanMax, string ID) : base(ID)
         {
-            Gain = gain;
             MaximumInfluence = maximumInfluence;
             Alpha = alpha;
             SpanMin = spanMin;
             Middle = middle;
             SpanMax = spanMax;
         }
-        public DynamicConfiguration() : this(1, 15, .8f, 0, 0, 0)
+        public DynamicConfiguration() : this(15, .8f, 0, 0, 0)
         {
         }
         #endregion
@@ -59,14 +53,13 @@ namespace HBP.Data.Visualization
         #region Public Methods
         public override object Clone()
         {
-            return new DynamicConfiguration(Gain, MaximumInfluence, Alpha, SpanMin, Middle, SpanMax, ID);
+            return new DynamicConfiguration(MaximumInfluence, Alpha, SpanMin, Middle, SpanMax, ID);
         }
         public override void Copy(object copy)
         {
             base.Copy(copy);
             if(copy is DynamicConfiguration dynamicConfiguration)
             {
-                Gain = dynamicConfiguration.Gain;
                 MaximumInfluence = dynamicConfiguration.MaximumInfluence;
                 Alpha = dynamicConfiguration.Alpha;
                 SpanMin = dynamicConfiguration.SpanMin;
