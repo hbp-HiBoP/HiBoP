@@ -6,6 +6,7 @@ using HBP.Data;
 using HBP.UI;
 using Tools.Unity;
 using System.Collections;
+using HBP.Module3D;
 
 public class DebugBenjamin : MonoBehaviour
 {
@@ -14,7 +15,7 @@ public class DebugBenjamin : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.F1))
         {
-            ApplicationState.Module3D.SelectedScene.FMRIManager.DisplayDiFuMo = true;
+            (ApplicationState.Module3D.SelectedColumn as Column3DFMRI).SelectedFMRIIndex = 1 - (ApplicationState.Module3D.SelectedColumn as Column3DFMRI).SelectedFMRIIndex;
         }
         if (Input.GetKeyDown(KeyCode.F2))
         {

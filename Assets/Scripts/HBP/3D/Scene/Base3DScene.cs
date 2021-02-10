@@ -1079,6 +1079,12 @@ namespace HBP.Module3D
                     fmriColumn.SurfaceNeedsUpdate = true;
                     SceneInformation.SitesNeedUpdate = true;
                 });
+                fmriColumn.OnChangeSelectedFMRI.AddListener(() =>
+                {
+                    SceneInformation.FunctionalCutTexturesNeedUpdate = true;
+                    SceneInformation.FunctionalSurfaceNeedsUpdate = true;
+                    fmriColumn.SurfaceNeedsUpdate = true;
+                });
             }
             column.Initialize(Columns.Count, baseColumn, m_ImplantationManager.SelectedImplantation, m_DisplayedObjects.SitesPatientParent);
             Columns.Add(column);

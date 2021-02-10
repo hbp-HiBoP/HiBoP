@@ -27,11 +27,27 @@ namespace HBP.Module3D
         /// Parameters on how to display the activity on the column
         /// </summary>
         public FMRIDataParameters FMRIParameters { get; } = new FMRIDataParameters();
+        private int m_SelectedFMRIIndex = 0;
         /// <summary>
         /// Currently selected FMRI
         /// </summary>
-        public int SelectedFMRIIndex { get; set; } = 0;
+        public int SelectedFMRIIndex
+        {
+            get
+            {
+                return m_SelectedFMRIIndex;
+            }
+            set
+            {
+                m_SelectedFMRIIndex = value % ColumnFMRIData.Data.FMRIs.Count;
+                OnChangeSelectedFMRI.Invoke();
+            }
+        }
         public MRI3D SelectedFMRI { get { return ColumnFMRIData.Data.FMRIs[SelectedFMRIIndex]; } }
+        #endregion
+
+        #region Events
+        [HideInInspector] public UnityEvent OnChangeSelectedFMRI = new UnityEvent();
         #endregion
 
         #region Private Methods

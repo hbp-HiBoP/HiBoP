@@ -47,6 +47,10 @@ namespace HBP.UI.Module3D
         /// Compute and display site correlations
         /// </summary>
         [SerializeField] private Tools.SiteCorrelations m_SiteCorrelations;
+        /// <summary>
+        /// Select the MRI once the activity is computed
+        /// </summary>
+        [SerializeField] private Tools.FMRISelector m_FMRISelector;
         #endregion
 
         #region Private Methods
@@ -61,6 +65,7 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_FMRIParameters);
             m_Tools.Add(m_ComputeActivity);
             m_Tools.Add(m_SiteCorrelations);
+            m_Tools.Add(m_FMRISelector);
         }
         /// <summary>
         /// Add the listeners to the elements of the toolbar

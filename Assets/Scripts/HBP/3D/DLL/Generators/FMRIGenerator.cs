@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
@@ -11,7 +12,7 @@ namespace HBP.Module3D.DLL
         #region Public Methods
         public void ComputeActivity(Column3DFMRI column)
         {
-            compute_activity_FMRIGenerator(_handle, column.SelectedFMRI.Volume.getHandle());
+            compute_activity_FMRIGenerator(_handle, column.ColumnFMRIData.Data.FMRIs.Select(fmri => fmri.Volume.getHandle()).ToArray(), column.ColumnFMRIData.Data.FMRIs.Count);
         }
         public void AdjustValues(Column3DFMRI column)
         {
@@ -42,7 +43,7 @@ namespace HBP.Module3D.DLL
         [DllImport("hbp_export", EntryPoint = "delete_FMRIGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void delete_FMRIGenerator(HandleRef generator);
         [DllImport("hbp_export", EntryPoint = "compute_activity_FMRIGenerator", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void compute_activity_FMRIGenerator(HandleRef generator, HandleRef volume);
+        static private extern void compute_activity_FMRIGenerator(HandleRef generator, HandleRef[] volumes, int volumesNumber);
         [DllImport("hbp_export", EntryPoint = "adjust_values_FMRIGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void adjust_values_FMRIGenerator(HandleRef generator, float negativeMin, float negativeMax, float positiveMin, float positiveMax);
         #endregion
