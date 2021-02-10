@@ -101,6 +101,7 @@ namespace HBP.UI.Module3D.Tools
             if (SelectedColumn is Column3DDynamic dynamicColumn)
             {
                 m_InputField.text = dynamicColumn.DynamicParameters.InfluenceDistance.ToString("N2");
+                m_ThresholdIEEG.CleanHistograms();
                 m_ThresholdIEEG.UpdateIEEGValues(dynamicColumn);
             }
             else

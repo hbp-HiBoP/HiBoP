@@ -75,7 +75,6 @@ namespace HBP.Module3D
                     mesh.Clean();
                 }
             }
-            BrainSurface.Dispose();
         }
         #endregion
 

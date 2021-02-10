@@ -49,6 +49,8 @@ namespace HBP.UI.Module3D
         /// </summary>
         private Dictionary<Volume, Texture2D> m_HistogramByVolume = new Dictionary<Volume, Texture2D>();
 
+        private Queue<Volume> m_HistogramsToBeDestroyed = new Queue<Volume>();
+
         /// <summary>
         /// Used to display the current histogram
         /// </summary>
@@ -249,17 +251,16 @@ namespace HBP.UI.Module3D
                 }
             });
 
-            //ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
-            //{
-            //    foreach (var mri in s.MRIManager.MRIs)
-            //    {
-            //        if (m_HistogramByVolume.TryGetValue(mri, out Texture2D texture))
-            //        {
-            //            Destroy(texture);
-            //            m_HistogramByVolume.Remove(mri);
-            //        }
-            //    }
-            //});
+            ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
+            {
+                foreach (var column in s.ColumnsFMRI)
+                {
+                    foreach (var fmri in column.ColumnFMRIData.Data.FMRIs)
+                    {
+                        m_HistogramsToBeDestroyed.Enqueue(fmri.Volume);
+                    }
+                }
+            });
         }
         /// <summary>
         /// Update Maximum and Minimum Cal value
@@ -307,6 +308,21 @@ namespace HBP.UI.Module3D
             if (updateHistogram) UpdateMRIHistogram(volume);
 
             m_Initialized = true;
+        }
+        /// <summary>
+        /// Method used to clean useless histograms
+        /// </summary>
+        public void CleanHistograms()
+        {
+            while (m_HistogramsToBeDestroyed.Count > 0)
+            {
+                Volume histogramID = m_HistogramsToBeDestroyed.Dequeue();
+                if (m_HistogramByVolume.TryGetValue(histogramID, out Texture2D texture))
+                {
+                    DestroyImmediate(texture);
+                    m_HistogramByVolume.Remove(histogramID);
+                }
+            }
         }
         #endregion
     }

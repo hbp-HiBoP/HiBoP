@@ -110,18 +110,6 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
-        private void Update()
-        {
-            while (m_HistogramsToBeDestroyed.Count > 0)
-            {
-                string histogramID = m_HistogramsToBeDestroyed.Dequeue();
-                if (m_Histograms.TryGetValue(histogramID, out Texture2D texture))
-                {
-                    DestroyImmediate(texture);
-                    m_Histograms.Remove(histogramID);
-                }
-            }
-        }
         /// <summary>
         /// Update IEEG Histogram Texture
         /// </summary>
@@ -358,6 +346,21 @@ namespace HBP.UI.Module3D
             UpdateIEEGHistogram(column);
 
             m_Initialized = true;
+        }
+        /// <summary>
+        /// Method used to clean useless histograms
+        /// </summary>
+        public void CleanHistograms()
+        {
+            while (m_HistogramsToBeDestroyed.Count > 0)
+            {
+                string histogramID = m_HistogramsToBeDestroyed.Dequeue();
+                if (m_Histograms.TryGetValue(histogramID, out Texture2D texture))
+                {
+                    DestroyImmediate(texture);
+                    m_Histograms.Remove(histogramID);
+                }
+            }
         }
         #endregion
     }

@@ -27,6 +27,8 @@ namespace HBP.UI.Module3D
         /// </summary>
         private Dictionary<MRI3D, Texture2D> m_HistogramByMRI = new Dictionary<MRI3D, Texture2D>();
 
+        private Queue<MRI3D> m_HistogramsToBeDestroyed = new Queue<MRI3D>();
+
         /// <summary>
         /// Used to display the current histogram
         /// </summary>
@@ -116,11 +118,7 @@ namespace HBP.UI.Module3D
             {
                 foreach (var mri in s.MRIManager.MRIs)
                 {
-                    if (m_HistogramByMRI.TryGetValue(mri, out Texture2D texture))
-                    {
-                        Destroy(texture);
-                        m_HistogramByMRI.Remove(mri);
-                    }
+                    m_HistogramsToBeDestroyed.Enqueue(mri);
                 }
             });
         }
@@ -154,6 +152,21 @@ namespace HBP.UI.Module3D
             UpdateMRIHistogram(scene.MRIManager.SelectedMRI);
 
             m_Initialized = true;
+        }
+        /// <summary>
+        /// Method used to clean useless histograms
+        /// </summary>
+        public void CleanHistograms()
+        {
+            while (m_HistogramsToBeDestroyed.Count > 0)
+            {
+                MRI3D histogramID = m_HistogramsToBeDestroyed.Dequeue();
+                if (m_HistogramByMRI.TryGetValue(histogramID, out Texture2D texture))
+                {
+                    DestroyImmediate(texture);
+                    m_HistogramByMRI.Remove(histogramID);
+                }
+            }
         }
         #endregion
     }

@@ -196,8 +196,8 @@ namespace HBP.Module3D
         private void OnDestroy()
         {
             RawElectrodes?.Dispose();
-            ActivityGenerator?.Dispose();
             SurfaceGenerator?.Dispose();
+            ActivityGenerator?.Dispose();
             CutTextures.Clean();
         }
         #endregion
