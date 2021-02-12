@@ -45,9 +45,7 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isColumnDynamic = SelectedColumn is HBP.Module3D.Column3DDynamic;
-
-            m_Toggle.interactable = isColumnDynamic;
+            m_Toggle.interactable = true;
         }
         /// <summary>
         /// Set the global mode

@@ -68,6 +68,35 @@ namespace HBP.Module3D
         {
             SurfaceGenerator.ComputeActivityUV(SelectedFMRIIndex, ActivityAlpha);
         }
+        /// <summary>
+        /// Load the column configuration from the column data
+        /// </summary>
+        /// <param name="firstCall">Has this method not been called by another load method ?</param>
+        public override void LoadConfiguration(bool firstCall = true)
+        {
+            if (firstCall) ResetConfiguration();
+            FMRIParameters.SetSpanValues(ColumnFMRIData.FMRIConfiguration.NegativeMin, ColumnFMRIData.FMRIConfiguration.NegativeMax, ColumnFMRIData.FMRIConfiguration.PositiveMin, ColumnFMRIData.FMRIConfiguration.PositiveMax);
+            base.LoadConfiguration(false);
+        }
+        /// <summary>
+        /// Save the configuration of this column to the data column
+        /// </summary>
+        public override void SaveConfiguration()
+        {
+            ColumnFMRIData.FMRIConfiguration.NegativeMin = FMRIParameters.FMRINegativeCalMinFactor;
+            ColumnFMRIData.FMRIConfiguration.NegativeMax = FMRIParameters.FMRINegativeCalMaxFactor;
+            ColumnFMRIData.FMRIConfiguration.PositiveMin = FMRIParameters.FMRIPositiveCalMinFactor;
+            ColumnFMRIData.FMRIConfiguration.PositiveMax = FMRIParameters.FMRIPositiveCalMaxFactor;
+            base.SaveConfiguration();
+        }
+        /// <summary>
+        /// Reset the configuration of this column
+        /// </summary>
+        public override void ResetConfiguration()
+        {
+            FMRIParameters.ResetSpanValues();
+            base.ResetConfiguration();
+        }
         #endregion
     }
 }

@@ -1084,6 +1084,7 @@ namespace HBP.Module3D
                     SceneInformation.FunctionalCutTexturesNeedUpdate = true;
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     fmriColumn.SurfaceNeedsUpdate = true;
+                    ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
                 });
             }
             column.Initialize(Columns.Count, baseColumn, m_ImplantationManager.SelectedImplantation, m_DisplayedObjects.SitesPatientParent);

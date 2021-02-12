@@ -220,7 +220,6 @@ namespace HBP.Data.Visualization
                     progress += loadColumnsProgress;
                 }
 
-                yield return Ninja.JumpBack;
                 if (exception != null)
                 {
                     throw exception;
@@ -234,6 +233,7 @@ namespace HBP.Data.Visualization
                     progress += loadFMRIColumnsProgress;
                 }
             }
+            yield return Ninja.JumpBack;
 
             onChangeProgress(1.0f, 0, new LoadingText("Visualization loaded successfully"));
         }
