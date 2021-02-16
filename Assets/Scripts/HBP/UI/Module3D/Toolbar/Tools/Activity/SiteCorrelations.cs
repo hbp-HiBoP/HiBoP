@@ -51,6 +51,7 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void DefaultState()
         {
+            gameObject.SetActive(false);
             m_Compute.interactable = false;
             m_Compute.gameObject.SetActive(true);
             m_Display.interactable = false;
@@ -66,6 +67,7 @@ namespace HBP.UI.Module3D.Tools
             bool areCorrelationsComputed = SelectedColumn is Column3DIEEG column ? column.AreCorrelationsComputed : false;
             bool isColumnIEEG = SelectedColumn is Column3DIEEG;
 
+            gameObject.SetActive(isColumnIEEG);
             m_Compute.interactable = isColumnIEEG && !areCorrelationsComputed && !m_CorrelationsComputing && isSinglePatientScene;
             m_Compute.gameObject.SetActive(!areCorrelationsComputed);
             m_Display.interactable = isColumnIEEG && areCorrelationsComputed && !m_CorrelationsComputing && isSinglePatientScene;

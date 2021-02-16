@@ -48,7 +48,7 @@ namespace HBP.UI.Module3D.Tools
             m_Text.text = "No source selected";
             m_SelectSource.interactable = false;
             m_UnselectSource.interactable = false;
-            gameObject.SetActive(true);
+            gameObject.SetActive(false);
         }
         /// <summary>
         /// Update the interactable state of the tool
@@ -62,11 +62,13 @@ namespace HBP.UI.Module3D.Tools
 
                 m_SelectSource.interactable = isSelectedSiteASource;
                 m_UnselectSource.interactable = isSourceSelected;
+                gameObject.SetActive(true);
             }
             else
             {
                 m_SelectSource.interactable = false;
                 m_UnselectSource.interactable = false;
+                gameObject.SetActive(false);
             }
         }
         /// <summary>

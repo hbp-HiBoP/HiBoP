@@ -70,6 +70,7 @@ namespace HBP.UI.Module3D.Tools
             bool isColumnCCEPAndMarsAtlasModeEnabled = SelectedColumn is Column3DCCEP ccepColumn && ccepColumn.Mode == Column3DCCEP.CCEPMode.MarsAtlas;
 
             m_MarsAtlasDropdown.interactable = isColumnCCEPAndMarsAtlasModeEnabled;
+            gameObject.SetActive(isColumnCCEPAndMarsAtlasModeEnabled);
         }
         /// <summary>
         /// Update the status of the tool

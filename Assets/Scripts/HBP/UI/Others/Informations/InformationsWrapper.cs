@@ -330,8 +330,10 @@ namespace HBP.UI.Informations
                     }
                 }
                 float currentTime = column.Timeline.CurrentSubtimeline.GetLocalTime(index);
-                Column columnData = m_ColumnDataBy3DColumn[column];
-                ChannelInformations.UpdateTime(columnData, subBloc, currentTime);
+                if (m_ColumnDataBy3DColumn.TryGetValue(column, out Column columnData))
+                {
+                    ChannelInformations.UpdateTime(columnData, subBloc, currentTime);
+                }
             }
         }
         #endregion

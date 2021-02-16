@@ -18,14 +18,7 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         [SerializeField] private Toggle m_MarsAtlas;
         #endregion
-
-        #region Events
-        /// <summary>
-        /// Event called when the mode is changed
-        /// </summary>
-        public GenericEvent<Column3DCCEP.CCEPMode> OnChangeValue = new GenericEvent<Column3DCCEP.CCEPMode>();
-        #endregion
-
+        
         #region Public Methods
         /// <summary>
         /// Initialize the toolbar
@@ -37,14 +30,14 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 ((Column3DCCEP)SelectedColumn).Mode = Column3DCCEP.CCEPMode.Site;
-                OnChangeValue.Invoke(Column3DCCEP.CCEPMode.Site);
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             });
             m_MarsAtlas.onValueChanged.AddListener(isOn =>
             {
                 if (ListenerLock) return;
 
                 ((Column3DCCEP)SelectedColumn).Mode = Column3DCCEP.CCEPMode.MarsAtlas;
-                OnChangeValue.Invoke(Column3DCCEP.CCEPMode.MarsAtlas);
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             });
         }
         /// <summary>
@@ -52,6 +45,7 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void DefaultState()
         {
+            gameObject.SetActive(false);
             m_Site.isOn = true;
             m_Site.interactable = false;
             m_MarsAtlas.interactable = false;
@@ -62,6 +56,8 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateInteractable()
         {
             bool isColumnCCEP = SelectedColumn is Column3DCCEP;
+
+            gameObject.SetActive(isColumnCCEP);
             m_Site.interactable = isColumnCCEP;
             m_MarsAtlas.interactable = isColumnCCEP && ApplicationState.ProjectLoaded.Preferences.Tags.FirstOrDefault(t => t.Name == "MarsAtlas") != null;
         }

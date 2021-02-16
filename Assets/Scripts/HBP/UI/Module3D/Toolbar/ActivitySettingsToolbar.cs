@@ -39,6 +39,9 @@ namespace HBP.UI.Module3D
         /// FMRI Parameters
         /// </summary>
         [SerializeField] private Tools.FMRIParameters m_FMRIParameters;
+        [SerializeField] private Tools.CCEPModeSelector m_CCEPModeSelector;
+        [SerializeField] private Tools.CCEPSiteSourceSelector m_CCEPSiteSourceSelector;
+        [SerializeField] private Tools.CCEPAreaSourceSelector m_CCEPAreaSourceSelector;
         /// <summary>
         /// Compute IEEG values
         /// </summary>
@@ -63,6 +66,9 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_ActivityTransparency);
             m_Tools.Add(m_DynamicParameters);
             m_Tools.Add(m_FMRIParameters);
+            m_Tools.Add(m_CCEPModeSelector);
+            m_Tools.Add(m_CCEPSiteSourceSelector);
+            m_Tools.Add(m_CCEPAreaSourceSelector);
             m_Tools.Add(m_ComputeActivity);
             m_Tools.Add(m_SiteCorrelations);
             m_Tools.Add(m_FMRISelector);

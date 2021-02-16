@@ -101,22 +101,6 @@ namespace HBP.UI.Module3D
             }
         }
 
-        [SerializeField] private CCEPToolbar m_CCEPToolbar;
-        /// <summary>
-        /// Toolbar for the sites settings
-        /// </summary>
-        public CCEPToolbar CCEPToolbar
-        {
-            get
-            {
-                return m_CCEPToolbar;
-            }
-            set
-            {
-                m_CCEPToolbar = value;
-            }
-        }
-
         [SerializeField] private AtlasToolbar m_AtlasToolbar;
         /// <summary>
         /// Toolbar for the sites settings
@@ -130,22 +114,6 @@ namespace HBP.UI.Module3D
             set
             {
                 m_AtlasToolbar = value;
-            }
-        }
-
-        [SerializeField] private FMRIToolbar m_FMRIToolbar;
-        /// <summary>
-        /// Toolbar for the sites settings
-        /// </summary>
-        public FMRIToolbar FMRIToolbar
-        {
-            get
-            {
-                return m_FMRIToolbar;
-            }
-            set
-            {
-                m_FMRIToolbar = value;
             }
         }
 
@@ -206,9 +174,7 @@ namespace HBP.UI.Module3D
                 m_ROIToolbar.UpdateToolbar();
                 m_TriangleToolbar.UpdateToolbar();
                 m_ConfigurationToolbar.UpdateToolbar();
-                m_CCEPToolbar.UpdateToolbar();
                 m_AtlasToolbar.UpdateToolbar();
-                m_FMRIToolbar.UpdateToolbar();
                 m_UpdateRequired = false;
             }
         }
@@ -234,9 +200,7 @@ namespace HBP.UI.Module3D
             m_ROIToolbar.Initialize();
             m_TriangleToolbar.Initialize();
             m_ConfigurationToolbar.Initialize();
-            m_CCEPToolbar.Initialize();
             m_AtlasToolbar.Initialize();
-            m_FMRIToolbar.Initialize();
 
             CurrentToolbar = m_SceneSettingsToolbar;
 
@@ -248,9 +212,7 @@ namespace HBP.UI.Module3D
             m_ROIToolbar.gameObject.SetActive(false);
             m_TriangleToolbar.gameObject.SetActive(false);
             m_ConfigurationToolbar.gameObject.SetActive(false);
-            m_CCEPToolbar.gameObject.SetActive(false);
             m_AtlasToolbar.gameObject.SetActive(false);
-            m_FMRIToolbar.gameObject.SetActive(false);
         }
         #endregion
     }
