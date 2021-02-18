@@ -25,7 +25,7 @@ namespace HBP.Module3D.IBC
         #region Private Methods
         private void Awake()
         {
-            this.StartCoroutineAsync(c_LoadIBC());
+            //this.StartCoroutineAsync(c_LoadIBC());
         }
         private void OnDestroy()
         {

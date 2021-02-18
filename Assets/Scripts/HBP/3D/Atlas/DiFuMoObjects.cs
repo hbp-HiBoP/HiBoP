@@ -19,7 +19,7 @@ namespace HBP.Module3D.DiFuMo
         #region Private Methods
         private void Awake()
         {
-            this.StartCoroutineAsync(c_LoadDiFuMo());
+            //this.StartCoroutineAsync(c_LoadDiFuMo());
         }
         private void OnDestroy()
         {

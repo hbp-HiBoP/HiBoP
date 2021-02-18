@@ -12,10 +12,12 @@ namespace HBP.Module3D.DLL
         #region Constructors
         public JuBrainAtlas(string leftNIIPath, string rightNIIPath, string jsonPath) : base()
         {
+            /*
             if (!Load(leftNIIPath, rightNIIPath, jsonPath))
             {
                 Debug.LogError("Can't load JuBrain Atlas.");
             }
+            */
         }
         #endregion
 

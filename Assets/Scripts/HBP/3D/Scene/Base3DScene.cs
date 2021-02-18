@@ -176,7 +176,8 @@ namespace HBP.Module3D
                 return 0;
             }
         }
-        
+
+        private DLL.GeneratorSurface m_GeneratorSurface;
         /// <summary>
         /// Geometry generator for cuts
         /// </summary>
@@ -700,20 +701,9 @@ namespace HBP.Module3D
         {
             UnityEngine.Profiling.Profiler.BeginSample("ComputeBaseCutTextures");
             foreach (Column3D column in Columns)
-            {
                 foreach (Cut cut in Cuts)
-                {
                     column.CutTextures.CreateMRITexture(MRIManager.SelectedMRI.Volume, cut.ID, MRIManager.MRICalMinFactor, MRIManager.MRICalMaxFactor, 3);
-                    if (m_AtlasManager.DisplayAtlas)
-                    {
-                        column.CutTextures.ColorCutsTexturesWithBrainAtlas(cut.ID, m_AtlasManager.SelectedAtlas, m_AtlasManager.AtlasAlpha, m_AtlasManager.HoveredArea);
-                    }
-                    else if (FMRIManager.DisplayFMRI)
-                    {
-                        FMRIManager.ColorCutTexture(column, cut.ID);
-                    }
-                }
-            }
+
             SceneInformation.BaseCutTexturesNeedUpdate = false;
             UnityEngine.Profiling.Profiler.EndSample();
         }
@@ -724,14 +714,10 @@ namespace HBP.Module3D
         private void ComputeFunctionalCutTextures()
         {
             UnityEngine.Profiling.Profiler.BeginSample("ComputeFunctionalCutTextures");
-            if (m_IsGeneratorUpToDate)
+            foreach (Column3D column in Columns)
             {
-                UnityEngine.Profiling.Profiler.BeginSample("Compute Activity Textures");
-                foreach (Column3D col in Columns)
-                {
-                    col.CutTextures.ColorCutsTexturesWithActivity();
-                }
-                UnityEngine.Profiling.Profiler.EndSample();
+                if (m_AtlasManager.DisplayAtlas) column.CutTextures.ColorCutsTexturesWithBrainAtlas(m_AtlasManager.SelectedAtlas, m_AtlasManager.AtlasAlpha, m_AtlasManager.HoveredArea);
+                else if (m_IsGeneratorUpToDate) column.CutTextures.ColorCutsTexturesWithActivity();
             }
             SceneInformation.FunctionalCutTexturesNeedUpdate = false;
             UnityEngine.Profiling.Profiler.EndSample();
@@ -881,9 +867,10 @@ namespace HBP.Module3D
             m_MeshManager.UpdateMeshesInformation();
             UpdateGeneratorsAndUnityMeshes();
             m_TriangleEraser.ResetEraser();
-            m_AtlasManager.UpdateAtlasIndices();
-            m_FMRIManager.UpdateSurfaceFMRIValues();
-            
+            //m_AtlasManager.UpdateAtlasIndices();
+            //m_FMRIManager.UpdateSurfaceFMRIValues();
+            Resources.UnloadUnusedAssets();
+
             SceneInformation.GeometryNeedsUpdate = false;
         }
         /// <summary>
@@ -902,9 +889,12 @@ namespace HBP.Module3D
         /// </summary>
         private void UpdateGeneratorsAndUnityMeshes()
         {
-            foreach (Column3D column in Columns) // FIXME : may have performance issues
+            m_GeneratorSurface?.Dispose();
+            m_GeneratorSurface = new DLL.GeneratorSurface();
+            m_GeneratorSurface.Initialize(m_MeshManager.BrainSurface, m_MRIManager.SelectedMRI.Volume, 120);
+            foreach (Column3D column in Columns)
             {
-                column.ActivityGenerator.Initialize(m_MeshManager.BrainSurface, m_MRIManager.SelectedMRI.Volume, 120);
+                column.ActivityGenerator.Initialize(m_GeneratorSurface);
                 column.SurfaceGenerator.Initialize(column.ActivityGenerator);
                 column.SurfaceGenerator.ComputeMainUV(m_MRIManager.MRICalMinFactor, m_MRIManager.MRICalMaxFactor);
                 column.SurfaceGenerator.ComputeNullUV();
@@ -2070,6 +2060,7 @@ namespace HBP.Module3D
             yield return new WaitUntil(delegate { return !m_UpdatingGenerators; });
             Visualization.Unload();
             Destroy(gameObject);
+            Resources.UnloadUnusedAssets();
         }
         #endregion
     }

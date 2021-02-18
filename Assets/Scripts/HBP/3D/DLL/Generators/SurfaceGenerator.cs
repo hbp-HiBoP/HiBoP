@@ -45,7 +45,7 @@ namespace HBP.Module3D.DLL
         }
         public void ComputeActivityUV(int timelineIndex = 0, float alpha = 0)
         {
-            int nbVertices = ActivityGenerator.Surface.NumberOfVertices;
+            int nbVertices = ActivityGenerator.GeneratorSurface.Surface.NumberOfVertices;
             if (ActivityUV.Length != nbVertices)
             {
                 ActivityUV = new Vector2[nbVertices];
@@ -62,7 +62,7 @@ namespace HBP.Module3D.DLL
         }
         public void ComputeNullUV()
         {
-            NullUV = new Vector2[ActivityGenerator.Surface.NumberOfVertices];
+            NullUV = new Vector2[ActivityGenerator.GeneratorSurface.Surface.NumberOfVertices];
             NullUV.Fill(new Vector2(0.01f, 1f));
         }
         #endregion

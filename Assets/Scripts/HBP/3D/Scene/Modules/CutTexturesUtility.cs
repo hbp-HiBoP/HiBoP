@@ -184,16 +184,17 @@ namespace HBP.Module3D
                 cutTexture.UpdateTexture2D(BrainCutTextures[i]);
             }
         }
-        public void ColorCutsTexturesWithBrainAtlas(int indexCut, BrainAtlas selectedAtlas, float alpha, int selectedArea)
+        public void ColorCutsTexturesWithBrainAtlas(BrainAtlas selectedAtlas, float alpha, int selectedArea)
         {
-            UnityEngine.Profiling.Profiler.BeginSample("Compute Alpha textures");
-            CutGenerator generator = CutGenerators[indexCut];
-            generator.FillTextureWithAtlas(selectedAtlas, alpha, selectedArea);
+            for (int i = 0; i < CutGenerators.Count; i++)
+            {
+                CutGenerator generator = CutGenerators[i];
+                generator.FillTextureWithAtlas(selectedAtlas, alpha, selectedArea);
 
-            DLL.Texture cutTexture = DLLBrainCutTextures[indexCut];
-            generator.UpdateTextureWithAtlas(cutTexture);
-            cutTexture.UpdateTexture2D(BrainCutTextures[indexCut]);
-            UnityEngine.Profiling.Profiler.EndSample();
+                DLL.Texture cutTexture = DLLBrainCutTextures[i];
+                generator.UpdateTextureWithAtlas(cutTexture);
+                cutTexture.UpdateTexture2D(BrainCutTextures[i]);
+            }
         }
         /// <summary>
         /// Reset the color schemes
