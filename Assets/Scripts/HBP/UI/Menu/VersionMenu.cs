@@ -1,5 +1,7 @@
-﻿using NewTheme.Components;
+﻿using CielaSpike;
+using NewTheme.Components;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Runtime.Serialization;
@@ -16,6 +18,19 @@ namespace HBP.UI
         private void Awake()
         {
             m_Text.text = string.Format("{0} {1}", Application.productName, Application.version);
+            this.StartCoroutineAsync(c_CheckVersion());
+        }
+
+        public void OpenVersionWindow()
+        {
+            ApplicationState.WindowsManager.Open("Version Window");
+        }
+
+        private IEnumerator c_CheckVersion()
+        {
+            yield return Ninja.JumpToUnity;
+            string version = Application.version;
+            yield return Ninja.JumpBack;
             using (WebClient wc = new WebClient())
             {
                 try
@@ -23,18 +38,15 @@ namespace HBP.UI
                     wc.Headers.Add("User-Agent: Other");
                     string jsonString = wc.DownloadString("https://api.github.com/repos/hbp-HiBoP/HiBoP/releases/latest");
                     var versionInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<VersionInfo>(jsonString);
-                    m_Image.gameObject.SetActive(string.Compare(versionInfo.VersionNumber, Application.version) > 0);
+                    version = versionInfo.VersionNumber;
                 }
                 catch (Exception e)
                 {
                     Debug.LogException(e);
                 }
             }
-        }
-
-        public void OpenVersionWindow()
-        {
-            ApplicationState.WindowsManager.Open("Version Window");
+            yield return Ninja.JumpToUnity;
+            m_Image.gameObject.SetActive(string.Compare(version, Application.version) > 0);
         }
     }
 }

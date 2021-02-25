@@ -103,12 +103,12 @@ namespace HBP.UI
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Tags).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Tags.Count).ToList();
                     m_OrderBy = OrderBy.Tag;
                     m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Tags).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Tags.Count).ToList();
                     m_OrderBy = OrderBy.DescendingTag;
                     m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
