@@ -12,12 +12,10 @@ namespace HBP.Module3D.DLL
         #region Constructors
         public MarsAtlas(string path, string pathBrodmann, string pathNifti) : base()
         {
-            /*
             if (!Load(path, pathBrodmann, pathNifti))
             {
                 Debug.LogError("Can't load mars atlas index.");
             }
-            */
         }
         #endregion
 

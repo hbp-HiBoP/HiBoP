@@ -867,7 +867,7 @@ namespace HBP.Module3D
             m_MeshManager.UpdateMeshesInformation();
             UpdateGeneratorsAndUnityMeshes();
             m_TriangleEraser.ResetEraser();
-            //m_AtlasManager.UpdateAtlasIndices();
+            m_AtlasManager.UpdateAtlasIndices();
             //m_FMRIManager.UpdateSurfaceFMRIValues();
             Resources.UnloadUnusedAssets();
 
