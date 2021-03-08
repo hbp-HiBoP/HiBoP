@@ -548,6 +548,10 @@ namespace HBP.Module3D
             }
             return result;
         }
+        public virtual void ComputeActivityData()
+        {
+
+        }
         /// <summary>
         /// Load the column configuration from the column data
         /// </summary>

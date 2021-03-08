@@ -10,7 +10,7 @@ namespace HBP.Data.Visualization
     public class FMRIData
     {
         #region Properties
-        public List<MRI3D> FMRIs { get; set; } = new List<MRI3D>();
+        public List<Module3D.FMRI> FMRIs { get; set; } = new List<Module3D.FMRI>();
         #endregion
 
         #region Public Methods
@@ -19,11 +19,15 @@ namespace HBP.Data.Visualization
             foreach (FMRIDataInfo dataInfo in columnData)
             {
                 Experience.Dataset.FMRIData data = DataManager.GetData(dataInfo) as Experience.Dataset.FMRIData;
-                FMRIs.Add(new MRI3D(data.FMRI));
+                FMRIs.Add(new Module3D.FMRI(data.FMRI));
             }
         }
         public void Unload()
         {
+            foreach (var fmri in FMRIs)
+            {
+                fmri.Clean();
+            }
             FMRIs.Clear();
         }
         #endregion

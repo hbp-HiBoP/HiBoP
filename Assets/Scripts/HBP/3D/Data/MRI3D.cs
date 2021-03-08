@@ -77,7 +77,7 @@ namespace HBP.Module3D
 
         #region Public Methods
         /// <summary>
-        /// Load the mesh to DLL objects
+        /// Load the mri to DLL objects
         /// </summary>
         public void Load()
         {

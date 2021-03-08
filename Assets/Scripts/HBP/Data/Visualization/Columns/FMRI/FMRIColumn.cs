@@ -80,6 +80,7 @@ namespace HBP.Data.Visualization
         }
         public override void Unload()
         {
+            Data.Unload();
         }
         #endregion  
     }

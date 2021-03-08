@@ -40,17 +40,43 @@ namespace HBP.Module3D
             set
             {
                 m_SelectedFMRIIndex = value % ColumnFMRIData.Data.FMRIs.Count;
+                Timeline.Update(SelectedFMRI);
                 OnChangeSelectedFMRI.Invoke();
             }
         }
-        public MRI3D SelectedFMRI { get { return ColumnFMRIData.Data.FMRIs[SelectedFMRIIndex]; } }
+        public FMRI SelectedFMRI { get { return ColumnFMRIData.Data.FMRIs[SelectedFMRIIndex]; } }
+        public int SelectedVolumeIndex
+        {
+            get
+            {
+                int index = 0;
+                for (int i = 0; i < SelectedFMRIIndex; i++)
+                {
+                    index += SelectedFMRI.NIFTI.NumberOfVolumes;
+                }
+                return index + Timeline.CurrentIndex;
+            }
+        }
+
+        public FMRITimeline Timeline { get; private set; } = new FMRITimeline();
         #endregion
 
         #region Events
         [HideInInspector] public UnityEvent OnChangeSelectedFMRI = new UnityEvent();
+        /// <summary>
+        /// Event called when updating the current timeline ID
+        /// </summary>
+        [HideInInspector] public UnityEvent OnUpdateCurrentTimelineID = new UnityEvent();
         #endregion
 
         #region Private Methods
+        protected virtual void Update()
+        {
+            if (Timeline != null)
+            {
+                Timeline.Play();
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -59,6 +85,7 @@ namespace HBP.Module3D
             base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
 
             ActivityGenerator = new FMRIGenerator();
+            SelectedFMRIIndex = 0;
         }
         /// <summary>
         /// Compute the UVs of the meshes for the brain activity
@@ -66,7 +93,21 @@ namespace HBP.Module3D
         /// <param name="brainSurface">Surface of the brain</param>
         public override void ComputeSurfaceBrainUVWithActivity()
         {
-            SurfaceGenerator.ComputeActivityUV(SelectedFMRIIndex, ActivityAlpha);
+            SurfaceGenerator.ComputeActivityUV(SelectedVolumeIndex, ActivityAlpha);
+        }
+        /// <summary>
+        /// Method called when initializing the activity on the column
+        /// </summary>
+        public override void ComputeActivityData()
+        {
+            Timeline.OnUpdateCurrentIndex.AddListener(() =>
+            {
+                OnUpdateCurrentTimelineID.Invoke();
+                if (IsSelected)
+                {
+                    ApplicationState.Module3D.OnUpdateSelectedColumnTimeLineIndex.Invoke();
+                }
+            });
         }
         /// <summary>
         /// Load the column configuration from the column data

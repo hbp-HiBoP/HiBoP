@@ -8,6 +8,13 @@ namespace HBP.Module3D.DLL
     public class NIFTI : Tools.DLL.CppDLLImportBase
     {
         #region Properties
+        public int NumberOfVolumes
+        {
+            get
+            {
+                return number_of_volumes_NIFTI(_handle);
+            }
+        }
         public bool IsLoaded { get; private set; }
         #endregion
 
@@ -16,6 +23,12 @@ namespace HBP.Module3D.DLL
         {
             IsLoaded = (loadNiiFile_NIFTI(_handle, path) == 1);
             return IsLoaded;
+        }
+        public Volume ExtractVolume(int t)
+        {
+            Volume volume = new Volume();
+            convertToVolume_NIFTI(_handle, volume.getHandle(), t);
+            return volume;
         }
         public void FillVolumeWithNifti(Volume volume, int t)
         {
@@ -47,8 +60,12 @@ namespace HBP.Module3D.DLL
         static private extern void delete_NIFTI(HandleRef handleVolume);
         [DllImport("hbp_export", EntryPoint = "loadNiiFile_NIFTI", CallingConvention = CallingConvention.Cdecl)]
         static private extern int loadNiiFile_NIFTI(HandleRef handleNii, string pathFile);
+        [DllImport("hbp_export", EntryPoint = "number_of_volumes_NIFTI", CallingConvention = CallingConvention.Cdecl)]
+        static private extern int number_of_volumes_NIFTI(HandleRef handleNii);
         [DllImport("hbp_export", EntryPoint = "fill_volume_NIFTI", CallingConvention = CallingConvention.Cdecl)]
         static private extern void fill_volume_NIFTI(HandleRef handleNii, HandleRef handleVolume, int t);
+        [DllImport("hbp_export", EntryPoint = "convertToVolume_NIFTI", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void convertToVolume_NIFTI(HandleRef handleNii, HandleRef handleVolume, int t);
         #endregion
     }
 }

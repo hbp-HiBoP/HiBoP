@@ -516,6 +516,12 @@ namespace HBP.Module3D
                         column.Timeline.IsPlaying = false;
                         column.Timeline.OnUpdateCurrentIndex.Invoke();
                     }
+                    foreach (Column3DFMRI column in ColumnsFMRI)
+                    {
+                        column.Timeline.IsLooping = false;
+                        column.Timeline.IsPlaying = false;
+                        column.Timeline.OnUpdateCurrentIndex.Invoke();
+                    }
                 }
                 SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                 foreach (Column3D column in Columns)
@@ -783,6 +789,10 @@ namespace HBP.Module3D
             for (int ii = 0; ii < ColumnsDynamic.Count; ++ii)
             {
                 ColumnsDynamic[ii].Timeline.OnUpdateCurrentIndex.Invoke();
+            }
+            for (int ii = 0; ii < ColumnsFMRI.Count; ++ii)
+            {
+                ColumnsFMRI[ii].Timeline.OnUpdateCurrentIndex.Invoke();
             }
 
             SceneInformation.FunctionalCutTexturesNeedUpdate = true;
@@ -1075,6 +1085,13 @@ namespace HBP.Module3D
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     fmriColumn.SurfaceNeedsUpdate = true;
                     ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+                });
+                fmriColumn.OnUpdateCurrentTimelineID.AddListener(() =>
+                {
+                    SceneInformation.FunctionalCutTexturesNeedUpdate = true;
+                    SceneInformation.FunctionalSurfaceNeedsUpdate = true;
+                    SceneInformation.SitesNeedUpdate = true;
+                    fmriColumn.SurfaceNeedsUpdate = true;
                 });
             }
             column.Initialize(Columns.Count, baseColumn, m_ImplantationManager.SelectedImplantation, m_DisplayedObjects.SitesPatientParent);
@@ -1927,9 +1944,9 @@ namespace HBP.Module3D
 
             try
             {
-                foreach (var columnIEEG in ColumnsDynamic)
+                foreach (var column in Columns)
                 {
-                    columnIEEG.ComputeActivityData();
+                    column.ComputeActivityData();
                 }
             }
             catch (Exception e)

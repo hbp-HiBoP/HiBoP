@@ -171,7 +171,7 @@ namespace HBP.Module3D
             }
             else if (Column is Column3DFMRI fmriColumn)
             {
-                timelineIndex = fmriColumn.SelectedFMRIIndex;
+                timelineIndex = fmriColumn.SelectedVolumeIndex;
             }
 
             for (int i = 0; i < CutGenerators.Count; ++i)

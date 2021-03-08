@@ -65,7 +65,7 @@ namespace HBP.UI.Module3D.Tools
             if (SelectedColumn is Column3DFMRI fmriColumn)
             {
                 m_ThresholdFMRI.CleanHistograms();
-                m_ThresholdFMRI.UpdateFMRICalValues(fmriColumn.SelectedFMRI.Volume, fmriColumn.FMRIParameters.FMRINegativeCalMinFactor, fmriColumn.FMRIParameters.FMRINegativeCalMaxFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMinFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMaxFactor);
+                m_ThresholdFMRI.UpdateFMRICalValues(fmriColumn.SelectedFMRI.Volumes[0], fmriColumn.FMRIParameters.FMRINegativeCalMinFactor, fmriColumn.FMRIParameters.FMRINegativeCalMaxFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMinFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMaxFactor); // FIXME
             }
         }
         #endregion

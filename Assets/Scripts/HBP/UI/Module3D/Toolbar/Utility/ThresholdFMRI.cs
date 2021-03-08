@@ -257,7 +257,7 @@ namespace HBP.UI.Module3D
                 {
                     foreach (var fmri in column.ColumnFMRIData.Data.FMRIs)
                     {
-                        m_HistogramsToBeDestroyed.Enqueue(fmri.Volume);
+                        m_HistogramsToBeDestroyed.Enqueue(fmri.Volumes[0]); // FIXME
                     }
                 }
             });

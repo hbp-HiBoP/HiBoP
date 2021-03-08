@@ -146,7 +146,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Method called when initializing the activity on the column
         /// </summary>
-        public virtual void ComputeActivityData()
+        public override void ComputeActivityData()
         {
             Timeline.OnUpdateCurrentIndex.AddListener(() =>
             {

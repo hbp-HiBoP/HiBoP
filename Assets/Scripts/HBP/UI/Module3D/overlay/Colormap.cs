@@ -91,7 +91,7 @@ namespace HBP.UI.Module3D
         #region Private Methods
         private void UpdateTextFMRI(Column3DFMRI fmriColumn)
         {
-            MRICalValues values = fmriColumn.SelectedFMRI.Volume.ExtremeValues;
+            MRICalValues values = fmriColumn.SelectedFMRI.Volumes[0].ExtremeValues; // FIXME
             float min = values.Min;
             float max = values.Max;
             float negativeMin = fmriColumn.FMRIParameters.FMRINegativeCalMinFactor * min;

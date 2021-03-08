@@ -12,7 +12,8 @@ namespace HBP.Module3D.DLL
         #region Public Methods
         public void ComputeActivity(Column3DFMRI column)
         {
-            compute_activity_FMRIGenerator(_handle, column.ColumnFMRIData.Data.FMRIs.Select(fmri => fmri.Volume.getHandle()).ToArray(), column.ColumnFMRIData.Data.FMRIs.Count);
+            HandleRef[] volumeHandleRefs = column.ColumnFMRIData.Data.FMRIs.SelectMany(fmri => fmri.Volumes).Select(v => v.getHandle()).ToArray();
+            compute_activity_FMRIGenerator(_handle, volumeHandleRefs, volumeHandleRefs.Length);
         }
         public void AdjustValues(Column3DFMRI column)
         {
