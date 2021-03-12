@@ -41,10 +41,20 @@ namespace HBP.UI.Module3D.Tools
             m_Toggle.onValueChanged.AddListener((isOn) =>
             {
                 if (ListenerLock) return;
-
-                foreach (HBP.Module3D.Column3DDynamic column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
+                
+                if (SelectedColumn is HBP.Module3D.Column3DDynamic)
                 {
-                    column.Timeline.IsLooping = m_Toggle.isOn;
+                    foreach (HBP.Module3D.Column3DDynamic column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
+                    {
+                        column.Timeline.IsLooping = m_Toggle.isOn;
+                    }
+                }
+                else if (SelectedColumn is HBP.Module3D.Column3DFMRI)
+                {
+                    foreach (HBP.Module3D.Column3DFMRI column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
+                    {
+                        column.Timeline.IsLooping = m_Toggle.isOn;
+                    }
                 }
             });
         }
@@ -61,10 +71,10 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isColumnDynamic = SelectedColumn is HBP.Module3D.Column3DDynamic;
+            bool isColumnDynamicOrFMRI = SelectedColumn is HBP.Module3D.Column3DDynamic || SelectedColumn is HBP.Module3D.Column3DFMRI;
             bool areAmplitudesComputed = SelectedScene.IsGeneratorUpToDate;
 
-            m_Toggle.interactable = isColumnDynamic && areAmplitudesComputed;
+            m_Toggle.interactable = isColumnDynamicOrFMRI && areAmplitudesComputed;
         }
         /// <summary>
         /// Update the status of the tool
@@ -74,6 +84,10 @@ namespace HBP.UI.Module3D.Tools
             if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)
             {
                 m_Toggle.isOn = dynamicColumn.Timeline.IsLooping;
+            }
+            else if (SelectedColumn is HBP.Module3D.Column3DFMRI fmriColumn)
+            {
+                m_Toggle.isOn = fmriColumn.Timeline.IsLooping;
             }
             else
             {
