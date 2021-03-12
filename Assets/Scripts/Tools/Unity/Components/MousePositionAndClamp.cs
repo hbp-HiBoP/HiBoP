@@ -6,6 +6,7 @@ namespace Tools.Unity.Components
     [RequireComponent(typeof(RectTransform))]
     public class MousePositionAndClamp : MonoBehaviour
     {
+
         #region Properties
         public Vector2 BottomRightOffset;
         public Vector2 BottomLeftOffset;
@@ -47,8 +48,9 @@ namespace Tools.Unity.Components
         void Clamp(RectTransform rectTransform, RectTransform containerRectTransform)
         {
             Vector2 mousePosition = Input.mousePosition;
-            Vector2 scaledMousePosition = new Vector2((m_CanvasScaler.referenceResolution.x / Screen.width) * Input.mousePosition.x, (m_CanvasScaler.referenceResolution.y / Screen.height) * Input.mousePosition.y);
-            Vector2 containerScaledPosition = new Vector2((m_CanvasScaler.referenceResolution.x / Screen.width) * containerRectTransform.position.x, (m_CanvasScaler.referenceResolution.y / Screen.height) * containerRectTransform.position.y);
+            float scale = (m_CanvasScaler.referenceResolution.x / Screen.width) * (1 - m_CanvasScaler.matchWidthOrHeight) + (m_CanvasScaler.referenceResolution.y / Screen.height) * m_CanvasScaler.matchWidthOrHeight;
+            Vector2 scaledMousePosition = new Vector2(scale * Input.mousePosition.x, scale * Input.mousePosition.y);
+            Vector2 containerScaledPosition = new Vector2(scale * containerRectTransform.position.x, scale * containerRectTransform.position.y);
 
             Rect containerRectPadded = Padding.Remove(containerRectTransform.rect);
             Vector2 containerMinPosition = containerScaledPosition + containerRectPadded.min;
