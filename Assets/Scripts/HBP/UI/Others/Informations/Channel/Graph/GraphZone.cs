@@ -412,6 +412,8 @@ namespace HBP.UI.Informations
             BlocData blocData = DataManager.GetData(dataInfo, column.Data.Bloc);
             BlocChannelData blocChannelData = DataManager.GetData(dataInfo, column.Data.Bloc, channel.Channel);
             Color color = ApplicationState.UserPreferences.Visualization.Graph.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));// m_ColorsByColumn.FirstOrDefault(k => k.Key.Item1 == Array.IndexOf(m_Channels, channel) && k.Key.Item2 == column).Value;
+            if (blocChannelData == null)
+                return null;
 
             ChannelTrial[] validTrials = blocChannelData.Trials.Where(t => t.IsValid).ToArray();
             List<ChannelTrial> trialsToUse = new List<ChannelTrial>(blocChannelData.Trials.Length);
