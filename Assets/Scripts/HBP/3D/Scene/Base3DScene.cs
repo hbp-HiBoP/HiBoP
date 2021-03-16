@@ -1986,28 +1986,49 @@ namespace HBP.Module3D
         /// <returns>Coroutine return</returns>
         private IEnumerator c_LoadActivity()
         {
-            float totalTime = 0.075f * Visualization.Patients.Count + 1.5f; // Calculated by Linear Regression is 0.0593f * Patients.Count + 1.0956f
-            float totalProgress = Columns.Count * 16; // One step for the begining, five for the surface and ten for the volume
-            float timeByProgress = totalTime / totalProgress;
-            float currentProgress = 0.0f;
-            OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Initializing", timeByProgress);
+            DLL.ActivityGenerator currentGenerator = null;
+            string currentMessage = "";
+            int currentColumn = 0;
+            int numberOfColumns = Columns.Count;
+            IEnumerator checkProgress()
+            {
+                while(true)
+                {
+                    float currentProgress = 0;
+                    if (currentGenerator != null)
+                    {
+                        currentProgress = ((float)currentColumn / numberOfColumns) + (currentGenerator.Progress / numberOfColumns);
+                    }
+                    OnProgressUpdateGenerator.Invoke(currentProgress, currentMessage, 0.1f);
+                    yield return new WaitForSeconds(0.01f);
+                }
+            }
+            yield return Ninja.JumpToUnity;
+            Coroutine coroutine = this.StartCoroutineAsync(checkProgress());
+            yield return Ninja.JumpBack;
 
+            currentMessage = "Initializing";
             for (int i = 0; i < Columns.Count; i++)
             {
                 Column3D column = Columns[i];
-                OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + column.Name, timeByProgress);
+                currentColumn = i;
+                currentMessage = "Loading " + column.Name;
                 column.UpdateDLLSitesMask(m_ROIManager.SelectedROI != null);
-                currentProgress += 15;
-                OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Loading " + column.Name, timeByProgress);
-                if (SceneInformation.GeneratorNeedsUpdate) yield break;
+                if (SceneInformation.GeneratorNeedsUpdate)
+                {
+                    StopCoroutine(coroutine);
+                    yield break;
+                }
                 if (column is Column3DAnatomy anatomyColumn)
                 {
                     DLL.DensityGenerator generator = anatomyColumn.ActivityGenerator as DLL.DensityGenerator;
+                    currentGenerator = generator;
                     generator.ComputeActivity(anatomyColumn);
                 }
                 else if (column is Column3DDynamic dynamicColumn)
                 {
                     DLL.IEEGGenerator generator = dynamicColumn.ActivityGenerator as DLL.IEEGGenerator;
+                    currentGenerator = generator;
                     if (dynamicColumn is Column3DCCEP ccepColumn && ccepColumn.IsSourceMarsAtlasLabelSelected)
                         generator.ComputeActivityAtlas(ccepColumn);
                     else
@@ -2017,13 +2038,20 @@ namespace HBP.Module3D
                 else if (column is Column3DFMRI fmriColumn)
                 {
                     DLL.FMRIGenerator generator = fmriColumn.ActivityGenerator as DLL.FMRIGenerator;
+                    currentGenerator = generator;
                     generator.ComputeActivity(fmriColumn);
                     generator.AdjustValues(fmriColumn);
                 }
-                if (SceneInformation.GeneratorNeedsUpdate) yield break;
+                if (SceneInformation.GeneratorNeedsUpdate)
+                {
+                    StopCoroutine(coroutine);
+                    yield break;
+                }
             }
 
-            OnProgressUpdateGenerator.Invoke(1.0f, "Finalizing", timeByProgress);
+            currentMessage = "Finalizing";
+            yield return Ninja.JumpToUnity;
+            StopCoroutine(coroutine);
             yield return new WaitForSeconds(0.1f);
         }
         /// <summary>

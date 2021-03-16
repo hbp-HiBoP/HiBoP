@@ -9,6 +9,7 @@ namespace HBP.Module3D.DLL
     public abstract class ActivityGenerator : Tools.DLL.CppDLLImportBase
     {
         #region Properties
+        public float Progress { get { return get_progress_ActivityGenerator(_handle); } }
         public GeneratorSurface GeneratorSurface { get; private set; }
         #endregion
 
@@ -23,6 +24,8 @@ namespace HBP.Module3D.DLL
         #region DLLImport
         [DllImport("hbp_export", EntryPoint = "initialize_ActivityGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void initialize_ActivityGenerator(HandleRef generator, HandleRef generatorSurface);
+        [DllImport("hbp_export", EntryPoint = "get_progress_ActivityGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern float get_progress_ActivityGenerator(HandleRef generator);
         #endregion
     }
 }
