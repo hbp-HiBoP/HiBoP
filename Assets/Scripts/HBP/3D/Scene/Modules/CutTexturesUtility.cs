@@ -77,7 +77,7 @@ namespace HBP.Module3D
             }
             for (int i = 0; i < size; i++)
             {
-                CutGenerators[i].Initialize(activityGenerator, cutGeometryGenerators[i], 3);
+                CutGenerators[i].Initialize(activityGenerator, cutGeometryGenerators[i], 4);
             }
         }
         /// <summary>

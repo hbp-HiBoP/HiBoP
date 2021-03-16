@@ -850,7 +850,7 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.BeginSample("cut_generator Update generators");
             for (int ii = 0; ii < Cuts.Count; ++ii)
             {
-                CutGeometryGenerators[ii].Initialize(m_MRIManager.SelectedMRI.Volume, Cuts[ii]);
+                CutGeometryGenerators[ii].Initialize(m_MRIManager.SelectedMRI.Volume, Cuts[ii], 1);
                 CutGeometryGenerators[ii].UpdateSurfaceUV(generatedCutMeshes[ii]);
                 generatedCutMeshes[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
             }
