@@ -198,6 +198,17 @@ namespace HBP.Module3D.DLL
             return new Texture(generate_distribution_histogram_Texture(volume.getHandle(), height, width, withGreyArea));
         }
         /// <summary>
+        /// Generate a texture representing the values of the voxels of the input volume as a histogram
+        /// </summary>
+        /// <param name="fmri">FMRI to get values from</param>
+        /// <param name="height">Height of the resulting texture</param>
+        /// <param name="width">Width of the resulting texture</param>
+        /// <returns>Newly created texture</returns>
+        public static Texture GenerateDistributionHistogram(FMRI fmri, int height, int width, bool withGreyArea = true)
+        {
+            return new Texture(generate_distribution_histogram_NIFTI_Texture(fmri.NIFTI.getHandle(), height, width, withGreyArea));
+        }
+        /// <summary>
         /// Generate a texture representing the input set of values as a histogram
         /// </summary>
         /// <param name="data">Input data array to be represented in a histogram</param>
@@ -291,6 +302,8 @@ namespace HBP.Module3D.DLL
         static private extern void reset_Texture(HandleRef handleTexture, int width, int height);
         [DllImport("hbp_export", EntryPoint = "generate_distribution_histogram_Texture", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr generate_distribution_histogram_Texture(HandleRef handleVolume, int height, int width, bool withGreyArea);
+        [DllImport("hbp_export", EntryPoint = "generate_distribution_histogram_NIFTI_Texture", CallingConvention = CallingConvention.Cdecl)]
+        static private extern IntPtr generate_distribution_histogram_NIFTI_Texture(HandleRef handleNifti, int height, int width, bool withGreyArea);
         [DllImport("hbp_export", EntryPoint = "generate_distribution_histogram_with_data_Texture", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr generate_distribution_histogram_with_data_Texture(float[] data, int dataSize, int height, int width, float min, float max);
         [DllImport("hbp_export", EntryPoint = "apply_blur_Texture", CallingConvention = CallingConvention.Cdecl)]
