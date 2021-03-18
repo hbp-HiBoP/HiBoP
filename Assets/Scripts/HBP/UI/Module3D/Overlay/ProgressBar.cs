@@ -58,13 +58,22 @@ namespace HBP.UI.Module3D
             if (m_CurrentMessage != m_Message.text)
                 m_Message.text = m_CurrentMessage;
 
-            float lerpValue = m_TimeSinceLastCall / m_TotalTime;
-            if (lerpValue < 2.0f)
+            if (m_TotalTime == 0)
             {
-                m_CurrentProgress = Mathf.Lerp(m_PreviousProgress, m_TargetProgress, lerpValue);
+                m_CurrentProgress = m_TargetProgress;
                 m_Fill.anchorMax = new Vector2(m_CurrentProgress, 1.0f);
                 m_ProgressText.text = string.Format("{0}%", ((int)(m_CurrentProgress * 100)).ToString());
-                m_TimeSinceLastCall += Time.deltaTime;
+            }
+            else
+            {
+                float lerpValue = m_TimeSinceLastCall / m_TotalTime;
+                if (lerpValue < 2.0f)
+                {
+                    m_CurrentProgress = Mathf.Lerp(m_PreviousProgress, m_TargetProgress, lerpValue);
+                    m_Fill.anchorMax = new Vector2(m_CurrentProgress, 1.0f);
+                    m_ProgressText.text = string.Format("{0}%", ((int)(m_CurrentProgress * 100)).ToString());
+                    m_TimeSinceLastCall += Time.deltaTime;
+                }
             }
         }
         #endregion
