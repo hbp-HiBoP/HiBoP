@@ -1998,7 +1998,6 @@ namespace HBP.Module3D
                     if (currentGenerator != null)
                     {
                         currentProgress = ((float)currentColumn / numberOfColumns) + (currentGenerator.Progress / numberOfColumns);
-                        Debug.Log(currentGenerator.Progress);
                     }
                     OnProgressUpdateGenerator.Invoke(currentProgress, currentMessage, 0.05f);
                     yield return new WaitForSeconds(0.05f);
