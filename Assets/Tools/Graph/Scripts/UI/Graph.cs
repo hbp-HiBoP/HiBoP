@@ -407,7 +407,7 @@ namespace Tools.Unity.Graph
         }
         public string[] GetEnabledCurvesName()
         {
-            return GetEnabledCurves(m_Curves).Select(c => c.Name).ToArray();
+            return GetEnabledCurves(m_Curves).Where(c => c.Data != null || c.SubCurves.Any(sc => sc.Data != null && sc.Enabled)).Select(c => c.Name).Distinct().ToArray();
         }
         public string ToSVG()
         {

@@ -268,7 +268,7 @@ namespace HBP.UI.Module3D
                             var curvesName = graph.GetEnabledCurvesName();
                             try
                             {
-                                string graphFilePath = path + string.Format("{0}_{1}_[{2}]_Graph.png", openedProjectName, m_Scene.Name, string.Join("-", curvesName));
+                                string graphFilePath = path + string.Format("{0}_{1}_{2}_Graph.png", openedProjectName, m_Scene.Name, string.Join("-", curvesName));
                                 ClassLoaderSaver.GenerateUniqueSavePath(ref graphFilePath);
                                 graphTexture.SaveToPNG(graphFilePath);
                             }
@@ -280,7 +280,7 @@ namespace HBP.UI.Module3D
                             }
                             try
                             {
-                                string graphFilePath = path + string.Format("{0}_{1}_[{2}]_Graph.svg", openedProjectName, m_Scene.Name, string.Join("-", curvesName));
+                                string graphFilePath = path + string.Format("{0}_{1}_{2}_Graph.svg", openedProjectName, m_Scene.Name, string.Join("-", curvesName));
                                 ClassLoaderSaver.GenerateUniqueSavePath(ref graphFilePath);
                                 using (StreamWriter sw = new StreamWriter(graphFilePath))
                                 {
@@ -321,7 +321,9 @@ namespace HBP.UI.Module3D
                             Texture2D trialMatrixTexture;
                             if (trialMatrixScrollRect.content.rect.height > trialMatrixScrollRect.viewport.rect.height)
                             {
-                                trialMatrixTexture = new Texture2D((int)trialMatrixScrollRect.content.rect.width, (int)trialMatrixScrollRect.content.rect.height);
+                                CanvasScaler canvasScaler = GetComponentInParent<CanvasScaler>();
+                                float scale = (canvasScaler.referenceResolution.x / Screen.width) * (1 - canvasScaler.matchWidthOrHeight) + (canvasScaler.referenceResolution.y / Screen.height) * canvasScaler.matchWidthOrHeight;
+                                trialMatrixTexture = new Texture2D((int)(trialMatrixScrollRect.content.rect.width / scale), (int)(trialMatrixScrollRect.content.rect.height / scale));
                                 float step = trialMatrixScrollRect.viewport.rect.height / trialMatrixScrollRect.content.rect.height;
                                 float position = 0.0f;
                                 bool isFinished = false;
@@ -345,7 +347,18 @@ namespace HBP.UI.Module3D
                             }
                             try
                             {
-                                string trialMatrixFilePath = path + string.Format("{0}_{1}_[{2}]_TrialMatrix.png", openedProjectName, m_Scene.Name, string.Join("-", informations.ChannelStructs.Select(cs => cs.Patient.Name + "_" + cs.Channel)));
+                                List<string> names = new List<string>();
+                                Data.Patient currentPatient = null;
+                                foreach (var channelStruct in informations.ChannelStructs.OrderBy(cs => cs.Patient.Name))
+                                {
+                                    if (currentPatient != channelStruct.Patient)
+                                    {
+                                        currentPatient = channelStruct.Patient;
+                                        names.Add(currentPatient.Name);
+                                    }
+                                    names.Add(channelStruct.Channel);
+                                }
+                                string trialMatrixFilePath = path + string.Format("{0}_{1}_{2}_TrialMatrix.png", openedProjectName, m_Scene.Name, string.Join("-", names));
                                 ClassLoaderSaver.GenerateUniqueSavePath(ref trialMatrixFilePath);
                                 trialMatrixTexture.SaveToPNG(trialMatrixFilePath);
                             }

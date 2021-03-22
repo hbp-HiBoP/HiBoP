@@ -363,16 +363,18 @@ namespace HBP.UI.TrialMatrix.Grid
         {
             if (Data.IsFound)
             {
+                CanvasScaler canvasScaler = GetComponentInParent<CanvasScaler>();
+                float scale = (canvasScaler.referenceResolution.x / Screen.width) * (1 - canvasScaler.matchWidthOrHeight) + (canvasScaler.referenceResolution.y / Screen.height) * canvasScaler.matchWidthOrHeight;
                 switch (ApplicationState.UserPreferences.Visualization.TrialMatrix.SubBlocFormat)
                 {
                     case HBP.Data.Enums.BlocFormatType.TrialHeight:
-                        m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialHeight * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length;
+                        m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialHeight * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length / scale;
                         break;
                     case HBP.Data.Enums.BlocFormatType.TrialRatio:
-                        m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length;
+                        m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length / scale;
                         break;
                     case HBP.Data.Enums.BlocFormatType.BlocRatio:
-                        m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width;
+                        m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width / scale;
                         break;
                 }
             }
