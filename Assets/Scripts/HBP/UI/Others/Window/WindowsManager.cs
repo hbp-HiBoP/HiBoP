@@ -23,11 +23,22 @@ namespace HBP.UI
         }
         public Window Open(string name, bool interactable = true)
         {
-            Window window = null;
-            GameObject prefab = GetWindowPrefab(name);
-            if (prefab)
+            Window window = WindowsReferencer.Windows.FirstOrDefault(w => w.name == name);
+            if (window)
             {
-                window = CreateWindow(prefab, interactable);
+                Selector selector = window.GetComponent<Selector>();
+                if (selector)
+                {
+                    selector.Selected = true;
+                }
+            }
+            else
+            {
+                GameObject prefab = GetWindowPrefab(name);
+                if (prefab)
+                {
+                    window = CreateWindow(prefab, interactable);
+                }
             }
             return window;
         }
@@ -72,6 +83,7 @@ namespace HBP.UI
         Window CreateWindow(GameObject prefab, bool interactable)
         {
             GameObject gameObject = Instantiate(prefab, Container);
+            gameObject.name = prefab.name;
             RectTransform rectTransform = gameObject.transform as RectTransform;
             rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
             rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
