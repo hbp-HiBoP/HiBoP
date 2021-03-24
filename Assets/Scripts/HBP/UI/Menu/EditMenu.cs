@@ -14,11 +14,11 @@ namespace HBP.UI
         #region Public Methods
         public void OpenPreferences()
         {
-            ApplicationState.WindowsManager.OpenModifier(ApplicationState.UserPreferences, true);
+            ApplicationState.WindowsManager.OpenModifier(ApplicationState.UserPreferences);
         }
         public void OpenProjectPreferences()
         {
-            var modifier = ApplicationState.WindowsManager.OpenModifier(ApplicationState.ProjectLoaded.Preferences, true);
+            var modifier = ApplicationState.WindowsManager.OpenModifier(ApplicationState.ProjectLoaded.Preferences);
         }
         #endregion
     }

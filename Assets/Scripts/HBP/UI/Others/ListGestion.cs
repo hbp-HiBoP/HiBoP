@@ -9,7 +9,7 @@ namespace Tools.Unity.Components
     /// <summary>
     /// Abstract generic base class which manage a list of elements.
     /// </summary>
-    public abstract class ListGestion<T> : MonoBehaviour where T : ICloneable, ICopiable, new()
+    public abstract class ListGestion<T> : MonoBehaviour where T : HBP.Data.BaseData, new()
     {
         #region Properties
         [SerializeField] protected bool m_Interactable;

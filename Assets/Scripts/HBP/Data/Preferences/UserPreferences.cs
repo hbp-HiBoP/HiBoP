@@ -19,7 +19,7 @@ namespace HBP.Data.Preferences
     *     - Visualization preferences.
     */
     [DataContract]
-    public class UserPreferences: ICopiable, ICloneable
+    public class UserPreferences : BaseData
     {
         #region Properties
         public static string PATH = Path.Combine(Application.persistentDataPath, "Preferences.txt");
@@ -30,23 +30,29 @@ namespace HBP.Data.Preferences
         #endregion
 
         #region Constructors
-        public UserPreferences() : this(new GeneralPreferences(), new DataPreferences(), new VisualizationPreferences())
-        {
-        }
-        public UserPreferences(GeneralPreferences generalPreferences, DataPreferences dataPreferences, VisualizationPreferences visualizationPreferences)
+        public UserPreferences(GeneralPreferences generalPreferences, DataPreferences dataPreferences, VisualizationPreferences visualizationPreferences, string ID) : base(ID)
         {
             General = generalPreferences;
             Data = dataPreferences;
             Visualization = visualizationPreferences;
         }
+        public UserPreferences(GeneralPreferences generalPreferences, DataPreferences dataPreferences, VisualizationPreferences visualizationPreferences) : base()
+        {
+            General = generalPreferences;
+            Data = dataPreferences;
+            Visualization = visualizationPreferences;
+        }
+        public UserPreferences() : this(new GeneralPreferences(), new DataPreferences(), new VisualizationPreferences())
+        {
+        }
         #endregion
 
         #region Public Methods
-        public object Clone()
+        public override object Clone()
         {
-            return new UserPreferences(General.Clone() as GeneralPreferences, Data.Clone() as DataPreferences, Visualization.Clone() as VisualizationPreferences);
+            return new UserPreferences(General.Clone() as GeneralPreferences, Data.Clone() as DataPreferences, Visualization.Clone() as VisualizationPreferences, ID);
         }
-        public void Copy(object copy)
+        public override void Copy(object copy)
         {
             if (copy is UserPreferences preferences)
             {

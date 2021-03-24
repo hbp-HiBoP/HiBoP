@@ -105,7 +105,7 @@ namespace HBP.Data
         #region Private Methods
         public override object Clone()
         {
-            return new ProjectPreferences(Name, PatientDatabase, LocalizerDatabase, Aliases.DeepClone(), GeneralTags.DeepClone(), PatientsTags.DeepClone(), SitesTags.DeepClone());
+            return new ProjectPreferences(Name, PatientDatabase, LocalizerDatabase, Aliases.DeepClone(), GeneralTags.DeepClone(), PatientsTags.DeepClone(), SitesTags.DeepClone(), ID);
         }
         public override void Copy(object copy)
         {

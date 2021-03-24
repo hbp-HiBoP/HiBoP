@@ -52,19 +52,35 @@ namespace HBP.UI
             }
             return window;
         }
-        public ObjectModifier<T> OpenModifier<T>(T obj, bool interactable = true) where T : ICopiable, ICloneable
+        public ObjectModifier<T> OpenModifier<T>(T obj, bool interactable = true) where T : Data.BaseData
         {
-            ObjectModifier<T> modifier = default;
-            GameObject prefab = GetWindowPrefab(typeof(ObjectModifier<T>));
-            if (prefab)
+            ObjectModifier<T> modifier = WindowsReferencer.Windows.OfType<ObjectModifier<T>>().FirstOrDefault(w => w.Object.ID == obj.ID);
+            if (modifier)
             {
-                modifier = CreateWindow(prefab, interactable) as ObjectModifier<T>;
-                modifier.Object = obj;
+                Selector selector = modifier.GetComponent<Selector>();
+                if (selector)
+                {
+                    selector.Selected = true;
+                }
+            }
+            else
+            {
+                GameObject prefab = GetWindowPrefab(typeof(ObjectModifier<T>));
+                if (prefab)
+                {
+                    modifier = CreateWindow(prefab, interactable) as ObjectModifier<T>;
+                    modifier.Object = obj;
+                }
             }
             return modifier;
         }
         public ObjectSelector<T> OpenSelector<T>(IEnumerable<T> objects, bool multiSelection = true, bool openModifiers = false, bool interactable = true)
         {
+            var openedSelector = WindowsReferencer.Windows.OfType<ObjectSelector<T>>().ToArray();
+            foreach (var sel in openedSelector)
+            {
+                sel.Close();
+            }
             ObjectSelector<T> selector = default;
             GameObject prefab = GetWindowPrefab(typeof(ObjectSelector<T>));
             if (prefab)

@@ -13,7 +13,7 @@ namespace Tools.Unity.Components
     /// </summary>
     /// <typeparam name="T">Type of the object to create</typeparam>
     [Serializable]
-    public class ObjectCreator<T> : MonoBehaviour where T : ICloneable, ICopiable, new()
+    public class ObjectCreator<T> : MonoBehaviour where T : HBP.Data.BaseData, new()
     {
         #region Properties
         [SerializeField] public bool m_IsLoadableFromFile = true;
@@ -239,7 +239,7 @@ namespace Tools.Unity.Components
         /// <returns>Return the objectModifier.</returns>
         protected virtual ObjectModifier<T> OpenModifier(T @object)
         {
-            ObjectModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(@object, true);
+            ObjectModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(@object);
             modifier.OnOk.AddListener(() => SaveModifier(modifier));
             WindowsReferencer.Add(modifier);
             return modifier;
