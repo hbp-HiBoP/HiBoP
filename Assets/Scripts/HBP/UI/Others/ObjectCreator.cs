@@ -102,6 +102,8 @@ namespace Tools.Unity.Components
         /// </summary>
         public virtual WindowsReferencer WindowsReferencer { get => m_WindowsReferencer; }
 
+        [SerializeField] protected CreatorContextMenu m_CreatorContextMenu;
+
         /// <summary>
         /// Event raised when a new object is created.
         /// </summary>
@@ -114,6 +116,11 @@ namespace Tools.Unity.Components
         /// </summary>
         public virtual void Create()
         {
+            if (m_CreatorContextMenu.gameObject.activeSelf)
+            {
+                m_CreatorContextMenu.Close();
+                return;
+            }
             bool createableFromScratch = IsCreatableFromScratch;
             bool createableFromFile = IsCreatableFromFile && typeof(T).GetInterfaces().Contains(typeof(ILoadable<T>));
             bool createableFromDatabase = IsCreatableFromDatabase && typeof(T).GetInterfaces().Contains(typeof(ILoadableFromDatabase<T>));
@@ -125,13 +132,11 @@ namespace Tools.Unity.Components
             else if (!createableFromScratch && !createableFromFile && !createableFromDatabase && createableFromExistingObjects) CreateFromExistingObject();
             else
             {
-                CreatorWindow creatorWindow = ApplicationState.WindowsManager.Open<CreatorWindow>("Creator window", true);
-                creatorWindow.IsCreatableFromScratch = createableFromScratch;
-                creatorWindow.IsCreatableFromExistingObjects = createableFromExistingObjects;
-                creatorWindow.IsCreatableFromFile = createableFromFile;
-                creatorWindow.IsCreatableFromDatabase = createableFromDatabase;
-                creatorWindow.OnOk.AddListener(() => Create(creatorWindow.Type));
-                WindowsReferencer.Add(creatorWindow);
+                m_CreatorContextMenu.IsCreatableFromScratch = createableFromScratch;
+                m_CreatorContextMenu.IsCreatableFromExistingObjects = createableFromExistingObjects;
+                m_CreatorContextMenu.IsCreatableFromFile = createableFromFile;
+                m_CreatorContextMenu.IsCreatableFromDatabase = createableFromDatabase;
+                m_CreatorContextMenu.Open();
             }
         }
         /// <summary>
@@ -155,6 +160,7 @@ namespace Tools.Unity.Components
                     CreateFromDatabase();
                     break;
             }
+            m_CreatorContextMenu.Close();
         }
         /// <summary>
         /// Create a new object from scratch.
@@ -187,6 +193,10 @@ namespace Tools.Unity.Components
         #endregion
 
         #region Private Methods
+        private void Awake()
+        {
+            m_CreatorContextMenu.OnSelectType.AddListener(Create);
+        }
         /// <summary>
         /// Open a new object selector.
         /// </summary>
