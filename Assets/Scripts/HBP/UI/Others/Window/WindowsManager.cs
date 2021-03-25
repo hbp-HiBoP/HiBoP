@@ -15,12 +15,7 @@ namespace HBP.UI
         public Vector2 Offset;
         #endregion
 
-        #region Private Methods
-        private void Awake()
-        {
-            m_Windows = Resources.LoadAll<GameObject>("Prefabs/UI/Windows/");
-            WindowsReferencer.OnCloseWindow.AddListener(OnCloseWindow);
-        }
+        #region Public Methods
         public Window Open(string name, bool interactable = true)
         {
             Window window = WindowsReferencer.Windows.FirstOrDefault(w => w.name == name);
@@ -93,9 +88,22 @@ namespace HBP.UI
             }
             return selector;
         }
+        public void CloseAll()
+        {
+            var windows = WindowsReferencer.Windows.ToArray();
+            foreach (var window in windows)
+            {
+                window.Close();
+            }
+        }
         #endregion
 
         #region Private Methods
+        private void Awake()
+        {
+            m_Windows = Resources.LoadAll<GameObject>("Prefabs/UI/Windows/");
+            WindowsReferencer.OnCloseWindow.AddListener(OnCloseWindow);
+        }
         Window CreateWindow(GameObject prefab, bool interactable)
         {
             GameObject gameObject = Instantiate(prefab, Container);

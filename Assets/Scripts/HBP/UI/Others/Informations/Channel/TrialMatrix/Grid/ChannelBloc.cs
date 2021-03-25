@@ -364,7 +364,9 @@ namespace HBP.UI.TrialMatrix.Grid
             if (Data.IsFound)
             {
                 CanvasScaler canvasScaler = GetComponentInParent<CanvasScaler>();
-                float scale = (canvasScaler.referenceResolution.x / Screen.width) * (1 - canvasScaler.matchWidthOrHeight) + (canvasScaler.referenceResolution.y / Screen.height) * canvasScaler.matchWidthOrHeight;
+                float scale = 1;
+                if (canvasScaler)
+                    scale = (canvasScaler.referenceResolution.x / Screen.width) * (1 - canvasScaler.matchWidthOrHeight) + (canvasScaler.referenceResolution.y / Screen.height) * canvasScaler.matchWidthOrHeight;
                 switch (ApplicationState.UserPreferences.Visualization.TrialMatrix.SubBlocFormat)
                 {
                     case HBP.Data.Enums.BlocFormatType.TrialHeight:
