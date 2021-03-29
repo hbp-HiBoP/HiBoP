@@ -23,7 +23,7 @@ namespace Tools.Unity.Graph
         [SerializeField] ChannelStruct[] m_Channels;
         Color m_DefaultColor = new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1);
 
-        private List<SimpleGraph> m_Graphs = new List<SimpleGraph>();
+        public List<SimpleGraph> Graphs { get; private set; } = new List<SimpleGraph>();
         private List<GraphsGridContainer> m_Containers = new List<GraphsGridContainer>();
         private Dictionary<SimpleGraph, ChannelStruct> m_ChannelByGraph = new Dictionary<SimpleGraph, ChannelStruct>();
 
@@ -131,7 +131,7 @@ namespace Tools.Unity.Graph
         #region Public Methods
         public void SetEnabled(string id, bool enabled)
         {
-            foreach (var graph in m_Graphs)
+            foreach (var graph in Graphs)
             {
                 graph.SetEnabled(id, enabled);
             }
@@ -155,7 +155,7 @@ namespace Tools.Unity.Graph
         }
         public void UnselectAll()
         {
-            foreach (var graph in m_Graphs)
+            foreach (var graph in Graphs)
             {
                 graph.IsSelected = false;
             }
@@ -183,7 +183,7 @@ namespace Tools.Unity.Graph
             {
                 Destroy(child.gameObject);
             }
-            m_Graphs = new List<SimpleGraph>();
+            Graphs = new List<SimpleGraph>();
             m_Containers = new List<GraphsGridContainer>();
             m_ChannelByGraph = new Dictionary<SimpleGraph, ChannelStruct>();
         }
@@ -216,7 +216,7 @@ namespace Tools.Unity.Graph
             for (int c = 0; c < curveByColumnByChannel.Length; c++)
             {
                 var curveByColumn = curveByColumnByChannel[c];
-                AddGraph(string.Format("{0} ({1})", m_Channels[c].Channel, m_Channels[c].Patient.Name), curveByColumn, m_AbscissaDisplayRange, ordinateDisplayRangeByChannel[c], m_Channels[c]);
+                AddGraph(m_Channels[c], curveByColumn, m_AbscissaDisplayRange, ordinateDisplayRangeByChannel[c], m_Channels[c]);
             }
 
             UpdateLayout();
@@ -226,7 +226,7 @@ namespace Tools.Unity.Graph
                 m_OnSetGraphs.Invoke(curveByColumnByChannel[0]);
             }
         }
-        void AddGraph(string title, Graph.Curve[] curves, Vector2 abscissa, Vector2 ordinate, ChannelStruct channel)
+        void AddGraph(ChannelStruct channelStruct, Graph.Curve[] curves, Vector2 abscissa, Vector2 ordinate, ChannelStruct channel)
         {
             GraphsGridContainer container = Instantiate(m_ItemAndContainerPrefab, m_ScrollRect.content).GetComponent<GraphsGridContainer>();
             m_Containers.Add(container);
@@ -235,12 +235,13 @@ namespace Tools.Unity.Graph
             graph.AbscissaDisplayRange = abscissa;
             graph.DefaultOrdinateDisplayRange = ordinate;
             graph.OrdinateDisplayRange = ordinate;
-            graph.Title = title;
+            graph.Title = string.Format("{0} ({1})", channelStruct.Channel, channelStruct.Patient.Name);
+            graph.ChannelStruct = channelStruct;
             foreach (var curve in curves)
             {
                 graph.AddCurve(curve);
             }
-            m_Graphs.Add(graph);
+            Graphs.Add(graph);
             m_ChannelByGraph.Add(graph, channel);
         }
         private void UpdateLayout()

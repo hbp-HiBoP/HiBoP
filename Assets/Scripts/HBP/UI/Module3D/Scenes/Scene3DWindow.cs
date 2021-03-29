@@ -371,6 +371,27 @@ namespace HBP.UI.Module3D
                             trialMatrixScrollRect.viewport.GetComponent<Image>().sprite = mask;
                         }
                     }
+                    else if (gridInformations != null && gridInformations.isActiveAndEnabled)
+                    {
+                        foreach (var graph in gridInformations.Grid.Graphs.Where(g => g.IsSelected))
+                        {
+                            try
+                            {
+                                string graphFilePath = path + string.Format("{0}_{1}_{2}_Graph.svg", openedProjectName, m_Scene.Name, string.Format("{0}-{1}", graph.ChannelStruct.Patient.Name, graph.ChannelStruct.Channel));
+                                ClassLoaderSaver.GenerateUniqueSavePath(ref graphFilePath);
+                                using (StreamWriter sw = new StreamWriter(graphFilePath))
+                                {
+                                    sw.Write(graph.ToSVG());
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.LogException(e);
+                                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
+                                yield break;
+                            }
+                        }
+                    }
                 }
                 // Feedback
                 ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Screenshots saved", "Screenshots have been saved in " + path);

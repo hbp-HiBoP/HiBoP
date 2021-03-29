@@ -17,7 +17,7 @@ namespace HBP.UI.TrialMatrix.Grid
             set
             {
                 m_Channel = value;
-                string label = value.Channel + " ( " + value.Patient.Name + ")";
+                string label = value.Channel + " (" + value.Patient.Name + ")";
                 m_Text.text = label;
                 gameObject.name = label;
             }
