@@ -39,6 +39,25 @@ namespace Tools.Unity.Graph
                 if (SetPropertyUtility.SetStruct(ref m_UseDefaultOrdinateRange, value))
                 {
                     m_OnChangeUseDefaultOrdinateRange.Invoke(value);
+                    if (value)
+                    {
+                        foreach (var graph in Graphs)
+                        {
+                            List<float> values = new List<float>();
+                            foreach (var curve in graph.Curves)
+                            {
+                                values.AddRange(GetValues(curve));
+                            }
+                            graph.OrdinateDisplayRange = values.ToArray().CalculateValueLimit(5);
+                        }
+                    }
+                    else
+                    {
+                        foreach (var graph in Graphs)
+                        {
+                            graph.OrdinateDisplayRange = OrdinateDisplayRange;
+                        }
+                    }
                 }
             }
         }
@@ -54,6 +73,13 @@ namespace Tools.Unity.Graph
                 if (SetPropertyUtility.SetStruct(ref m_OrdinateDisplayRange, value))
                 {
                     m_OnChangeOrdinateDisplayRange.Invoke(value);
+                    if (!m_UseDefaultOrdinateRange)
+                    {
+                        foreach (var graph in Graphs)
+                        {
+                            graph.OrdinateDisplayRange = value;
+                        }
+                    }
                 }
             }
         }
@@ -69,6 +95,10 @@ namespace Tools.Unity.Graph
                 if (SetPropertyUtility.SetStruct(ref m_AbscissaDisplayRange, value))
                 {
                     m_OnChangeAbscissaDisplayRange.Invoke(value);
+                    foreach (var graph in Graphs)
+                    {
+                        graph.AbscissaDisplayRange = value;
+                    }
                 }
             }
         }
@@ -231,9 +261,7 @@ namespace Tools.Unity.Graph
             GraphsGridContainer container = Instantiate(m_ItemAndContainerPrefab, m_ScrollRect.content).GetComponent<GraphsGridContainer>();
             m_Containers.Add(container);
             SimpleGraph graph = container.Content.GetComponent<SimpleGraph>();
-            graph.DefaultAbscissaDisplayRange = abscissa;
             graph.AbscissaDisplayRange = abscissa;
-            graph.DefaultOrdinateDisplayRange = ordinate;
             graph.OrdinateDisplayRange = ordinate;
             graph.Title = string.Format("{0} ({1})", channelStruct.Channel, channelStruct.Patient.Name);
             graph.ChannelStruct = channelStruct;

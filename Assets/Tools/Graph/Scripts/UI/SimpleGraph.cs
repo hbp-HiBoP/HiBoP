@@ -75,22 +75,6 @@ namespace Tools.Unity.Graph
             }
         }
 
-        [SerializeField] private Vector2 m_DefaultOrdinateDisplayRange;
-        public Vector2 DefaultOrdinateDisplayRange
-        {
-            get
-            {
-                return m_DefaultOrdinateDisplayRange;
-            }
-            set
-            {
-                if (SetPropertyUtility.SetStruct(ref m_DefaultOrdinateDisplayRange, value))
-                {
-                    SetDefaultOrdinateDisplayRange();
-                }
-            }
-        }
-
         [SerializeField] private Vector2 m_AbscissaDisplayRange;
         public Vector2 AbscissaDisplayRange
         {
@@ -103,38 +87,6 @@ namespace Tools.Unity.Graph
                 if (SetPropertyUtility.SetStruct(ref m_AbscissaDisplayRange, value))
                 {
                     SetAbscissaDisplayRange();
-                }
-            }
-        }
-
-        [SerializeField] private Vector2 m_DefaultAbscissaDisplayRange;
-        public Vector2 DefaultAbscissaDisplayRange
-        {
-            get
-            {
-                return m_DefaultAbscissaDisplayRange;
-            }
-            set
-            {
-                if (SetPropertyUtility.SetStruct(ref m_DefaultAbscissaDisplayRange, value))
-                {
-                    SetDefaultAbscissaDisplayRange();
-                }
-            }
-        }
-
-        [SerializeField] bool m_UseDefaultDisplayRange = true;
-        public bool UseDefaultDisplayRange
-        {
-            get
-            {
-                return m_UseDefaultDisplayRange;
-            }
-            set
-            {
-                if (SetPropertyUtility.SetStruct(ref m_UseDefaultDisplayRange, value))
-                {
-                    SetUseDefaultDisplayRange();
                 }
             }
         }
@@ -210,15 +162,6 @@ namespace Tools.Unity.Graph
             get
             {
                 return m_OnChangeAbscissaDisplayRange;
-            }
-        }
-
-        [SerializeField] private BoolEvent m_OnChangeUseDefaultRange;
-        public BoolEvent OnChangeUseDefaultRange
-        {
-            get
-            {
-                return m_OnChangeUseDefaultRange;
             }
         }
 
@@ -472,7 +415,6 @@ namespace Tools.Unity.Graph
             SetTitle();
             SetFontColor();
             SetBackgroundColor();
-            SetUseDefaultDisplayRange();
             SetOrdinateDisplayRange();
             SetAbscissaDisplayRange();
             SetCurves();
@@ -492,43 +434,10 @@ namespace Tools.Unity.Graph
         void SetOrdinateDisplayRange()
         {
             m_OnChangeOrdinateDisplayRange.Invoke(m_OrdinateDisplayRange);
-            if (m_OrdinateDisplayRange != m_DefaultOrdinateDisplayRange)
-            {
-                UseDefaultDisplayRange = false;
-                m_OnChangeUseDefaultRange.Invoke(m_UseDefaultDisplayRange);
-            }
         }
         void SetAbscissaDisplayRange()
         {
             m_OnChangeAbscissaDisplayRange.Invoke(m_AbscissaDisplayRange);
-            if (m_AbscissaDisplayRange != m_DefaultAbscissaDisplayRange)
-            {
-                UseDefaultDisplayRange = false;
-                m_OnChangeUseDefaultRange.Invoke(m_UseDefaultDisplayRange);
-            }
-        }
-        void SetDefaultAbscissaDisplayRange()
-        {
-            if (m_UseDefaultDisplayRange)
-            {
-                AbscissaDisplayRange = m_DefaultAbscissaDisplayRange;
-            }
-        }
-        void SetDefaultOrdinateDisplayRange()
-        {
-            if (m_UseDefaultDisplayRange)
-            {
-                OrdinateDisplayRange = m_DefaultOrdinateDisplayRange;
-            }
-        }
-        void SetUseDefaultDisplayRange()
-        {
-            if (m_UseDefaultDisplayRange)
-            {
-                AbscissaDisplayRange = DefaultAbscissaDisplayRange;
-                OrdinateDisplayRange = DefaultOrdinateDisplayRange;
-            }
-            m_OnChangeUseDefaultRange.Invoke(m_UseDefaultDisplayRange);
         }
         void SetCurves()
         {
