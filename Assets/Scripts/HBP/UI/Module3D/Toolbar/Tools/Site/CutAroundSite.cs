@@ -9,7 +9,7 @@ namespace HBP.UI.Module3D.Tools
         /// <summary>
         /// Button to create 3 cuts around the selected site
         /// </summary>
-        [SerializeField] private Button m_Button;
+        [SerializeField] private Toggle m_Toggle;
         #endregion
 
         #region Public Methods
@@ -18,9 +18,9 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void Initialize()
         {
-            m_Button.onClick.AddListener(() =>
+            m_Toggle.onValueChanged.AddListener((isOn) =>
             {
-                SelectedScene.CutAroundSelectedSite();
+                SelectedScene.AutomaticCutAroundSelectedSite = isOn;
             });
         }
         /// <summary>
@@ -28,16 +28,14 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void DefaultState()
         {
-            m_Button.interactable = false;
+            m_Toggle.interactable = false;
         }
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isInteractable = SelectedColumn.SelectedSite != null;
-
-            m_Button.interactable = isInteractable;
+            m_Toggle.interactable = true;
         }
         #endregion
     }

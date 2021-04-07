@@ -469,6 +469,24 @@ namespace HBP.Module3D
             }
         }
 
+        private bool m_AutomaticCutAroundSelectedSite = false;
+        /// <summary>
+        /// Automatically cuts around the currently selected site
+        /// </summary>
+        public bool AutomaticCutAroundSelectedSite
+        {
+            get
+            {
+                return m_AutomaticCutAroundSelectedSite;
+            }
+            set
+            {
+                m_AutomaticCutAroundSelectedSite = value;
+                SceneInformation.CutsNeedUpdate = true;
+                OnChangeAutomaticCutAroundSelectedSite.Invoke(value);
+            }
+        }
+
         /// <summary>
         /// True if we can compute and project the functional values on the mesh and on the MRI
         /// </summary>
@@ -661,6 +679,10 @@ namespace HBP.Module3D
         /// Event called when displaying the correlations
         /// </summary>
         [HideInInspector] public UnityEvent OnChangeDisplayCorrelations = new UnityEvent();
+        /// <summary>
+        /// Event called when changing the automatic cut around selected site toggle state
+        /// </summary>
+        [HideInInspector] public GenericEvent<bool> OnChangeAutomaticCutAroundSelectedSite = new GenericEvent<bool>();
         /// <summary>
         /// Event called when finished loading the scene completely
         /// </summary>
@@ -889,6 +911,7 @@ namespace HBP.Module3D
         private void UpdateCuts()
         {
             UnityEngine.Profiling.Profiler.BeginSample("UpdateCuts");
+            CutAroundSelectedSite();
             ComputeMeshesCut();
             SceneInformation.CutsNeedUpdate = false;
             OnUpdateCuts.Invoke();
@@ -1019,6 +1042,7 @@ namespace HBP.Module3D
                         c.UnselectSite();
                     }
                 }
+                if (m_AutomaticCutAroundSelectedSite) SceneInformation.CutsNeedUpdate = true;
                 OnSelectSite.Invoke(site);
             });
             column.OnChangeSiteState.AddListener((site) =>
@@ -1074,6 +1098,14 @@ namespace HBP.Module3D
                 fmriColumn.FMRIParameters.OnUpdateCalValues.AddListener(() =>
                 {
                     ((DLL.FMRIGenerator)fmriColumn.ActivityGenerator).AdjustValues(fmriColumn);
+                    SceneInformation.FunctionalCutTexturesNeedUpdate = true;
+                    SceneInformation.FunctionalSurfaceNeedsUpdate = true;
+                    fmriColumn.SurfaceNeedsUpdate = true;
+                    SceneInformation.SitesNeedUpdate = true;
+                });
+                fmriColumn.FMRIParameters.OnUpdateHideValues.AddListener(() =>
+                {
+                    ((DLL.FMRIGenerator)fmriColumn.ActivityGenerator).HideExtremeValues(fmriColumn);
                     SceneInformation.FunctionalCutTexturesNeedUpdate = true;
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     fmriColumn.SurfaceNeedsUpdate = true;
@@ -1301,14 +1333,16 @@ namespace HBP.Module3D
         /// </summary>
         public void CutAroundSelectedSite()
         {
-            Site site = SelectedColumn.SelectedSite;
-            if (!site) return;
+            if (!m_AutomaticCutAroundSelectedSite) return;
 
             foreach (var cut in Cuts.ToList())
             {
                 RemoveCutPlane(cut);
             }
 
+            Site site = SelectedColumn.SelectedSite;
+            if (!site) return;
+            
             Vector3 sitePosition = new Vector3(-site.transform.localPosition.x, site.transform.localPosition.y, site.transform.localPosition.z);
 
             Cut axialCut = AddCutPlane();
@@ -1343,8 +1377,6 @@ namespace HBP.Module3D
                 sagittalCut.Position = 1 - sagittalCut.Position;
             }
             UpdateCutPlane(sagittalCut);
-
-            SceneInformation.CutsNeedUpdate = true;
         }
         #endregion
 

@@ -117,6 +117,7 @@ namespace HBP.Module3D
         {
             if (firstCall) ResetConfiguration();
             FMRIParameters.SetSpanValues(ColumnFMRIData.FMRIConfiguration.NegativeMin, ColumnFMRIData.FMRIConfiguration.NegativeMax, ColumnFMRIData.FMRIConfiguration.PositiveMin, ColumnFMRIData.FMRIConfiguration.PositiveMax);
+            FMRIParameters.SetHideValues(ColumnFMRIData.FMRIConfiguration.HideLowerValues, ColumnFMRIData.FMRIConfiguration.HideMiddleValues, ColumnFMRIData.FMRIConfiguration.HideHigherValues);
             base.LoadConfiguration(false);
         }
         /// <summary>
@@ -128,6 +129,9 @@ namespace HBP.Module3D
             ColumnFMRIData.FMRIConfiguration.NegativeMax = FMRIParameters.FMRINegativeCalMaxFactor;
             ColumnFMRIData.FMRIConfiguration.PositiveMin = FMRIParameters.FMRIPositiveCalMinFactor;
             ColumnFMRIData.FMRIConfiguration.PositiveMax = FMRIParameters.FMRIPositiveCalMaxFactor;
+            ColumnFMRIData.FMRIConfiguration.HideLowerValues = FMRIParameters.HideLowerValues;
+            ColumnFMRIData.FMRIConfiguration.HideMiddleValues = FMRIParameters.HideMiddleValues;
+            ColumnFMRIData.FMRIConfiguration.HideHigherValues = FMRIParameters.HideHigherValues;
             base.SaveConfiguration();
         }
         /// <summary>
@@ -136,6 +140,7 @@ namespace HBP.Module3D
         public override void ResetConfiguration()
         {
             FMRIParameters.ResetSpanValues();
+            FMRIParameters.ResetHideValues();
             base.ResetConfiguration();
         }
         #endregion

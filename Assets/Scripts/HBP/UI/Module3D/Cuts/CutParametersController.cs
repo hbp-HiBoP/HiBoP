@@ -34,6 +34,19 @@ namespace HBP.UI.Module3D
         /// Texture of the cut associated with this controller
         /// </summary>
         public Texture2D Texture { get { return m_Image.sprite.texture; } }
+        private bool m_Interactable = true;
+        public bool Interactable
+        {
+            get
+            {
+                return m_Interactable;
+            }
+            set
+            {
+                m_Interactable = value;
+                m_Image.GetComponent<Button>().interactable = value;
+            }
+        }
 
         /// <summary>
         /// Did we just clicked on the minus button ?

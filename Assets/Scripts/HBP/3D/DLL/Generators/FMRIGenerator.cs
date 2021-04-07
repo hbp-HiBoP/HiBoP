@@ -19,6 +19,10 @@ namespace HBP.Module3D.DLL
         {
             adjust_values_FMRIGenerator(_handle, column.FMRIParameters.FMRINegativeCalMinFactor, column.FMRIParameters.FMRINegativeCalMaxFactor, column.FMRIParameters.FMRIPositiveCalMinFactor, column.FMRIParameters.FMRIPositiveCalMaxFactor);
         }
+        public void HideExtremeValues(Column3DFMRI column)
+        {
+            set_hide_values_FMRIGenerator(_handle, column.FMRIParameters.HideLowerValues, column.FMRIParameters.HideMiddleValues, column.FMRIParameters.HideHigherValues);
+        }
         #endregion
 
         #region Memory Management
@@ -47,6 +51,8 @@ namespace HBP.Module3D.DLL
         static private extern void compute_activity_FMRIGenerator(HandleRef generator, HandleRef[] volumes, int volumesNumber);
         [DllImport("hbp_export", EntryPoint = "adjust_values_FMRIGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void adjust_values_FMRIGenerator(HandleRef generator, float negativeMin, float negativeMax, float positiveMin, float positiveMax);
+        [DllImport("hbp_export", EntryPoint = "set_hide_values_FMRIGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void set_hide_values_FMRIGenerator(HandleRef generator, bool lower, bool middle, bool higher);
         #endregion
     }
 }

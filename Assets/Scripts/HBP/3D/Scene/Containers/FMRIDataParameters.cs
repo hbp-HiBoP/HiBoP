@@ -26,13 +26,29 @@ namespace HBP.Module3D
         /// Calibration max factor of the FMRI (between 0 and 1)
         /// </summary>
         public float FMRIPositiveCalMaxFactor { get; private set; } = 0.5f;
+        /// <summary>
+        /// Hide the values under the lowest cal factor
+        /// </summary>
+        public bool HideLowerValues { get; private set; }
+        /// <summary>
+        /// Hide the values between the two middle factors
+        /// </summary>
+        public bool HideMiddleValues { get; private set; }
+        /// <summary>
+        /// Hide the values above the highest cal factor
+        /// </summary>
+        public bool HideHigherValues { get; private set; }
         #endregion
 
         #region Events
         /// <summary>
-        /// Event called when updating the span values (min, mid or max)
+        /// Event called when updating the span values (negative and positive min or max)
         /// </summary>
         public UnityEvent OnUpdateCalValues = new UnityEvent();
+        /// <summary>
+        /// Event called when updating which extreme values to hide (lower, middle or higher)
+        /// </summary>
+        public UnityEvent OnUpdateHideValues = new UnityEvent();
         #endregion
 
         #region Public Methods
@@ -65,6 +81,26 @@ namespace HBP.Module3D
             FMRIPositiveCalMinFactor = 0.05f;
             FMRIPositiveCalMaxFactor = 0.5f;
             OnUpdateCalValues.Invoke();
+        }
+        /// <summary>
+        /// Set which extreme values to hide
+        /// </summary>
+        /// <param name="lower">Hide the values under the lowest cal factor</param>
+        /// <param name="middle">Hide the values between the two middle factors</param>
+        /// <param name="higher">Hide the values above the highest cal factor</param>
+        public void SetHideValues(bool lower, bool middle, bool higher)
+        {
+            HideLowerValues = lower;
+            HideMiddleValues = middle;
+            HideHigherValues = higher;
+            OnUpdateHideValues.Invoke();
+        }
+        public void ResetHideValues()
+        {
+            HideLowerValues = false;
+            HideMiddleValues = false;
+            HideHigherValues = false;
+            OnUpdateHideValues.Invoke();
         }
         #endregion
     }
