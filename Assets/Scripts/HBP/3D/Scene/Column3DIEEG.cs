@@ -204,6 +204,7 @@ namespace HBP.Module3D
         /// <returns>List of correlated sites</returns>
         public List<Site> CorrelatedSites(Site site)
         {
+            int siteCount = CorrelationBySitePair.Count;
             List<Site> result = new List<Site>();
             if (AreCorrelationsComputed)
             {
@@ -214,7 +215,7 @@ namespace HBP.Module3D
                         if (correlationBySite.TryGetValue(s, out float correlationValue))
                         {
                             float threshold = ApplicationState.UserPreferences.Data.EEG.CorrelationAlpha;
-                            if (ApplicationState.UserPreferences.Data.EEG.BonferroniCorrection) threshold /= (Sites.Count * (Sites.Count - 1) / 2);
+                            if (ApplicationState.UserPreferences.Data.EEG.BonferroniCorrection) threshold /= siteCount * (siteCount - 1) / 2;
                             if (correlationValue < threshold)
                             {
                                 result.Add(s);

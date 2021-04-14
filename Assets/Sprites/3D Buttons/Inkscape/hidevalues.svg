@@ -16,7 +16,7 @@
    id="SVGRoot"
    inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
    sodipodi:docname="hidevalues.svg"
-   inkscape:export-filename="D:\HBP\HiBoP\Assets\Sprites\3D Buttons\HideLower.png"
+   inkscape:export-filename="D:\HBP\HiBoP\Assets\Sprites\3D Buttons\HideHigher.png"
    inkscape:export-xdpi="48"
    inkscape:export-ydpi="48">
   <sodipodi:namedview
@@ -66,25 +66,25 @@
        id="rect10666"
        width="14.999998"
        height="128"
-       x="97"
+       x="-159"
        y="5.3158891e-07" />
     <rect
        style="fill:#0000ff;fill-opacity:1;stroke:#fa0000;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
        id="rect10666-4"
        width="14.999998"
        height="128"
-       x="133.99976"
+       x="-122.00024"
        y="-5e-07" />
     <rect
        style="fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
        id="rect10666-4-0"
        width="14.999998"
        height="128"
-       x="234.99976"
+       x="-21.000237"
        y="-5e-07" />
     <path
        style="fill:none;stroke:#ffffff;stroke-width:10.00973606;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 167.53855,88.460845 216.46492,39.539409 192.00174,64.000122 167.53855,39.539409 216.46492,88.460845"
+       d="M -88.46145,88.460845 -39.53508,39.539409 -63.99826,64.000122 -88.46145,39.539409 -39.53508,88.460845"
        id="path853-6"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="ccccc" />
@@ -93,11 +93,11 @@
        id="rect10666-3"
        width="14.999998"
        height="128"
-       x="271.99979"
+       x="15.999786"
        y="0" />
     <path
        style="fill:none;stroke:#ffffff;stroke-width:10.00973606;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 307.5388,88.460845 356.46517,39.539409 332.00199,64.000122 307.5388,39.539409 356.46517,88.460845"
+       d="M 51.5388,88.460845 100.46517,39.539409 76.00199,64.000122 51.5388,39.539409 100.46517,88.460845"
        id="path853-6-2"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="ccccc" />
@@ -105,13 +105,13 @@
        sodipodi:nodetypes="ccccc"
        inkscape:connector-curvature="0"
        id="path918"
-       d="M 307.5388,88.460845 356.46517,39.539409 332.00199,64.000122 307.5388,39.539409 356.46517,88.460845"
+       d="M 51.5388,88.460845 100.46517,39.539409 76.00199,64.000122 51.5388,39.539409 100.46517,88.460845"
        style="fill:none;stroke:#ffffff;stroke-width:10.00973606;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <path
        sodipodi:nodetypes="ccccc"
        inkscape:connector-curvature="0"
        id="path918-0"
-       d="M 31.538798,88.460845 80.465168,39.539407 56.001988,64.00012 31.538798,39.539407 80.465168,88.460845"
+       d="m -224.4612,88.460845 48.92637,-48.921438 -24.46318,24.460713 -24.46319,-24.460713 48.92637,48.921438"
        style="fill:none;stroke:#ffffff;stroke-width:10.00973606;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
   </g>
 </svg>

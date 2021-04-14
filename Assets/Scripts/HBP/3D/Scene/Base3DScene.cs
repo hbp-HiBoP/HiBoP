@@ -7,6 +7,7 @@ using System.Collections;
 using CielaSpike;
 using HBP.Data.Visualization;
 using Tools.Unity;
+using System.IO;
 
 namespace HBP.Module3D
 {
@@ -1584,8 +1585,23 @@ namespace HBP.Module3D
 
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
+        /// <summary>
+        /// Create all required folders and return the path to the folder used for export
+        /// </summary>
+        /// <returns>Folder that will contain exported files</returns>
+        public string GenerateExportDirectory()
+        {
+            string result = ApplicationState.UserPreferences.General.Project.DefaultExportLocation;
+            if (string.IsNullOrEmpty(result)) result = Path.GetFullPath(Application.dataPath + "/../Export/");
+            if (!Directory.Exists(result)) Directory.CreateDirectory(result);
+            result = Path.Combine(result, ApplicationState.ProjectLoaded.Preferences.Name);
+            if (!Directory.Exists(result)) Directory.CreateDirectory(result);
+            result = Path.Combine(result, Name);
+            if (!Directory.Exists(result)) Directory.CreateDirectory(result);
+            return result;
+        }
         #endregion
-        
+
         /// <summary>
         /// Copy the states of the sites of the selected column to all other columns
         /// </summary>

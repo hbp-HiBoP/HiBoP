@@ -84,6 +84,8 @@ namespace HBP.Data.Container
         /// </summary>
         /// <returns>DataContainer errors</returns>
         public abstract Error[] GetErrors();
+
+        public abstract void ConvertAllPathsToFullPaths();
         #endregion
 
         #region Errors

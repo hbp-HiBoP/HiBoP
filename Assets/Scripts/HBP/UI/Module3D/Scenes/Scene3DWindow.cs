@@ -91,28 +91,6 @@ namespace HBP.UI.Module3D
                 }
             }
         }
-        /// <summary>
-        /// Create all required folders and return the path to the folder used for export
-        /// </summary>
-        /// <returns>Folder that will contain exported files</returns>
-        private string GenerateExportDirectoryForThisScene()
-        {
-            string result = ApplicationState.UserPreferences.General.Project.DefaultExportLocation;
-            if (string.IsNullOrEmpty(result))
-            {
-                result = Path.GetFullPath(Application.dataPath + "/../Screenshots/");
-            }
-            else if (!result.EndsWith("/"))
-            {
-                result += "/";
-            }
-            if (!Directory.Exists(result)) Directory.CreateDirectory(result);
-            result += ApplicationState.ProjectLoaded.Preferences.Name + "/";
-            if (!Directory.Exists(result)) Directory.CreateDirectory(result);
-            result += m_Scene.Name + "/";
-            if (!Directory.Exists(result)) Directory.CreateDirectory(result);
-            return result;
-        }
         #endregion
 
         #region Public Methods
@@ -180,7 +158,7 @@ namespace HBP.UI.Module3D
         /// <param name="multipleFiles">If true, multiple files (images, csv, svg ...) will be saved; if false, a simple screenshot of the whole window will be taken</param>
         public void Screenshot(bool multipleFiles = false)
         {
-            StartCoroutine(c_Screenshot(GenerateExportDirectoryForThisScene(), multipleFiles));
+            StartCoroutine(c_Screenshot(m_Scene.GenerateExportDirectory(), multipleFiles));
         }
         /// <summary>
         /// Take a video of the timeline of the scene
@@ -189,7 +167,7 @@ namespace HBP.UI.Module3D
         public void Video()
         {
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            ApplicationState.LoadingManager.Load(c_Video(GenerateExportDirectoryForThisScene(), onChangeProgress), onChangeProgress);
+            ApplicationState.LoadingManager.Load(c_Video(m_Scene.GenerateExportDirectory(), onChangeProgress), onChangeProgress);
         }
         #endregion
 

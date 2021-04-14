@@ -95,6 +95,7 @@ public static class ApplicationState
     public static Tools.Unity.GlobalExceptionManager GlobalExceptionManager { get; set; }
 
     public static Tools.Unity.ColorPicker ColorPicker { get; set; }
+
     static public string DataPath
     {
         get

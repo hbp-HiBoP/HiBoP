@@ -167,6 +167,12 @@ namespace HBP.Data.Container
             SavedPOS = POS.CopyToDirectory(destinationDirectory).Replace(projectDirectory, oldProjectDirectory);
             SavedNotes = Notes.CopyToDirectory(destinationDirectory).Replace(projectDirectory, oldProjectDirectory);
         }
+        public override void ConvertAllPathsToFullPaths()
+        {
+            SavedEEG = SavedEEG.ConvertToFullPath();
+            SavedPOS = SavedPOS.ConvertToFullPath();
+            SavedNotes = SavedNotes.ConvertToFullPath();
+        }
         #endregion
 
         #region Constructors

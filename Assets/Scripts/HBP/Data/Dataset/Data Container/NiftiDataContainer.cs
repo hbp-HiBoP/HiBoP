@@ -123,6 +123,10 @@ namespace HBP.Data.Container
         {
             // TODO
         }
+        public override void ConvertAllPathsToFullPaths()
+        {
+            SavedFile = SavedFile.ConvertToFullPath();
+        }
         #endregion
 
         #region Operators

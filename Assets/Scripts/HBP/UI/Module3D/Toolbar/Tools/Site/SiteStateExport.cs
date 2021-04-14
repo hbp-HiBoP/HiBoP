@@ -66,7 +66,7 @@ namespace HBP.UI.Module3D.Tools
                 if (!string.IsNullOrEmpty(savePath))
                 {
                     SelectedColumn.SaveSiteStates(savePath);
-                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Site states saves", "Site states of the selected column have been saved to <color=#3080ffff>" + savePath + "</color>");
+                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Site states saved", "Site states of the selected column have been saved to <color=#3080ffff>" + savePath + "</color>");
                 }
             }, new string[] { "csv" }, "Save site states to", Application.dataPath);
 #else
@@ -74,7 +74,7 @@ namespace HBP.UI.Module3D.Tools
             if (!string.IsNullOrEmpty(savePath))
             {
                 SelectedColumn.SaveSiteStates(savePath);
-                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Site states saves", "Site states of the selected column have been saved to <color=#3080ffff>" + savePath + "</color>");
+                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Site states saved", "Site states of the selected column have been saved to <color=#3080ffff>" + savePath + "</color>");
             }
 #endif
         }
@@ -90,9 +90,9 @@ namespace HBP.UI.Module3D.Tools
                 {
                     SelectedColumn.LoadSiteStates(loadPath);
                 }
-            }, new string[] { "csv" }, "Load site states", Application.dataPath);
+            }, new string[] { "csv" }, "Load site states");
 #else
-            string loadPath = FileBrowser.GetExistingFileName(new string[] { "csv" }, "Load site states", Application.dataPath);
+            string loadPath = FileBrowser.GetExistingFileName(new string[] { "csv" }, "Load site states");
             if (!string.IsNullOrEmpty(loadPath))
             {
                 SelectedColumn.LoadSiteStates(loadPath);

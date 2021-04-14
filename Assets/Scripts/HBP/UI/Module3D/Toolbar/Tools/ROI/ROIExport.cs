@@ -61,9 +61,9 @@ namespace HBP.UI.Module3D.Tools
                         roi.AddSphere(SelectedColumn.Layer, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
                     }
                 }
-            }, new string[] { "roi" }, "Load ROI file", Application.dataPath);
+            }, new string[] { "roi" }, "Load ROI file");
 #else
-            string loadPath = FileBrowser.GetExistingFileName(new string[] { "roi" }, "Load ROI file", Application.dataPath);
+            string loadPath = FileBrowser.GetExistingFileName(new string[] { "roi" }, "Load ROI file");
             if (!string.IsNullOrEmpty(loadPath))
             {
                 Data.Visualization.RegionOfInterest serializedROI = ClassLoaderSaver.LoadFromJson<Data.Visualization.RegionOfInterest>(loadPath);
