@@ -106,26 +106,28 @@ namespace HBP.Data.Preferences
         [DataMember] public bool MeshPreloading { get; set; }
         [DataMember] public bool MRIPreloading { get; set; }
         [DataMember] public bool ImplantationPreloading { get; set; }
+        [DataMember] public bool PreloadSinglePatientDataInMultiPatientVisualization { get; set; }
         #endregion
 
         #region Constructors
-        public AnatomicPreferences() : this(true, true, true, true)
+        public AnatomicPreferences() : this(true, false, false, false, false)
         {
 
         }
-        public AnatomicPreferences(bool siteNameCorrection, bool meshPreloading, bool mriPreloading, bool implantationPreloading)
+        public AnatomicPreferences(bool siteNameCorrection, bool meshPreloading, bool mriPreloading, bool implantationPreloading, bool preloadSinglePatientDataInMultiPatientVisualization)
         {
             SiteNameCorrection = siteNameCorrection;
             MeshPreloading = meshPreloading;
             MRIPreloading = mriPreloading;
             ImplantationPreloading = implantationPreloading;
+            PreloadSinglePatientDataInMultiPatientVisualization = preloadSinglePatientDataInMultiPatientVisualization;
         }
         #endregion
 
         #region Public Methods
         public object Clone()
         {
-            return new AnatomicPreferences(SiteNameCorrection, MeshPreloading, MRIPreloading, ImplantationPreloading);
+            return new AnatomicPreferences(SiteNameCorrection, MeshPreloading, MRIPreloading, ImplantationPreloading, PreloadSinglePatientDataInMultiPatientVisualization);
         }
         #endregion
     }

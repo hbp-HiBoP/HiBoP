@@ -11,6 +11,7 @@ namespace HBP.UI.UserPreferences
         [SerializeField] Toggle m_PreloadMeshesToggle;
         [SerializeField] Toggle m_PreloadMRIsToggle;
         [SerializeField] Toggle m_PreloadImplantationsToggle;
+        [SerializeField] Toggle m_PreloadSinglePatientDataInMultiPatientVisualizationToggle;
 
         public override bool Interactable
         {
@@ -26,6 +27,7 @@ namespace HBP.UI.UserPreferences
                 m_PreloadMeshesToggle.interactable = value;
                 m_PreloadMRIsToggle.interactable = value;
                 m_PreloadImplantationsToggle.interactable = value;
+                m_PreloadSinglePatientDataInMultiPatientVisualizationToggle.interactable = value;
             }
         }
         #endregion
@@ -39,6 +41,7 @@ namespace HBP.UI.UserPreferences
             m_PreloadMeshesToggle.onValueChanged.AddListener(value => Object.MeshPreloading = value);
             m_PreloadMRIsToggle.onValueChanged.AddListener(value => Object.MRIPreloading = value);
             m_PreloadImplantationsToggle.onValueChanged.AddListener(value => Object.ImplantationPreloading = value);
+            m_PreloadSinglePatientDataInMultiPatientVisualizationToggle.onValueChanged.AddListener(value => Object.PreloadSinglePatientDataInMultiPatientVisualization = value);
         }
         #endregion
 
@@ -51,6 +54,7 @@ namespace HBP.UI.UserPreferences
             m_PreloadMeshesToggle.isOn = objectToDisplay.MeshPreloading;
             m_PreloadMRIsToggle.isOn = objectToDisplay.MRIPreloading;
             m_PreloadImplantationsToggle.isOn = objectToDisplay.ImplantationPreloading;
+            m_PreloadSinglePatientDataInMultiPatientVisualizationToggle.isOn = objectToDisplay.PreloadSinglePatientDataInMultiPatientVisualization;
         }
         #endregion
     }

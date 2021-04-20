@@ -1518,11 +1518,6 @@ namespace HBP.Module3D
             {
                 column.SaveConfiguration();
             }
-            if (SelectedColumn.SelectedSite)
-            {
-                Visualization.Configuration.FirstSiteToSelect = SelectedColumn.SelectedSite.Information.Name;
-                Visualization.Configuration.FirstColumnToSelect = Columns.FindIndex(c => c = SelectedColumn);
-            }
         }
         /// <summary>
         /// Reset the settings of the loaded scene
@@ -1546,14 +1541,14 @@ namespace HBP.Module3D
             switch (Type)
             {
                 case Data.Enums.SceneType.SinglePatient:
-                    m_MeshManager.Select("Grey matter");
-                    m_MRIManager.Select("Preimplantation");
-                    m_ImplantationManager.Select("Patient");
+                    m_MeshManager.Select(ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization);
+                    m_MRIManager.Select(ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization);
+                    m_ImplantationManager.Select(ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization);
                     break;
                 case Data.Enums.SceneType.MultiPatients:
-                    m_MeshManager.Select("MNI Grey matter");
-                    m_MRIManager.Select("MNI");
-                    m_ImplantationManager.Select("MNI");
+                    m_MeshManager.Select(ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMeshInMultiPatientsVisualization);
+                    m_MRIManager.Select(ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMRIInMultiPatientsVisualization);
+                    m_ImplantationManager.Select(ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInMultiPatientsVisualization);
                     break;
                 default:
                     break;
@@ -1743,29 +1738,37 @@ namespace HBP.Module3D
 
             // Compute progress variables
             float progress = 0f;
-            float totalTime = 0, loadingMeshProgress = 0, loadingMeshTime = 0, loadingMRIProgress = 0, loadingMRITime = 0, loadingImplantationsProgress = 0, loadingImplantationsTime = 0, loadingMNIProgress = 0, loadingMNITime = 0, loadingIEEGProgress = 0, loadingIEEGTime = 0;
+            float totalProgress = 0, loadingMeshProgress = 0, loadingMeshTime = 0, loadingMRIProgress = 0, loadingMRITime = 0, loadingImplantationsProgress = 0, loadingImplantationsTime = 0, loadingMNIProgress = 0, loadingMNITime = 0, loadingIEEGProgress = 0, loadingIEEGTime = 0;
             if (Type == Data.Enums.SceneType.SinglePatient)
             {
-                totalTime = Visualization.Patients[0].Meshes.Count * LOADING_MESH_WEIGHT + Visualization.Patients[0].MRIs.Count * LOADING_MRI_WEIGHT + LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + LOADING_IEEG_WEIGHT;
-                loadingMeshProgress = LOADING_MESH_WEIGHT / totalTime;
+                totalProgress = Visualization.Patients[0].Meshes.Count * LOADING_MESH_WEIGHT + Visualization.Patients[0].MRIs.Count * LOADING_MRI_WEIGHT + LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + LOADING_IEEG_WEIGHT;
+                loadingMeshProgress = LOADING_MESH_WEIGHT / totalProgress;
                 loadingMeshTime = LOADING_MESH_WEIGHT / 1000.0f;
-                loadingMRIProgress = LOADING_MRI_WEIGHT / totalTime;
+                loadingMRIProgress = LOADING_MRI_WEIGHT / totalProgress;
                 loadingMRITime = LOADING_MRI_WEIGHT / 1000.0f;
-                loadingImplantationsProgress = LOADING_IMPLANTATIONS_WEIGHT / totalTime;
+                loadingImplantationsProgress = LOADING_IMPLANTATIONS_WEIGHT / totalProgress;
                 loadingImplantationsTime = LOADING_IMPLANTATIONS_WEIGHT / 1000.0f;
-                loadingMNIProgress = LOADING_MNI_WEIGHT / totalTime;
+                loadingMNIProgress = LOADING_MNI_WEIGHT / totalProgress;
                 loadingMNITime = LOADING_MNI_WEIGHT / 1000.0f;
-                loadingIEEGProgress = LOADING_IEEG_WEIGHT / totalTime;
+                loadingIEEGProgress = LOADING_IEEG_WEIGHT / totalProgress;
                 loadingIEEGTime = LOADING_IEEG_WEIGHT / 1000.0f;
             }
             else
             {
-                totalTime = LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + Visualization.Patients.Count * LOADING_IEEG_WEIGHT;
-                loadingImplantationsProgress = (Visualization.Patients.Count * LOADING_IMPLANTATIONS_WEIGHT) / totalTime;
+                totalProgress = LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + Visualization.Patients.Count * LOADING_IEEG_WEIGHT;
+                if (ApplicationState.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
+                {
+                    totalProgress += Visualization.Patients.Sum(p => p.Meshes.Count) * LOADING_MESH_WEIGHT + Visualization.Patients.Sum(p => p.MRIs.Count) * LOADING_MRI_WEIGHT;
+                    loadingMeshProgress = LOADING_MESH_WEIGHT / totalProgress;
+                    loadingMeshTime = LOADING_MESH_WEIGHT / 1000.0f;
+                    loadingMRIProgress = LOADING_MRI_WEIGHT / totalProgress;
+                    loadingMRITime = LOADING_MRI_WEIGHT / 1000.0f;
+                }
+                loadingImplantationsProgress = (Visualization.Patients.Count * LOADING_IMPLANTATIONS_WEIGHT) / totalProgress;
                 loadingImplantationsTime = (Visualization.Patients.Count * LOADING_IMPLANTATIONS_WEIGHT) / 1000.0f;
-                loadingMNIProgress = LOADING_MNI_WEIGHT / totalTime;
+                loadingMNIProgress = LOADING_MNI_WEIGHT / totalProgress;
                 loadingMNITime = LOADING_MNI_WEIGHT / 1000.0f;
-                loadingIEEGProgress = (Visualization.Patients.Count * LOADING_IEEG_WEIGHT) / totalTime;
+                loadingIEEGProgress = (Visualization.Patients.Count * LOADING_IEEG_WEIGHT) / totalProgress;
                 loadingIEEGTime = (Visualization.Patients.Count * LOADING_IEEG_WEIGHT) / 1000.0f;
             }
             yield return Ninja.JumpToUnity;
@@ -1796,17 +1799,49 @@ namespace HBP.Module3D
             // Loading Meshes
             if (Type == Data.Enums.SceneType.SinglePatient)
             {
-                for (int i = 0; i < Visualization.Patients[0].Meshes.Count; ++i)
+                if (ApplicationState.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization && Visualization.Configuration.PreloadedMeshes.Count > 0)
                 {
-                    Data.BaseMesh mesh = Visualization.Patients[0].Meshes[i];
-                    progress += loadingMeshProgress;
-                    onChangeProgress.Invoke(progress, loadingMeshTime, new LoadingText("Loading Mesh ", mesh.Name, " [" + (i + 1).ToString() + "/" + Visualization.Patients[0].Meshes.Count + "]"));
-                    yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainSurface(mesh, e => exception = e));
+                    foreach (var mesh in Visualization.Configuration.PreloadedMeshes)
+                    {
+                        m_MeshManager.Meshes.Add(mesh);
+                        progress += loadingMeshProgress;
+                        onChangeProgress.Invoke(progress, loadingMeshTime, new LoadingText("Adding Preloaded Meshes"));
+                    }
                 }
-                if (exception != null)
+                else
                 {
-                    outPut(exception);
-                    yield break;
+                    for (int i = 0; i < Visualization.Patients[0].Meshes.Count; ++i)
+                    {
+                        Data.BaseMesh mesh = Visualization.Patients[0].Meshes[i];
+                        progress += loadingMeshProgress;
+                        onChangeProgress.Invoke(progress, loadingMeshTime, new LoadingText("Loading Mesh ", mesh.Name, " [" + (i + 1).ToString() + "/" + Visualization.Patients[0].Meshes.Count + "]"));
+                        yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainSurface(mesh, e => exception = e));
+                    }
+                    if (exception != null)
+                    {
+                        outPut(exception);
+                        yield break;
+                    }
+                }
+            }
+            else if (ApplicationState.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
+            {
+                foreach (var patient in Visualization.Patients)
+                {
+                    for (int i = 0; i < patient.Meshes.Count; ++i)
+                    {
+                        Data.BaseMesh mesh = patient.Meshes[i];
+                        progress += loadingMeshProgress;
+                        onChangeProgress.Invoke(progress, loadingMeshTime, new LoadingText("Loading Mesh ", string.Format("{0} ({1})", mesh.Name, patient.Name), " [" + (i + 1).ToString() + "/" + patient.Meshes.Count + "]"));
+                        yield return Ninja.JumpBack;
+                        m_MeshManager.AddPreloaded(mesh, patient);
+                        yield return Ninja.JumpToUnity;
+                    }
+                    if (exception != null)
+                    {
+                        outPut(exception);
+                        yield break;
+                    }
                 }
             }
             m_MeshManager.InitializeMeshes();
@@ -1814,17 +1849,49 @@ namespace HBP.Module3D
             // Loading MRIs
             if (Type == Data.Enums.SceneType.SinglePatient)
             {
-                for (int i = 0; i < Visualization.Patients[0].MRIs.Count; ++i)
+                if (ApplicationState.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization && Visualization.Configuration.PreloadedMRIs.Count > 0)
                 {
-                    Data.MRI mri = Visualization.Patients[0].MRIs[i];
-                    progress += loadingMRIProgress;
-                    onChangeProgress.Invoke(progress, loadingMRITime, new LoadingText("Loading MRI ", mri.Name, " [" + (i + 1).ToString() + "/" + Visualization.Patients[0].MRIs.Count + "]"));
-                    yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainVolume(mri, e => exception = e));
+                    foreach (var mri in Visualization.Configuration.PreloadedMRIs)
+                    {
+                        m_MRIManager.MRIs.Add(mri);
+                        progress += loadingMRIProgress;
+                        onChangeProgress.Invoke(progress, loadingMRITime, new LoadingText("Adding Preloaded MRIs"));
+                    }
                 }
-                if (exception != null)
+                else
                 {
-                    outPut(exception);
-                    yield break;
+                    for (int i = 0; i < Visualization.Patients[0].MRIs.Count; ++i)
+                    {
+                        Data.MRI mri = Visualization.Patients[0].MRIs[i];
+                        progress += loadingMRIProgress;
+                        onChangeProgress.Invoke(progress, loadingMRITime, new LoadingText("Loading MRI ", mri.Name, " [" + (i + 1).ToString() + "/" + Visualization.Patients[0].MRIs.Count + "]"));
+                        yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainVolume(mri, e => exception = e));
+                    }
+                    if (exception != null)
+                    {
+                        outPut(exception);
+                        yield break;
+                    }
+                }
+            }
+            else if (ApplicationState.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
+            {
+                foreach (var patient in Visualization.Patients)
+                {
+                    for (int i = 0; i < patient.MRIs.Count; ++i)
+                    {
+                        Data.MRI mri = patient.MRIs[i];
+                        progress += loadingMeshProgress;
+                        onChangeProgress.Invoke(progress, loadingMRITime, new LoadingText("Loading MRI ", string.Format("{0} ({1})", mri.Name, patient.Name), " [" + (i + 1).ToString() + "/" + patient.MRIs.Count + "]"));
+                        yield return Ninja.JumpBack;
+                        m_MRIManager.AddPreloaded(mri, patient);
+                        yield return Ninja.JumpToUnity;
+                    }
+                    if (exception != null)
+                    {
+                        outPut(exception);
+                        yield break;
+                    }
                 }
             }
 
@@ -2154,6 +2221,36 @@ namespace HBP.Module3D
             Visualization.Unload();
             Destroy(gameObject);
             Resources.UnloadUnusedAssets();
+            // Clean Meshes
+            foreach (var mesh in m_MeshManager.Meshes)
+            {
+                if (mesh.HasBeenLoadedOutside) continue;
+                if (ApplicationState.Module3D.Scenes.Any(s => s.MeshManager.Meshes.Contains(mesh))) continue;
+                if (ApplicationState.Module3D.Scenes.Any(s => s.MeshManager.PreloadedMeshes.Values.SelectMany(pm => pm).Contains(mesh))) continue;
+                mesh.Clean();
+            }
+            foreach (var mesh in m_MeshManager.PreloadedMeshes.Values.SelectMany(pm => pm))
+            {
+                if (mesh.HasBeenLoadedOutside) continue;
+                if (ApplicationState.Module3D.Scenes.Any(s => s.MeshManager.Meshes.Contains(mesh))) continue;
+                if (ApplicationState.Module3D.Scenes.Any(s => s.MeshManager.PreloadedMeshes.Values.SelectMany(pm => pm).Contains(mesh))) continue;
+                mesh.Clean();
+            }
+            // Clean MRIs
+            foreach (var mri in m_MRIManager.MRIs)
+            {
+                if (mri.HasBeenLoadedOutside) continue;
+                if (ApplicationState.Module3D.Scenes.Any(s => s.MRIManager.MRIs.Contains(mri))) continue;
+                if (ApplicationState.Module3D.Scenes.Any(s => s.MRIManager.PreloadedMRIs.Values.SelectMany(pm => pm).Contains(mri))) continue;
+                mri.Clean();
+            }
+            foreach (var mri in m_MRIManager.PreloadedMRIs.Values.SelectMany(pm => pm))
+            {
+                if (mri.HasBeenLoadedOutside) continue;
+                if (ApplicationState.Module3D.Scenes.Any(s => s.MRIManager.MRIs.Contains(mri))) continue;
+                if (ApplicationState.Module3D.Scenes.Any(s => s.MRIManager.PreloadedMRIs.Values.SelectMany(pm => pm).Contains(mri))) continue;
+                mri.Clean();
+            }
         }
         #endregion
     }

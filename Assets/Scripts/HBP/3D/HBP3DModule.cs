@@ -246,6 +246,16 @@ namespace HBP.Module3D
             visualizationToLoad.Configuration.MeshName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization;
             visualizationToLoad.Configuration.MRIName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization;
             visualizationToLoad.Configuration.ImplantationName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization;
+            if (scene.SelectedColumn.SelectedSite)
+            {
+                visualizationToLoad.Configuration.FirstSiteToSelect = scene.SelectedColumn.SelectedSite.Information.Name;
+                visualizationToLoad.Configuration.FirstColumnToSelect = scene.Columns.FindIndex(c => c = scene.SelectedColumn);
+            }
+            if (ApplicationState.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
+            {
+                visualizationToLoad.Configuration.PreloadedMeshes = scene.MeshManager.PreloadedMeshes[patient];
+                visualizationToLoad.Configuration.PreloadedMRIs = scene.MRIManager.PreloadedMRIs[patient];
+            }
             LoadScenes(new Data.Visualization.Visualization[] { visualizationToLoad });
         }
         /// <summary>

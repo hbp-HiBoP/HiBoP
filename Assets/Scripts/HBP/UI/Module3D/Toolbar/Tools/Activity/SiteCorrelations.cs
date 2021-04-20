@@ -173,11 +173,23 @@ namespace HBP.UI.Module3D.Tools
             if (!Directory.Exists(saveDirectory)) Directory.CreateDirectory(saveDirectory);
             ClassLoaderSaver.SaveToJSon(container, Path.Combine(saveDirectory, "Correlations.json"));
 
+            int siteWeight(string name) // FIXME : 0pad and more than 20
+            {
+                int weight = 0;
+                for (int i = 0; i < name.Length; ++i)
+                {
+                    if (char.IsDigit(name[i])) weight += name[i];
+                    else if (name[i] == '\'') weight += 1;
+                    else weight += 100 * name[i];
+                }
+                return weight;
+            }
+
             foreach (var column in SelectedScene.ColumnsIEEG)
             {
                 StringBuilder csvText = new StringBuilder();
                 StringBuilder csvBinaryText = new StringBuilder();
-                var sites = column.CorrelationBySitePair.Keys.OrderBy(s => s.Information.Name);
+                var sites = column.CorrelationBySitePair.Keys.OrderBy(s => siteWeight(s.Information.Name));
                 int siteCount = sites.Count();
                 csvText.AppendLine(string.Format("{0},{1}", "Channel", string.Join(",", sites.Select(c => c.Information.Name))));
                 csvBinaryText.AppendLine(string.Format("{0},{1}", "Channel", string.Join(",", sites.Select(c => c.Information.Name))));

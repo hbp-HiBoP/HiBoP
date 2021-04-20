@@ -132,6 +132,10 @@ namespace HBP.Data.Visualization
         public string FirstSiteToSelect { get; set; }
         [IgnoreDataMember]
         public int FirstColumnToSelect { get; set; }
+        [IgnoreDataMember]
+        public List<Module3D.Mesh3D> PreloadedMeshes { get; set; } = new List<Module3D.Mesh3D>();
+        [IgnoreDataMember]
+        public List<Module3D.MRI3D> PreloadedMRIs { get; set; } = new List<Module3D.MRI3D>();
         #endregion
 
         #region Constructors
@@ -189,13 +193,10 @@ namespace HBP.Data.Visualization
         #region Public Methods
         public override object Clone()
         {
-            VisualizationConfiguration result = new VisualizationConfiguration(BrainColor, BrainCutColor, Colormap,
+            return new VisualizationConfiguration(BrainColor, BrainCutColor, Colormap,
                 MeshPart, MeshName, MRIName, ImplantationName, ShowEdges, TransparentBrain, BrainAlpha, StrongCuts,
                 HideBlacklistedSites, ShowAllSites, SiteGain, MRICalMinFactor,
                 MRICalMaxFactor, CameraType, Cuts, Views, RegionsOfInterest, ID);
-            result.FirstSiteToSelect = FirstSiteToSelect;
-            result.FirstColumnToSelect = FirstColumnToSelect;
-            return result;
         }
         public override void Copy(object copy)
         {
@@ -222,8 +223,6 @@ namespace HBP.Data.Visualization
                 Cuts = visualizationConfiguration.Cuts;
                 Views = visualizationConfiguration.Views;
                 RegionsOfInterest = visualizationConfiguration.RegionsOfInterest;
-                FirstColumnToSelect = visualizationConfiguration.FirstColumnToSelect;
-                FirstSiteToSelect = visualizationConfiguration.FirstSiteToSelect;
             }
         }
         #endregion
