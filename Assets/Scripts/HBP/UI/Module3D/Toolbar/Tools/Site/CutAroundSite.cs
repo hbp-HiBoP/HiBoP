@@ -20,6 +20,8 @@ namespace HBP.UI.Module3D.Tools
         {
             m_Toggle.onValueChanged.AddListener((isOn) =>
             {
+                if (ListenerLock) return;
+
                 SelectedScene.AutomaticCutAroundSelectedSite = isOn;
             });
         }
@@ -36,6 +38,10 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateInteractable()
         {
             m_Toggle.interactable = true;
+        }
+        public override void UpdateStatus()
+        {
+            m_Toggle.isOn = SelectedScene.AutomaticCutAroundSelectedSite;
         }
         #endregion
     }

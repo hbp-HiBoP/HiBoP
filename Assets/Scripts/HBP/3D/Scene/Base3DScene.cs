@@ -1425,6 +1425,7 @@ namespace HBP.Module3D
             StrongCuts = Visualization.Configuration.StrongCuts;
             HideBlacklistedSites = Visualization.Configuration.HideBlacklistedSites;
             ShowAllSites = Visualization.Configuration.ShowAllSites;
+            AutomaticCutAroundSelectedSite = Visualization.Configuration.AutomaticCutAroundSelectedSite;
             SiteGain = Visualization.Configuration.SiteGain;
             m_MRIManager.SetCalValues(Visualization.Configuration.MRICalMinFactor, Visualization.Configuration.MRICalMaxFactor);
             CameraType = Visualization.Configuration.CameraType;
@@ -1485,6 +1486,7 @@ namespace HBP.Module3D
             Visualization.Configuration.StrongCuts = StrongCuts;
             Visualization.Configuration.HideBlacklistedSites = m_HideBlacklistedSites;
             Visualization.Configuration.ShowAllSites = ShowAllSites;
+            Visualization.Configuration.AutomaticCutAroundSelectedSite = AutomaticCutAroundSelectedSite;
             Visualization.Configuration.SiteGain = SiteGain;
             Visualization.Configuration.MRICalMinFactor = m_MRIManager.MRICalMinFactor;
             Visualization.Configuration.MRICalMaxFactor = m_MRIManager.MRICalMaxFactor;
@@ -1534,6 +1536,7 @@ namespace HBP.Module3D
             StrongCuts = false;
             HideBlacklistedSites = false;
             ShowAllSites = false;
+            AutomaticCutAroundSelectedSite = false;
             SiteGain = 1.0f;
             m_MRIManager.SetCalValues(0, 1);
             CameraType = Data.Enums.CameraControl.Trackball;
@@ -2287,6 +2290,7 @@ namespace HBP.Module3D
             }
             set
             {
+                Debug.Log("yiha");
                 m_CutsNeedUpdate = value;
                 if (value) BaseCutTexturesNeedUpdate = true;
             }

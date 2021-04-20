@@ -84,8 +84,14 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Show all sites in the scene
         /// </summary>
-        [DataMember(Name = "ShowAllSites")]      
+        [DataMember(Name = "ShowAllSites")]
         public bool ShowAllSites { get; set; }
+
+        /// <summary>
+        /// Automatically cut the brain around the selected site
+        /// </summary>
+        [DataMember(Name = "AutomaticCutAroundSelectedSite")]
+        public bool AutomaticCutAroundSelectedSite { get; set; } = false;
 
         /// <summary>
         /// Sites Gain
@@ -139,7 +145,7 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool transparent, float alpha, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, float siteGain, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, IEnumerable<RegionOfInterest> rois) : base()
+        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool transparent, float alpha, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, bool automaticCutAroundSelectedSite, float siteGain, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, IEnumerable<RegionOfInterest> rois) : base()
         {
             BrainColor = brainColor;
             BrainCutColor = brainCutColor;
@@ -154,6 +160,7 @@ namespace HBP.Data.Visualization
             StrongCuts = strongCuts;
             HideBlacklistedSites = hideBlacklistedSites;
             ShowAllSites = showAllSites;
+            AutomaticCutAroundSelectedSite = automaticCutAroundSelectedSite;
             SiteGain = siteGain;
             MRICalMinFactor = mRICalMinFactor;
             MRICalMaxFactor = mRICalMaxFactor;
@@ -162,7 +169,7 @@ namespace HBP.Data.Visualization
             Views = views.ToList();
             RegionsOfInterest = rois.ToList();
         }
-        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool transparent, float alpha, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, float siteGain, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, IEnumerable<RegionOfInterest> rois, string ID) : base(ID)
+        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool transparent, float alpha, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, bool automaticCutAroundSelectedSite, float siteGain, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, IEnumerable<RegionOfInterest> rois, string ID) : base(ID)
         {
             BrainColor = brainColor;
             BrainCutColor = brainCutColor;
@@ -177,6 +184,7 @@ namespace HBP.Data.Visualization
             StrongCuts = strongCuts;
             HideBlacklistedSites = hideBlacklistedSites;
             ShowAllSites = showAllSites;
+            AutomaticCutAroundSelectedSite = automaticCutAroundSelectedSite;
             SiteGain = siteGain;
             MRICalMinFactor = mRICalMinFactor;
             MRICalMaxFactor = mRICalMaxFactor;
@@ -195,7 +203,7 @@ namespace HBP.Data.Visualization
         {
             return new VisualizationConfiguration(BrainColor, BrainCutColor, Colormap,
                 MeshPart, MeshName, MRIName, ImplantationName, ShowEdges, TransparentBrain, BrainAlpha, StrongCuts,
-                HideBlacklistedSites, ShowAllSites, SiteGain, MRICalMinFactor,
+                HideBlacklistedSites, ShowAllSites, AutomaticCutAroundSelectedSite, SiteGain, MRICalMinFactor,
                 MRICalMaxFactor, CameraType, Cuts, Views, RegionsOfInterest, ID);
         }
         public override void Copy(object copy)
@@ -216,6 +224,7 @@ namespace HBP.Data.Visualization
                 StrongCuts = visualizationConfiguration.StrongCuts;
                 HideBlacklistedSites = visualizationConfiguration.HideBlacklistedSites;
                 ShowAllSites = visualizationConfiguration.ShowAllSites;
+                AutomaticCutAroundSelectedSite = visualizationConfiguration.AutomaticCutAroundSelectedSite;
                 SiteGain = visualizationConfiguration.SiteGain;
                 MRICalMinFactor = visualizationConfiguration.MRICalMinFactor;
                 MRICalMaxFactor = visualizationConfiguration.MRICalMaxFactor;
