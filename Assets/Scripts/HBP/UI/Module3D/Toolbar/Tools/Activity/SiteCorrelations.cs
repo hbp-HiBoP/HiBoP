@@ -205,7 +205,7 @@ namespace HBP.UI.Module3D.Tools
                             csvBinaryText.Append(",");
                             if (correlationsOfSite.TryGetValue(s, out float correlationValue))
                             {
-                                csvText.Append(correlationValue.ToString("0.0000000", CultureInfo.InvariantCulture));
+                                csvText.Append(correlationValue.ToString("R", CultureInfo.InvariantCulture));
                                 float threshold = ApplicationState.UserPreferences.Data.EEG.CorrelationAlpha;
                                 if (ApplicationState.UserPreferences.Data.EEG.BonferroniCorrection) threshold /= siteCount * (siteCount - 1) / 2;
                                 csvBinaryText.Append(correlationValue < threshold ? 1 : 0);

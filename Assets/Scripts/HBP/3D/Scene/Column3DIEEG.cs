@@ -152,7 +152,7 @@ namespace HBP.Module3D
             Dictionary<Site, List<float[]>> valuesByChannel = new Dictionary<Site, List<float[]>>();
             foreach (var site in Sites)
             {
-                if (site.Data != null)
+                if (site.Data != null && !site.State.IsBlackListed)
                 {
                     List<float[]> values = new List<float[]>();
                     for (int i = 0; i < site.Data.Trials.Length; i++)

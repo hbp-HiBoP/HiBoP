@@ -61,12 +61,12 @@ namespace HBP.Module3D
             }
             set
             {
-                if (m_IsSelected != value)
+                m_IsSelected = value;
+                if (m_IsSelected)
                 {
-                    m_IsSelected = value;
                     OnSelect.Invoke();
+                    ApplicationState.Module3D.OnSelectScene.Invoke(this);
                 }
-                ApplicationState.Module3D.OnSelectScene.Invoke(this);
             }
         }
         
@@ -2290,7 +2290,6 @@ namespace HBP.Module3D
             }
             set
             {
-                Debug.Log("yiha");
                 m_CutsNeedUpdate = value;
                 if (value) BaseCutTexturesNeedUpdate = true;
             }
