@@ -45,7 +45,7 @@ namespace HBP.UI.Visualization
             if (ApplicationState.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
             {
                 int maxMemory = ApplicationState.UserPreferences.General.System.MemoryCacheLimit == 0 ? SystemInfo.systemMemorySize : ApplicationState.UserPreferences.General.System.MemoryCacheLimit;
-                float patientThreshold = ((float)maxMemory / 1000) - 3f; // raw approximation
+                float patientThreshold = ((float)maxMemory / 400) - 3f; // raw approximation
                 var maybeTooMuchMemoryVisualizations = visualizations.Where(v => v.Patients.Count > patientThreshold);
                 if (maybeTooMuchMemoryVisualizations.Count() > 0)
                 {
