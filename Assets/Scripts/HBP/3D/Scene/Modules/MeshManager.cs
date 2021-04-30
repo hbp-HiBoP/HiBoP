@@ -147,10 +147,10 @@ namespace HBP.Module3D
         /// Set the mesh type to be displayed in the scene
         /// </summary>
         /// <param name="meshName">Name of the mesh to be displayed</param>
-        public void Select(string meshName)
+        public void Select(string meshName, bool onlyIfAlreadyLoaded = false)
         {
             int meshID = Meshes.FindIndex(m => m.Name == meshName);
-            if (meshID == -1) meshID = 0;
+            if (meshID == -1 || (onlyIfAlreadyLoaded && !Meshes[meshID].IsLoaded)) meshID = 0;
 
             SelectedMeshID = meshID;
             if (m_Scene.AtlasManager.DisplayMarsAtlas && (!SelectedMesh.IsMarsAtlasLoaded || SelectedMesh.Type != Data.Enums.MeshType.MNI))

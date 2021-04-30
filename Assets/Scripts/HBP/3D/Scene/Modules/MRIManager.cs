@@ -123,10 +123,10 @@ namespace HBP.Module3D
         /// Set the MRI to be used
         /// </summary>
         /// <param name="mriName">Name of the MRI to be used</param>
-        public void Select(string mriName)
+        public void Select(string mriName, bool onlyIfAlreadyLoaded = false)
         {
             int mriID = MRIs.FindIndex(m => m.Name == mriName);
-            if (mriID == -1) mriID = 0;
+            if (mriID == -1 || (onlyIfAlreadyLoaded && !MRIs[mriID].IsLoaded)) mriID = 0;
 
             SelectedMRIID = mriID;
             VolumeCenter = SelectedMRI.Volume.Center;
