@@ -710,6 +710,7 @@ namespace HBP.Module3D
                 }
             }
 
+            if (m_UpdatingGenerators) return;
             if (SceneInformation.GeometryNeedsUpdate) UpdateGeometry();
             if (SceneInformation.CutsNeedUpdate) UpdateCuts();
             if (SceneInformation.BaseCutTexturesNeedUpdate) ComputeBaseCutTextures();
@@ -2112,6 +2113,7 @@ namespace HBP.Module3D
             {
                 while(true)
                 {
+                    if (SceneInformation.GeneratorNeedsUpdate) yield break;
                     float currentProgress = 0;
                     if (currentGenerator != null)
                     {
@@ -2132,11 +2134,7 @@ namespace HBP.Module3D
                 currentColumn = i;
                 currentMessage = "Loading " + column.Name;
                 column.UpdateDLLSitesMask(m_ROIManager.SelectedROI != null);
-                if (SceneInformation.GeneratorNeedsUpdate)
-                {
-                    StopCoroutine(coroutine);
-                    yield break;
-                }
+                if (SceneInformation.GeneratorNeedsUpdate) yield break;
                 if (column is Column3DAnatomy anatomyColumn)
                 {
                     DLL.DensityGenerator generator = anatomyColumn.ActivityGenerator as DLL.DensityGenerator;
@@ -2160,11 +2158,7 @@ namespace HBP.Module3D
                     generator.ComputeActivity(fmriColumn);
                     generator.AdjustValues(fmriColumn);
                 }
-                if (SceneInformation.GeneratorNeedsUpdate)
-                {
-                    StopCoroutine(coroutine);
-                    yield break;
-                }
+                if (SceneInformation.GeneratorNeedsUpdate) yield break;
             }
 
             currentMessage = "Finalizing";
