@@ -165,6 +165,10 @@ namespace HBP.Module3D
             {
                 m_Scene.FMRIManager.DisplayIBCContrasts = false;
             }
+            if (m_Scene.FMRIManager.DisplayDiFuMo && SelectedMesh.Type != Data.Enums.MeshType.MNI)
+            {
+                m_Scene.FMRIManager.DisplayDiFuMo = false;
+            }
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.ResetGenerators();
 

@@ -746,7 +746,8 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.BeginSample("ComputeFunctionalCutTextures");
             foreach (Column3D column in Columns)
             {
-                if (m_AtlasManager.DisplayAtlas) column.CutTextures.ColorCutsTexturesWithBrainAtlas(m_AtlasManager.SelectedAtlas, m_AtlasManager.AtlasAlpha, m_AtlasManager.HoveredArea);
+                if (m_AtlasManager.DisplayAtlas) m_AtlasManager.ColorCuts(column);
+                else if (m_FMRIManager.DisplayFMRI) m_FMRIManager.ColorCuts(column);
                 else if (m_IsGeneratorUpToDate) column.CutTextures.ColorCutsTexturesWithActivity();
             }
             SceneInformation.FunctionalCutTexturesNeedUpdate = false;
@@ -902,7 +903,7 @@ namespace HBP.Module3D
             UpdateGeneratorsAndUnityMeshes();
             m_TriangleEraser.ResetEraser();
             m_AtlasManager.UpdateAtlasIndices();
-            //m_FMRIManager.UpdateSurfaceFMRIValues();
+            m_FMRIManager.UpdateSurfaceFMRIValues();
             Resources.UnloadUnusedAssets();
 
             SceneInformation.GeometryNeedsUpdate = false;

@@ -196,6 +196,18 @@ namespace HBP.Module3D
                 cutTexture.UpdateTexture2D(BrainCutTextures[i]);
             }
         }
+        public void ColorCutsTexturesWithFMRIAtlas(Volume volume, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha)
+        {
+            for (int i = 0; i < CutGenerators.Count; i++)
+            {
+                CutGenerator generator = CutGenerators[i];
+                generator.FillTextureWithFMRI(volume, negativeMin, negativeMax, positiveMin, positiveMax, alpha);
+
+                DLL.Texture cutTexture = DLLBrainCutTextures[i];
+                generator.UpdateTextureWithAtlas(cutTexture);
+                cutTexture.UpdateTexture2D(BrainCutTextures[i]);
+            }
+        }
         /// <summary>
         /// Reset the color schemes
         /// </summary>

@@ -1,4 +1,5 @@
 ﻿using HBP.Module3D.DLL;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -177,6 +178,10 @@ namespace HBP.Module3D
                 HoveredArea = -1;
                 ApplicationState.Module3D.OnDisplayAtlasInformation.Invoke(new AtlasInfo(false, Input.mousePosition));
             }
+        }
+        public void ColorCuts(Column3D column)
+        {
+            column.CutTextures.ColorCutsTexturesWithBrainAtlas(SelectedAtlas, AtlasAlpha, HoveredArea);
         }
         #endregion
     }

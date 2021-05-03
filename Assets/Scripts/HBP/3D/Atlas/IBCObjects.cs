@@ -17,27 +17,18 @@ namespace HBP.Module3D.IBC
         /// Contains information about labels of the contrasts
         /// </summary>
         public IBCInformation Information { get; private set; }
-        public DLL.NIFTI NIFTI { get; private set; } = new DLL.NIFTI();
-        public DLL.Volume Volume { get; private set; } = new DLL.Volume();
+        public FMRI FMRI { get; private set; }
         public bool Loaded { get; private set; } = false;
         #endregion
 
         #region Private Methods
         private void Awake()
         {
-            //this.StartCoroutineAsync(c_LoadIBC());
+            this.StartCoroutineAsync(c_LoadIBC());
         }
         private void OnDestroy()
         {
-            NIFTI?.Dispose();
-            Volume?.Dispose();
-        }
-        #endregion
-
-        #region Public Methods
-        public void UpdateCurrentVolume(int component)
-        {
-            NIFTI.FillVolumeWithNifti(Volume, component);
+            FMRI?.Clean();
         }
         #endregion
 
@@ -56,9 +47,9 @@ namespace HBP.Module3D.IBC
 
             yield return Ninja.JumpBack;
 
-            NIFTI.Load(file);
+            Data.MRI mri = new Data.MRI("IBC", file);
+            FMRI = new FMRI(mri);
             Information = new IBCInformation(csvFile);
-            UpdateCurrentVolume(0);
 
             yield return Ninja.JumpToUnity;
             Loaded = true;

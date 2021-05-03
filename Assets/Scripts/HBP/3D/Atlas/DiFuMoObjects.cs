@@ -11,30 +11,21 @@ namespace HBP.Module3D.DiFuMo
     {
         #region Properties
         public DiFuMoInformation Information { get; private set; }
-        public DLL.NIFTI NIFTI { get; private set; } = new DLL.NIFTI();
-        public DLL.Volume Volume { get; private set; } = new DLL.Volume();
+        public FMRI FMRI { get; private set; }
         public bool Loaded { get; private set; } = false;
         #endregion
 
         #region Private Methods
         private void Awake()
         {
-            //this.StartCoroutineAsync(c_LoadDiFuMo());
+            this.StartCoroutineAsync(c_LoadDiFuMo());
         }
         private void OnDestroy()
         {
-            NIFTI?.Dispose();
-            Volume?.Dispose();
+            FMRI?.Clean();
         }
         #endregion
-
-        #region Public Methods
-        public void UpdateCurrentVolume(int component)
-        {
-            NIFTI.FillVolumeWithNifti(Volume, component);
-        }
-        #endregion
-
+        
         #region Coroutines
         private IEnumerator c_LoadDiFuMo() // Only 256 for now
         {
@@ -46,9 +37,9 @@ namespace HBP.Module3D.DiFuMo
 
             yield return Ninja.JumpBack;
 
-            NIFTI.Load(file);
+            Data.MRI mri = new Data.MRI("DiFuMo256", file);
+            FMRI = new FMRI(mri);
             Information = new DiFuMoInformation(csvFile);
-            UpdateCurrentVolume(0);
 
             yield return Ninja.JumpToUnity;
             Loaded = true;
