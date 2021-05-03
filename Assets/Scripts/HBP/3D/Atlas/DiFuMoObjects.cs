@@ -10,39 +10,40 @@ namespace HBP.Module3D.DiFuMo
     public class DiFuMoObjects : MonoBehaviour
     {
         #region Properties
-        public DiFuMoInformation Information { get; private set; }
-        public FMRI FMRI { get; private set; }
-        public bool Loaded { get; private set; } = false;
+        public Dictionary<string, DiFuMoInformation> Information { get; private set; } = new Dictionary<string, DiFuMoInformation>();
+        public Dictionary<string, FMRI> FMRIs { get; private set; } = new Dictionary<string, FMRI>();
+        public bool Loaded { get { return FMRIs.Count > 0; } }
         #endregion
 
         #region Private Methods
         private void Awake()
         {
-            this.StartCoroutineAsync(c_LoadDiFuMo());
+            this.StartCoroutineAsync(c_LoadDiFuMo("64"));
+            this.StartCoroutineAsync(c_LoadDiFuMo("256"));
         }
         private void OnDestroy()
         {
-            FMRI?.Clean();
+            foreach (var fmri in FMRIs.Values)
+            {
+                fmri?.Clean();
+            }
         }
         #endregion
         
         #region Coroutines
-        private IEnumerator c_LoadDiFuMo() // Only 256 for now
+        private IEnumerator c_LoadDiFuMo(string name)
         {
             yield return Ninja.JumpToUnity;
 
-            string directory = ApplicationState.DataPath + "Atlases/DiFuMo/256";
-            string csvFile = ApplicationState.DataPath + "Atlases/DiFuMo/256/labels_256_dictionary.csv";
-            string file = ApplicationState.DataPath + "Atlases/DiFuMo/256/maps.nii.gz";
+            string csvFile = Path.Combine(ApplicationState.DataPath, "Atlases", "DiFuMo", name, string.Format("labels_{0}_dictionary.csv", name));
+            string file = Path.Combine(ApplicationState.DataPath, "Atlases", "DiFuMo", name, "maps.nii.gz");
 
             yield return Ninja.JumpBack;
 
-            Data.MRI mri = new Data.MRI("DiFuMo256", file);
-            FMRI = new FMRI(mri);
-            Information = new DiFuMoInformation(csvFile);
+            FMRIs.Add(name, new FMRI(name, file));
+            Information.Add(name, new DiFuMoInformation(csvFile));
 
             yield return Ninja.JumpToUnity;
-            Loaded = true;
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion

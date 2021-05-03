@@ -14,33 +14,36 @@ namespace HBP.Module3D
         public DLL.NIFTI NIFTI { get; private set; } = new DLL.NIFTI();
         public List<DLL.Volume> Volumes { get; private set; } = new List<DLL.Volume>();
         public bool Loaded { get; private set; } = false;
-        /// <summary>
-        /// Data of the MRI (paths etc.)
-        /// </summary>
-        private Data.MRI m_MRI;
         #endregion
 
         #region Constructors
         public FMRI(Data.MRI mri)
         {
             Name = mri.Name;
-            m_MRI = mri;
-            Load();
+            Load(mri.File);
+        }
+        public FMRI(string name, string file)
+        {
+            Name = name;
+            Load(file);
         }
         #endregion
 
-        #region Public Methods
+        #region Private Methods
         /// <summary>
         /// Load the FMRI
         /// </summary>
-        public void Load()
+        private void Load(string file)
         {
-            NIFTI.Load(m_MRI.File);
+            NIFTI.Load(file);
             for (int i = 0; i < NIFTI.NumberOfVolumes; i++)
             {
                 Volumes.Add(NIFTI.ExtractVolume(i));
             }
         }
+        #endregion
+
+        #region Public Methods
         /// <summary>
         /// Dispose all DLL objects
         /// </summary>

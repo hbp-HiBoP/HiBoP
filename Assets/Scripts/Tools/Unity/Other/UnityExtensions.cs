@@ -340,7 +340,7 @@ namespace Tools.Unity
                 localPath = path.Remove(0, PROJECT_TOKEN.Length);
                 localPath = ApplicationState.ProjectLoadedTMPFullPath + localPath;
             }
-
+            
             foreach (var alias in ApplicationState.ProjectLoaded.Preferences.Aliases)
             {
                 alias.ConvertKeyToValue(ref localPath);
@@ -356,7 +356,7 @@ namespace Tools.Unity
             {
                 localPath = PROJECT_TOKEN + path.Remove(0, ApplicationState.ProjectLoadedTMPFullPath.Length);
             }
-
+            
             foreach (var alias in ApplicationState.ProjectLoaded.Preferences.Aliases)
             {
                 alias.ConvertValueToKey(ref localPath);

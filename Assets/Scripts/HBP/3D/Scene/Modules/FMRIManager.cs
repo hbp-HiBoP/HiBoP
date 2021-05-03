@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace HBP.Module3D
@@ -70,6 +71,26 @@ namespace HBP.Module3D
             }
         }
 
+        private string m_SelectedDiFuMoAtlas;
+        public string SelectedDiFuMoAtlas
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(m_SelectedDiFuMoAtlas))
+                {
+                    m_SelectedDiFuMoAtlas = ApplicationState.Module3D.DiFuMoObjects.FMRIs.Keys.FirstOrDefault();
+                }
+                return m_SelectedDiFuMoAtlas;
+            }
+            set
+            {
+                m_SelectedDiFuMoAtlas = value;
+                m_SelectedDiFuMoArea = 0;
+                UpdateSurfaceFMRIValues();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            }
+        }
+
         private int m_SelectedDiFuMoArea;
         public int SelectedDiFuMoArea
         {
@@ -98,7 +119,7 @@ namespace HBP.Module3D
                 }
                 else if (m_DisplayDiFuMo)
                 {
-                    return ApplicationState.Module3D.DiFuMoObjects.FMRI.Volumes[m_SelectedDiFuMoArea];
+                    return ApplicationState.Module3D.DiFuMoObjects.FMRIs[m_SelectedDiFuMoAtlas].Volumes[m_SelectedDiFuMoArea];
                 }
                 else
                 {

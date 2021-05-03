@@ -1,16 +1,21 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using System.Linq;
 
 namespace HBP.UI.Module3D.Tools
 {
-    public class DiFuMoSelector : Tool, IScrollHandler
+    public class DiFuMoSelector : Tool
     {
         #region Properties
         /// <summary>
+        /// Dropdown to select the altas to display
+        /// </summary>
+        [SerializeField] private Dropdown m_AtlasDropdown;
+        /// <summary>
         /// Dropdown to select the contrast to display
         /// </summary>
-        [SerializeField] private Dropdown m_Dropdown;
+        [SerializeField] private Dropdown m_AreaDropdown;
         #endregion
 
         #region Public Methods
@@ -19,7 +24,13 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void Initialize()
         {
-            m_Dropdown.onValueChanged.AddListener((value) =>
+            m_AtlasDropdown.onValueChanged.AddListener((value) =>
+            {
+                if (ListenerLock) return;
+
+                SelectedScene.FMRIManager.SelectedDiFuMoAtlas = m_AtlasDropdown.options[value].text;
+            });
+            m_AreaDropdown.onValueChanged.AddListener((value) =>
             {
                 if (ListenerLock) return;
 
@@ -31,7 +42,8 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void DefaultState()
         {
-            m_Dropdown.gameObject.SetActive(false);
+            m_AtlasDropdown.gameObject.SetActive(false);
+            m_AreaDropdown.gameObject.SetActive(false);
         }
         /// <summary>
         /// Update the interactable state of the tool
@@ -40,30 +52,38 @@ namespace HBP.UI.Module3D.Tools
         {
             bool isDiFuMoDisplayed = SelectedScene.FMRIManager.DisplayDiFuMo;
 
-            m_Dropdown.gameObject.SetActive(isDiFuMoDisplayed);
+            m_AtlasDropdown.gameObject.SetActive(isDiFuMoDisplayed);
+            m_AreaDropdown.gameObject.SetActive(isDiFuMoDisplayed);
         }
         /// <summary>
         /// Update the status of the tool
         /// </summary>
         public override void UpdateStatus()
         {
-            m_Dropdown.options.Clear();
+            m_AtlasDropdown.options.Clear();
             if (ApplicationState.Module3D.DiFuMoObjects.Loaded)
             {
-                foreach (var label in ApplicationState.Module3D.DiFuMoObjects.Information.AllLabels)
+                int count = 0;
+                foreach (var atlas in ApplicationState.Module3D.DiFuMoObjects.FMRIs.Keys.OrderBy(k => int.Parse(k)))
                 {
-                    m_Dropdown.options.Add(new Dropdown.OptionData(label.Name));
+                    m_AtlasDropdown.options.Add(new Dropdown.OptionData(atlas));
+                    if (atlas == SelectedScene.FMRIManager.SelectedDiFuMoAtlas)
+                        m_AtlasDropdown.value = count;
+                    count++;
                 }
-                m_Dropdown.value = SelectedScene.FMRIManager.SelectedDiFuMoArea;
             }
-            m_Dropdown.RefreshShownValue();
-        }
-        public void OnScroll(PointerEventData eventData)
-        {
-            int newValue = m_Dropdown.value + (eventData.scrollDelta.y < 0 ? 1 : -1);
-            int total = m_Dropdown.options.Count;
-            m_Dropdown.value = ((newValue % total) + total) % total;
-            m_Dropdown.RefreshShownValue();
+            m_AtlasDropdown.RefreshShownValue();
+
+            m_AreaDropdown.options.Clear();
+            if (ApplicationState.Module3D.DiFuMoObjects.Loaded)
+            {
+                foreach (var label in ApplicationState.Module3D.DiFuMoObjects.Information[SelectedScene.FMRIManager.SelectedDiFuMoAtlas].AllLabels)
+                {
+                    m_AreaDropdown.options.Add(new Dropdown.OptionData(label.Name));
+                }
+                m_AreaDropdown.value = SelectedScene.FMRIManager.SelectedDiFuMoArea;
+            }
+            m_AreaDropdown.RefreshShownValue();
         }
         #endregion
     }

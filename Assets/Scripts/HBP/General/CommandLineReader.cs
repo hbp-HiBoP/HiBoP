@@ -15,7 +15,7 @@ namespace HBP
         {
             string[] args = System.Environment.GetCommandLineArgs();
             #if UNITY_EDITOR
-            args = new string[] { "HiBoP", "-p", "AllModalities", "-v", "VISU"};
+            //args = new string[] { "HiBoP", "-p", "AllModalities", "-v", "VISU"};
             #endif
             StartCoroutine(c_InterpreteCommandLineArguments(args));
         }

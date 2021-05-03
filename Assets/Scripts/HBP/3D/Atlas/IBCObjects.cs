@@ -18,7 +18,7 @@ namespace HBP.Module3D.IBC
         /// </summary>
         public IBCInformation Information { get; private set; }
         public FMRI FMRI { get; private set; }
-        public bool Loaded { get; private set; } = false;
+        public bool Loaded { get { return FMRI != null; } } 
         #endregion
 
         #region Private Methods
@@ -41,18 +41,15 @@ namespace HBP.Module3D.IBC
         {
             yield return Ninja.JumpToUnity;
 
-            string directory = ApplicationState.DataPath + "Atlases/IBC/";
-            string csvFile = ApplicationState.DataPath + "Atlases/IBC/map_labels.csv";
-            string file = ApplicationState.DataPath + "Atlases/IBC/all_maps.nii.gz";
+            string csvFile = Path.Combine(ApplicationState.DataPath, "Atlases", "IBC", "map_labels.csv");
+            string file = Path.Combine(ApplicationState.DataPath, "Atlases", "IBC", "all_maps.nii.gz");
 
             yield return Ninja.JumpBack;
 
-            Data.MRI mri = new Data.MRI("IBC", file);
-            FMRI = new FMRI(mri);
+            FMRI = new FMRI("IBC", file);
             Information = new IBCInformation(csvFile);
 
             yield return Ninja.JumpToUnity;
-            Loaded = true;
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
