@@ -42,8 +42,7 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void DefaultState()
         {
-            m_AtlasDropdown.gameObject.SetActive(false);
-            m_AreaDropdown.gameObject.SetActive(false);
+            gameObject.SetActive(false);
         }
         /// <summary>
         /// Update the interactable state of the tool
@@ -52,8 +51,7 @@ namespace HBP.UI.Module3D.Tools
         {
             bool isDiFuMoDisplayed = SelectedScene.FMRIManager.DisplayDiFuMo;
 
-            m_AtlasDropdown.gameObject.SetActive(isDiFuMoDisplayed);
-            m_AreaDropdown.gameObject.SetActive(isDiFuMoDisplayed);
+            gameObject.SetActive(isDiFuMoDisplayed);
         }
         /// <summary>
         /// Update the status of the tool

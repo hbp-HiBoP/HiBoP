@@ -97,12 +97,12 @@ namespace HBP.Module3D
         /// Mars Atlas Index DLL Object
         /// This is used to get information about Mars Atlas and Brodmann areas (name, color etc.)
         /// </summary>
-        public DLL.MarsAtlas MarsAtlas { get; private set; }
+        public DLL.MarsAtlas MarsAtlas { get; private set; } = new DLL.MarsAtlas();
         /// <summary>
         /// JuBrain Atlas DLL Object
         /// This is used to get information about JuBrain Atlas areas (name, color etc.)
         /// </summary>
-        public DLL.JuBrainAtlas JuBrainAtlas { get; private set; }
+        public DLL.JuBrainAtlas JuBrainAtlas { get; private set; } = new DLL.JuBrainAtlas();
 
         /// <summary>
         /// MNI Objects
@@ -392,14 +392,10 @@ namespace HBP.Module3D
             QualitySettings.antiAliasing = 8;
 
             // Atlases
-            string dataDirectory = Application.dataPath + "/../Data/";
-            #if UNITY_EDITOR
-            dataDirectory = Application.dataPath + "/Data/";
-            #endif
 
             yield return Ninja.JumpBack;
-            MarsAtlas = new DLL.MarsAtlas(dataDirectory + "Atlases/MarsAtlas/mars_atlas_index.csv", dataDirectory + "Atlases/MarsAtlas/brodmann_areas.txt", dataDirectory + "Atlases/MarsAtlas/colin27_MNI_MarsAtlas.nii");
-            JuBrainAtlas = new DLL.JuBrainAtlas(dataDirectory + "Atlases/JuBrain/jubrain_left_nlin2Stdcolin27.nii.gz", dataDirectory + "Atlases/JuBrain/jubrain_right_nlin2Stdcolin27.nii.gz", dataDirectory + "Atlases/JuBrain/jubrain.json");
+            if (ApplicationState.UserPreferences.Data.Atlases.PreloadMarsAtlas) MarsAtlas.Load();
+            if (ApplicationState.UserPreferences.Data.Atlases.PreloadJuBrain) JuBrainAtlas.Load();
         }
         #endregion
     }

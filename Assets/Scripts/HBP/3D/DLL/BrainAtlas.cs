@@ -14,6 +14,7 @@ namespace HBP.Module3D.DLL
         /// Is the atlas completely loaded ?
         /// </summary>
         public bool Loaded { get; protected set; }
+        public bool Loading { get; protected set; }
         #endregion
 
         #region Public Methods

@@ -1,4 +1,5 @@
 ﻿
+using System.IO;
 using UnityEngine;
 /**
 * \class ApplicationState
@@ -96,16 +97,5 @@ public static class ApplicationState
 
     public static Tools.Unity.ColorPicker ColorPicker { get; set; }
 
-    static public string DataPath
-    {
-        get
-        {
-#if UNITY_EDITOR
-            return Application.dataPath + "/Data/";
-#else
-            return Application.dataPath +  "/../Data/";
-#endif
-
-        }
-    }
+    static public string DataPath { get; set; }
 }

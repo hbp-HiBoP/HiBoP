@@ -50,6 +50,11 @@ namespace HBP
             ApplicationState.Module3DUI = m_Module3DUI;
             ApplicationState.GlobalExceptionManager = m_GlobalExceptionManager;
             ApplicationState.ColorPicker = m_ColorPicker;
+#if UNITY_EDITOR
+            ApplicationState.DataPath =  Path.Combine(Application.dataPath, "Data");
+#else
+            ApplicationState.DataPath = Path.Combine(Application.dataPath, "..", "Data");
+#endif
             ApplicationState.ProjectTMPFolder = GetProjectTMPDirectory();
         }
         private void OnDestroy()
