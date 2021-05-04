@@ -63,10 +63,11 @@ namespace HBP.Data
                         }
                         else if (entry.FileName.EndsWith(ProjectPreferences.EXTENSION))
                         {
-                            entry.Extract(ApplicationState.ProjectTMPFolder);
-                            FileInfo settingsFile = new FileInfo(ApplicationState.ProjectTMPFolder + "/" + entry.FileName);
+                            FileInfo settingsFile = new FileInfo(System.IO.Path.Combine(ApplicationState.TMPFolder, entry.FileName));
+                            if (settingsFile.Exists) settingsFile.Delete();
+                            entry.Extract(ApplicationState.TMPFolder);
                             Settings = Tools.Unity.ClassLoaderSaver.LoadFromJson<ProjectPreferences>(settingsFile.FullName);
-                            settingsFile.Directory.Delete(true);                        
+                            settingsFile.Directory.Delete(true);
                         }
                     }
                 }

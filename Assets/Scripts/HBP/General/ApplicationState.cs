@@ -30,18 +30,12 @@ public static class ApplicationState
     /// <summary>
     /// TMP folder to store the open projects
     /// </summary>
-    public static string ProjectTMPFolder { get; set; }
+    public static string TMPFolder { get; set; }
 
     /// <summary>
     /// Full path to the loaded project
     /// </summary>
-    public static string ProjectLoadedTMPFullPath
-    {
-        get
-        {
-            return System.IO.Path.Combine(ProjectTMPFolder, InstanceID);
-        }
-    }
+    public static string ExtractProjectFolder { get; set; }
 
     /// <summary>
     /// General settings of the application.
