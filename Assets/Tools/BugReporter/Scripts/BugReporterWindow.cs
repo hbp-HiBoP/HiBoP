@@ -118,7 +118,7 @@ namespace Tools.Unity
                     }
                     if (File.Exists(logFile))
                     {
-                        string copiedLogFile = Path.Combine(Application.dataPath, "error_log.txt");
+                        string copiedLogFile = Path.Combine(Application.persistentDataPath, "error_log.txt");
                         File.Copy(logFile, copiedLogFile, true);
                         using (Attachment log = new Attachment(copiedLogFile))
                         {
