@@ -38,6 +38,10 @@ namespace HBP.Module3D
         /// </summary>
         public Dictionary<Site, Dictionary<Site, float>> CorrelationBySitePair { get; set; } = new Dictionary<Site, Dictionary<Site, float>>();
         /// <summary>
+        /// Correlation between two sites
+        /// </summary>
+        public Dictionary<Site, Dictionary<Site, float>> CorrelationMeanBySitePair { get; set; } = new Dictionary<Site, Dictionary<Site, float>>();
+        /// <summary>
         /// Are the correlations between site pairs computed ?
         /// </summary>
         public bool AreCorrelationsComputed { get { return CorrelationBySitePair.Count > 0; } }
@@ -141,6 +145,7 @@ namespace HBP.Module3D
             base.UpdateSites(implantation, sceneSitePatientParent);
 
             CorrelationBySitePair.Clear();
+            CorrelationMeanBySitePair.Clear();
         }
         /// <summary>
         /// Compute correlations for all site pairs
@@ -148,6 +153,7 @@ namespace HBP.Module3D
         public void ComputeCorrelations(Action<float, float, LoadingText> onChangeProgress = null)
         {
             CorrelationBySitePair.Clear();
+            CorrelationMeanBySitePair.Clear();
             onChangeProgress?.Invoke(0, 0, new LoadingText("Computing correlations"));
             Dictionary<Site, List<float[]>> valuesByChannel = new Dictionary<Site, List<float[]>>();
             foreach (var site in Sites)
@@ -168,6 +174,7 @@ namespace HBP.Module3D
             {
                 onChangeProgress?.Invoke((float)progressCount++ / siteCount, 0, new LoadingText("Computing correlations for ", string.Format("{0} in {1}", kv1.Key.Information.Name, Name)));
                 Dictionary<Site, float> correlation = new Dictionary<Site, float>();
+                Dictionary<Site, float> mean = new Dictionary<Site, float>();
                 int numberOfTrials = kv1.Value.Count;
 
                 foreach (var kv2 in valuesByChannel)
@@ -193,8 +200,10 @@ namespace HBP.Module3D
                         }
                     }
                     correlation.Add(kv2.Key, MathDLL.WilcoxonRankSum(blackData, greyData));
+                    mean.Add(kv2.Key, blackData.Mean());
                 }
                 CorrelationBySitePair.Add(kv1.Key, correlation);
+                CorrelationMeanBySitePair.Add(kv1.Key, mean);
             }
         }
         /// <summary>

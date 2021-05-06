@@ -39,6 +39,7 @@ namespace HBP.UI.Module3D.Tools
             [DataMember] public DataInfo Data { get; set; }
             [DataMember] public string CorrelationsFile { get; set; }
             [DataMember] public string CorrelationsBinaryFile { get; set; }
+            [DataMember] public string CorrelationsMeanFile { get; set; }
         }
         #endregion
 
@@ -166,22 +167,30 @@ namespace HBP.UI.Module3D.Tools
                 Bloc bloc = column.ColumnIEEGData.Bloc.Clone() as Bloc;
                 IEEGDataInfo dataInfo = column.ColumnIEEGData.Dataset.GetIEEGDataInfos().FirstOrDefault(d => d.Patient == SelectedScene.Visualization.Patients[0] && d.Name == column.ColumnIEEGData.DataName).Clone() as IEEGDataInfo;
                 dataInfo.DataContainer.ConvertAllPathsToFullPaths();
-                container.Columns.Add(new ColumnContainer() { Name = column.Name, Bloc = bloc, Data = dataInfo, CorrelationsFile = string.Format("{0}_correlations.csv", column.Name), CorrelationsBinaryFile = string.Format("{0}_significant.csv", column.Name) });
+                container.Columns.Add(new ColumnContainer() { Name = column.Name, Bloc = bloc, Data = dataInfo, CorrelationsFile = string.Format("{0}_correlations.csv", column.Name), CorrelationsBinaryFile = string.Format("{0}_significant.csv", column.Name), CorrelationsMeanFile = string.Format("{0}_pearson.csv", column.Name) });
             }
             string saveDirectory = Path.Combine(SelectedScene.GenerateExportDirectory(), "Correlations");
             ClassLoaderSaver.GenerateUniqueDirectoryPath(ref saveDirectory);
             if (!Directory.Exists(saveDirectory)) Directory.CreateDirectory(saveDirectory);
             ClassLoaderSaver.SaveToJSon(container, Path.Combine(saveDirectory, "Correlations.json"));
 
-            int siteWeight(string name) // FIXME : 0pad and more than 20
+            int siteWeight(string name)
             {
                 int weight = 0;
+                string label = "";
+                string digits = "";
                 for (int i = 0; i < name.Length; ++i)
                 {
-                    if (char.IsDigit(name[i])) weight += name[i];
-                    else if (name[i] == '\'') weight += 1;
+                    if (char.IsDigit(name[i])) digits += name[i];
+                    else label += name[i];
+                }
+                for (int i = 0; i < label.Length; i++)
+                {
+                    if (name[i] == '\'') weight += 1;
                     else weight += 100 * name[i];
                 }
+                if (digits.Length > 0)
+                    weight += int.Parse(digits);
                 return weight;
             }
 
@@ -189,10 +198,12 @@ namespace HBP.UI.Module3D.Tools
             {
                 StringBuilder csvText = new StringBuilder();
                 StringBuilder csvBinaryText = new StringBuilder();
+                StringBuilder csvMeanText = new StringBuilder();
                 var sites = column.CorrelationBySitePair.Keys.OrderBy(s => siteWeight(s.Information.Name));
                 int siteCount = sites.Count();
                 csvText.AppendLine(string.Format("{0},{1}", "Channel", string.Join(",", sites.Select(c => c.Information.Name))));
                 csvBinaryText.AppendLine(string.Format("{0},{1}", "Channel", string.Join(",", sites.Select(c => c.Information.Name))));
+                csvMeanText.AppendLine(string.Format("{0},{1}", "Channel", string.Join(",", sites.Select(c => c.Information.Name))));
                 foreach (var site in sites)
                 {
                     if (column.CorrelationBySitePair.TryGetValue(site, out Dictionary<Site, float> correlationsOfSite))
@@ -219,6 +230,23 @@ namespace HBP.UI.Module3D.Tools
                         csvText.AppendLine();
                         csvBinaryText.AppendLine();
                     }
+                    if (column.CorrelationMeanBySitePair.TryGetValue(site, out Dictionary<Site, float> meanOfSite))
+                    {
+                        csvMeanText.Append(site.Information.Name);
+                        foreach (var s in sites)
+                        {
+                            csvMeanText.Append(",");
+                            if (meanOfSite.TryGetValue(s, out float meanValue))
+                            {
+                                csvMeanText.Append(meanValue.ToString("R", CultureInfo.InvariantCulture));
+                            }
+                            else
+                            {
+                                csvMeanText.Append(1);
+                            }
+                        }
+                        csvMeanText.AppendLine();
+                    }
                 }
                 try
                 {
@@ -229,6 +257,10 @@ namespace HBP.UI.Module3D.Tools
                     using (StreamWriter sw = new StreamWriter(Path.Combine(saveDirectory, string.Format("{0}_significant.csv", column.Name))))
                     {
                         sw.Write(csvBinaryText.ToString());
+                    }
+                    using (StreamWriter sw = new StreamWriter(Path.Combine(saveDirectory, string.Format("{0}_pearson.csv", column.Name))))
+                    {
+                        sw.Write(csvMeanText.ToString());
                     }
                 }
                 catch (Exception e)
@@ -297,6 +329,37 @@ namespace HBP.UI.Module3D.Tools
                                 }
                             }
                             column.CorrelationBySitePair = correlationsBySitePair;
+                        }
+                        string csvMeanFilePath = Path.Combine(directory, columnContainer.CorrelationsMeanFile);
+                        using (StreamReader sr = new StreamReader(csvMeanFilePath))
+                        {
+                            string firstLine = sr.ReadLine();
+                            string[] siteNames = firstLine.Split(',');
+                            string line;
+                            Dictionary<Site, Dictionary<Site, float>> meanByPair = new Dictionary<Site, Dictionary<Site, float>>();
+                            while ((line = sr.ReadLine()) != null)
+                            {
+                                string[] values = line.Split(',');
+                                if (values.Length == 0) continue;
+                                Site site = column.Sites.FirstOrDefault(s => s.Information.Name == values[0]);
+                                if (site)
+                                {
+                                    Dictionary<Site, float> valueBySite = new Dictionary<Site, float>();
+                                    for (int i = 1; i < values.Length; ++i)
+                                    {
+                                        Site comparedSite = column.Sites.FirstOrDefault(s => s.Information.Name == siteNames[i]);
+                                        if (comparedSite)
+                                        {
+                                            if (NumberExtension.TryParseFloat(values[i], out float value))
+                                            {
+                                                valueBySite[comparedSite] = value;
+                                            }
+                                        }
+                                    }
+                                    meanByPair[site] = valueBySite;
+                                }
+                            }
+                            column.CorrelationMeanBySitePair = meanByPair;
                         }
                     }
                     SelectedScene.DisplayCorrelations = true;
