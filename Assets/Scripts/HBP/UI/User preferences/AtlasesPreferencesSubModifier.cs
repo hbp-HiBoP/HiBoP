@@ -23,6 +23,10 @@ namespace HBP.UI.UserPreferences
         [SerializeField] Button m_LoadDiFuMo256;
         [SerializeField] Button m_LoadDiFuMo512;
         [SerializeField] Button m_LoadDiFuMo1024;
+        [SerializeField] Button m_MarsAtlasWebsite;
+        [SerializeField] Button m_JuBrainWebsite;
+        [SerializeField] Button m_IBCWebsite;
+        [SerializeField] Button m_DiFuMoWebsite;
 
         public override bool Interactable
         {
@@ -76,6 +80,11 @@ namespace HBP.UI.UserPreferences
             m_LoadDiFuMo256.onClick.AddListener(() => ApplicationState.Module3D.DiFuMoObjects.Load("256"));
             m_LoadDiFuMo512.onClick.AddListener(() => ApplicationState.Module3D.DiFuMoObjects.Load("512"));
             m_LoadDiFuMo1024.onClick.AddListener(() => ApplicationState.Module3D.DiFuMoObjects.Load("1024"));
+
+            m_MarsAtlasWebsite.onClick.AddListener(() => Application.OpenURL(@"https://meca-brain.org/software/marsatlas/"));
+            m_JuBrainWebsite.onClick.AddListener(() => Application.OpenURL(@"https://www.fz-juelich.de/inm/inm-1/EN/Forschung/JulichBrain/JulichBrain_Webtools/JulichBrain_Webtools_node.html"));
+            m_IBCWebsite.onClick.AddListener(() => Application.OpenURL(@"https://project.inria.fr/IBC/"));
+            m_DiFuMoWebsite.onClick.AddListener(() => Application.OpenURL(@"https://github.com/Parietal-INRIA/DiFuMo"));
         }
         #endregion
 
