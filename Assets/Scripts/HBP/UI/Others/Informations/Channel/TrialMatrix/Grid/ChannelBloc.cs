@@ -10,6 +10,7 @@ using UnityEngine.UI.Extensions;
 using System;
 using UnityEngine.EventSystems;
 using Tools.Unity;
+using Tools.Unity.Components;
 
 namespace HBP.UI.TrialMatrix.Grid
 {
@@ -363,10 +364,8 @@ namespace HBP.UI.TrialMatrix.Grid
         {
             if (Data.IsFound)
             {
-                CanvasScaler canvasScaler = GetComponentInParent<CanvasScaler>();
-                float scale = 1;
-                if (canvasScaler)
-                    scale = (canvasScaler.referenceResolution.x / Screen.width) * (1 - canvasScaler.matchWidthOrHeight) + (canvasScaler.referenceResolution.y / Screen.height) * canvasScaler.matchWidthOrHeight;
+                CanvasScalerHandler canvasScalerHandler = GetComponentInParent<CanvasScalerHandler>();
+                float scale = canvasScalerHandler ? canvasScalerHandler.Scale : 1;
                 switch (ApplicationState.UserPreferences.Visualization.TrialMatrix.SubBlocFormat)
                 {
                     case HBP.Data.Enums.BlocFormatType.TrialHeight:

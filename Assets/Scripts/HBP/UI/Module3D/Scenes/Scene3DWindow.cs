@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Tools.Unity;
+using Tools.Unity.Components;
 using Tools.Unity.ResizableGrid;
 using UnityEngine;
 using UnityEngine.Events;
@@ -299,8 +300,8 @@ namespace HBP.UI.Module3D
                             Texture2D trialMatrixTexture;
                             if (trialMatrixScrollRect.content.rect.height > trialMatrixScrollRect.viewport.rect.height)
                             {
-                                CanvasScaler canvasScaler = GetComponentInParent<CanvasScaler>();
-                                float scale = (canvasScaler.referenceResolution.x / Screen.width) * (1 - canvasScaler.matchWidthOrHeight) + (canvasScaler.referenceResolution.y / Screen.height) * canvasScaler.matchWidthOrHeight;
+                                CanvasScalerHandler canvasScalerHandler = GetComponentInParent<CanvasScalerHandler>();
+                                float scale = canvasScalerHandler.Scale;
                                 trialMatrixTexture = new Texture2D((int)(trialMatrixScrollRect.content.rect.width / scale), (int)(trialMatrixScrollRect.content.rect.height / scale));
                                 float step = trialMatrixScrollRect.viewport.rect.height / trialMatrixScrollRect.content.rect.height;
                                 float position = 0.0f;

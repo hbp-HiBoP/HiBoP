@@ -18,7 +18,7 @@ namespace Tools.Unity.Components
         public bool AlwaysUpdate;
 
         RectTransform m_RectTransform;
-        CanvasScaler m_CanvasScaler;
+        CanvasScalerHandler m_CanvasScalerHandler;
         bool m_Initialized;
         #endregion
 
@@ -42,13 +42,13 @@ namespace Tools.Unity.Components
         void Initialize()
         {
             m_RectTransform = GetComponent<RectTransform>();
-            m_CanvasScaler = GetComponentInParent<CanvasScaler>();
+            m_CanvasScalerHandler = GetComponentInParent<CanvasScalerHandler>();
             m_Initialized = true;
         }
         void Clamp(RectTransform rectTransform, RectTransform containerRectTransform)
         {
             Vector2 mousePosition = Input.mousePosition;
-            float scale = (m_CanvasScaler.referenceResolution.x / Screen.width) * (1 - m_CanvasScaler.matchWidthOrHeight) + (m_CanvasScaler.referenceResolution.y / Screen.height) * m_CanvasScaler.matchWidthOrHeight;
+            float scale = m_CanvasScalerHandler.Scale;
             Vector2 scaledMousePosition = new Vector2(scale * Input.mousePosition.x, scale * Input.mousePosition.y);
             Vector2 containerScaledPosition = new Vector2(scale * containerRectTransform.position.x, scale * containerRectTransform.position.y);
 
