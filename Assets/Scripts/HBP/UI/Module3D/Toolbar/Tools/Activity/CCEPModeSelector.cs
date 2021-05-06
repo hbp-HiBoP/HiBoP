@@ -56,10 +56,11 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateInteractable()
         {
             bool isColumnCCEP = SelectedColumn is Column3DCCEP;
+            bool isMarsAtlasAvailable = ApplicationState.ProjectLoaded.Preferences.Tags.FirstOrDefault(t => t.Name == "MarsAtlas") != null && ApplicationState.Module3D.MarsAtlas.Loaded;
 
             gameObject.SetActive(isColumnCCEP);
             m_Site.interactable = isColumnCCEP;
-            m_MarsAtlas.interactable = isColumnCCEP && ApplicationState.ProjectLoaded.Preferences.Tags.FirstOrDefault(t => t.Name == "MarsAtlas") != null;
+            m_MarsAtlas.interactable = isColumnCCEP && isMarsAtlasAvailable;
         }
         #endregion
     }

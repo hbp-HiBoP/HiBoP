@@ -45,7 +45,7 @@ namespace HBP.Module3D.DLL
         public int[] GetSurfaceAreaLabels(Surface surface)
         {
             int[] result = new int[surface.NumberOfVertices];
-            get_vertices_area_index_BrainAtlas(_handle, surface.getHandle(), result);
+            if (Loaded) get_vertices_area_index_BrainAtlas(_handle, surface.getHandle(), result);
             return result;
         }
         /// <summary>
