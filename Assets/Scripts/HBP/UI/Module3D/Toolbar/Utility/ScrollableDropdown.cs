@@ -10,16 +10,22 @@ namespace HBP.UI.Module3D
     public class ScrollableDropdown : MonoBehaviour, IScrollHandler
     {
         private Dropdown m_Dropdown;
+        private float m_ScrollDelta = 0;
+
         private void Awake()
         {
             m_Dropdown = GetComponent<Dropdown>();
         }
         public void OnScroll(PointerEventData eventData)
         {
-            int newValue = m_Dropdown.value + (eventData.scrollDelta.y < 0 ? 1 : -1);
+            m_ScrollDelta += eventData.scrollDelta.y;
+            if (Mathf.Abs(m_ScrollDelta) < 1) return;
+
+            int newValue = m_Dropdown.value + (m_ScrollDelta < 0 ? 1 : -1);
             int total = m_Dropdown.options.Count;
             m_Dropdown.value = ((newValue % total) + total) % total;
             m_Dropdown.RefreshShownValue();
+            m_ScrollDelta = 0;
         }
     }
 }

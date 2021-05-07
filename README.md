@@ -30,11 +30,12 @@ chmod 755 ./HiBoP.x86_64
 ### MacOS
 
 Unzip the zip file to a target directory.
-Then, you need to give execution rights to the executable, and execute HiBoP.app.
+Then, you need to give execution rights to the executable, remove external attributes, and execute HiBoP.app.
 
 ```
 cd <HIBOP_DIR>
 chmod -R 755 HiBoP.app
+xattr -rc HiBoP.app
 ```
 
 ## Supported file formats

@@ -104,13 +104,13 @@ namespace Tools.Unity
                     switch (Application.platform)
                     {
                         case RuntimePlatform.OSXPlayer:
-                            logFile = Path.Combine("~", "Library", "Logs", Application.companyName, Application.productName, "Player.log");
+                            logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Logs", Application.companyName, Application.productName, "Player.log");
                             break;
                         case RuntimePlatform.WindowsPlayer:
                             logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "..", "LocalLow", Application.companyName, Application.productName, "Player.log");
                             break;
                         case RuntimePlatform.LinuxPlayer:
-                            logFile = Path.Combine("~", ".config", "unity3d", Application.companyName, Application.productName, "Player.log");
+                            logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config", "unity3d", Application.companyName, Application.productName, "Player.log");
                             break;
                         default:
                             logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "..", "LocalLow", Application.companyName, Application.productName, "Player.log");
