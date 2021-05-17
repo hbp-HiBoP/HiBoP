@@ -437,6 +437,13 @@ namespace HBP.Data.Visualization
                         }
                     }
                 }
+                catch (CannotEpochAllTrialsException e)
+                {
+                    additionalInformation = string.Format("You are trying to epoch a bloc from index {0} to index {1} while the minimum possible index is {2} and the maximum possible index is {3}.", e.StartIndex, e.EndIndex, 0, e.Length);
+                    UnityEngine.Debug.LogException(e);
+                    exception = new CannotLoadDataInfoException(string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name), (dataInfo is PatientDataInfo pDataInfo ? pDataInfo.Patient.Name : "Unkwown patient"), additionalInformation);
+                    break;
+                }
                 catch (Exception e)
                 {
                     UnityEngine.Debug.LogException(e);

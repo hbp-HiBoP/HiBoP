@@ -112,7 +112,7 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Private Methods
-        Dictionary<string,float[]> EpochValues(Dictionary<string,float[]> valuesByChannel, int startIndex, int endIndex)
+        Dictionary<string, float[]> EpochValues(Dictionary<string, float[]> valuesByChannel, int startIndex, int endIndex)
         {
             // Initialize
             Dictionary<string, float[]> result = new Dictionary<string, float[]>(valuesByChannel.Count);
@@ -121,9 +121,16 @@ namespace HBP.Data.Experience.Dataset
             int length = endIndex - startIndex + 1;
             foreach (var pair in valuesByChannel)
             {
-                float[] values = new float[length];
-                Array.Copy(pair.Value, startIndex, values, 0, length);
-                result.Add(pair.Key, values);
+                try
+                {
+                    float[] values = new float[length];
+                    Array.Copy(pair.Value, startIndex, values, 0, length);
+                    result.Add(pair.Key, values);
+                }
+                catch (Exception e)
+                {
+                    throw new CannotEpochAllTrialsException(e, pair.Value.Length - 1, startIndex, endIndex);
+                }
             }
             return result;
         }
