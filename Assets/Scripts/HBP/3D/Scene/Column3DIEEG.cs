@@ -2,8 +2,10 @@
 using HBP.Data.Visualization;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Tools.CSharp;
 using UnityEngine;
+using System.Linq;
 
 namespace HBP.Module3D
 {
@@ -155,15 +157,20 @@ namespace HBP.Module3D
             CorrelationBySitePair.Clear();
             CorrelationMeanBySitePair.Clear();
             onChangeProgress?.Invoke(0, 0, new LoadingText("Computing correlations"));
-            Dictionary<Site, List<float[]>> valuesByChannel = new Dictionary<Site, List<float[]>>();
+            Dictionary<Site, List<double[]>> valuesByChannel = new Dictionary<Site, List<double[]>>();
             foreach (var site in Sites)
             {
                 if (site.Data != null && !site.State.IsBlackListed)
                 {
-                    List<float[]> values = new List<float[]>();
-                    for (int i = 0; i < site.Data.Trials.Length; i++)
+                    List<double[]> values = new List<double[]>();
+                    for (int i = 0; i < site.Data.Trials.Length; ++i)
                     {
-                        values.Add(site.Data.Trials[i].Values);
+                        double[] arrayValues = new double[site.Data.Trials[i].Values.Length];
+                        for (int j = 0; j < arrayValues.Length; ++j)
+                        {
+                            arrayValues[j] = site.Data.Trials[i].Values[j];
+                        }
+                        values.Add(arrayValues);
                     }
                     valuesByChannel.Add(site, values);
                 }
@@ -182,25 +189,19 @@ namespace HBP.Module3D
                     if (kv1.Key == kv2.Key) continue;
                     if (kv2.Value.Count != numberOfTrials) continue;
 
-                    float[] blackData = new float[numberOfTrials];
-                    float[] greyData = new float[numberOfTrials * (numberOfTrials - 1)];
+                    double[] blackData = new double[numberOfTrials];
+                    double[] greyData = new double[numberOfTrials * (numberOfTrials - 1)];
+
                     int count = 0;
-                    for (int i = 0; i < numberOfTrials; i++)
-                    {
-                        for (int j = 0; j < numberOfTrials; j++)
-                        {
+                    for (int i = 0; i < numberOfTrials; ++i)
+                        for (int j = 0; j < numberOfTrials; ++j)
                             if (i == j)
-                            {
                                 blackData[i] = MathDLL.Pearson(kv1.Value[i], kv2.Value[i]);
-                            }
                             else
-                            {
                                 greyData[count++] = MathDLL.Pearson(kv1.Value[i], kv2.Value[j]);
-                            }
-                        }
-                    }
-                    correlation.Add(kv2.Key, MathDLL.WilcoxonRankSum(blackData, greyData));
-                    mean.Add(kv2.Key, blackData.Mean());
+
+                    correlation.Add(kv2.Key, (float)MathDLL.WilcoxonRankSum(blackData, greyData));
+                    mean.Add(kv2.Key, (float)blackData.Mean());
                 }
                 CorrelationBySitePair.Add(kv1.Key, correlation);
                 CorrelationMeanBySitePair.Add(kv1.Key, mean);
