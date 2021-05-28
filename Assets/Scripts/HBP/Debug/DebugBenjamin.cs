@@ -21,6 +21,10 @@ public class DebugBenjamin : MonoBehaviour
         {
             ApplicationState.Module3D.SelectedScene.FMRIManager.SelectedDiFuMoArea = (ApplicationState.Module3D.SelectedScene.FMRIManager.SelectedDiFuMoArea + 1) % 64;
         }
+        if (Input.GetKeyDown(KeyCode.F3))
+        {
+            ScreenshotWindow();
+        }
     }
     private void MarsAtlasCCEP()
     {

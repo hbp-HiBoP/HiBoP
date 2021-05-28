@@ -11,7 +11,7 @@
 \usepackage[english]{babel}
 \usepackage[margin=1.1in]{geometry}
 \title{Human Intracranial Brain Observation Player \\ User Manual}
-\author{\textsc{BONTEMPS Benjamin} \\ \textsc{CHATARD Benoît} \\ \textsc{GANNERIE Adrien}}
+\author{\textsc{BONTEMPS Benjamin} \\ \textsc{CHATARD Benoît} \\ \textsc{GANNERIE Adrien} \\ \textsc{LANCE Florian} \\ \textsc{SIPP Florian}}
 \lstset{
 	frame = single,
 	basicstyle = \footnotesize\ttfamily
@@ -20,11 +20,11 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-This document is the user manual of the Human Intracranial Brain Observation Player (HiBoP). HiBoP is being developed by the Centre de Recherche en Neurosciences de Lyon (CRNL), with funds from the Human Brain Project (HBP) to visualize large datasets of intracranial electroencephalography (iEEG) data. This document has been written for the 2.2.3 version of HiBoP.
+This document is the user manual of the Human Intracranial Brain Observation Player (HiBoP). HiBoP is being developed by the Centre de Recherche en Neurosciences de Lyon (CRNL), with funds from the Human Brain Project (HBP) to visualize large datasets of intracranial electroencephalography (iEEG) and functional MRI data. This document has been written for the 2.3.0 version of HiBoP.
 \end{abstract}
 \tableofcontents
 \section{HiBoP project} \label{data}
-\paragraph{} A \textbf{Project} links together anatomical and functional data from a set of patients. If you have an anatomical description of the patients (3D mesh of the brain, MRI and coordinates of the sites of the electrodes) and the respective iEEG data, you can visualize them in 4D (3D space + time). The first thing to do with HiBoP is to create or open a Project. This can be done within HiBoP (section \ref{UI}), but also using a Python API\footnote{This API is not yet released, but it will be in a near future.} which can automatically generates a project file.
+\paragraph{} A \textbf{Project} links together anatomical and functional data from a set of patients. If you have an anatomical description of the patients (3D mesh of the brain, MRI and coordinates of the sites of the electrodes) and the respective iEEG data, you can visualize them in 4D (3D space + time). The first thing to do with HiBoP is to create or open a Project. This can be done within HiBoP (section \ref{UI}), but also using a Python API\footnote{This API can be downloaded at https://github.com/hbp-HiBoP/HiBoP-Python-API.} which can automatically generates a project file.
 \paragraph{} On your Hard Drive, the Project consists of a .hibop file. This file is in reality a zip archive containing several subfolders (Figure \ref{projectDirectory}). The contents of this archive can be extracted using an unzipping software. Each file is encoded with the json format, and thus can be edited (at your own risks) using any text editor. However this is not recommended, as any coma missing may cause the file to be incorrectly interpreted. You can then zip the folder again and rename the extension from .zip to .hibop.
 \begin{figure}[H]
 \framebox[\textwidth]{%
@@ -44,10 +44,6 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
 	.2 Protocols/.
 	.3 ProtocolName.prov.
 	.3 ....
-	.3 Icons/.
-	.4 Icon1.png.
-	.4 Icon2.jpg.
-	.4 ....
 	.2 Visualizations/.
 	.3 VisualizationName.visualization.
 	.3 ....
@@ -57,269 +53,27 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
 \caption{\label{projectDirectory}Project directory hierarchy}
 \end{figure}
 \subsection{Settings}
-\paragraph{} The .settings file at the root of the project archive describes some project settings (Figure \ref{projectSettings}). This file contains the name of the project, a default path for the anatomical data of the patients and a default path for the functional data (iEEG), as well as aliases to shorten paths in other files. It also contains all the tags defined in the project. These tags are used to add more information on the patients or on the sites of the patients.
-\begin{figure}[H]
-\begin{lstlisting}
-{
-  "Name": "ProjectName",
-  "PatientDatabase": "D:/DB/Patients",
-  "LocalizerDatabase": "D:/DB/Localizers",
-  "Aliases": [
-    {
-      "Key": "[PATIENT_DATABASE]",
-      "Value": "D:/DB/Patients",
-      "ID": "032d22f1-68bd-4e62-8a56-ed6c676e1a5d"
-    },
-    {
-      "Key": "[LOCALIZERS_DATABASE]",
-      "Value": "D:/DB/Localizers",
-      "ID": "065501cf-667c-4ddb-8420-29ce822a2305"
-    }
-  ],
-  "GeneralTags": [],
-  "PatientsTags": [],
-  "SitesTags": [
-    {
-      "$type": "HBP.Data.StringTag, Assembly-CSharp",
-      "ID": "{35250f26-8cc4-47d8-b4a0-e60914e4b49f}",
-      "Name": "MarsAtlas"
-    },
-    {
-      "$type": "HBP.Data.StringTag, Assembly-CSharp",
-      "ID": "{2df83a44-5823-439b-a5f7-3c31d225a2a6}",
-      "Name": "Brodmann"
-    },
-    {
-      "$type": "HBP.Data.StringTag, Assembly-CSharp",
-      "ID": "{f7d90e62-7423-47df-b58d-ba29fe6b8ead}",
-      "Name": "Freesurfer"
-    }
-  ],
-  "ID": "0a4054b7-72cb-4c41-8396-5aa1676c42f6"
-}
-\end{lstlisting}
-\caption{\label{projectSettings}Example project settings file}
-\end{figure}
+\paragraph{} The .settings file at the root of the project archive describes some project settings. This file contains the name of the project, a default path for the anatomical data of the patients and a default path for the functional data, as well as aliases to shorten paths in other files. It also contains all the tags defined in the project. These tags are used to add more information on the patients or on the sites of the patients.
 \subsection{Patients}
-\paragraph{} This subfolder contains .patient files, each containing metadata for the patient and its full anatomical description (Figure \ref{patientFile}). A 3D mesh can be a single mesh (only one file) or a left-right mesh (one file for the left part and one for the right part of the brain). These files are in GIfTI format (.gii). You can also provide additional files to show MarsAtlas parcels (.gii), or a transformation file (to align the mesh and its respective MRI, .trm). The MRIs must be in the NIfTI-1 format (.nii). These files also contain information about the sites of the patient (position and metadata as tags).
-\begin{figure}[H]
-\begin{lstlisting}
-{
-  "Name": "PatientA",
-  "Date": 2000,
-  "Place": "Mars",
-  "Meshes": [
-    {
-      "$type": "HBP.Data.LeftRightMesh, Assembly-CSharp",
-      "ID": "e3aa507b-451c-43f2-ab48-bcab292534ef",
-      "Name": "Grey matter",
-      "LeftHemisphere": "[...]\\Left.gii",
-      "RightHemisphere": "[...]\\Right.gii",
-      "LeftMarsAtlasHemisphere": "",
-      "RightMarsAtlasHemisphere": "",
-      "Transformation": "[...]\\Transformation.trm"
-    }
-  ],
-  "MRIs": [
-    {
-      "Name": "MRI",
-      "File": "[...]\\MRI.nii",
-      "ID": "404b0eb7-34af-4194-9fde-765c3436735a"
-    }
-  ],
-  "Sites": [
-    {
-      "Name": "A2",
-      "Coordinates": [
-        {
-          "ReferenceSystem": "Patient",
-          "Position": {
-            "x": -50.48,
-            "y": 22.36,
-            "z": 14.27
-          },
-          "ID": "b775a894-8299-4075-a86a-ad6d424012d6"
-        },
-        {
-          "ReferenceSystem": "MNI",
-          "Position": {
-            "x": -42.59,
-            "y": 25.96,
-            "z": 12.69
-          },
-          "ID": "bdbfb696-4c5f-4e4a-b8a6-aa53fedcb7c8"
-        }
-      ],
-      "Tags": [],
-      "ID": "1f43863e-a9c2-447e-bd2e-17ef746050da"
-    }
-  ],
-  "Tags": [],
-  "ID": "a85b0652-d5d1-4695-bcd5-dacd56718612"
-}
-\end{lstlisting}
-\caption{\label{patientFile}Example patient file}
-\end{figure}
+\paragraph{} This subfolder contains .patient files, each containing metadata for the patient and its full anatomical description. A 3D mesh can be a single mesh (only one file) or a left-right mesh (one file for the left part and one for the right part of the brain). These files are in GIfTI format (.gii). You can also provide additional files to show MarsAtlas parcels (.gii), or a transformation file (to align the mesh and its respective MRI, .trm). The MRIs must be in the NIfTI-1 format (.nii, .nii.gz, .hdr/.img). These files also contain information about the sites of the patient (position and metadata as tags) and the tags of the patient itself.
 \subsection{Groups}
-\paragraph{} This subfolder contains .group files, which are simple lists of patients (Figure \ref{groupFile}).
-\begin{figure}[H]
-\begin{lstlisting}
-{
-  "ID": "{813cbd0a-550c-40de-95c7-b387626f9a96}",
-  "Name": "GroupA",
-  "Patients": [
-    "PatientA",
-    "PatientC",
-    "PatientD",
-    "PatientF",
-    "PatientT",
-    "PatientY"
-  ]
-}
-\end{lstlisting}
-\caption{\label{groupFile}Example group file}
-\end{figure}
+\paragraph{} This subfolder contains .group files, which are simple lists of patients.
 \subsection{Protocols}
-\paragraph{} This subfolder contains .prov files (Figure \ref{provFile}). The .prov extension stands for \textbf{protocol visualization}. Typically, a functional data file in HiBoP is a set of time series (one for each channel) with data for each sample from the beginning to the end of the recording session. In addition, information about the events of the experimental paradigm is stored, each event being identified using a code (e.g. an event of code 10 occured at sample 134567).
+\paragraph{} This subfolder contains .prov files. The .prov extension stands for \textbf{protocol visualization}. Typically, an iEEG functional data file in HiBoP is a set of time series (one for each channel) with data for each sample from the beginning to the end of the recording session. In addition, information about the events of the experimental paradigm is stored, each event being identified using a code (e.g. an event of code 10 occured at sample 134567).
 \paragraph{} Some file formats allow for such data to be stored conveniently. The formats supported by HiBoP are ELAN\footnote{\label{ELAN}ELAN format – ELAN is freely available at http://elan.lyon.inserm.fr}, Micromed, BrainVision and EDF.
-\paragraph{} The .prov file instructs HiBoP on how to epoch the data based on the .pos file. It consists of blocs which contain a list of subblocs. Each bloc or subbloc will be sorted using first their respective order and then alphabetically using their respective names.
+\paragraph{} The .prov file instructs HiBoP on how to epoch the data based on the events. It consists of blocs which contain a list of subblocs. Each bloc or subbloc will be sorted using first their respective order and then alphabetically using their respective names.
 \paragraph{} Each subbloc is centered around a specific event, called \textbf{main event}, for a specific time window (for instance, consider all events with code 10 and extract for each of them a window ranging from 200ms before to 700ms after that event). You can specify secondary events which do not interfere in the epoching. You can also set a baseline window, which is used for the baseline correction (described in more details in Section \ref{preferences}). 
 \paragraph{} Each bloc also has a sorting method, which is used to sort the trials obtained from the epoching according to specific conditions (code of the main event, latency of the secondary event...). The syntax used here for a condition is \textit{SUBBLOC\_EVENT\_COMMAND} where SUBBLOC is the name of the sub-bloc, EVENT the name of the event and COMMAND the sorting parameter (which can be LATENCY or CODE). You can specify multiple conditions which are separated by a semi-colon, each of which are interpreted in the order they have been written. The rest of the .prov file is straightforward: you can ask HiBoP to show images (.png or .jpg) at specific time windows, or to associate an image to a bloc. You can also apply treatments on some time windows of the epoched values (e.g. you can compute the absolute value of the values from 100ms to 400ms after the main event).
-\begin{figure}[H]
-\begin{lstlisting}
-{
-  "Name": "VISU",
-  "Blocs": [
-    {
-      "IllustrationPath": "",
-      "Name": "FRUIT",
-      "Order": 0,
-      "Sort": "",
-      "SubBlocs": [
-        {
-          "Name": "Main",
-          "Order": 0,
-          "Type": 0,
-          "Window": {
-            "Start": -500,
-            "End": 1000
-          },
-          "Baseline": {
-            "Start": -300,
-            "End": 0
-          },
-          "Events": [
-            {
-              "Name": "FRUIT",
-              "Codes": [
-                80
-              ],
-              "Type": 0,
-              "ID": "6b8840d6-54e1-4a52-bb00-4d78f71a3a26"
-            }
-          ],
-          "Icons": [],
-          "Treatments": [],
-          "ID": "a06c0d6e-e6f4-411f-810a-547df6d5ad19"
-        }
-      ],
-      "ID": "bf97172d-6351-48bb-8399-6a1e9bccd18a"
-    }
-  ],
-  "ID": "e86143f2-17e6-45f4-a519-45e0dd2ace67"
-}
-\end{lstlisting}
-\caption{\label{provFile}Example prov file}
-\end{figure}
 \subsection{Datasets}
-\paragraph{} This subfolder contains .dataset files, which summarize and link together anatomical and functional data for a given cognitive task (Figure \ref{datasetFile}).
-A dataset is a list of data information, each of them connecting one patient (and its anatomical data) to functional data for a single experiment. Each data information can be normalized independently from what is set in the preferences (see Section \ref{preferences} for detailed information about normalization).
-\begin{figure}[H]
-\begin{lstlisting}
-{
-  "Name": "VISU_dataset",
-  "ID": "033f332d-694b-47f6-93b9-ae22e72b333c",
-  "Protocol": "e86143f2-17e6-45f4-a519-45e0dd2ace67",
-  "Data": [
-    {
-      "$type": "HBP.Data.Experience.Dataset.IEEGDataInfo, Assembly-CSharp",
-      "Patient": "a85b0652-d5d1-4695-bcd5-dacd56718612",
-      "Name": "gamma",
-      "DataContainer": {
-        "$type": "HBP.Data.Container.BrainVision, Assembly-CSharp",
-        "Header": "[...]/PatientA_VISU_gamma.vhdr",
-        "ID": "8fc99c84-ed41-4818-bd4c-22080e728965"
-      },
-      "Normalization": 6,
-      "ID": "3c4809ff-d39b-4257-b2f8-b114e0ea0d46"
-    }
-  ]
-}
-\end{lstlisting}
-\caption{\label{datasetFile}Example dataset file}
-\end{figure}
+\paragraph{} This subfolder contains .dataset files, which summarize and link together anatomical and functional data for a given cognitive task.
+A dataset is a list of data information (datainfo), each of them connecting one patient (and its anatomical data) to functional data for a single experiment.
+\paragraph{} A datainfo can be of type iEEG, CCEP or fMRI. In the case of iEEG, you can specify a normalization method (see Section \ref{preferences} for detailed information about normalization). In the case of CCEP, you have to specify the channel that has been stimulated. Each datainfo contains a data container which handles the data files.
 \subsection{Visualizations}
-\paragraph{} This subfolder contains .visualization files (Figure \ref{visualizationFile}), which describe the contents of a visualization: it is composed of patients and columns. Each column allow one to visualize either the anatomy of the chosen patients or iEEG data for a specific protocol/bloc/dataset/data. The file also stores the configuration of the visualization or of a particular column or site.
-\begin{figure}[H]
-\begin{lstlisting}
-{
-  "ID": "b23f57c2-0c10-4cd8-8839-8d8c8c0545d1",
-  "Name": "VISU",
-  "Patients": [
-    "a85b0652-d5d1-4695-bcd5-dacd56718612"
-  ],
-  "Configuration": {
-    "Brain Color": 15,
-    "Brain Cut Color": 14,
-    "EEG Colormap": 13,
-    "Mesh Part": 2,
-    "Mesh": null,
-    "MRI": null,
-    "Implantation": null,
-    "Edges": false,
-    "Strong Cuts": false,
-    "Hide Blacklisted Sites": false,
-    "ShowAllSites": false,
-    "MRI Min": 0.0,
-    "MRI Max": 1.0,
-    "Camera Type": 0,
-    "Cuts": [],
-    "Views": [],
-    "RegionsOfInterest": [],
-    "ID": "0518bdbb-5523-4719-80b7-3703c8e73991"
-  },
-  "Columns": [
-    {
-      "$type": "HBP.Data.Visualization.IEEGColumn, Assembly-CSharp",
-      "Dataset": "033f332d-694b-47f6-93b9-ae22e72b333c",
-      "Bloc": "bf97172d-6351-48bb-8399-6a1e9bccd18a",
-      "DataName": "gamma",
-      "DynamicConfiguration": {
-        "Site Gain": 1.0,
-        "Site Maximum Influence": 15.0,
-        "Transparency": 0.8,
-        "Span Min": 0.0,
-        "Middle": 0.0,
-        "Span Max": 0.0,
-        "ID": "e0cde4fa-6d03-4664-a22c-497efe071456"
-      },
-      "Name": "FRUIT",
-      "BaseConfiguration": {
-        "SiteSize": 1.0,
-        "ConfigurationBySite": {},
-        "ID": "d43dde98-ad6f-4c55-8924-a43bde3cc3c5"
-      },
-      "ID": "1fb4ef86-41e4-460f-950b-e53c0199e316"
-    }
-  ]
-}
-\end{lstlisting}
-\caption{\label{visualizationFile}Example visualization file}
-\end{figure}
+\paragraph{} This subfolder contains .visualization files, which describe the contents of a visualization: it is composed of patients and columns. Each column allow one to visualize either the anatomy of the chosen patients or iEEG/CCEP/fMRI data. The file also stores the configuration of the visualization (most of the parameters modified within the visualization can be saved as the configuration of the visualization).
 \section{HiBoP description}\label{UI}
-\paragraph{} This section will describe in details how to use HiBoP to create a HiBoP project and how to visualize the iEEG data. The first thing to do is to open HiBoP (if you need them, instructions are in the README.md file located next to the executable). If you have any doubt about what an interface element does, you can hover it for a second and a tooltip will appear telling you what it does.
+\paragraph{} This section will describe in details how to use HiBoP to create a HiBoP project and how to visualize the data. The first thing to do is to open HiBoP (if you need them, instructions are in the README.md file located next to the executable). If you have any doubt about what an interface element does, you can hover it for a second and a tooltip will appear telling you what it does.
 \subsection{User Preferences}\label{preferences}
-\paragraph{} A lot of global parameters shared through all projects can be set using the preferences menu (Figure \ref{preferencesUI}). The menu contains 3 tabs each containing submenus. These parameters are stored in the persistent data folder of HiBoP (e.g. for Windows, it is within the AppData folder).
+\paragraph{} A lot of global parameters shared through all projects can be set using the preferences menu (Figure \ref{preferencesUI}). The menu contains 3 tabs each containing submenus. These parameters are stored in the persistent data folder of HiBoP\footnote{See https://docs.unity3d.com/ScriptReference/Application-persistentDataPath.html for more information (with companyname being CRNL and productname being HiBoP).}.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{Preferences.png}
@@ -391,12 +145,17 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item \textbf{Enable mesh preloading}: Preload every meshes at the start of a visualization
 \item \textbf{Enable MRI preloading}: Preload every MRIs at the start of a visualization
 \item \textbf{Enable implantation preloading}: Preload every implantations at the start of a visualization
+\item \textbf{Preload all patient data in multi-patient visualizations}: Each time you open a multi-patient visualization, the anatomical data of all the patients will be loaded in order to make the transitions between multi-patient and single-patient visualizations smoother. Be careful, this setting can take a lot of memory.
 \end{itemize}
 \item \textbf{Processing}
 \begin{itemize}
 \item \textbf{Enable site name correction}: Change the name of a certain patern of site names when importing sites from a file (for instance "xp4" becomes "X'4")
 \end{itemize}
 \end{itemize}
+\end{itemize}
+\item \textbf{Atlases}
+\begin{itemize}
+\item \textbf{Preload X atlas on startup}: If checked, the corresponding atlas will be loaded at the start of HiBoP. The amount of memory taken is written in brackets. You can also manually load each atlas, and visit the website of the atlas.
 \end{itemize}
 \item \textbf{Visualization}
 \begin{itemize}
@@ -437,6 +196,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \begin{itemize}
 \item \textbf{Show curves of minimized columns}: Display all curves even if the corresponding column is minimized
 \end{itemize}
+\item \textbf{Colors}: Set up the colors of the graphs
 \end{itemize}
 \item \textbf{Cut}
 \begin{itemize}
@@ -449,7 +209,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \end{itemize}
 \subsection{Project management}
 \subsubsection{Creating, opening and saving a project}
-\paragraph{} When creating a new project, you have to specify the name of your new project, the location where it will be saved, the location of the anatomical database and the location of the functional database (Figure \ref{newProjectUI}). The two last fields are optional.
+\paragraph{} When creating a new project, you have to specify the name of your new project, the location where it will be saved, the location of the anatomical database and the location of the functional database (Figure \ref{newProjectUI}). The two last fields are optional but will create two aliases to shorten the paths to the data files.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{NewProject.png}
@@ -500,7 +260,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \caption{\label{groupModifierUI}Group modifier}
 \end{figure}
 \subsubsection{Functional data management}
-\paragraph{} First thing to do concerning functional data management is to create a protocol that will epoch the iEEG data. You can do that using the protocol manager window (Figure \ref{protocolGestionUI}).
+\paragraph{} The first thing to do concerning functional data management is to create a protocol. This protocol will be used to epoch the iEEG data, but is also mandatory for other types of data such as fMRI (because a dataset requires a protocol). In the case of data that do not need to be epoched, you do not need to create any bloc for the protocol. You can create a protocol using the protocol manager window (Figure \ref{protocolGestionUI}).
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{ProtocolGestion.png}
@@ -514,7 +274,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \end{center}
 \caption{\label{protocolModifierUI}Protocol modifier}
 \end{figure}
-\paragraph{} A bloc can be edited with the bloc modifier window (Figure \ref{blocModifierUI}). There you can specify the name, the sorting method, and define the subblocs using the subbloc modifier window (Figure \ref{subBlocModifierUI}). There, you can edit the name, the order, the type (main or secondary), the window, the baseline window, the events and the iconic scenario of the subbloc.
+\paragraph{} A bloc can be edited with the bloc modifier window (Figure \ref{blocModifierUI}). There you can specify the name, the sorting method, and define the subblocs using the subbloc modifier window (Figure \ref{subBlocModifierUI}). There, you can edit the name, the order, the type (main or secondary), the window, the baseline window, the events, the iconic scenario and the treatments of the subbloc.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{BlocModifier.png}
@@ -541,7 +301,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \end{center}
 \caption{\label{datasetModifierUI}Dataset modifier}
 \end{figure}
-\paragraph{} A data information has a name and is linked to a patient. A data information can be either an iEEG or a CCEP data information. In the case of an iEEG data information, you can specify the normalization method for this specific data (this overwrites the global parameter for normalization unless "Auto" is selected), and there can only be one data information for each [name, patient]. In the case of a CCEP data information, you have to specify the stimulated site for this data, and there can only be one data information for each [name, patient, stimulated site].
+\paragraph{} A data information has a name and is linked to a patient. A data information can be either an iEEG, CCEP or fMRI data information. In the case of an iEEG data information, you can specify the normalization method for this specific data (this overwrites the global parameter for normalization unless "Auto" is selected), and there can only be one data information for each [name, patient]. In the case of a CCEP data information, you have to specify the stimulated site for this data, and there can only be one data information for each [name, patient, stimulated site]. In the case of a fMRI data information, there can only be one data information for each [name, patient].
 \paragraph{} Data information are identified by their names, so if you want to visualize data of several patients in the same column, you have to give them the same name. As for the data you can choose the data format and fill all the required fields.
 \begin{figure}[H]
 \begin{center}
@@ -557,7 +317,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \end{center}
 \caption{\label{visuGestionUI}Visualizations manager}
 \end{figure}
-\paragraph{} A visualization has a name, patients and columns. To edit all of this information, you can use the visualization modifier window (Figure \ref{visuModifierUI}). To add a column, click on the "+" button under the "Columns" panel. You can then edit the column by setting the name, the type (Anatomy, iEEG or CCEP), the protocol, the bloc, the dataset and the data name to be used in this column. Do not forget that if multiple patients are added to the visualization, they must have at least one data information with the same name.
+\paragraph{} A visualization has a name, patients and columns. To edit all of this information, you can use the visualization modifier window (Figure \ref{visuModifierUI}). To add a column, click on the "+" button under the "Columns" panel. You can then edit the column by setting the name, the type (Anatomy, iEEG, CCEP or fMRI), the protocol, the bloc, the dataset and the data name to be used in this column. Do not forget that if multiple patients are added to the visualization, they must have at least one data information with the same name. If this condition is not matched, there will be a warning you can hover to see which patient is problematic.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.4]{VisualizationModifier.png}
@@ -594,10 +354,10 @@ A dataset is a list of data information, each of them connecting one patient (an
 \end{itemize}
 \paragraph{} The left panel allows you to change between toolbars. Each toolbar has its own functions, which will be explained in more details in later sections.
 \newline
-\begin{minipage}{0.2\textwidth}
+\begin{minipage}{0.3\textwidth}
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.75]{ToolbarSelector.png}
+\includegraphics[scale=0.89]{ToolbarSelector.png}
 \end{center}
 \end{figure}
 \end{minipage}
@@ -605,12 +365,10 @@ A dataset is a list of data information, each of them connecting one patient (an
 \begin{itemize}
 \item Scene settings
 \item Display settings
-\item iEEG settings
-\item CCEP settings
+\item Activity settings
 \item Timeline
 \item Sites
 \item Regions of Interest
-\item fMRI
 \item Atlas
 \item Triangle eraser
 \item Configuration
@@ -690,22 +448,31 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Take a raw screenshot of the scene which will be saved in the default export directory (set in user preferences).
 \item Save the scene as files in a directory named after the name of the visualization in the default export directory (one image per opened view, one image per cut, one image and one svg for the graph, one image for the trial matrices, one csv for each curve containing the values).
 \end{itemize}
-\subsubsection{iEEG settings}
+\subsubsection{Activity settings}
+\paragraph{} This toolbar changes depending on the selected column, whether it is Anatomy, iEEG, CCEP or fMRI.
+\paragraph{} Common parameters:
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{ActivitySettings.png}
+\end{center}
+\end{figure}
+\begin{itemize}
+\item Trigger global mode (any changes will be applied to all columns)
+\item Change the transparency of the activity values on the brain surface
+\item Project the activity values on the brain surface and volume or clean the brain.
+\end{itemize}
+\paragraph{} iEEG specific parameters:
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{iEEGSettings.png}
 \end{center}
 \end{figure}
 \begin{itemize}
-\item Trigger global mode (any changes will be applied to all columns)
-\item Change the size of the sites
 \item Change the size of the influence sphere of the sites (to compute the iEEG on the brain surface)
-\item Change the transparency of the iEEG value on the brain surface
 \item Change the threshold values for the iEEG (anything less than the minimum value will be of the same color as the minimum value, the same apply for the maximum value; the rest of the values will increase linearly from minimum to middle and then increase linearly from middle to maximum). You can change these values by either using the sliders or editing the numbers in the boxes. There are 2 modes : the symmetric mode allows you to set the middle value and the amplitude, whereas the asymmetric mode allows you to set each value independently.
-\item Compute the iEEG values on the brain surface or clean the brain.
-\item Compute and display the correlations between all sites in a single patient visualization. See Appendix \ref{correlations} for more information about the computation method.
+\item Compute and display the correlations between all sites in a single patient visualization. See Appendix \ref{correlations} for more information about the computation method. You can also save and load correlations files.
 \end{itemize}
-\subsubsection{CCEP settings}
+\paragraph{} CCEP specific parameters:
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{CCEPSettings.png}
@@ -715,6 +482,18 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Toggle between single site source or MarsAtlas area source
 \item Set or unset the selected site as source
 \item Select the MarsAtlas area to be used as source
+\item Change the size of the influence sphere of the sites
+\item Change the threshold values
+\end{itemize}
+\paragraph{} fMRI specific parameters:
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{fMRISettings.png}
+\end{center}
+\end{figure}
+\begin{itemize}
+\item Change the threshold values of the fMRI. Unlike the iEEG and CCEP threshold values, there are 4 threshold values: all values under the maximum negative slider will be of the same color; all values between the minimum negative and minimum positive sliders will be of the same color; all values above the maximum positive slider will be of the same color; any value between the two negative sliders or the two positive sliders will decrease or increase linearly.
+\item Hide the values that are not between the two negative sliders or the two positive sliders
 \end{itemize}
 \subsubsection{Timeline}
 \begin{figure}[H]
@@ -728,6 +507,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Increase the current timeline ID by a specific amount of samples (this also controls the speed of the play, X samples will be played each second).
 \item Loop the timeline (when playing automatically).
 \item Slider to control the timeline precisely; the red mark indicates the main event, the blue marks indicates the secondary events (as defined in the protocol).
+\item Record a .avi video of the timeline (does not work for fMRI columns)
 \end{itemize}
 \subsubsection{Sites}
 \begin{figure}[H]
@@ -739,9 +519,10 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Selected site name.
 \item Display all sites in the scene.
 \item Hide blacklisted sites.
+\item Change the size of the sites.
 \item Compare two sites : select a site, click on this button, then select another site to compare them.
 \item Load the single patient scene corresponding to the patient whose site is selected.
-\item Cut the brain mesh around the select site.
+\item Cut the brain mesh around the select site. While this setting is on, the cut will be applied each time a site is selected.
 \item Copy the states of the sites of the selected column to every other columns.
 \item Save the states of the sites in a .csv file.
 \item Load a .csv file with the states of the sites to the selected column.
@@ -766,17 +547,6 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Load a .roi file to the selected column.
 \end{itemize}
 \paragraph{} After adding a ROI to the selected column, you can left click on the mesh to add spheres to this ROI. You can select a sphere using either the toolbar or by left clicking on it. You can change the position of the selected sphere by draging and droping it and its size using the scroll wheel.
-\subsubsection{fMRI}
-\begin{figure}[H]
-\begin{center}
-\includegraphics[scale=0.5]{fMRI.png}
-\end{center}
-\end{figure}
-\begin{itemize}
-\item Add or remove a fMRI to the anatomic MRI. If iEEG values are computed, the fMRI will not be displayed.
-\item Change the threshold values of the fMRI.
-\item Change the transparency of the fMRI.
-\end{itemize}
 \subsubsection{Atlas}
 \begin{figure}[H]
 \begin{center}
@@ -784,9 +554,10 @@ A dataset is a list of data information, each of them connecting one patient (an
 \end{center}
 \end{figure}
 \begin{itemize}
-\item Toggle between IBC Functional Atlas, JuBrain Cytoarchitectonic Atlas and MarsAtlas.
+\item Toggle between MarsAtlas, JuBrain Cytoarchitectonic Atlas, IBC Functional Atlas, and DiFuMo.
+\item For MarsAltas and the JuBrain Cytoarchitectonic Atlas, you can visualize the different areas on the 3D brain and hover them to get more information.
 \item For the IBC Functional Atlas, you can select the contrast you want to visualize and change the thresholds values.
-\item For the JuBrainCytoarchitectonic Atlas and the MarsAtlas, you can visualize the different areas on the 3D brain and hover them to get more information.
+\item For the DiFuMo atlas, you can select the precision and the area you want to visualize.
 \end{itemize}
 \subsubsection{Triangle eraser}
 \begin{figure}[H]
@@ -845,6 +616,14 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Select multiple trials by either shift/ctrl left clicking on the trials you want to select, or by pressing the left click button dragging the mouse and releasing the button.
 \item Move the selection with the scroll wheel
 \end{itemize}
+\subsubsection{Graphs grid}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.45]{Grid.png}
+\end{center}
+\caption{\label{graphsGrid}Example graphs grid}
+\end{figure}
+\paragraph{} The graphs grid can be used to visualize graphs of multiple sites at once. A graph will be generated for each site that is filtered. You can then drag and drop the graph of a site in order to sort them "by hand", select and display or filter them, and change the zoom to visualize more graphs at once.
 \appendix
 \section{Adding and removing data of a HiBoP project}\label{addobjects}
 \subsection{General rule}
@@ -870,4 +649,5 @@ A dataset is a list of data information, each of them connecting one patient (an
 \paragraph{} This section explains how the correlations between channels are computed. This is the only statistical computation that is present within HiBoP.
 \paragraph{} Let $(A,B)$ be a pair of channels we want to compute correlations of. Let $S_A(i)$ (respectively $S_B(i)$) be the values of the signal of the channel A (respectively B) for the trial number $i$. We compute $R_{ij} = pearson(S_A(i),S_B(j))$ for each pair $(i,j)$ of trials, where $pearson$ represents the computation of the pearson coefficient for the two sets of values. We sort these values into two sets: one set $E_1$ is composed of all the $R_{ii}$, the other $E_2$ is composed of all the $R_{ij}$ where $i \neq j$.
 \paragraph{} Then we compute a Wilcoxon rank-sum test between $E_1$ and $E_2$. This gives us a p-value $p$. This p-value is then compared to the "Alpha threshold" value set in the User Preferences of HiBoP, eventually modified using the Bonferroni correction where appropriate.
+\paragraph{} More information about this algorithm can be found at https://www.jneurosci.org/content/32/19/6421.
 \end{document}
