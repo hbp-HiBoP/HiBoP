@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
@@ -10,13 +11,7 @@ namespace HBP.Module3D.DLL
     public class MarsAtlas : BrainAtlas
     {
         #region Constructors
-        public MarsAtlas(string path, string pathBrodmann, string pathNifti) : base()
-        {
-            if (!Load(path, pathBrodmann, pathNifti))
-            {
-                Debug.LogError("Can't load mars atlas index.");
-            }
-        }
+        public MarsAtlas() : base() { }
         #endregion
 
         #region Public Methods
@@ -119,9 +114,13 @@ namespace HBP.Module3D.DLL
         {
             return new RawSiteList(generate_atlas_sites_list_MarsAtlasIndex(_handle, dimension));
         }
-        #endregion
-
-        #region Private Methods
+        public void Load()
+        {
+            string indexPath = Path.Combine(ApplicationState.DataPath, "Atlases", "MarsAtlas", "mars_atlas_index.csv");
+            string brodmannPath = Path.Combine(ApplicationState.DataPath, "Atlases", "MarsAtlas", "brodmann_areas.txt");
+            string mriPath = Path.Combine(ApplicationState.DataPath, "Atlases", "MarsAtlas", "colin27_MNI_MarsAtlas.nii");
+            Load(indexPath, brodmannPath, mriPath);
+        }
         /// <summary>
         /// Load the mars atlas
         /// </summary>
@@ -129,10 +128,12 @@ namespace HBP.Module3D.DLL
         /// <param name="pathBrodmann">Path to brodmann txt file</param>
         /// <param name="pathNifti">Path to mars atlas nifti file</param>
         /// <returns>True if the mars atlas is correctly loaded</returns>
-        private bool Load(string path, string pathBrodmann, string pathNifti)
+        public bool Load(string path, string pathBrodmann, string pathNifti)
         {
+            Loading = true;
             Loaded = load_MarsAtlasIndex(_handle, path, pathBrodmann, pathNifti) == 1;
             apply_offset_MarsAtlasIndex(_handle, 1.7f, 0f, 1f);
+            Loading = false;
             return Loaded;
         }
         #endregion

@@ -1,4 +1,5 @@
 ﻿
+using System.IO;
 using UnityEngine;
 /**
 * \class ApplicationState
@@ -29,18 +30,12 @@ public static class ApplicationState
     /// <summary>
     /// TMP folder to store the open projects
     /// </summary>
-    public static string ProjectTMPFolder { get; set; }
+    public static string TMPFolder { get; set; }
 
     /// <summary>
     /// Full path to the loaded project
     /// </summary>
-    public static string ProjectLoadedTMPFullPath
-    {
-        get
-        {
-            return System.IO.Path.Combine(ProjectTMPFolder, InstanceID);
-        }
-    }
+    public static string ExtractProjectFolder { get; set; }
 
     /// <summary>
     /// General settings of the application.
@@ -95,16 +90,6 @@ public static class ApplicationState
     public static Tools.Unity.GlobalExceptionManager GlobalExceptionManager { get; set; }
 
     public static Tools.Unity.ColorPicker ColorPicker { get; set; }
-    static public string DataPath
-    {
-        get
-        {
-#if UNITY_EDITOR
-            return Application.dataPath + "/Data/";
-#else
-            return Application.dataPath +  "/../Data/";
-#endif
 
-        }
-    }
+    static public string DataPath { get; set; }
 }

@@ -68,12 +68,16 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         /// <param name="isGlobal">Get all columns</param>
         /// <returns>List containing the selected column or all columns</returns>
-        protected List<Column3DDynamic> GetColumnsDependingOnTypeAndGlobal(bool isGlobal)
+        protected List<Column3D> GetColumnsDependingOnTypeAndGlobal(bool isGlobal)
         {
-            List<Column3DDynamic> columns = new List<Column3DDynamic>();
+            List<Column3D> columns = new List<Column3D>();
             if (isGlobal)
             {
-                if (SelectedColumn is Column3DIEEG)
+                if (SelectedColumn is Column3DAnatomy)
+                {
+                    columns.AddRange(SelectedScene.ColumnsAnatomy);
+                }
+                else if (SelectedColumn is Column3DIEEG)
                 {
                     columns.AddRange(SelectedScene.ColumnsIEEG);
                 }
@@ -81,10 +85,14 @@ namespace HBP.UI.Module3D.Tools
                 {
                     columns.AddRange(SelectedScene.ColumnsCCEP);
                 }
+                else if (SelectedColumn is Column3DFMRI)
+                {
+                    columns.AddRange(SelectedScene.ColumnsFMRI);
+                }
             }
             else
             {
-                columns.Add((Column3DDynamic)SelectedColumn);
+                columns.Add(SelectedColumn);
             }
             return columns;
         }

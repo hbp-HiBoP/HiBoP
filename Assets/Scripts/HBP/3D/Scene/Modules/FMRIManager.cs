@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace HBP.Module3D
@@ -18,31 +20,6 @@ namespace HBP.Module3D
         /// </summary>
         [SerializeField] private DisplayedObjects m_DisplayedObjects;
 
-        private enum CalType { Value, Factor }
-        /// <summary>
-        /// Calibration type (depending on how we set the calibration values)
-        /// </summary>
-        private CalType m_CurrentCalType = CalType.Factor;
-
-        private MRI3D m_FMRI;
-        /// <summary>
-        /// FMRI associated to the scene
-        /// </summary>
-        public MRI3D FMRI
-        {
-            get
-            {
-                return m_FMRI;
-            }
-            set
-            {
-                m_FMRI = value;
-                UpdateSurfaceFMRIValues();
-                m_Scene.ResetIEEG();
-                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
-            }
-        }
-
         private bool m_DisplayIBCContrasts;
         /// <summary>
         /// Do we display the IBC contrasts on the cuts ?
@@ -56,9 +33,7 @@ namespace HBP.Module3D
             set
             {
                 m_DisplayIBCContrasts = value;
-                ApplicationState.Module3D.IBCObjects.UpdateCurrentVolume(m_SelectedIBCContrastID);
                 UpdateSurfaceFMRIValues();
-                m_Scene.ResetIEEG();
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
@@ -76,9 +51,7 @@ namespace HBP.Module3D
             set
             {
                 m_SelectedIBCContrastID = value;
-                ApplicationState.Module3D.IBCObjects.UpdateCurrentVolume(m_SelectedIBCContrastID);
                 UpdateSurfaceFMRIValues();
-                m_Scene.ResetIEEG();
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
@@ -93,9 +66,27 @@ namespace HBP.Module3D
             set
             {
                 m_DisplayDiFuMo = value;
-                ApplicationState.Module3D.DiFuMoObjects.UpdateCurrentVolume(m_SelectedDiFuMoArea);
                 UpdateSurfaceFMRIValues();
-                m_Scene.ResetIEEG();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            }
+        }
+
+        private string m_SelectedDiFuMoAtlas;
+        public string SelectedDiFuMoAtlas
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(m_SelectedDiFuMoAtlas))
+                {
+                    m_SelectedDiFuMoAtlas = ApplicationState.Module3D.DiFuMoObjects.FMRIs.Keys.FirstOrDefault();
+                }
+                return m_SelectedDiFuMoAtlas;
+            }
+            set
+            {
+                m_SelectedDiFuMoAtlas = value;
+                m_SelectedDiFuMoArea = 0;
+                UpdateSurfaceFMRIValues();
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
@@ -110,9 +101,7 @@ namespace HBP.Module3D
             set
             {
                 m_SelectedDiFuMoArea = value;
-                ApplicationState.Module3D.DiFuMoObjects.UpdateCurrentVolume(m_SelectedDiFuMoArea);
                 UpdateSurfaceFMRIValues();
-                m_Scene.ResetIEEG();
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
@@ -124,17 +113,13 @@ namespace HBP.Module3D
         {
             get
             {
-                if (FMRI != null)
+                if (m_DisplayIBCContrasts)
                 {
-                    return FMRI.Volume;
-                }
-                else if (m_DisplayIBCContrasts)
-                {
-                    return ApplicationState.Module3D.IBCObjects.Volume;
+                    return ApplicationState.Module3D.IBCObjects.FMRI.Volumes[m_SelectedIBCContrastID];
                 }
                 else if (m_DisplayDiFuMo)
                 {
-                    return ApplicationState.Module3D.DiFuMoObjects.Volume;
+                    return ApplicationState.Module3D.DiFuMoObjects.FMRIs[m_SelectedDiFuMoAtlas].Volumes[m_SelectedDiFuMoArea];
                 }
                 else
                 {
@@ -153,7 +138,7 @@ namespace HBP.Module3D
             }
         }
 
-        private List<float[]> m_SplitFMRIValues;
+        private float[] m_FMRIValues;
 
         private float m_FMRIAlpha = 0.2f;
         /// <summary>
@@ -169,7 +154,6 @@ namespace HBP.Module3D
             {
                 m_FMRIAlpha = value;
                 UpdateSurfaceFMRIColors();
-                m_Scene.ResetIEEG();
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
@@ -188,7 +172,6 @@ namespace HBP.Module3D
             {
                 m_FMRINegativeCalMinFactor = value;
                 UpdateSurfaceFMRIColors();
-                m_Scene.ResetIEEG();
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
@@ -207,7 +190,6 @@ namespace HBP.Module3D
             {
                 m_FMRINegativeCalMaxFactor = value;
                 UpdateSurfaceFMRIColors();
-                m_Scene.ResetIEEG();
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
@@ -226,7 +208,6 @@ namespace HBP.Module3D
             {
                 m_FMRIPositiveCalMinFactor = value;
                 UpdateSurfaceFMRIColors();
-                m_Scene.ResetIEEG();
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
@@ -245,33 +226,24 @@ namespace HBP.Module3D
             {
                 m_FMRIPositiveCalMaxFactor = value;
                 UpdateSurfaceFMRIColors();
-                m_Scene.ResetIEEG();
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
+
+        private const float m_DiFuMoNegativeMin = 0;
+        private const float m_DiFuMoNegativeMax = 1;
+        private const float m_DiFuMoPositiveMin = 0;
+        private const float m_DiFuMoPositiveMax = 1;
+        private const float m_DiFuMoAlpha = 1f;
         #endregion
 
         #region Public Methods
-        /// <summary>
-        /// Color the cut with the selected FMRI
-        /// </summary>
-        /// <param name="column">Column on which the cut is colored</param>
-        /// <param name="cutID">ID of the cut to color</param>
-        public void ColorCutTexture(Column3D column, int cutID)
-        {
-            column.CutTextures.ColorCutsTexturesWithFMRI(CurrentVolume, cutID, m_FMRINegativeCalMinFactor, m_FMRINegativeCalMaxFactor, m_FMRIPositiveCalMinFactor, m_FMRIPositiveCalMaxFactor, m_FMRIAlpha);
-        }
         public void UpdateSurfaceFMRIValues()
         {
             m_Scene.BrainMaterials.SetDisplayFMRI(DisplayFMRI);
             if (CurrentVolume != null)
-            {
-                m_SplitFMRIValues = new List<float[]>();
-                for (int ii = 0; ii < m_Scene.MeshManager.MeshSplitNumber; ++ii)
-                {
-                    m_SplitFMRIValues.Add(CurrentVolume.GetVerticesValues(m_Scene.MeshManager.SplittedMeshes[ii]));
-                }
-            }
+                m_FMRIValues = CurrentVolume.GetVerticesValues(m_Scene.MeshManager.BrainSurface);
+
             UpdateSurfaceFMRIColors();
         }
         /// <summary>
@@ -281,25 +253,28 @@ namespace HBP.Module3D
         {
             if (CurrentVolume != null)
             {
-                for (int ii = 0; ii < m_Scene.MeshManager.MeshSplitNumber; ++ii)
+                Color[] colors;
+                if (m_DisplayDiFuMo)
                 {
-                    Color[] colors;
-                    if (m_DisplayDiFuMo)
-                    {
-                        colors = CurrentVolume.ConvertValuesToColors(m_SplitFMRIValues[ii], 0, 1, 0, 1, 1);
-                    }
-                    else
-                    {
-                        colors = CurrentVolume.ConvertValuesToColors(m_SplitFMRIValues[ii], m_FMRINegativeCalMinFactor, m_FMRINegativeCalMaxFactor, m_FMRIPositiveCalMinFactor, m_FMRIPositiveCalMaxFactor, m_FMRIAlpha);
-                    }
-                    m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.colors = colors;
-                    foreach (Column3D column in m_Scene.Columns)
-                    {
-                        column.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().sharedMesh.colors = colors;
-                    }
+                    colors = CurrentVolume.ConvertValuesToColors(m_FMRIValues, m_DiFuMoNegativeMin, m_DiFuMoNegativeMax, m_DiFuMoPositiveMin, m_DiFuMoPositiveMax, m_DiFuMoAlpha);
+                }
+                else
+                {
+                    colors = CurrentVolume.ConvertValuesToColors(m_FMRIValues, m_FMRINegativeCalMinFactor, m_FMRINegativeCalMaxFactor, m_FMRIPositiveCalMinFactor, m_FMRIPositiveCalMaxFactor, m_FMRIAlpha);
+                }
+                m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh.colors = colors;
+                foreach (Column3D column in m_Scene.Columns)
+                {
+                    column.BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors = colors;
                 }
             }
-            m_Scene.CutTexturesNeedUpdate = true;
+            m_Scene.SceneInformation.BaseCutTexturesNeedUpdate = true;
+        }
+
+        internal void ColorCuts(Column3D column)
+        {
+            if (m_DisplayIBCContrasts) column.CutTextures.ColorCutsTexturesWithFMRIAtlas(CurrentVolume, m_FMRINegativeCalMinFactor, m_FMRINegativeCalMaxFactor, m_FMRIPositiveCalMinFactor, m_FMRIPositiveCalMaxFactor, m_FMRIAlpha);
+            else if (m_DisplayDiFuMo) column.CutTextures.ColorCutsTexturesWithFMRIAtlas(CurrentVolume, m_DiFuMoNegativeMin, m_DiFuMoNegativeMax, m_DiFuMoPositiveMin, m_DiFuMoPositiveMax, m_DiFuMoAlpha);
         }
         #endregion
     }

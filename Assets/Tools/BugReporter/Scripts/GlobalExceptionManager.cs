@@ -4,14 +4,8 @@ using UnityEngine;
 
 namespace Tools.Unity
 {
-    public class GlobalExceptionManager : MonoBehaviour // Maybe FIXME : integrate this to the windows system
+    public class GlobalExceptionManager : MonoBehaviour
     {
-        #region Properties
-        private bool m_WindowOpen = false;
-        [SerializeField]
-        private GameObject m_BugReporterWindowPrefab;
-        #endregion
-
         #region Private Methods
         private void OnEnable()
         {
@@ -23,19 +17,10 @@ namespace Tools.Unity
         }
         private void HandleException(string condition, string stackTrace, LogType type)
         {
-            if ((type == LogType.Exception) && !m_WindowOpen)
+            if (type == LogType.Exception)
             {
-                OpenBugReporter();
+                ApplicationState.WindowsManager.Open("Bug Reporter window");
             }
-        }
-        #endregion
-
-        #region Public Methods
-        public void OpenBugReporter()
-        {
-            BugReporterWindow window = Instantiate(m_BugReporterWindowPrefab, GameObject.Find("Windows").transform, false).GetComponent<BugReporterWindow>();
-            m_WindowOpen = true;
-            window.OnClose.AddListener(() => m_WindowOpen = false);
         }
         #endregion
     }

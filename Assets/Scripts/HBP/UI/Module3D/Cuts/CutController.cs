@@ -123,6 +123,7 @@ namespace HBP.UI.Module3D
                 }
             });
             controller.CloseControls();
+            controller.Interactable = !m_Scene.AutomaticCutAroundSelectedSite;
             m_AddCutButton.transform.SetAsLastSibling();
         }
         #endregion
@@ -148,6 +149,14 @@ namespace HBP.UI.Module3D
             m_Scene.OnAddCut.AddListener((cut) =>
             {
                 AddCut(cut);
+            });
+            m_Scene.OnChangeAutomaticCutAroundSelectedSite.AddListener((isOn) =>
+            {
+                foreach (var controller in m_CutParametersControllers)
+                {
+                    controller.Interactable = !isOn;
+                }
+                m_AddCutButton.gameObject.SetActive(!isOn);
             });
         }
         #endregion

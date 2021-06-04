@@ -226,27 +226,6 @@ namespace HBP.Module3D.DLL
             flip_Surface(_handle);
         }
         /// <summary>
-        /// Split the surface in n sub surfaces (the split is based on the triangles, not the vertices, be careful with the 65K vertices limit for GO)
-        /// </summary>
-        /// <param name="nbSubSurfaces">Number of sub surfaces</param>
-        /// <returns>The list of the sub surfaces</returns>
-        /// <remarks>
-        /// The split is based on the triangles, not the vertices
-        /// Be careful when deciding on the number of splits
-        /// </remarks>
-        public List<Surface> SplitToSurfaces(int nbSubSurfaces)
-        {            
-            HandleRef pSubSurfaces = new HandleRef(this, split_to_surfaces_Surface(_handle, nbSubSurfaces));
-
-            int nbMultiSurface = nb_MultiSurface(pSubSurfaces);
-            List<Surface> splits = new List<Surface>(nbMultiSurface);
-            for (int ii = 0; ii < nbMultiSurface; ++ii)               
-                splits.Add(new Surface(move_MultiSurface(pSubSurfaces, ii)));
-
-            delete_MultiSurface(pSubSurfaces);
-            return splits;
-        }
-        /// <summary>
         /// Update the visibility triangle mask of the surface with the input array and return a new mesh made with invisible triangles
         /// </summary>
         /// <param name="visibilityMask">Array of 0 (triangle is invisible) and 1 (triangle is visible)</param>
@@ -549,15 +528,6 @@ namespace HBP.Module3D.DLL
                 }
             }
             return new BBox(cube_bounding_box_Surface(_handle, planes, planesCount));
-        }
-        /// <summary>
-        /// Get the surface made of precision * precision * precision vertices inside the bounding box
-        /// </summary>
-        /// <param name="precision">Defines the number of vertices of the surface</param>
-        /// <returns>Newly created surface</returns>
-        public Surface GetSurfaceFromBoundingBox(int precision)
-        {
-            return new Surface(get_mesh_from_bounding_box_Surface(_handle, precision));
         }
         #endregion
 

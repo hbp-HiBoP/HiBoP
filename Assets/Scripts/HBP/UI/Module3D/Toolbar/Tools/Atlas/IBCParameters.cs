@@ -67,7 +67,7 @@ namespace HBP.UI.Module3D.Tools
             bool hasIBC = SelectedScene.FMRIManager.CurrentVolume != null && SelectedScene.FMRIManager.DisplayIBCContrasts;
             if (hasIBC)
             {
-                m_ThresholdFMRI.UpdateFMRICalValues(SelectedScene.FMRIManager.CurrentVolume, SelectedScene.FMRIManager.FMRINegativeCalMinFactor, SelectedScene.FMRIManager.FMRINegativeCalMaxFactor, SelectedScene.FMRIManager.FMRIPositiveCalMinFactor, SelectedScene.FMRIManager.FMRIPositiveCalMaxFactor, false); //FIXME : remove the false argument
+                m_ThresholdFMRI.UpdateFMRICalValues(ApplicationState.Module3D.IBCObjects.FMRI, SelectedScene.FMRIManager.FMRINegativeCalMinFactor, SelectedScene.FMRIManager.FMRINegativeCalMaxFactor, SelectedScene.FMRIManager.FMRIPositiveCalMinFactor, SelectedScene.FMRIManager.FMRIPositiveCalMaxFactor);
                 m_AlphaSlider.value = SelectedScene.FMRIManager.FMRIAlpha;
             }
         }

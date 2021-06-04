@@ -81,6 +81,10 @@ namespace HBP.Data.Container
         {
             SavedPath = Path.CopyToDirectory(dataInfoDirectory).Replace(projectDirectory, oldProjectDirectory);
         }
+        public override void ConvertAllPathsToFullPaths()
+        {
+            SavedPath = SavedPath.ConvertToFullPath();
+        }
         #endregion
 
         #region Constructors

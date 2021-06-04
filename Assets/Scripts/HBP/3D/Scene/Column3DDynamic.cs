@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using HBP.Module3D.DLL;
 using HBP.Data.Enums;
+using HBP.Data.Visualization;
 
 namespace HBP.Module3D
 {
@@ -15,16 +16,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Timeline of this column (contains information about the length, the number of samples, the events etc.)
         /// </summary>
-        public abstract Data.Visualization.Timeline Timeline { get; }
-
-        /// <summary>
-        /// Shared minimum influence between all dynamic columns
-        /// </summary>
-        public float SharedMinInf = 0f;
-        /// <summary>
-        /// Shared maximum influence between all dynamic columns
-        /// </summary>
-        public float SharedMaxInf = 0f;
+        public abstract Timeline Timeline { get; }
 
         /// <summary>
         /// Parameters on how to display the activity on the column
@@ -125,6 +117,12 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
+        public override void Initialize(int idColumn, Column baseColumn, Implantation3D implantation, List<GameObject> sceneSitePatientParent)
+        {
+            base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
+
+            ActivityGenerator = new IEEGGenerator();
+        }
         /// <summary>
         /// Update the sites of this column (when changing the implantation of the scene)
         /// </summary>
@@ -148,7 +146,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Method called when initializing the activity on the column
         /// </summary>
-        public virtual void ComputeActivityData()
+        public override void ComputeActivityData()
         {
             Timeline.OnUpdateCurrentIndex.AddListener(() =>
             {
@@ -166,7 +164,7 @@ namespace HBP.Module3D
         /// <param name="showAllSites">Do we show sites that are not in a ROI ?</param>
         /// <param name="hideBlacklistedSites">Do we hide blacklisted sites ?</param>
         /// <param name="isGeneratorUpToDate">Is the activity generator up to date ?</param>
-        public override void UpdateSitesRendering(bool showAllSites, bool hideBlacklistedSites, bool isGeneratorUpToDate)
+        public override void UpdateSitesRendering(bool showAllSites, bool hideBlacklistedSites, bool isGeneratorUpToDate, float gain)
         {
             UpdateSitesSizeAndColorOfSites(showAllSites);
 
@@ -202,18 +200,16 @@ namespace HBP.Module3D
                 }
                 if (!activity) site.IsActive = true;
                 site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
-                site.transform.localScale *= DynamicParameters.Gain;
+                site.transform.localScale *= gain;
             }
         }
         /// <summary>
         /// Compute the UVs of the meshes for the brain activity
         /// </summary>
-        /// <param name="splittedMeshes">DLL brain splitted meshes</param>
-        public void ComputeSurfaceBrainUVWithActivity(List<Surface> splittedMeshes)
+        /// <param name="brainSurface">Surface of the brain</param>
+        public override void ComputeSurfaceBrainUVWithActivity()
         {
-            for (int ii = 0; ii < DLLBrainTextureGenerators.Count; ++ii)
-                DLLBrainTextureGenerators[ii].ComputeSurfaceActivityUV(splittedMeshes[ii], this);
-            CutTextures.ColorCutsTexturesWithIEEG(this);
+            SurfaceGenerator.ComputeActivityUV(Timeline.CurrentIndex, ActivityAlpha);
         }
         #endregion
     }

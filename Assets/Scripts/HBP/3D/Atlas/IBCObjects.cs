@@ -17,27 +17,26 @@ namespace HBP.Module3D.IBC
         /// Contains information about labels of the contrasts
         /// </summary>
         public IBCInformation Information { get; private set; }
-        public DLL.NIFTI NIFTI { get; private set; } = new DLL.NIFTI();
-        public DLL.Volume Volume { get; private set; } = new DLL.Volume();
-        public bool Loaded { get; private set; } = false;
+        public FMRI FMRI { get; private set; }
+        public bool Loaded { get { return FMRI != null; } }
+        public bool Loading { get; private set; } = false;
         #endregion
 
         #region Private Methods
         private void Awake()
         {
-            this.StartCoroutineAsync(c_LoadIBC());
+            if (ApplicationState.UserPreferences.Data.Atlases.PreloadIBC) Load();
         }
         private void OnDestroy()
         {
-            NIFTI?.Dispose();
-            Volume?.Dispose();
+            FMRI?.Clean();
         }
         #endregion
 
         #region Public Methods
-        public void UpdateCurrentVolume(int component)
+        public void Load()
         {
-            NIFTI.FillVolumeWithNifti(Volume, component);
+            this.StartCoroutineAsync(c_LoadIBC());
         }
         #endregion
 
@@ -50,18 +49,16 @@ namespace HBP.Module3D.IBC
         {
             yield return Ninja.JumpToUnity;
 
-            string directory = ApplicationState.DataPath + "Atlases/IBC/";
-            string csvFile = ApplicationState.DataPath + "Atlases/IBC/map_labels.csv";
-            string file = ApplicationState.DataPath + "Atlases/IBC/all_maps.nii.gz";
+            Loading = true;
+            string csvFile = Path.Combine(ApplicationState.DataPath, "Atlases", "IBC", "map_labels.csv");
+            string file = Path.Combine(ApplicationState.DataPath, "Atlases", "IBC", "all_maps.nii.gz");
 
             yield return Ninja.JumpBack;
-
-            NIFTI.Load(file);
+            FMRI = new FMRI("IBC", file);
             Information = new IBCInformation(csvFile);
-            UpdateCurrentVolume(0);
-
             yield return Ninja.JumpToUnity;
-            Loaded = true;
+
+            Loading = false;
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion

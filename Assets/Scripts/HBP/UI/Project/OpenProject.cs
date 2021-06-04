@@ -35,6 +35,7 @@ namespace HBP.UI
         {
             FindObjectOfType<ProjectLoaderSaver>().Load(info);
             base.Close();
+            ApplicationState.WindowsManager.CloseAll();
         }
         public override void OK()
 		{

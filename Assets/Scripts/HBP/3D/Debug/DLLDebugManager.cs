@@ -107,6 +107,7 @@ namespace HBP.Module3D.DLL
         {
             if (m_GetInformationAboutDLLObjects)
             {
+                if (typeString == "Tools.CSharp.EEG.Trigger") return;
                 DLLObjects.Add(new DLLObject()
                 {
                     Type = typeString,

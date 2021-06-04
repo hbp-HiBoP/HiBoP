@@ -14,11 +14,11 @@ namespace HBP.UI
         #region Public Methods
         public void OpenProtocolGestion()
         {
-            ApplicationState.WindowsManager.Open("Protocol gestion window", true);
+            ApplicationState.WindowsManager.Open("Protocol gestion window");
         }
         public void OpenDatasetGestion()
         {
-            ApplicationState.WindowsManager.Open("Dataset gestion window", true);
+            ApplicationState.WindowsManager.Open("Dataset gestion window");
         }
         #endregion
     }

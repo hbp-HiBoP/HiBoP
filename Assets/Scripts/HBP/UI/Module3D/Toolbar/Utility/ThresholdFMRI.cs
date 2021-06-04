@@ -47,7 +47,9 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Textures of the histograms (one per MRI)
         /// </summary>
-        private Dictionary<Volume, Texture2D> m_HistogramByVolume = new Dictionary<Volume, Texture2D>();
+        private Dictionary<HBP.Module3D.FMRI, Texture2D> m_HistogramByFMRI = new Dictionary<HBP.Module3D.FMRI, Texture2D>();
+
+        private Queue<HBP.Module3D.FMRI> m_HistogramsToBeDestroyed = new Queue<HBP.Module3D.FMRI>();
 
         /// <summary>
         /// Used to display the current histogram
@@ -104,19 +106,19 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Update MRI Histogram Texture
         /// </summary>
-        private void UpdateMRIHistogram(Volume volume)
+        private void UpdateMRIHistogram(HBP.Module3D.FMRI fmri)
         {
             UnityEngine.Profiling.Profiler.BeginSample("HISTOGRAM FMRI");
-            if (!m_HistogramByVolume.TryGetValue(volume, out m_MRIHistogram))
+            if (!m_HistogramByFMRI.TryGetValue(fmri, out m_MRIHistogram))
             {
                 if (!m_MRIHistogram)
                 {
                     m_MRIHistogram = new Texture2D(1, 1);
                 }
-                HBP.Module3D.DLL.Texture texture = HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(volume, 440, 440, false);
+                HBP.Module3D.DLL.Texture texture = HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(fmri, 440, 440, false);
                 texture.UpdateTexture2D(m_MRIHistogram);
                 texture.Dispose();
-                m_HistogramByVolume.Add(volume, m_MRIHistogram);
+                m_HistogramByFMRI.Add(fmri, m_MRIHistogram);
             }
             m_Histogram.texture = m_MRIHistogram;
             UnityEngine.Profiling.Profiler.EndSample();
@@ -249,28 +251,27 @@ namespace HBP.UI.Module3D
                 }
             });
 
-            //ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
-            //{
-            //    foreach (var mri in s.MRIManager.MRIs)
-            //    {
-            //        if (m_HistogramByVolume.TryGetValue(mri, out Texture2D texture))
-            //        {
-            //            Destroy(texture);
-            //            m_HistogramByVolume.Remove(mri);
-            //        }
-            //    }
-            //});
+            ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
+            {
+                foreach (var column in s.ColumnsFMRI)
+                {
+                    foreach (var fmri in column.ColumnFMRIData.Data.FMRIs)
+                    {
+                        m_HistogramsToBeDestroyed.Enqueue(fmri);
+                    }
+                }
+            });
         }
         /// <summary>
         /// Update Maximum and Minimum Cal value
         /// </summary>
         /// <param name="values">Cal values</param>
-        public void UpdateFMRICalValues(Volume volume, float negativeMin, float negativeMax, float positiveMin, float positiveMax, bool updateHistogram = true)
+        public void UpdateFMRICalValues(HBP.Module3D.FMRI fmri, float negativeMin, float negativeMax, float positiveMin, float positiveMax, bool updateHistogram = true)
         {
             m_Initialized = false;
 
             // Fixed values
-            MRICalValues values = volume.ExtremeValues;
+            MRICalValues values = fmri.NIFTI.ExtremeValues;
             m_Min = values.Min;
             m_Max = values.Max;
             m_MinText.text = m_Min.ToString("N2");
@@ -304,9 +305,24 @@ namespace HBP.UI.Module3D
             SetNegativeValues(negativeMin, negativeMax);
             SetPositiveValues(positiveMin, positiveMax);
 
-            if (updateHistogram) UpdateMRIHistogram(volume);
+            if (updateHistogram) UpdateMRIHistogram(fmri);
 
             m_Initialized = true;
+        }
+        /// <summary>
+        /// Method used to clean useless histograms
+        /// </summary>
+        public void CleanHistograms()
+        {
+            while (m_HistogramsToBeDestroyed.Count > 0)
+            {
+                HBP.Module3D.FMRI histogramID = m_HistogramsToBeDestroyed.Dequeue();
+                if (m_HistogramByFMRI.TryGetValue(histogramID, out Texture2D texture))
+                {
+                    DestroyImmediate(texture);
+                    m_HistogramByFMRI.Remove(histogramID);
+                }
+            }
         }
         #endregion
     }

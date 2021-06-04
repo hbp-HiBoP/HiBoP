@@ -184,7 +184,7 @@ namespace HBP.UI
             if (m_DataNames != null && m_DataNames.Count > value)
             {
                 Object.DataName = m_DataNames[value];
-                var invalidPatients = m_Patients.Where((patient) => !Object.Dataset.GetIEEGDataInfos().Any(d => d.Patient == patient && d.Name == Object.DataName && d.IsOk)).ToArray();
+                var invalidPatients = m_Patients.Where((patient) => !Object.Dataset.GetCCEPDataInfos().Any(d => d.Patient == patient && d.Name == Object.DataName && d.IsOk)).ToArray();
                 if (invalidPatients.Length > 0)
                 {
                     m_InformationImage.gameObject.SetActive(true);

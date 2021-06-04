@@ -19,6 +19,7 @@ namespace HBP.UI.Informations
         [SerializeField] ChannelStruct[] m_Channels;
         [SerializeField] Column[] m_Columns;
         [SerializeField] GraphsGrid m_Grid;
+        public GraphsGrid Grid { get { return m_Grid; } }
         #endregion
 
         #region Public Methods

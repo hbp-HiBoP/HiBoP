@@ -50,26 +50,22 @@ namespace HBP
             ApplicationState.Module3DUI = m_Module3DUI;
             ApplicationState.GlobalExceptionManager = m_GlobalExceptionManager;
             ApplicationState.ColorPicker = m_ColorPicker;
-            ApplicationState.ProjectTMPFolder = GetProjectTMPDirectory();
+#if UNITY_EDITOR
+            ApplicationState.DataPath =  Path.Combine(Application.dataPath, "Data");
+#else
+            ApplicationState.DataPath = Path.Combine(Application.dataPath, "..", "Data");
+#endif
+            ApplicationState.TMPFolder = Path.Combine(Application.persistentDataPath, "tmp");
+            ApplicationState.ExtractProjectFolder = Path.Combine(Application.persistentDataPath, ApplicationState.InstanceID);
         }
         private void OnDestroy()
         {
             DataManager.Clear();
-            string tmpDir = ApplicationState.ProjectLoadedTMPFullPath;
+            string tmpDir = ApplicationState.ExtractProjectFolder;
             if (Directory.Exists(tmpDir))
             {
                 Directory.Delete(tmpDir, true);
             }
-        }
-        private string GetProjectTMPDirectory()
-        {
-            string tmpDir = Path.Combine(Application.persistentDataPath, ".tmp");
-            if (!Directory.Exists(tmpDir))
-            {
-                DirectoryInfo di = Directory.CreateDirectory(tmpDir);
-                di.Attributes |= FileAttributes.Hidden;
-            }
-            return tmpDir;
         }
         #endregion
     }

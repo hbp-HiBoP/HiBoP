@@ -11,25 +11,27 @@ namespace HBP.Data.Preferences
         [DataMember] public EEGPreferences EEG { get; set; }
         [DataMember] public ProtocolPreferences Protocol { get; set; }
         [DataMember] public AnatomicPreferences Anatomic { get; set; }
+        [DataMember] public AtlasesPreferences Atlases { get; set; }
         #endregion
 
         #region Constructors
-        public DataPreferences() : this(new EEGPreferences(), new ProtocolPreferences(), new AnatomicPreferences())
+        public DataPreferences() : this(new EEGPreferences(), new ProtocolPreferences(), new AnatomicPreferences(), new AtlasesPreferences())
         {
 
         }
-        public DataPreferences(EEGPreferences EEGPreferences, ProtocolPreferences protocolPreferences, AnatomicPreferences anatomicPreferences)
+        public DataPreferences(EEGPreferences EEGPreferences, ProtocolPreferences protocolPreferences, AnatomicPreferences anatomicPreferences, AtlasesPreferences atlasesPreferences)
         {
             EEG = EEGPreferences;
             Protocol = protocolPreferences;
             Anatomic = anatomicPreferences;
+            Atlases = atlasesPreferences;
         }
         #endregion
 
         #region Public Methods
         public object Clone()
         {
-            return new DataPreferences(EEG.Clone() as EEGPreferences, Protocol.Clone() as ProtocolPreferences, Anatomic.Clone() as AnatomicPreferences);
+            return new DataPreferences(EEG.Clone() as EEGPreferences, Protocol.Clone() as ProtocolPreferences, Anatomic.Clone() as AnatomicPreferences, Atlases.Clone() as AtlasesPreferences);
         }
         #endregion
     }
@@ -106,26 +108,68 @@ namespace HBP.Data.Preferences
         [DataMember] public bool MeshPreloading { get; set; }
         [DataMember] public bool MRIPreloading { get; set; }
         [DataMember] public bool ImplantationPreloading { get; set; }
+        [DataMember] public bool PreloadSinglePatientDataInMultiPatientVisualization { get; set; }
         #endregion
 
         #region Constructors
-        public AnatomicPreferences() : this(true, true, true, true)
+        public AnatomicPreferences() : this(true, false, false, false, false)
         {
 
         }
-        public AnatomicPreferences(bool siteNameCorrection, bool meshPreloading, bool mriPreloading, bool implantationPreloading)
+        public AnatomicPreferences(bool siteNameCorrection, bool meshPreloading, bool mriPreloading, bool implantationPreloading, bool preloadSinglePatientDataInMultiPatientVisualization)
         {
             SiteNameCorrection = siteNameCorrection;
             MeshPreloading = meshPreloading;
             MRIPreloading = mriPreloading;
             ImplantationPreloading = implantationPreloading;
+            PreloadSinglePatientDataInMultiPatientVisualization = preloadSinglePatientDataInMultiPatientVisualization;
         }
         #endregion
 
         #region Public Methods
         public object Clone()
         {
-            return new AnatomicPreferences(SiteNameCorrection, MeshPreloading, MRIPreloading, ImplantationPreloading);
+            return new AnatomicPreferences(SiteNameCorrection, MeshPreloading, MRIPreloading, ImplantationPreloading, PreloadSinglePatientDataInMultiPatientVisualization);
+        }
+        #endregion
+    }
+
+    [DataContract]
+    public class AtlasesPreferences : ICloneable
+    {
+        #region Properties
+        [DataMember] public bool PreloadMarsAtlas { get; set; }
+        [DataMember] public bool PreloadJuBrain { get; set; }
+        [DataMember] public bool PreloadIBC { get; set; }
+        [DataMember] public bool PreloadDiFuMo64 { get; set; }
+        [DataMember] public bool PreloadDiFuMo128 { get; set; }
+        [DataMember] public bool PreloadDiFuMo256 { get; set; }
+        [DataMember] public bool PreloadDiFuMo512 { get; set; }
+        [DataMember] public bool PreloadDiFuMo1024 { get; set; }
+        #endregion
+
+        #region Constructors
+        public AtlasesPreferences() : this(true, true, false, false, false, false, false, false)
+        {
+
+        }
+        public AtlasesPreferences(bool preloadMarsAtlas, bool preloadJuBrain, bool preloadIBC, bool preloadDiFuMo64, bool preloadDiFuMo128, bool preloadDiFuMo256, bool preloadDiFuMo512, bool preloadDiFuMo1024)
+        {
+            PreloadMarsAtlas = preloadMarsAtlas;
+            PreloadJuBrain = preloadJuBrain;
+            PreloadIBC = preloadIBC;
+            PreloadDiFuMo64 = preloadDiFuMo64;
+            PreloadDiFuMo128 = preloadDiFuMo128;
+            PreloadDiFuMo256 = preloadDiFuMo256;
+            PreloadDiFuMo512 = preloadDiFuMo512;
+            PreloadDiFuMo1024 = preloadDiFuMo1024;
+        }
+        #endregion
+
+        #region Public Methods
+        public object Clone()
+        {
+            return new AtlasesPreferences(PreloadMarsAtlas, PreloadJuBrain, PreloadIBC, PreloadDiFuMo64, PreloadDiFuMo128, PreloadDiFuMo256, PreloadDiFuMo512, PreloadDiFuMo1024);
         }
         #endregion
     }

@@ -116,11 +116,7 @@ namespace HBP.Module3D
                 m_Scene.Columns[ii].UnselectSite();
             }
 
-            m_Scene.ResetIEEG();
-            foreach (Column3D column in m_Scene.Columns)
-            {
-                column.IsRenderingUpToDate = false;
-            }
+            m_Scene.ResetGenerators();
         }
         /// <summary>
         /// Display information about the site under the mouse

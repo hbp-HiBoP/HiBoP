@@ -5,6 +5,7 @@ using Tools.Unity;
 using System.Collections.ObjectModel;
 using HBP.Errors;
 using System.ComponentModel;
+using System.Linq;
 
 namespace HBP.Data.Container
 {
@@ -30,11 +31,11 @@ namespace HBP.Data.Container
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("Nifti"), FMRi]
+    [DataContract, DisplayName("Nifti"), FMRI]
     public class Nifti : DataContainer
     {
         #region Properties
-        readonly string[]  m_Extension = new string[] { ".nii", ".img" };
+        readonly string[]  m_Extension = new string[] { ".nii", ".nii.gz", ".img" };
         /// <summary>
         /// Extensions allowed for Nifti data.
         /// </summary>
@@ -46,7 +47,7 @@ namespace HBP.Data.Container
             }
         }
 
-        [DataMember(Name = "Header")] public string SavedFile { get; protected set; }
+        [DataMember(Name = "File")] public string SavedFile { get; protected set; }
         /// <summary>
         /// Path to the file containing the NIFTI data.
         /// </summary>
@@ -109,7 +110,7 @@ namespace HBP.Data.Container
                 }
                 else
                 {
-                    if (!EXTENSION.Contains(file.Extension))
+                    if (!EXTENSION.Any(e => file.FullName.EndsWith(e)))
                     {
                         errors.Add(new WrongExtensionError("Nifti file has a wrong extension"));
                     }
@@ -121,6 +122,10 @@ namespace HBP.Data.Container
         public override void CopyDataToDirectory(DirectoryInfo destinationDirectory, string projectDirectory, string oldProjectDirectory)
         {
             // TODO
+        }
+        public override void ConvertAllPathsToFullPaths()
+        {
+            SavedFile = SavedFile.ConvertToFullPath();
         }
         #endregion
 

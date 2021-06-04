@@ -234,6 +234,9 @@ namespace Tools.Unity.Lists
         /// <returns>True if updated, False otherwise</returns>
         public override bool UpdateObject(T objectToUpdate)
         {
+            int index = m_Objects.FindIndex(o => o.Equals(objectToUpdate));
+            m_Objects[index] = objectToUpdate;
+
             if (GetItemFromObject(objectToUpdate, out Item<T> item))
             {
                 SelectableItem<T> selectableItem = item as SelectableItem<T>;

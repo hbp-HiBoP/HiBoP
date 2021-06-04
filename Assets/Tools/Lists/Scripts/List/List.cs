@@ -144,14 +144,17 @@ namespace Tools.Unity.Lists
         /// <summary>
         /// Update a object from the list.
         /// </summary>
-        /// <param name="obj">Object to update.</param>
+        /// <param name="objectToUpdate">Object to update.</param>
         /// <returns>True if updated, False otherwise</returns>
-        public virtual bool UpdateObject(T obj)
+        public virtual bool UpdateObject(T objectToUpdate)
         {
-            if (GetItemFromObject(obj, out Item<T> item))
+            int index = m_Objects.FindIndex(o => o.Equals(objectToUpdate));
+            m_Objects[index] = objectToUpdate;
+
+            if (GetItemFromObject(objectToUpdate, out Item<T> item))
             {
-                item.Object = obj;
-                OnUpdateObject.Invoke(obj);
+                item.Object = objectToUpdate;
+                OnUpdateObject.Invoke(objectToUpdate);
                 return true;
             }
             return false;

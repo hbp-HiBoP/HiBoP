@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
@@ -10,16 +11,17 @@ namespace HBP.Module3D.DLL
     public class JuBrainAtlas : BrainAtlas
     {
         #region Constructors
-        public JuBrainAtlas(string leftNIIPath, string rightNIIPath, string jsonPath) : base()
-        {
-            if (!Load(leftNIIPath, rightNIIPath, jsonPath))
-            {
-                Debug.LogError("Can't load JuBrain Atlas.");
-            }
-        }
+        public JuBrainAtlas() : base() { }
         #endregion
 
         #region Public Methods
+        public void Load()
+        {
+            string leftNIIPath = Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "jubrain_left_nlin2Stdcolin27.nii.gz");
+            string rightNIIPath = Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "jubrain_right_nlin2Stdcolin27.nii.gz");
+            string jsonPath = Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "jubrain.json");
+            Load(leftNIIPath, rightNIIPath, jsonPath);
+        }
         /// <summary>
         /// Load the JuBrain atlas DLL object
         /// </summary>
@@ -29,7 +31,10 @@ namespace HBP.Module3D.DLL
         /// <returns></returns>
         public bool Load(string leftNIIPath, string rightNIIPath, string jsonPath)
         {
-            return Loaded = load_JuBrainAtlas(_handle, leftNIIPath, rightNIIPath, jsonPath) == 1;
+            Loading = true;
+            Loaded = load_JuBrainAtlas(_handle, leftNIIPath, rightNIIPath, jsonPath) == 1;
+            Loading = false;
+            return Loaded;
         }
         #endregion
 

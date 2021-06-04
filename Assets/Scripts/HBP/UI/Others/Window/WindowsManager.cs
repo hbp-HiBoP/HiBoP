@@ -15,19 +15,25 @@ namespace HBP.UI
         public Vector2 Offset;
         #endregion
 
-        #region Private Methods
-        private void Awake()
-        {
-            m_Windows = Resources.LoadAll<GameObject>("Prefabs/UI/Windows/");
-            WindowsReferencer.OnCloseWindow.AddListener(OnCloseWindow);
-        }
+        #region Public Methods
         public Window Open(string name, bool interactable = true)
         {
-            Window window = null;
-            GameObject prefab = GetWindowPrefab(name);
-            if (prefab)
+            Window window = WindowsReferencer.Windows.FirstOrDefault(w => w.name == name);
+            if (window)
             {
-                window = CreateWindow(prefab, interactable);
+                Selector selector = window.GetComponent<Selector>();
+                if (selector)
+                {
+                    selector.Selected = true;
+                }
+            }
+            else
+            {
+                GameObject prefab = GetWindowPrefab(name);
+                if (prefab)
+                {
+                    window = CreateWindow(prefab, interactable);
+                }
             }
             return window;
         }
@@ -41,19 +47,35 @@ namespace HBP.UI
             }
             return window;
         }
-        public ObjectModifier<T> OpenModifier<T>(T obj, bool interactable = true) where T : ICopiable, ICloneable
+        public ObjectModifier<T> OpenModifier<T>(T obj, bool interactable = true) where T : Data.BaseData
         {
-            ObjectModifier<T> modifier = default;
-            GameObject prefab = GetWindowPrefab(typeof(ObjectModifier<T>));
-            if (prefab)
+            ObjectModifier<T> modifier = WindowsReferencer.Windows.OfType<ObjectModifier<T>>().FirstOrDefault(w => w.Object.ID == obj.ID);
+            if (modifier)
             {
-                modifier = CreateWindow(prefab, interactable) as ObjectModifier<T>;
-                modifier.Object = obj;
+                Selector selector = modifier.GetComponent<Selector>();
+                if (selector)
+                {
+                    selector.Selected = true;
+                }
+            }
+            else
+            {
+                GameObject prefab = GetWindowPrefab(typeof(ObjectModifier<T>));
+                if (prefab)
+                {
+                    modifier = CreateWindow(prefab, interactable) as ObjectModifier<T>;
+                    modifier.Object = obj;
+                }
             }
             return modifier;
         }
         public ObjectSelector<T> OpenSelector<T>(IEnumerable<T> objects, bool multiSelection = true, bool openModifiers = false, bool interactable = true)
         {
+            var openedSelector = WindowsReferencer.Windows.OfType<ObjectSelector<T>>().ToArray();
+            foreach (var sel in openedSelector)
+            {
+                sel.Close();
+            }
             ObjectSelector<T> selector = default;
             GameObject prefab = GetWindowPrefab(typeof(ObjectSelector<T>));
             if (prefab)
@@ -66,12 +88,26 @@ namespace HBP.UI
             }
             return selector;
         }
+        public void CloseAll()
+        {
+            var windows = WindowsReferencer.Windows.ToArray();
+            foreach (var window in windows)
+            {
+                window.Close();
+            }
+        }
         #endregion
 
         #region Private Methods
+        private void Awake()
+        {
+            m_Windows = Resources.LoadAll<GameObject>("Prefabs/UI/Windows/");
+            WindowsReferencer.OnCloseWindow.AddListener(OnCloseWindow);
+        }
         Window CreateWindow(GameObject prefab, bool interactable)
         {
             GameObject gameObject = Instantiate(prefab, Container);
+            gameObject.name = prefab.name;
             RectTransform rectTransform = gameObject.transform as RectTransform;
             rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
             rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
@@ -93,8 +129,7 @@ namespace HBP.UI
             Window selectedWindow = WindowsReferencer.Windows.FirstOrDefault(w => w.GetComponent<Selector>().Selected);
             if (selectedWindow != null)
             {
-                if (selectedWindow is CreatorWindow) rectTransform.anchoredPosition = selectedWindow.GetComponent<RectTransform>().anchoredPosition;
-                else rectTransform.anchoredPosition = selectedWindow.GetComponent<RectTransform>().anchoredPosition + Offset;
+                rectTransform.anchoredPosition = selectedWindow.GetComponent<RectTransform>().anchoredPosition + Offset;
             }
             else
             {

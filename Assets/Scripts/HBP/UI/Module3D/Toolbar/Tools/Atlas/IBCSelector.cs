@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
 {
-    public class IBCSelector : Tool, IScrollHandler
+    public class IBCSelector : Tool
     {
         #region Properties
         /// <summary>
@@ -56,13 +56,6 @@ namespace HBP.UI.Module3D.Tools
                 }
                 m_Dropdown.value = SelectedScene.FMRIManager.SelectedIBCContrastID;
             }
-            m_Dropdown.RefreshShownValue();
-        }
-        public void OnScroll(PointerEventData eventData)
-        {
-            int newValue = m_Dropdown.value + (eventData.scrollDelta.y < 0 ? 1 : -1);
-            int total = m_Dropdown.options.Count;
-            m_Dropdown.value = ((newValue % total) + total) % total;
             m_Dropdown.RefreshShownValue();
         }
         #endregion

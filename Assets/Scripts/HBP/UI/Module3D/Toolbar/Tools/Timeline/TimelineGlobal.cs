@@ -45,10 +45,10 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isColumnDynamic = SelectedColumn is HBP.Module3D.Column3DDynamic;
+            bool isColumnDynamicOrFMRI = SelectedColumn is HBP.Module3D.Column3DDynamic || SelectedColumn is HBP.Module3D.Column3DFMRI;
             bool areAmplitudesComputed = SelectedScene.IsGeneratorUpToDate;
 
-            m_Toggle.interactable = isColumnDynamic && areAmplitudesComputed;
+            m_Toggle.interactable = isColumnDynamicOrFMRI && areAmplitudesComputed;
         }
         /// <summary>
         /// Set the global mode

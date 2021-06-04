@@ -6,6 +6,7 @@ namespace Tools.Unity.Components
     [RequireComponent(typeof(RectTransform))]
     public class MousePositionAndClamp : MonoBehaviour
     {
+
         #region Properties
         public Vector2 BottomRightOffset;
         public Vector2 BottomLeftOffset;
@@ -17,7 +18,7 @@ namespace Tools.Unity.Components
         public bool AlwaysUpdate;
 
         RectTransform m_RectTransform;
-        CanvasScaler m_CanvasScaler;
+        CanvasScalerHandler m_CanvasScalerHandler;
         bool m_Initialized;
         #endregion
 
@@ -41,14 +42,15 @@ namespace Tools.Unity.Components
         void Initialize()
         {
             m_RectTransform = GetComponent<RectTransform>();
-            m_CanvasScaler = GetComponentInParent<CanvasScaler>();
+            m_CanvasScalerHandler = GetComponentInParent<CanvasScalerHandler>();
             m_Initialized = true;
         }
         void Clamp(RectTransform rectTransform, RectTransform containerRectTransform)
         {
             Vector2 mousePosition = Input.mousePosition;
-            Vector2 scaledMousePosition = new Vector2((m_CanvasScaler.referenceResolution.x / Screen.width) * Input.mousePosition.x, (m_CanvasScaler.referenceResolution.y / Screen.height) * Input.mousePosition.y);
-            Vector2 containerScaledPosition = new Vector2((m_CanvasScaler.referenceResolution.x / Screen.width) * containerRectTransform.position.x, (m_CanvasScaler.referenceResolution.y / Screen.height) * containerRectTransform.position.y);
+            float scale = m_CanvasScalerHandler.Scale;
+            Vector2 scaledMousePosition = new Vector2(scale * Input.mousePosition.x, scale * Input.mousePosition.y);
+            Vector2 containerScaledPosition = new Vector2(scale * containerRectTransform.position.x, scale * containerRectTransform.position.y);
 
             Rect containerRectPadded = Padding.Remove(containerRectTransform.rect);
             Vector2 containerMinPosition = containerScaledPosition + containerRectPadded.min;

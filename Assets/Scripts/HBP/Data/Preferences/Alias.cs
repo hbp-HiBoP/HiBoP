@@ -1,4 +1,5 @@
 ﻿using System.Runtime.Serialization;
+using UnityEngine;
 
 namespace HBP.Data
 {
@@ -19,12 +20,12 @@ namespace HBP.Data
         public Alias(string key, string value, string ID) : base(ID)
         {
             Key = key;
-            Value = value;
+            Value = string.IsNullOrEmpty(value) ? Application.dataPath : value;
         }
         public Alias(string key, string value) : base()
         {
             Key = key;
-            Value = value;
+            Value = string.IsNullOrEmpty(value) ? Application.dataPath : value;
         }
         #endregion
 

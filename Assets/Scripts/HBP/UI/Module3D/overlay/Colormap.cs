@@ -60,10 +60,7 @@ namespace HBP.UI.Module3D
 
             scene.OnUpdateGeneratorState.AddListener((value) =>
             {
-                if (column is Column3DDynamic)
-                {
-                    IsActive = value;
-                }
+                IsActive = value;
             });
 
             scene.OnChangeColormap.AddListener((color) => m_ColormapImage.sprite = m_SpriteByColorType[color]);
@@ -76,6 +73,48 @@ namespace HBP.UI.Module3D
                     m_Mid.text = dynamicColumn.DynamicParameters.Middle.ToString("0.00");
                     m_Max.text = dynamicColumn.DynamicParameters.SpanMax.ToString("0.00");
                 });
+            }
+            else if (column is Column3DFMRI fmriColumn)
+            {
+                fmriColumn.FMRIParameters.OnUpdateCalValues.AddListener(() =>
+                {
+                    UpdateTextFMRI(fmriColumn);
+                });
+                fmriColumn.OnChangeSelectedFMRI.AddListener(() =>
+                {
+                    UpdateTextFMRI(fmriColumn);
+                });
+            }
+        }
+        #endregion
+
+        #region Private Methods
+        private void UpdateTextFMRI(Column3DFMRI fmriColumn)
+        {
+            MRICalValues values = fmriColumn.SelectedFMRI.NIFTI.ExtremeValues;
+            float min = values.Min;
+            float max = values.Max;
+            float negativeMin = fmriColumn.FMRIParameters.FMRINegativeCalMinFactor * min;
+            float negativeMax = fmriColumn.FMRIParameters.FMRINegativeCalMaxFactor * min;
+            float positiveMin = fmriColumn.FMRIParameters.FMRIPositiveCalMinFactor * max;
+            float positiveMax = fmriColumn.FMRIParameters.FMRIPositiveCalMaxFactor * max;
+            if (min > 0)
+            {
+                m_Min.text = "";
+                m_Mid.text = positiveMin.ToString("0.0");
+                m_Max.text = positiveMax.ToString("0.0");
+            }
+            else if (max < 0)
+            {
+                m_Min.text = negativeMax.ToString("0.0");
+                m_Mid.text = negativeMin.ToString("0.0");
+                m_Max.text = "";
+            }
+            else
+            {
+                m_Min.text = negativeMax.ToString("0.0");
+                m_Mid.text = string.Format("{0}|{1}", negativeMin.ToString("0.0"), positiveMin.ToString("0.0"));
+                m_Max.text = positiveMax.ToString("0.0");
             }
         }
         #endregion

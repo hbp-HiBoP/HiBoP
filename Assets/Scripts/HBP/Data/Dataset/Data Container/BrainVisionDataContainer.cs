@@ -90,6 +90,10 @@ namespace HBP.Data.Container
         {
             // TODO
         }
+        public override void ConvertAllPathsToFullPaths()
+        {
+            SavedHeader = SavedHeader.ConvertToFullPath();
+        }
         #endregion
 
         #region Constructors

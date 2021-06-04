@@ -34,6 +34,19 @@ namespace HBP.UI.Module3D
         /// Texture of the cut associated with this controller
         /// </summary>
         public Texture2D Texture { get { return m_Image.sprite.texture; } }
+        private bool m_Interactable = true;
+        public bool Interactable
+        {
+            get
+            {
+                return m_Interactable;
+            }
+            set
+            {
+                m_Interactable = value;
+                m_Image.GetComponent<Button>().interactable = value;
+            }
+        }
 
         /// <summary>
         /// Did we just clicked on the minus button ?
@@ -423,7 +436,7 @@ namespace HBP.UI.Module3D
 
             foreach (var site in sites)
             {
-                Vector2 ratio = m_Scene.DLLMRIGeometryCutGeneratorList[Cut.ID].GetPositionRatioOnTexture(site.transform.localPosition);
+                Vector2 ratio = m_Scene.CutGeometryGenerators[Cut.ID].GetPositionRatioOnTexture(site.transform.localPosition);
                 float horizontalRatio = 0, verticalRatio = 0;
                 switch (Cut.Orientation)
                 {
@@ -453,7 +466,7 @@ namespace HBP.UI.Module3D
             foreach (Transform child in m_CutLinesRectTransform) Destroy(child.gameObject);
             if (Cut.Orientation == Data.Enums.CutOrientation.Custom || !ApplicationState.UserPreferences.Visualization.Cut.ShowCutLines) return;
 
-            HBP.Module3D.DLL.BBox boundingBox = m_Scene.DLLMRIGeometryCutGeneratorList[Cut.ID].BoundingBox;
+            HBP.Module3D.DLL.BBox boundingBox = m_Scene.CutGeometryGenerators[Cut.ID].BoundingBox;
             if (boundingBox != null)
             {
                 Vector3 min = boundingBox.Min;
@@ -469,7 +482,7 @@ namespace HBP.UI.Module3D
                     {
                         void addRatioOfPoint(Vector3 point)
                         {
-                            Vector2 ratio = m_Scene.DLLMRIGeometryCutGeneratorList[Cut.ID].GetPositionRatioOnTexture(new Vector3(-point.x, point.y, point.z));
+                            Vector2 ratio = m_Scene.CutGeometryGenerators[Cut.ID].GetPositionRatioOnTexture(new Vector3(-point.x, point.y, point.z));
                             float horizontalRatio = 0, verticalRatio = 0;
                             switch (Cut.Orientation)
                             {

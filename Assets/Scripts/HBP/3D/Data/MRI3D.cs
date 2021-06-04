@@ -56,14 +56,11 @@ namespace HBP.Module3D
         #endregion
 
         #region Constructors
-        public MRI3D(Data.MRI mri)
+        public MRI3D(Data.MRI mri, bool load)
         {
             Name = mri.Name;
             m_MRI = mri;
-            if (ApplicationState.UserPreferences.Data.Anatomic.MRIPreloading)
-            {
-                Load();
-            }
+            if (load) Load();
             HasBeenLoadedOutside = false;
         }
         public MRI3D(string name, DLL.Volume volume)
@@ -77,7 +74,7 @@ namespace HBP.Module3D
 
         #region Public Methods
         /// <summary>
-        /// Load the mesh to DLL objects
+        /// Load the mri to DLL objects
         /// </summary>
         public void Load()
         {

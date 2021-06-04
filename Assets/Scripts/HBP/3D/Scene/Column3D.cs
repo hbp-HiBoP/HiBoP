@@ -12,7 +12,7 @@ namespace HBP.Module3D
     /// <summary>
     /// Class containing information about the 3D column (specific meshes, sites, ROIs of the column)
     /// </summary>
-    public class Column3D : MonoBehaviour, IConfigurable
+    public abstract class Column3D : MonoBehaviour, IConfigurable
     {
         #region Properties
         /// <summary>
@@ -77,12 +77,12 @@ namespace HBP.Module3D
         /// <summary>
         /// Does the column rendering need to be updated ?
         /// </summary>
-        public bool IsRenderingUpToDate { get; set; } = false;
+        public bool SurfaceNeedsUpdate { get; set; } = true;
 
         /// <summary>
-        /// Surface meshes displayed in this column
+        /// Surface mesh displayed in this column
         /// </summary>
-        public List<GameObject> BrainSurfaceMeshes { get; protected set; } = new List<GameObject>();
+        public GameObject BrainMesh { get; protected set; }
 
         /// <summary>
         /// Views of this column
@@ -107,7 +107,7 @@ namespace HBP.Module3D
         /// Currently selected site ID
         /// </summary>
         public int SelectedSiteID { get { return SelectedSite != null ? SelectedSite.Information.Index : -1; } }
-
+        
         /// <summary>
         /// Raw site list (used for DLL operations)
         /// </summary>
@@ -121,18 +121,35 @@ namespace HBP.Module3D
         /// </summary>
         public Dictionary<string, SiteState> SiteStateBySiteID = new Dictionary<string, SiteState>();
         
+        public virtual ActivityGenerator ActivityGenerator { get; protected set; }
         /// <summary>
         /// Texture generator for the brain surface
         /// </summary>
-        public List<MRIBrainGenerator> DLLBrainTextureGenerators { get; protected set; } = new List<MRIBrainGenerator>();
-        /// <summary>
-        /// Volume generator for cut textures
-        /// </summary>
-        public MRIVolumeGenerator DLLMRIVolumeGenerator { get; set; } = new MRIVolumeGenerator();
+        public SurfaceGenerator SurfaceGenerator { get; set; }
         /// <summary>
         /// Cut Textures Utility
         /// </summary>
         public CutTexturesUtility CutTextures { get; protected set; } = new CutTexturesUtility();
+
+        private float m_ActivityAlpha = 0.8f;
+        /// <summary>
+        /// Alpha of the activity for the lowest site density
+        /// </summary>
+        public float ActivityAlpha
+        {
+            get
+            {
+                return m_ActivityAlpha;
+            }
+            set
+            {
+                if (m_ActivityAlpha != value)
+                {
+                    m_ActivityAlpha = value;
+                    OnUpdateActivityAlpha.Invoke();
+                }
+            }
+        }
 
         /// <summary>
         /// Parent of the meshes displayed in this column
@@ -169,14 +186,18 @@ namespace HBP.Module3D
         /// Event called each time we change the state of a site
         /// </summary>
         [HideInInspector] public GenericEvent<Site> OnChangeSiteState = new GenericEvent<Site>();
+        /// <summary>
+        /// Event called when updating the alpha values
+        /// </summary>
+        [HideInInspector] public UnityEvent OnUpdateActivityAlpha = new UnityEvent();
         #endregion
 
         #region Private Methods
         private void OnDestroy()
         {
             RawElectrodes?.Dispose();
-            foreach (var dllBrainTextureGenerator in DLLBrainTextureGenerators) dllBrainTextureGenerator?.Dispose();
-            DLLMRIVolumeGenerator?.Dispose();
+            SurfaceGenerator?.Dispose();
+            ActivityGenerator?.Dispose();
             CutTextures.Clean();
         }
         #endregion
@@ -193,9 +214,11 @@ namespace HBP.Module3D
         {
             Layer = "Column" + idColumn;
             ColumnData = baseColumn;
+            CutTextures.Column = this;
             UpdateSites(implantation, sceneSitePatientParent);
             AddView();
-            IsRenderingUpToDate = false;
+
+            SurfaceGenerator = new SurfaceGenerator();
         }
         /// <summary>
         /// Update the sites of this column (when changing the implantation of the scene)
@@ -268,56 +291,30 @@ namespace HBP.Module3D
         /// <summary>
         /// Instantiate the brain meshes for this column (required because we need different UVs to display a different activity on each column)
         /// </summary>
-        /// <param name="brainMeshesParent">Parent of the meshes in the scene</param>
-        public void InitializeColumnMeshes(Transform brainMeshesParent)
+        /// <param name="brainMesh">Mesh of the base scene</param>
+        public void InitializeColumnMeshes(GameObject brainMesh)
         {
-            BrainSurfaceMeshes = new List<GameObject>();
-            foreach (Transform meshPart in brainMeshesParent.transform)
-            {
-                if (meshPart.GetComponent<MeshCollider>() == null) // if the gameobject does not have mesh collider
-                {
-                    GameObject brainPart = Instantiate(meshPart.gameObject, m_BrainSurfaceMeshesParent);
-                    brainPart.layer = LayerMask.NameToLayer(Layer);
-                    brainPart.GetComponent<MeshFilter>().mesh = Instantiate(meshPart.GetComponent<MeshFilter>().mesh);
-                    brainPart.SetActive(true);
-                    BrainSurfaceMeshes.Add(brainPart);
-                }
-            }
+            BrainMesh = Instantiate(brainMesh, m_BrainSurfaceMeshesParent);
+            BrainMesh.layer = LayerMask.NameToLayer(Layer);
+            BrainMesh.GetComponent<MeshFilter>().mesh = Instantiate(brainMesh.GetComponent<MeshFilter>().mesh);
+            BrainMesh.SetActive(true);
         }
         /// <summary>
         /// Update the meshes of this column (when updating the base meshes in the scene)
         /// </summary>
-        /// <param name="brainMeshes">Meshes of the base scene</param>
-        public void UpdateColumnMeshes(List<GameObject> brainMeshes)
+        /// <param name="brainMesh">Mesh of the base scene</param>
+        public void UpdateColumnBrainMesh(GameObject brainMesh)
         {
-            for (int i = 0; i < brainMeshes.Count; i++)
-            {
-                if (brainMeshes[i].GetComponent<MeshCollider>() == null) // if the gameobject does not have mesh collider
-                {
-                    DestroyImmediate(BrainSurfaceMeshes[i].GetComponent<MeshFilter>().sharedMesh);
-                    BrainSurfaceMeshes[i].GetComponent<MeshFilter>().sharedMesh = Instantiate(brainMeshes[i].GetComponent<MeshFilter>().mesh);
-                }
-            }
-        }
-        /// <summary>
-        /// Reset the splits number (called when changing the splits number in the scene)
-        /// </summary>
-        /// <param name="nbSplits">Number of splits</param>
-        public void ResetSplitsNumber(int nbSplits)
-        {
-            DLLBrainTextureGenerators = new List<MRIBrainGenerator>(nbSplits);
-            for (int ii = 0; ii < nbSplits; ++ii)
-                DLLBrainTextureGenerators.Add(new MRIBrainGenerator());
+            DestroyImmediate(BrainMesh.GetComponent<MeshFilter>().sharedMesh);
+            BrainMesh.GetComponent<MeshFilter>().sharedMesh = Instantiate(brainMesh.GetComponent<MeshFilter>().mesh);
         }
         /// <summary>
         /// Update the number of cuts (called when changing the number of cuts in the scene)
         /// </summary>
         /// <param name="nbCuts">Number of cuts</param>
-        public void UpdateCutsPlanesNumber(int nbCuts)
+        public void UpdateCutsPlanesNumber(int nbCuts, List<CutGeometryGenerator> cutGeometryGenerators)
         {
-            CutTextures.Resize(nbCuts);
-            CutTextures.SetMRIVolumeGenerator(DLLMRIVolumeGenerator);
-            IsRenderingUpToDate = false;
+            CutTextures.Resize(nbCuts, cutGeometryGenerators, ActivityGenerator);
         }
         /// <summary>
         /// Update the visibility, the size and the color of the sites depending on their state
@@ -325,7 +322,7 @@ namespace HBP.Module3D
         /// <param name="showAllSites">Do we show sites that are not in a ROI ?</param>
         /// <param name="hideBlacklistedSites">Do we hide blacklisted sites ?</param>
         /// <param name="isGeneratorUpToDate">Is the activity generator up to date ?</param>
-        public virtual void UpdateSitesRendering(bool showAllSites, bool hideBlacklistedSites, bool isGeneratorUpToDate)
+        public virtual void UpdateSitesRendering(bool showAllSites, bool hideBlacklistedSites, bool isGeneratorUpToDate, float gain)
         {
             for (int i = 0; i < Sites.Count; ++i)
             {
@@ -354,6 +351,7 @@ namespace HBP.Module3D
                 }
                 if (!activity) site.IsActive = true;
                 site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
+                site.transform.localScale *= gain;
             }
         }
         /// <summary>
@@ -550,6 +548,10 @@ namespace HBP.Module3D
             }
             return result;
         }
+        public virtual void ComputeActivityData()
+        {
+
+        }
         /// <summary>
         /// Load the column configuration from the column data
         /// </summary>
@@ -557,6 +559,7 @@ namespace HBP.Module3D
         public virtual void LoadConfiguration(bool firstCall = true)
         {
             if (firstCall) ResetConfiguration();
+            ActivityAlpha = ColumnData.BaseConfiguration.ActivityAlpha;
             foreach (Site site in Sites)
             {
                 site.LoadConfiguration(false);
@@ -569,6 +572,7 @@ namespace HBP.Module3D
         /// </summary>
         public virtual void SaveConfiguration()
         {
+            ColumnData.BaseConfiguration.ActivityAlpha = ActivityAlpha;
             foreach (Site site in Sites)
             {
                 site.SaveConfiguration();
@@ -579,6 +583,7 @@ namespace HBP.Module3D
         /// </summary>
         public virtual void ResetConfiguration()
         {
+            ActivityAlpha = 0.8f;
             foreach (Site site in Sites)
             {
                 site.ResetConfiguration();
@@ -586,6 +591,11 @@ namespace HBP.Module3D
 
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
+        /// <summary>
+        /// Compute the UVs of the meshes for the brain activity
+        /// </summary>
+        /// <param name="brainSurface">Surface of the brain</param>
+        public abstract void ComputeSurfaceBrainUVWithActivity();
         #endregion
     }
 }

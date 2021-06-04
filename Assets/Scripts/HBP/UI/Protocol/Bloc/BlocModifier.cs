@@ -74,6 +74,7 @@ namespace HBP.UI.Experience.Protocol
             m_NameInputField.text = objectToDisplay.Name;
             m_ImageFileSelector.Path = objectToDisplay.IllustrationPath;
             m_SortInputField.text = objectToDisplay.Sort;
+            ChangeSort(objectToDisplay.Sort);
             m_OrderInputField.text = objectToDisplay.Order.ToString();
             m_SubBlocListGestion.List.Set(objectToDisplay.SubBlocs);
         }

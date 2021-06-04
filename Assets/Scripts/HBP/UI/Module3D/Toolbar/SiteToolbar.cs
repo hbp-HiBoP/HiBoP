@@ -18,6 +18,10 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField] private Tools.ShowAllSites m_ShowAllSites;
         /// <summary>
+        /// Change the gain of the sites
+        /// </summary>
+        [SerializeField] private Tools.SiteGain m_SiteGain;
+        /// <summary>
         /// Load a single patient scene from a multi patient scene
         /// </summary>
         [SerializeField] private Tools.LoadPatient m_LoadPatient;
@@ -52,6 +56,7 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_SelectedSite);
             m_Tools.Add(m_CompareSite);
             m_Tools.Add(m_ShowAllSites);
+            m_Tools.Add(m_SiteGain);
             m_Tools.Add(m_LoadPatient);
             m_Tools.Add(m_BlacklistedSitesDisplay);
             m_Tools.Add(m_SiteStateCopy);
