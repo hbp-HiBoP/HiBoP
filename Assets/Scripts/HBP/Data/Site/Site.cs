@@ -117,7 +117,7 @@ namespace HBP.Data
                 {
                     referenceSystem = "Post";
                 }
-                var ptsSites = LoadSitesFromPTSFIle(referenceSystem, file.FullName);
+                var ptsSites = LoadSitesFromPTSFile(referenceSystem, file.FullName);
                 foreach (var site in ptsSites)
                 {
                     var existingSite = sites.FirstOrDefault(s => s.Name == site.Name);
@@ -283,7 +283,7 @@ namespace HBP.Data
                 {
                     string line;
                     line = ptssr.ReadLine();
-                    if (!line.Contains("ptsfile")) throw new System.Exception("Invalid PTS file");
+                    if (!line.Contains("ptsfile")) return result;
                     while ((line = ptssr.ReadLine()) != null)
                     {
                         Site site = new Site();
@@ -345,7 +345,7 @@ namespace HBP.Data
         /// <param name="referenceSystem">reference system</param>
         /// <param name="ptsFile">pts file path</param>
         /// <returns>All sites in the pts file</returns>
-        public static List<Site> LoadSitesFromPTSFIle(string referenceSystem, string ptsFile)
+        public static List<Site> LoadSitesFromPTSFile(string referenceSystem, string ptsFile)
         {
             var sites = new List<Site>();
             if (!string.IsNullOrEmpty(ptsFile))
@@ -353,7 +353,7 @@ namespace HBP.Data
                 using (StreamReader streamReader = new StreamReader(ptsFile))
                 {
                     string line = streamReader.ReadLine();
-                    if (!line.Contains("ptsfile")) throw new Exception("Invalid PTS file");
+                    if (!line.Contains("ptsfile")) return sites;
                     while ((line = streamReader.ReadLine()) != null)
                     {
                         Site site = new Site();

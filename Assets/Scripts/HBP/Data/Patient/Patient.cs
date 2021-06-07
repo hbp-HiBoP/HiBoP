@@ -281,6 +281,7 @@ namespace HBP.Data
         /// <returns></returns>
         public static void LoadFromIntranatDatabase(string path, out Patient[] patients, Action<float, float, LoadingText> OnChangeProgress = null)
         {
+            OnChangeProgress?.Invoke(0, 0, new LoadingText("Finding patients to load"));
             patients = new Patient[0];
             if (string.IsNullOrEmpty(path)) return;
             DirectoryInfo directory = new DirectoryInfo(path);
