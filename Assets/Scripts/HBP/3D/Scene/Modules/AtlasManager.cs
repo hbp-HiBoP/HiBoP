@@ -39,6 +39,7 @@ namespace HBP.Module3D
                 m_Scene.BrainMaterials.SetDisplayAtlas(m_DisplayMarsAtlas);
                 if (m_Scene.MeshManager.SelectedMesh.Type == Data.Enums.MeshType.MNI)
                 {
+                    UpdateAtlasIndices();
                     UpdateAtlasColors();
                 }
             }
@@ -58,6 +59,7 @@ namespace HBP.Module3D
             {
                 m_DisplayJuBrainAtlas = value;
                 m_Scene.BrainMaterials.SetDisplayAtlas(m_DisplayJuBrainAtlas);
+                UpdateAtlasIndices();
                 UpdateAtlasColors();
             }
         }
