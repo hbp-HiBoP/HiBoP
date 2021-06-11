@@ -23,13 +23,20 @@ Then, you need to give execution rights to the executable, and execute HiBoP.x86
 
 ```
 cd <HIBOP_DIR>
-chmod +x ./HiBoP.x86_64
+chmod 755 ./HiBoP.x86_64
 ./HiBoP.x86_64
 ```
 
 ### MacOS
 
-Unzip the zip file and execute HiBoP.
+Unzip the zip file to a target directory.
+Then, you need to give execution rights to the executable, remove external attributes, and execute HiBoP.app.
+
+```
+cd <HIBOP_DIR>
+chmod -R 755 HiBoP.app
+xattr -rc HiBoP.app
+```
 
 ## Supported file formats
 

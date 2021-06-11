@@ -15,7 +15,7 @@ namespace HBP.Module3D
         /// </summary>
         [SerializeField] private Base3DScene m_Scene;
 
-        [SerializeField]  private Transform m_BrainSurfaceMeshesParent;
+        [SerializeField] private Transform m_BrainSurfaceMeshesParent;
         /// <summary>
         /// Parent of surface meshes
         /// </summary>
@@ -30,11 +30,7 @@ namespace HBP.Module3D
                 m_BrainSurfaceMeshesParent = value;
             }
         }
-
-        /// <summary>
-        /// Parent of the invisible surface meshes
-        /// </summary>
-        [SerializeField] private Transform m_InvisibleBrainMeshesParent;
+        
         /// <summary>
         /// Parent of the cut meshes
         /// </summary>
@@ -49,19 +45,19 @@ namespace HBP.Module3D
         public List<GameObject> SitesPatientParent { get; private set; }
 
         /// <summary>
-        /// Meshes of the brain surface
+        /// Mesh of the brain surface
         /// </summary>
-        public List<GameObject> BrainSurfaceMeshes { get; private set; } = new List<GameObject>();
+        public GameObject Brain { get; private set; }
         /// <summary>
         /// Meshes of the cuts
         /// </summary>
         public List<GameObject> BrainCutMeshes { get; private set; } = new List<GameObject>();
         /// <summary>
-        /// Meshes of the invisible surface
+        /// Mesh of the invisible surface
         /// </summary>
-        public List<GameObject> InvisibleBrainSurfaceMeshes { get; private set; } = new List<GameObject>();
+        public GameObject InvisibleBrain { get; private set; }
         /// <summary>
-        /// Simplified brain
+        /// Mesh of the simplified brain
         /// </summary>
         public GameObject SimplifiedBrain { get; private set; }
 
@@ -111,23 +107,14 @@ namespace HBP.Module3D
         /// <param name="visible">Is the mesh corresponding to the invisible brain visible at instantiation ?</param>
         public void InstantiateInvisibleMesh(bool visible)
         {
-            // destroy previous GO
-            if (InvisibleBrainSurfaceMeshes != null)
-                for (int ii = 0; ii < InvisibleBrainSurfaceMeshes.Count; ++ii)
-                    Destroy(InvisibleBrainSurfaceMeshes[ii]);
+            if (InvisibleBrain != null)
+                Destroy(InvisibleBrain);
 
-            // create new GO
-            InvisibleBrainSurfaceMeshes = new List<GameObject>(BrainSurfaceMeshes.Count);
-            for (int ii = 0; ii < BrainSurfaceMeshes.Count; ++ii)
-            {
-                GameObject invisibleBrainPart = Instantiate(m_InvisibleBrainPrefab, m_InvisibleBrainMeshesParent);
-                invisibleBrainPart.name = "erased brain part " + ii;
-                invisibleBrainPart.layer = LayerMask.NameToLayer(HBP3DModule.DEFAULT_MESHES_LAYER);
-                invisibleBrainPart.transform.localScale = new Vector3(-1, 1, 1);
-                invisibleBrainPart.transform.localPosition = new Vector3(0, 0, 0);
-                invisibleBrainPart.SetActive(visible);
-                InvisibleBrainSurfaceMeshes.Add(invisibleBrainPart);
-            }
+            InvisibleBrain = Instantiate(m_InvisibleBrainPrefab, BrainSurfaceMeshesParent);
+            InvisibleBrain.layer = LayerMask.NameToLayer(HBP3DModule.DEFAULT_MESHES_LAYER);
+            InvisibleBrain.transform.localScale = new Vector3(-1, 1, 1);
+            InvisibleBrain.transform.localPosition = new Vector3(0, 0, 0);
+            InvisibleBrain.SetActive(visible);
         }
         /// <summary>
         /// Instantiate all the gameObjects representing the sites on the scene
@@ -182,34 +169,29 @@ namespace HBP.Module3D
             m_Scene.ROIManager.UpdateROIMasks();
         }
         /// <summary>
-        /// Instantiate the splits for the brain mesh
+        /// Instantiate the brain mesh
         /// </summary>
-        /// <param name="nbSplits">Number of splits to be instantiated</param>
-        public void InstantiateSplits(int nbSplits)
+        public void InstantiateBrain()
         {
-            for (int i = 0; i < BrainSurfaceMeshes.Count; i++)
-            {
-                Destroy(BrainSurfaceMeshes[i]);
-            }
-            if (SimplifiedBrain != null)
-            {
-                Destroy(SimplifiedBrain);
-            }
+            if (Brain != null)
+                Destroy(Brain);
 
-            BrainSurfaceMeshes = new List<GameObject>(nbSplits);
-            for (int i = 0; i < nbSplits; ++i)
-            {
-                BrainSurfaceMeshes.Add(Instantiate(m_BrainPrefab));
-                BrainSurfaceMeshes[i].GetComponent<Renderer>().sharedMaterial = m_Scene.BrainMaterials.BrainMaterial;
-                BrainSurfaceMeshes[i].name = "brain_" + i;
-                BrainSurfaceMeshes[i].transform.parent = BrainSurfaceMeshesParent;
-                BrainSurfaceMeshes[i].transform.localPosition = Vector3.zero;
-                BrainSurfaceMeshes[i].layer = LayerMask.NameToLayer(HBP3DModule.HIDDEN_MESHES_LAYER);
-                BrainSurfaceMeshes[i].SetActive(true);
-            }
-            SimplifiedBrain = Instantiate(m_SimplifiedBrainPrefab);
-            SimplifiedBrain.transform.name = "brain_simplified";
-            SimplifiedBrain.transform.parent = BrainSurfaceMeshesParent;
+            Brain = Instantiate(m_BrainPrefab, BrainSurfaceMeshesParent);
+            Brain.GetComponent<Renderer>().sharedMaterial = m_Scene.BrainMaterials.BrainMaterial;
+            Brain.GetComponent<MeshFilter>().mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+            Brain.transform.localPosition = Vector3.zero;
+            Brain.layer = LayerMask.NameToLayer(HBP3DModule.HIDDEN_MESHES_LAYER);
+            Brain.SetActive(true);
+        }
+        /// <summary>
+        /// Instantiate the simplified brain mesh
+        /// </summary>
+        public void InstantiateSimplifiedBrain()
+        {
+            if (SimplifiedBrain != null)
+                Destroy(SimplifiedBrain);
+
+            SimplifiedBrain = Instantiate(m_SimplifiedBrainPrefab, BrainSurfaceMeshesParent);
             SimplifiedBrain.transform.localPosition = Vector3.zero;
             SimplifiedBrain.layer = LayerMask.NameToLayer(HBP3DModule.HIDDEN_MESHES_LAYER);
             SimplifiedBrain.SetActive(true);
@@ -219,15 +201,11 @@ namespace HBP.Module3D
         /// </summary>
         public void InstantiateCut()
         {
-            GameObject cutGameObject = Instantiate(m_CutPrefab);
-            cutGameObject.GetComponent<Renderer>().sharedMaterial = m_Scene.BrainMaterials.CutMaterial;
-            cutGameObject.name = "Cut";
-            cutGameObject.transform.parent = m_BrainCutMeshesParent.transform;
-            cutGameObject.AddComponent<MeshCollider>();
-            cutGameObject.layer = LayerMask.NameToLayer(HBP3DModule.DEFAULT_MESHES_LAYER);
-            cutGameObject.transform.localPosition = Vector3.zero;
-            BrainCutMeshes.Add(cutGameObject);
-            BrainCutMeshes.Last().layer = LayerMask.NameToLayer(HBP3DModule.DEFAULT_MESHES_LAYER);
+            GameObject cut = Instantiate(m_CutPrefab, m_BrainCutMeshesParent);
+            cut.GetComponent<Renderer>().sharedMaterial = m_Scene.BrainMaterials.CutMaterial;
+            cut.layer = LayerMask.NameToLayer(HBP3DModule.DEFAULT_MESHES_LAYER);
+            cut.transform.localPosition = Vector3.zero;
+            BrainCutMeshes.Add(cut);
         }
         /// <summary>
         /// Instantiate a ROI on the scene

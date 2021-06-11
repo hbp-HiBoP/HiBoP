@@ -33,7 +33,15 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Target value of the progress
         /// </summary>
-        private float m_Progress;
+        private float m_TargetProgress;
+        /// <summary>
+        /// Current value of the progress
+        /// </summary>
+        private float m_CurrentProgress;
+        /// <summary>
+        /// Current message to be displayed
+        /// </summary>
+        private string m_CurrentMessage;
         /// <summary>
         /// Time since the last call to a progress update
         /// </summary>
@@ -47,13 +55,25 @@ namespace HBP.UI.Module3D
         #region Private Methods
         private void Update()
         {
-            float lerpValue = m_TimeSinceLastCall / m_TotalTime;
-            if (lerpValue < 2.0f)
+            if (m_CurrentMessage != m_Message.text)
+                m_Message.text = m_CurrentMessage;
+
+            if (m_TotalTime == 0)
             {
-                float progress = Mathf.Lerp(m_PreviousProgress, m_Progress, lerpValue);
-                m_Fill.anchorMax = new Vector2(progress, 1.0f);
-                m_ProgressText.text = string.Format("{0}%", ((int)(progress * 100)).ToString());
-                m_TimeSinceLastCall += Time.deltaTime;
+                m_CurrentProgress = m_TargetProgress;
+                m_Fill.anchorMax = new Vector2(m_CurrentProgress, 1.0f);
+                m_ProgressText.text = string.Format("{0}%", ((int)(m_CurrentProgress * 100)).ToString());
+            }
+            else
+            {
+                float lerpValue = m_TimeSinceLastCall / m_TotalTime;
+                if (lerpValue < 2.0f)
+                {
+                    m_CurrentProgress = Mathf.Lerp(m_PreviousProgress, m_TargetProgress, lerpValue);
+                    m_Fill.anchorMax = new Vector2(m_CurrentProgress, 1.0f);
+                    m_ProgressText.text = string.Format("{0}%", ((int)(m_CurrentProgress * 100)).ToString());
+                    m_TimeSinceLastCall += Time.deltaTime;
+                }
             }
         }
         #endregion
@@ -69,7 +89,7 @@ namespace HBP.UI.Module3D
                 m_UpdateCircle.StartAnimation();
                 gameObject.SetActive(true);
                 m_Fill.anchorMax = new Vector2(0.0f, 1.0f);
-                m_Progress = 0;
+                m_TargetProgress = 0;
                 m_PreviousProgress = 0;
             }
         }
@@ -92,9 +112,9 @@ namespace HBP.UI.Module3D
         /// <param name="duration">Duration of this step</param>
         public void Progress(float progress, string message, float duration)
         {
-            m_PreviousProgress = m_Fill.anchorMax.x;
-            m_Message.text = message;
-            m_Progress = progress;
+            m_PreviousProgress = m_CurrentProgress;
+            m_CurrentMessage = message;
+            m_TargetProgress = progress;
             m_TimeSinceLastCall = 0;
             m_TotalTime = duration;
         }

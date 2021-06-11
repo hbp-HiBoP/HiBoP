@@ -17,43 +17,26 @@ namespace HBP.Module3D.IBC
         /// Contains information about labels of the contrasts
         /// </summary>
         public IBCInformation Information { get; private set; }
-
-        private List<Contrast> m_Contrasts;
-        /// <summary>
-        /// List of the contrasts of the IBC
-        /// </summary>
-        public List<Contrast> Contrasts
-        {
-            get
-            {
-                return m_Contrasts.Where(c => c.Loaded).ToList();
-            }
-        }
-
-        private bool m_Loaded = false;
-        /// <summary>
-        /// Are the constrats loaded ?
-        /// </summary>
-        public bool Loaded
-        {
-            get
-            {
-                return m_Loaded && m_Contrasts.Count > 0;
-            }
-        }
+        public FMRI FMRI { get; private set; }
+        public bool Loaded { get { return FMRI != null; } }
+        public bool Loading { get; private set; } = false;
         #endregion
 
         #region Private Methods
         private void Awake()
         {
-            this.StartCoroutineAsync(c_LoadContrasts());
+            if (ApplicationState.UserPreferences.Data.Atlases.PreloadIBC) Load();
         }
         private void OnDestroy()
         {
-            foreach (var contrast in m_Contrasts)
-            {
-                contrast.Clean();
-            }
+            FMRI?.Clean();
+        }
+        #endregion
+
+        #region Public Methods
+        public void Load()
+        {
+            this.StartCoroutineAsync(c_LoadIBC());
         }
         #endregion
 
@@ -62,25 +45,20 @@ namespace HBP.Module3D.IBC
         /// Load all the contrast that are in the IBC directory
         /// </summary>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_LoadContrasts()
+        private IEnumerator c_LoadIBC()
         {
             yield return Ninja.JumpToUnity;
 
-            string directory = ApplicationState.DataPath + "Atlases/IBC/";
-            string csvFile = ApplicationState.DataPath + "Atlases/IBC/map_labels.csv";
-            string[] files = Directory.GetFiles(directory, "*.nii.gz");
+            Loading = true;
+            string csvFile = Path.Combine(ApplicationState.DataPath, "Atlases", "IBC", "map_labels.csv");
+            string file = Path.Combine(ApplicationState.DataPath, "Atlases", "IBC", "all_maps.nii.gz");
 
             yield return Ninja.JumpBack;
-
-            m_Contrasts = new List<Contrast>(files.Length);
+            FMRI = new FMRI("IBC", file);
             Information = new IBCInformation(csvFile);
-            foreach (var file in files)
-            {
-                m_Contrasts.Add(new Contrast(file, Information));
-            }
-
             yield return Ninja.JumpToUnity;
-            m_Loaded = true;
+
+            Loading = false;
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion

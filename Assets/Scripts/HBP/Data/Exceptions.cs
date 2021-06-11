@@ -44,12 +44,31 @@ public class CannotFindDataInfoException : HBPException
 public class CannotLoadDataInfoException : HBPException
 {
     public CannotLoadDataInfoException() { }
-    public CannotLoadDataInfoException(string data, string patient, string additionalInformation = "") : base("Can not load <color=red>" + data + "</color> for <color=red>" + patient + "</color>. " + additionalInformation + "\n\nPlease verify your data files.")
+    public CannotLoadDataInfoException(string data, string patient, string additionalInformation = "") : base("Can not load <color=red>" + data + "</color> for <color=red>" + patient + "</color>.\n\n" + additionalInformation + "\n\nPlease check your data files.")
     {
         Title = "Data can not be loaded";
     }
     public CannotLoadDataInfoException(string message, Exception inner) : base(message, inner) { }
     protected CannotLoadDataInfoException(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
+[Serializable]
+public class CannotEpochAllTrialsException : HBPException
+{
+    public int Length;
+    public int StartIndex;
+    public int EndIndex;
+    public CannotEpochAllTrialsException() { }
+    public CannotEpochAllTrialsException(Exception e, int length, int start, int end) : base(e.Message)
+    {
+        Length = length;
+        StartIndex = start;
+        EndIndex = end;
+    }
+    public CannotEpochAllTrialsException(string message, Exception inner) : base(message, inner) { }
+    protected CannotEpochAllTrialsException(
       System.Runtime.Serialization.SerializationInfo info,
       System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 }

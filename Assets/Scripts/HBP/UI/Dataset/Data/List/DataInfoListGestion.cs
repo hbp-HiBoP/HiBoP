@@ -64,6 +64,21 @@ namespace HBP.UI.Experience.Dataset
                     obj.Name = name;
                 }
             }
+            else if (obj is FMRIDataInfo fmriDataInfo)
+            {
+                IEnumerable<FMRIDataInfo> fmriDataInfos = List.Objects.OfType<FMRIDataInfo>();
+                if (fmriDataInfos.Any(p => p.Name == obj.Name && p.Patient == fmriDataInfo.Patient && !p.Equals(fmriDataInfo)))
+                {
+                    int count = 1;
+                    string name = string.Format("{0}({1})", obj.Name, count);
+                    while (fmriDataInfos.Any(p => p.Name == name && p.Patient == fmriDataInfo.Patient && !p.Equals(fmriDataInfo)))
+                    {
+                        count++;
+                        name = string.Format("{0}({1})", obj.Name, count);
+                    }
+                    obj.Name = name;
+                }
+            }
             else
             {
                 if (m_List.Objects.Any(p => p.GetType() == obj.GetType() && p.Name == obj.Name && !p.Equals(obj)))

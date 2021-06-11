@@ -14,6 +14,7 @@ namespace Tools.CSharp
             else
             {
                 float absStandardDeviation = Mathf.Abs(array.StandardDeviation());
+                if (float.IsNaN(absStandardDeviation) || float.IsInfinity(absStandardDeviation)) absStandardDeviation = 0;
                 float mean = array.Mean();
                 float offset = Zscore * absStandardDeviation;
                 if (offset == 0) offset = 1;
@@ -36,6 +37,14 @@ namespace Tools.CSharp
             }
             return SEM(array, array.Length);
         }
+        public static double Mean(this double[] array)
+        {
+            if (array.Length == 0)
+            {
+                throw new System.Exception("Array is empty");
+            }
+            return Mean(array, array.Length);
+        }
         public static float Mean(this float[] array)
         {
             if (array.Length == 0)
@@ -51,6 +60,14 @@ namespace Tools.CSharp
                 throw new System.Exception("Array is empty");
             }
             return Mean(array, array.Length);
+        }
+        public static double Median(this double[] array)
+        {
+            if (array.Length == 0)
+            {
+                throw new System.Exception("Array is empty");
+            }
+            return Median(array, array.Length);
         }
         public static float Median(this float[] array)
         {
@@ -95,24 +112,28 @@ namespace Tools.CSharp
             Interpolate(values, values.Length, newValues, size, before, after);
             return newValues;
         }
-        public static float Pearson(float[] baseline, float[] values)
+        public static double Pearson(double[] baseline, double[] values)
         {
             return PearsonCorrelationCoefficient(baseline, baseline.Length, values, values.Length);
         }
-        public static float WilcoxonRankSum(float[] values1, float[] values2)
+        public static double WilcoxonRankSum(double[] values1, double[] values2)
         {
             return WilcoxonRankSum(values1, values1.Length, values2, values2.Length);
         }
-        public static float WilcoxonSignedRank(float[] values1, float[] values2)
+        public static double WilcoxonSignedRank(double[] values1, double[] values2)
         {
             return WilcoxonSignedRank(values1, values1.Length, values2, values2.Length);
         }
 
         #region DLL
+        [DllImport("hbp_math", EntryPoint = "MeanDouble", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern double Mean(double[] values, int lenght);
         [DllImport("hbp_math", EntryPoint = "MeanFloat", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern float Mean(float[] values, int lenght);
         [DllImport("hbp_math", EntryPoint = "MeanInt", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern int Mean(int[] values, int lenght);
+        [DllImport("hbp_math", EntryPoint = "MedianDouble", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern double Median(double[] values, int lenght);
         [DllImport("hbp_math", EntryPoint = "MedianFloat", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern float Median(float[] values, int lenght);
         [DllImport("hbp_math", EntryPoint = "MedianInt", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
@@ -130,11 +151,11 @@ namespace Tools.CSharp
         [DllImport("hbp_math", EntryPoint = "Interpolate", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern void Interpolate(float[] values, int length, float[] newValues, int newLength, int before, int after);
         [DllImport("hbp_math", EntryPoint = "PearsonCorrelationCoefficient", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern float PearsonCorrelationCoefficient(float[] baseline, int baselineLength, float[] values, int valuesLength);
+        private static extern double PearsonCorrelationCoefficient(double[] baseline, int baselineLength, double[] values, int valuesLength);
         [DllImport("hbp_math", EntryPoint = "WilcoxonRankSum", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern float WilcoxonRankSum(float[] values1, int length1, float[] values2, int length2);
+        private static extern double WilcoxonRankSum(double[] values1, int length1, double[] values2, int length2);
         [DllImport("hbp_math", EntryPoint = "WilcoxonSignedRank", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern float WilcoxonSignedRank(float[] values1, int length1, float[] values2, int length2);
+        private static extern double WilcoxonSignedRank(double[] values1, int length1, double[] values2, int length2);
         #endregion
     }
 }

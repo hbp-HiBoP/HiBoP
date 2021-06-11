@@ -51,6 +51,10 @@ namespace HBP.UI.Informations
                 m_GraphZone.Display(channels, columns);
             }
         }
+        public void Refresh()
+        {
+            Display(m_Channels, m_Columns);
+        }
         public void UpdateTime(data.Column column, SubBloc subBloc, float currentTime)
         {
             m_GraphZone.UpdateTime(column, subBloc, currentTime);

@@ -370,7 +370,7 @@ public class ShortcutManager : MonoBehaviour
                                 int index = m_ChangeColorActions.IndexOf(downAction);
                                 if (index == -1) break;
 
-                                Color color = ApplicationState.Module3DUI.ColorPicker.GetDefaultColor(index);
+                                Color color = ApplicationState.ColorPicker.GetDefaultColor(index);
                                 foreach (var site in sites) site.State.Color = color;
                             }
                             break;

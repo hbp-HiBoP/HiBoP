@@ -20,18 +20,6 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField] private AtlasInfoDisplayer m_AtlasInfoDisplayer;
 
-        [SerializeField] private ColorPicker m_ColorPicker;
-        /// <summary>
-        /// Reference to the ColorPicker of the software
-        /// </summary>
-        public ColorPicker ColorPicker
-        {
-            get
-            {
-                return m_ColorPicker;
-            }
-        }
-
         /// <summary>
         /// Dictionary containing all scene windows by 3D scene
         /// </summary>

@@ -11,10 +11,22 @@ namespace HBP.Module3D
     public class ROI : MonoBehaviour
     {
         #region Properties
+        private string m_Name = "ROI";
         /// <summary>
         /// Name of the ROI
         /// </summary>
-        public string Name { get; set; } = "ROI";
+        public string Name
+        {
+            get
+            {
+                return m_Name;
+            }
+            set
+            {
+                m_Name = value;
+                OnUpdateROIName.Invoke();
+            }
+        }
         /// <summary>
         /// Layer on which the ROI will be displayed
         /// </summary>
@@ -51,6 +63,10 @@ namespace HBP.Module3D
         #endregion
 
         #region Events
+        /// <summary>
+        /// Event called when updating the name of the ROI
+        /// </summary>
+        public UnityEvent OnUpdateROIName = new UnityEvent();
         /// <summary>
         /// Event called when adding of removing a sphere in this ROI
         /// </summary>

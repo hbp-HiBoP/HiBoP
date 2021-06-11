@@ -14,6 +14,7 @@ namespace HBP.UI
         [SerializeField] Dropdown m_TypeDropdown;
         [SerializeField] IEEGColumnModifier m_IEEGColumnModifier;
         [SerializeField] CCEPColumnModifier m_CCEPColumnModifier;
+        [SerializeField] FMRIColumnModifier m_FMRIColumnModifier;
         [SerializeField] AnatomicColumnModifier m_AnatomicColumnModifier;
 
         Type[] m_Types;
@@ -60,6 +61,7 @@ namespace HBP.UI
 
                 m_IEEGColumnModifier.Patients = value;
                 m_CCEPColumnModifier.Patients = value;
+                m_FMRIColumnModifier.Patients = value;
             }
         }
 
@@ -77,6 +79,7 @@ namespace HBP.UI
                 m_TypeDropdown.interactable = value;
                 m_IEEGColumnModifier.Interactable = value;
                 m_CCEPColumnModifier.Interactable = value;
+                m_FMRIColumnModifier.Interactable = value;
                 m_AnatomicColumnModifier.Interactable = value;
             }
         }
@@ -110,6 +113,7 @@ namespace HBP.UI
                     m_AnatomicColumnModifier.IsActive = true;
                     m_IEEGColumnModifier.IsActive = false;
                     m_CCEPColumnModifier.IsActive = false;
+                    m_FMRIColumnModifier.IsActive = false;
                 }
                 else if (type == typeof(IEEGColumn))
                 {
@@ -119,6 +123,7 @@ namespace HBP.UI
                     m_AnatomicColumnModifier.IsActive = false;
                     m_IEEGColumnModifier.IsActive = true;
                     m_CCEPColumnModifier.IsActive = false;
+                    m_FMRIColumnModifier.IsActive = false;
                 }
                 else if (type == typeof(CCEPColumn))
                 {
@@ -128,6 +133,17 @@ namespace HBP.UI
                     m_AnatomicColumnModifier.IsActive = false;
                     m_IEEGColumnModifier.IsActive = false;
                     m_CCEPColumnModifier.IsActive = true;
+                    m_FMRIColumnModifier.IsActive = false;
+                }
+                else if (type == typeof(FMRIColumn))
+                {
+                    if (!(m_Object is FMRIColumn)) Object = new FMRIColumn(Object.Name, Object.BaseConfiguration);
+                    m_FMRIColumnModifier.Object = Object as FMRIColumn;
+
+                    m_AnatomicColumnModifier.IsActive = false;
+                    m_IEEGColumnModifier.IsActive = false;
+                    m_CCEPColumnModifier.IsActive = false;
+                    m_FMRIColumnModifier.IsActive = true;
                 }
             }
         }

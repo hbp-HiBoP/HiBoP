@@ -83,6 +83,10 @@ namespace HBP.Data.Container
         {
             SavedFile = File.CopyToDirectory(destinationDirectory).Replace(projectDirectory, oldProjectDirectory);
         }
+        public override void ConvertAllPathsToFullPaths()
+        {
+            SavedFile = SavedFile.ConvertToFullPath();
+        }
         #endregion
 
         #region Constructors

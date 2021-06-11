@@ -157,6 +157,11 @@ namespace HBP.Module3D
             m_Brain.SetInt("_Atlas", displayAtlas ? 1 : 0);
             m_TransparentBrain.SetInt("_Atlas", displayAtlas ? 1 : 0);
         }
+        public void SetDisplayFMRI(bool displayFMRI)
+        {
+            m_Brain.SetInt("_FMRI", displayFMRI ? 1 : 0);
+            m_TransparentBrain.SetInt("_FMRI", displayFMRI ? 1 : 0);
+        }
         /// <summary>
         /// Set the alpha value of the transparent materials
         /// </summary>

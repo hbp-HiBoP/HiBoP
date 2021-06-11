@@ -88,15 +88,12 @@ namespace HBP.Module3D
         #endregion
 
         #region Constructors
-        public Mesh3D(Data.BaseMesh mesh, Data.Enums.MeshType type)
+        public Mesh3D(Data.BaseMesh mesh, Data.Enums.MeshType type, bool load)
         {
             m_Mesh = mesh;
             Name = mesh.Name;
             Type = type;
-            if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
-            {
-                Load();
-            }
+            if (load) Load();
             HasBeenLoadedOutside = false;
         }
         public Mesh3D() { }
@@ -125,7 +122,7 @@ namespace HBP.Module3D
     public class SingleMesh3D : Mesh3D
     {
         #region Constructors
-        public SingleMesh3D(Data.SingleMesh mesh, Data.Enums.MeshType type) : base(mesh, type) { }
+        public SingleMesh3D(Data.SingleMesh mesh, Data.Enums.MeshType type, bool load) : base(mesh, type, load) { }
         public SingleMesh3D() { }
         #endregion
 
@@ -245,7 +242,7 @@ namespace HBP.Module3D
         #endregion
 
         #region Constructors
-        public LeftRightMesh3D(Data.LeftRightMesh mesh, Data.Enums.MeshType type) : base(mesh, type) { }
+        public LeftRightMesh3D(Data.LeftRightMesh mesh, Data.Enums.MeshType type, bool load) : base(mesh, type, load) { }
         public LeftRightMesh3D(string name, DLL.Surface left, DLL.Surface right, DLL.Surface both, Data.Enums.MeshType type)
         {
             Name = name;

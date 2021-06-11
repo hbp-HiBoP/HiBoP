@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Tools.Unity;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI
@@ -10,7 +11,7 @@ namespace HBP.UI
     {
         #region Properties
         [SerializeField] InputField m_KeyInputField;
-        [SerializeField] InputField m_ValueInputField;
+        [SerializeField] FolderSelector m_ValueFolderSelector;
 
         /// <summary>
         /// True if interactable, False otherwise.
@@ -22,7 +23,7 @@ namespace HBP.UI
             {
                 base.Interactable = value;
                 m_KeyInputField.interactable = value;
-                m_ValueInputField.interactable = value;
+                m_ValueFolderSelector.interactable = value;
             }
         }
         #endregion
@@ -36,7 +37,7 @@ namespace HBP.UI
             base.Initialize();
 
             m_KeyInputField.onValueChanged.AddListener(key => ObjectTemp.Key = key);
-            m_ValueInputField.onValueChanged.AddListener(value => ObjectTemp.Value = value);
+            m_ValueFolderSelector.onValueChanged.AddListener(value => ObjectTemp.Value = value);
         }
         /// <summary>
         /// Set the fields.
@@ -45,7 +46,7 @@ namespace HBP.UI
         protected override void SetFields(Data.Alias objectToDisplay)
         {
             m_KeyInputField.text = objectToDisplay.Key;
-            m_ValueInputField.text = objectToDisplay.Value;
+            m_ValueFolderSelector.Folder = objectToDisplay.Value;
         }
         #endregion
     }

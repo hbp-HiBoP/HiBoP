@@ -405,6 +405,10 @@ namespace Tools.Unity.Graph
             m_Curves = new List<Curve>();
             SetCurves();
         }
+        public string[] GetEnabledCurvesName()
+        {
+            return GetEnabledCurves(m_Curves).Where(c => c.Data != null || c.SubCurves.Any(sc => sc.Data != null && sc.Enabled)).Select(c => c.Name).Distinct().ToArray();
+        }
         public string ToSVG()
         {
             System.Globalization.CultureInfo oldCulture = System.Globalization.CultureInfo.CurrentCulture;
@@ -414,8 +418,8 @@ namespace Tools.Unity.Graph
             Limits limits = new Limits(m_AbscissaDisplayRange.x, m_AbscissaDisplayRange.y, m_OrdinateDisplayRange.x, m_OrdinateDisplayRange.y);
             Vector2 ratio = curveViewport.GetRatio(limits);
             svgBuilder.AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
-            svgBuilder.AppendLine("<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" width=\"" + (curveViewport.x + curveViewport.width + 300.0f).ToString() + "\" height=\"" + (curveViewport.y + curveViewport.height + 150.0f).ToString() + "\">");
-            List<Curve> curves = GetAllCurves(m_Curves);
+            svgBuilder.AppendLine("<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" width=\"" + (curveViewport.x + curveViewport.width + 700.0f).ToString() + "\" height=\"" + (curveViewport.y + curveViewport.height + 150.0f).ToString() + "\">");
+            List<Curve> curves = GetEnabledCurves(m_Curves);
             foreach (var curve in curves.Where(c => c.Data != null).Select(c => c.Data))
             {
                 svgBuilder.AppendLine("<g>");
@@ -539,8 +543,8 @@ namespace Tools.Unity.Graph
                 svgBuilder.AppendLine("<text x=\"" + (curveViewport.x - 40).ToString() + "\" y=\"" + position + "\" text-anchor=\"middle\" dy=\".3em\" style=\"font-size:30\">" + value + "</text>");
                 svgBuilder.AppendLine("</g>");
             }
-            svgBuilder.AppendLine("<g>");
             svgBuilder.AppendLine("</g>");
+            svgBuilder.AppendLine("<g>");
             svgBuilder.AppendLine("<text x=\"" + (curveViewport.x - 100).ToString() + "\" y=\"" + (curveViewport.y + (curveViewport.height / 2)).ToString() + "\" text-anchor=\"middle\" dy=\".3em\" transform=\"rotate(-90 " + (curveViewport.x - 100).ToString() + "," + (curveViewport.y + (curveViewport.height / 2)).ToString() + ")\" style=\"font-size:30\">" + string.Format("{0} ({1})", m_OrdinateLabel, m_OrdinateUnit) + "</text>");
             svgBuilder.AppendLine("</g>");
             svgBuilder.AppendLine("</g>");
@@ -586,7 +590,7 @@ namespace Tools.Unity.Graph
         public Dictionary<string, string> ToCSV()
         {
             Dictionary<string, string> csv = new Dictionary<string, string>();
-            foreach (var curve in GetAllCurves(m_Curves))
+            foreach (var curve in GetEnabledCurves(m_Curves))
             {
                 if (curve.Data == null) continue;
 
@@ -729,15 +733,18 @@ namespace Tools.Unity.Graph
         {
             m_OnChangeCurves.Invoke(m_Curves.ToArray());
         }
-        List<Curve> GetAllCurves(IEnumerable<Curve> curves)
+        List<Curve> GetEnabledCurves(IEnumerable<Curve> curves)
         {
             if (curves.Count() == 0) return new List<Curve>();
 
             List<Curve> result = new List<Curve>();
             foreach (var curve in curves)
             {
-                result.Add(curve);
-                result.AddRange(GetAllCurves(curve.SubCurves));
+                if (curve.Enabled)
+                {
+                    result.Add(curve);
+                    result.AddRange(GetEnabledCurves(curve.SubCurves));
+                }
             }
             return result;
         }

@@ -10,6 +10,7 @@ using UnityEngine.UI.Extensions;
 using System;
 using UnityEngine.EventSystems;
 using Tools.Unity;
+using Tools.Unity.Components;
 
 namespace HBP.UI.TrialMatrix.Grid
 {
@@ -363,16 +364,18 @@ namespace HBP.UI.TrialMatrix.Grid
         {
             if (Data.IsFound)
             {
+                CanvasScalerHandler canvasScalerHandler = GetComponentInParent<CanvasScalerHandler>();
+                float scale = canvasScalerHandler ? canvasScalerHandler.Scale : 1;
                 switch (ApplicationState.UserPreferences.Visualization.TrialMatrix.SubBlocFormat)
                 {
                     case HBP.Data.Enums.BlocFormatType.TrialHeight:
-                        m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialHeight * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length;
+                        m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialHeight * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length / scale;
                         break;
                     case HBP.Data.Enums.BlocFormatType.TrialRatio:
-                        m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length;
+                        m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length / scale;
                         break;
                     case HBP.Data.Enums.BlocFormatType.BlocRatio:
-                        m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width;
+                        m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width / scale;
                         break;
                 }
             }
@@ -448,6 +451,8 @@ namespace HBP.UI.TrialMatrix.Grid
         }
         void SelectTrials(int startIndex, int endIndex, bool select, bool additive = false)
         {
+            if (m_TrialIsSelected.Length == 0) return;
+
             startIndex = Mathf.Clamp(startIndex, 0, m_TrialIsSelected.Length - 1);
             endIndex = Mathf.Clamp(endIndex, 0, m_TrialIsSelected.Length - 1);
             bool[] selection = additive ? m_TrialIsSelected.ToArray() : Enumerable.Repeat(false, m_TrialIsSelected.Length).ToArray();

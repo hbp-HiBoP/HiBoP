@@ -26,7 +26,7 @@ namespace HBP.Module3D
         /// <summary>
         /// List of the MRIs of the scene
         /// </summary>
-        public List<MRI3D> MRIs = new List<MRI3D>();
+        public List<MRI3D> MRIs { get; set; } = new List<MRI3D>();
         /// <summary>
         /// List of loaded MRIs
         /// </summary>
@@ -46,6 +46,10 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
+        /// List of the preloaded MRIs of the scene
+        /// </summary>
+        public Dictionary<Data.Patient, List<MRI3D>> PreloadedMRIs { get; set; } = new Dictionary<Data.Patient, List<MRI3D>>();
+        /// <summary>
         /// Min calibration factor (between 0 and 1)
         /// </summary>
         public float MRICalMinFactor { get; private set; } = 0.0f;
@@ -60,19 +64,6 @@ namespace HBP.Module3D
         public Vector3 VolumeCenter { get; private set; } = new Vector3(0, 0, 0);
         #endregion
 
-        #region Private Methods
-        private void OnDestroy()
-        {
-            foreach (var mri in MRIs)
-            {
-                if (!mri.HasBeenLoadedOutside)
-                {
-                    mri.Clean();
-                }
-            }
-        }
-        #endregion
-
         #region Public Methods
         /// <summary>
         /// Add a MRI to the MRI manager
@@ -82,7 +73,7 @@ namespace HBP.Module3D
         {
             if (mri.IsUsable)
             {
-                MRI3D mri3D = new MRI3D(mri);
+                MRI3D mri3D = new MRI3D(mri, ApplicationState.UserPreferences.Data.Anatomic.MRIPreloading);
                 if (ApplicationState.UserPreferences.Data.Anatomic.MRIPreloading)
                 {
                     if (mri3D.IsLoaded)
@@ -103,6 +94,18 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
+        /// Add a MRI to the MRI manager preloaded MRIs
+        /// </summary>
+        /// <param name="mri">MRI to be added</param>
+        public void AddPreloaded(Data.MRI mri, Data.Patient patient)
+        {
+            if (mri.IsUsable)
+            {
+                if (!PreloadedMRIs.ContainsKey(patient)) PreloadedMRIs.Add(patient, new List<MRI3D>());
+                PreloadedMRIs[patient].Add(new MRI3D(mri, true));
+            }
+        }
+        /// <summary>
         /// Set the calibration values
         /// </summary>
         /// <param name="min">Min calibration value</param>
@@ -113,32 +116,22 @@ namespace HBP.Module3D
             {
                 MRICalMinFactor = min;
                 MRICalMaxFactor = max;
-                m_Scene.CutTexturesNeedUpdate = true;
+                m_Scene.SceneInformation.BaseCutTexturesNeedUpdate = true;
             }
         }
         /// <summary>
         /// Set the MRI to be used
         /// </summary>
         /// <param name="mriName">Name of the MRI to be used</param>
-        public void Select(string mriName)
+        public void Select(string mriName, bool onlyIfAlreadyLoaded = false)
         {
             int mriID = MRIs.FindIndex(m => m.Name == mriName);
-            if (mriID == -1) mriID = 0;
+            if (mriID == -1 || (onlyIfAlreadyLoaded && !MRIs[mriID].IsLoaded)) mriID = 0;
 
             SelectedMRIID = mriID;
             VolumeCenter = SelectedMRI.Volume.Center;
-            DLL.MRIVolumeGenerator baseGenerator = new DLL.MRIVolumeGenerator();
-            baseGenerator.Reset(SelectedMRI.Volume, 120);
-            foreach (var column in m_Scene.ColumnsDynamic)
-            {
-                column.DLLMRIVolumeGenerator = new DLL.MRIVolumeGenerator(baseGenerator);
-            }
-            m_Scene.MeshGeometryNeedsUpdate = true;
-            m_Scene.ResetIEEG();
-            foreach (Column3D column in m_Scene.Columns)
-            {
-                column.IsRenderingUpToDate = false;
-            }
+            m_Scene.SceneInformation.GeometryNeedsUpdate = true;
+            m_Scene.ResetGenerators();
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>

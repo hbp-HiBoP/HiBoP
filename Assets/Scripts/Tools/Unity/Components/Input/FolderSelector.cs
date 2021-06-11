@@ -20,13 +20,22 @@ namespace Tools.Unity
         #region Public Methods
         public void Open()
         {
-            string l_result = HBP.UI.FileBrowser.GetExistingDirectoryName( Message, m_Inputfield.text);
-            if (l_result != string.Empty)
+#if UNITY_STANDALONE_OSX
+            HBP.UI.FileBrowser.GetExistingDirectoryNameAsync((result) =>
             {
-                l_result = l_result.StandardizeToPath();
-                m_Inputfield.text = l_result;
-                m_Inputfield.onEndEdit.Invoke(l_result);
+                result = result.StandardizeToPath();
+                m_Inputfield.text = result;
+                m_Inputfield.onEndEdit.Invoke(result);
+            }, Message, m_Inputfield.text);
+#else
+            string result = HBP.UI.FileBrowser.GetExistingDirectoryName( Message, m_Inputfield.text);
+            if (result != string.Empty)
+            {
+                result = result.StandardizeToPath();
+                m_Inputfield.text = result;
+                m_Inputfield.onEndEdit.Invoke(result);
             }
+#endif
         }
         #endregion
     }

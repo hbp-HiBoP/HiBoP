@@ -331,6 +331,28 @@ namespace HBP.Module3D.DLL
             }
             return new BBox(cube_bounding_box_Volume(_handle, planes, planesCount));
         }
+        /// <summary>
+        /// Get values of the closest voxel of the Volume for each vertex of the input surface
+        /// </summary>
+        /// <param name="surface"></param>
+        /// <returns></returns>
+        public float[] GetVerticesValues(Surface surface)
+        {
+            float[] result = new float[surface.NumberOfVertices];
+            get_vertices_values_Volume(_handle, surface.getHandle(), result);
+            return result;
+        }
+        public Color[] ConvertValuesToColors(float[] values, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha)
+        {
+            Color[] colors = new Color[values.Length];
+            float[] result = new float[values.Length * 4];
+            get_colors_from_values_Volume(_handle, values, values.Length, negativeMin, negativeMax, positiveMin, positiveMax, alpha, result);
+            for (int i = 0; i < colors.Length; ++i)
+            {
+                colors[i] = new Color(result[4 * i], result[4 * i + 1], result[4 * i + 2], result[4 * i + 3]);
+            }
+            return colors;
+        }
         #endregion
 
         #region Memory Management
@@ -375,6 +397,10 @@ namespace HBP.Module3D.DLL
         static private extern IntPtr cube_bounding_box_Volume(HandleRef handleSurface, float[] planes, int planesCount);
         [DllImport("hbp_export", EntryPoint = "loadNiiFile_Volume", CallingConvention = CallingConvention.Cdecl)]
         static private extern int loadNiiFile_Volume(HandleRef handleNii, string pathFile);
+        [DllImport("hbp_export", EntryPoint = "get_vertices_values_Volume", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void get_vertices_values_Volume(HandleRef handleVolume, HandleRef surfaceHandle, float[] result);
+        [DllImport("hbp_export", EntryPoint = "get_colors_from_values_Volume", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void get_colors_from_values_Volume(HandleRef handleVolume, float[] values, int valuesLength, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha, float[] result);
         #endregion
     }
 }

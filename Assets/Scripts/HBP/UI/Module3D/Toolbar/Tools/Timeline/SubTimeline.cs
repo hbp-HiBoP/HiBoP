@@ -39,7 +39,7 @@ namespace HBP.UI.Module3D.Tools
         /// <summary>
         /// Timeline data of the parent timeline
         /// </summary>
-        private Data.Visualization.Timeline m_Timeline;
+        private Data.Visualization.BasicTimeline m_Timeline;
         /// <summary>
         /// Subtimeline data of the subtimeline
         /// </summary>
@@ -62,7 +62,7 @@ namespace HBP.UI.Module3D.Tools
         /// <param name="column">Column to be considered</param>
         /// <param name="timeline">Data timeline of the parent timeline</param>
         /// <param name="subTimeline">Subtimeline data</param>
-        public void Initialize(Column3DDynamic column, Data.Visualization.Timeline timeline, Data.Visualization.SubTimeline subTimeline)
+        public void Initialize(Data.Visualization.BasicTimeline timeline, Data.Visualization.SubTimeline subTimeline)
         {
             m_Timeline = timeline;
             m_SubTimeline = subTimeline;

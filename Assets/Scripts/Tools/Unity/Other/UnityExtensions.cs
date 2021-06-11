@@ -338,9 +338,9 @@ namespace Tools.Unity
             if (localPath.StartsWith(PROJECT_TOKEN))
             {
                 localPath = path.Remove(0, PROJECT_TOKEN.Length);
-                localPath = ApplicationState.ProjectLoadedTMPFullPath + localPath;
+                localPath = ApplicationState.ExtractProjectFolder + localPath;
             }
-
+            
             foreach (var alias in ApplicationState.ProjectLoaded.Preferences.Aliases)
             {
                 alias.ConvertKeyToValue(ref localPath);
@@ -352,11 +352,11 @@ namespace Tools.Unity
         {
             string localPath = path;
 
-            if (localPath.StartsWith(ApplicationState.ProjectLoadedTMPFullPath))
+            if (localPath.StartsWith(ApplicationState.ExtractProjectFolder))
             {
-                localPath = PROJECT_TOKEN + path.Remove(0, ApplicationState.ProjectLoadedTMPFullPath.Length);
+                localPath = PROJECT_TOKEN + path.Remove(0, ApplicationState.ExtractProjectFolder.Length);
             }
-
+            
             foreach (var alias in ApplicationState.ProjectLoaded.Preferences.Aliases)
             {
                 alias.ConvertValueToKey(ref localPath);

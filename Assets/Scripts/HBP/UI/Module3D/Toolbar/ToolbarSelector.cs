@@ -36,10 +36,6 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField] private Toggle m_SiteToggle;
         /// <summary>
-        /// CCEP toggle
-        /// </summary>
-        [SerializeField] private Toggle m_CCEPToggle;
-        /// <summary>
         /// IBC toggle
         /// </summary>
         [SerializeField] private Toggle m_IBCToggle;
@@ -51,10 +47,6 @@ namespace HBP.UI.Module3D
         /// Triangle erasing Toggle
         /// </summary>
         [SerializeField] private Toggle m_TriangleToggle;
-        /// <summary>
-        /// FMRI Toggle
-        /// </summary>
-        [SerializeField] private Toggle m_FMRIToggle;
         /// <summary>
         /// Toggle group associated to the left menu toggles
         /// </summary>
@@ -73,14 +65,12 @@ namespace HBP.UI.Module3D
             m_Toolbars.Add(m_ConfigurationToggle, m_ToolbarMenu.ConfigurationToolbar);
             m_Toolbars.Add(m_SceneToggle, m_ToolbarMenu.SceneSettingsToolbar);
             m_Toolbars.Add(m_DisplayToggle, m_ToolbarMenu.DisplaySettingsToolbar);
-            m_Toolbars.Add(m_IEEGToggle, m_ToolbarMenu.IEEGSettingsToolbar);
+            m_Toolbars.Add(m_IEEGToggle, m_ToolbarMenu.ActivitySettingsToolbar);
             m_Toolbars.Add(m_TimelineToggle, m_ToolbarMenu.TimelineToolbar);
             m_Toolbars.Add(m_SiteToggle, m_ToolbarMenu.SiteToolbar);
             m_Toolbars.Add(m_ROIToggle, m_ToolbarMenu.ROIToolbar);
             m_Toolbars.Add(m_TriangleToggle, m_ToolbarMenu.TriangleToolbar);
-            m_Toolbars.Add(m_CCEPToggle, m_ToolbarMenu.CCEPToolbar);
             m_Toolbars.Add(m_IBCToggle, m_ToolbarMenu.AtlasToolbar);
-            m_Toolbars.Add(m_FMRIToggle, m_ToolbarMenu.FMRIToolbar);
 
             AddListeners();
         }
@@ -145,25 +135,11 @@ namespace HBP.UI.Module3D
                     ChangeToolbar(m_TriangleToggle);
                 }
             });
-            m_CCEPToggle.onValueChanged.AddListener((isOn) =>
-            {
-                if (isOn)
-                {
-                    ChangeToolbar(m_CCEPToggle);
-                }
-            });
             m_IBCToggle.onValueChanged.AddListener((isOn) =>
             {
                 if (isOn)
                 {
                     ChangeToolbar(m_IBCToggle);
-                }
-            });
-            m_FMRIToggle.onValueChanged.AddListener((isOn) =>
-            {
-                if (isOn)
-                {
-                    ChangeToolbar(m_FMRIToggle);
                 }
             });
         }

@@ -151,10 +151,10 @@ namespace HBP.Data
             DirectoryInfo preimplantationDirectory = null, preTransformationsDirectory = null;
             FileInfo preTransformation = null;
             preimplantationDirectory = t1mr1.GetDirectories("T1pre_*").FirstOrDefault();
-            if (preimplantationDirectory != null)
+            if (preimplantationDirectory != null && preimplantationDirectory.Exists)
             {
                 preTransformationsDirectory = new DirectoryInfo(Path.Combine(preimplantationDirectory.FullName, "registration"));
-                if (preTransformationsDirectory != null)
+                if (preTransformationsDirectory != null && preTransformationsDirectory.Exists)
                 {
                     preTransformation = preTransformationsDirectory.GetFiles("RawT1-" + parent.Name + "_" + preimplantationDirectory.Name + "_TO_Scanner_Based.trm").FirstOrDefault();
                 }
@@ -165,10 +165,10 @@ namespace HBP.Data
             DirectoryInfo postimplantationDirectory = null, postTransformationsDirectory = null;
             FileInfo postTransformation = null;
             postimplantationDirectory = t1mr1.GetDirectories("T1post_*").FirstOrDefault();
-            if (postimplantationDirectory != null)
+            if (postimplantationDirectory != null && postimplantationDirectory.Exists)
             {
                 postTransformationsDirectory = new DirectoryInfo(Path.Combine(postimplantationDirectory.FullName, "registration"));
-                if (postTransformationsDirectory != null)
+                if (postTransformationsDirectory != null && postTransformationsDirectory.Exists)
                 {
                     postTransformation = postTransformationsDirectory.GetFiles("RawT1-" + parent.Name + "_" + postimplantationDirectory.Name + "_TO_Scanner_Based.trm").FirstOrDefault();
                 }

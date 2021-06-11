@@ -95,6 +95,11 @@ namespace HBP.Module3D
         {
             ROI roi = m_DisplayedObjects.InstantiateROI();
             roi.Name = name;
+            roi.OnUpdateROIName.AddListener(() =>
+            {
+                m_Scene.OnUpdateROI.Invoke();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            });
             roi.OnChangeNumberOfSpheres.AddListener(() =>
             {
                 UpdateROIMasks();
@@ -200,8 +205,8 @@ namespace HBP.Module3D
                         column.Sites[ii].State.IsOutOfROI = maskROI[ii];
                 }
             }
-            m_Scene.ResetIEEG(false);
-            m_Scene.OnUpdateROIMask.Invoke();
+            m_Scene.ResetGenerators(false);
+            m_Scene.OnUpdateROI.Invoke();
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>

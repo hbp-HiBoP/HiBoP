@@ -22,6 +22,8 @@ namespace HBP.UI.Module3D
         /// Change the parameters of the IBC contrasts
         /// </summary>
         [SerializeField] private Tools.IBCParameters m_IBCParameters;
+
+        [SerializeField] private Tools.DiFuMoSelector m_DiFuMoSelector;
         #endregion
 
         #region Private Methods
@@ -34,6 +36,7 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_IBCState);
             m_Tools.Add(m_IBCSelector);
             m_Tools.Add(m_IBCParameters);
+            m_Tools.Add(m_DiFuMoSelector);
         }
         #endregion
     }

@@ -2,8 +2,10 @@
 using HBP.Data.Visualization;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Tools.CSharp;
 using UnityEngine;
+using System.Linq;
 
 namespace HBP.Module3D
 {
@@ -37,6 +39,10 @@ namespace HBP.Module3D
         /// Correlation between two sites
         /// </summary>
         public Dictionary<Site, Dictionary<Site, float>> CorrelationBySitePair { get; set; } = new Dictionary<Site, Dictionary<Site, float>>();
+        /// <summary>
+        /// Correlation between two sites
+        /// </summary>
+        public Dictionary<Site, Dictionary<Site, float>> CorrelationMeanBySitePair { get; set; } = new Dictionary<Site, Dictionary<Site, float>>();
         /// <summary>
         /// Are the correlations between site pairs computed ?
         /// </summary>
@@ -141,6 +147,7 @@ namespace HBP.Module3D
             base.UpdateSites(implantation, sceneSitePatientParent);
 
             CorrelationBySitePair.Clear();
+            CorrelationMeanBySitePair.Clear();
         }
         /// <summary>
         /// Compute correlations for all site pairs
@@ -148,16 +155,22 @@ namespace HBP.Module3D
         public void ComputeCorrelations(Action<float, float, LoadingText> onChangeProgress = null)
         {
             CorrelationBySitePair.Clear();
+            CorrelationMeanBySitePair.Clear();
             onChangeProgress?.Invoke(0, 0, new LoadingText("Computing correlations"));
-            Dictionary<Site, List<float[]>> valuesByChannel = new Dictionary<Site, List<float[]>>();
+            Dictionary<Site, List<double[]>> valuesByChannel = new Dictionary<Site, List<double[]>>();
             foreach (var site in Sites)
             {
-                if (site.Data != null)
+                if (site.Data != null && !site.State.IsBlackListed)
                 {
-                    List<float[]> values = new List<float[]>();
-                    for (int i = 0; i < site.Data.Trials.Length; i++)
+                    List<double[]> values = new List<double[]>();
+                    for (int i = 0; i < site.Data.Trials.Length; ++i)
                     {
-                        values.Add(site.Data.Trials[i].Values);
+                        double[] arrayValues = new double[site.Data.Trials[i].Values.Length];
+                        for (int j = 0; j < arrayValues.Length; ++j)
+                        {
+                            arrayValues[j] = site.Data.Trials[i].Values[j];
+                        }
+                        values.Add(arrayValues);
                     }
                     valuesByChannel.Add(site, values);
                 }
@@ -168,6 +181,7 @@ namespace HBP.Module3D
             {
                 onChangeProgress?.Invoke((float)progressCount++ / siteCount, 0, new LoadingText("Computing correlations for ", string.Format("{0} in {1}", kv1.Key.Information.Name, Name)));
                 Dictionary<Site, float> correlation = new Dictionary<Site, float>();
+                Dictionary<Site, float> mean = new Dictionary<Site, float>();
                 int numberOfTrials = kv1.Value.Count;
 
                 foreach (var kv2 in valuesByChannel)
@@ -175,26 +189,22 @@ namespace HBP.Module3D
                     if (kv1.Key == kv2.Key) continue;
                     if (kv2.Value.Count != numberOfTrials) continue;
 
-                    float[] blackData = new float[numberOfTrials];
-                    float[] greyData = new float[numberOfTrials * (numberOfTrials - 1)];
+                    double[] blackData = new double[numberOfTrials];
+                    double[] greyData = new double[numberOfTrials * (numberOfTrials - 1)];
+
                     int count = 0;
-                    for (int i = 0; i < numberOfTrials; i++)
-                    {
-                        for (int j = 0; j < numberOfTrials; j++)
-                        {
+                    for (int i = 0; i < numberOfTrials; ++i)
+                        for (int j = 0; j < numberOfTrials; ++j)
                             if (i == j)
-                            {
                                 blackData[i] = MathDLL.Pearson(kv1.Value[i], kv2.Value[i]);
-                            }
                             else
-                            {
                                 greyData[count++] = MathDLL.Pearson(kv1.Value[i], kv2.Value[j]);
-                            }
-                        }
-                    }
-                    correlation.Add(kv2.Key, MathDLL.WilcoxonRankSum(blackData, greyData));
+
+                    correlation.Add(kv2.Key, (float)MathDLL.WilcoxonRankSum(blackData, greyData));
+                    mean.Add(kv2.Key, (float)blackData.Mean());
                 }
                 CorrelationBySitePair.Add(kv1.Key, correlation);
+                CorrelationMeanBySitePair.Add(kv1.Key, mean);
             }
         }
         /// <summary>
@@ -204,6 +214,7 @@ namespace HBP.Module3D
         /// <returns>List of correlated sites</returns>
         public List<Site> CorrelatedSites(Site site)
         {
+            int siteCount = CorrelationBySitePair.Count;
             List<Site> result = new List<Site>();
             if (AreCorrelationsComputed)
             {
@@ -214,7 +225,7 @@ namespace HBP.Module3D
                         if (correlationBySite.TryGetValue(s, out float correlationValue))
                         {
                             float threshold = ApplicationState.UserPreferences.Data.EEG.CorrelationAlpha;
-                            if (ApplicationState.UserPreferences.Data.EEG.BonferroniCorrection) threshold /= (Sites.Count * (Sites.Count - 1) / 2);
+                            if (ApplicationState.UserPreferences.Data.EEG.BonferroniCorrection) threshold /= siteCount * (siteCount - 1) / 2;
                             if (correlationValue < threshold)
                             {
                                 result.Add(s);
@@ -232,9 +243,7 @@ namespace HBP.Module3D
         public override void LoadConfiguration(bool firstCall = true)
         {
             if (firstCall) ResetConfiguration();
-            DynamicParameters.Gain = ColumnIEEGData.DynamicConfiguration.Gain;
             DynamicParameters.InfluenceDistance = ColumnIEEGData.DynamicConfiguration.MaximumInfluence;
-            DynamicParameters.AlphaMin = ColumnIEEGData.DynamicConfiguration.Alpha;
             DynamicParameters.SetSpanValues(ColumnIEEGData.DynamicConfiguration.SpanMin, ColumnIEEGData.DynamicConfiguration.Middle, ColumnIEEGData.DynamicConfiguration.SpanMax);
             base.LoadConfiguration(false);
         }
@@ -243,9 +252,7 @@ namespace HBP.Module3D
         /// </summary>
         public override void SaveConfiguration()
         {
-            ColumnIEEGData.DynamicConfiguration.Gain = DynamicParameters.Gain;
             ColumnIEEGData.DynamicConfiguration.MaximumInfluence = DynamicParameters.InfluenceDistance;
-            ColumnIEEGData.DynamicConfiguration.Alpha = DynamicParameters.AlphaMin;
             ColumnIEEGData.DynamicConfiguration.SpanMin = DynamicParameters.SpanMin;
             ColumnIEEGData.DynamicConfiguration.Middle = DynamicParameters.Middle;
             ColumnIEEGData.DynamicConfiguration.SpanMax = DynamicParameters.SpanMax;
@@ -256,9 +263,7 @@ namespace HBP.Module3D
         /// </summary>
         public override void ResetConfiguration()
         {
-            DynamicParameters.Gain = 1.0f;
             DynamicParameters.InfluenceDistance = 15.0f;
-            DynamicParameters.AlphaMin = 0.8f;
             DynamicParameters.ResetSpanValues(this);
             base.ResetConfiguration();
         }

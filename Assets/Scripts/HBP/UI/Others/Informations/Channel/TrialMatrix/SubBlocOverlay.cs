@@ -127,7 +127,6 @@ namespace HBP.UI.TrialMatrix.Grid
                                     m_ValueText.text = string.Format("{0} {1} ({2}%)", value.ToString("N2"), subTrial.Data.Unit, percentageActivation.ToString());
 
                                     m_LatencyText.transform.parent.gameObject.SetActive(true);
-                                    //m_LatencyText.text = string.Format("{0} ms", latency.ToString("N2"));
                                     m_LatencyText.text = string.Format("{0} ms ({1}/{2})", latency.ToString("N2"),(sample +1),values.Length);
                                 }
                                 else

@@ -426,15 +426,15 @@ namespace HBP.Data
             onChangeProgress.Invoke(progress, 0, new LoadingText("Loading project"));
 
             // Unzipping
-            if (Directory.Exists(ApplicationState.ProjectLoadedTMPFullPath)) Directory.Delete(ApplicationState.ProjectLoadedTMPFullPath, true);
+            if (Directory.Exists(ApplicationState.ExtractProjectFolder)) Directory.Delete(ApplicationState.ExtractProjectFolder, true);
             using (ZipFile zip = ZipFile.Read(projectInfo.Path))
             {
-                zip.ExtractAll(ApplicationState.ProjectLoadedTMPFullPath, ExtractExistingFileAction.OverwriteSilently);
+                zip.ExtractAll(ApplicationState.ExtractProjectFolder, ExtractExistingFileAction.OverwriteSilently);
             }
 
             if (!File.Exists(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file exists.
             if (!IsProject(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file is a project.
-            DirectoryInfo projectDirectory = new DirectoryInfo(ApplicationState.ProjectLoadedTMPFullPath);
+            DirectoryInfo projectDirectory = new DirectoryInfo(ApplicationState.ExtractProjectFolder);
 
             yield return Ninja.JumpToUnity;
 
@@ -487,8 +487,8 @@ namespace HBP.Data
 
             if (string.IsNullOrEmpty(path)) throw new ArgumentNullException(path);
             if (!Directory.Exists(path)) throw new DirectoryNotFoundException(path);
-            DirectoryInfo tmpProjectDirectory = Directory.CreateDirectory(ApplicationState.ProjectLoadedTMPFullPath + "-temp");
-            string oldTMPProjectDirectory = ApplicationState.ProjectLoadedTMPFullPath;
+            DirectoryInfo tmpProjectDirectory = Directory.CreateDirectory(ApplicationState.ExtractProjectFolder + "-temp");
+            string oldTMPProjectDirectory = ApplicationState.ExtractProjectFolder;
             progress += initializationProgress;
 
             onChangeProgress.Invoke(progress, 0, new LoadingText("Saving project"));

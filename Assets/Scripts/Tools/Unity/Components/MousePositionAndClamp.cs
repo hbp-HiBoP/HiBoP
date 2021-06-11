@@ -1,12 +1,12 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.UI;
 
 namespace Tools.Unity.Components
 {
     [RequireComponent(typeof(RectTransform))]
     public class MousePositionAndClamp : MonoBehaviour
     {
+
         #region Properties
         public Vector2 BottomRightOffset;
         public Vector2 BottomLeftOffset;
@@ -18,6 +18,7 @@ namespace Tools.Unity.Components
         public bool AlwaysUpdate;
 
         RectTransform m_RectTransform;
+        CanvasScalerHandler m_CanvasScalerHandler;
         bool m_Initialized;
         #endregion
 
@@ -41,20 +42,23 @@ namespace Tools.Unity.Components
         void Initialize()
         {
             m_RectTransform = GetComponent<RectTransform>();
+            m_CanvasScalerHandler = GetComponentInParent<CanvasScalerHandler>();
             m_Initialized = true;
         }
         void Clamp(RectTransform rectTransform, RectTransform containerRectTransform)
         {
             Vector2 mousePosition = Input.mousePosition;
+            float scale = m_CanvasScalerHandler.Scale;
+            Vector2 scaledMousePosition = new Vector2(scale * Input.mousePosition.x, scale * Input.mousePosition.y);
+            Vector2 containerScaledPosition = new Vector2(scale * containerRectTransform.position.x, scale * containerRectTransform.position.y);
+
             Rect containerRectPadded = Padding.Remove(containerRectTransform.rect);
-
-            Vector2 containerMinPosition = (Vector2)containerRectTransform.position + containerRectPadded.min;
-            Vector2 containerMaxPosition = (Vector2)containerRectTransform.position + containerRectPadded.max;
-
+            Vector2 containerMinPosition = containerScaledPosition + containerRectPadded.min;
+            Vector2 containerMaxPosition = containerScaledPosition + containerRectPadded.max;
 
             // Test bottom-right.
-            float xMax = mousePosition.x + rectTransform.rect.width  + BottomRightOffset.x;
-            float yMin = mousePosition.y - rectTransform.rect.height + BottomRightOffset.y;
+            float xMax = scaledMousePosition.x + rectTransform.rect.width  + BottomRightOffset.x;
+            float yMin = scaledMousePosition.y - rectTransform.rect.height + BottomRightOffset.y;
 
             if(xMax < containerMaxPosition.x && yMin > containerMinPosition.y) // Bottom-right.
             {

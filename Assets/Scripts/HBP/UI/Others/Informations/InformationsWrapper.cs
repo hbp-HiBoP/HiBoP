@@ -172,7 +172,7 @@ namespace HBP.UI.Informations
         }
         void GenerateSceneData()
         {
-            if (!m_Scene.IsSceneCompletelyLoaded) return;
+            if (!m_Scene.SceneInformation.CompletelyLoaded) return;
             List<Column> columns = new List<Column>();
             m_ColumnDataBy3DColumn = new Dictionary<Column3DDynamic, Column>();
             foreach (var column in m_Scene.Columns)
@@ -272,7 +272,7 @@ namespace HBP.UI.Informations
             {
                 m_Scene.OnRequestSiteInformation.AddListener(sites => OnSiteInformationRequestHandler(sites));
                 m_Scene.OnChangeColumnMinimizedState.AddListener(OnMinimizeColumnHandler);
-                m_Scene.OnUpdateROIMask.AddListener(OnChangeROIHandler);
+                m_Scene.OnUpdateROI.AddListener(OnChangeROIHandler);
                 m_Scene.OnChangeColormap.AddListener((t) => OnChangeColorMapHandler());
                 m_Scene.OnSelectCCEPSource.AddListener(OnChangeSourceHandler);
                 m_Scene.OnSceneCompletelyLoaded.AddListener(OnSceneCompletelyLoaded);
@@ -316,6 +316,8 @@ namespace HBP.UI.Informations
         }
         void UpdateTime(int index, Column3DDynamic column)
         {
+            if (!m_Scene.SceneInformation.CompletelyLoaded) return;
+
             if(column.IsSelected && !column.IsMinimized)
             {
                 SubBloc subBloc = null;
@@ -328,8 +330,10 @@ namespace HBP.UI.Informations
                     }
                 }
                 float currentTime = column.Timeline.CurrentSubtimeline.GetLocalTime(index);
-                Column columnData = m_ColumnDataBy3DColumn[column];
-                ChannelInformations.UpdateTime(columnData, subBloc, currentTime);
+                if (m_ColumnDataBy3DColumn.TryGetValue(column, out Column columnData))
+                {
+                    ChannelInformations.UpdateTime(columnData, subBloc, currentTime);
+                }
             }
         }
         #endregion

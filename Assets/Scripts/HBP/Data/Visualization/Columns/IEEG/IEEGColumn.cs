@@ -119,7 +119,7 @@ namespace HBP.Data.Visualization
                     {
                         Dataset = dataset;
                         DataName = dataName;
-                        Bloc = dataset.Protocol.Blocs.First();
+                        Bloc = dataset.Protocol.Blocs.FirstOrDefault();
                         return;
                     }
                 }

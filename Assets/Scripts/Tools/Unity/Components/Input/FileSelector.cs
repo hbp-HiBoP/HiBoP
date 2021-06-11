@@ -45,12 +45,23 @@ namespace Tools.Unity
         #region Public Methods
         public void Open()
         {
+#if UNITY_STANDALONE_OSX
+            HBP.UI.FileBrowser.GetExistingFileNameAsync((result) =>
+            {
+                if (result != string.Empty)
+                {
+                    result = result.StandardizeToPath();
+                    m_InputField.text = result.ConvertToShortPath();
+                }
+            }, Extension.Split(','), Message, m_InputField.text.ConvertToFullPath());
+#else
             string result = HBP.UI.FileBrowser.GetExistingFileName(Extension.Split(','), Message, m_InputField.text.ConvertToFullPath());
             if (result != string.Empty)
             {
                 result = result.StandardizeToPath();
                 m_InputField.text = result.ConvertToShortPath();
             }
+#endif
         }
         #endregion
     }

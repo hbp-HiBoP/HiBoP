@@ -83,7 +83,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         public override void ShowToolbarCallback()
         {
-            m_TimelineGlobal.Set(m_ToolbarMenu.IEEGSettingsToolbar.IsGlobal);
+            m_TimelineGlobal.Set(m_ToolbarMenu.ActivitySettingsToolbar.IsGlobal);
         }
         #endregion
     }

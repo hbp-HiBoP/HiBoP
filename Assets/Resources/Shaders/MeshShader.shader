@@ -10,6 +10,7 @@
 		_Metallic("Metallic", Range(0,1)) = 0.0
 		_Atlas("Atlas", int) = 0
 		_Activity("Activity", int) = 0
+		_FMRI("FMRI", int) = 0
 		_Amount("Extrusion Amount", Range(0, 1)) = 0
 		_MaxRadius("Maximum extrusion radius", Range(0,100)) = 100
 	}
@@ -28,6 +29,7 @@
 
 				int _Atlas;
 				int _Activity;
+				int _FMRI;
 				half _Glossiness;
 				half _Metallic;
 				fixed4 _Color;
@@ -119,7 +121,7 @@
 				{
 					clip(is_clipped(IN));
 
-					if (_Atlas & !_Activity)
+					if ((_Atlas | _FMRI) & !_Activity)
 					{
 						display_atlas(IN, o);
 					}

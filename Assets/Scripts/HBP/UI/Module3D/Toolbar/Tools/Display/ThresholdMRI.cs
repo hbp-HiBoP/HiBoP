@@ -49,6 +49,7 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateStatus()
         {
+            m_ThresholdMRI.CleanHistograms();
             m_ThresholdMRI.UpdateMRICalValues(SelectedScene);
         }
         #endregion

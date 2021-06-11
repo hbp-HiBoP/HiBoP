@@ -69,7 +69,7 @@ namespace HBP.Module3D.DLL
         /// <param name="indexCut">Index of the cut of this texture</param>
         /// <param name="cutPlanes">List of all cuts in the scene</param>
         /// <param name="generator">Texture generator of the considered cut</param>
-        public void CloneAndRotate(Texture texture, string orientation, bool flip, bool displayCutLines, int indexCut, List<Cut> cutPlanes, MRITextureCutGenerator generator)
+        public void CloneAndRotate(Texture texture, string orientation, bool flip, bool displayCutLines, int indexCut, List<Cut> cutPlanes, CutGenerator generator)
         {
             // init plane
             int nbPlanes = cutPlanes.Count - 1;
@@ -103,7 +103,7 @@ namespace HBP.Module3D.DLL
         /// <summary>
         /// Display sites on the texture as red pixels
         /// </summary>
-        public void DrawSites(Cut cut, RawSiteList rawList, float precision, MRITextureCutGenerator generator)
+        public void DrawSites(Cut cut, RawSiteList rawList, float precision, CutGenerator generator)
         {
             float[] plane = new float[6];
             plane[0] = cut.Point.x;
@@ -193,9 +193,20 @@ namespace HBP.Module3D.DLL
         /// <param name="height">Height of the resulting texture</param>
         /// <param name="width">Width of the resulting texture</param>
         /// <returns>Newly created texture</returns>
-        public static Texture GenerateDistributionHistogram(Volume volume, int height, int width)
+        public static Texture GenerateDistributionHistogram(Volume volume, int height, int width, bool withGreyArea = true)
         {
-            return new Texture(generate_distribution_histogram_Texture(volume.getHandle(), height, width));
+            return new Texture(generate_distribution_histogram_Texture(volume.getHandle(), height, width, withGreyArea));
+        }
+        /// <summary>
+        /// Generate a texture representing the values of the voxels of the input volume as a histogram
+        /// </summary>
+        /// <param name="fmri">FMRI to get values from</param>
+        /// <param name="height">Height of the resulting texture</param>
+        /// <param name="width">Width of the resulting texture</param>
+        /// <returns>Newly created texture</returns>
+        public static Texture GenerateDistributionHistogram(FMRI fmri, int height, int width, bool withGreyArea = true)
+        {
+            return new Texture(generate_distribution_histogram_NIFTI_Texture(fmri.NIFTI.getHandle(), height, width, withGreyArea));
         }
         /// <summary>
         /// Generate a texture representing the input set of values as a histogram
@@ -290,7 +301,9 @@ namespace HBP.Module3D.DLL
         [DllImport("hbp_export", EntryPoint = "reset_Texture", CallingConvention = CallingConvention.Cdecl)]
         static private extern void reset_Texture(HandleRef handleTexture, int width, int height);
         [DllImport("hbp_export", EntryPoint = "generate_distribution_histogram_Texture", CallingConvention = CallingConvention.Cdecl)]
-        static private extern IntPtr generate_distribution_histogram_Texture(HandleRef handleVolume, int height, int width);
+        static private extern IntPtr generate_distribution_histogram_Texture(HandleRef handleVolume, int height, int width, bool withGreyArea);
+        [DllImport("hbp_export", EntryPoint = "generate_distribution_histogram_NIFTI_Texture", CallingConvention = CallingConvention.Cdecl)]
+        static private extern IntPtr generate_distribution_histogram_NIFTI_Texture(HandleRef handleNifti, int height, int width, bool withGreyArea);
         [DllImport("hbp_export", EntryPoint = "generate_distribution_histogram_with_data_Texture", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr generate_distribution_histogram_with_data_Texture(float[] data, int dataSize, int height, int width, float min, float max);
         [DllImport("hbp_export", EntryPoint = "apply_blur_Texture", CallingConvention = CallingConvention.Cdecl)]

@@ -24,6 +24,17 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         private void SaveSelectedROI()
         {
+#if UNITY_STANDALONE_OSX
+            FileBrowser.GetSavedFileNameAsync((savePath) =>
+            {
+                if (!string.IsNullOrEmpty(savePath))
+                {
+                    Data.Visualization.RegionOfInterest ROI = new Data.Visualization.RegionOfInterest(SelectedScene.ROIManager.SelectedROI);
+                    ClassLoaderSaver.SaveToJSon(ROI, savePath, true);
+                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Region of Interest saved", "The selected ROI has been saved to <color=#3080ffff>" + savePath + "</color>");
+                }
+            }, new string[] { "roi" }, "Save ROI to", Application.dataPath);
+#else
             string savePath = FileBrowser.GetSavedFileName(new string[] { "roi" }, "Save ROI to", Application.dataPath);
             if (!string.IsNullOrEmpty(savePath))
             {
@@ -31,13 +42,28 @@ namespace HBP.UI.Module3D.Tools
                 ClassLoaderSaver.SaveToJSon(ROI, savePath, true);
                 ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Region of Interest saved", "The selected ROI has been saved to <color=#3080ffff>" + savePath + "</color>");
             }
+#endif
         }
         /// <summary>
         /// Load a ROI from a file to the scene
         /// </summary>
         private void LoadROI()
         {
-            string loadPath = FileBrowser.GetExistingFileName(new string[] { "roi" }, "Load ROI file", Application.dataPath);
+#if UNITY_STANDALONE_OSX
+            FileBrowser.GetExistingFileNameAsync((loadPath) =>
+            {
+                if (!string.IsNullOrEmpty(loadPath))
+                {
+                    Data.Visualization.RegionOfInterest serializedROI = ClassLoaderSaver.LoadFromJson<Data.Visualization.RegionOfInterest>(loadPath);
+                    ROI roi = SelectedScene.ROIManager.AddROI(serializedROI.Name);
+                    foreach (Data.Visualization.Sphere sphere in serializedROI.Spheres)
+                    {
+                        roi.AddSphere(SelectedColumn.Layer, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
+                    }
+                }
+            }, new string[] { "roi" }, "Load ROI file");
+#else
+            string loadPath = FileBrowser.GetExistingFileName(new string[] { "roi" }, "Load ROI file");
             if (!string.IsNullOrEmpty(loadPath))
             {
                 Data.Visualization.RegionOfInterest serializedROI = ClassLoaderSaver.LoadFromJson<Data.Visualization.RegionOfInterest>(loadPath);
@@ -47,10 +73,11 @@ namespace HBP.UI.Module3D.Tools
                     roi.AddSphere(SelectedColumn.Layer, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
                 }
             }
+#endif
         }
-        #endregion
+#endregion
 
-        #region Public Methods
+#region Public Methods
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -87,6 +114,6 @@ namespace HBP.UI.Module3D.Tools
             m_Import.interactable = true;
             m_Export.interactable = hasROI;
         }
-        #endregion
+#endregion
     }
 }

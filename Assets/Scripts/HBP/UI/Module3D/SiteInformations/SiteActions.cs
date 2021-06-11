@@ -169,7 +169,7 @@ namespace HBP.UI.Module3D
             m_ApplyButton.onClick.AddListener(ApplyAction);
             m_ColorPickerButton.onClick.AddListener(() =>
             {
-                ApplicationState.Module3DUI.ColorPicker.Open(m_ColorPickedImage.color, (c) => m_ColorPickedImage.color = c);
+                ApplicationState.ColorPicker.Open(m_ColorPickedImage.color, (c) => m_ColorPickedImage.color = c);
             });
         }
         private void Update()
@@ -212,13 +212,23 @@ namespace HBP.UI.Module3D
         /// </summary>
         private void ExportSites()
         {
-            string csvPath = "";
-            csvPath = FileBrowser.GetSavedFileName(new string[] { "csv" }, "Save sites to", Application.dataPath);
+#if UNITY_STANDALONE_OSX
+            FileBrowser.GetSavedFileNameAsync((csvPath) =>
+            {
+                if (string.IsNullOrEmpty(csvPath)) return;
+
+                m_ProgressBar.Begin();
+                List<Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered).ToList();
+                m_Coroutine = this.StartCoroutineAsync(c_ExportSites(sites, csvPath));
+            }, new string[] { "csv" }, "Save sites to", Application.dataPath);
+#else
+            string csvPath = FileBrowser.GetSavedFileName(new string[] { "csv" }, "Save sites to", Application.dataPath);
             if (string.IsNullOrEmpty(csvPath)) return;
 
             m_ProgressBar.Begin();
             List<Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered).ToList();
             m_Coroutine = this.StartCoroutineAsync(c_ExportSites(sites, csvPath));
+#endif
         }
         /// <summary>
         /// Cancel the export of the filtered sites
@@ -228,9 +238,9 @@ namespace HBP.UI.Module3D
             m_Coroutine = null;
             m_ProgressBar.End();
         }
-        #endregion
+#endregion
 
-        #region Coroutines
+#region Coroutines
         /// <summary>
         /// Coroutine used to export the filtered sites to a csv file in asynchronous mode
         /// </summary>
@@ -385,6 +395,6 @@ namespace HBP.UI.Module3D
             ApplicationState.DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Informational, "Sites exported", "The filtered sites have been sucessfully exported to " + csvPath);
             OnRequestListUpdate.Invoke();
         }
-        #endregion
+#endregion
     }
 }

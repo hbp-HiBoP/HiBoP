@@ -48,12 +48,23 @@ namespace Tools.Unity
         #region Public Methods
         public void Open()
         {
-            string l_result = HBP.UI.FileBrowser.GetExistingFileName(EXTENSIONS, Message, m_Path);
-            if (l_result != string.Empty)
+#if UNITY_STANDALONE_OSX
+            HBP.UI.FileBrowser.GetExistingFileNameAsync((result) =>
             {
-                l_result = l_result.StandardizeToPath();
-                Path = l_result;
+                if (result != string.Empty)
+                {
+                    result = result.StandardizeToPath();
+                    Path = result;
+                }
+            }, EXTENSIONS, Message, m_Path);
+#else
+            string result = HBP.UI.FileBrowser.GetExistingFileName(EXTENSIONS, Message, m_Path);
+            if (result != string.Empty)
+            {
+                result = result.StandardizeToPath();
+                Path = result;
             }
+#endif
         }
         void LoadImage(string path)
         {

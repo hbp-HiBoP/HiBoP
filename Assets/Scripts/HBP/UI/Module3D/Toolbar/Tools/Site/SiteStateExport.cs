@@ -60,24 +60,45 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         private void SaveSiteStatesOfSelectedColumn()
         {
+#if UNITY_STANDALONE_OSX
+            FileBrowser.GetSavedFileNameAsync((savePath) =>
+            {
+                if (!string.IsNullOrEmpty(savePath))
+                {
+                    SelectedColumn.SaveSiteStates(savePath);
+                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Site states saved", "Site states of the selected column have been saved to <color=#3080ffff>" + savePath + "</color>");
+                }
+            }, new string[] { "csv" }, "Save site states to", Application.dataPath);
+#else
             string savePath = FileBrowser.GetSavedFileName(new string[] { "csv" }, "Save site states to", Application.dataPath);
             if (!string.IsNullOrEmpty(savePath))
             {
                 SelectedColumn.SaveSiteStates(savePath);
-                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Site states saves", "Site states of the selected column have been saved to <color=#3080ffff>" + savePath + "</color>");
+                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Site states saved", "Site states of the selected column have been saved to <color=#3080ffff>" + savePath + "</color>");
             }
+#endif
         }
         /// <summary>
         /// Load the sites of the selected column
         /// </summary>
         private void LoadSiteStatesToSelectedColumn()
         {
-            string loadPath = FileBrowser.GetExistingFileName(new string[] { "csv" }, "Load site states", Application.dataPath);
+#if UNITY_STANDALONE_OSX
+            FileBrowser.GetExistingFileNameAsync((loadPath) =>
+            {
+                if (!string.IsNullOrEmpty(loadPath))
+                {
+                    SelectedColumn.LoadSiteStates(loadPath);
+                }
+            }, new string[] { "csv" }, "Load site states");
+#else
+            string loadPath = FileBrowser.GetExistingFileName(new string[] { "csv" }, "Load site states");
             if (!string.IsNullOrEmpty(loadPath))
             {
                 SelectedColumn.LoadSiteStates(loadPath);
             }
+#endif
         }
-        #endregion
+#endregion
     }
 }

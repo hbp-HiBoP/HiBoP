@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 using UnityEngine.Events;
 
 namespace HBP.UI
@@ -37,7 +38,7 @@ namespace HBP.UI
             m_TagsSubModifier.Save();
             base.OK();
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            ApplicationState.LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckPatientTagValues(m_TagsSubModifier.ModifiedTags, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
+            ApplicationState.LoadingManager.Load(c_CheckProject(onChangeProgress), onChangeProgress);
         }
         #endregion
 
@@ -59,6 +60,14 @@ namespace HBP.UI
         {
             m_GeneralSubModifier.Object = objectToDisplay;
             m_TagsSubModifier.Object = objectToDisplay;
+        }
+        #endregion
+
+        #region Coroutines
+        private IEnumerator c_CheckProject(GenericEvent<float, float, LoadingText> onChangeProgress)
+        {
+            yield return ApplicationState.ProjectLoaded.c_CheckPatientTagValues(m_TagsSubModifier.ModifiedTags, (progress, duration, text) => onChangeProgress.Invoke(progress * 0.5f, duration, text));
+            yield return ApplicationState.ProjectLoaded.c_CheckDatasets(ApplicationState.ProjectLoaded.Protocols, (progress, duration, text) => onChangeProgress.Invoke(progress * 0.5f + 0.5f, duration, text));
         }
         #endregion
     }

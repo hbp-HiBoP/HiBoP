@@ -16,6 +16,7 @@ namespace HBP.UI.UserPreferences
         [SerializeField] EEGPreferencesSubModifier m_EEGPreferencesSubModifier;
         [SerializeField] ProtocolPreferencesSubModifier m_ProtocolPreferencesSubModifier;
         [SerializeField] AnatomyPreferencesSubModifier m_AnatomyPreferencesModifier;
+        [SerializeField] AtlasesPreferencesSubModifier m_AtlasesPreferencesSubModifier;
         [SerializeField] _3DPreferencesSubModifier m_3DPreferencesSubModifier;
         [SerializeField] TrialMatrixPreferencesSubModifier m_TrialMatrixPreferencesSubModifier;
         [SerializeField] GraphPreferencesSubModifier m_GraphPreferencesSubModifier;
@@ -41,6 +42,7 @@ namespace HBP.UI.UserPreferences
                 m_EEGPreferencesSubModifier.Interactable = value;
                 m_ProtocolPreferencesSubModifier.Interactable = value;
                 m_AnatomyPreferencesModifier.Interactable = value;
+                m_AtlasesPreferencesSubModifier.Interactable = value;
                 m_3DPreferencesSubModifier.Interactable = value;
                 m_TrialMatrixPreferencesSubModifier.Interactable = value;
                 m_GraphPreferencesSubModifier.Interactable = value;
@@ -85,6 +87,7 @@ namespace HBP.UI.UserPreferences
             m_EEGPreferencesSubModifier.Object = objectToDisplay.Data.EEG;
             m_ProtocolPreferencesSubModifier.Object = objectToDisplay.Data.Protocol;
             m_AnatomyPreferencesModifier.Object = objectToDisplay.Data.Anatomic;
+            m_AtlasesPreferencesSubModifier.Object = objectToDisplay.Data.Atlases;
 
             // Visualization
             m_3DPreferencesSubModifier.Object = objectToDisplay.Visualization._3D;

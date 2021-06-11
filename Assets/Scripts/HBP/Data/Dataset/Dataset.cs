@@ -147,6 +147,10 @@ namespace HBP.Data.Experience.Dataset
         {
             return m_Data.OfType<CCEPDataInfo>().ToArray();
         }
+        public FMRIDataInfo[] GetFMRIDataInfos()
+        {
+            return m_Data.OfType<FMRIDataInfo>().ToArray();
+        }
         /// <summary>
         /// Add a dataInfo to the dataset.
         /// </summary>

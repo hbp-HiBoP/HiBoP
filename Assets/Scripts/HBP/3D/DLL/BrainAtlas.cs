@@ -14,6 +14,7 @@ namespace HBP.Module3D.DLL
         /// Is the atlas completely loaded ?
         /// </summary>
         public bool Loaded { get; protected set; }
+        public bool Loading { get; protected set; }
         #endregion
 
         #region Public Methods
@@ -44,7 +45,7 @@ namespace HBP.Module3D.DLL
         public int[] GetSurfaceAreaLabels(Surface surface)
         {
             int[] result = new int[surface.NumberOfVertices];
-            get_vertices_area_index_BrainAtlas(_handle, surface.getHandle(), result);
+            if (Loaded) get_vertices_area_index_BrainAtlas(_handle, surface.getHandle(), result);
             return result;
         }
         /// <summary>

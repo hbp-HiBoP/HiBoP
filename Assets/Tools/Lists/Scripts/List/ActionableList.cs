@@ -30,6 +30,9 @@ namespace Tools.Unity.Lists
         #region Public Methods
         public override bool UpdateObject(T objectToUpdate)
         {
+            int index = m_Objects.FindIndex(o => o.Equals(objectToUpdate));
+            m_Objects[index] = objectToUpdate;
+
             if (GetItemFromObject(objectToUpdate, out Item<T> item))
             {
                 ActionnableItem<T> actionnableItem = item as ActionnableItem<T>;

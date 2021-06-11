@@ -104,13 +104,13 @@ namespace Tools.Unity
                     switch (Application.platform)
                     {
                         case RuntimePlatform.OSXPlayer:
-                            logFile = Path.Combine("~", "Library", "Logs", Application.companyName, Application.productName, "Player.log");
+                            logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Logs", Application.companyName, Application.productName, "Player.log");
                             break;
                         case RuntimePlatform.WindowsPlayer:
                             logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "..", "LocalLow", Application.companyName, Application.productName, "Player.log");
                             break;
                         case RuntimePlatform.LinuxPlayer:
-                            logFile = Path.Combine("~", ".config", "unity3d", Application.companyName, Application.productName, "Player.log");
+                            logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config", "unity3d", Application.companyName, Application.productName, "Player.log");
                             break;
                         default:
                             logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "..", "LocalLow", Application.companyName, Application.productName, "Player.log");
@@ -118,7 +118,7 @@ namespace Tools.Unity
                     }
                     if (File.Exists(logFile))
                     {
-                        string copiedLogFile = Path.Combine(Application.dataPath, "error_log.txt");
+                        string copiedLogFile = Path.Combine(Application.persistentDataPath, "error_log.txt");
                         File.Copy(logFile, copiedLogFile, true);
                         using (Attachment log = new Attachment(copiedLogFile))
                         {

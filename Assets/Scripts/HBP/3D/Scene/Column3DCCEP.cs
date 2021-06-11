@@ -466,7 +466,7 @@ namespace HBP.Module3D
         /// <param name="showAllSites">Do we show sites that are not in a ROI ?</param>
         /// <param name="hideBlacklistedSites">Do we hide blacklisted sites ?</param>
         /// <param name="isGeneratorUpToDate">Is the activity generator up to date ?</param>
-        public override void UpdateSitesRendering(bool showAllSites, bool hideBlacklistedSites, bool isGeneratorUpToDate)
+        public override void UpdateSitesRendering(bool showAllSites, bool hideBlacklistedSites, bool isGeneratorUpToDate, float gain)
         {
             UpdateSitesSizeAndColorOfSites(showAllSites);
 
@@ -507,7 +507,7 @@ namespace HBP.Module3D
                 }
                 if (!activity) site.IsActive = true;
                 site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
-                site.transform.localScale *= DynamicParameters.Gain;
+                site.transform.localScale *= gain;
             }
         }
         /// <summary>
@@ -517,9 +517,7 @@ namespace HBP.Module3D
         public override void LoadConfiguration(bool firstCall = true)
         {
             if (firstCall) ResetConfiguration();
-            DynamicParameters.Gain = ColumnCCEPData.DynamicConfiguration.Gain;
             DynamicParameters.InfluenceDistance = ColumnCCEPData.DynamicConfiguration.MaximumInfluence;
-            DynamicParameters.AlphaMin = ColumnCCEPData.DynamicConfiguration.Alpha;
             DynamicParameters.SetSpanValues(ColumnCCEPData.DynamicConfiguration.SpanMin, ColumnCCEPData.DynamicConfiguration.Middle, ColumnCCEPData.DynamicConfiguration.SpanMax);
             base.LoadConfiguration(false);
         }
@@ -528,9 +526,7 @@ namespace HBP.Module3D
         /// </summary>
         public override void SaveConfiguration()
         {
-            ColumnCCEPData.DynamicConfiguration.Gain = DynamicParameters.Gain;
             ColumnCCEPData.DynamicConfiguration.MaximumInfluence = DynamicParameters.InfluenceDistance;
-            ColumnCCEPData.DynamicConfiguration.Alpha = DynamicParameters.AlphaMin;
             ColumnCCEPData.DynamicConfiguration.SpanMin = DynamicParameters.SpanMin;
             ColumnCCEPData.DynamicConfiguration.Middle = DynamicParameters.Middle;
             ColumnCCEPData.DynamicConfiguration.SpanMax = DynamicParameters.SpanMax;
@@ -541,9 +537,7 @@ namespace HBP.Module3D
         /// </summary>
         public override void ResetConfiguration()
         {
-            DynamicParameters.Gain = 1.0f;
             DynamicParameters.InfluenceDistance = 15.0f;
-            DynamicParameters.AlphaMin = 0.8f;
             DynamicParameters.ResetSpanValues(this);
             base.ResetConfiguration();
         }

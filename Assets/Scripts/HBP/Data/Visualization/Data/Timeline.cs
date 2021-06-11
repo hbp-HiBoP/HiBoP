@@ -8,25 +8,25 @@ using UnityEngine.Events;
 
 namespace HBP.Data.Visualization
 {
-    public class Timeline
+    public abstract class BasicTimeline
     {
         #region Properties
         /// <summary>
         /// Length of the timeline
         /// </summary>
-        public int Length { get; private set; }
+        public int Length { get; protected set; }
         /// <summary>
         /// Unit of the timeline
         /// </summary>
-        public string Unit { get; private set; }
+        public string Unit { get; protected set; }
         /// <summary>
         /// Length of the timeline in unit of time
         /// </summary>
-        public float TimeLength { get; private set; }
+        public float TimeLength { get; protected set; }
 
-        public Tools.CSharp.EEG.Frequency Frequency { get; private set; }
+        public Tools.CSharp.EEG.Frequency Frequency { get; protected set; }
 
-        private int m_CurrentIndex;
+        protected int m_CurrentIndex;
         /// <summary>
         /// Current index of the timeline
         /// </summary>
@@ -49,27 +49,11 @@ namespace HBP.Data.Visualization
                 OnUpdateCurrentIndex.Invoke();
             }
         }
-
-        /// <summary>
-        /// Subtimelines of this timeline
-        /// </summary>
-        public Dictionary<SubBloc, SubTimeline> SubTimelinesBySubBloc { get; set; }
-        /// <summary>
-        /// Current subtimeline compared to the position of the current index
-        /// </summary>
-        public SubTimeline CurrentSubtimeline
-        {
-            get
-            {
-                return SubTimelinesBySubBloc.FirstOrDefault(s => s.Value.GlobalMinIndex - s.Value.Before <= m_CurrentIndex && s.Value.GlobalMaxIndex + s.Value.After >= m_CurrentIndex).Value;
-            }
-        }
-
         /// <summary>
         /// Is the timeline looping ?
         /// </summary>
         public bool IsLooping { get; set; }
-        private bool m_IsPlaying;
+        protected bool m_IsPlaying;
         /// <summary>
         /// Is the timeline playing ?
         /// </summary>
@@ -85,10 +69,11 @@ namespace HBP.Data.Visualization
                 m_TimeSinceLastUpdate = 0f;
             }
         }
+
         /// <summary>
         /// Time since the last timeline update
         /// </summary>
-        private float m_TimeSinceLastUpdate;
+        protected float m_TimeSinceLastUpdate;
         /// <summary>
         /// Step of the timeline
         /// </summary>
@@ -96,11 +81,59 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Time between two timeline updates
         /// </summary>
-        private float UpdateInterval { get { return 1.0f / Step; } }
+        protected float UpdateInterval { get { return 1.0f / Step; } }
+
+        /// <summary>
+        /// Current subtimeline compared to the position of the current index
+        /// </summary>
+        public abstract SubTimeline CurrentSubtimeline { get; }
         #endregion
 
         #region Events
         public UnityEvent OnUpdateCurrentIndex = new UnityEvent();
+        #endregion
+
+        #region Public Methods
+        /// <summary>
+        /// Play the timeline
+        /// </summary>
+        public void Play()
+        {
+            if (IsPlaying)
+            {
+                m_TimeSinceLastUpdate += Time.deltaTime;
+                while (m_TimeSinceLastUpdate > UpdateInterval)
+                {
+                    CurrentIndex++;
+                    m_TimeSinceLastUpdate -= UpdateInterval;
+                    if (CurrentIndex >= Length - 1 && !IsLooping)
+                    {
+                        IsPlaying = false;
+                        CurrentIndex = 0;
+                        ApplicationState.Module3D.OnStopTimelinePlay.Invoke();
+                    }
+                }
+            }
+        }
+        #endregion
+    }
+    public class Timeline : BasicTimeline
+    {
+        #region Properties
+        /// <summary>
+        /// Subtimelines of this timeline
+        /// </summary>
+        public Dictionary<SubBloc, SubTimeline> SubTimelinesBySubBloc { get; set; }
+        /// <summary>
+        /// Current subtimeline compared to the position of the current index
+        /// </summary>
+        public override SubTimeline CurrentSubtimeline
+        {
+            get
+            {
+                return SubTimelinesBySubBloc.FirstOrDefault(s => s.Value.GlobalMinIndex - s.Value.Before <= m_CurrentIndex && s.Value.GlobalMaxIndex + s.Value.After >= m_CurrentIndex).Value;
+            }
+        }
         #endregion
 
         #region Constructors
@@ -148,32 +181,26 @@ namespace HBP.Data.Visualization
             TimeLength = SubTimelinesBySubBloc.Sum(s => s.Value.TimeLength);
         }
         #endregion
+    }
+    public class FMRITimeline : BasicTimeline
+    {
+        #region Properties
+        protected SubTimeline m_DefaultSubtimeline;
+        public override SubTimeline CurrentSubtimeline => m_DefaultSubtimeline;
+        #endregion
 
         #region Public Methods
-        /// <summary>
-        /// Play the timeline
-        /// </summary>
-        public void Play()
+        public void Update(Module3D.FMRI fmri)
         {
-            if (IsPlaying)
-            {
-                m_TimeSinceLastUpdate += Time.deltaTime;
-                while (m_TimeSinceLastUpdate > UpdateInterval)
-                {
-                    CurrentIndex++;
-                    m_TimeSinceLastUpdate -= UpdateInterval;
-                    if (CurrentIndex >= Length - 1 && !IsLooping)
-                    {
-                        IsPlaying = false;
-                        CurrentIndex = 0;
-                        ApplicationState.Module3D.OnStopTimelinePlay.Invoke();
-                    }
-                }
-            }
+            Frequency = new Tools.CSharp.EEG.Frequency(1);
+            Unit = "dt";
+            Length = fmri.NIFTI.NumberOfVolumes;
+            TimeLength = fmri.NIFTI.NumberOfVolumes - 1;
+            CurrentIndex = 0;
+            m_DefaultSubtimeline = new SubTimeline(fmri);
         }
         #endregion
     }
-
     public class SubTimeline
     {
         #region Properties
@@ -241,16 +268,27 @@ namespace HBP.Data.Visualization
         /// </summary>
         public float TimeStep { get; set; }
 
-        public Dictionary<Experience.Protocol.Event, EventStatistics> StatisticsByEvent { get; set; }
+        public Dictionary<Experience.Protocol.Event, EventStatistics> StatisticsByEvent { get; set; } = new Dictionary<Experience.Protocol.Event, EventStatistics>();
         #endregion
 
         #region Constructors
+        public SubTimeline(Module3D.FMRI fmri)
+        {
+            Length = fmri.NIFTI.NumberOfVolumes;
+            Before = 0;
+            After = 0;
+            Frequency = new Tools.CSharp.EEG.Frequency(1);
+            MinTime = 0;
+            MaxTime = fmri.NIFTI.NumberOfVolumes - 1;
+            FirstSampleTime = MinTime;
+            LastSampleTime = MaxTime;
+            TimeStep = 1;
+        }
         public SubTimeline(SubBloc subBloc, int startIndex, List<SubBlocEventsStatistics> eventStatistics, int maxBefore, int maxAfter, Tools.CSharp.EEG.Frequency frequency)
         {
             Frequency = frequency;
 
             // Events
-            StatisticsByEvent = new Dictionary<Experience.Protocol.Event, EventStatistics>();
             foreach (var e in subBloc.Events)
             {
                 StatisticsByEvent.Add(e, EventStatistics.Average(eventStatistics.Select(es => es.StatisticsByEvent[e])));

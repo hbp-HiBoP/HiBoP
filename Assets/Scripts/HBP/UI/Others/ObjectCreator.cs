@@ -13,7 +13,7 @@ namespace Tools.Unity.Components
     /// </summary>
     /// <typeparam name="T">Type of the object to create</typeparam>
     [Serializable]
-    public class ObjectCreator<T> : MonoBehaviour where T : ICloneable, ICopiable, new()
+    public class ObjectCreator<T> : MonoBehaviour where T : HBP.Data.BaseData, new()
     {
         #region Properties
         [SerializeField] public bool m_IsLoadableFromFile = true;
@@ -102,6 +102,8 @@ namespace Tools.Unity.Components
         /// </summary>
         public virtual WindowsReferencer WindowsReferencer { get => m_WindowsReferencer; }
 
+        [SerializeField] protected CreatorContextMenu m_CreatorContextMenu;
+
         /// <summary>
         /// Event raised when a new object is created.
         /// </summary>
@@ -114,6 +116,11 @@ namespace Tools.Unity.Components
         /// </summary>
         public virtual void Create()
         {
+            if (m_CreatorContextMenu.gameObject.activeSelf)
+            {
+                m_CreatorContextMenu.Close();
+                return;
+            }
             bool createableFromScratch = IsCreatableFromScratch;
             bool createableFromFile = IsCreatableFromFile && typeof(T).GetInterfaces().Contains(typeof(ILoadable<T>));
             bool createableFromDatabase = IsCreatableFromDatabase && typeof(T).GetInterfaces().Contains(typeof(ILoadableFromDatabase<T>));
@@ -125,13 +132,11 @@ namespace Tools.Unity.Components
             else if (!createableFromScratch && !createableFromFile && !createableFromDatabase && createableFromExistingObjects) CreateFromExistingObject();
             else
             {
-                CreatorWindow creatorWindow = ApplicationState.WindowsManager.Open<CreatorWindow>("Creator window", true);
-                creatorWindow.IsCreatableFromScratch = createableFromScratch;
-                creatorWindow.IsCreatableFromExistingObjects = createableFromExistingObjects;
-                creatorWindow.IsCreatableFromFile = createableFromFile;
-                creatorWindow.IsCreatableFromDatabase = createableFromDatabase;
-                creatorWindow.OnOk.AddListener(() => Create(creatorWindow.Type));
-                WindowsReferencer.Add(creatorWindow);
+                m_CreatorContextMenu.IsCreatableFromScratch = createableFromScratch;
+                m_CreatorContextMenu.IsCreatableFromExistingObjects = createableFromExistingObjects;
+                m_CreatorContextMenu.IsCreatableFromFile = createableFromFile;
+                m_CreatorContextMenu.IsCreatableFromDatabase = createableFromDatabase;
+                m_CreatorContextMenu.Open();
             }
         }
         /// <summary>
@@ -155,6 +160,7 @@ namespace Tools.Unity.Components
                     CreateFromDatabase();
                     break;
             }
+            m_CreatorContextMenu.Close();
         }
         /// <summary>
         /// Create a new object from scratch.
@@ -175,20 +181,7 @@ namespace Tools.Unity.Components
         /// </summary>
         public virtual void CreateFromFile()
         {
-            if (LoadFromFile(out T[] items))
-            {
-                if (items.Length == 1)
-                {
-                    OpenModifier(items[0]);
-                }
-                else
-                {
-                    foreach (var item in items)
-                    {
-                        OnObjectCreated.Invoke(item);
-                    }
-                }
-            }
+            LoadFromFile();
         }
         /// <summary>
         /// Create a new object from a database.
@@ -200,6 +193,10 @@ namespace Tools.Unity.Components
         #endregion
 
         #region Private Methods
+        private void Awake()
+        {
+            m_CreatorContextMenu.OnSelectType.AddListener(Create);
+        }
         /// <summary>
         /// Open a new object selector.
         /// </summary>
@@ -252,7 +249,7 @@ namespace Tools.Unity.Components
         /// <returns>Return the objectModifier.</returns>
         protected virtual ObjectModifier<T> OpenModifier(T @object)
         {
-            ObjectModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(@object, true);
+            ObjectModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(@object);
             modifier.OnOk.AddListener(() => SaveModifier(modifier));
             WindowsReferencer.Add(modifier);
             return modifier;
@@ -271,37 +268,111 @@ namespace Tools.Unity.Components
         /// </summary>
         /// <param name="result">Objects loaded from the file.</param>
         /// <returns>True if the method end without errors, False otherwise.</returns>
-        protected virtual bool LoadFromFile(out T[] result)
+        protected virtual void LoadFromFile()
         {
-            result = new T[0];
+            List<T> items = new List<T>();
             ILoadable<T> loadable = new T() as ILoadable<T>;
-            string path = FileBrowser.GetExistingFileName(loadable.GetExtensions()).StandardizeToPath();
-            if (path != string.Empty)
+#if UNITY_STANDALONE_OSX
+            FileBrowser.GetExistingFileNamesAsync((paths) =>
             {
-                bool loadResult = loadable.LoadFromFile(path, out result);
-                if (loadResult)
+                foreach (var rawPath in paths)
                 {
-                    if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
+                    if (rawPath != null)
                     {
-                        foreach (T t in result)
+                        string path = rawPath.StandardizeToPath();
+                        if (path != string.Empty)
                         {
-                            IIdentifiable identifiable = t as IIdentifiable;
-                            if (identifiable.ID == "xxxxxxxxxxxxxxxxxxxxxxxxx")
+                            bool loadResult = loadable.LoadFromFile(path, out T[] array);
+                            if (loadResult)
                             {
-                                identifiable.ID = Guid.NewGuid().ToString();
+                                if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
+                                {
+                                    foreach (T t in array)
+                                    {
+                                        IIdentifiable identifiable = t as IIdentifiable;
+                                        if (identifiable.ID == "xxxxxxxxxxxxxxxxxxxxxxxxx")
+                                        {
+                                            identifiable.ID = Guid.NewGuid().ToString();
+                                        }
+                                    }
+                                }
+                                items.AddRange(array);
                             }
                         }
                     }
                 }
-                return loadResult;
+                if (items.Count > 0)
+                {
+                    if (items.Count == 1)
+                    {
+                        OpenModifier(items[0]);
+                    }
+                    else
+                    {
+                        foreach (var item in items)
+                        {
+                            OnObjectCreated.Invoke(item);
+                        }
+                    }
+                }
+            }, loadable.GetExtensions());
+#else
+            string[] paths = FileBrowser.GetExistingFileNames(loadable.GetExtensions());
+            foreach (var rawPath in paths)
+            {
+                string path = rawPath.StandardizeToPath();
+                if (path != string.Empty)
+                {
+                    bool loadResult = loadable.LoadFromFile(path, out T[] array);
+                    if (loadResult)
+                    {
+                        if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
+                        {
+                            foreach (T t in array)
+                            {
+                                IIdentifiable identifiable = t as IIdentifiable;
+                                if (identifiable.ID == "xxxxxxxxxxxxxxxxxxxxxxxxx")
+                                {
+                                    identifiable.ID = Guid.NewGuid().ToString();
+                                }
+                            }
+                        }
+                        items.AddRange(array);
+                    }
+                }
             }
-            return false;
+            if (items.Count > 0)
+            {
+                if (items.Count == 1)
+                {
+                    OpenModifier(items[0]);
+                }
+                else
+                {
+                    foreach (var item in items)
+                    {
+                        OnObjectCreated.Invoke(item);
+                    }
+                }
+            }
+#endif
         }
         /// <summary>
         /// Open a browser to select a folder database and load objects asynchroniously.
         /// </summary>
         protected virtual void SelectDatabase()
         {
+#if UNITY_STANDALONE_OSX
+            FileBrowser.GetExistingDirectoryNameAsync((path) =>
+            {
+                if (path != null)
+                {
+                    ILoadableFromDatabase<T> loadable = new T() as ILoadableFromDatabase<T>;
+                    GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+                    ApplicationState.LoadingManager.Load(loadable.LoadFromDatabase(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => OnEndLoadFromDatabase(result.ToArray())), onChangeProgress);
+                }
+            });
+#else
             string path = FileBrowser.GetExistingDirectoryName();
             if (path != null)
             {
@@ -309,6 +380,7 @@ namespace Tools.Unity.Components
                 GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
                 ApplicationState.LoadingManager.Load(loadable.LoadFromDatabase(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => OnEndLoadFromDatabase(result.ToArray())), onChangeProgress);
             }
+#endif
         }
         /// <summary>
         /// Called when the asynchronious method to load objects from the database are ended.

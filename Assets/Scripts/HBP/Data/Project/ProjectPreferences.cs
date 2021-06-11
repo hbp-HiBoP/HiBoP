@@ -73,7 +73,7 @@ namespace HBP.Data
             PatientsTags = patientsTags.ToList();
             SitesTags = sitesTags.ToList();
         }
-        public ProjectPreferences(string name, string patientDatabase, string localizerDatabase) : this(name, patientDatabase, localizerDatabase, new Alias[0], new BaseTag[0], new BaseTag[0], new BaseTag[0])
+        public ProjectPreferences(string name, string patientDatabase, string localizerDatabase) : this(name, patientDatabase, localizerDatabase, new Alias[2] { new Alias("[ANATOMICAL_DATABASE]", patientDatabase), new Alias("[FUNCTIONAL_DATABASE]", localizerDatabase) }, new BaseTag[0], new BaseTag[0], new BaseTag[0])
         {
         }
         /// <summary>
@@ -105,7 +105,7 @@ namespace HBP.Data
         #region Private Methods
         public override object Clone()
         {
-            return new ProjectPreferences(Name, PatientDatabase, LocalizerDatabase, Aliases.DeepClone(), GeneralTags.DeepClone(), PatientsTags.DeepClone(), SitesTags.DeepClone());
+            return new ProjectPreferences(Name, PatientDatabase, LocalizerDatabase, Aliases.DeepClone(), GeneralTags.DeepClone(), PatientsTags.DeepClone(), SitesTags.DeepClone(), ID);
         }
         public override void Copy(object copy)
         {
