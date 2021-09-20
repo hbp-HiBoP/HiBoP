@@ -121,7 +121,7 @@
 				{
 					clip(is_clipped(IN));
 
-					if ((_Atlas | _FMRI) & !_Activity)
+					if ((_Atlas | _FMRI))
 					{
 						display_atlas(IN, o);
 					}
