@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using Tools.Unity;
 using System.Linq;
+using System.IO;
 
 namespace HBP.UI
 {
@@ -37,7 +38,12 @@ namespace HBP.UI
 
         #region Public Methods
         public override void OK()
-		{
+        {
+            if (string.IsNullOrEmpty(m_ProjectLocationFolderSelector.Folder) || !Directory.Exists(m_ProjectLocationFolderSelector.Folder))
+            {
+                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Directory not found", "Please select a valid directory to save your project file.");
+                return;
+            }
             if (ApplicationState.ProjectLoaded != null)
             {
                 if (ApplicationState.ProjectLoaded.Visualizations.Any(v => v.IsOpen))

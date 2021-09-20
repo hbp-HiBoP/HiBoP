@@ -485,7 +485,7 @@ namespace HBP.Data
             // Initialization.
             onChangeProgress.Invoke(progress, 0, new LoadingText("Initialization"));
 
-            if (string.IsNullOrEmpty(path)) throw new ArgumentNullException(path);
+            if (string.IsNullOrEmpty(path)) throw new DirectoryNotFoundException("");
             if (!Directory.Exists(path)) throw new DirectoryNotFoundException(path);
             DirectoryInfo tmpProjectDirectory = Directory.CreateDirectory(ApplicationState.ExtractProjectFolder + "-temp");
             string oldTMPProjectDirectory = ApplicationState.ExtractProjectFolder;
