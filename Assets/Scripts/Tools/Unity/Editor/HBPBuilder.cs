@@ -80,7 +80,7 @@ namespace Tools.Unity
             if (target == BuildTarget.StandaloneLinux64)
             {
                 DirectoryInfo pluginsDirectory = new DirectoryInfo(Application.dataPath + "/Plugins/x86_64/Linux");
-                DirectoryInfo newPluginsDirectory = new DirectoryInfo(dataDirectory + "HiBoP_Data/Plugins/x86_64");
+                DirectoryInfo newPluginsDirectory = new DirectoryInfo(dataDirectory + "HiBoP_Data/Plugins");
                 pluginsDirectory.CopyFilesRecursively(newPluginsDirectory);
                 foreach (var metaFile in newPluginsDirectory.GetFiles("*.meta"))
                 {
