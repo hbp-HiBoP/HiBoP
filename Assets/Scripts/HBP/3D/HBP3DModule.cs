@@ -305,7 +305,7 @@ namespace HBP.Module3D
         {
             yield return Ninja.JumpBack;
 
-            Dictionary<Data.Visualization.Visualization, int> weightByVisualization = visualizations.ToDictionary(v => v, v => (v.CCEPColumns.Count + v.IEEGColumns.Count) * v.Patients.Count + v.AnatomicColumns.Count + v.FMRIColumns.Count);
+            Dictionary<Data.Visualization.Visualization, int> weightByVisualization = visualizations.ToDictionary(v => v, v => (v.CCEPColumns.Count + v.IEEGColumns.Count) * v.Patients.Count + v.AnatomicColumns.Count + v.FMRIColumns.Count + v.MEGColumns.Count);
             int totalWeight = weightByVisualization.Values.Sum();
             float progress = 0;
             const float LOADING_VISUALIZATION_PROGRESS = 0.5f;
