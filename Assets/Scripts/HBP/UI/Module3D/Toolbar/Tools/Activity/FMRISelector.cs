@@ -52,9 +52,19 @@ namespace HBP.UI.Module3D.Tools
             m_Dropdown.options.Clear();
             if (SelectedColumn is Column3DFMRI fmriColumn)
             {
-                foreach (var fmri in fmriColumn.ColumnFMRIData.Data.FMRIs)
+                if (SelectedScene.Type == Data.Enums.SceneType.MultiPatients)
                 {
-                    m_Dropdown.options.Add(new Dropdown.OptionData(fmri.Name));
+                    foreach (var fmri in fmriColumn.ColumnFMRIData.Data.FMRIs)
+                    {
+                        m_Dropdown.options.Add(new Dropdown.OptionData(string.Format("{0} ({1})", fmri.Item1.Name, fmri.Item2.Name)));
+                    }
+                }
+                else
+                {
+                    foreach (var fmri in fmriColumn.ColumnFMRIData.Data.FMRIs)
+                    {
+                        m_Dropdown.options.Add(new Dropdown.OptionData(fmri.Item1.Name));
+                    }
                 }
                 m_Dropdown.value = fmriColumn.SelectedFMRIIndex;
             }
