@@ -1,5 +1,6 @@
 ﻿using HBP.Data.Experience.Dataset;
 using HBP.Module3D;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace HBP.Data.Visualization
     public class MEGData
     {
         #region Properties
-        public List<Module3D.FMRI> FMRIs { get; set; } = new List<Module3D.FMRI>();
+        public List<Tuple<Module3D.FMRI, Patient>> FMRIs { get; set; } = new List<Tuple<Module3D.FMRI, Patient>>();
         #endregion
 
         #region Public Methods
@@ -19,14 +20,14 @@ namespace HBP.Data.Visualization
             foreach (MEGDataInfo dataInfo in columnData)
             {
                 Experience.Dataset.MEGData data = DataManager.GetData(dataInfo) as Experience.Dataset.MEGData;
-                FMRIs.Add(new Module3D.FMRI(data.FMRI));
+                FMRIs.Add(new Tuple<Module3D.FMRI, Patient>(new Module3D.FMRI(data.FMRI), dataInfo.Patient));
             }
         }
         public void Unload()
         {
             foreach (var fmri in FMRIs)
             {
-                fmri.Clean();
+                fmri.Item1.Clean();
             }
             FMRIs.Clear();
         }

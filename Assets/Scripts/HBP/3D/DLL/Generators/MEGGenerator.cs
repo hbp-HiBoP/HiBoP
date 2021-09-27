@@ -12,7 +12,7 @@ namespace HBP.Module3D.DLL
         #region Public Methods
         public void ComputeActivity(Column3DMEG column)
         {
-            HandleRef[] volumeHandleRefs = column.ColumnMEGData.Data.FMRIs.SelectMany(fmri => fmri.Volumes).Select(v => v.getHandle()).ToArray();
+            HandleRef[] volumeHandleRefs = column.ColumnMEGData.Data.FMRIs.SelectMany(fmri => fmri.Item1.Volumes).Select(v => v.getHandle()).ToArray();
             compute_activity_MEGGenerator(_handle, volumeHandleRefs, volumeHandleRefs.Length);
         }
         public void AdjustValues(Column3DMEG column)
