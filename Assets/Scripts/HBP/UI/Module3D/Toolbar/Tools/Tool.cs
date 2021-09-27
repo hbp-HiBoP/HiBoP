@@ -89,6 +89,10 @@ namespace HBP.UI.Module3D.Tools
                 {
                     columns.AddRange(SelectedScene.ColumnsFMRI);
                 }
+                else if (SelectedColumn is Column3DMEG)
+                {
+                    columns.AddRange(SelectedScene.ColumnsMEG);
+                }
             }
             else
             {

@@ -33,12 +33,7 @@ namespace HBP.Data.Visualization
             }
         }
         
-        [DataMember] public FMRIConfiguration FMRIConfiguration { get; set; }
-
-        /// <summary>
-        /// Data name of the column.
-        /// </summary>
-        [DataMember] public string DataName { get; set; }
+        [DataMember] public MEGConfiguration MEGConfiguration { get; set; }
 
         /// <summary>
         /// Data of the column.
@@ -47,19 +42,17 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public MEGColumn(string name, BaseConfiguration baseConfiguration, Dataset dataset, string dataName, FMRIConfiguration fmriConfiguration, string ID) : base(name, baseConfiguration, ID)
+        public MEGColumn(string name, BaseConfiguration baseConfiguration, Dataset dataset, MEGConfiguration fmriConfiguration, string ID) : base(name, baseConfiguration, ID)
         {
-            FMRIConfiguration = fmriConfiguration;
+            MEGConfiguration = fmriConfiguration;
             Dataset = dataset;
-            DataName = dataName;
         }
-        public MEGColumn(string name, BaseConfiguration baseConfiguration, Dataset dataset, string dataName, FMRIConfiguration fmriConfiguration) : base(name, baseConfiguration)
+        public MEGColumn(string name, BaseConfiguration baseConfiguration, Dataset dataset, MEGConfiguration fmriConfiguration) : base(name, baseConfiguration)
         {
-            FMRIConfiguration = fmriConfiguration;
+            MEGConfiguration = fmriConfiguration;
             Dataset = dataset;
-            DataName = dataName;
         }
-        public MEGColumn(string name, BaseConfiguration baseConfiguration) : this(name, baseConfiguration, null, "", new FMRIConfiguration())
+        public MEGColumn(string name, BaseConfiguration baseConfiguration) : this(name, baseConfiguration, null, new MEGConfiguration())
         {
         }
         public MEGColumn() : this("", new BaseConfiguration())
@@ -70,21 +63,21 @@ namespace HBP.Data.Visualization
         #region Public Methods
         public override object Clone()
         {
-            return new MEGColumn(Name, BaseConfiguration.Clone() as BaseConfiguration, Dataset, DataName, FMRIConfiguration.Clone() as FMRIConfiguration, ID);
+            return new MEGColumn(Name, BaseConfiguration.Clone() as BaseConfiguration, Dataset, MEGConfiguration.Clone() as MEGConfiguration, ID);
         }
         public override void Copy(object copy)
         {
             base.Copy(copy);
             if(copy is MEGColumn megColumn)
             {
-                FMRIConfiguration = megColumn.FMRIConfiguration;
+                MEGConfiguration = megColumn.MEGConfiguration;
                 Dataset = megColumn.Dataset;
-                DataName = megColumn.DataName;
             }
         }
         public override bool IsCompatible(IEnumerable<Patient> patients)
         {
-            return true;
+            MEGDataInfo[] megDataInfos = Dataset?.GetMEGDataInfos();
+            return Dataset != null && Dataset.Protocol != null && patients.All((patient) => megDataInfos.Any((data) => data.Patient == patient && data.IsOk));
         }
         public override void Unload()
         {

@@ -12,13 +12,11 @@ namespace HBP.UI
     public class MEGColumnModifier : SubModifier<MEGColumn>
     {
         #region Properties
-        [SerializeField] Dropdown m_ProtocolDropdown, m_DatasetDropdown, m_DataNameDropdown;
-        [SerializeField] Image m_InformationImage;
+        [SerializeField] Dropdown m_ProtocolDropdown, m_DatasetDropdown;
 
         List<Protocol> m_Protocols;
         Protocol m_SelectedProtocol;
         List<Dataset> m_Datasets;
-        List<string> m_DataNames;
 
         public override bool Interactable
         {
@@ -78,7 +76,6 @@ namespace HBP.UI
         {
             m_ProtocolDropdown.onValueChanged.AddListener(OnChangeProtocol);
             m_DatasetDropdown.onValueChanged.AddListener(OnChangeDataset);
-            m_DataNameDropdown.onValueChanged.AddListener(OnChangeDataName);
 
             base.Initialize();
         }
@@ -118,11 +115,10 @@ namespace HBP.UI
         void OnChangeDataset(int value)
         {
             if (m_Datasets != null && m_Datasets.Count > value) Object.Dataset = m_Datasets[value];
-            SetDataNameDropdown();
         }
         void SetDatasetDropdown()
         {
-            m_Datasets = ApplicationState.ProjectLoaded.Datasets.Where((d) => d.Protocol == m_SelectedProtocol).ToList();
+            m_Datasets = ApplicationState.ProjectLoaded.Datasets.Where((d) => d.Protocol == m_SelectedProtocol && d.GetMEGDataInfos().Length > 0 && d.GetMEGDataInfos().Any(dataInfo => dataInfo.IsOk && m_Patients.Any(p => dataInfo.Patient == p))).ToList();
             SetDatasetDropdownInteractable(m_Datasets != null && m_Patients != null && m_Datasets.Count > 0 && m_ProtocolDropdown.interactable && m_Patients.Length > 0);
         }
         void SetDatasetDropdownInteractable(bool interactable)
@@ -143,54 +139,8 @@ namespace HBP.UI
             else
             {
                 m_DatasetDropdown.ClearOptions();
-                SetDataNameDropdownInteractable(false);
             }
             m_DatasetDropdown.RefreshShownValue();
-        }
-
-        // Data.
-        void OnChangeDataName(int value)
-        {
-            if(m_DataNames != null && m_DataNames.Count > value)
-            {
-                Object.DataName = m_DataNames[value];
-                var invalidPatients = m_Patients.Where((patient) => !Object.Dataset.GetMEGDataInfos().Any(d => d.Patient == patient && d.Name == Object.DataName && d.IsOk)).ToArray();
-                if (invalidPatients.Length > 0)
-                {
-                    m_InformationImage.gameObject.SetActive(true);
-                    m_InformationImage.GetComponent<Tooltip>().Text = string.Format("Some patients of this visualization have no valid data for the data name \"{0}\"\n{1}", Object.DataName, string.Join("\n", invalidPatients.Select(p => p.CompleteName)));
-                }
-                else
-                {
-                    m_InformationImage.gameObject.SetActive(false);
-                }
-            }
-        }
-        void SetDataNameDropdown()
-        {
-            if(Object.Dataset != null)
-            {
-                m_DataNames = (from data in Object.Dataset.Data select data.Name).Distinct().Where((name) => m_Patients.Any((patient) => Object.Dataset.GetMEGDataInfos().Any((dataInfo) => dataInfo.IsOk && dataInfo.Name == name && dataInfo.Patient == patient))).ToList();
-            }
-            else
-            {
-                m_DataNames = new List<string>();
-            }
-            SetDataNameDropdownInteractable(m_DataNames != null && m_DataNames.Count > 0 && m_DatasetDropdown.interactable);
-        }
-        void SetDataNameDropdownInteractable(bool interactable)
-        {
-            m_DataNameDropdown.interactable = interactable;
-            if (interactable)
-            {
-                m_DataNameDropdown.options = (from label in m_DataNames select new Dropdown.OptionData(label, null)).ToList();
-                m_DataNameDropdown.SetValue(Mathf.Clamp(m_DataNames.IndexOf(Object.DataName), 0, m_DataNameDropdown.options.Count - 1));
-            }
-            else
-            {
-                m_DataNameDropdown.ClearOptions();
-            }
-            m_DataNameDropdown.RefreshShownValue();
         }
         #endregion
     }
