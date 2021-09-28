@@ -61,6 +61,13 @@ namespace HBP.UI.Module3D
             scene.OnUpdateGeneratorState.AddListener((value) =>
             {
                 IsActive = value;
+                if (IsActive && column is Column3DAnatomy anatomyColumn)
+                {
+                    int density = Mathf.FloorToInt((anatomyColumn.ActivityGenerator as HBP.Module3D.DLL.DensityGenerator).MaxDensity);
+                    m_Min.text = "0";
+                    m_Mid.text = (density / 2).ToString();
+                    m_Max.text = density.ToString();
+                }
             });
 
             scene.OnChangeColormap.AddListener((color) => m_ColormapImage.sprite = m_SpriteByColorType[color]);
