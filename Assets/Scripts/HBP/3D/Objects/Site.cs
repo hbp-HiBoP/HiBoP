@@ -62,6 +62,11 @@ namespace HBP.Module3D
                 return Name + " (" + Patient.Name + " - " + Patient.Place + " - " + Patient.Date + ")";
             }
         }
+
+        /// <summary>
+        /// Initial position of this site
+        /// </summary>
+        public Vector3 DefaultPosition { get; set; }
         #endregion
     }
 

@@ -42,6 +42,10 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField] private Tools.CutAroundSite m_CutAroundSite;
         /// <summary>
+        /// Move all sites to one hemisphere
+        /// </summary>
+        [SerializeField] private Tools.MoveSites m_MoveSites;
+        /// <summary>
         /// Open the Interactive Viewer from HBP
         /// </summary>
         [SerializeField] private Tools.OpenInteractiveViewer m_OpenInteractiveViewer;
@@ -63,6 +67,7 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_SiteStateExport);
             m_Tools.Add(m_CutAroundSite);
             m_Tools.Add(m_OpenInteractiveViewer);
+            m_Tools.Add(m_MoveSites);
         }
         #endregion
     }

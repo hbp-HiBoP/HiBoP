@@ -16,8 +16,25 @@ public class DebugBenjamin : MonoBehaviour
     private List<Vector3> m_FinalPositions = new List<Vector3>();
     private float m_Percent;
     private bool m_Initialized = false;
+    private float m_TimeSinceLastAction = 0;
     private void Update()
     {
+        // FRAMRATE
+        m_TimeSinceLastAction += Time.deltaTime;
+        if (Input.GetAxis("Mouse X") != 0 || Input.GetAxis("Mouse Y") != 0 || Input.anyKey || Input.anyKeyDown)
+        {
+            m_TimeSinceLastAction = 0;
+        }
+        if (m_TimeSinceLastAction > 60)
+        {
+            Application.targetFrameRate = 1;
+        }
+        else
+        {
+            Application.targetFrameRate = -1;
+        }
+
+        // SITES
         if (Input.GetKeyDown(KeyCode.F2))
         {
             m_InitialPositions.Clear();

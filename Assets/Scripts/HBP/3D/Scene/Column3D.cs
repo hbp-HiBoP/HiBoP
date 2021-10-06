@@ -519,6 +519,34 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
+        /// Move all sites of this column to the same side of a plane, with each site under the plane being moved to its symmetric position
+        /// </summary>
+        /// <param name="planeCenter">Center of the plane of symmetry</param>
+        /// <param name="planeNormal">Normal to the plane of symmetry</param>
+        public void MoveAllSitesToTheSameSideOfAPlane(Vector3 planeCenter, Vector3 planeNormal)
+        {
+            ResetSitesPositions();
+            foreach (var site in Sites)
+            {
+                Vector3 vector = site.Information.DefaultPosition - planeCenter;
+                float dot = Vector3.Dot(vector, planeNormal);
+                if (dot > 0)
+                {
+                    site.transform.localPosition = site.Information.DefaultPosition - 2f * (dot / planeNormal.magnitude) * planeNormal.normalized;
+                }
+            }
+        }
+        /// <summary>
+        /// Reset the position of all sites
+        /// </summary>
+        public void ResetSitesPositions()
+        {
+            foreach (var site in Sites)
+            {
+                site.transform.localPosition = site.Information.DefaultPosition;
+            }
+        }
+        /// <summary>
         /// Update the sites mask of the DLL using the state of each site
         /// </summary>
         public void UpdateDLLSitesMask(bool isROI)

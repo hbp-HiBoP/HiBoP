@@ -153,6 +153,7 @@ namespace HBP.Module3D
                     site.Information.Name = siteInfo.Name;
                     site.Information.Index = siteIndex++;
                     site.Information.SiteData = siteInfo.SiteData;
+                    site.Information.DefaultPosition = siteInfo.UnityPosition;
                     site.State.IsBlackListed = false;
                     site.State.IsHighlighted = false;
                     site.State.IsOutOfROI = true;
