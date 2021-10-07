@@ -9,6 +9,7 @@ namespace HBP.UI.UserPreferences
         #region Properties
         [SerializeField] Toggle m_MultiThreading;
         [SerializeField] Slider m_MemorySizeSlider;
+        [SerializeField] Slider m_SleepModeSlider;
 
         public override bool Interactable
         {
@@ -22,6 +23,7 @@ namespace HBP.UI.UserPreferences
 
                 m_MultiThreading.interactable = value;
                 m_MemorySizeSlider.interactable = value;
+                m_SleepModeSlider.interactable = value;
             }
         }
         #endregion
@@ -33,6 +35,7 @@ namespace HBP.UI.UserPreferences
 
             m_MultiThreading.onValueChanged.AddListener(value => Object.MultiThreading = value);
             m_MemorySizeSlider.onValueChanged.AddListener(value => Object.MemoryCacheLimit = Mathf.FloorToInt(value));
+            m_SleepModeSlider.onValueChanged.AddListener(value => Object.SleepModeAfter = Mathf.FloorToInt(value));
         }
         #endregion
 
@@ -46,6 +49,7 @@ namespace HBP.UI.UserPreferences
 
             m_MultiThreading.isOn = objectToDisplay.MultiThreading;
             m_MemorySizeSlider.value = objectToDisplay.MemoryCacheLimit;
+            m_SleepModeSlider.value = objectToDisplay.SleepModeAfter;
         }
         #endregion
     }

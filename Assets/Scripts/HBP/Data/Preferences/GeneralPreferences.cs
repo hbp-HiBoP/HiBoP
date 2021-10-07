@@ -95,24 +95,26 @@ namespace HBP.Data.Preferences
         #region Properties
         [DataMember] public bool MultiThreading { get; set; }
         [DataMember] public int MemoryCacheLimit { get; set; }
+        [DataMember] public int SleepModeAfter { get; set; }
         #endregion
 
         #region Constructors
-        public SystemPreferences() : this(true, 0)
+        public SystemPreferences() : this(true, 0, 1)
         {
 
         }
-        public SystemPreferences(bool multiThreading, int memoryCacheLimit)
+        public SystemPreferences(bool multiThreading, int memoryCacheLimit, int sleepModeAfter)
         {
             MultiThreading = multiThreading;
             MemoryCacheLimit = memoryCacheLimit;
+            SleepModeAfter = sleepModeAfter;
         }
         #endregion
 
         #region Public Methods
         public object Clone()
         {
-            return new SystemPreferences(MultiThreading, MemoryCacheLimit);
+            return new SystemPreferences(MultiThreading, MemoryCacheLimit, SleepModeAfter);
         }
         #endregion
     }
