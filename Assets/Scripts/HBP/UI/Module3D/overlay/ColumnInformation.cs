@@ -65,6 +65,17 @@ namespace HBP.UI.Module3D
                     m_Data.text = fmriColumn.SelectedFMRI.Name;
                 });
             }
+            else if (column is Column3DMEG megColumn)
+            {
+                m_Protocol.text = megColumn.ColumnMEGData.Dataset.Protocol.Name;
+                m_Bloc.text = "MEG";
+                m_Dataset.text = megColumn.ColumnMEGData.Dataset.Name;
+                m_Data.text = megColumn.SelectedFMRI.Name;
+                megColumn.OnChangeSelectedFMRI.AddListener(() =>
+                {
+                    m_Data.text = megColumn.SelectedFMRI.Name;
+                });
+            }
             else
             {
                 IsActive = false;

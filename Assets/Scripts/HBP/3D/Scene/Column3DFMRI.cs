@@ -44,7 +44,7 @@ namespace HBP.Module3D
                 OnChangeSelectedFMRI.Invoke();
             }
         }
-        public FMRI SelectedFMRI { get { return ColumnFMRIData.Data.FMRIs[SelectedFMRIIndex]; } }
+        public FMRI SelectedFMRI { get { return ColumnFMRIData.Data.FMRIs[SelectedFMRIIndex].Item1; } }
         public int SelectedVolumeIndex
         {
             get
@@ -52,7 +52,7 @@ namespace HBP.Module3D
                 int index = 0;
                 for (int i = 0; i < SelectedFMRIIndex; i++)
                 {
-                    index += ColumnFMRIData.Data.FMRIs[i].NIFTI.NumberOfVolumes;
+                    index += ColumnFMRIData.Data.FMRIs[i].Item1.NIFTI.NumberOfVolumes;
                 }
                 return index + Timeline.CurrentIndex;
             }

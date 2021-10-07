@@ -151,6 +151,10 @@ namespace HBP.Data.Experience.Dataset
         {
             return m_Data.OfType<FMRIDataInfo>().ToArray();
         }
+        public MEGDataInfo[] GetMEGDataInfos()
+        {
+            return m_Data.OfType<MEGDataInfo>().ToArray();
+        }
         /// <summary>
         /// Add a dataInfo to the dataset.
         /// </summary>

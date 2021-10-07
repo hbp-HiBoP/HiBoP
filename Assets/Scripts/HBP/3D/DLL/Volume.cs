@@ -304,9 +304,13 @@ namespace HBP.Module3D.DLL
         /// <param name="flip">Is the cut flipped ?</param>
         public void SetPlaneWithOrientation(Plane plane, Data.Enums.CutOrientation orientation, bool flip)
         {
+            plane.Normal = GetOrientationVector(orientation, flip);
+        }
+        public Vector3 GetOrientationVector(Data.Enums.CutOrientation orientation, bool flip)
+        {
             float[] normal = new float[3];
             definePlaneWithOrientation_Volume(_handle, normal, (int)orientation, flip);
-            plane.Normal = new Vector3(normal[0], normal[1], normal[2]);
+            return new Vector3(normal[0], normal[1], normal[2]);
         }
         /// <summary>
         /// Returns a cube bbox around the volume depending on the used cuts

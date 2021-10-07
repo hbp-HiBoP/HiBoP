@@ -7,23 +7,77 @@ using HBP.UI;
 using Tools.Unity;
 using System.Collections;
 using HBP.Module3D;
+using System.Collections.Generic;
 
 public class DebugBenjamin : MonoBehaviour
 {
 #if UNITY_EDITOR
+    private List<Vector3> m_InitialPositions = new List<Vector3>();
+    private List<Vector3> m_FinalPositions = new List<Vector3>();
+    private float m_Percent;
+    private bool m_Initialized = false;
+    private float m_TimeSinceLastAction = 0;
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.F1))
+        // FRAMRATE
+        m_TimeSinceLastAction += Time.deltaTime;
+        if (Input.GetAxis("Mouse X") != 0 || Input.GetAxis("Mouse Y") != 0 || Input.anyKey || Input.anyKeyDown)
         {
-            (ApplicationState.Module3D.SelectedColumn as Column3DFMRI).SelectedFMRIIndex = 1 - (ApplicationState.Module3D.SelectedColumn as Column3DFMRI).SelectedFMRIIndex;
+            m_TimeSinceLastAction = 0;
         }
+        if (m_TimeSinceLastAction > 60)
+        {
+            Application.targetFrameRate = 1;
+        }
+        else
+        {
+            Application.targetFrameRate = -1;
+        }
+
+        // SITES
         if (Input.GetKeyDown(KeyCode.F2))
         {
-            ApplicationState.Module3D.SelectedScene.FMRIManager.SelectedDiFuMoArea = (ApplicationState.Module3D.SelectedScene.FMRIManager.SelectedDiFuMoArea + 1) % 64;
+            m_InitialPositions.Clear();
+            foreach (var site in ApplicationState.Module3D.SelectedColumn.Sites)
+            {
+                m_InitialPositions.Add(site.transform.localPosition);
+            }
         }
         if (Input.GetKeyDown(KeyCode.F3))
         {
-            ScreenshotWindow();
+            m_FinalPositions.Clear();
+            Vector3 orientation = ApplicationState.Module3D.SelectedScene.MRIManager.SelectedMRI.Volume.GetOrientationVector(HBP.Data.Enums.CutOrientation.Sagittal, false);
+            orientation = new Vector3(-orientation.x, orientation.y, orientation.z);
+            Vector3 center = ApplicationState.Module3D.SelectedScene.MeshManager.MeshCenter;
+            center = new Vector3(-center.x, center.y, center.z);
+            foreach (var site in ApplicationState.Module3D.SelectedColumn.Sites)
+            {
+                Vector3 vector = site.transform.localPosition - center;
+                float dot = Vector3.Dot(vector, orientation);
+                if (dot > 0)
+                {
+                    m_FinalPositions.Add(site.transform.localPosition - 2f * (dot / orientation.magnitude) * orientation.normalized);
+                }
+                else
+                {
+                    m_FinalPositions.Add(site.transform.localPosition);
+                }
+            }
+            m_Initialized = true;
+        }
+        if (Input.GetKeyDown(KeyCode.F1))
+        {
+            m_Percent = 0;
+        }
+        if (m_Initialized && m_Percent < 1)
+        {
+            int i = 0;
+            foreach (var site in ApplicationState.Module3D.SelectedColumn.Sites)
+            {
+                site.transform.localPosition = new Vector3(Mathf.Lerp(m_InitialPositions[i].x, m_FinalPositions[i].x, m_Percent), Mathf.Lerp(m_InitialPositions[i].y, m_FinalPositions[i].y, m_Percent), Mathf.Lerp(m_InitialPositions[i].z, m_FinalPositions[i].z, m_Percent));
+                i++;
+            }
+            m_Percent += Time.deltaTime;
         }
     }
     private void MarsAtlasCCEP()
@@ -70,6 +124,21 @@ public class DebugBenjamin : MonoBehaviour
             Texture2D image = Texture2DExtension.ScreenRectToTexture(window.GetComponent<RectTransform>().ToScreenSpace());
             image.filterMode = FilterMode.Trilinear;
             image.SaveToPNG(path);
+        }
+    }
+    private void TestOrientation()
+    {
+        Vector3 orientation = ApplicationState.Module3D.SelectedScene.MRIManager.SelectedMRI.Volume.GetOrientationVector(HBP.Data.Enums.CutOrientation.Sagittal, false);
+        Vector3 center = ApplicationState.Module3D.SelectedScene.MeshManager.MeshCenter;
+        center = new Vector3(-center.x, center.y, center.z); 
+        foreach (var site in ApplicationState.Module3D.SelectedColumn.Sites)
+        {
+            Vector3 vector = site.transform.localPosition - center;
+            float dot = Vector3.Dot(vector, orientation);
+            if (dot < 0)
+            {
+                site.transform.localPosition -= 0.2f * (dot / orientation.magnitude) * orientation.normalized;
+            }
         }
     }
 #endif

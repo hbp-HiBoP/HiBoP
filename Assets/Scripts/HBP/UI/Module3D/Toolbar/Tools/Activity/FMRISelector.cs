@@ -24,7 +24,10 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                (SelectedColumn as Column3DFMRI).SelectedFMRIIndex = value;
+                if (SelectedColumn is Column3DFMRI fmriColumn)
+                    fmriColumn.SelectedFMRIIndex = value;
+                else if (SelectedColumn is Column3DMEG megColumn)
+                    megColumn.SelectedFMRIIndex = value;
             });
         }
         /// <summary>
@@ -39,10 +42,10 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isColumnFMRI = SelectedColumn is Column3DFMRI;
+            bool isColumnFMRIorMEG = SelectedColumn is Column3DFMRI || SelectedColumn is Column3DMEG;
             bool isGeneratorUpToDate = SelectedScene.IsGeneratorUpToDate;
 
-            m_Dropdown.gameObject.SetActive(isColumnFMRI && isGeneratorUpToDate);
+            m_Dropdown.gameObject.SetActive(isColumnFMRIorMEG && isGeneratorUpToDate);
         }
         /// <summary>
         /// Update the status of the tool
@@ -52,11 +55,39 @@ namespace HBP.UI.Module3D.Tools
             m_Dropdown.options.Clear();
             if (SelectedColumn is Column3DFMRI fmriColumn)
             {
-                foreach (var fmri in fmriColumn.ColumnFMRIData.Data.FMRIs)
+                if (SelectedScene.Type == Data.Enums.SceneType.MultiPatients)
                 {
-                    m_Dropdown.options.Add(new Dropdown.OptionData(fmri.Name));
+                    foreach (var fmri in fmriColumn.ColumnFMRIData.Data.FMRIs)
+                    {
+                        m_Dropdown.options.Add(new Dropdown.OptionData(string.Format("{0} ({1})", fmri.Item1.Name, fmri.Item2.Name)));
+                    }
+                }
+                else
+                {
+                    foreach (var fmri in fmriColumn.ColumnFMRIData.Data.FMRIs)
+                    {
+                        m_Dropdown.options.Add(new Dropdown.OptionData(fmri.Item1.Name));
+                    }
                 }
                 m_Dropdown.value = fmriColumn.SelectedFMRIIndex;
+            }
+            else if (SelectedColumn is Column3DMEG megColumn) //FIXME : remove this MEG thing when changing the column to dual-modal
+            {
+                if (SelectedScene.Type == Data.Enums.SceneType.MultiPatients)
+                {
+                    foreach (var fmri in megColumn.ColumnMEGData.Data.FMRIs)
+                    {
+                        m_Dropdown.options.Add(new Dropdown.OptionData(string.Format("{0} ({1})", fmri.Item1.Name, fmri.Item2.Name)));
+                    }
+                }
+                else
+                {
+                    foreach (var fmri in megColumn.ColumnMEGData.Data.FMRIs)
+                    {
+                        m_Dropdown.options.Add(new Dropdown.OptionData(fmri.Item1.Name));
+                    }
+                }
+                m_Dropdown.value = megColumn.SelectedFMRIIndex;
             }
             m_Dropdown.RefreshShownValue();
         }

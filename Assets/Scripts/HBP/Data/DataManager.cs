@@ -261,6 +261,11 @@ public static class DataManager
                 FMRIData data = new FMRIData(FMRIDataInfo);
                 m_DataByRequest.Add(request, data);
             }
+            else if (request.DataInfo is MEGDataInfo MEGDataInfo)
+            {
+                MEGData data = new MEGData(MEGDataInfo);
+                m_DataByRequest.Add(request, data);
+            }
         }
     }
     static void UnLoad(Request request)
@@ -321,8 +326,7 @@ public static class DataManager
     {
         if (request.IsValid)
         {
-            Data result;
-            if (m_DataByRequest.TryGetValue(request, out result))
+            if (m_DataByRequest.TryGetValue(request, out Data result))
             {
                 return result;
             }

@@ -61,6 +61,13 @@ namespace HBP.UI.Module3D
             scene.OnUpdateGeneratorState.AddListener((value) =>
             {
                 IsActive = value;
+                if (IsActive && column is Column3DAnatomy anatomyColumn)
+                {
+                    int density = Mathf.FloorToInt((anatomyColumn.ActivityGenerator as HBP.Module3D.DLL.DensityGenerator).MaxDensity);
+                    m_Min.text = "0";
+                    m_Mid.text = (density / 2).ToString();
+                    m_Max.text = density.ToString();
+                }
             });
 
             scene.OnChangeColormap.AddListener((color) => m_ColormapImage.sprite = m_SpriteByColorType[color]);
@@ -85,6 +92,17 @@ namespace HBP.UI.Module3D
                     UpdateTextFMRI(fmriColumn);
                 });
             }
+            else if (column is Column3DMEG megColumn)
+            {
+                megColumn.MEGParameters.OnUpdateCalValues.AddListener(() =>
+                {
+                    UpdateTextMEG(megColumn);
+                });
+                megColumn.OnChangeSelectedFMRI.AddListener(() =>
+                {
+                    UpdateTextMEG(megColumn);
+                });
+            }
         }
         #endregion
 
@@ -98,6 +116,34 @@ namespace HBP.UI.Module3D
             float negativeMax = fmriColumn.FMRIParameters.FMRINegativeCalMaxFactor * min;
             float positiveMin = fmriColumn.FMRIParameters.FMRIPositiveCalMinFactor * max;
             float positiveMax = fmriColumn.FMRIParameters.FMRIPositiveCalMaxFactor * max;
+            if (min > 0)
+            {
+                m_Min.text = "";
+                m_Mid.text = positiveMin.ToString("0.0");
+                m_Max.text = positiveMax.ToString("0.0");
+            }
+            else if (max < 0)
+            {
+                m_Min.text = negativeMax.ToString("0.0");
+                m_Mid.text = negativeMin.ToString("0.0");
+                m_Max.text = "";
+            }
+            else
+            {
+                m_Min.text = negativeMax.ToString("0.0");
+                m_Mid.text = string.Format("{0}|{1}", negativeMin.ToString("0.0"), positiveMin.ToString("0.0"));
+                m_Max.text = positiveMax.ToString("0.0");
+            }
+        }
+        private void UpdateTextMEG(Column3DMEG megColumn)
+        {
+            MRICalValues values = megColumn.SelectedFMRI.NIFTI.ExtremeValues;
+            float min = values.Min;
+            float max = values.Max;
+            float negativeMin = megColumn.MEGParameters.FMRINegativeCalMinFactor * min;
+            float negativeMax = megColumn.MEGParameters.FMRINegativeCalMaxFactor * min;
+            float positiveMin = megColumn.MEGParameters.FMRIPositiveCalMinFactor * max;
+            float positiveMax = megColumn.MEGParameters.FMRIPositiveCalMaxFactor * max;
             if (min > 0)
             {
                 m_Min.text = "";

@@ -47,7 +47,10 @@ namespace HBP.UI.Module3D.Tools
 
                 foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
-                    ((Column3DFMRI)column).FMRIParameters.SetSpanValues(negativeMin, negativeMax, positiveMin, positiveMax);
+                    if (column is Column3DFMRI fmriColumn)
+                        fmriColumn.FMRIParameters.SetSpanValues(negativeMin, negativeMax, positiveMin, positiveMax);
+                    else if (column is Column3DMEG megColumn)
+                        megColumn.MEGParameters.SetSpanValues(negativeMin, negativeMax, positiveMin, positiveMax);
                 }
             });
             m_LowerToggle.onValueChanged.AddListener((isOn) =>
@@ -56,7 +59,10 @@ namespace HBP.UI.Module3D.Tools
 
                 foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
-                    ((Column3DFMRI)column).FMRIParameters.SetHideValues(m_LowerToggle.isOn, m_MiddleToggle.isOn, m_HigherToggle.isOn);
+                    if (column is Column3DFMRI fmriColumn)
+                        fmriColumn.FMRIParameters.SetHideValues(m_LowerToggle.isOn, m_MiddleToggle.isOn, m_HigherToggle.isOn);
+                    else if (column is Column3DMEG megColumn)
+                        megColumn.MEGParameters.SetHideValues(m_LowerToggle.isOn, m_MiddleToggle.isOn, m_HigherToggle.isOn);
                 }
             });
             m_MiddleToggle.onValueChanged.AddListener((isOn) =>
@@ -65,7 +71,10 @@ namespace HBP.UI.Module3D.Tools
 
                 foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
-                    ((Column3DFMRI)column).FMRIParameters.SetHideValues(m_LowerToggle.isOn, m_MiddleToggle.isOn, m_HigherToggle.isOn);
+                    if (column is Column3DFMRI fmriColumn)
+                        fmriColumn.FMRIParameters.SetHideValues(m_LowerToggle.isOn, m_MiddleToggle.isOn, m_HigherToggle.isOn);
+                    else if (column is Column3DMEG megColumn)
+                        megColumn.MEGParameters.SetHideValues(m_LowerToggle.isOn, m_MiddleToggle.isOn, m_HigherToggle.isOn);
                 }
             });
             m_HigherToggle.onValueChanged.AddListener((isOn) =>
@@ -74,7 +83,10 @@ namespace HBP.UI.Module3D.Tools
 
                 foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                 {
-                    ((Column3DFMRI)column).FMRIParameters.SetHideValues(m_LowerToggle.isOn, m_MiddleToggle.isOn, m_HigherToggle.isOn);
+                    if (column is Column3DFMRI fmriColumn)
+                        fmriColumn.FMRIParameters.SetHideValues(m_LowerToggle.isOn, m_MiddleToggle.isOn, m_HigherToggle.isOn);
+                    else if (column is Column3DMEG megColumn)
+                        megColumn.MEGParameters.SetHideValues(m_LowerToggle.isOn, m_MiddleToggle.isOn, m_HigherToggle.isOn);
                 }
             });
         }
@@ -94,13 +106,13 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isColumnFMRI = SelectedColumn is Column3DFMRI;
+            bool isColumnFMRIorMEG = SelectedColumn is Column3DFMRI || SelectedColumn is Column3DMEG;
 
-            gameObject.SetActive(isColumnFMRI);
-            m_Button.interactable = isColumnFMRI;
-            m_LowerToggle.interactable = isColumnFMRI;
-            m_MiddleToggle.interactable = isColumnFMRI;
-            m_HigherToggle.interactable = isColumnFMRI;
+            gameObject.SetActive(isColumnFMRIorMEG);
+            m_Button.interactable = isColumnFMRIorMEG;
+            m_LowerToggle.interactable = isColumnFMRIorMEG;
+            m_MiddleToggle.interactable = isColumnFMRIorMEG;
+            m_HigherToggle.interactable = isColumnFMRIorMEG;
         }
         /// <summary>
         /// Update the status of the tool
@@ -114,6 +126,14 @@ namespace HBP.UI.Module3D.Tools
                 m_LowerToggle.isOn = fmriColumn.FMRIParameters.HideLowerValues;
                 m_MiddleToggle.isOn = fmriColumn.FMRIParameters.HideMiddleValues;
                 m_HigherToggle.isOn = fmriColumn.FMRIParameters.HideHigherValues;
+            }
+            else if (SelectedColumn is Column3DMEG megColumn)
+            {
+                m_ThresholdFMRI.CleanHistograms();
+                m_ThresholdFMRI.UpdateFMRICalValues(megColumn.SelectedFMRI, megColumn.MEGParameters.FMRINegativeCalMinFactor, megColumn.MEGParameters.FMRINegativeCalMaxFactor, megColumn.MEGParameters.FMRIPositiveCalMinFactor, megColumn.MEGParameters.FMRIPositiveCalMaxFactor);
+                m_LowerToggle.isOn = megColumn.MEGParameters.HideLowerValues;
+                m_MiddleToggle.isOn = megColumn.MEGParameters.HideMiddleValues;
+                m_HigherToggle.isOn = megColumn.MEGParameters.HideHigherValues;
             }
         }
         #endregion

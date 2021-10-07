@@ -76,7 +76,8 @@ namespace HBP.Data.Visualization
         }
         public override bool IsCompatible(IEnumerable<Patient> patients)
         {
-            return true;
+            FMRIDataInfo[] fmriDataInfos = Dataset?.GetFMRIDataInfos();
+            return Dataset != null && Dataset.Protocol != null && patients.All((patient) => fmriDataInfos.Any((data) => data.Patient == patient && data.IsOk));
         }
         public override void Unload()
         {

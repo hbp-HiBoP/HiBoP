@@ -118,7 +118,7 @@ namespace HBP.UI
         }
         void SetDatasetDropdown()
         {
-            m_Datasets = ApplicationState.ProjectLoaded.Datasets.Where((d) => d.Protocol == m_SelectedProtocol && d.GetFMRIDataInfos().Any(dataInfo => dataInfo.IsOk && m_Patients.Any(p => dataInfo.Patient == p))).ToList();
+            m_Datasets = ApplicationState.ProjectLoaded.Datasets.Where((d) => d.Protocol == m_SelectedProtocol && d.GetFMRIDataInfos().Length > 0 && d.GetFMRIDataInfos().Any(dataInfo => dataInfo.IsOk && m_Patients.Any(p => dataInfo.Patient == p))).ToList();
             SetDatasetDropdownInteractable(m_Datasets != null && m_Patients != null && m_Datasets.Count > 0 && m_ProtocolDropdown.interactable && m_Patients.Length > 0);
         }
         void SetDatasetDropdownInteractable(bool interactable)

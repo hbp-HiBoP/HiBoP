@@ -164,6 +164,10 @@ namespace HBP.Module3D
         /// </summary>
         public List<Column3DFMRI> ColumnsFMRI { get { return Columns.OfType<Column3DFMRI>().ToList(); } }
         /// <summary>
+        /// MEG Columns of the scene
+        /// </summary>
+        public List<Column3DMEG> ColumnsMEG { get { return Columns.OfType<Column3DMEG>().ToList(); } }
+        /// <summary>
         /// Number of views in any column
         /// </summary>
         public int ViewLineNumber
@@ -541,6 +545,12 @@ namespace HBP.Module3D
                         column.Timeline.IsPlaying = false;
                         column.Timeline.OnUpdateCurrentIndex.Invoke();
                     }
+                    foreach (Column3DMEG column in ColumnsMEG)
+                    {
+                        column.Timeline.IsLooping = false;
+                        column.Timeline.IsPlaying = false;
+                        column.Timeline.OnUpdateCurrentIndex.Invoke();
+                    }
                 }
                 SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                 foreach (Column3D column in Columns)
@@ -593,6 +603,10 @@ namespace HBP.Module3D
         /// Prefab for the Column3DFMRI
         /// </summary>
         [SerializeField] private GameObject m_Column3DFMRIPrefab;
+        /// <summary>
+        /// Prefab for the Column3DMEG
+        /// </summary>
+        [SerializeField] private GameObject m_Column3DMEGPrefab;
         /// <summary>
         /// Transform where to instantiate columns
         /// </summary>
@@ -1009,6 +1023,10 @@ namespace HBP.Module3D
             {
                 column = Instantiate(m_Column3DFMRIPrefab, m_ColumnsContainer).GetComponent<Column3DFMRI>();
             }
+            else if (baseColumn is MEGColumn)
+            {
+                column = Instantiate(m_Column3DMEGPrefab, m_ColumnsContainer).GetComponent<Column3DMEG>();
+            }
             column.gameObject.name = "Column " + Columns.Count;
             column.OnSelect.AddListener(() =>
             {
@@ -1127,6 +1145,39 @@ namespace HBP.Module3D
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     SceneInformation.SitesNeedUpdate = true;
                     fmriColumn.SurfaceNeedsUpdate = true;
+                });
+            }
+            else if (column is Column3DMEG megColumn)
+            {
+                megColumn.MEGParameters.OnUpdateCalValues.AddListener(() =>
+                {
+                    ((DLL.MEGGenerator)megColumn.ActivityGenerator).AdjustValues(megColumn);
+                    SceneInformation.FunctionalCutTexturesNeedUpdate = true;
+                    SceneInformation.FunctionalSurfaceNeedsUpdate = true;
+                    megColumn.SurfaceNeedsUpdate = true;
+                    SceneInformation.SitesNeedUpdate = true;
+                });
+                megColumn.MEGParameters.OnUpdateHideValues.AddListener(() =>
+                {
+                    ((DLL.MEGGenerator)megColumn.ActivityGenerator).HideExtremeValues(megColumn);
+                    SceneInformation.FunctionalCutTexturesNeedUpdate = true;
+                    SceneInformation.FunctionalSurfaceNeedsUpdate = true;
+                    megColumn.SurfaceNeedsUpdate = true;
+                    SceneInformation.SitesNeedUpdate = true;
+                });
+                megColumn.OnChangeSelectedFMRI.AddListener(() =>
+                {
+                    SceneInformation.FunctionalCutTexturesNeedUpdate = true;
+                    SceneInformation.FunctionalSurfaceNeedsUpdate = true;
+                    megColumn.SurfaceNeedsUpdate = true;
+                    ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+                });
+                megColumn.OnUpdateCurrentTimelineID.AddListener(() =>
+                {
+                    SceneInformation.FunctionalCutTexturesNeedUpdate = true;
+                    SceneInformation.FunctionalSurfaceNeedsUpdate = true;
+                    SceneInformation.SitesNeedUpdate = true;
+                    megColumn.SurfaceNeedsUpdate = true;
                 });
             }
             column.Initialize(Columns.Count, baseColumn, m_ImplantationManager.SelectedImplantation, m_DisplayedObjects.SitesPatientParent);
@@ -2158,6 +2209,13 @@ namespace HBP.Module3D
                     currentGenerator = generator;
                     generator.ComputeActivity(fmriColumn);
                     generator.AdjustValues(fmriColumn);
+                }
+                else if (column is Column3DMEG megColumn)
+                {
+                    DLL.MEGGenerator generator = megColumn.ActivityGenerator as DLL.MEGGenerator;
+                    currentGenerator = generator;
+                    generator.ComputeActivity(megColumn);
+                    generator.AdjustValues(megColumn);
                 }
                 if (SceneInformation.GeneratorNeedsUpdate) yield break;
             }

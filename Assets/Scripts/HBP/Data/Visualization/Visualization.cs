@@ -82,6 +82,13 @@ namespace HBP.Data.Visualization
             }
         }
 
+        public ReadOnlyCollection<MEGColumn> MEGColumns
+        {
+            get
+            {
+                return new ReadOnlyCollection<MEGColumn>(Columns.OfType<MEGColumn>().ToArray());
+            }
+        }
         /// <summary>
         /// Test if the visualization is visualizable.
         /// </summary>
@@ -180,19 +187,21 @@ namespace HBP.Data.Visualization
 
             int nbDynamicColumns = CCEPColumns.Count + IEEGColumns.Count;
             int nbFMRIColumns = FMRIColumns.Count;
+            int nbMEGColumns = MEGColumns.Count;
 
             onChangeProgress(0, 0, new LoadingText("Loading Visualization"));
 
             Exception exception = null;
             int nbPatients = Patients.Count;
 
-            float steps = 1 + 2 * nbPatients * nbDynamicColumns + nbFMRIColumns;
+            float steps = 1 + 2 * nbPatients * nbDynamicColumns + nbFMRIColumns + nbMEGColumns;
             float progress = 0.0f;
 
             float findDataInfoToReadProgress = 1 / steps;
             float loadDataProgress = nbPatients * nbDynamicColumns / steps;
             float loadColumnsProgress = nbPatients * nbDynamicColumns / steps;
             float loadFMRIColumnsProgress = nbFMRIColumns / steps;
+            float loadMEGColumnsProgress = nbMEGColumns / steps;
 
             yield return Ninja.JumpToUnity;
 
@@ -231,6 +240,14 @@ namespace HBP.Data.Visualization
                 {
                     yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadFMRIColumns((localProgress, duration, text) => onChangeProgress(progress + localProgress * loadFMRIColumnsProgress, duration, text), (e) => { exception = e; }));
                     progress += loadFMRIColumnsProgress;
+                }
+            }
+            if (nbMEGColumns > 0)
+            {
+                if (exception == null)
+                {
+                    yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadMEGColumns((localProgress, duration, text) => onChangeProgress(progress + localProgress * loadMEGColumnsProgress, duration, text), (e) => { exception = e; }));
+                    progress += loadMEGColumnsProgress;
                 }
             }
             yield return Ninja.JumpBack;
@@ -570,25 +587,62 @@ namespace HBP.Data.Visualization
             yield return Ninja.JumpBack;
 
             Exception exception = null;
-            
+
             ReadOnlyCollection<FMRIColumn> fmriColumns = FMRIColumns;
             int nbFMRIColumns = fmriColumns.Count;
 
             float progress = 0;
             const float TIME_BY_DATAINFO = 1f;
             float loadingDataStep = 1f / nbFMRIColumns;
-            
+
             if (nbFMRIColumns > 0)
             {
                 for (int i = 0; i < nbFMRIColumns; ++i)
                 {
                     FMRIColumn fmriColumn = fmriColumns[i];
-                    FMRIDataInfo[] dataInfos = fmriColumn.Dataset.GetFMRIDataInfos();
+                    FMRIDataInfo[] dataInfos = fmriColumn.Dataset.GetFMRIDataInfos().Where(data => Patients.Contains(data.Patient)).ToArray();
                     progress += loadingDataStep;
                     onChangeProgress(progress, TIME_BY_DATAINFO * dataInfos.Length, new LoadingText("Loading FMRI column ", fmriColumn.Name, " [" + (i + 1) + "/" + nbFMRIColumns + "]"));
                     try
                     {
                         fmriColumn.Data.Load(dataInfos);
+                    }
+                    catch (Exception e)
+                    {
+                        UnityEngine.Debug.LogException(e);
+                        exception = e;
+                        outPut(exception);
+                        yield break;
+                    }
+                }
+            }
+            outPut(exception);
+        }
+        IEnumerator c_LoadMEGColumns(Action<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
+        {
+            yield return Ninja.JumpToUnity;
+
+            Exception exception = null;
+
+            ReadOnlyCollection<MEGColumn> megColumns = MEGColumns;
+            int nbMegColumns = megColumns.Count;
+
+            float progress = 0;
+            const float TIME_BY_DATAINFO = 1f;
+            float loadingDataStep = 1f / nbMegColumns;
+
+            if (nbMegColumns > 0)
+            {
+                for (int i = 0; i < nbMegColumns; ++i)
+                {
+                    MEGColumn megColumn = megColumns[i];
+                    UnityEngine.Debug.Log("tutu");
+                    MEGDataInfo[] dataInfos = megColumn.Dataset.GetMEGDataInfos().Where(data => Patients.Contains(data.Patient)).ToArray();
+                    progress += loadingDataStep;
+                    onChangeProgress(progress, TIME_BY_DATAINFO * dataInfos.Length, new LoadingText("Loading MEG column ", megColumn.Name, " [" + (i + 1) + "/" + nbMegColumns + "]"));
+                    try
+                    {
+                        megColumn.Data.Load(dataInfos);
                     }
                     catch (Exception e)
                     {

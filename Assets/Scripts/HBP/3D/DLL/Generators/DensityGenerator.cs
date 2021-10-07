@@ -8,6 +8,10 @@ namespace HBP.Module3D.DLL
 {
     public class DensityGenerator : ActivityGenerator
     {
+        #region Properties
+        public float MaxDensity { get { return max_density_DensityGenerator(_handle); } }
+        #endregion
+
         #region Public Methods
         public void ComputeActivity(Column3DAnatomy column)
         {
@@ -39,6 +43,8 @@ namespace HBP.Module3D.DLL
         static private extern void delete_DensityGenerator(HandleRef generator);
         [DllImport("hbp_export", EntryPoint = "compute_activity_DensityGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void compute_activity_DensityGenerator(HandleRef generator, HandleRef rawSiteList, float maxDistance, int ratioDistance);
+        [DllImport("hbp_export", EntryPoint = "max_density_DensityGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern float max_density_DensityGenerator(HandleRef generator);
         #endregion
     }
 }

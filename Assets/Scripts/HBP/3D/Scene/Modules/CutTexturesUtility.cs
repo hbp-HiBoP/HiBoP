@@ -173,6 +173,10 @@ namespace HBP.Module3D
             {
                 timelineIndex = fmriColumn.SelectedVolumeIndex;
             }
+            else if (Column is Column3DMEG megColumn)
+            {
+                timelineIndex = megColumn.SelectedVolumeIndex;
+            }
 
             for (int i = 0; i < CutGenerators.Count; ++i)
             {
