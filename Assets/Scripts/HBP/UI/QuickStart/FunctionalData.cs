@@ -12,6 +12,7 @@ namespace HBP.UI.QuickStart
         public Data.Container.Micromed MicromedDataContainer { get; set; } = new Data.Container.Micromed();
         public Data.Container.Elan ElanDataContainer { get; set; } = new Data.Container.Elan();
         public Data.Container.EDF EDFDataContainer { get; set; } = new Data.Container.EDF();
+        public Data.Container.FIF FIFDataContainer { get; set; } = new Data.Container.FIF();
         #endregion
 
         #region Constructors
@@ -33,6 +34,10 @@ namespace HBP.UI.QuickStart
             else if (type == typeof(Data.Container.EDF))
             {
                 container = EDFDataContainer;
+            }
+            else if (type == typeof(Data.Container.FIF))
+            {
+                container = FIFDataContainer;
             }
             DataInfo = new IEEGDataInfo("Data", container, patient, IEEGDataInfo.NormalizationType.Auto);
         }
@@ -57,6 +62,10 @@ namespace HBP.UI.QuickStart
             else if (type == typeof(Data.Container.EDF))
             {
                 container = EDFDataContainer;
+            }
+            else if (type == typeof(Data.Container.FIF))
+            {
+                container = FIFDataContainer;
             }
             DataInfo.DataContainer = container;
         }

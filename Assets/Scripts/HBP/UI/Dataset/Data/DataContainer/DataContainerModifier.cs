@@ -16,6 +16,7 @@ namespace HBP.UI.Experience.Dataset
         [SerializeField] EDFDataContainerSubModifier m_EDFDataContainerSubModifier;
         [SerializeField] MicromedDataContainerSubModifier m_MicromedDataContainerSubModifier;
         [SerializeField] NiftiDataContainerSubModifier m_NiftiDataContainerSubModifier;
+        [SerializeField] FIFDataContainerSubModifier m_FIFDataContainerSubModifier;
 
         Type[] m_Types;
         container.Elan m_ElanDataContainerTemp;
@@ -23,6 +24,7 @@ namespace HBP.UI.Experience.Dataset
         container.Micromed m_MicromedDataContainerTemp;
         container.BrainVision m_BrainVisionDataContainerTemp;
         container.Nifti m_NiftiDataContainerTemp;
+        container.FIF m_FIFDataContainerTemp;
 
         DataAttribute m_DataAttribute;
         public DataAttribute DataAttribute
@@ -56,6 +58,7 @@ namespace HBP.UI.Experience.Dataset
                 m_BrainVisionDataContainerSubModifier.Interactable = value;
                 m_MicromedDataContainerSubModifier.Interactable = value;
                 m_NiftiDataContainerSubModifier.Interactable = value;
+                m_FIFDataContainerSubModifier.Interactable = value;
             }
         }
         #endregion
@@ -79,6 +82,7 @@ namespace HBP.UI.Experience.Dataset
                 m_EDFDataContainerSubModifier.IsActive = false;
                 m_MicromedDataContainerSubModifier.IsActive = false;
                 m_NiftiDataContainerSubModifier.IsActive = false;
+                m_FIFDataContainerSubModifier.IsActive = false;
 
                 m_ElanDataContainerSubModifier.Object = m_ElanDataContainerTemp;
                 m_Object = m_ElanDataContainerTemp;
@@ -90,6 +94,7 @@ namespace HBP.UI.Experience.Dataset
                 m_EDFDataContainerSubModifier.IsActive = false;
                 m_MicromedDataContainerSubModifier.IsActive = false;
                 m_NiftiDataContainerSubModifier.IsActive = false;
+                m_FIFDataContainerSubModifier.IsActive = false;
 
                 m_BrainVisionDataContainerSubModifier.Object = m_BrainVisionDataContainerTemp;
                 m_Object = m_BrainVisionDataContainerTemp;
@@ -101,6 +106,7 @@ namespace HBP.UI.Experience.Dataset
                 m_EDFDataContainerSubModifier.IsActive = true;
                 m_MicromedDataContainerSubModifier.IsActive = false;
                 m_NiftiDataContainerSubModifier.IsActive = false;
+                m_FIFDataContainerSubModifier.IsActive = false;
 
                 m_EDFDataContainerSubModifier.Object = m_EDFDataContainerTemp;
                 m_Object = m_EDFDataContainerTemp;
@@ -112,6 +118,7 @@ namespace HBP.UI.Experience.Dataset
                 m_EDFDataContainerSubModifier.IsActive = false;
                 m_MicromedDataContainerSubModifier.IsActive = true;
                 m_NiftiDataContainerSubModifier.IsActive = false;
+                m_FIFDataContainerSubModifier.IsActive = false;
 
                 m_MicromedDataContainerSubModifier.Object = m_MicromedDataContainerTemp;
                 m_Object = m_MicromedDataContainerTemp;
@@ -123,9 +130,22 @@ namespace HBP.UI.Experience.Dataset
                 m_EDFDataContainerSubModifier.IsActive = false;
                 m_MicromedDataContainerSubModifier.IsActive = false;
                 m_NiftiDataContainerSubModifier.IsActive = true;
+                m_FIFDataContainerSubModifier.IsActive = false;
 
                 m_NiftiDataContainerSubModifier.Object = m_NiftiDataContainerTemp;
                 m_Object = m_NiftiDataContainerTemp;
+            }
+            else if (type == typeof(container.FIF))
+            {
+                m_ElanDataContainerSubModifier.IsActive = false;
+                m_BrainVisionDataContainerSubModifier.IsActive = false;
+                m_EDFDataContainerSubModifier.IsActive = false;
+                m_MicromedDataContainerSubModifier.IsActive = false;
+                m_NiftiDataContainerSubModifier.IsActive = false;
+                m_FIFDataContainerSubModifier.IsActive = true;
+
+                m_FIFDataContainerSubModifier.Object = m_FIFDataContainerTemp;
+                m_Object = m_FIFDataContainerTemp;
             }
             else
             {
@@ -134,6 +154,7 @@ namespace HBP.UI.Experience.Dataset
                 m_EDFDataContainerSubModifier.IsActive = false;
                 m_MicromedDataContainerSubModifier.IsActive = false;
                 m_NiftiDataContainerSubModifier.IsActive = false;
+                m_FIFDataContainerSubModifier.IsActive = false;
             }
             OnChangeDataType.Invoke();
         }
@@ -147,6 +168,7 @@ namespace HBP.UI.Experience.Dataset
             m_BrainVisionDataContainerTemp = new container.BrainVision("", objectToDisplay.ID);
             m_MicromedDataContainerTemp = new container.Micromed("", objectToDisplay.ID);
             m_NiftiDataContainerTemp = new container.Nifti("", objectToDisplay.ID);
+            m_FIFDataContainerTemp = new container.FIF("", objectToDisplay.ID);
 
             if (objectToDisplay is container.Elan)
             {
@@ -167,6 +189,10 @@ namespace HBP.UI.Experience.Dataset
             else if (objectToDisplay is container.Nifti)
             {
                 m_NiftiDataContainerTemp = objectToDisplay as container.Nifti;
+            }
+            else if (objectToDisplay is container.FIF)
+            {
+                m_FIFDataContainerTemp = objectToDisplay as container.FIF;
             }
             m_ContainerTypeDropdown.SetValue(Array.IndexOf(m_Types, Object.GetType()));
         }

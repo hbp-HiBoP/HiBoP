@@ -324,6 +324,11 @@ namespace HBP.UI.Module3D
                         dataType = "Micromed";
                         dataFiles = string.Join(";", new string[] { micromedDataContainer.Path }.Where(s => !string.IsNullOrEmpty(s)));
                     }
+                    else if (dataInfo.DataContainer is Data.Container.FIF fifDataContainer)
+                    {
+                        dataType = "FIF";
+                        dataFiles = string.Join(";", new string[] { fifDataContainer.File }.Where(s => !string.IsNullOrEmpty(s)));
+                    }
                     else
                     {
                         throw new Exception("Invalid data container type");

@@ -24,6 +24,9 @@ namespace HBP.UI.QuickStart
         [SerializeField] private RectTransform m_EDFRectTransform;
         [SerializeField] private FileSelector m_EDFFile;
 
+        [SerializeField] private RectTransform m_FIFRectTransform;
+        [SerializeField] private FileSelector m_FIFFile;
+
         [SerializeField] ThemeElement m_StateThemeElement;
         [SerializeField] Tooltip m_ErrorText;
         [SerializeField] State m_OKState;
@@ -46,6 +49,7 @@ namespace HBP.UI.QuickStart
                     m_MicromedRectTransform.gameObject.SetActive(false);
                     m_ELANRectTransform.gameObject.SetActive(false);
                     m_EDFRectTransform.gameObject.SetActive(false);
+                    m_FIFRectTransform.gameObject.SetActive(false);
                 }
                 else if (value.DataInfo.DataContainer.GetType() == typeof(Data.Container.Micromed))
                 {
@@ -53,6 +57,7 @@ namespace HBP.UI.QuickStart
                     m_MicromedRectTransform.gameObject.SetActive(true);
                     m_ELANRectTransform.gameObject.SetActive(false);
                     m_EDFRectTransform.gameObject.SetActive(false);
+                    m_FIFRectTransform.gameObject.SetActive(false);
                 }
                 else if (value.DataInfo.DataContainer.GetType() == typeof(Data.Container.Elan))
                 {
@@ -60,6 +65,7 @@ namespace HBP.UI.QuickStart
                     m_MicromedRectTransform.gameObject.SetActive(false);
                     m_ELANRectTransform.gameObject.SetActive(true);
                     m_EDFRectTransform.gameObject.SetActive(false);
+                    m_FIFRectTransform.gameObject.SetActive(false);
                 }
                 else if (value.DataInfo.DataContainer.GetType() == typeof(Data.Container.EDF))
                 {
@@ -67,6 +73,15 @@ namespace HBP.UI.QuickStart
                     m_MicromedRectTransform.gameObject.SetActive(false);
                     m_ELANRectTransform.gameObject.SetActive(false);
                     m_EDFRectTransform.gameObject.SetActive(true);
+                    m_FIFRectTransform.gameObject.SetActive(false);
+                }
+                else if (value.DataInfo.DataContainer.GetType() == typeof(Data.Container.FIF))
+                {
+                    m_BrainVisionRectTransform.gameObject.SetActive(false);
+                    m_MicromedRectTransform.gameObject.SetActive(false);
+                    m_ELANRectTransform.gameObject.SetActive(false);
+                    m_EDFRectTransform.gameObject.SetActive(false);
+                    m_FIFRectTransform.gameObject.SetActive(true);
                 }
                 else
                 {
@@ -74,12 +89,14 @@ namespace HBP.UI.QuickStart
                     m_MicromedRectTransform.gameObject.SetActive(false);
                     m_ELANRectTransform.gameObject.SetActive(false);
                     m_EDFRectTransform.gameObject.SetActive(false);
+                    m_FIFRectTransform.gameObject.SetActive(false);
                 }
                 m_BrainVisionHeader.File = value.BrainVisionDataContainer.Header;
                 m_MicromedFile.File = value.MicromedDataContainer.Path;
                 m_ELANEEGFile.File = value.ElanDataContainer.EEG;
                 m_ELANPOSFile.File = value.ElanDataContainer.POS;
                 m_EDFFile.File = value.EDFDataContainer.File;
+                m_FIFFile.File = value.FIFDataContainer.File;
 
                 m_BrainVisionHeader.onValueChanged.RemoveAllListeners();
                 m_BrainVisionHeader.onValueChanged.AddListener(t =>
@@ -109,6 +126,12 @@ namespace HBP.UI.QuickStart
                 m_EDFFile.onValueChanged.AddListener(t =>
                 {
                     value.EDFDataContainer.File = t;
+                    value.DataInfo.GetErrors(ApplicationState.ProjectLoaded.Protocols[0]);
+                });
+                m_FIFFile.onValueChanged.RemoveAllListeners();
+                m_FIFFile.onValueChanged.AddListener(t =>
+                {
+                    value.FIFDataContainer.File = t;
                     value.DataInfo.GetErrors(ApplicationState.ProjectLoaded.Protocols[0]);
                 });
 
