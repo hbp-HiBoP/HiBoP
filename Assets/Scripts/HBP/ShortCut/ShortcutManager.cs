@@ -3,6 +3,8 @@ using HBP.UI;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class ShortcutManager : MonoBehaviour
 {
@@ -159,12 +161,39 @@ public class ShortcutManager : MonoBehaviour
             return IsControlPressed && IsSiteStateActionDown;
         }
     }
+    private bool IsWritingInInputField
+    {
+        get
+        {
+            EventSystem eventSystem = EventSystem.current;
+            if (eventSystem)
+            {
+                GameObject currentObject = eventSystem.currentSelectedGameObject;
+                if (currentObject)
+                {
+                    InputField inputfield = currentObject.GetComponent<InputField>();
+                    if (inputfield)
+                    {
+                        if (inputfield.isFocused)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+    }
     #endregion
 
     #region Private Methods
 	void Update ()
     {
         m_Timer += Time.deltaTime;
+        if (IsWritingInInputField)
+        {
+            return;
+        }
         if (NewProjectActionPerformed)
         {
             NewProject();
@@ -224,7 +253,6 @@ public class ShortcutManager : MonoBehaviour
             ChangeSelectedSiteState();
         }
 	}
-
     private void NewProject()
     {
         if (m_MainMenu.FileMenu.NewProjectInteractableConditions.interactable)
@@ -350,6 +378,7 @@ public class ShortcutManager : MonoBehaviour
                     {
                         sites.Add(selectedSite);
                     }
+                    sites = sites.Where(s => s.State.IsFiltered).ToList();
                     KeyCode downAction = ChangeSiteStateActions.FirstOrDefault(a => Input.GetKeyDown(a));
                     switch (downAction)
                     {

@@ -243,48 +243,52 @@ namespace HBP.Module3D
                 Transform sitePatient = Instantiate(sceneSitePatient, m_SitesMeshesParent);
                 sitePatient.transform.localPosition = Vector3.zero;
                 sitePatient.name = sceneSitePatient.name;
-
                 for (int j = 0; j < sceneSitePatient.childCount; ++j)
                 {
-                    GameObject sceneSiteGameObject = sceneSitePatient.GetChild(j).gameObject;
-                    GameObject siteGameObject = sitePatient.GetChild(j).gameObject;
-                    siteGameObject.layer = LayerMask.NameToLayer(Layer);
-                    Site site = siteGameObject.GetComponent<Site>();
-                    Site baseSite = sceneSiteGameObject.GetComponent<Site>();
-                    site.Information = baseSite.Information;
-                    // State
-                    if (!SiteStateBySiteID.TryGetValue(baseSite.Information.FullID, out SiteState siteState))
+                    Transform sceneSiteElectrode = sceneSitePatient.GetChild(j);
+                    Transform siteElectrode = sitePatient.GetChild(j);
+                    for (int k = 0; k < sceneSiteElectrode.childCount; ++k)
                     {
-                        siteState = new SiteState();
-                        siteState.ApplyState(baseSite.State);
-                        SiteStateBySiteID.Add(baseSite.Information.FullID, siteState);
-                    }
-                    site.State = siteState;
-                    site.State.OnChangeState.AddListener(() => OnChangeSiteState.Invoke(site));
-                    // Configuration
-                    if (ColumnData.BaseConfiguration.ConfigurationBySite.TryGetValue(site.Information.FullID, out Data.Visualization.SiteConfiguration siteConfiguration))
-                    {
-                        site.Configuration = siteConfiguration;
-                    }
-                    else
-                    {
-                        ColumnData.BaseConfiguration.ConfigurationBySite.Add(site.Information.FullID, site.Configuration);
-                    }
-                    site.IsActive = true;
-                    site.OnSelectSite.AddListener((selected) =>
-                    {
-                        if (selected)
+                        GameObject sceneSiteGameObject = sceneSiteElectrode.GetChild(k).gameObject;
+                        GameObject siteGameObject = siteElectrode.GetChild(k).gameObject;
+                        siteGameObject.layer = LayerMask.NameToLayer(Layer);
+                        Site site = siteGameObject.GetComponent<Site>();
+                        Site baseSite = sceneSiteGameObject.GetComponent<Site>();
+                        site.Information = baseSite.Information;
+                        // State
+                        if (!SiteStateBySiteID.TryGetValue(baseSite.Information.FullID, out SiteState siteState))
                         {
-                            UnselectSite();
-                            SelectedSite = site;
+                            siteState = new SiteState();
+                            siteState.ApplyState(baseSite.State);
+                            SiteStateBySiteID.Add(baseSite.Information.FullID, siteState);
+                        }
+                        site.State = siteState;
+                        site.State.OnChangeState.AddListener(() => OnChangeSiteState.Invoke(site));
+                        // Configuration
+                        if (ColumnData.BaseConfiguration.ConfigurationBySite.TryGetValue(site.Information.FullID, out Data.Visualization.SiteConfiguration siteConfiguration))
+                        {
+                            site.Configuration = siteConfiguration;
                         }
                         else
                         {
-                            SelectedSite = null;
+                            ColumnData.BaseConfiguration.ConfigurationBySite.Add(site.Information.FullID, site.Configuration);
                         }
-                        OnSelectSite.Invoke(SelectedSite);
-                    });
-                    Sites.Add(site);
+                        site.IsActive = true;
+                        site.OnSelectSite.AddListener((selected) =>
+                        {
+                            if (selected)
+                            {
+                                UnselectSite();
+                                SelectedSite = site;
+                            }
+                            else
+                            {
+                                SelectedSite = null;
+                            }
+                            OnSelectSite.Invoke(SelectedSite);
+                        });
+                        Sites.Add(site);
+                    }
                 }
             }
         }

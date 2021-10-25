@@ -1952,11 +1952,9 @@ namespace HBP.Module3D
             }
 
             // Loading Sites
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadSites(visualization.Patients.ToArray(), (i) =>
-            {
-                progress += loadingImplantationsProgress;
-                onChangeProgress.Invoke(progress, loadingImplantationsTime, new LoadingText("Loading implantations"));
-            }, e => exception = e));
+            progress += loadingImplantationsProgress;
+            onChangeProgress.Invoke(progress, loadingImplantationsTime, new LoadingText("Loading implantations"));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadSites(visualization.Patients.ToArray(), e => exception = e));
             if (exception != null)
             {
                 outPut(exception);
@@ -2028,10 +2026,11 @@ namespace HBP.Module3D
         /// <param name="updateCircle">Action to update the loading circle</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_LoadSites(IEnumerable<Data.Patient> patients, Action<int> updateCircle, Action<Exception> outPut)
+        private IEnumerator c_LoadSites(IEnumerable<Data.Patient> patients, Action<Exception> outPut)
         {
             Dictionary<string, List<Implantation3D.SiteInfo>> siteInfoByImplantation = new Dictionary<string, List<Implantation3D.SiteInfo>>();
             int patientIndex = 0;
+            System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"^([a-zA-Z']+)([0-9]+)$");
             foreach (var patient in patients)
             {
                 int siteIndex = 0;
@@ -2044,11 +2043,13 @@ namespace HBP.Module3D
                             siteInfos = new List<Implantation3D.SiteInfo>();
                             siteInfoByImplantation.Add(coordinate.ReferenceSystem, siteInfos);
                         }
+                        System.Text.RegularExpressions.GroupCollection groups = regex.Match(site.Name).Groups;
                         Implantation3D.SiteInfo siteInfo = new Implantation3D.SiteInfo()
                         {
                             Name = site.Name,
                             Position = coordinate.Position.ToVector3(),
                             Patient = patient,
+                            Electrode = groups.Count == 3 ? groups[1].ToString() : "Other",
                             PatientIndex = patientIndex,
                             Index = siteIndex,
                             SiteData = site
