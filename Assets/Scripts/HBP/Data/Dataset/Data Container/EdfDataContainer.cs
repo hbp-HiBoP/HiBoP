@@ -30,7 +30,7 @@ namespace HBP.Data.Container
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("EDF"), IEEG, CCEP]
+    [DataContract, DisplayName("EDF"), IEEG, CCEP, MEGc]
     public class EDF : DataContainer
     {
         #region Properties

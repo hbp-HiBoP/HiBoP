@@ -261,9 +261,9 @@ public static class DataManager
                 FMRIData data = new FMRIData(FMRIDataInfo);
                 m_DataByRequest.Add(request, data);
             }
-            else if (request.DataInfo is MEGDataInfo MEGDataInfo)
+            else if (request.DataInfo is MEGvDataInfo MEGDataInfo)
             {
-                MEGData data = new MEGData(MEGDataInfo);
+                MEGvData data = new MEGvData(MEGDataInfo);
                 m_DataByRequest.Add(request, data);
             }
         }

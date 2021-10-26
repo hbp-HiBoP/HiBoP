@@ -636,8 +636,7 @@ namespace HBP.Data.Visualization
                 for (int i = 0; i < nbMegColumns; ++i)
                 {
                     MEGColumn megColumn = megColumns[i];
-                    UnityEngine.Debug.Log("tutu");
-                    MEGDataInfo[] dataInfos = megColumn.Dataset.GetMEGDataInfos().Where(data => Patients.Contains(data.Patient)).ToArray();
+                    PatientDataInfo[] dataInfos = megColumn.Dataset.GetMEGDataInfos().Where(data => Patients.Contains(data.Patient)).ToArray();
                     progress += loadingDataStep;
                     onChangeProgress(progress, TIME_BY_DATAINFO * dataInfos.Length, new LoadingText("Loading MEG column ", megColumn.Name, " [" + (i + 1) + "/" + nbMegColumns + "]"));
                     try

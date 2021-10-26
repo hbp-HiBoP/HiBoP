@@ -4,14 +4,14 @@ using System.Collections.Generic;
 
 namespace HBP.Data.Experience.Dataset
 {
-    public class MEGData : Data
+    public class MEGvData : Data
     {
         #region Properties
         public MRI FMRI { get; private set; }
         #endregion
 
         #region Constructors
-        public MEGData(MEGDataInfo dataInfo)
+        public MEGvData(MEGvDataInfo dataInfo)
         {
             if (dataInfo.DataContainer is Container.Nifti niftiDataContainer)
             {

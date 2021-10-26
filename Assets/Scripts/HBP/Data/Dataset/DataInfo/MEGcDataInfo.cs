@@ -8,7 +8,7 @@ using HBP.Errors;
 namespace HBP.Data.Experience.Dataset
 {
     /// <summary>
-    /// Class containing paths to CCEP data files.
+    /// Class containing paths to MEG data files.
     /// </summary>
     /// <remarks>
     /// <list type="table">
@@ -50,8 +50,8 @@ namespace HBP.Data.Experience.Dataset
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("MEG")]
-    public class MEGDataInfo : PatientDataInfo
+    [DataContract, DisplayName("MEGc")]
+    public class MEGcDataInfo : PatientDataInfo
     {
         #region Properties
         protected Error[] m_FMRIErrors = new Error[0];
@@ -75,7 +75,7 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="channel">Stimulated channel.</param>
         /// <param name="id">Unique identifier</param>
-        public MEGDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string ID) : base(name, dataContainer, patient, ID)
+        public MEGcDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string ID) : base(name, dataContainer, patient, ID)
         {
         }
         /// <summary>
@@ -85,13 +85,13 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="dataContainer">Data container of the CCEP dataInfo.</param>
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="channel">Stimulated channel.</param>
-        public MEGDataInfo(string name, Container.DataContainer dataContainer, Patient patient) : base(name, dataContainer, patient)
+        public MEGcDataInfo(string name, Container.DataContainer dataContainer, Patient patient) : base(name, dataContainer, patient)
         {
         }
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
-        public MEGDataInfo() : this("Data", new Container.Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault())
+        public MEGcDataInfo() : this("Data", new Container.Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault())
         {
 
         }
@@ -104,7 +104,7 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new MEGDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, ID);
+            return new MEGcDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, ID);
         }
         public override void Copy(object copy)
         {

@@ -29,7 +29,7 @@ namespace HBP.Data.Container
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("BrainVision"), IEEG, CCEP]
+    [DataContract, DisplayName("BrainVision"), IEEG, CCEP, MEGc]
     public class BrainVision : DataContainer
     {
         #region Properties

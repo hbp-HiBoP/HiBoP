@@ -76,7 +76,7 @@ namespace HBP.Data.Visualization
         }
         public override bool IsCompatible(IEnumerable<Patient> patients)
         {
-            MEGDataInfo[] megDataInfos = Dataset?.GetMEGDataInfos();
+            PatientDataInfo[] megDataInfos = Dataset?.GetMEGDataInfos();
             return Dataset != null && Dataset.Protocol != null && patients.All((patient) => megDataInfos.Any((data) => data.Patient == patient && data.IsOk));
         }
         public override void Unload()

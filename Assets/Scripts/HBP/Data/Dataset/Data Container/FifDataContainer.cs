@@ -30,7 +30,7 @@ namespace HBP.Data.Container
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("FIF"), IEEG, CCEP, MEG]
+    [DataContract, DisplayName("FIF"), IEEG, CCEP, MEGc]
     public class FIF : DataContainer
     {
         #region Properties

@@ -151,9 +151,9 @@ namespace HBP.Data.Experience.Dataset
         {
             return m_Data.OfType<FMRIDataInfo>().ToArray();
         }
-        public MEGDataInfo[] GetMEGDataInfos()
+        public PatientDataInfo[] GetMEGDataInfos()
         {
-            return m_Data.OfType<MEGDataInfo>().ToArray();
+            return m_Data.Where(d => d is MEGcDataInfo || d is MEGvDataInfo).Select(d => d as PatientDataInfo).ToArray();
         }
         /// <summary>
         /// Add a dataInfo to the dataset.

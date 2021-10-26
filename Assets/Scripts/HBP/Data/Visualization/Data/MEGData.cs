@@ -15,12 +15,19 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Public Methods
-        public void Load(IEnumerable<MEGDataInfo> columnData)
+        public void Load(IEnumerable<PatientDataInfo> columnData)
         {
-            foreach (MEGDataInfo dataInfo in columnData)
+            foreach (PatientDataInfo dataInfo in columnData)
             {
-                Experience.Dataset.MEGData data = DataManager.GetData(dataInfo) as Experience.Dataset.MEGData;
-                FMRIs.Add(new Tuple<Module3D.FMRI, Patient>(new Module3D.FMRI(data.FMRI), dataInfo.Patient));
+                if (dataInfo is MEGvDataInfo vDataInfo)
+                {
+                    MEGvData data = DataManager.GetData(vDataInfo) as MEGvData;
+                    FMRIs.Add(new Tuple<Module3D.FMRI, Patient>(new Module3D.FMRI(data.FMRI), vDataInfo.Patient));
+                }
+                else if (dataInfo is MEGcDataInfo cDataInfo)
+                {
+
+                }
             }
         }
         public void Unload()

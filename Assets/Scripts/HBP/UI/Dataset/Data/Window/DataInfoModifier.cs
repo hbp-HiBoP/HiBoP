@@ -29,7 +29,8 @@ namespace HBP.UI.Experience.Dataset
         [SerializeField] iEEGDataInfoSubModifier m_iEEGDataInfoSubModifier;
         [SerializeField] CCEPDataInfoSubModifier m_CCEPDataInfoSubModifier;
         [SerializeField] FMRIDataInfoSubModifier m_FMRIDataInfoSubModifier;
-        [SerializeField] MEGDataInfoSubModifier m_MEGDataInfoSubModifier;
+        [SerializeField] MEGvDataInfoSubModifier m_MEGvDataInfoSubModifier;
+        [SerializeField] MEGcDataInfoSubModifier m_MEGcDataInfoSubModifier;
 
         /// <summary>
         /// True if interactable, False otherwise.
@@ -84,7 +85,8 @@ namespace HBP.UI.Experience.Dataset
                 m_iEEGDataInfoSubModifier,
                 m_CCEPDataInfoSubModifier,
                 m_FMRIDataInfoSubModifier,
-                m_MEGDataInfoSubModifier
+                m_MEGvDataInfoSubModifier,
+                m_MEGcDataInfoSubModifier
             };
 
             m_DataInfoTemp = new List<DataInfo>
@@ -92,13 +94,15 @@ namespace HBP.UI.Experience.Dataset
                 new IEEGDataInfo(),
                 new CCEPDataInfo(),
                 new FMRIDataInfo(),
-                new MEGDataInfo()
+                new MEGvDataInfo(),
+                new MEGcDataInfo()
             };
 
             m_iEEGDataInfoSubModifier.Initialize();
             m_CCEPDataInfoSubModifier.Initialize();
             m_FMRIDataInfoSubModifier.Initialize();
-            m_MEGDataInfoSubModifier.Initialize();
+            m_MEGvDataInfoSubModifier.Initialize();
+            m_MEGcDataInfoSubModifier.Initialize();
 
             m_NameInputField.onEndEdit.AddListener(ChangeName);
 
@@ -127,7 +131,8 @@ namespace HBP.UI.Experience.Dataset
             if (type == typeof(IEEGDataInfo)) m_DataContainerModifier.DataAttribute = new IEEG();
             else if (type == typeof(CCEPDataInfo)) m_DataContainerModifier.DataAttribute = new CCEP();
             else if (type == typeof(FMRIDataInfo)) m_DataContainerModifier.DataAttribute = new FMRI();
-            else if (type == typeof(MEGDataInfo)) m_DataContainerModifier.DataAttribute = new MEG();
+            else if (type == typeof(MEGvDataInfo)) m_DataContainerModifier.DataAttribute = new MEGv();
+            else if (type == typeof(MEGcDataInfo)) m_DataContainerModifier.DataAttribute = new MEGc();
 
             m_DataContainerModifier.Object = m_ObjectTemp.DataContainer;
             if (m_ObjectTemp is PatientDataInfo patientDataInfo) m_PatientDataInfoSubModifier.Object = patientDataInfo;
