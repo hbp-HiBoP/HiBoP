@@ -41,9 +41,8 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateInteractable()
         {
             bool isColumnMEG = SelectedColumn is Column3DMEG;
-            //bool isGeneratorUpToDate = SelectedScene.IsGeneratorUpToDate;
 
-            m_Dropdown.gameObject.SetActive(isColumnMEG/* && isGeneratorUpToDate*/);
+            m_Dropdown.gameObject.SetActive(isColumnMEG);
         }
         /// <summary>
         /// Update the status of the tool
