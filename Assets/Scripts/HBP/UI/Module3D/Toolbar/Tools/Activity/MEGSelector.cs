@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
 {
-    public class FMRISelector : Tool
+    public class MEGSelector : Tool
     {
         #region Properties
         /// <summary>
@@ -24,8 +24,8 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                if (SelectedColumn is Column3DFMRI fmriColumn)
-                    fmriColumn.SelectedFMRIIndex = value;
+                if (SelectedColumn is Column3DMEG megColumn)
+                    megColumn.SelectedMEGIndex = value;
             });
         }
         /// <summary>
@@ -40,10 +40,10 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isColumnFMRI = SelectedColumn is Column3DFMRI;
-            bool isGeneratorUpToDate = SelectedScene.IsGeneratorUpToDate;
+            bool isColumnMEG = SelectedColumn is Column3DMEG;
+            //bool isGeneratorUpToDate = SelectedScene.IsGeneratorUpToDate;
 
-            m_Dropdown.gameObject.SetActive(isColumnFMRI && isGeneratorUpToDate);
+            m_Dropdown.gameObject.SetActive(isColumnMEG/* && isGeneratorUpToDate*/);
         }
         /// <summary>
         /// Update the status of the tool
@@ -51,23 +51,23 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateStatus()
         {
             m_Dropdown.options.Clear();
-            if (SelectedColumn is Column3DFMRI fmriColumn)
+            if (SelectedColumn is Column3DMEG megColumn)
             {
                 if (SelectedScene.Type == Data.Enums.SceneType.MultiPatients)
                 {
-                    foreach (var fmri in fmriColumn.ColumnFMRIData.Data.FMRIs)
+                    foreach (var fmri in megColumn.ColumnMEGData.Data.MEGItems)
                     {
-                        m_Dropdown.options.Add(new Dropdown.OptionData(string.Format("{0} ({1})", fmri.Item1.Name, fmri.Item2.Name)));
+                        m_Dropdown.options.Add(new Dropdown.OptionData(string.Format("{0} ({1})", fmri.Label, fmri.Patient.Name)));
                     }
                 }
                 else
                 {
-                    foreach (var fmri in fmriColumn.ColumnFMRIData.Data.FMRIs)
+                    foreach (var fmri in megColumn.ColumnMEGData.Data.MEGItems)
                     {
-                        m_Dropdown.options.Add(new Dropdown.OptionData(fmri.Item1.Name));
+                        m_Dropdown.options.Add(new Dropdown.OptionData(fmri.Label));
                     }
                 }
-                m_Dropdown.value = fmriColumn.SelectedFMRIIndex;
+                m_Dropdown.value = megColumn.SelectedMEGIndex;
             }
             m_Dropdown.RefreshShownValue();
         }

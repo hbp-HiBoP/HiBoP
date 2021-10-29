@@ -620,7 +620,7 @@ namespace HBP.Data.Visualization
         }
         IEnumerator c_LoadMEGColumns(Action<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
         {
-            yield return Ninja.JumpToUnity;
+            yield return Ninja.JumpBack;
 
             Exception exception = null;
 

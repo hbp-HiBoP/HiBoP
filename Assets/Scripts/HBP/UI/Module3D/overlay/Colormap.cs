@@ -98,7 +98,7 @@ namespace HBP.UI.Module3D
                 {
                     UpdateTextMEG(megColumn);
                 });
-                megColumn.OnChangeSelectedFMRI.AddListener(() =>
+                megColumn.OnChangeSelectedMEG.AddListener(() =>
                 {
                     UpdateTextMEG(megColumn);
                 });

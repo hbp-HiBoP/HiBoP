@@ -54,6 +54,10 @@ namespace HBP.UI.Module3D
         /// Select the MRI once the activity is computed
         /// </summary>
         [SerializeField] private Tools.FMRISelector m_FMRISelector;
+        /// <summary>
+        /// Select the MEG once the activity is computed
+        /// </summary>
+        [SerializeField] private Tools.MEGSelector m_MEGSelector;
         #endregion
 
         #region Private Methods
@@ -72,6 +76,7 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_ComputeActivity);
             m_Tools.Add(m_SiteCorrelations);
             m_Tools.Add(m_FMRISelector);
+            m_Tools.Add(m_MEGSelector);
         }
         /// <summary>
         /// Add the listeners to the elements of the toolbar

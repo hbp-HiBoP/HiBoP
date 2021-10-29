@@ -1165,7 +1165,7 @@ namespace HBP.Module3D
                     megColumn.SurfaceNeedsUpdate = true;
                     SceneInformation.SitesNeedUpdate = true;
                 });
-                megColumn.OnChangeSelectedFMRI.AddListener(() =>
+                megColumn.OnChangeSelectedMEG.AddListener(() =>
                 {
                     SceneInformation.FunctionalCutTexturesNeedUpdate = true;
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;

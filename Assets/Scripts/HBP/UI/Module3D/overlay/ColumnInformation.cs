@@ -71,7 +71,7 @@ namespace HBP.UI.Module3D
                 m_Bloc.text = "MEG";
                 m_Dataset.text = megColumn.ColumnMEGData.Dataset.Name;
                 m_Data.text = megColumn.SelectedFMRI.Name;
-                megColumn.OnChangeSelectedFMRI.AddListener(() =>
+                megColumn.OnChangeSelectedMEG.AddListener(() =>
                 {
                     m_Data.text = megColumn.SelectedFMRI.Name;
                 });

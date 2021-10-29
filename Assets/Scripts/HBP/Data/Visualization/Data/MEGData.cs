@@ -8,10 +8,21 @@ using Tools.CSharp;
 
 namespace HBP.Data.Visualization
 {
+    public class MEGItem
+    {
+        #region Properties
+        public string Label { get; set; }
+        public Patient Patient { get; set; }
+        public Module3D.FMRI FMRI { get; set; }
+        public Dictionary<string, float[]> ValuesByChannel { get; set; }
+        public Dictionary<string, string> UnitByChannel { get; set; }
+        public Tools.CSharp.EEG.Frequency Frequency { get; set; }
+        #endregion
+    }
     public class MEGData
     {
         #region Properties
-        public List<Tuple<Module3D.FMRI, Patient>> FMRIs { get; set; } = new List<Tuple<Module3D.FMRI, Patient>>();
+        public List<MEGItem> MEGItems { get; set; } = new List<MEGItem>();
         #endregion
 
         #region Public Methods
@@ -22,21 +33,54 @@ namespace HBP.Data.Visualization
                 if (dataInfo is MEGvDataInfo vDataInfo)
                 {
                     MEGvData data = DataManager.GetData(vDataInfo) as MEGvData;
-                    FMRIs.Add(new Tuple<Module3D.FMRI, Patient>(new Module3D.FMRI(data.FMRI), vDataInfo.Patient));
+                    MEGItem existingItem = MEGItems.Find(i => i.Patient == vDataInfo.Patient && i.Label == vDataInfo.Name);
+                    if (existingItem != null)
+                    {
+                        existingItem.FMRI = new Module3D.FMRI(data.FMRI);
+                    }
+                    else
+                    {
+                        MEGItem newItem = new MEGItem()
+                        {
+                            Label = vDataInfo.Name,
+                            Patient = vDataInfo.Patient,
+                            FMRI = new Module3D.FMRI(data.FMRI)
+                        };
+                        MEGItems.Add(newItem);
+                    }
                 }
                 else if (dataInfo is MEGcDataInfo cDataInfo)
                 {
-
+                    MEGcData data = DataManager.GetData(cDataInfo) as MEGcData;
+                    MEGItem existingItem = MEGItems.Find(i => i.Patient == cDataInfo.Patient && i.Label == cDataInfo.Name);
+                    if (existingItem != null)
+                    {
+                        existingItem.ValuesByChannel = data.ValuesByChannel;
+                        existingItem.UnitByChannel = data.UnitByChannel;
+                        existingItem.Frequency = data.Frequency;
+                    }
+                    else
+                    {
+                        MEGItem newItem = new MEGItem()
+                        {
+                            Label = cDataInfo.Name,
+                            Patient = cDataInfo.Patient,
+                            ValuesByChannel = data.ValuesByChannel,
+                            UnitByChannel = data.UnitByChannel,
+                            Frequency = data.Frequency
+                        };
+                        MEGItems.Add(newItem);
+                    }
                 }
             }
         }
         public void Unload()
         {
-            foreach (var fmri in FMRIs)
+            foreach (var fmri in MEGItems)
             {
-                fmri.Item1.Clean();
+                fmri.FMRI.Clean();
             }
-            FMRIs.Clear();
+            MEGItems.Clear();
         }
         #endregion
     }
