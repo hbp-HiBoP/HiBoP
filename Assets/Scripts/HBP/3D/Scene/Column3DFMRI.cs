@@ -52,7 +52,7 @@ namespace HBP.Module3D
                 int index = 0;
                 for (int i = 0; i < SelectedFMRIIndex; i++)
                 {
-                    index += ColumnFMRIData.Data.FMRIs[i].Item1.NIFTI.NumberOfVolumes;
+                    index += ColumnFMRIData.Data.FMRIs[i].Item1.Volumes.Count;
                 }
                 return index + Timeline.CurrentIndex;
             }

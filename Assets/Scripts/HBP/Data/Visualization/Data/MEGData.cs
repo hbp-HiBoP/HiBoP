@@ -13,10 +13,32 @@ namespace HBP.Data.Visualization
         #region Properties
         public string Label { get; set; }
         public Patient Patient { get; set; }
-        public Module3D.FMRI FMRI { get; set; }
-        public Dictionary<string, float[]> ValuesByChannel { get; set; }
-        public Dictionary<string, string> UnitByChannel { get; set; }
-        public Tools.CSharp.EEG.Frequency Frequency { get; set; }
+        public Module3D.FMRI FMRI { get; set; } = new Module3D.FMRI();
+        public Dictionary<string, float[]> ValuesByChannel { get; set; } = new Dictionary<string, float[]>();
+        public Dictionary<string, string> UnitByChannel { get; set; } = new Dictionary<string, string>();
+        public Tools.CSharp.EEG.Frequency Frequency { get; set; } = new Tools.CSharp.EEG.Frequency(0);
+        public Window Window
+        {
+            get
+            {
+                if (ValuesByChannel.Count > 0)
+                {
+                    return new Window(0, Frequency.ConvertNumberOfSamplesToRoundedMilliseconds(ValuesByChannel.Values.Select(v => v.Length).Max()));
+                }
+                return new Window(0, 1);
+            }
+        }
+        #endregion
+
+        #region Public Methods
+        public Window GetChannelWindow(string channel)
+        {
+            if (ValuesByChannel.TryGetValue(channel, out float[] values))
+            {
+                return new Window(0, Frequency.ConvertNumberOfSamplesToRoundedMilliseconds(values.Length));
+            }
+            return new Window(0, 0);
+        }
         #endregion
     }
     public class MEGData

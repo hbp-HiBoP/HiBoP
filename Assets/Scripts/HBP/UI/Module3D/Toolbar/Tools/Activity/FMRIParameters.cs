@@ -106,13 +106,15 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isColumnFMRIorMEG = SelectedColumn is Column3DFMRI || SelectedColumn is Column3DMEG;
+            bool isColumnFMRI = SelectedColumn is Column3DFMRI;
+            bool isColumnMEG = SelectedColumn is Column3DMEG;
+            bool isColumnMEGandFMRILoaded = SelectedColumn is Column3DMEG megColumn && megColumn.SelectedFMRI.Loaded;
 
-            gameObject.SetActive(isColumnFMRIorMEG);
-            m_Button.interactable = isColumnFMRIorMEG;
-            m_LowerToggle.interactable = isColumnFMRIorMEG;
-            m_MiddleToggle.interactable = isColumnFMRIorMEG;
-            m_HigherToggle.interactable = isColumnFMRIorMEG;
+            gameObject.SetActive(isColumnFMRI || isColumnMEG);
+            m_Button.interactable = isColumnFMRI || isColumnMEGandFMRILoaded;
+            m_LowerToggle.interactable = isColumnFMRI || isColumnMEG;
+            m_MiddleToggle.interactable = isColumnFMRI || isColumnMEG;
+            m_HigherToggle.interactable = isColumnFMRI || isColumnMEG;
         }
         /// <summary>
         /// Update the status of the tool
@@ -127,7 +129,7 @@ namespace HBP.UI.Module3D.Tools
                 m_MiddleToggle.isOn = fmriColumn.FMRIParameters.HideMiddleValues;
                 m_HigherToggle.isOn = fmriColumn.FMRIParameters.HideHigherValues;
             }
-            else if (SelectedColumn is Column3DMEG megColumn)
+            else if (SelectedColumn is Column3DMEG megColumn && megColumn.SelectedFMRI.Loaded)
             {
                 m_ThresholdFMRI.CleanHistograms();
                 m_ThresholdFMRI.UpdateFMRICalValues(megColumn.SelectedFMRI, megColumn.MEGParameters.FMRINegativeCalMinFactor, megColumn.MEGParameters.FMRINegativeCalMaxFactor, megColumn.MEGParameters.FMRIPositiveCalMinFactor, megColumn.MEGParameters.FMRIPositiveCalMaxFactor);

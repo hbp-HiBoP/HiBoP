@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System;
 using UnityEngine;
 using UnityEngine.UI.Extensions;
+using Tools.CSharp;
 
 namespace HBP.Data.Informations
 {
@@ -236,6 +237,39 @@ namespace HBP.Data.Informations
 
         #region Public Methods
         public bool Equals(IEEGData other)
+        {
+            return base.Equals(other);
+        }
+        #endregion
+    }
+
+    [Serializable]
+    public class MEGData : Data
+    {
+        #region Properties
+        [SerializeField] Window m_Window;
+        public Window Window
+        {
+            get
+            {
+                return m_Window;
+            }
+            set
+            {
+                SetPropertyUtility.SetStruct(ref m_Window, value);
+            }
+        }
+        #endregion
+
+        #region Constructors
+        public MEGData(Dataset dataset, string data, Window window) : base(dataset, data, null)
+        {
+            Window = window;
+        }
+        #endregion
+
+        #region Public Methods
+        public bool Equals(MEGData other)
         {
             return base.Equals(other);
         }

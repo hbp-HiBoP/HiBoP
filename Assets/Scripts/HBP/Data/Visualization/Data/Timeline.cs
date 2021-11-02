@@ -194,8 +194,8 @@ namespace HBP.Data.Visualization
         {
             Frequency = new Tools.CSharp.EEG.Frequency(1);
             Unit = "dt";
-            Length = fmri.NIFTI.NumberOfVolumes;
-            TimeLength = fmri.NIFTI.NumberOfVolumes - 1;
+            Length = fmri.Volumes.Count;
+            TimeLength = fmri.Volumes.Count - 1;
             CurrentIndex = 0;
             m_DefaultSubtimeline = new SubTimeline(fmri);
         }
@@ -274,12 +274,12 @@ namespace HBP.Data.Visualization
         #region Constructors
         public SubTimeline(Module3D.FMRI fmri)
         {
-            Length = fmri.NIFTI.NumberOfVolumes;
+            Length = fmri.Volumes.Count;
             Before = 0;
             After = 0;
             Frequency = new Tools.CSharp.EEG.Frequency(1);
             MinTime = 0;
-            MaxTime = fmri.NIFTI.NumberOfVolumes - 1;
+            MaxTime = fmri.Volumes.Count - 1;
             FirstSampleTime = MinTime;
             LastSampleTime = MaxTime;
             TimeStep = 1;

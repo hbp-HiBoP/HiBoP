@@ -28,7 +28,7 @@ namespace HBP.UI.Informations
             }
         }
 
-        [SerializeField] Dictionary<Column3DDynamic, Column> m_ColumnDataBy3DColumn = new Dictionary<Column3DDynamic, Column>();
+        [SerializeField] Dictionary<Column3D, Column> m_ColumnDataBy3DColumn = new Dictionary<Column3D, Column>();
 
         [SerializeField] Texture2D m_ColorMap;
         public Texture2D ColorMap
@@ -174,7 +174,7 @@ namespace HBP.UI.Informations
         {
             if (!m_Scene.SceneInformation.CompletelyLoaded) return;
             List<Column> columns = new List<Column>();
-            m_ColumnDataBy3DColumn = new Dictionary<Column3DDynamic, Column>();
+            m_ColumnDataBy3DColumn = new Dictionary<Column3D, Column>();
             foreach (var column in m_Scene.Columns)
             {
                 if(!column.IsMinimized || ApplicationState.UserPreferences.Visualization.Graph.ShowCurvesOfMinimizedColumns)
@@ -189,14 +189,21 @@ namespace HBP.UI.Informations
                     {
                         IEEGData data = new IEEGData(ieegColumn.ColumnIEEGData.Dataset, ieegColumn.ColumnIEEGData.DataName, ieegColumn.ColumnIEEGData.Bloc);
                         Column columnData = new Column(column.Name, data, ROI);
-                        m_ColumnDataBy3DColumn.Add(column as Column3DDynamic, columnData);
+                        m_ColumnDataBy3DColumn.Add(column, columnData);
                         columns.Add(columnData);
                     }
                     else if(column is Column3DCCEP ccepColumn && ccepColumn.IsSourceSiteSelected)
                     {
                         CCEPData data = new CCEPData(ccepColumn.ColumnCCEPData.Dataset, ccepColumn.ColumnCCEPData.DataName, new ChannelStruct(ccepColumn.SelectedSourceSite), ccepColumn.ColumnCCEPData.Bloc);
                         Column columnData = new Column(column.Name, data, ROI);
-                        m_ColumnDataBy3DColumn.Add(column as Column3DDynamic, columnData);
+                        m_ColumnDataBy3DColumn.Add(column, columnData);
+                        columns.Add(columnData);
+                    }
+                    else if (column is Column3DMEG megColumn)
+                    {
+                        MEGData data = new MEGData(megColumn.ColumnMEGData.Dataset, megColumn.SelectedMEGItem.Label, megColumn.SelectedMEGItem.Window);
+                        Column columnData = new Column(column.Name, data, ROI);
+                        m_ColumnDataBy3DColumn.Add(column, columnData);
                         columns.Add(columnData);
                     }
                 }
@@ -263,6 +270,12 @@ namespace HBP.UI.Informations
             GenerateSceneData();
             GridInformations.SetColumns(m_SceneData.Columns.ToArray());
         }
+        void OnChangeSelectedMEGItem()
+        {
+            GenerateSceneData();
+            GridInformations.SetColumns(m_SceneData.Columns.ToArray());
+            DisplayGraphs();
+        }
         #endregion
 
         #region Setters
@@ -296,6 +309,10 @@ namespace HBP.UI.Informations
                     {
                         column.Timeline.OnUpdateCurrentIndex.AddListener(() => UpdateTime(column.Timeline.CurrentIndex, column));
                     }
+                }
+                foreach (var column in m_Scene.ColumnsMEG)
+                {
+                    column.OnChangeSelectedMEG.AddListener(OnChangeSelectedMEGItem);
                 }
 
                 int maxNumberOfTrialMatrixColumn = Mathf.Max(Bloc.GetNumberOfColumns(m_Scene.ColumnsIEEG.Select(c => c.ColumnIEEGData.Bloc).Distinct()), Bloc.GetNumberOfColumns(m_Scene.ColumnsCCEP.Select(c => c.ColumnCCEPData.Bloc).Distinct()));

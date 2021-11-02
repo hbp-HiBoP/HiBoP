@@ -70,10 +70,10 @@ namespace HBP.UI.Module3D
                 m_Protocol.text = megColumn.ColumnMEGData.Dataset.Protocol.Name;
                 m_Bloc.text = "MEG";
                 m_Dataset.text = megColumn.ColumnMEGData.Dataset.Name;
-                m_Data.text = megColumn.SelectedFMRI.Name;
+                m_Data.text = megColumn.SelectedMEGItem.Label;
                 megColumn.OnChangeSelectedMEG.AddListener(() =>
                 {
-                    m_Data.text = megColumn.SelectedFMRI.Name;
+                    m_Data.text = megColumn.SelectedMEGItem.Label;
                 });
             }
             else

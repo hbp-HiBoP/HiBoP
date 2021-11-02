@@ -38,14 +38,29 @@ namespace HBP.UI.Informations
             Vector2 abscissaDisplayRange = new Vector2(float.MaxValue, float.MinValue);
             foreach (var column in m_Columns)
             {
-                SubBloc mainSubBloc = column.Data.Bloc.MainSubBloc;
-                if (mainSubBloc.Window.Start < abscissaDisplayRange.x)
+                if (column.Data is data.IEEGData || column.Data is data.CCEPData)
                 {
-                    abscissaDisplayRange = new Vector2(mainSubBloc.Window.Start, abscissaDisplayRange.y);
+                    SubBloc mainSubBloc = column.Data.Bloc.MainSubBloc;
+                    if (mainSubBloc.Window.Start < abscissaDisplayRange.x)
+                    {
+                        abscissaDisplayRange = new Vector2(mainSubBloc.Window.Start, abscissaDisplayRange.y);
+                    }
+                    if (mainSubBloc.Window.End > abscissaDisplayRange.y)
+                    {
+                        abscissaDisplayRange = new Vector2(abscissaDisplayRange.x, mainSubBloc.Window.End);
+                    }
                 }
-                if (mainSubBloc.Window.End > abscissaDisplayRange.y)
+                else if (column.Data is MEGData megData)
                 {
-                    abscissaDisplayRange = new Vector2(abscissaDisplayRange.x, mainSubBloc.Window.End);
+                    Tools.CSharp.Window window = megData.Window;
+                    if (window.Start < abscissaDisplayRange.x)
+                    {
+                        abscissaDisplayRange = new Vector2(window.Start, abscissaDisplayRange.y);
+                    }
+                    if (window.End > abscissaDisplayRange.y)
+                    {
+                        abscissaDisplayRange = new Vector2(abscissaDisplayRange.x, window.End);
+                    }
                 }
             }
             m_Grid.AbscissaDisplayRange = abscissaDisplayRange;

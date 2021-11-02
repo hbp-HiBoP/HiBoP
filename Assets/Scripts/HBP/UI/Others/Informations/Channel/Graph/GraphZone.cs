@@ -232,15 +232,18 @@ namespace HBP.UI.Informations
 
         Tuple<Graph.Curve[], Tools.CSharp.Window, bool>[] GenerateDataCurve(Column[] columns, ChannelStruct[] channels)
         {
+            List<Tuple<Graph.Curve[], Tools.CSharp.Window, bool>> result = new List<Tuple<Graph.Curve[], Tools.CSharp.Window, bool>>();
+
+            // Epoched Data
             // Find all visualized blocs and sort by column.
-            IEnumerable<Data.Experience.Protocol.Bloc> blocs = columns.Select(c => c.Data.Bloc);
+            IEnumerable<Column> epochedDataColumns = columns.Where(c => c.Data is Data.Informations.IEEGData || c.Data is Data.Informations.CCEPData);
+            IEnumerable<Data.Experience.Protocol.Bloc> blocs = epochedDataColumns.Select(c => c.Data.Bloc);
             m_SubBlocsAndWindowByColumn = Data.Experience.Protocol.Bloc.GetSubBlocsAndWindowByColumn(blocs);
 
-            List<Tuple<Graph.Curve[], Tools.CSharp.Window, bool>> result = new List<Tuple<Graph.Curve[], Tools.CSharp.Window, bool>>();
             foreach (var subBlocsAndWindow in m_SubBlocsAndWindowByColumn)
             {
                 List<Graph.Curve> curves = new List<Graph.Curve>();
-                foreach (var column in columns)
+                foreach (var column in epochedDataColumns)
                 {
                     var tuple = subBlocsAndWindow.Item1.FirstOrDefault(p => p.Item1 == column.Data.Bloc);
                     if (tuple != null)
@@ -251,6 +254,15 @@ namespace HBP.UI.Informations
                 }
                 result.Add(new Tuple<Graph.Curve[], Tools.CSharp.Window, bool>(curves.ToArray(), subBlocsAndWindow.Item2, subBlocsAndWindow.Item1[0].Item2.Type == Data.Enums.MainSecondaryEnum.Main));
             }
+
+            // Non-epoched data
+            IEnumerable<Column> nonEpochedDataColumns = columns.Where(c => c.Data is MEGData);
+            foreach (var column in nonEpochedDataColumns)
+            {
+                Graph.Curve curve = GenerateNonEpochedColumnCurve(column, channels);
+                result.Add(new Tuple<Graph.Curve[], Tools.CSharp.Window, bool>(new Graph.Curve[] { curve }, (column.Data as MEGData).Window, true));
+            }
+
             return result.ToArray();
         }
 
@@ -397,6 +409,25 @@ namespace HBP.UI.Informations
             return result;
         }
 
+        Graph.Curve GenerateNonEpochedColumnCurve(Column column, ChannelStruct[] channels)
+        {
+            string ID = column.Name + "_" + column.Data.Name + "_" + column.Data.Dataset.Name;
+            List<Graph.Curve> subcurves = new List<Graph.Curve>();
+
+            // Add Channels curves.
+            subcurves.AddRange(channels.Select(channel => GenerateNonEpochedChannelCurve(column, channel, ID)));
+
+            Graph.Curve curve = new Graph.Curve(column.Name, null, true, ID, subcurves.ToArray(), m_DefaultColor);
+            return curve;
+        }
+        Graph.Curve GenerateNonEpochedChannelCurve(Column column, ChannelStruct channel, string ID)
+        {
+            ID += "_" + channel.Channel;
+            CurveData curveData = GetNonEpochedCurveData(column, channel);
+            Graph.Curve result = new Graph.Curve(channel.Channel, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);
+            return result;
+        }
+
         CurveData GetCurveData(Column column, SubBloc subBloc, ChannelStruct channel, bool[] selected)
         {
             CurveData result = null;
@@ -468,6 +499,39 @@ namespace HBP.UI.Informations
                 }
                 result = CurveData.CreateInstance(points, color);
             }
+            return result;
+        }
+        CurveData GetNonEpochedCurveData(Column column, ChannelStruct channel)
+        {
+            CurveData result = null;
+            PatientDataInfo dataInfo = null;
+            if (column.Data is MEGData megDataStruct)
+            {
+                dataInfo = megDataStruct.Dataset.GetMEGDataInfos().OfType<MEGcDataInfo>().FirstOrDefault(d => (d.Patient == channel.Patient && d.Name == megDataStruct.Name));
+                if (dataInfo == null) return null;
+            }
+            MEGcData megData = DataManager.GetData(dataInfo) as MEGcData;
+            Color color = ApplicationState.UserPreferences.Visualization.Graph.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));
+            if (megData == null)
+                return null;
+
+            float start = 0;
+            float end = 0;
+            if (megData.ValuesByChannel.TryGetValue(channel.Channel, out float[] values))
+            {
+                end = megData.Frequency.ConvertNumberOfSamplesToMilliseconds(values.Length);
+
+                // Generate points.
+                Vector2[] points = new Vector2[values.Length];
+                for (int i = 0; i < points.Length; i++)
+                {
+                    float abscissa = start + ((float)i / (points.Length - 1)) * (end - start);
+                    float ordinate = values[i];
+                    points[i] = new Vector2(abscissa, ordinate);
+                }
+                result = CurveData.CreateInstance(points, color);
+            }
+
             return result;
         }
         List<float> GetValues(Graph.Curve curve)

@@ -846,7 +846,7 @@ namespace HBP.Module3D
         /// <param name="site">Site that has been clicked</param>
         private void ClickOnSiteCallback(Site site)
         {
-            if (SelectedColumn is Column3DDynamic && site)
+            if ((SelectedColumn is Column3DDynamic || SelectedColumn is Column3DMEG) && site)
             {
                 List<Site> sites = new List<Site>();
                 if (ImplantationManager.SiteToCompare) sites.Add(ImplantationManager.SiteToCompare);

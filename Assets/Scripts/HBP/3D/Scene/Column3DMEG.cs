@@ -44,7 +44,8 @@ namespace HBP.Module3D
                 OnChangeSelectedMEG.Invoke();
             }
         }
-        public FMRI SelectedFMRI { get { return ColumnMEGData.Data.MEGItems[SelectedMEGIndex].FMRI; } }
+        public MEGItem SelectedMEGItem { get { return ColumnMEGData.Data.MEGItems[SelectedMEGIndex]; } }
+        public FMRI SelectedFMRI { get { return SelectedMEGItem.FMRI; } }
         public int SelectedVolumeIndex
         {
             get
@@ -52,7 +53,7 @@ namespace HBP.Module3D
                 int index = 0;
                 for (int i = 0; i < SelectedMEGIndex; i++)
                 {
-                    index += ColumnMEGData.Data.MEGItems[i].FMRI.NIFTI.NumberOfVolumes;
+                    index += ColumnMEGData.Data.MEGItems[i].FMRI.Volumes.Count;
                 }
                 return index + Timeline.CurrentIndex;
             }
