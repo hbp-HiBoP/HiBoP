@@ -55,6 +55,14 @@ namespace HBP.UI.Module3D
         /// Object containing all the UI used to change the states of the sites
         /// </summary>
         [SerializeField] private GameObject m_ChangeStatePanel;
+        /// <summary>
+        /// Toggle to specify that the action to be apply is a group creation
+        /// </summary>
+        [SerializeField] private Toggle m_CreateGroupToggle;
+        /// <summary>
+        /// Object containing all the UI used to create a group
+        /// </summary>
+        [SerializeField] private GameObject m_CreateGroupPanel;
 
         /// <summary>
         /// Used to highlight the filtered sites
@@ -100,6 +108,8 @@ namespace HBP.UI.Module3D
         /// Toggle to choose to apply the modifications in the states of the filtered sites to the selected column or to all columns at once
         /// </summary>
         [SerializeField] private Toggle m_AllColumnsToggle;
+
+        [SerializeField] private InputField m_GroupNameInputField;
 
         /// <summary>
         /// Button to trigger the application of the action
@@ -151,6 +161,10 @@ namespace HBP.UI.Module3D
                         ExportSites();
                     }
                 }
+                else if (m_CreateGroupToggle.isOn)
+                {
+                    CreateGroup();
+                }
             }
             catch (Exception e)
             {
@@ -166,6 +180,7 @@ namespace HBP.UI.Module3D
             m_OnOffToggle.onValueChanged.AddListener(m_ActionsPanel.gameObject.SetActive);
             m_ExportSitesToggle.onValueChanged.AddListener(m_ExportSitesPanel.SetActive);
             m_ChangeStateToggle.onValueChanged.AddListener(m_ChangeStatePanel.SetActive);
+            m_CreateGroupToggle.onValueChanged.AddListener(m_CreateGroupPanel.SetActive);
             m_ApplyButton.onClick.AddListener(ApplyAction);
             m_ColorPickerButton.onClick.AddListener(() =>
             {
@@ -229,6 +244,29 @@ namespace HBP.UI.Module3D
             List<Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered).ToList();
             m_Coroutine = this.StartCoroutineAsync(c_ExportSites(sites, csvPath));
 #endif
+        }
+        /// <summary>
+        /// Create a group from all patients of filtered sites
+        /// </summary>
+        private void CreateGroup()
+        {
+            var patients = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered).Select(s => s.Information.Patient).Distinct();
+            Data.Group group = new Data.Group(m_GroupNameInputField.text, patients);
+            // Generate unique name
+            var projectGroups = ApplicationState.ProjectLoaded.Groups;
+            if (projectGroups.Any(g => g.Name == group.Name))
+            {
+                int count = 1;
+                string name = string.Format("{0}({1})", group.Name, count);
+                while (projectGroups.Any(g => g.Name == name))
+                {
+                    count++;
+                    name = string.Format("{0}({1})", group.Name, count);
+                }
+                group.Name = name;
+            }
+            ApplicationState.ProjectLoaded.AddGroup(group);
+            ApplicationState.DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Informational, "Group added to project", string.Format("The group {0} containing the {1} patients of the filtered sites has been added to the project.", group.Name, patients.Count()));
         }
         /// <summary>
         /// Cancel the export of the filtered sites
@@ -323,6 +361,11 @@ namespace HBP.UI.Module3D
                     {
                         dataType = "Micromed";
                         dataFiles = string.Join(";", new string[] { micromedDataContainer.Path }.Where(s => !string.IsNullOrEmpty(s)));
+                    }
+                    else if (dataInfo.DataContainer is Data.Container.FIF fifDataContainer)
+                    {
+                        dataType = "FIF";
+                        dataFiles = string.Join(";", new string[] { fifDataContainer.File }.Where(s => !string.IsNullOrEmpty(s)));
                     }
                     else
                     {

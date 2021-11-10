@@ -246,7 +246,7 @@ namespace Tools.Unity.Graph
             for (int c = 0; c < curveByColumnByChannel.Length; c++)
             {
                 var curveByColumn = curveByColumnByChannel[c];
-                AddGraph(m_Channels[c], curveByColumn, m_AbscissaDisplayRange, ordinateDisplayRangeByChannel[c], m_Channels[c]);
+                AddGraph(m_Channels[c], curveByColumn, m_AbscissaDisplayRange, ordinateDisplayRangeByChannel[c]);
             }
 
             UpdateLayout();
@@ -256,7 +256,7 @@ namespace Tools.Unity.Graph
                 m_OnSetGraphs.Invoke(curveByColumnByChannel[0]);
             }
         }
-        void AddGraph(ChannelStruct channelStruct, Graph.Curve[] curves, Vector2 abscissa, Vector2 ordinate, ChannelStruct channel)
+        void AddGraph(ChannelStruct channelStruct, Graph.Curve[] curves, Vector2 abscissa, Vector2 ordinate)
         {
             GraphsGridContainer container = Instantiate(m_ItemAndContainerPrefab, m_ScrollRect.content).GetComponent<GraphsGridContainer>();
             m_Containers.Add(container);
@@ -270,7 +270,7 @@ namespace Tools.Unity.Graph
                 graph.AddCurve(curve);
             }
             Graphs.Add(graph);
-            m_ChannelByGraph.Add(graph, channel);
+            m_ChannelByGraph.Add(graph, channelStruct);
         }
         private void UpdateLayout()
         {
@@ -288,26 +288,42 @@ namespace Tools.Unity.Graph
         }
         Graph.Curve[][] GenerateDataCurve(Column[] columns, ChannelStruct[] channels)
         {
-            // Find all visualized blocs and sort by column.
-            IEnumerable<Bloc> blocs = columns.Select(c => c.Data.Bloc);
-
             List<Graph.Curve[]> result = new List<Graph.Curve[]>();
+
+            // Find all visualized blocs and sort by column.
+            IEnumerable<Column> epochedDataColumns = columns.Where(c => c.Data is HBP.Data.Informations.IEEGData || c.Data is HBP.Data.Informations.CCEPData);
+            IEnumerable<Column> nonEpochedDataColumns = columns.Where(c => c.Data is MEGData);
+            IEnumerable<Bloc> blocs = epochedDataColumns.Select(c => c.Data.Bloc);
+
             foreach (var channel in channels)
             {
                 List<Graph.Curve> curves = new List<Graph.Curve>();
-                foreach (var column in columns)
+                foreach (var column in epochedDataColumns)
                 {
                     Graph.Curve curve = GenerateChannelCurve(column, channel, column.Data.Bloc.MainSubBloc);
                     curves.Add(curve);
                 }
+                foreach (var column in nonEpochedDataColumns)
+                {
+                    Graph.Curve curve = GenerateNonEpochedChannelCurve(column, channel);
+                    curves.Add(curve);
+                }
                 result.Add(curves.ToArray());
             }
+
             return result.ToArray();
         }
         Graph.Curve GenerateChannelCurve(Column column, ChannelStruct channel, SubBloc subBloc)
         {
             string ID = column.Name + "_" + column.Data.Name + "_" + column.Data.Bloc.Name + "_" + column.Data.Dataset.Name;
             CurveData curveData = GetCurveData(column, subBloc, channel);
+            Graph.Curve result = new Graph.Curve(column.Name, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);
+            return result;
+        }
+        Graph.Curve GenerateNonEpochedChannelCurve(Column column, ChannelStruct channel)
+        {
+            string ID = column.Name + "_" + column.Data.Name + "_" + column.Data.Dataset.Name;
+            CurveData curveData = GetNonEpochedCurveData(column, channel);
             Graph.Curve result = new Graph.Curve(column.Name, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);
             return result;
         }
@@ -377,6 +393,40 @@ namespace Tools.Unity.Graph
             }
             return result;
         }
+        CurveData GetNonEpochedCurveData(Column column, ChannelStruct channel)
+        {
+            CurveData result = null;
+            PatientDataInfo dataInfo = null;
+            if (column.Data is MEGData megDataStruct)
+            {
+                dataInfo = megDataStruct.Dataset.GetMEGDataInfos().OfType<MEGcDataInfo>().FirstOrDefault(d => (d.Patient == channel.Patient && d.Name == megDataStruct.Name));
+                if (dataInfo == null) return null;
+            }
+            MEGcData megData = DataManager.GetData(dataInfo) as MEGcData;
+            Color color = ApplicationState.UserPreferences.Visualization.Graph.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));
+            if (megData == null)
+                return null;
+
+            float start = 0;
+            float end = 0;
+            if (megData.ValuesByChannel.TryGetValue(channel.Channel, out float[] values))
+            {
+                end = megData.Frequency.ConvertNumberOfSamplesToMilliseconds(values.Length);
+
+                // Generate points.
+                Vector2[] points = new Vector2[values.Length];
+                for (int i = 0; i < points.Length; i++)
+                {
+                    float abscissa = start + ((float)i / (points.Length - 1)) * (end - start);
+                    float ordinate = values[i];
+                    points[i] = new Vector2(abscissa, ordinate);
+                }
+                result = CurveData.CreateInstance(points, color);
+            }
+
+            return result;
+        }
+
         List<float> GetValues(Graph.Curve curve)
         {
             List<float> result = new List<float>();

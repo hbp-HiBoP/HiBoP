@@ -170,6 +170,11 @@ namespace HBP.Data.Experience.Dataset
                     type = Tools.CSharp.EEG.File.FileType.Micromed;
                     files = new string[] { micromedDataContainer.Path };
                 }
+                else if (m_DataContainer is Container.FIF fifDataContainer)
+                {
+                    type = Tools.CSharp.EEG.File.FileType.FIF;
+                    files = new string[] { fifDataContainer.File };
+                }
                 else
                 {
                     throw new Exception("Invalid data container type");

@@ -9,7 +9,7 @@ using Tools.CSharp;
 namespace HBP.Data.Container
 {
     /// <summary>
-    /// Class which contains IEEG or CCEP data in the EDF data format.
+    /// Class which contains IEEG or MEG data in the FIF data format.
     /// </summary>
     /// <list type="table">
     /// <listheader>
@@ -26,25 +26,25 @@ namespace HBP.Data.Container
     /// </item>
     /// <item>
     /// <term><b>File</b></term>
-    /// <description>Path to the EDF file.</description>
+    /// <description>Path to the FIF file.</description>
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("EDF"), IEEG, CCEP, MEGc]
-    public class EDF : DataContainer
+    [DataContract, DisplayName("FIF"), IEEG, CCEP, MEGc]
+    public class FIF : DataContainer
     {
         #region Properties
         /// <summary>
-        /// EDF files extension.
+        /// FIF files extension.
         /// </summary>
-        const string EDF_EXTENSION = ".edf";
+        const string FIF_EXTENSION = ".fif";
 
         /// <summary>
-        /// Path to the EDF file with Alias.
+        /// Path to the FIF file with Alias.
         /// </summary>
-        [DataMember(Name = "EDF")] public string SavedFile { get; protected set; } = "";
+        [DataMember(Name = "FIF")] public string SavedFile { get; protected set; } = "";
         /// <summary>
-        /// Path to the EDF file without Alias.
+        /// Path to the FIF file without Alias.
         /// </summary>
         public string File
         {
@@ -59,20 +59,20 @@ namespace HBP.Data.Container
             List<Error> errors = new List<Error>();
             if (string.IsNullOrEmpty(File))
             {
-                errors.Add(new RequieredFieldEmptyError("EDF file path is empty"));
+                errors.Add(new RequieredFieldEmptyError("FIF file path is empty"));
             }
             else
             {
                 FileInfo headerFile = new FileInfo(File);
                 if (!headerFile.Exists)
                 {
-                    errors.Add(new FileDoesNotExistError("EDF file does not exist"));
+                    errors.Add(new FileDoesNotExistError("FIF file does not exist"));
                 }
                 else
                 {
-                    if (headerFile.Extension != EDF_EXTENSION)
+                    if (headerFile.Extension != FIF_EXTENSION)
                     {
-                        errors.Add(new WrongExtensionError("EDF file has a wrong extension"));
+                        errors.Add(new WrongExtensionError("FIF file has a wrong extension"));
                     }
                 }
             }
@@ -91,26 +91,26 @@ namespace HBP.Data.Container
 
         #region Constructors
         /// <summary>
-        /// Create a new EDF data container.
+        /// Create a new FIF data container.
         /// </summary>
-        /// <param name="file">Path to the EDF file</param>
+        /// <param name="file">Path to the FIF file</param>
         /// <param name="ID"></param>
-        public EDF(string file, string ID) : base(ID)
+        public FIF(string file, string ID) : base(ID)
         {
             File = file;
         }
         /// <summary>
-        /// Create a new EDF data container.
+        /// Create a new FIF data container.
         /// </summary>
-        /// <param name="file">Path to the EDF file</param>
-        public EDF(string file) : base()
+        /// <param name="file">Path to the FIF file</param>
+        public FIF(string file) : base()
         {
             File = file;
         }
         /// <summary>
-        /// Create a new EDF data container.
+        /// Create a new FIF data container.
         /// </summary>
-        public EDF() : this("")
+        public FIF() : this("")
         {
 
         }
@@ -123,11 +123,11 @@ namespace HBP.Data.Container
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new EDF(File, ID);
+            return new FIF(File, ID);
         }
         public override void Copy(object copy)
         {
-            EDF dataInfo = copy as EDF;
+            FIF dataInfo = copy as FIF;
             File = dataInfo.File;
             ID = dataInfo.ID;
         }

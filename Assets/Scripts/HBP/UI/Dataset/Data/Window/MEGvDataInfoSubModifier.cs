@@ -4,7 +4,7 @@ using d = HBP.Data.Experience.Dataset;
 
 namespace HBP.UI.Experience.Dataset
 {
-    public class MEGDataInfoSubModifier : SubModifier<d.MEGDataInfo>
+    public class MEGvDataInfoSubModifier : SubModifier<d.MEGvDataInfo>
     {
         #region Properties     
         public override bool Interactable
@@ -28,7 +28,7 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(d.MEGDataInfo objectToDisplay)
+        protected override void SetFields(d.MEGvDataInfo objectToDisplay)
         {
         }
         #endregion

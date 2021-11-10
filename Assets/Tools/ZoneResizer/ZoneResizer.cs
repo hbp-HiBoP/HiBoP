@@ -1,4 +1,5 @@
 ﻿using NewTheme.Components;
+using Tools.Unity.Components;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -9,6 +10,8 @@ public class ZoneResizer : MonoBehaviour
     public State TopBottom;
     public ThemeElement ThemeElement;
     public float MarginWidth;
+
+    private CanvasScalerHandler m_CanvasScalerHandler;
 
     [SerializeField]
     RectTransform m_BotRect;
@@ -95,8 +98,9 @@ public class ZoneResizer : MonoBehaviour
     #endregion
 
     #region Private Methods
-    void Start()
+    void Awake()
     {
+        m_CanvasScalerHandler = GetComponentInParent<CanvasScalerHandler>();
         AddEvents();
         TestIfRectIsActive();
     }
@@ -200,8 +204,11 @@ public class ZoneResizer : MonoBehaviour
     }
     void OnDragDelegate(PointerEventData data)
     {
+        float scale = m_CanvasScalerHandler.Scale;
+        Vector2 scaledDataPosition = new Vector2(scale * data.position.x, scale * data.position.y);
         RectTransform rectTransform = (RectTransform)transform;
-        Vector2 localMousePosition = data.position - ((Vector2)rectTransform.position - Vector2.Scale(rectTransform.pivot, rectTransform.rect.size));
+        Vector2 scaledRectTransformPosition = new Vector2(scale * rectTransform.position.x, scale * rectTransform.position.y);
+        Vector2 localMousePosition = scaledDataPosition - (scaledRectTransformPosition - Vector2.Scale(rectTransform.pivot, rectTransform.rect.size));
         Vector2 ratio = new Vector2(localMousePosition.x / rectTransform.rect.width, localMousePosition.y / rectTransform.rect.height);
         switch (Direction)
         {

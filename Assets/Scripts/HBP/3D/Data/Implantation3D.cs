@@ -46,6 +46,10 @@ namespace HBP.Module3D
             /// </summary>
             public Data.Patient Patient { get; set; }
             /// <summary>
+            /// Electrode this site belongs to
+            /// </summary>
+            public string Electrode { get; set; }
+            /// <summary>
             /// Reference to the site data
             /// </summary>
             public Data.Site SiteData { get; set; }

@@ -8,7 +8,7 @@ namespace Tools.CSharp.EEG
     public class File : DLL.CppDLLImportBase
     {
         #region Properties
-        public enum FileType { ELAN, EDF, Micromed, BrainVision }
+        public enum FileType { ELAN, EDF, Micromed, BrainVision, FIF }
 
         /// <summary>
         /// Size of the data
@@ -186,6 +186,10 @@ namespace Tools.CSharp.EEG
                     dataPath = paths.Length > 0 ? paths[0] : "";
                     _handle = new HandleRef(this, CreateBrainVisionFile(dataPath, loadData));
                     break;
+                case FileType.FIF:
+                    dataPath = paths.Length > 0 ? paths[0] : "";
+                    _handle = new HandleRef(this, CreateFIFFile(dataPath, loadData));
+                    break;
             }
         }
         /// <summary>
@@ -212,6 +216,8 @@ namespace Tools.CSharp.EEG
         static private extern IntPtr CreateEDFFile(string filePath, bool loadData);
         [DllImport("EEGFormat", EntryPoint = "CreateBrainVisionFile", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr CreateBrainVisionFile(string filePath, bool loadData);
+        [DllImport("EEGFormat", EntryPoint = "CreateFIFFile", CallingConvention = CallingConvention.Cdecl)]
+        static private extern IntPtr CreateFIFFile(string filePath, bool loadData);
         [DllImport("EEGFormat", EntryPoint = "DeleteGenericFile", CallingConvention = CallingConvention.Cdecl)]
         static private extern void DeleteFile(HandleRef fileToDelete);
 

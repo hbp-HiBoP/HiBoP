@@ -27,32 +27,33 @@ namespace HBP.Module3D
         /// Parameters on how to display the activity on the column
         /// </summary>
         public MEGDataParameters MEGParameters { get; } = new MEGDataParameters();
-        private int m_SelectedFMRIIndex = 0;
+        private int m_SelectedMEGIndex = 0;
         /// <summary>
         /// Currently selected FMRI
         /// </summary>
-        public int SelectedFMRIIndex
+        public int SelectedMEGIndex
         {
             get
             {
-                return m_SelectedFMRIIndex;
+                return m_SelectedMEGIndex;
             }
             set
             {
-                m_SelectedFMRIIndex = value % ColumnMEGData.Data.FMRIs.Count;
+                m_SelectedMEGIndex = value % ColumnMEGData.Data.MEGItems.Count;
                 Timeline.Update(SelectedFMRI);
-                OnChangeSelectedFMRI.Invoke();
+                OnChangeSelectedMEG.Invoke();
             }
         }
-        public FMRI SelectedFMRI { get { return ColumnMEGData.Data.FMRIs[SelectedFMRIIndex].Item1; } }
+        public MEGItem SelectedMEGItem { get { return ColumnMEGData.Data.MEGItems[SelectedMEGIndex]; } }
+        public FMRI SelectedFMRI { get { return SelectedMEGItem.FMRI; } }
         public int SelectedVolumeIndex
         {
             get
             {
                 int index = 0;
-                for (int i = 0; i < SelectedFMRIIndex; i++)
+                for (int i = 0; i < SelectedMEGIndex; i++)
                 {
-                    index += ColumnMEGData.Data.FMRIs[i].Item1.NIFTI.NumberOfVolumes;
+                    index += ColumnMEGData.Data.MEGItems[i].FMRI.Volumes.Count;
                 }
                 return index + Timeline.CurrentIndex;
             }
@@ -62,7 +63,7 @@ namespace HBP.Module3D
         #endregion
 
         #region Events
-        [HideInInspector] public UnityEvent OnChangeSelectedFMRI = new UnityEvent();
+        [HideInInspector] public UnityEvent OnChangeSelectedMEG = new UnityEvent();
         /// <summary>
         /// Event called when updating the current timeline ID
         /// </summary>
@@ -85,7 +86,7 @@ namespace HBP.Module3D
             base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
 
             ActivityGenerator = new MEGGenerator();
-            SelectedFMRIIndex = 0;
+            SelectedMEGIndex = 0;
         }
         /// <summary>
         /// Compute the UVs of the meshes for the brain activity

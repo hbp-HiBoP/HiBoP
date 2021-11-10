@@ -31,7 +31,7 @@ namespace HBP.Data.Container
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("Nifti"), FMRI, MEG]
+    [DataContract, DisplayName("Nifti"), FMRI, MEGv]
     public class Nifti : DataContainer
     {
         #region Properties

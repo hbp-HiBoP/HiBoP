@@ -176,6 +176,8 @@ namespace Tools.Unity.Graph
         void SetPosition(TickMark tickMark, float value)
         {
             float position = (value - m_DisplayRange.x) / (m_DisplayRange.y - m_DisplayRange.x);
+            if (float.IsNaN(position)) return;
+
             RectTransform tickMarkRectTransform = tickMark.transform as RectTransform;
             RectTransform rectTransform = transform as RectTransform;
             switch (m_Direction)

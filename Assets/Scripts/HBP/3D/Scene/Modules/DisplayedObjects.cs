@@ -137,9 +137,21 @@ namespace HBP.Module3D
                 sitePatient.transform.SetParent(m_SitesMeshesParent);
                 sitePatient.transform.localPosition = Vector3.zero;
                 SitesPatientParent.Add(sitePatient);
+                var siteInfos = implantation.GetSitesOfPatient(patient);
+                // Instantiate electrodes containers
+                Dictionary<string, Transform> electrodeTransforms = new Dictionary<string, Transform>();
+                var electrodes = siteInfos.Select(s => s.Electrode).Distinct();
+                foreach (var electrode in electrodes)
+                {
+                    GameObject electrodeGameObject = new GameObject(electrode);
+                    electrodeGameObject.transform.SetParent(sitePatient.transform);
+                    electrodeGameObject.transform.localPosition = Vector3.zero;
+                    electrodeTransforms.Add(electrode, electrodeGameObject.transform);
+                }
+                // Instantiate sites
                 foreach (var siteInfo in implantation.GetSitesOfPatient(patient))
                 {
-                    GameObject siteGameObject = Instantiate(m_SitePrefab, sitePatient.transform);
+                    GameObject siteGameObject = Instantiate(m_SitePrefab, electrodeTransforms[siteInfo.Electrode]);
                     siteGameObject.name = siteInfo.Name;
 
                     siteGameObject.transform.localPosition = siteInfo.UnityPosition;

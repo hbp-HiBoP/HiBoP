@@ -17,6 +17,11 @@ namespace HBP.Module3D
         #endregion
 
         #region Constructors
+        public FMRI()
+        {
+            Name = "Default";
+            Volumes.Add(new DLL.Volume());
+        }
         public FMRI(Data.MRI mri)
         {
             Name = mri.Name;
@@ -40,6 +45,7 @@ namespace HBP.Module3D
             {
                 Volumes.Add(NIFTI.ExtractVolume(i));
             }
+            Loaded = true;
         }
         #endregion
 
