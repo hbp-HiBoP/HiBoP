@@ -25,11 +25,17 @@ namespace HBP.UI.Module3D
             // Change Site Labels
             foreach (Transform label in m_SiteLabelsContainer)
             {
-                Destroy(label.gameObject);
+                if (!site.State.Labels.Any(l => l == label.gameObject.GetComponent<SiteLabelItem>().Label))
+                {
+                    Destroy(label.gameObject);
+                }
             }
             foreach (var label in site.State.Labels)
             {
-                Instantiate(m_SiteLabelPrefab, m_SiteLabelsContainer).GetComponent<SiteLabelItem>().Initialize(site, label);
+                if (!m_SiteLabelsContainer.GetComponentsInChildren<SiteLabelItem>().Any(l => l.Label == label))
+                {
+                    Instantiate(m_SiteLabelPrefab, m_SiteLabelsContainer).GetComponent<SiteLabelItem>().Initialize(site, label);
+                }
             }
 
             // Listeners
