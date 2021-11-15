@@ -1,4 +1,5 @@
 ﻿using HBP.Module3D;
+using System.Collections.Generic;
 using System.Linq;
 using Tools.CSharp.BooleanExpressionParser;
 using UnityEngine;
@@ -41,9 +42,23 @@ namespace HBP.UI.Module3D
         /// Boolean expression parsed from the string
         /// </summary>
         private BooleanExpression m_BooleanExpression;
+
+        [SerializeField] AdvancedSiteConditionList m_AdvancedSiteConditionList;
+        [SerializeField] Button m_StoreConditionButton;
+        [SerializeField] Button m_ApplySelectedConditionButton;
         #endregion
 
         #region Private Methods
+        private void Awake()
+        {
+            m_AdvancedSiteConditionList.Set(AdvancedSiteConditionStrings.Conditions);
+            AdvancedSiteConditionStrings.OnChangeConditions.AddListener(() =>
+            {
+                m_AdvancedSiteConditionList.Set(AdvancedSiteConditionStrings.Conditions);
+            });
+            m_StoreConditionButton.onClick.AddListener(StoreCondition);
+            m_ApplySelectedConditionButton.onClick.AddListener(ApplySelectedCondition);
+        }
         /// <summary>
         /// Check all the set conditions for a specific site
         /// </summary>
@@ -217,6 +232,15 @@ namespace HBP.UI.Module3D
         public void ParseConditions()
         {
             m_BooleanExpression = Parser.Parse(m_InputField.text);
+        }
+        public void StoreCondition()
+        {
+            AdvancedSiteConditionStrings.AddCondition(m_InputField.text);
+        }
+        public void ApplySelectedCondition()
+        {
+            if (m_AdvancedSiteConditionList.ObjectsSelected.Length > 0)
+                m_InputField.text = m_AdvancedSiteConditionList.ObjectsSelected[0];
         }
         #endregion
     }

@@ -391,8 +391,10 @@ namespace HBP.Module3D
             QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
             QualitySettings.antiAliasing = 8;
 
-            // Atlases
+            // Advanced Conditions
+            UI.Module3D.AdvancedSiteConditionStrings.LoadConditions();
 
+            // Atlases
             yield return Ninja.JumpBack;
             if (ApplicationState.UserPreferences.Data.Atlases.PreloadMarsAtlas) MarsAtlas.Load();
             if (ApplicationState.UserPreferences.Data.Atlases.PreloadJuBrain) JuBrainAtlas.Load();

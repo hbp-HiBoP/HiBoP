@@ -77,7 +77,7 @@ namespace Tools.Unity.Lists
         #endregion
 
         #region Private Methods
-        void Awake()
+        protected virtual void Awake()
         {
             m_Toggle = GetComponent<Toggle>();
             if (m_Toggle != null) m_Toggle.onValueChanged.AddListener((value) => { if (!m_isLock) OnChangeSelected.Invoke(value); });
