@@ -72,6 +72,7 @@ namespace Tools.CSharp
             path = new Regex("\\\\+").Replace(path, "\\");
             path = path.Replace('/', System.IO.Path.DirectorySeparatorChar);
             path = path.Replace('\\', System.IO.Path.DirectorySeparatorChar);
+            if (path.StartsWith("\\")) path = "\\" + path;
             return path;
         }
         public static string SplitPascalCase(this string pascalCase)
