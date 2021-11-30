@@ -231,7 +231,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         public void ParseConditions()
         {
-            m_BooleanExpression = Parser.Parse(m_InputField.text);
+            m_BooleanExpression = Parser.Parse(m_InputField.text.Replace("\n", "").Replace("\r", ""));
         }
         public void StoreCondition()
         {
