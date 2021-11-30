@@ -118,6 +118,14 @@ namespace HBP.Data.Experience.Protocol
             foreach (var icon in Icons) icon.GenerateID();
             foreach (var treatment in Treatments) treatment.GenerateID();
         }
+        public override List<BaseData> GetAllIdentifiable()
+        {
+            List<BaseData> IDs = base.GetAllIdentifiable();
+            foreach (var eve in Events) IDs.AddRange(eve.GetAllIdentifiable());
+            foreach (var icon in Icons) IDs.AddRange(icon.GetAllIdentifiable());
+            foreach (var treatment in Treatments) IDs.AddRange(treatment.GetAllIdentifiable());
+            return IDs;
+        }
         #endregion
 
         #region Constructors

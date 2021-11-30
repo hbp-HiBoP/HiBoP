@@ -247,6 +247,12 @@ namespace HBP.Data.Experience.Dataset
             base.GenerateID();
             foreach (var dataInfo in Data) dataInfo.GenerateID();
         }
+        public override List<BaseData> GetAllIdentifiable()
+        {
+            List<BaseData> IDs = base.GetAllIdentifiable();
+            foreach (var dataInfo in Data) IDs.AddRange(dataInfo.GetAllIdentifiable());
+            return IDs;
+        }
         #endregion
 
         #region Public static Methods

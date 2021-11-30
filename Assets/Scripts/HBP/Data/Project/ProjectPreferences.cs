@@ -100,6 +100,15 @@ namespace HBP.Data
             foreach (var tag in PatientsTags) tag.GenerateID();
             foreach (var tag in SitesTags) tag.GenerateID();
         }
+        public override List<BaseData> GetAllIdentifiable()
+        {
+            List<BaseData> IDs = base.GetAllIdentifiable();
+            foreach (var alias in Aliases) IDs.AddRange(alias.GetAllIdentifiable());
+            foreach (var tag in GeneralTags) IDs.AddRange(tag.GetAllIdentifiable());
+            foreach (var tag in PatientsTags) IDs.AddRange(tag.GetAllIdentifiable());
+            foreach (var tag in SitesTags) IDs.AddRange(tag.GetAllIdentifiable());
+            return IDs;
+        }
         #endregion
 
         #region Private Methods

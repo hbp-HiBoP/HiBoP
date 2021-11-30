@@ -108,6 +108,12 @@ namespace HBP.Data.Experience.Protocol
             base.GenerateID();
             foreach (var bloc in Blocs) bloc.GenerateID();
         }
+        public override List<BaseData> GetAllIdentifiable()
+        {
+            List<BaseData> IDs = base.GetAllIdentifiable();
+            foreach (var bloc in Blocs) IDs.AddRange(bloc.GetAllIdentifiable());
+            return IDs;
+        }
         #endregion
 
         #region Public Static Methods

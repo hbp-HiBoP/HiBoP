@@ -212,6 +212,12 @@ namespace HBP.Data.Experience.Dataset
             base.GenerateID();
             DataContainer.GenerateID();
         }
+        public override List<BaseData> GetAllIdentifiable()
+        {
+            List<BaseData> IDs = base.GetAllIdentifiable();
+            IDs.AddRange(DataContainer.GetAllIdentifiable());
+            return IDs;
+        }
         #endregion
 
         #region Operators

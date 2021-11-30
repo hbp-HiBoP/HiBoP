@@ -224,7 +224,7 @@ namespace Tools.Unity.Components
                 {
                     if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
                     {
-                        IIdentifiable identifiable = clone as IIdentifiable;
+                        IIdentifiable identifiable = clone;
                         identifiable.GenerateID();
                     }
                 }
@@ -289,10 +289,9 @@ namespace Tools.Unity.Components
                                 {
                                     foreach (T t in array)
                                     {
-                                        IIdentifiable identifiable = t as IIdentifiable;
-                                        if (identifiable.ID == "xxxxxxxxxxxxxxxxxxxxxxxxx")
+                                        if (!ApplicationState.ProjectLoaded.CheckIDUnicity(t))
                                         {
-                                            identifiable.ID = Guid.NewGuid().ToString();
+                                            t.GenerateID();
                                         }
                                     }
                                 }
@@ -330,10 +329,9 @@ namespace Tools.Unity.Components
                         {
                             foreach (T t in array)
                             {
-                                IIdentifiable identifiable = t as IIdentifiable;
-                                if (identifiable.ID == "xxxxxxxxxxxxxxxxxxxxxxxxx")
+                                if (!ApplicationState.ProjectLoaded.CheckIDUnicity(t))
                                 {
-                                    identifiable.ID = Guid.NewGuid().ToString();
+                                    t.GenerateID();
                                 }
                             }
                         }

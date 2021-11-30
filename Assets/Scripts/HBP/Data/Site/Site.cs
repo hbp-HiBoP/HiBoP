@@ -532,6 +532,13 @@ namespace HBP.Data
             foreach (var tag in Tags) tag.GenerateID();
             foreach (var coordinate in Coordinates) coordinate.GenerateID();
         }
+        public override List<BaseData> GetAllIdentifiable()
+        {
+            List<BaseData> IDs = base.GetAllIdentifiable();
+            foreach (var tag in Tags) IDs.AddRange(tag.GetAllIdentifiable());
+            foreach (var coordinate in Coordinates) IDs.AddRange(coordinate.GetAllIdentifiable());
+            return IDs;
+        }
         #endregion
 
         #region Operators

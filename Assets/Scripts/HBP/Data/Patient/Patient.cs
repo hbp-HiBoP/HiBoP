@@ -154,6 +154,15 @@ namespace HBP.Data
             foreach (var site in Sites) site.GenerateID();
             foreach (var tag in Tags) tag.GenerateID();
         }
+        public override List<BaseData> GetAllIdentifiable()
+        {
+            List<BaseData> IDs = base.GetAllIdentifiable();
+            foreach (var mesh in Meshes) IDs.AddRange(mesh.GetAllIdentifiable());
+            foreach (var mri in MRIs) IDs.AddRange(mri.GetAllIdentifiable());
+            foreach (var site in Sites) IDs.AddRange(site.GetAllIdentifiable());
+            foreach (var tag in Tags) IDs.AddRange(tag.GetAllIdentifiable());
+            return IDs;
+        }
         /// <summary>
         /// Clean this patient by removing any invalid data
         /// </summary>
