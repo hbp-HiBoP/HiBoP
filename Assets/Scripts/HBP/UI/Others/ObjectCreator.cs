@@ -285,34 +285,14 @@ namespace Tools.Unity.Components
                             bool loadResult = loadable.LoadFromFile(path, out T[] array);
                             if (loadResult)
                             {
-                                if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
-                                {
-                                    foreach (T t in array)
-                                    {
-                                        if (!ApplicationState.ProjectLoaded.CheckIDUnicity(t))
-                                        {
-                                            t.GenerateID();
-                                        }
-                                    }
-                                }
                                 items.AddRange(array);
                             }
                         }
                     }
                 }
-                if (items.Count > 0)
+                foreach (var item in items)
                 {
-                    if (items.Count == 1)
-                    {
-                        OpenModifier(items[0]);
-                    }
-                    else
-                    {
-                        foreach (var item in items)
-                        {
-                            OnObjectCreated.Invoke(item);
-                        }
-                    }
+                    OnObjectCreated.Invoke(item);
                 }
             }, loadable.GetExtensions());
 #else
@@ -325,33 +305,13 @@ namespace Tools.Unity.Components
                     bool loadResult = loadable.LoadFromFile(path, out T[] array);
                     if (loadResult)
                     {
-                        if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
-                        {
-                            foreach (T t in array)
-                            {
-                                if (!ApplicationState.ProjectLoaded.CheckIDUnicity(t))
-                                {
-                                    t.GenerateID();
-                                }
-                            }
-                        }
                         items.AddRange(array);
                     }
                 }
             }
-            if (items.Count > 0)
+            foreach (var item in items)
             {
-                if (items.Count == 1)
-                {
-                    OpenModifier(items[0]);
-                }
-                else
-                {
-                    foreach (var item in items)
-                    {
-                        OnObjectCreated.Invoke(item);
-                    }
-                }
+                OnObjectCreated.Invoke(item);
             }
 #endif
         }

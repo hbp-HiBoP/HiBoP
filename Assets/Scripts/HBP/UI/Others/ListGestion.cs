@@ -156,6 +156,10 @@ namespace Tools.Unity.Components
         /// <param name="obj">Object created</param>
         protected virtual void OnObjectCreated(T obj)
         {
+            if (!CheckUnicity(obj))
+            {
+                obj.GenerateID();
+            }
             if (obj is INameable nameable)
             {
                 if (List.Objects.Any(c => (c as INameable).Name == nameable.Name && !c.Equals(obj)))
@@ -170,14 +174,7 @@ namespace Tools.Unity.Components
                     nameable.Name = name;
                 }
             }
-            if (!List.Objects.Contains(obj))
-            {
-                List.Add(obj);
-            }
-            else
-            {
-                List.UpdateObject(obj);
-            }
+            List.Add(obj);
         }
         /// <summary>
         /// Callback executed when a object is update.
@@ -187,6 +184,20 @@ namespace Tools.Unity.Components
         {
             int index = ObjectCreator.ExistingObjects.FindIndex(o => o.Equals(obj));
             ObjectCreator.ExistingObjects[index] = obj;
+        }
+        protected virtual bool CheckUnicity(T obj)
+        {
+            foreach (var newObject in obj.GetAllIdentifiable())
+            {
+                foreach (var listObject in List.Objects)
+                {
+                    if (newObject.ID == listObject.ID)
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
         #endregion
     }
