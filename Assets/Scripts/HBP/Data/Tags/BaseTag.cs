@@ -6,10 +6,9 @@ using Tools.Unity;
 namespace HBP.Data
 {
     [DataContract]
-    public class BaseTag : BaseData, ILoadable<BaseTag>, INameable
+    public class BaseTag : BaseData, INameable
     {
         #region Properties
-        public const string EXTENSION = ".tag";
         /// <summary>
         /// BaseTag Name.
         /// </summary>
@@ -27,26 +26,6 @@ namespace HBP.Data
         public BaseTag(string name, string ID) : base(ID)
         {
             Name = name;
-        }
-        #endregion
-
-        #region Public static Methods
-        public static bool LoadFromFile(string path, out BaseTag result)
-        {
-            try
-            {
-                result = ClassLoaderSaver.LoadFromJson<BaseTag>(path);
-                return result != null;
-            }
-            catch (Exception e)
-            {
-                UnityEngine.Debug.LogException(e);
-                throw new CanNotReadTagFileException(Path.GetFileNameWithoutExtension(path));
-            }
-        }
-        public static string[] GetExtensions()
-        {
-            return new string[] { EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION };
         }
         #endregion
 
@@ -70,19 +49,6 @@ namespace HBP.Data
             {
                 Name = tag.Name;
             }
-        }
-        #endregion
-
-        #region Interfaces
-        string[] ILoadable<BaseTag>.GetExtensions()
-        {
-            return GetExtensions();
-        }
-        bool ILoadable<BaseTag>.LoadFromFile(string path, out BaseTag[] result)
-        {
-            bool success = LoadFromFile(path, out BaseTag baseTag);
-            result = new BaseTag[] { baseTag };
-            return success;
         }
         #endregion
     }
