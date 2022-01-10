@@ -272,17 +272,6 @@ namespace HBP.Data
             }
         }
         /// <summary>
-        /// Loads patients from a database. 
-        /// </summary>
-        /// <param name="path">The specified path of the database.</param>
-        /// <param name="patients">The patients in the database.</param>
-        /// <returns><see langword="true"/> if the method worked successfully; otherwise, <see langword="false"/></returns>
-        public static bool LoadFromDatabase(string path, out Patient[] patients)
-        {
-            patients = new Patient[0];
-            return true;
-        }
-        /// <summary>
         /// Loads patients from intranat database.
         /// </summary>
         /// <param name="path">The specified path of the intranat database.</param>
@@ -652,10 +641,6 @@ namespace HBP.Data
             bool success = LoadFromFile(path, out Patient patient);
             result = new Patient[] { patient };
             return success;
-        }
-        bool ILoadableFromDatabase<Patient>.LoadFromDatabase(string path, out Patient[] result)
-        {
-            return LoadFromDatabase(path, out result);
         }
         IEnumerator ILoadableFromDatabase<Patient>.LoadFromDatabase(string path, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Patient>> result)
         {

@@ -7,6 +7,9 @@ using Tools.Unity;
 using System.IO;
 using Tools.CSharp;
 using System.Collections.ObjectModel;
+using System.Collections;
+using CielaSpike;
+using System.Text.RegularExpressions;
 
 namespace HBP.Data.Experience.Dataset
 {
@@ -38,7 +41,7 @@ namespace HBP.Data.Experience.Dataset
     /// </list>
     /// </remarks>
     [DataContract]
-    public class Dataset : BaseData, ILoadable<Dataset>, INameable
+    public class Dataset : BaseData, ILoadable<Dataset>, ILoadableFromDatabase<Dataset>, INameable
     {
         #region Properties
         public const string EXTENSION = ".dataset";
@@ -284,6 +287,390 @@ namespace HBP.Data.Experience.Dataset
                 throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(path));
             }
         }
+        /// <summary>
+        /// Loads datasets from localizers database.
+        /// </summary>
+        /// <param name="path">The specified path of the localizers database.</param>
+        /// <param name="datasets">Datasets loaded in the database.</param>
+        /// <returns></returns>
+        public static void LoadFromLocalizersDatabase(string path, out Dataset[] datasets, Action<float, float, LoadingText> OnChangeProgress = null)
+        {
+            OnChangeProgress?.Invoke(0, 0, new LoadingText("Finding datasets to load"));
+            datasets = new Dataset[0];
+            if (string.IsNullOrEmpty(path)) return;
+            DirectoryInfo directory = new DirectoryInfo(path);
+            if (!directory.Exists) return;
+
+            string GetDownsamplingString(DirectoryInfo dir)
+            {
+                Regex posRegex = new Regex(dir.Name + @"_(ds[0-9]+)?\.pos$");
+                FileInfo[] posFiles = dir.GetFiles("*.pos", SearchOption.AllDirectories);
+                string ds = "";
+                foreach (var file in posFiles)
+                {
+                    Match match = posRegex.Match(file.FullName);
+                    if (match.Success)
+                    {
+                        ds = match.Groups[1].Value;
+                    }
+                }
+                return ds;
+            }
+
+            IEnumerable<DirectoryInfo> directories = directory.GetDirectories().SelectMany(d => d.GetDirectories());
+            int length = directories.Count();
+            int progress = 0;
+            Dictionary<Protocol.Protocol, Dataset> datasetByProtocol = new Dictionary<Protocol.Protocol, Dataset>(ApplicationState.ProjectLoaded.Protocols.Count);
+            foreach (var protocol in ApplicationState.ProjectLoaded.Protocols)
+            {
+                datasetByProtocol.Add(protocol, new Dataset(protocol.Name, protocol, new DataInfo[0]));
+            }
+            foreach (var dir in directories)
+            {
+                OnChangeProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading localizer ", dir.Name, " [" + (progress + 1) + "/" + length + "]"));
+                Patient patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID.ToUpper().CompareTo(dir.Name.ToUpper()) == 0);
+                if (patient != null)
+                {
+                    DirectoryInfo[] subDirectories = dir.GetDirectories();
+                    foreach (var subdir in subDirectories)
+                    {
+                        string[] splits = subdir.Name.Split('_');
+                        if (splits.Length == 4)
+                        {
+                            Protocol.Protocol protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.Name == splits[3]);
+                            if (protocol != null)
+                            {
+                                datasetByProtocol[protocol].AddData(new IEEGDataInfo("raw", new Container.Elan(Path.Combine(subdir.FullName, subdir.Name + ".eeg"), Path.Combine(subdir.FullName, subdir.Name + ".pos"), ""), patient, IEEGDataInfo.NormalizationType.Auto));
+                                string ds = GetDownsamplingString(subdir);
+                                if (!string.IsNullOrEmpty(ds))
+                                {
+                                    FileInfo posDS = new FileInfo(Path.Combine(subdir.FullName, string.Format("{0}_{1}.pos", subdir.Name, ds)));
+                                    if (posDS.Exists)
+                                    {
+                                        // Maybe TODO : parameters (specific UI or user preferences)
+                                        string[] frequencies = new string[] { "f8f24", "f50f150" };
+                                        string[] temporalSmoothings = new string[] { "sm0", "sm250", "sm500", "sm1000", "sm2500", "sm5000" };
+                                        foreach (var freq in frequencies)
+                                        {
+                                            foreach (var ts in temporalSmoothings)
+                                            {
+                                                FileInfo eeg = new FileInfo(Path.Combine(subdir.FullName, string.Format("{0}_{1}", subdir.Name, freq), string.Format("{0}_{1}_{2}_{3}.eeg", subdir.Name, freq, ds, ts)));
+                                                if (eeg.Exists)
+                                                {
+                                                    datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", freq, ts), new Container.Elan(eeg.FullName, posDS.FullName, ""), patient, IEEGDataInfo.NormalizationType.Auto));
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            datasets = datasetByProtocol.Values.OrderBy(d => d.Name).ToArray();
+            OnChangeProgress?.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
+        }
+        /// <summary>
+        /// Loads datasets from BIDS database.
+        /// </summary>
+        /// <param name="path">The specified path of the BIDS database.</param>
+        /// <param name="datasets"></param>
+        /// <returns></returns>
+        public static void LoadFromBIDSDatabase(string path, out Dataset[] datasets, Action<float, float, LoadingText> OnChangeProgress = null)
+        {
+            datasets = new Dataset[0];
+            //if (string.IsNullOrEmpty(path)) return;
+            //DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(path);
+            //if (!databaseDirectoryInfo.Exists) return;
+
+            //// Read participants.tsv.
+            //OnChangeProgress?.Invoke(0, 0, new LoadingText("Reading participants.tsv file"));
+            //FileInfo participantsFileInfo = new FileInfo(Path.Combine(databaseDirectoryInfo.FullName, "participants.tsv"));
+            //Dictionary<string, Dictionary<string, string>> tagValuesBySubjectID = new Dictionary<string, Dictionary<string, string>>();
+            //using (StreamReader streamReader = new StreamReader(participantsFileInfo.FullName))
+            //{
+            //    string[] lines = streamReader.ReadToEnd().Split(new string[] { Environment.NewLine, "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            //    if (lines.Length == 0) return;
+            //    string[] tags = lines[0].Split(new char[] { '\t' });
+            //    for (int l = 1; l < lines.Length; l++)
+            //    {
+            //        string[] values = lines[l].Split(new char[] { '\t' });
+            //        if (values.Length == tags.Length)
+            //        {
+            //            Dictionary<string, string> valueByTag = new Dictionary<string, string>();
+            //            for (int t = 1; t < tags.Length; t++)
+            //            {
+            //                valueByTag.Add(tags[t], values[t]);
+            //            }
+            //            tagValuesBySubjectID.Add(values[0], valueByTag);
+            //        }
+            //    }
+            //}
+
+            //// Find mesh files.
+            //Regex meshRegex = new Regex(@"sub-([a-zA-Z0-9.]+)(_ses-([a-zA-Z0-9.]+))?(_acq-([a-zA-Z0-9.]+))?(_ce-([a-zA-Z0-9.]+))?(_rec-([a-zA-Z0-9.]+))?(_run-([a-zA-Z0-9.]+))?(_[a-zA-Z0-9.-]+)*(_hemi-([a-zA-Z0-9.-]))(_[a-zA-Z0-9.-]+)*_([a-zA-Z0-9.-]+)\.gii$");
+            //FileInfo[] meshFiles = databaseDirectoryInfo.GetFiles("*.gii", SearchOption.AllDirectories);
+            //Dictionary<string, List<BIDSMeshFile>> meshesFilesBySubjectID = new Dictionary<string, List<BIDSMeshFile>>();
+            //foreach (var file in meshFiles)
+            //{
+            //    Match match = meshRegex.Match(file.FullName);
+            //    if (match.Success)
+            //    {
+            //        BIDSMeshFile meshFile = new BIDSMeshFile();
+            //        GroupCollection groups = match.Groups;
+            //        meshFile.Subject = groups[1].Value;
+            //        meshFile.Session = groups[3].Value;
+            //        meshFile.DataAcquisition = groups[5].Value;
+            //        meshFile.Contrast = groups[7].Value;
+            //        meshFile.Reconstruction = groups[9].Value;
+            //        if (int.TryParse(groups[11].Value, out int run)) meshFile.Run = run;
+            //        meshFile.Hemisphere = groups[14].Value;
+            //        meshFile.Name = groups[16].Value;
+            //        meshFile.Path = file.FullName;
+            //        if (meshesFilesBySubjectID.TryGetValue(meshFile.Subject, out List<BIDSMeshFile> files))
+            //        {
+            //            files.Add(meshFile);
+            //        }
+            //        else
+            //        {
+            //            meshesFilesBySubjectID[meshFile.Subject] = new List<BIDSMeshFile>() { meshFile };
+            //        }
+            //    }
+            //}
+
+            //// Find MRI files.
+            //Regex mriRegex = new Regex(@"sub-(\w+)(_ses-(\w+))?(_acq-(\w+))?(_ce-(\w+))?(_rec-(\w+))?(_run-(\w+))?_(T1w|T2w|T1rho|T1map|T2map|T2star|FLAIR|FLASH|PD|PDmap|PDT2|inplaneT1|inplaneT2|angio)\.nii(\.gz)?$");
+            //FileInfo[] mriFiles = databaseDirectoryInfo.GetFiles("*.nii", SearchOption.AllDirectories);
+            //Dictionary<string, List<BIDSMRIFile>> mriFilesBySubjectID = new Dictionary<string, List<BIDSMRIFile>>();
+            //foreach (var file in mriFiles)
+            //{
+            //    Match match = mriRegex.Match(file.FullName);
+            //    if (match.Success)
+            //    {
+            //        BIDSMRIFile mriFile = new BIDSMRIFile();
+            //        GroupCollection groups = match.Groups;
+            //        mriFile.Subject = groups[1].Value;
+            //        mriFile.Session = groups[3].Value;
+            //        mriFile.DataAcquisition = groups[5].Value;
+            //        mriFile.Contrast = groups[7].Value;
+            //        mriFile.Reconstruction = groups[9].Value;
+            //        if (int.TryParse(groups[11].Value, out int run)) mriFile.Run = run;
+            //        mriFile.Name = groups[12].Value;
+            //        mriFile.Path = file.FullName;
+            //        if (mriFilesBySubjectID.TryGetValue(mriFile.Subject, out List<BIDSMRIFile> files))
+            //        {
+            //            files.Add(mriFile);
+            //        }
+            //        else
+            //        {
+            //            mriFilesBySubjectID[mriFile.Subject] = new List<BIDSMRIFile>() { mriFile };
+            //        }
+            //    }
+            //}
+
+            //// Find Electrodes files.
+            //Regex electrodesRegex = new Regex(@"sub-(\w+)(_ses-(\w+))?(_acq-(\w+))?(_ce-(\w+))?(_rec-(\w+))?(_run-(\w+))?(_space-(\w+))?_electrodes\.tsv?$");
+            //FileInfo[] electrodesFiles = databaseDirectoryInfo.GetFiles("*_electrodes.tsv", SearchOption.AllDirectories);
+            //Dictionary<string, List<BIDSElectrodeFile>> electrodesFilesBySubjectID = new Dictionary<string, List<BIDSElectrodeFile>>();
+            //foreach (var file in electrodesFiles)
+            //{
+            //    Match match = electrodesRegex.Match(file.FullName);
+            //    if (match.Success)
+            //    {
+            //        BIDSElectrodeFile electrodeFile = new BIDSElectrodeFile();
+            //        GroupCollection groups = match.Groups;
+            //        electrodeFile.Subject = groups[1].Value;
+            //        electrodeFile.Session = groups[3].Value;
+            //        electrodeFile.DataAcquisition = groups[5].Value;
+            //        electrodeFile.Contrast = groups[7].Value;
+            //        electrodeFile.Reconstruction = groups[9].Value;
+            //        if (int.TryParse(groups[11].Value, out int run)) electrodeFile.Run = run;
+            //        electrodeFile.Space = groups[12].Value;
+            //        electrodeFile.Name = groups[12].Value;
+            //        electrodeFile.Path = file.FullName;
+            //        if (electrodesFilesBySubjectID.TryGetValue(electrodeFile.Subject, out List<BIDSElectrodeFile> files))
+            //        {
+            //            files.Add(electrodeFile);
+            //        }
+            //        else
+            //        {
+            //            electrodesFilesBySubjectID[electrodeFile.Subject] = new List<BIDSElectrodeFile>() { electrodeFile };
+            //        }
+            //    }
+            //}
+
+            //// Create patients.
+            //int length = tagValuesBySubjectID.Count;
+            //int progress = 0;
+            //List<Patient> patientsList = new List<Patient>(tagValuesBySubjectID.Count);
+            //foreach (var pair in tagValuesBySubjectID)
+            //{
+            //    OnChangeProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading patient ", pair.Key, " [" + (progress + 1) + "/" + length + "]"));
+
+            //    // Meshes.
+            //    List<BaseMesh> meshes = new List<BaseMesh>();
+            //    if (meshesFilesBySubjectID.TryGetValue(pair.Key, out List<BIDSMeshFile> subjectMeshFiles))
+            //    {
+            //        List<BIDSMeshFile> usedMeshFiles = new List<BIDSMeshFile>(subjectMeshFiles.Count);
+            //        foreach (var meshFile in subjectMeshFiles)
+            //        {
+            //            if (!usedMeshFiles.Contains(meshFile))
+            //            {
+            //                if (meshFile.Hemisphere == "L" || meshFile.Hemisphere == "l" || meshFile.Hemisphere == "left" || meshFile.Hemisphere == "Left")
+            //                {
+            //                    var rightMeshFile = subjectMeshFiles.FirstOrDefault(f => f.Same(meshFile) && (f.Hemisphere == "R" || f.Hemisphere == "r" || f.Hemisphere == "right" || f.Hemisphere == "Right"));
+            //                    if (rightMeshFile == null) rightMeshFile = new BIDSMeshFile();
+            //                    usedMeshFiles.Add(rightMeshFile);
+            //                    meshes.Add(new LeftRightMesh(meshFile.Name, "", meshFile.Path, rightMeshFile.Path, "", ""));
+            //                }
+            //                else if (meshFile.Hemisphere == "R" || meshFile.Hemisphere == "r" || meshFile.Hemisphere == "right" || meshFile.Hemisphere == "Right")
+            //                {
+            //                    var leftMeshFile = subjectMeshFiles.FirstOrDefault(f => f.Same(meshFile) && (f.Hemisphere == "L" || f.Hemisphere == "l" || f.Hemisphere == "left" || f.Hemisphere == "Left"));
+            //                    if (leftMeshFile == null) leftMeshFile = new BIDSMeshFile();
+            //                    usedMeshFiles.Add(leftMeshFile);
+            //                    meshes.Add(new LeftRightMesh(meshFile.Name, "", leftMeshFile.Path, meshFile.Path, "", ""));
+            //                }
+            //                else
+            //                {
+            //                    meshes.Add(new SingleMesh(meshFile.Name, "", meshFile.Path, ""));
+            //                }
+            //                usedMeshFiles.Add(meshFile);
+            //            }
+            //        }
+            //    }
+
+            //    // MRIs.
+            //    List<MRI> mris = new List<MRI>();
+            //    if (mriFilesBySubjectID.TryGetValue(pair.Key, out List<BIDSMRIFile> subjectMRIFiles))
+            //    {
+            //        mris = subjectMRIFiles.Select(f => new MRI(string.Format("{0}{1}", f.Name, !string.IsNullOrEmpty(f.Session) ? string.Format(" ({0})", f.Session) : ""), f.Path)).ToList();
+            //    }
+
+            //    // Sites.
+            //    List<Site> sites = new List<Site>();
+            //    if (electrodesFilesBySubjectID.TryGetValue(pair.Key, out List<BIDSElectrodeFile> subjectElectrodesFiles))
+            //    {
+            //        foreach (var electrodeFile in subjectElectrodesFiles)
+            //        {
+            //            (new Site() as ILoadable<Site>).LoadFromFile(electrodeFile.Path, out Site[] fileSites);
+            //            foreach (var site in fileSites)
+            //            {
+            //                Site existingSite = sites.FirstOrDefault(s => s.Name == site.Name);
+            //                if (existingSite != null)
+            //                {
+            //                    existingSite.Coordinates.AddRange(site.Coordinates);
+            //                    existingSite.Tags.AddRange(site.Tags);
+            //                }
+            //                else
+            //                {
+            //                    sites.Add(site);
+            //                }
+            //            }
+            //        }
+            //    }
+
+            //    // Tags.
+            //    List<BaseTagValue> tags = new List<BaseTagValue>();
+            //    if (tagValuesBySubjectID.TryGetValue(pair.Key, out Dictionary<string, string> subjectTags))
+            //    {
+            //        // Add tags to project.
+            //        IEnumerable<BaseTag> projectTags = ApplicationState.ProjectLoaded.Preferences.PatientsTags.Concat(ApplicationState.ProjectLoaded.Preferences.GeneralTags);
+            //        foreach (var tagName in subjectTags.Keys)
+            //        {
+            //            if (!projectTags.Any(t => t.Name == tagName))
+            //            {
+            //                ApplicationState.ProjectLoaded.Preferences.PatientsTags.Add(new StringTag(tagName));
+            //            }
+            //        }
+            //        // Add tags to patient
+            //        projectTags = ApplicationState.ProjectLoaded.Preferences.PatientsTags.Concat(ApplicationState.ProjectLoaded.Preferences.GeneralTags);
+            //        foreach (var subjectTag in subjectTags)
+            //        {
+            //            BaseTag tag = projectTags.FirstOrDefault(t => t.Name == subjectTag.Key);
+            //            if (tag != null)
+            //            {
+            //                BaseTagValue tagValue = null;
+            //                if (tag is EmptyTag emptyTag)
+            //                {
+            //                    tagValue = new EmptyTagValue(emptyTag);
+            //                }
+            //                else if (tag is BoolTag boolTag)
+            //                {
+            //                    if (bool.TryParse(subjectTag.Value, out bool result))
+            //                    {
+            //                        tagValue = new BoolTagValue(boolTag, result);
+            //                    }
+            //                }
+            //                else if (tag is EnumTag enumTag)
+            //                {
+            //                    tagValue = new EnumTagValue(enumTag, subjectTag.Value);
+            //                }
+            //                else if (tag is FloatTag floatTag)
+            //                {
+            //                    if (NumberExtension.TryParseFloat(subjectTag.Value, out float result))
+            //                    {
+            //                        tagValue = new FloatTagValue(floatTag, result);
+            //                    }
+            //                }
+            //                else if (tag is IntTag intTag)
+            //                {
+            //                    if (int.TryParse(subjectTag.Value, out int result))
+            //                    {
+            //                        tagValue = new IntTagValue(intTag, result);
+            //                    }
+            //                }
+            //                else if (tag is StringTag stringTag)
+            //                {
+            //                    if (!string.IsNullOrEmpty(subjectTag.Value))
+            //                    {
+            //                        tagValue = new StringTagValue(stringTag, subjectTag.Value);
+            //                    }
+            //                }
+            //                if (tagValue != null)
+            //                {
+            //                    tags.Add(tagValue);
+            //                }
+            //            }
+            //        }
+            //    }
+
+            //    // Create patient.
+            //    Patient patient = new Patient(pair.Key, "", 0, meshes, mris, sites, tags);
+            //    patientsList.Add(patient);
+            //}
+            //datasets = patientsList.ToArray();
+            //OnChangeProgress?.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
+        }
+        /// <summary>
+        /// Coroutine to load datasets from database. Implementation of ILoadableFromDatabase.
+        /// </summary>
+        /// <param name="path">The specified path of the dataset file.</param>
+        /// <param name="OnChangeProgress">Action called on change progress.</param>
+        /// <param name="result">The datasets loaded.</param>
+        /// <returns></returns>
+        public static IEnumerator c_LoadFromDatabase(string path, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Dataset>> result)
+        {
+            yield return Ninja.JumpBack;
+            Dataset[] datasets;
+            if (IsBIDSDirectory(path)) LoadFromBIDSDatabase(path, out datasets, OnChangeProgress);
+            else LoadFromLocalizersDatabase(path, out datasets, OnChangeProgress);
+            yield return Ninja.JumpToUnity;
+            result(datasets);
+        }
+        #endregion
+
+        #region Private Static Methods
+        /// <summary>
+        /// Checks if the input directory is a BIDS database
+        /// </summary>
+        /// <param name="path">Path to the input database</param>
+        /// <returns>True if the input database is a BIDS database</returns>
+        private static bool IsBIDSDirectory(string path)
+        {
+            FileInfo participantsFileInfo = new FileInfo(Path.Combine(path, "participants.tsv"));
+            return participantsFileInfo.Exists;
+        }
         #endregion
 
         #region Operators
@@ -352,6 +739,12 @@ namespace HBP.Data.Experience.Dataset
             bool success = LoadFromFile(path, out Dataset dataset);
             result = new Dataset[] { dataset };
             return success;
+        }
+        IEnumerator ILoadableFromDatabase<Dataset>.LoadFromDatabase(string path, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Dataset>> result)
+        {
+            yield return Ninja.JumpToUnity;
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadFromDatabase(path, OnChangeProgress, result));
+            yield return Ninja.JumpBack;
         }
         #endregion
     }
