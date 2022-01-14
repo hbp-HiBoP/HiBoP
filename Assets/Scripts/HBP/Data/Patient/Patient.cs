@@ -332,7 +332,7 @@ namespace HBP.Data
                         {
                             valueByTag.Add(tags[t], values[t]);
                         }
-                        tagValuesBySubjectID.Add(values[0], valueByTag);
+                        tagValuesBySubjectID.Add(values[0].Substring(4), valueByTag);
                     }
                 }
             }
