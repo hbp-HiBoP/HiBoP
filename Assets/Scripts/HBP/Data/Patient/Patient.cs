@@ -154,6 +154,15 @@ namespace HBP.Data
             foreach (var site in Sites) site.GenerateID();
             foreach (var tag in Tags) tag.GenerateID();
         }
+        public override List<BaseData> GetAllIdentifiable()
+        {
+            List<BaseData> IDs = base.GetAllIdentifiable();
+            foreach (var mesh in Meshes) IDs.AddRange(mesh.GetAllIdentifiable());
+            foreach (var mri in MRIs) IDs.AddRange(mri.GetAllIdentifiable());
+            foreach (var site in Sites) IDs.AddRange(site.GetAllIdentifiable());
+            foreach (var tag in Tags) IDs.AddRange(tag.GetAllIdentifiable());
+            return IDs;
+        }
         /// <summary>
         /// Clean this patient by removing any invalid data
         /// </summary>
@@ -263,17 +272,6 @@ namespace HBP.Data
             }
         }
         /// <summary>
-        /// Loads patients from a database. 
-        /// </summary>
-        /// <param name="path">The specified path of the database.</param>
-        /// <param name="patients">The patients in the database.</param>
-        /// <returns><see langword="true"/> if the method worked successfully; otherwise, <see langword="false"/></returns>
-        public static bool LoadFromDatabase(string path, out Patient[] patients)
-        {
-            patients = new Patient[0];
-            return true;
-        }
-        /// <summary>
         /// Loads patients from intranat database.
         /// </summary>
         /// <param name="path">The specified path of the intranat database.</param>
@@ -334,7 +332,7 @@ namespace HBP.Data
                         {
                             valueByTag.Add(tags[t], values[t]);
                         }
-                        tagValuesBySubjectID.Add(values[0], valueByTag);
+                        tagValuesBySubjectID.Add(values[0].Substring(4), valueByTag);
                     }
                 }
             }
@@ -643,10 +641,6 @@ namespace HBP.Data
             bool success = LoadFromFile(path, out Patient patient);
             result = new Patient[] { patient };
             return success;
-        }
-        bool ILoadableFromDatabase<Patient>.LoadFromDatabase(string path, out Patient[] result)
-        {
-            return LoadFromDatabase(path, out result);
         }
         IEnumerator ILoadableFromDatabase<Patient>.LoadFromDatabase(string path, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Patient>> result)
         {

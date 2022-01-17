@@ -364,15 +364,15 @@ namespace HBP.UI.Module3D
             {
                 case Data.Enums.CutOrientation.Axial:
                     m_PositionTitle.text = "Z";
-                    m_PositionValue.text = Mathf.RoundToInt(Cut.Point.z).ToString();
+                    m_PositionValue.text = Cut.Point.z.ToString("N2");
                     break;
                 case Data.Enums.CutOrientation.Coronal:
                     m_PositionTitle.text = "Y";
-                    m_PositionValue.text = Mathf.RoundToInt(Cut.Point.y).ToString();
+                    m_PositionValue.text = Cut.Point.y.ToString("N2");
                     break;
                 case Data.Enums.CutOrientation.Sagittal:
                     m_PositionTitle.text = "X";
-                    m_PositionValue.text = Mathf.RoundToInt(Cut.Point.x).ToString();
+                    m_PositionValue.text = Cut.Point.x.ToString("N2");
                     break;
             }
             m_IsUIUpdating = false;

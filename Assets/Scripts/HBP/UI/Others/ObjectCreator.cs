@@ -224,7 +224,7 @@ namespace Tools.Unity.Components
                 {
                     if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
                     {
-                        IIdentifiable identifiable = clone as IIdentifiable;
+                        IIdentifiable identifiable = clone;
                         identifiable.GenerateID();
                     }
                 }
@@ -285,35 +285,14 @@ namespace Tools.Unity.Components
                             bool loadResult = loadable.LoadFromFile(path, out T[] array);
                             if (loadResult)
                             {
-                                if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
-                                {
-                                    foreach (T t in array)
-                                    {
-                                        IIdentifiable identifiable = t as IIdentifiable;
-                                        if (identifiable.ID == "xxxxxxxxxxxxxxxxxxxxxxxxx")
-                                        {
-                                            identifiable.ID = Guid.NewGuid().ToString();
-                                        }
-                                    }
-                                }
                                 items.AddRange(array);
                             }
                         }
                     }
                 }
-                if (items.Count > 0)
+                foreach (var item in items)
                 {
-                    if (items.Count == 1)
-                    {
-                        OpenModifier(items[0]);
-                    }
-                    else
-                    {
-                        foreach (var item in items)
-                        {
-                            OnObjectCreated.Invoke(item);
-                        }
-                    }
+                    OnObjectCreated.Invoke(item);
                 }
             }, loadable.GetExtensions());
 #else
@@ -326,34 +305,13 @@ namespace Tools.Unity.Components
                     bool loadResult = loadable.LoadFromFile(path, out T[] array);
                     if (loadResult)
                     {
-                        if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
-                        {
-                            foreach (T t in array)
-                            {
-                                IIdentifiable identifiable = t as IIdentifiable;
-                                if (identifiable.ID == "xxxxxxxxxxxxxxxxxxxxxxxxx")
-                                {
-                                    identifiable.ID = Guid.NewGuid().ToString();
-                                }
-                            }
-                        }
                         items.AddRange(array);
                     }
                 }
             }
-            if (items.Count > 0)
+            foreach (var item in items)
             {
-                if (items.Count == 1)
-                {
-                    OpenModifier(items[0]);
-                }
-                else
-                {
-                    foreach (var item in items)
-                    {
-                        OnObjectCreated.Invoke(item);
-                    }
-                }
+                OnObjectCreated.Invoke(item);
             }
 #endif
         }

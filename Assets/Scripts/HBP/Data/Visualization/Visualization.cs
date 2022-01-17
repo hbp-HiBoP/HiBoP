@@ -320,6 +320,12 @@ namespace HBP.Data.Visualization
             base.GenerateID();
             foreach (var column in Columns) column.GenerateID();
         }
+        public override List<BaseData> GetAllIdentifiable()
+        {
+            List<BaseData> IDs = base.GetAllIdentifiable();
+            foreach (var column in Columns) IDs.AddRange(column.GetAllIdentifiable());
+            return IDs;
+        }
         public void Unload()
         {
             foreach (var column in Columns)

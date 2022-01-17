@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
@@ -11,14 +12,18 @@ namespace HBP.UI.Module3D
         [SerializeField] private Button m_RemoveLabelButton;
         #endregion
 
+        #region Events
+        public GenericEvent<string> OnRemoveLabel = new GenericEvent<string>();
+        #endregion
+
         #region Public Methods
-        public void Initialize(HBP.Module3D.Site site, string label)
+        public void Initialize(string label)
         {
             Label = label;
             m_LabelText.text = label;
             m_RemoveLabelButton.onClick.AddListener(() =>
             {
-                site.State.RemoveLabel(label);
+                OnRemoveLabel.Invoke(label);
             });
         }
         #endregion

@@ -41,10 +41,6 @@ namespace HBP.Data
                         {
                             Patients++;
                         }
-                        if (entry.FileName.EndsWith(BaseTag.EXTENSION))
-                        {
-                            Tags++;
-                        }
                         else if(entry.FileName.EndsWith(Group.EXTENSION))
                         {
                             Groups++;

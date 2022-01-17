@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 namespace HBP.Data
@@ -52,6 +53,14 @@ namespace HBP.Data
         public virtual void GenerateID()
         {
             ID = Guid.NewGuid().ToString();
+        }
+        /// <summary>
+        /// Returns a list of all IDs of this object (including itself)
+        /// </summary>
+        /// <returns></returns>
+        public virtual List<BaseData> GetAllIdentifiable()
+        {
+            return new List<BaseData>() { this };
         }
         #endregion
 

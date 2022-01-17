@@ -53,6 +53,12 @@ namespace HBP.Data.Visualization
             base.GenerateID();
             foreach (var siteConfig in ConfigurationBySite.Values) siteConfig.GenerateID();
         }
+        public override List<BaseData> GetAllIdentifiable()
+        {
+            List<BaseData> IDs = base.GetAllIdentifiable();
+            foreach (var siteConfig in ConfigurationBySite.Values) IDs.AddRange(siteConfig.GetAllIdentifiable());
+            return IDs;
+        }
         #endregion
     }
 }

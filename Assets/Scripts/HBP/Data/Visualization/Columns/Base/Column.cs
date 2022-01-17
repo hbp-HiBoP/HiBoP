@@ -61,6 +61,12 @@ namespace HBP.Data.Visualization
             base.GenerateID();
             BaseConfiguration.GenerateID();
         }
+        public override List<BaseData> GetAllIdentifiable()
+        {
+            List<BaseData> IDs = base.GetAllIdentifiable();
+            IDs.AddRange(BaseConfiguration.GetAllIdentifiable());
+            return IDs;
+        }
         public override void Copy(object copy)
         {
             base.Copy(copy);

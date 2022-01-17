@@ -7,6 +7,9 @@ using Tools.Unity;
 using System.IO;
 using Tools.CSharp;
 using System.Collections.ObjectModel;
+using System.Collections;
+using CielaSpike;
+using System.Text.RegularExpressions;
 
 namespace HBP.Data.Experience.Dataset
 {
@@ -38,7 +41,7 @@ namespace HBP.Data.Experience.Dataset
     /// </list>
     /// </remarks>
     [DataContract]
-    public class Dataset : BaseData, ILoadable<Dataset>, INameable
+    public class Dataset : BaseData, ILoadable<Dataset>, ILoadableFromDatabase<Dataset>, INameable
     {
         #region Properties
         public const string EXTENSION = ".dataset";
@@ -247,6 +250,12 @@ namespace HBP.Data.Experience.Dataset
             base.GenerateID();
             foreach (var dataInfo in Data) dataInfo.GenerateID();
         }
+        public override List<BaseData> GetAllIdentifiable()
+        {
+            List<BaseData> IDs = base.GetAllIdentifiable();
+            foreach (var dataInfo in Data) IDs.AddRange(dataInfo.GetAllIdentifiable());
+            return IDs;
+        }
         #endregion
 
         #region Public static Methods
@@ -277,6 +286,185 @@ namespace HBP.Data.Experience.Dataset
                 UnityEngine.Debug.LogException(e);
                 throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(path));
             }
+        }
+        /// <summary>
+        /// Loads datasets from localizers database.
+        /// </summary>
+        /// <param name="path">The specified path of the localizers database.</param>
+        /// <param name="datasets">Datasets loaded in the database.</param>
+        /// <returns></returns>
+        public static void LoadFromLocalizersDatabase(string path, out Dataset[] datasets, Action<float, float, LoadingText> OnChangeProgress = null)
+        {
+            OnChangeProgress?.Invoke(0, 0, new LoadingText("Finding datasets to load"));
+            datasets = new Dataset[0];
+            if (string.IsNullOrEmpty(path)) return;
+            DirectoryInfo directory = new DirectoryInfo(path);
+            if (!directory.Exists) return;
+
+            string GetDownsamplingString(DirectoryInfo dir)
+            {
+                Regex posRegex = new Regex(dir.Name + @"_(ds[0-9]+)?\.pos$");
+                FileInfo[] posFiles = dir.GetFiles("*.pos", SearchOption.AllDirectories);
+                string ds = "";
+                foreach (var file in posFiles)
+                {
+                    Match match = posRegex.Match(file.FullName);
+                    if (match.Success)
+                    {
+                        ds = match.Groups[1].Value;
+                    }
+                }
+                return ds;
+            }
+
+            IEnumerable<DirectoryInfo> directories = directory.GetDirectories().SelectMany(d => d.GetDirectories());
+            int length = directories.Count();
+            int progress = 0;
+            Dictionary<Protocol.Protocol, Dataset> datasetByProtocol = new Dictionary<Protocol.Protocol, Dataset>(ApplicationState.ProjectLoaded.Protocols.Count);
+            foreach (var protocol in ApplicationState.ProjectLoaded.Protocols)
+            {
+                datasetByProtocol.Add(protocol, new Dataset(protocol.Name, protocol, new DataInfo[0]));
+            }
+            foreach (var dir in directories)
+            {
+                OnChangeProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading localizer ", dir.Name, " [" + (progress + 1) + "/" + length + "]"));
+                Patient patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID.ToUpper().CompareTo(dir.Name.ToUpper()) == 0);
+                if (patient != null)
+                {
+                    DirectoryInfo[] subDirectories = dir.GetDirectories();
+                    foreach (var subdir in subDirectories)
+                    {
+                        string[] splits = subdir.Name.Split('_');
+                        if (splits.Length == 4)
+                        {
+                            Protocol.Protocol protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.Name == splits[3]);
+                            if (protocol != null)
+                            {
+                                datasetByProtocol[protocol].AddData(new IEEGDataInfo("raw", new Container.Elan(Path.Combine(subdir.FullName, subdir.Name + ".eeg"), Path.Combine(subdir.FullName, subdir.Name + ".pos"), ""), patient, IEEGDataInfo.NormalizationType.Auto));
+                                string ds = GetDownsamplingString(subdir);
+                                if (!string.IsNullOrEmpty(ds))
+                                {
+                                    FileInfo posDS = new FileInfo(Path.Combine(subdir.FullName, string.Format("{0}_{1}.pos", subdir.Name, ds)));
+                                    if (posDS.Exists)
+                                    {
+                                        // Maybe TODO : parameters (specific UI or user preferences)
+                                        string[] frequencies = new string[] { "f8f24", "f50f150" };
+                                        string[] temporalSmoothings = new string[] { "sm0", "sm250", "sm500", "sm1000", "sm2500", "sm5000" };
+                                        foreach (var freq in frequencies)
+                                        {
+                                            foreach (var ts in temporalSmoothings)
+                                            {
+                                                FileInfo eeg = new FileInfo(Path.Combine(subdir.FullName, string.Format("{0}_{1}", subdir.Name, freq), string.Format("{0}_{1}_{2}_{3}.eeg", subdir.Name, freq, ds, ts)));
+                                                if (eeg.Exists)
+                                                {
+                                                    datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", freq, ts), new Container.Elan(eeg.FullName, posDS.FullName, ""), patient, IEEGDataInfo.NormalizationType.Auto));
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            datasets = datasetByProtocol.Values.OrderBy(d => d.Name).ToArray();
+            OnChangeProgress?.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
+        }
+        /// <summary>
+        /// Loads datasets from BIDS database.
+        /// </summary>
+        /// <param name="path">The specified path of the BIDS database.</param>
+        /// <param name="datasets"></param>
+        /// <returns></returns>
+        public static void LoadFromBIDSDatabase(string path, out Dataset[] datasets, Action<float, float, LoadingText> OnChangeProgress = null)
+        {
+            datasets = new Dataset[0];
+            if (string.IsNullOrEmpty(path)) return;
+            DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(path);
+            if (!databaseDirectoryInfo.Exists) return;
+
+            Dictionary<Protocol.Protocol, Dataset> datasetByProtocol = new Dictionary<Protocol.Protocol, Dataset>(ApplicationState.ProjectLoaded.Protocols.Count);
+            foreach (var protocol in ApplicationState.ProjectLoaded.Protocols)
+            {
+                datasetByProtocol.Add(protocol, new Dataset(protocol.Name, protocol, new DataInfo[0]));
+            }
+
+            // Brainvision
+            Regex brainvisionHeaderRegex = new Regex(@"sub-([a-zA-Z0-9.]+)(_ses-([a-zA-Z0-9.]+))?(_task-([a-zA-Z0-9.]+))(_acq-([a-zA-Z0-9.]+))?(_run-([a-zA-Z0-9.]+))?_ieeg\.vhdr$");
+            FileInfo[] brainvisionHeaderFiles = databaseDirectoryInfo.GetFiles("*.vhdr", SearchOption.AllDirectories);
+            foreach (var file in brainvisionHeaderFiles)
+            {
+                Match match = brainvisionHeaderRegex.Match(file.FullName);
+                if (match.Success)
+                {
+                    Patient patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.Name.CompareTo(match.Groups[1].Value) == 0);
+                    if (patient != null)
+                    {
+                        Protocol.Protocol protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.Name == match.Groups[5].Value);
+                        if (protocol != null)
+                        {
+                            string acq = string.IsNullOrEmpty(match.Groups[7].Value) ? "raw" : match.Groups[7].Value;
+                            string run = string.IsNullOrEmpty(match.Groups[9].Value) ? "" : "-" + match.Groups[9].Value;
+                            datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", acq, run), new Container.BrainVision(file.FullName), patient, IEEGDataInfo.NormalizationType.Auto));
+                        }
+                    }
+                }
+            }
+
+            // EDF
+            Regex edfRegex = new Regex(@"sub-([a-zA-Z0-9.]+)(_ses-([a-zA-Z0-9.]+))?(_task-([a-zA-Z0-9.]+))(_acq-([a-zA-Z0-9.]+))?(_run-([a-zA-Z0-9.]+))?_ieeg\.edf$");
+            FileInfo[] edfFiles = databaseDirectoryInfo.GetFiles("*.edf", SearchOption.AllDirectories);
+            foreach (var file in edfFiles)
+            {
+                Match match = edfRegex.Match(file.FullName);
+                if (match.Success)
+                {
+                    Patient patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID.ToUpper().CompareTo(match.Groups[1].Value.ToUpper()) == 0);
+                    if (patient != null)
+                    {
+                        Protocol.Protocol protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.Name == match.Groups[3].Value);
+                        if (protocol != null)
+                        {
+                            string acq = string.IsNullOrEmpty(match.Groups[4].Value) ? "raw" : match.Groups[4].Value;
+                            string run = string.IsNullOrEmpty(match.Groups[5].Value) ? "" : "-" + match.Groups[5].Value;
+                            datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", acq, run), new Container.EDF(file.FullName), patient, IEEGDataInfo.NormalizationType.Auto));
+                        }
+                    }
+                }
+            }
+
+            datasets = datasetByProtocol.Values.OrderBy(d => d.Name).ToArray();
+            OnChangeProgress?.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
+        }
+        /// <summary>
+        /// Coroutine to load datasets from database. Implementation of ILoadableFromDatabase.
+        /// </summary>
+        /// <param name="path">The specified path of the dataset file.</param>
+        /// <param name="OnChangeProgress">Action called on change progress.</param>
+        /// <param name="result">The datasets loaded.</param>
+        /// <returns></returns>
+        public static IEnumerator c_LoadFromDatabase(string path, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Dataset>> result)
+        {
+            yield return Ninja.JumpBack;
+            Dataset[] datasets;
+            if (IsBIDSDirectory(path)) LoadFromBIDSDatabase(path, out datasets, OnChangeProgress);
+            else LoadFromLocalizersDatabase(path, out datasets, OnChangeProgress);
+            yield return Ninja.JumpToUnity;
+            result(datasets);
+        }
+        #endregion
+
+        #region Private Static Methods
+        /// <summary>
+        /// Checks if the input directory is a BIDS database
+        /// </summary>
+        /// <param name="path">Path to the input database</param>
+        /// <returns>True if the input database is a BIDS database</returns>
+        private static bool IsBIDSDirectory(string path)
+        {
+            FileInfo participantsFileInfo = new FileInfo(Path.Combine(path, "participants.tsv"));
+            return participantsFileInfo.Exists;
         }
         #endregion
 
@@ -346,6 +534,12 @@ namespace HBP.Data.Experience.Dataset
             bool success = LoadFromFile(path, out Dataset dataset);
             result = new Dataset[] { dataset };
             return success;
+        }
+        IEnumerator ILoadableFromDatabase<Dataset>.LoadFromDatabase(string path, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Dataset>> result)
+        {
+            yield return Ninja.JumpToUnity;
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadFromDatabase(path, OnChangeProgress, result));
+            yield return Ninja.JumpBack;
         }
         #endregion
     }

@@ -240,6 +240,12 @@ namespace HBP.Data.Experience.Protocol
             base.GenerateID();
             foreach (var subBloc in SubBlocs) subBloc.GenerateID();
         }
+        public override List<BaseData> GetAllIdentifiable()
+        {
+            List<BaseData> IDs = base.GetAllIdentifiable();
+            foreach (var subBloc in SubBlocs) IDs.AddRange(subBloc.GetAllIdentifiable());
+            return IDs;
+        }
         /// <summary>
         /// Get sorting method error in a displayable form.
         /// </summary>
