@@ -34,8 +34,13 @@ namespace HBP.UI.Module3D
             {
                 if (!m_SiteLabelsContainer.GetComponentsInChildren<SiteLabelItem>().Any(l => l.Label == label))
                 {
-                    Instantiate(m_SiteLabelPrefab, m_SiteLabelsContainer).GetComponent<SiteLabelItem>().Initialize(site, label);
+                    Instantiate(m_SiteLabelPrefab, m_SiteLabelsContainer).GetComponent<SiteLabelItem>().Initialize(label);
                 }
+            }
+            foreach (var item in m_SiteLabelsContainer.GetComponentsInChildren<SiteLabelItem>())
+            {
+                item.OnRemoveLabel.RemoveAllListeners();
+                item.OnRemoveLabel.AddListener(label => m_Site.State.RemoveLabel(label));
             }
 
             // Listeners
