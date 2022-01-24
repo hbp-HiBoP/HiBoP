@@ -202,6 +202,14 @@ namespace HBP.Module3D
             OnChangeState.Invoke();
         }
         /// <summary>
+        /// Remove all labels
+        /// </summary>
+        public void RemoveAllLabels()
+        {
+            Labels.Clear();
+            OnChangeState.Invoke();
+        }
+        /// <summary>
         /// Copy a state to this state
         /// </summary>
         /// <param name="state">State to be copied</param>

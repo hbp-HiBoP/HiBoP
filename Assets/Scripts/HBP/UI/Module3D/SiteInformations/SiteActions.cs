@@ -105,6 +105,10 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField] private InputField m_LabelInputField;
         /// <summary>
+        /// Used to remove all labels from the filtered sites
+        /// </summary>
+        [SerializeField] private Toggle m_RemoveAllLabelsToggle;
+        /// <summary>
         /// Toggle to choose to apply the modifications in the states of the filtered sites to the selected column or to all columns at once
         /// </summary>
         [SerializeField] private Toggle m_AllColumnsToggle;
@@ -218,6 +222,7 @@ namespace HBP.UI.Module3D
                 if (m_ColorToggle.isOn) site.State.Color = m_ColorPickedImage.color;
                 if (m_AddLabelToggle.isOn) site.State.AddLabel(m_LabelInputField.text);
                 if (m_RemoveLabelToggle.isOn) site.State.RemoveLabel(m_LabelInputField.text);
+                if (m_RemoveAllLabelsToggle.isOn) site.State.RemoveAllLabels();
             }
 
             OnRequestListUpdate.Invoke();
