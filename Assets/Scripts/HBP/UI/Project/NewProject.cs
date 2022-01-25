@@ -64,7 +64,6 @@ namespace HBP.UI
             {
                 CreateNewProject();
             }
-            base.OK();
         }
         #endregion
 
@@ -80,11 +79,26 @@ namespace HBP.UI
         }
         void CreateNewProject()
         {
-            Data.ProjectPreferences preferences = new Data.ProjectPreferences(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
-            ApplicationState.ProjectLoaded = new Data.Project(preferences);
-            ApplicationState.ProjectLoadedLocation = m_ProjectLocationFolderSelector.Folder;
-            FindObjectOfType<ProjectLoaderSaver>().SaveAndReload();
-            Close();
+            if (new FileInfo(Path.Combine(m_ProjectLocationFolderSelector.Folder, string.Format("{0}.hibop", m_NameInputField.text))).Exists)
+            {
+                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Project already exists", string.Format("A project named {0} already exists within the selected directory.\n\nWould you like to override this project?", m_NameInputField.text), () =>
+                {
+                    Data.ProjectPreferences preferences = new Data.ProjectPreferences(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
+                    ApplicationState.ProjectLoaded = new Data.Project(preferences);
+                    ApplicationState.ProjectLoadedLocation = m_ProjectLocationFolderSelector.Folder;
+                    FindObjectOfType<ProjectLoaderSaver>().SaveAndReload();
+                    base.OK();
+                },
+                "OK");
+            }
+            else
+            {
+                Data.ProjectPreferences preferences = new Data.ProjectPreferences(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
+                ApplicationState.ProjectLoaded = new Data.Project(preferences);
+                ApplicationState.ProjectLoadedLocation = m_ProjectLocationFolderSelector.Folder;
+                FindObjectOfType<ProjectLoaderSaver>().SaveAndReload();
+                base.OK();
+            }
         }
         #endregion
     }
