@@ -340,7 +340,11 @@ namespace HBP.Data.Experience.Dataset
                             Protocol.Protocol protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.Name == splits[3]);
                             if (protocol != null)
                             {
-                                datasetByProtocol[protocol].AddData(new IEEGDataInfo("raw", new Container.Elan(Path.Combine(subdir.FullName, subdir.Name + ".eeg"), Path.Combine(subdir.FullName, subdir.Name + ".pos"), ""), patient, IEEGDataInfo.NormalizationType.Auto));
+                                FileInfo rawEEG = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".eeg"));
+                                FileInfo rawPos = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".pos"));
+                                if (rawEEG.Exists && rawPos.Exists)
+                                    datasetByProtocol[protocol].AddData(new IEEGDataInfo("raw", new Container.Elan(rawEEG.FullName, rawPos.FullName, ""), patient, IEEGDataInfo.NormalizationType.Auto));
+
                                 string ds = GetDownsamplingString(subdir);
                                 if (!string.IsNullOrEmpty(ds))
                                 {
