@@ -34,20 +34,21 @@ namespace HBP.Module3D
             }
             set
             {
+                if (m_SelectedROI != null)
+                {
+                    m_SelectedROI.SetVisibility(false);
+                }
+
                 if (value == null)
                 {
                     m_SelectedROI = null;
                 }
                 else
                 {
-                    if (m_SelectedROI != null)
-                    {
-                        m_SelectedROI.SetVisibility(false);
-                    }
-
                     m_SelectedROI = value;
                     m_SelectedROI.SetVisibility(true);
                 }
+
                 UpdateROIMasks();
             }
         }
