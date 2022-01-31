@@ -272,9 +272,9 @@ namespace HBP.UI.Informations
             List<Graph.Curve> subcurves = new List<Graph.Curve>();
 
             // Add ROI Curve.
-            if (column.ROI != null)
+            for (int i = 0; i < column.ChannelGroups.Count; i++)
             {
-                subcurves.Add(GenerateROICurve(column, subBloc, ID));
+                subcurves.Add(GenerateGroupsCurve(column, i, subBloc, ID));
             }
 
             // Generate Channels By Patient.
@@ -294,12 +294,12 @@ namespace HBP.UI.Informations
             Graph.Curve curve = new Graph.Curve(column.Name, null, true, ID, subcurves.ToArray(), m_DefaultColor);
             return curve;
         }
-        Graph.Curve GenerateROICurve(Column column, SubBloc subBloc, string ID)
+        Graph.Curve GenerateGroupsCurve(Column column, int index, SubBloc subBloc, string ID)
         {
-            ID += "_" + column.ROI.Name;
+            ID += "_" + column.ChannelGroups[index].Name;
             CurveData curveData = null;
             Dictionary<Patient, List<string>> ChannelsByPatient = new Dictionary<Patient, List<string>>();
-            foreach (var channel in column.ROI.Channels)
+            foreach (var channel in column.ChannelGroups[index].Channels)
             {
                 ChannelsByPatient.AddIfAbsent(channel.Patient, new List<string>());
                 ChannelsByPatient[channel.Patient].Add(channel.Channel);
@@ -322,15 +322,15 @@ namespace HBP.UI.Informations
                 }
             }
 
-            Color color = ApplicationState.UserPreferences.Visualization.Graph.GetColor(2, Array.IndexOf(m_Columns, column));
-            if (column.ROI.Channels.Count > 1)
+            Color color = ApplicationState.UserPreferences.Visualization.Graph.GetColor(index + 2, Array.IndexOf(m_Columns, column));
+            if (column.ChannelGroups[index].Channels.Count > 1)
             {
-                int channelCount = column.ROI.Channels.Count;
+                int channelCount = column.ChannelGroups[index].Channels.Count;
                 // Get the statistics for all channels in the ROI
                 BlocChannelStatistics[] statistics = new BlocChannelStatistics[channelCount];
                 for (int c = 0; c < channelCount; ++c)
                 {
-                    statistics[c] = DataManager.GetStatistics(dataInfoByPatient[column.ROI.Channels[c].Patient], column.Data.Bloc, column.ROI.Channels[c].Channel);
+                    statistics[c] = DataManager.GetStatistics(dataInfoByPatient[column.ChannelGroups[index].Channels[c].Patient], column.Data.Bloc, column.ChannelGroups[index].Channels[c].Channel);
                 }
                 // Create all the required variables
                 int length = statistics[0].Trial.ChannelSubTrialBySubBloc[subBloc].Values.Length;
@@ -369,9 +369,9 @@ namespace HBP.UI.Informations
                 }
                 curveData = ShapedCurveData.CreateInstance(points, standardDeviations, color);
             }
-            else if (column.ROI.Channels.Count == 1)
+            else if (column.ChannelGroups[index].Channels.Count == 1)
             {
-                ChannelStruct channel = column.ROI.Channels[0];
+                ChannelStruct channel = column.ChannelGroups[index].Channels[0];
                 ChannelSubTrialStat stat = DataManager.GetStatistics(dataInfoByPatient[channel.Patient], column.Data.Bloc, channel.Channel).Trial.ChannelSubTrialBySubBloc[subBloc];
                 float[] values = stat.Values;
 
@@ -388,7 +388,7 @@ namespace HBP.UI.Informations
                 curveData = CurveData.CreateInstance(points, color);
             }
 
-            Graph.Curve result = new Graph.Curve(column.ROI.Name, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);
+            Graph.Curve result = new Graph.Curve(column.ChannelGroups[index].Name, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);
             return result;
         }
         Graph.Curve GeneratePatientCurve(Column column, ChannelStruct[] channels, SubBloc subBloc, string ID)

@@ -277,7 +277,7 @@ namespace HBP.Data.Informations
     }
 
     [Serializable]
-    public class ROI : IEquatable<ROI>
+    public class ChannelStructsGroup : IEquatable<ChannelStructsGroup>
     {
         #region Properties
         [SerializeField] string m_Name;
@@ -308,7 +308,7 @@ namespace HBP.Data.Informations
         #endregion
 
         #region Constructors
-        public ROI(string name, IEnumerable<ChannelStruct> channels)
+        public ChannelStructsGroup(string name, IEnumerable<ChannelStruct> channels)
         {
             Name = name;
             Channels = new List<ChannelStruct>(channels);
@@ -318,9 +318,9 @@ namespace HBP.Data.Informations
         #region Public Methods
         public override bool Equals(object obj)
         {
-            return Equals(obj as ROI);
+            return Equals(obj as ChannelStructsGroup);
         }
-        public bool Equals(ROI other)
+        public bool Equals(ChannelStructsGroup other)
         {
             bool notNull = other != null;
             if (notNull)
@@ -339,11 +339,11 @@ namespace HBP.Data.Informations
             hashCode = hashCode * -1521134295 + EqualityComparer<List<ChannelStruct>>.Default.GetHashCode(Channels);
             return hashCode;
         }
-        public static bool operator ==(ROI struct1, ROI struct2)
+        public static bool operator ==(ChannelStructsGroup struct1, ChannelStructsGroup struct2)
         {
-            return EqualityComparer<ROI>.Default.Equals(struct1, struct2);
+            return EqualityComparer<ChannelStructsGroup>.Default.Equals(struct1, struct2);
         }
-        public static bool operator !=(ROI struct1, ROI struct2)
+        public static bool operator !=(ChannelStructsGroup struct1, ChannelStructsGroup struct2)
         {
             return !(struct1 == struct2);
         }
@@ -406,13 +406,13 @@ namespace HBP.Data.Informations
     {
         public string Name;
         public Data Data;
-        public ROI ROI;
+        public List<ChannelStructsGroup> ChannelGroups;
 
-        public Column(string name, Data data, ROI roi)
+        public Column(string name, Data data, List<ChannelStructsGroup> channelGroups)
         {
             Name = name;
             Data = data;
-            ROI = roi;
+            ChannelGroups = new List<ChannelStructsGroup>(channelGroups);
         }
 
         #region Public Methods

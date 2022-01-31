@@ -659,6 +659,10 @@ namespace HBP.Module3D
         /// </summary>
         [HideInInspector] public GenericEvent<IEnumerable<Site>> OnRequestSiteInformation = new GenericEvent<IEnumerable<Site>>();
         /// <summary>
+        /// Event called when requesting a graph from the filtered sites in the siteactions panel
+        /// </summary>
+        [HideInInspector] public GenericEvent<IEnumerable<Site>> OnRequestFilteredSitesGraph = new GenericEvent<IEnumerable<Site>>();
+        /// <summary>
         /// Event called when ieeg are outdated or not anymore
         /// </summary>
         [HideInInspector] public GenericEvent<bool> OnIEEGOutdated = new GenericEvent<bool>();

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using UnityEngine;
@@ -146,6 +147,7 @@ namespace HBP.Data.Preferences
                 }
             }
         }
+        [IgnoreDataMember] private Dictionary<int, Color> m_AdditionalColors = new Dictionary<int, Color>();
         #endregion
 
         #region Constructors
@@ -203,7 +205,19 @@ namespace HBP.Data.Preferences
             {
                 return m_Colors[position].ToColor();
             }
-            return new Color(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f));
+            else
+            {
+                if (m_AdditionalColors.TryGetValue(position, out Color color))
+                {
+                    return color;
+                }
+                else
+                {
+                    color = new Color(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f));
+                    m_AdditionalColors.Add(position, color);
+                    return color;
+                }
+            }
         }
         public Color GetColor(int row, int column)
         {
