@@ -236,6 +236,7 @@ namespace HBP.UI.Informations
                 }
             }
             m_SceneData = new SceneData(columns);
+            GridInformations.SetColumns(m_SceneData.Columns.ToArray());
         }
         void GenerateChannelStructs(IEnumerable<Site> sites)
         {
@@ -305,12 +306,10 @@ namespace HBP.UI.Informations
         void OnSceneCompletelyLoaded()
         {
             m_RequestSceneDataUpdate = true;
-            GridInformations.SetColumns(m_SceneData.Columns.ToArray());
         }
         void OnChangeSelectedMEGItem()
         {
             m_RequestSceneDataUpdate = true;
-            GridInformations.SetColumns(m_SceneData.Columns.ToArray());
             m_RequestGraphsUpdate = true;
         }
         void OnChangeSiteState()
