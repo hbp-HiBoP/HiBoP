@@ -183,7 +183,8 @@ namespace HBP.Data.Experience.Dataset
                 List<Tools.CSharp.EEG.Trigger> triggers = file.Triggers;
                 if (protocol.IsVisualizable && !protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))))
                 {
-                    errors.Add(new BlocsCantBeEpochedError());
+                    IEnumerable<string> blocsNotFound = protocol.Blocs.Where(bloc => !bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))).Select(bloc => bloc.Name);
+                    errors.Add(new BlocsCantBeEpochedError(string.Join(", ", blocsNotFound)));
                 }
             }
             m_iEEGErrors = errors.ToArray();
@@ -199,7 +200,7 @@ namespace HBP.Data.Experience.Dataset
             {
 
             }
-            public BlocsCantBeEpochedError(string message) : base("One of the blocs of the protocol can't be epoched", message)
+            public BlocsCantBeEpochedError(string message) : base("At least one of the blocs of the protocol can't be epoched", message)
             {
                  
             }

@@ -40,14 +40,6 @@ namespace HBP.UI.Module3D
         [SerializeField] private GameObject m_ActionsPanel;
 
         /// <summary>
-        /// Toggle to specify that the action to be apply is an export to a csv file
-        /// </summary>
-        [SerializeField] private Toggle m_ExportSitesToggle;
-        /// <summary>
-        /// Object containing all the UI used to export the sites to a csv file
-        /// </summary>
-        [SerializeField] private GameObject m_ExportSitesPanel;
-        /// <summary>
         /// Toggle to specify that the action to be apply is a change in the states of the sites
         /// </summary>
         [SerializeField] private Toggle m_ChangeStateToggle;
@@ -56,13 +48,13 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField] private GameObject m_ChangeStatePanel;
         /// <summary>
-        /// Toggle to specify that the action to be apply is a group creation
+        /// Toggle to specify that the action to be apply is a misc action
         /// </summary>
-        [SerializeField] private Toggle m_CreateGroupToggle;
+        [SerializeField] private Toggle m_OtherToggle;
         /// <summary>
-        /// Object containing all the UI used to create a group
+        /// Object containing all the UI used for misc actions
         /// </summary>
-        [SerializeField] private GameObject m_CreateGroupPanel;
+        [SerializeField] private GameObject m_OtherPanel;
 
         /// <summary>
         /// Used to highlight the filtered sites
@@ -113,7 +105,22 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField] private Toggle m_AllColumnsToggle;
 
+        /// <summary>
+        /// Toggle to specify that the action to be apply is an export to a csv file
+        /// </summary>
+        [SerializeField] private Toggle m_ExportSitesToggle;
+        /// <summary>
+        /// Toggle to specify that the action to be apply is a group creation
+        /// </summary>
+        [SerializeField] private Toggle m_CreateGroupToggle;
+        /// <summary>
+        /// Inputfield to specify the name of the newly created group
+        /// </summary>
         [SerializeField] private InputField m_GroupNameInputField;
+        /// <summary>
+        /// Toggle to specify that the action to be apply is a graph display
+        /// </summary>
+        [SerializeField] private Toggle m_DisplayGraphsToggle;
 
         /// <summary>
         /// Button to trigger the application of the action
@@ -153,21 +160,28 @@ namespace HBP.UI.Module3D
                 {
                     ChangeSitesStates();
                 }
-                else if (m_ExportSitesToggle.isOn)
+                else if (m_OtherToggle.isOn)
                 {
-                    if (m_Coroutine != null)
+                    if (m_ExportSitesToggle.isOn)
                     {
-                        StopCoroutine(m_Coroutine);
-                        StopExport();
+                        if (m_Coroutine != null)
+                        {
+                            StopCoroutine(m_Coroutine);
+                            StopExport();
+                        }
+                        else
+                        {
+                            ExportSites();
+                        }
                     }
-                    else
+                    else if (m_CreateGroupToggle.isOn)
                     {
-                        ExportSites();
+                        CreateGroup();
                     }
-                }
-                else if (m_CreateGroupToggle.isOn)
-                {
-                    CreateGroup();
+                    else if (m_DisplayGraphsToggle.isOn)
+                    {
+                        DisplayGraphs();
+                    }
                 }
             }
             catch (Exception e)
@@ -182,14 +196,18 @@ namespace HBP.UI.Module3D
         private void Awake()
         {
             m_OnOffToggle.onValueChanged.AddListener(m_ActionsPanel.gameObject.SetActive);
-            m_ExportSitesToggle.onValueChanged.AddListener(m_ExportSitesPanel.SetActive);
             m_ChangeStateToggle.onValueChanged.AddListener(m_ChangeStatePanel.SetActive);
-            m_CreateGroupToggle.onValueChanged.AddListener(m_CreateGroupPanel.SetActive);
+            m_OtherToggle.onValueChanged.AddListener(m_OtherPanel.SetActive);
             m_ApplyButton.onClick.AddListener(ApplyAction);
+
             m_ColorPickerButton.onClick.AddListener(() =>
             {
                 ApplicationState.ColorPicker.Open(m_ColorPickedImage.color, (c) => m_ColorPickedImage.color = c);
             });
+            m_AddLabelToggle.onValueChanged.AddListener(isOn => m_LabelInputField.interactable = m_AddLabelToggle.isOn || m_RemoveLabelToggle.isOn);
+            m_RemoveLabelToggle.onValueChanged.AddListener(isOn => m_LabelInputField.interactable = m_AddLabelToggle.isOn || m_RemoveLabelToggle.isOn);
+            m_ColorToggle.onValueChanged.AddListener(isOn => m_ColorPickerButton.interactable = isOn);
+            m_CreateGroupToggle.onValueChanged.AddListener(isOn => m_GroupNameInputField.interactable = isOn);
         }
         private void Update()
         {
@@ -280,6 +298,10 @@ namespace HBP.UI.Module3D
         {
             m_Coroutine = null;
             m_ProgressBar.End();
+        }
+        private void DisplayGraphs()
+        {
+            m_Scene.OnRequestFilteredSitesGraph.Invoke(m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered));
         }
 #endregion
 

@@ -182,7 +182,7 @@ namespace HBP.Data.Experience.Dataset
                 {
                     if (errors[i].Message != "")
                     {
-                        stringBuilder.AppendLine(string.Format("• {0}({1})", errors[i].Title, errors[i].Message));
+                        stringBuilder.AppendLine(string.Format("• {0} ({1})", errors[i].Title, errors[i].Message));
 
                     }
                     else
@@ -193,7 +193,7 @@ namespace HBP.Data.Experience.Dataset
                 }
                 if (errors.Last().Message != "")
                 {
-                    stringBuilder.Append(string.Format("• {0}({1})", errors.Last().Title, errors.Last().Message));
+                    stringBuilder.Append(string.Format("• {0} ({1})", errors.Last().Title, errors.Last().Message));
 
                 }
                 else

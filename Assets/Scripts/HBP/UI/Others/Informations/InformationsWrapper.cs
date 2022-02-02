@@ -101,7 +101,12 @@ namespace HBP.UI.Informations
             }
         }
 
+        bool m_RequestSceneDataUpdate;
+        bool m_RequestDisplayUpdate;
+        bool m_RequestGraphsUpdate;
+
         [SerializeField] SceneData m_SceneData;
+        [SerializeField] ChannelStruct[] m_FilteredChannelStructs;
         [SerializeField] ChannelStruct[] m_ChannelStructs;
         public ChannelStruct[] ChannelStructs
         {
@@ -164,6 +169,24 @@ namespace HBP.UI.Informations
         #endregion
 
         #region Private Methods
+        private void Update()
+        {
+            if (m_RequestSceneDataUpdate)
+            {
+                GenerateSceneData();
+                m_RequestSceneDataUpdate = false;
+            }
+            if (m_RequestDisplayUpdate)
+            {
+                Display();
+                m_RequestDisplayUpdate = false;
+            }
+            if (m_RequestGraphsUpdate)
+            {
+                DisplayGraphs();
+                m_RequestGraphsUpdate = false;
+            }
+        }
         void OnValidate()
         {
             SetBase3DScene();
@@ -179,40 +202,49 @@ namespace HBP.UI.Informations
             {
                 if(!column.IsMinimized || ApplicationState.UserPreferences.Visualization.Graph.ShowCurvesOfMinimizedColumns)
                 {
-                    Data.Informations.ROI ROI = null;
+                    List<ChannelStructsGroup> groups = new List<ChannelStructsGroup>();
                     if (m_Scene.ROIManager.SelectedROI != null)
                     {
-                        IEnumerable<ChannelStruct> channels = column.Sites.Where(site => !site.State.IsOutOfROI && !site.State.IsMasked).Select(site => new ChannelStruct(site));
-                        ROI = new Data.Informations.ROI(m_Scene.ROIManager.SelectedROI.Name, channels.ToList());
+                        IEnumerable<ChannelStruct> channels = column.Sites.Where(site => !site.State.IsOutOfROI && !site.State.IsMasked && !site.State.IsBlackListed).Select(site => new ChannelStruct(site));
+                        groups.Add(new ChannelStructsGroup(m_Scene.ROIManager.SelectedROI.Name, channels.ToList()));
+                    }
+                    if (m_FilteredChannelStructs.Length > 0)
+                    {
+                        groups.Add(new ChannelStructsGroup("Filtered", m_FilteredChannelStructs));
                     }
                     if (column is Column3DIEEG ieegColumn)
                     {
                         IEEGData data = new IEEGData(ieegColumn.ColumnIEEGData.Dataset, ieegColumn.ColumnIEEGData.DataName, ieegColumn.ColumnIEEGData.Bloc);
-                        Column columnData = new Column(column.Name, data, ROI);
+                        Column columnData = new Column(column.Name, data, groups);
                         m_ColumnDataBy3DColumn.Add(column, columnData);
                         columns.Add(columnData);
                     }
                     else if(column is Column3DCCEP ccepColumn && ccepColumn.IsSourceSiteSelected)
                     {
                         CCEPData data = new CCEPData(ccepColumn.ColumnCCEPData.Dataset, ccepColumn.ColumnCCEPData.DataName, new ChannelStruct(ccepColumn.SelectedSourceSite), ccepColumn.ColumnCCEPData.Bloc);
-                        Column columnData = new Column(column.Name, data, ROI);
+                        Column columnData = new Column(column.Name, data, groups);
                         m_ColumnDataBy3DColumn.Add(column, columnData);
                         columns.Add(columnData);
                     }
                     else if (column is Column3DMEG megColumn)
                     {
                         MEGData data = new MEGData(megColumn.ColumnMEGData.Dataset, megColumn.SelectedMEGItem.Label, megColumn.SelectedMEGItem.Window);
-                        Column columnData = new Column(column.Name, data, ROI);
+                        Column columnData = new Column(column.Name, data, groups);
                         m_ColumnDataBy3DColumn.Add(column, columnData);
                         columns.Add(columnData);
                     }
                 }
             }
             m_SceneData = new SceneData(columns);
+            GridInformations.SetColumns(m_SceneData.Columns.ToArray());
         }
         void GenerateChannelStructs(IEnumerable<Site> sites)
         {
             m_ChannelStructs = sites.Where(s => !s.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray(); // FIXME: it is better to show a "No data for site X" message instead of filtering by IsMasked
+        }
+        void GenerateFilteredChannelStructs(IEnumerable<Site> sites)
+        {
+            m_FilteredChannelStructs = sites.Where(site => !site.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray();
         }
         void Display()
         {
@@ -234,13 +266,19 @@ namespace HBP.UI.Informations
         void OnSiteInformationRequestHandler(IEnumerable<Site> sites)
         {
             GenerateChannelStructs(sites);
-            GenerateSceneData();
-            Display();
+            m_RequestSceneDataUpdate = true;
+            m_RequestDisplayUpdate = true;
+        }
+        void OnFilteredSitesRequestHandler(IEnumerable<Site> sites)
+        {
+            GenerateFilteredChannelStructs(sites);
+            m_RequestSceneDataUpdate = true;
+            m_RequestGraphsUpdate = true;
         }
         void OnMinimizeColumnHandler()
         {
-            GenerateSceneData();
-            Display();
+            m_RequestSceneDataUpdate = true;
+            m_RequestDisplayUpdate = true;
         }
         void OnChangeSelectedColumn(Column3D column)
         {
@@ -253,8 +291,8 @@ namespace HBP.UI.Informations
         }
         void OnChangeROIHandler()
         {
-            GenerateSceneData();
-            DisplayGraphs();
+            m_RequestSceneDataUpdate = true;
+            m_RequestGraphsUpdate = true;
         }
         void OnChangeColorMapHandler()
         {
@@ -262,19 +300,22 @@ namespace HBP.UI.Informations
         }
         void OnChangeSourceHandler()
         {
-            GenerateSceneData();
-            Display();
+            m_RequestSceneDataUpdate = true;
+            m_RequestDisplayUpdate = true;
         }
         void OnSceneCompletelyLoaded()
         {
-            GenerateSceneData();
-            GridInformations.SetColumns(m_SceneData.Columns.ToArray());
+            m_RequestSceneDataUpdate = true;
         }
         void OnChangeSelectedMEGItem()
         {
-            GenerateSceneData();
-            GridInformations.SetColumns(m_SceneData.Columns.ToArray());
-            DisplayGraphs();
+            m_RequestSceneDataUpdate = true;
+            m_RequestGraphsUpdate = true;
+        }
+        void OnChangeSiteState()
+        {
+            m_RequestSceneDataUpdate = true;
+            m_RequestGraphsUpdate = true;
         }
         #endregion
 
@@ -283,7 +324,8 @@ namespace HBP.UI.Informations
         {
             if (m_Scene != null)
             {
-                m_Scene.OnRequestSiteInformation.AddListener(sites => OnSiteInformationRequestHandler(sites));
+                m_Scene.OnRequestSiteInformation.AddListener(OnSiteInformationRequestHandler);
+                m_Scene.OnRequestFilteredSitesGraph.AddListener(OnFilteredSitesRequestHandler);
                 m_Scene.OnChangeColumnMinimizedState.AddListener(OnMinimizeColumnHandler);
                 m_Scene.OnUpdateROI.AddListener(OnChangeROIHandler);
                 m_Scene.OnChangeColormap.AddListener((t) => OnChangeColorMapHandler());
@@ -292,6 +334,7 @@ namespace HBP.UI.Informations
                 foreach (var column in m_Scene.Columns)
                 {
                     column.OnSelect.AddListener(() => OnChangeSelectedColumn(column));
+                    column.OnChangeSiteState.AddListener(s => OnChangeSiteState());
                 }
                 foreach(var column in m_Scene.ColumnsDynamic)
                 {
