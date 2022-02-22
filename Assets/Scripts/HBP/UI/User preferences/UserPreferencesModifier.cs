@@ -58,7 +58,7 @@ namespace HBP.UI.UserPreferences
         public override  void OK()
         {
             base.OK();
-            ClassLoaderSaver.SaveToJSon(ApplicationState.UserPreferences, Data.Preferences.UserPreferences.PATH, true);
+            ApplicationState.UserPreferences.Save();
         }
         /// <summary>
         /// Close the window.

@@ -43,6 +43,7 @@ namespace HBP.Data.Preferences
     {
         #region Properties
         [DataMember] public bool AutomaticEEGUpdate { get; set; }
+        [DataMember] public Enums.LayoutDirection VisualizationsLayoutDirection { get; set; }
         [DataMember] public Enums.SiteInfluenceByDistanceType SiteInfluenceByDistance { get; set; }
         [DataMember] public string DefaultSelectedMRIInSinglePatientVisualization { get; set; }
         [DataMember] public string DefaultSelectedMeshInSinglePatientVisualization { get; set; }
@@ -55,6 +56,7 @@ namespace HBP.Data.Preferences
         #region Constructors
         public _3DPreferences(
             bool automaticEEGUpdate = true,
+            Enums.LayoutDirection visualizationsLayoutDirection = Enums.LayoutDirection.Vertical,
             Enums.SiteInfluenceByDistanceType siteInfluenceByDistance = Enums.SiteInfluenceByDistanceType.Quadratic,
             string defaultSelectedMRIInSinglePatientVisualization = "Preimplantation",
             string defaultSelectedMeshInSinglePatientVisualization = "Grey matter",
@@ -64,6 +66,7 @@ namespace HBP.Data.Preferences
             string defaultSelectedImplantationInMultiPatientsVisualization = "MNI")
         {
             AutomaticEEGUpdate = automaticEEGUpdate;
+            VisualizationsLayoutDirection = visualizationsLayoutDirection;
             SiteInfluenceByDistance = siteInfluenceByDistance;
             DefaultSelectedMRIInSinglePatientVisualization = defaultSelectedMRIInSinglePatientVisualization;
             DefaultSelectedMeshInSinglePatientVisualization = defaultSelectedMeshInSinglePatientVisualization;
@@ -77,7 +80,7 @@ namespace HBP.Data.Preferences
         #region Public Methods
         public object Clone()
         {
-            return new _3DPreferences(AutomaticEEGUpdate, SiteInfluenceByDistance, DefaultSelectedMRIInSinglePatientVisualization, DefaultSelectedMeshInSinglePatientVisualization, DefaultSelectedImplantationInSinglePatientVisualization, DefaultSelectedMRIInMultiPatientsVisualization, DefaultSelectedMeshInMultiPatientsVisualization, DefaultSelectedImplantationInMultiPatientsVisualization);
+            return new _3DPreferences(AutomaticEEGUpdate, VisualizationsLayoutDirection, SiteInfluenceByDistance, DefaultSelectedMRIInSinglePatientVisualization, DefaultSelectedMeshInSinglePatientVisualization, DefaultSelectedImplantationInSinglePatientVisualization, DefaultSelectedMRIInMultiPatientsVisualization, DefaultSelectedMeshInMultiPatientsVisualization, DefaultSelectedImplantationInMultiPatientsVisualization);
         }
         #endregion
     }

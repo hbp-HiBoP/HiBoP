@@ -3,6 +3,8 @@ using System.IO;
 using System.Runtime.Serialization;
 using HBP.UI.Theme;
 using System;
+using Tools.Unity;
+using UnityEngine.Events;
 
 namespace HBP.Data.Preferences
 {
@@ -29,6 +31,10 @@ namespace HBP.Data.Preferences
         [DataMember] public VisualizationPreferences Visualization { get; set; }
         #endregion
 
+        #region Events
+        public UnityEvent OnSavePreferences = new UnityEvent();
+        #endregion
+
         #region Constructors
         public UserPreferences(GeneralPreferences generalPreferences, DataPreferences dataPreferences, VisualizationPreferences visualizationPreferences, string ID) : base(ID)
         {
@@ -48,6 +54,11 @@ namespace HBP.Data.Preferences
         #endregion
 
         #region Public Methods
+        public void Save()
+        {
+            ClassLoaderSaver.SaveToJSon(this, PATH, true);
+            OnSavePreferences.Invoke();
+        }
         public override object Clone()
         {
             return new UserPreferences(General.Clone() as GeneralPreferences, Data.Clone() as DataPreferences, Visualization.Clone() as VisualizationPreferences, ID);

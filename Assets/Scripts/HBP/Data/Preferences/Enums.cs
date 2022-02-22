@@ -40,4 +40,5 @@ namespace HBP.Data.Enums
     public enum MainSecondaryEnum { Main, Secondary }
     public enum CreationType { FromScratch, FromExistingObject, FromFile, FromDatabase }
     public enum RaycastHitResult { None, Cut, Mesh, Site, ROI }
+    public enum LayoutDirection { Horizontal, Vertical }
 }

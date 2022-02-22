@@ -9,6 +9,7 @@ namespace HBP.UI.UserPreferences
     {
         #region Properties
         [SerializeField] Toggle m_AutomaticEEGUpdateToggle;
+        [SerializeField] Dropdown m_VisualizationsLayoutDirectionDropdown;
         [SerializeField] Dropdown m_SiteInfluenceDropdown;
 
         [SerializeField] InputField m_DefaultSelectedMRIInSinglePatientInputField;
@@ -31,6 +32,7 @@ namespace HBP.UI.UserPreferences
                 base.Interactable = value;
 
                 m_AutomaticEEGUpdateToggle.interactable = value;
+                m_VisualizationsLayoutDirectionDropdown.interactable = value;
                 m_SiteInfluenceDropdown.interactable = value;
                 m_DefaultSelectedMRIInSinglePatientInputField.interactable = value;
                 m_DefaultSelectedMeshInSinglePatientInputField.interactable = value;
@@ -48,6 +50,7 @@ namespace HBP.UI.UserPreferences
             base.Initialize();
 
             m_AutomaticEEGUpdateToggle.onValueChanged.AddListener((value) => Object.AutomaticEEGUpdate = value);
+            m_VisualizationsLayoutDirectionDropdown.onValueChanged.AddListener((value) => Object.VisualizationsLayoutDirection = (Data.Enums.LayoutDirection)value);
             m_SiteInfluenceDropdown.onValueChanged.AddListener((value) => Object.SiteInfluenceByDistance = (Data.Enums.SiteInfluenceByDistanceType)value);
 
             m_DefaultSelectedMRIInSinglePatientInputField.onValueChanged.AddListener((value) => Object.DefaultSelectedMRIInSinglePatientVisualization = value);
@@ -66,6 +69,7 @@ namespace HBP.UI.UserPreferences
             base.SetFields(objectToDisplay);
 
             m_AutomaticEEGUpdateToggle.isOn = objectToDisplay.AutomaticEEGUpdate;
+            m_VisualizationsLayoutDirectionDropdown.Set(typeof(Data.Enums.LayoutDirection), (int)objectToDisplay.VisualizationsLayoutDirection);
             m_SiteInfluenceDropdown.Set(typeof(Data.Enums.SiteInfluenceByDistanceType), (int)objectToDisplay.SiteInfluenceByDistance);
 
             m_DefaultSelectedMRIInSinglePatientInputField.text = objectToDisplay.DefaultSelectedMRIInSinglePatientVisualization;

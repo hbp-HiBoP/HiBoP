@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Tools.Unity;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
@@ -36,6 +37,7 @@ namespace HBP.UI.Module3D
         {
             m_SiteInfoDisplayer.Initialize();
             m_AtlasInfoDisplayer.Initialize();
+            ChangeLayoutDirection();
             
             ApplicationState.Module3D.OnAddScene.AddListener((scene) =>
             {
@@ -45,6 +47,29 @@ namespace HBP.UI.Module3D
                 sceneWindow.gameObject.SetActive(false);
                 Scenes.Add(scene, sceneWindow);
             });
+            ApplicationState.UserPreferences.OnSavePreferences.AddListener(ChangeLayoutDirection);
+        }
+        private void ChangeLayoutDirection()
+        {
+            DestroyImmediate(gameObject.GetComponent<HorizontalOrVerticalLayoutGroup>());
+            HorizontalOrVerticalLayoutGroup layout;
+            switch (ApplicationState.UserPreferences.Visualization._3D.VisualizationsLayoutDirection)
+            {
+                case Data.Enums.LayoutDirection.Horizontal:
+                    layout = gameObject.AddComponent<HorizontalLayoutGroup>();
+                    break;
+                case Data.Enums.LayoutDirection.Vertical:
+                    layout = gameObject.AddComponent<VerticalLayoutGroup>();
+                    break;
+                default:
+                    layout = gameObject.AddComponent<VerticalLayoutGroup>();
+                    break;
+            }
+            layout.childControlHeight = true;
+            layout.childControlWidth = true;
+            layout.childForceExpandHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.spacing = 1;
         }
         #endregion
     }
