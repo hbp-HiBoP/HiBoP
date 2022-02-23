@@ -44,7 +44,6 @@ namespace Tools.Unity.ResizableGrid
                 {
                     m_Position = MagneticPosition;
                 }
-                m_Position = RoundAtPrecision(m_Position, 2 / m_ResizableGrid.RectTransform.rect.width);
                 RectTransform handler = GetComponent<RectTransform>();
                 handler.anchorMin = new Vector2(m_Position, handler.anchorMin.y);
                 handler.anchorMax = new Vector2(m_Position, handler.anchorMax.y);
@@ -84,8 +83,7 @@ namespace Tools.Unity.ResizableGrid
         /// <param name="data">Data of the pointer when the event occurs</param>
         public override void OnDrag(PointerEventData data)
         {
-            Vector2 localPosition = new Vector2(0, 0);
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(m_ResizableGrid.RectTransform, data.position, null, out localPosition);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(m_ResizableGrid.RectTransform, data.position, null, out Vector2 localPosition);
             Position = (localPosition.x / m_ResizableGrid.RectTransform.rect.width) + 0.5f;
             OnChangePosition.Invoke();
         }

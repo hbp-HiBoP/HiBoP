@@ -169,6 +169,10 @@ namespace HBP.UI.Informations
         #endregion
 
         #region Private Methods
+        private void Awake()
+        {
+            ApplicationState.UserPreferences.OnSavePreferences.AddListener(Display);
+        }
         private void Update()
         {
             if (m_RequestSceneDataUpdate)
