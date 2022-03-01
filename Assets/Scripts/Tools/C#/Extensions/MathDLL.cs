@@ -100,6 +100,8 @@ namespace Tools.CSharp
         }
         public static float[] LinearSmooth(this float[] values, int smoothFactor)
         {
+            if (values.Length <= 1) return values.Clone() as float[];
+
             float[] newValues = new float[(values.Length - 1) * smoothFactor + 1];
             LinearSmooth(values, values.Length, smoothFactor, newValues);
             return newValues;
