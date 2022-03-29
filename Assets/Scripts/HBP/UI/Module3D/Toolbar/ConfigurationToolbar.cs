@@ -14,6 +14,7 @@ namespace HBP.UI.Module3D
         /// Tool that allows saving, loading and reseting the configuration of the selected scene
         /// </summary>
         [SerializeField] private Tools.ConfigurationLoaderSaver m_ConfigurationLoaderSaver;
+        [SerializeField] private Tools.CopyVisualization m_CopyVisualization;
         #endregion
 
         #region Private Methods
@@ -24,6 +25,7 @@ namespace HBP.UI.Module3D
         protected override void AddTools()
         {
             m_Tools.Add(m_ConfigurationLoaderSaver);
+            m_Tools.Add(m_CopyVisualization);
         }
         #endregion
     }
