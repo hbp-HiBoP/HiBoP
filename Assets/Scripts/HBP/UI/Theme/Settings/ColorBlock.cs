@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace NewTheme
+namespace Theme
 {
     [CreateAssetMenu(menuName = "Theme/Settings/Color Block")]
     public class ColorBlock : Settings

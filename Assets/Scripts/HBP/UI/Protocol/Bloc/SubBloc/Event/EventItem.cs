@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using Tools.Unity.Lists;
-using NewTheme.Components;
+using Theme.Components;
 using Tools.Unity;
 using System.Text;
 

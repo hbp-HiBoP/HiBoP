@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System.IO;
 using System.Runtime.Serialization;
-using HBP.UI.Theme;
 using System;
 using Tools.Unity;
 using UnityEngine.Events;
@@ -25,7 +24,6 @@ namespace HBP.Data.Preferences
     {
         #region Properties
         public static string PATH = Path.Combine(Application.persistentDataPath, "Preferences.txt");
-        public Theme Theme;
         [DataMember] public GeneralPreferences General { get; set; }
         [DataMember] public DataPreferences Data { get; set; }
         [DataMember] public VisualizationPreferences Visualization { get; set; }

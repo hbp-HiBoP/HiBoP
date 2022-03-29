@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace NewTheme
+namespace Theme
 {
     public abstract class Settings : ScriptableObject
     {

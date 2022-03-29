@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace NewTheme
+namespace Theme
 {
     [CreateAssetMenu(menuName = "Theme/Settings/Cursor")]
     public class Cursor : Settings

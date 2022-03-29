@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using System.Linq;
 
-namespace NewTheme
+namespace Theme
 {
     [CustomEditor(typeof(Image))]
     public class ImageEditor : Editor

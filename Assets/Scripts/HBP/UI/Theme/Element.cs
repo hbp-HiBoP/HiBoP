@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using UnityEngine;
 
-namespace NewTheme
+namespace Theme
 {
     [CreateAssetMenu(menuName = "Theme/Element")]
     public class Element : ScriptableObject

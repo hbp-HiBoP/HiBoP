@@ -1,6 +1,6 @@
 ﻿using UnityEditor;
 
-namespace NewTheme
+namespace Theme
 {
     [CustomEditor(typeof(Text))]
     public class TextEditor : Editor

@@ -1,5 +1,5 @@
 ﻿using CielaSpike;
-using NewTheme.Components;
+using Theme.Components;
 using System;
 using System.Collections;
 using System.Collections.Generic;

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace NewTheme.Components
+namespace Theme.Components
 {
     [RequireComponent(typeof(UnityEngine.UI.Selectable))]
     public class SelectableStateSetter : MonoBehaviour

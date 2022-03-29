@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using NewTheme;
+using Theme;
 
 namespace Tools.Unity.Window
 {

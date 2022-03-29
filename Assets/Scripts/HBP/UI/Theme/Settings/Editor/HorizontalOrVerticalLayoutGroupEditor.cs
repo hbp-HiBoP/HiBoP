@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEditor;
 
-namespace NewTheme
+namespace Theme
 {
     [CustomEditor(typeof(HorizontalOrVerticalLayoutGroup))]
     public class HorizontalOrVerticalLayoutGroupEditor : Editor

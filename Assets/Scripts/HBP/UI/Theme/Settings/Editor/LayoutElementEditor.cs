@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace NewTheme
+namespace Theme
 {
     [CustomEditor(typeof(LayoutElement))]
     public class LayoutElementEditor : Editor

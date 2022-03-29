@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace NewTheme
+namespace Theme
 {
     [CreateAssetMenu(menuName = "Theme/Settings/Selectable")]
     public class Selectable : Settings

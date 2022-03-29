@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace NewTheme
+namespace Theme
 {
     [CreateAssetMenu(menuName = "Theme/Settings/Horizontal or Vertical Layout Group")]
     public class HorizontalOrVerticalLayoutGroup : Settings

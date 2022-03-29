@@ -2,7 +2,7 @@
 using Tools.Unity;
 using UnityEngine;
 
-namespace NewTheme.Components
+namespace Theme.Components
 {
     [ExecuteInEditMode]
     public class ThemeElement : MonoBehaviour

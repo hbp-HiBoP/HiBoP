@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using NewTheme.Components;
+using Theme.Components;
 
 [CustomEditor(typeof(ZoneResizer))]
 public class ZoneResizerEditor : Editor

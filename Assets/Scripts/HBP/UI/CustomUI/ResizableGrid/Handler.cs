@@ -1,4 +1,4 @@
-﻿using NewTheme.Components;
+﻿using Theme.Components;
 using System;
 using UnityEngine;
 using UnityEngine.Events;

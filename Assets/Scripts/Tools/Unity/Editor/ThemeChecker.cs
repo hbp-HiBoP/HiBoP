@@ -56,7 +56,7 @@ public class ThemeChecker
         List<string> fullNames = new List<string>();
         foreach (var element in list)
         {
-            if (!element.GetComponent<NewTheme.Components.ThemeElement>())
+            if (!element.GetComponent<Theme.Components.ThemeElement>())
             {
                 fullNames.Add(element.transform.GetFullName());
             }

@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
-using NewTheme.Components;
+using Theme.Components;
 using System.Collections.Generic;
 using System.Linq;
 

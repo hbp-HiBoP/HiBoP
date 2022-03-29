@@ -1,4 +1,4 @@
-﻿using NewTheme.Components;
+﻿using Theme.Components;
 using UnityEngine;
 
 public class SortingDisplayer : MonoBehaviour

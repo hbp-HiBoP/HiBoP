@@ -1,6 +1,6 @@
 ﻿using UnityEditor;
 
-namespace NewTheme
+namespace Theme
 {
     [CustomEditor(typeof(Selectable))]
     public class SelectableEditor : Editor

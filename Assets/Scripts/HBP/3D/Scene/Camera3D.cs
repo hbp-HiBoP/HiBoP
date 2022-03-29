@@ -285,20 +285,20 @@ namespace HBP.Module3D
             {
                 if (m_AssociatedView.IsSelected)
                 {
-                    m_Camera.GetComponent<NewTheme.Components.ThemeElement>().Set(Clicked);
+                    m_Camera.GetComponent<Theme.Components.ThemeElement>().Set(Clicked);
                 }
                 else if (m_AssociatedColumn.IsSelected)
                 {
-                    m_Camera.GetComponent<NewTheme.Components.ThemeElement>().Set(Selected);
+                    m_Camera.GetComponent<Theme.Components.ThemeElement>().Set(Selected);
                 }
                 else
                 {
-                    m_Camera.GetComponent<NewTheme.Components.ThemeElement>().Set();
+                    m_Camera.GetComponent<Theme.Components.ThemeElement>().Set();
                 }
             }
             else
             {
-                m_Camera.GetComponent<NewTheme.Components.ThemeElement>().Set();
+                m_Camera.GetComponent<Theme.Components.ThemeElement>().Set();
             }
             AutomaticCameraRotation();
         }

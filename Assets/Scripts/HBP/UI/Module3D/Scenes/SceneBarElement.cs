@@ -1,5 +1,5 @@
 ﻿using HBP.Module3D;
-using NewTheme.Components;
+using Theme.Components;
 using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;

@@ -60,14 +60,6 @@ namespace HBP.UI.UserPreferences
             base.OK();
             ApplicationState.UserPreferences.Save();
         }
-        /// <summary>
-        /// Close the window.
-        /// </summary>
-        public override void Close()
-        {
-            Theme.Theme.UpdateThemeElements(ApplicationState.UserPreferences.Theme);
-            base.Close();
-        }
         #endregion
 
         #region Private Methods

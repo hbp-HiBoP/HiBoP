@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using HBP.Data.Experience.Dataset;
-using NewTheme.Components;
+using Theme.Components;
 using Tools.Unity;
 using Tools.CSharp;
 

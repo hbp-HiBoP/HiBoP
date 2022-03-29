@@ -2,7 +2,7 @@
 using d = HBP.Data.Experience.Protocol;
 using Tools.Unity;
 using UnityEngine;
-using NewTheme.Components;
+using Theme.Components;
 using Tools.CSharp;
 
 namespace HBP.UI.Experience.Protocol
