@@ -17,15 +17,19 @@ public class SelectPrefabsOfType : EditorWindow
     List<Type> _types = null;
     string[] _typesArray = null;
     int _idx = 0;
+    string m_filter = "";
 
     void OnGUI()
     {
-        GUILayout.Label("Select Script");
-        if (_types == null)
+        m_filter = GUILayout.TextField(m_filter);
+        if (GUILayout.Button("Filter"))
         {
-            GetAllTypes();
+            GetAllTypes(m_filter);
         }
 
+        if (_types == null) return;
+
+        GUILayout.Label("Select Script");
         _idx = EditorGUILayout.Popup(_idx, _typesArray);
 
         if (GUILayout.Button("Find all prefabs"))
@@ -34,7 +38,7 @@ public class SelectPrefabsOfType : EditorWindow
         }
     }
 
-    void GetAllTypes()
+    void GetAllTypes(string filter)
     {
         _types = new List<Type>();
         var assemblies = AppDomain.CurrentDomain.GetAssemblies();
@@ -43,7 +47,7 @@ public class SelectPrefabsOfType : EditorWindow
             var types = asm.GetTypes();
             foreach (var type in types)
             {
-                if (type.IsSubclassOf(typeof(MonoBehaviour)))
+                if (type.IsSubclassOf(typeof(MonoBehaviour)) && type.ToString().Contains(filter))
                 {
                     _types.Add(type);
                 }
