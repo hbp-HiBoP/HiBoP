@@ -256,6 +256,7 @@ namespace HBP.Module3D
                 visualizationToLoad.Configuration.PreloadedMeshes = scene.MeshManager.PreloadedMeshes[patient];
                 visualizationToLoad.Configuration.PreloadedMRIs = scene.MRIManager.PreloadedMRIs[patient];
             }
+            visualizationToLoad.GenerateID();
             LoadScenes(new Data.Visualization.Visualization[] { visualizationToLoad });
         }
         /// <summary>
