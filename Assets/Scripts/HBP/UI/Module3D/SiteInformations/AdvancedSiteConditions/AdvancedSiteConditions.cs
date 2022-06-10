@@ -1,6 +1,7 @@
 ﻿using HBP.Module3D;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Tools.CSharp.BooleanExpressionParser;
 using UnityEngine;
 using UnityEngine.UI;
@@ -177,6 +178,75 @@ namespace HBP.UI.Module3D
                         else if (s.Contains(">"))
                         {
                             return CheckStandardDeviation(site, true, deblankedValue);
+                        }
+                    }
+                    else if (label.StartsWith(MEAN) || label.StartsWith(MEDIAN) || label.StartsWith(MAX) || label.StartsWith(MIN) || label.StartsWith(STANDARD_DEVIATION))
+                    {
+                        Regex regex = new Regex("(\\w+){(\\d+):(\\d+)}");
+                        Match match = regex.Match(label);
+                        if (match.Success)
+                        {
+                            string subLabel = match.Groups[1].ToString();
+                            if (int.TryParse(match.Groups[2].ToString(), out int start) && int.TryParse(match.Groups[3].ToString(), out int end) && m_Scene.SelectedColumn is Column3DDynamic dynamicColumn)
+                            {
+                                int startIndex = dynamicColumn.Timeline.Frequency.ConvertToFlooredNumberOfSamples(start);
+                                int endIndex = dynamicColumn.Timeline.Frequency.ConvertToCeiledNumberOfSamples(end);
+                                if (subLabel == MEAN)
+                                {
+                                    if (s.Contains("<"))
+                                    {
+                                        return CheckMean(site, false, deblankedValue, start, end);
+                                    }
+                                    else if (s.Contains(">"))
+                                    {
+                                        return CheckMean(site, true, deblankedValue, start, end);
+                                    }
+                                }
+                                else if (subLabel == MEDIAN)
+                                {
+                                    if (s.Contains("<"))
+                                    {
+                                        return CheckMedian(site, false, deblankedValue, start, end);
+                                    }
+                                    else if (s.Contains(">"))
+                                    {
+                                        return CheckMedian(site, true, deblankedValue, start, end);
+                                    }
+                                }
+                                else if (subLabel == MAX)
+                                {
+                                    if (s.Contains("<"))
+                                    {
+                                        return CheckMax(site, false, deblankedValue, start, end);
+                                    }
+                                    else if (s.Contains(">"))
+                                    {
+                                        return CheckMax(site, true, deblankedValue, start, end);
+                                    }
+                                }
+                                else if (subLabel == MIN)
+                                {
+                                    if (s.Contains("<"))
+                                    {
+                                        return CheckMin(site, false, deblankedValue, start, end);
+                                    }
+                                    else if (s.Contains(">"))
+                                    {
+                                        return CheckMin(site, true, deblankedValue, start, end);
+                                    }
+                                }
+                                else if (subLabel == STANDARD_DEVIATION)
+                                {
+                                    if (s.Contains("<"))
+                                    {
+                                        return CheckStandardDeviation(site, false, deblankedValue, start, end);
+                                    }
+                                    else if (s.Contains(">"))
+                                    {
+                                        return CheckStandardDeviation(site, true, deblankedValue, start, end);
+                                    }
+                                }
+                            }
                         }
                     }
                 }

@@ -206,6 +206,7 @@ namespace HBP.UI.Module3D
             }
             else return false;
         }
+        // TODO : Consider start and end for all following methods
         /// <summary>
         /// Check if the mean of the values of the associated channel if above or under the input value
         /// </summary>
@@ -213,7 +214,7 @@ namespace HBP.UI.Module3D
         /// <param name="superior">True if the condition is "above", false otherwise</param>
         /// <param name="stringValue">Value to be compared</param>
         /// <returns>True if the mean of the values matches the condition</returns>
-        protected bool CheckMean(Site site, bool superior, string stringValue)
+        protected bool CheckMean(Site site, bool superior, string stringValue, int start = 0, int end = 0)
         {
             if (site.Statistics != null)
             {
@@ -232,7 +233,7 @@ namespace HBP.UI.Module3D
         /// <param name="superior">True if the condition is "above", false otherwise</param>
         /// <param name="stringValue">Value to be compared</param>
         /// <returns>True if the median of the values matches the condition</returns>
-        protected bool CheckMedian(Site site, bool superior, string stringValue)
+        protected bool CheckMedian(Site site, bool superior, string stringValue, int start = 0, int end = 0)
         {
             if (site.Statistics != null)
             {
@@ -251,7 +252,7 @@ namespace HBP.UI.Module3D
         /// <param name="superior">True if the condition is "above", false otherwise</param>
         /// <param name="stringValue">Value to be compared</param>
         /// <returns>True if the maximum value matches the condition</returns>
-        protected bool CheckMax(Site site, bool superior, string stringValue)
+        protected bool CheckMax(Site site, bool superior, string stringValue, int start = 0, int end = 0)
         {
             if (site.Statistics != null)
             {
@@ -270,7 +271,7 @@ namespace HBP.UI.Module3D
         /// <param name="superior">True if the condition is "above", false otherwise</param>
         /// <param name="stringValue">Value to be compared</param>
         /// <returns>True if the minimum value matches the condition</returns>
-        protected bool CheckMin(Site site, bool superior, string stringValue)
+        protected bool CheckMin(Site site, bool superior, string stringValue, int start = 0, int end = 0)
         {
             if (site.Statistics != null)
             {
@@ -289,7 +290,7 @@ namespace HBP.UI.Module3D
         /// <param name="superior">True if the condition is "above", false otherwise</param>
         /// <param name="stringValue">Value to be compared</param>
         /// <returns>True if the standard deviation matches the condition</returns>
-        protected bool CheckStandardDeviation(Site site, bool superior, string stringValue)
+        protected bool CheckStandardDeviation(Site site, bool superior, string stringValue, int start = 0, int end = 0)
         {
             if (site.Statistics != null)
             {
