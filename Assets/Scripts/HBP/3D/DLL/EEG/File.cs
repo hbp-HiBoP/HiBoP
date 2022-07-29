@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Linq;
+using HBP.Core.Tools;
 
-namespace Tools.CSharp.EEG
+namespace HBP.Core.DLL.EEG
 {
-    public class File : DLL.CppDLLImportBase
+    public class File : CppDLLImportBase
     {
         #region Properties
         public enum FileType { ELAN, EDF, Micromed, BrainVision, FIF }

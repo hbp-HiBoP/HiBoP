@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace HBP.Module3D
+namespace HBP.Core.Object3D
 {
     /// <summary>
     /// This class contains information about a mesh and can load meshes to DLL objects

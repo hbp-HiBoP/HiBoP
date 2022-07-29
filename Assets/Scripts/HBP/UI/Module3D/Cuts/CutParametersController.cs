@@ -17,7 +17,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Cut affected to this parameters controller
         /// </summary>
-        public Cut Cut { get; private set; }
+        public Core.Object3D.Cut Cut { get; private set; }
         /// <summary>
         /// Parent scene of the corresponding cut controller
         /// </summary>
@@ -385,7 +385,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="scene">Parent scene of the cut controller</param>
         /// <param name="cut">Cut associated to this controller</param>
-        public void Initialize(Base3DScene scene, Cut cut)
+        public void Initialize(Base3DScene scene, Core.Object3D.Cut cut)
         {
             m_Scene = scene;
             Cut = cut;
@@ -424,7 +424,7 @@ namespace HBP.UI.Module3D
             foreach (Transform child in m_SitesRectTransform) Destroy(child.gameObject);
             if (Cut.Orientation == Data.Enums.CutOrientation.Custom) return;
             
-            List<Site> sites = new List<Site>();
+            List<Core.Object3D.Site> sites = new List<Core.Object3D.Site>();
             m_Scene.SelectedColumn.RawElectrodes.GetSitesOnPlane(Cut, 1.0f, out int[] result);
             foreach (var site in m_Scene.SelectedColumn.Sites)
             {
@@ -466,7 +466,7 @@ namespace HBP.UI.Module3D
             foreach (Transform child in m_CutLinesRectTransform) Destroy(child.gameObject);
             if (Cut.Orientation == Data.Enums.CutOrientation.Custom || !ApplicationState.UserPreferences.Visualization.Cut.ShowCutLines) return;
 
-            HBP.Module3D.DLL.BBox boundingBox = m_Scene.CutGeometryGenerators[Cut.ID].BoundingBox;
+            Core.DLL.BBox boundingBox = m_Scene.CutGeometryGenerators[Cut.ID].BoundingBox;
             if (boundingBox != null)
             {
                 Vector3 min = boundingBox.Min;
@@ -476,7 +476,7 @@ namespace HBP.UI.Module3D
                 {
                     if (cut == Cut || cut.Orientation == Data.Enums.CutOrientation.Custom) continue;
 
-                    Segment3 segment = boundingBox.IntersectionSegmentBetweenTwoPlanes(Cut, cut);
+                    Core.Object3D.Segment3 segment = boundingBox.IntersectionSegmentBetweenTwoPlanes(Cut, cut);
                     List<Vector2> linePoints = new List<Vector2>();
                     if (segment != null)
                     {

@@ -149,21 +149,5 @@ namespace HBP.Data.Experience.Dataset
             m_Patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == m_PatientID);
         }
         #endregion
-
-        #region Errors
-        public class PatientEmptyError : Error
-        {
-            #region Properties
-            public PatientEmptyError() : this("")
-            {
-
-            }
-            public PatientEmptyError(string message) : base("The patient field is empty.", message)
-            {
-
-            }
-            #endregion
-        }
-        #endregion
     }
 }

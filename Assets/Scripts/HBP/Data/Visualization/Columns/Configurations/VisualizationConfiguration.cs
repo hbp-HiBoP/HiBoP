@@ -139,9 +139,9 @@ namespace HBP.Data.Visualization
         [IgnoreDataMember]
         public int FirstColumnToSelect { get; set; }
         [IgnoreDataMember]
-        public List<Module3D.Mesh3D> PreloadedMeshes { get; set; } = new List<Module3D.Mesh3D>();
+        public List<Core.Object3D.Mesh3D> PreloadedMeshes { get; set; } = new List<Core.Object3D.Mesh3D>();
         [IgnoreDataMember]
-        public List<Module3D.MRI3D> PreloadedMRIs { get; set; } = new List<Module3D.MRI3D>();
+        public List<Core.Object3D.MRI3D> PreloadedMRIs { get; set; } = new List<Core.Object3D.MRI3D>();
         #endregion
 
         #region Constructors

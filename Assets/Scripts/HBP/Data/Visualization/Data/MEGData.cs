@@ -13,10 +13,10 @@ namespace HBP.Data.Visualization
         #region Properties
         public string Label { get; set; }
         public Patient Patient { get; set; }
-        public Module3D.FMRI FMRI { get; set; } = new Module3D.FMRI();
+        public Core.Object3D.FMRI FMRI { get; set; } = new Core.Object3D.FMRI();
         public Dictionary<string, float[]> ValuesByChannel { get; set; } = new Dictionary<string, float[]>();
         public Dictionary<string, string> UnitByChannel { get; set; } = new Dictionary<string, string>();
-        public Tools.CSharp.EEG.Frequency Frequency { get; set; } = new Tools.CSharp.EEG.Frequency(0);
+        public Core.Tools.Frequency Frequency { get; set; } = new Core.Tools.Frequency(0);
         public Window Window
         {
             get
@@ -58,7 +58,7 @@ namespace HBP.Data.Visualization
                     MEGItem existingItem = MEGItems.Find(i => i.Patient == vDataInfo.Patient && i.Label == vDataInfo.Name);
                     if (existingItem != null)
                     {
-                        existingItem.FMRI = new Module3D.FMRI(data.FMRI);
+                        existingItem.FMRI = new Core.Object3D.FMRI(data.FMRI);
                     }
                     else
                     {
@@ -66,7 +66,7 @@ namespace HBP.Data.Visualization
                         {
                             Label = vDataInfo.Name,
                             Patient = vDataInfo.Patient,
-                            FMRI = new Module3D.FMRI(data.FMRI)
+                            FMRI = new Core.Object3D.FMRI(data.FMRI)
                         };
                         MEGItems.Add(newItem);
                     }

@@ -3,7 +3,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace HBP.Module3D.DLL
+namespace HBP.Core.DLL
 {
     /// <summary>
     /// Class containing information about the different areas of the JuBrain Cytoarchitectonic Atlas

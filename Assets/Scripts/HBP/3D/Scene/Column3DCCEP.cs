@@ -59,12 +59,12 @@ namespace HBP.Module3D
         /// <summary>
         /// List of all possible sources for this column
         /// </summary>
-        public List<Site> Sources { get; private set; } = new List<Site>();
-        private Site m_SelectedSiteSource = null;
+        public List<Core.Object3D.Site> Sources { get; private set; } = new List<Core.Object3D.Site>();
+        private Core.Object3D.Site m_SelectedSiteSource = null;
         /// <summary>
         /// Currently selected source site
         /// </summary>
-        public Site SelectedSourceSite
+        public Core.Object3D.Site SelectedSourceSite
         {
             get
             {
@@ -213,7 +213,7 @@ namespace HBP.Module3D
             if (!ColumnCCEPData.Data.StatisticsByChannelIDByStimulatedChannelID.TryGetValue(SelectedSourceSite.Information.FullID, out Dictionary<string, Data.Experience.Dataset.BlocChannelStatistics> statisticsByChannel)) return;
 
             int numberOfSitesWithValues = 0;
-            foreach (Site site in Sites)
+            foreach (Core.Object3D.Site site in Sites)
             {
                 if (processedValuesByChannel.TryGetValue(site.Information.FullID, out float[] values))
                 {
@@ -316,12 +316,12 @@ namespace HBP.Module3D
             int[] marsAtlasLabels = ApplicationState.Module3D.MarsAtlas.Labels();
 
             // Sort sites by mars atlas label
-            Dictionary<int, List<Site>> sitesByMarsAtlasLabel = new Dictionary<int, List<Site>>();
+            Dictionary<int, List<Core.Object3D.Site>> sitesByMarsAtlasLabel = new Dictionary<int, List<Core.Object3D.Site>>();
             List<Data.StringTagValue> marsAtlasTagValues = Sites.Select(s => s.Information.SiteData.Tags.FirstOrDefault(t => t.Tag == marsAtlasTag) as Data.StringTagValue).ToList(); // FIXME: try perf with linq
             foreach (var label in marsAtlasLabels)
             {
                 string labelName = string.Format("{0}_{1}", ApplicationState.Module3D.MarsAtlas.Hemisphere(label), ApplicationState.Module3D.MarsAtlas.Name(label));
-                List<Site> sitesOfLabel = new List<Site>();
+                List<Core.Object3D.Site> sitesOfLabel = new List<Core.Object3D.Site>();
                 for (int i = 0; i < sitesCount; i++)
                 {
                     Data.StringTagValue marsAtlasTagValue = marsAtlasTagValues[i];
@@ -339,7 +339,7 @@ namespace HBP.Module3D
             {
                 sitesMask[i] = true;
             }
-            List<Site> sitesInSelectedSourceArea = sitesByMarsAtlasLabel[m_SelectedSourceMarsAtlasLabel];
+            List<Core.Object3D.Site> sitesInSelectedSourceArea = sitesByMarsAtlasLabel[m_SelectedSourceMarsAtlasLabel];
             Dictionary<int, List<float[]>> valuesByMarsAtlasArea = new Dictionary<int, List<float[]>>();
             Dictionary<int, bool> maskByMarsAtlasArea = new Dictionary<int, bool>();
             foreach (var label in marsAtlasLabels)
@@ -455,7 +455,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="implantation">Selected implantation</param>
         /// <param name="sceneSitePatientParent">List of the patient parent of the sites as instantiated in the scene</param>
-        public override void UpdateSites(Implantation3D implantation, List<GameObject> sceneSitePatientParent)
+        public override void UpdateSites(Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             base.UpdateSites(implantation, sceneSitePatientParent);
             Sources = Sites.Where(s => ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.Keys.Contains(s.Information.FullID)).ToList();
@@ -472,7 +472,7 @@ namespace HBP.Module3D
 
             for (int i = 0; i < Sites.Count; ++i)
             {
-                Site site = Sites[i];
+                Core.Object3D.Site site = Sites[i];
                 bool activity = site.IsActive;
                 SiteType siteType;
                 if (site.State.IsMasked || (site.State.IsOutOfROI && !showAllSites) || !site.State.IsFiltered)

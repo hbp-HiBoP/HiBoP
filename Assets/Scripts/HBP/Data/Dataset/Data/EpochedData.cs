@@ -7,7 +7,7 @@ namespace HBP.Data.Experience.Dataset
         #region Properties
         public virtual Dictionary<Protocol.Bloc, BlocData> DataByBloc { get; set; }
         public virtual Dictionary<string, string> UnitByChannel { get; set; }
-        public virtual Tools.CSharp.EEG.Frequency Frequency { get; set; }
+        public virtual Core.Tools.Frequency Frequency { get; set; }
         #endregion
 
         #region Constructors

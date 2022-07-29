@@ -1,14 +1,15 @@
-﻿using System;
+﻿using HBP.Module3D;
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace HBP.Module3D.DLL
+namespace HBP.Core.DLL
 {
     /// <summary>
     /// Class representing the bounding box in the DLL
     /// </summary>
-    public class BBox : Tools.DLL.CppDLLImportBase
+    public class BBox : CppDLLImportBase
     {
         #region Properties
         /// <summary>
@@ -79,17 +80,17 @@ namespace HBP.Module3D.DLL
         /// <summary>
         /// List of the pairs of points composing the edges of the bounding box
         /// </summary>
-        public List<Segment3> Segments
+        public List<Object3D.Segment3> Segments
         {
             get
             {
                 float[] points = new float[3 * 2 * 12];
                 getLinesPairPoints_BBox(_handle, points);
-                List<Segment3> linesPoints = new List<Segment3>(12);
+                List<Object3D.Segment3> linesPoints = new List<Object3D.Segment3>(12);
 
                 for (int ii = 0; ii < 12; ii++)
                 {
-                    linesPoints.Add(new Segment3(new Vector3(points[3 * ii], points[3 * ii + 1], points[3 * ii + 2]), new Vector3(points[3 * ii + 3], points[3 * ii + 4], points[3 * ii + 5])));
+                    linesPoints.Add(new Object3D.Segment3(new Vector3(points[3 * ii], points[3 * ii + 1], points[3 * ii + 2]), new Vector3(points[3 * ii + 3], points[3 * ii + 4], points[3 * ii + 5])));
                 }
 
                 return linesPoints;
@@ -103,7 +104,7 @@ namespace HBP.Module3D.DLL
         /// </summary>
         /// <param name="planeIntersec">Plane to intersect with</param>
         /// <returns>List of the points composing the intersection</returns>
-        public List<Vector3> IntersectionPointsWithPlane(Plane planeIntersec)
+        public List<Vector3> IntersectionPointsWithPlane(Object3D.Plane planeIntersec)
         {
             float[] points = new float[8 * 3];
             getIntersectionsWithPlane_BBox(_handle, planeIntersec.ConvertToArray(), points);
@@ -124,15 +125,15 @@ namespace HBP.Module3D.DLL
         /// </summary>
         /// <param name="planeIntersec">Plane to intersect with</param>
         /// <returns>List of the pairs of points composing the lines of the intersection</returns>
-        public List<Segment3> IntersectionLinesWithPlane(Plane planeIntersec)
+        public List<Object3D.Segment3> IntersectionLinesWithPlane(Object3D.Plane planeIntersec)
         {
             float[] points = new float[4 * 2 * 3];
             getLinesIntersectionsWithPlane_BBox(_handle, planeIntersec.ConvertToArray(), points);
-            List<Segment3> intersecLines = new List<Segment3>(4);
+            List<Object3D.Segment3> intersecLines = new List<Object3D.Segment3>(4);
 
             for (int ii = 0; ii < 4; ++ii)
             {
-                intersecLines.Add(new Segment3(new Vector3(points[3 * ii], points[3 * ii + 1], points[3 * ii + 2]), new Vector3(points[3 * ii + 3], points[3 * ii + 4], points[3 * ii + 5])));
+                intersecLines.Add(new Object3D.Segment3(new Vector3(points[3 * ii], points[3 * ii + 1], points[3 * ii + 2]), new Vector3(points[3 * ii + 3], points[3 * ii + 4], points[3 * ii + 5])));
             }
 
             return intersecLines;
@@ -143,7 +144,7 @@ namespace HBP.Module3D.DLL
         /// <param name="planeA">First plane of the intersection</param>
         /// <param name="planeB">Second plane of the intersection</param>
         /// <returns>List of 2 points composing the segment</returns>
-        public Segment3 IntersectionSegmentBetweenTwoPlanes(Plane planeA, Plane planeB)
+        public Object3D.Segment3 IntersectionSegmentBetweenTwoPlanes(Object3D.Plane planeA, Object3D.Plane planeB)
         {
             float[] result = new float[2 * 3];
             bool isOk = find_intersection_segment_BBox(_handle, planeA.ConvertToArray(), planeB.ConvertToArray(), result);
@@ -153,7 +154,7 @@ namespace HBP.Module3D.DLL
             }
             else
             {
-                return new Segment3(new Vector3(result[0], result[1], result[2]), new Vector3(result[3], result[4], result[5]));
+                return new Object3D.Segment3(new Vector3(result[0], result[1], result[2]), new Vector3(result[3], result[4], result[5]));
             }
         }
         #endregion
@@ -210,7 +211,7 @@ namespace HBP.Module3D.DLL
     /// <summary>
     /// Class representing a volumr loaded from a NIFTI file
     /// </summary>
-    public class Volume : Tools.DLL.CppDLLImportBase
+    public class Volume : CppDLLImportBase
     {
         #region Properties
         /// <summary>
@@ -244,11 +245,11 @@ namespace HBP.Module3D.DLL
         /// <summary>
         /// Get the calibration values of the loaded MRI
         /// </summary>
-        public MRICalValues ExtremeValues
+        public Tools.MRICalValues ExtremeValues
         {
             get
             {
-                MRICalValues values = new MRICalValues();
+                Tools.MRICalValues values = new Tools.MRICalValues();
 
                 float[] valuesF = new float[6];
                 retrieveExtremeValues_Volume(_handle, valuesF);
@@ -292,7 +293,7 @@ namespace HBP.Module3D.DLL
         /// <param name="cutPlane">Cut plane to compute the offset for</param>
         /// <param name="nbCuts">Number of desired cuts</param>
         /// <returns>Value of the offset</returns>
-        public float SizeOffsetCutPlane(Plane cutPlane, int nbCuts)
+        public float SizeOffsetCutPlane(Object3D.Plane cutPlane, int nbCuts)
         {
             return sizeOffsetCutPlane_Volume(_handle, cutPlane.ConvertToArray(), nbCuts);
         }
@@ -302,7 +303,7 @@ namespace HBP.Module3D.DLL
         /// <param name="plane">Plane to update</param>
         /// <param name="orientation">Orientation of the cut</param>
         /// <param name="flip">Is the cut flipped ?</param>
-        public void SetPlaneWithOrientation(Plane plane, Data.Enums.CutOrientation orientation, bool flip)
+        public void SetPlaneWithOrientation(Object3D.Plane plane, Data.Enums.CutOrientation orientation, bool flip)
         {
             plane.Normal = GetOrientationVector(orientation, flip);
         }
@@ -317,7 +318,7 @@ namespace HBP.Module3D.DLL
         /// </summary>
         /// <param name="cuts">List of the cuts of the scene</param>
         /// <returns>The cube bounding box around the volume</returns>
-        public BBox GetCubeBoundingBox(List<Cut> cuts)
+        public BBox GetCubeBoundingBox(List<Object3D.Cut> cuts)
         {
             float[] planes = new float[cuts.Count * 6];
             int planesCount = 0;

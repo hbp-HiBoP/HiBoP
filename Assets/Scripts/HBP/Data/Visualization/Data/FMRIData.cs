@@ -11,7 +11,7 @@ namespace HBP.Data.Visualization
     public class FMRIData
     {
         #region Properties
-        public List<Tuple<Module3D.FMRI, Patient>> FMRIs { get; set; } = new List<Tuple<Module3D.FMRI, Patient>>();
+        public List<Tuple<Core.Object3D.FMRI, Patient>> FMRIs { get; set; } = new List<Tuple<Core.Object3D.FMRI, Patient>>();
         #endregion
 
         #region Public Methods
@@ -20,7 +20,7 @@ namespace HBP.Data.Visualization
             foreach (FMRIDataInfo dataInfo in columnData)
             {
                 Experience.Dataset.FMRIData data = DataManager.GetData(dataInfo) as Experience.Dataset.FMRIData;
-                FMRIs.Add(new Tuple<Module3D.FMRI, Patient>(new Module3D.FMRI(data.FMRI), dataInfo.Patient));
+                FMRIs.Add(new Tuple<Core.Object3D.FMRI, Patient>(new Core.Object3D.FMRI(data.FMRI), dataInfo.Patient));
             }
         }
         public void Unload()

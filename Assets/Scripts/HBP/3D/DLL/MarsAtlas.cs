@@ -3,7 +3,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace HBP.Module3D.DLL
+namespace HBP.Core.DLL
 {
     /// <summary>
     /// Mars atlas index, used to identify sites mars IDs and areas on the brain

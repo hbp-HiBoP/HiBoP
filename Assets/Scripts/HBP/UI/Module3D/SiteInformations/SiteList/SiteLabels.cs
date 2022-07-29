@@ -14,11 +14,11 @@ namespace HBP.UI.Module3D
         [SerializeField] private Button m_AddSiteLabelButton;
         [SerializeField] private RectTransform m_SiteLabelsContainer;
         [SerializeField] private GameObject m_SiteLabelPrefab;
-        private HBP.Module3D.Site m_Site;
+        private Core.Object3D.Site m_Site;
         #endregion
 
         #region Public Methods
-        public void Initialize(HBP.Module3D.Site site)
+        public void Initialize(Core.Object3D.Site site)
         {
             m_Site = site;
 

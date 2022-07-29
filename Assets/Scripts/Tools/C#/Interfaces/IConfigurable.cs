@@ -1,4 +1,4 @@
-﻿namespace HBP.Module3D
+﻿namespace HBP.Core
 {
     /// <summary>
     /// Interface for the configurable classes

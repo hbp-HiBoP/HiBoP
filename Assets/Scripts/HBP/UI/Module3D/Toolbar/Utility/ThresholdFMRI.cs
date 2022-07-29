@@ -47,9 +47,9 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Textures of the histograms (one per MRI)
         /// </summary>
-        private Dictionary<HBP.Module3D.FMRI, Texture2D> m_HistogramByFMRI = new Dictionary<HBP.Module3D.FMRI, Texture2D>();
+        private Dictionary<Core.Object3D.FMRI, Texture2D> m_HistogramByFMRI = new Dictionary<Core.Object3D.FMRI, Texture2D>();
 
-        private Queue<HBP.Module3D.FMRI> m_HistogramsToBeDestroyed = new Queue<HBP.Module3D.FMRI>();
+        private Queue<Core.Object3D.FMRI> m_HistogramsToBeDestroyed = new Queue<Core.Object3D.FMRI>();
 
         /// <summary>
         /// Used to display the current histogram
@@ -106,7 +106,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Update MRI Histogram Texture
         /// </summary>
-        private void UpdateMRIHistogram(HBP.Module3D.FMRI fmri)
+        private void UpdateMRIHistogram(Core.Object3D.FMRI fmri)
         {
             UnityEngine.Profiling.Profiler.BeginSample("HISTOGRAM FMRI");
             if (!m_HistogramByFMRI.TryGetValue(fmri, out m_MRIHistogram))
@@ -115,7 +115,7 @@ namespace HBP.UI.Module3D
                 {
                     m_MRIHistogram = new Texture2D(1, 1);
                 }
-                HBP.Module3D.DLL.Texture texture = HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(fmri, 440, 440, false);
+                Core.DLL.Texture texture = Core.DLL.Texture.GenerateDistributionHistogram(fmri, 440, 440, false);
                 texture.UpdateTexture2D(m_MRIHistogram);
                 texture.Dispose();
                 m_HistogramByFMRI.Add(fmri, m_MRIHistogram);
@@ -266,12 +266,12 @@ namespace HBP.UI.Module3D
         /// Update Maximum and Minimum Cal value
         /// </summary>
         /// <param name="values">Cal values</param>
-        public void UpdateFMRICalValues(HBP.Module3D.FMRI fmri, float negativeMin, float negativeMax, float positiveMin, float positiveMax, bool updateHistogram = true)
+        public void UpdateFMRICalValues(Core.Object3D.FMRI fmri, float negativeMin, float negativeMax, float positiveMin, float positiveMax, bool updateHistogram = true)
         {
             m_Initialized = false;
 
             // Fixed values
-            MRICalValues values = fmri.NIFTI.ExtremeValues;
+            Core.Tools.MRICalValues values = fmri.NIFTI.ExtremeValues;
             m_Min = values.Min;
             m_Max = values.Max;
             m_MinText.text = m_Min.ToString("N2");
@@ -316,7 +316,7 @@ namespace HBP.UI.Module3D
         {
             while (m_HistogramsToBeDestroyed.Count > 0)
             {
-                HBP.Module3D.FMRI histogramID = m_HistogramsToBeDestroyed.Dequeue();
+                Core.Object3D.FMRI histogramID = m_HistogramsToBeDestroyed.Dequeue();
                 if (m_HistogramByFMRI.TryGetValue(histogramID, out Texture2D texture))
                 {
                     DestroyImmediate(texture);

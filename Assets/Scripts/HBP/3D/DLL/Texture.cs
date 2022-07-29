@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace HBP.Module3D.DLL
+namespace HBP.Core.DLL
 {
     /// <summary>
     /// This class represents a texture as stored within the DLL
@@ -11,7 +11,7 @@ namespace HBP.Module3D.DLL
     /// <remarks>
     /// Usually, these textures are generated using OpenCV
     /// </remarks>
-    public class Texture : Tools.DLL.CppDLLImportBase, ICloneable
+    public class Texture : CppDLLImportBase, ICloneable
     {
         #region Properties
         /// <summary>
@@ -69,7 +69,7 @@ namespace HBP.Module3D.DLL
         /// <param name="indexCut">Index of the cut of this texture</param>
         /// <param name="cutPlanes">List of all cuts in the scene</param>
         /// <param name="generator">Texture generator of the considered cut</param>
-        public void CloneAndRotate(Texture texture, string orientation, bool flip, bool displayCutLines, int indexCut, List<Cut> cutPlanes, CutGenerator generator)
+        public void CloneAndRotate(Texture texture, string orientation, bool flip, bool displayCutLines, int indexCut, List<Object3D.Cut> cutPlanes, CutGenerator generator)
         {
             // init plane
             int nbPlanes = cutPlanes.Count - 1;
@@ -103,7 +103,7 @@ namespace HBP.Module3D.DLL
         /// <summary>
         /// Display sites on the texture as red pixels
         /// </summary>
-        public void DrawSites(Cut cut, RawSiteList rawList, float precision, CutGenerator generator)
+        public void DrawSites(Object3D.Cut cut, RawSiteList rawList, float precision, CutGenerator generator)
         {
             float[] plane = new float[6];
             plane[0] = cut.Point.x;
@@ -204,7 +204,7 @@ namespace HBP.Module3D.DLL
         /// <param name="height">Height of the resulting texture</param>
         /// <param name="width">Width of the resulting texture</param>
         /// <returns>Newly created texture</returns>
-        public static Texture GenerateDistributionHistogram(FMRI fmri, int height, int width, bool withGreyArea = true)
+        public static Texture GenerateDistributionHistogram(Object3D.FMRI fmri, int height, int width, bool withGreyArea = true)
         {
             return new Texture(generate_distribution_histogram_NIFTI_Texture(fmri.NIFTI.getHandle(), height, width, withGreyArea));
         }

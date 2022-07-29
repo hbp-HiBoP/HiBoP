@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace HBP.Module3D.DLL
+namespace HBP.Core.DLL
 {
-    public class CutGeometryGenerator : Tools.DLL.CppDLLImportBase
+    public class CutGeometryGenerator : CppDLLImportBase
     {
         #region Properties
         public BBox BoundingBox
@@ -19,7 +19,7 @@ namespace HBP.Module3D.DLL
         #endregion
 
         #region Public Methods
-        public void Initialize(Volume volume, Cut cut, float sizeFactor)
+        public void Initialize(Volume volume, Object3D.Cut cut, float sizeFactor)
         {
             float[] planeCut = new float[6];
             for (int ii = 0; ii < 3; ++ii)

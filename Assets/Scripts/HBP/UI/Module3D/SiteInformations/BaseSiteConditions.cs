@@ -23,7 +23,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Current queue of all sites that match the conditions (used to smooth the checking)
         /// </summary>
-        private Queue<Site> m_MatchingSites = new Queue<Site>();
+        private Queue<Core.Object3D.Site> m_MatchingSites = new Queue<Core.Object3D.Site>();
         /// <summary>
         /// Do we update the UI ?
         /// </summary>
@@ -51,13 +51,13 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="site">Site to check</param>
         /// <returns>True if the conditions are met</returns>
-        protected abstract bool CheckConditions(Site site);
+        protected abstract bool CheckConditions(Core.Object3D.Site site);
         /// <summary>
         /// Check if the site is highlighted
         /// </summary>
         /// <param name="site">Site to check</param>
         /// <returns>True if the site is highlighted</returns>
-        protected bool CheckHighlighted(Site site)
+        protected bool CheckHighlighted(Core.Object3D.Site site)
         {
             return site.State.IsHighlighted;
         }
@@ -66,7 +66,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="site">Site to check</param>
         /// <returns>True if the site is blacklisted</returns>
-        protected bool CheckBlacklisted(Site site)
+        protected bool CheckBlacklisted(Core.Object3D.Site site)
         {
             return site.State.IsBlackListed;
         }
@@ -76,7 +76,7 @@ namespace HBP.UI.Module3D
         /// <param name="site">Site to check</param>
         /// <param name="label">Label to use for the checking</param>
         /// <returns>True if the site has a label which contains the input string</returns>
-        protected bool CheckLabel(Site site, string label)
+        protected bool CheckLabel(Core.Object3D.Site site, string label)
         {
             return site.State.Labels.Any(l => l.ToLower().Contains(label.ToLower()));
         }
@@ -85,7 +85,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="site">Site to check</param>
         /// <returns>True if the site is in the currently selected ROI</returns>
-        protected bool CheckInROI(Site site)
+        protected bool CheckInROI(Core.Object3D.Site site)
         {
             return !site.State.IsOutOfROI;
         }
@@ -94,7 +94,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="site">Site to check</param>
         /// <returns>True if the site is in the currently selected mesh</returns>
-        protected bool CheckInMesh(Site site)
+        protected bool CheckInMesh(Core.Object3D.Site site)
         {
             return m_Scene.MeshManager.SelectedMesh.SimplifiedBoth.IsSiteInside(m_Scene.ImplantationManager.SelectedImplantation.RawSiteList, site.Information.Index);
         }
@@ -103,9 +103,9 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="site">Site to check</param>
         /// <returns>True if the site is in the left hemisphere of the currently selected mesh</returns>
-        protected bool CheckInLeftHemisphere(Site site)
+        protected bool CheckInLeftHemisphere(Core.Object3D.Site site)
         {
-            if (m_Scene.MeshManager.SelectedMesh is LeftRightMesh3D mesh)
+            if (m_Scene.MeshManager.SelectedMesh is Core.Object3D.LeftRightMesh3D mesh)
             {
                 return mesh.SimplifiedLeft.IsSiteInside(m_Scene.ImplantationManager.SelectedImplantation.RawSiteList, site.Information.Index);
             }
@@ -119,9 +119,9 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="site">Site to check</param>
         /// <returns>True if the site is in the right hemisphere of the currently selected mesh</returns>
-        protected bool CheckInRightHemisphere(Site site)
+        protected bool CheckInRightHemisphere(Core.Object3D.Site site)
         {
-            if (m_Scene.MeshManager.SelectedMesh is LeftRightMesh3D mesh)
+            if (m_Scene.MeshManager.SelectedMesh is Core.Object3D.LeftRightMesh3D mesh)
             {
                 return mesh.SimplifiedRight.IsSiteInside(m_Scene.ImplantationManager.SelectedImplantation.RawSiteList, site.Information.Index);
             }
@@ -135,9 +135,9 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="site">Site to check</param>
         /// <returns>True if the site is on any cut plane of the scene</returns>
-        protected bool CheckOnPlane(Site site)
+        protected bool CheckOnPlane(Core.Object3D.Site site)
         {
-            return m_Scene.ImplantationManager.SelectedImplantation.RawSiteList.IsSiteOnAnyPlane(site, from cut in m_Scene.Cuts select cut as HBP.Module3D.Plane, 1.0f);
+            return m_Scene.ImplantationManager.SelectedImplantation.RawSiteList.IsSiteOnAnyPlane(site, from cut in m_Scene.Cuts select cut as Core.Object3D.Plane, 1.0f);
         }
         /// <summary>
         /// Check if the site name contains the input string
@@ -145,7 +145,7 @@ namespace HBP.UI.Module3D
         /// <param name="site">Site to check</param>
         /// <param name="name">Name to use for the checking</param>
         /// <returns>True if the site name contains the input string</returns>
-        protected bool CheckName(Site site, string name)
+        protected bool CheckName(Core.Object3D.Site site, string name)
         {
             return site.Information.Name.ToUpper().Contains(name.ToUpper());
         }
@@ -155,7 +155,7 @@ namespace HBP.UI.Module3D
         /// <param name="site">Site to check</param>
         /// <param name="patientName">Name to use for the checking</param>
         /// <returns>True if the site patient name contains the input string</returns>
-        protected bool CheckPatientName(Site site, string patientName)
+        protected bool CheckPatientName(Core.Object3D.Site site, string patientName)
         {
             return site.Information.Patient.Name.ToUpper().Contains(patientName.ToUpper());
         }
@@ -165,7 +165,7 @@ namespace HBP.UI.Module3D
         /// <param name="site">Site to check</param>
         /// <param name="patientPlace">Place to use for the checking</param>
         /// <returns>True if the site patient place contains the input string</returns>
-        protected bool CheckPatientPlace(Site site, string patientPlace)
+        protected bool CheckPatientPlace(Core.Object3D.Site site, string patientPlace)
         {
             return site.Information.Patient.Place.ToUpper().Contains(patientPlace.ToUpper());
         }
@@ -175,9 +175,9 @@ namespace HBP.UI.Module3D
         /// <param name="site">Site to check</param>
         /// <param name="patientDateString">Date to use for the checking</param>
         /// <returns>True if the site patient date contains the input string</returns>
-        protected bool CheckPatientDate(Site site, string patientDateString)
+        protected bool CheckPatientDate(Core.Object3D.Site site, string patientDateString)
         {
-            if (global::Tools.CSharp.NumberExtension.TryParseFloat(patientDateString, out float patientDate))
+            if (NumberExtension.TryParseFloat(patientDateString, out float patientDate))
             {
                 return site.Information.Patient.Date == patientDate;
             }
@@ -193,7 +193,7 @@ namespace HBP.UI.Module3D
         /// <param name="tag">Tag to be checked</param>
         /// <param name="tagValueToCompare">Value to be compared to the value of the tag</param>
         /// <returns></returns>
-        protected bool CheckTag(Site site, Data.BaseTag tag, string tagValueToCompare)
+        protected bool CheckTag(Core.Object3D.Site site, Data.BaseTag tag, string tagValueToCompare)
         {
             if (tag != null)
             {
@@ -214,7 +214,7 @@ namespace HBP.UI.Module3D
         /// <param name="superior">True if the condition is "above", false otherwise</param>
         /// <param name="stringValue">Value to be compared</param>
         /// <returns>True if the mean of the values matches the condition</returns>
-        protected bool CheckMean(Site site, bool superior, string stringValue, int start = 0, int end = 0)
+        protected bool CheckMean(Core.Object3D.Site site, bool superior, string stringValue, int start = 0, int end = 0)
         {
             if (site.Statistics != null)
             {
@@ -233,7 +233,7 @@ namespace HBP.UI.Module3D
         /// <param name="superior">True if the condition is "above", false otherwise</param>
         /// <param name="stringValue">Value to be compared</param>
         /// <returns>True if the median of the values matches the condition</returns>
-        protected bool CheckMedian(Site site, bool superior, string stringValue, int start = 0, int end = 0)
+        protected bool CheckMedian(Core.Object3D.Site site, bool superior, string stringValue, int start = 0, int end = 0)
         {
             if (site.Statistics != null)
             {
@@ -252,7 +252,7 @@ namespace HBP.UI.Module3D
         /// <param name="superior">True if the condition is "above", false otherwise</param>
         /// <param name="stringValue">Value to be compared</param>
         /// <returns>True if the maximum value matches the condition</returns>
-        protected bool CheckMax(Site site, bool superior, string stringValue, int start = 0, int end = 0)
+        protected bool CheckMax(Core.Object3D.Site site, bool superior, string stringValue, int start = 0, int end = 0)
         {
             if (site.Statistics != null)
             {
@@ -271,7 +271,7 @@ namespace HBP.UI.Module3D
         /// <param name="superior">True if the condition is "above", false otherwise</param>
         /// <param name="stringValue">Value to be compared</param>
         /// <returns>True if the minimum value matches the condition</returns>
-        protected bool CheckMin(Site site, bool superior, string stringValue, int start = 0, int end = 0)
+        protected bool CheckMin(Core.Object3D.Site site, bool superior, string stringValue, int start = 0, int end = 0)
         {
             if (site.Statistics != null)
             {
@@ -290,7 +290,7 @@ namespace HBP.UI.Module3D
         /// <param name="superior">True if the condition is "above", false otherwise</param>
         /// <param name="stringValue">Value to be compared</param>
         /// <returns>True if the standard deviation matches the condition</returns>
-        protected bool CheckStandardDeviation(Site site, bool superior, string stringValue, int start = 0, int end = 0)
+        protected bool CheckStandardDeviation(Core.Object3D.Site site, bool superior, string stringValue, int start = 0, int end = 0)
         {
             if (site.Statistics != null)
             {
@@ -339,7 +339,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="sites">List of the sites to be checked using the set of conditions defined in the subclasses</param>
         /// <returns>Coroutine return</returns>
-        public IEnumerator c_FilterSitesWithConditions(List<Site> sites)
+        public IEnumerator c_FilterSitesWithConditions(List<Core.Object3D.Site> sites)
         {
             int length = sites.Count;
             Exception exception = null;
@@ -347,7 +347,7 @@ namespace HBP.UI.Module3D
             {
                 try
                 {
-                    Site site = sites[i];
+                    Core.Object3D.Site site = sites[i];
                     bool match = CheckConditions(site);
                     if (match)
                     {
@@ -368,7 +368,7 @@ namespace HBP.UI.Module3D
                     yield return Ninja.JumpToUnity;
                     while (m_MatchingSites.Count > 0)
                     {
-                        Site filteredSite = m_MatchingSites.Dequeue();
+                        Core.Object3D.Site filteredSite = m_MatchingSites.Dequeue();
                         filteredSite.State.IsFiltered = true;
                     }
                     OnFilter.Invoke((float)(i + 1) / length);

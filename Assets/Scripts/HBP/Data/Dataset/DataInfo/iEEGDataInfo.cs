@@ -191,34 +191,5 @@ namespace HBP.Data.Experience.Dataset
             return m_iEEGErrors;
         }
         #endregion
-
-        #region Errors
-        public class BlocsCantBeEpochedError : Error
-        {
-            #region Constructors
-            public BlocsCantBeEpochedError() : this("")
-            {
-
-            }
-            public BlocsCantBeEpochedError(string message) : base("At least one of the blocs of the protocol can't be epoched", message)
-            {
-                 
-            }
-            #endregion
-        }
-        public class ChannelNotFoundError : Error
-        {
-            #region Constructors
-            public ChannelNotFoundError() : this("")
-            {
-
-            }
-            public ChannelNotFoundError(string message) : base("The specified channel could not be found in the data container", message)
-            {
-
-            }
-            #endregion
-        }
-        #endregion
     }
 }

@@ -120,7 +120,7 @@ namespace HBP.Module3D
         /// Instantiate all the gameObjects representing the sites on the scene
         /// </summary>
         /// <param name="implantation">Implantation to be instantiated</param>
-        public void InstantiateImplantation(Implantation3D implantation)
+        public void InstantiateImplantation(Core.Object3D.Implantation3D implantation)
         {
             foreach (Transform sitePatient in m_SitesMeshesParent)
             {
@@ -224,7 +224,7 @@ namespace HBP.Module3D
         /// Instantiate a ROI on the scene
         /// </summary>
         /// <returns>The ROI object that has been instantiated</returns>
-        public ROI InstantiateROI()
+        public Core.Object3D.ROI InstantiateROI()
         {
             return Instantiate(m_ROIPrefab, m_ROIParent).GetComponent<ROI>();
         }

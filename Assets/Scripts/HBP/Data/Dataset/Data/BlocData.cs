@@ -15,7 +15,7 @@ namespace HBP.Data.Experience.Dataset
                 return Trials.Length > 0 && Trials.Any(t => t.IsValid);
             }
         }
-        public Tools.CSharp.EEG.Frequency Frequency { get; set; }
+        public Core.Tools.Frequency Frequency { get; set; }
         public Trial[] Trials { get; set; }
         #endregion
 

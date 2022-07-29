@@ -5,23 +5,23 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace HBP.Module3D.DLL
+namespace HBP.Core.DLL
 {
     public class FMRIGenerator : ActivityGenerator
     {
         #region Public Methods
-        public void ComputeActivity(Column3DFMRI column)
+        public void ComputeActivity(IEnumerable<Volume> volumes)
         {
-            HandleRef[] volumeHandleRefs = column.ColumnFMRIData.Data.FMRIs.SelectMany(fmri => fmri.Item1.Volumes).Select(v => v.getHandle()).ToArray();
+            HandleRef[] volumeHandleRefs = volumes.Select(v => v.getHandle()).ToArray();
             compute_activity_FMRIGenerator(_handle, volumeHandleRefs, volumeHandleRefs.Length);
         }
-        public void AdjustValues(Column3DFMRI column)
+        public void AdjustValues(float fmriNegativeCalMinFactor, float fmriNegativeCalMaxFactor, float fmriPositiveCalMinFactor, float fmriPositiveCalMaxFactor)
         {
-            adjust_values_FMRIGenerator(_handle, column.FMRIParameters.FMRINegativeCalMinFactor, column.FMRIParameters.FMRINegativeCalMaxFactor, column.FMRIParameters.FMRIPositiveCalMinFactor, column.FMRIParameters.FMRIPositiveCalMaxFactor);
+            adjust_values_FMRIGenerator(_handle, fmriNegativeCalMinFactor, fmriNegativeCalMaxFactor, fmriPositiveCalMinFactor, fmriPositiveCalMaxFactor);
         }
-        public void HideExtremeValues(Column3DFMRI column)
+        public void HideExtremeValues(bool hideLower, bool hideMiddle, bool hideHigher)
         {
-            set_hide_values_FMRIGenerator(_handle, column.FMRIParameters.HideLowerValues, column.FMRIParameters.HideMiddleValues, column.FMRIParameters.HideHigherValues);
+            set_hide_values_FMRIGenerator(_handle, hideLower, hideMiddle, hideHigher);
         }
         #endregion
 

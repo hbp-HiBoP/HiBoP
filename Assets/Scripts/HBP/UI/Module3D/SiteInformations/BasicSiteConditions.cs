@@ -97,7 +97,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="site">Site to check</param>
         /// <returns>True if all conditions match</returns>
-        private bool CheckState(Site site)
+        private bool CheckState(Core.Object3D.Site site)
         {
             bool result = true;
             if (m_Highlighted.isOn) result &= CheckHighlighted(site);
@@ -112,7 +112,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="site">Site to check</param>
         /// <returns>True if all conditions match</returns>
-        private bool CheckPosition(Site site)
+        private bool CheckPosition(Core.Object3D.Site site)
         {
             bool result = true;
             if (m_InROI.isOn) result &= CheckInROI(site);
@@ -130,7 +130,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="site">Site to check</param>
         /// <returns>True if all conditions match</returns>
-        private bool CheckInformation(Site site)
+        private bool CheckInformation(Core.Object3D.Site site)
         {
             bool result = true;
             if (m_SiteName.isOn) result &= CheckName(site, m_SiteNameFilter.text);
@@ -157,7 +157,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="site">Site to check</param>
         /// <returns>True if all conditions match</returns>
-        private bool CheckValues(Site site)
+        private bool CheckValues(Core.Object3D.Site site)
         {
             bool result = true;
             if (m_Mean.isOn) result &= CheckMean(site, m_MeanSuperior.isOn, m_MeanValue.text);
@@ -172,7 +172,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="site">Site to check</param>
         /// <returns>True if the conditions are met</returns>
-        protected override bool CheckConditions(Site site)
+        protected override bool CheckConditions(Core.Object3D.Site site)
         {
             return CheckState(site) && CheckPosition(site) && CheckInformation(site) && CheckValues(site);
         }

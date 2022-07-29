@@ -25,9 +25,9 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Textures of the histograms (one per MRI)
         /// </summary>
-        private Dictionary<MRI3D, Texture2D> m_HistogramByMRI = new Dictionary<MRI3D, Texture2D>();
+        private Dictionary<Core.Object3D.MRI3D, Texture2D> m_HistogramByMRI = new Dictionary<Core.Object3D.MRI3D, Texture2D>();
 
-        private Queue<MRI3D> m_HistogramsToBeDestroyed = new Queue<MRI3D>();
+        private Queue<Core.Object3D.MRI3D> m_HistogramsToBeDestroyed = new Queue<Core.Object3D.MRI3D>();
 
         /// <summary>
         /// Used to display the current histogram
@@ -60,7 +60,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Update MRI Histogram Texture
         /// </summary>
-        private void UpdateMRIHistogram(MRI3D mri3D)
+        private void UpdateMRIHistogram(Core.Object3D.MRI3D mri3D)
         {
             UnityEngine.Profiling.Profiler.BeginSample("HISTOGRAM MRI");
             if (!m_HistogramByMRI.TryGetValue(mri3D, out m_MRIHistogram))
@@ -69,7 +69,7 @@ namespace HBP.UI.Module3D
                 {
                     m_MRIHistogram = new Texture2D(1, 1);
                 }
-                HBP.Module3D.DLL.Texture texture = HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(mri3D.Volume, 440, 440);
+                Core.DLL.Texture texture = Core.DLL.Texture.GenerateDistributionHistogram(mri3D.Volume, 440, 440);
                 texture.UpdateTexture2D(m_MRIHistogram);
                 texture.Dispose();
                 m_HistogramByMRI.Add(mri3D, m_MRIHistogram);
@@ -130,7 +130,7 @@ namespace HBP.UI.Module3D
         {
             m_Initialized = false;
 
-            MRICalValues values = scene.MRIManager.SelectedMRI.Volume.ExtremeValues;
+            Core.Tools.MRICalValues values = scene.MRIManager.SelectedMRI.Volume.ExtremeValues;
             float amplitude = values.Max - values.Min;
             float min = (values.ComputedCalMin - values.Min) / amplitude;
             float max = 1.0f - (values.Max - values.ComputedCalMax) / amplitude;
@@ -160,7 +160,7 @@ namespace HBP.UI.Module3D
         {
             while (m_HistogramsToBeDestroyed.Count > 0)
             {
-                MRI3D histogramID = m_HistogramsToBeDestroyed.Dequeue();
+                Core.Object3D.MRI3D histogramID = m_HistogramsToBeDestroyed.Dequeue();
                 if (m_HistogramByMRI.TryGetValue(histogramID, out Texture2D texture))
                 {
                     DestroyImmediate(texture);

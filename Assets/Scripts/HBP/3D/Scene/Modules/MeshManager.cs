@@ -27,11 +27,11 @@ namespace HBP.Module3D
         /// <summary>
         /// List of all the meshes of the scene
         /// </summary>
-        public List<Mesh3D> Meshes { get; set; } = new List<Mesh3D>();
+        public List<Core.Object3D.Mesh3D> Meshes { get; set; } = new List<Core.Object3D.Mesh3D>();
         /// <summary>
         /// List of all the loaded meshes
         /// </summary>
-        public List<Mesh3D> LoadedMeshes { get { return (from mesh in Meshes where mesh.IsLoaded select mesh).ToList(); } }
+        public List<Core.Object3D.Mesh3D> LoadedMeshes { get { return (from mesh in Meshes where mesh.IsLoaded select mesh).ToList(); } }
         /// <summary>
         /// Selected Mesh3D ID
         /// </summary>
@@ -39,7 +39,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Selected Mesh3D
         /// </summary>
-        public Mesh3D SelectedMesh
+        public Core.Object3D.Mesh3D SelectedMesh
         {
             get
             {
@@ -49,7 +49,7 @@ namespace HBP.Module3D
         /// <summary>
         /// List of all the preloaded meshes of the scene
         /// </summary>
-        public Dictionary<Data.Patient, List<Mesh3D>> PreloadedMeshes { get; set; } = new Dictionary<Data.Patient, List<Mesh3D>>();
+        public Dictionary<Data.Patient, List<Core.Object3D.Mesh3D>> PreloadedMeshes { get; set; } = new Dictionary<Data.Patient, List<Core.Object3D.Mesh3D>>();
 
         /// <summary>
         /// Mesh part to be displayed in the scene
@@ -58,11 +58,11 @@ namespace HBP.Module3D
         /// <summary>
         /// Mesh being displayed in the scene
         /// </summary>
-        public DLL.Surface BrainSurface { get; private set; }
+        public Core.DLL.Surface BrainSurface { get; private set; }
         /// <summary>
         /// Simplified mesh to be used in the scene
         /// </summary>
-        public DLL.Surface SimplifiedMeshToUse { get; private set; }
+        public Core.DLL.Surface SimplifiedMeshToUse { get; private set; }
         /// <summary>
         /// Center of the loaded mesh
         /// </summary>
@@ -80,7 +80,7 @@ namespace HBP.Module3D
             {
                 if (mesh is Data.LeftRightMesh)
                 {
-                    LeftRightMesh3D mesh3D = new LeftRightMesh3D((Data.LeftRightMesh)mesh, Data.Enums.MeshType.Patient, ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading);
+                    Core.Object3D.LeftRightMesh3D mesh3D = new Core.Object3D.LeftRightMesh3D((Data.LeftRightMesh)mesh, Data.Enums.MeshType.Patient, ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading);
 
                     if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
                     {
@@ -102,7 +102,7 @@ namespace HBP.Module3D
                 }
                 else if (mesh is Data.SingleMesh)
                 {
-                    SingleMesh3D mesh3D = new SingleMesh3D((Data.SingleMesh)mesh, Data.Enums.MeshType.Patient, ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading);
+                    Core.Object3D.SingleMesh3D mesh3D = new Core.Object3D.SingleMesh3D((Data.SingleMesh)mesh, Data.Enums.MeshType.Patient, ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading);
 
                     if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
                     {
@@ -136,11 +136,11 @@ namespace HBP.Module3D
         {
             if (mesh.IsUsable)
             {
-                if (!PreloadedMeshes.ContainsKey(patient)) PreloadedMeshes.Add(patient, new List<Mesh3D>());
+                if (!PreloadedMeshes.ContainsKey(patient)) PreloadedMeshes.Add(patient, new List<Core.Object3D.Mesh3D>());
                 if (mesh is Data.LeftRightMesh)
-                    PreloadedMeshes[patient].Add(new LeftRightMesh3D((Data.LeftRightMesh)mesh, Data.Enums.MeshType.Patient, true));
+                    PreloadedMeshes[patient].Add(new Core.Object3D.LeftRightMesh3D((Data.LeftRightMesh)mesh, Data.Enums.MeshType.Patient, true));
                 else if (mesh is Data.SingleMesh)
-                    PreloadedMeshes[patient].Add(new SingleMesh3D((Data.SingleMesh)mesh, Data.Enums.MeshType.Patient, true));
+                    PreloadedMeshes[patient].Add(new Core.Object3D.SingleMesh3D((Data.SingleMesh)mesh, Data.Enums.MeshType.Patient, true));
             }
         }
         /// <summary>
@@ -209,7 +209,7 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateMeshesInformation()
         {
-            if (SelectedMesh is LeftRightMesh3D selectedMesh)
+            if (SelectedMesh is Core.Object3D.LeftRightMesh3D selectedMesh)
             {
                 switch (MeshPartToDisplay)
                 {

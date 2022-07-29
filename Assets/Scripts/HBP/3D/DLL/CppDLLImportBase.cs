@@ -1,17 +1,8 @@
-﻿
-/**
- * \file    CppDLLImportBase.cs
- * \author  Lance Florian
- * \date    10/02/2016
- * \brief   Define CppDLLImportBase
- */
-
-// system
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 
 
-namespace Tools.DLL
+namespace HBP.Core.DLL
 {
     /// <summary>
     /// Base class for creating C++ Dll import classes

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace HBP.Module3D
+namespace HBP.Core.Object3D
 {
     public class FMRI
     {

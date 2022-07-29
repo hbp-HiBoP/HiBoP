@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace HBP.Module3D.DLL
+namespace HBP.Core.DLL
 {
     /// <summary>
     /// Class used to handle the different meshes of the scene within the DLL
@@ -12,7 +12,7 @@ namespace HBP.Module3D.DLL
     /// This class allows the loading of mesh files and some heavy computation on the meshes
     /// It is used to get and process information on the vertex / triangle level of the mesh
     /// </remarks>
-    public class Surface : Tools.DLL.CppDLLImportBase, ICloneable
+    public class Surface : CppDLLImportBase, ICloneable
     {
         #region Properties
         /// <summary>
@@ -265,7 +265,7 @@ namespace HBP.Module3D.DLL
         /// <param name="noHoles">If true, the cut meshes will have no holes</param>
         /// <param name="strongCuts">If true, everything in front of any cut will be cut; if false, everything in front of every cuts will be cut</param>
         /// <returns>Resulting surfaces array (the first element is the cut mesh, every other elements are the different cut meshes</returns>
-        public Surface[] Cut(Cut[] cutPlanes, bool noHoles = false, bool strongCuts = true)
+        public Surface[] Cut(Object3D.Cut[] cutPlanes, bool noHoles = false, bool strongCuts = true)
         {
             // check planes
             if (cutPlanes.Length <= 0)
@@ -306,7 +306,7 @@ namespace HBP.Module3D.DLL
         /// <param name="noHoles">If true, the cut meshes will have no holes</param>
         /// <param name="strongCuts">If true, everything in front of any cut will be cut; if false, everything in front of every cuts will be cut</param>
         /// <returns>Array of the cut meshes</returns>
-        public List<Surface> GenerateCutSurfaces(List<Cut> cutPlanes, bool noHoles = false, bool strongCuts = true)
+        public List<Surface> GenerateCutSurfaces(List<Object3D.Cut> cutPlanes, bool noHoles = false, bool strongCuts = true)
         {
             // check planes
             if (cutPlanes.Count <= 0)
@@ -356,7 +356,7 @@ namespace HBP.Module3D.DLL
         /// <param name="cutPlane">Cut plane to compute the offset for</param>
         /// <param name="nbCuts">Number of desired cuts</param>
         /// <returns>Value of the offset</returns>
-        public float SizeOffsetCutPlane(Plane cutPlane, int nbCuts)
+        public float SizeOffsetCutPlane(Object3D.Plane cutPlane, int nbCuts)
         {            
             return size_offset_cut_plane_Surface(_handle, cutPlane.ConvertToArray(), nbCuts);
         }
@@ -511,7 +511,7 @@ namespace HBP.Module3D.DLL
         /// </summary>
         /// <param name="cuts">Cuts to consider when computing the bounding box</param>
         /// <returns>The cube bounding box created</returns>
-        public BBox GetCubeBoundingBox(Cut[] cuts)
+        public BBox GetCubeBoundingBox(Object3D.Cut[] cuts)
         {
             float[] planes = new float[cuts.Length * 6];
             int planesCount = 0;

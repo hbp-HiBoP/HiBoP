@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace HBP.Module3D
+namespace HBP.Core.Object3D
 {
     /// <summary>
     /// Class containing information about a site

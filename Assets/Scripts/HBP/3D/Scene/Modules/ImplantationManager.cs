@@ -25,7 +25,7 @@ namespace HBP.Module3D
         /// <summary>
         /// List of the implantation3Ds of the scene
         /// </summary>
-        public List<Implantation3D> Implantations { get; } = new List<Implantation3D>();
+        public List<Core.Object3D.Implantation3D> Implantations { get; } = new List<Core.Object3D.Implantation3D>();
         /// <summary>
         /// Selected implantation3D ID
         /// </summary>
@@ -33,7 +33,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Selected implantation3D
         /// </summary>
-        public Implantation3D SelectedImplantation
+        public Core.Object3D.Implantation3D SelectedImplantation
         {
             get
             {
@@ -44,7 +44,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Site to compare with when using the comparing site feature
         /// </summary>
-        public Site SiteToCompare { get; private set; }
+        public Core.Object3D.Site SiteToCompare { get; private set; }
         private bool m_ComparingSites;
         /// <summary>
         /// Are we comparing sites ?
@@ -88,9 +88,9 @@ namespace HBP.Module3D
         /// <param name="pts">List of pts files (one by patient)</param>
         /// <param name="marsAtlas">List of Mars Atlas files (one by patient)</param>
         /// <param name="patientIDs">List of patients IDs</param>
-        public void Add(string name, List<Implantation3D.SiteInfo> siteInfos, IEnumerable<Data.Patient> patients)
+        public void Add(string name, List<Core.Object3D.Implantation3D.SiteInfo> siteInfos, IEnumerable<Data.Patient> patients)
         {
-            Implantation3D implantation3D = new Implantation3D(name, siteInfos, patients);
+            Core.Object3D.Implantation3D implantation3D = new Core.Object3D.Implantation3D(name, siteInfos, patients);
             if (implantation3D.IsLoaded)
             {
                 Implantations.Add(implantation3D);
@@ -128,7 +128,7 @@ namespace HBP.Module3D
         {
             if (canDisplay)
             {
-                Site site = hit.collider.GetComponent<Site>();
+                Core.Object3D.Site site = hit.collider.GetComponent<Core.Object3D.Site>();
                 // Compute each required variable
                 int siteID = site.Information.Index;
                 string CCEPLatency = "none", CCEPAmplitude = "none";
@@ -167,11 +167,11 @@ namespace HBP.Module3D
                 {
                     displayMode = Data.Enums.SiteInformationDisplayMode.Anatomy;
                 }
-                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, displayMode, iEEGActivity.ToString("0.00"), iEEGUnit, CCEPAmplitude, CCEPLatency));
+                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(site, true, Input.mousePosition, displayMode, iEEGActivity.ToString("0.00"), iEEGUnit, CCEPAmplitude, CCEPLatency));
             }
             else
             {
-                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition));
+                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(null, false, Input.mousePosition));
             }
         }
         #endregion

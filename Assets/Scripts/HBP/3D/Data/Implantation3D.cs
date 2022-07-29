@@ -2,7 +2,7 @@
 using System.Linq;
 using UnityEngine;
 
-namespace HBP.Module3D
+namespace HBP.Core.Object3D
 {
     /// <summary>
     /// This class contains information about an Implantation and can load implantation files to DLL objects

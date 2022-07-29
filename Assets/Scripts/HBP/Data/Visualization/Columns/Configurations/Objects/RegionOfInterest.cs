@@ -15,11 +15,11 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public RegionOfInterest(Module3D.ROI roi)
+        public RegionOfInterest(Core.Object3D.ROI roi)
         {
             Name = roi.Name;
             Spheres = new List<Sphere>();
-            foreach (Module3D.Sphere sphere in roi.Spheres)
+            foreach (Core.Object3D.Sphere sphere in roi.Spheres)
             {
                 Spheres.Add(new Sphere(sphere.Position, sphere.Radius));
             }

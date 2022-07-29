@@ -77,7 +77,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Currently selected atlas
         /// </summary>
-        public BrainAtlas SelectedAtlas
+        public Core.DLL.BrainAtlas SelectedAtlas
         {
             get
             {
@@ -147,7 +147,7 @@ namespace HBP.Module3D
         {
             if (SelectedAtlas != null)
             {
-                int[] indices = SelectedAtlas is MarsAtlas ? m_MarsAtlasIndices : m_JuBrainAtlasIndices;
+                int[] indices = SelectedAtlas is Core.DLL.MarsAtlas ? m_MarsAtlasIndices : m_JuBrainAtlasIndices;
                 Color[] colors = SelectedAtlas.ConvertIndicesToColors(indices, HoveredArea);
                 m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh.colors = colors;
                 foreach (Column3D column in m_Scene.Columns)
@@ -168,7 +168,7 @@ namespace HBP.Module3D
                 string[] information = SelectedAtlas.GetInformation(HoveredArea);
                 if (information.Length == 5)
                 {
-                    ApplicationState.Module3D.OnDisplayAtlasInformation.Invoke(new AtlasInfo(true, Input.mousePosition, SelectedAtlas is MarsAtlas ? AtlasInfo.AtlasType.MarsAtlas : AtlasInfo.AtlasType.JuBrainAtlas, information[0] + "(" + HoveredArea + ")", information[1], information[2], information[3], information[4]));
+                    ApplicationState.Module3D.OnDisplayAtlasInformation.Invoke(new AtlasInfo(true, Input.mousePosition, SelectedAtlas is Core.DLL.MarsAtlas ? AtlasInfo.AtlasType.MarsAtlas : AtlasInfo.AtlasType.JuBrainAtlas, information[0] + "(" + HoveredArea + ")", information[1], information[2], information[3], information[4]));
                 }
                 else
                 {

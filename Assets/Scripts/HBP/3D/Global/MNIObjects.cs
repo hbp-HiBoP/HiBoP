@@ -3,7 +3,7 @@ using UnityEngine;
 using CielaSpike;
 using System.IO;
 
-namespace HBP.Module3D
+namespace HBP.Core.Object3D
 {
     /// <summary>
     /// Global class containing information about the MNI meshes and MRIs

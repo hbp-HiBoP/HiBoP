@@ -117,18 +117,18 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
-        public override void Initialize(int idColumn, Column baseColumn, Implantation3D implantation, List<GameObject> sceneSitePatientParent)
+        public override void Initialize(int idColumn, Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
 
-            ActivityGenerator = new IEEGGenerator();
+            ActivityGenerator = new Core.DLL.IEEGGenerator();
         }
         /// <summary>
         /// Update the sites of this column (when changing the implantation of the scene)
         /// </summary>
         /// <param name="implantation">Selected implantation</param>
         /// <param name="sceneSitePatientParent">List of the patient parent of the sites as instantiated in the scene</param>
-        public override void UpdateSites(Implantation3D implantation, List<GameObject> sceneSitePatientParent)
+        public override void UpdateSites(Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             base.UpdateSites(implantation, sceneSitePatientParent);
             
@@ -170,7 +170,7 @@ namespace HBP.Module3D
 
             for (int i = 0; i < Sites.Count; ++i)
             {
-                Site site = Sites[i];
+                Core.Object3D.Site site = Sites[i];
                 bool activity = site.IsActive;
                 SiteType siteType;
                 if (site.State.IsMasked || (site.State.IsOutOfROI && !showAllSites) || !site.State.IsFiltered)

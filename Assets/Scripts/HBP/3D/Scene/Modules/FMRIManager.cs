@@ -109,7 +109,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Currently used volume (depends on the type of fMRI we are displaying)
         /// </summary>
-        public DLL.Volume CurrentVolume
+        public Core.DLL.Volume CurrentVolume
         {
             get
             {

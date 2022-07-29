@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace HBP.Module3D.DLL
+namespace HBP.Core.DLL
 {
-    public class GeneratorSurface : Tools.DLL.CppDLLImportBase
+    public class GeneratorSurface : CppDLLImportBase
     {
         #region Properties
         public Surface Surface { get; private set; }

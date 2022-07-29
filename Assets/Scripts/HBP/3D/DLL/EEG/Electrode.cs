@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace Tools.CSharp.EEG
+namespace HBP.Core.DLL.EEG
 {
-    public class Electrode : DLL.CppDLLImportBase
+    public class Electrode : CppDLLImportBase
     {
         #region Properties
         /// <summary>

@@ -2,12 +2,12 @@
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace HBP.Module3D.DLL
+namespace HBP.Core.DLL
 {
     /// <summary>
     /// Class used to give information to the dll about the ROIs in the scene
     /// </summary>
-    public class ROI : Tools.DLL.CppDLLImportBase, IDisposable
+    public class ROI : CppDLLImportBase
     {
         #region Public Methods
         /// <summary>

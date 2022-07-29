@@ -6,6 +6,7 @@ using System.IO;
 using HBP.Module3D.DLL;
 using HBP.Data.Enums;
 using Tools.Unity;
+using HBP.Core;
 
 namespace HBP.Module3D
 {
@@ -102,7 +103,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Currently selected site
         /// </summary>
-        public Site SelectedSite { get; private set; }
+        public Core.Object3D.Site SelectedSite { get; private set; }
         /// <summary>
         /// Currently selected site ID
         /// </summary>
@@ -111,21 +112,21 @@ namespace HBP.Module3D
         /// <summary>
         /// Raw site list (used for DLL operations)
         /// </summary>
-        public RawSiteList RawElectrodes { get; protected set; } = new RawSiteList();
+        public Core.DLL.RawSiteList RawElectrodes { get; protected set; } = new Core.DLL.RawSiteList();
         /// <summary>
         /// Sites of this column
         /// </summary>
-        public List<Site> Sites { get; protected set; }
+        public List<Core.Object3D.Site> Sites { get; protected set; }
         /// <summary>
         /// Site state by site ID (used when changing the implantation to keep the state of sites common to both implantations)
         /// </summary>
-        public Dictionary<string, SiteState> SiteStateBySiteID = new Dictionary<string, SiteState>();
+        public Dictionary<string, Core.Object3D.SiteState> SiteStateBySiteID = new Dictionary<string, Core.Object3D.SiteState>();
         
-        public virtual ActivityGenerator ActivityGenerator { get; protected set; }
+        public virtual Core.DLL.ActivityGenerator ActivityGenerator { get; protected set; }
         /// <summary>
         /// Texture generator for the brain surface
         /// </summary>
-        public SurfaceGenerator SurfaceGenerator { get; set; }
+        public Core.DLL.SurfaceGenerator SurfaceGenerator { get; set; }
         /// <summary>
         /// Cut Textures Utility
         /// </summary>
@@ -181,11 +182,11 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when selecting a site
         /// </summary>
-        [HideInInspector] public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
+        [HideInInspector] public GenericEvent<Core.Object3D.Site> OnSelectSite = new GenericEvent<Core.Object3D.Site>();
         /// <summary>
         /// Event called each time we change the state of a site
         /// </summary>
-        [HideInInspector] public GenericEvent<Site> OnChangeSiteState = new GenericEvent<Site>();
+        [HideInInspector] public GenericEvent<Core.Object3D.Site> OnChangeSiteState = new GenericEvent<Core.Object3D.Site>();
         /// <summary>
         /// Event called when updating the alpha values
         /// </summary>
@@ -210,7 +211,7 @@ namespace HBP.Module3D
         /// <param name="baseColumn">Data of the column</param>
         /// <param name="implantation">Selected implantation</param>
         /// <param name="sceneSitePatientParent">List of the patient parent of the sites as instantiated in the scene</param>
-        public virtual void Initialize(int idColumn, Data.Visualization.Column baseColumn, Implantation3D implantation, List<GameObject> sceneSitePatientParent)
+        public virtual void Initialize(int idColumn, Data.Visualization.Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             Layer = "Column" + idColumn;
             ColumnData = baseColumn;
@@ -218,25 +219,25 @@ namespace HBP.Module3D
             UpdateSites(implantation, sceneSitePatientParent);
             AddView();
 
-            SurfaceGenerator = new SurfaceGenerator();
+            SurfaceGenerator = new Core.DLL.SurfaceGenerator();
         }
         /// <summary>
         /// Update the sites of this column (when changing the implantation of the scene)
         /// </summary>
         /// <param name="implantation">Selected implantation</param>
         /// <param name="sceneSitePatientParent">List of the patient parent of the sites as instantiated in the scene</param>
-        public virtual void UpdateSites(Implantation3D implantation, List<GameObject> sceneSitePatientParent)
+        public virtual void UpdateSites(Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             foreach (Transform patientSite in m_SitesMeshesParent)
             {
                 Destroy(patientSite.gameObject);
             }
-            Sites = new List<Site>();
+            Sites = new List<Core.Object3D.Site>();
 
             if (implantation == null) return;
 
-            Sites = new List<Site>(implantation.SiteInfos.Count);
-            RawElectrodes = new RawSiteList(implantation.RawSiteList);
+            Sites = new List<Core.Object3D.Site>(implantation.SiteInfos.Count);
+            RawElectrodes = new Core.DLL.RawSiteList(implantation.RawSiteList);
             for (int i = 0; i < sceneSitePatientParent.Count; ++i)
             {
                 Transform sceneSitePatient = sceneSitePatientParent[i].transform;
@@ -252,13 +253,13 @@ namespace HBP.Module3D
                         GameObject sceneSiteGameObject = sceneSiteElectrode.GetChild(k).gameObject;
                         GameObject siteGameObject = siteElectrode.GetChild(k).gameObject;
                         siteGameObject.layer = LayerMask.NameToLayer(Layer);
-                        Site site = siteGameObject.GetComponent<Site>();
-                        Site baseSite = sceneSiteGameObject.GetComponent<Site>();
+                        Core.Object3D.Site site = siteGameObject.GetComponent<Core.Object3D.Site>();
+                        Core.Object3D.Site baseSite = sceneSiteGameObject.GetComponent<Core.Object3D.Site>();
                         site.Information = baseSite.Information;
                         // State
-                        if (!SiteStateBySiteID.TryGetValue(baseSite.Information.FullID, out SiteState siteState))
+                        if (!SiteStateBySiteID.TryGetValue(baseSite.Information.FullID, out Core.Object3D.SiteState siteState))
                         {
-                            siteState = new SiteState();
+                            siteState = new Core.Object3D.SiteState();
                             siteState.ApplyState(baseSite.State);
                             SiteStateBySiteID.Add(baseSite.Information.FullID, siteState);
                         }
@@ -316,7 +317,7 @@ namespace HBP.Module3D
         /// Update the number of cuts (called when changing the number of cuts in the scene)
         /// </summary>
         /// <param name="nbCuts">Number of cuts</param>
-        public void UpdateCutsPlanesNumber(int nbCuts, List<CutGeometryGenerator> cutGeometryGenerators)
+        public void UpdateCutsPlanesNumber(int nbCuts, List<Core.DLL.CutGeometryGenerator> cutGeometryGenerators)
         {
             CutTextures.Resize(nbCuts, cutGeometryGenerators, ActivityGenerator);
         }
@@ -330,7 +331,7 @@ namespace HBP.Module3D
         {
             for (int i = 0; i < Sites.Count; ++i)
             {
-                Site site = Sites[i];
+                Core.Object3D.Site site = Sites[i];
                 bool activity = site.IsActive;
                 SiteType siteType;
                 if (site.State.IsMasked || (site.State.IsOutOfROI && !showAllSites) || !site.State.IsFiltered)
@@ -405,7 +406,7 @@ namespace HBP.Module3D
                     while ((line = sr.ReadLine()) != null)
                     {
                         string[] args = line.Split(',');
-                        SiteState state = new SiteState();
+                        Core.Object3D.SiteState state = new Core.Object3D.SiteState();
 
                         if (bool.TryParse(args[indices[1]], out bool stateValue))
                         {
@@ -431,7 +432,7 @@ namespace HBP.Module3D
                         }
                         else
                         {
-                            state.Color = SiteState.DefaultColor;
+                            state.Color = Core.Object3D.SiteState.DefaultColor;
                         }
 
                         string[] labels = args[indices[4]].Split(new char[] { ';' }, System.StringSplitOptions.RemoveEmptyEntries);
@@ -440,7 +441,7 @@ namespace HBP.Module3D
                             state.AddLabel(label);
                         }
 
-                        if (SiteStateBySiteID.TryGetValue(args[indices[0]], out SiteState existingState))
+                        if (SiteStateBySiteID.TryGetValue(args[indices[0]], out Core.Object3D.SiteState existingState))
                         {
                             existingState.ApplyState(state);
                         }
@@ -508,7 +509,7 @@ namespace HBP.Module3D
         /// <param name="siteName">Name of the site to select</param>
         public void SelectFirstOrDefaultSiteByName(string siteName = "")
         {
-            Site site;
+            Core.Object3D.Site site;
             if (!string.IsNullOrEmpty(siteName))
             {
                 site = Sites.FirstOrDefault(s => s.Information.Name == siteName);
@@ -575,8 +576,8 @@ namespace HBP.Module3D
             {
                 if (hit.transform.parent.gameObject.name == "Cuts") result = RaycastHitResult.Cut;
                 if (hit.transform.parent.gameObject.name == "Brains" || hit.transform.parent.gameObject.name == "Erased Brains") result = RaycastHitResult.Mesh;
-                if (hit.collider.GetComponent<Site>() != null) result = RaycastHitResult.Site;
-                if (hit.collider.GetComponent<Sphere>() != null) result = RaycastHitResult.ROI;
+                if (hit.collider.GetComponent<Core.Object3D.Site>() != null) result = RaycastHitResult.Site;
+                if (hit.collider.GetComponent<Core.Object3D.Sphere>() != null) result = RaycastHitResult.ROI;
             }
             return result;
         }
@@ -592,7 +593,7 @@ namespace HBP.Module3D
         {
             if (firstCall) ResetConfiguration();
             ActivityAlpha = ColumnData.BaseConfiguration.ActivityAlpha;
-            foreach (Site site in Sites)
+            foreach (Core.Object3D.Site site in Sites)
             {
                 site.LoadConfiguration(false);
             }
@@ -605,7 +606,7 @@ namespace HBP.Module3D
         public virtual void SaveConfiguration()
         {
             ColumnData.BaseConfiguration.ActivityAlpha = ActivityAlpha;
-            foreach (Site site in Sites)
+            foreach (Core.Object3D.Site site in Sites)
             {
                 site.SaveConfiguration();
             }
@@ -616,7 +617,7 @@ namespace HBP.Module3D
         public virtual void ResetConfiguration()
         {
             ActivityAlpha = 0.8f;
-            foreach (Site site in Sites)
+            foreach (Core.Object3D.Site site in Sites)
             {
                 site.ResetConfiguration();
             }

@@ -97,18 +97,18 @@ namespace HBP.Module3D
         /// Mars Atlas Index DLL Object
         /// This is used to get information about Mars Atlas and Brodmann areas (name, color etc.)
         /// </summary>
-        public DLL.MarsAtlas MarsAtlas { get; private set; } = new DLL.MarsAtlas();
+        public Core.DLL.MarsAtlas MarsAtlas { get; private set; } = new Core.DLL.MarsAtlas();
         /// <summary>
         /// JuBrain Atlas DLL Object
         /// This is used to get information about JuBrain Atlas areas (name, color etc.)
         /// </summary>
-        public DLL.JuBrainAtlas JuBrainAtlas { get; private set; } = new DLL.JuBrainAtlas();
+        public Core.DLL.JuBrainAtlas JuBrainAtlas { get; private set; } = new Core.DLL.JuBrainAtlas();
 
         /// <summary>
         /// MNI Objects
         /// Contains data for the MNI meshes and MRI
         /// </summary>
-        public MNIObjects MNIObjects;
+        public Core.Object3D.MNIObjects MNIObjects;
         /// <summary>
         /// IBC Objects
         /// Contains data for the IBC contrasts (fMRIs)
@@ -140,7 +140,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when hovering a site to display its information
         /// </summary>
-        [HideInInspector] public GenericEvent<SiteInfo> OnDisplaySiteInformation = new GenericEvent<SiteInfo>();
+        [HideInInspector] public GenericEvent<Core.Object3D.SiteInfo> OnDisplaySiteInformation = new GenericEvent<Core.Object3D.SiteInfo>();
         /// <summary>
         /// Event called when hovering a atlas area to display its information
         /// </summary>

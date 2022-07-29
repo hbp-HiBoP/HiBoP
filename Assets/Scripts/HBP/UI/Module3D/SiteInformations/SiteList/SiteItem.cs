@@ -7,7 +7,7 @@ namespace HBP.UI.Module3D
     /// <summary>
     /// Component to display a module3D site in a list.
     /// </summary>
-    public class SiteItem : Item<HBP.Module3D.Site>
+    public class SiteItem : Item<Core.Object3D.Site>
     {
         #region Properties
         [SerializeField] private Button m_Site;
@@ -25,7 +25,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Site to display.
         /// </summary>
-        public override HBP.Module3D.Site Object
+        public override Core.Object3D.Site Object
         {
             get
             {

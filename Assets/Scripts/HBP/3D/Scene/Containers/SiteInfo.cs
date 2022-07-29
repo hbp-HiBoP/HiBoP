@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.Module3D
+namespace HBP.Core.Object3D
 {
     /// <summary>
     /// Small class containing information about a site

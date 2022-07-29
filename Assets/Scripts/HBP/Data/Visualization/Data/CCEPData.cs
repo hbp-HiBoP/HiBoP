@@ -14,8 +14,8 @@ namespace HBP.Data.Visualization
         public Dictionary<string, Dictionary<string, float[]>> ProcessedValuesByChannelIDByStimulatedChannelID { get; set; } = new Dictionary<string, Dictionary<string, float[]>>();
         public Dictionary<string, Dictionary<string, string>> UnityByChannelIDByStimulatedChannelID { get; set; } = new Dictionary<string, Dictionary<string, string>>();
 
-        private Dictionary<string, Dictionary<string, Tools.CSharp.EEG.Frequency>> m_FrequencyByChannelIDByStimulatedChannelID = new Dictionary<string, Dictionary<string, Tools.CSharp.EEG.Frequency>>();
-        public List<Tools.CSharp.EEG.Frequency> Frequencies = new List<Tools.CSharp.EEG.Frequency>();
+        private Dictionary<string, Dictionary<string, Core.Tools.Frequency>> m_FrequencyByChannelIDByStimulatedChannelID = new Dictionary<string, Dictionary<string, Core.Tools.Frequency>>();
+        public List<Core.Tools.Frequency> Frequencies = new List<Core.Tools.Frequency>();
         #endregion
 
         #region Public Methods
@@ -60,7 +60,7 @@ namespace HBP.Data.Visualization
             m_FrequencyByChannelIDByStimulatedChannelID.Clear();
             Frequencies.Clear();
         }
-        public void SetTimeline(Tools.CSharp.EEG.Frequency maxFrequency, Experience.Protocol.Bloc columnBloc, IEnumerable<Experience.Protocol.Bloc> blocs)
+        public void SetTimeline(Core.Tools.Frequency maxFrequency, Experience.Protocol.Bloc columnBloc, IEnumerable<Experience.Protocol.Bloc> blocs)
         {
             // Process frequencies
             Frequencies.Add(maxFrequency);

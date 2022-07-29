@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace Tools.CSharp.EEG
+namespace HBP.Core.DLL.EEG
 {
-    public class Trigger : DLL.CppDLLImportBase
+    public class Trigger : CppDLLImportBase
     {
         #region
         /// <summary>

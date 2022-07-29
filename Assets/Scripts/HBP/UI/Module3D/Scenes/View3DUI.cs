@@ -200,7 +200,7 @@ namespace HBP.UI.Module3D
         /// Callback method when selecting a site
         /// </summary>
         /// <param name="site">Site that has been selected</param>
-        private void OnSelectSite(Site site)
+        private void OnSelectSite(Core.Object3D.Site site)
         {
             m_SelectionRing.Site = site;
             UpdateCorrelationsOverlay();
@@ -219,7 +219,7 @@ namespace HBP.UI.Module3D
                 if (m_Scene.DisplayCorrelations)
                 {
                     // If using the CompareSite feature, keep the site to compare focused
-                    Site baseSite = m_Scene.ImplantationManager.SiteToCompare != null ? m_Scene.ImplantationManager.SiteToCompare : column.SelectedSite;
+                    Core.Object3D.Site baseSite = m_Scene.ImplantationManager.SiteToCompare != null ? m_Scene.ImplantationManager.SiteToCompare : column.SelectedSite;
                     if (baseSite != null)
                     {
                         foreach (var correlatedSite in column.CorrelatedSites(baseSite))
@@ -298,7 +298,7 @@ namespace HBP.UI.Module3D
         {
             if (IsMinimized) return;
 
-            ROI selectedROI = m_Scene.ROIManager.SelectedROI;
+            Core.Object3D.ROI selectedROI = m_Scene.ROIManager.SelectedROI;
             if (m_Scene.ROIManager.ROICreationMode && selectedROI)
             {
                 if (selectedROI.SelectedSphereID != -1)
@@ -322,7 +322,7 @@ namespace HBP.UI.Module3D
         public void OnPointerExit(PointerEventData eventData)
         {
             m_PointerIsInView = false;
-            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition));
+            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(null, false, Input.mousePosition));
         }
         /// <summary>
         /// Initialize the View3DUI

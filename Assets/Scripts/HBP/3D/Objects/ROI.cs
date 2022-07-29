@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace HBP.Module3D
+namespace HBP.Core.Object3D
 {
     /// <summary>
     /// Class containing information about a Region Of Interest in the scene
@@ -194,7 +194,7 @@ namespace HBP.Module3D
         public void AddSphere(string layer, string name, Vector3 position, float radius)
         {
             m_Layer = LayerMask.NameToLayer(layer);
-            Sphere sphere = Instantiate(m_SpherePrefab, transform).GetComponent<Sphere>();
+            HBP.Module3D.Sphere sphere = Instantiate(m_SpherePrefab, transform).GetComponent<Sphere>();
             sphere.Initialize(m_Layer, name, radius, position);
             sphere.OnChangeRadius.AddListener(() =>
             {

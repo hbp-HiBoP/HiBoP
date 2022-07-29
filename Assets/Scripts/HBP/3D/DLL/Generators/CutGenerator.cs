@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace HBP.Module3D.DLL
+namespace HBP.Core.DLL
 {
-    public class CutGenerator : Tools.DLL.CppDLLImportBase
+    public class CutGenerator : CppDLLImportBase
     {
         #region Properties
         public ActivityGenerator ActivityGenerator { get; private set; }

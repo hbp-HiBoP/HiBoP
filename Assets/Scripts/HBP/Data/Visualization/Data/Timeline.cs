@@ -24,7 +24,7 @@ namespace HBP.Data.Visualization
         /// </summary>
         public float TimeLength { get; protected set; }
 
-        public Tools.CSharp.EEG.Frequency Frequency { get; protected set; }
+        public Core.Tools.Frequency Frequency { get; protected set; }
 
         protected int m_CurrentIndex;
         /// <summary>
@@ -137,7 +137,7 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public Timeline(Bloc bloc, Dictionary<SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc, Dictionary<SubBloc, int> indexBySubBloc, Tools.CSharp.EEG.Frequency frequency)
+        public Timeline(Bloc bloc, Dictionary<SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc, Dictionary<SubBloc, int> indexBySubBloc, Core.Tools.Frequency frequency)
         {
             Frequency = frequency;
             Unit = "ms";
@@ -190,9 +190,9 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Public Methods
-        public void Update(Module3D.FMRI fmri)
+        public void Update(Core.Object3D.FMRI fmri)
         {
-            Frequency = new Tools.CSharp.EEG.Frequency(1);
+            Frequency = new Core.Tools.Frequency(1);
             Unit = "dt";
             Length = fmri.Volumes.Count;
             TimeLength = fmri.Volumes.Count - 1;
@@ -221,7 +221,7 @@ namespace HBP.Data.Visualization
         /// </summary>
         public float TimeLength { get { return MaxTime - MinTime; } }
         
-        public Tools.CSharp.EEG.Frequency Frequency { get; private set; }
+        public Core.Tools.Frequency Frequency { get; private set; }
 
         private int m_GlobalMinIndex;
         /// <summary>
@@ -272,19 +272,19 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public SubTimeline(Module3D.FMRI fmri)
+        public SubTimeline(Core.Object3D.FMRI fmri)
         {
             Length = fmri.Volumes.Count;
             Before = 0;
             After = 0;
-            Frequency = new Tools.CSharp.EEG.Frequency(1);
+            Frequency = new Core.Tools.Frequency(1);
             MinTime = 0;
             MaxTime = fmri.Volumes.Count - 1;
             FirstSampleTime = MinTime;
             LastSampleTime = MaxTime;
             TimeStep = 1;
         }
-        public SubTimeline(SubBloc subBloc, int startIndex, List<SubBlocEventsStatistics> eventStatistics, int maxBefore, int maxAfter, Tools.CSharp.EEG.Frequency frequency)
+        public SubTimeline(SubBloc subBloc, int startIndex, List<SubBlocEventsStatistics> eventStatistics, int maxBefore, int maxAfter, Core.Tools.Frequency frequency)
         {
             Frequency = frequency;
 

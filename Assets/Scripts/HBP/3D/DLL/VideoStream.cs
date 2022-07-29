@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace HBP.Module3D.DLL
+namespace HBP.Core.DLL
 {
-    public class VideoStream : Tools.DLL.CppDLLImportBase
+    public class VideoStream : CppDLLImportBase
     {
         #region Public Methods
         public void Open(string path, int width, int height, float fps)

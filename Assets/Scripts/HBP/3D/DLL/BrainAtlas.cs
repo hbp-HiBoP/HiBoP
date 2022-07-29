@@ -2,12 +2,12 @@
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace HBP.Module3D.DLL
+namespace HBP.Core.DLL
 {
     /// <summary>
     /// Base class for anatomical brain atlases
     /// </summary>
-    public abstract class BrainAtlas : Tools.DLL.CppDLLImportBase
+    public abstract class BrainAtlas : CppDLLImportBase
     {
         #region Properties
         /// <summary>

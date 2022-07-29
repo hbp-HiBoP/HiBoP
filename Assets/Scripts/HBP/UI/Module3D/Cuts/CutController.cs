@@ -103,7 +103,7 @@ namespace HBP.UI.Module3D
         /// Add a new cut to the cut controller
         /// </summary>
         /// <param name="cut">Cut that has been added to the scene</param>
-        private void AddCut(Cut cut)
+        private void AddCut(Core.Object3D.Cut cut)
         {
             CutParametersController controller = Instantiate(m_CutControlPrefab, m_Content).GetComponent<CutParametersController>();
             controller.Initialize(m_Scene, cut);
@@ -142,7 +142,7 @@ namespace HBP.UI.Module3D
                 m_CutParametersControllers.Last().OpenControls();
             });
 
-            foreach (Cut cut in m_Scene.Cuts)
+            foreach (Core.Object3D.Cut cut in m_Scene.Cuts)
             {
                 AddCut(cut);
             }

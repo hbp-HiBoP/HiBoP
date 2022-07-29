@@ -80,11 +80,11 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
-        public override void Initialize(int idColumn, Column baseColumn, Implantation3D implantation, List<GameObject> sceneSitePatientParent)
+        public override void Initialize(int idColumn, Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
 
-            ActivityGenerator = new FMRIGenerator();
+            ActivityGenerator = new Core.DLL.FMRIGenerator();
             SelectedFMRIIndex = 0;
         }
         /// <summary>

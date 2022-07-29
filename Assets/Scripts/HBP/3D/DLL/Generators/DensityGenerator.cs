@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace HBP.Module3D.DLL
+namespace HBP.Core.DLL
 {
     public class DensityGenerator : ActivityGenerator
     {
@@ -13,9 +13,9 @@ namespace HBP.Module3D.DLL
         #endregion
 
         #region Public Methods
-        public void ComputeActivity(Column3DAnatomy column)
+        public void ComputeActivity(RawSiteList rawElectrodes, float influenceDistance, Data.Enums.SiteInfluenceByDistanceType influenceByDistance)
         {
-            compute_activity_DensityGenerator(_handle, column.RawElectrodes.getHandle(), column.AnatomyParameters.InfluenceDistance, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+            compute_activity_DensityGenerator(_handle, rawElectrodes.getHandle(), influenceDistance, (int)influenceByDistance);
         }
         #endregion
 

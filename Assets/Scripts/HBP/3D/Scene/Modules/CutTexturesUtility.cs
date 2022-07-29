@@ -18,19 +18,19 @@ namespace HBP.Module3D
         /// <summary>
         /// Color scheme for the cut
         /// </summary>
-        public DLL.Texture DLLCutColorScheme;
+        public Core.DLL.Texture DLLCutColorScheme;
         /// <summary>
         /// Generator for the MRI textures of the cuts
         /// </summary>
-        public List<CutGenerator> CutGenerators = new List<CutGenerator>();
+        public List<Core.DLL.CutGenerator> CutGenerators = new List<Core.DLL.CutGenerator>();
         /// <summary>
         /// DLL textures for the cuts for the 3D
         /// </summary>
-        public List<DLL.Texture> DLLBrainCutTextures = new List<DLL.Texture>();
+        public List<Core.DLL.Texture> DLLBrainCutTextures = new List<Core.DLL.Texture>();
         /// <summary>
         /// DLL textures for the cuts for the GUI
         /// </summary>
-        public List<DLL.Texture> DLLGUIBrainCutTextures = new List<DLL.Texture>();
+        public List<Core.DLL.Texture> DLLGUIBrainCutTextures = new List<Core.DLL.Texture>();
         /// <summary>
         /// Unity textures for the cuts for the 3D
         /// </summary>
@@ -50,15 +50,15 @@ namespace HBP.Module3D
         /// Resize every lists
         /// </summary>
         /// <param name="size">New size for the lists</param>
-        public void Resize(int size, List<CutGeometryGenerator> cutGeometryGenerators, ActivityGenerator activityGenerator)
+        public void Resize(int size, List<Core.DLL.CutGeometryGenerator> cutGeometryGenerators, Core.DLL.ActivityGenerator activityGenerator)
         {
             while (Size < size)
             {
                 BrainCutTextures.Add(Texture2DExtension.Generate());
                 GUIBrainCutTextures.Add(Texture2DExtension.Generate(1, 1, -10, 9, FilterMode.Point));
-                DLLBrainCutTextures.Add(new DLL.Texture());
-                DLLGUIBrainCutTextures.Add(new DLL.Texture());
-                CutGenerators.Add(new CutGenerator());
+                DLLBrainCutTextures.Add(new Core.DLL.Texture());
+                DLLGUIBrainCutTextures.Add(new Core.DLL.Texture());
+                CutGenerators.Add(new Core.DLL.CutGenerator());
                 Size++;
             }
             while (Size > size)
@@ -87,9 +87,9 @@ namespace HBP.Module3D
         /// <param name="indexCut">Index of the cut</param>
         /// <param name="MRICalMinFactor">Cal Min Factor</param>
         /// <param name="MRICalMaxFactor">Cal Max Factor</param>
-        public void CreateMRITexture(Volume volume, int indexCut, float MRICalMinFactor, float MRICalMaxFactor, int blurFactor)
+        public void CreateMRITexture(Core.DLL.Volume volume, int indexCut, float MRICalMinFactor, float MRICalMaxFactor, int blurFactor)
         {
-            CutGenerator cutGenerator = CutGenerators[indexCut];
+            Core.DLL.CutGenerator cutGenerator = CutGenerators[indexCut];
             UnityEngine.Profiling.Profiler.BeginSample("FillTextureWithVolume");
             cutGenerator.FillTextureWithVolume(DLLCutColorScheme, MRICalMinFactor, MRICalMaxFactor);
             UnityEngine.Profiling.Profiler.EndSample();
@@ -100,9 +100,9 @@ namespace HBP.Module3D
         /// Create MRI textures for the GUI
         /// </summary>
         /// <param name="cuts">Cuts of these textures</param>
-        public void CreateGUIMRITextures(List<Cut> cuts)
+        public void CreateGUIMRITextures(List<Core.Object3D.Cut> cuts)
         {
-            foreach (Cut cut in cuts)
+            foreach (Core.Object3D.Cut cut in cuts)
             {
                 if (DLLBrainCutTextures[cut.ID].Height > 0)
                 {
@@ -115,9 +115,9 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="cuts"></param>
         /// <param name="rawList"></param>
-        public void DrawSitesOnMRITextures(List<Cut> cuts, RawSiteList rawList)
+        public void DrawSitesOnMRITextures(List<Core.Object3D.Cut> cuts, Core.DLL.RawSiteList rawList)
         {
-            foreach (Cut cut in cuts)
+            foreach (Core.Object3D.Cut cut in cuts)
             {
                 if (DLLBrainCutTextures[cut.ID].Height > 0)
                 {
@@ -129,7 +129,7 @@ namespace HBP.Module3D
         /// Resize the MRI textures for the GUI to squares
         /// </summary>
         /// <param name="cuts">Cuts of these textures</param>
-        public void ResizeGUIMRITextures(List<Cut> cuts)
+        public void ResizeGUIMRITextures(List<Core.Object3D.Cut> cuts)
         {
             int max = 0;
             foreach (var cut in cuts)
@@ -180,34 +180,34 @@ namespace HBP.Module3D
 
             for (int i = 0; i < CutGenerators.Count; ++i)
             {
-                CutGenerator generator = CutGenerators[i];
+                Core.DLL.CutGenerator generator = CutGenerators[i];
                 generator.FillTextureWithActivity(DLLCutColorScheme, timelineIndex, Column.ActivityAlpha);
 
-                DLL.Texture cutTexture = DLLBrainCutTextures[i];
+                Core.DLL.Texture cutTexture = DLLBrainCutTextures[i];
                 generator.UpdateTextureWithActivity(cutTexture);
                 cutTexture.UpdateTexture2D(BrainCutTextures[i]);
             }
         }
-        public void ColorCutsTexturesWithBrainAtlas(BrainAtlas selectedAtlas, float alpha, int selectedArea)
+        public void ColorCutsTexturesWithBrainAtlas(Core.DLL.BrainAtlas selectedAtlas, float alpha, int selectedArea)
         {
             for (int i = 0; i < CutGenerators.Count; i++)
             {
-                CutGenerator generator = CutGenerators[i];
+                Core.DLL.CutGenerator generator = CutGenerators[i];
                 generator.FillTextureWithAtlas(selectedAtlas, alpha, selectedArea);
 
-                DLL.Texture cutTexture = DLLBrainCutTextures[i];
+                Core.DLL.Texture cutTexture = DLLBrainCutTextures[i];
                 generator.UpdateTextureWithAtlas(cutTexture);
                 cutTexture.UpdateTexture2D(BrainCutTextures[i]);
             }
         }
-        public void ColorCutsTexturesWithFMRIAtlas(Volume volume, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha)
+        public void ColorCutsTexturesWithFMRIAtlas(Core.DLL.Volume volume, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha)
         {
             for (int i = 0; i < CutGenerators.Count; i++)
             {
-                CutGenerator generator = CutGenerators[i];
+                Core.DLL.CutGenerator generator = CutGenerators[i];
                 generator.FillTextureWithFMRI(volume, negativeMin, negativeMax, positiveMin, positiveMax, alpha);
 
-                DLL.Texture cutTexture = DLLBrainCutTextures[i];
+                Core.DLL.Texture cutTexture = DLLBrainCutTextures[i];
                 generator.UpdateTextureWithAtlas(cutTexture);
                 cutTexture.UpdateTexture2D(BrainCutTextures[i]);
             }
@@ -220,7 +220,7 @@ namespace HBP.Module3D
         public void ResetColorSchemes(Data.Enums.ColorType colormap, Data.Enums.ColorType colorBrainCut)
         {
             DLLCutColorScheme?.Dispose();
-            DLLCutColorScheme = DLL.Texture.Generate2DColorTexture(colorBrainCut, colormap);
+            DLLCutColorScheme = Core.DLL.Texture.Generate2DColorTexture(colorBrainCut, colormap);
         }
         /// <summary>
         /// Clean the Cut Textures Utility class

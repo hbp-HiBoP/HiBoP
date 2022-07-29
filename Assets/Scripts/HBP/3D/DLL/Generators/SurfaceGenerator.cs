@@ -5,9 +5,9 @@ using System.Runtime.InteropServices;
 using Tools.CSharp;
 using UnityEngine;
 
-namespace HBP.Module3D.DLL
+namespace HBP.Core.DLL
 {
-    public class SurfaceGenerator : Tools.DLL.CppDLLImportBase
+    public class SurfaceGenerator : CppDLLImportBase
     {
         #region Properties
         public ActivityGenerator ActivityGenerator { get; private set; }

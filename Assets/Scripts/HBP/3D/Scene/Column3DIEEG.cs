@@ -38,11 +38,11 @@ namespace HBP.Module3D
         /// <summary>
         /// Correlation between two sites
         /// </summary>
-        public Dictionary<Site, Dictionary<Site, float>> CorrelationBySitePair { get; set; } = new Dictionary<Site, Dictionary<Site, float>>();
+        public Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>> CorrelationBySitePair { get; set; } = new Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>>();
         /// <summary>
         /// Correlation between two sites
         /// </summary>
-        public Dictionary<Site, Dictionary<Site, float>> CorrelationMeanBySitePair { get; set; } = new Dictionary<Site, Dictionary<Site, float>>();
+        public Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>> CorrelationMeanBySitePair { get; set; } = new Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>>();
         /// <summary>
         /// Are the correlations between site pairs computed ?
         /// </summary>
@@ -62,7 +62,7 @@ namespace HBP.Module3D
             ActivityValuesBySiteID = new float[sitesCount][];
             ActivityUnitsBySiteID = new string[sitesCount];
             int numberOfSitesWithValues = 0;
-            foreach (Site site in Sites)
+            foreach (Core.Object3D.Site site in Sites)
             {
                 if (ColumnIEEGData.Data.ProcessedValuesByChannel.TryGetValue(site.Information.FullID, out float[] values))
                 {
@@ -142,7 +142,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="implantation">Selected implantation</param>
         /// <param name="sceneSitePatientParent">List of the patient parent of the sites as instantiated in the scene</param>
-        public override void UpdateSites(Implantation3D implantation, List<GameObject> sceneSitePatientParent)
+        public override void UpdateSites(Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             base.UpdateSites(implantation, sceneSitePatientParent);
 
@@ -157,7 +157,7 @@ namespace HBP.Module3D
             CorrelationBySitePair.Clear();
             CorrelationMeanBySitePair.Clear();
             onChangeProgress?.Invoke(0, 0, new LoadingText("Computing correlations"));
-            Dictionary<Site, List<double[]>> valuesByChannel = new Dictionary<Site, List<double[]>>();
+            Dictionary<Core.Object3D.Site, List<double[]>> valuesByChannel = new Dictionary<Core.Object3D.Site, List<double[]>>();
             foreach (var site in Sites)
             {
                 if (site.Data != null && !site.State.IsBlackListed)
@@ -180,8 +180,8 @@ namespace HBP.Module3D
             foreach (var kv1 in valuesByChannel)
             {
                 onChangeProgress?.Invoke((float)progressCount++ / siteCount, 0, new LoadingText("Computing correlations for ", string.Format("{0} in {1}", kv1.Key.Information.Name, Name)));
-                Dictionary<Site, float> correlation = new Dictionary<Site, float>();
-                Dictionary<Site, float> mean = new Dictionary<Site, float>();
+                Dictionary<Core.Object3D.Site, float> correlation = new Dictionary<Core.Object3D.Site, float>();
+                Dictionary<Core.Object3D.Site, float> mean = new Dictionary<Core.Object3D.Site, float>();
                 int numberOfTrials = kv1.Value.Count;
 
                 foreach (var kv2 in valuesByChannel)
@@ -212,13 +212,13 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="siteA">Input site to search for correlated sites</param>
         /// <returns>List of correlated sites</returns>
-        public List<Site> CorrelatedSites(Site site)
+        public List<Core.Object3D.Site> CorrelatedSites(Core.Object3D.Site site)
         {
             int siteCount = CorrelationBySitePair.Count;
-            List<Site> result = new List<Site>();
+            List<Core.Object3D.Site> result = new List<Core.Object3D.Site>();
             if (AreCorrelationsComputed)
             {
-                if (CorrelationBySitePair.TryGetValue(site, out Dictionary<Site, float> correlationBySite))
+                if (CorrelationBySitePair.TryGetValue(site, out Dictionary<Core.Object3D.Site, float> correlationBySite))
                 {
                     foreach (var s in Sites)
                     {

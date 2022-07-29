@@ -169,7 +169,7 @@ namespace HBP.UI.Module3D
         /// Set the position of this object on the screen
         /// </summary>
         /// <param name="siteInfo">Information about how to display the information of the site</param>
-        void SetPosition(HBP.Module3D.SiteInfo siteInfo)
+        void SetPosition(Core.Object3D.SiteInfo siteInfo)
         {
             transform.position = siteInfo.Position + new Vector3(0, -20, 0);
         }
@@ -177,7 +177,7 @@ namespace HBP.UI.Module3D
         /// Set the site information (name)
         /// </summary>
         /// <param name="site">Site to display information of</param>
-        void SetSite(HBP.Module3D.Site site)
+        void SetSite(Core.Object3D.Site site)
         {
             m_SiteNameText.text = site.Information.Name;
         }
@@ -193,7 +193,7 @@ namespace HBP.UI.Module3D
         /// Set the states of the site (highlighted, blacklisted)
         /// </summary>
         /// <param name="site">Site to display information of</param>
-        void SetStates(HBP.Module3D.Site site)
+        void SetStates(Core.Object3D.Site site)
         {
             m_IsBlackListedImage.gameObject.SetActive(site.State.IsBlackListed);
             m_IsHighlightedImage.gameObject.SetActive(site.State.IsHighlighted);
@@ -202,7 +202,7 @@ namespace HBP.UI.Module3D
         /// Set the CCEP values of the site (amplitude, latency)
         /// </summary>
         /// <param name="siteInfo">Information about how to display the information of the site</param>
-        void SetCCEP(HBP.Module3D.SiteInfo siteInfo)
+        void SetCCEP(Core.Object3D.SiteInfo siteInfo)
         {
             m_CCEPAmplitudeText.text = siteInfo.CCEPAmplitude;
             m_CCEPLatencyText.text = siteInfo.CCEPLatency;
@@ -211,7 +211,7 @@ namespace HBP.UI.Module3D
         /// Set the iEEG values of the site (amplitude)
         /// </summary>
         /// <param name="siteInfo">Information about how to display the information of the site</param>
-        void SetIEEG(HBP.Module3D.SiteInfo siteInfo)
+        void SetIEEG(Core.Object3D.SiteInfo siteInfo)
         {
             string unit = siteInfo.IEEGUnit;
             if (unit == "microV") unit = "mV";
@@ -222,7 +222,7 @@ namespace HBP.UI.Module3D
         /// Set the atlases of the site (Mars atlas, Brodmann, Freesurfer)
         /// </summary>
         /// <param name="siteInfo">Information about how to display the information of the site</param>
-        void SetTags(HBP.Module3D.SiteInfo siteInfo)
+        void SetTags(Core.Object3D.SiteInfo siteInfo)
         {
             if (siteInfo.Site && siteInfo.Site.Information.SiteData.Tags.Count > 0)
             {

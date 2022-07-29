@@ -9,7 +9,7 @@ namespace HBP.Data.Experience.Dataset
         #region Properties
         public virtual Dictionary<string, float[]> ValuesByChannel { get; set; }
         public virtual Dictionary<string, string> UnitByChannel { get; set; }
-        public virtual Tools.CSharp.EEG.Frequency Frequency { get; set; }
+        public virtual Core.Tools.Frequency Frequency { get; set; }
         protected Dictionary<int, List<EventOccurence>> m_OccurencesByCode;
         #endregion
 
@@ -25,10 +25,10 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Constructors
-        public DynamicData() : this(new Dictionary<string, float[]>(), new Dictionary<string, string>(), new Tools.CSharp.EEG.Frequency())
+        public DynamicData() : this(new Dictionary<string, float[]>(), new Dictionary<string, string>(), new Core.Tools.Frequency())
         {
         }
-        public DynamicData(Dictionary<string, float[]> valuesBySite, Dictionary<string, string> unitBySite, Tools.CSharp.EEG.Frequency frequency)
+        public DynamicData(Dictionary<string, float[]> valuesBySite, Dictionary<string, string> unitBySite, Core.Tools.Frequency frequency)
         {
             ValuesByChannel = valuesBySite;
             UnitByChannel = unitBySite;
@@ -37,43 +37,43 @@ namespace HBP.Data.Experience.Dataset
         public DynamicData(DataInfo dataInfo) : this()
         {
             // Read Data.
-            Tools.CSharp.EEG.File.FileType type;
+            Core.DLL.EEG.File.FileType type;
             string[] files;
             if (dataInfo.DataContainer is Container.BrainVision brainVisionDataContainer)
             {
-                type = Tools.CSharp.EEG.File.FileType.BrainVision;
+                type = Core.DLL.EEG.File.FileType.BrainVision;
                 files = new string[] { brainVisionDataContainer.Header };
             }
             else if (dataInfo.DataContainer is Container.EDF edfDataContainer)
             {
-                type = Tools.CSharp.EEG.File.FileType.EDF;
+                type = Core.DLL.EEG.File.FileType.EDF;
                 files = new string[] { edfDataContainer.File };
             }
             else if (dataInfo.DataContainer is Container.Elan elanDataContainer)
             {
-                type = Tools.CSharp.EEG.File.FileType.ELAN;
+                type = Core.DLL.EEG.File.FileType.ELAN;
                 files = new string[] { elanDataContainer.EEG, elanDataContainer.POS, elanDataContainer.Notes };
             }
             else if (dataInfo.DataContainer is Container.Micromed micromedDataContainer)
             {
-                type = Tools.CSharp.EEG.File.FileType.Micromed;
+                type = Core.DLL.EEG.File.FileType.Micromed;
                 files = new string[] { micromedDataContainer.Path };
             }
             else if (dataInfo.DataContainer is Container.FIF fifDataContainer)
             {
-                type = Tools.CSharp.EEG.File.FileType.FIF;
+                type = Core.DLL.EEG.File.FileType.FIF;
                 files = new string[] { fifDataContainer.File };
             }
             else
             {
                 throw new Exception("Invalid data container type");
             }
-            Tools.CSharp.EEG.File file = new Tools.CSharp.EEG.File(type, true, files);
+            Core.DLL.EEG.File file = new Core.DLL.EEG.File(type, true, files);
             if (file.getHandle().Handle == IntPtr.Zero)
             {
                 throw new Exception("Data file could not be loaded");
             }
-            List<Tools.CSharp.EEG.Electrode> channels = file.Electrodes;
+            List<Core.DLL.EEG.Electrode> channels = file.Electrodes;
             foreach (var channel in channels)
             {
                 ValuesByChannel.Add(channel.Label, channel.Data);
@@ -81,7 +81,7 @@ namespace HBP.Data.Experience.Dataset
             }
             Frequency = file.SamplingFrequency;
             m_OccurencesByCode = new Dictionary<int, List<EventOccurence>>();
-            List<Tools.CSharp.EEG.Trigger> events = file.Triggers;
+            List<Core.DLL.EEG.Trigger> events = file.Triggers;
             foreach (var _event in events)
             {
                 int code = _event.Code;

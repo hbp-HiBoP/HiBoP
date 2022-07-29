@@ -1,4 +1,4 @@
-﻿namespace HBP.Module3D
+﻿namespace HBP.Core.Tools
 {
     /// <summary>
     /// Class containing information about how to render the MRI

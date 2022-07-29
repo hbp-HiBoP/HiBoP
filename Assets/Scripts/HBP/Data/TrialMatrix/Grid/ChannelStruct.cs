@@ -58,7 +58,7 @@ namespace HBP.Data.Informations
             Patient = patient;
             IsBlacklisted = isBlacklisted;
         }
-        public ChannelStruct(Module3D.Site site)
+        public ChannelStruct(Core.Object3D.Site site)
         {
             Channel = site.Information.Name;
             Patient = site.Information.Patient;

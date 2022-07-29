@@ -22,7 +22,7 @@ namespace HBP.Data.Experience.Dataset
         {
             SubTrialBySubBloc = subTrialBySubBloc;
         }
-        public Trial(Dictionary<string,float[]> valuesByChannel, Dictionary<string, string> unitByChannel,  int startIndex, EventOccurence mainEventOccurence, int endIndex, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Bloc bloc, Tools.CSharp.EEG.Frequency frequency) : this()
+        public Trial(Dictionary<string,float[]> valuesByChannel, Dictionary<string, string> unitByChannel,  int startIndex, EventOccurence mainEventOccurence, int endIndex, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Bloc bloc, Core.Tools.Frequency frequency) : this()
         {
             SubTrialBySubBloc = new Dictionary<SubBloc, SubTrial>(bloc.SubBlocs.Count); // Initialize dictionary
 

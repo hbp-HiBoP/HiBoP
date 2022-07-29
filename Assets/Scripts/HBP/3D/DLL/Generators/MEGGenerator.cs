@@ -5,23 +5,23 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace HBP.Module3D.DLL
+namespace HBP.Core.DLL
 {
     public class MEGGenerator : ActivityGenerator
     {
         #region Public Methods
-        public void ComputeActivity(Column3DMEG column)
+        public void ComputeActivity(IEnumerable<Volume> volumes)
         {
-            HandleRef[] volumeHandleRefs = column.ColumnMEGData.Data.MEGItems.SelectMany(fmri => fmri.FMRI.Volumes).Select(v => v.getHandle()).ToArray();
+            HandleRef[] volumeHandleRefs = volumes.Select(v => v.getHandle()).ToArray();
             compute_activity_MEGGenerator(_handle, volumeHandleRefs, volumeHandleRefs.Length);
         }
-        public void AdjustValues(Column3DMEG column)
+        public void AdjustValues(float fmriNegativeCalMinFactor, float fmriNegativeCalMaxFactor, float fmriPositiveCalMinFactor, float fmriPositiveCalMaxFactor)
         {
-            adjust_values_MEGGenerator(_handle, column.MEGParameters.FMRINegativeCalMinFactor, column.MEGParameters.FMRINegativeCalMaxFactor, column.MEGParameters.FMRIPositiveCalMinFactor, column.MEGParameters.FMRIPositiveCalMaxFactor);
+            adjust_values_MEGGenerator(_handle, fmriNegativeCalMinFactor, fmriNegativeCalMaxFactor, fmriPositiveCalMinFactor, fmriPositiveCalMaxFactor);
         }
-        public void HideExtremeValues(Column3DMEG column)
+        public void HideExtremeValues(bool hideLower, bool hideMiddle, bool hideHigher)
         {
-            set_hide_values_MEGGenerator(_handle, column.MEGParameters.HideLowerValues, column.MEGParameters.HideMiddleValues, column.MEGParameters.HideHigherValues);
+            set_hide_values_MEGGenerator(_handle, hideLower, hideMiddle, hideHigher);
         }
         #endregion
 

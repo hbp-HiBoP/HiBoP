@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Tools.CSharp.EEG
+namespace HBP.Core.Tools
 {
     public class Frequency
     {

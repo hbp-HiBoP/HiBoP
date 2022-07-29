@@ -15,8 +15,8 @@ namespace HBP.Data.Visualization
         public Dictionary<string, float[]> ProcessedValuesByChannel { get; set; } = new Dictionary<string, float[]>();
         public Dictionary<string, string> UnitByChannelID { get; set; } = new Dictionary<string, string>();
 
-        private Dictionary<string, Tools.CSharp.EEG.Frequency> m_FrequencyByChannelID = new Dictionary<string, Tools.CSharp.EEG.Frequency>();
-        private List<Tools.CSharp.EEG.Frequency> m_Frequencies = new List<Tools.CSharp.EEG.Frequency>();
+        private Dictionary<string, Core.Tools.Frequency> m_FrequencyByChannelID = new Dictionary<string, Core.Tools.Frequency>();
+        private List<Core.Tools.Frequency> m_Frequencies = new List<Core.Tools.Frequency>();
         public float MaxFrequency { get { return m_Frequencies.Count > 0 ? m_Frequencies.Max(f => f.RawValue) : 0; } }
         #endregion
 
@@ -51,7 +51,7 @@ namespace HBP.Data.Visualization
             m_Frequencies.Clear();
             ProcessedValuesByChannel.Clear();
         }
-        public void SetTimeline(Tools.CSharp.EEG.Frequency maxFrequency, Experience.Protocol.Bloc columnBloc, IEnumerable<Experience.Protocol.Bloc> blocs)
+        public void SetTimeline(Core.Tools.Frequency maxFrequency, Experience.Protocol.Bloc columnBloc, IEnumerable<Experience.Protocol.Bloc> blocs)
         {
             // Process frequencies
             m_Frequencies.Add(maxFrequency);
@@ -91,7 +91,7 @@ namespace HBP.Data.Visualization
             foreach (var channelID in DataByChannelID.Keys)
             {
                 List<float> values = new List<float>();
-                Tools.CSharp.EEG.Frequency frequency = m_FrequencyByChannelID[channelID];
+                Core.Tools.Frequency frequency = m_FrequencyByChannelID[channelID];
                 BlocChannelStatistics statistics = StatisticsByChannelID[channelID];
                 foreach (var subBloc in columnBloc.OrderedSubBlocs)
                 {

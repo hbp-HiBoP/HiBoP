@@ -6,13 +6,13 @@ namespace HBP.UI.Module3D
     /// <summary>
     /// List to display Module3D sites.
     /// </summary>
-    public class SiteList : List<HBP.Module3D.Site>
+    public class SiteList : List<Core.Object3D.Site>
     {
         #region Properties
         /// <summary>
         /// List of module3D sites.
         /// </summary>
-        public System.Collections.Generic.List<HBP.Module3D.Site> ObjectsList
+        public System.Collections.Generic.List<Core.Object3D.Site> ObjectsList
         {
             get
             {

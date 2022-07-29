@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace HBP.Module3D.DLL
+namespace HBP.Core.DLL
 {
-    public abstract class ActivityGenerator : Tools.DLL.CppDLLImportBase
+    public abstract class ActivityGenerator : CppDLLImportBase
     {
         #region Properties
         public float Progress { get { return get_progress_ActivityGenerator(_handle); } }

@@ -1,5 +1,5 @@
 ﻿using Tools.CSharp;
-using Tools.CSharp.EEG;
+using HBP.Core.Tools;
 using System;
 using System.Runtime.Serialization;
 using System.ComponentModel;

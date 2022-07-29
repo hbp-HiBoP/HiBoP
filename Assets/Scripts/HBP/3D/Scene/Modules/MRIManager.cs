@@ -26,11 +26,11 @@ namespace HBP.Module3D
         /// <summary>
         /// List of the MRIs of the scene
         /// </summary>
-        public List<MRI3D> MRIs { get; set; } = new List<MRI3D>();
+        public List<Core.Object3D.MRI3D> MRIs { get; set; } = new List<Core.Object3D.MRI3D>();
         /// <summary>
         /// List of loaded MRIs
         /// </summary>
-        public List<MRI3D> LoadedMRIs { get { return (from mri in MRIs where mri.IsLoaded select mri).ToList(); } }
+        public List<Core.Object3D.MRI3D> LoadedMRIs { get { return (from mri in MRIs where mri.IsLoaded select mri).ToList(); } }
         /// <summary>
         /// Selected MRI3D ID
         /// </summary>
@@ -38,7 +38,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Selected MRI3D
         /// </summary>
-        public MRI3D SelectedMRI
+        public Core.Object3D.MRI3D SelectedMRI
         {
             get
             {
@@ -48,7 +48,7 @@ namespace HBP.Module3D
         /// <summary>
         /// List of the preloaded MRIs of the scene
         /// </summary>
-        public Dictionary<Data.Patient, List<MRI3D>> PreloadedMRIs { get; set; } = new Dictionary<Data.Patient, List<MRI3D>>();
+        public Dictionary<Data.Patient, List<Core.Object3D.MRI3D>> PreloadedMRIs { get; set; } = new Dictionary<Data.Patient, List<Core.Object3D.MRI3D>>();
         /// <summary>
         /// Min calibration factor (between 0 and 1)
         /// </summary>
@@ -73,7 +73,7 @@ namespace HBP.Module3D
         {
             if (mri.IsUsable)
             {
-                MRI3D mri3D = new MRI3D(mri, ApplicationState.UserPreferences.Data.Anatomic.MRIPreloading);
+                Core.Object3D.MRI3D mri3D = new Core.Object3D.MRI3D(mri, ApplicationState.UserPreferences.Data.Anatomic.MRIPreloading);
                 if (ApplicationState.UserPreferences.Data.Anatomic.MRIPreloading)
                 {
                     if (mri3D.IsLoaded)
@@ -101,8 +101,8 @@ namespace HBP.Module3D
         {
             if (mri.IsUsable)
             {
-                if (!PreloadedMRIs.ContainsKey(patient)) PreloadedMRIs.Add(patient, new List<MRI3D>());
-                PreloadedMRIs[patient].Add(new MRI3D(mri, true));
+                if (!PreloadedMRIs.ContainsKey(patient)) PreloadedMRIs.Add(patient, new List<Core.Object3D.MRI3D>());
+                PreloadedMRIs[patient].Add(new Core.Object3D.MRI3D(mri, true));
             }
         }
         /// <summary>

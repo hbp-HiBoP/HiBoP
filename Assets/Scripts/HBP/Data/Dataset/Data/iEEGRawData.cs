@@ -26,7 +26,7 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="pos">POS file.</param>
         /// <param name="frequency">Values frequency.</param>
         /// <param name="patient">Patient.</param>
-        public IEEGRawData(Dictionary<string,float[]> valuesBySite, Dictionary<string,string> unitBySite, Tools.CSharp.EEG.Frequency frequency, Patient patient): base(valuesBySite, unitBySite, frequency)
+        public IEEGRawData(Dictionary<string,float[]> valuesBySite, Dictionary<string,string> unitBySite, Core.Tools.Frequency frequency, Patient patient): base(valuesBySite, unitBySite, frequency)
         {
             Patient = patient;
         }

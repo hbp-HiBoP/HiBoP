@@ -218,7 +218,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         private void ChangeSitesStates()
         {
-            List<Site> sites = new List<Site>();
+            List<Core.Object3D.Site> sites = new List<Core.Object3D.Site>();
             if (m_AllColumnsToggle.isOn)
             {
                 foreach (var column in m_Scene.Columns)
@@ -256,7 +256,7 @@ namespace HBP.UI.Module3D
                 if (string.IsNullOrEmpty(csvPath)) return;
 
                 m_ProgressBar.Begin();
-                List<Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered).ToList();
+                List<Core.Object3D.Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered).ToList();
                 m_Coroutine = this.StartCoroutineAsync(c_ExportSites(sites, csvPath));
             }, new string[] { "csv" }, "Save sites to", Application.dataPath);
 #else
@@ -264,7 +264,7 @@ namespace HBP.UI.Module3D
             if (string.IsNullOrEmpty(csvPath)) return;
 
             m_ProgressBar.Begin();
-            List<Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered).ToList();
+            List<Core.Object3D.Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered).ToList();
             m_Coroutine = this.StartCoroutineAsync(c_ExportSites(sites, csvPath));
 #endif
         }
@@ -312,7 +312,7 @@ namespace HBP.UI.Module3D
         /// <param name="sites">List of the sites to export</param>
         /// <param name="csvPath">Path to the csv file</param>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_ExportSites(List<Site> sites, string csvPath)
+        private IEnumerator c_ExportSites(List<Core.Object3D.Site> sites, string csvPath)
         {
             int length = sites.Count;
 
@@ -320,7 +320,7 @@ namespace HBP.UI.Module3D
             Dictionary<Data.Patient, Data.Experience.Dataset.DataInfo>  dataInfoByPatient = new Dictionary<Data.Patient, Data.Experience.Dataset.DataInfo>();
             for (int i = 0; i < length; i++)
             {
-                HBP.Module3D.Site site = sites[i];
+                Core.Object3D.Site site = sites[i];
                 if (!dataInfoByPatient.ContainsKey(site.Information.Patient))
                 {
                     if (m_Scene.SelectedColumn is Column3DIEEG columnIEEG)
@@ -359,7 +359,7 @@ namespace HBP.UI.Module3D
             for (int i = 0; i < length; i++)
             {
                 // Get required values
-                Site site = sites[i];
+                Core.Object3D.Site site = sites[i];
                 Vector3 sitePosition = sitePositions[i];
                 Data.Experience.Dataset.DataInfo dataInfo = null;
                 if (m_Scene.SelectedColumn is Column3DDynamic columnIEEG)

@@ -4,22 +4,22 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace HBP.Module3D.DLL
+namespace HBP.Core.DLL
 {
     public class IEEGGenerator : ActivityGenerator
     {
         #region Public Methods
-        public void ComputeActivity(Column3DDynamic column)
+        public void ComputeActivity(RawSiteList rawElectrodes, float influenceDistance, float[] activityValues, int timelineLength, int numberOfSites, Data.Enums.SiteInfluenceByDistanceType siteInfluenceByDistance)
         {
-            compute_activity_IEEGGenerator(_handle, column.RawElectrodes.getHandle(), column.DynamicParameters.InfluenceDistance, column.ActivityValues, column.Timeline.Length, column.RawElectrodes.NumberOfSites, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+            compute_activity_IEEGGenerator(_handle, rawElectrodes.getHandle(), influenceDistance, activityValues, timelineLength, numberOfSites, (int)siteInfluenceByDistance);
         }
-        public void ComputeActivityAtlas(Column3DCCEP column)
+        public void ComputeActivityAtlas(float[] activityValues, int timelineLength, int[] areaMask, MarsAtlas marsAtlas)
         {
-            compute_activity_atlas_IEEGGenerator(_handle, column.ActivityValues, column.Timeline.Length, column.AreaMask, ApplicationState.Module3D.MarsAtlas.getHandle());
+            compute_activity_atlas_IEEGGenerator(_handle, activityValues, timelineLength, areaMask, marsAtlas.getHandle());
         }
-        public void AdjustValues(Column3DDynamic column)
+        public void AdjustValues(float middle, float spanMin, float spanMax)
         {
-            adjust_values_IEEGGenerator(_handle, column.DynamicParameters.Middle, column.DynamicParameters.SpanMin, column.DynamicParameters.SpanMax);
+            adjust_values_IEEGGenerator(_handle, middle, spanMin, spanMax);
         }
         #endregion
 

@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace HBP.Module3D.DLL
+namespace HBP.Core.DLL
 {
-    public class NIFTI : Tools.DLL.CppDLLImportBase
+    public class NIFTI : CppDLLImportBase
     {
         #region Properties
         /// <summary>
         /// Get the calibration values of the loaded MRI
         /// </summary>
-        public MRICalValues ExtremeValues
+        public Tools.MRICalValues ExtremeValues
         {
             get
             {
-                MRICalValues values = new MRICalValues();
+                Tools.MRICalValues values = new Tools.MRICalValues();
 
                 float[] valuesF = new float[2];
                 retrieveExtremeValues_NIFTI(_handle, valuesF);

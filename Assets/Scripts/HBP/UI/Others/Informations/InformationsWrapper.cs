@@ -242,11 +242,11 @@ namespace HBP.UI.Informations
             m_SceneData = new SceneData(columns);
             GridInformations.SetColumns(m_SceneData.Columns.ToArray());
         }
-        void GenerateChannelStructs(IEnumerable<Site> sites)
+        void GenerateChannelStructs(IEnumerable<Core.Object3D.Site> sites)
         {
             m_ChannelStructs = sites.Where(s => !s.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray(); // FIXME: it is better to show a "No data for site X" message instead of filtering by IsMasked
         }
-        void GenerateFilteredChannelStructs(IEnumerable<Site> sites)
+        void GenerateFilteredChannelStructs(IEnumerable<Core.Object3D.Site> sites)
         {
             m_FilteredChannelStructs = sites.Where(site => !site.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray();
         }
@@ -267,13 +267,13 @@ namespace HBP.UI.Informations
         #endregion
 
         #region Handlers
-        void OnSiteInformationRequestHandler(IEnumerable<Site> sites)
+        void OnSiteInformationRequestHandler(IEnumerable<Core.Object3D.Site> sites)
         {
             GenerateChannelStructs(sites);
             m_RequestSceneDataUpdate = true;
             m_RequestDisplayUpdate = true;
         }
-        void OnFilteredSitesRequestHandler(IEnumerable<Site> sites)
+        void OnFilteredSitesRequestHandler(IEnumerable<Core.Object3D.Site> sites)
         {
             GenerateFilteredChannelStructs(sites);
             m_RequestSceneDataUpdate = true;

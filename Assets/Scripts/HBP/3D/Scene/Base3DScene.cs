@@ -8,6 +8,7 @@ using CielaSpike;
 using HBP.Data.Visualization;
 using Tools.Unity;
 using System.IO;
+using HBP.Core;
 
 namespace HBP.Module3D
 {
@@ -73,7 +74,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Cuts planes list
         /// </summary>
-        public List<Cut> Cuts { get; } = new List<Cut>();
+        public List<Core.Object3D.Cut> Cuts { get; } = new List<Core.Object3D.Cut>();
 
         /// <summary>
         /// Information about the scene
@@ -182,16 +183,16 @@ namespace HBP.Module3D
             }
         }
 
-        private DLL.GeneratorSurface m_GeneratorSurface;
+        private Core.DLL.GeneratorSurface m_GeneratorSurface;
         /// <summary>
         /// Geometry generator for cuts
         /// </summary>
-        public List<DLL.CutGeometryGenerator> CutGeometryGenerators { get; set; } = new List<DLL.CutGeometryGenerator>();
+        public List<Core.DLL.CutGeometryGenerator> CutGeometryGenerators { get; set; } = new List<Core.DLL.CutGeometryGenerator>();
 
         /// <summary>
         /// Material used for the brain mesh
         /// </summary>
-        public BrainMaterials BrainMaterials { get; private set; }
+        public Core.Object3D.BrainMaterials BrainMaterials { get; private set; }
 
         private Data.Enums.ColorType m_BrainColor = Data.Enums.ColorType.BrainColor;
         /// <summary>
@@ -208,7 +209,7 @@ namespace HBP.Module3D
                 m_BrainColor = value;
 
                 BrainColorTexture = Texture2DExtension.Generate();
-                DLL.Texture tex = DLL.Texture.Generate1DColorTexture(value);
+                Core.DLL.Texture tex = Core.DLL.Texture.Generate1DColorTexture(value);
                 tex.UpdateTexture2D(BrainColorTexture);
                 tex.Dispose();
 
@@ -249,7 +250,7 @@ namespace HBP.Module3D
                 m_Colormap = value;
 
                 BrainColorMapTexture = Texture2DExtension.Generate();
-                DLL.Texture tex = DLL.Texture.Generate1DColorTexture(value);
+                Core.DLL.Texture tex = Core.DLL.Texture.Generate1DColorTexture(value);
                 tex.UpdateTexture2D(BrainColorMapTexture);
                 tex.Dispose();
 
@@ -637,7 +638,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when adding a cut to the scene
         /// </summary>
-        [HideInInspector] public GenericEvent<Cut> OnAddCut = new GenericEvent<Cut>();
+        [HideInInspector] public GenericEvent<Core.Object3D.Cut> OnAddCut = new GenericEvent<Core.Object3D.Cut>();
         /// <summary>
         /// Event called when cuts are updated
         /// </summary>
@@ -657,11 +658,11 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when site is clicked to dipslay additionnal infomation
         /// </summary>
-        [HideInInspector] public GenericEvent<IEnumerable<Site>> OnRequestSiteInformation = new GenericEvent<IEnumerable<Site>>();
+        [HideInInspector] public GenericEvent<IEnumerable<Core.Object3D.Site>> OnRequestSiteInformation = new GenericEvent<IEnumerable<Core.Object3D.Site>>();
         /// <summary>
         /// Event called when requesting a graph from the filtered sites in the siteactions panel
         /// </summary>
-        [HideInInspector] public GenericEvent<IEnumerable<Site>> OnRequestFilteredSitesGraph = new GenericEvent<IEnumerable<Site>>();
+        [HideInInspector] public GenericEvent<IEnumerable<Core.Object3D.Site>> OnRequestFilteredSitesGraph = new GenericEvent<IEnumerable<Core.Object3D.Site>>();
         /// <summary>
         /// Event called when ieeg are outdated or not anymore
         /// </summary>
@@ -693,7 +694,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when selecting a site on a column
         /// </summary>
-        [HideInInspector] public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
+        [HideInInspector] public GenericEvent<Core.Object3D.Site> OnSelectSite = new GenericEvent<Core.Object3D.Site>();
         /// <summary>
         /// Event called when displaying the correlations
         /// </summary>
@@ -749,7 +750,7 @@ namespace HBP.Module3D
         {
             UnityEngine.Profiling.Profiler.BeginSample("ComputeBaseCutTextures");
             foreach (Column3D column in Columns)
-                foreach (Cut cut in Cuts)
+                foreach (Core.Object3D.Cut cut in Cuts)
                     column.CutTextures.CreateMRITexture(MRIManager.SelectedMRI.Volume, cut.ID, MRIManager.MRICalMinFactor, MRIManager.MRICalMaxFactor, 3);
 
             SceneInformation.BaseCutTexturesNeedUpdate = false;
@@ -782,7 +783,7 @@ namespace HBP.Module3D
             {
                 column.CutTextures.CreateGUIMRITextures(Cuts);
                 column.CutTextures.UpdateTextures2D();
-                foreach (Cut cut in Cuts)
+                foreach (Core.Object3D.Cut cut in Cuts)
                 {
                     cut.OnUpdateGUITextures.Invoke(column);
                 }
@@ -848,11 +849,11 @@ namespace HBP.Module3D
         /// Actions to perform after clicking on a site
         /// </summary>
         /// <param name="site">Site that has been clicked</param>
-        private void ClickOnSiteCallback(Site site)
+        private void ClickOnSiteCallback(Core.Object3D.Site site)
         {
             if ((SelectedColumn is Column3DDynamic || SelectedColumn is Column3DMEG) && site)
             {
-                List<Site> sites = new List<Site>();
+                List<Core.Object3D.Site> sites = new List<Core.Object3D.Site>();
                 if (ImplantationManager.SiteToCompare) sites.Add(ImplantationManager.SiteToCompare);
                 sites.Add(site);
                 if (SelectedColumn is Column3DCCEP ccepColumn)
@@ -879,7 +880,7 @@ namespace HBP.Module3D
 
             // Create the cuts
             UnityEngine.Profiling.Profiler.BeginSample("cut_generator Create cut");
-            List<DLL.Surface> generatedCutMeshes = new List<DLL.Surface>(Cuts.Count);
+            List<Core.DLL.Surface> generatedCutMeshes = new List<Core.DLL.Surface>(Cuts.Count);
             if (Cuts.Count > 0)
                 generatedCutMeshes = MeshManager.BrainSurface.GenerateCutSurfaces(Cuts, false, StrongCuts);
             UnityEngine.Profiling.Profiler.EndSample();
@@ -944,7 +945,7 @@ namespace HBP.Module3D
         private void UpdateGeneratorsAndUnityMeshes()
         {
             m_GeneratorSurface?.Dispose();
-            m_GeneratorSurface = new DLL.GeneratorSurface();
+            m_GeneratorSurface = new Core.DLL.GeneratorSurface();
             m_GeneratorSurface.Initialize(m_MeshManager.BrainSurface, m_MRIManager.SelectedMRI.Volume, 120);
             foreach (Column3D column in Columns)
             {
@@ -991,7 +992,7 @@ namespace HBP.Module3D
         {
             while (CutGeometryGenerators.Count < nbCuts)
             {
-                CutGeometryGenerators.Add(new DLL.CutGeometryGenerator());
+                CutGeometryGenerators.Add(new Core.DLL.CutGeometryGenerator());
             }
             while (CutGeometryGenerators.Count > nbCuts)
             {
@@ -1091,7 +1092,7 @@ namespace HBP.Module3D
             {
                 dynamicColumn.DynamicParameters.OnUpdateSpanValues.AddListener(() =>
                 {
-                    ((DLL.IEEGGenerator)dynamicColumn.ActivityGenerator).AdjustValues(dynamicColumn);
+                    ((Core.DLL.IEEGGenerator)dynamicColumn.ActivityGenerator).AdjustValues(dynamicColumn.DynamicParameters.Middle, dynamicColumn.DynamicParameters.SpanMin, dynamicColumn.DynamicParameters.SpanMax);
                     SceneInformation.FunctionalCutTexturesNeedUpdate = true;
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     dynamicColumn.SurfaceNeedsUpdate = true;
@@ -1122,7 +1123,7 @@ namespace HBP.Module3D
             {
                 fmriColumn.FMRIParameters.OnUpdateCalValues.AddListener(() =>
                 {
-                    ((DLL.FMRIGenerator)fmriColumn.ActivityGenerator).AdjustValues(fmriColumn);
+                    ((Core.DLL.FMRIGenerator)fmriColumn.ActivityGenerator).AdjustValues(fmriColumn.FMRIParameters.FMRINegativeCalMinFactor, fmriColumn.FMRIParameters.FMRINegativeCalMaxFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMinFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMaxFactor);
                     SceneInformation.FunctionalCutTexturesNeedUpdate = true;
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     fmriColumn.SurfaceNeedsUpdate = true;
@@ -1130,7 +1131,7 @@ namespace HBP.Module3D
                 });
                 fmriColumn.FMRIParameters.OnUpdateHideValues.AddListener(() =>
                 {
-                    ((DLL.FMRIGenerator)fmriColumn.ActivityGenerator).HideExtremeValues(fmriColumn);
+                    ((Core.DLL.FMRIGenerator)fmriColumn.ActivityGenerator).HideExtremeValues(fmriColumn.FMRIParameters.HideLowerValues, fmriColumn.FMRIParameters.HideMiddleValues, fmriColumn.FMRIParameters.HideHigherValues);
                     SceneInformation.FunctionalCutTexturesNeedUpdate = true;
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     fmriColumn.SurfaceNeedsUpdate = true;
@@ -1155,7 +1156,7 @@ namespace HBP.Module3D
             {
                 megColumn.MEGParameters.OnUpdateCalValues.AddListener(() =>
                 {
-                    ((DLL.MEGGenerator)megColumn.ActivityGenerator).AdjustValues(megColumn);
+                    ((Core.DLL.MEGGenerator)megColumn.ActivityGenerator).AdjustValues(megColumn.MEGParameters.FMRINegativeCalMinFactor, megColumn.MEGParameters.FMRINegativeCalMaxFactor, megColumn.MEGParameters.FMRIPositiveCalMinFactor, megColumn.MEGParameters.FMRIPositiveCalMaxFactor);
                     SceneInformation.FunctionalCutTexturesNeedUpdate = true;
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     megColumn.SurfaceNeedsUpdate = true;
@@ -1163,7 +1164,7 @@ namespace HBP.Module3D
                 });
                 megColumn.MEGParameters.OnUpdateHideValues.AddListener(() =>
                 {
-                    ((DLL.MEGGenerator)megColumn.ActivityGenerator).HideExtremeValues(megColumn);
+                    ((Core.DLL.MEGGenerator)megColumn.ActivityGenerator).HideExtremeValues(megColumn.MEGParameters.HideLowerValues, megColumn.MEGParameters.HideMiddleValues, megColumn.MEGParameters.HideHigherValues);
                     SceneInformation.FunctionalCutTexturesNeedUpdate = true;
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     megColumn.SurfaceNeedsUpdate = true;
@@ -1266,10 +1267,10 @@ namespace HBP.Module3D
         /// Add a new cut plane
         /// </summary>
         /// <returns>Newly created cut</returns>
-        public Cut AddCutPlane()
+        public Core.Object3D.Cut AddCutPlane()
         {
             // Add new cut
-            Cut cut = new Cut(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
+            Core.Object3D.Cut cut = new Core.Object3D.Cut(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
             switch (Cuts.Count)
             {
                 case 0:
@@ -1317,7 +1318,7 @@ namespace HBP.Module3D
         /// Remove a cut plane
         /// </summary>
         /// <param name="cut">Cut to be removed</param>
-        public void RemoveCutPlane(Cut cut)
+        public void RemoveCutPlane(Core.Object3D.Cut cut)
         {
             Cuts.Remove(cut);
             for (int i = 0; i < Cuts.Count; i++)
@@ -1339,7 +1340,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="cut">Cut to be updated</param>
         /// <param name="changedByUser">Has the cut been updated by the user or programatically ?</param>
-        public void UpdateCutPlane(Cut cut, bool changedByUser = false)
+        public void UpdateCutPlane(Core.Object3D.Cut cut, bool changedByUser = false)
         {
             if (cut.Orientation == Data.Enums.CutOrientation.Custom)
             {
@@ -1350,7 +1351,7 @@ namespace HBP.Module3D
             }
             else
             {
-                Plane plane = new Plane(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
+                Core.Object3D.Plane plane = new Core.Object3D.Plane(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
                 m_MRIManager.SelectedMRI.Volume.SetPlaneWithOrientation(plane, cut.Orientation, cut.Flip);
                 cut.Normal = plane.Normal;
             }
@@ -1361,7 +1362,7 @@ namespace HBP.Module3D
             float offset;
             if (MeshManager.BrainSurface != null)
             {
-                Plane plane = new Plane(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
+                Core.Object3D.Plane plane = new Core.Object3D.Plane(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
                 m_MRIManager.SelectedMRI.Volume.SetPlaneWithOrientation(plane, cut.Orientation, false);
                 offset = MeshManager.BrainSurface.SizeOffsetCutPlane(plane, cut.NumberOfCuts);
                 offset *= 1.05f; // upsize a little bit the bbox for planes
@@ -1398,12 +1399,12 @@ namespace HBP.Module3D
                 RemoveCutPlane(cut);
             }
 
-            Site site = SelectedColumn.SelectedSite;
+            Core.Object3D.Site site = SelectedColumn.SelectedSite;
             if (!site) return;
             
             Vector3 sitePosition = new Vector3(-site.transform.localPosition.x, site.transform.localPosition.y, site.transform.localPosition.z);
 
-            Cut axialCut = AddCutPlane();
+            Core.Object3D.Cut axialCut = AddCutPlane();
             Vector3 axialPoint = MeshManager.MeshCenter + (Vector3.Dot(sitePosition - MeshManager.MeshCenter, axialCut.Normal) / Vector3.Dot(axialCut.Normal, axialCut.Normal)) * axialCut.Normal;
             float axialOffset = MeshManager.BrainSurface.SizeOffsetCutPlane(axialCut, axialCut.NumberOfCuts) * 1.05f;
             axialCut.Position = ((axialPoint.z - MeshManager.MeshCenter.z) / (axialCut.Normal.z * axialOffset * axialCut.NumberOfCuts)) + 0.5f;
@@ -1414,7 +1415,7 @@ namespace HBP.Module3D
             }
             UpdateCutPlane(axialCut);
 
-            Cut coronalCut = AddCutPlane();
+            Core.Object3D.Cut coronalCut = AddCutPlane();
             Vector3 coronalPoint = MeshManager.MeshCenter + (Vector3.Dot(sitePosition - MeshManager.MeshCenter, coronalCut.Normal) / Vector3.Dot(coronalCut.Normal, coronalCut.Normal)) * coronalCut.Normal;
             float coronalOffset = MeshManager.BrainSurface.SizeOffsetCutPlane(coronalCut, coronalCut.NumberOfCuts) * 1.05f;
             coronalCut.Position = ((coronalPoint.y - MeshManager.MeshCenter.y) / (coronalCut.Normal.y * coronalOffset * coronalCut.NumberOfCuts)) + 0.5f;
@@ -1425,7 +1426,7 @@ namespace HBP.Module3D
             }
             UpdateCutPlane(coronalCut);
 
-            Cut sagittalCut = AddCutPlane();
+            Core.Object3D.Cut sagittalCut = AddCutPlane();
             Vector3 sagittalPoint = MeshManager.MeshCenter + (Vector3.Dot(sitePosition - MeshManager.MeshCenter, sagittalCut.Normal) / Vector3.Dot(sagittalCut.Normal, sagittalCut.Normal)) * sagittalCut.Normal;
             float sagittalOffset = MeshManager.BrainSurface.SizeOffsetCutPlane(sagittalCut, sagittalCut.NumberOfCuts) * 1.05f;
             sagittalCut.Position = ((sagittalPoint.x - MeshManager.MeshCenter.x) / (sagittalCut.Normal.x * sagittalOffset * sagittalCut.NumberOfCuts)) + 0.5f;
@@ -1451,7 +1452,7 @@ namespace HBP.Module3D
             Visualization = visualization;
             gameObject.name = Visualization.Name;
             
-            BrainMaterials = new BrainMaterials();
+            BrainMaterials = new Core.Object3D.BrainMaterials();
 
             transform.position = new Vector3(HBP3DModule.SPACE_BETWEEN_SCENES_GAME_OBJECTS * ApplicationState.Module3D.NumberOfScenesLoadedSinceStart++, transform.position.y, transform.position.z);
         }
@@ -1493,7 +1494,7 @@ namespace HBP.Module3D
 
             foreach (Data.Visualization.Cut cut in Visualization.Configuration.Cuts)
             {
-                Cut newCut = AddCutPlane();
+                Core.Object3D.Cut newCut = AddCutPlane();
                 newCut.Normal = cut.Normal.ToVector3();
                 newCut.Orientation = cut.Orientation;
                 newCut.Flip = cut.Flip;
@@ -1550,7 +1551,7 @@ namespace HBP.Module3D
             Visualization.Configuration.CameraType = CameraType;
 
             List<Data.Visualization.Cut> cuts = new List<Data.Visualization.Cut>();
-            foreach (Cut cut in Cuts)
+            foreach (Core.Object3D.Cut cut in Cuts)
             {
                 cuts.Add(new Data.Visualization.Cut(cut.Normal, cut.Orientation, cut.Flip, cut.Position));
             }
@@ -1567,7 +1568,7 @@ namespace HBP.Module3D
             Visualization.Configuration.Views = views;
 
             List<RegionOfInterest> rois = new List<RegionOfInterest>();
-            foreach (ROI roi in ROIManager.ROIs)
+            foreach (Core.Object3D.ROI roi in ROIManager.ROIs)
             {
                 rois.Add(new RegionOfInterest(roi));
             }
@@ -1666,7 +1667,7 @@ namespace HBP.Module3D
             foreach (Column3D column in Columns)
             {
                 if (column == selectedColumn) continue;
-                foreach (Site site in column.Sites)
+                foreach (Core.Object3D.Site site in column.Sites)
                 {
                     site.State.ApplyState(selectedColumn.SiteStateBySiteID[site.Information.FullID]);
                 }
@@ -1746,7 +1747,7 @@ namespace HBP.Module3D
 
             if (raycastResult == Data.Enums.RaycastHitResult.Site)
             {
-                SelectedColumn.Sites[hit.collider.gameObject.GetComponent<Site>().Information.Index].IsSelected = true;
+                SelectedColumn.Sites[hit.collider.gameObject.GetComponent<Core.Object3D.Site>().Information.Index].IsSelected = true;
             }
             else
             {
@@ -1763,7 +1764,7 @@ namespace HBP.Module3D
 
             if (m_ROIManager.ROICreationMode)
             {
-                ROI selectedROI = m_ROIManager.SelectedROI;
+                Core.Object3D.ROI selectedROI = m_ROIManager.SelectedROI;
                 if (selectedROI)
                 {
                     if (raycastResult == Data.Enums.RaycastHitResult.ROI)
@@ -2032,7 +2033,7 @@ namespace HBP.Module3D
         /// <returns>Coroutine return</returns>
         private IEnumerator c_LoadSites(IEnumerable<Data.Patient> patients, Action<Exception> outPut)
         {
-            Dictionary<string, List<Implantation3D.SiteInfo>> siteInfoByImplantation = new Dictionary<string, List<Implantation3D.SiteInfo>>();
+            Dictionary<string, List<Core.Object3D.Implantation3D.SiteInfo>> siteInfoByImplantation = new Dictionary<string, List<Core.Object3D.Implantation3D.SiteInfo>>();
             int patientIndex = 0;
             System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"^([a-zA-Z']+)([0-9]+)$");
             foreach (var patient in patients)
@@ -2042,13 +2043,13 @@ namespace HBP.Module3D
                 {
                     foreach (var coordinate in site.Coordinates)
                     {
-                        if (!siteInfoByImplantation.TryGetValue(coordinate.ReferenceSystem, out List<Implantation3D.SiteInfo> siteInfos))
+                        if (!siteInfoByImplantation.TryGetValue(coordinate.ReferenceSystem, out List<Core.Object3D.Implantation3D.SiteInfo> siteInfos))
                         {
-                            siteInfos = new List<Implantation3D.SiteInfo>();
+                            siteInfos = new List<Core.Object3D.Implantation3D.SiteInfo>();
                             siteInfoByImplantation.Add(coordinate.ReferenceSystem, siteInfos);
                         }
                         System.Text.RegularExpressions.GroupCollection groups = regex.Match(site.Name).Groups;
-                        Implantation3D.SiteInfo siteInfo = new Implantation3D.SiteInfo()
+                        Core.Object3D.Implantation3D.SiteInfo siteInfo = new Core.Object3D.Implantation3D.SiteInfo()
                         {
                             Name = site.Name,
                             Position = coordinate.Position.ToVector3(),
@@ -2083,9 +2084,9 @@ namespace HBP.Module3D
         {
             try
             {
-                m_MeshManager.Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.GreyMatter.Clone()));
-                m_MeshManager.Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.WhiteMatter.Clone()));
-                m_MeshManager.Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.InflatedWhiteMatter.Clone()));
+                m_MeshManager.Meshes.Add((Core.Object3D.LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.GreyMatter.Clone()));
+                m_MeshManager.Meshes.Add((Core.Object3D.LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.WhiteMatter.Clone()));
+                m_MeshManager.Meshes.Add((Core.Object3D.LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.InflatedWhiteMatter.Clone()));
                 m_MRIManager.MRIs.Add(ApplicationState.Module3D.MNIObjects.MRI);
             }
             catch (Exception e)
@@ -2162,7 +2163,7 @@ namespace HBP.Module3D
         /// <returns>Coroutine return</returns>
         private IEnumerator c_LoadActivity()
         {
-            DLL.ActivityGenerator currentGenerator = null;
+            Core.DLL.ActivityGenerator currentGenerator = null;
             string currentMessage = "";
             int currentColumn = 0;
             int numberOfColumns = Columns.Count;
@@ -2194,33 +2195,33 @@ namespace HBP.Module3D
                 if (SceneInformation.GeneratorNeedsUpdate) yield break;
                 if (column is Column3DAnatomy anatomyColumn)
                 {
-                    DLL.DensityGenerator generator = anatomyColumn.ActivityGenerator as DLL.DensityGenerator;
+                    Core.DLL.DensityGenerator generator = anatomyColumn.ActivityGenerator as Core.DLL.DensityGenerator;
                     currentGenerator = generator;
-                    generator.ComputeActivity(anatomyColumn);
+                    generator.ComputeActivity(anatomyColumn.RawElectrodes, anatomyColumn.AnatomyParameters.InfluenceDistance, ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                 }
                 else if (column is Column3DDynamic dynamicColumn)
                 {
-                    DLL.IEEGGenerator generator = dynamicColumn.ActivityGenerator as DLL.IEEGGenerator;
+                    Core.DLL.IEEGGenerator generator = dynamicColumn.ActivityGenerator as Core.DLL.IEEGGenerator;
                     currentGenerator = generator;
                     if (dynamicColumn is Column3DCCEP ccepColumn && ccepColumn.IsSourceMarsAtlasLabelSelected)
-                        generator.ComputeActivityAtlas(ccepColumn);
+                        generator.ComputeActivityAtlas(ccepColumn.ActivityValues, ccepColumn.Timeline.Length, ccepColumn.AreaMask, ApplicationState.Module3D.MarsAtlas);
                     else
-                        generator.ComputeActivity(dynamicColumn);
-                    generator.AdjustValues(dynamicColumn);
+                        generator.ComputeActivity(dynamicColumn.RawElectrodes, dynamicColumn.DynamicParameters.InfluenceDistance, dynamicColumn.ActivityValues, dynamicColumn.Timeline.Length, dynamicColumn.RawElectrodes.NumberOfSites, ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                    generator.AdjustValues(dynamicColumn.DynamicParameters.Middle, dynamicColumn.DynamicParameters.SpanMin, dynamicColumn.DynamicParameters.SpanMax);
                 }
                 else if (column is Column3DFMRI fmriColumn)
                 {
-                    DLL.FMRIGenerator generator = fmriColumn.ActivityGenerator as DLL.FMRIGenerator;
+                    Core.DLL.FMRIGenerator generator = fmriColumn.ActivityGenerator as Core.DLL.FMRIGenerator;
                     currentGenerator = generator;
-                    generator.ComputeActivity(fmriColumn);
-                    generator.AdjustValues(fmriColumn);
+                    generator.ComputeActivity(fmriColumn.ColumnFMRIData.Data.FMRIs.SelectMany(fmri => fmri.Item1.Volumes));
+                    generator.AdjustValues(fmriColumn.FMRIParameters.FMRINegativeCalMinFactor, fmriColumn.FMRIParameters.FMRINegativeCalMaxFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMinFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMaxFactor);
                 }
                 else if (column is Column3DMEG megColumn)
                 {
-                    DLL.MEGGenerator generator = megColumn.ActivityGenerator as DLL.MEGGenerator;
+                    Core.DLL.MEGGenerator generator = megColumn.ActivityGenerator as Core.DLL.MEGGenerator;
                     currentGenerator = generator;
-                    generator.ComputeActivity(megColumn);
-                    generator.AdjustValues(megColumn);
+                    generator.ComputeActivity(megColumn.ColumnMEGData.Data.MEGItems.SelectMany(fmri => fmri.FMRI.Volumes));
+                    generator.AdjustValues(megColumn.MEGParameters.FMRINegativeCalMinFactor, megColumn.MEGParameters.FMRINegativeCalMaxFactor, megColumn.MEGParameters.FMRIPositiveCalMinFactor, megColumn.MEGParameters.FMRIPositiveCalMaxFactor);
                 }
                 if (SceneInformation.GeneratorNeedsUpdate) yield break;
             }
@@ -2244,9 +2245,9 @@ namespace HBP.Module3D
             m_UpdatingColliders = true;
 
             yield return Ninja.JumpBack;
-            List<DLL.Surface> cuts;
-            if (Cuts.Count > 0) cuts = new List<DLL.Surface>(MeshManager.SimplifiedMeshToUse.Cut(Cuts.ToArray(), false, StrongCuts));
-            else cuts = new List<DLL.Surface>() { (DLL.Surface)MeshManager.SimplifiedMeshToUse.Clone() };
+            List<Core.DLL.Surface> cuts;
+            if (Cuts.Count > 0) cuts = new List<Core.DLL.Surface>(MeshManager.SimplifiedMeshToUse.Cut(Cuts.ToArray(), false, StrongCuts));
+            else cuts = new List<Core.DLL.Surface>() { (Core.DLL.Surface)MeshManager.SimplifiedMeshToUse.Clone() };
             yield return Ninja.JumpToUnity;
 
             cuts[0].UpdateMeshFromDLL(m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().mesh);

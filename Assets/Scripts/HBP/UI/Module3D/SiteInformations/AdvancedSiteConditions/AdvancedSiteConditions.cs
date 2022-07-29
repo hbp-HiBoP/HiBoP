@@ -65,7 +65,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="site">Site to check</param>
         /// <returns>True if the conditions are met</returns>
-        protected override bool CheckConditions(Site site)
+        protected override bool CheckConditions(Core.Object3D.Site site)
         {
             foreach (var booleanValue in m_BooleanExpression.GetAllBooleanValuesUnderThisOne())
             {
@@ -79,7 +79,7 @@ namespace HBP.UI.Module3D
         /// <param name="site">Site to check</param>
         /// <param name="s">String to be parsed</param>
         /// <returns>True if the site matches the set of conditions</returns>
-        private bool ParseConditionAndCheckValue(Site site, string s)
+        private bool ParseConditionAndCheckValue(Core.Object3D.Site site, string s)
         {
             s = s.ToUpper();
             if (s.Contains("=") || s.Contains(">") || s.Contains("<"))

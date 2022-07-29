@@ -243,19 +243,5 @@ namespace HBP.Data.Experience.Dataset
             }
         }
         #endregion
-
-        #region Errors
-        public class LabelEmptyError : Error
-        {
-            #region Properties
-            public LabelEmptyError() : this("")
-            {
-            }
-            public LabelEmptyError(string message) : base("The label field is empty", message)
-            {
-            }
-            #endregion
-        }
-        #endregion
     }
 }

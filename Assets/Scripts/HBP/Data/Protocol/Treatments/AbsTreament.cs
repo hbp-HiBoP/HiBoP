@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.Serialization;
 using Tools.CSharp;
-using Tools.CSharp.EEG;
+using HBP.Core.Tools;
 
 namespace HBP.Data.Experience.Protocol
 {
