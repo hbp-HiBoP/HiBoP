@@ -82,12 +82,12 @@ namespace HBP.UI.Module3D.Tools
             if (SelectedColumn is Column3DCCEP ccepColumn && ccepColumn.Mode == Column3DCCEP.CCEPMode.MarsAtlas)
             {
                 int[] marsAtlasLabels = ApplicationState.Module3D.MarsAtlas.Labels();
-                Data.StringTag marsAtlasTag = ApplicationState.ProjectLoaded.Preferences.Tags.FirstOrDefault(t => t.Name == "MarsAtlas") as Data.StringTag;
+                Core.Data.StringTag marsAtlasTag = ApplicationState.ProjectLoaded.Preferences.Tags.FirstOrDefault(t => t.Name == "MarsAtlas") as Core.Data.StringTag;
                 m_MarsAtlasAreas.Add(new MarsAtlasArea { Label = -1, Name = "None", FullName = "None" });
                 foreach (var label in marsAtlasLabels)
                 {
                     string labelName = string.Format("{0}_{1}", ApplicationState.Module3D.MarsAtlas.Hemisphere(label), ApplicationState.Module3D.MarsAtlas.Name(label));
-                    if (ccepColumn.Sources.Any(s => (s.Information.SiteData.Tags.FirstOrDefault(t => t.Tag == marsAtlasTag) as Data.StringTagValue)?.Value == labelName))
+                    if (ccepColumn.Sources.Any(s => (s.Information.SiteData.Tags.FirstOrDefault(t => t.Tag == marsAtlasTag) as Core.Data.StringTagValue)?.Value == labelName))
                     {
                         m_MarsAtlasAreas.Add(new MarsAtlasArea { Label = label, Name = labelName, FullName = ApplicationState.Module3D.MarsAtlas.FullName(label) });
                     }

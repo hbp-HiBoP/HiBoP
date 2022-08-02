@@ -214,13 +214,13 @@ namespace HBP.Module3D
         /// Load the ROIs from the visualization configuration
         /// </summary>
         /// <param name="rois">List of the ROIs in the configuration</param>
-        public void LoadROIsFromConfiguration(IEnumerable<Data.Visualization.RegionOfInterest> rois)
+        public void LoadROIsFromConfiguration(IEnumerable<Core.Data.RegionOfInterest> rois)
         {
             ROICreationMode = !ROICreationMode;
-            foreach (Data.Visualization.RegionOfInterest roi in rois)
+            foreach (Core.Data.RegionOfInterest roi in rois)
             {
                 Core.Object3D.ROI newROI = AddROI(roi.Name);
-                foreach (Data.Visualization.Sphere sphere in roi.Spheres)
+                foreach (Core.Data.Sphere sphere in roi.Spheres)
                 {
                     newROI.AddSphere(HBP3DModule.DEFAULT_MESHES_LAYER, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
                 }

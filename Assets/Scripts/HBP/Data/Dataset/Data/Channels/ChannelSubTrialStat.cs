@@ -1,7 +1,8 @@
 ﻿using System.Linq;
 using Tools.CSharp;
+using HBP.Core.Data.Enums;
 
-namespace HBP.Data.Experience.Dataset
+namespace HBP.Core.Data
 {
     /// <summary>
     /// A Structure containing all the statistic data about subTrial in a specific channel.
@@ -51,7 +52,7 @@ namespace HBP.Data.Experience.Dataset
             Values = values;
             SEM = sem;
         }
-        public ChannelSubTrialStat(ChannelSubTrial[] subTrials,bool[] isValid, Enums.AveragingType averaging)
+        public ChannelSubTrialStat(ChannelSubTrial[] subTrials,bool[] isValid, AveragingType averaging)
         {
             if (subTrials.Length > 0)
             {

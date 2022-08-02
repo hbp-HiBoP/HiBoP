@@ -43,7 +43,7 @@ namespace HBP.UI.QuickStart
                 base.Object = value;
                 m_PatientName.text = value.DataInfo.Patient.Name;
 
-                if (value.DataInfo.DataContainer.GetType() == typeof(Data.Container.BrainVision))
+                if (value.DataInfo.DataContainer.GetType() == typeof(Core.Data.Container.BrainVision))
                 {
                     m_BrainVisionRectTransform.gameObject.SetActive(true);
                     m_MicromedRectTransform.gameObject.SetActive(false);
@@ -51,7 +51,7 @@ namespace HBP.UI.QuickStart
                     m_EDFRectTransform.gameObject.SetActive(false);
                     m_FIFRectTransform.gameObject.SetActive(false);
                 }
-                else if (value.DataInfo.DataContainer.GetType() == typeof(Data.Container.Micromed))
+                else if (value.DataInfo.DataContainer.GetType() == typeof(Core.Data.Container.Micromed))
                 {
                     m_BrainVisionRectTransform.gameObject.SetActive(false);
                     m_MicromedRectTransform.gameObject.SetActive(true);
@@ -59,7 +59,7 @@ namespace HBP.UI.QuickStart
                     m_EDFRectTransform.gameObject.SetActive(false);
                     m_FIFRectTransform.gameObject.SetActive(false);
                 }
-                else if (value.DataInfo.DataContainer.GetType() == typeof(Data.Container.Elan))
+                else if (value.DataInfo.DataContainer.GetType() == typeof(Core.Data.Container.Elan))
                 {
                     m_BrainVisionRectTransform.gameObject.SetActive(false);
                     m_MicromedRectTransform.gameObject.SetActive(false);
@@ -67,7 +67,7 @@ namespace HBP.UI.QuickStart
                     m_EDFRectTransform.gameObject.SetActive(false);
                     m_FIFRectTransform.gameObject.SetActive(false);
                 }
-                else if (value.DataInfo.DataContainer.GetType() == typeof(Data.Container.EDF))
+                else if (value.DataInfo.DataContainer.GetType() == typeof(Core.Data.Container.EDF))
                 {
                     m_BrainVisionRectTransform.gameObject.SetActive(false);
                     m_MicromedRectTransform.gameObject.SetActive(false);
@@ -75,7 +75,7 @@ namespace HBP.UI.QuickStart
                     m_EDFRectTransform.gameObject.SetActive(true);
                     m_FIFRectTransform.gameObject.SetActive(false);
                 }
-                else if (value.DataInfo.DataContainer.GetType() == typeof(Data.Container.FIF))
+                else if (value.DataInfo.DataContainer.GetType() == typeof(Core.Data.Container.FIF))
                 {
                     m_BrainVisionRectTransform.gameObject.SetActive(false);
                     m_MicromedRectTransform.gameObject.SetActive(false);

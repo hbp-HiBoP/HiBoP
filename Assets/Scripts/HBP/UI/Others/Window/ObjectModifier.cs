@@ -6,7 +6,7 @@ namespace HBP.UI
     /// Abstract window to modify a object.
     /// </summary>
     /// <typeparam name="T">Type of the object to modify</typeparam>
-    public abstract class ObjectModifier<T> : DialogWindow where T : Data.BaseData
+    public abstract class ObjectModifier<T> : DialogWindow where T : Core.Data.BaseData
     {
         #region Properties
         protected T m_Object;

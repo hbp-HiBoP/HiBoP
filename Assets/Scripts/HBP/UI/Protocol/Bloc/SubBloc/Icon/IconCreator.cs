@@ -1,5 +1,4 @@
-﻿using HBP.Data.Experience.Protocol;
-using System.Linq;
+﻿using System.Linq;
 using Tools.Unity.Components;
 
 namespace HBP.UI.Experience.Protocol
@@ -7,7 +6,7 @@ namespace HBP.UI.Experience.Protocol
     /// <summary>
     /// Component to create new Icons.
     /// </summary>
-    public class IconCreator : ObjectCreator<Icon>
+    public class IconCreator : ObjectCreator<Core.Data.Icon>
     {
         Tools.CSharp.Window m_Window;
         /// <summary>
@@ -34,7 +33,7 @@ namespace HBP.UI.Experience.Protocol
         /// </summary>
         public override void CreateFromScratch()
         {
-            OpenModifier(new Icon(Window));
+            OpenModifier(new Core.Data.Icon(Window));
         }
 
         /// <summary>
@@ -42,7 +41,7 @@ namespace HBP.UI.Experience.Protocol
         /// </summary>
         /// <param name="item">Icon to modify</param>
         /// <returns>Icon modifier created</returns>
-        protected override ObjectModifier<Icon> OpenModifier(Icon item)
+        protected override ObjectModifier<Core.Data.Icon> OpenModifier(Core.Data.Icon item)
         {
             IconModifier modifier = base.OpenModifier(item) as IconModifier;
             modifier.Window = Window;

@@ -1,14 +1,13 @@
 ﻿using Tools.CSharp;
 using UnityEngine;
 using UnityEngine.UI;
-using d = HBP.Data.Experience.Protocol;
 
 namespace HBP.UI.Experience.Protocol
 {
     /// <summary>
     /// Window to modify a protocol.
     /// </summary>
-	public class ProtocolModifier : ObjectModifier<d.Protocol> 
+	public class ProtocolModifier : ObjectModifier<Core.Data.Protocol> 
 	{
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -57,7 +56,7 @@ namespace HBP.UI.Experience.Protocol
         /// Set the fields
         /// </summary>
         /// <param name="objectToDisplay">Protocol to display</param>
-        protected override void SetFields(d.Protocol objectToDisplay)
+        protected override void SetFields(Core.Data.Protocol objectToDisplay)
         {
             base.SetFields();
 
@@ -83,7 +82,7 @@ namespace HBP.UI.Experience.Protocol
         /// Add bloc to the protocol.
         /// </summary>
         /// <param name="bloc">Bloc to add</param>
-        protected void AddBloc(d.Bloc bloc)
+        protected void AddBloc(Core.Data.Bloc bloc)
         {
             ObjectTemp.Blocs.AddIfAbsent(bloc);
         }
@@ -91,7 +90,7 @@ namespace HBP.UI.Experience.Protocol
         /// Remove bloc to the protocol.
         /// </summary>
         /// <param name="bloc">Bloc to remove</param>
-        protected void RemoveBloc(d.Bloc bloc)
+        protected void RemoveBloc(Core.Data.Bloc bloc)
         {
             ObjectTemp.Blocs.Remove(bloc);
         }

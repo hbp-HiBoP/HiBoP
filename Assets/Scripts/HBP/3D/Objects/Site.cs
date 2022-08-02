@@ -301,16 +301,16 @@ namespace HBP.Core.Object3D
         /// <summary>
         /// Configuration of this site
         /// </summary>
-        public Data.Visualization.SiteConfiguration Configuration { get; set; }
+        public Data.SiteConfiguration Configuration { get; set; }
 
         /// <summary>
         /// Associated data
         /// </summary>
-        public Data.Experience.Dataset.BlocChannelData Data { get; set; }
+        public Data.BlocChannelData Data { get; set; }
         /// <summary>
         /// Associated data statistics
         /// </summary>
-        public Data.Experience.Dataset.BlocChannelStatistics Statistics { get; set; }
+        public Data.BlocChannelStatistics Statistics { get; set; }
         #endregion
 
         #region Events
@@ -325,7 +325,7 @@ namespace HBP.Core.Object3D
         {
             Information = new SiteInformation();
             State = new SiteState();
-            Configuration = new Data.Visualization.SiteConfiguration();
+            Configuration = new Data.SiteConfiguration();
         }
         #endregion
 

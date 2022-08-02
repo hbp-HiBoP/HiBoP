@@ -1,10 +1,8 @@
-﻿using HBP.Data.Experience.Protocol;
-using System.Collections;
-using System.Collections.Generic;
-using Tools.CSharp;
+﻿using System.Collections.Generic;
 using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.QuickStart
 {
@@ -39,14 +37,14 @@ namespace HBP.UI.QuickStart
                 ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Window length is zero", "The length of the window needs to be strictly above zero in order to continue.");
                 return false;
             }
-            List<Bloc> blocs = new List<Bloc>();
+            List<Core.Data.Bloc> blocs = new List<Core.Data.Bloc>();
             foreach (var codeString in m_Codes.text.Split(','))
             {
                 if (int.TryParse(codeString, out int code))
                 {
-                    Data.Experience.Protocol.Event ev = new Data.Experience.Protocol.Event(string.Format("QS{0}", code), new int[] { code },Data.Enums.MainSecondaryEnum.Main );
-                    SubBloc subBloc = new SubBloc(string.Format("QS{0}", code), 0, Data.Enums.MainSecondaryEnum.Main, window, new Tools.CSharp.Window(0, 0), new Data.Experience.Protocol.Event[] { ev }, new Icon[0], new Treatment[0]);
-                    Bloc bloc = new Bloc(string.Format("QS{0}", code), 0, "", "", new SubBloc[] { subBloc });
+                    Core.Data.Event ev = new Core.Data.Event(string.Format("QS{0}", code), new int[] { code }, MainSecondaryEnum.Main );
+                    Core.Data.SubBloc subBloc = new Core.Data.SubBloc(string.Format("QS{0}", code), 0, MainSecondaryEnum.Main, window, new Tools.CSharp.Window(0, 0), new Core.Data.Event[] { ev }, new Core.Data.Icon[0], new Core.Data.Treatment[0]);
+                    Core.Data.Bloc bloc = new Core.Data.Bloc(string.Format("QS{0}", code), 0, "", "", new Core.Data.SubBloc[] { subBloc });
                     blocs.Add(bloc);
                 }
                 if (blocs.Count == 0)
@@ -55,13 +53,13 @@ namespace HBP.UI.QuickStart
                     return false;
                 }
             }
-            Protocol protocol = new Protocol("QuickStart", blocs);
-            ApplicationState.ProjectLoaded.SetProtocols(new Protocol[] { protocol });
+            Core.Data.Protocol protocol = new Core.Data.Protocol("QuickStart", blocs);
+            ApplicationState.ProjectLoaded.SetProtocols(new Core.Data.Protocol[] { protocol });
             return base.OpenNextPanel();
         }
         public override bool OpenPreviousPanel()
         {
-            ApplicationState.ProjectLoaded.SetProtocols(new Protocol[0]);
+            ApplicationState.ProjectLoaded.SetProtocols(new Core.Data.Protocol[0]);
             return base.OpenPreviousPanel();
         }
         #endregion

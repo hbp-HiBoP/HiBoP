@@ -2,7 +2,7 @@
 using System.Runtime.Serialization;
 using UnityEngine;
 
-namespace HBP.Data.Visualization
+namespace HBP.Core.Data
 {
     [DataContract]
     public struct RegionOfInterest

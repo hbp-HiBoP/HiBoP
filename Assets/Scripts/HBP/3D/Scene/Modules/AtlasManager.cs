@@ -1,7 +1,5 @@
-﻿using HBP.Module3D.DLL;
-using System;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+using HBP.Core.Data.Enums;
 
 namespace HBP.Module3D
 {
@@ -37,7 +35,7 @@ namespace HBP.Module3D
             {
                 m_DisplayMarsAtlas = value;
                 m_Scene.BrainMaterials.SetDisplayAtlas(m_DisplayMarsAtlas);
-                if (m_Scene.MeshManager.SelectedMesh.Type == Data.Enums.MeshType.MNI)
+                if (m_Scene.MeshManager.SelectedMesh.Type == MeshType.MNI)
                 {
                     UpdateAtlasIndices();
                     UpdateAtlasColors();
@@ -71,7 +69,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_DisplayJuBrainAtlas || (m_DisplayMarsAtlas && m_Scene.MeshManager.SelectedMesh.Type == Data.Enums.MeshType.MNI);
+                return m_DisplayJuBrainAtlas || (m_DisplayMarsAtlas && m_Scene.MeshManager.SelectedMesh.Type == MeshType.MNI);
             }
         }
         /// <summary>

@@ -10,19 +10,19 @@
                 return SubBlocProtocol == null || SubTrials.Length == 0 || Window == default(Tools.CSharp.Window);
             }
         }
-        public Experience.Protocol.SubBloc SubBlocProtocol { get; set; }
+        public Core.Data.SubBloc SubBlocProtocol { get; set; }
         public SubTrial[] SubTrials { get; set; }
         public Tools.CSharp.Window Window { get; set; }
         #endregion
 
         #region Constructor
-        public SubBloc(Experience.Protocol.SubBloc subBlocProtocol, SubTrial[] subTrials, Tools.CSharp.Window window)
+        public SubBloc(Core.Data.SubBloc subBlocProtocol, SubTrial[] subTrials, Tools.CSharp.Window window)
         {
             SubBlocProtocol = subBlocProtocol;
             SubTrials = subTrials;
             Window = window;
         }
-        public SubBloc(Experience.Protocol.SubBloc subBlocProtocol, SubTrial[] subTrials) : this(subBlocProtocol, subTrials, default(Tools.CSharp.Window))
+        public SubBloc(Core.Data.SubBloc subBlocProtocol, SubTrial[] subTrials) : this(subBlocProtocol, subTrials, default(Tools.CSharp.Window))
         {
         }
         public SubBloc(Tools.CSharp.Window window) : this(null, new SubTrial[0], window)

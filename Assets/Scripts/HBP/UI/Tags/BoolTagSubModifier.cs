@@ -1,6 +1,6 @@
 ﻿namespace HBP.UI
 {
-    public class BoolTagSubModifier : SubModifier<Data.BoolTag>
+    public class BoolTagSubModifier : SubModifier<Core.Data.BoolTag>
     {
     }
 }

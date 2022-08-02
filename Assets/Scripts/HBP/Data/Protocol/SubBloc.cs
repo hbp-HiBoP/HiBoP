@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using Tools.CSharp;
 
-namespace HBP.Data.Experience.Protocol
+namespace HBP.Core.Data
 {
     /// <summary>
     /// Class which contains all the data about a experience subBloc used to epoch, and visualize data.

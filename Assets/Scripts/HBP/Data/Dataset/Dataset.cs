@@ -10,8 +10,9 @@ using System.Collections.ObjectModel;
 using System.Collections;
 using CielaSpike;
 using System.Text.RegularExpressions;
+using HBP.Core.Data.Enums;
 
-namespace HBP.Data.Experience.Dataset
+namespace HBP.Core.Data
 {
     /// <summary>
     /// Class which contains data of the experiment.
@@ -51,11 +52,11 @@ namespace HBP.Data.Experience.Dataset
         [DataMember] public string Name { get; set; }
 
         [DataMember(Name = "Protocol", Order = 3)] string m_ProtocolID;
-        Protocol.Protocol m_Protocol;
+        Protocol m_Protocol;
         /// <summary>
         /// Protocol used during the experiment.
         /// </summary>
-        public Protocol.Protocol Protocol
+        public Protocol Protocol
         {
             get
             {
@@ -90,7 +91,7 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="protocol">Protocol used during the experiment</param>
         /// <param name="data">DataInfo of the dataset</param>
         /// <param name="ID">Unique identifier</param>
-        public Dataset(string name, Protocol.Protocol protocol, IEnumerable<DataInfo> data, string ID) : base(ID)
+        public Dataset(string name, Protocol protocol, IEnumerable<DataInfo> data, string ID) : base(ID)
         {
             Name = name;
             Protocol = protocol;
@@ -102,7 +103,7 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="name">Name of the dataset</param>
         /// <param name="protocol">Protocol used during the experiment</param>
         /// <param name="data">DataInfo of the dataset</param>
-        public Dataset(string name, Protocol.Protocol protocol, IEnumerable<DataInfo> data) : base()
+        public Dataset(string name, Protocol protocol, IEnumerable<DataInfo> data) : base()
         {
             Name = name;
             Protocol = protocol;
@@ -320,7 +321,7 @@ namespace HBP.Data.Experience.Dataset
             IEnumerable<DirectoryInfo> directories = directory.GetDirectories().SelectMany(d => d.GetDirectories());
             int length = directories.Count();
             int progress = 0;
-            Dictionary<Protocol.Protocol, Dataset> datasetByProtocol = new Dictionary<Protocol.Protocol, Dataset>(ApplicationState.ProjectLoaded.Protocols.Count);
+            Dictionary<Protocol, Dataset> datasetByProtocol = new Dictionary<Protocol, Dataset>(ApplicationState.ProjectLoaded.Protocols.Count);
             foreach (var protocol in ApplicationState.ProjectLoaded.Protocols)
             {
                 datasetByProtocol.Add(protocol, new Dataset(protocol.Name, protocol, new DataInfo[0]));
@@ -337,13 +338,13 @@ namespace HBP.Data.Experience.Dataset
                         string[] splits = subdir.Name.Split('_');
                         if (splits.Length == 4)
                         {
-                            Protocol.Protocol protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.Name == splits[3]);
+                            Protocol protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.Name == splits[3]);
                             if (protocol != null)
                             {
                                 FileInfo rawEEG = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".eeg"));
                                 FileInfo rawPos = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".pos"));
                                 if (rawEEG.Exists && rawPos.Exists)
-                                    datasetByProtocol[protocol].AddData(new IEEGDataInfo("raw", new Container.Elan(rawEEG.FullName, rawPos.FullName, ""), patient, IEEGDataInfo.NormalizationType.Auto));
+                                    datasetByProtocol[protocol].AddData(new IEEGDataInfo("raw", new Container.Elan(rawEEG.FullName, rawPos.FullName, ""), patient, NormalizationType.Auto));
 
                                 string ds = GetDownsamplingString(subdir);
                                 if (!string.IsNullOrEmpty(ds))
@@ -361,7 +362,7 @@ namespace HBP.Data.Experience.Dataset
                                                 FileInfo eeg = new FileInfo(Path.Combine(subdir.FullName, string.Format("{0}_{1}", subdir.Name, freq), string.Format("{0}_{1}_{2}_{3}.eeg", subdir.Name, freq, ds, ts)));
                                                 if (eeg.Exists)
                                                 {
-                                                    datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", freq, ts), new Container.Elan(eeg.FullName, posDS.FullName, ""), patient, IEEGDataInfo.NormalizationType.Auto));
+                                                    datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", freq, ts), new Container.Elan(eeg.FullName, posDS.FullName, ""), patient, NormalizationType.Auto));
                                                 }
                                             }
                                         }
@@ -388,7 +389,7 @@ namespace HBP.Data.Experience.Dataset
             DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(path);
             if (!databaseDirectoryInfo.Exists) return;
 
-            Dictionary<Protocol.Protocol, Dataset> datasetByProtocol = new Dictionary<Protocol.Protocol, Dataset>(ApplicationState.ProjectLoaded.Protocols.Count);
+            Dictionary<Protocol, Dataset> datasetByProtocol = new Dictionary<Protocol, Dataset>(ApplicationState.ProjectLoaded.Protocols.Count);
             foreach (var protocol in ApplicationState.ProjectLoaded.Protocols)
             {
                 datasetByProtocol.Add(protocol, new Dataset(protocol.Name, protocol, new DataInfo[0]));
@@ -405,12 +406,12 @@ namespace HBP.Data.Experience.Dataset
                     Patient patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.Name.CompareTo(match.Groups[1].Value) == 0);
                     if (patient != null)
                     {
-                        Protocol.Protocol protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.Name == match.Groups[5].Value);
+                        Protocol protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.Name == match.Groups[5].Value);
                         if (protocol != null)
                         {
                             string acq = string.IsNullOrEmpty(match.Groups[7].Value) ? "raw" : match.Groups[7].Value;
                             string run = string.IsNullOrEmpty(match.Groups[9].Value) ? "" : "-" + match.Groups[9].Value;
-                            datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", acq, run), new Container.BrainVision(file.FullName), patient, IEEGDataInfo.NormalizationType.Auto));
+                            datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", acq, run), new Container.BrainVision(file.FullName), patient, NormalizationType.Auto));
                         }
                     }
                 }
@@ -427,12 +428,12 @@ namespace HBP.Data.Experience.Dataset
                     Patient patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID.ToUpper().CompareTo(match.Groups[1].Value.ToUpper()) == 0);
                     if (patient != null)
                     {
-                        Protocol.Protocol protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.Name == match.Groups[3].Value);
+                        Protocol protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.Name == match.Groups[3].Value);
                         if (protocol != null)
                         {
                             string acq = string.IsNullOrEmpty(match.Groups[4].Value) ? "raw" : match.Groups[4].Value;
                             string run = string.IsNullOrEmpty(match.Groups[5].Value) ? "" : "-" + match.Groups[5].Value;
-                            datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", acq, run), new Container.EDF(file.FullName), patient, IEEGDataInfo.NormalizationType.Auto));
+                            datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", acq, run), new Container.EDF(file.FullName), patient, NormalizationType.Auto));
                         }
                     }
                 }

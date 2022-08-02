@@ -47,7 +47,7 @@ namespace HBP.UI.Module3D.Tools
             m_ROISelector.options.Add(new Dropdown.OptionData("None"));
             for (int i = 0; i < SelectedScene.ROIManager.ROIs.Count; i++)
             {
-                ROI roi = SelectedScene.ROIManager.ROIs[i];
+                Core.Object3D.ROI roi = SelectedScene.ROIManager.ROIs[i];
                 if (roi.Name == "ROI")
                 {
                     m_ROISelector.options.Add(new Dropdown.OptionData("ROI " + i));
@@ -66,12 +66,12 @@ namespace HBP.UI.Module3D.Tools
         {
             m_SphereSelector.options.Clear();
             m_SphereSelector.options.Add(new Dropdown.OptionData("None"));
-            ROI selectedROI = SelectedScene.ROIManager.SelectedROI;
+            Core.Object3D.ROI selectedROI = SelectedScene.ROIManager.SelectedROI;
             if (selectedROI)
             {
                 for (int i = 0; i < selectedROI.Spheres.Count; i++)
                 {
-                    Sphere sphere = selectedROI.Spheres[i];
+                    Core.Object3D.Sphere sphere = selectedROI.Spheres[i];
                     m_SphereSelector.options.Add(new Dropdown.OptionData("Sphere " + i + " (R=" + sphere.Radius.ToString("N1") + ")"));
                 }
             }

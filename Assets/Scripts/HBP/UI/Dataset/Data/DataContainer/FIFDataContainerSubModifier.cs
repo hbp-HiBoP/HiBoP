@@ -1,10 +1,10 @@
 ﻿using Tools.Unity;
 using UnityEngine;
-using container = HBP.Data.Container;
+using HBP.Core.Data.Container;
 
 namespace HBP.UI.Experience.Dataset
 {
-    public class FIFDataContainerSubModifier : SubModifier<container.FIF>
+    public class FIFDataContainerSubModifier : SubModifier<FIF>
     {
         #region Properties
         [SerializeField] FileSelector m_FileSelector;
@@ -32,7 +32,7 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(container.FIF objectToDisplay)
+        protected override void SetFields(FIF objectToDisplay)
         {
             m_FileSelector.File = objectToDisplay.SavedFile;
         }

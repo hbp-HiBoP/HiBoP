@@ -1,20 +1,19 @@
-﻿using HBP.Data.Experience.Protocol;
-using Tools.Unity.Components;
-using UnityEngine;
+﻿using UnityEngine;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.Experience.Protocol
 {
     /// <summary>
     /// Component to create subBlocs.
     /// </summary>
-    public class SubBlocCreator : ObjectCreator<SubBloc>
+    public class SubBlocCreator : ObjectCreator<Core.Data.SubBloc>
     {
         #region Properties
-        [SerializeField] Data.Enums.MainSecondaryEnum m_Type;
+        [SerializeField] MainSecondaryEnum m_Type;
         /// <summary>
         /// Default subBloc type created.
         /// </summary>
-        public Data.Enums.MainSecondaryEnum Type
+        public MainSecondaryEnum Type
         {
             get
             {
@@ -33,7 +32,7 @@ namespace HBP.UI.Experience.Protocol
         /// </summary>
         public override void CreateFromScratch()
         {
-            OpenModifier(new SubBloc(m_Type));
+            OpenModifier(new Core.Data.SubBloc(m_Type));
         }
         #endregion
     }

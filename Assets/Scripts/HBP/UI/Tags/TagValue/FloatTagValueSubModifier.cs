@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI
 {
-    public class FloatTagValueSubModifier : SubModifier<Data.FloatTagValue>
+    public class FloatTagValueSubModifier : SubModifier<Core.Data.FloatTagValue>
     {
         #region Properties
         [SerializeField] InputField m_ValueInputField;
@@ -30,7 +30,7 @@ namespace HBP.UI
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(Data.FloatTagValue objectToDisplay)
+        protected override void SetFields(Core.Data.FloatTagValue objectToDisplay)
         {
             base.SetFields(objectToDisplay);
             CultureInfo cultureInfo = CultureInfo.GetCultureInfo("en-US");

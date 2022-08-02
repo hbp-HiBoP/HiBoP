@@ -1,8 +1,7 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
-using HBP.Data.Experience.Protocol;
 
-namespace HBP.Data.Experience.Dataset
+namespace HBP.Core.Data
 {
     public class ChannelTrial
     {

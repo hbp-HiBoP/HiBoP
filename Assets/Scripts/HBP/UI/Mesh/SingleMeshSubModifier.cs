@@ -3,7 +3,7 @@ using Tools.Unity;
 
 namespace HBP.UI
 {
-    public class SingleMeshSubModifier : SubModifier<Data.SingleMesh>
+    public class SingleMeshSubModifier : SubModifier<Core.Data.SingleMesh>
     {
         #region Properties
         [SerializeField] FileSelector m_MeshFileSelector;
@@ -32,7 +32,7 @@ namespace HBP.UI
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(Data.SingleMesh objectToDisplay)
+        protected override void SetFields(Core.Data.SingleMesh objectToDisplay)
         {
             m_MeshFileSelector.File = objectToDisplay.SavedPath;
             m_MarsAtlasFileSelector.File = objectToDisplay.SavedMarsAtlasPath;

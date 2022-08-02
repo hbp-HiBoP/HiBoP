@@ -1,12 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using HBP.Data.Experience.Protocol;
-using HBP.Data.Experience.Dataset;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace HBP.Data.Visualization
+namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in this namespace. They are mostly used in 3D display, and only used once to compute some stuff regarding Standardize Values during the loading, which could be done there independently.
 {
     public abstract class BasicTimeline
     {
@@ -24,7 +21,7 @@ namespace HBP.Data.Visualization
         /// </summary>
         public float TimeLength { get; protected set; }
 
-        public Core.Tools.Frequency Frequency { get; protected set; }
+        public Tools.Frequency Frequency { get; protected set; }
 
         protected int m_CurrentIndex;
         /// <summary>
@@ -268,7 +265,7 @@ namespace HBP.Data.Visualization
         /// </summary>
         public float TimeStep { get; set; }
 
-        public Dictionary<Experience.Protocol.Event, EventStatistics> StatisticsByEvent { get; set; } = new Dictionary<Experience.Protocol.Event, EventStatistics>();
+        public Dictionary<Event, EventStatistics> StatisticsByEvent { get; set; } = new Dictionary<Event, EventStatistics>();
         #endregion
 
         #region Constructors
@@ -284,7 +281,7 @@ namespace HBP.Data.Visualization
             LastSampleTime = MaxTime;
             TimeStep = 1;
         }
-        public SubTimeline(SubBloc subBloc, int startIndex, List<SubBlocEventsStatistics> eventStatistics, int maxBefore, int maxAfter, Core.Tools.Frequency frequency)
+        public SubTimeline(SubBloc subBloc, int startIndex, List<SubBlocEventsStatistics> eventStatistics, int maxBefore, int maxAfter, Tools.Frequency frequency)
         {
             Frequency = frequency;
 

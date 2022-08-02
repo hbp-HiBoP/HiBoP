@@ -2,10 +2,10 @@
 using UnityEngine.UI;
 using Tools.CSharp;
 using data = HBP.Data.TrialMatrix;
-using HBP.Data.Experience.Dataset;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
 using UnityEngine.EventSystems;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.TrialMatrix
 {
@@ -242,10 +242,10 @@ namespace HBP.UI.TrialMatrix
                 rectTransform.offsetMin = new Vector2(0, 0);
                 rectTransform.offsetMax = new Vector2(0, 0);
                 rectTransform.localScale = new Vector3(1, 1, 1);
-                if (_event.Type == HBP.Data.Enums.MainSecondaryEnum.Main)
+                if (_event.Type == MainSecondaryEnum.Main)
                 {
                     data.SubTrial subTrial = subBloc.SubTrials[0];
-                    EventInformation.EventOccurence occurence = subTrial.Data.InformationsByEvent[_event].Occurences[0];
+                    Core.Data.EventInformation.EventOccurence occurence = subTrial.Data.InformationsByEvent[_event].Occurences[0];
 
                     GameObject eventGameObject = Instantiate(m_EventPrefab, rectTransform);
                     RectTransform rect = eventGameObject.transform as RectTransform;
@@ -255,12 +255,12 @@ namespace HBP.UI.TrialMatrix
                     rect.anchorMax = new Vector2(x, 1);
                     rect.anchoredPosition = new Vector2(0, 0);
                 }
-                else if(_event.Type == HBP.Data.Enums.MainSecondaryEnum.Secondary)
+                else if(_event.Type == MainSecondaryEnum.Secondary)
                 {
                     for (int i = 0; i < subBloc.SubTrials.Length; i++)
                     {
                         data.SubTrial subTrial = subBloc.SubTrials[i];
-                        EventInformation eventInformation = subTrial.Data.InformationsByEvent[_event];
+                        Core.Data.EventInformation eventInformation = subTrial.Data.InformationsByEvent[_event];
                         foreach (var occurence in eventInformation.Occurences)
                         {
                             GameObject eventGameObject = Instantiate(m_EventPrefab, rectTransform);

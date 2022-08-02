@@ -1,6 +1,6 @@
 ﻿namespace HBP.UI
 {
-    public class EmptyTagValueSubModifier : SubModifier<Data.EmptyTagValue>
+    public class EmptyTagValueSubModifier : SubModifier<Core.Data.EmptyTagValue>
     {
         #region Properties
         #endregion

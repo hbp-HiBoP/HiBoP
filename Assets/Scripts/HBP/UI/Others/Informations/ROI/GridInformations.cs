@@ -1,15 +1,7 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using data = HBP.Data.Informations;
-using System.Linq;
 using Tools.Unity.Graph;
-using HBP.Data.Experience.Protocol;
-using System;
-using HBP.Data.Experience.Dataset;
 using HBP.Data.Informations;
-using HBP.Data;
-using Tools.CSharp;
-using HBP.Module3D;
 
 namespace HBP.UI.Informations
 {
@@ -40,7 +32,7 @@ namespace HBP.UI.Informations
             {
                 if (column.Data is data.IEEGData || column.Data is data.CCEPData)
                 {
-                    SubBloc mainSubBloc = column.Data.Bloc.MainSubBloc;
+                    Core.Data.SubBloc mainSubBloc = column.Data.Bloc.MainSubBloc;
                     if (mainSubBloc.Window.Start < abscissaDisplayRange.x)
                     {
                         abscissaDisplayRange = new Vector2(mainSubBloc.Window.Start, abscissaDisplayRange.y);

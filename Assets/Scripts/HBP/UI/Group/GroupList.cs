@@ -6,7 +6,7 @@ namespace HBP.UI
     /// <summary>
     /// List to display groups.
     /// </summary>
-    public class GroupList : Tools.Unity.Lists.ActionableList<Data.Group>
+    public class GroupList : Tools.Unity.Lists.ActionableList<Core.Data.Group>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Patients, DescendingPatients }

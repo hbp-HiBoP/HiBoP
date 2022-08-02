@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using HBP.Data.Experience.Dataset;
 using Theme.Components;
 using Tools.Unity;
 using Tools.CSharp;
@@ -10,7 +9,7 @@ namespace HBP.UI.Experience.Dataset
     /// <summary>
     /// Component to display dataInfo in list.
     /// </summary>
-    public class DataInfoItem : Tools.Unity.Lists.ActionnableItem<DataInfo>
+    public class DataInfoItem : Tools.Unity.Lists.ActionnableItem<Core.Data.DataInfo>
     {
         #region Properties
         [SerializeField] Text m_NameText;
@@ -25,7 +24,7 @@ namespace HBP.UI.Experience.Dataset
         /// <summary>
         /// Object to display.
         /// </summary>
-        public override DataInfo Object
+        public override Core.Data.DataInfo Object
         {
             get
             {
@@ -34,8 +33,8 @@ namespace HBP.UI.Experience.Dataset
             set
             {
                 base.Object = value;
-                m_NameText.text = value.Name + (value is CCEPDataInfo ccepDataInfo ? " (" + ccepDataInfo.StimulatedChannel + ")" : "");
-                if (value is PatientDataInfo patientDataInfo) m_PatientText.text = patientDataInfo.Patient.Name;
+                m_NameText.text = value.Name + (value is Core.Data.CCEPDataInfo ccepDataInfo ? " (" + ccepDataInfo.StimulatedChannel + ")" : "");
+                if (value is Core.Data.PatientDataInfo patientDataInfo) m_PatientText.text = patientDataInfo.Patient.Name;
                 else m_PatientText.text = "None";
                 m_TypeText.text = value.GetType().GetDisplayName();
                 m_ErrorText.Text = Object.GetErrorsMessage();

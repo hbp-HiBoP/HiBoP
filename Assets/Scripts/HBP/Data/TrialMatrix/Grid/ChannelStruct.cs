@@ -1,5 +1,4 @@
-﻿using HBP.Data.Experience.Dataset;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System;
 using UnityEngine;
 using UnityEngine.UI.Extensions;
@@ -37,8 +36,8 @@ namespace HBP.Data.Informations
             }
         }
 
-        [SerializeField] Patient m_Patient;
-        public Patient Patient
+        [SerializeField] Core.Data.Patient m_Patient;
+        public Core.Data.Patient Patient
         {
             get
             {
@@ -52,7 +51,7 @@ namespace HBP.Data.Informations
         #endregion
 
         #region Constructors
-        public ChannelStruct(string channel, Patient patient, bool isBlacklisted)
+        public ChannelStruct(string channel, Core.Data.Patient patient, bool isBlacklisted)
         {
             Channel = channel;
             Patient = patient;
@@ -73,13 +72,13 @@ namespace HBP.Data.Informations
         {
             return other != null &&
                    Channel == other.Channel &&
-                   EqualityComparer<Patient>.Default.Equals(Patient, other.Patient);
+                   EqualityComparer<Core.Data.Patient>.Default.Equals(Patient, other.Patient);
         }
         public override int GetHashCode()
         {
             var hashCode = 252110562;
             hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Channel);
-            hashCode = hashCode * -1521134295 + EqualityComparer<Patient>.Default.GetHashCode(Patient);
+            hashCode = hashCode * -1521134295 + EqualityComparer<Core.Data.Patient>.Default.GetHashCode(Patient);
             return hashCode;
         }
         public static bool operator ==(ChannelStruct struct1, ChannelStruct struct2)
@@ -97,8 +96,8 @@ namespace HBP.Data.Informations
     public class Data : IEquatable<Data>
     {
         #region Properties
-        [SerializeField] Dataset m_Dataset;
-        public Dataset Dataset
+        [SerializeField] Core.Data.Dataset m_Dataset;
+        public Core.Data.Dataset Dataset
         {
             get
             {
@@ -123,8 +122,8 @@ namespace HBP.Data.Informations
             }
         }
 
-        [SerializeField] Experience.Protocol.Bloc m_Bloc;
-        public Experience.Protocol.Bloc Bloc
+        [SerializeField] Core.Data.Bloc m_Bloc;
+        public Core.Data.Bloc Bloc
         {
             get
             {
@@ -138,7 +137,7 @@ namespace HBP.Data.Informations
         #endregion
 
         #region Constructors
-        public Data(Dataset dataset, string data, Experience.Protocol.Bloc bloc)
+        public Data(Core.Data.Dataset dataset, string data, Core.Data.Bloc bloc)
         {
             m_Dataset = dataset;
             m_Name = data;
@@ -154,13 +153,13 @@ namespace HBP.Data.Informations
         public bool Equals(Data other)
         {
             return other != null &&
-                   EqualityComparer<Dataset>.Default.Equals(Dataset, other.Dataset) &&
+                   EqualityComparer<Core.Data.Dataset>.Default.Equals(Dataset, other.Dataset) &&
                    Name == other.Name;
         }
         public override int GetHashCode()
         {
             var hashCode = 139406400;
-            hashCode = hashCode * -1521134295 + EqualityComparer<Dataset>.Default.GetHashCode(Dataset);
+            hashCode = hashCode * -1521134295 + EqualityComparer<Core.Data.Dataset>.Default.GetHashCode(Dataset);
             hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
             return hashCode;
         }
@@ -194,7 +193,7 @@ namespace HBP.Data.Informations
         #endregion
 
         #region Constructors
-        public CCEPData(Dataset dataset, string data, ChannelStruct source, Experience.Protocol.Bloc bloc) : base(dataset, data, bloc)
+        public CCEPData(Core.Data.Dataset dataset, string data, ChannelStruct source, Core.Data.Bloc bloc) : base(dataset, data, bloc)
         {
             Source = source;
         }
@@ -230,7 +229,7 @@ namespace HBP.Data.Informations
     public class IEEGData : Data
     {
         #region Constructors
-        public IEEGData(Dataset dataset, string data, Experience.Protocol.Bloc bloc) : base(dataset, data, bloc)
+        public IEEGData(Core.Data.Dataset dataset, string data, Core.Data.Bloc bloc) : base(dataset, data, bloc)
         {
         }
         #endregion
@@ -262,7 +261,7 @@ namespace HBP.Data.Informations
         #endregion
 
         #region Constructors
-        public MEGData(Dataset dataset, string data, Window window) : base(dataset, data, null)
+        public MEGData(Core.Data.Dataset dataset, string data, Window window) : base(dataset, data, null)
         {
             Window = window;
         }

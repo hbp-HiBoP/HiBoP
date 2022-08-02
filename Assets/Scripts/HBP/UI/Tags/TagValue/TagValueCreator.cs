@@ -3,14 +3,14 @@ using UnityEngine;
 
 namespace HBP.UI
 {
-    public class TagValueCreator : ObjectCreator<Data.BaseTagValue>
+    public class TagValueCreator : ObjectCreator<Core.Data.BaseTagValue>
     {
         #region Properties
-        [SerializeField] Data.BaseTag[] m_Tags;
+        [SerializeField] Core.Data.BaseTag[] m_Tags;
         /// <summary>
         /// Possible Tags.
         /// </summary>
-        public Data.BaseTag[] Tags
+        public Core.Data.BaseTag[] Tags
         {
             get
             {
@@ -29,7 +29,7 @@ namespace HBP.UI
         /// </summary>
         public override void CreateFromScratch()
         {
-            OpenModifier(new Data.IntTagValue());
+            OpenModifier(new Core.Data.IntTagValue());
         }
         #endregion
 
@@ -39,7 +39,7 @@ namespace HBP.UI
         /// </summary>
         /// <param name="item">TagValue to modify</param>
         /// <returns>TagValueModifier</returns>
-        protected override ObjectModifier<Data.BaseTagValue> OpenModifier(Data.BaseTagValue item)
+        protected override ObjectModifier<Core.Data.BaseTagValue> OpenModifier(Core.Data.BaseTagValue item)
         {
             TagValueModifier modifier = (TagValueModifier) base.OpenModifier(item);
             modifier.Tags = Tags;

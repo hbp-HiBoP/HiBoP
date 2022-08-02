@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using HBP.Data.Experience.Protocol;
 
-namespace HBP.Data.Experience.Dataset
+namespace HBP.Core.Data
 {
     public class BlocData
     {

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using HBP.Core.Data.Enums;
 
 namespace HBP.Module3D
 {
@@ -88,7 +89,7 @@ namespace HBP.Module3D
         /// <param name="pts">List of pts files (one by patient)</param>
         /// <param name="marsAtlas">List of Mars Atlas files (one by patient)</param>
         /// <param name="patientIDs">List of patients IDs</param>
-        public void Add(string name, List<Core.Object3D.Implantation3D.SiteInfo> siteInfos, IEnumerable<Data.Patient> patients)
+        public void Add(string name, List<Core.Object3D.Implantation3D.SiteInfo> siteInfos, IEnumerable<Core.Data.Patient> patients)
         {
             Core.Object3D.Implantation3D implantation3D = new Core.Object3D.Implantation3D(name, siteInfos, patients);
             if (implantation3D.IsLoaded)
@@ -147,25 +148,25 @@ namespace HBP.Module3D
                     iEEGActivity = columnIEEG.ActivityValuesBySiteID[siteID][columnIEEG.Timeline.CurrentIndex];
                 }
                 // Send Event
-                Data.Enums.SiteInformationDisplayMode displayMode;
+                SiteInformationDisplayMode displayMode;
                 if (m_Scene.IsGeneratorUpToDate)
                 {
                     if (column is Column3DCCEP)
                     {
-                        displayMode = Data.Enums.SiteInformationDisplayMode.CCEP;
+                        displayMode = SiteInformationDisplayMode.CCEP;
                     }
                     else if (column is Column3DIEEG)
                     {
-                        displayMode = Data.Enums.SiteInformationDisplayMode.IEEG;
+                        displayMode = SiteInformationDisplayMode.IEEG;
                     }
                     else
                     {
-                        displayMode = Data.Enums.SiteInformationDisplayMode.Anatomy;
+                        displayMode = SiteInformationDisplayMode.Anatomy;
                     }
                 }
                 else
                 {
-                    displayMode = Data.Enums.SiteInformationDisplayMode.Anatomy;
+                    displayMode = SiteInformationDisplayMode.Anatomy;
                 }
                 ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(site, true, Input.mousePosition, displayMode, iEEGActivity.ToString("0.00"), iEEGUnit, CCEPAmplitude, CCEPLatency));
             }

@@ -38,12 +38,12 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ObjectSelector<Data.Visualization.Visualization> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Visualizations,false);
+                ObjectSelector<Core.Data.Visualization> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Visualizations,false);
                 selector.OnOk.AddListener(() =>
                 {
                     if (selector.ObjectsSelected.Length > 0)
                     {
-                        SelectedScene.Visualization.Configuration = selector.ObjectsSelected[0].Configuration.Clone() as Data.Visualization.VisualizationConfiguration;
+                        SelectedScene.Visualization.Configuration = selector.ObjectsSelected[0].Configuration.Clone() as Core.Data.VisualizationConfiguration;
                         SelectedScene.LoadConfiguration();
                     }
                 });

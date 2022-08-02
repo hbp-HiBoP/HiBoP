@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.Module3D
+namespace HBP.Core.Object3D
 {
     /// <summary>
     /// Class managing the meshes created at runtime (ROI spheres, sites)

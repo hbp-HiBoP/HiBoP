@@ -1,11 +1,9 @@
-﻿using HBP.Data.Experience.Dataset;
-using HBP.Data.Informations;
+﻿using HBP.Data.Informations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Events;
 using static HBP.Data.TrialMatrix.Grid.TrialMatrixGrid;
-using p = HBP.Data.Experience.Protocol;
 
 namespace HBP.Data.TrialMatrix.Grid
 {
@@ -14,7 +12,7 @@ namespace HBP.Data.TrialMatrix.Grid
         #region Properties
         public bool IsFound { get; set; }
         public ChannelStruct Channel { get; set; }
-        public p.Bloc Bloc { get; set; }
+        public Core.Data.Bloc Bloc { get; set; }
         public SubBloc[] SubBlocs { get; set; }
         bool m_IsHovered;
         public bool IsHovered
@@ -33,9 +31,9 @@ namespace HBP.Data.TrialMatrix.Grid
         #endregion
 
         #region Constructors
-        public ChannelBloc(p.Bloc bloc, TrialMatrixData data, ChannelStruct channel)
+        public ChannelBloc(Core.Data.Bloc bloc, TrialMatrixData data, ChannelStruct channel)
         {
-            DataInfo dataInfo = null;
+            Core.Data.DataInfo dataInfo = null;
             if(data is IEEGTrialMatrixData iEEGDataStruct)
             {
                 dataInfo = iEEGDataStruct.Dataset.GetIEEGDataInfos().FirstOrDefault(d => d.Name == iEEGDataStruct.Name && d.Patient == channel.Patient);
@@ -46,7 +44,7 @@ namespace HBP.Data.TrialMatrix.Grid
             }
 
             UnityEngine.Profiling.Profiler.BeginSample("GetData");
-            BlocChannelData blocChannelData = DataManager.GetData(dataInfo, bloc, channel.Channel);
+            Core.Data.BlocChannelData blocChannelData = Core.Data.DataManager.GetData(dataInfo, bloc, channel.Channel);
             UnityEngine.Profiling.Profiler.EndSample();
 
             IsFound = blocChannelData != null;
@@ -55,7 +53,7 @@ namespace HBP.Data.TrialMatrix.Grid
             if (IsFound)
             {
                 List<SubBloc> subBlocs = new List<SubBloc>(bloc.SubBlocs.Count);
-                IEnumerable<ChannelTrial> orderedTrials = blocChannelData.Trials.Where(t => t.IsValid); // FIXME : Ajouter la gestion des trials non complets.
+                IEnumerable<Core.Data.ChannelTrial> orderedTrials = blocChannelData.Trials.Where(t => t.IsValid); // FIXME : Ajouter la gestion des trials non complets.
                 foreach (var subBloc in bloc.OrderedSubBlocs)
                 {
                     IEnumerable<SubTrial> subTrials = orderedTrials.Select(trial => new SubTrial(trial.ChannelSubTrialBySubBloc[subBloc]));
@@ -75,12 +73,12 @@ namespace HBP.Data.TrialMatrix.Grid
                 SubBlocs = subBlocs.ToArray();
             }
         }
-        public void Standardize(Tuple<Tuple<p.Bloc,p.SubBloc>[],Tools.CSharp.Window>[] subBlocsAndWindowByColumn)
+        public void Standardize(Tuple<Tuple<Core.Data.Bloc,Core.Data.SubBloc>[],Tools.CSharp.Window>[] subBlocsAndWindowByColumn)
         {
             List<SubBloc> subBlocs = SubBlocs.ToList();
             for (int c = 0; c < subBlocsAndWindowByColumn.Length; c++)
             {
-                Tuple<Tuple<p.Bloc,p.SubBloc>[], Tools.CSharp.Window> pair = subBlocsAndWindowByColumn[c];
+                Tuple<Tuple<Core.Data.Bloc, Core.Data.SubBloc>[], Tools.CSharp.Window> pair = subBlocsAndWindowByColumn[c];
                 SubBloc subBloc = subBlocs.FirstOrDefault(s => pair.Item1.Any(v => v.Item2 == s.SubBlocProtocol));
                 if (subBloc == null)
                 {

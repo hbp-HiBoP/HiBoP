@@ -1,7 +1,4 @@
-﻿using HBP.Data;
-using HBP.Data.Experience.Dataset;
-using HBP.Data.Experience.Protocol;
-using HBP.Data.Informations;
+﻿using HBP.Data.Informations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -293,7 +290,7 @@ namespace Tools.Unity.Graph
             // Find all visualized blocs and sort by column.
             IEnumerable<Column> epochedDataColumns = columns.Where(c => c.Data is HBP.Data.Informations.IEEGData || c.Data is HBP.Data.Informations.CCEPData);
             IEnumerable<Column> nonEpochedDataColumns = columns.Where(c => c.Data is MEGData);
-            IEnumerable<Bloc> blocs = epochedDataColumns.Select(c => c.Data.Bloc);
+            IEnumerable<HBP.Core.Data.Bloc> blocs = epochedDataColumns.Select(c => c.Data.Bloc);
 
             foreach (var channel in channels)
             {
@@ -313,7 +310,7 @@ namespace Tools.Unity.Graph
 
             return result.ToArray();
         }
-        Graph.Curve GenerateChannelCurve(Column column, ChannelStruct channel, SubBloc subBloc)
+        Graph.Curve GenerateChannelCurve(Column column, ChannelStruct channel, HBP.Core.Data.SubBloc subBloc)
         {
             string ID = column.Name + "_" + column.Data.Name + "_" + column.Data.Bloc.Name + "_" + column.Data.Dataset.Name;
             CurveData curveData = GetCurveData(column, subBloc, channel);
@@ -328,10 +325,10 @@ namespace Tools.Unity.Graph
             return result;
         }
 
-        CurveData GetCurveData(Column column, SubBloc subBloc, ChannelStruct channel)
+        CurveData GetCurveData(Column column, HBP.Core.Data.SubBloc subBloc, ChannelStruct channel)
         {
             CurveData result = null;
-            PatientDataInfo dataInfo = null;
+            HBP.Core.Data.PatientDataInfo dataInfo = null;
             if (column.Data is HBP.Data.Informations.IEEGData ieegDataStruct)
             {
                 dataInfo = ieegDataStruct.Dataset.GetIEEGDataInfos().First(d => (d.Patient == channel.Patient && d.Name == ieegDataStruct.Name));
@@ -340,18 +337,18 @@ namespace Tools.Unity.Graph
             {
                 dataInfo = ccepDataStruct.Dataset.GetCCEPDataInfos().First(d => (d.Patient == channel.Patient && d.StimulatedChannel == ccepDataStruct.Source.Channel && d.Patient == ccepDataStruct.Source.Patient && d.Name == ccepDataStruct.Name));
             }
-            BlocData blocData = DataManager.GetData(dataInfo, column.Data.Bloc);
-            BlocChannelData blocChannelData = DataManager.GetData(dataInfo, column.Data.Bloc, channel.Channel);
+            HBP.Core.Data.BlocData blocData = HBP.Core.Data.DataManager.GetData(dataInfo, column.Data.Bloc);
+            HBP.Core.Data.BlocChannelData blocChannelData = HBP.Core.Data.DataManager.GetData(dataInfo, column.Data.Bloc, channel.Channel);
             Color color = ApplicationState.UserPreferences.Visualization.Graph.GetColor(0, Array.IndexOf(m_Columns, column));
 
-            ChannelTrial[] trials = blocChannelData.Trials.Where(t => t.IsValid).ToArray();
+            HBP.Core.Data.ChannelTrial[] trials = blocChannelData.Trials.Where(t => t.IsValid).ToArray();
 
             float start = blocData.Frequency.ConvertNumberOfSamplesToMilliseconds(blocData.Frequency.ConvertToCeiledNumberOfSamples(subBloc.Window.Start));
             float end = blocData.Frequency.ConvertNumberOfSamplesToMilliseconds(blocData.Frequency.ConvertToFlooredNumberOfSamples(subBloc.Window.End));
 
             if (trials.Length > 1)
             {
-                ChannelSubTrial[] channelSubTrials = trials.Select(t => t.ChannelSubTrialBySubBloc[subBloc]).ToArray();
+                HBP.Core.Data.ChannelSubTrial[] channelSubTrials = trials.Select(t => t.ChannelSubTrialBySubBloc[subBloc]).ToArray();
 
                 float[] values = new float[channelSubTrials[0].Values.Length];
                 float[] standardDeviations = new float[values.Length];
@@ -378,7 +375,7 @@ namespace Tools.Unity.Graph
             }
             else if (trials.Length == 1)
             {
-                ChannelSubTrial channelSubTrial = trials[0].ChannelSubTrialBySubBloc[subBloc];
+                HBP.Core.Data.ChannelSubTrial channelSubTrial = trials[0].ChannelSubTrialBySubBloc[subBloc];
                 float[] values = channelSubTrial.Values;
 
                 // Generate points.
@@ -396,13 +393,13 @@ namespace Tools.Unity.Graph
         CurveData GetNonEpochedCurveData(Column column, ChannelStruct channel)
         {
             CurveData result = null;
-            PatientDataInfo dataInfo = null;
+            HBP.Core.Data.PatientDataInfo dataInfo = null;
             if (column.Data is MEGData megDataStruct)
             {
-                dataInfo = megDataStruct.Dataset.GetMEGDataInfos().OfType<MEGcDataInfo>().FirstOrDefault(d => (d.Patient == channel.Patient && d.Name == megDataStruct.Name));
+                dataInfo = megDataStruct.Dataset.GetMEGDataInfos().OfType<HBP.Core.Data.MEGcDataInfo>().FirstOrDefault(d => (d.Patient == channel.Patient && d.Name == megDataStruct.Name));
                 if (dataInfo == null) return null;
             }
-            MEGcData megData = DataManager.GetData(dataInfo) as MEGcData;
+            HBP.Core.Data.MEGcData megData = HBP.Core.Data.DataManager.GetData(dataInfo) as HBP.Core.Data.MEGcData;
             Color color = ApplicationState.UserPreferences.Visualization.Graph.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));
             if (megData == null)
                 return null;

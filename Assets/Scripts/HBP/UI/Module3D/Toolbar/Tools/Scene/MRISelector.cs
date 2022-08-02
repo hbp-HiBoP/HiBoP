@@ -56,7 +56,7 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateStatus()
         {
             m_Dropdown.options.Clear();
-            foreach (MRI3D mri in SelectedScene.MRIManager.MRIs)
+            foreach (Core.Object3D.MRI3D mri in SelectedScene.MRIManager.MRIs)
             {
                 m_Dropdown.options.Add(new Dropdown.OptionData(mri.Name));
             }

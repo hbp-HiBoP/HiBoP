@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.Serialization;
+using HBP.Core.Data.Enums;
 
-namespace HBP.Data.Experience.Dataset
+namespace HBP.Core.Data
 {
     /// <summary>
     /// Class containing paths to iEEG data files.
@@ -54,14 +55,6 @@ namespace HBP.Data.Experience.Dataset
     public class IEEGDataInfo : PatientDataInfo, IEpochable
     {
         #region Properties
-        /// <summary>
-        /// Normalization Type.
-        /// </summary>
-        public enum NormalizationType
-        {
-            None, SubTrial, Trial, SubBloc, Bloc, Protocol, Auto
-        }
-
         /// <summary>
         /// Normalization of the Data.
         /// </summary>
@@ -132,7 +125,7 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Public Methods
-        public override Error[] GetErrors(Protocol.Protocol protocol)
+        public override Error[] GetErrors(Protocol protocol)
         {
             List<Error> errors = new List<Error>(base.GetErrors(protocol));
             errors.AddRange(GetiEEGErrors(protocol));
@@ -143,44 +136,44 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         /// <param name="protocol">Protocol of the dataset the dataInfo belongs to.</param>
         /// <returns>iEEG related errors</returns>
-        public virtual Error[] GetiEEGErrors(Protocol.Protocol protocol)
+        public virtual Error[] GetiEEGErrors(Protocol protocol)
         {
             List<Error> errors = new List<Error>();
             if (m_DataContainer.IsOk)
             {
-                Tools.CSharp.EEG.File.FileType type;
+                DLL.EEG.File.FileType type;
                 string[] files;
                 if (m_DataContainer is Container.BrainVision brainVisionDataContainer)
                 {
-                    type = Tools.CSharp.EEG.File.FileType.BrainVision;
+                    type = DLL.EEG.File.FileType.BrainVision;
                     files = new string[] { brainVisionDataContainer.Header };
                 }
                 else if (m_DataContainer is Container.EDF edfDataContainer)
                 {
-                    type = Tools.CSharp.EEG.File.FileType.EDF;
+                    type = DLL.EEG.File.FileType.EDF;
                     files = new string[] { edfDataContainer.File };
                 }
                 else if (m_DataContainer is Container.Elan elanDataContainer)
                 {
-                    type = Tools.CSharp.EEG.File.FileType.ELAN;
+                    type = DLL.EEG.File.FileType.ELAN;
                     files = new string[] { elanDataContainer.EEG, elanDataContainer.POS, elanDataContainer.Notes };
                 }
                 else if (m_DataContainer is Container.Micromed micromedDataContainer)
                 {
-                    type = Tools.CSharp.EEG.File.FileType.Micromed;
+                    type = DLL.EEG.File.FileType.Micromed;
                     files = new string[] { micromedDataContainer.Path };
                 }
                 else if (m_DataContainer is Container.FIF fifDataContainer)
                 {
-                    type = Tools.CSharp.EEG.File.FileType.FIF;
+                    type = DLL.EEG.File.FileType.FIF;
                     files = new string[] { fifDataContainer.File };
                 }
                 else
                 {
                     throw new Exception("Invalid data container type");
                 }
-                Tools.CSharp.EEG.File file = new Tools.CSharp.EEG.File(type, false, files);
-                List<Tools.CSharp.EEG.Trigger> triggers = file.Triggers;
+                DLL.EEG.File file = new DLL.EEG.File(type, false, files);
+                List<DLL.EEG.Trigger> triggers = file.Triggers;
                 if (protocol.IsVisualizable && !protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))))
                 {
                     IEnumerable<string> blocsNotFound = protocol.Blocs.Where(bloc => !bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))).Select(bloc => bloc.Name);

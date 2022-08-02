@@ -1,11 +1,11 @@
-﻿using HBP.Data.Preferences;
-using Tools.Unity;
+﻿using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.UserPreferences
 {
-    public class _3DPreferencesSubModifier : SubModifier<_3DPreferences>
+    public class _3DPreferencesSubModifier : SubModifier<Core.Data.Preferences._3DPreferences>
     {
         #region Properties
         [SerializeField] Toggle m_AutomaticEEGUpdateToggle;
@@ -50,8 +50,8 @@ namespace HBP.UI.UserPreferences
             base.Initialize();
 
             m_AutomaticEEGUpdateToggle.onValueChanged.AddListener((value) => Object.AutomaticEEGUpdate = value);
-            m_VisualizationsLayoutDirectionDropdown.onValueChanged.AddListener((value) => Object.VisualizationsLayoutDirection = (Data.Enums.LayoutDirection)value);
-            m_SiteInfluenceDropdown.onValueChanged.AddListener((value) => Object.SiteInfluenceByDistance = (Data.Enums.SiteInfluenceByDistanceType)value);
+            m_VisualizationsLayoutDirectionDropdown.onValueChanged.AddListener((value) => Object.VisualizationsLayoutDirection = (LayoutDirection)value);
+            m_SiteInfluenceDropdown.onValueChanged.AddListener((value) => Object.SiteInfluenceByDistance = (SiteInfluenceByDistanceType)value);
 
             m_DefaultSelectedMRIInSinglePatientInputField.onValueChanged.AddListener((value) => Object.DefaultSelectedMRIInSinglePatientVisualization = value);
             m_DefaultSelectedMeshInSinglePatientInputField.onValueChanged.AddListener((value) => Object.DefaultSelectedMeshInSinglePatientVisualization = value);
@@ -64,13 +64,13 @@ namespace HBP.UI.UserPreferences
         #endregion
 
         #region Private Methods
-        protected override void SetFields(_3DPreferences objectToDisplay)
+        protected override void SetFields(Core.Data.Preferences._3DPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
 
             m_AutomaticEEGUpdateToggle.isOn = objectToDisplay.AutomaticEEGUpdate;
-            m_VisualizationsLayoutDirectionDropdown.Set(typeof(Data.Enums.LayoutDirection), (int)objectToDisplay.VisualizationsLayoutDirection);
-            m_SiteInfluenceDropdown.Set(typeof(Data.Enums.SiteInfluenceByDistanceType), (int)objectToDisplay.SiteInfluenceByDistance);
+            m_VisualizationsLayoutDirectionDropdown.Set(typeof(LayoutDirection), (int)objectToDisplay.VisualizationsLayoutDirection);
+            m_SiteInfluenceDropdown.Set(typeof(SiteInfluenceByDistanceType), (int)objectToDisplay.SiteInfluenceByDistance);
 
             m_DefaultSelectedMRIInSinglePatientInputField.text = objectToDisplay.DefaultSelectedMRIInSinglePatientVisualization;
             m_DefaultSelectedMeshInSinglePatientInputField.text = objectToDisplay.DefaultSelectedMeshInSinglePatientVisualization;

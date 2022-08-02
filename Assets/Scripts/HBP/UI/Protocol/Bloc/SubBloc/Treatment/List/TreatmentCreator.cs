@@ -1,10 +1,9 @@
 ﻿using Tools.Unity.Components;
-using HBP.Data.Experience.Protocol;
 using System.Linq;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class TreatmentCreator : ObjectCreator<Treatment>
+    public class TreatmentCreator : ObjectCreator<Core.Data.Treatment>
     {
         #region Properties
         Tools.CSharp.Window m_Window;
@@ -54,7 +53,7 @@ namespace HBP.UI.Experience.Protocol
         /// </summary>
         public override void CreateFromScratch()
         {
-            OpenModifier(new AbsTreatment(true,Window,false,Baseline,0));
+            OpenModifier(new Core.Data.AbsTreatment(true,Window,false,Baseline,0));
         }
         #endregion
 
@@ -64,7 +63,7 @@ namespace HBP.UI.Experience.Protocol
         /// </summary>
         /// <param name="item">Treatment to modify</param>
         /// <returns>Treatment modifier</returns>
-        protected override ObjectModifier<Treatment> OpenModifier(Treatment item)
+        protected override ObjectModifier<Core.Data.Treatment> OpenModifier(Core.Data.Treatment item)
         {
             TreatmentModifier modifier =  base.OpenModifier(item) as TreatmentModifier;
             modifier.Window = Window;

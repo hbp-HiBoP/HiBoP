@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace HBP.Data
+namespace HBP.Core.Data
 {
     /// <summary>
     /// Abstract base class for every HiBoP data.

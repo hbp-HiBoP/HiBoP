@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.UserPreferences
 {
-    public class GraphPreferencesSubModifier : SubModifier<GraphPreferences>
+    public class GraphPreferencesSubModifier : SubModifier<Core.Data.Preferences.GraphPreferences>
     {
         #region Properties
         [SerializeField] Toggle m_ShowCurvesOfMinimizedColumns;
@@ -57,7 +57,7 @@ namespace HBP.UI.UserPreferences
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(GraphPreferences objectToDisplay)
+        protected override void SetFields(Core.Data.Preferences.GraphPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
 

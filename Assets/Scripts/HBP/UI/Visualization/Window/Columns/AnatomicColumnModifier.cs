@@ -1,8 +1,6 @@
-﻿using HBP.Data.Visualization;
-
-namespace HBP.UI
+﻿namespace HBP.UI
 {
-    public class AnatomicColumnModifier : SubModifier<AnatomicColumn>
+    public class AnatomicColumnModifier : SubModifier<Core.Data.AnatomicColumn>
     {
     }
 }

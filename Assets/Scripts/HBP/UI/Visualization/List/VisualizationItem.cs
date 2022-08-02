@@ -8,7 +8,7 @@ namespace HBP.UI.Visualization
     /// <summary>
     /// Component to display a visualization in list.
     /// </summary>
-    public class VisualizationItem : ActionnableItem<Data.Visualization.Visualization>
+    public class VisualizationItem : ActionnableItem<Core.Data.Visualization>
     {
         #region Properties
         [SerializeField] Text m_NameText;
@@ -20,7 +20,7 @@ namespace HBP.UI.Visualization
         /// <summary>
         /// Object to Display.
         /// </summary>
-        public override Data.Visualization.Visualization Object
+        public override Core.Data.Visualization Object
         {
             get
             {

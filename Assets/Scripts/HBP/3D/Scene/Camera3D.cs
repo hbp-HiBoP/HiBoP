@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityStandardAssets.ImageEffects;
+using HBP.Core.Data.Enums;
 
 namespace HBP.Module3D
 {
@@ -101,11 +102,11 @@ namespace HBP.Module3D
         /// </summary>
         [SerializeField] private Material m_ZCircleMaterial;
 
-        private Data.Enums.CameraControl m_Type = Data.Enums.CameraControl.Trackball;
+        private CameraControl m_Type = CameraControl.Trackball;
         /// <summary>
         /// Type of the rotation
         /// </summary>
-        public Data.Enums.CameraControl Type
+        public CameraControl Type
         {
             get
             {
@@ -222,9 +223,9 @@ namespace HBP.Module3D
             AutomaticRotationSpeed = m_AssociatedScene.AutomaticRotationSpeed;
 
             // rotation circles
-            m_XRotationCircleVertices = Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), m_RotationCirclesRadius, 150);
-            m_YRotationCircleVertices = Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), m_RotationCirclesRadius, 150);
-            m_ZRotationCircleVertices = Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), m_RotationCirclesRadius, 150);
+            m_XRotationCircleVertices = Core.Object3D.Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), m_RotationCirclesRadius, 150);
+            m_YRotationCircleVertices = Core.Object3D.Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), m_RotationCirclesRadius, 150);
+            m_ZRotationCircleVertices = Core.Object3D.Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), m_RotationCirclesRadius, 150);
             for (int ii = 0; ii < m_XRotationCircleVertices.Length; ++ii)
             {
                 m_XRotationCircleVertices[ii] = Quaternion.AngleAxis(90, Vector3.up) * m_XRotationCircleVertices[ii];
@@ -242,7 +243,7 @@ namespace HBP.Module3D
                     Vector3 normal = m_AssociatedScene.Cuts[ii].Normal;
                     normal.x *= -1;
                     Quaternion q = Quaternion.FromToRotation(new Vector3(0, 0, 1), normal);
-                    m_PlanesCutsCirclesVertices.Add(Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), 100, 150));
+                    m_PlanesCutsCirclesVertices.Add(Core.Object3D.Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), 100, 150));
                     for (int jj = 0; jj < 150; ++jj)
                     {
                         m_PlanesCutsCirclesVertices[ii][jj] = q * m_PlanesCutsCirclesVertices[ii][jj];
@@ -422,10 +423,10 @@ namespace HBP.Module3D
         {
             switch (Type)
             {
-                case Data.Enums.CameraControl.Trackball:
+                case CameraControl.Trackball:
                     transform.RotateAround(Target, transform.up, amount * m_Speed);
                     break;
-                case Data.Enums.CameraControl.Orbital:
+                case CameraControl.Orbital:
                     int direction = Vector3.Dot(transform.up, Vector3.forward) > 0 ? 1 : -1;
                     transform.RotateAround(Target, Vector3.forward, direction * amount * m_Speed);
                     break;

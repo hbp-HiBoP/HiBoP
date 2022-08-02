@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 
-namespace HBP.Data
+namespace HBP.Core.Data
 {
     [DisplayName("String")]
     public class StringTag : BaseTag

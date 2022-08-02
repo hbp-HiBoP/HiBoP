@@ -6,7 +6,7 @@ using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using Tools.CSharp;
 
-namespace HBP.Data
+namespace HBP.Core.Data
 {
     /// <summary>
     /// Class which contains all the data about a electrode contact point also known as site.

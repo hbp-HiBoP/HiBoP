@@ -1,5 +1,4 @@
-﻿using HBP.Data.Visualization;
-using HBP.UI;
+﻿using HBP.UI;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -65,7 +64,7 @@ namespace HBP
                 }
                 else
                 {
-                    FindObjectOfType<ProjectLoaderSaver>().Load(new Data.ProjectInfo(ApplicationState.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0] + Data.Project.EXTENSION));
+                    FindObjectOfType<ProjectLoaderSaver>().Load(new Core.Data.ProjectInfo(ApplicationState.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0] + Core.Data.Project.EXTENSION));
                 }
             }
             else if (action == "-pf") // Project File
@@ -76,7 +75,7 @@ namespace HBP
                 }
                 else
                 {
-                    FindObjectOfType<ProjectLoaderSaver>().Load(new Data.ProjectInfo(arguments[0]));
+                    FindObjectOfType<ProjectLoaderSaver>().Load(new Core.Data.ProjectInfo(arguments[0]));
                 }
             }
             else if (action == "-v") // Visualization
@@ -91,7 +90,7 @@ namespace HBP
                 }
                 else
                 {
-                    IEnumerable<Visualization> visualizations;
+                    IEnumerable<Core.Data.Visualization> visualizations;
                     if (arguments[0] == "all")
                     {
                         visualizations = ApplicationState.ProjectLoaded.Visualizations;

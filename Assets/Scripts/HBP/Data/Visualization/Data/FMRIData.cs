@@ -1,12 +1,7 @@
-﻿using HBP.Data.Experience.Dataset;
-using HBP.Module3D;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using Tools.CSharp;
 
-namespace HBP.Data.Visualization
+namespace HBP.Core.Data.Processed
 {
     public class FMRIData
     {
@@ -19,8 +14,8 @@ namespace HBP.Data.Visualization
         {
             foreach (FMRIDataInfo dataInfo in columnData)
             {
-                Experience.Dataset.FMRIData data = DataManager.GetData(dataInfo) as Experience.Dataset.FMRIData;
-                FMRIs.Add(new Tuple<Core.Object3D.FMRI, Patient>(new Core.Object3D.FMRI(data.FMRI), dataInfo.Patient));
+                Core.Data.FMRIData data = DataManager.GetData(dataInfo) as Core.Data.FMRIData;
+                FMRIs.Add(new Tuple<Core.Object3D.FMRI, Patient>(new Object3D.FMRI(data.FMRI), dataInfo.Patient));
             }
         }
         public void Unload()

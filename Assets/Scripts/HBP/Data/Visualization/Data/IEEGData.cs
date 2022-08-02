@@ -1,10 +1,8 @@
-﻿using HBP.Data.Experience.Dataset;
-using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Tools.CSharp;
 
-namespace HBP.Data.Visualization
+namespace HBP.Core.Data.Processed
 {
     public class IEEGData : DynamicData
     {
@@ -21,11 +19,11 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Public Methods
-        public void Load(IEnumerable<IEEGDataInfo> columnData, Experience.Protocol.Bloc bloc)
+        public void Load(IEnumerable<IEEGDataInfo> columnData, Bloc bloc)
         {
             foreach (IEEGDataInfo dataInfo in columnData)
             {
-                Experience.Dataset.IEEGData data = DataManager.GetData(dataInfo) as Experience.Dataset.IEEGData;
+                Core.Data.IEEGData data = DataManager.GetData(dataInfo) as Core.Data.IEEGData;
                 // Values
                 foreach (var channel in data.UnitByChannel.Keys) 
                 {
@@ -51,18 +49,18 @@ namespace HBP.Data.Visualization
             m_Frequencies.Clear();
             ProcessedValuesByChannel.Clear();
         }
-        public void SetTimeline(Core.Tools.Frequency maxFrequency, Experience.Protocol.Bloc columnBloc, IEnumerable<Experience.Protocol.Bloc> blocs)
+        public void SetTimeline(Core.Tools.Frequency maxFrequency, Bloc columnBloc, IEnumerable<Bloc> blocs)
         {
             // Process frequencies
             m_Frequencies.Add(maxFrequency);
             m_Frequencies = m_Frequencies.GroupBy(f => f.Value).Select(g => g.First()).ToList();
 
             // Get index of each subBloc
-            Dictionary<Experience.Protocol.SubBloc, int> indexBySubBloc = new Dictionary<Experience.Protocol.SubBloc, int>();
+            Dictionary<SubBloc, int> indexBySubBloc = new Dictionary<SubBloc, int>();
             foreach (var bloc in blocs)
             {
                 int mainSubBlocPosition = bloc.MainSubBlocPosition;
-                Experience.Protocol.SubBloc[] subBlocs = bloc.OrderedSubBlocs.ToArray();
+                SubBloc[] subBlocs = bloc.OrderedSubBlocs.ToArray();
                 for (int i = 0; i < subBlocs.Length; ++i)
                 {
                     if (!indexBySubBloc.ContainsKey(subBlocs[i])) indexBySubBloc.Add(subBlocs[i], i - mainSubBlocPosition);
@@ -70,7 +68,7 @@ namespace HBP.Data.Visualization
             }
 
             // Get all eventStatistics for each SubBloc of the column
-            Dictionary<Experience.Protocol.SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc = new Dictionary<Experience.Protocol.SubBloc, List<SubBlocEventsStatistics>>();
+            Dictionary<SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc = new Dictionary<SubBloc, List<SubBlocEventsStatistics>>();
             foreach (var subBloc in columnBloc.SubBlocs)
             {
                 eventStatisticsBySubBloc.Add(subBloc, new List<SubBlocEventsStatistics>());

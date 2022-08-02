@@ -1,19 +1,18 @@
-﻿using HBP.Data.Experience.Protocol;
-using System.Linq;
+﻿using System.Linq;
 using Tools.Unity.Components;
 using Tools.Unity.Lists;
 using UnityEngine;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class TreatmentListGestion : ListGestion<Treatment>
+    public class TreatmentListGestion : ListGestion<Core.Data.Treatment>
     {
         #region Properties
         [SerializeField] protected TreatmentList m_List;
-        public override ActionableList<Treatment> List => m_List;
+        public override ActionableList<Core.Data.Treatment> List => m_List;
 
         [SerializeField] protected TreatmentCreator m_ObjectCreator;
-        public override ObjectCreator<Treatment> ObjectCreator => m_ObjectCreator;
+        public override ObjectCreator<Core.Data.Treatment> ObjectCreator => m_ObjectCreator;
 
         Tools.CSharp.Window m_Window;
         public Tools.CSharp.Window Window
@@ -54,7 +53,7 @@ namespace HBP.UI.Experience.Protocol
         #endregion
 
         #region Public Methods
-        protected override ObjectModifier<Treatment> OpenModifier(Treatment item)
+        protected override ObjectModifier<Core.Data.Treatment> OpenModifier(Core.Data.Treatment item)
         {
             TreatmentModifier modifier = base.OpenModifier(item) as TreatmentModifier;
             modifier.Window = Window;

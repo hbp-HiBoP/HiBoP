@@ -1,12 +1,11 @@
-﻿using HBP.Data.Experience.Protocol;
-using System.Globalization;
+﻿using System.Globalization;
 using Tools.CSharp;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class OffsetTreatmentSubModifier : SubModifier<OffsetTreatment>
+    public class OffsetTreatmentSubModifier : SubModifier<Core.Data.OffsetTreatment>
     {
         #region Properties
         [SerializeField] InputField m_OffsetInputField;
@@ -42,7 +41,7 @@ namespace HBP.UI.Experience.Protocol
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(OffsetTreatment objectToDisplay)
+        protected override void SetFields(Core.Data.OffsetTreatment objectToDisplay)
         {
             m_OffsetInputField.text = objectToDisplay.Offset.ToString("0.##", CultureInfo.InvariantCulture);
         }

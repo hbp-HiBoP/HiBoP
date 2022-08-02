@@ -7,7 +7,7 @@ namespace HBP.UI
     /// <summary>
     /// Window to modify a Alias.
     /// </summary>
-    public class AliasModifier : ObjectModifier<Data.Alias>
+    public class AliasModifier : ObjectModifier<Core.Data.Alias>
     {
         #region Properties
         [SerializeField] InputField m_KeyInputField;
@@ -43,7 +43,7 @@ namespace HBP.UI
         /// Set the fields.
         /// </summary>
         /// <param name="objectToDisplay">Alias to display</param>
-        protected override void SetFields(Data.Alias objectToDisplay)
+        protected override void SetFields(Core.Data.Alias objectToDisplay)
         {
             m_KeyInputField.text = objectToDisplay.Key;
             m_ValueFolderSelector.Folder = objectToDisplay.Value;

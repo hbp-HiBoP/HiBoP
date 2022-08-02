@@ -1,8 +1,8 @@
 ﻿using HBP.Module3D;
 using System.Collections.Generic;
-using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.Module3D
 {
@@ -55,10 +55,10 @@ namespace HBP.UI.Module3D
             HorizontalOrVerticalLayoutGroup layout;
             switch (ApplicationState.UserPreferences.Visualization._3D.VisualizationsLayoutDirection)
             {
-                case Data.Enums.LayoutDirection.Horizontal:
+                case LayoutDirection.Horizontal:
                     layout = gameObject.AddComponent<HorizontalLayoutGroup>();
                     break;
-                case Data.Enums.LayoutDirection.Vertical:
+                case LayoutDirection.Vertical:
                     layout = gameObject.AddComponent<VerticalLayoutGroup>();
                     break;
                 default:

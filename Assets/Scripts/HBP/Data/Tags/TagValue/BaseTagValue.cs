@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Runtime.Serialization;
 
-namespace HBP.Data
+namespace HBP.Core.Data
 {
     /// <summary>
     /// A base class which contains all the data about a value and its associated tag.

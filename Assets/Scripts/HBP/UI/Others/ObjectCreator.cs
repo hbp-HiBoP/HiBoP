@@ -1,19 +1,19 @@
-﻿using HBP.UI;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Tools.CSharp;
 using UnityEngine;
 using UnityEngine.Events;
+using HBP.Core.Data.Enums;
 
-namespace Tools.Unity.Components
+namespace HBP.UI
 {
     /// <summary>
     /// Component to create a new object ICloneable and ICopiable. 
     /// </summary>
     /// <typeparam name="T">Type of the object to create</typeparam>
     [Serializable]
-    public class ObjectCreator<T> : MonoBehaviour where T : HBP.Data.BaseData, new()
+    public class ObjectCreator<T> : MonoBehaviour where T : Core.Data.BaseData, new()
     {
         #region Properties
         [SerializeField] public bool m_IsLoadableFromFile = true;
@@ -143,20 +143,20 @@ namespace Tools.Unity.Components
         /// Create a new object with a specified creation type.
         /// </summary>
         /// <param name="type">Creation type.</param>
-        public virtual void Create(HBP.Data.Enums.CreationType type)
+        public virtual void Create(CreationType type)
         {
             switch (type)
             {
-                case HBP.Data.Enums.CreationType.FromScratch:
+                case CreationType.FromScratch:
                     CreateFromScratch();
                     break;
-                case HBP.Data.Enums.CreationType.FromExistingObject:
+                case CreationType.FromExistingObject:
                     CreateFromExistingObject();
                     break;
-                case HBP.Data.Enums.CreationType.FromFile:
+                case CreationType.FromFile:
                     CreateFromFile();
                     break;
-                case HBP.Data.Enums.CreationType.FromDatabase:
+                case CreationType.FromDatabase:
                     CreateFromDatabase();
                     break;
             }

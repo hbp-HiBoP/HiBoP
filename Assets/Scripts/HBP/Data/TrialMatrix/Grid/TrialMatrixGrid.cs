@@ -25,11 +25,11 @@ namespace HBP.Data.TrialMatrix.Grid
         #region Inner Classes
         public class TrialMatrixData : IEquatable<TrialMatrixData>
         {
-            public Experience.Dataset.Dataset Dataset;
+            public Core.Data.Dataset Dataset;
             public string Name;
-            public List<Experience.Protocol.Bloc> Blocs;
+            public List<Core.Data.Bloc> Blocs;
 
-            public TrialMatrixData(Experience.Dataset.Dataset dataset, string dataName, List<Experience.Protocol.Bloc> blocs)
+            public TrialMatrixData(Core.Data.Dataset dataset, string dataName, List<Core.Data.Bloc> blocs)
             {
                 Dataset = dataset;
                 Name = dataName;
@@ -45,13 +45,13 @@ namespace HBP.Data.TrialMatrix.Grid
             {
                 return other != null &&
                        Name == other.Name &&
-                       EqualityComparer<Experience.Dataset.Dataset>.Default.Equals(Dataset, other.Dataset);
+                       EqualityComparer<Core.Data.Dataset>.Default.Equals(Dataset, other.Dataset);
             }
             public override int GetHashCode()
             {
                 var hashCode = 252110562;
                 hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
-                hashCode = hashCode * -1521134295 + EqualityComparer<Experience.Dataset.Dataset>.Default.GetHashCode(Dataset);
+                hashCode = hashCode * -1521134295 + EqualityComparer<Core.Data.Dataset>.Default.GetHashCode(Dataset);
                 return hashCode;
             }
             public static bool operator ==(TrialMatrixData struct1, TrialMatrixData struct2)
@@ -68,14 +68,14 @@ namespace HBP.Data.TrialMatrix.Grid
         {
             public ChannelStruct Source;
 
-            public CCEPTrialMatrixData(Experience.Dataset.Dataset dataset, string dataName, List<Experience.Protocol.Bloc> blocs, ChannelStruct source) : base(dataset, dataName, blocs)
+            public CCEPTrialMatrixData(Core.Data.Dataset dataset, string dataName, List<Core.Data.Bloc> blocs, ChannelStruct source) : base(dataset, dataName, blocs)
             {
                 Source = source;
             }
         }
         public class IEEGTrialMatrixData : TrialMatrixData
         {
-            public IEEGTrialMatrixData(Experience.Dataset.Dataset dataset, string dataName, List<Experience.Protocol.Bloc> blocs) : base(dataset, dataName, blocs)
+            public IEEGTrialMatrixData(Core.Data.Dataset dataset, string dataName, List<Core.Data.Bloc> blocs) : base(dataset, dataName, blocs)
             {
 
             }

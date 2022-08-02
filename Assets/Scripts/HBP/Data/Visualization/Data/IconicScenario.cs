@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace HBP.Data.Visualization
+namespace HBP.Core.Data.Processed
 {
     /**
     * \class IconicScenario
@@ -32,7 +32,7 @@ namespace HBP.Data.Visualization
         /// <param name="bloc">Bloc of the iconic scenario.</param>
         /// <param name="frequency">Frequency used.</param>
         /// <param name="timeLine">TimeLine of the iconic scenario.</param>
-        public IconicScenario(Experience.Protocol.Bloc bloc, Core.Tools.Frequency frequency, Timeline timeline)
+        public IconicScenario(Core.Data.Bloc bloc, Core.Tools.Frequency frequency, Timeline timeline)
         {
             m_Icons = new List<Icon>();
             foreach (var subBloc in bloc.SubBlocs)
@@ -49,7 +49,7 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Create a new iconic scenario instance with default values.
         /// </summary>
-        public IconicScenario() : this(new Experience.Protocol.Bloc(), new Core.Tools.Frequency(0) ,null)
+        public IconicScenario() : this(new Core.Data.Bloc(), new Core.Tools.Frequency(0) ,null)
         {
 
         }

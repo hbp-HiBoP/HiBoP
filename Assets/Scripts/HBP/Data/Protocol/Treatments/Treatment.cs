@@ -2,7 +2,7 @@
 using Tools.CSharp;
 using HBP.Core.Tools;
 
-namespace HBP.Data.Experience.Protocol
+namespace HBP.Core.Data
 {
     /// <summary>
     /// Class which define a treatment to apply at a subBloc.

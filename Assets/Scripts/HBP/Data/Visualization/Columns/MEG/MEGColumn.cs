@@ -1,10 +1,9 @@
-﻿using HBP.Data.Experience.Dataset;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.Serialization;
 
-namespace HBP.Data.Visualization
+namespace HBP.Core.Data
 {
     [DataContract, DisplayName("MEG")]
     public class MEGColumn : Column
@@ -38,7 +37,7 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Data of the column.
         /// </summary>
-        [IgnoreDataMember] public MEGData Data { get; set; } = new MEGData();
+        [IgnoreDataMember] public Processed.MEGData Data { get; set; } = new Processed.MEGData();
         #endregion
 
         #region Constructors

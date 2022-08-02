@@ -3,7 +3,7 @@ using System.IO;
 using System.Runtime.Serialization;
 using Tools.Unity;
 
-namespace HBP.Data
+namespace HBP.Core.Data
 {
     /// <summary>
     /// A class which contains all the data about a mesh with a single file for the two hemispheres.

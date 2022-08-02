@@ -1,5 +1,4 @@
-﻿using HBP.Data.Experience.Protocol;
-using System.Linq;
+﻿using System.Linq;
 using UnityEngine;
 using data = HBP.Data.Informations;
 
@@ -55,7 +54,7 @@ namespace HBP.UI.Informations
         {
             Display(m_Channels, m_Columns);
         }
-        public void UpdateTime(data.Column column, SubBloc subBloc, float currentTime)
+        public void UpdateTime(data.Column column, Core.Data.SubBloc subBloc, float currentTime)
         {
             m_GraphZone.UpdateTime(column, subBloc, currentTime);
         }

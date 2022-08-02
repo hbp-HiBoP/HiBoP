@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Data.Enums;
+
 
 namespace HBP.UI.Module3D.Tools
 {
@@ -30,7 +32,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                Data.Enums.TriEraserMode mode = (Data.Enums.TriEraserMode)value;
+                TriEraserMode mode = (TriEraserMode)value;
                 SelectedScene.TriangleEraser.CurrentMode = mode;
                 UpdateInteractable();
             });
@@ -61,7 +63,7 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isZoneModeEnabled = SelectedScene.TriangleEraser.CurrentMode == Data.Enums.TriEraserMode.Zone;
+            bool isZoneModeEnabled = SelectedScene.TriangleEraser.CurrentMode == TriEraserMode.Zone;
 
             m_InputFieldParent.gameObject.SetActive(isZoneModeEnabled);
             m_InputField.gameObject.SetActive(isZoneModeEnabled);
@@ -75,7 +77,7 @@ namespace HBP.UI.Module3D.Tools
         {
             m_Dropdown.value = (int)SelectedScene.TriangleEraser.CurrentMode;
             m_InputField.text = SelectedScene.TriangleEraser.Degrees.ToString();
-            if (SelectedScene.TriangleEraser.CurrentMode != Data.Enums.TriEraserMode.Zone)
+            if (SelectedScene.TriangleEraser.CurrentMode != TriEraserMode.Zone)
             {
                 m_InputField.gameObject.SetActive(false);
                 m_InputFieldParent.gameObject.SetActive(false);

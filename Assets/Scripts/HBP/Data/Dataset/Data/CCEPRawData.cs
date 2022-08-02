@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace HBP.Data.Experience.Dataset
+namespace HBP.Core.Data
 {
     public class CCEPRawData : DynamicData
     {

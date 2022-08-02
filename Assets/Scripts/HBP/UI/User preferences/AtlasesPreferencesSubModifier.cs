@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.UserPreferences
 {
-    public class AtlasesPreferencesSubModifier : SubModifier<AtlasesPreferences>
+    public class AtlasesPreferencesSubModifier : SubModifier<Core.Data.Preferences.AtlasesPreferences>
     {
         #region Properties
         [SerializeField] Toggle m_MarsAtlas;
@@ -173,7 +173,7 @@ namespace HBP.UI.UserPreferences
             }
 
         }
-        protected override void SetFields(AtlasesPreferences objectToDisplay)
+        protected override void SetFields(Core.Data.Preferences.AtlasesPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
 

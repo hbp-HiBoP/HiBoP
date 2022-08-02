@@ -8,7 +8,7 @@ namespace HBP.UI
     /// <summary>
     /// Component to display patient in list.
     /// </summary>
-    public class PatientItem : ActionnableItem<Data.Patient>
+    public class PatientItem : ActionnableItem<Core.Data.Patient>
     {
         #region Properties
         [SerializeField] Text m_NameText;
@@ -25,7 +25,7 @@ namespace HBP.UI
         /// <summary>
         /// Object to display.
         /// </summary>
-        public override Data.Patient Object
+        public override Core.Data.Patient Object
         {
             get
             {

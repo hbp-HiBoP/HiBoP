@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.UserPreferences
 {
-    public class CutPreferencesSubModifier : SubModifier<CutPreferences>
+    public class CutPreferencesSubModifier : SubModifier<Core.Data.Preferences.CutPreferences>
     {
         #region Properties
         [SerializeField] Toggle m_ShowCutLinesToggle;
@@ -34,7 +34,7 @@ namespace HBP.UI.UserPreferences
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(CutPreferences objectToDisplay)
+        protected override void SetFields(Core.Data.Preferences.CutPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
 

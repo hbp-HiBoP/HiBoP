@@ -1,11 +1,9 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using HBP.Data.Experience.Dataset;
-using HBP.Data.Experience.Protocol;
 using System.ComponentModel;
 
-namespace HBP.Data.Visualization
+namespace HBP.Core.Data
 {
     /**
     * \class Column
@@ -31,7 +29,7 @@ namespace HBP.Data.Visualization
         {
             get
             {
-                return ApplicationState.ProjectLoaded.Datasets.FirstOrDefault(p => p.ID == datasetID);
+                return ApplicationState.ProjectLoaded.Datasets.FirstOrDefault(d => d.ID == datasetID);
             }
             set
             {
@@ -89,7 +87,7 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Data of the column.
         /// </summary>
-        [IgnoreDataMember] public CCEPData Data { get; set; } = new CCEPData();
+        [IgnoreDataMember] public Processed.CCEPData Data { get; set; } = new Processed.CCEPData();
         #endregion
 
         #region Constructors

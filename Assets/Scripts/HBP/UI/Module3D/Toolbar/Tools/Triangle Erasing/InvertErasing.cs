@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.Module3D.Tools
 {
@@ -22,7 +23,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedScene.TriangleEraser.CurrentMode = Data.Enums.TriEraserMode.Invert;
+                SelectedScene.TriangleEraser.CurrentMode = TriEraserMode.Invert;
             });
         }
         /// <summary>

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using UnityEngine;
 
-namespace HBP.Data.Preferences
+namespace HBP.Core.Data.Preferences
 {
     [DataContract]
     public class VisualizationPreferences : ICloneable

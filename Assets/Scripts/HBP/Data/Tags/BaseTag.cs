@@ -3,7 +3,7 @@ using System.IO;
 using System.Runtime.Serialization;
 using Tools.Unity;
 
-namespace HBP.Data
+namespace HBP.Core.Data
 {
     [DataContract]
     public class BaseTag : BaseData, INameable

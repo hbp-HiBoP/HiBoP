@@ -1,11 +1,7 @@
-﻿using CielaSpike;
-using HBP.Data.Visualization;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using Tools.CSharp;
 using UnityEngine;
-using System.Linq;
 
 namespace HBP.Module3D
 {
@@ -18,17 +14,17 @@ namespace HBP.Module3D
         /// <summary>
         /// IEEG data of this column (contains information about what to display)
         /// </summary>
-        public IEEGColumn ColumnIEEGData
+        public Core.Data.IEEGColumn ColumnIEEGData
         {
             get
             {
-                return ColumnData as IEEGColumn;
+                return ColumnData as Core.Data.IEEGColumn;
             }
         }
         /// <summary>
         /// Timeline of this column (contains information about the length, the number of samples, the events etc.)
         /// </summary>
-        public override Timeline Timeline
+        public override Core.Data.Timeline Timeline
         {
             get
             {
@@ -91,11 +87,11 @@ namespace HBP.Module3D
                 {
                     ActivityUnitsBySiteID[site.Information.Index] = "";
                 }
-                if (ColumnIEEGData.Data.DataByChannelID.TryGetValue(site.Information.FullID, out Data.Experience.Dataset.BlocChannelData blocChannelData))
+                if (ColumnIEEGData.Data.DataByChannelID.TryGetValue(site.Information.FullID, out Core.Data.BlocChannelData blocChannelData))
                 {
                     site.Data = blocChannelData;
                 }
-                if (ColumnIEEGData.Data.StatisticsByChannelID.TryGetValue(site.Information.FullID, out Data.Experience.Dataset.BlocChannelStatistics blocChannelStatistics))
+                if (ColumnIEEGData.Data.StatisticsByChannelID.TryGetValue(site.Information.FullID, out Core.Data.BlocChannelStatistics blocChannelStatistics))
                 {
                     site.Statistics = blocChannelStatistics;
                 }

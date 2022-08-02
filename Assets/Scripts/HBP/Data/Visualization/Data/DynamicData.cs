@@ -1,4 +1,4 @@
-﻿namespace HBP.Data.Visualization
+﻿namespace HBP.Core.Data.Processed
 {
     public abstract class DynamicData : Data
     {

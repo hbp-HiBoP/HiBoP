@@ -1,13 +1,12 @@
 ﻿using System.Linq;
 using UnityEngine;
-using d = HBP.Data.Experience.Protocol;
 
 namespace HBP.UI.Experience.Protocol
 {
     /// <summary>
     /// List to display blocs.
     /// </summary>
-    public class BlocList : Tools.Unity.Lists.ActionableList<d.Bloc>
+    public class BlocList : Tools.Unity.Lists.ActionableList<Core.Data.Bloc>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Order, DescendingOrder , SubBlocs, DescendingSubBlocs, Image, DescendingImage }

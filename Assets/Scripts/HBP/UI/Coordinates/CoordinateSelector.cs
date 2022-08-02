@@ -6,14 +6,14 @@ namespace HBP.UI
     /// <summary>
     /// Window to select coordinate.
     /// </summary>
-    public class CoordinateSelector : ObjectSelector<Data.Coordinate>
+    public class CoordinateSelector : ObjectSelector<Core.Data.Coordinate>
     {
         #region Properties
         [SerializeField] CoordinateList m_List;
         /// <summary>
         /// UI coordinates list.
         /// </summary>
-        protected override SelectableList<Data.Coordinate> List => m_List;
+        protected override SelectableList<Core.Data.Coordinate> List => m_List;
         #endregion
     }
 }

@@ -1,6 +1,4 @@
 ﻿using CielaSpike;
-using HBP.Data.Experience.Dataset;
-using HBP.Data.Experience.Protocol;
 using HBP.Module3D;
 using System;
 using System.Collections;
@@ -15,6 +13,8 @@ using Tools.Unity;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using HBP.Core.Data;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.Module3D.Tools
 {
@@ -27,7 +27,7 @@ namespace HBP.UI.Module3D.Tools
             [DataMember] public string PatientName { get; set; }
             [DataMember] public string PatientID { get; set; }
             [DataMember] public List<ColumnContainer> Columns { get; set; }
-            [DataMember] public Data.Enums.NormalizationType DefaultNormalization { get; set; }
+            [DataMember] public NormalizationType DefaultNormalization { get; set; }
             [DataMember] public float CorrelationThreshold { get; set; }
             [DataMember] public bool UseBonferroniCorrection { get; set; }
         }
@@ -128,7 +128,7 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isSinglePatientScene = SelectedScene.Type == Data.Enums.SceneType.SinglePatient;
+            bool isSinglePatientScene = SelectedScene.Type == SceneType.SinglePatient;
             bool areCorrelationsComputed = SelectedColumn is Column3DIEEG column ? column.AreCorrelationsComputed : false;
             bool isColumnIEEG = SelectedColumn is Column3DIEEG;
 
@@ -206,7 +206,7 @@ namespace HBP.UI.Module3D.Tools
                 csvMeanText.AppendLine(string.Format("{0},{1}", "Channel", string.Join(",", sites.Select(c => c.Information.Name))));
                 foreach (var site in sites)
                 {
-                    if (column.CorrelationBySitePair.TryGetValue(site, out Dictionary<Site, float> correlationsOfSite))
+                    if (column.CorrelationBySitePair.TryGetValue(site, out Dictionary<Core.Object3D.Site, float> correlationsOfSite))
                     {
                         csvText.Append(site.Information.Name);
                         csvBinaryText.Append(site.Information.Name);
@@ -230,7 +230,7 @@ namespace HBP.UI.Module3D.Tools
                         csvText.AppendLine();
                         csvBinaryText.AppendLine();
                     }
-                    if (column.CorrelationMeanBySitePair.TryGetValue(site, out Dictionary<Site, float> meanOfSite))
+                    if (column.CorrelationMeanBySitePair.TryGetValue(site, out Dictionary<Core.Object3D.Site, float> meanOfSite))
                     {
                         csvMeanText.Append(site.Information.Name);
                         foreach (var s in sites)
@@ -305,18 +305,18 @@ namespace HBP.UI.Module3D.Tools
                             string firstLine = sr.ReadLine();
                             string[] siteNames = firstLine.Split(',');
                             string line;
-                            Dictionary<Site, Dictionary<Site, float>> correlationsBySitePair = new Dictionary<Site, Dictionary<Site, float>>();
+                            Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>> correlationsBySitePair = new Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>>();
                             while ((line = sr.ReadLine()) != null)
                             {
                                 string[] values = line.Split(',');
                                 if (values.Length == 0) continue;
-                                Site site = column.Sites.FirstOrDefault(s => s.Information.Name == values[0]);
+                                Core.Object3D.Site site = column.Sites.FirstOrDefault(s => s.Information.Name == values[0]);
                                 if (site)
                                 {
-                                    Dictionary<Site, float> valueBySite = new Dictionary<Site, float>();
+                                    Dictionary<Core.Object3D.Site, float> valueBySite = new Dictionary<Core.Object3D.Site, float>();
                                     for (int i = 1; i < values.Length; ++i)
                                     {
-                                        Site comparedSite = column.Sites.FirstOrDefault(s => s.Information.Name == siteNames[i]);
+                                        Core.Object3D.Site comparedSite = column.Sites.FirstOrDefault(s => s.Information.Name == siteNames[i]);
                                         if (comparedSite)
                                         {
                                             if (NumberExtension.TryParseFloat(values[i], out float value))
@@ -336,18 +336,18 @@ namespace HBP.UI.Module3D.Tools
                             string firstLine = sr.ReadLine();
                             string[] siteNames = firstLine.Split(',');
                             string line;
-                            Dictionary<Site, Dictionary<Site, float>> meanByPair = new Dictionary<Site, Dictionary<Site, float>>();
+                            Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>> meanByPair = new Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>>();
                             while ((line = sr.ReadLine()) != null)
                             {
                                 string[] values = line.Split(',');
                                 if (values.Length == 0) continue;
-                                Site site = column.Sites.FirstOrDefault(s => s.Information.Name == values[0]);
+                                Core.Object3D.Site site = column.Sites.FirstOrDefault(s => s.Information.Name == values[0]);
                                 if (site)
                                 {
-                                    Dictionary<Site, float> valueBySite = new Dictionary<Site, float>();
+                                    Dictionary<Core.Object3D.Site, float> valueBySite = new Dictionary<Core.Object3D.Site, float>();
                                     for (int i = 1; i < values.Length; ++i)
                                     {
-                                        Site comparedSite = column.Sites.FirstOrDefault(s => s.Information.Name == siteNames[i]);
+                                        Core.Object3D.Site comparedSite = column.Sites.FirstOrDefault(s => s.Information.Name == siteNames[i]);
                                         if (comparedSite)
                                         {
                                             if (NumberExtension.TryParseFloat(values[i], out float value))

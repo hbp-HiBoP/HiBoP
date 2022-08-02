@@ -1,10 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using d = HBP.Data.Experience.Dataset;
 
 namespace HBP.UI.Experience.Dataset
 {
-    public class MEGcDataInfoSubModifier : SubModifier<d.MEGcDataInfo>
+    public class MEGcDataInfoSubModifier : SubModifier<Core.Data.MEGcDataInfo>
     {
         #region Properties     
         public override bool Interactable
@@ -28,7 +27,7 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(d.MEGcDataInfo objectToDisplay)
+        protected override void SetFields(Core.Data.MEGcDataInfo objectToDisplay)
         {
         }
         #endregion

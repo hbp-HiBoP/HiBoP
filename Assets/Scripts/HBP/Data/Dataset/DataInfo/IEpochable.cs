@@ -1,4 +1,4 @@
-﻿namespace HBP.Data.Experience.Dataset
+﻿namespace HBP.Core.Data
 {
     /// <summary>
     /// A interface for epochable data.

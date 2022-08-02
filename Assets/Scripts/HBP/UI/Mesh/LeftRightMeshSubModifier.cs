@@ -3,7 +3,7 @@ using Tools.Unity;
 
 namespace HBP.UI
 {
-    public class LeftRightMeshSubModifier : SubModifier<Data.LeftRightMesh>
+    public class LeftRightMeshSubModifier : SubModifier<Core.Data.LeftRightMesh>
     {
         #region Properties
         [SerializeField] FileSelector m_LeftMeshFileSelector;
@@ -39,7 +39,7 @@ namespace HBP.UI
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(Data.LeftRightMesh objectToDisplay)
+        protected override void SetFields(Core.Data.LeftRightMesh objectToDisplay)
         {
             base.SetFields(objectToDisplay);
             m_LeftMeshFileSelector.File = objectToDisplay.SavedLeftHemisphere;

@@ -1,6 +1,6 @@
 ﻿namespace HBP.UI.Experience.Protocol
 {
-    public class MeanTreatmentSubModifier : SubModifier<Data.Experience.Protocol.MeanTreatment>
+    public class MeanTreatmentSubModifier : SubModifier<Core.Data.MeanTreatment>
     {
     }
 }

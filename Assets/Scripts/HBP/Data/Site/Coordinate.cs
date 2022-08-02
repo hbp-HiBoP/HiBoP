@@ -1,7 +1,7 @@
 ﻿using System.Runtime.Serialization;
 using UnityEngine;
 
-namespace HBP.Data
+namespace HBP.Core.Data
 {
     /// <summary>
     /// Class which contains all the data about a position in a specific reference system.

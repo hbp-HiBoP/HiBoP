@@ -4,22 +4,21 @@ using UnityEngine.Events;
 using System.Linq;
 using System.IO;
 using HBP.Module3D.DLL;
-using HBP.Data.Enums;
+using HBP.Core.Data.Enums;
 using Tools.Unity;
-using HBP.Core;
 
 namespace HBP.Module3D
 {
     /// <summary>
     /// Class containing information about the 3D column (specific meshes, sites, ROIs of the column)
     /// </summary>
-    public abstract class Column3D : MonoBehaviour, IConfigurable
+    public abstract class Column3D : MonoBehaviour, Core.IConfigurable
     {
         #region Properties
         /// <summary>
         /// Data of this column (contains information about what to display)
         /// </summary>
-        public Data.Visualization.Column ColumnData { get; protected set; }
+        public Core.Data.Column ColumnData { get; protected set; }
         /// <summary>
         /// Name of the column (same name as in the column data)
         /// </summary>
@@ -211,7 +210,7 @@ namespace HBP.Module3D
         /// <param name="baseColumn">Data of the column</param>
         /// <param name="implantation">Selected implantation</param>
         /// <param name="sceneSitePatientParent">List of the patient parent of the sites as instantiated in the scene</param>
-        public virtual void Initialize(int idColumn, Data.Visualization.Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
+        public virtual void Initialize(int idColumn, Core.Data.Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             Layer = "Column" + idColumn;
             ColumnData = baseColumn;
@@ -266,7 +265,7 @@ namespace HBP.Module3D
                         site.State = siteState;
                         site.State.OnChangeState.AddListener(() => OnChangeSiteState.Invoke(site));
                         // Configuration
-                        if (ColumnData.BaseConfiguration.ConfigurationBySite.TryGetValue(site.Information.FullID, out Data.Visualization.SiteConfiguration siteConfiguration))
+                        if (ColumnData.BaseConfiguration.ConfigurationBySite.TryGetValue(site.Information.FullID, out Core.Data.SiteConfiguration siteConfiguration))
                         {
                             site.Configuration = siteConfiguration;
                         }
@@ -355,7 +354,7 @@ namespace HBP.Module3D
                     siteType = SiteType.Normal;
                 }
                 if (!activity) site.IsActive = true;
-                site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
+                site.GetComponent<MeshRenderer>().sharedMaterial = Core.Object3D.SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
                 site.transform.localScale *= gain;
             }
         }

@@ -35,7 +35,7 @@ namespace HBP.Core.Object3D
         /// <summary>
         /// Event called when the GUI textures are computed
         /// </summary>
-        public GenericEvent<Column3D> OnUpdateGUITextures = new GenericEvent<Column3D>();
+        public UnityEvent OnUpdateGUITextures = new UnityEvent();
         /// <summary>
         /// Event called when a cut is removed
         /// </summary>

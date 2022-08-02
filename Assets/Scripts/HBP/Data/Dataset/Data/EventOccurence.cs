@@ -1,4 +1,4 @@
-﻿namespace HBP.Data.Experience.Dataset
+﻿namespace HBP.Core.Data
 {
     public struct EventOccurence
     {

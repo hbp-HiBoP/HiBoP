@@ -5,7 +5,6 @@ using System.Linq;
 using Tools.CSharp;
 using UnityEngine;
 using static HBP.Data.TrialMatrix.Grid.TrialMatrixGrid;
-using p = HBP.Data.Experience.Protocol;
 
 namespace HBP.Data.TrialMatrix.Grid
 {
@@ -15,7 +14,7 @@ namespace HBP.Data.TrialMatrix.Grid
         public string Title { get; set; }
         public Bloc[] Blocs { get; set; }
         public Vector2 Limits { get; set; }
-        public Tuple<Tuple<p.Bloc,p.SubBloc>[], Window>[] SubBlocsAndWindowByColumn { get; }
+        public Tuple<Tuple<Core.Data.Bloc, Core.Data.SubBloc>[], Window>[] SubBlocsAndWindowByColumn { get; }
         public TrialMatrixData DataStruct { get; set; }
         public ChannelStruct[] ChannelStructs { get; set; }
         #endregion
@@ -27,7 +26,7 @@ namespace HBP.Data.TrialMatrix.Grid
             Blocs = dataStruct.Blocs.Select(bloc => new Bloc(bloc, dataStruct, channelStructs)).ToArray();
 
             Limits = CalculateLimits(Blocs);
-            SubBlocsAndWindowByColumn = p.Bloc.GetSubBlocsAndWindowByColumn(dataStruct.Blocs);
+            SubBlocsAndWindowByColumn = Core.Data.Bloc.GetSubBlocsAndWindowByColumn(dataStruct.Blocs);
             foreach (var bloc in Blocs)
             {
                 foreach (var channelBloc in bloc.ChannelBlocs)

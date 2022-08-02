@@ -5,12 +5,11 @@ using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using CielaSpike;
-using HBP.Data.Experience.Dataset;
 using Tools.Unity;
 using System.IO;
 using Tools.CSharp;
 
-namespace HBP.Data.Visualization
+namespace HBP.Core.Data
 {
     /**
     * \class Visualization
@@ -436,7 +435,7 @@ namespace HBP.Data.Visualization
                 try
                 {
                     // PROBABLY FIXME
-                    Experience.Dataset.Data data = DataManager.GetData(dataInfo);
+                    Data data = DataManager.GetData(dataInfo);
                     if (data is EpochedData epochedData)
                     {
                         foreach (var column in dataInfoByColumn.Keys)
@@ -521,7 +520,7 @@ namespace HBP.Data.Visualization
                         yield break;
                     }
                 }
-                Tools.CSharp.EEG.Frequency maxiEEGFrequency = new Tools.CSharp.EEG.Frequency(iEEGColumns.Max(column => column.Data.MaxFrequency));
+                Tools.Frequency maxiEEGFrequency = new Tools.Frequency(iEEGColumns.Max(column => column.Data.MaxFrequency));
                 for (int i = 0; i < nbIEEGColumns; ++i)
                 {
                     IEEGColumn column = iEEGColumns[i];
@@ -564,7 +563,7 @@ namespace HBP.Data.Visualization
                         yield break;
                     }
                 }
-                Tools.CSharp.EEG.Frequency maxCCEPFrequency = new Tools.CSharp.EEG.Frequency(ccepColumns.Max(column => column.Data.Frequencies.Max(f => f.RawValue)));
+                Tools.Frequency maxCCEPFrequency = new Tools.Frequency(ccepColumns.Max(column => column.Data.Frequencies.Max(f => f.RawValue)));
                 for (int i = 0; i < nbCCEPColumns; ++i)
                 {
                     CCEPColumn column = ccepColumns[i];

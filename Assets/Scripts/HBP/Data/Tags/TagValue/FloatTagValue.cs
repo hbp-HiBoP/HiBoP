@@ -1,4 +1,4 @@
-﻿namespace HBP.Data
+﻿namespace HBP.Core.Data
 {
     /// <summary>
     /// Class which contains all the data about a float value and its associated FloatTag.

@@ -1,8 +1,8 @@
-﻿using HBP.Data.Enums;
+﻿using HBP.Core.Data.Enums;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace HBP.Module3D
+namespace HBP.Core.Object3D
 {
     /// <summary>
     /// Class managing the materials for some objects on the scene (ROI, Sites, Selection Ring)

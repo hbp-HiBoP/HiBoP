@@ -1,12 +1,11 @@
-﻿using HBP.Data.Experience.Protocol;
-using System.Globalization;
+﻿using System.Globalization;
 using Tools.CSharp;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class ClampTreatmentSubModifier : SubModifier<ClampTreatment>
+    public class ClampTreatmentSubModifier : SubModifier<Core.Data.ClampTreatment>
     {
         #region Properties
         [SerializeField] Toggle m_UseMinClampToggle;
@@ -71,7 +70,7 @@ namespace HBP.UI.Experience.Protocol
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(ClampTreatment objectToDisplay)
+        protected override void SetFields(Core.Data.ClampTreatment objectToDisplay)
         {
             m_UseMinClampToggle.isOn = objectToDisplay.UseMinClamp;
             m_UseMaxClampToggle.isOn = objectToDisplay.UseMaxClamp;

@@ -1,28 +1,26 @@
-﻿using HBP.Data.Experience.Dataset;
-using Tools.Unity.Components;
-using UnityEngine;
+﻿using UnityEngine;
 using System.Linq;
 using UnityEngine.Events;
 using System.Collections.Generic;
 
 namespace HBP.UI.Experience.Dataset
 {
-    public class DataInfoListGestion : ListGestion<DataInfo>
+    public class DataInfoListGestion : ListGestion<Core.Data.DataInfo>
     {
         #region Properties
         [SerializeField] protected DataInfoList m_List;
-        public override Tools.Unity.Lists.ActionableList<DataInfo> List => m_List;
+        public override Tools.Unity.Lists.ActionableList<Core.Data.DataInfo> List => m_List;
 
         [SerializeField] protected DataInfoCreator m_ObjectCreator;
-        public override ObjectCreator<DataInfo> ObjectCreator => m_ObjectCreator;
+        public override ObjectCreator<Core.Data.DataInfo> ObjectCreator => m_ObjectCreator;
 
-        public GenericEvent<DataInfo> OnDataInfoNeedCheckErrors { get; } = new GenericEvent<DataInfo>();
+        public GenericEvent<Core.Data.DataInfo> OnDataInfoNeedCheckErrors { get; } = new GenericEvent<Core.Data.DataInfo>();
         #endregion
 
         #region Public Methods
         public void UpdateAllObjects()
         {
-            DataInfo[] dataInfos = List.Objects.ToArray();
+            Core.Data.DataInfo[] dataInfos = List.Objects.ToArray();
             foreach (var obj in dataInfos)
             {
                 List.UpdateObject(obj);
@@ -31,7 +29,7 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Protected Methods
-        protected override void OnSaveModifier(DataInfo obj)
+        protected override void OnSaveModifier(Core.Data.DataInfo obj)
         {
             OnDataInfoNeedCheckErrors.Invoke(obj);
             RenameObject(obj);
@@ -44,7 +42,7 @@ namespace HBP.UI.Experience.Dataset
                 List.UpdateObject(obj);
             }
         }
-        protected override void OnObjectCreated(DataInfo obj)
+        protected override void OnObjectCreated(Core.Data.DataInfo obj)
         {
             OnDataInfoNeedCheckErrors.Invoke(obj);
             RenameObject(obj);
@@ -57,11 +55,11 @@ namespace HBP.UI.Experience.Dataset
                 List.UpdateObject(obj);
             }
         }
-        private void RenameObject(DataInfo obj)
+        private void RenameObject(Core.Data.DataInfo obj)
         {
-            if (obj is IEEGDataInfo ieegDataInfo)
+            if (obj is Core.Data.IEEGDataInfo ieegDataInfo)
             {
-                IEnumerable<IEEGDataInfo> ieegDataInfos = List.Objects.OfType<IEEGDataInfo>();
+                IEnumerable<Core.Data.IEEGDataInfo> ieegDataInfos = List.Objects.OfType<Core.Data.IEEGDataInfo>();
                 if (ieegDataInfos.Any(p => p.Name == obj.Name && p.Patient == ieegDataInfo.Patient && !p.Equals(ieegDataInfo)))
                 {
                     int count = 1;
@@ -74,9 +72,9 @@ namespace HBP.UI.Experience.Dataset
                     obj.Name = name;
                 }
             }
-            else if (obj is CCEPDataInfo ccepDataInfo)
+            else if (obj is Core.Data.CCEPDataInfo ccepDataInfo)
             {
-                IEnumerable<CCEPDataInfo> ccepDataInfos = List.Objects.OfType<CCEPDataInfo>();
+                IEnumerable<Core.Data.CCEPDataInfo> ccepDataInfos = List.Objects.OfType<Core.Data.CCEPDataInfo>();
                 if (ccepDataInfos.Any(p => p.Name == obj.Name && p.Patient == ccepDataInfo.Patient && p.StimulatedChannel == ccepDataInfo.StimulatedChannel && !p.Equals(ccepDataInfo)))
                 {
                     int count = 1;
@@ -89,9 +87,9 @@ namespace HBP.UI.Experience.Dataset
                     obj.Name = name;
                 }
             }
-            else if (obj is FMRIDataInfo fmriDataInfo)
+            else if (obj is Core.Data.FMRIDataInfo fmriDataInfo)
             {
-                IEnumerable<FMRIDataInfo> fmriDataInfos = List.Objects.OfType<FMRIDataInfo>();
+                IEnumerable<Core.Data.FMRIDataInfo> fmriDataInfos = List.Objects.OfType<Core.Data.FMRIDataInfo>();
                 if (fmriDataInfos.Any(p => p.Name == obj.Name && p.Patient == fmriDataInfo.Patient && !p.Equals(fmriDataInfo)))
                 {
                     int count = 1;

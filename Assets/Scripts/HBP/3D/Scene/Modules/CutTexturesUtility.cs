@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Tools.Unity;
 using UnityEngine;
+using HBP.Core.Data.Enums;
 
 namespace HBP.Module3D
 {
@@ -134,7 +135,7 @@ namespace HBP.Module3D
             int max = 0;
             foreach (var cut in cuts)
             {
-                if (cut.Orientation != Data.Enums.CutOrientation.Custom)
+                if (cut.Orientation != CutOrientation.Custom)
                 {
                     int textureMax = Mathf.Max(DLLGUIBrainCutTextures[cut.ID].Width, DLLGUIBrainCutTextures[cut.ID].Height);
                     if (textureMax > max)
@@ -217,7 +218,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="colormap">Color map to be used</param>
         /// <param name="colorBrainCut">Cut color to be used</param>
-        public void ResetColorSchemes(Data.Enums.ColorType colormap, Data.Enums.ColorType colorBrainCut)
+        public void ResetColorSchemes(ColorType colormap, ColorType colorBrainCut)
         {
             DLLCutColorScheme?.Dispose();
             DLLCutColorScheme = Core.DLL.Texture.Generate2DColorTexture(colorBrainCut, colormap);

@@ -2,6 +2,7 @@
 using System.Linq;
 using Tools.CSharp;
 using UnityEngine;
+using HBP.Core.Data.Enums;
 
 namespace HBP.Module3D
 {
@@ -76,7 +77,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return (CurrentMode != Data.Enums.TriEraserMode.Expand) && (CurrentMode != Data.Enums.TriEraserMode.Invert);
+                return (CurrentMode != TriEraserMode.Expand) && (CurrentMode != TriEraserMode.Invert);
             }
         }
         /// <summary>
@@ -84,11 +85,11 @@ namespace HBP.Module3D
         /// </summary>
         public bool MeshHasInvisibleTriangles { get; private set; } = false;
 
-        private Data.Enums.TriEraserMode m_CurrentMode = Data.Enums.TriEraserMode.OneTri;
+        private TriEraserMode m_CurrentMode = TriEraserMode.OneTri;
         /// <summary>
-        /// Currently selected erasing mode (see <see cref="Data.Enums.TriEraserMode"/> for possible values)
+        /// Currently selected erasing mode (see <see cref="TriEraserMode"/> for possible values)
         /// </summary>
-        public Data.Enums.TriEraserMode CurrentMode
+        public TriEraserMode CurrentMode
         {
             get
             {
@@ -96,10 +97,10 @@ namespace HBP.Module3D
             }
             set
             {
-                Data.Enums.TriEraserMode previousMode = m_CurrentMode;
+                TriEraserMode previousMode = m_CurrentMode;
                 m_CurrentMode = value;
 
-                if (value == Data.Enums.TriEraserMode.Expand || value == Data.Enums.TriEraserMode.Invert)
+                if (value == TriEraserMode.Expand || value == TriEraserMode.Invert)
                 {
                     EraseTriangles(new Vector3(), new Vector3());
                     m_CurrentMode = previousMode;
@@ -199,7 +200,7 @@ namespace HBP.Module3D
             m_SimplifiedMasksStack.Push(m_Scene.MeshManager.SimplifiedMeshToUse.VisibilityMask);
 
             // Apply erasing
-            DLL.Surface invisibleSurface = m_Scene.MeshManager.BrainSurface.UpdateVisibilityMask(rayDirection, hitPoint, CurrentMode, Degrees);
+            Core.DLL.Surface invisibleSurface = m_Scene.MeshManager.BrainSurface.UpdateVisibilityMask(rayDirection, hitPoint, CurrentMode, Degrees);
             invisibleSurface.UpdateMeshFromDLL(m_DisplayedObjects.InvisibleBrain.GetComponent<MeshFilter>().mesh);
             invisibleSurface.Dispose();
             m_Scene.MeshManager.SimplifiedMeshToUse.UpdateVisibilityMask(rayDirection, hitPoint, CurrentMode, Degrees).Dispose();
@@ -215,7 +216,7 @@ namespace HBP.Module3D
         /// </summary>
         public void CancelLastAction()
         {
-            DLL.Surface invisibleSurface = m_Scene.MeshManager.BrainSurface.UpdateVisibilityMask(m_MasksStack.Pop());
+            Core.DLL.Surface invisibleSurface = m_Scene.MeshManager.BrainSurface.UpdateVisibilityMask(m_MasksStack.Pop());
             invisibleSurface.UpdateMeshFromDLL(m_DisplayedObjects.InvisibleBrain.GetComponent<MeshFilter>().mesh);
             invisibleSurface.Dispose();
             m_Scene.MeshManager.SimplifiedMeshToUse.UpdateVisibilityMask(m_SimplifiedMasksStack.Pop()).Dispose();

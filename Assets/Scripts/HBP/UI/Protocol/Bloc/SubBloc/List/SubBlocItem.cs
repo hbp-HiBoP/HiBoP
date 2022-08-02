@@ -1,15 +1,15 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using HBP.Data.Experience.Protocol;
 using System.Linq;
 using System.ComponentModel;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.Experience.Protocol
 {
     /// <summary>
     /// Component to display subBloc in list.
     /// </summary>
-    public class SubBlocItem : Tools.Unity.Lists.ActionnableItem<SubBloc>
+    public class SubBlocItem : Tools.Unity.Lists.ActionnableItem<Core.Data.SubBloc>
     {
         #region Properties
         [SerializeField] Text m_NameText;
@@ -29,7 +29,7 @@ namespace HBP.UI.Experience.Protocol
         /// <summary>
         /// Object to display.
         /// </summary>
-        public override SubBloc Object
+        public override Core.Data.SubBloc Object
         {
             get
             {
@@ -51,8 +51,8 @@ namespace HBP.UI.Experience.Protocol
 
                 switch (m_Object.Type)
                 {
-                    case Data.Enums.MainSecondaryEnum.Main: m_TypeText.text = "M"; break;
-                    case Data.Enums.MainSecondaryEnum.Secondary: m_TypeText.text = "S"; break;
+                    case MainSecondaryEnum.Main: m_TypeText.text = "M"; break;
+                    case MainSecondaryEnum.Secondary: m_TypeText.text = "S"; break;
                 }
             }
         }

@@ -7,7 +7,7 @@ namespace HBP.UI
     /// <summary>
     /// List to display Alias.
     /// </summary>
-    public class AliasList : ActionableList<Data.Alias>
+    public class AliasList : ActionableList<Core.Data.Alias>
     {
         #region Properties
         enum OrderBy { None, Key, DescendingKey, Value, DescendingValue }
@@ -23,7 +23,7 @@ namespace HBP.UI
         /// </summary>
         /// <param name="objectToAdd">Alias to add</param>
         /// <returns>True if end without errors, False otherwise</returns>
-        public override bool Add(Data.Alias objectToAdd)
+        public override bool Add(Core.Data.Alias objectToAdd)
         {
             SortByNone();
             return base.Add(objectToAdd);

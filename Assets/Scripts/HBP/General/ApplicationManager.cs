@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using HBP.Data.Preferences;
+using HBP.Core.Data.Preferences;
 using Tools.Unity;
 using System.IO;
 using HBP.UI;
@@ -60,7 +60,7 @@ namespace HBP
         }
         private void OnDestroy()
         {
-            DataManager.Clear();
+            Core.Data.DataManager.Clear();
             string tmpDir = ApplicationState.ExtractProjectFolder;
             if (Directory.Exists(tmpDir))
             {

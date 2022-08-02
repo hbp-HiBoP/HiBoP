@@ -1,7 +1,4 @@
-﻿using HBP.Data;
-using HBP.Data.Experience.Dataset;
-using HBP.Data.Experience.Protocol;
-using HBP.Data.Informations;
+﻿using HBP.Data.Informations;
 using HBP.UI.TrialMatrix.Grid;
 using System;
 using System.Collections.Generic;
@@ -10,6 +7,7 @@ using Tools.CSharp;
 using Tools.Unity.Graph;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.Informations
 {
@@ -23,7 +21,7 @@ namespace HBP.UI.Informations
         [SerializeField] GameObject m_TogglesPrefab;
         [SerializeField] RectTransform m_ToggleContainer;
         
-        Tuple<Tuple<Data.Experience.Protocol.Bloc, SubBloc>[], Tools.CSharp.Window>[] m_SubBlocsAndWindowByColumn;
+        Tuple<Tuple<Core.Data.Bloc, Core.Data.SubBloc>[], Tools.CSharp.Window>[] m_SubBlocsAndWindowByColumn;
         Dictionary<string, bool> m_StatesByCurves = new Dictionary<string, bool>();
 
         [SerializeField] Queue<Graph> m_GraphPool = new Queue<Graph>();
@@ -67,7 +65,7 @@ namespace HBP.UI.Informations
 
             SetGraphs();
         }
-        public void UpdateTime(Column column, SubBloc subBloc, float currentTime)
+        public void UpdateTime(Column column, Core.Data.SubBloc subBloc, float currentTime)
         {
             int index = Array.FindIndex(m_SubBlocsAndWindowByColumn, item => item.Item1.Any(t => t.Item1 == column.Data.Bloc && t.Item2 == subBloc));
             if(index != -1)
@@ -236,9 +234,9 @@ namespace HBP.UI.Informations
 
             // Epoched Data
             // Find all visualized blocs and sort by column.
-            IEnumerable<Column> epochedDataColumns = columns.Where(c => c.Data is Data.Informations.IEEGData || c.Data is Data.Informations.CCEPData);
-            IEnumerable<Data.Experience.Protocol.Bloc> blocs = epochedDataColumns.Select(c => c.Data.Bloc);
-            m_SubBlocsAndWindowByColumn = Data.Experience.Protocol.Bloc.GetSubBlocsAndWindowByColumn(blocs);
+            IEnumerable<Column> epochedDataColumns = columns.Where(c => c.Data is IEEGData || c.Data is CCEPData);
+            IEnumerable<Core.Data.Bloc> blocs = epochedDataColumns.Select(c => c.Data.Bloc);
+            m_SubBlocsAndWindowByColumn = Core.Data.Bloc.GetSubBlocsAndWindowByColumn(blocs);
 
             foreach (var subBlocsAndWindow in m_SubBlocsAndWindowByColumn)
             {
@@ -252,7 +250,7 @@ namespace HBP.UI.Informations
                         curves.Add(curve);
                     }
                 }
-                result.Add(new Tuple<Graph.Curve[], Tools.CSharp.Window, bool>(curves.ToArray(), subBlocsAndWindow.Item2, subBlocsAndWindow.Item1[0].Item2.Type == Data.Enums.MainSecondaryEnum.Main));
+                result.Add(new Tuple<Graph.Curve[], Tools.CSharp.Window, bool>(curves.ToArray(), subBlocsAndWindow.Item2, subBlocsAndWindow.Item1[0].Item2.Type == MainSecondaryEnum.Main));
             }
 
             // Non-epoched data
@@ -266,7 +264,7 @@ namespace HBP.UI.Informations
             return result.ToArray();
         }
 
-        Graph.Curve GenerateColumnCurve(Column column, ChannelStruct[] channels, SubBloc subBloc)
+        Graph.Curve GenerateColumnCurve(Column column, ChannelStruct[] channels, Core.Data.SubBloc subBloc)
         {
             string ID = column.Name + "_" + column.Data.Name + "_" + column.Data.Bloc.Name + "_" + column.Data.Dataset.Name;
             List<Graph.Curve> subcurves = new List<Graph.Curve>();
@@ -278,7 +276,7 @@ namespace HBP.UI.Informations
             }
 
             // Generate Channels By Patient.
-            Dictionary<Patient, List<ChannelStruct>> channelsByPatient = new Dictionary<Patient, List<ChannelStruct>>();
+            Dictionary<Core.Data.Patient, List<ChannelStruct>> channelsByPatient = new Dictionary<Core.Data.Patient, List<ChannelStruct>>();
             foreach (var channel in channels)
             {
                 if (!channelsByPatient.ContainsKey(channel.Patient)) channelsByPatient[channel.Patient] = new List<ChannelStruct>();
@@ -294,20 +292,20 @@ namespace HBP.UI.Informations
             Graph.Curve curve = new Graph.Curve(column.Name, null, true, ID, subcurves.ToArray(), m_DefaultColor);
             return curve;
         }
-        Graph.Curve GenerateGroupsCurve(Column column, int index, SubBloc subBloc, string ID)
+        Graph.Curve GenerateGroupsCurve(Column column, int index, Core.Data.SubBloc subBloc, string ID)
         {
             ID += "_" + column.ChannelGroups[index].Name;
             CurveData curveData = null;
-            Dictionary<Patient, List<string>> ChannelsByPatient = new Dictionary<Patient, List<string>>();
+            Dictionary<Core.Data.Patient, List<string>> ChannelsByPatient = new Dictionary<Core.Data.Patient, List<string>>();
             foreach (var channel in column.ChannelGroups[index].Channels)
             {
                 ChannelsByPatient.AddIfAbsent(channel.Patient, new List<string>());
                 ChannelsByPatient[channel.Patient].Add(channel.Channel);
             }
-            Dictionary<Patient, PatientDataInfo> dataInfoByPatient = new Dictionary<Patient, PatientDataInfo>(ChannelsByPatient.Count);
+            Dictionary<Core.Data.Patient, Core.Data.PatientDataInfo> dataInfoByPatient = new Dictionary<Core.Data.Patient, Core.Data.PatientDataInfo>(ChannelsByPatient.Count);
             if (column.Data is Data.Informations.IEEGData ieegDataStruct)
             {
-                IEEGDataInfo[] ieegDataInfo = ieegDataStruct.Dataset.GetIEEGDataInfos();
+                Core.Data.IEEGDataInfo[] ieegDataInfo = ieegDataStruct.Dataset.GetIEEGDataInfos();
                 foreach (var patient in ChannelsByPatient.Keys)
                 {
                     dataInfoByPatient.Add(patient, ieegDataInfo.First(d => d.Patient == patient && d.Name == ieegDataStruct.Name));
@@ -315,7 +313,7 @@ namespace HBP.UI.Informations
             }
             else if (column.Data is Data.Informations.CCEPData ccepDataStruct)
             {
-                CCEPDataInfo[] ccepDataInfo = ccepDataStruct.Dataset.GetCCEPDataInfos();
+                Core.Data.CCEPDataInfo[] ccepDataInfo = ccepDataStruct.Dataset.GetCCEPDataInfos();
                 foreach (var patient in ChannelsByPatient.Keys)
                 {
                     dataInfoByPatient.Add(patient, ccepDataInfo.First(d => d.Patient == patient && d.Patient == ccepDataStruct.Source.Patient && d.StimulatedChannel == ccepDataStruct.Source.Channel && d.Name == ccepDataStruct.Name));
@@ -327,10 +325,10 @@ namespace HBP.UI.Informations
             {
                 int channelCount = column.ChannelGroups[index].Channels.Count;
                 // Get the statistics for all channels in the ROI
-                BlocChannelStatistics[] statistics = new BlocChannelStatistics[channelCount];
+                Core.Data.BlocChannelStatistics[] statistics = new Core.Data.BlocChannelStatistics[channelCount];
                 for (int c = 0; c < channelCount; ++c)
                 {
-                    statistics[c] = DataManager.GetStatistics(dataInfoByPatient[column.ChannelGroups[index].Channels[c].Patient], column.Data.Bloc, column.ChannelGroups[index].Channels[c].Channel);
+                    statistics[c] = Core.Data.DataManager.GetStatistics(dataInfoByPatient[column.ChannelGroups[index].Channels[c].Patient], column.Data.Bloc, column.ChannelGroups[index].Channels[c].Channel);
                 }
                 // Create all the required variables
                 int length = statistics[0].Trial.ChannelSubTrialBySubBloc[subBloc].Values.Length;
@@ -372,7 +370,7 @@ namespace HBP.UI.Informations
             else if (column.ChannelGroups[index].Channels.Count == 1)
             {
                 ChannelStruct channel = column.ChannelGroups[index].Channels[0];
-                ChannelSubTrialStat stat = DataManager.GetStatistics(dataInfoByPatient[channel.Patient], column.Data.Bloc, channel.Channel).Trial.ChannelSubTrialBySubBloc[subBloc];
+                Core.Data.ChannelSubTrialStat stat = Core.Data.DataManager.GetStatistics(dataInfoByPatient[channel.Patient], column.Data.Bloc, channel.Channel).Trial.ChannelSubTrialBySubBloc[subBloc];
                 float[] values = stat.Values;
 
                 // Generate points.
@@ -391,13 +389,13 @@ namespace HBP.UI.Informations
             Graph.Curve result = new Graph.Curve(column.ChannelGroups[index].Name, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);
             return result;
         }
-        Graph.Curve GeneratePatientCurve(Column column, ChannelStruct[] channels, SubBloc subBloc, string ID)
+        Graph.Curve GeneratePatientCurve(Column column, ChannelStruct[] channels, Core.Data.SubBloc subBloc, string ID)
         {
             ID += "_" + channels[0].Patient.Name;
             Graph.Curve[] subcurves = channels.Select(channel => GenerateChannelCurve(column, channel, subBloc, ID)).ToArray();
             return new Graph.Curve(channels[0].Patient.Name, null, true, ID, subcurves, m_DefaultColor);
         }
-        Graph.Curve GenerateChannelCurve(Column column, ChannelStruct channel, SubBloc subBloc, string ID)
+        Graph.Curve GenerateChannelCurve(Column column, ChannelStruct channel, Core.Data.SubBloc subBloc, string ID)
         {
             ID += "_" + channel.Channel;
             TrialMatrix.Grid.Data data = m_TrialMatrixGrid.Data.First(d => d.GridData.DataStruct.Dataset == column.Data.Dataset && d.GridData.DataStruct.Blocs.Contains(column.Data.Bloc) && d.GridData.DataStruct.Name == column.Data.Name);
@@ -428,10 +426,10 @@ namespace HBP.UI.Informations
             return result;
         }
 
-        CurveData GetCurveData(Column column, SubBloc subBloc, ChannelStruct channel, bool[] selected)
+        CurveData GetCurveData(Column column, Core.Data.SubBloc subBloc, ChannelStruct channel, bool[] selected)
         {
             CurveData result = null;
-            PatientDataInfo dataInfo = null;
+            Core.Data.PatientDataInfo dataInfo = null;
             if (column.Data is Data.Informations.IEEGData ieegDataStruct)
             {
                 dataInfo = ieegDataStruct.Dataset.GetIEEGDataInfos().First(d => (d.Patient == channel.Patient && d.Name == ieegDataStruct.Name));
@@ -440,14 +438,14 @@ namespace HBP.UI.Informations
             {
                 dataInfo = ccepDataStruct.Dataset.GetCCEPDataInfos().First(d => (d.Patient == channel.Patient && d.StimulatedChannel == ccepDataStruct.Source.Channel && d.Patient == ccepDataStruct.Source.Patient && d.Name == ccepDataStruct.Name));
             }
-            BlocData blocData = DataManager.GetData(dataInfo, column.Data.Bloc);
-            BlocChannelData blocChannelData = DataManager.GetData(dataInfo, column.Data.Bloc, channel.Channel);
+            Core.Data.BlocData blocData = Core.Data.DataManager.GetData(dataInfo, column.Data.Bloc);
+            Core.Data.BlocChannelData blocChannelData = Core.Data.DataManager.GetData(dataInfo, column.Data.Bloc, channel.Channel);
             Color color = ApplicationState.UserPreferences.Visualization.Graph.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));// m_ColorsByColumn.FirstOrDefault(k => k.Key.Item1 == Array.IndexOf(m_Channels, channel) && k.Key.Item2 == column).Value;
             if (blocChannelData == null)
                 return null;
 
-            ChannelTrial[] validTrials = blocChannelData.Trials.Where(t => t.IsValid).ToArray();
-            List<ChannelTrial> trialsToUse = new List<ChannelTrial>(blocChannelData.Trials.Length);
+            Core.Data.ChannelTrial[] validTrials = blocChannelData.Trials.Where(t => t.IsValid).ToArray();
+            List<Core.Data.ChannelTrial> trialsToUse = new List<Core.Data.ChannelTrial>(blocChannelData.Trials.Length);
             for (int i = 0; i < validTrials.Length; i++)
             {
                 if (selected[i]) trialsToUse.Add(validTrials[i]);
@@ -459,7 +457,7 @@ namespace HBP.UI.Informations
 
             if (trialsToUse.Count > 1)
             {
-                ChannelSubTrial[] channelSubTrials = trialsToUse.Select(t => t.ChannelSubTrialBySubBloc[subBloc]).ToArray();
+                Core.Data.ChannelSubTrial[] channelSubTrials = trialsToUse.Select(t => t.ChannelSubTrialBySubBloc[subBloc]).ToArray();
 
                 float[] values = new float[channelSubTrials[0].Values.Length];
                 float[] standardDeviations = new float[values.Length];
@@ -486,7 +484,7 @@ namespace HBP.UI.Informations
             }
             else if (trialsToUse.Count == 1)
             {
-                ChannelSubTrial channelSubTrial = trialsToUse[0].ChannelSubTrialBySubBloc[subBloc];
+                Core.Data.ChannelSubTrial channelSubTrial = trialsToUse[0].ChannelSubTrialBySubBloc[subBloc];
                 float[] values = channelSubTrial.Values;
 
                 // Generate points.
@@ -504,13 +502,13 @@ namespace HBP.UI.Informations
         CurveData GetNonEpochedCurveData(Column column, ChannelStruct channel)
         {
             CurveData result = null;
-            PatientDataInfo dataInfo = null;
+            Core.Data.PatientDataInfo dataInfo = null;
             if (column.Data is MEGData megDataStruct)
             {
-                dataInfo = megDataStruct.Dataset.GetMEGDataInfos().OfType<MEGcDataInfo>().FirstOrDefault(d => (d.Patient == channel.Patient && d.Name == megDataStruct.Name));
+                dataInfo = megDataStruct.Dataset.GetMEGDataInfos().OfType<Core.Data.MEGcDataInfo>().FirstOrDefault(d => (d.Patient == channel.Patient && d.Name == megDataStruct.Name));
                 if (dataInfo == null) return null;
             }
-            MEGcData megData = DataManager.GetData(dataInfo) as MEGcData;
+            Core.Data.MEGcData megData = Core.Data.DataManager.GetData(dataInfo) as Core.Data.MEGcData;
             Color color = ApplicationState.UserPreferences.Visualization.Graph.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));
             if (megData == null)
                 return null;
@@ -551,11 +549,11 @@ namespace HBP.UI.Informations
             }
             return result;
         }
-        void UpdateCurveData(ref CurveData curveData, ChannelBloc channelBloc, BlocChannelData blocChannelData, SubBloc subBloc)
+        void UpdateCurveData(ref CurveData curveData, ChannelBloc channelBloc, Core.Data.BlocChannelData blocChannelData, Core.Data.SubBloc subBloc)
         {
             bool[] trialIsSelected = channelBloc.TrialIsSelected;
-            ChannelTrial[] validTrials = blocChannelData.Trials.Where(t => t.IsValid).ToArray();
-            List<ChannelTrial> trialsToUse = new List<ChannelTrial>(blocChannelData.Trials.Length);
+            Core.Data.ChannelTrial[] validTrials = blocChannelData.Trials.Where(t => t.IsValid).ToArray();
+            List<Core.Data.ChannelTrial> trialsToUse = new List<Core.Data.ChannelTrial>(blocChannelData.Trials.Length);
             for (int i = 0; i < validTrials.Length; i++)
             {
                 if (trialIsSelected[i])
@@ -566,7 +564,7 @@ namespace HBP.UI.Informations
 
             if (trialsToUse.Count > 1)
             {
-                ChannelSubTrial[] channelSubTrials = trialsToUse.Select(t => t.ChannelSubTrialBySubBloc[subBloc]).ToArray();
+                Core.Data.ChannelSubTrial[] channelSubTrials = trialsToUse.Select(t => t.ChannelSubTrialBySubBloc[subBloc]).ToArray();
 
                 float[] values = new float[channelSubTrials[0].Values.Length];
                 float[] standardDeviations = new float[values.Length];
@@ -595,7 +593,7 @@ namespace HBP.UI.Informations
             }
             else if (trialsToUse.Count == 1)
             {
-                ChannelSubTrial channelSubTrial = trialsToUse[0].ChannelSubTrialBySubBloc[subBloc];
+                Core.Data.ChannelSubTrial channelSubTrial = trialsToUse[0].ChannelSubTrialBySubBloc[subBloc];
                 float[] values = channelSubTrial.Values;
 
                 // Generate points.

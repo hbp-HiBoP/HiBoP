@@ -1,11 +1,9 @@
-﻿using Tools.Unity.Components;
-
-namespace HBP.UI
+﻿namespace HBP.UI
 {
     /// <summary>
     /// Component to create coordinates.
     /// </summary>
-    public class CoordinateCreator : ObjectCreator<Data.Coordinate>
+    public class CoordinateCreator : ObjectCreator<Core.Data.Coordinate>
     {
     }
 }

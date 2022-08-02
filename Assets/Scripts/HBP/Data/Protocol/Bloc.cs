@@ -6,7 +6,7 @@ using Tools.CSharp;
 using Tools.Unity;
 using UnityEngine;
 
-namespace HBP.Data.Experience.Protocol
+namespace HBP.Core.Data
 {
     /// <summary>
     /// Class which contains all the data about a experience bloc used to epoch, and visualize data.

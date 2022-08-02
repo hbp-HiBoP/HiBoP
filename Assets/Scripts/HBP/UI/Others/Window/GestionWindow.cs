@@ -11,7 +11,7 @@ namespace HBP.UI
     /// Abstract generic class for every gestion window. A gestion window is a window to modify a list of elements.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public abstract class GestionWindow<T> : DialogWindow where T : Data.BaseData, new()
+    public abstract class GestionWindow<T> : DialogWindow where T : Core.Data.BaseData, new()
     {
         #region Properties
         /// <summary>

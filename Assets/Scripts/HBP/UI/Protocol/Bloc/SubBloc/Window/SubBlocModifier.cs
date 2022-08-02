@@ -1,16 +1,15 @@
-﻿using HBP.Data.Preferences;
-using Tools.CSharp;
+﻿using Tools.CSharp;
 using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
-using d = HBP.Data.Experience.Protocol;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.Experience.Protocol
 {
     /// <summary>
     /// Window to modify a subBloc.
     /// </summary>
-    public class SubBlocModifier : ObjectModifier<d.SubBloc>
+    public class SubBlocModifier : ObjectModifier<Core.Data.SubBloc>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -38,7 +37,7 @@ namespace HBP.UI.Experience.Protocol
                 base.Interactable = value;
                 m_NameInputField.interactable = value;
                 m_OrderInputField.interactable = value;
-                m_TypeDropdown.interactable = value && ObjectTemp != null && ObjectTemp.Type == Data.Enums.MainSecondaryEnum.Secondary;
+                m_TypeDropdown.interactable = value && ObjectTemp != null && ObjectTemp.Type == MainSecondaryEnum.Secondary;
                 m_WindowSlider.interactable = value;
                 m_BaselineSlider.interactable = value;
 
@@ -88,14 +87,14 @@ namespace HBP.UI.Experience.Protocol
         /// Set the fields.
         /// </summary>
         /// <param name="objectToDisplay">SubBloc to display</param>
-        protected override void SetFields(d.SubBloc objectToDisplay)
+        protected override void SetFields(Core.Data.SubBloc objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_OrderInputField.text = objectToDisplay.Order.ToString();
-            m_TypeDropdown.Set(typeof(Data.Enums.MainSecondaryEnum), (int)objectToDisplay.Type);
-            m_TypeDropdown.interactable = m_Interactable && ObjectTemp != null && ObjectTemp.Type == Data.Enums.MainSecondaryEnum.Secondary;
+            m_TypeDropdown.Set(typeof(MainSecondaryEnum), (int)objectToDisplay.Type);
+            m_TypeDropdown.interactable = m_Interactable && ObjectTemp != null && ObjectTemp.Type == MainSecondaryEnum.Secondary;
 
-            ProtocolPreferences preferences = ApplicationState.UserPreferences.Data.Protocol;
+            Core.Data.Preferences.ProtocolPreferences preferences = ApplicationState.UserPreferences.Data.Protocol;
             m_WindowSlider.minLimit = preferences.MinLimit;
             m_WindowSlider.maxLimit = preferences.MaxLimit;
             m_WindowSlider.step = preferences.Step;
@@ -146,7 +145,7 @@ namespace HBP.UI.Experience.Protocol
         /// <param name="value">Type</param>
         protected void ChangeType(int value)
         {
-            ObjectTemp.Type = (Data.Enums.MainSecondaryEnum)value;
+            ObjectTemp.Type = (MainSecondaryEnum)value;
         }
         /// <summary>
         /// Change the window.
@@ -174,7 +173,7 @@ namespace HBP.UI.Experience.Protocol
         /// Add event to the subBloc.
         /// </summary>
         /// <param name="event">Event to add</param>
-        protected void AddEvent(d.Event @event)
+        protected void AddEvent(Core.Data.Event @event)
         {
             ObjectTemp.Events.AddIfAbsent(@event);
         }
@@ -182,7 +181,7 @@ namespace HBP.UI.Experience.Protocol
         /// Remove event to the subBloc.
         /// </summary>
         /// <param name="event">Event to remove</param>
-        protected void RemoveEvent(d.Event @event)
+        protected void RemoveEvent(Core.Data.Event @event)
         {
             ObjectTemp.Events.Remove(@event);
         }
@@ -190,7 +189,7 @@ namespace HBP.UI.Experience.Protocol
         /// Update event to the subBloc.
         /// </summary>
         /// <param name="event"></param>
-        protected void UpdateEvent(d.Event @event)
+        protected void UpdateEvent(Core.Data.Event @event)
         {
             int index = ObjectTemp.Events.FindIndex(t => t.Equals(@event));
             if (index != -1)
@@ -202,7 +201,7 @@ namespace HBP.UI.Experience.Protocol
         /// Add icon to the subBloc.
         /// </summary>
         /// <param name="icon">Icon to add</param>
-        protected void AddIcon(d.Icon icon)
+        protected void AddIcon(Core.Data.Icon icon)
         {
             ObjectTemp.Icons.AddIfAbsent(icon);
         }
@@ -210,7 +209,7 @@ namespace HBP.UI.Experience.Protocol
         /// Remove icon from the subBloc.
         /// </summary>
         /// <param name="icon">Icon to remove</param>
-        protected void RemoveIcon(d.Icon icon)
+        protected void RemoveIcon(Core.Data.Icon icon)
         {
             ObjectTemp.Icons.Remove(icon);
         }
@@ -218,7 +217,7 @@ namespace HBP.UI.Experience.Protocol
         /// Update icon from the subBloc.
         /// </summary>
         /// <param name="icon">Icon to update</param>
-        protected void UpdateIcon(d.Icon icon)
+        protected void UpdateIcon(Core.Data.Icon icon)
         {
             int index = ObjectTemp.Icons.FindIndex(i => i.Equals(icon));
             if (index != -1)
@@ -230,7 +229,7 @@ namespace HBP.UI.Experience.Protocol
         /// Add treatment to the subBloc.
         /// </summary>
         /// <param name="treatment">Treatment to add</param>
-        protected void AddTreatment(d.Treatment treatment)
+        protected void AddTreatment(Core.Data.Treatment treatment)
         {
             ObjectTemp.Treatments.AddIfAbsent(treatment);
         }
@@ -238,7 +237,7 @@ namespace HBP.UI.Experience.Protocol
         /// Remove treatment from the subBloc.
         /// </summary>
         /// <param name="treatment">Treatment to remove</param>
-        protected void RemoveTreatment(d.Treatment treatment)
+        protected void RemoveTreatment(Core.Data.Treatment treatment)
         {
             ObjectTemp.Treatments.Remove(treatment);
         }
@@ -246,7 +245,7 @@ namespace HBP.UI.Experience.Protocol
         /// Update treatment to the subBloc.
         /// </summary>
         /// <param name="treatment">Treatment to update</param>
-        protected void UpdateTreatment(d.Treatment treatment)
+        protected void UpdateTreatment(Core.Data.Treatment treatment)
         {
             int index = ObjectTemp.Treatments.FindIndex(t => t.Equals(treatment));
             if(index != -1)

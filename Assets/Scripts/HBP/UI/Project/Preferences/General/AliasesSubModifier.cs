@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace HBP.UI
 {
-    public class AliasesSubModifier : SubModifier<ProjectPreferences>
+    public class AliasesSubModifier : SubModifier<Core.Data.ProjectPreferences>
     {
         #region Properties
         [SerializeField] AliasListGestion m_AliasListGestion;
@@ -34,7 +34,7 @@ namespace HBP.UI
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(ProjectPreferences objectToDisplay)
+        protected override void SetFields(Core.Data.ProjectPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
             m_AliasListGestion.List.Set(objectToDisplay.Aliases);

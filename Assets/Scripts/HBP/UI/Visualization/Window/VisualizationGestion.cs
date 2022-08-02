@@ -5,12 +5,12 @@ using Tools.Unity.Components;
 
 namespace HBP.UI.Visualization
 {
-    public class VisualizationGestion : GestionWindow<Data.Visualization.Visualization>
+    public class VisualizationGestion : GestionWindow<Core.Data.Visualization>
     {
         #region Properties
         [SerializeField] Button m_DisplayButton;
         [SerializeField] VisualizationListGestion m_ListGestion;
-        public override ListGestion<Data.Visualization.Visualization> ListGestion => m_ListGestion;
+        public override ListGestion<Core.Data.Visualization> ListGestion => m_ListGestion;
 
         public override bool Interactable
         {
@@ -35,7 +35,7 @@ namespace HBP.UI.Visualization
         }
         public void Display()
         {
-            Data.Visualization.Visualization[] visualizations = m_ListGestion.List.ObjectsSelected;
+            Core.Data.Visualization[] visualizations = m_ListGestion.List.ObjectsSelected;
             var alreadyOpenedVisualizations = visualizations.Where(v => ApplicationState.Module3D.Scenes.Any(s => s.Visualization == v));
             if (alreadyOpenedVisualizations.Count() > 0)
             {
@@ -72,7 +72,7 @@ namespace HBP.UI.Visualization
         }
         void SetDisplay()
         {
-            Data.Visualization.Visualization[] visualizationsSelected = m_ListGestion.List.ObjectsSelected;
+            Core.Data.Visualization[] visualizationsSelected = m_ListGestion.List.ObjectsSelected;
             m_DisplayButton.interactable = visualizationsSelected.Length > 0 && visualizationsSelected.All(v => v.IsVisualizable) && Interactable;
         }
         protected override void SetFields()

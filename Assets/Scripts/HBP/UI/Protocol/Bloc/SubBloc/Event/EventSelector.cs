@@ -1,5 +1,4 @@
 ﻿using HBP.UI.Experience.Protocol;
-using d = HBP.Data.Experience.Protocol;
 using UnityEngine;
 using Tools.Unity.Lists;
 
@@ -8,14 +7,14 @@ namespace HBP.UI
     /// <summary>
     /// Window to select events.
     /// </summary>
-    public class EventSelector : ObjectSelector<d.Event>
+    public class EventSelector : ObjectSelector<Core.Data.Event>
     {
         #region Properties
         [SerializeField] EventList m_List;
         /// <summary>
         /// UI events list.
         /// </summary>
-        protected override SelectableList<d.Event> List => m_List;
+        protected override SelectableList<Core.Data.Event> List => m_List;
         #endregion
     }
 }

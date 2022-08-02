@@ -8,7 +8,7 @@ namespace HBP.UI
     /// <summary>
     /// Component to display group in list.
     /// </summary>
-	public class GroupItem : ActionnableItem<Data.Group> 
+	public class GroupItem : ActionnableItem<Core.Data.Group> 
 	{
 		#region Properties
 		[SerializeField] Text m_NameText;
@@ -18,7 +18,7 @@ namespace HBP.UI
         /// <summary>
         /// Object to display.
         /// </summary>
-        public override Data.Group Object
+        public override Core.Data.Group Object
         {
             get
             {

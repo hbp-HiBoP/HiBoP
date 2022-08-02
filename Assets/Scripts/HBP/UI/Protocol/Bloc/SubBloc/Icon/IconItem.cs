@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using HBP.Data.Experience.Protocol;
 using Tools.Unity;
 
 namespace HBP.UI.Experience.Protocol
@@ -8,7 +7,7 @@ namespace HBP.UI.Experience.Protocol
     /// <summary>
     /// Component to display Icon in list.
     /// </summary>
-    public class IconItem : Tools.Unity.Lists.ActionnableItem<Icon>
+    public class IconItem : Tools.Unity.Lists.ActionnableItem<Core.Data.Icon>
     {
         #region Properties
         [SerializeField] Text m_NameText;
@@ -22,7 +21,7 @@ namespace HBP.UI.Experience.Protocol
         /// <summary>
         /// Object to display.
         /// </summary>
-        public override Icon Object
+        public override Core.Data.Icon Object
         {
             get
             {

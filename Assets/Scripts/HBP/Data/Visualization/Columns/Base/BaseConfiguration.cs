@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace HBP.Data.Visualization
+namespace HBP.Core.Data
 {
     [DataContract]
     public class BaseConfiguration : BaseData

@@ -7,6 +7,7 @@ using System.Linq;
 using UnityEngine.UI;
 using Tools.Unity;
 using UnityEngine.EventSystems;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.TrialMatrix
 {
@@ -73,7 +74,7 @@ namespace HBP.UI.TrialMatrix
             m_SelectionMasks = new List<GameObject>();
 
             Clear();
-            IOrderedEnumerable<Data.Experience.Protocol.SubBloc> orderedSubBlocs = data.ProtocolBloc.OrderedSubBlocs;
+            IOrderedEnumerable<Core.Data.SubBloc> orderedSubBlocs = data.ProtocolBloc.OrderedSubBlocs;
             int mainSubBlocIndex = data.ProtocolBloc.MainSubBlocPosition;
 
             foreach (var subBloc in data.SubBlocs)
@@ -198,13 +199,13 @@ namespace HBP.UI.TrialMatrix
         {
             switch (ApplicationState.UserPreferences.Visualization.TrialMatrix.SubBlocFormat)
             {
-                case HBP.Data.Enums.BlocFormatType.TrialHeight:
+                case BlocFormatType.TrialHeight:
                     m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialHeight * Data.SubBlocs[0].SubTrials.Length;
                     break;
-                case HBP.Data.Enums.BlocFormatType.TrialRatio:
+                case BlocFormatType.TrialRatio:
                     m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * Data.SubBlocs[0].SubTrials.Length;
                     break;
-                case HBP.Data.Enums.BlocFormatType.BlocRatio:
+                case BlocFormatType.BlocRatio:
                     m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width;
                     break;
             }

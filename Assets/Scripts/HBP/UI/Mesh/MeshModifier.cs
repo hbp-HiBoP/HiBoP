@@ -9,7 +9,7 @@ namespace HBP.UI
     /// <summary>
     /// Window to modify a mesh.
     /// </summary>
-    public class MeshModifier : ObjectModifier<Data.BaseMesh>
+    public class MeshModifier : ObjectModifier<Core.Data.BaseMesh>
 {
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -21,7 +21,7 @@ namespace HBP.UI
 
         Type[] m_Types;
         List<BaseSubModifier> m_SubModifiers;
-        List<Data.BaseMesh> m_MeshesTemp;
+        List<Core.Data.BaseMesh> m_MeshesTemp;
 
         /// <summary>
         /// True if interactable, False otherwise.
@@ -71,7 +71,7 @@ namespace HBP.UI
             m_TransformationFileSelector.onValueChanged.AddListener(ChangeTransformation);
 
             m_TypeDropdown.onValueChanged.AddListener(ChangeType);
-            m_Types = m_TypeDropdown.Set(typeof(Data.BaseMesh));
+            m_Types = m_TypeDropdown.Set(typeof(Core.Data.BaseMesh));
 
             m_SingleMeshSubModifier.Initialize();
             m_LeftRightMeshSubModifier.Initialize();
@@ -82,10 +82,10 @@ namespace HBP.UI
                 m_LeftRightMeshSubModifier
             };
 
-            m_MeshesTemp = new List<Data.BaseMesh>
+            m_MeshesTemp = new List<Core.Data.BaseMesh>
             {
-                new Data.SingleMesh(),
-                new Data.LeftRightMesh()
+                new Core.Data.SingleMesh(),
+                new Core.Data.LeftRightMesh()
             };
 
         }
@@ -93,7 +93,7 @@ namespace HBP.UI
         /// Set the fields.
         /// </summary>
         /// <param name="objectToDisplay">Mesh to modify</param>
-        protected override void SetFields(Data.BaseMesh objectToDisplay)
+        protected override void SetFields(Core.Data.BaseMesh objectToDisplay)
         {
             int index = m_MeshesTemp.FindIndex(t => t.GetType() == ObjectTemp.GetType());
             m_MeshesTemp[index] = ObjectTemp;
@@ -128,7 +128,7 @@ namespace HBP.UI
             // Close old subModifier
             m_SubModifiers.Find(subModifier => subModifier.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(m_ObjectTemp.GetType()))).IsActive = false;
 
-            Data.BaseMesh mesh = m_MeshesTemp.Find(t => t.GetType() == type);
+            Core.Data.BaseMesh mesh = m_MeshesTemp.Find(t => t.GetType() == type);
             mesh.Copy(m_ObjectTemp);
             m_ObjectTemp = mesh;
 

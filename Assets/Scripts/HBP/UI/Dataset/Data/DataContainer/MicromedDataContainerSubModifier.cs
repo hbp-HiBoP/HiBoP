@@ -1,10 +1,10 @@
 ﻿using Tools.Unity;
 using UnityEngine;
-using container = HBP.Data.Container;
+using HBP.Core.Data.Container;
 
 namespace HBP.UI.Experience.Dataset
 {
-    public class MicromedDataContainerSubModifier : SubModifier<container.Micromed>
+    public class MicromedDataContainerSubModifier : SubModifier<Micromed>
     {
         #region Properties
         [SerializeField] FileSelector m_FileSelector;
@@ -32,7 +32,7 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(container.Micromed objectToDisplay)
+        protected override void SetFields(Micromed objectToDisplay)
         {
             m_FileSelector.File = objectToDisplay.SavedPath;
         }

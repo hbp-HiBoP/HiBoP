@@ -58,7 +58,7 @@ namespace HBP.UI
             try
             {
                 ParseConditions();
-                ReadOnlyCollection<Patient> patients = m_PatientList.Objects;
+                ReadOnlyCollection<Core.Data.Patient> patients = m_PatientList.Objects;
                 bool[] result = new bool[patients.Count];
                 for (int i = 0; i < result.Length; i++)
                 {
@@ -83,7 +83,7 @@ namespace HBP.UI
         /// </summary>
         /// <param name="patient">Patient to check</param>
         /// <returns>True if the conditions are met</returns>
-        private bool CheckConditions(Patient patient)
+        private bool CheckConditions(Core.Data.Patient patient)
         {
             foreach (var booleanValue in m_BooleanExpression.GetAllBooleanValuesUnderThisOne())
             {
@@ -97,7 +97,7 @@ namespace HBP.UI
         /// <param name="patient">Patient to check</param>
         /// <param name="s">String to be parsed</param>
         /// <returns>True if the patient matches the set of conditions</returns>
-        private bool ParseConditionAndCheckValue(Patient patient, string s)
+        private bool ParseConditionAndCheckValue(Core.Data.Patient patient, string s)
         {
             s = s.ToUpper();
             Regex conditionRegex = new Regex(@"(.+)([=><]{1})(.+)");
@@ -143,11 +143,11 @@ namespace HBP.UI
                 }
                 else
                 {
-                    BaseTag tag = ApplicationState.ProjectLoaded.Preferences.PatientsTags.FirstOrDefault(t => t.Name.ToUpper() == deblankedLabel);
+                    Core.Data.BaseTag tag = ApplicationState.ProjectLoaded.Preferences.PatientsTags.FirstOrDefault(t => t.Name.ToUpper() == deblankedLabel);
                     if (tag == null) tag = ApplicationState.ProjectLoaded.Preferences.GeneralTags.FirstOrDefault(t => t.Name.ToUpper() == deblankedLabel);
                     if (tag != null)
                     {
-                        BaseTagValue tagValue = patient.Tags.FirstOrDefault(t => t.Tag == tag);
+                        Core.Data.BaseTagValue tagValue = patient.Tags.FirstOrDefault(t => t.Tag == tag);
                         if (tagValue != null)
                         {
                             if (groups[2].Value == "=")

@@ -1,14 +1,13 @@
 ﻿using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using d = HBP.Data.Experience.Dataset;
 
 namespace HBP.UI.Experience.Dataset
 {
     /// <summary>
     /// Window to modify a dataset.
     /// </summary>
-    public class DatasetModifier : ObjectModifier<d.Dataset>
+    public class DatasetModifier : ObjectModifier<Core.Data.Dataset>
     {
         #region Properties		
         [SerializeField] InputField m_NameInputField;
@@ -62,7 +61,7 @@ namespace HBP.UI.Experience.Dataset
         /// Set the fields.
         /// </summary>
         /// <param name="objectToDisplay">Dataset to modify</param>
-        protected override void SetFields(d.Dataset objectToDisplay)
+        protected override void SetFields(Core.Data.Dataset objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_ProtocolDropdown.value = ApplicationState.ProjectLoaded.Protocols.IndexOf(objectToDisplay.Protocol);
@@ -81,7 +80,7 @@ namespace HBP.UI.Experience.Dataset
         /// Check the errors.
         /// </summary>
         /// <param name="dataInfo">Check the the errors of the dataInfo</param>
-        protected virtual void CheckErrors(d.DataInfo dataInfo)
+        protected virtual void CheckErrors(Core.Data.DataInfo dataInfo)
         {
             dataInfo.GetErrors(ObjectTemp.Protocol);
         }
@@ -104,7 +103,7 @@ namespace HBP.UI.Experience.Dataset
         /// Add data to the dataset.
         /// </summary>
         /// <param name="data">dataInfo to add</param>
-        protected void AddData(d.DataInfo data)
+        protected void AddData(Core.Data.DataInfo data)
         {
             ObjectTemp.AddData(data);
         }
@@ -112,7 +111,7 @@ namespace HBP.UI.Experience.Dataset
         /// Remove data from the dataset.
         /// </summary>
         /// <param name="data">dataInfo to remove</param>
-        protected void RemoveData(d.DataInfo data)
+        protected void RemoveData(Core.Data.DataInfo data)
         {
             ObjectTemp.RemoveData(data);
         }
@@ -120,7 +119,7 @@ namespace HBP.UI.Experience.Dataset
         /// Update data of the dataset.
         /// </summary>
         /// <param name="data">dataInfo to update</param>
-        protected void UpdateData(d.DataInfo data)
+        protected void UpdateData(Core.Data.DataInfo data)
         {
             ObjectTemp.UpdateData(data);
         }

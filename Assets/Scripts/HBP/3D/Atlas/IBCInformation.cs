@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text.RegularExpressions;
 
-namespace HBP.Module3D.IBC
+namespace HBP.Core.Object3D
 {
     /// <summary>
     /// Global information for IBC functional atlas (correspondance table between files name and 

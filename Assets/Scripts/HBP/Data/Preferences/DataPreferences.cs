@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Runtime.Serialization;
-using HBP.Data.Enums;
+using HBP.Core.Data.Enums;
 
-namespace HBP.Data.Preferences
+namespace HBP.Core.Data.Preferences
 {
     [DataContract]
     public class DataPreferences : ICloneable

@@ -5,7 +5,7 @@ using HBP.Data.Preferences;
 
 namespace HBP.UI.UserPreferences
 {
-    public class ProjectPreferencesSubModifier : SubModifier<ProjectPreferences>
+    public class ProjectPreferencesSubModifier : SubModifier<Core.Data.Preferences.ProjectPreferences>
     {
         #region Properties
         [SerializeField] InputField m_DefaultName;
@@ -47,7 +47,7 @@ namespace HBP.UI.UserPreferences
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(ProjectPreferences objectToDisplay)
+        protected override void SetFields(Core.Data.Preferences.ProjectPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
 

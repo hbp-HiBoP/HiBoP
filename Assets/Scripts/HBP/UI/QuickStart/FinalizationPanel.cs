@@ -1,15 +1,8 @@
-﻿using CielaSpike;
-using HBP.Data;
-using HBP.Data.Experience.Dataset;
-using HBP.Data.Experience.Protocol;
-using HBP.Data.Visualization;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Tools.Unity;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace HBP.UI.QuickStart
@@ -37,28 +30,28 @@ namespace HBP.UI.QuickStart
             // Add visualization
             if (ApplicationState.ProjectLoaded.Protocols.Count == 0) // Anatomical
             {
-                Data.Visualization.Visualization visualization = new Data.Visualization.Visualization("QuickStart Anatomy", ApplicationState.ProjectLoaded.Patients, new Data.Visualization.Column[] { new Data.Visualization.AnatomicColumn("Anatomy", new Data.Visualization.BaseConfiguration()) });
-                ApplicationState.ProjectLoaded.SetVisualizations(new Data.Visualization.Visualization[] { visualization });
+                Core.Data.Visualization visualization = new Core.Data.Visualization("QuickStart Anatomy", ApplicationState.ProjectLoaded.Patients, new Core.Data.Column[] { new Core.Data.AnatomicColumn("Anatomy", new Core.Data.BaseConfiguration()) });
+                ApplicationState.ProjectLoaded.SetVisualizations(new Core.Data.Visualization[] { visualization });
             }
             else // Functional
             {
-                List<Patient> patients = new List<Patient>();
+                List<Core.Data.Patient> patients = new List<Core.Data.Patient>();
                 foreach (var patient in ApplicationState.ProjectLoaded.Patients)
                 {
-                    if (ApplicationState.ProjectLoaded.Datasets[0].Data.First(d => (d as IEEGDataInfo).Patient == patient).IsOk)
+                    if (ApplicationState.ProjectLoaded.Datasets[0].Data.First(d => (d as Core.Data.IEEGDataInfo).Patient == patient).IsOk)
                     {
                         patients.Add(patient);
                     }
                 }
-                List<IEEGColumn> columns = new List<IEEGColumn>();
-                Protocol protocol = ApplicationState.ProjectLoaded.Protocols[0];
+                List<Core.Data.IEEGColumn> columns = new List<Core.Data.IEEGColumn>();
+                Core.Data.Protocol protocol = ApplicationState.ProjectLoaded.Protocols[0];
                 foreach (var bloc in protocol.Blocs)
                 {
-                    IEEGColumn column = new IEEGColumn(string.Format("Code {0}", bloc.MainSubBloc.MainEvent.Codes[0]), new BaseConfiguration(), ApplicationState.ProjectLoaded.Datasets[0], "Data", bloc, new DynamicConfiguration());
+                    Core.Data.IEEGColumn column = new Core.Data.IEEGColumn(string.Format("Code {0}", bloc.MainSubBloc.MainEvent.Codes[0]), new Core.Data.BaseConfiguration(), ApplicationState.ProjectLoaded.Datasets[0], "Data", bloc, new Core.Data.DynamicConfiguration());
                     columns.Add(column);
                 }
-                Data.Visualization.Visualization visualization = new Data.Visualization.Visualization("QuickStart", patients, columns, new VisualizationConfiguration());
-                ApplicationState.ProjectLoaded.SetVisualizations(new Data.Visualization.Visualization[] { visualization });
+                Core.Data.Visualization visualization = new Core.Data.Visualization("QuickStart", patients, columns, new Core.Data.VisualizationConfiguration());
+                ApplicationState.ProjectLoaded.SetVisualizations(new Core.Data.Visualization[] { visualization });
             }
             ApplicationState.ProjectLoaded.Preferences.Name = m_ProjectName.text;
             ApplicationState.ProjectLoadedLocation = m_ProjectLocation.Folder;

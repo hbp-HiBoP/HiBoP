@@ -38,7 +38,7 @@ namespace HBP.UI.Module3D.Tools
             string savePath = FileBrowser.GetSavedFileName(new string[] { "roi" }, "Save ROI to", Application.dataPath);
             if (!string.IsNullOrEmpty(savePath))
             {
-                Data.Visualization.RegionOfInterest ROI = new Data.Visualization.RegionOfInterest(SelectedScene.ROIManager.SelectedROI);
+                Core.Data.RegionOfInterest ROI = new Core.Data.RegionOfInterest(SelectedScene.ROIManager.SelectedROI);
                 ClassLoaderSaver.SaveToJSon(ROI, savePath, true);
                 ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Region of Interest saved", "The selected ROI has been saved to <color=#3080ffff>" + savePath + "</color>");
             }
@@ -54,9 +54,9 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (!string.IsNullOrEmpty(loadPath))
                 {
-                    Data.Visualization.RegionOfInterest serializedROI = ClassLoaderSaver.LoadFromJson<Data.Visualization.RegionOfInterest>(loadPath);
-                    ROI roi = SelectedScene.ROIManager.AddROI(serializedROI.Name);
-                    foreach (Data.Visualization.Sphere sphere in serializedROI.Spheres)
+                    Core.Data.RegionOfInterest serializedROI = ClassLoaderSaver.LoadFromJson<Core.Data.RegionOfInterest>(loadPath);
+                    Core.Object3D.ROI roi = SelectedScene.ROIManager.AddROI(serializedROI.Name);
+                    foreach (Core.Data.Sphere sphere in serializedROI.Spheres)
                     {
                         roi.AddSphere(SelectedColumn.Layer, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
                     }
@@ -66,9 +66,9 @@ namespace HBP.UI.Module3D.Tools
             string loadPath = FileBrowser.GetExistingFileName(new string[] { "roi" }, "Load ROI file");
             if (!string.IsNullOrEmpty(loadPath))
             {
-                Data.Visualization.RegionOfInterest serializedROI = ClassLoaderSaver.LoadFromJson<Data.Visualization.RegionOfInterest>(loadPath);
-                ROI roi = SelectedScene.ROIManager.AddROI(serializedROI.Name);
-                foreach (Data.Visualization.Sphere sphere in serializedROI.Spheres)
+                Core.Data.RegionOfInterest serializedROI = ClassLoaderSaver.LoadFromJson<Core.Data.RegionOfInterest>(loadPath);
+                Core.Object3D.ROI roi = SelectedScene.ROIManager.AddROI(serializedROI.Name);
+                foreach (Core.Data.Sphere sphere in serializedROI.Spheres)
                 {
                     roi.AddSphere(SelectedColumn.Layer, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
                 }

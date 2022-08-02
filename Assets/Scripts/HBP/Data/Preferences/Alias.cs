@@ -1,7 +1,7 @@
 ﻿using System.Runtime.Serialization;
 using UnityEngine;
 
-namespace HBP.Data
+namespace HBP.Core.Data
 {
     [DataContract]
     public class Alias : BaseData, INameable

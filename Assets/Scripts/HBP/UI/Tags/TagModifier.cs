@@ -9,7 +9,7 @@ namespace HBP.UI
     /// <summary>
     /// Window to modify a tag.
     /// </summary>
-    public class TagModifier : ObjectModifier<Data.BaseTag>
+    public class TagModifier : ObjectModifier<Core.Data.BaseTag>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -23,7 +23,7 @@ namespace HBP.UI
         [SerializeField] EnumTagSubModifier m_EnumTagSubModifier;
 
         List<BaseSubModifier> m_SubModifiers;
-        List<Data.BaseTag> m_TagsTemp;
+        List<Core.Data.BaseTag> m_TagsTemp;
 
         Type[] m_Types;
         /// <summary>
@@ -78,7 +78,7 @@ namespace HBP.UI
             m_EnumTagSubModifier.Initialize();
 
             m_TypeDropdown.onValueChanged.AddListener(ChangeType);
-            m_Types = m_TypeDropdown.Set(typeof(Data.BaseTag));
+            m_Types = m_TypeDropdown.Set(typeof(Core.Data.BaseTag));
 
             m_SubModifiers = new List<BaseSubModifier>();
             m_SubModifiers.Add(m_EmptyTagSubModifier);
@@ -88,19 +88,19 @@ namespace HBP.UI
             m_SubModifiers.Add(m_StringTagSubModifier);
             m_SubModifiers.Add(m_EnumTagSubModifier);
 
-            m_TagsTemp = new List<Data.BaseTag>();
-            m_TagsTemp.Add(new Data.EmptyTag());
-            m_TagsTemp.Add(new Data.BoolTag());
-            m_TagsTemp.Add(new Data.IntTag());
-            m_TagsTemp.Add(new Data.FloatTag());
-            m_TagsTemp.Add(new Data.StringTag());
-            m_TagsTemp.Add(new Data.EnumTag());
+            m_TagsTemp = new List<Core.Data.BaseTag>();
+            m_TagsTemp.Add(new Core.Data.EmptyTag());
+            m_TagsTemp.Add(new Core.Data.BoolTag());
+            m_TagsTemp.Add(new Core.Data.IntTag());
+            m_TagsTemp.Add(new Core.Data.FloatTag());
+            m_TagsTemp.Add(new Core.Data.StringTag());
+            m_TagsTemp.Add(new Core.Data.EnumTag());
         }
         /// <summary>
         /// Set the fields
         /// </summary>
         /// <param name="objectToDisplay"></param>
-        protected override void SetFields(Data.BaseTag objectToDisplay)
+        protected override void SetFields(Core.Data.BaseTag objectToDisplay)
         {
             int index = m_TagsTemp.FindIndex(t => t.GetType() == ObjectTemp.GetType());
             m_TagsTemp[index] = ObjectTemp;
@@ -128,7 +128,7 @@ namespace HBP.UI
             // Close old subModifier
             m_SubModifiers.Find(s => s.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(m_ObjectTemp.GetType()))).IsActive = false;
 
-            Data.BaseTag tag = m_TagsTemp.Find(t => t.GetType() == type);
+            Core.Data.BaseTag tag = m_TagsTemp.Find(t => t.GetType() == type);
             tag.Copy(m_ObjectTemp);
             m_ObjectTemp = tag;
 

@@ -4,7 +4,7 @@ using System;
 using System.Runtime.Serialization;
 using System.ComponentModel;
 
-namespace HBP.Data.Experience.Protocol
+namespace HBP.Core.Data
 {
     /// <summary>
     /// Class which define a median treatment to apply at a subBloc.

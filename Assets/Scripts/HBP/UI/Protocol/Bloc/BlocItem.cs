@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using HBP.Data.Experience.Protocol;
 using Tools.Unity;
 using System.Linq;
 
@@ -9,7 +8,7 @@ namespace HBP.UI.Experience.Protocol
     /// <summary>
     /// Component to display bloc in list.
     /// </summary>
-	public class BlocItem : Tools.Unity.Lists.ActionnableItem<Bloc>
+	public class BlocItem : Tools.Unity.Lists.ActionnableItem<Core.Data.Bloc>
 	{
         #region Properties
         [SerializeField] Text m_NameText;
@@ -22,7 +21,7 @@ namespace HBP.UI.Experience.Protocol
         /// <summary>
         /// Object to display.
         /// </summary>
-        public override Bloc Object
+        public override Core.Data.Bloc Object
         {
             get
             {

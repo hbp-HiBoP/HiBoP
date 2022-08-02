@@ -6,7 +6,7 @@ using System.Text;
 using UnityEngine.Events;
 using HBP.Errors;
 
-namespace HBP.Data.Experience.Dataset
+namespace HBP.Core.Data
 {
     /// <summary>
     /// A base class containing paths to functional data files.
@@ -150,7 +150,7 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         /// <param name="protocol">Protocol of the dataset the dataInfo belongs to.</param>
         /// <returns>All dataInfo errors.</returns>
-        public virtual Error[] GetErrors(Protocol.Protocol protocol)
+        public virtual Error[] GetErrors(Protocol protocol)
         {
             List<Error> errors = new List<Error>(GetNameErrors());
             errors.AddRange(m_DataContainer.GetErrors());

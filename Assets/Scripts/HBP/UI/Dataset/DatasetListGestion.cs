@@ -1,17 +1,16 @@
-﻿using Tools.Unity.Components;
-using Tools.Unity.Lists;
+﻿using Tools.Unity.Lists;
 using UnityEngine;
 
 namespace HBP.UI.Experience.Dataset
 {
-    public class DatasetListGestion : ListGestion<Data.Experience.Dataset.Dataset>
+    public class DatasetListGestion : ListGestion<Core.Data.Dataset>
     {
         #region Properties
         [SerializeField] protected DatasetList m_List;
-        public override ActionableList<Data.Experience.Dataset.Dataset> List => m_List;
+        public override ActionableList<Core.Data.Dataset> List => m_List;
 
         [SerializeField] protected DatasetCreator m_ObjectCreator;
-        public override ObjectCreator<Data.Experience.Dataset.Dataset> ObjectCreator => m_ObjectCreator;
+        public override ObjectCreator<Core.Data.Dataset> ObjectCreator => m_ObjectCreator;
         #endregion
     }
 }

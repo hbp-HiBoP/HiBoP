@@ -4,11 +4,11 @@
     {
         #region Properties
         public int Position { get; set; }
-        public Experience.Protocol.Event ProtocolEvent { get; set; }
+        public Core.Data.Event ProtocolEvent { get; set; }
         #endregion
 
         #region Constructor
-        public Event(int position, Experience.Protocol.Event protocolEvent)
+        public Event(int position, Core.Data.Event protocolEvent)
         {
             Position = position;
             ProtocolEvent = protocolEvent;

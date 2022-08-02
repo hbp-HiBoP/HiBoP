@@ -7,7 +7,7 @@ using HBP.Errors;
 using System.ComponentModel;
 using System.Linq;
 
-namespace HBP.Data.Container
+namespace HBP.Core.Data.Container
 {
     /// <summary>
     /// Class which contains all the informations about Neuroimaging Informatics Technology Initiative(NIFTI).

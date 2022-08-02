@@ -1,5 +1,4 @@
-﻿using d = HBP.Data.Experience.Dataset;
-using System.Linq;
+﻿using System.Linq;
 using UnityEngine;
 
 namespace HBP.UI.Experience.Dataset
@@ -7,7 +6,7 @@ namespace HBP.UI.Experience.Dataset
     /// <summary>
     /// List to display datasets.
     /// </summary>
-	public class DatasetList : Tools.Unity.Lists.ActionableList<d.Dataset>
+	public class DatasetList : Tools.Unity.Lists.ActionableList<Core.Data.Dataset>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Protocol, DescendingProtocol, Data, DescendingData }

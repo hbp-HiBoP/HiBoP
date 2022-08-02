@@ -8,13 +8,13 @@ namespace HBP.UI
     public class ProjectLoaderSaver : MonoBehaviour
     {
         #region Public Methods  
-        public void Load(Data.ProjectInfo projectInfo)
+        public void Load(Core.Data.ProjectInfo projectInfo)
         {
             UnityEngine.Profiling.Profiler.BeginSample("1");
-            Data.Project projectToLoad = new Data.Project();
+            Core.Data.Project projectToLoad = new Core.Data.Project();
 
-            DataManager.Clear();
-            Data.Project projectLoaded = ApplicationState.ProjectLoaded;
+            Core.Data.DataManager.Clear();
+            Core.Data.Project projectLoaded = ApplicationState.ProjectLoaded;
             string projectLoadedLocation = ApplicationState.ProjectLoadedLocation;
             ApplicationState.ProjectLoaded = projectToLoad;
             ApplicationState.ProjectLoadedLocation = Directory.GetParent(projectInfo.Path).FullName;

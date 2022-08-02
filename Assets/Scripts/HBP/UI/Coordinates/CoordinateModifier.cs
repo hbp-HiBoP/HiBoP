@@ -8,7 +8,7 @@ namespace HBP.UI
     /// <summary>
     /// Window to modify a coordinate.
     /// </summary>
-    public class CoordinateModifier : ObjectModifier<Data.Coordinate>
+    public class CoordinateModifier : ObjectModifier<Core.Data.Coordinate>
     {
         #region Properties
         [SerializeField] InputField m_ReferenceSystemInputField;
@@ -55,7 +55,7 @@ namespace HBP.UI
         /// Set the fields.
         /// </summary>
         /// <param name="objectToModify">Coordinate to modify</param>
-        protected override void SetFields(Data.Coordinate objectToModify)
+        protected override void SetFields(Core.Data.Coordinate objectToModify)
         {
             m_ReferenceSystemInputField.text = objectToModify.ReferenceSystem;
             m_XInputField.text = objectToModify.Position.x.ToString(CultureInfo.InvariantCulture);

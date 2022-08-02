@@ -3,7 +3,7 @@ using Tools.CSharp;
 using Tools.Unity;
 using System.Runtime.Serialization;
 
-namespace HBP.Data.Experience.Protocol
+namespace HBP.Core.Data
 {
     /// <summary>
     /// Class which contains all the data about a Icon.

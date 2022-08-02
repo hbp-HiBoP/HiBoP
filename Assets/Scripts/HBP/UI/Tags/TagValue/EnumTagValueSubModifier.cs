@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI
 {
-    public class EnumTagValueSubModifier : SubModifier<Data.EnumTagValue>
+    public class EnumTagValueSubModifier : SubModifier<Core.Data.EnumTagValue>
     {
         #region Properties
         [SerializeField] Dropdown m_ValueDropdown;
@@ -29,7 +29,7 @@ namespace HBP.UI
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(Data.EnumTagValue objectToDisplay)
+        protected override void SetFields(Core.Data.EnumTagValue objectToDisplay)
         {
             base.SetFields(objectToDisplay);
             m_ValueDropdown.AddOptions(objectToDisplay.Tag.Values.ToList());

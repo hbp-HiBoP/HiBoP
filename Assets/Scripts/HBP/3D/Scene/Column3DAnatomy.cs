@@ -1,9 +1,5 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
-using HBP.Module3D.DLL;
-using HBP.Data.Enums;
-using HBP.Data.Visualization;
 
 namespace HBP.Module3D
 {
@@ -26,7 +22,7 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
-        public override void Initialize(int idColumn, Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
+        public override void Initialize(int idColumn, Core.Data.Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
 

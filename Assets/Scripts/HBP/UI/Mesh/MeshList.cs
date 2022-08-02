@@ -7,7 +7,7 @@ namespace HBP.UI
     /// <summary>
     /// List to display Meshes.
     /// </summary>
-    public class MeshList : ActionableList<Data.BaseMesh>
+    public class MeshList : ActionableList<Core.Data.BaseMesh>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Mesh, DescendingMesh, MarsAtlas, DescendingMarsAtlas, Transformation, DescendingTransformation }
@@ -25,7 +25,7 @@ namespace HBP.UI
         /// </summary>
         /// <param name="objectToAdd">Mesh to add</param>
         /// <returns>True if ended without errors, False otherwise</returns>
-        public override bool Add(Data.BaseMesh objectToAdd)
+        public override bool Add(Core.Data.BaseMesh objectToAdd)
         {
             SortByNone();
             return base.Add(objectToAdd);

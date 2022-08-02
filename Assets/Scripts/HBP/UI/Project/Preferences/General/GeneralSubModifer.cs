@@ -2,7 +2,7 @@
 
 namespace HBP.UI
 {
-    public class GeneralSubModifer : SubModifier<Data.ProjectPreferences>
+    public class GeneralSubModifer : SubModifier<Core.Data.ProjectPreferences>
     {
         #region Properties
         [SerializeField] InfoSubModifier m_InfoSubModifier;
@@ -40,7 +40,7 @@ namespace HBP.UI
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(Data.ProjectPreferences objectToDisplay)
+        protected override void SetFields(Core.Data.ProjectPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
             m_InfoSubModifier.Object = objectToDisplay;

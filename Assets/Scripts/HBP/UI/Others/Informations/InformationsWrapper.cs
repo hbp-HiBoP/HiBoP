@@ -5,7 +5,6 @@ using System.Linq;
 using HBP.Data.Informations;
 using UnityEngine.UI.Extensions;
 using UnityEngine.Events;
-using HBP.Data.Experience.Protocol;
 
 namespace HBP.UI.Informations
 {
@@ -362,7 +361,7 @@ namespace HBP.UI.Informations
                     column.OnChangeSelectedMEG.AddListener(OnChangeSelectedMEGItem);
                 }
 
-                int maxNumberOfTrialMatrixColumn = Mathf.Max(Bloc.GetNumberOfColumns(m_Scene.ColumnsIEEG.Select(c => c.ColumnIEEGData.Bloc).Distinct()), Bloc.GetNumberOfColumns(m_Scene.ColumnsCCEP.Select(c => c.ColumnCCEPData.Bloc).Distinct()));
+                int maxNumberOfTrialMatrixColumn = Mathf.Max(Core.Data.Bloc.GetNumberOfColumns(m_Scene.ColumnsIEEG.Select(c => c.ColumnIEEGData.Bloc).Distinct()), Core.Data.Bloc.GetNumberOfColumns(m_Scene.ColumnsCCEP.Select(c => c.ColumnCCEPData.Bloc).Distinct()));
                 ChannelInformations.SetMaxNumberOfTrialMatrixColumn(maxNumberOfTrialMatrixColumn);
                 OnChangeColorMapHandler();
 
@@ -384,7 +383,7 @@ namespace HBP.UI.Informations
 
             if(column.IsSelected && !column.IsMinimized)
             {
-                SubBloc subBloc = null;
+                Core.Data.SubBloc subBloc = null;
                 foreach (var key in column.Timeline.SubTimelinesBySubBloc.Keys)
                 {
                     if (column.Timeline.SubTimelinesBySubBloc[key] == column.Timeline.CurrentSubtimeline)

@@ -1,5 +1,4 @@
-﻿using d = HBP.Data.Experience.Protocol;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.TrialMatrix.Grid
@@ -7,8 +6,8 @@ namespace HBP.UI.TrialMatrix.Grid
     public class BlocHeader : MonoBehaviour
     {
         #region Properties
-        d.Bloc m_Bloc;
-        public d.Bloc Bloc
+        Core.Data.Bloc m_Bloc;
+        public Core.Data.Bloc Bloc
         {
             get
             {

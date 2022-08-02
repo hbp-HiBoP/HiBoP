@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI
 {
-    public class IntTagSubModifier : SubModifier<Data.IntTag>
+    public class IntTagSubModifier : SubModifier<Core.Data.IntTag>
     {
         #region Properties
         [SerializeField] Toggle m_ClampedToggle;
@@ -40,7 +40,7 @@ namespace HBP.UI
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(Data.IntTag objectToDisplay)
+        protected override void SetFields(Core.Data.IntTag objectToDisplay)
         {
             base.SetFields(objectToDisplay);
 

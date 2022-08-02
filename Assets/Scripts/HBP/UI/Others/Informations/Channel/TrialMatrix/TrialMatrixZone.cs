@@ -49,7 +49,7 @@ namespace HBP.UI.Informations
                         data.TrialMatrixGrid.IEEGTrialMatrixData trialMatrixData = dataToDisplay.OfType<data.TrialMatrixGrid.IEEGTrialMatrixData>().FirstOrDefault(d => d.Name == data.Name && d.Dataset == data.Dataset); 
                         if(trialMatrixData == null)
                         {
-                            dataToDisplay.Add(new data.TrialMatrixGrid.IEEGTrialMatrixData(data.Dataset, data.Name, new List<Data.Experience.Protocol.Bloc>() { data.Bloc }));
+                            dataToDisplay.Add(new data.TrialMatrixGrid.IEEGTrialMatrixData(data.Dataset, data.Name, new List<Core.Data.Bloc>() { data.Bloc }));
                         }
                         else
                         {
@@ -61,7 +61,7 @@ namespace HBP.UI.Informations
                         data.TrialMatrixGrid.CCEPTrialMatrixData trialMatrixData = dataToDisplay.OfType<data.TrialMatrixGrid.CCEPTrialMatrixData>().FirstOrDefault(d => d.Name == data.Name && d.Dataset == data.Dataset && d.Source == ccepData.Source);
                         if (trialMatrixData == null)
                         {
-                            dataToDisplay.Add(new data.TrialMatrixGrid.CCEPTrialMatrixData(data.Dataset, data.Name,  new List<Data.Experience.Protocol.Bloc>() { data.Bloc }, ccepData.Source));
+                            dataToDisplay.Add(new data.TrialMatrixGrid.CCEPTrialMatrixData(data.Dataset, data.Name,  new List<Core.Data.Bloc>() { data.Bloc }, ccepData.Source));
                         }
                         else
                         {

@@ -1,22 +1,19 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using HBP.Data.Visualization;
-using HBP.Data.Experience.Protocol;
-using HBP.Data.Experience.Dataset;
 using System.Linq;
 using Tools.Unity;
 
 namespace HBP.UI
 {
-    public class FMRIColumnModifier : SubModifier<FMRIColumn>
+    public class FMRIColumnModifier : SubModifier<Core.Data.FMRIColumn>
     {
         #region Properties
         [SerializeField] Dropdown m_ProtocolDropdown, m_DatasetDropdown;
 
-        List<Protocol> m_Protocols;
-        Protocol m_SelectedProtocol;
-        List<Dataset> m_Datasets;
+        List<Core.Data.Protocol> m_Protocols;
+        Core.Data.Protocol m_SelectedProtocol;
+        List<Core.Data.Dataset> m_Datasets;
 
         public override bool Interactable
         {
@@ -29,7 +26,7 @@ namespace HBP.UI
             }
         }
 
-        public override FMRIColumn Object
+        public override Core.Data.FMRIColumn Object
         {
             get
             {
@@ -49,8 +46,8 @@ namespace HBP.UI
             }
         }
 
-        Data.Patient[] m_Patients;
-        public Data.Patient[] Patients
+        Core.Data.Patient[] m_Patients;
+        public Core.Data.Patient[] Patients
         {
             get
             {

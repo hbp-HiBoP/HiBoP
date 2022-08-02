@@ -6,7 +6,7 @@ namespace HBP.UI
 	/// <summary>
 	/// Component to display project in list.
 	/// </summary>
-	public class ProjectItem : Tools.Unity.Lists.ActionnableItem<Data.ProjectInfo> 
+	public class ProjectItem : Tools.Unity.Lists.ActionnableItem<Core.Data.ProjectInfo> 
 	{
         #region Properties
         [SerializeField] Text m_NameText;
@@ -22,7 +22,7 @@ namespace HBP.UI
         /// <summary>
         /// Object to display.
         /// </summary>
-        public override Data.ProjectInfo Object
+        public override Core.Data.ProjectInfo Object
         {
             get
             {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace HBP.Data
+namespace HBP.Core.Data
 {
     /// <summary>
     /// A class which contains all the data about a boolean value and its associated BoolTag.

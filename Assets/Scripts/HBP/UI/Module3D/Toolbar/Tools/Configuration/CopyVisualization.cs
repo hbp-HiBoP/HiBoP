@@ -29,7 +29,7 @@ namespace HBP.UI.Module3D.Tools
                 {
                     ApplicationState.DialogBoxManager.Open(T.DialogBoxManager.AlertType.WarningMultiOptions, "Visualization already exists", "The visualization you are trying to add to the project already exists.\n\nDo you want to create a clone of the selected visualization?\nThis will not link the selected visualization with the newly cloned visualization, but take a snapshot of the selected visualization and save it as a new visualization.", () =>
                     {
-                        Data.Visualization.Visualization clonedVisualization = SelectedScene.Visualization.Clone() as Data.Visualization.Visualization;
+                        Core.Data.Visualization clonedVisualization = SelectedScene.Visualization.Clone() as Core.Data.Visualization;
                         clonedVisualization.GenerateID();
                         SaveVisualizationToProject(clonedVisualization);
                     }, "Clone");
@@ -57,7 +57,7 @@ namespace HBP.UI.Module3D.Tools
         #endregion
 
         #region Private Methods
-        private void SaveVisualizationToProject(Data.Visualization.Visualization visualization)
+        private void SaveVisualizationToProject(Core.Data.Visualization visualization)
         {
             var projectVisualizations = ApplicationState.ProjectLoaded.Visualizations;
             if (projectVisualizations.Any(v => v.Name == visualization.Name))

@@ -1,12 +1,11 @@
-﻿using HBP.Data.Experience.Protocol;
-using System.Globalization;
+﻿using System.Globalization;
 using Tools.CSharp;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class RescaleTreatmentSubModifier : SubModifier<RescaleTreatment>
+    public class RescaleTreatmentSubModifier : SubModifier<Core.Data.RescaleTreatment>
     {
         #region Properties
         [SerializeField] InputField m_MinBeforeInputField;
@@ -73,7 +72,7 @@ namespace HBP.UI.Experience.Protocol
                 Object.AfterMax = floatResult;
             }
         }
-        protected override void SetFields(RescaleTreatment objectToDisplay)
+        protected override void SetFields(Core.Data.RescaleTreatment objectToDisplay)
         {
             m_MinBeforeInputField.text = objectToDisplay.BeforeMin.ToString("0.##", CultureInfo.InvariantCulture);
             m_MaxBeforeInputField.text = objectToDisplay.BeforeMax.ToString("0.##", CultureInfo.InvariantCulture);

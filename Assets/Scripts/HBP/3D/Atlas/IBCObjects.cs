@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 
-namespace HBP.Module3D.IBC
+namespace HBP.Core.Object3D
 {
     /// <summary>
     /// Class containing the data of the IBC functional atlas

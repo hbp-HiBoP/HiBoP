@@ -49,7 +49,7 @@ namespace HBP.UI.Module3D.Tools
             m_Dropdown.options.Clear();
             if (SelectedScene != null)
             {
-                foreach (Implantation3D implantation in SelectedScene.ImplantationManager.Implantations)
+                foreach (Core.Object3D.Implantation3D implantation in SelectedScene.ImplantationManager.Implantations)
                 {
                     m_Dropdown.options.Add(new Dropdown.OptionData(implantation.Name));
                 }

@@ -4,17 +4,17 @@ using Tools.Unity.Components;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class ProtocolGestion : GestionWindow<Data.Experience.Protocol.Protocol>
+    public class ProtocolGestion : GestionWindow<Core.Data.Protocol>
     {
         #region Properties
         [SerializeField] ProtocolListGestion m_ListGestion;
-        public override ListGestion<Data.Experience.Protocol.Protocol> ListGestion => m_ListGestion;
+        public override ListGestion<Core.Data.Protocol> ListGestion => m_ListGestion;
         #endregion
 
         #region Public Methods
         public override void OK()
         {
-            if (DataManager.HasData)
+            if (Core.Data.DataManager.HasData)
             {
                 ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
                 {
@@ -23,7 +23,7 @@ namespace HBP.UI.Experience.Protocol
                     FindObjectOfType<MenuButtonState>().SetInteractables();
                     GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
                     ApplicationState.LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckDatasets(m_ListGestion.ModifiedProtocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
-                    DataManager.Clear();
+                    Core.Data.DataManager.Clear();
                     ApplicationState.Module3D.ReloadScenes();
                 });
             }

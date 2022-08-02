@@ -1,11 +1,12 @@
-﻿using HBP.Data.Preferences;
-using Tools.Unity;
+﻿using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Data.Enums;
+using HBP.Core.Data.Preferences;
 
 namespace HBP.UI.UserPreferences
 {
-    public class TrialMatrixPreferencesSubModifier : SubModifier<TrialMatrixPreferences>
+    public class TrialMatrixPreferencesSubModifier : SubModifier<Core.Data.Preferences.TrialMatrixPreferences>
     {
         #region Properties
         [SerializeField] Toggle m_ShowWholeProtocolToggle;
@@ -51,20 +52,20 @@ namespace HBP.UI.UserPreferences
         }
         public void OnChangeBlocFormat(int value)
         {
-            Object.SubBlocFormat = (Data.Enums.BlocFormatType)m_BlocFormatDropdown.value;
+            Object.SubBlocFormat = (BlocFormatType)m_BlocFormatDropdown.value;
             switch (Object.SubBlocFormat)
             {
-                case Data.Enums.BlocFormatType.TrialHeight:
+                case BlocFormatType.TrialHeight:
                     m_TrialHeightSubMenu.SetActive(true);
                     m_TrialRatioSubMenu.SetActive(false);
                     m_BlocRatioSubMenu.SetActive(false);
                     break;
-                case Data.Enums.BlocFormatType.TrialRatio:
+                case BlocFormatType.TrialRatio:
                     m_TrialHeightSubMenu.SetActive(false);
                     m_TrialRatioSubMenu.SetActive(true);
                     m_BlocRatioSubMenu.SetActive(false);
                     break;
-                case Data.Enums.BlocFormatType.BlocRatio:
+                case BlocFormatType.BlocRatio:
                     m_TrialHeightSubMenu.SetActive(false);
                     m_TrialRatioSubMenu.SetActive(false);
                     m_BlocRatioSubMenu.SetActive(true);
@@ -74,7 +75,7 @@ namespace HBP.UI.UserPreferences
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(TrialMatrixPreferences objectToDisplay)
+        protected override void SetFields(Core.Data.Preferences.TrialMatrixPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
 
@@ -96,7 +97,7 @@ namespace HBP.UI.UserPreferences
             m_NumberOfIntermediateValuesSlider.onValueChanged.AddListener(value => Object.NumberOfIntermediateValues = Mathf.RoundToInt(value));
 
             // Bloc format.
-            m_BlocFormatDropdown.Set(typeof(Data.Enums.BlocFormatType), (int)objectToDisplay.SubBlocFormat);
+            m_BlocFormatDropdown.Set(typeof(BlocFormatType), (int)objectToDisplay.SubBlocFormat);
             m_BlocFormatDropdown.onValueChanged.AddListener(OnChangeBlocFormat);
             OnChangeBlocFormat(m_BlocFormatDropdown.value);
             m_BlocFormatDropdown.onValueChanged.AddListener(OnChangeBlocFormat);

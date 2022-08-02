@@ -120,7 +120,7 @@ namespace HBP.UI.Module3D
                             tagName = System.Text.RegularExpressions.Regex.Replace(tagName, "\\s+$", "");
                             string tagValue = System.Text.RegularExpressions.Regex.Replace(splits[1], "^\\s+", "");
                             tagValue = System.Text.RegularExpressions.Regex.Replace(tagValue, "\\s+$", "");
-                            Data.BaseTag tag = ApplicationState.ProjectLoaded.Preferences.SitesTags.FirstOrDefault(t => t.Name.ToUpper() == tagName);
+                            Core.Data.BaseTag tag = ApplicationState.ProjectLoaded.Preferences.SitesTags.FirstOrDefault(t => t.Name.ToUpper() == tagName);
                             if (tag == null) tag = ApplicationState.ProjectLoaded.Preferences.GeneralTags.FirstOrDefault(t => t.Name.ToUpper() == tagName);
                             return CheckTag(site, tag, tagValue);
                         }

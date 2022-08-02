@@ -3,7 +3,7 @@ using UnityEngine;
 using Tools.CSharp;
 using System.Linq;
 
-namespace HBP.Data.Experience.Dataset
+namespace HBP.Core.Data
 {
     public struct EventStatistics
     {

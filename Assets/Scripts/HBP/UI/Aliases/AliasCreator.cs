@@ -1,11 +1,9 @@
-﻿using Tools.Unity.Components;
-
-namespace HBP.UI
+﻿namespace HBP.UI
 {
     /// <summary>
     /// Component to create Aliases.
     /// </summary>
-    public class AliasCreator : ObjectCreator<Data.Alias>
+    public class AliasCreator : ObjectCreator<Core.Data.Alias>
     {
     }
 }

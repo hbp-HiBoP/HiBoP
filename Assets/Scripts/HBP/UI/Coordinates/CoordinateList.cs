@@ -6,7 +6,7 @@ namespace HBP.UI
     /// <summary>
     /// List to display coordinates.
     /// </summary>
-    public class CoordinateList : Tools.Unity.Lists.ActionableList<Data.Coordinate>
+    public class CoordinateList : Tools.Unity.Lists.ActionableList<Core.Data.Coordinate>
     {
         #region Properties
         enum OrderBy { None, ReferenceSystem, DescendingReferenceSystem, X, DescendingX, Y, DescendingY, Z, DescendingZ }
@@ -24,7 +24,7 @@ namespace HBP.UI
         /// </summary>
         /// <param name="obj">Coordinate to add</param>
         /// <returns>True if end without errors, False otherwise</returns>
-        public override bool Add(Data.Coordinate obj)
+        public override bool Add(Core.Data.Coordinate obj)
         {
             SortByNone();
             return base.Add(obj);

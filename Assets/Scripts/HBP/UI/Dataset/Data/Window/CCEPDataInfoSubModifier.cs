@@ -1,10 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using d = HBP.Data.Experience.Dataset;
 
 namespace HBP.UI.Experience.Dataset
 {
-    public class CCEPDataInfoSubModifier: SubModifier<d.CCEPDataInfo>
+    public class CCEPDataInfoSubModifier: SubModifier<Core.Data.CCEPDataInfo>
     {
         #region Properties     
         [SerializeField] InputField m_ChannelInputField;
@@ -32,7 +31,7 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(d.CCEPDataInfo objectToDisplay)
+        protected override void SetFields(Core.Data.CCEPDataInfo objectToDisplay)
         {
             m_ChannelInputField.text = objectToDisplay.StimulatedChannel;
         }

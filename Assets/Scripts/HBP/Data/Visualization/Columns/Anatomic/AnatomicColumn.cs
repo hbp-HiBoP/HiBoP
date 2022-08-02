@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.Serialization;
 
-namespace HBP.Data.Visualization
+namespace HBP.Core.Data
 {
     [DataContract, DisplayName("Anatomic")]
     public class AnatomicColumn : Column

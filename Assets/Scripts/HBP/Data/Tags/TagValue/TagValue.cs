@@ -1,4 +1,4 @@
-﻿namespace HBP.Data
+﻿namespace HBP.Core.Data
 {
     /// <summary>
     /// A base abstract generic class which contains all the data about a value and its associated tag.

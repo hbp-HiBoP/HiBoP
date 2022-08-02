@@ -50,7 +50,7 @@ namespace HBP.UI.Module3D.Tools
 
             if (SelectedColumn is HBP.Module3D.Column3DDynamic columnDynamic)
             {
-                Data.Visualization.Timeline timeline = columnDynamic.Timeline;
+                Core.Data.Timeline timeline = columnDynamic.Timeline;
                 m_Slider.maxValue = timeline.Length - 1;
                 m_Slider.value = timeline.CurrentIndex;
                 foreach (var subTimeline in timeline.SubTimelinesBySubBloc.Values)
@@ -63,7 +63,7 @@ namespace HBP.UI.Module3D.Tools
             }
             else if (SelectedColumn is HBP.Module3D.Column3DFMRI columnFMRI)
             {
-                Data.Visualization.BasicTimeline timeline = columnFMRI.Timeline;
+                Core.Data.BasicTimeline timeline = columnFMRI.Timeline;
                 m_Slider.maxValue = timeline.Length - 1;
                 m_Slider.value = timeline.CurrentIndex;
                 SubTimeline subTl = Instantiate(m_TimelinePrefab, m_SubTimelines).GetComponent<SubTimeline>();

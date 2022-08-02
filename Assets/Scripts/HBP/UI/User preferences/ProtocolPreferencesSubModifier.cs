@@ -1,11 +1,11 @@
-﻿using HBP.Data.Preferences;
-using Tools.Unity;
+﻿using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.UserPreferences
 {
-    public class ProtocolPreferencesSubModifier : SubModifier<ProtocolPreferences>
+    public class ProtocolPreferencesSubModifier : SubModifier<Core.Data.Preferences.ProtocolPreferences>
     {
         #region Properties
         [SerializeField] Dropdown m_PositionAveragingDropdown;
@@ -50,12 +50,12 @@ namespace HBP.UI.UserPreferences
             m_50msStepToggle.onValueChanged.AddListener(value => { if (value) Object.Step = 50; });
             m_100msStepToggle.onValueChanged.AddListener(value => { if (value) Object.Step = 100; });
 
-            m_PositionAveragingDropdown.onValueChanged.AddListener(value => Object.PositionAveraging = (Data.Enums.AveragingType)value);
+            m_PositionAveragingDropdown.onValueChanged.AddListener(value => Object.PositionAveraging = (AveragingType)value);
         }
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(ProtocolPreferences objectToDisplay)
+        protected override void SetFields(Core.Data.Preferences.ProtocolPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
 
@@ -68,7 +68,7 @@ namespace HBP.UI.UserPreferences
             m_50msStepToggle.isOn = objectToDisplay.Step == 50;
             m_100msStepToggle.isOn = objectToDisplay.Step == 100;
 
-            m_PositionAveragingDropdown.Set(typeof(Data.Enums.AveragingType), (int)objectToDisplay.PositionAveraging);
+            m_PositionAveragingDropdown.Set(typeof(AveragingType), (int)objectToDisplay.PositionAveraging);
         }
         protected void OnChangeMaxPossibleValue(string value)
         {

@@ -7,7 +7,7 @@ namespace HBP.UI
     /// <summary>
     /// Window to modify a MRI. 
     /// </summary>
-    public class MRIModifier : ObjectModifier<Data.MRI>
+    public class MRIModifier : ObjectModifier<Core.Data.MRI>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -48,7 +48,7 @@ namespace HBP.UI
         /// Set the fields.
         /// </summary>
         /// <param name="objectToDisplay">MRI to modify</param>
-        protected override void SetFields(Data.MRI objectToDisplay)
+        protected override void SetFields(Core.Data.MRI objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_FileSelector.File = objectToDisplay.SavedFile;

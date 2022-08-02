@@ -1,11 +1,9 @@
-﻿using Tools.Unity.Components;
-
-namespace HBP.UI
+﻿namespace HBP.UI
 {
     /// <summary>
     /// Component to create new Groups.
     /// </summary>
-    public class GroupCreator : ObjectCreator<Data.Group>
+    public class GroupCreator : ObjectCreator<Core.Data.Group>
     {
     }
 }

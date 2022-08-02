@@ -8,7 +8,7 @@ namespace HBP.UI
     /// <summary>
     /// Component to display site in list.
     /// </summary>
-    public class SiteItem : ActionnableItem<Data.Site>
+    public class SiteItem : ActionnableItem<Core.Data.Site>
     {
         #region Properties
         [SerializeField] Text m_NameText;
@@ -19,7 +19,7 @@ namespace HBP.UI
         /// <summary>
         /// Object to display.
         /// </summary>
-        public override Data.Site Object
+        public override Core.Data.Site Object
         {
             get
             {

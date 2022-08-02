@@ -194,7 +194,7 @@ namespace HBP.Core.Object3D
         public void AddSphere(string layer, string name, Vector3 position, float radius)
         {
             m_Layer = LayerMask.NameToLayer(layer);
-            HBP.Module3D.Sphere sphere = Instantiate(m_SpherePrefab, transform).GetComponent<Sphere>();
+            Sphere sphere = Instantiate(m_SpherePrefab, transform).GetComponent<Sphere>();
             sphere.Initialize(m_Layer, name, radius, position);
             sphere.OnChangeRadius.AddListener(() =>
             {

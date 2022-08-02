@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI
 {
-    public class BoolTagValueSubModifier : SubModifier<Data.BoolTagValue>
+    public class BoolTagValueSubModifier : SubModifier<Core.Data.BoolTagValue>
     {
         #region Properties
         [SerializeField] Toggle m_ValueToggle;
@@ -28,7 +28,7 @@ namespace HBP.UI
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(Data.BoolTagValue objectToDisplay)
+        protected override void SetFields(Core.Data.BoolTagValue objectToDisplay)
         {
             base.SetFields(objectToDisplay);
             m_ValueToggle.isOn = objectToDisplay.Value;

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.Module3D.Tools
 {
@@ -38,7 +39,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                Vector3 orientation = SelectedScene.MRIManager.SelectedMRI.Volume.GetOrientationVector(Data.Enums.CutOrientation.Sagittal, false);
+                Vector3 orientation = SelectedScene.MRIManager.SelectedMRI.Volume.GetOrientationVector(CutOrientation.Sagittal, false);
                 Vector3 center = SelectedScene.MeshManager.MeshCenter;
                 orientation = new Vector3(-orientation.x, orientation.y, orientation.z);
                 center = new Vector3(-center.x, center.y, center.z);
@@ -51,7 +52,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                Vector3 orientation = SelectedScene.MRIManager.SelectedMRI.Volume.GetOrientationVector(Data.Enums.CutOrientation.Sagittal, true);
+                Vector3 orientation = SelectedScene.MRIManager.SelectedMRI.Volume.GetOrientationVector(CutOrientation.Sagittal, true);
                 Vector3 center = SelectedScene.MeshManager.MeshCenter;
                 orientation = new Vector3(-orientation.x, orientation.y, orientation.z);
                 center = new Vector3(-center.x, center.y, center.z);

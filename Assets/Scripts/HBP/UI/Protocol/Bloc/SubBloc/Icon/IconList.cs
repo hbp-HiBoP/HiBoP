@@ -1,5 +1,4 @@
-﻿using HBP.Data.Experience.Protocol;
-using System.Linq;
+﻿using System.Linq;
 using UnityEngine;
 
 namespace HBP.UI.Experience.Protocol
@@ -7,7 +6,7 @@ namespace HBP.UI.Experience.Protocol
     /// <summary>
     /// List to display icons.
     /// </summary>
-    public class IconList : Tools.Unity.Lists.ActionableList<Icon>
+    public class IconList : Tools.Unity.Lists.ActionableList<Core.Data.Icon>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Path, DescendingPath, Start, DescendingStart, End, DescendingEnd}

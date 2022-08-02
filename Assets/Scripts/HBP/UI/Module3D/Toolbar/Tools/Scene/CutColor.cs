@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.Module3D.Tools
 {
@@ -14,7 +15,7 @@ namespace HBP.UI.Module3D.Tools
         /// <summary>
         /// Correspondance between cut color dropdown options indices and color type
         /// </summary>
-        private List<Data.Enums.ColorType> m_CutColorIndices = new List<Data.Enums.ColorType>() { Data.Enums.ColorType.Default, Data.Enums.ColorType.Grayscale };
+        private List<ColorType> m_CutColorIndices = new List<ColorType>() { ColorType.Default, ColorType.Grayscale };
         #endregion
 
         #region Public Methods

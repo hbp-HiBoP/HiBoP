@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace HBP.Data
+namespace HBP.Core.Data
 {
     [DisplayName("Integer")]
     public class IntTag : BaseTag

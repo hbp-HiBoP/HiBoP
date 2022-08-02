@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace HBP.Data.Visualization
+namespace HBP.Core.Data
 {
     /**
     * \class Column

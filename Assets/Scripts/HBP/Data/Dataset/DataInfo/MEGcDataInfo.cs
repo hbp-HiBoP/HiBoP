@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.Serialization;
 using HBP.Errors;
 
-namespace HBP.Data.Experience.Dataset
+namespace HBP.Core.Data
 {
     /// <summary>
     /// Class containing paths to MEG data files.
@@ -113,7 +112,7 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Public Methods
-        public override Error[] GetErrors(Protocol.Protocol protocol)
+        public override Error[] GetErrors(Protocol protocol)
         {
             List<Error> errors = new List<Error>(base.GetErrors(protocol));
             errors.AddRange(GetMEGErrors(protocol));
@@ -124,7 +123,7 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         /// <param name="protocol"></param>
         /// <returns>CCEP related errors</returns>
-        public virtual Error[] GetMEGErrors(Protocol.Protocol protocol)
+        public virtual Error[] GetMEGErrors(Protocol protocol)
         {
             List<Error> errors = new List<Error>();
             // TODO

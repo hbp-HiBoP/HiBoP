@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
 
-namespace HBP.Data.Experience.Dataset
+namespace HBP.Core.Data
 {
     /// <summary>
     /// A class containing all the data about a channel.
@@ -32,7 +32,7 @@ namespace HBP.Data.Experience.Dataset
         /// <summary>
         /// Data contained in this channel by bloc.
         /// </summary>
-        public Dictionary<Protocol.Bloc, BlocChannelData> DataByBloc { get; set; }
+        public Dictionary<Bloc, BlocChannelData> DataByBloc { get; set; }
         #endregion
 
         #region Constructors
@@ -50,7 +50,7 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         /// <param name="dataByBloc">Data contained in this channel by bloc</param>
         /// <param name="unit">Unit of data contained in this channel</param>
-        public ChannelData(Dictionary<Protocol.Bloc, BlocChannelData> dataByBloc, string unit)
+        public ChannelData(Dictionary<Bloc, BlocChannelData> dataByBloc, string unit)
         {
             DataByBloc = dataByBloc;
             Unit = unit;

@@ -11,6 +11,8 @@ using System;
 using UnityEngine.EventSystems;
 using Tools.Unity;
 using Tools.Unity.Components;
+using HBP.Core.Data.Enums;
+
 
 namespace HBP.UI.TrialMatrix.Grid
 {
@@ -368,13 +370,13 @@ namespace HBP.UI.TrialMatrix.Grid
                 float scale = canvasScalerHandler ? canvasScalerHandler.Scale : 1;
                 switch (ApplicationState.UserPreferences.Visualization.TrialMatrix.SubBlocFormat)
                 {
-                    case HBP.Data.Enums.BlocFormatType.TrialHeight:
+                    case BlocFormatType.TrialHeight:
                         m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialHeight * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length / scale;
                         break;
-                    case HBP.Data.Enums.BlocFormatType.TrialRatio:
+                    case BlocFormatType.TrialRatio:
                         m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length / scale;
                         break;
-                    case HBP.Data.Enums.BlocFormatType.BlocRatio:
+                    case BlocFormatType.BlocRatio:
                         m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width / scale;
                         break;
                 }

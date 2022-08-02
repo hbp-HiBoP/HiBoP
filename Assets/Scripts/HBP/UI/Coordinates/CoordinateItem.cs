@@ -8,7 +8,7 @@ namespace HBP.UI
     /// <summary>
     /// Component to display coordinate in list.
     /// </summary>
-    public class CoordinateItem : ActionnableItem<Data.Coordinate>
+    public class CoordinateItem : ActionnableItem<Core.Data.Coordinate>
     {
         #region Properties
         [SerializeField] Text m_ReferenceSystemText;
@@ -19,7 +19,7 @@ namespace HBP.UI
         /// <summary>
         /// Object to display.
         /// </summary>
-        public override Data.Coordinate Object
+        public override Core.Data.Coordinate Object
         {
             get
             {

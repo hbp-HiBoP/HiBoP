@@ -6,14 +6,14 @@ namespace HBP.UI
     /// <summary>
     /// Window to select tagValues.
     /// </summary>
-    public class TagValueSelector : ObjectSelector<Data.BaseTagValue>
+    public class TagValueSelector : ObjectSelector<Core.Data.BaseTagValue>
     {
         #region Properties
         [SerializeField] TagValueList m_List;
         /// <summary>
         /// UI tagValue list.
         /// </summary>
-        protected override SelectableList<Data.BaseTagValue> List => m_List;
+        protected override SelectableList<Core.Data.BaseTagValue> List => m_List;
         #endregion
     }
 }

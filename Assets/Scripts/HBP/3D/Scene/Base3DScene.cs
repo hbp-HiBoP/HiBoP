@@ -5,10 +5,9 @@ using UnityEngine;
 using UnityEngine.Events;
 using System.Collections;
 using CielaSpike;
-using HBP.Data.Visualization;
 using Tools.Unity;
 using System.IO;
-using HBP.Core;
+using HBP.Core.Data.Enums;
 
 namespace HBP.Module3D
 {
@@ -21,7 +20,7 @@ namespace HBP.Module3D
     /// It also uses other classes to manage meshes, MRIs, implantations, triangle erasing, atlases, fMRIs and displayed gameObjects.
     /// <seealso cref="MeshManager"/> <seealso cref="MRIManager"/> <seealso cref="ImplantationManager"/> <seealso cref="TriangleEraser"/> <seealso cref="AtlasManager"/> <seealso cref="FMRIManager"/> <seealso cref="DisplayedObjects"/>
     /// </remarks>
-    public class Base3DScene : MonoBehaviour, IConfigurable
+    public class Base3DScene : MonoBehaviour, Core.IConfigurable
     {
         #region Properties
         /// <summary>
@@ -37,18 +36,18 @@ namespace HBP.Module3D
         /// <summary>
         /// Type of the scene (Single / Multi)
         /// </summary>
-        public Data.Enums.SceneType Type
+        public SceneType Type
         {
             get
             {
-                return Visualization.Patients.Count == 1 ? Data.Enums.SceneType.SinglePatient : Data.Enums.SceneType.MultiPatients;
+                return Visualization.Patients.Count == 1 ? SceneType.SinglePatient : SceneType.MultiPatients;
             }
         }
 
         /// <summary>
         /// Visualization associated to this scene
         /// </summary>
-        public Visualization Visualization { get; private set; }
+        public Core.Data.Visualization Visualization { get; private set; }
 
         private bool m_IsSelected;
         /// <summary>
@@ -194,11 +193,11 @@ namespace HBP.Module3D
         /// </summary>
         public Core.Object3D.BrainMaterials BrainMaterials { get; private set; }
 
-        private Data.Enums.ColorType m_BrainColor = Data.Enums.ColorType.BrainColor;
+        private ColorType m_BrainColor = ColorType.BrainColor;
         /// <summary>
-        /// Brain surface color type (see <see cref="Data.Enums.ColorType"/> for all possible values)
+        /// Brain surface color type (see <see cref="ColorType"/> for all possible values)
         /// </summary>
-        public Data.Enums.ColorType BrainColor
+        public ColorType BrainColor
         {
             get
             {
@@ -217,11 +216,11 @@ namespace HBP.Module3D
             }
         }
 
-        private Data.Enums.ColorType m_CutColor = Data.Enums.ColorType.Default;
+        private ColorType m_CutColor = ColorType.Default;
         /// <summary>
-        /// Brain cut color type (see <see cref="Data.Enums.ColorType"/> for all possible values)
+        /// Brain cut color type (see <see cref="ColorType"/> for all possible values)
         /// </summary>
-        public Data.Enums.ColorType CutColor
+        public ColorType CutColor
         {
             get
             {
@@ -235,11 +234,11 @@ namespace HBP.Module3D
             }
         }
 
-        private Data.Enums.ColorType m_Colormap = Data.Enums.ColorType.MatLab;
+        private ColorType m_Colormap = ColorType.MatLab;
         /// <summary>
-        /// Colormap type (see <see cref="Data.Enums.ColorType"/> for all possible values)
+        /// Colormap type (see <see cref="ColorType"/> for all possible values)
         /// </summary>
-        public Data.Enums.ColorType Colormap
+        public ColorType Colormap
         {
             get
             {
@@ -435,11 +434,11 @@ namespace HBP.Module3D
             }
         }
 
-        private Data.Enums.CameraControl m_CameraType = Data.Enums.CameraControl.Trackball;
+        private CameraControl m_CameraType = CameraControl.Trackball;
         /// <summary>
-        /// Camera Control type (see <see cref="Data.Enums.CameraControl"/> for possible values)
+        /// Camera Control type (see <see cref="CameraControl"/> for possible values)
         /// </summary>
-        public Data.Enums.CameraControl CameraType
+        public CameraControl CameraType
         {
             get
             {
@@ -650,7 +649,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when changing the colors of the colormap
         /// </summary>
-        [HideInInspector] public GenericEvent<Data.Enums.ColorType> OnChangeColormap = new GenericEvent<Data.Enums.ColorType>();
+        [HideInInspector] public GenericEvent<ColorType> OnChangeColormap = new GenericEvent<ColorType>();
         /// <summary>
         /// Ask the camera manager to update the target for this scene
         /// </summary>
@@ -785,7 +784,7 @@ namespace HBP.Module3D
                 column.CutTextures.UpdateTextures2D();
                 foreach (Core.Object3D.Cut cut in Cuts)
                 {
-                    cut.OnUpdateGUITextures.Invoke(column);
+                    cut.OnUpdateGUITextures.Invoke();
                 }
             }
             SceneInformation.GUICutTexturesNeedUpdate = false;
@@ -1009,26 +1008,26 @@ namespace HBP.Module3D
         /// Add a column to the scene
         /// </summary>
         /// <param name="type">Base data column</param>
-        private void AddColumn(Column baseColumn)
+        private void AddColumn(Core.Data.Column baseColumn)
         {
             Column3D column = null;
-            if (baseColumn is AnatomicColumn)
+            if (baseColumn is Core.Data.AnatomicColumn)
             {
                 column = Instantiate(m_Column3DAnatomyPrefab, m_ColumnsContainer).GetComponent<Column3D>();
             }
-            else if (baseColumn is IEEGColumn)
+            else if (baseColumn is Core.Data.IEEGColumn)
             {
                 column = Instantiate(m_Column3DIEEGPrefab, m_ColumnsContainer).GetComponent<Column3DIEEG>();
             }
-            else if (baseColumn is CCEPColumn)
+            else if (baseColumn is Core.Data.CCEPColumn)
             {
                 column = Instantiate(m_Column3DCCEPPrefab, m_ColumnsContainer).GetComponent<Column3DCCEP>();
             }
-            else if (baseColumn is FMRIColumn)
+            else if (baseColumn is Core.Data.FMRIColumn)
             {
                 column = Instantiate(m_Column3DFMRIPrefab, m_ColumnsContainer).GetComponent<Column3DFMRI>();
             }
-            else if (baseColumn is MEGColumn)
+            else if (baseColumn is Core.Data.MEGColumn)
             {
                 column = Instantiate(m_Column3DMEGPrefab, m_ColumnsContainer).GetComponent<Column3DMEG>();
             }
@@ -1274,22 +1273,22 @@ namespace HBP.Module3D
             switch (Cuts.Count)
             {
                 case 0:
-                    cut.Orientation = Data.Enums.CutOrientation.Axial;
+                    cut.Orientation = CutOrientation.Axial;
                     cut.Flip = false;
                     cut.Position = 0.5f;
                     break;
                 case 1:
-                    cut.Orientation = Data.Enums.CutOrientation.Coronal;
+                    cut.Orientation = CutOrientation.Coronal;
                     cut.Flip = false;
                     cut.Position = 0.5f;
                     break;
                 case 2:
-                    cut.Orientation = Data.Enums.CutOrientation.Sagittal;
+                    cut.Orientation = CutOrientation.Sagittal;
                     cut.Flip = false;
                     cut.Position = 0.5f;
                     break;
                 default:
-                    cut.Orientation = Data.Enums.CutOrientation.Axial;
+                    cut.Orientation = CutOrientation.Axial;
                     cut.Flip = false;
                     cut.Position = 0.5f;
                     break;
@@ -1342,7 +1341,7 @@ namespace HBP.Module3D
         /// <param name="changedByUser">Has the cut been updated by the user or programatically ?</param>
         public void UpdateCutPlane(Core.Object3D.Cut cut, bool changedByUser = false)
         {
-            if (cut.Orientation == Data.Enums.CutOrientation.Custom)
+            if (cut.Orientation == CutOrientation.Custom)
             {
                 if (cut.Normal.x == 0 && cut.Normal.y == 0 && cut.Normal.z == 0)
                 {
@@ -1444,7 +1443,7 @@ namespace HBP.Module3D
         /// Initialize the scene with the corresponding visualization
         /// </summary>
         /// <param name="visualization">Visualization to be loaded in this scene</param>
-        public void Initialize(Visualization visualization)
+        public void Initialize(Core.Data.Visualization visualization)
         {
             BrainColorMapTexture = Texture2DExtension.Generate();
             BrainColorTexture = Texture2DExtension.Generate();
@@ -1492,7 +1491,7 @@ namespace HBP.Module3D
             if (!string.IsNullOrEmpty(Visualization.Configuration.MRIName)) m_MRIManager.Select(Visualization.Configuration.MRIName);
             if (!string.IsNullOrEmpty(Visualization.Configuration.ImplantationName)) m_ImplantationManager.Select(Visualization.Configuration.ImplantationName);
 
-            foreach (Data.Visualization.Cut cut in Visualization.Configuration.Cuts)
+            foreach (Core.Data.Cut cut in Visualization.Configuration.Cuts)
             {
                 Core.Object3D.Cut newCut = AddCutPlane();
                 newCut.Normal = cut.Normal.ToVector3();
@@ -1504,7 +1503,7 @@ namespace HBP.Module3D
 
             for (int i = 0; i < Visualization.Configuration.Views.Count; i++)
             {
-                View view = Visualization.Configuration.Views[i];
+                Core.Data.View view = Visualization.Configuration.Views[i];
                 if (i != 0)
                 {
                     AddViewLine();
@@ -1550,27 +1549,27 @@ namespace HBP.Module3D
             Visualization.Configuration.MRICalMaxFactor = m_MRIManager.MRICalMaxFactor;
             Visualization.Configuration.CameraType = CameraType;
 
-            List<Data.Visualization.Cut> cuts = new List<Data.Visualization.Cut>();
+            List<Core.Data.Cut> cuts = new List<Core.Data.Cut>();
             foreach (Core.Object3D.Cut cut in Cuts)
             {
-                cuts.Add(new Data.Visualization.Cut(cut.Normal, cut.Orientation, cut.Flip, cut.Position));
+                cuts.Add(new Core.Data.Cut(cut.Normal, cut.Orientation, cut.Flip, cut.Position));
             }
             Visualization.Configuration.Cuts = cuts;
 
-            List<View> views = new List<View>();
+            List<Core.Data.View> views = new List<Core.Data.View>();
             if (Columns.Count > 0)
             {
                 foreach (var view in Columns[0].Views)
                 {
-                    views.Add(new View(view.LocalCameraPosition, view.LocalCameraRotation, view.LocalCameraTarget));
+                    views.Add(new Core.Data.View(view.LocalCameraPosition, view.LocalCameraRotation, view.LocalCameraTarget));
                 }
             }
             Visualization.Configuration.Views = views;
 
-            List<RegionOfInterest> rois = new List<RegionOfInterest>();
+            List<Core.Data.RegionOfInterest> rois = new List<Core.Data.RegionOfInterest>();
             foreach (Core.Object3D.ROI roi in ROIManager.ROIs)
             {
-                rois.Add(new RegionOfInterest(roi));
+                rois.Add(new Core.Data.RegionOfInterest(roi));
             }
             Visualization.Configuration.RegionsOfInterest = rois;
 
@@ -1584,10 +1583,10 @@ namespace HBP.Module3D
         /// </summary>
         public void ResetConfiguration()
         {
-            BrainColor = Data.Enums.ColorType.BrainColor;
-            CutColor = Data.Enums.ColorType.Default;
-            Colormap = Data.Enums.ColorType.MatLab;
-            m_MeshManager.SelectMeshPart(Data.Enums.MeshPart.Both);
+            BrainColor = ColorType.BrainColor;
+            CutColor = ColorType.Default;
+            Colormap = ColorType.MatLab;
+            m_MeshManager.SelectMeshPart(MeshPart.Both);
             EdgeMode = false;
             IsBrainTransparent = false;
             BrainMaterials.SetAlpha(0.2f);
@@ -1597,16 +1596,16 @@ namespace HBP.Module3D
             AutomaticCutAroundSelectedSite = false;
             SiteGain = 1.0f;
             m_MRIManager.SetCalValues(0, 1);
-            CameraType = Data.Enums.CameraControl.Trackball;
+            CameraType = CameraControl.Trackball;
 
             switch (Type)
             {
-                case Data.Enums.SceneType.SinglePatient:
+                case SceneType.SinglePatient:
                     m_MeshManager.Select(ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization, true);
                     m_MRIManager.Select(ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization, true);
                     m_ImplantationManager.Select(ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization);
                     break;
-                case Data.Enums.SceneType.MultiPatients:
+                case SceneType.MultiPatients:
                     m_MeshManager.Select(ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMeshInMultiPatientsVisualization);
                     m_MRIManager.Select(ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMRIInMultiPatientsVisualization);
                     m_ImplantationManager.Select(ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInMultiPatientsVisualization);
@@ -1726,11 +1725,11 @@ namespace HBP.Module3D
             layerMask |= 1 << LayerMask.NameToLayer(HBP3DModule.HIDDEN_MESHES_LAYER);
             layerMask |= 1 << LayerMask.NameToLayer(HBP3DModule.DEFAULT_MESHES_LAYER);
 
-            Data.Enums.RaycastHitResult raycastResult = column.Raycast(ray, layerMask, out RaycastHit hit);
-            Vector3 hitPoint = raycastResult != Data.Enums.RaycastHitResult.None ? hit.point - transform.position : Vector3.zero;
+            RaycastHitResult raycastResult = column.Raycast(ray, layerMask, out RaycastHit hit);
+            Vector3 hitPoint = raycastResult != RaycastHitResult.None ? hit.point - transform.position : Vector3.zero;
 
-            m_AtlasManager.DisplayAtlasInformation(raycastResult == Data.Enums.RaycastHitResult.Cut || raycastResult == Data.Enums.RaycastHitResult.Mesh, hitPoint);
-            m_ImplantationManager.DisplaySiteInformation(raycastResult == Data.Enums.RaycastHitResult.Site, column, hit);
+            m_AtlasManager.DisplayAtlasInformation(raycastResult == RaycastHitResult.Cut || raycastResult == RaycastHitResult.Mesh, hitPoint);
+            m_ImplantationManager.DisplaySiteInformation(raycastResult == RaycastHitResult.Site, column, hit);
         }
         /// <summary>
         /// Manage the clicks on the scene
@@ -1742,10 +1741,10 @@ namespace HBP.Module3D
             layerMask |= 1 << LayerMask.NameToLayer(HBP3DModule.HIDDEN_MESHES_LAYER);
             layerMask |= 1 << LayerMask.NameToLayer(HBP3DModule.DEFAULT_MESHES_LAYER);
 
-            Data.Enums.RaycastHitResult raycastResult = SelectedColumn.Raycast(ray, layerMask, out RaycastHit hit);
-            Vector3 hitPoint = raycastResult != Data.Enums.RaycastHitResult.None ? hit.point - transform.position : Vector3.zero;
+            RaycastHitResult raycastResult = SelectedColumn.Raycast(ray, layerMask, out RaycastHit hit);
+            Vector3 hitPoint = raycastResult != RaycastHitResult.None ? hit.point - transform.position : Vector3.zero;
 
-            if (raycastResult == Data.Enums.RaycastHitResult.Site)
+            if (raycastResult == RaycastHitResult.Site)
             {
                 SelectedColumn.Sites[hit.collider.gameObject.GetComponent<Core.Object3D.Site>().Information.Index].IsSelected = true;
             }
@@ -1754,7 +1753,7 @@ namespace HBP.Module3D
                 SelectedColumn.UnselectSite();
             }
 
-            if (raycastResult == Data.Enums.RaycastHitResult.Mesh)
+            if (raycastResult == RaycastHitResult.Mesh)
             {
                 if (m_TriangleEraser.IsEnabled && m_TriangleEraser.IsClickAvailable)
                 {
@@ -1767,11 +1766,11 @@ namespace HBP.Module3D
                 Core.Object3D.ROI selectedROI = m_ROIManager.SelectedROI;
                 if (selectedROI)
                 {
-                    if (raycastResult == Data.Enums.RaycastHitResult.ROI)
+                    if (raycastResult == RaycastHitResult.ROI)
                     {
                         selectedROI.SelectClosestSphere(ray);
                     }
-                    else if (raycastResult == Data.Enums.RaycastHitResult.Mesh || raycastResult == Data.Enums.RaycastHitResult.Cut)
+                    else if (raycastResult == RaycastHitResult.Mesh || raycastResult == RaycastHitResult.Cut)
                     {
                         selectedROI.AddSphere(HBP3DModule.DEFAULT_MESHES_LAYER, "Sphere", hitPoint, 5.0f);
                         SceneInformation.SitesNeedUpdate = true;
@@ -1793,14 +1792,14 @@ namespace HBP.Module3D
         /// <param name="onChangeProgress">Event to update the loading circle</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        public IEnumerator c_Initialize(Visualization visualization, Action<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
+        public IEnumerator c_Initialize(Core.Data.Visualization visualization, Action<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
         {
             Exception exception = null;
 
             // Compute progress variables
             float progress = 0f;
             float totalProgress = 0, loadingMeshProgress = 0, loadingMeshTime = 0, loadingMRIProgress = 0, loadingMRITime = 0, loadingImplantationsProgress = 0, loadingImplantationsTime = 0, loadingMNIProgress = 0, loadingMNITime = 0, loadingIEEGProgress = 0, loadingIEEGTime = 0;
-            if (Type == Data.Enums.SceneType.SinglePatient)
+            if (Type == SceneType.SinglePatient)
             {
                 totalProgress = Visualization.Patients[0].Meshes.Count * LOADING_MESH_WEIGHT + Visualization.Patients[0].MRIs.Count * LOADING_MRI_WEIGHT + LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + LOADING_IEEG_WEIGHT;
                 loadingMeshProgress = LOADING_MESH_WEIGHT / totalProgress;
@@ -1858,7 +1857,7 @@ namespace HBP.Module3D
             }
 
             // Loading Meshes
-            if (Type == Data.Enums.SceneType.SinglePatient)
+            if (Type == SceneType.SinglePatient)
             {
                 if (ApplicationState.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization && Visualization.Configuration.PreloadedMeshes.Count > 0)
                 {
@@ -1873,7 +1872,7 @@ namespace HBP.Module3D
                 {
                     for (int i = 0; i < Visualization.Patients[0].Meshes.Count; ++i)
                     {
-                        Data.BaseMesh mesh = Visualization.Patients[0].Meshes[i];
+                        Core.Data.BaseMesh mesh = Visualization.Patients[0].Meshes[i];
                         progress += loadingMeshProgress;
                         onChangeProgress.Invoke(progress, loadingMeshTime, new LoadingText("Loading Mesh ", mesh.Name, " [" + (i + 1).ToString() + "/" + Visualization.Patients[0].Meshes.Count + "]"));
                         yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainSurface(mesh, e => exception = e));
@@ -1891,7 +1890,7 @@ namespace HBP.Module3D
                 {
                     for (int i = 0; i < patient.Meshes.Count; ++i)
                     {
-                        Data.BaseMesh mesh = patient.Meshes[i];
+                        Core.Data.BaseMesh mesh = patient.Meshes[i];
                         progress += loadingMeshProgress;
                         onChangeProgress.Invoke(progress, loadingMeshTime, new LoadingText("Loading Mesh ", string.Format("{0} ({1})", mesh.Name, patient.Name), " [" + (i + 1).ToString() + "/" + patient.Meshes.Count + "]"));
                         yield return Ninja.JumpBack;
@@ -1908,7 +1907,7 @@ namespace HBP.Module3D
             m_MeshManager.InitializeMeshes();
 
             // Loading MRIs
-            if (Type == Data.Enums.SceneType.SinglePatient)
+            if (Type == SceneType.SinglePatient)
             {
                 if (ApplicationState.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization && Visualization.Configuration.PreloadedMRIs.Count > 0)
                 {
@@ -1923,7 +1922,7 @@ namespace HBP.Module3D
                 {
                     for (int i = 0; i < Visualization.Patients[0].MRIs.Count; ++i)
                     {
-                        Data.MRI mri = Visualization.Patients[0].MRIs[i];
+                        Core.Data.MRI mri = Visualization.Patients[0].MRIs[i];
                         progress += loadingMRIProgress;
                         onChangeProgress.Invoke(progress, loadingMRITime, new LoadingText("Loading MRI ", mri.Name, " [" + (i + 1).ToString() + "/" + Visualization.Patients[0].MRIs.Count + "]"));
                         yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainVolume(mri, e => exception = e));
@@ -1941,7 +1940,7 @@ namespace HBP.Module3D
                 {
                     for (int i = 0; i < patient.MRIs.Count; ++i)
                     {
-                        Data.MRI mri = patient.MRIs[i];
+                        Core.Data.MRI mri = patient.MRIs[i];
                         progress += loadingMeshProgress;
                         onChangeProgress.Invoke(progress, loadingMRITime, new LoadingText("Loading MRI ", string.Format("{0} ({1})", mri.Name, patient.Name), " [" + (i + 1).ToString() + "/" + patient.MRIs.Count + "]"));
                         yield return Ninja.JumpBack;
@@ -1990,7 +1989,7 @@ namespace HBP.Module3D
         /// <param name="mri">MRI to load</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_LoadBrainVolume(Data.MRI mri, Action<Exception> outPut)
+        private IEnumerator c_LoadBrainVolume(Core.Data.MRI mri, Action<Exception> outPut)
         {
             try
             {
@@ -2009,7 +2008,7 @@ namespace HBP.Module3D
         /// <param name="mesh">Mesh to be loaded</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_LoadBrainSurface(Data.BaseMesh mesh, Action<Exception> outPut)
+        private IEnumerator c_LoadBrainSurface(Core.Data.BaseMesh mesh, Action<Exception> outPut)
         {
             try
             {
@@ -2031,7 +2030,7 @@ namespace HBP.Module3D
         /// <param name="updateCircle">Action to update the loading circle</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_LoadSites(IEnumerable<Data.Patient> patients, Action<Exception> outPut)
+        private IEnumerator c_LoadSites(IEnumerable<Core.Data.Patient> patients, Action<Exception> outPut)
         {
             Dictionary<string, List<Core.Object3D.Implantation3D.SiteInfo>> siteInfoByImplantation = new Dictionary<string, List<Core.Object3D.Implantation3D.SiteInfo>>();
             int patientIndex = 0;
@@ -2106,7 +2105,7 @@ namespace HBP.Module3D
             yield return Ninja.JumpToUnity;
             try
             {
-                foreach (Column column in Visualization.Columns)
+                foreach (Core.Data.Column column in Visualization.Columns)
                 {
                     AddColumn(column);
                 }

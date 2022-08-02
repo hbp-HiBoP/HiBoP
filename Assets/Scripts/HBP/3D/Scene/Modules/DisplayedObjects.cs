@@ -155,12 +155,12 @@ namespace HBP.Module3D
                     siteGameObject.name = siteInfo.Name;
 
                     siteGameObject.transform.localPosition = siteInfo.UnityPosition;
-                    siteGameObject.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.Site;
+                    siteGameObject.GetComponent<MeshFilter>().sharedMesh = Core.Object3D.SharedMeshes.Site;
 
                     siteGameObject.SetActive(true);
                     siteGameObject.layer = LayerMask.NameToLayer("Inactive");
 
-                    Site site = siteGameObject.GetComponent<Site>();
+                    Core.Object3D.Site site = siteGameObject.GetComponent<Core.Object3D.Site>();
                     site.Information.Patient = patient;
                     site.Information.Name = siteInfo.Name;
                     site.Information.Index = siteIndex++;
@@ -170,7 +170,7 @@ namespace HBP.Module3D
                     site.State.IsHighlighted = false;
                     site.State.IsOutOfROI = true;
                     site.State.IsMasked = false;
-                    site.State.Color = SiteState.DefaultColor;
+                    site.State.Color = Core.Object3D.SiteState.DefaultColor;
                     site.IsActive = true;
                 }
             }
@@ -226,7 +226,7 @@ namespace HBP.Module3D
         /// <returns>The ROI object that has been instantiated</returns>
         public Core.Object3D.ROI InstantiateROI()
         {
-            return Instantiate(m_ROIPrefab, m_ROIParent).GetComponent<ROI>();
+            return Instantiate(m_ROIPrefab, m_ROIParent).GetComponent<Core.Object3D.ROI>();
         }
         #endregion
     }

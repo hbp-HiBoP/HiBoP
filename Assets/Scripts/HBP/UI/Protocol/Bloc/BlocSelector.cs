@@ -1,5 +1,4 @@
 ﻿using HBP.UI.Experience.Protocol;
-using HBP.Data.Experience.Protocol;
 using UnityEngine;
 using Tools.Unity.Lists;
 
@@ -8,14 +7,14 @@ namespace HBP.UI
     /// <summary>
     /// Window to select blocs.
     /// </summary>
-    public class BlocSelector : ObjectSelector<Bloc>
+    public class BlocSelector : ObjectSelector<Core.Data.Bloc>
     {
         #region Properties
         [SerializeField] BlocList m_List;
         /// <summary>
         /// UI blocs list.
         /// </summary>
-        protected override SelectableList<Bloc> List => m_List;
+        protected override SelectableList<Core.Data.Bloc> List => m_List;
         #endregion
     }
 }

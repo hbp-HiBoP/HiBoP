@@ -1,19 +1,17 @@
-﻿using HBP.Data.Experience.Dataset;
-using Theme.Components;
+﻿using Theme.Components;
 using System.Linq;
 using System.Text;
 using Tools.Unity;
 using Tools.Unity.Lists;
 using UnityEngine;
 using UnityEngine.UI;
-using d = HBP.Data.Experience.Dataset;
 
 namespace HBP.UI.Experience.Dataset
 {
     /// <summary>
     /// Component to display dataset in list.
     /// </summary>
-    public class DatasetItem : ActionnableItem<d.Dataset> 
+    public class DatasetItem : ActionnableItem<Core.Data.Dataset> 
 	{
         #region Properties
         [SerializeField] Text m_NameText;
@@ -25,7 +23,7 @@ namespace HBP.UI.Experience.Dataset
         /// <summary>
         /// Object to display.
         /// </summary>
-        public override d.Dataset Object
+        public override Core.Data.Dataset Object
         {
             get
             {
@@ -39,7 +37,7 @@ namespace HBP.UI.Experience.Dataset
                 m_ProtocolText.text = value.Protocol.Name;
                 StringBuilder stringBuilder = new StringBuilder();
                 stringBuilder.AppendLine("Data : ");
-                DataInfo[] data = value.Data.Where(s => s.IsOk).ToArray();
+                Core.Data.DataInfo[] data = value.Data.Where(s => s.IsOk).ToArray();
                 string[] names = data.Select(d => d.Name).Distinct().ToArray();
                 for (int i = 0; i < names.Length; i++)
                 {

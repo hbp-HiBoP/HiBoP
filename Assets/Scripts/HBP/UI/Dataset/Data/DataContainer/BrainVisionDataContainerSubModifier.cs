@@ -1,10 +1,10 @@
 ﻿using Tools.Unity;
 using UnityEngine;
-using container = HBP.Data.Container;
+using HBP.Core.Data.Container;
 
 namespace HBP.UI.Experience.Dataset
 {
-    public class BrainVisionDataContainerSubModifier : SubModifier<container.BrainVision>
+    public class BrainVisionDataContainerSubModifier : SubModifier<BrainVision>
     {
         #region Properties
         [SerializeField] FileSelector m_FileSelector;
@@ -32,7 +32,7 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(container.BrainVision objectToDisplay)
+        protected override void SetFields(BrainVision objectToDisplay)
         {
             m_FileSelector.File = objectToDisplay.SavedHeader;
         }

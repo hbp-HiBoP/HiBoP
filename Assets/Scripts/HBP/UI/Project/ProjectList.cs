@@ -6,7 +6,7 @@ namespace HBP.UI
     /// <summary>
     /// List to display projects.
     /// </summary>
-    public class ProjectList : Tools.Unity.Lists.ActionableList<Data.ProjectInfo>
+    public class ProjectList : Tools.Unity.Lists.ActionableList<Core.Data.ProjectInfo>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Patients, DescendingPatients, Groups, DescendingGroups, Protocols, DescendingProtocols, Datasets, DescendingDatasets, Visualizations, DescendingVisualizations }

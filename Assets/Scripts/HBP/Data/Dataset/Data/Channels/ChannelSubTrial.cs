@@ -1,7 +1,6 @@
-﻿using HBP.Data.Experience.Protocol;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace HBP.Data.Experience.Dataset
+namespace HBP.Core.Data
 {
     /// <summary>
     /// A Structure containing all the data about subTrial in a specific channel.

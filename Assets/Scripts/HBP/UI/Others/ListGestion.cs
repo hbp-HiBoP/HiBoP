@@ -1,15 +1,13 @@
-﻿using HBP.UI;
-using System;
-using System.Linq;
+﻿using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Tools.Unity.Components
+namespace HBP.UI
 {
     /// <summary>
     /// Abstract generic base class which manage a list of elements.
     /// </summary>
-    public abstract class ListGestion<T> : MonoBehaviour where T : HBP.Data.BaseData, new()
+    public abstract class ListGestion<T> : MonoBehaviour where T : Core.Data.BaseData, new()
     {
         #region Properties
         [SerializeField] protected bool m_Interactable;
@@ -53,7 +51,7 @@ namespace Tools.Unity.Components
         /// <summary>
         /// UI list which display the elements.
         /// </summary>
-        public abstract Lists.ActionableList<T> List { get; }
+        public abstract Tools.Unity.Lists.ActionableList<T> List { get; }
         /// <summary>
         /// ObjectCreator contains all the tools to create a new element.
         /// </summary>

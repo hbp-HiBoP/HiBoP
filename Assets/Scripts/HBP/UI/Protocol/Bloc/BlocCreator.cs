@@ -1,11 +1,9 @@
-﻿using Tools.Unity.Components;
-
-namespace HBP.UI.Experience.Protocol
+﻿namespace HBP.UI.Experience.Protocol
 {
     /// <summary>
     /// Component to create Blocs.
     /// </summary>
-    public class BlocCreator : ObjectCreator<Data.Experience.Protocol.Bloc>
+    public class BlocCreator : ObjectCreator<Core.Data.Bloc>
     {
     }
 }

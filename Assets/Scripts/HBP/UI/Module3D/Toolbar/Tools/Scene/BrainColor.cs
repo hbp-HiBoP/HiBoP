@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.Module3D.Tools
 {
@@ -14,7 +15,7 @@ namespace HBP.UI.Module3D.Tools
         /// <summary>
         /// Correspondance between brain color dropdown options indices and color type
         /// </summary>
-        private List<Data.Enums.ColorType> m_BrainColorIndices = new List<Data.Enums.ColorType>() { Data.Enums.ColorType.BrainColor, Data.Enums.ColorType.Default, Data.Enums.ColorType.White, Data.Enums.ColorType.Grayscale, Data.Enums.ColorType.SoftGrayscale };
+        private List<ColorType> m_BrainColorIndices = new List<ColorType>() { ColorType.BrainColor, ColorType.Default, ColorType.White, ColorType.Grayscale, ColorType.SoftGrayscale };
         #endregion
 
         #region Public Methods

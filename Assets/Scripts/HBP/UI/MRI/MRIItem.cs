@@ -8,7 +8,7 @@ namespace HBP.UI
     /// <summary>
     /// Component to display MRI in list.
     /// </summary>
-    public class MRIItem : ActionnableItem<Data.MRI>
+    public class MRIItem : ActionnableItem<Core.Data.MRI>
     {
         #region Properties
         [SerializeField] Text m_NameText;
@@ -19,7 +19,7 @@ namespace HBP.UI
         /// <summary>
         /// Object to display.
         /// </summary>
-        public override Data.MRI Object
+        public override Core.Data.MRI Object
         {
             get
             {

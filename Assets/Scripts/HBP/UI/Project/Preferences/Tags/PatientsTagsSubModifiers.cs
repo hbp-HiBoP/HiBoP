@@ -4,12 +4,12 @@ using UnityEngine;
 
 namespace HBP.UI
 {
-    public class PatientsTagsSubModifiers : SubModifier<Data.ProjectPreferences>
+    public class PatientsTagsSubModifiers : SubModifier<Core.Data.ProjectPreferences>
     {
         #region Properties
         [SerializeField] TagListGestion m_TagListGestion;
         public TagListGestion TagListGestion => m_TagListGestion;
-        public ReadOnlyCollection<Data.BaseTag> ModifiedTags => m_TagListGestion.ModifiedTags;
+        public ReadOnlyCollection<Core.Data.BaseTag> ModifiedTags => m_TagListGestion.ModifiedTags;
         public override bool Interactable
         {
             get => base.Interactable;
@@ -30,7 +30,7 @@ namespace HBP.UI
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(Data.ProjectPreferences objectToDisplay)
+        protected override void SetFields(Core.Data.ProjectPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
             m_TagListGestion.List.Set(objectToDisplay.PatientsTags);

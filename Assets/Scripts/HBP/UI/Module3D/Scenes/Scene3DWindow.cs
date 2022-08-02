@@ -1,5 +1,4 @@
 ﻿using CielaSpike;
-using HBP.Data.Visualization;
 using HBP.Module3D;
 using System;
 using System.Collections;
@@ -13,6 +12,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.Module3D
 {
@@ -216,7 +216,7 @@ namespace HBP.UI.Module3D
                 }
                 // Cuts
                 CutController cutUI = GetComponentInChildren<CutController>();
-                Tuple<Data.Enums.CutOrientation, Texture2D>[] cutTextures = cutUI.CutTextures;
+                Tuple<CutOrientation, Texture2D>[] cutTextures = cutUI.CutTextures;
                 for (int i = 0; i < cutTextures.Length; i++)
                 {
                     try
@@ -327,7 +327,7 @@ namespace HBP.UI.Module3D
                             try
                             {
                                 List<string> names = new List<string>();
-                                Data.Patient currentPatient = null;
+                                Core.Data.Patient currentPatient = null;
                                 foreach (var channelStruct in informations.ChannelStructs.OrderBy(cs => cs.Patient.Name))
                                 {
                                     if (currentPatient != channelStruct.Patient)
@@ -409,7 +409,7 @@ namespace HBP.UI.Module3D
             int separatorSize = 3;
 
             Column3DDynamic selectedColumnDynamic = m_Scene.SelectedColumn as Column3DDynamic;
-            Timeline timeline = selectedColumnDynamic.Timeline;
+            Core.Data.Timeline timeline = selectedColumnDynamic.Timeline;
             float fps = timeline.Step;
             int numberOfColumns = m_Scene.Columns.Count;
             int numberOfViewLines = m_Scene.ViewLineNumber;
@@ -418,10 +418,10 @@ namespace HBP.UI.Module3D
             string videoPath = path + string.Format("{0}_{1}.avi", ApplicationState.ProjectLoaded.Preferences.Name, m_Scene.Name);
             ClassLoaderSaver.GenerateUniqueSavePath(ref videoPath);
 
-            HBP.Module3D.DLL.VideoStream videoStream = new HBP.Module3D.DLL.VideoStream();
+            Core.DLL.VideoStream videoStream = new Core.DLL.VideoStream();
             videoStream.Open(videoPath, totalWidth, totalHeight, fps);
 
-            HBP.Module3D.DLL.Texture texture = new HBP.Module3D.DLL.Texture();
+            Core.DLL.Texture texture = new Core.DLL.Texture();
             Texture2D texture2D = new Texture2D(totalWidth, totalHeight);
             texture.Reset(totalWidth, totalHeight);
             
@@ -478,7 +478,7 @@ namespace HBP.UI.Module3D
                 texture2D.SetPixels(0, 0, totalWidth, timelineSize, timelineColors);
                 foreach (var subTimeline in timeline.SubTimelinesBySubBloc.Values)
                 {
-                    int mainEventIndex = subTimeline.GlobalMinIndex + subTimeline.Frequency.ConvertToFlooredNumberOfSamples(subTimeline.StatisticsByEvent.FirstOrDefault(e => e.Key.Type == Data.Enums.MainSecondaryEnum.Main).Value.RoundedTimeFromStart);
+                    int mainEventIndex = subTimeline.GlobalMinIndex + subTimeline.Frequency.ConvertToFlooredNumberOfSamples(subTimeline.StatisticsByEvent.FirstOrDefault(e => e.Key.Type == MainSecondaryEnum.Main).Value.RoundedTimeFromStart);
                     int mainEventPosition = mainEventIndex * ((totalWidth - timelineSize) / (timelineLength - 1));
                     texture2D.SetPixels(mainEventPosition, 0, timelineSize, timelineSize, mainEventColors);
                 }

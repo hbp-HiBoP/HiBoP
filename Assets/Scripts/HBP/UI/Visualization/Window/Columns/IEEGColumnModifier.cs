@@ -1,23 +1,20 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using HBP.Data.Visualization;
-using HBP.Data.Experience.Protocol;
-using HBP.Data.Experience.Dataset;
 using System.Linq;
 using Tools.Unity;
 
 namespace HBP.UI
 {
-    public class IEEGColumnModifier : SubModifier<IEEGColumn>
+    public class IEEGColumnModifier : SubModifier<Core.Data.IEEGColumn>
     {
         #region Properties
         [SerializeField] Dropdown m_ProtocolDropdown, m_BlocDropdown, m_DatasetDropdown, m_DataNameDropdown;
         [SerializeField] Image m_InformationImage;
 
-        List<Protocol> m_Protocols;
-        Protocol m_SelectedProtocol;
-        List<Dataset> m_Datasets;
+        List<Core.Data.Protocol> m_Protocols;
+        Core.Data.Protocol m_SelectedProtocol;
+        List<Core.Data.Dataset> m_Datasets;
         List<string> m_DataNames;
 
         public override bool Interactable
@@ -31,7 +28,7 @@ namespace HBP.UI
             }
         }
 
-        public override IEEGColumn Object
+        public override Core.Data.IEEGColumn Object
         {
             get
             {
@@ -51,8 +48,8 @@ namespace HBP.UI
             }
         }
 
-        Data.Patient[] m_Patients;
-        public Data.Patient[] Patients
+        Core.Data.Patient[] m_Patients;
+        public Core.Data.Patient[] Patients
         {
             get
             {

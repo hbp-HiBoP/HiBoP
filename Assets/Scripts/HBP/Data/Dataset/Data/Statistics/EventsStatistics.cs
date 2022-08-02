@@ -1,18 +1,18 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace HBP.Data.Experience.Dataset
+namespace HBP.Core.Data
 {
     public class EventsStatistics
     {
         #region Properties
-        public Dictionary<Protocol.Bloc, BlocEventsStatistics> EventsStatisticsByBloc { get; set; }
+        public Dictionary<Bloc, BlocEventsStatistics> EventsStatisticsByBloc { get; set; }
         #endregion
 
         #region Constructors
         public EventsStatistics(DataInfo dataInfo)
         {
-            EventsStatisticsByBloc = new Dictionary<Protocol.Bloc, BlocEventsStatistics>();
+            EventsStatisticsByBloc = new Dictionary<Bloc, BlocEventsStatistics>();
             DataManager.GetData(dataInfo);
             foreach (var bloc in dataInfo.Dataset.Protocol.Blocs)
             {
@@ -29,7 +29,7 @@ namespace HBP.Data.Experience.Dataset
                 blocEventsStatistics.Clear();
             }
             EventsStatisticsByBloc.Clear();
-            EventsStatisticsByBloc = new Dictionary<Protocol.Bloc, BlocEventsStatistics>();
+            EventsStatisticsByBloc = new Dictionary<Bloc, BlocEventsStatistics>();
         }
         #endregion
     }

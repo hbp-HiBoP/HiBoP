@@ -6,7 +6,7 @@ using System.Runtime.Serialization;
 using Tools.Unity;
 using System.IO;
 
-namespace HBP.Data.Experience.Protocol
+namespace HBP.Core.Data
 {
     /// <summary>
     /// Class which contains all the data about a experience protocol used to epoch, and visualize data.

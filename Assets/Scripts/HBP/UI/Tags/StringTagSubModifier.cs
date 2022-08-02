@@ -1,6 +1,6 @@
 ﻿namespace HBP.UI
 {
-    public class StringTagSubModifier : SubModifier<Data.StringTag>
+    public class StringTagSubModifier : SubModifier<Core.Data.StringTag>
     {
     }
 }

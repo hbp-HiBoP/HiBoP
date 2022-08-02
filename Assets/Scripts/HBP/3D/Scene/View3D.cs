@@ -2,6 +2,7 @@
 using UnityEngine.Events;
 using UnityStandardAssets.ImageEffects;
 using Tools.Unity;
+using HBP.Core.Data.Enums;
 
 namespace HBP.Module3D
 {
@@ -142,7 +143,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Camera rotation type (trackball or orbital)
         /// </summary>
-        public Data.Enums.CameraControl CameraType
+        public CameraControl CameraType
         {
             get
             {

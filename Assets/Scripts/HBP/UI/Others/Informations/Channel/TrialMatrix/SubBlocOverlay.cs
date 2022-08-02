@@ -3,6 +3,7 @@ using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 using data = HBP.Data.TrialMatrix;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.TrialMatrix.Grid
 {  
@@ -77,7 +78,7 @@ namespace HBP.UI.TrialMatrix.Grid
                                 int trial = Mathf.Clamp(Mathf.FloorToInt(Mathf.Clamp01(1 - ratio.y) * subTrials.Length),0, subTrials.Length - 1);                         
                                 data.SubTrial subTrial = subTrials[trial];
                                 m_WindowText.transform.parent.gameObject.SetActive(true);
-                                HBP.Data.Experience.Dataset.EventInformation.EventOccurence mainEventOccurence = subTrial.Data.InformationsByEvent[subTrial.Data.InformationsByEvent.Keys.First(k => k.Type == HBP.Data.Enums.MainSecondaryEnum.Main)].Occurences.First();
+                                Core.Data.EventInformation.EventOccurence mainEventOccurence = subTrial.Data.InformationsByEvent[subTrial.Data.InformationsByEvent.Keys.First(k => k.Type == MainSecondaryEnum.Main)].Occurences.First();
                                 int startIndex = mainEventOccurence.Index - mainEventOccurence.IndexFromStart;
                                 int endIndex = startIndex + subTrial.Data.Values.Length;
                                 m_WindowText.text = string.Format("({0};{1})",startIndex,endIndex);

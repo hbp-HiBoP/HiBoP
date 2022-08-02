@@ -1,10 +1,9 @@
-﻿using HBP.Data.Experience.Dataset;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.Serialization;
 
-namespace HBP.Data.Visualization
+namespace HBP.Core.Data
 {
     [DataContract, DisplayName("FMRI")]
     public class FMRIColumn : Column
@@ -38,7 +37,7 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Data of the column.
         /// </summary>
-        [IgnoreDataMember] public FMRIData Data { get; set; } = new FMRIData();
+        [IgnoreDataMember] public Processed.FMRIData Data { get; set; } = new Processed.FMRIData();
         #endregion
 
         #region Constructors

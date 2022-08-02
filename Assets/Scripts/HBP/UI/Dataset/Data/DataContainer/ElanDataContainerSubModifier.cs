@@ -1,10 +1,10 @@
 ﻿using Tools.Unity;
 using UnityEngine;
-using container = HBP.Data.Container;
+using HBP.Core.Data.Container;
 
 namespace HBP.UI.Experience.Dataset
 {
-    public class ElanDataContainerSubModifier : SubModifier<container.Elan>
+    public class ElanDataContainerSubModifier : SubModifier<Elan>
     {
         #region Properties
         [SerializeField] FileSelector m_EEGFileSelector, m_POSFileSelector, m_NotesFileSelector;
@@ -37,7 +37,7 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(container.Elan objectToDisplay)
+        protected override void SetFields(Elan objectToDisplay)
         {
             m_EEGFileSelector.File = objectToDisplay.SavedEEG;
             m_POSFileSelector.File = objectToDisplay.SavedPOS;

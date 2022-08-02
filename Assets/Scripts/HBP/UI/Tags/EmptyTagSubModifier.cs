@@ -1,6 +1,6 @@
 ﻿namespace HBP.UI
 {
-    public class EmptyTagSubModifier : SubModifier<Data.EmptyTag>
+    public class EmptyTagSubModifier : SubModifier<Core.Data.EmptyTag>
     {
     }
 }

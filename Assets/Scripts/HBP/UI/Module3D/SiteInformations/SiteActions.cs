@@ -274,7 +274,7 @@ namespace HBP.UI.Module3D
         private void CreateGroup()
         {
             var patients = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered).Select(s => s.Information.Patient).Distinct();
-            Data.Group group = new Data.Group(m_GroupNameInputField.text, patients);
+            Core.Data.Group group = new Core.Data.Group(m_GroupNameInputField.text, patients);
             // Generate unique name
             var projectGroups = ApplicationState.ProjectLoaded.Groups;
             if (projectGroups.Any(g => g.Name == group.Name))
@@ -317,7 +317,7 @@ namespace HBP.UI.Module3D
             int length = sites.Count;
 
             // Prepare DataInfo by Patient for performance increase
-            Dictionary<Data.Patient, Data.Experience.Dataset.DataInfo>  dataInfoByPatient = new Dictionary<Data.Patient, Data.Experience.Dataset.DataInfo>();
+            Dictionary<Core.Data.Patient, Core.Data.DataInfo>  dataInfoByPatient = new Dictionary<Core.Data.Patient, Core.Data.DataInfo>();
             for (int i = 0; i < length; i++)
             {
                 Core.Object3D.Site site = sites[i];
@@ -325,12 +325,12 @@ namespace HBP.UI.Module3D
                 {
                     if (m_Scene.SelectedColumn is Column3DIEEG columnIEEG)
                     {
-                        Data.Experience.Dataset.DataInfo dataInfo = m_Scene.Visualization.GetDataInfo(site.Information.Patient, columnIEEG.ColumnIEEGData);
+                        Core.Data.DataInfo dataInfo = m_Scene.Visualization.GetDataInfo(site.Information.Patient, columnIEEG.ColumnIEEGData);
                         dataInfoByPatient.Add(site.Information.Patient, dataInfo);
                     }
                     else if (m_Scene.SelectedColumn is Column3DCCEP columnCCEP)
                     {
-                        Data.Experience.Dataset.DataInfo dataInfo = m_Scene.Visualization.GetDataInfo(site.Information.Patient, columnCCEP.ColumnCCEPData);
+                        Core.Data.DataInfo dataInfo = m_Scene.Visualization.GetDataInfo(site.Information.Patient, columnCCEP.ColumnCCEPData);
                         dataInfoByPatient.Add(site.Information.Patient, dataInfo);
                     }
                 }
@@ -347,7 +347,7 @@ namespace HBP.UI.Module3D
             // Create string builder
             System.Text.StringBuilder csvBuilder = new System.Text.StringBuilder();
             string tagsString = "";
-            IEnumerable<Data.BaseTag> tags = ApplicationState.ProjectLoaded.Preferences.GeneralTags.Concat(ApplicationState.ProjectLoaded.Preferences.SitesTags);
+            IEnumerable<Core.Data.BaseTag> tags = ApplicationState.ProjectLoaded.Preferences.GeneralTags.Concat(ApplicationState.ProjectLoaded.Preferences.SitesTags);
             if (tags.Count() > 0) tagsString = string.Format(",{0}", string.Join(",", tags.Select(t => !t.Name.Contains(",") ? t.Name : string.Format("\"{0}\"", t.Name))));
             csvBuilder.AppendLine("Site,Patient,Place,Date,X,Y,Z,CoordSystem,Labels,DataType,DataFiles" + tagsString);
 
@@ -361,7 +361,7 @@ namespace HBP.UI.Module3D
                 // Get required values
                 Core.Object3D.Site site = sites[i];
                 Vector3 sitePosition = sitePositions[i];
-                Data.Experience.Dataset.DataInfo dataInfo = null;
+                Core.Data.DataInfo dataInfo = null;
                 if (m_Scene.SelectedColumn is Column3DDynamic columnIEEG)
                 {
                     dataInfo = dataInfoByPatient[site.Information.Patient];
@@ -369,27 +369,27 @@ namespace HBP.UI.Module3D
                 string dataType = "", dataFiles = "";
                 if (dataInfo != null)
                 {
-                    if (dataInfo.DataContainer is Data.Container.BrainVision brainVisionDataContainer)
+                    if (dataInfo.DataContainer is Core.Data.Container.BrainVision brainVisionDataContainer)
                     {
                         dataType = "BrainVision";
                         dataFiles = string.Join(";", new string[] { brainVisionDataContainer.Header }.Where(s => !string.IsNullOrEmpty(s)));
                     }
-                    else if (dataInfo.DataContainer is Data.Container.EDF edfDataContainer)
+                    else if (dataInfo.DataContainer is Core.Data.Container.EDF edfDataContainer)
                     {
                         dataType = "EDF";
                         dataFiles = string.Join(";", new string[] { edfDataContainer.File }.Where(s => !string.IsNullOrEmpty(s)));
                     }
-                    else if (dataInfo.DataContainer is Data.Container.Elan elanDataContainer)
+                    else if (dataInfo.DataContainer is Core.Data.Container.Elan elanDataContainer)
                     {
                         dataType = "ELAN";
                         dataFiles = string.Join(";", new string[] { elanDataContainer.EEG, elanDataContainer.POS, elanDataContainer.Notes }.Where(s => !string.IsNullOrEmpty(s)));
                     }
-                    else if (dataInfo.DataContainer is Data.Container.Micromed micromedDataContainer)
+                    else if (dataInfo.DataContainer is Core.Data.Container.Micromed micromedDataContainer)
                     {
                         dataType = "Micromed";
                         dataFiles = string.Join(";", new string[] { micromedDataContainer.Path }.Where(s => !string.IsNullOrEmpty(s)));
                     }
-                    else if (dataInfo.DataContainer is Data.Container.FIF fifDataContainer)
+                    else if (dataInfo.DataContainer is Core.Data.Container.FIF fifDataContainer)
                     {
                         dataType = "FIF";
                         dataFiles = string.Join(";", new string[] { fifDataContainer.File }.Where(s => !string.IsNullOrEmpty(s)));
@@ -399,7 +399,7 @@ namespace HBP.UI.Module3D
                         throw new Exception("Invalid data container type");
                     }
                 }
-                IEnumerable<Data.BaseTagValue> tagValues = tags.Select(t => site.Information.SiteData.Tags.FirstOrDefault(tv => tv.Tag == t));
+                IEnumerable<Core.Data.BaseTagValue> tagValues = tags.Select(t => site.Information.SiteData.Tags.FirstOrDefault(tv => tv.Tag == t));
                 string tagValuesString = "";
                 if (tagValues.Count() > 0)
                 {

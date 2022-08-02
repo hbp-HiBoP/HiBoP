@@ -1,4 +1,4 @@
-﻿namespace HBP.Data
+﻿namespace HBP.Core.Data
 {
     /// <summary>
     /// Class which contains all the data about a string value and its associated StringTag.

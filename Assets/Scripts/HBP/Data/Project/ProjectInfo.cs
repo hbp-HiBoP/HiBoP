@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using Ionic.Zip;
 
-namespace HBP.Data
+namespace HBP.Core.Data
 {
     public class ProjectInfo
     {
@@ -45,15 +45,15 @@ namespace HBP.Data
                         {
                             Groups++;
                         }
-                        else if (entry.FileName.EndsWith(Experience.Protocol.Protocol.EXTENSION))
+                        else if (entry.FileName.EndsWith(Protocol.EXTENSION))
                         {
                             Protocols++;
                         }
-                        else if(entry.FileName.EndsWith(Experience.Dataset.Dataset.EXTENSION))
+                        else if(entry.FileName.EndsWith(Dataset.EXTENSION))
                         {
                             Datasets++;
                         }
-                        else if (entry.FileName.EndsWith(Visualization.Visualization.EXTENSION))
+                        else if (entry.FileName.EndsWith(Visualization.EXTENSION))
                         {
                             Visualizations++;
                         }
@@ -62,7 +62,7 @@ namespace HBP.Data
                             FileInfo settingsFile = new FileInfo(System.IO.Path.Combine(ApplicationState.TMPFolder, entry.FileName));
                             if (settingsFile.Exists) settingsFile.Delete();
                             entry.Extract(ApplicationState.TMPFolder);
-                            Settings = Tools.Unity.ClassLoaderSaver.LoadFromJson<ProjectPreferences>(settingsFile.FullName);
+                            Settings = global::Tools.Unity.ClassLoaderSaver.LoadFromJson<ProjectPreferences>(settingsFile.FullName);
                             settingsFile.Directory.Delete(true);
                         }
                     }

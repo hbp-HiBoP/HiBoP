@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using HBP.Module3D.DLL;
-using HBP.Data.Enums;
-using HBP.Data.Visualization;
+using HBP.Core.Data.Enums;
 
 namespace HBP.Module3D
 {
@@ -16,7 +14,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Timeline of this column (contains information about the length, the number of samples, the events etc.)
         /// </summary>
-        public abstract Timeline Timeline { get; }
+        public abstract Core.Data.Timeline Timeline { get; }
 
         /// <summary>
         /// Parameters on how to display the activity on the column
@@ -117,7 +115,7 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
-        public override void Initialize(int idColumn, Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
+        public override void Initialize(int idColumn, Core.Data.Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
 
@@ -199,7 +197,7 @@ namespace HBP.Module3D
                     siteType = SiteType.Normal;
                 }
                 if (!activity) site.IsActive = true;
-                site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
+                site.GetComponent<MeshRenderer>().sharedMaterial = Core.Object3D.SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
                 site.transform.localScale *= gain;
             }
         }

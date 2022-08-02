@@ -1,7 +1,7 @@
 ﻿using HBP.Module3D;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.Module3D.Tools
 {
@@ -52,7 +52,7 @@ namespace HBP.UI.Module3D.Tools
             m_Dropdown.options.Clear();
             if (SelectedColumn is Column3DMEG megColumn)
             {
-                if (SelectedScene.Type == Data.Enums.SceneType.MultiPatients)
+                if (SelectedScene.Type == SceneType.MultiPatients)
                 {
                     foreach (var fmri in megColumn.ColumnMEGData.Data.MEGItems)
                     {

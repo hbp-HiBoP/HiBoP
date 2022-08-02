@@ -6,7 +6,7 @@ namespace HBP.UI.UserPreferences
     /// <summary>
     /// Window to modify the user preferences.
     /// </summary>
-    public class UserPreferencesModifier : ObjectModifier<Data.Preferences.UserPreferences>
+    public class UserPreferencesModifier : ObjectModifier<Core.Data.Preferences.UserPreferences>
     {
         #region Properties
         [SerializeField] ProjectPreferencesSubModifier m_ProjectPreferencesSubModifier;
@@ -67,7 +67,7 @@ namespace HBP.UI.UserPreferences
         /// Set the fields.
         /// </summary>
         /// <param name="objectToDisplay">User pereferences to modify</param>
-        protected override void SetFields(Data.Preferences.UserPreferences objectToDisplay)
+        protected override void SetFields(Core.Data.Preferences.UserPreferences objectToDisplay)
         {
             // General
             m_ProjectPreferencesSubModifier.Object = objectToDisplay.General.Project;

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using Tools.CSharp;
 
-namespace HBP.Data
+namespace HBP.Core.Data
 {
     [DataContract]
     public class ProjectPreferences : BaseData

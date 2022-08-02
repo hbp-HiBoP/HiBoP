@@ -1,6 +1,6 @@
 ﻿namespace HBP.UI.Experience.Protocol
 {
-    public class MedianTreatmentSubModifier : SubModifier<Data.Experience.Protocol.MedianTreatment>
+    public class MedianTreatmentSubModifier : SubModifier<Core.Data.MedianTreatment>
     {
     }
 }

@@ -60,7 +60,7 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateStatus()
         {
             m_Dropdown.options.Clear();
-            foreach (Mesh3D mesh in SelectedScene.MeshManager.Meshes)
+            foreach (Core.Object3D.Mesh3D mesh in SelectedScene.MeshManager.Meshes)
             {
                 m_Dropdown.options.Add(new Dropdown.OptionData(mesh.Name.ToString()));
             }

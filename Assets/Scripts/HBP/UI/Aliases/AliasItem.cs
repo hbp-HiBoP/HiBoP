@@ -7,7 +7,7 @@ namespace HBP.UI
     /// <summary>
     /// Component to display alias in list.
     /// </summary>
-    public class AliasItem : ActionnableItem<Data.Alias>
+    public class AliasItem : ActionnableItem<Core.Data.Alias>
     {
         #region Properties
         [SerializeField] Text m_KeyText;
@@ -16,7 +16,7 @@ namespace HBP.UI
         /// <summary>
         /// Object to display.
         /// </summary>
-        public override Data.Alias Object
+        public override Core.Data.Alias Object
         {
             get
             {

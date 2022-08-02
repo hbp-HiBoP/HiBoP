@@ -1,10 +1,6 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using d = HBP.Data.Experience.Dataset;
-
-namespace HBP.UI.Experience.Dataset
+﻿namespace HBP.UI.Experience.Dataset
 {
-    public class FMRIDataInfoSubModifier : SubModifier<d.FMRIDataInfo>
+    public class FMRIDataInfoSubModifier : SubModifier<Core.Data.FMRIDataInfo>
     {
         #region Properties     
         public override bool Interactable
@@ -28,7 +24,7 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(d.FMRIDataInfo objectToDisplay)
+        protected override void SetFields(Core.Data.FMRIDataInfo objectToDisplay)
         {
         }
         #endregion

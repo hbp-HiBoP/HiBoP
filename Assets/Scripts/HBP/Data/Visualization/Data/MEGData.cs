@@ -1,22 +1,18 @@
-﻿using HBP.Data.Experience.Dataset;
-using HBP.Module3D;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Tools.CSharp;
 
-namespace HBP.Data.Visualization
+namespace HBP.Core.Data.Processed
 {
     public class MEGItem
     {
         #region Properties
         public string Label { get; set; }
         public Patient Patient { get; set; }
-        public Core.Object3D.FMRI FMRI { get; set; } = new Core.Object3D.FMRI();
+        public Object3D.FMRI FMRI { get; set; } = new Object3D.FMRI();
         public Dictionary<string, float[]> ValuesByChannel { get; set; } = new Dictionary<string, float[]>();
         public Dictionary<string, string> UnitByChannel { get; set; } = new Dictionary<string, string>();
-        public Core.Tools.Frequency Frequency { get; set; } = new Core.Tools.Frequency(0);
+        public Tools.Frequency Frequency { get; set; } = new Tools.Frequency(0);
         public Window Window
         {
             get

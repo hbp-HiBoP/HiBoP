@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace HBP.Data.Experience.Dataset
+namespace HBP.Core.Data
 {
     public class ChannelStatistics
     {
         #region Properties
-        Dictionary<Protocol.Bloc, BlocChannelStatistics> StatisticsByBloc { get; set; }
+        Dictionary<Bloc, BlocChannelStatistics> StatisticsByBloc { get; set; }
         #endregion
 
         #region Constructors
@@ -24,7 +24,7 @@ namespace HBP.Data.Experience.Dataset
                 blocChannelStatistics.Clear();
             }
             StatisticsByBloc.Clear();
-            StatisticsByBloc = new Dictionary<Protocol.Bloc, BlocChannelStatistics>();
+            StatisticsByBloc = new Dictionary<Bloc, BlocChannelStatistics>();
         }
         #endregion
     }

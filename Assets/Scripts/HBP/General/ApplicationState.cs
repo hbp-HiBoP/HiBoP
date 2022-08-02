@@ -20,7 +20,7 @@ public static class ApplicationState
     /// <summary>
     /// Project loaded on the application.
     /// </summary>
-    public static HBP.Data.Project ProjectLoaded { get; set; }
+    public static HBP.Core.Data.Project ProjectLoaded { get; set; }
 
     /// <summary>
     /// Location of the project loaded.
@@ -40,7 +40,7 @@ public static class ApplicationState
     /// <summary>
     /// General settings of the application.
     /// </summary>
-    public static HBP.Data.Preferences.UserPreferences UserPreferences { get; set; }
+    public static HBP.Core.Data.Preferences.UserPreferences UserPreferences { get; set; }
 
     /// <summary>
     /// Coroutine manager.

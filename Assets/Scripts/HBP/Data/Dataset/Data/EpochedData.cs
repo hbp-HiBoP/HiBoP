@@ -1,13 +1,13 @@
 ﻿using System.Collections.Generic;
 
-namespace HBP.Data.Experience.Dataset
+namespace HBP.Core.Data
 {
     public class EpochedData : Data
     {
         #region Properties
-        public virtual Dictionary<Protocol.Bloc, BlocData> DataByBloc { get; set; }
+        public virtual Dictionary<Bloc, BlocData> DataByBloc { get; set; }
         public virtual Dictionary<string, string> UnitByChannel { get; set; }
-        public virtual Core.Tools.Frequency Frequency { get; set; }
+        public virtual Tools.Frequency Frequency { get; set; }
         #endregion
 
         #region Constructors
@@ -22,8 +22,8 @@ namespace HBP.Data.Experience.Dataset
             Frequency = rawData.Frequency;
 
             // Generate DataByBloc.
-            DataByBloc = new Dictionary<Protocol.Bloc, BlocData>();
-            Protocol.Protocol protocol = dataInfo.Dataset?.Protocol;
+            DataByBloc = new Dictionary<Bloc, BlocData>();
+            Protocol protocol = dataInfo.Dataset?.Protocol;
             if (protocol != null)
             {
                 foreach (var bloc in protocol.Blocs)
@@ -40,7 +40,7 @@ namespace HBP.Data.Experience.Dataset
             foreach (var blocData in DataByBloc.Values) blocData.Clear();
             DataByBloc.Clear();
             UnitByChannel.Clear();
-            Frequency = new Tools.CSharp.EEG.Frequency();
+            Frequency = new Tools.Frequency();
         }
         #endregion
     }

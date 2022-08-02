@@ -5,7 +5,7 @@ using Tools.Unity;
 using HBP.Errors;
 using System.ComponentModel;
 
-namespace HBP.Data.Container
+namespace HBP.Core.Data.Container
 {
     /// <summary>
     /// Class which contains IEEG or CCEP data in the BrainVision data format.

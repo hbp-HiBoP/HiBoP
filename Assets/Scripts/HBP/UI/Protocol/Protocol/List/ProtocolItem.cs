@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using d = HBP.Data.Experience.Protocol;
 using Tools.Unity.Lists;
 using System.Linq;
 
@@ -9,7 +8,7 @@ namespace HBP.UI.Experience.Protocol
     /// <summary>
     /// Component to display protocol in list.
     /// </summary>
-	public class ProtocolItem : ActionnableItem<d.Protocol> 
+	public class ProtocolItem : ActionnableItem<Core.Data.Protocol> 
 	{
 		#region Properties
 		[SerializeField] Text m_NameText;
@@ -19,7 +18,7 @@ namespace HBP.UI.Experience.Protocol
         /// <summary>
         /// Object to display.
         /// </summary>
-        public override d.Protocol Object
+        public override Core.Data.Protocol Object
         {
             get
             {

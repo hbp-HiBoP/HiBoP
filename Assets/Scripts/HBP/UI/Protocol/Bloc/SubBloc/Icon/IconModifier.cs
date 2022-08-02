@@ -1,5 +1,4 @@
 ﻿using UnityEngine.UI;
-using d = HBP.Data.Experience.Protocol;
 using Tools.Unity;
 using UnityEngine;
 
@@ -8,7 +7,7 @@ namespace HBP.UI.Experience.Protocol
     /// <summary>
     /// Window to modify a Icon.
     /// </summary>
-    public class IconModifier : ObjectModifier<d.Icon>
+    public class IconModifier : ObjectModifier<Core.Data.Icon>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -67,7 +66,7 @@ namespace HBP.UI.Experience.Protocol
         /// Set the fields.
         /// </summary>
         /// <param name="objectToDisplay">Icon to modify</param>
-        protected override void SetFields(d.Icon objectToDisplay)
+        protected override void SetFields(Core.Data.Icon objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_WindowSlider.minLimit = ApplicationState.UserPreferences.Data.Protocol.MinLimit;

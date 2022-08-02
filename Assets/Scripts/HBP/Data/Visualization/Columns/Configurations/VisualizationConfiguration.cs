@@ -1,9 +1,9 @@
 ﻿using System.Runtime.Serialization;
 using System.Collections.Generic;
-using HBP.Data.Enums;
+using HBP.Core.Data.Enums;
 using System.Linq;
 
-namespace HBP.Data.Visualization
+namespace HBP.Core.Data
 {
     [DataContract]
     public class VisualizationConfiguration : BaseData

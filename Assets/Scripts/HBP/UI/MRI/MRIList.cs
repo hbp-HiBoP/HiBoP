@@ -6,7 +6,7 @@ namespace HBP.UI
     /// <summary>
     /// List to display MRIs.
     /// </summary>
-    public class MRIList : Tools.Unity.Lists.ActionableList<Data.MRI>
+    public class MRIList : Tools.Unity.Lists.ActionableList<Core.Data.MRI>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, HasMRI, DescendingHasMRI }

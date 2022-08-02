@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 
-namespace HBP.Data
+namespace HBP.Core.Data
 {
     [DisplayName("Boolean")]
     public class BoolTag : BaseTag

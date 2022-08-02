@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.Module3D
 {
@@ -65,7 +66,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Current selected mode to display the site information
         /// </summary>
-        Data.Enums.SiteInformationDisplayMode m_CurrentMode = Data.Enums.SiteInformationDisplayMode.Anatomy;
+        SiteInformationDisplayMode m_CurrentMode = SiteInformationDisplayMode.Anatomy;
         /// <summary>
         /// RectTransform of this object
         /// </summary>
@@ -84,31 +85,31 @@ namespace HBP.UI.Module3D
             m_Tags.SetActive(true);
             ApplicationState.Module3D.OnDisplaySiteInformation.AddListener((siteInfo) =>
             {
-                Data.Enums.SiteInformationDisplayMode mode = siteInfo.Mode;
+                SiteInformationDisplayMode mode = siteInfo.Mode;
                 if (mode != m_CurrentMode)
                 {
                     m_CurrentMode = mode;
                     switch (mode)
                     {
-                        case Data.Enums.SiteInformationDisplayMode.Anatomy:
+                        case SiteInformationDisplayMode.Anatomy:
                             m_IEEG.SetActive(false);
                             m_CCEP.SetActive(false);
                             m_Tags.SetActive(true);
                             m_States.SetActive(true);
                             break;
-                        case Data.Enums.SiteInformationDisplayMode.IEEG:
+                        case SiteInformationDisplayMode.IEEG:
                             m_IEEG.SetActive(true);
                             m_CCEP.SetActive(false);
                             m_Tags.SetActive(true);
                             m_States.SetActive(true);
                             break;
-                        case Data.Enums.SiteInformationDisplayMode.CCEP:
+                        case SiteInformationDisplayMode.CCEP:
                             m_IEEG.SetActive(false);
                             m_CCEP.SetActive(true);
                             m_Tags.SetActive(true);
                             m_States.SetActive(true);
                             break;
-                        case Data.Enums.SiteInformationDisplayMode.Light:
+                        case SiteInformationDisplayMode.Light:
                             m_IEEG.SetActive(false);
                             m_CCEP.SetActive(false);
                             m_Tags.SetActive(false);
@@ -123,21 +124,21 @@ namespace HBP.UI.Module3D
                     SetPatient(siteInfo.Site.Information.Patient);
                     switch (siteInfo.Mode)
                     {
-                        case Data.Enums.SiteInformationDisplayMode.Anatomy:
+                        case SiteInformationDisplayMode.Anatomy:
                             SetStates(siteInfo.Site);
                             SetTags(siteInfo);
                             break;
-                        case Data.Enums.SiteInformationDisplayMode.IEEG:
+                        case SiteInformationDisplayMode.IEEG:
                             SetIEEG(siteInfo);
                             SetStates(siteInfo.Site);
                             SetTags(siteInfo);
                             break;
-                        case Data.Enums.SiteInformationDisplayMode.CCEP:
+                        case SiteInformationDisplayMode.CCEP:
                             SetCCEP(siteInfo);
                             SetStates(siteInfo.Site);
                             SetTags(siteInfo);
                             break;
-                        case Data.Enums.SiteInformationDisplayMode.Light:
+                        case SiteInformationDisplayMode.Light:
                             break;
                     }
                     ClampToCanvas();
@@ -185,7 +186,7 @@ namespace HBP.UI.Module3D
         /// Set the patient information (name, place, date)
         /// </summary>
         /// <param name="patient">Patient to display information of</param>
-        void SetPatient(Data.Patient patient)
+        void SetPatient(Core.Data.Patient patient)
         {
             m_PatientText.text = patient.CompleteName;
         }

@@ -6,7 +6,7 @@ namespace HBP.UI
     /// <summary>
     /// List to display sites.
     /// </summary>
-    public class SiteList : Tools.Unity.Lists.ActionableList<Data.Site>
+    public class SiteList : Tools.Unity.Lists.ActionableList<Core.Data.Site>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Coordinate, DescendingCoordinate, Tag, DescendingTag }
@@ -18,7 +18,7 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
-        public override bool Add(Data.Site obj)
+        public override bool Add(Core.Data.Site obj)
         {
             SortByNone();
             return base.Add(obj);

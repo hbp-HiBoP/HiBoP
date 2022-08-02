@@ -1,5 +1,4 @@
 ﻿using UnityEngine.UI;
-using d = HBP.Data.Experience.Protocol;
 using Tools.Unity;
 using UnityEngine;
 using Theme.Components;
@@ -10,7 +9,7 @@ namespace HBP.UI.Experience.Protocol
     /// <summary>
     /// Window to modify a bloc.
     /// </summary>
-    public class BlocModifier : ObjectModifier<d.Bloc>
+    public class BlocModifier : ObjectModifier<Core.Data.Bloc>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField, m_SortInputField, m_OrderInputField;
@@ -67,7 +66,7 @@ namespace HBP.UI.Experience.Protocol
         /// Set the fields.
         /// </summary>
         /// <param name="objectToDisplay">Bloc to display</param>
-        protected override void SetFields(d.Bloc objectToDisplay)
+        protected override void SetFields(Core.Data.Bloc objectToDisplay)
         {
             base.SetFields();
 
@@ -108,9 +107,9 @@ namespace HBP.UI.Experience.Protocol
         protected void ChangeSort(string value)
         {
             ObjectTemp.Sort = value;
-            d.Bloc.SortingMethodError error = ObjectTemp.GetSortingMethodError();
+            Core.Data.Bloc.SortingMethodError error = ObjectTemp.GetSortingMethodError();
             m_SortErrorText.Text = ObjectTemp.GetSortingMethodErrorMessage(error);
-            m_SortStateThemeElement.Set(error == d.Bloc.SortingMethodError.NoError ? m_OKState : m_ErrorState);
+            m_SortStateThemeElement.Set(error == Core.Data.Bloc.SortingMethodError.NoError ? m_OKState : m_ErrorState);
         }
         /// <summary>
         /// Change order.
@@ -131,7 +130,7 @@ namespace HBP.UI.Experience.Protocol
         /// Add subBloc to the bloc.
         /// </summary>
         /// <param name="subBloc">SubBloc to add</param>
-        protected void AddSubBloc(d.SubBloc subBloc)
+        protected void AddSubBloc(Core.Data.SubBloc subBloc)
         {
             ObjectTemp.SubBlocs.AddIfAbsent(subBloc);
         }
@@ -139,7 +138,7 @@ namespace HBP.UI.Experience.Protocol
         /// Remove subBloc from the bloc.
         /// </summary>
         /// <param name="subBloc">SubBloc to remove</param>
-        protected void RemoveSubBloc(d.SubBloc subBloc)
+        protected void RemoveSubBloc(Core.Data.SubBloc subBloc)
         {
             ObjectTemp.SubBlocs.Remove(subBloc);
         }

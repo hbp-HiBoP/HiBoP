@@ -1,10 +1,10 @@
 ﻿using Tools.Unity;
 using UnityEngine;
-using container = HBP.Data.Container;
+using HBP.Core.Data.Container;
 
 namespace HBP.UI.Experience.Dataset
 {
-    public class NiftiDataContainerSubModifier : SubModifier<container.Nifti>
+    public class NiftiDataContainerSubModifier : SubModifier<Nifti>
     {
         #region Properties
         [SerializeField] FileSelector m_FileSelector;
@@ -32,7 +32,7 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(container.Nifti objectToDisplay)
+        protected override void SetFields(Nifti objectToDisplay)
         {
             m_FileSelector.File = objectToDisplay.SavedFile;
         }

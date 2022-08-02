@@ -2,12 +2,11 @@
 using UnityEngine;
 using System.IO;
 using System;
-using HBP.Data;
 using HBP.UI;
 using Tools.Unity;
 using System.Collections;
-using HBP.Module3D;
 using System.Collections.Generic;
+using HBP.Core.Data.Enums;
 
 public class DebugBenjamin : MonoBehaviour
 {
@@ -46,7 +45,7 @@ public class DebugBenjamin : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.F3))
         {
             m_FinalPositions.Clear();
-            Vector3 orientation = ApplicationState.Module3D.SelectedScene.MRIManager.SelectedMRI.Volume.GetOrientationVector(HBP.Data.Enums.CutOrientation.Sagittal, false);
+            Vector3 orientation = ApplicationState.Module3D.SelectedScene.MRIManager.SelectedMRI.Volume.GetOrientationVector(CutOrientation.Sagittal, false);
             orientation = new Vector3(-orientation.x, orientation.y, orientation.z);
             Vector3 center = ApplicationState.Module3D.SelectedScene.MeshManager.MeshCenter;
             center = new Vector3(-center.x, center.y, center.z);
@@ -86,7 +85,7 @@ public class DebugBenjamin : MonoBehaviour
         FileInfo[] files = dir.GetFiles("*.vhdr");
         foreach (var file in files)
         {
-            ApplicationState.ProjectLoaded.Datasets[0].AddData(new HBP.Data.Experience.Dataset.CCEPDataInfo("ccep", new HBP.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), ApplicationState.ProjectLoaded.Patients[0], file.Name.Replace(file.Extension, "")));
+            ApplicationState.ProjectLoaded.Datasets[0].AddData(new HBP.Core.Data.CCEPDataInfo("ccep", new HBP.Core.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), ApplicationState.ProjectLoaded.Patients[0], file.Name.Replace(file.Extension, "")));
         }
     }
     private void GetAllCCEPData()
@@ -97,7 +96,7 @@ public class DebugBenjamin : MonoBehaviour
         foreach (var dir in patientDirs)
         {
             string patientName = dir.Name.Substring(4);
-            Patient patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.Name == patientName);
+            HBP.Core.Data.Patient patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.Name == patientName);
             if (patient == null) continue;
             DirectoryInfo ieegDir = new DirectoryInfo(Path.Combine(dir.FullName, "ses-postimp01", "ieeg"));
             FileInfo[] files = ieegDir.GetFiles("*.vhdr").Where(f => f.FullName.Contains("ccep")).ToArray();
@@ -106,7 +105,7 @@ public class DebugBenjamin : MonoBehaviour
                 string site = file.Name.Split('_')[3].Substring(4, 8);
                 if (!site.Contains("p")) site = site.Substring(0, 6);
                 site = site.Insert(site.Length / 2, "-");
-                ApplicationState.ProjectLoaded.Datasets[0].AddData(new HBP.Data.Experience.Dataset.CCEPDataInfo("ccep", new HBP.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), patient, site));
+                ApplicationState.ProjectLoaded.Datasets[0].AddData(new HBP.Core.Data.CCEPDataInfo("ccep", new HBP.Core.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), patient, site));
             }
         }
     }
@@ -128,7 +127,7 @@ public class DebugBenjamin : MonoBehaviour
     }
     private void TestOrientation()
     {
-        Vector3 orientation = ApplicationState.Module3D.SelectedScene.MRIManager.SelectedMRI.Volume.GetOrientationVector(HBP.Data.Enums.CutOrientation.Sagittal, false);
+        Vector3 orientation = ApplicationState.Module3D.SelectedScene.MRIManager.SelectedMRI.Volume.GetOrientationVector(CutOrientation.Sagittal, false);
         Vector3 center = ApplicationState.Module3D.SelectedScene.MeshManager.MeshCenter;
         center = new Vector3(-center.x, center.y, center.z); 
         foreach (var site in ApplicationState.Module3D.SelectedColumn.Sites)

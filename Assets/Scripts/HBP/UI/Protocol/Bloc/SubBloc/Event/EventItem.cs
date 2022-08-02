@@ -4,13 +4,14 @@ using Tools.Unity.Lists;
 using Theme.Components;
 using Tools.Unity;
 using System.Text;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.Experience.Protocol
 {
     /// <summary>
     /// Component to display event in list.
     /// </summary>
-	public class EventItem : ActionnableItem<Data.Experience.Protocol.Event> 
+	public class EventItem : ActionnableItem<Core.Data.Event> 
 	{
 		#region Properties
 		[SerializeField] Text m_NameText;
@@ -24,7 +25,7 @@ namespace HBP.UI.Experience.Protocol
         /// <summary>
         /// Object to display.
         /// </summary>
-        public override Data.Experience.Protocol.Event Object
+        public override Core.Data.Event Object
         {
             get
             {
@@ -55,8 +56,8 @@ namespace HBP.UI.Experience.Protocol
 
                 switch (m_Object.Type)
                 {
-                    case Data.Enums.MainSecondaryEnum.Main: m_TypeText.text = "M"; break;
-                    case Data.Enums.MainSecondaryEnum.Secondary: m_TypeText.text = "S"; break;
+                    case MainSecondaryEnum.Main: m_TypeText.text = "M"; break;
+                    case MainSecondaryEnum.Secondary: m_TypeText.text = "S"; break;
                 }
             }
         }

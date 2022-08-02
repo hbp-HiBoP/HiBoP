@@ -47,7 +47,7 @@ namespace HBP.UI
             }
             return window;
         }
-        public ObjectModifier<T> OpenModifier<T>(T obj, bool interactable = true) where T : Data.BaseData
+        public ObjectModifier<T> OpenModifier<T>(T obj, bool interactable = true) where T : Core.Data.BaseData
         {
             ObjectModifier<T> modifier = WindowsReferencer.Windows.OfType<ObjectModifier<T>>().FirstOrDefault(w => w.Object.ID == obj.ID);
             if (modifier)

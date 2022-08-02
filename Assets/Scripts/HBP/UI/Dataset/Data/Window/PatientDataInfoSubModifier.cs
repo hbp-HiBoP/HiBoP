@@ -1,15 +1,14 @@
 ﻿using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using d = HBP.Data.Experience.Dataset;
 using System.Collections.ObjectModel;
 
 namespace HBP.UI.Experience.Dataset
 {
-    public class PatientDataInfoSubModifier : SubModifier<d.PatientDataInfo>
+    public class PatientDataInfoSubModifier : SubModifier<Core.Data.PatientDataInfo>
     {
         #region Properties     
-        ReadOnlyCollection<Data.Patient> m_Patients;
+        ReadOnlyCollection<Core.Data.Patient> m_Patients;
         [SerializeField] Dropdown m_PatientDropdown;
 
         public override bool Interactable
@@ -37,7 +36,7 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(d.PatientDataInfo objectToDisplay)
+        protected override void SetFields(Core.Data.PatientDataInfo objectToDisplay)
         {
             m_PatientDropdown.value = m_Patients.IndexOf(objectToDisplay.Patient);
         }

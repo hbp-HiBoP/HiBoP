@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 using System.Linq;
 using UnityEngine;
 
-namespace HBP.Data
+namespace HBP.Core.Data
 {
     [DisplayName("Enumerable")]
     public class EnumTag : BaseTag

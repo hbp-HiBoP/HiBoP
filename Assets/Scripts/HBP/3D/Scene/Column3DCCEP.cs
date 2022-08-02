@@ -1,6 +1,4 @@
-﻿using HBP.Data.Enums;
-using HBP.Data.Visualization;
-using HBP.Module3D.DLL;
+﻿using HBP.Core.Data.Enums;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -17,17 +15,17 @@ namespace HBP.Module3D
         /// <summary>
         /// CCEP data of this column (contains information about what to display)
         /// </summary>
-        public CCEPColumn ColumnCCEPData
+        public Core.Data.CCEPColumn ColumnCCEPData
         {
             get
             {
-                return ColumnData as CCEPColumn;
+                return ColumnData as Core.Data.CCEPColumn;
             }
         }
         /// <summary>
         /// Timeline of this column (contains information about the length, the number of samples, the events etc.)
         /// </summary>
-        public override Timeline Timeline
+        public override Core.Data.Timeline Timeline
         {
             get
             {
@@ -209,8 +207,8 @@ namespace HBP.Module3D
             // Retrieve values
             if (!ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.TryGetValue(SelectedSourceSite.Information.FullID, out Dictionary<string, float[]> processedValuesByChannel)) return;
             if (!ColumnCCEPData.Data.UnityByChannelIDByStimulatedChannelID.TryGetValue(SelectedSourceSite.Information.FullID, out Dictionary<string, string> unitByChannel)) return;
-            if (!ColumnCCEPData.Data.DataByChannelIDByStimulatedChannelID.TryGetValue(SelectedSourceSite.Information.FullID, out Dictionary<string, Data.Experience.Dataset.BlocChannelData> dataByChannel)) return;
-            if (!ColumnCCEPData.Data.StatisticsByChannelIDByStimulatedChannelID.TryGetValue(SelectedSourceSite.Information.FullID, out Dictionary<string, Data.Experience.Dataset.BlocChannelStatistics> statisticsByChannel)) return;
+            if (!ColumnCCEPData.Data.DataByChannelIDByStimulatedChannelID.TryGetValue(SelectedSourceSite.Information.FullID, out Dictionary<string, Core.Data.BlocChannelData> dataByChannel)) return;
+            if (!ColumnCCEPData.Data.StatisticsByChannelIDByStimulatedChannelID.TryGetValue(SelectedSourceSite.Information.FullID, out Dictionary<string, Core.Data.BlocChannelStatistics> statisticsByChannel)) return;
 
             int numberOfSitesWithValues = 0;
             foreach (Core.Object3D.Site site in Sites)
@@ -242,15 +240,15 @@ namespace HBP.Module3D
                 {
                     ActivityUnitsBySiteID[site.Information.Index] = "";
                 }
-                if (dataByChannel.TryGetValue(site.Information.FullID, out Data.Experience.Dataset.BlocChannelData blocChannelData))
+                if (dataByChannel.TryGetValue(site.Information.FullID, out Core.Data.BlocChannelData blocChannelData))
                 {
                     site.Data = blocChannelData;
                 }
-                if (statisticsByChannel.TryGetValue(site.Information.FullID, out Data.Experience.Dataset.BlocChannelStatistics blocChannelStatistics))
+                if (statisticsByChannel.TryGetValue(site.Information.FullID, out Core.Data.BlocChannelStatistics blocChannelStatistics))
                 {
                     site.Statistics = blocChannelStatistics;
-                    Data.Experience.Dataset.ChannelSubTrialStat trial = blocChannelStatistics.Trial.ChannelSubTrialBySubBloc[ColumnCCEPData.Bloc.MainSubBloc];
-                    SubTimeline mainSubTimeline = Timeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc];
+                    Core.Data.ChannelSubTrialStat trial = blocChannelStatistics.Trial.ChannelSubTrialBySubBloc[ColumnCCEPData.Bloc.MainSubBloc];
+                    Core.Data.SubTimeline mainSubTimeline = Timeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc];
                     int mainEventIndex = mainSubTimeline.Frequency.ConvertToFlooredNumberOfSamples(mainSubTimeline.StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedTimeFromStart);
                     for (int i = mainEventIndex + 2; i < mainSubTimeline.Length - 2; i++)
                     {
@@ -309,7 +307,7 @@ namespace HBP.Module3D
                 site.State.IsMasked = true;
             }
 
-            Data.StringTag marsAtlasTag = ApplicationState.ProjectLoaded.Preferences.Tags.FirstOrDefault(t => t.Name == "MarsAtlas") as Data.StringTag;
+            Core.Data.StringTag marsAtlasTag = ApplicationState.ProjectLoaded.Preferences.Tags.FirstOrDefault(t => t.Name == "MarsAtlas") as Core.Data.StringTag;
             if (marsAtlasTag == null)
                 throw new System.Exception("MarsAtlas tag has not been found !");
 
@@ -317,14 +315,14 @@ namespace HBP.Module3D
 
             // Sort sites by mars atlas label
             Dictionary<int, List<Core.Object3D.Site>> sitesByMarsAtlasLabel = new Dictionary<int, List<Core.Object3D.Site>>();
-            List<Data.StringTagValue> marsAtlasTagValues = Sites.Select(s => s.Information.SiteData.Tags.FirstOrDefault(t => t.Tag == marsAtlasTag) as Data.StringTagValue).ToList(); // FIXME: try perf with linq
+            List<Core.Data.StringTagValue> marsAtlasTagValues = Sites.Select(s => s.Information.SiteData.Tags.FirstOrDefault(t => t.Tag == marsAtlasTag) as Core.Data.StringTagValue).ToList(); // FIXME: try perf with linq
             foreach (var label in marsAtlasLabels)
             {
                 string labelName = string.Format("{0}_{1}", ApplicationState.Module3D.MarsAtlas.Hemisphere(label), ApplicationState.Module3D.MarsAtlas.Name(label));
                 List<Core.Object3D.Site> sitesOfLabel = new List<Core.Object3D.Site>();
                 for (int i = 0; i < sitesCount; i++)
                 {
-                    Data.StringTagValue marsAtlasTagValue = marsAtlasTagValues[i];
+                    Core.Data.StringTagValue marsAtlasTagValue = marsAtlasTagValues[i];
                     if (marsAtlasTagValue != null && marsAtlasTagValue.Value == labelName)
                     {
                         sitesOfLabel.Add(Sites[i]);
@@ -506,7 +504,7 @@ namespace HBP.Module3D
                     siteType = SiteType.Normal;
                 }
                 if (!activity) site.IsActive = true;
-                site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
+                site.GetComponent<MeshRenderer>().sharedMaterial = Core.Object3D.SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
                 site.transform.localScale *= gain;
             }
         }

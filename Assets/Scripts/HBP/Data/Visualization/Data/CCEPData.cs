@@ -1,9 +1,8 @@
-﻿using HBP.Data.Experience.Dataset;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Tools.CSharp;
 
-namespace HBP.Data.Visualization
+namespace HBP.Core.Data.Processed
 {
     public class CCEPData : DynamicData
     {
@@ -19,17 +18,17 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Public Methods
-        public void Load(IEnumerable<CCEPDataInfo> columnData, Experience.Protocol.Bloc bloc)
+        public void Load(IEnumerable<CCEPDataInfo> columnData, Bloc bloc)
         {
             foreach (CCEPDataInfo dataInfo in columnData)
             {
-                Experience.Dataset.CCEPData data = DataManager.GetData(dataInfo) as Experience.Dataset.CCEPData;
+                Core.Data.CCEPData data = DataManager.GetData(dataInfo) as Core.Data.CCEPData;
                 string stimulatedChannelID = dataInfo.Patient.ID + "_" + data.StimulatedChannel;
 
                 // Values
                 Dictionary<string, BlocChannelData> dataByChannelID = new Dictionary<string, BlocChannelData>();
                 Dictionary<string, BlocChannelStatistics> statisticsByChannelID = new Dictionary<string, BlocChannelStatistics>();
-                Dictionary<string, Tools.CSharp.EEG.Frequency> frequencyByChannelID = new Dictionary<string, Tools.CSharp.EEG.Frequency>();
+                Dictionary<string, Tools.Frequency> frequencyByChannelID = new Dictionary<string, Tools.Frequency>();
                 Dictionary<string, string> unitByChannelID = new Dictionary<string, string>();
                 foreach (var channel in data.UnitByChannel.Keys)
                 {
@@ -60,18 +59,18 @@ namespace HBP.Data.Visualization
             m_FrequencyByChannelIDByStimulatedChannelID.Clear();
             Frequencies.Clear();
         }
-        public void SetTimeline(Core.Tools.Frequency maxFrequency, Experience.Protocol.Bloc columnBloc, IEnumerable<Experience.Protocol.Bloc> blocs)
+        public void SetTimeline(Core.Tools.Frequency maxFrequency, Bloc columnBloc, IEnumerable<Bloc> blocs)
         {
             // Process frequencies
             Frequencies.Add(maxFrequency);
             Frequencies = Frequencies.GroupBy(f => f.Value).Select(g => g.First()).ToList();
 
             // Get index of each subBloc
-            Dictionary<Experience.Protocol.SubBloc, int> indexBySubBloc = new Dictionary<Experience.Protocol.SubBloc, int>();
+            Dictionary<SubBloc, int> indexBySubBloc = new Dictionary<SubBloc, int>();
             foreach (var bloc in blocs)
             {
                 int mainSubBlocPosition = bloc.MainSubBlocPosition;
-                Experience.Protocol.SubBloc[] subBlocs = bloc.OrderedSubBlocs.ToArray();
+                SubBloc[] subBlocs = bloc.OrderedSubBlocs.ToArray();
                 for (int i = 0; i < subBlocs.Length; ++i)
                 {
                     if (!indexBySubBloc.ContainsKey(subBlocs[i])) indexBySubBloc.Add(subBlocs[i], i - mainSubBlocPosition);
@@ -79,7 +78,7 @@ namespace HBP.Data.Visualization
             }
 
             // Get all eventStatistics for each SubBloc of the column
-            Dictionary<Experience.Protocol.SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc = new Dictionary<Experience.Protocol.SubBloc, List<SubBlocEventsStatistics>>();
+            Dictionary<SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc = new Dictionary<SubBloc, List<SubBlocEventsStatistics>>();
             foreach (var subBloc in columnBloc.SubBlocs)
             {
                 eventStatisticsBySubBloc.Add(subBloc, new List<SubBlocEventsStatistics>());
@@ -103,7 +102,7 @@ namespace HBP.Data.Visualization
                 foreach (var channelID in dataByChannelIDByStimulatedChannelID.Value.Keys)
                 {
                     List<float> values = new List<float>();
-                    Tools.CSharp.EEG.Frequency frequency = m_FrequencyByChannelIDByStimulatedChannelID[dataByChannelIDByStimulatedChannelID.Key][channelID];
+                    Tools.Frequency frequency = m_FrequencyByChannelIDByStimulatedChannelID[dataByChannelIDByStimulatedChannelID.Key][channelID];
                     BlocChannelStatistics statistics = StatisticsByChannelIDByStimulatedChannelID[dataByChannelIDByStimulatedChannelID.Key][channelID];
                     foreach (var subBloc in columnBloc.OrderedSubBlocs)
                     {

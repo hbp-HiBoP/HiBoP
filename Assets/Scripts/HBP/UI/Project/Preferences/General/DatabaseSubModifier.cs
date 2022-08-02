@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace HBP.UI
 {
-    public class DatabaseSubModifier : SubModifier<Data.ProjectPreferences>
+    public class DatabaseSubModifier : SubModifier<Core.Data.ProjectPreferences>
     {
         #region Properties
         [SerializeField] FolderSelector m_PatientsDatabaseFolderSelector;
@@ -30,7 +30,7 @@ namespace HBP.UI
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(Data.ProjectPreferences objectToDisplay)
+        protected override void SetFields(Core.Data.ProjectPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
             m_PatientsDatabaseFolderSelector.Folder = objectToDisplay.PatientDatabase;

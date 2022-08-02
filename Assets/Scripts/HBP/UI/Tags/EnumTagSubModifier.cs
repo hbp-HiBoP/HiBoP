@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI
 {
-    public class EnumTagSubModifier : SubModifier<Data.EnumTag>
+    public class EnumTagSubModifier : SubModifier<Core.Data.EnumTag>
     {
         #region Properties
         [SerializeField] InputField m_EnumInputField;
@@ -19,7 +19,7 @@ namespace HBP.UI
         #endregion
 
         #region Private Methods
-        protected override void SetFields(Data.EnumTag objectToDisplay)
+        protected override void SetFields(Core.Data.EnumTag objectToDisplay)
         {
             base.SetFields(objectToDisplay);
             m_EnumInputField.text = string.Join(",", objectToDisplay.Values);

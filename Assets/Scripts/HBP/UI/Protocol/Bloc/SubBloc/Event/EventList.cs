@@ -6,7 +6,7 @@ namespace HBP.UI.Experience.Protocol
 	/// <summary>
 	/// List to display events.
 	/// </summary>
-	public class EventList : Tools.Unity.Lists.ActionableList<Data.Experience.Protocol.Event> 
+	public class EventList : Tools.Unity.Lists.ActionableList<Core.Data.Event> 
 	{
         #region Properties
         enum OrderBy { None, Name, DescendingName, Code, DescendingCode, Type, DescendingType }

@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 using Tools.CSharp;
 using Tools.Unity;
 
-namespace HBP.Data
+namespace HBP.Core.Data
 {
     /// <summary>
     /// Contains all the data about a patient.

@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace HBP.Module3D.DiFuMo
+namespace HBP.Core.Object3D
 {
     public class DiFuMoInformation
     {
@@ -55,9 +55,9 @@ namespace HBP.Module3D.DiFuMo
                         string name = splits.Length > 1 ? splits[1].TrimStart(' ', '"').TrimEnd('"') : "";
                         string yeoNetworks7 = splits.Length > 2 ? splits[2].TrimStart(' ', '"').TrimEnd('"') : "";
                         string yeoNetworks17 = splits.Length > 3 ? splits[3].TrimStart(' ', '"').TrimEnd('"') : "";
-                        float gm = splits.Length > 4 && Tools.CSharp.NumberExtension.TryParseFloat(splits[4], out float gmValue) ? gmValue : 0;
-                        float wm = splits.Length > 5 && Tools.CSharp.NumberExtension.TryParseFloat(splits[5], out float wmValue) ? wmValue : 0;
-                        float csf = splits.Length > 6 && Tools.CSharp.NumberExtension.TryParseFloat(splits[6], out float csfValue) ? csfValue : 0;
+                        float gm = splits.Length > 4 && global::Tools.CSharp.NumberExtension.TryParseFloat(splits[4], out float gmValue) ? gmValue : 0;
+                        float wm = splits.Length > 5 && global::Tools.CSharp.NumberExtension.TryParseFloat(splits[5], out float wmValue) ? wmValue : 0;
+                        float csf = splits.Length > 6 && global::Tools.CSharp.NumberExtension.TryParseFloat(splits[6], out float csfValue) ? csfValue : 0;
                         AllLabels.Add(new Labels(component, name, yeoNetworks7, yeoNetworks17, gm, wm, csf));
                     }
                 }

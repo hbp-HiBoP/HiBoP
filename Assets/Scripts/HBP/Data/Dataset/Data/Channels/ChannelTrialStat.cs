@@ -1,8 +1,7 @@
-﻿using HBP.Data.Experience.Protocol;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace HBP.Data.Experience.Dataset
+namespace HBP.Core.Data 
 {
     public struct ChannelTrialStat
     {

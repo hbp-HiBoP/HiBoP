@@ -5,7 +5,7 @@ using System;
 using Tools.Unity;
 using UnityEngine.Events;
 
-namespace HBP.Data.Preferences
+namespace HBP.Core.Data.Preferences
 {
     /**
     * \class UserPreferences

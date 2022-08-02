@@ -1,7 +1,7 @@
-﻿using HBP.Module3D;
-using Tools.Unity;
+﻿using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.Module3D.Tools
 {
@@ -39,11 +39,11 @@ namespace HBP.UI.Module3D.Tools
         /// <summary>
         /// Timeline data of the parent timeline
         /// </summary>
-        private Data.Visualization.BasicTimeline m_Timeline;
+        private Core.Data.BasicTimeline m_Timeline;
         /// <summary>
         /// Subtimeline data of the subtimeline
         /// </summary>
-        private Data.Visualization.SubTimeline m_SubTimeline;
+        private Core.Data.SubTimeline m_SubTimeline;
 
         /// <summary>
         /// Prefab for the main event
@@ -62,7 +62,7 @@ namespace HBP.UI.Module3D.Tools
         /// <param name="column">Column to be considered</param>
         /// <param name="timeline">Data timeline of the parent timeline</param>
         /// <param name="subTimeline">Subtimeline data</param>
-        public void Initialize(Data.Visualization.BasicTimeline timeline, Data.Visualization.SubTimeline subTimeline)
+        public void Initialize(Core.Data.BasicTimeline timeline, Core.Data.SubTimeline subTimeline)
         {
             m_Timeline = timeline;
             m_SubTimeline = subTimeline;
@@ -106,12 +106,12 @@ namespace HBP.UI.Module3D.Tools
 
             foreach (var eventStat in m_SubTimeline.StatisticsByEvent)
             {
-                Data.Experience.Protocol.Event e = eventStat.Key;
-                Data.Experience.Dataset.EventStatistics eventStatistics = eventStat.Value;
+                Core.Data.Event e = eventStat.Key;
+                Core.Data.EventStatistics eventStatistics = eventStat.Value;
                 if (eventStatistics.NumberOfOccurences == 0) continue;
 
                 GameObject eventGameObject;
-                if (e.Type == Data.Enums.MainSecondaryEnum.Main)
+                if (e.Type == MainSecondaryEnum.Main)
                 {
                     eventGameObject = Instantiate(m_MainEventPrefab, m_Events);
                 }

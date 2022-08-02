@@ -31,7 +31,7 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
-        public void Load(Data.ProjectInfo info)
+        public void Load(Core.Data.ProjectInfo info)
         {
             FindObjectOfType<ProjectLoaderSaver>().Load(info);
             base.Close();
@@ -91,12 +91,12 @@ namespace HBP.UI
         {
             yield return Ninja.JumpToUnity;
             m_OKButton.interactable = false;
-            m_ProjectList.Set(new Data.ProjectInfo[0]);
+            m_ProjectList.Set(new Core.Data.ProjectInfo[0]);
             yield return Ninja.JumpBack;
-            string[] paths = Data.Project.GetProject(path).ToArray();
+            string[] paths = Core.Data.Project.GetProject(path).ToArray();
             foreach (string projectPath in paths)
             {
-                Data.ProjectInfo project = new Data.ProjectInfo(projectPath);
+                Core.Data.ProjectInfo project = new Core.Data.ProjectInfo(projectPath);
                 yield return Ninja.JumpToUnity;
                 m_ProjectList.Add(project);
                 yield return Ninja.JumpBack;

@@ -2,7 +2,6 @@
 using UnityEngine.UI;
 using System.Linq;
 using System.Collections.Generic;
-using HBP.Data.Visualization;
 using Tools.CSharp;
 
 namespace HBP.UI
@@ -10,7 +9,7 @@ namespace HBP.UI
     /// <summary>
     /// Window to modify visualization.
     /// </summary>
-    public class VisualizationModifier : ObjectModifier<Data.Visualization.Visualization>
+    public class VisualizationModifier : ObjectModifier<Core.Data.Visualization>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -77,7 +76,7 @@ namespace HBP.UI
         /// </summary>
         public void AddPatients()
         {
-            ObjectSelector<Data.Patient> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Patients.Where(p => !m_ObjectTemp.Patients.Contains(p)));
+            ObjectSelector<Core.Data.Patient> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Patients.Where(p => !m_ObjectTemp.Patients.Contains(p)));
             selector.OnOk.AddListener(() => m_PatientListGestion.List.Add(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
@@ -86,7 +85,7 @@ namespace HBP.UI
         /// </summary>
         public void AddGroups()
         {
-            ObjectSelector<Data.Group> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Groups);
+            ObjectSelector<Core.Data.Group> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Groups);
             selector.OnOk.AddListener(() => AddGroups(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
@@ -95,7 +94,7 @@ namespace HBP.UI
         /// </summary>
         public void RemoveGroups()
         {
-            ObjectSelector<Data.Group> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Groups);
+            ObjectSelector<Core.Data.Group> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Groups);
             selector.OnOk.AddListener(() => RemoveGroups(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
@@ -104,7 +103,7 @@ namespace HBP.UI
         /// </summary>
         public void AddColumn()
         {
-            Column column = new IEEGColumn("Column n°" + (ObjectTemp.Columns.Count + 1), new BaseConfiguration(), ObjectTemp.Patients);
+            Core.Data.Column column = new Core.Data.IEEGColumn("Column n°" + (ObjectTemp.Columns.Count + 1), new Core.Data.BaseConfiguration(), ObjectTemp.Patients);
             ObjectTemp.Columns.Add(column);
             m_TabGestion.AddTab(column.Name, -1, true);
             m_ColumnModifier.Object = column;
@@ -148,7 +147,7 @@ namespace HBP.UI
         /// Set the fields.
         /// </summary>
         /// <param name="objectToDisplay">Visualization to modify</param>
-        protected override void SetFields(Data.Visualization.Visualization objectToDisplay)
+        protected override void SetFields(Core.Data.Visualization objectToDisplay)
         {
             m_NameInputField.text = ObjectTemp.Name;
 
@@ -168,7 +167,7 @@ namespace HBP.UI
         /// Add groups to the visualization.
         /// </summary>
         /// <param name="groups">Groups to add</param>
-        protected void AddGroups(IEnumerable<Data.Group> groups)
+        protected void AddGroups(IEnumerable<Core.Data.Group> groups)
         {
             m_PatientListGestion.List.Add(groups.SelectMany(g => g.Patients).Distinct());
         }
@@ -176,7 +175,7 @@ namespace HBP.UI
         /// Remove groups to the visualization.
         /// </summary>
         /// <param name="groups">Groups to remove</param>
-        protected void RemoveGroups(IEnumerable<Data.Group> groups)
+        protected void RemoveGroups(IEnumerable<Core.Data.Group> groups)
         {
             m_PatientListGestion.List.Remove(groups.SelectMany(g => g.Patients).Distinct());
         }
@@ -207,7 +206,7 @@ namespace HBP.UI
         /// Select the specified column.
         /// </summary>
         /// <param name="column">Column selected</param>
-        protected void SelectColumn(Column column)
+        protected void SelectColumn(Core.Data.Column column)
         {
             if (ObjectTemp != null)
             {
@@ -218,7 +217,7 @@ namespace HBP.UI
         /// Remove patient from the visualization.
         /// </summary>
         /// <param name="patient">Patient removed</param>
-        protected void RemovePatient(Data.Patient patient)
+        protected void RemovePatient(Core.Data.Patient patient)
         {
             m_ObjectTemp.Patients.Remove(patient);
             m_NeedToUpdate = true;
@@ -227,7 +226,7 @@ namespace HBP.UI
         /// Add patient from the visualization.
         /// </summary>
         /// <param name="patient"></param>
-        protected void AddPatient(Data.Patient patient)
+        protected void AddPatient(Core.Data.Patient patient)
         {
             m_ObjectTemp.Patients.AddIfAbsent(patient);
             m_NeedToUpdate = true;

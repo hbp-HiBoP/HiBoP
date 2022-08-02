@@ -1,11 +1,9 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using HBP.Data.Experience.Dataset;
-using HBP.Data.Experience.Protocol;
 using System.ComponentModel;
 
-namespace HBP.Data.Visualization
+namespace HBP.Core.Data
 {
     /**
     * \class Column
@@ -90,7 +88,7 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Data of the column.
         /// </summary>
-        [IgnoreDataMember] public IEEGData Data { get; set; } = new IEEGData();
+        [IgnoreDataMember] public Processed.IEEGData Data { get; set; } = new Processed.IEEGData();
         #endregion
 
         #region Constructors

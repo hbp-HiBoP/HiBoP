@@ -6,7 +6,7 @@ namespace HBP.UI.Visualization
     /// <summary>
     /// List to display visualizations.
     /// </summary>
-    public class VisualizationList : Tools.Unity.Lists.ActionableList<Data.Visualization.Visualization>
+    public class VisualizationList : Tools.Unity.Lists.ActionableList<Core.Data.Visualization>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Patients, DescendingPatients, Columns, DescendingColumns }

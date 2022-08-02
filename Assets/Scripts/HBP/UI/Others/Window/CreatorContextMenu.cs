@@ -1,9 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using HBP.Data.Enums;
-using System.Collections.Generic;
-using System.Linq;
-using Tools.CSharp;
+using HBP.Core.Data.Enums;
 using UnityEngine.Events;
 
 namespace HBP.UI

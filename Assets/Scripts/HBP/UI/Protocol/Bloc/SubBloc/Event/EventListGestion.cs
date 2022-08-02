@@ -1,18 +1,17 @@
 ﻿using System.Linq;
-using Tools.Unity.Components;
-using d = HBP.Data.Experience.Protocol;
 using UnityEngine;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class EventListGestion : ListGestion<d.Event>
+    public class EventListGestion : ListGestion<Core.Data.Event>
     {
         #region Properties
         [SerializeField] protected EventList m_List;
-        public override Tools.Unity.Lists.ActionableList<d.Event> List => m_List;
+        public override Tools.Unity.Lists.ActionableList<Core.Data.Event> List => m_List;
 
         [SerializeField] protected EventCreator m_ObjectCreator;
-        public override ObjectCreator<d.Event> ObjectCreator => m_ObjectCreator;
+        public override ObjectCreator<Core.Data.Event> ObjectCreator => m_ObjectCreator;
         #endregion
 
         #region Protected Methods
@@ -21,44 +20,44 @@ namespace HBP.UI.Experience.Protocol
             base.Initialize();
             List.OnRemoveObject.AddListener(OnRemoveObject);
             List.OnAddObject.AddListener(OnAddObject);
-            if (List.Objects.Count == 0) m_ObjectCreator.Type = Data.Enums.MainSecondaryEnum.Main;
-            else m_ObjectCreator.Type = Data.Enums.MainSecondaryEnum.Secondary;
+            if (List.Objects.Count == 0) m_ObjectCreator.Type = MainSecondaryEnum.Main;
+            else m_ObjectCreator.Type = MainSecondaryEnum.Secondary;
         }
-        protected void OnAddObject(d.Event obj)
+        protected void OnAddObject(Core.Data.Event obj)
         {
-            if (List.Objects.Count == 0) m_ObjectCreator.Type = Data.Enums.MainSecondaryEnum.Main;
-            else m_ObjectCreator.Type = Data.Enums.MainSecondaryEnum.Secondary;
+            if (List.Objects.Count == 0) m_ObjectCreator.Type = MainSecondaryEnum.Main;
+            else m_ObjectCreator.Type = MainSecondaryEnum.Secondary;
         }
-        protected void OnRemoveObject(d.Event obj)
+        protected void OnRemoveObject(Core.Data.Event obj)
         {
-            if (!List.Objects.Any((e) => e.Type == Data.Enums.MainSecondaryEnum.Main))
+            if (!List.Objects.Any((e) => e.Type == MainSecondaryEnum.Main))
             {
-                d.Event firstEvent = List.Objects.FirstOrDefault();
-                if (firstEvent != null) firstEvent.Type = Data.Enums.MainSecondaryEnum.Main;
+                Core.Data.Event firstEvent = List.Objects.FirstOrDefault();
+                if (firstEvent != null) firstEvent.Type = MainSecondaryEnum.Main;
                 List.UpdateObject(firstEvent);
             }
-            if (List.Objects.Count == 0) m_ObjectCreator.Type = Data.Enums.MainSecondaryEnum.Main;
-            else m_ObjectCreator.Type = Data.Enums.MainSecondaryEnum.Secondary;
+            if (List.Objects.Count == 0) m_ObjectCreator.Type = MainSecondaryEnum.Main;
+            else m_ObjectCreator.Type = MainSecondaryEnum.Secondary;
         }
-        protected override void OnSaveModifier(d.Event obj)
+        protected override void OnSaveModifier(Core.Data.Event obj)
         {
-            if(obj.Type == Data.Enums.MainSecondaryEnum.Main)
+            if(obj.Type == MainSecondaryEnum.Main)
             {
                 foreach (var item in List.Objects.Where(e => e != obj))
                 {
-                    item.Type = Data.Enums.MainSecondaryEnum.Secondary;
+                    item.Type = MainSecondaryEnum.Secondary;
                 }
             }
             base.OnSaveModifier(obj);
             List.Refresh();
         }
-        protected override void OnObjectCreated(d.Event obj)
+        protected override void OnObjectCreated(Core.Data.Event obj)
         {
-            if (obj.Type == Data.Enums.MainSecondaryEnum.Main)
+            if (obj.Type == MainSecondaryEnum.Main)
             {
                 foreach (var item in List.Objects.Where(e => e != obj))
                 {
-                    item.Type = Data.Enums.MainSecondaryEnum.Secondary;
+                    item.Type = MainSecondaryEnum.Secondary;
                 }
             }
             base.OnObjectCreated(obj);

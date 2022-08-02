@@ -1,5 +1,4 @@
 ﻿using Tools.Unity.Lists;
-using d = HBP.Data.Experience.Protocol;
 using UnityEngine;
 using System.Linq;
 
@@ -8,7 +7,7 @@ namespace HBP.UI.Experience.Protocol
     /// <summary>
     /// List to display treatments.
     /// </summary>
-    public class TreatmentList : ActionableList<d.Treatment>
+    public class TreatmentList : ActionableList<Core.Data.Treatment>
     {
         #region Properties
         enum OrderBy { None, Type, DescendingType, StartWindow, DescendingStartWindow, EndWindow, DescendingEndWindow, Order, DescendingOrder }

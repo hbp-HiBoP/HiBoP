@@ -1,5 +1,4 @@
-﻿using HBP.Data.Experience.Dataset;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace HBP.Data.TrialMatrix
@@ -7,20 +6,20 @@ namespace HBP.Data.TrialMatrix
     public class Bloc
     {
         #region Properties
-        public Experience.Protocol.Bloc ProtocolBloc { get; set; }
+        public Core.Data.Bloc ProtocolBloc { get; set; }
         public SubBloc[] SubBlocs { get; set; }
         #endregion
 
         #region Constructors
-        public Bloc(Experience.Protocol.Bloc protocolBloc,SubBloc[] subBlocs)
+        public Bloc(Core.Data.Bloc protocolBloc,SubBloc[] subBlocs)
         {
             ProtocolBloc = protocolBloc;
             SubBlocs = subBlocs;
         }
-        public Bloc(Experience.Protocol.Bloc bloc, BlocChannelData blocChannelData)
+        public Bloc(Core.Data.Bloc bloc, Core.Data.BlocChannelData blocChannelData)
         {
             List<SubBloc> subBlocs = new List<SubBloc>(bloc.SubBlocs.Count);
-            IOrderedEnumerable<ChannelTrial> orderedTrials = SortTrials(bloc,blocChannelData.Trials.Where(t => t.IsValid)); // FIXME : Ajouter la gestion des trials non complets.
+            IOrderedEnumerable<Core.Data.ChannelTrial> orderedTrials = SortTrials(bloc,blocChannelData.Trials.Where(t => t.IsValid)); // FIXME : Ajouter la gestion des trials non complets.
             foreach (var subBloc in bloc.OrderedSubBlocs)
             {
                 IEnumerable<SubTrial> subTrials = orderedTrials.Select(trial => new SubTrial(trial.ChannelSubTrialBySubBloc[subBloc]));
@@ -33,10 +32,10 @@ namespace HBP.Data.TrialMatrix
         #endregion
 
         #region Private Methods
-        static IOrderedEnumerable<ChannelTrial> SortTrials(Experience.Protocol.Bloc bloc, IEnumerable<ChannelTrial> trials)
+        static IOrderedEnumerable<Core.Data.ChannelTrial> SortTrials(Core.Data.Bloc bloc, IEnumerable<Core.Data.ChannelTrial> trials)
         {
             // TODO
-            IOrderedEnumerable<ChannelTrial> ordereredTrials = trials.OrderBy(t => t.IsValid);
+            IOrderedEnumerable<Core.Data.ChannelTrial> ordereredTrials = trials.OrderBy(t => t.IsValid);
             return ordereredTrials;
         }
         #endregion

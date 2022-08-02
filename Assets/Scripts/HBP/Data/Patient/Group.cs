@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 using Tools.Unity;
 using System.IO;
 
-namespace HBP.Data
+namespace HBP.Core.Data
 {
     /// <summary>
     /// Contains all the data about a group of patients.

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using HBP.Core.Data.Enums;
 
 namespace HBP.Module3D
 {
@@ -48,7 +49,7 @@ namespace HBP.Module3D
         /// <summary>
         /// List of the preloaded MRIs of the scene
         /// </summary>
-        public Dictionary<Data.Patient, List<Core.Object3D.MRI3D>> PreloadedMRIs { get; set; } = new Dictionary<Data.Patient, List<Core.Object3D.MRI3D>>();
+        public Dictionary<Core.Data.Patient, List<Core.Object3D.MRI3D>> PreloadedMRIs { get; set; } = new Dictionary<Core.Data.Patient, List<Core.Object3D.MRI3D>>();
         /// <summary>
         /// Min calibration factor (between 0 and 1)
         /// </summary>
@@ -69,7 +70,7 @@ namespace HBP.Module3D
         /// Add a MRI to the MRI manager
         /// </summary>
         /// <param name="mri">MRI to be added</param>
-        public void Add(Data.MRI mri)
+        public void Add(Core.Data.MRI mri)
         {
             if (mri.IsUsable)
             {
@@ -87,7 +88,7 @@ namespace HBP.Module3D
                 }
                 else
                 {
-                    string name = !string.IsNullOrEmpty(m_Scene.Visualization.Configuration.MeshName) ? m_Scene.Visualization.Configuration.MeshName : m_Scene.Type == Data.Enums.SceneType.SinglePatient ? "Preimplantation" : "MNI";
+                    string name = !string.IsNullOrEmpty(m_Scene.Visualization.Configuration.MeshName) ? m_Scene.Visualization.Configuration.MeshName : m_Scene.Type == SceneType.SinglePatient ? "Preimplantation" : "MNI";
                     if (mri3D.Name == name) mri3D.Load();
                     MRIs.Add(mri3D);
                 }
@@ -97,7 +98,7 @@ namespace HBP.Module3D
         /// Add a MRI to the MRI manager preloaded MRIs
         /// </summary>
         /// <param name="mri">MRI to be added</param>
-        public void AddPreloaded(Data.MRI mri, Data.Patient patient)
+        public void AddPreloaded(Core.Data.MRI mri, Core.Data.Patient patient)
         {
             if (mri.IsUsable)
             {

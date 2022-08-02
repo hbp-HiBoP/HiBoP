@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace HBP.Data.Experience.Dataset
+namespace HBP.Core.Data
 {
     public class DynamicData
     {

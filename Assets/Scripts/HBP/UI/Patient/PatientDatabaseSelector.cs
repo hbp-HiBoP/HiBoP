@@ -9,7 +9,7 @@ namespace HBP.UI
         #region Properties
         [SerializeField] FolderSelector m_DatabaseFolderSelector;
         [SerializeField] PatientListGestion m_DatabaseListGestion;
-        Queue<Data.Patient> m_PatientToAdd = new Queue<Data.Patient>();
+        Queue<Core.Data.Patient> m_PatientToAdd = new Queue<Core.Data.Patient>();
         #endregion
 
         //    public void Add()

@@ -7,7 +7,7 @@ namespace HBP.UI.Experience.Protocol
     /// <summary>
     /// List to display subBlocs.
     /// </summary>
-    public class SubBlocList : ActionableList<Data.Experience.Protocol.SubBloc>
+    public class SubBlocList : ActionableList<Core.Data.SubBloc>
     {
         #region Properties
         enum OrderBy { None,

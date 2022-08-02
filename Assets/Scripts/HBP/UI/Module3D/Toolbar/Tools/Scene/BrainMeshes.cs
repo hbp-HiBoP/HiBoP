@@ -1,6 +1,6 @@
-﻿using HBP.Module3D;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.Module3D.Tools
 {
@@ -28,12 +28,12 @@ namespace HBP.UI.Module3D.Tools
         /// <param name="left">Is the left mesh displayed ?</param>
         /// <param name="right">Is the right mesh displayed ?</param>
         /// <returns>Mesh part enum identifier</returns>
-        private Data.Enums.MeshPart GetMeshPart(bool left, bool right)
+        private MeshPart GetMeshPart(bool left, bool right)
         {
-            if (left && right) return Data.Enums.MeshPart.Both;
-            if (left && !right) return Data.Enums.MeshPart.Left;
-            if (!left && right) return Data.Enums.MeshPart.Right;
-            return Data.Enums.MeshPart.None;
+            if (left && right) return MeshPart.Both;
+            if (left && !right) return MeshPart.Left;
+            if (!left && right) return MeshPart.Right;
+            return MeshPart.None;
         }
         #endregion
 
@@ -51,7 +51,7 @@ namespace HBP.UI.Module3D.Tools
                 {
                     if (m_Left.isOn || m_Right.isOn)
                     {
-                        Data.Enums.MeshPart mesh = GetMeshPart(m_Left.isOn, m_Right.isOn);
+                        MeshPart mesh = GetMeshPart(m_Left.isOn, m_Right.isOn);
                         SelectedScene.MeshManager.SelectMeshPart(mesh);
                     }
                     else
@@ -61,7 +61,7 @@ namespace HBP.UI.Module3D.Tools
                 }
                 else
                 {
-                    Data.Enums.MeshPart mesh = GetMeshPart(true, true);
+                    MeshPart mesh = GetMeshPart(true, true);
                     SelectedScene.MeshManager.SelectMeshPart(mesh);
                 }
             });
@@ -74,7 +74,7 @@ namespace HBP.UI.Module3D.Tools
                 {
                     if (m_Left.isOn || m_Right.isOn)
                     {
-                        Data.Enums.MeshPart mesh = GetMeshPart(m_Left.isOn, m_Right.isOn);
+                        MeshPart mesh = GetMeshPart(m_Left.isOn, m_Right.isOn);
                         SelectedScene.MeshManager.SelectMeshPart(mesh);
                     }
                     else
@@ -84,7 +84,7 @@ namespace HBP.UI.Module3D.Tools
                 }
                 else
                 {
-                    Data.Enums.MeshPart mesh = GetMeshPart(true, true);
+                    MeshPart mesh = GetMeshPart(true, true);
                     SelectedScene.MeshManager.SelectMeshPart(mesh);
                 }
             });
@@ -104,7 +104,7 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isMeshLeftRight = SelectedScene.MeshManager.SelectedMesh is LeftRightMesh3D;
+            bool isMeshLeftRight = SelectedScene.MeshManager.SelectedMesh is Core.Object3D.LeftRightMesh3D;
 
             m_Left.interactable = isMeshLeftRight;
             m_Right.interactable = isMeshLeftRight;
@@ -117,19 +117,19 @@ namespace HBP.UI.Module3D.Tools
             ChangeBrainTypeCallback();
             switch (SelectedScene.MeshManager.MeshPartToDisplay)
             {
-                case Data.Enums.MeshPart.Left:
+                case MeshPart.Left:
                     m_Left.isOn = true;
                     m_Right.isOn = false;
                     break;
-                case Data.Enums.MeshPart.Right:
+                case MeshPart.Right:
                     m_Left.isOn = false;
                     m_Right.isOn = true;
                     break;
-                case Data.Enums.MeshPart.Both:
+                case MeshPart.Both:
                     m_Left.isOn = true;
                     m_Right.isOn = true;
                     break;
-                case Data.Enums.MeshPart.None:
+                case MeshPart.None:
                     m_Left.isOn = false;
                     m_Right.isOn = false;
                     break;
@@ -142,7 +142,7 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public void ChangeBrainTypeCallback()
         {
-            m_IsMeshLeftRight = SelectedScene.MeshManager.SelectedMesh is LeftRightMesh3D;
+            m_IsMeshLeftRight = SelectedScene.MeshManager.SelectedMesh is Core.Object3D.LeftRightMesh3D;
             if (!m_IsMeshLeftRight)
             {
                 m_Left.isOn = false;
@@ -150,15 +150,15 @@ namespace HBP.UI.Module3D.Tools
             }
             else
             {
-                if (SelectedScene.MeshManager.MeshPartToDisplay == Data.Enums.MeshPart.Both)
+                if (SelectedScene.MeshManager.MeshPartToDisplay == MeshPart.Both)
                 {
                     m_Left.isOn = true;
                     m_Right.isOn = true;
                 }
                 else
                 {
-                    m_Left.isOn = (SelectedScene.MeshManager.MeshPartToDisplay == Data.Enums.MeshPart.Left);
-                    m_Right.isOn = (SelectedScene.MeshManager.MeshPartToDisplay == Data.Enums.MeshPart.Right);
+                    m_Left.isOn = (SelectedScene.MeshManager.MeshPartToDisplay == MeshPart.Left);
+                    m_Right.isOn = (SelectedScene.MeshManager.MeshPartToDisplay == MeshPart.Right);
                 }
             }
         }

@@ -9,7 +9,7 @@ public static class DEBUG
     [MenuItem("DEBUG/Adrien/Main")]
     private static void Main()
     {
-        Patient.LoadFromBIDSDatabase(@"Z:\BrainTV\HBP\Development\BaseBidsCCEPGrenoble\07-bids_20190416\07-bids", out Patient[] patients);
+        HBP.Core.Data.Patient.LoadFromBIDSDatabase(@"Z:\BrainTV\HBP\Development\BaseBidsCCEPGrenoble\07-bids_20190416\07-bids", out HBP.Core.Data.Patient[] patients);
     }
 
     [MenuItem("Tools/Theme/ActiveThemeElement")]

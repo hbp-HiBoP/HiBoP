@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Tools.Unity;
 using System;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.Module3D
 {
@@ -60,7 +61,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Array of Tuples containing the orientation of each cut and its respective generated texture
         /// </summary>
-        public Tuple<Data.Enums.CutOrientation, Texture2D>[] CutTextures { get { return (from cutParameterController in m_CutParametersControllers select new Tuple<Data.Enums.CutOrientation, Texture2D>(cutParameterController.Cut.Orientation, cutParameterController.Texture)).ToArray(); } }
+        public Tuple<CutOrientation, Texture2D>[] CutTextures { get { return (from cutParameterController in m_CutParametersControllers select new Tuple<CutOrientation, Texture2D>(cutParameterController.Cut.Orientation, cutParameterController.Texture)).ToArray(); } }
         /// <summary>
         /// Is the panel minimized ?
         /// </summary>

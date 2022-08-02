@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI
 {
-    public class FloatTagSubModifier : SubModifier<Data.FloatTag>
+    public class FloatTagSubModifier : SubModifier<Core.Data.FloatTag>
     {
         #region Properties
         [SerializeField] Toggle m_ClampedToggle;
@@ -41,7 +41,7 @@ namespace HBP.UI
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(Data.FloatTag objectToDisplay)
+        protected override void SetFields(Core.Data.FloatTag objectToDisplay)
         {
             base.SetFields(objectToDisplay);
 

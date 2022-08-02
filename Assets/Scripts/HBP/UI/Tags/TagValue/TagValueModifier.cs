@@ -10,7 +10,7 @@ namespace HBP.UI
     /// <summary>
     /// Window to modify a tagValue.
     /// </summary>
-    public class TagValueModifier : ObjectModifier<Data.BaseTagValue>
+    public class TagValueModifier : ObjectModifier<Core.Data.BaseTagValue>
     {
         #region Properties
         [SerializeField] Dropdown m_TagDropdown;
@@ -23,13 +23,13 @@ namespace HBP.UI
         [SerializeField] StringTagValueSubModifier m_StringTagValueSubModifier;
 
         List<BaseSubModifier> m_SubModifiers;
-        List<Data.BaseTagValue> m_TagValuesTemp;
+        List<Core.Data.BaseTagValue> m_TagValuesTemp;
 
-        Data.BaseTag[] m_Tags = new Data.BaseTag[0];
+        Core.Data.BaseTag[] m_Tags = new Core.Data.BaseTag[0];
         /// <summary>
         /// Possible tags.
         /// </summary>
-        public Data.BaseTag[] Tags
+        public Core.Data.BaseTag[] Tags
         {
             get
             {
@@ -116,21 +116,21 @@ namespace HBP.UI
                 m_StringTagValueSubModifier
             };
 
-            m_TagValuesTemp = new List<Data.BaseTagValue>
+            m_TagValuesTemp = new List<Core.Data.BaseTagValue>
             {
-                new Data.EmptyTagValue(),
-                new Data.BoolTagValue(),
-                new Data.FloatTagValue(),
-                new Data.IntTagValue(),
-                new Data.EnumTagValue(),
-                new Data.StringTagValue()
+                new Core.Data.EmptyTagValue(),
+                new Core.Data.BoolTagValue(),
+                new Core.Data.FloatTagValue(),
+                new Core.Data.IntTagValue(),
+                new Core.Data.EnumTagValue(),
+                new Core.Data.StringTagValue()
             };
         }
         /// <summary>
         /// Set the fields.
         /// </summary>
         /// <param name="objectToModify">TagValue to modify</param>
-        protected override void SetFields(Data.BaseTagValue objectToModify)
+        protected override void SetFields(Core.Data.BaseTagValue objectToModify)
         {
             int index = m_TagValuesTemp.FindIndex(t => t.GetType() == objectToModify.GetType());
             m_TagValuesTemp[index] = objectToModify;
@@ -148,45 +148,45 @@ namespace HBP.UI
 
             if (index >= 0 && index < Tags.Length)
             {
-                Data.BaseTag tag = Tags[index];
+                Core.Data.BaseTag tag = Tags[index];
 
 
-                Data.BaseTagValue tagValue = null;
-                if (tag is Data.EmptyTag emptyTag)
+                Core.Data.BaseTagValue tagValue = null;
+                if (tag is Core.Data.EmptyTag emptyTag)
                 {
-                    tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(Data.EmptyTagValue));
+                    tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(Core.Data.EmptyTagValue));
                     tagValue.Copy(m_ObjectTemp);
-                    (tagValue as Data.EmptyTagValue).Tag = emptyTag;
+                    (tagValue as Core.Data.EmptyTagValue).Tag = emptyTag;
                 }
-                else if (tag is Data.BoolTag boolTag)
+                else if (tag is Core.Data.BoolTag boolTag)
                 {
-                    tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(Data.BoolTagValue));
+                    tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(Core.Data.BoolTagValue));
                     tagValue.Copy(m_ObjectTemp);
-                    (tagValue as Data.BoolTagValue).Tag = boolTag;
+                    (tagValue as Core.Data.BoolTagValue).Tag = boolTag;
                 }
-                else if (tag is Data.EnumTag enumTag)
+                else if (tag is Core.Data.EnumTag enumTag)
                 {
-                    tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(Data.EnumTagValue));
+                    tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(Core.Data.EnumTagValue));
                     tagValue.Copy(m_ObjectTemp);
-                    (tagValue as Data.EnumTagValue).Tag = enumTag;
+                    (tagValue as Core.Data.EnumTagValue).Tag = enumTag;
                 }
-                else if (tag is Data.FloatTag floatTag)
+                else if (tag is Core.Data.FloatTag floatTag)
                 {
-                    tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(Data.FloatTagValue));
+                    tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(Core.Data.FloatTagValue));
                     tagValue.Copy(m_ObjectTemp);
-                    (tagValue as Data.FloatTagValue).Tag = floatTag;
+                    (tagValue as Core.Data.FloatTagValue).Tag = floatTag;
                 }
-                else if (tag is Data.IntTag intTag)
+                else if (tag is Core.Data.IntTag intTag)
                 {
-                    tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(Data.IntTagValue));
+                    tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(Core.Data.IntTagValue));
                     tagValue.Copy(m_ObjectTemp);
-                    (tagValue as Data.IntTagValue).Tag = intTag;
+                    (tagValue as Core.Data.IntTagValue).Tag = intTag;
                 }
-                else if (tag is Data.StringTag stringTag)
+                else if (tag is Core.Data.StringTag stringTag)
                 {
-                    tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(Data.StringTagValue));
+                    tagValue = m_TagValuesTemp.Find(t => t.GetType() == typeof(Core.Data.StringTagValue));
                     tagValue.Copy(m_ObjectTemp);
-                    (tagValue as Data.StringTagValue).Tag = stringTag;
+                    (tagValue as Core.Data.StringTagValue).Tag = stringTag;
                 }
 
                 m_ObjectTemp = tagValue;

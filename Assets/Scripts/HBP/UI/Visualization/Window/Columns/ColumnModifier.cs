@@ -1,13 +1,12 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using HBP.Data.Visualization;
 using Tools.Unity;
 using UnityEngine.Events;
 using System;
 
 namespace HBP.UI
 {
-    public class ColumnModifier : SubModifier<Column>
+    public class ColumnModifier : SubModifier<Core.Data.Column>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -20,7 +19,7 @@ namespace HBP.UI
 
         Type[] m_Types;
 
-        public override Column Object
+        public override Core.Data.Column Object
         {
             get
             {
@@ -42,14 +41,14 @@ namespace HBP.UI
                     m_NameInputField.interactable = false;
                     m_NameInputField.text = "";
                     m_TypeDropdown.interactable = false;
-                    m_TypeDropdown.SetValue(Array.IndexOf(m_Types, typeof(AnatomicColumn)));
+                    m_TypeDropdown.SetValue(Array.IndexOf(m_Types, typeof(Core.Data.AnatomicColumn)));
                 }
                 OnChangeColumn.Invoke(value);
             }
         }
 
-        Data.Patient[] m_Patients;
-        public Data.Patient[] Patients
+        Core.Data.Patient[] m_Patients;
+        public Core.Data.Patient[] Patients
         {
             get
             {
@@ -88,7 +87,7 @@ namespace HBP.UI
         }
 
         public GenericEvent<string> OnChangeName { get; } = new GenericEvent<string>();
-        public GenericEvent<Column> OnChangeColumn { get; } = new GenericEvent<Column>();
+        public GenericEvent<Core.Data.Column> OnChangeColumn { get; } = new GenericEvent<Core.Data.Column>();
         #endregion
 
         #region Public Methods
@@ -98,7 +97,7 @@ namespace HBP.UI
 
             m_NameInputField.onValueChanged.AddListener(OnChangeNameHanlder);
             m_TypeDropdown.onValueChanged.AddListener(OnChangeTypeHandler);
-            m_Types = m_TypeDropdown.Set(typeof(Column));
+            m_Types = m_TypeDropdown.Set(typeof(Core.Data.Column));
         }
         #endregion
 
@@ -108,10 +107,10 @@ namespace HBP.UI
             Type type = m_Types[value];
             if (m_Object != null)
             {
-                if (type == typeof(AnatomicColumn))
+                if (type == typeof(Core.Data.AnatomicColumn))
                 {
-                    if (!(m_Object is AnatomicColumn)) Object = new AnatomicColumn(Object.Name, Object.BaseConfiguration);
-                    m_AnatomicColumnModifier.Object = Object as AnatomicColumn;
+                    if (!(m_Object is Core.Data.AnatomicColumn)) Object = new Core.Data.AnatomicColumn(Object.Name, Object.BaseConfiguration);
+                    m_AnatomicColumnModifier.Object = Object as Core.Data.AnatomicColumn;
 
                     m_AnatomicColumnModifier.IsActive = true;
                     m_IEEGColumnModifier.IsActive = false;
@@ -119,10 +118,10 @@ namespace HBP.UI
                     m_FMRIColumnModifier.IsActive = false;
                     m_MEGColumnModifier.IsActive = false;
                 }
-                else if (type == typeof(IEEGColumn))
+                else if (type == typeof(Core.Data.IEEGColumn))
                 {
-                    if (!(m_Object is IEEGColumn)) Object = new IEEGColumn(Object.Name, Object.BaseConfiguration, m_Patients);
-                    m_IEEGColumnModifier.Object = Object as IEEGColumn;
+                    if (!(m_Object is Core.Data.IEEGColumn)) Object = new Core.Data.IEEGColumn(Object.Name, Object.BaseConfiguration, m_Patients);
+                    m_IEEGColumnModifier.Object = Object as Core.Data.IEEGColumn;
 
                     m_AnatomicColumnModifier.IsActive = false;
                     m_IEEGColumnModifier.IsActive = true;
@@ -130,10 +129,10 @@ namespace HBP.UI
                     m_FMRIColumnModifier.IsActive = false;
                     m_MEGColumnModifier.IsActive = false;
                 }
-                else if (type == typeof(CCEPColumn))
+                else if (type == typeof(Core.Data.CCEPColumn))
                 {
-                    if (!(m_Object is CCEPColumn)) Object = new CCEPColumn(Object.Name, Object.BaseConfiguration, m_Patients);
-                    m_CCEPColumnModifier.Object = Object as CCEPColumn;
+                    if (!(m_Object is Core.Data.CCEPColumn)) Object = new Core.Data.CCEPColumn(Object.Name, Object.BaseConfiguration, m_Patients);
+                    m_CCEPColumnModifier.Object = Object as Core.Data.CCEPColumn;
 
                     m_AnatomicColumnModifier.IsActive = false;
                     m_IEEGColumnModifier.IsActive = false;
@@ -141,10 +140,10 @@ namespace HBP.UI
                     m_FMRIColumnModifier.IsActive = false;
                     m_MEGColumnModifier.IsActive = false;
                 }
-                else if (type == typeof(FMRIColumn))
+                else if (type == typeof(Core.Data.FMRIColumn))
                 {
-                    if (!(m_Object is FMRIColumn)) Object = new FMRIColumn(Object.Name, Object.BaseConfiguration);
-                    m_FMRIColumnModifier.Object = Object as FMRIColumn;
+                    if (!(m_Object is Core.Data.FMRIColumn)) Object = new Core.Data.FMRIColumn(Object.Name, Object.BaseConfiguration);
+                    m_FMRIColumnModifier.Object = Object as Core.Data.FMRIColumn;
 
                     m_AnatomicColumnModifier.IsActive = false;
                     m_IEEGColumnModifier.IsActive = false;
@@ -152,10 +151,10 @@ namespace HBP.UI
                     m_FMRIColumnModifier.IsActive = true;
                     m_MEGColumnModifier.IsActive = false;
                 }
-                else if (type == typeof(MEGColumn))
+                else if (type == typeof(Core.Data.MEGColumn))
                 {
-                    if (!(m_Object is MEGColumn)) Object = new MEGColumn(Object.Name, Object.BaseConfiguration);
-                    m_MEGColumnModifier.Object = Object as MEGColumn;
+                    if (!(m_Object is Core.Data.MEGColumn)) Object = new Core.Data.MEGColumn(Object.Name, Object.BaseConfiguration);
+                    m_MEGColumnModifier.Object = Object as Core.Data.MEGColumn;
 
                     m_AnatomicColumnModifier.IsActive = false;
                     m_IEEGColumnModifier.IsActive = false;

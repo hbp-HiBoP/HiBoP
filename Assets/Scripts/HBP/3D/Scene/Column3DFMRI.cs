@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using HBP.Module3D.DLL;
-using HBP.Data.Enums;
-using HBP.Data.Visualization;
 
 namespace HBP.Module3D
 {
@@ -16,11 +13,11 @@ namespace HBP.Module3D
         /// <summary>
         /// FMRI data of this column (contains information about what to display)
         /// </summary>
-        public FMRIColumn ColumnFMRIData
+        public Core.Data.FMRIColumn ColumnFMRIData
         {
             get
             {
-                return ColumnData as FMRIColumn;
+                return ColumnData as Core.Data.FMRIColumn;
             }
         }
         /// <summary>
@@ -44,7 +41,7 @@ namespace HBP.Module3D
                 OnChangeSelectedFMRI.Invoke();
             }
         }
-        public FMRI SelectedFMRI { get { return ColumnFMRIData.Data.FMRIs[SelectedFMRIIndex].Item1; } }
+        public Core.Object3D.FMRI SelectedFMRI { get { return ColumnFMRIData.Data.FMRIs[SelectedFMRIIndex].Item1; } }
         public int SelectedVolumeIndex
         {
             get
@@ -58,7 +55,7 @@ namespace HBP.Module3D
             }
         }
 
-        public FMRITimeline Timeline { get; private set; } = new FMRITimeline();
+        public Core.Data.FMRITimeline Timeline { get; private set; } = new Core.Data.FMRITimeline();
         #endregion
 
         #region Events
@@ -80,7 +77,7 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
-        public override void Initialize(int idColumn, Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
+        public override void Initialize(int idColumn, Core.Data.Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
 

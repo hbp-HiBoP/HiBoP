@@ -1,10 +1,9 @@
-﻿using HBP.Data.Container;
-using HBP.Errors;
+﻿using HBP.Errors;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 
-namespace HBP.Data.Experience.Dataset
+namespace HBP.Core.Data
 {
     /// <summary>
     /// Class containing paths to functional data files related to a patient.
@@ -81,7 +80,7 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="dataContainer">Data container of the patient dataInfo.</param>
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="ID">Unique identifier</param>
-        public PatientDataInfo(string name, DataContainer dataContainer, Patient patient, string ID) : base(name, dataContainer, ID)
+        public PatientDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string ID) : base(name, dataContainer, ID)
         {
             Patient = patient;
         }
@@ -91,14 +90,14 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="name">Name of the patient dataInfo.</param>
         /// <param name="dataContainer">Data container of the patient dataInfo.</param>
         /// <param name="patient">Patient related to the data.</param>
-        public PatientDataInfo(string name, DataContainer dataContainer, Patient patient) : base(name, dataContainer)
+        public PatientDataInfo(string name, Container.DataContainer dataContainer, Patient patient) : base(name, dataContainer)
         {
             Patient = patient;
         }
         /// <summary>
         /// Create a new PatientDataInfo instance.
         /// </summary>
-        public PatientDataInfo() : this("Data", new Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault())
+        public PatientDataInfo() : this("Data", new Container.Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault())
         {
         }
         #endregion
@@ -110,7 +109,7 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new PatientDataInfo(Name, DataContainer.Clone() as DataContainer, Patient, ID);
+            return new PatientDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, ID);
         }
         public override void Copy(object obj)
         {
@@ -123,7 +122,7 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Public Methods
-        public override Error[] GetErrors(Protocol.Protocol protocol)
+        public override Error[] GetErrors(Protocol protocol)
         {
             List<Error> errors = new List<Error>(base.GetErrors(protocol));
             errors.AddRange(GetPatientErrors());

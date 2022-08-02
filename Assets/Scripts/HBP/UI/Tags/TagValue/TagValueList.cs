@@ -7,7 +7,7 @@ namespace HBP.UI
     /// <summary>
     /// List to display TagValues.
     /// </summary>
-    public class TagValueList : ActionableList<Data.BaseTagValue>
+    public class TagValueList : ActionableList<Core.Data.BaseTagValue>
     {
         #region Properties
         enum OrderBy { None, Tag, DescendingTag, Value, DescendingValue }
@@ -23,7 +23,7 @@ namespace HBP.UI
         /// </summary>
         /// <param name="objectToAdd">TagValue to add</param>
         /// <returns>True if end without error, False otherwise</returns>
-        public override bool Add(Data.BaseTagValue objectToAdd)
+        public override bool Add(Core.Data.BaseTagValue objectToAdd)
         {
             SortByNone();
             return base.Add(objectToAdd);

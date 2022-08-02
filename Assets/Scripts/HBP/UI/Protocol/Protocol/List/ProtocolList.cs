@@ -1,5 +1,4 @@
-﻿using d = HBP.Data.Experience.Protocol;
-using System.Linq;
+﻿using System.Linq;
 using UnityEngine;
 
 namespace HBP.UI.Experience.Protocol
@@ -7,7 +6,7 @@ namespace HBP.UI.Experience.Protocol
     /// <summary>
     /// List to display protocols.
     /// </summary>
-    public class ProtocolList : Tools.Unity.Lists.ActionableList<d.Protocol>
+    public class ProtocolList : Tools.Unity.Lists.ActionableList<Core.Data.Protocol>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Blocs, DescendingBlocs }

@@ -1,11 +1,11 @@
-﻿using System.Linq;
+﻿using HBP.Core.Data.Enums;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using d = HBP.Data.Experience.Dataset;
 
 namespace HBP.UI.Experience.Dataset
 {
-    public class iEEGDataInfoSubModifier : SubModifier<d.IEEGDataInfo>
+    public class iEEGDataInfoSubModifier : SubModifier<Core.Data.IEEGDataInfo>
     {
         #region Properties     
         [SerializeField] Dropdown m_NormalizationDropdown;
@@ -28,13 +28,13 @@ namespace HBP.UI.Experience.Dataset
         public override void Initialize()
         {
             base.Initialize();
-            m_NormalizationDropdown.options = (from name in System.Enum.GetNames(typeof(d.IEEGDataInfo.NormalizationType)) select new Dropdown.OptionData(name, null)).ToList();
-            m_NormalizationDropdown.onValueChanged.AddListener((value) => Object.Normalization = (d.IEEGDataInfo.NormalizationType)value);
+            m_NormalizationDropdown.options = (from name in System.Enum.GetNames(typeof(NormalizationType)) select new Dropdown.OptionData(name, null)).ToList();
+            m_NormalizationDropdown.onValueChanged.AddListener((value) => Object.Normalization = (NormalizationType)value);
         }
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(d.IEEGDataInfo objectToDisplay)
+        protected override void SetFields(Core.Data.IEEGDataInfo objectToDisplay)
         {
             m_NormalizationDropdown.value = (int)objectToDisplay.Normalization;
             m_NormalizationDropdown.RefreshShownValue();

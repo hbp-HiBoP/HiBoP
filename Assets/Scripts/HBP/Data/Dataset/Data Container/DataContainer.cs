@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 using UnityEngine.Events;
 using HBP.Errors;
 
-namespace HBP.Data.Container
+namespace HBP.Core.Data.Container
 {
     /// <summary>
     /// Class which contains all the informations about a data.

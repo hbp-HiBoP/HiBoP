@@ -4,16 +4,13 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using HBP.Data.Visualization;
-using HBP.Data.Experience.Dataset;
-using HBP.Data.Experience.Protocol;
 using CielaSpike;
 using Tools.Unity;
 using Ionic.Zip;
 using Tools.CSharp;
 using UnityEngine;
 
-namespace HBP.Data
+namespace HBP.Core.Data
 {
     /**
     * \class Project
@@ -90,13 +87,13 @@ namespace HBP.Data
             get { return new ReadOnlyCollection<Dataset>(m_Datasets); }
         }
 
-        List<Visualization.Visualization> m_Visualizations = new List<Visualization.Visualization>();
+        List<Visualization> m_Visualizations = new List<Visualization>();
         /// <summary>
         /// Visualizations of the project.
         /// </summary>
-        public ReadOnlyCollection<Visualization.Visualization> Visualizations
+        public ReadOnlyCollection<Visualization> Visualizations
         {
-            get { return new ReadOnlyCollection<Visualization.Visualization>(m_Visualizations); }
+            get { return new ReadOnlyCollection<Visualization>(m_Visualizations); }
         }
         #endregion
 
@@ -111,7 +108,7 @@ namespace HBP.Data
         /// <param name="datasets">Datasets of the project.</param>
         /// <param name="visualizations">Single patient visualizations of the project.</param>
         /// <param name="multiVisualizations">Multi patients visualizations of the project.</param>
-        public Project(ProjectPreferences settings, IEnumerable<Patient> patients, IEnumerable<Group> groups, IEnumerable<Protocol> protocols, IEnumerable<Dataset> datasets, IEnumerable<Visualization.Visualization> visualizations)
+        public Project(ProjectPreferences settings, IEnumerable<Patient> patients, IEnumerable<Group> groups, IEnumerable<Protocol> protocols, IEnumerable<Dataset> datasets, IEnumerable<Visualization> visualizations)
         {
             Preferences = settings;
             SetPatients(patients);
@@ -124,7 +121,7 @@ namespace HBP.Data
         /// Create a new project with only the settings.
         /// </summary>
         /// <param name="settings">Settings of the project.</param>
-        public Project(ProjectPreferences settings) : this(settings, new Patient[0], new Group[0], new Protocol[0], new Dataset[0], new Visualization.Visualization[0])
+        public Project(ProjectPreferences settings) : this(settings, new Patient[0], new Group[0], new Protocol[0], new Dataset[0], new Visualization[0])
         {
         }
         /// <summary>
@@ -156,7 +153,7 @@ namespace HBP.Data
             {
                 dataset.RemoveData(from data in dataset.GetPatientDataInfos() where !m_Patients.Any(p => p == data.Patient) select data);
             }
-            foreach (Visualization.Visualization visualization in m_Visualizations)
+            foreach (Visualization visualization in m_Visualizations)
             {
                 visualization.Patients.RemoveAll(patient => !m_Patients.Contains(patient));
             }
@@ -186,7 +183,7 @@ namespace HBP.Data
             {
                 dataset.RemoveData(from data in dataset.GetPatientDataInfos() where data.Patient == patient select data);
             }
-            foreach (Visualization.Visualization visualization in m_Visualizations)
+            foreach (Visualization visualization in m_Visualizations)
             {
                 visualization.Patients.Remove(patient);
             }
@@ -233,7 +230,7 @@ namespace HBP.Data
             m_Protocols = new List<Protocol>();
             AddProtocol(protocols);
             RemoveDataset((from dataset in m_Datasets where !m_Protocols.Any(p => p == dataset.Protocol) select dataset).ToArray());
-            foreach (Visualization.Visualization visualization in m_Visualizations)
+            foreach (Visualization visualization in m_Visualizations)
             {
                 IEEGColumn[] columnsToRemove = visualization.Columns.Where(c => c is IEEGColumn).Select(c => c as IEEGColumn).Where(c => !m_Protocols.Any(p => p == c.Dataset.Protocol)).ToArray();
                 foreach (Column column in columnsToRemove)
@@ -256,7 +253,7 @@ namespace HBP.Data
         public void RemoveProtocol(Protocol protocol)
         {
             m_Datasets.RemoveAll((d) => d.Protocol == protocol);
-            foreach (Visualization.Visualization visualization in m_Visualizations)
+            foreach (Visualization visualization in m_Visualizations)
             {
                 visualization.Columns.RemoveAll((column) => (column is IEEGColumn) && (column as IEEGColumn).Dataset.Protocol == protocol);
             }
@@ -274,7 +271,7 @@ namespace HBP.Data
         {
             m_Datasets = new List<Dataset>();
             AddDataset(datasets);
-            foreach (Visualization.Visualization visualization in m_Visualizations)
+            foreach (Visualization visualization in m_Visualizations)
             {
                 Column[] columnsToRemove = visualization.Columns.Where(column => column is IEEGColumn && !m_Datasets.Any(d => d == (column as IEEGColumn).Dataset)).ToArray();
                 foreach (Column column in columnsToRemove)
@@ -296,7 +293,7 @@ namespace HBP.Data
         }
         public void RemoveDataset(Dataset dataset)
         {
-            foreach (Visualization.Visualization visualization in m_Visualizations)
+            foreach (Visualization visualization in m_Visualizations)
             {
                 visualization.Columns.RemoveAll((column) => (column is IEEGColumn) && (column as IEEGColumn).Dataset == dataset);
             }
@@ -310,29 +307,29 @@ namespace HBP.Data
             }
         }
         // Visualizations.
-        public void SetVisualizations(IEnumerable<Visualization.Visualization> visualizations)
+        public void SetVisualizations(IEnumerable<Visualization> visualizations)
         {
-            this.m_Visualizations = new List<Visualization.Visualization>();
+            this.m_Visualizations = new List<Visualization>();
             AddVisualization(visualizations);
         }
-        public void AddVisualization(Visualization.Visualization visualization)
+        public void AddVisualization(Visualization visualization)
         {
             m_Visualizations.Add(visualization);
         }
-        public void AddVisualization(IEnumerable<Visualization.Visualization> visualizations)
+        public void AddVisualization(IEnumerable<Visualization> visualizations)
         {
-            foreach (Visualization.Visualization visualization in visualizations)
+            foreach (Visualization visualization in visualizations)
             {
                 AddVisualization(visualization);
             }
         }
-        public void RemoveVisualization(Visualization.Visualization visualization)
+        public void RemoveVisualization(Visualization visualization)
         {
             m_Visualizations.Remove(visualization);
         }
-        public void RemoveVisualization(IEnumerable<Visualization.Visualization> visualizations)
+        public void RemoveVisualization(IEnumerable<Visualization> visualizations)
         {
-            foreach (Visualization.Visualization visualization in visualizations)
+            foreach (Visualization visualization in visualizations)
             {
                 RemoveVisualization(visualization);
             }
@@ -791,15 +788,15 @@ namespace HBP.Data
             //Load Visualizations
             DirectoryInfo visualizationsDirectory = projectDirectory.GetDirectories("Visualizations", SearchOption.TopDirectoryOnly)[0];
 
-            List<Visualization.Visualization> visualizations = new List<Visualization.Visualization>();
-            FileInfo[] visualizationFiles = visualizationsDirectory.GetFiles("*" + Visualization.Visualization.EXTENSION, SearchOption.TopDirectoryOnly);
+            List<Visualization> visualizations = new List<Visualization>();
+            FileInfo[] visualizationFiles = visualizationsDirectory.GetFiles("*" + Visualization.EXTENSION, SearchOption.TopDirectoryOnly);
             for (int i = 0; i < visualizationFiles.Length; ++i)
             {
                 FileInfo visualizationFile = visualizationFiles[i];
                 onChangeProgress.Invoke((float)(i + 1) / visualizationFiles.Length, 0, new LoadingText("Loading visualization ", Path.GetFileNameWithoutExtension(visualizationFile.Name), " [" + (i + 1).ToString() + "/" + visualizationFiles.Length + "]"));
                 try
                 {
-                    visualizations.Add(ClassLoaderSaver.LoadFromJson<Visualization.Visualization>(visualizationFile.FullName));
+                    visualizations.Add(ClassLoaderSaver.LoadFromJson<Visualization>(visualizationFile.FullName));
                 }
                 catch (Exception e)
                 {
@@ -930,7 +927,7 @@ namespace HBP.Data
             //Save singleVisualizations
             int count = 0;
             int length = m_Visualizations.Count();
-            foreach (Visualization.Visualization visualization in m_Visualizations)
+            foreach (Visualization visualization in m_Visualizations)
             {
                 yield return Ninja.JumpToUnity;
                 onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving visualization ", visualization.Name, " [" + (count + 1) + "/" + length + "]"));
@@ -938,7 +935,7 @@ namespace HBP.Data
 
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(visualization, Path.Combine(visualizationDirectory.FullName, visualization.Name + Visualization.Visualization.EXTENSION));
+                    ClassLoaderSaver.SaveToJSon(visualization, Path.Combine(visualizationDirectory.FullName, visualization.Name + Visualization.EXTENSION));
                 }
                 catch (Exception e)
                 {

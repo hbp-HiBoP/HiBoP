@@ -8,7 +8,7 @@ namespace HBP.UI
     /// <summary>
     /// Component to display mesh in list.
     /// </summary>
-    public class MeshItem : ActionnableItem<Data.BaseMesh>
+    public class MeshItem : ActionnableItem<Core.Data.BaseMesh>
     {
         #region Properties
         [SerializeField] Text m_NameInputField;
@@ -21,7 +21,7 @@ namespace HBP.UI
         /// <summary>
         /// Object to display.
         /// </summary>
-        public override Data.BaseMesh Object
+        public override Core.Data.BaseMesh Object
         {
             get
             {

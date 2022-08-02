@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI
 {
-    public class IntTagValueSubModifier : SubModifier<Data.IntTagValue>
+    public class IntTagValueSubModifier : SubModifier<Core.Data.IntTagValue>
     {
         #region Properties
         [SerializeField] InputField m_ValueInputField;
@@ -28,7 +28,7 @@ namespace HBP.UI
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(Data.IntTagValue objectToDisplay)
+        protected override void SetFields(Core.Data.IntTagValue objectToDisplay)
         {
             base.SetFields(objectToDisplay);
             m_ValueInputField.text = objectToDisplay.Value.ToString();

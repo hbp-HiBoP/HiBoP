@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace HBP.Data.Experience.Dataset
+namespace HBP.Core.Data
 {
     public class IEEGRawData : DynamicData
     {
@@ -15,7 +15,7 @@ namespace HBP.Data.Experience.Dataset
         /// <summary>
         /// Create a new Data instance with default values.
         /// </summary>
-        public IEEGRawData(): this(new Dictionary < string, float[] >(), new Dictionary<string, string>(), new Tools.CSharp.EEG.Frequency(), new Patient())
+        public IEEGRawData(): this(new Dictionary < string, float[] >(), new Dictionary<string, string>(), new Tools.Frequency(), new Patient())
         {
         }
         /// <summary>
@@ -26,7 +26,7 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="pos">POS file.</param>
         /// <param name="frequency">Values frequency.</param>
         /// <param name="patient">Patient.</param>
-        public IEEGRawData(Dictionary<string,float[]> valuesBySite, Dictionary<string,string> unitBySite, Core.Tools.Frequency frequency, Patient patient): base(valuesBySite, unitBySite, frequency)
+        public IEEGRawData(Dictionary<string,float[]> valuesBySite, Dictionary<string,string> unitBySite, Tools.Frequency frequency, Patient patient): base(valuesBySite, unitBySite, frequency)
         {
             Patient = patient;
         }

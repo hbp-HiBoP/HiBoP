@@ -7,7 +7,7 @@ namespace HBP.UI
     /// <summary>
     /// Component to display TagValue in list.
     /// </summary>
-    public class TagValueItem : ActionnableItem<Data.BaseTagValue>
+    public class TagValueItem : ActionnableItem<Core.Data.BaseTagValue>
     {
         #region Properties
         [SerializeField] Text m_NameText;
@@ -16,7 +16,7 @@ namespace HBP.UI
         /// <summary>
         /// Object to display.
         /// </summary>
-        public override Data.BaseTagValue Object
+        public override Core.Data.BaseTagValue Object
         {
             get
             {

@@ -7,14 +7,14 @@ namespace HBP.UI
     /// <summary>
     /// Window to select visualizations.
     /// </summary>
-    public class VisualizationSelector : ObjectSelector<Data.Visualization.Visualization>
+    public class VisualizationSelector : ObjectSelector<Core.Data.Visualization>
     {
         #region Properties
         [SerializeField] VisualizationList m_List;
         /// <summary>
         /// UI visualizations list.
         /// </summary>
-        protected override SelectableList<Data.Visualization.Visualization> List => m_List;
+        protected override SelectableList<Core.Data.Visualization> List => m_List;
         #endregion
     }
 }

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace HBP.UI
 {
-    public class TagsSubModifiers : SubModifier<Data.ProjectPreferences>
+    public class TagsSubModifiers : SubModifier<Core.Data.ProjectPreferences>
     {
         #region Properties
         [SerializeField] GeneralTagsSubModifiers m_GeneralSubModifiers;
@@ -23,15 +23,15 @@ namespace HBP.UI
             }
         }
 
-        public ReadOnlyCollection<Data.BaseTag> ModifiedTags
+        public ReadOnlyCollection<Core.Data.BaseTag> ModifiedTags
         {
             get
             {
-                List<Data.BaseTag> tags = new List<Data.BaseTag>();
+                List<Core.Data.BaseTag> tags = new List<Core.Data.BaseTag>();
                 tags.AddRange(m_GeneralSubModifiers.ModifiedTags);
                 tags.AddRange(m_PatientsSubModifiers.ModifiedTags);
                 tags.AddRange(m_SitesSubModifiers.ModifiedTags);
-                return new ReadOnlyCollection<Data.BaseTag>(tags);
+                return new ReadOnlyCollection<Core.Data.BaseTag>(tags);
             }
         }
         #endregion
@@ -54,7 +54,7 @@ namespace HBP.UI
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(Data.ProjectPreferences objectToDisplay)
+        protected override void SetFields(Core.Data.ProjectPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
             m_GeneralSubModifiers.Object = objectToDisplay;

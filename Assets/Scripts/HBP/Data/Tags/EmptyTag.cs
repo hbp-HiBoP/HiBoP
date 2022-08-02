@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace HBP.Data
+namespace HBP.Core.Data
 {
     [DisplayName("Empty")]
     public class EmptyTag : BaseTag

@@ -1,11 +1,10 @@
-﻿using HBP.Data.Experience.Protocol;
-using System.Globalization;
+﻿using System.Globalization;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class ThresholdTreatmentSubModifier : SubModifier<Data.Experience.Protocol.ThresholdTreatment>
+    public class ThresholdTreatmentSubModifier : SubModifier<Core.Data.ThresholdTreatment>
     {
         #region Properties
         [SerializeField] Toggle m_UseMinTresholdToggle;
@@ -62,7 +61,7 @@ namespace HBP.UI.Experience.Protocol
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(ThresholdTreatment objectToDisplay)
+        protected override void SetFields(Core.Data.ThresholdTreatment objectToDisplay)
         {
             base.SetFields(objectToDisplay);
             m_UseMinTresholdToggle.isOn = objectToDisplay.UseMinTreshold;

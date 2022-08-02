@@ -1,16 +1,13 @@
-﻿using HBP.Data;
-using Tools.Unity.Components;
-
-namespace HBP.UI
+﻿namespace HBP.UI
 {
-    public class MeshCreator : ObjectCreator<BaseMesh>
+    public class MeshCreator : ObjectCreator<Core.Data.BaseMesh>
     {
         /// <summary>
         /// Create a new Mesh from scratch.
         /// </summary>
         public override void CreateFromScratch()
         {
-            OpenModifier(new LeftRightMesh());
+            OpenModifier(new Core.Data.LeftRightMesh());
         }
     }
 }

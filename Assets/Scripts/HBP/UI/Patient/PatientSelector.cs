@@ -3,11 +3,11 @@ using UnityEngine;
 
 namespace HBP.UI
 {
-    public class PatientSelector : ObjectSelector<Data.Patient>
+    public class PatientSelector : ObjectSelector<Core.Data.Patient>
     {
         #region Properties
         [SerializeField] PatientList m_List;
-        protected override SelectableList<Data.Patient> List => m_List;
+        protected override SelectableList<Core.Data.Patient> List => m_List;
         #endregion
     }
 }

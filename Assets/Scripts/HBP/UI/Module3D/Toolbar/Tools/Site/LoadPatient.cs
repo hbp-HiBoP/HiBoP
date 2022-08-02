@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.Module3D.Tools
 {
@@ -35,7 +36,7 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isInteractable = (SelectedColumn.SelectedSite != null) && (SelectedScene.Type == Data.Enums.SceneType.MultiPatients);
+            bool isInteractable = (SelectedColumn.SelectedSite != null) && (SelectedScene.Type == SceneType.MultiPatients);
 
             m_Button.interactable = isInteractable;
         }

@@ -6,14 +6,14 @@ namespace HBP.UI
     /// <summary>
     /// Window to select groups.
     /// </summary>
-    public class GroupSelector : ObjectSelector<Data.Group>
+    public class GroupSelector : ObjectSelector<Core.Data.Group>
     {
         #region Properties
         [SerializeField] GroupList m_List;
         /// <summary>
         /// UI groups list.
         /// </summary>
-        protected override SelectableList<Data.Group> List => m_List;
+        protected override SelectableList<Core.Data.Group> List => m_List;
         #endregion
     }
 }

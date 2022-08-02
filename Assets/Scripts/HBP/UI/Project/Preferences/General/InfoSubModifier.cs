@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI
 {
-    public class InfoSubModifier : SubModifier<Data.ProjectPreferences>
+    public class InfoSubModifier : SubModifier<Core.Data.ProjectPreferences>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -32,7 +32,7 @@ namespace HBP.UI
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(Data.ProjectPreferences objectToDisplay)
+        protected override void SetFields(Core.Data.ProjectPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
             m_NameInputField.text = objectToDisplay.Name;

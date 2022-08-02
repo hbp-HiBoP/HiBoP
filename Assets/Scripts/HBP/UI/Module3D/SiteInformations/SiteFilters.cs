@@ -54,7 +54,7 @@ namespace HBP.UI.Module3D
                 }
             }
 
-            List<Site> sites = new List<Site>();
+            List<Core.Object3D.Site> sites = new List<Core.Object3D.Site>();
             foreach (var column in m_Scene.Columns)
             {
                 sites.AddRange(column.Sites);

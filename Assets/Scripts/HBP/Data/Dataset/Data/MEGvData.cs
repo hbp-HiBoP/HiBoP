@@ -1,8 +1,6 @@
-﻿using HBP.Module3D;
-using System;
-using System.Collections.Generic;
+﻿using System;
 
-namespace HBP.Data.Experience.Dataset
+namespace HBP.Core.Data
 {
     public class MEGvData : Data
     {

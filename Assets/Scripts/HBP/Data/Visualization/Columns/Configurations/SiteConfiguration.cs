@@ -3,7 +3,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using UnityEngine;
 
-namespace HBP.Data.Visualization
+namespace HBP.Core.Data
 {
     /**
     * \class SiteConfiguration
@@ -52,7 +52,7 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public SiteConfiguration() : this(false, false, Module3D.SiteState.DefaultColor, new string[0])
+        public SiteConfiguration() : this(false, false, Object3D.SiteState.DefaultColor, new string[0])
         {
         }
         public SiteConfiguration(bool isBlacklisted, bool isHighlighted, Color color, IEnumerable<string> labels) : base()

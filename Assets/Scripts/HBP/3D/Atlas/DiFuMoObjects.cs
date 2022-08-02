@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 
-namespace HBP.Module3D.DiFuMo
+namespace HBP.Core.Object3D
 {
     public class DiFuMoObjects : MonoBehaviour
     {

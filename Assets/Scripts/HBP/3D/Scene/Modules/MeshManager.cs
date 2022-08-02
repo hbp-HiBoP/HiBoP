@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using HBP.Core.Data.Enums;
 
 namespace HBP.Module3D
 {
@@ -49,12 +50,12 @@ namespace HBP.Module3D
         /// <summary>
         /// List of all the preloaded meshes of the scene
         /// </summary>
-        public Dictionary<Data.Patient, List<Core.Object3D.Mesh3D>> PreloadedMeshes { get; set; } = new Dictionary<Data.Patient, List<Core.Object3D.Mesh3D>>();
+        public Dictionary<Core.Data.Patient, List<Core.Object3D.Mesh3D>> PreloadedMeshes { get; set; } = new Dictionary<Core.Data.Patient, List<Core.Object3D.Mesh3D>>();
 
         /// <summary>
         /// Mesh part to be displayed in the scene
         /// </summary>
-        public Data.Enums.MeshPart MeshPartToDisplay { get; private set; } = Data.Enums.MeshPart.Both;
+        public MeshPart MeshPartToDisplay { get; private set; } = MeshPart.Both;
         /// <summary>
         /// Mesh being displayed in the scene
         /// </summary>
@@ -74,13 +75,13 @@ namespace HBP.Module3D
         /// Add a mesh to the mesh manager
         /// </summary>
         /// <param name="mesh">Mesh data to be converted to 3D mesh</param>
-        public void Add(Data.BaseMesh mesh)
+        public void Add(Core.Data.BaseMesh mesh)
         {
             if (mesh.IsUsable)
             {
-                if (mesh is Data.LeftRightMesh)
+                if (mesh is Core.Data.LeftRightMesh)
                 {
-                    Core.Object3D.LeftRightMesh3D mesh3D = new Core.Object3D.LeftRightMesh3D((Data.LeftRightMesh)mesh, Data.Enums.MeshType.Patient, ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading);
+                    Core.Object3D.LeftRightMesh3D mesh3D = new Core.Object3D.LeftRightMesh3D((Core.Data.LeftRightMesh)mesh, MeshType.Patient, ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading);
 
                     if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
                     {
@@ -100,9 +101,9 @@ namespace HBP.Module3D
                         Meshes.Add(mesh3D);
                     }
                 }
-                else if (mesh is Data.SingleMesh)
+                else if (mesh is Core.Data.SingleMesh)
                 {
-                    Core.Object3D.SingleMesh3D mesh3D = new Core.Object3D.SingleMesh3D((Data.SingleMesh)mesh, Data.Enums.MeshType.Patient, ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading);
+                    Core.Object3D.SingleMesh3D mesh3D = new Core.Object3D.SingleMesh3D((Core.Data.SingleMesh)mesh, MeshType.Patient, ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading);
 
                     if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
                     {
@@ -132,15 +133,15 @@ namespace HBP.Module3D
         /// Add a mesh to the mesh manager preloaded meshes
         /// </summary>
         /// <param name="mesh">Mesh data to be converted to 3D mesh</param>
-        public void AddPreloaded(Data.BaseMesh mesh, Data.Patient patient)
+        public void AddPreloaded(Core.Data.BaseMesh mesh, Core.Data.Patient patient)
         {
             if (mesh.IsUsable)
             {
                 if (!PreloadedMeshes.ContainsKey(patient)) PreloadedMeshes.Add(patient, new List<Core.Object3D.Mesh3D>());
-                if (mesh is Data.LeftRightMesh)
-                    PreloadedMeshes[patient].Add(new Core.Object3D.LeftRightMesh3D((Data.LeftRightMesh)mesh, Data.Enums.MeshType.Patient, true));
-                else if (mesh is Data.SingleMesh)
-                    PreloadedMeshes[patient].Add(new Core.Object3D.SingleMesh3D((Data.SingleMesh)mesh, Data.Enums.MeshType.Patient, true));
+                if (mesh is Core.Data.LeftRightMesh)
+                    PreloadedMeshes[patient].Add(new Core.Object3D.LeftRightMesh3D((Core.Data.LeftRightMesh)mesh, MeshType.Patient, true));
+                else if (mesh is Core.Data.SingleMesh)
+                    PreloadedMeshes[patient].Add(new Core.Object3D.SingleMesh3D((Core.Data.SingleMesh)mesh, MeshType.Patient, true));
             }
         }
         /// <summary>
@@ -153,19 +154,19 @@ namespace HBP.Module3D
             if (meshID == -1 || (onlyIfAlreadyLoaded && !Meshes[meshID].IsLoaded)) meshID = 0;
 
             SelectedMeshID = meshID;
-            if (m_Scene.AtlasManager.DisplayMarsAtlas && (!SelectedMesh.IsMarsAtlasLoaded || SelectedMesh.Type != Data.Enums.MeshType.MNI))
+            if (m_Scene.AtlasManager.DisplayMarsAtlas && (!SelectedMesh.IsMarsAtlasLoaded || SelectedMesh.Type != MeshType.MNI))
             {
                 m_Scene.AtlasManager.DisplayMarsAtlas = false;
             }
-            if (m_Scene.AtlasManager.DisplayJuBrainAtlas && SelectedMesh.Type != Data.Enums.MeshType.MNI)
+            if (m_Scene.AtlasManager.DisplayJuBrainAtlas && SelectedMesh.Type != MeshType.MNI)
             {
                 m_Scene.AtlasManager.DisplayJuBrainAtlas = false;
             }
-            if (m_Scene.FMRIManager.DisplayIBCContrasts && SelectedMesh.Type != Data.Enums.MeshType.MNI)
+            if (m_Scene.FMRIManager.DisplayIBCContrasts && SelectedMesh.Type != MeshType.MNI)
             {
                 m_Scene.FMRIManager.DisplayIBCContrasts = false;
             }
-            if (m_Scene.FMRIManager.DisplayDiFuMo && SelectedMesh.Type != Data.Enums.MeshType.MNI)
+            if (m_Scene.FMRIManager.DisplayDiFuMo && SelectedMesh.Type != MeshType.MNI)
             {
                 m_Scene.FMRIManager.DisplayDiFuMo = false;
             }
@@ -179,7 +180,7 @@ namespace HBP.Module3D
         /// Set the mesh part to be displayed in the scene
         /// </summary>
         /// <param name="meshPartToDisplay">Mesh part to be displayed</param>
-        public void SelectMeshPart(Data.Enums.MeshPart meshPartToDisplay)
+        public void SelectMeshPart(MeshPart meshPartToDisplay)
         {
             MeshPartToDisplay = meshPartToDisplay;
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
@@ -213,15 +214,15 @@ namespace HBP.Module3D
             {
                 switch (MeshPartToDisplay)
                 {
-                    case Data.Enums.MeshPart.Left:
+                    case MeshPart.Left:
                         SimplifiedMeshToUse = selectedMesh.SimplifiedLeft;
                         BrainSurface = selectedMesh.Left;
                         break;
-                    case Data.Enums.MeshPart.Right:
+                    case MeshPart.Right:
                         SimplifiedMeshToUse = selectedMesh.SimplifiedRight;
                         BrainSurface = selectedMesh.Right;
                         break;
-                    case Data.Enums.MeshPart.Both:
+                    case MeshPart.Both:
                         SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
                         BrainSurface = selectedMesh.Both;
                         break;

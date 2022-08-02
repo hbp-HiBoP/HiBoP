@@ -6,7 +6,7 @@ namespace HBP.UI
     /// <summary>
     /// Component to create tags.
     /// </summary>
-    public class TagCreator : ObjectCreator<BaseTag>
+    public class TagCreator : ObjectCreator<Core.Data.BaseTag>
     {
         #region Public Methods
         /// <summary>
@@ -14,7 +14,7 @@ namespace HBP.UI
         /// </summary>
         public override void CreateFromScratch()
         {
-            OpenModifier(new EmptyTag());
+            OpenModifier(new Core.Data.EmptyTag());
         }
         #endregion
     }

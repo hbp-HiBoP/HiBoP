@@ -1,14 +1,14 @@
 ﻿using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
-using d = HBP.Data.Experience.Protocol;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.Experience.Protocol
 {
     /// <summary>
     /// Window to modify a event.
     /// </summary>
-    public class EventModifier : ObjectModifier<d.Event>
+    public class EventModifier : ObjectModifier<Core.Data.Event>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -30,7 +30,7 @@ namespace HBP.UI.Experience.Protocol
                 base.Interactable = value;
                 m_NameInputField.interactable = value;
                 m_CodesInputField.interactable = value;
-                m_TypeDropdown.interactable = value && ObjectTemp != null && ObjectTemp.Type == Data.Enums.MainSecondaryEnum.Secondary;
+                m_TypeDropdown.interactable = value && ObjectTemp != null && ObjectTemp.Type == MainSecondaryEnum.Secondary;
             }
         }
         #endregion
@@ -51,12 +51,12 @@ namespace HBP.UI.Experience.Protocol
         /// Set the fields.
         /// </summary>
         /// <param name="eventToModify">Event to modify</param>
-        protected override void SetFields(d.Event eventToModify)
+        protected override void SetFields(Core.Data.Event eventToModify)
         {
             m_NameInputField.text = eventToModify.Name;
             m_CodesInputField.text = eventToModify.CodesString;
-            m_TypeDropdown.Set(typeof(Data.Enums.MainSecondaryEnum), (int) eventToModify.Type);
-            m_TypeDropdown.interactable = m_Interactable && ObjectTemp != null && ObjectTemp.Type == Data.Enums.MainSecondaryEnum.Secondary;
+            m_TypeDropdown.Set(typeof(MainSecondaryEnum), (int) eventToModify.Type);
+            m_TypeDropdown.interactable = m_Interactable && ObjectTemp != null && ObjectTemp.Type == MainSecondaryEnum.Secondary;
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace HBP.UI.Experience.Protocol
         /// <param name="value">Event</param>
         protected void ChangeType(int value)
         {
-            ObjectTemp.Type = (Data.Enums.MainSecondaryEnum)value;
+            ObjectTemp.Type = (MainSecondaryEnum)value;
         }
         #endregion
     }

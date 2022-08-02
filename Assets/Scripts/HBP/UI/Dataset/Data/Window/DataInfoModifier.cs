@@ -1,5 +1,4 @@
 ﻿using UnityEngine.UI;
-using HBP.Data.Experience.Dataset;
 using Tools.Unity;
 using UnityEngine;
 using System;
@@ -10,12 +9,12 @@ namespace HBP.UI.Experience.Dataset
     /// <summary>
     /// Window to modify a dataInfo.
     /// </summary>
-    public class DataInfoModifier : ObjectModifier<DataInfo>
+    public class DataInfoModifier : ObjectModifier<Core.Data.DataInfo>
     {
         #region Properties
-        public new DataInfo ObjectTemp => m_ObjectTemp;
+        public new Core.Data.DataInfo ObjectTemp => m_ObjectTemp;
 
-        List<DataInfo> m_DataInfoTemp;
+        List<Core.Data.DataInfo> m_DataInfoTemp;
         List<BaseSubModifier> m_SubModifiers;
 
         Type[] m_Types; 
@@ -68,7 +67,7 @@ namespace HBP.UI.Experience.Dataset
         /// Set the fields.
         /// </summary>
         /// <param name="objectToDisplay">DataInfo to modifiy</param>
-        protected override void SetFields(DataInfo objectToDisplay)
+        protected override void SetFields(Core.Data.DataInfo objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_TypeDropdown.SetValue(Array.IndexOf(m_Types, objectToDisplay.GetType()));
@@ -89,13 +88,13 @@ namespace HBP.UI.Experience.Dataset
                 m_MEGcDataInfoSubModifier
             };
 
-            m_DataInfoTemp = new List<DataInfo>
+            m_DataInfoTemp = new List<Core.Data.DataInfo>
             {
-                new IEEGDataInfo(),
-                new CCEPDataInfo(),
-                new FMRIDataInfo(),
-                new MEGvDataInfo(),
-                new MEGcDataInfo()
+                new Core.Data.IEEGDataInfo(),
+                new Core.Data.CCEPDataInfo(),
+                new Core.Data.FMRIDataInfo(),
+                new Core.Data.MEGvDataInfo(),
+                new Core.Data.MEGcDataInfo()
             };
 
             m_iEEGDataInfoSubModifier.Initialize();
@@ -108,7 +107,7 @@ namespace HBP.UI.Experience.Dataset
 
             m_TypeDropdown.onValueChanged.AddListener(ChangeDataInfoType);
             m_DataContainerModifier.OnChangeDataType.AddListener(ChangeDataContainerType);
-            m_Types = m_TypeDropdown.Set(typeof(DataInfo)); 
+            m_Types = m_TypeDropdown.Set(typeof(Core.Data.DataInfo)); 
         }
         /// <summary>
         /// Change the type of the dataInfo.
@@ -120,7 +119,7 @@ namespace HBP.UI.Experience.Dataset
 
             m_SubModifiers.Find(s => s.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(ObjectTemp.GetType()))).IsActive = false;
 
-            DataInfo dataInfo = m_DataInfoTemp.Find(d => d.GetType() == type);
+            Core.Data.DataInfo dataInfo = m_DataInfoTemp.Find(d => d.GetType() == type);
             dataInfo.Copy(m_ObjectTemp);
             m_ObjectTemp = dataInfo;
 
@@ -128,14 +127,14 @@ namespace HBP.UI.Experience.Dataset
             subModifier.IsActive = true;
             subModifier.Object = ObjectTemp;
 
-            if (type == typeof(IEEGDataInfo)) m_DataContainerModifier.DataAttribute = new IEEG();
-            else if (type == typeof(CCEPDataInfo)) m_DataContainerModifier.DataAttribute = new CCEP();
-            else if (type == typeof(FMRIDataInfo)) m_DataContainerModifier.DataAttribute = new FMRI();
-            else if (type == typeof(MEGvDataInfo)) m_DataContainerModifier.DataAttribute = new MEGv();
-            else if (type == typeof(MEGcDataInfo)) m_DataContainerModifier.DataAttribute = new MEGc();
+            if (type == typeof(Core.Data.IEEGDataInfo)) m_DataContainerModifier.DataAttribute = new IEEG();
+            else if (type == typeof(Core.Data.CCEPDataInfo)) m_DataContainerModifier.DataAttribute = new CCEP();
+            else if (type == typeof(Core.Data.FMRIDataInfo)) m_DataContainerModifier.DataAttribute = new FMRI();
+            else if (type == typeof(Core.Data.MEGvDataInfo)) m_DataContainerModifier.DataAttribute = new MEGv();
+            else if (type == typeof(Core.Data.MEGcDataInfo)) m_DataContainerModifier.DataAttribute = new MEGc();
 
             m_DataContainerModifier.Object = m_ObjectTemp.DataContainer;
-            if (m_ObjectTemp is PatientDataInfo patientDataInfo) m_PatientDataInfoSubModifier.Object = patientDataInfo;
+            if (m_ObjectTemp is Core.Data.PatientDataInfo patientDataInfo) m_PatientDataInfoSubModifier.Object = patientDataInfo;
         }
         /// <summary>
         /// Change the datacontainer type.

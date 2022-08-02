@@ -1,20 +1,19 @@
-﻿using p = HBP.Data.Experience.Protocol;
-using Tools.Unity.Components;
-using UnityEngine;
+﻿using UnityEngine;
+using HBP.Core.Data.Enums;
 
 namespace HBP.UI.Experience.Protocol
 {
     /// <summary>
     /// Component to create Events.
     /// </summary>
-    public class EventCreator : ObjectCreator<p.Event>
+    public class EventCreator : ObjectCreator<Core.Data.Event>
     {
         #region Properties
-        [SerializeField] Data.Enums.MainSecondaryEnum m_Type;
+        [SerializeField] MainSecondaryEnum m_Type;
         /// <summary>
         /// Default event type created.
         /// </summary>
-        public Data.Enums.MainSecondaryEnum Type
+        public MainSecondaryEnum Type
         {
             get
             {
@@ -33,7 +32,7 @@ namespace HBP.UI.Experience.Protocol
         /// </summary>
         public override void CreateFromScratch()
         {
-            OpenModifier(new p.Event(Type));
+            OpenModifier(new Core.Data.Event(Type));
         }
         #endregion
     }

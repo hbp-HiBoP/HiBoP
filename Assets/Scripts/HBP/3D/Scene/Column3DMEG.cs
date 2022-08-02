@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using HBP.Module3D.DLL;
-using HBP.Data.Enums;
-using HBP.Data.Visualization;
 
 namespace HBP.Module3D
 {
@@ -16,11 +13,11 @@ namespace HBP.Module3D
         /// <summary>
         /// FMRI data of this column (contains information about what to display)
         /// </summary>
-        public MEGColumn ColumnMEGData
+        public Core.Data.MEGColumn ColumnMEGData
         {
             get
             {
-                return ColumnData as MEGColumn;
+                return ColumnData as Core.Data.MEGColumn;
             }
         }
         /// <summary>
@@ -44,8 +41,8 @@ namespace HBP.Module3D
                 OnChangeSelectedMEG.Invoke();
             }
         }
-        public MEGItem SelectedMEGItem { get { return ColumnMEGData.Data.MEGItems[SelectedMEGIndex]; } }
-        public FMRI SelectedFMRI { get { return SelectedMEGItem.FMRI; } }
+        public Core.Data.Processed.MEGItem SelectedMEGItem { get { return ColumnMEGData.Data.MEGItems[SelectedMEGIndex]; } }
+        public Core.Object3D.FMRI SelectedFMRI { get { return SelectedMEGItem.FMRI; } }
         public int SelectedVolumeIndex
         {
             get
@@ -59,7 +56,7 @@ namespace HBP.Module3D
             }
         }
 
-        public FMRITimeline Timeline { get; private set; } = new FMRITimeline();
+        public Core.Data.FMRITimeline Timeline { get; private set; } = new Core.Data.FMRITimeline();
         #endregion
 
         #region Events
@@ -81,7 +78,7 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
-        public override void Initialize(int idColumn, Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
+        public override void Initialize(int idColumn, Core.Data.Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
 

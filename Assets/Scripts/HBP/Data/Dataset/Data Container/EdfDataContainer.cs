@@ -6,7 +6,7 @@ using HBP.Errors;
 using System.ComponentModel;
 using Tools.CSharp;
 
-namespace HBP.Data.Container
+namespace HBP.Core.Data.Container
 {
     /// <summary>
     /// Class which contains IEEG or CCEP data in the EDF data format.

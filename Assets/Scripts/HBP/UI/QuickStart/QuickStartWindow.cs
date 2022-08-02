@@ -49,7 +49,7 @@ namespace HBP.UI.QuickStart
             }
         }
 
-        private Project m_CurrentlyOpenedProject;
+        private Core.Data.Project m_CurrentlyOpenedProject;
         private string m_CurrentlyOpenedProjectLocation;
         #endregion
 
@@ -73,7 +73,7 @@ namespace HBP.UI.QuickStart
             });
             m_CurrentlyOpenedProject = ApplicationState.ProjectLoaded;
             m_CurrentlyOpenedProjectLocation = ApplicationState.ProjectLoadedLocation;
-            ApplicationState.ProjectLoaded = new Project();
+            ApplicationState.ProjectLoaded = new Core.Data.Project();
             ApplicationState.ProjectLoadedLocation = Application.dataPath;
         }
         private void Finish()
