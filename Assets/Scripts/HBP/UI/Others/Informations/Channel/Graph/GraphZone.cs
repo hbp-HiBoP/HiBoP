@@ -7,7 +7,7 @@ using Tools.CSharp;
 using Tools.Unity.Graph;
 using UnityEngine;
 using UnityEngine.UI;
-using HBP.Core.Data.Enums;
+using HBP.Core.Enums;
 
 namespace HBP.UI.Informations
 {

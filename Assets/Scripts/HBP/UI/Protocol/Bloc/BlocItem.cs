@@ -16,7 +16,7 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] Tooltip m_ImageTooltip;
         [SerializeField] Text m_SubBlocsText;
         [SerializeField] Text m_OrderText;
-        [SerializeField] State m_ErrorState;
+        [SerializeField] HBP.Theme.State m_ErrorState;
 
         /// <summary>
         /// Object to display.

@@ -1,4 +1,5 @@
 ﻿using System;
+using HBP.Core.Enums;
 
 namespace HBP.Core.Object3D
 {
@@ -15,7 +16,7 @@ namespace HBP.Core.Object3D
         /// <summary>
         /// Type of the mesh (Patient or MNI)
         /// </summary>
-        public Data.Enums.MeshType Type { get; protected set; }
+        public MeshType Type { get; protected set; }
 
         protected DLL.Surface m_Both;
         /// <summary>
@@ -88,7 +89,7 @@ namespace HBP.Core.Object3D
         #endregion
 
         #region Constructors
-        public Mesh3D(Data.BaseMesh mesh, Data.Enums.MeshType type, bool load)
+        public Mesh3D(Data.BaseMesh mesh, MeshType type, bool load)
         {
             m_Mesh = mesh;
             Name = mesh.Name;
@@ -122,7 +123,7 @@ namespace HBP.Core.Object3D
     public class SingleMesh3D : Mesh3D
     {
         #region Constructors
-        public SingleMesh3D(Data.SingleMesh mesh, Data.Enums.MeshType type, bool load) : base(mesh, type, load) { }
+        public SingleMesh3D(Data.SingleMesh mesh, MeshType type, bool load) : base(mesh, type, load) { }
         public SingleMesh3D() { }
         #endregion
 
@@ -242,8 +243,8 @@ namespace HBP.Core.Object3D
         #endregion
 
         #region Constructors
-        public LeftRightMesh3D(Data.LeftRightMesh mesh, Data.Enums.MeshType type, bool load) : base(mesh, type, load) { }
-        public LeftRightMesh3D(string name, DLL.Surface left, DLL.Surface right, DLL.Surface both, Data.Enums.MeshType type)
+        public LeftRightMesh3D(Data.LeftRightMesh mesh, MeshType type, bool load) : base(mesh, type, load) { }
+        public LeftRightMesh3D(string name, DLL.Surface left, DLL.Surface right, DLL.Surface both, MeshType type)
         {
             Name = name;
             Type = type;

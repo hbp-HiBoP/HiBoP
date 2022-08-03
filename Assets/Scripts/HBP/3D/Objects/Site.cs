@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using HBP.Core.Interfaces;
 
 namespace HBP.Core.Object3D
 {

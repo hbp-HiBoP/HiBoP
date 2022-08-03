@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace Theme
+namespace HBP.Theme
 {
     [CustomEditor(typeof(LayoutElement))]
     public class LayoutElementEditor : Editor

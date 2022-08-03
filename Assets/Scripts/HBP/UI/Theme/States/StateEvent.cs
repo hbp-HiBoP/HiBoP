@@ -1,6 +1,6 @@
 ﻿using UnityEngine.Events;
 
-namespace Theme
+namespace HBP.Theme
 {
     [System.Serializable]
     public class StateEvent : UnityEvent<State> { }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Tools.CSharp;
+using HBP.Core.Exceptions;
 
 namespace HBP.Core.Data
 {

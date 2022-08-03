@@ -7,7 +7,7 @@ namespace Tools.Unity.ResizableGrid
     public class HorizontalHandler : Handler
     {
         #region Properties
-        [SerializeField] protected State m_HorizontalState;
+        [SerializeField] protected HBP.Theme.State m_HorizontalState;
 
         /// <summary>
         /// Minimum position of the handler

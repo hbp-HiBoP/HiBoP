@@ -1,8 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-interface INameable
+﻿namespace HBP.Core.Interfaces
 {
-    string Name { get; set; }
+    interface INameable
+    {
+        string Name { get; set; }
+    }
 }

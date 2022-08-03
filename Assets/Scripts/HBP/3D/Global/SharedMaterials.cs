@@ -1,4 +1,4 @@
-﻿using HBP.Core.Data.Enums;
+﻿using HBP.Core.Enums;
 using System.Collections.Generic;
 using UnityEngine;
 

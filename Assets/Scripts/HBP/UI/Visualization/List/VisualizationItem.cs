@@ -15,7 +15,7 @@ namespace HBP.UI.Visualization
         [SerializeField] Text m_PatientsText;
         [SerializeField] Text m_ColumnsText;
 
-        [SerializeField] State m_ErrorState;
+        [SerializeField] HBP.Theme.State m_ErrorState;
 
         /// <summary>
         /// Object to Display.

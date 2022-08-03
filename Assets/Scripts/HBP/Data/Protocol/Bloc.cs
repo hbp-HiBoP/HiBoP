@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using Tools.CSharp;
 using Tools.Unity;
 using UnityEngine;
+using HBP.Core.Interfaces;
 
 namespace HBP.Core.Data
 {

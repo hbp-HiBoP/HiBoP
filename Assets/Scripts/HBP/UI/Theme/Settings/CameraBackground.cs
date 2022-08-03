@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Theme
+namespace HBP.Theme
 {
     [CreateAssetMenu(menuName = "Theme/Settings/Camera")]
     public class CameraBackground : Settings

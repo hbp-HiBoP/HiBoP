@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Theme
+namespace HBP.Theme
 {
     public abstract class Settings : ScriptableObject
     {

@@ -1,5 +1,8 @@
-﻿public interface ISavable
+﻿namespace HBP.Core.Interfaces
 {
-    UnityEngine.Events.UnityEvent OnSave { get; set; }
-    void Save();
+    public interface ISavable
+    {
+        UnityEngine.Events.UnityEvent OnSave { get; set; }
+        void Save();
+    }
 }

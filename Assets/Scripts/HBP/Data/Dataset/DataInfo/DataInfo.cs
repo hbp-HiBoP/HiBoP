@@ -4,7 +4,8 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
 using UnityEngine.Events;
-using HBP.Errors;
+using HBP.Core.Errors;
+using HBP.Core.Interfaces;
 
 namespace HBP.Core.Data
 {

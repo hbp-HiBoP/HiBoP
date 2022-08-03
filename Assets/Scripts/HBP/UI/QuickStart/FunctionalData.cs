@@ -1,5 +1,5 @@
 ﻿using System;
-using HBP.Core.Data.Enums;
+using HBP.Core.Enums;
 
 namespace HBP.UI.QuickStart
 {

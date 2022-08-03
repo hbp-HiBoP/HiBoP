@@ -13,7 +13,7 @@ namespace HBP.UI.Experience.Protocol
 		#region Properties
 		[SerializeField] Text m_NameText;
         [SerializeField] Text m_BlocsText;
-        [SerializeField] State m_ErrorState;
+        [SerializeField] HBP.Theme.State m_ErrorState;
 
         /// <summary>
         /// Object to display.

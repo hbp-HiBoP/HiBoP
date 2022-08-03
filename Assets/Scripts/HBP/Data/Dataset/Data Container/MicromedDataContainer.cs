@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using Tools.Unity;
-using HBP.Errors;
+using HBP.Core.Errors;
 using System.ComponentModel;
 using Tools.CSharp;
 

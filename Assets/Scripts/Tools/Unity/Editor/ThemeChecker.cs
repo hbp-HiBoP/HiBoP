@@ -3,6 +3,7 @@ using Tools.Unity;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.Theme.Components;
 
 public class ThemeChecker
 {
@@ -56,7 +57,7 @@ public class ThemeChecker
         List<string> fullNames = new List<string>();
         foreach (var element in list)
         {
-            if (!element.GetComponent<Theme.Components.ThemeElement>())
+            if (!element.GetComponent<ThemeElement>())
             {
                 fullNames.Add(element.transform.GetFullName());
             }

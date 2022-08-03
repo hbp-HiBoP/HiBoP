@@ -1,5 +1,8 @@
-﻿public interface IClosable
+﻿namespace HBP.Core.Interfaces
 {
-    UnityEngine.Events.UnityEvent OnClose { get; }
-    void Close();
+    public interface IClosable
+    {
+        UnityEngine.Events.UnityEvent OnClose { get; }
+        void Close();
+    }
 }

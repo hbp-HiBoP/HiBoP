@@ -8,9 +8,12 @@ using System.IO;
 using Tools.CSharp;
 using System.Collections.ObjectModel;
 using System.Collections;
-using CielaSpike;
+using ThirdParty.CielaSpike;
 using System.Text.RegularExpressions;
-using HBP.Core.Data.Enums;
+using HBP.Core.Enums;
+using HBP.Core.Exceptions;
+using HBP.Core.Interfaces;
+using HBP.Core.Tools;
 
 namespace HBP.Core.Data
 {

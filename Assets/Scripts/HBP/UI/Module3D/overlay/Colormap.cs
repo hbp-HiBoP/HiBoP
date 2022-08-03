@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using HBP.Core.Data.Enums;
+using HBP.Core.Enums;
 
 namespace HBP.UI.Module3D
 {

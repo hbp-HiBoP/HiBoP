@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
+using HBP.Core.Enums;
 
 namespace HBP.Core.Object3D
 {
@@ -16,7 +17,7 @@ namespace HBP.Core.Object3D
         /// <summary>
         /// Orientation of the cut
         /// </summary>
-        public Data.Enums.CutOrientation Orientation { get; set; }
+        public CutOrientation Orientation { get; set; }
         /// <summary>
         /// Is the cut flipped ?
         /// </summary>
@@ -45,14 +46,14 @@ namespace HBP.Core.Object3D
         #region Constructors
         public Cut() : base()
         {
-            Orientation = Data.Enums.CutOrientation.Axial;
+            Orientation = CutOrientation.Axial;
             Flip = false;
             NumberOfCuts = 500;
             Position = 0.5f;
         }
         public Cut(Vector3 point, Vector3 normal) : base(point, normal)
         {
-            Orientation = Data.Enums.CutOrientation.Axial;
+            Orientation = CutOrientation.Axial;
             Flip = false;
             NumberOfCuts = 500;
             Position = 0.5f;

@@ -3,13 +3,14 @@ using Tools.Unity;
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using HBP.Core.Data;
 
 namespace HBP.UI.Experience.Dataset
 {
     /// <summary>
     /// Window to modify a dataInfo.
     /// </summary>
-    public class DataInfoModifier : ObjectModifier<Core.Data.DataInfo>
+    public class DataInfoModifier : ObjectModifier<DataInfo>
     {
         #region Properties
         public new Core.Data.DataInfo ObjectTemp => m_ObjectTemp;
@@ -67,7 +68,7 @@ namespace HBP.UI.Experience.Dataset
         /// Set the fields.
         /// </summary>
         /// <param name="objectToDisplay">DataInfo to modifiy</param>
-        protected override void SetFields(Core.Data.DataInfo objectToDisplay)
+        protected override void SetFields(DataInfo objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_TypeDropdown.SetValue(Array.IndexOf(m_Types, objectToDisplay.GetType()));
@@ -88,13 +89,13 @@ namespace HBP.UI.Experience.Dataset
                 m_MEGcDataInfoSubModifier
             };
 
-            m_DataInfoTemp = new List<Core.Data.DataInfo>
+            m_DataInfoTemp = new List<DataInfo>
             {
-                new Core.Data.IEEGDataInfo(),
-                new Core.Data.CCEPDataInfo(),
-                new Core.Data.FMRIDataInfo(),
-                new Core.Data.MEGvDataInfo(),
-                new Core.Data.MEGcDataInfo()
+                new IEEGDataInfo(),
+                new CCEPDataInfo(),
+                new FMRIDataInfo(),
+                new MEGvDataInfo(),
+                new MEGcDataInfo()
             };
 
             m_iEEGDataInfoSubModifier.Initialize();
@@ -107,7 +108,7 @@ namespace HBP.UI.Experience.Dataset
 
             m_TypeDropdown.onValueChanged.AddListener(ChangeDataInfoType);
             m_DataContainerModifier.OnChangeDataType.AddListener(ChangeDataContainerType);
-            m_Types = m_TypeDropdown.Set(typeof(Core.Data.DataInfo)); 
+            m_Types = m_TypeDropdown.Set(typeof(DataInfo)); 
         }
         /// <summary>
         /// Change the type of the dataInfo.

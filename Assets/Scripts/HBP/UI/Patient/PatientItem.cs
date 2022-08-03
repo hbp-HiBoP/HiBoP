@@ -20,7 +20,7 @@ namespace HBP.UI
         [SerializeField] Text m_SitesText;
         [SerializeField] Text m_TagsText;
 
-        [SerializeField] State m_ErrorState;
+        [SerializeField] HBP.Theme.State m_ErrorState;
 
         /// <summary>
         /// Object to display.

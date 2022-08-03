@@ -2,6 +2,7 @@
 using System.IO;
 using System.Runtime.Serialization;
 using Tools.Unity;
+using HBP.Core.Interfaces;
 
 namespace HBP.Core.Data
 {

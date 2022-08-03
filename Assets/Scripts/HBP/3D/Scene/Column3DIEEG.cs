@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using Tools.CSharp;
 using UnityEngine;
+using HBP.Core.Exceptions;
+using HBP.Core.Tools;
 
 namespace HBP.Module3D
 {

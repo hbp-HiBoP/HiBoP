@@ -4,6 +4,7 @@ using Tools.Unity;
 using Tools.Unity.Components;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Interfaces;
 
 namespace HBP.UI
 {

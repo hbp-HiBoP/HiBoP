@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
-using Theme.Components;
+using HBP.Theme.Components;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -29,7 +29,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Theme Element state used when displaying the cursor indicating that the brain is moving or rotating
         /// </summary>
-        [SerializeField] private State m_MoveState;
+        [SerializeField] private HBP.Theme.State m_MoveState;
         /// <summary>
         /// Reference to the selection ring used to display which site is currently selected in this view
         /// </summary>

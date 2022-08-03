@@ -1,9 +1,10 @@
-﻿using HBP.Data;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Tools.Unity;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using HBP.Core.Interfaces;
+using HBP.Core.Tools;
 
 namespace HBP.UI.QuickStart
 {
@@ -32,7 +33,7 @@ namespace HBP.UI.QuickStart
         }
         private void LoadBIDSDatabase(string path)
         {
-            ILoadableFromDatabase<Core.Data.Patient> loadable = new Core.Data.Patient() as ILoadableFromDatabase<Core.Data.Patient>;
+            ILoadableFromDatabase<Core.Data.Patient> loadable = new Core.Data.Patient();
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
             ApplicationState.LoadingManager.Load(loadable.LoadFromDatabase(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => FinishedLoadingBIDSDatabase(result)), onChangeProgress);
         }

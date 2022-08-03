@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 using Tools.CSharp;
-using HBP.Core.Data.Enums;
+using HBP.Core.Enums;
 
 namespace HBP.Core.Data
 {

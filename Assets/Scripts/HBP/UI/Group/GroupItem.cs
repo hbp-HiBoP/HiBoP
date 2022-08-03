@@ -13,7 +13,7 @@ namespace HBP.UI
 		#region Properties
 		[SerializeField] Text m_NameText;
 		[SerializeField] Text m_PatientsText;
-        [SerializeField] State m_ErrorState;
+        [SerializeField] HBP.Theme.State m_ErrorState;
 
         /// <summary>
         /// Object to display.

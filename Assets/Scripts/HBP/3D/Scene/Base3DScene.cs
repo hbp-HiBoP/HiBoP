@@ -4,10 +4,13 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using System.Collections;
-using CielaSpike;
+using ThirdParty.CielaSpike;
 using Tools.Unity;
 using System.IO;
-using HBP.Core.Data.Enums;
+using HBP.Core.Enums;
+using HBP.Core.Exceptions;
+using HBP.Core.Interfaces;
+using HBP.Core.Tools;
 
 namespace HBP.Module3D
 {
@@ -20,7 +23,7 @@ namespace HBP.Module3D
     /// It also uses other classes to manage meshes, MRIs, implantations, triangle erasing, atlases, fMRIs and displayed gameObjects.
     /// <seealso cref="MeshManager"/> <seealso cref="MRIManager"/> <seealso cref="ImplantationManager"/> <seealso cref="TriangleEraser"/> <seealso cref="AtlasManager"/> <seealso cref="FMRIManager"/> <seealso cref="DisplayedObjects"/>
     /// </remarks>
-    public class Base3DScene : MonoBehaviour, Core.IConfigurable
+    public class Base3DScene : MonoBehaviour, IConfigurable
     {
         #region Properties
         /// <summary>

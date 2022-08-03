@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using Tools.CSharp;
 using System.Globalization;
+using HBP.Core.Data;
 
 namespace HBP.UI
 {
@@ -55,7 +56,7 @@ namespace HBP.UI
         /// Set the fields.
         /// </summary>
         /// <param name="objectToModify">Coordinate to modify</param>
-        protected override void SetFields(Core.Data.Coordinate objectToModify)
+        protected override void SetFields(Coordinate objectToModify)
         {
             m_ReferenceSystemInputField.text = objectToModify.ReferenceSystem;
             m_XInputField.text = objectToModify.Position.x.ToString(CultureInfo.InvariantCulture);

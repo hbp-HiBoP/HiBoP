@@ -1,7 +1,8 @@
 ﻿using System.Collections;
 using UnityEngine;
-using CielaSpike;
+using ThirdParty.CielaSpike;
 using System.IO;
+using HBP.Core.Enums;
 
 namespace HBP.Core.Object3D
 {
@@ -72,7 +73,7 @@ namespace HBP.Core.Object3D
             leftHemi.ComputeNormals();
             rightHemi.ComputeNormals();
             bothHemi.ComputeNormals();
-            GreyMatter = new LeftRightMesh3D("MNI Grey matter", leftHemi, rightHemi, bothHemi, Data.Enums.MeshType.MNI);
+            GreyMatter = new LeftRightMesh3D("MNI Grey matter", leftHemi, rightHemi, bothHemi, MeshType.MNI);
 
             DLL.Surface leftWhite = new DLL.Surface();
             DLL.Surface rightWhite = new DLL.Surface();
@@ -84,7 +85,7 @@ namespace HBP.Core.Object3D
             leftWhite.ComputeNormals();
             rightWhite.ComputeNormals();
             bothWhite.ComputeNormals();
-            WhiteMatter = new LeftRightMesh3D("MNI White matter", leftWhite, rightWhite, bothWhite, Data.Enums.MeshType.MNI);
+            WhiteMatter = new LeftRightMesh3D("MNI White matter", leftWhite, rightWhite, bothWhite, MeshType.MNI);
 
             DLL.Surface leftWhiteInflated = new DLL.Surface();
             DLL.Surface rightWhiteInflated = new DLL.Surface();
@@ -96,7 +97,7 @@ namespace HBP.Core.Object3D
             leftWhiteInflated.ComputeNormals();
             rightWhiteInflated.ComputeNormals();
             bothWhiteInflated.ComputeNormals();
-            InflatedWhiteMatter = new LeftRightMesh3D("MNI Inflated", leftWhiteInflated, rightWhiteInflated, bothWhiteInflated, Data.Enums.MeshType.MNI);
+            InflatedWhiteMatter = new LeftRightMesh3D("MNI Inflated", leftWhiteInflated, rightWhiteInflated, bothWhiteInflated, MeshType.MNI);
         }
         #endregion
 

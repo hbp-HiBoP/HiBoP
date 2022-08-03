@@ -1,5 +1,8 @@
-﻿public interface ILoadable<T>
+﻿namespace HBP.Core.Interfaces
 {
-    string[] GetExtensions();
-    bool LoadFromFile(string path, out T[] result);
+    public interface ILoadable<T>
+    {
+        string[] GetExtensions();
+        bool LoadFromFile(string path, out T[] result);
+    }
 }

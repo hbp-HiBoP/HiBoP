@@ -112,7 +112,7 @@ namespace Tools.Unity
             dropdown.RefreshShownValue();
             return displayedType.ToArray();
         }
-        public static Type[] Set(this Dropdown dropdown, Type parentType, DataAttribute dataAttribute)
+        public static Type[] Set(this Dropdown dropdown, Type parentType, HBP.Core.Data.DataAttribute dataAttribute)
         {
             Type[] types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(t => t.IsSubclassOf(parentType)).ToArray();
             types = types.Where(t => t.GetCustomAttributes(true).Contains(dataAttribute)).ToArray();

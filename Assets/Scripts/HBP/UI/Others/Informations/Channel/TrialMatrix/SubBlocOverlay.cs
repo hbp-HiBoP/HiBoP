@@ -3,7 +3,7 @@ using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 using data = HBP.Data.TrialMatrix;
-using HBP.Core.Data.Enums;
+using HBP.Core.Enums;
 
 namespace HBP.UI.TrialMatrix.Grid
 {  

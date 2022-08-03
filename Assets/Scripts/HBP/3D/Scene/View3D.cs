@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
-using UnityStandardAssets.ImageEffects;
+using ThirdParty.ImageEffects;
 using Tools.Unity;
-using HBP.Core.Data.Enums;
+using HBP.Core.Enums;
 
 namespace HBP.Module3D
 {

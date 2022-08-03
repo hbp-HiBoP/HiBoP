@@ -11,7 +11,7 @@ using System;
 using UnityEngine.EventSystems;
 using Tools.Unity;
 using Tools.Unity.Components;
-using HBP.Core.Data.Enums;
+using HBP.Core.Enums;
 
 
 namespace HBP.UI.TrialMatrix.Grid

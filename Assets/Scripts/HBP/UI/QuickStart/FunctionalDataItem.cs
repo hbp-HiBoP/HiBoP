@@ -1,4 +1,4 @@
-﻿using Theme.Components;
+﻿using HBP.Theme.Components;
 using Tools.Unity;
 using Tools.Unity.Lists;
 using UnityEngine;
@@ -29,8 +29,8 @@ namespace HBP.UI.QuickStart
 
         [SerializeField] ThemeElement m_StateThemeElement;
         [SerializeField] Tooltip m_ErrorText;
-        [SerializeField] State m_OKState;
-        [SerializeField] State m_ErrorState;
+        [SerializeField] HBP.Theme.State m_OKState;
+        [SerializeField] HBP.Theme.State m_ErrorState;
 
         public override FunctionalData Object
         {

@@ -1,9 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Data;
+using HBP.Core.Data.Container;
 
 namespace HBP.UI.QuickStart
 {
@@ -20,8 +21,8 @@ namespace HBP.UI.QuickStart
         {
             base.Initialize();
             
-            m_DataContainerTypes = m_DataContainer.Set(typeof(Core.Data.Container.DataContainer), new IEEG());
-            m_DataContainer.SetValue(Array.IndexOf(m_DataContainerTypes, typeof(Core.Data.Container.BrainVision)));
+            m_DataContainerTypes = m_DataContainer.Set(typeof(DataContainer), new IEEG());
+            m_DataContainer.SetValue(Array.IndexOf(m_DataContainerTypes, typeof(BrainVision)));
 
             m_DataContainer.onValueChanged.AddListener(OnChangeDataContainerType);
         }
@@ -63,13 +64,13 @@ namespace HBP.UI.QuickStart
                 ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "No valid data", "At least one data must be valid in order to continue.");
                 return false;
             }
-            Core.Data.Dataset dataset = new Core.Data.Dataset("QuickStart", ApplicationState.ProjectLoaded.Protocols[0], m_List.Objects.Select(f => f.DataInfo));
-            ApplicationState.ProjectLoaded.SetDatasets(new Core.Data.Dataset[] { dataset });
+            Dataset dataset = new Dataset("QuickStart", ApplicationState.ProjectLoaded.Protocols[0], m_List.Objects.Select(f => f.DataInfo));
+            ApplicationState.ProjectLoaded.SetDatasets(new Dataset[] { dataset });
             return base.OpenNextPanel();
         }
         public override bool OpenPreviousPanel()
         {
-            ApplicationState.ProjectLoaded.SetDatasets(new Core.Data.Dataset[0]);
+            ApplicationState.ProjectLoaded.SetDatasets(new Dataset[0]);
             return base.OpenPreviousPanel();
         }
         #endregion

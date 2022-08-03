@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using Tools.Unity.Lists;
-using Theme.Components;
+using HBP.Theme.Components;
 
 namespace HBP.UI
 {
@@ -14,7 +14,7 @@ namespace HBP.UI
         [SerializeField] Text m_NameText;
         [SerializeField] ThemeElement m_MRI;
 
-        [SerializeField] State m_ErrorState;
+        [SerializeField] HBP.Theme.State m_ErrorState;
 
         /// <summary>
         /// Object to display.

@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Interfaces;
 
 namespace HBP.UI
 {

@@ -1,6 +1,6 @@
 ﻿using UnityEditor;
 
-namespace Theme
+namespace HBP.Theme
 {
     [CustomEditor(typeof(Text))]
     public class TextEditor : Editor

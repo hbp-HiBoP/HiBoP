@@ -1,4 +1,4 @@
-﻿using HBP.Errors;
+﻿using HBP.Core.Errors;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;

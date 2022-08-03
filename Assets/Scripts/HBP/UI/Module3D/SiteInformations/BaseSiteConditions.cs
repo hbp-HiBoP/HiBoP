@@ -1,4 +1,4 @@
-﻿using CielaSpike;
+﻿using ThirdParty.CielaSpike;
 using HBP.Module3D;
 using System;
 using System.Collections;
@@ -7,6 +7,7 @@ using System.Linq;
 using Tools.CSharp;
 using UnityEngine;
 using UnityEngine.Events;
+using HBP.Core.Exceptions;
 
 namespace HBP.UI.Module3D
 {

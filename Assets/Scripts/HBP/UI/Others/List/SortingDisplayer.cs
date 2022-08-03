@@ -1,37 +1,40 @@
-﻿using Theme.Components;
+﻿using HBP.Theme.Components;
 using UnityEngine;
 
-public class SortingDisplayer : MonoBehaviour
+namespace HBP.UI
 {
-    #region Properties
-    [SerializeField] State Activated;
-    [SerializeField] ThemeElement m_AscendingThemeElement;
-    [SerializeField] ThemeElement m_DescendingThemeElement;
-
-    public enum SortingType { None, Ascending, Descending }
-    SortingType m_Sorting = SortingType.None;
-    public SortingType Sorting
+    public class SortingDisplayer : MonoBehaviour
     {
-        get { return m_Sorting; }
-        set
+        #region Properties
+        [SerializeField] Theme.State Activated;
+        [SerializeField] ThemeElement m_AscendingThemeElement;
+        [SerializeField] ThemeElement m_DescendingThemeElement;
+
+        public enum SortingType { None, Ascending, Descending }
+        SortingType m_Sorting = SortingType.None;
+        public SortingType Sorting
         {
-            m_Sorting = value;
-            switch (value)
+            get { return m_Sorting; }
+            set
             {
-                case SortingType.None:
-                    m_AscendingThemeElement.Set();
-                    m_DescendingThemeElement.Set();
-                    break;
-                case SortingType.Ascending:
-                    m_AscendingThemeElement.Set(Activated);
-                    m_DescendingThemeElement.Set();
-                    break;
-                case SortingType.Descending:
-                    m_AscendingThemeElement.Set();
-                    m_DescendingThemeElement.Set(Activated);
-                    break;
+                m_Sorting = value;
+                switch (value)
+                {
+                    case SortingType.None:
+                        m_AscendingThemeElement.Set();
+                        m_DescendingThemeElement.Set();
+                        break;
+                    case SortingType.Ascending:
+                        m_AscendingThemeElement.Set(Activated);
+                        m_DescendingThemeElement.Set();
+                        break;
+                    case SortingType.Descending:
+                        m_AscendingThemeElement.Set();
+                        m_DescendingThemeElement.Set(Activated);
+                        break;
+                }
             }
         }
+        #endregion
     }
-    #endregion
 }

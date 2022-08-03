@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace HBP.Core.Data.Enums
+namespace HBP.Core.Enums
 {
     public enum AveragingType { Mean, Median }
     public enum NormalizationType { None, SubTrial, Trial, SubBloc, Bloc, Protocol, Auto }

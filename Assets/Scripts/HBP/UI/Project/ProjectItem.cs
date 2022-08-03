@@ -17,7 +17,7 @@ namespace HBP.UI
         [SerializeField] Text m_DatasetsText;
         [SerializeField] Text m_VisualizationsText;
 
-        [SerializeField] State m_EmptyState;
+        [SerializeField] HBP.Theme.State m_EmptyState;
 
         /// <summary>
         /// Object to display.

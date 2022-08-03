@@ -7,7 +7,7 @@ namespace Tools.Unity.ResizableGrid
     public class CornerHandler : Handler
     {
         #region Properties
-        [SerializeField] protected State m_CornerState;
+        [SerializeField] protected HBP.Theme.State m_CornerState;
 
         /// <summary>
         /// Associated vertical handler

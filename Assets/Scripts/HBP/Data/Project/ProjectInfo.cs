@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using Ionic.Zip;
+using HBP.Core.Exceptions;
 
 namespace HBP.Core.Data
 {

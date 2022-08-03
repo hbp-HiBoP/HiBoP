@@ -1,7 +1,7 @@
 ﻿using UnityEngine.UI;
 using Tools.Unity;
 using UnityEngine;
-using Theme.Components;
+using HBP.Theme.Components;
 using Tools.CSharp;
 
 namespace HBP.UI.Experience.Protocol
@@ -18,8 +18,8 @@ namespace HBP.UI.Experience.Protocol
 
         [SerializeField] ThemeElement m_SortStateThemeElement;
         [SerializeField] Tooltip m_SortErrorText;
-        [SerializeField] State m_OKState;
-        [SerializeField] State m_ErrorState;
+        [SerializeField] HBP.Theme.State m_OKState;
+        [SerializeField] HBP.Theme.State m_ErrorState;
 
         /// <summary>
         /// True if interactable, False otherwise.

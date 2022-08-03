@@ -1,8 +1,8 @@
-﻿using HBP.Module3D;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using HBP.Core.Enums;
 
 namespace HBP.Core.DLL
 {
@@ -303,11 +303,11 @@ namespace HBP.Core.DLL
         /// <param name="plane">Plane to update</param>
         /// <param name="orientation">Orientation of the cut</param>
         /// <param name="flip">Is the cut flipped ?</param>
-        public void SetPlaneWithOrientation(Object3D.Plane plane, Data.Enums.CutOrientation orientation, bool flip)
+        public void SetPlaneWithOrientation(Object3D.Plane plane, CutOrientation orientation, bool flip)
         {
             plane.Normal = GetOrientationVector(orientation, flip);
         }
-        public Vector3 GetOrientationVector(Data.Enums.CutOrientation orientation, bool flip)
+        public Vector3 GetOrientationVector(CutOrientation orientation, bool flip)
         {
             float[] normal = new float[3];
             definePlaneWithOrientation_Volume(_handle, normal, (int)orientation, flip);
@@ -324,7 +324,7 @@ namespace HBP.Core.DLL
             int planesCount = 0;
             for (int ii = 0; ii < cuts.Count; ++ii)
             {
-                if (cuts[ii].Orientation != Data.Enums.CutOrientation.Custom)
+                if (cuts[ii].Orientation != CutOrientation.Custom)
                 {
                     for (int jj = 0; jj < 3; ++jj)
                     {

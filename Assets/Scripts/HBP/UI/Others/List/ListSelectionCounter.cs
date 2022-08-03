@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using HBP.Core.Interfaces;
 
 namespace Tools.Unity.Components
 {

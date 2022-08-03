@@ -1,4 +1,4 @@
-﻿using CielaSpike;
+﻿using ThirdParty.CielaSpike;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,6 +8,9 @@ using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using Tools.CSharp;
 using Tools.Unity;
+using HBP.Core.Exceptions;
+using HBP.Core.Interfaces;
+using HBP.Core.Tools;
 
 namespace HBP.Core.Data
 {

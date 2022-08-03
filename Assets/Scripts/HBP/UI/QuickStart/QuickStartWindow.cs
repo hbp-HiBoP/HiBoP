@@ -1,8 +1,8 @@
-﻿using CielaSpike;
-using HBP.Data;
+﻿using ThirdParty.CielaSpike;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using HBP.Core.Tools;
 
 namespace HBP.UI.QuickStart
 {

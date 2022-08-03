@@ -1,4 +1,7 @@
-﻿public interface IInteractable
+﻿namespace HBP.Core.Interfaces
 {
-    bool Interactable { get; set; }
+    public interface IInteractable
+    {
+        bool Interactable { get; set; }
+    }
 }

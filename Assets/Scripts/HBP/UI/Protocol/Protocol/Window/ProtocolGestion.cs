@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 using Tools.Unity.Components;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Experience.Protocol
 {

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using Tools.CSharp;
+using HBP.Core.Interfaces;
 
 namespace HBP.Core.Data
 {

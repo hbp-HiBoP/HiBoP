@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Theme.Components
+namespace HBP.Theme.Components
 {
     [RequireComponent(typeof(UnityEngine.UI.Selectable))]
     public class SelectableStateSetter : MonoBehaviour

@@ -4,10 +4,13 @@ using System.Collections;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using CielaSpike;
+using ThirdParty.CielaSpike;
 using Tools.Unity;
 using System.IO;
 using Tools.CSharp;
+using HBP.Core.Exceptions;
+using HBP.Core.Interfaces;
+using HBP.Core.Tools;
 
 namespace HBP.Core.Data
 {

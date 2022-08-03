@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Theme
+namespace HBP.Theme
 {
     [CreateAssetMenu(menuName = "Theme/Settings/Layout Element")]
     public class LayoutElement : Settings

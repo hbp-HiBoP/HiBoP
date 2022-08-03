@@ -1,7 +1,7 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿using UnityEditor;
+using UnityEditor.UI;
 
-namespace UnityEditor.UI
+namespace UnityEngine.UI
 {
     /// <summary>
     ///         <para>Custom Editor for the ContentSizeFitter Component.
@@ -9,7 +9,7 @@ namespace UnityEditor.UI
     ///       </summary>
     [CanEditMultipleObjects]
     [CustomEditor(typeof(ContentSizeClamper), true)]
-    public class ContentSizeClamerEditor : SelfControllerEditor
+    public class ContentSizeClamperEditor : SelfControllerEditor
     {
         #region Properties
         private SerializedProperty m_MinHorizontalClamp;

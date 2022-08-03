@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using UnityEngine;
+using HBP.Core.Enums;
 
 namespace HBP.Core.DLL
 {
     public class IEEGGenerator : ActivityGenerator
     {
         #region Public Methods
-        public void ComputeActivity(RawSiteList rawElectrodes, float influenceDistance, float[] activityValues, int timelineLength, int numberOfSites, Data.Enums.SiteInfluenceByDistanceType siteInfluenceByDistance)
+        public void ComputeActivity(RawSiteList rawElectrodes, float influenceDistance, float[] activityValues, int timelineLength, int numberOfSites, SiteInfluenceByDistanceType siteInfluenceByDistance)
         {
             compute_activity_IEEGGenerator(_handle, rawElectrodes.getHandle(), influenceDistance, activityValues, timelineLength, numberOfSites, (int)siteInfluenceByDistance);
         }

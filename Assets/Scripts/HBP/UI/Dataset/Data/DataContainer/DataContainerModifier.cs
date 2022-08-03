@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using HBP.Core.Data.Container;
+using HBP.Core.Data;
 
 namespace HBP.UI.Experience.Dataset
 {

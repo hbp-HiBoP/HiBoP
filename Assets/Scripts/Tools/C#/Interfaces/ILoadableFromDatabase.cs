@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using HBP.Core.Tools;
 
-public interface ILoadableFromDatabase<T>
+namespace HBP.Core.Interfaces
 {
-    IEnumerator LoadFromDatabase(string path, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<T>> result);
+    public interface ILoadableFromDatabase<T>
+    {
+        IEnumerator LoadFromDatabase(string path, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<T>> result);
+    }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Runtime.Serialization;
 using UnityEngine;
+using HBP.Core.Interfaces;
 
 namespace HBP.Core.Data
 {

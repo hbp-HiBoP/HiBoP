@@ -1,4 +1,4 @@
-﻿using Theme.Components;
+﻿using HBP.Theme.Components;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
@@ -15,7 +15,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// State to be used for the left-right cursor
         /// </summary>
-        [SerializeField] State m_LeftRightState;
+        [SerializeField] HBP.Theme.State m_LeftRightState;
         /// <summary>
         /// RectTransform of this handler
         /// </summary>

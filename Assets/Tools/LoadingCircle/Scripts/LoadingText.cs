@@ -1,24 +1,27 @@
-﻿public class LoadingText
+﻿namespace HBP.Core.Tools
 {
-    #region Properties
-    public readonly string Prefix;
-    public readonly string Message;
-    public readonly string Suffix;
-    #endregion
-
-    #region Constructors
-    public LoadingText(string prefix = "", string message = "", string suffix = "")
+    public class LoadingText
     {
-        Prefix = prefix;
-        Message = message;
-        Suffix = suffix;
-    }
-    #endregion
+        #region Properties
+        public readonly string Prefix;
+        public readonly string Message;
+        public readonly string Suffix;
+        #endregion
 
-    #region Public Methods
-    public override string ToString()
-    {
-        return Prefix + Message + Suffix;
+        #region Constructors
+        public LoadingText(string prefix = "", string message = "", string suffix = "")
+        {
+            Prefix = prefix;
+            Message = message;
+            Suffix = suffix;
+        }
+        #endregion
+
+        #region Public Methods
+        public override string ToString()
+        {
+            return Prefix + Message + Suffix;
+        }
+        #endregion
     }
-    #endregion
 }

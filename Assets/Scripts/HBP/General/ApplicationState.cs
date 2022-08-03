@@ -70,7 +70,7 @@ public static class ApplicationState
     /// <summary>
     /// Loading circle manager.
     /// </summary>
-    public static LoadingManager LoadingManager { get; set; }
+    public static HBP.UI.LoadingManager LoadingManager { get; set; }
 
     /// <summary>
     /// Tooltip manager

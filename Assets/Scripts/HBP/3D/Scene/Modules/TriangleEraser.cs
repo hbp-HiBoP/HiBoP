@@ -2,7 +2,7 @@
 using System.Linq;
 using Tools.CSharp;
 using UnityEngine;
-using HBP.Core.Data.Enums;
+using HBP.Core.Enums;
 
 namespace HBP.Module3D
 {

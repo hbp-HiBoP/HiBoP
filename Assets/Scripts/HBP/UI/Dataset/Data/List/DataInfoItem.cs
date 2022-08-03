@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using Theme.Components;
+using HBP.Theme.Components;
 using Tools.Unity;
 using Tools.CSharp;
 
@@ -18,8 +18,8 @@ namespace HBP.UI.Experience.Dataset
         [SerializeField] ThemeElement m_StateThemeElement;
         [SerializeField] Tooltip m_ErrorText;
 
-        [SerializeField] State m_OKState;
-        [SerializeField] State m_ErrorState;
+        [SerializeField] Theme.State m_OKState;
+        [SerializeField] Theme.State m_ErrorState;
 
         /// <summary>
         /// Object to display.

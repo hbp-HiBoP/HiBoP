@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
+using HBP.Core.Interfaces;
 
 namespace HBP.UI
 {

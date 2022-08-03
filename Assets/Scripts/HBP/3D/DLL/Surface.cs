@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using HBP.Core.Enums;
 
 namespace HBP.Core.DLL
 {
@@ -244,7 +245,7 @@ namespace HBP.Core.DLL
         /// <param name="mode">Currently selected triangle erasing mode</param>
         /// <param name="degrees">Maximum angle in degrees for the area mode</param>
         /// <returns>New surface made with invisible triangles</returns>
-        public Surface UpdateVisibilityMask(Vector3 rayDirection, Vector3 hitPoint, Data.Enums.TriEraserMode mode, float degrees)
+        public Surface UpdateVisibilityMask(Vector3 rayDirection, Vector3 hitPoint, TriEraserMode mode, float degrees)
         {
             float[] hitPointArray = new float[3], rayDirectionArray = new float[3];
             hitPointArray[0] = hitPoint.x;
@@ -517,7 +518,7 @@ namespace HBP.Core.DLL
             int planesCount = 0;
             for (int ii = 0; ii < cuts.Length; ++ii)
             {
-                if (cuts[ii].Orientation != Data.Enums.CutOrientation.Custom)
+                if (cuts[ii].Orientation != CutOrientation.Custom)
                 {
                     for (int jj = 0; jj < 3; ++jj)
                     {

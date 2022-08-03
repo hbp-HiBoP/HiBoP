@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using Theme;
 
 namespace Tools.Unity.Window
 {
@@ -8,13 +7,13 @@ namespace Tools.Unity.Window
 	public class Resizer : MonoBehaviour 
 	{
         #region Properties
-        [SerializeField] Element Cursors;
+        [SerializeField] HBP.Theme.Element Cursors;
 
-        [SerializeField] State Default;
-        [SerializeField] State LeftRight;
-        [SerializeField] State BottomTop;
-        [SerializeField] State TopLeftToBottomRight;
-        [SerializeField] State BottomLeftToTopRight;
+        [SerializeField] HBP.Theme.State Default;
+        [SerializeField] HBP.Theme.State LeftRight;
+        [SerializeField] HBP.Theme.State BottomTop;
+        [SerializeField] HBP.Theme.State TopLeftToBottomRight;
+        [SerializeField] HBP.Theme.State BottomLeftToTopRight;
 
 		/* RectTransforms */
 		RectTransform m_RectTransform;

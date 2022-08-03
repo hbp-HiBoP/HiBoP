@@ -2,7 +2,7 @@
 using Tools.Unity;
 using UnityEngine;
 
-namespace Theme.Components
+namespace HBP.Theme.Components
 {
     [ExecuteInEditMode]
     public class ThemeElement : MonoBehaviour

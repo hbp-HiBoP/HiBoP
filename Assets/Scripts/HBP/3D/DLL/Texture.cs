@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using HBP.Core.Enums;
 
 namespace HBP.Core.DLL
 {
@@ -226,7 +227,7 @@ namespace HBP.Core.DLL
         /// </summary>
         /// <param name="color">Chosen type of colormap</param>
         /// <returns>Newly created texture</returns>
-        public static Texture Generate1DColorTexture(Data.Enums.ColorType color)
+        public static Texture Generate1DColorTexture(ColorType color)
         {
             return new Texture(generate_1D_color_Texture((int)color));
         }
@@ -236,7 +237,7 @@ namespace HBP.Core.DLL
         /// <param name="color1">Chosen type of colormap for the columns</param>
         /// <param name="color2">Chosen type of colormap for the rows</param>
         /// <returns>Newly created texture</returns>
-        public static Texture Generate2DColorTexture(Data.Enums.ColorType color1, Data.Enums.ColorType color2)
+        public static Texture Generate2DColorTexture(ColorType color1, ColorType color2)
         {
             return new Texture(generate_2D_color_Texture((int)color1, (int)color2));
         }

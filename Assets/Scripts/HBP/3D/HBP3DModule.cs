@@ -5,8 +5,9 @@ using UnityEngine;
 using UnityEngine.Events;
 using System.Linq;
 using System.Collections;
-using CielaSpike;
-using Tools.Unity;
+using ThirdParty.CielaSpike;
+using HBP.Core.Exceptions;
+using HBP.Core.Tools;
 
 namespace HBP.Module3D
 {
@@ -302,7 +303,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="visualizations">Visualizations to be loaded</param>
         /// <returns></returns>
-        public IEnumerator c_Load(IEnumerable<Core.Data.Visualization> visualizations, Action<float,float,LoadingText> onChangeProgress)
+        public IEnumerator c_Load(IEnumerable<Core.Data.Visualization> visualizations, Action<float,float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
 

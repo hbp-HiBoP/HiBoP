@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using HBP.Core.Enums;
 
 namespace HBP.Core.Object3D
 {
@@ -40,11 +41,11 @@ namespace HBP.Core.Object3D
         /// <summary>
         /// How to display the information
         /// </summary>
-        public Data.Enums.SiteInformationDisplayMode Mode { get; set; }
+        public SiteInformationDisplayMode Mode { get; set; }
         #endregion
 
         #region Constructor
-        public SiteInfo(Site site, bool enabled, Vector3 position, Data.Enums.SiteInformationDisplayMode mode = Data.Enums.SiteInformationDisplayMode.IEEG, string ieegAmplitude = "", string ieegUnit = "", string ccepAmplitude = "", string ccepLatency = "")
+        public SiteInfo(Site site, bool enabled, Vector3 position, SiteInformationDisplayMode mode = SiteInformationDisplayMode.IEEG, string ieegAmplitude = "", string ieegUnit = "", string ccepAmplitude = "", string ccepLatency = "")
         {
             Site = site;
             Enabled = enabled;

@@ -1,4 +1,4 @@
-﻿namespace HBP.Errors
+﻿namespace HBP.Core.Errors
 {
     public abstract class Error
     {

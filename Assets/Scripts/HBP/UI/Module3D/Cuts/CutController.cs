@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Tools.Unity;
 using System;
-using HBP.Core.Data.Enums;
+using HBP.Core.Enums;
 
 namespace HBP.UI.Module3D
 {

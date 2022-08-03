@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
-using CielaSpike;
+using ThirdParty.CielaSpike;
 
 public class CoroutineManager : MonoBehaviour
 {
@@ -18,6 +18,6 @@ public class CoroutineManager : MonoBehaviour
     public void StopCoroutineAsync(Coroutine coroutine)
     {
         m_coroutines.Remove(coroutine);
-        this.StopCoroutine(coroutine);
+        StopCoroutine(coroutine);
     }
 }

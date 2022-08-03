@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using HBP.Core.Interfaces;
 
 namespace HBP.Core.Data
 {

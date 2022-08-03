@@ -1,15 +1,15 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEditor;
+﻿using UnityEditor;
 
-[CustomEditor(typeof(LoadingCircle))]
-public class LoadingCircleEditor : Editor
+namespace HBP.UI
 {
-    public override void OnInspectorGUI()
+    [CustomEditor(typeof(LoadingCircle))]
+    public class LoadingCircleEditor : Editor
     {
-        base.OnInspectorGUI();
-        LoadingCircle loadingCircle = (LoadingCircle)target;
-        loadingCircle.Progress = EditorGUILayout.Slider("Progress",loadingCircle.Progress, 0.0f, 1.0f);
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+            LoadingCircle loadingCircle = (LoadingCircle)target;
+            loadingCircle.Progress = EditorGUILayout.Slider("Progress", loadingCircle.Progress, 0.0f, 1.0f);
+        }
     }
 }

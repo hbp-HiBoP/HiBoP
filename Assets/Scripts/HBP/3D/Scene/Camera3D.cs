@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
-using UnityStandardAssets.ImageEffects;
-using HBP.Core.Data.Enums;
+using ThirdParty.ImageEffects;
+using HBP.Core.Enums;
 
 namespace HBP.Module3D
 {
@@ -192,16 +192,16 @@ namespace HBP.Module3D
         /// <summary>
         /// Ambient light color
         /// </summary>
-        public Color AmbientLight = new Color(0.2f, 0.2f, 0.2f, 1);
+        public UnityEngine.Color AmbientLight = new UnityEngine.Color(0.2f, 0.2f, 0.2f, 1);
 
         /// <summary>
         /// State for the selected view
         /// </summary>
-        [SerializeField] State Selected;
+        [SerializeField] Theme.State Selected;
         /// <summary>
         /// State for the clicked view
         /// </summary>
-        [SerializeField] State Clicked;
+        [SerializeField] Theme.State Clicked;
         #endregion
 
         #region Private Methods

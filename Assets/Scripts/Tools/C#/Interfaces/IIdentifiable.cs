@@ -1,9 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public interface IIdentifiable
+﻿namespace HBP.Core.Interfaces
 {
-    string ID { get; set; }
-    void GenerateID();
+    public interface IIdentifiable
+    {
+        string ID { get; set; }
+        void GenerateID();
+    }
 }

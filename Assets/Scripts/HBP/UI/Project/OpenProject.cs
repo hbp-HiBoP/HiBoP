@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
-using CielaSpike;
+using ThirdParty.CielaSpike;
 using Tools.Unity;
 using System.Linq;
 

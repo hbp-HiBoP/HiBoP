@@ -1,7 +1,10 @@
 ﻿using UnityEngine.Events;
 
-public interface ISelectionCountable
+namespace HBP.Core.Interfaces
 {
-    int NumberOfItemSelected { get; }
-    UnityEvent OnSelectionChanged { get; }
+    public interface ISelectionCountable
+    {
+        int NumberOfItemSelected { get; }
+        UnityEvent OnSelectionChanged { get; }
+    }
 }

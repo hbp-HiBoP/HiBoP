@@ -1,10 +1,10 @@
-﻿using HBP.Errors;
+﻿using HBP.Core.Errors;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.Serialization;
-using HBP.Core.Data.Enums;
+using HBP.Core.Enums;
 
 namespace HBP.Core.Data
 {

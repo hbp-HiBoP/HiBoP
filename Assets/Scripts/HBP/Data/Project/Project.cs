@@ -4,11 +4,13 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using CielaSpike;
+using ThirdParty.CielaSpike;
 using Tools.Unity;
 using Ionic.Zip;
 using Tools.CSharp;
 using UnityEngine;
+using HBP.Core.Exceptions;
+using HBP.Core.Tools;
 
 namespace HBP.Core.Data
 {
@@ -482,8 +484,8 @@ namespace HBP.Core.Data
             // Initialization.
             onChangeProgress.Invoke(progress, 0, new LoadingText("Initialization"));
 
-            if (string.IsNullOrEmpty(path)) throw new DirectoryNotFoundException("");
-            if (!Directory.Exists(path)) throw new DirectoryNotFoundException(path);
+            if (string.IsNullOrEmpty(path)) throw new Exceptions.DirectoryNotFoundException("");
+            if (!Directory.Exists(path)) throw new Exceptions.DirectoryNotFoundException(path);
             DirectoryInfo tmpProjectDirectory = Directory.CreateDirectory(ApplicationState.ExtractProjectFolder + "-temp");
             string oldTMPProjectDirectory = ApplicationState.ExtractProjectFolder;
             progress += initializationProgress;

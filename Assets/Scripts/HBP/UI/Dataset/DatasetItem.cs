@@ -1,4 +1,4 @@
-﻿using Theme.Components;
+﻿using HBP.Theme.Components;
 using System.Linq;
 using System.Text;
 using Tools.Unity;
@@ -18,7 +18,7 @@ namespace HBP.UI.Experience.Dataset
         [SerializeField] Text m_ProtocolText;
         [SerializeField] Text m_DataText;
 
-        [SerializeField] State m_ErrorState;
+        [SerializeField] HBP.Theme.State m_ErrorState;
 
         /// <summary>
         /// Object to display.

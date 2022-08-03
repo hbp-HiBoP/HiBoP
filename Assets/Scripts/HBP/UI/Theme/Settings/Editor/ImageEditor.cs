@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using System.Linq;
 
-namespace Theme
+namespace HBP.Theme
 {
     [CustomEditor(typeof(Image))]
     public class ImageEditor : Editor

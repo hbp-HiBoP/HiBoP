@@ -1,8 +1,9 @@
-﻿using HBP.Core.Data.Enums;
+﻿using HBP.Core.Enums;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using HBP.Core.Exceptions;
 
 namespace HBP.Module3D
 {

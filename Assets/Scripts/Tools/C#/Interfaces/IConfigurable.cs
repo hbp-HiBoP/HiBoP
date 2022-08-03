@@ -1,4 +1,4 @@
-﻿namespace HBP.Core
+﻿namespace HBP.Core.Interfaces
 {
     /// <summary>
     /// Interface for the configurable classes

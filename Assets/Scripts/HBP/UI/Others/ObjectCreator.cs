@@ -4,7 +4,9 @@ using System.Linq;
 using Tools.CSharp;
 using UnityEngine;
 using UnityEngine.Events;
-using HBP.Core.Data.Enums;
+using HBP.Core.Enums;
+using HBP.Core.Interfaces;
+using HBP.Core.Tools;
 
 namespace HBP.UI
 {

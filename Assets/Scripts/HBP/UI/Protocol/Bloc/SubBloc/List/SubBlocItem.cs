@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using System.Linq;
 using System.ComponentModel;
-using HBP.Core.Data.Enums;
+using HBP.Core.Enums;
 
 namespace HBP.UI.Experience.Protocol
 {
@@ -24,7 +24,7 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] Text m_OrderText;
         [SerializeField] Text m_TypeText;
 
-        [SerializeField] State m_ErrorState;
+        [SerializeField] HBP.Theme.State m_ErrorState;
 
         /// <summary>
         /// Object to display.

@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace Theme
+namespace HBP.Theme
 {
     [CreateAssetMenu(menuName = "Theme/Settings/Selectable")]
     public class Selectable : Settings

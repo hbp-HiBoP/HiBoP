@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 using UnityEngine;
-using CielaSpike;
+using ThirdParty.CielaSpike;
 using UnityEngine.Events;
 
 namespace Tools.Unity

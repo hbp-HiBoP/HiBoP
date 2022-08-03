@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 using System.Collections.Generic;
-using HBP.Core.Data.Enums;
+using HBP.Core.Enums;
 using System.Linq;
 
 namespace HBP.Core.Data

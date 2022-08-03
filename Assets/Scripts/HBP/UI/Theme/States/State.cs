@@ -1,6 +1,9 @@
 ﻿using UnityEngine;
 
-[CreateAssetMenu()]
-public class State : ScriptableObject
+namespace HBP.Theme
 {
+    [CreateAssetMenu()]
+    public class State : ScriptableObject
+    {
+    }
 }

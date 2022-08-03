@@ -1,4 +1,4 @@
-﻿using CielaSpike;
+﻿using ThirdParty.CielaSpike;
 using HBP.Module3D;
 using System;
 using System.Collections;
@@ -12,7 +12,8 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using HBP.Core.Data.Enums;
+using HBP.Core.Enums;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Module3D
 {

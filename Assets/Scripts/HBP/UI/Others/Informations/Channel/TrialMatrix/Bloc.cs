@@ -7,7 +7,7 @@ using System.Linq;
 using UnityEngine.UI;
 using Tools.Unity;
 using UnityEngine.EventSystems;
-using HBP.Core.Data.Enums;
+using HBP.Core.Enums;
 
 namespace HBP.UI.TrialMatrix
 {

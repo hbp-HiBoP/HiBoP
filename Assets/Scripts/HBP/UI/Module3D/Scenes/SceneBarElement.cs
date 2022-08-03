@@ -1,5 +1,5 @@
 ﻿using HBP.Module3D;
-using Theme.Components;
+using HBP.Theme.Components;
 using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
@@ -33,7 +33,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Theme Element state used when the scene is selected
         /// </summary>
-        [SerializeField] private State m_SelectedState;
+        [SerializeField] private HBP.Theme.State m_SelectedState;
         /// <summary>
         /// Corresponding theme element (to display when the scene is selected)
         /// </summary>

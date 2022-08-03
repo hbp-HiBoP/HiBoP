@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using UnityEngine;
+using HBP.Core.Enums;
 
 namespace HBP.Core.DLL
 {
@@ -13,7 +11,7 @@ namespace HBP.Core.DLL
         #endregion
 
         #region Public Methods
-        public void ComputeActivity(RawSiteList rawElectrodes, float influenceDistance, Data.Enums.SiteInfluenceByDistanceType influenceByDistance)
+        public void ComputeActivity(RawSiteList rawElectrodes, float influenceDistance, SiteInfluenceByDistanceType influenceByDistance)
         {
             compute_activity_DensityGenerator(_handle, rawElectrodes.getHandle(), influenceDistance, (int)influenceByDistance);
         }

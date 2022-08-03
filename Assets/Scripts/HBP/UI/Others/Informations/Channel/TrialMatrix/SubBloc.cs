@@ -5,7 +5,7 @@ using data = HBP.Data.TrialMatrix;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
 using UnityEngine.EventSystems;
-using HBP.Core.Data.Enums;
+using HBP.Core.Enums;
 
 namespace HBP.UI.TrialMatrix
 {

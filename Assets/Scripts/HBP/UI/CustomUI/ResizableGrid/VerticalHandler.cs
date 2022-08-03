@@ -7,7 +7,7 @@ namespace Tools.Unity.ResizableGrid
     public class VerticalHandler : Handler
     {
         #region Properties
-        [SerializeField] protected State m_VerticalState;
+        [SerializeField] protected HBP.Theme.State m_VerticalState;
 
         /// <summary>
         /// Minimum position of the handler

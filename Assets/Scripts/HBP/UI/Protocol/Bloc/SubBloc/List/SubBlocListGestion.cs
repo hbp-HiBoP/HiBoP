@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 using UnityEngine;
-using HBP.Core.Data.Enums;
+using HBP.Core.Enums;
 
 namespace HBP.UI.Experience.Protocol
 {

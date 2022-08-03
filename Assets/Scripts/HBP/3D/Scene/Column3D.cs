@@ -4,15 +4,16 @@ using UnityEngine.Events;
 using System.Linq;
 using System.IO;
 using HBP.Module3D.DLL;
-using HBP.Core.Data.Enums;
+using HBP.Core.Enums;
 using Tools.Unity;
+using HBP.Core.Interfaces;
 
 namespace HBP.Module3D
 {
     /// <summary>
     /// Class containing information about the 3D column (specific meshes, sites, ROIs of the column)
     /// </summary>
-    public abstract class Column3D : MonoBehaviour, Core.IConfigurable
+    public abstract class Column3D : MonoBehaviour, IConfigurable
     {
         #region Properties
         /// <summary>

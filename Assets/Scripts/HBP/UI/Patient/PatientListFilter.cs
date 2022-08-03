@@ -1,7 +1,4 @@
-﻿using HBP.Data;
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -9,6 +6,7 @@ using Tools.CSharp.BooleanExpressionParser;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using HBP.Core.Exceptions;
 
 namespace HBP.UI
 {
