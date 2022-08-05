@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using HBP.Core.Tools;
+using HBP.Core.Data;
+using HBP.Module3D;
 
 namespace HBP.UI.QuickStart
 {
@@ -80,12 +82,12 @@ namespace HBP.UI.QuickStart
         {
             base.Close();
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            ApplicationState.LoadingManager.Load(ApplicationState.ProjectLoaded.c_Save(ApplicationState.ProjectLoadedLocation, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress, (state) =>
+            LoadingManager.Load(ApplicationState.ProjectLoaded.c_Save(ApplicationState.ProjectLoadedLocation, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress, (state) =>
             {
                 if (state == TaskState.Done)
                 {
                     FindObjectOfType<MenuButtonState>().SetInteractables();
-                    ApplicationState.Module3D.LoadScenes(ApplicationState.ProjectLoaded.Visualizations);
+                    HBP3DModule.LoadScenes(ApplicationState.ProjectLoaded.Visualizations);
                 }
             });
         }

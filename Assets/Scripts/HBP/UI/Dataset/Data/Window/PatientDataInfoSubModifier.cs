@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.ObjectModel;
+using HBP.Core.Data;
 
 namespace HBP.UI.Experience.Dataset
 {

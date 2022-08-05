@@ -5,6 +5,7 @@ using Tools.CSharp.BooleanExpressionParser;
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Exceptions;
+using HBP.Core.Data;
 
 namespace HBP.UI.Module3D
 {

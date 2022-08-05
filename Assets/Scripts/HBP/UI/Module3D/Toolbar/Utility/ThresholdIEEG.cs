@@ -317,7 +317,7 @@ namespace HBP.UI.Module3D
                 }
             });
 
-            ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
+            HBP3DModule.OnRemoveScene.AddListener((s) =>
             {
                 foreach (var column in s.ColumnsDynamic)
                 {

@@ -2,10 +2,11 @@
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
+using HBP.Display.Preferences;
 
-namespace HBP.UI.UserPreferences
+namespace HBP.UI.Preferences
 {
-    public class ProtocolPreferencesSubModifier : SubModifier<Core.Data.Preferences.ProtocolPreferences>
+    public class ProtocolPreferencesSubModifier : SubModifier<ProtocolPreferences>
     {
         #region Properties
         [SerializeField] Dropdown m_PositionAveragingDropdown;
@@ -55,7 +56,7 @@ namespace HBP.UI.UserPreferences
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(Core.Data.Preferences.ProtocolPreferences objectToDisplay)
+        protected override void SetFields(ProtocolPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
 

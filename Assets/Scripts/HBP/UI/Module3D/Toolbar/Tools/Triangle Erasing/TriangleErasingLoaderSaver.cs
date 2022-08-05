@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 using T = Tools.Unity;
@@ -42,7 +43,7 @@ namespace HBP.UI.Module3D.Tools
                         catch (Exception e)
                         {
                             Debug.LogException(e);
-                            ApplicationState.DialogBoxManager.Open(T.DialogBoxManager.AlertType.Error, "Save Error", "The file could not be saved.");
+                            DialogBoxManager.Open(T.DialogBoxManager.AlertType.Error, "Save Error", "The file could not be saved.");
                         }
                     }
                 }, new string[] { "trimask" }, "Save brain state to");
@@ -58,7 +59,7 @@ namespace HBP.UI.Module3D.Tools
                     catch (Exception e)
                     {
                         Debug.LogException(e);
-                        ApplicationState.DialogBoxManager.Open(T.DialogBoxManager.AlertType.Error, "Save Error", "The file could not be saved.");
+                        DialogBoxManager.Open(T.DialogBoxManager.AlertType.Error, "Save Error", "The file could not be saved.");
                     }
                 }
 #endif
@@ -80,7 +81,7 @@ namespace HBP.UI.Module3D.Tools
                         catch (Exception e)
                         {
                             Debug.LogException(e);
-                            ApplicationState.DialogBoxManager.Open(T.DialogBoxManager.AlertType.Error, "Load Error", "The file could not be loaded.");
+                            DialogBoxManager.Open(T.DialogBoxManager.AlertType.Error, "Load Error", "The file could not be loaded.");
                         }
                     }
                 }, new string[] { "trimask" }, "Load brain state from");
@@ -96,7 +97,7 @@ namespace HBP.UI.Module3D.Tools
                     catch (Exception e)
                     {
                         Debug.LogException(e);
-                        ApplicationState.DialogBoxManager.Open(T.DialogBoxManager.AlertType.Error, "Load Error", "The file could not be loaded.");
+                        DialogBoxManager.Open(T.DialogBoxManager.AlertType.Error, "Load Error", "The file could not be loaded.");
                     }
                 }
 #endif

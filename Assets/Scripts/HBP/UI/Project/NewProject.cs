@@ -3,6 +3,9 @@ using UnityEngine.UI;
 using Tools.Unity;
 using System.Linq;
 using System.IO;
+using HBP.Display.Preferences;
+using HBP.Core.Data;
+using HBP.Module3D;
 
 namespace HBP.UI
 {
@@ -41,16 +44,16 @@ namespace HBP.UI
         {
             if (string.IsNullOrEmpty(m_ProjectLocationFolderSelector.Folder) || !Directory.Exists(m_ProjectLocationFolderSelector.Folder))
             {
-                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Directory not found", "Please select a valid directory to save your project file.");
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Directory not found", "Please select a valid directory to save your project file.");
                 return;
             }
             if (ApplicationState.ProjectLoaded != null)
             {
-                if (ApplicationState.ProjectLoaded.Visualizations.Any(v => v.IsOpen))
+                if (ApplicationState.ProjectLoaded.Visualizations.Any(v => HBP3DModule.Visualizations.Contains(v)))
                 {
-                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Opened visualizations", "Some visualizations of the currently loaded project are opened. Loading another project will close any opened visualization.\n\nWould you like to load another project ?", () =>
+                    DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Opened visualizations", "Some visualizations of the currently loaded project are opened. Loading another project will close any opened visualization.\n\nWould you like to load another project ?", () =>
                     {
-                        ApplicationState.Module3D.RemoveAllScenes();
+                        HBP3DModule.RemoveAllScenes();
                         CreateNewProject();
                     },
                     "Load project");
@@ -70,7 +73,7 @@ namespace HBP.UI
         #region Private Methods
         protected override void SetFields()
 		{
-            Core.Data.Preferences.ProjectPreferences preferences = ApplicationState.UserPreferences.General.Project;
+            HBP.Display.Preferences.ProjectPreferences preferences = ApplicationState.UserPreferences.General.Project;
 
             m_NameInputField.text = preferences.DefaultName;
             m_ProjectLocationFolderSelector.Folder = preferences.DefaultLocation;
@@ -81,7 +84,7 @@ namespace HBP.UI
         {
             if (new FileInfo(Path.Combine(m_ProjectLocationFolderSelector.Folder, string.Format("{0}.hibop", m_NameInputField.text))).Exists)
             {
-                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Project already exists", string.Format("A project named {0} already exists within the selected directory.\n\nWould you like to override this project?", m_NameInputField.text), () =>
+                DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Project already exists", string.Format("A project named {0} already exists within the selected directory.\n\nWould you like to override this project?", m_NameInputField.text), () =>
                 {
                     Core.Data.ProjectPreferences preferences = new Core.Data.ProjectPreferences(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
                     ApplicationState.ProjectLoaded = new Core.Data.Project(preferences);

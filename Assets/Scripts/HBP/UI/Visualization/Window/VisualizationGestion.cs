@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
-using Tools.Unity.Components;
+using HBP.Module3D;
+using Tools.Unity;
+using HBP.Core.Data;
 
 namespace HBP.UI.Visualization
 {
@@ -36,10 +38,10 @@ namespace HBP.UI.Visualization
         public void Display()
         {
             Core.Data.Visualization[] visualizations = m_ListGestion.List.ObjectsSelected;
-            var alreadyOpenedVisualizations = visualizations.Where(v => ApplicationState.Module3D.Scenes.Any(s => s.Visualization == v));
+            var alreadyOpenedVisualizations = visualizations.Where(v => HBP3DModule.Scenes.Any(s => s.Visualization == v));
             if (alreadyOpenedVisualizations.Count() > 0)
             {
-                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Visualization already opened", "The following visualizations are already opened:\n" + string.Concat(alreadyOpenedVisualizations.Select(v => v.Name + "\n")));
+                DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Visualization already opened", "The following visualizations are already opened:\n" + string.Concat(alreadyOpenedVisualizations.Select(v => v.Name + "\n")));
                 return;
             }
             if (ApplicationState.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
@@ -49,16 +51,16 @@ namespace HBP.UI.Visualization
                 var maybeTooMuchMemoryVisualizations = visualizations.Where(v => v.Patients.Count > patientThreshold);
                 if (maybeTooMuchMemoryVisualizations.Count() > 0)
                 {
-                    ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Memory warning", "One of the visualizations you are trying to display has been detected as a potential memory issue.\nIt may contain too many patients in order to be visualized using the \"Preload all patient data in multi-patient visualizations\" option considering the maximum memory cache set in the user preferences.\n\nDo you still want to display it?",
+                    DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Memory warning", "One of the visualizations you are trying to display has been detected as a potential memory issue.\nIt may contain too many patients in order to be visualized using the \"Preload all patient data in multi-patient visualizations\" option considering the maximum memory cache set in the user preferences.\n\nDo you still want to display it?",
                         () =>
                         {
-                            ApplicationState.Module3D.LoadScenes(m_ListGestion.List.ObjectsSelected);
+                            HBP3DModule.LoadScenes(m_ListGestion.List.ObjectsSelected);
                             OK();
                         }, "Display", () => { }, "Cancel");
                     return;
                 }
             }
-            ApplicationState.Module3D.LoadScenes(m_ListGestion.List.ObjectsSelected);
+            HBP3DModule.LoadScenes(m_ListGestion.List.ObjectsSelected);
             OK();
         }
         #endregion

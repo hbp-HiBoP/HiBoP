@@ -3,13 +3,15 @@ using UnityEngine;
 using ThirdParty.CielaSpike;
 using System.IO;
 using HBP.Core.Enums;
+using HBP.Core.Data;
+using HBP.Core.Tools;
 
 namespace HBP.Core.Object3D
 {
     /// <summary>
     /// Global class containing information about the MNI meshes and MRIs
     /// </summary>
-    public class MNIObjects : MonoBehaviour
+    public class MNIObjects
     {
         #region Properties
         /// <summary>
@@ -30,28 +32,12 @@ namespace HBP.Core.Object3D
         public MRI3D MRI { get; private set; }
 
         /// <summary>
-        /// Path to the files to load
-        /// </summary>
-        private string m_DataPath = "";
-        /// <summary>
         /// Are the MNI objects completely loaded ?
         /// </summary>
         public bool IsLoaded { get; private set; }
         #endregion
 
         #region Private Methods
-        private void Awake()
-        {
-            m_DataPath = ApplicationState.DataPath;
-            this.StartCoroutineAsync(c_Load());
-        }
-        private void OnDestroy()
-        {
-            GreyMatter?.Clean();
-            WhiteMatter?.Clean();
-            InflatedWhiteMatter?.Clean();
-            MRI?.Clean();
-        }
         /// <summary>
         /// Load the MNI objects
         /// </summary>
@@ -101,18 +87,19 @@ namespace HBP.Core.Object3D
         }
         #endregion
 
-        #region Coroutines
-        /// <summary>
-        /// Coroutine to load the MNI objects
-        /// </summary>
-        /// <returns>Coroutine return</returns>
-        public IEnumerator c_Load()
+        #region Public Methods
+        public void Load()
         {
-            yield return Ninja.JumpBack;
-            string baseIRMDir = Path.Combine(m_DataPath, "IRM"), baseMeshDir = Path.Combine(m_DataPath, "Meshes");
+            string baseIRMDir = Path.Combine(ApplicationState.DataPath, "IRM"), baseMeshDir = Path.Combine(ApplicationState.DataPath, "Meshes");
             LoadData(baseIRMDir, baseMeshDir);
-            yield return Ninja.JumpToUnity;
             IsLoaded = true;
+        }
+        public void Clean()
+        {
+            GreyMatter?.Clean();
+            WhiteMatter?.Clean();
+            InflatedWhiteMatter?.Clean();
+            MRI?.Clean();
         }
         #endregion
     }

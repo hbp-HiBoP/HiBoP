@@ -1,7 +1,5 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using Tools.Unity;
-using Tools.Unity.Components;
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Interfaces;
@@ -57,7 +55,7 @@ namespace HBP.UI
                     ClassLoaderSaver.SaveToJSon(selectedObject, Path.Combine(directory, string.Format("{0}.{1}", nameable.Name, loadable.GetExtensions()[0])));
                 }
             }
-            ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Selected items have been saved", string.Format("{0} items have been saved at {1}.", selectedObjects.Length, directory));
+            DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Selected items have been saved", string.Format("{0} items have been saved at {1}.", selectedObjects.Length, directory));
         }
         protected void SetExport()
         {

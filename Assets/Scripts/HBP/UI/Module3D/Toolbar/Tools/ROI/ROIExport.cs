@@ -1,5 +1,4 @@
-﻿using HBP.Module3D;
-using Tools.Unity;
+﻿using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -31,7 +30,7 @@ namespace HBP.UI.Module3D.Tools
                 {
                     Data.Visualization.RegionOfInterest ROI = new Data.Visualization.RegionOfInterest(SelectedScene.ROIManager.SelectedROI);
                     ClassLoaderSaver.SaveToJSon(ROI, savePath, true);
-                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Region of Interest saved", "The selected ROI has been saved to <color=#3080ffff>" + savePath + "</color>");
+                    DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Region of Interest saved", "The selected ROI has been saved to <color=#3080ffff>" + savePath + "</color>");
                 }
             }, new string[] { "roi" }, "Save ROI to", Application.dataPath);
 #else
@@ -40,7 +39,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 Core.Data.RegionOfInterest ROI = new Core.Data.RegionOfInterest(SelectedScene.ROIManager.SelectedROI);
                 ClassLoaderSaver.SaveToJSon(ROI, savePath, true);
-                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Region of Interest saved", "The selected ROI has been saved to <color=#3080ffff>" + savePath + "</color>");
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Region of Interest saved", "The selected ROI has been saved to <color=#3080ffff>" + savePath + "</color>");
             }
 #endif
         }

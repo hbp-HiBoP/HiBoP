@@ -1,6 +1,8 @@
-﻿namespace HBP.UI.UserPreferences
+﻿using HBP.Display.Preferences;
+
+namespace HBP.UI.Preferences
 {
-    public class ThemePreferencesSubModifier : SubModifier<Core.Data.Preferences.ThemePreferences>
+    public class ThemePreferencesSubModifier : SubModifier<ThemePreferences>
     {
     }
 }

@@ -88,6 +88,7 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
 
         #region Events
         public UnityEvent OnUpdateCurrentIndex = new UnityEvent();
+        public UnityEvent OnStopTimelinePlay = new UnityEvent();
         #endregion
 
         #region Public Methods
@@ -107,7 +108,7 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
                     {
                         IsPlaying = false;
                         CurrentIndex = 0;
-                        ApplicationState.Module3D.OnStopTimelinePlay.Invoke();
+                        OnStopTimelinePlay.Invoke();
                     }
                 }
             }

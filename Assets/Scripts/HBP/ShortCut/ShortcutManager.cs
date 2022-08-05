@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using HBP.Core.Enums;
+using Tools.Unity;
 
 namespace HBP.UI
 {
@@ -317,7 +318,7 @@ namespace HBP.UI
         }
         private void ChangeSiteSelection(SiteNavigationDirection direction)
         {
-            Base3DScene scene = ApplicationState.Module3D.SelectedScene;
+            Base3DScene scene = HBP3DModule.SelectedScene;
             if (scene != null)
             {
                 Column3D selectedColumn = scene.SelectedColumn;
@@ -349,7 +350,7 @@ namespace HBP.UI
         }
         private void ChangeSelectedSiteState()
         {
-            Base3DScene scene = ApplicationState.Module3D.SelectedScene;
+            Base3DScene scene = HBP3DModule.SelectedScene;
             if (scene)
             {
                 Column3D column = scene.SelectedColumn;
@@ -401,7 +402,7 @@ namespace HBP.UI
                                     int index = m_ChangeColorActions.IndexOf(downAction);
                                     if (index == -1) break;
 
-                                    Color color = ApplicationState.ColorPicker.GetDefaultColor(index);
+                                    Color color = ColorPicker.GetDefaultColor(index);
                                     foreach (var site in sites) site.State.Color = color;
                                 }
                                 break;

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using HBP.Core.Enums;
+using HBP.Core.Object3D;
 
 namespace HBP.Module3D
 {
@@ -81,11 +82,11 @@ namespace HBP.Module3D
             {
                 if (m_DisplayMarsAtlas)
                 {
-                    return ApplicationState.Module3D.MarsAtlas;
+                    return Object3DManager.MarsAtlas;
                 }
                 else if (m_DisplayJuBrainAtlas)
                 {
-                    return ApplicationState.Module3D.JuBrainAtlas;
+                    return Object3DManager.JuBrain;
                 }
                 else
                 {
@@ -135,8 +136,8 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateAtlasIndices()
         {
-            m_JuBrainAtlasIndices = ApplicationState.Module3D.JuBrainAtlas.GetSurfaceAreaLabels(m_Scene.MeshManager.BrainSurface);
-            m_MarsAtlasIndices = ApplicationState.Module3D.MarsAtlas.GetSurfaceAreaLabels(m_Scene.MeshManager.BrainSurface);
+            m_JuBrainAtlasIndices = Object3DManager.JuBrain.GetSurfaceAreaLabels(m_Scene.MeshManager.BrainSurface);
+            m_MarsAtlasIndices = Object3DManager.MarsAtlas.GetSurfaceAreaLabels(m_Scene.MeshManager.BrainSurface);
         }
         /// <summary>
         /// Update all colors for the atlas for all vertices
@@ -166,17 +167,17 @@ namespace HBP.Module3D
                 string[] information = SelectedAtlas.GetInformation(HoveredArea);
                 if (information.Length == 5)
                 {
-                    ApplicationState.Module3D.OnDisplayAtlasInformation.Invoke(new AtlasInfo(true, Input.mousePosition, SelectedAtlas is Core.DLL.MarsAtlas ? AtlasInfo.AtlasType.MarsAtlas : AtlasInfo.AtlasType.JuBrainAtlas, information[0] + "(" + HoveredArea + ")", information[1], information[2], information[3], information[4]));
+                    HBP3DModule.OnDisplayAtlasInformation.Invoke(new AtlasInfo(true, Input.mousePosition, SelectedAtlas is Core.DLL.MarsAtlas ? AtlasInfo.AtlasType.MarsAtlas : AtlasInfo.AtlasType.JuBrainAtlas, information[0] + "(" + HoveredArea + ")", information[1], information[2], information[3], information[4]));
                 }
                 else
                 {
-                    ApplicationState.Module3D.OnDisplayAtlasInformation.Invoke(new AtlasInfo(false, Input.mousePosition));
+                    HBP3DModule.OnDisplayAtlasInformation.Invoke(new AtlasInfo(false, Input.mousePosition));
                 }
             }
             else
             {
                 HoveredArea = -1;
-                ApplicationState.Module3D.OnDisplayAtlasInformation.Invoke(new AtlasInfo(false, Input.mousePosition));
+                HBP3DModule.OnDisplayAtlasInformation.Invoke(new AtlasInfo(false, Input.mousePosition));
             }
         }
         public void ColorCuts(Column3D column)

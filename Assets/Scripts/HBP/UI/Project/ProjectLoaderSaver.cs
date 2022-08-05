@@ -3,6 +3,8 @@ using UnityEngine.Events;
 using System.IO;
 using ThirdParty.CielaSpike;
 using HBP.Core.Tools;
+using HBP.Core.Data;
+using HBP.Module3D;
 
 namespace HBP.UI
 {
@@ -24,7 +26,7 @@ namespace HBP.UI
             UnityEngine.Profiling.Profiler.BeginSample("2");
 
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            ApplicationState.LoadingManager.Load(
+            LoadingManager.Load(
                 projectToLoad.c_Load(projectInfo, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)),
                 onChangeProgress,
                 (taskState) =>
@@ -43,10 +45,10 @@ namespace HBP.UI
         }
         public void Save(string path)
         {
-            ApplicationState.Module3D.SaveConfigurations();
+            HBP3DModule.SaveConfigurations();
             ApplicationState.ProjectLoadedLocation = path;
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            ApplicationState.LoadingManager.Load(
+            LoadingManager.Load(
                 ApplicationState.ProjectLoaded.c_Save(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)),
                 onChangeProgress);
         }

@@ -438,27 +438,27 @@ namespace HBP.Core.Data
             yield return Ninja.JumpToUnity;
 
             // Load Settings.
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadSettings(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * settingsProgress, duration, text)));
+            yield return CoroutineManager.StartAsync(c_LoadSettings(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * settingsProgress, duration, text)));
             progress += settingsProgress;
 
             // Load Patients.
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadPatients(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * patientsProgress, duration, text)));
+            yield return CoroutineManager.StartAsync(c_LoadPatients(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * patientsProgress, duration, text)));
             progress += patientsProgress;
 
             // Load Groups.
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadGroups(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * groupsProgress, duration, text)));
+            yield return CoroutineManager.StartAsync(c_LoadGroups(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * groupsProgress, duration, text)));
             progress += groupsProgress;
 
             // Load Protocols.
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadProtocols(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * protocolsProgress, duration, text)));
+            yield return CoroutineManager.StartAsync(c_LoadProtocols(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * protocolsProgress, duration, text)));
             progress += protocolsProgress;
 
             // Load Datasets.
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadDatasets(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * datasetsProgress, duration, text)));
+            yield return CoroutineManager.StartAsync(c_LoadDatasets(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * datasetsProgress, duration, text)));
             progress += datasetsProgress;
 
             // Load Visualizations.
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadVisualizations(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text)));
+            yield return CoroutineManager.StartAsync(c_LoadVisualizations(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text)));
             progress += visualizationsProgress;
 
             yield return Ninja.JumpBack;
@@ -495,27 +495,27 @@ namespace HBP.Core.Data
             yield return Ninja.JumpToUnity;
 
             // Save Settings.
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SaveSettings(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * settingsProgress, duration, text)));
+            yield return CoroutineManager.StartAsync(c_SaveSettings(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * settingsProgress, duration, text)));
             progress += settingsProgress;
 
             // Save Patients
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SavePatients(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * patientsProgress, duration, text)));
+            yield return CoroutineManager.StartAsync(c_SavePatients(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * patientsProgress, duration, text)));
             progress += patientsProgress;
 
             // Save Groups.
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SaveGroups(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * groupsProgress, duration, text)));
+            yield return CoroutineManager.StartAsync(c_SaveGroups(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * groupsProgress, duration, text)));
             progress += groupsProgress;
 
             // Save Protocols.
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SaveProtocols(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * protocolsProgress, duration, text)));
+            yield return CoroutineManager.StartAsync(c_SaveProtocols(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * protocolsProgress, duration, text)));
             progress += protocolsProgress;
 
             // Save Datasets
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SaveDatasets(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * datasetsProgress, duration, text)));
+            yield return CoroutineManager.StartAsync(c_SaveDatasets(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * datasetsProgress, duration, text)));
             progress += datasetsProgress;
 
             // Save Visualizations.
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SaveVisualizations(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text)));
+            yield return CoroutineManager.StartAsync(c_SaveVisualizations(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text)));
             progress += visualizationsProgress;
 
             yield return Ninja.JumpBack;
@@ -702,7 +702,7 @@ namespace HBP.Core.Data
             }
             SetPatients(patients.ToArray());
             yield return Ninja.JumpToUnity;
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_CheckPatientTagValues(Preferences.Tags, (localProgress, duration, text) => onChangeProgress.Invoke(LOADING_PROGRESS + localProgress * CHECKING_PROGRESS, duration, text)));
+            yield return CoroutineManager.StartAsync(c_CheckPatientTagValues(Preferences.Tags, (localProgress, duration, text) => onChangeProgress.Invoke(LOADING_PROGRESS + localProgress * CHECKING_PROGRESS, duration, text)));
             yield return Ninja.JumpBack;
             onChangeProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
         }
@@ -780,7 +780,7 @@ namespace HBP.Core.Data
             }
             SetDatasets(datasets.ToArray());
             yield return Ninja.JumpToUnity;
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_CheckDatasets(m_Protocols, (localProgress, duration, text) => onChangeProgress.Invoke(LOADING_TIME + localProgress * CHECKING_TIME, duration, text)));
+            yield return CoroutineManager.StartAsync(c_CheckDatasets(m_Protocols, (localProgress, duration, text) => onChangeProgress.Invoke(LOADING_TIME + localProgress * CHECKING_TIME, duration, text)));
             yield return Ninja.JumpBack;
             onChangeProgress.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
         }

@@ -1,5 +1,4 @@
 ﻿using HBP.Module3D;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -114,7 +113,7 @@ namespace HBP.UI.Module3D
                 }
             });
 
-            ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
+            HBP3DModule.OnRemoveScene.AddListener((s) =>
             {
                 foreach (var mri in s.MRIManager.MRIs)
                 {

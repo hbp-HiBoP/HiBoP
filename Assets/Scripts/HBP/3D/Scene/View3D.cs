@@ -43,7 +43,7 @@ namespace HBP.Module3D
                 if (m_IsSelected)
                 {
                     OnSelect.Invoke();
-                    ApplicationState.Module3D.OnSelectView.Invoke(this);
+                    HBP3DModule.OnSelectView.Invoke(this);
                 }
             }
         }

@@ -1,7 +1,8 @@
-﻿using HBP.Module3D;
+﻿using HBP.Core.Data;
+using HBP.Core.Object3D;
+using HBP.Module3D;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -30,14 +31,14 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 ((Column3DCCEP)SelectedColumn).Mode = Column3DCCEP.CCEPMode.Site;
-                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
             });
             m_MarsAtlas.onValueChanged.AddListener(isOn =>
             {
                 if (ListenerLock) return;
 
                 ((Column3DCCEP)SelectedColumn).Mode = Column3DCCEP.CCEPMode.MarsAtlas;
-                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
             });
         }
         /// <summary>
@@ -56,7 +57,7 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateInteractable()
         {
             bool isColumnCCEP = SelectedColumn is Column3DCCEP;
-            bool isMarsAtlasAvailable = ApplicationState.ProjectLoaded.Preferences.Tags.FirstOrDefault(t => t.Name == "MarsAtlas") != null && ApplicationState.Module3D.MarsAtlas.Loaded;
+            bool isMarsAtlasAvailable = ApplicationState.ProjectLoaded.Preferences.Tags.FirstOrDefault(t => t.Name == "MarsAtlas") != null && Object3DManager.MarsAtlas.Loaded;
 
             gameObject.SetActive(isColumnCCEP);
             m_Site.interactable = isColumnCCEP;

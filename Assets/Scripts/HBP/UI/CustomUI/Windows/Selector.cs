@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using Tools.Unity;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 

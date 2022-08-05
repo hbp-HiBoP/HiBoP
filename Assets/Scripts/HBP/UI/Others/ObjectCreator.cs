@@ -208,7 +208,7 @@ namespace HBP.UI
         /// <param name="generateNewIDs"></param>
         protected virtual void OpenSelector(IEnumerable<T> objects, bool multiSelection = false, bool openModifiers = true, bool generateNewIDs = true)
         {
-            ObjectSelector<T> selector = ApplicationState.WindowsManager.OpenSelector<T>(objects, multiSelection, openModifiers);
+            ObjectSelector<T> selector = WindowsManager.OpenSelector<T>(objects, multiSelection, openModifiers);
             selector.OnOk.AddListener(() => SaveSelector(selector, generateNewIDs));
             WindowsReferencer.Add(selector);
         }
@@ -251,7 +251,7 @@ namespace HBP.UI
         /// <returns>Return the objectModifier.</returns>
         protected virtual ObjectModifier<T> OpenModifier(T @object)
         {
-            ObjectModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(@object);
+            ObjectModifier<T> modifier = WindowsManager.OpenModifier(@object);
             modifier.OnOk.AddListener(() => SaveModifier(modifier));
             WindowsReferencer.Add(modifier);
             return modifier;
@@ -329,7 +329,7 @@ namespace HBP.UI
                 {
                     ILoadableFromDatabase<T> loadable = new T() as ILoadableFromDatabase<T>;
                     GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                    ApplicationState.LoadingManager.Load(loadable.LoadFromDatabase(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => OnEndLoadFromDatabase(result.ToArray())), onChangeProgress);
+                    LoadingManager.Load(loadable.LoadFromDatabase(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => OnEndLoadFromDatabase(result.ToArray())), onChangeProgress);
                 }
             });
 #else
@@ -338,7 +338,7 @@ namespace HBP.UI
             {
                 ILoadableFromDatabase<T> loadable = new T() as ILoadableFromDatabase<T>;
                 GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                ApplicationState.LoadingManager.Load(loadable.LoadFromDatabase(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => OnEndLoadFromDatabase(result.ToArray())), onChangeProgress);
+                LoadingManager.Load(loadable.LoadFromDatabase(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => OnEndLoadFromDatabase(result.ToArray())), onChangeProgress);
             }
 #endif
         }

@@ -9,31 +9,33 @@ namespace Tools.Unity
     public class ColorPicker : MonoBehaviour
     {
         #region Properties
+        private static ColorPicker m_Instance;
+
         [SerializeField] private ColorPickerControl m_ColorPickerControl;
         [SerializeField] private UnityEngine.UI.Button m_Blocker;
         private ColorEvent m_OnColorPicked = new ColorEvent();
         #endregion
 
         #region Public Methods
-        public void Open(Color color, UnityAction<Color> action)
+        public static void Open(Color color, UnityAction<Color> action)
         {
-            m_OnColorPicked.RemoveAllListeners();
-            m_OnColorPicked.AddListener(action);
-            
-            GetComponent<MousePositionAndClamp>().Clamp();
-            SetBlockerPosition();
-            gameObject.SetActive(true);
+            m_Instance.m_OnColorPicked.RemoveAllListeners();
+            m_Instance.m_OnColorPicked.AddListener(action);
 
-            m_ColorPickerControl.CurrentColor = color;
+            m_Instance.GetComponent<MousePositionAndClamp>().Clamp();
+            m_Instance.SetBlockerPosition();
+            m_Instance.gameObject.SetActive(true);
+
+            m_Instance.m_ColorPickerControl.CurrentColor = color;
         }
-        public void Close()
+        public static void Close()
         {
-            gameObject.SetActive(false);
-            m_OnColorPicked.Invoke(m_ColorPickerControl.CurrentColor);
+            m_Instance.gameObject.SetActive(false);
+            m_Instance.m_OnColorPicked.Invoke(m_Instance.m_ColorPickerControl.CurrentColor);
         }
-        public Color GetDefaultColor(int index)
+        public static Color GetDefaultColor(int index)
         {
-            Color[] defaultColors = GetComponentsInChildren<DefaultColor>().Select(dc => dc.GetComponent<UnityEngine.UI.Image>().color).ToArray();
+            Color[] defaultColors = m_Instance.GetComponentsInChildren<DefaultColor>().Select(dc => dc.GetComponent<UnityEngine.UI.Image>().color).ToArray();
             if (index > defaultColors.Length) index = defaultColors.Length - 1;
             return defaultColors[index];
         }
@@ -42,6 +44,15 @@ namespace Tools.Unity
         #region Private Methods
         private void Awake()
         {
+            if (m_Instance == null)
+            {
+                m_Instance = this;
+            }
+            else
+            {
+                Destroy(this);
+            }
+
             m_Blocker.onClick.AddListener(Close);
         }
         private void SetBlockerPosition()

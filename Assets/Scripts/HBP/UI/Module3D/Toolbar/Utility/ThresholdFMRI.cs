@@ -1,6 +1,4 @@
 ﻿using HBP.Module3D;
-using HBP.Module3D.DLL;
-using System.Collections;
 using System.Collections.Generic;
 using Tools.CSharp;
 using UnityEngine;
@@ -251,7 +249,7 @@ namespace HBP.UI.Module3D
                 }
             });
 
-            ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
+            HBP3DModule.OnRemoveScene.AddListener((s) =>
             {
                 foreach (var column in s.ColumnsFMRI)
                 {

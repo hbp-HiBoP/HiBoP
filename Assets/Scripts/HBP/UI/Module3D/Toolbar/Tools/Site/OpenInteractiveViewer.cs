@@ -1,6 +1,4 @@
 ﻿using HBP.Module3D;
-using System.Collections;
-using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
 using UnityEngine.UI;
@@ -27,9 +25,9 @@ namespace HBP.UI.Module3D.Tools
         private void Open()
         {
             // TODO : replace by correct values
-            Vector3 sitePosition = ApplicationState.Module3D.SelectedColumn.SelectedSite.transform.localPosition;
+            Vector3 sitePosition = HBP3DModule.SelectedColumn.SelectedSite.transform.localPosition;
             Quaternion quaternion = new Quaternion(-0.3f, 0.7f, -0.5f, 0.2f);
-            View3D view = ApplicationState.Module3D.SelectedView;
+            View3D view = HBP3DModule.SelectedView;
             if (view)
             {
                 quaternion = view.LocalCameraRotation * Quaternion.Euler(0, 180, 0);

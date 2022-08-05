@@ -3,6 +3,9 @@ using UnityEngine.UI;
 using System.Linq;
 using System.Collections.Generic;
 using Tools.CSharp;
+using Tools.Unity;
+using HBP.Module3D;
+using HBP.Core.Data;
 
 namespace HBP.UI
 {
@@ -57,11 +60,11 @@ namespace HBP.UI
         /// </summary>
         public override void OK()
         {
-            if (Object.IsOpen)
+            if (HBP3DModule.Visualizations.Contains(Object))
             {
-                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Visualization already open", "The visualization you are trying to modify is already open. This visualization needs to be closed before saving the changes.\n\nWould you like to close it and save the changes ?", () =>
+                DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Visualization already open", "The visualization you are trying to modify is already open. This visualization needs to be closed before saving the changes.\n\nWould you like to close it and save the changes ?", () =>
                 {
-                    ApplicationState.Module3D.RemoveScene(Object);
+                    HBP3DModule.RemoveScene(Object);
                     base.OK();
                 },
                 "Close & Save");
@@ -76,7 +79,7 @@ namespace HBP.UI
         /// </summary>
         public void AddPatients()
         {
-            ObjectSelector<Core.Data.Patient> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Patients.Where(p => !m_ObjectTemp.Patients.Contains(p)));
+            ObjectSelector<Core.Data.Patient> selector = WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Patients.Where(p => !m_ObjectTemp.Patients.Contains(p)));
             selector.OnOk.AddListener(() => m_PatientListGestion.List.Add(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
@@ -85,7 +88,7 @@ namespace HBP.UI
         /// </summary>
         public void AddGroups()
         {
-            ObjectSelector<Core.Data.Group> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Groups);
+            ObjectSelector<Core.Data.Group> selector = WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Groups);
             selector.OnOk.AddListener(() => AddGroups(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
@@ -94,7 +97,7 @@ namespace HBP.UI
         /// </summary>
         public void RemoveGroups()
         {
-            ObjectSelector<Core.Data.Group> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Groups);
+            ObjectSelector<Core.Data.Group> selector = WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Groups);
             selector.OnOk.AddListener(() => RemoveGroups(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }

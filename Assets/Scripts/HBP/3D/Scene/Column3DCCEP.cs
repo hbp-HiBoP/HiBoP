@@ -4,6 +4,8 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using HBP.Core.Exceptions;
+using HBP.Core.Data;
+using HBP.Core.Object3D;
 
 namespace HBP.Module3D
 {
@@ -26,7 +28,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Timeline of this column (contains information about the length, the number of samples, the events etc.)
         /// </summary>
-        public override Core.Data.Timeline Timeline
+        public override Timeline Timeline
         {
             get
             {
@@ -312,14 +314,14 @@ namespace HBP.Module3D
             if (marsAtlasTag == null)
                 throw new System.Exception("MarsAtlas tag has not been found !");
 
-            int[] marsAtlasLabels = ApplicationState.Module3D.MarsAtlas.Labels();
+            int[] marsAtlasLabels = Object3DManager.MarsAtlas.Labels();
 
             // Sort sites by mars atlas label
             Dictionary<int, List<Core.Object3D.Site>> sitesByMarsAtlasLabel = new Dictionary<int, List<Core.Object3D.Site>>();
             List<Core.Data.StringTagValue> marsAtlasTagValues = Sites.Select(s => s.Information.SiteData.Tags.FirstOrDefault(t => t.Tag == marsAtlasTag) as Core.Data.StringTagValue).ToList(); // FIXME: try perf with linq
             foreach (var label in marsAtlasLabels)
             {
-                string labelName = string.Format("{0}_{1}", ApplicationState.Module3D.MarsAtlas.Hemisphere(label), ApplicationState.Module3D.MarsAtlas.Name(label));
+                string labelName = string.Format("{0}_{1}", Object3DManager.MarsAtlas.Hemisphere(label), Object3DManager.MarsAtlas.Name(label));
                 List<Core.Object3D.Site> sitesOfLabel = new List<Core.Object3D.Site>();
                 for (int i = 0; i < sitesCount; i++)
                 {

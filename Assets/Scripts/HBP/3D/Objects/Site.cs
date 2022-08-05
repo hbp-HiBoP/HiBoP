@@ -319,6 +319,10 @@ namespace HBP.Core.Object3D
         /// Event called when selecting or unselecting this site
         /// </summary>
         public GenericEvent<bool> OnSelectSite = new GenericEvent<bool>();
+        /// <summary>
+        /// Event called when loading or reseting the configuration of this site
+        /// </summary>
+        public UnityEvent OnChangeConfiguration = new UnityEvent();
         #endregion
 
         #region Private Methods
@@ -343,7 +347,7 @@ namespace HBP.Core.Object3D
             State.Color = Configuration.Color;
             State.Labels = Configuration.Labels.ToList();
 
-            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            OnChangeConfiguration.Invoke();
         }
         /// <summary>
         /// Save the configuration of this site to the configuration in the associated visualization
@@ -365,7 +369,7 @@ namespace HBP.Core.Object3D
             State.Color = SiteState.DefaultColor;
             State.Labels = new List<string>();
 
-            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            OnChangeConfiguration.Invoke();
         }
         #endregion
     }

@@ -1,9 +1,5 @@
-﻿using HBP.UI.Module3D;
-using System.Collections;
-using System.Collections.Generic;
+﻿using HBP.Module3D;
 using UnityEngine;
-using System;
-using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
@@ -63,12 +59,12 @@ namespace HBP.UI.Module3D
 
             m_Views.OnClick.AddListener(() =>
             {
-                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
             });
 
             m_StandardViews.OnClick.AddListener(() =>
             {
-                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
             });
         }
         #endregion

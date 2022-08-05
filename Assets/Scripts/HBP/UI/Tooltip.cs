@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HBP.Core.Data;
+using UnityEngine;
 using UnityEngine.EventSystems;
 
 namespace Tools.Unity
@@ -51,12 +52,12 @@ namespace Tools.Unity
         #region Private Methods
         private void Update()
         {
-            if (m_Entered && ApplicationState.TooltipManager != null)
+            if (m_Entered)
             {
                 m_TimeSinceEntered += Time.deltaTime;
-                if ((m_TimeSinceEntered > TooltipManager.TIME_TO_DISPLAY || (ApplicationState.TooltipManager.TooltipHasBeenDisplayedRecently && m_TimeSinceEntered > TooltipManager.TIME_TO_DISPLAY/3)) && !ApplicationState.TooltipManager.IsTooltipDisplayed)
+                if ((m_TimeSinceEntered > TooltipManager.TIME_TO_DISPLAY || (TooltipManager.TooltipHasBeenDisplayedRecently && m_TimeSinceEntered > TooltipManager.TIME_TO_DISPLAY/3)) && !TooltipManager.IsTooltipDisplayed)
                 {
-                    ApplicationState.TooltipManager.ShowTooltip(m_Text, m_Image, m_FollowMouse);
+                    TooltipManager.ShowTooltip(m_Text, m_Image, m_FollowMouse);
                 }
                 if (Input.GetAxis("Mouse X") !=0 && Input.GetAxis("Mouse Y") != 0)
                 {
@@ -77,13 +78,13 @@ namespace Tools.Unity
         }
         public void OnDestroy()
         {
-            if(ApplicationState.TooltipManager != null) ApplicationState.TooltipManager.HideTooltip();
+            TooltipManager.HideTooltip();
             m_Entered = false;
             m_TimeSinceEntered = 0.0f;
         }
         public void HideTooltip()
         {
-            if (Application.isPlaying && ApplicationState.TooltipManager != null) ApplicationState.TooltipManager.HideTooltip();
+            if (Application.isPlaying) TooltipManager.HideTooltip();
             m_Entered = false;
             m_TimeSinceEntered = 0.0f;
         }

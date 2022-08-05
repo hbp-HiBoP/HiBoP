@@ -2,10 +2,11 @@
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
+using HBP.Display.Preferences;
 
-namespace HBP.UI.UserPreferences
+namespace HBP.UI.Preferences
 {
-    public class _3DPreferencesSubModifier : SubModifier<Core.Data.Preferences._3DPreferences>
+    public class _3DPreferencesSubModifier : SubModifier<_3DPreferences>
     {
         #region Properties
         [SerializeField] Toggle m_AutomaticEEGUpdateToggle;
@@ -64,7 +65,7 @@ namespace HBP.UI.UserPreferences
         #endregion
 
         #region Private Methods
-        protected override void SetFields(Core.Data.Preferences._3DPreferences objectToDisplay)
+        protected override void SetFields(_3DPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
 

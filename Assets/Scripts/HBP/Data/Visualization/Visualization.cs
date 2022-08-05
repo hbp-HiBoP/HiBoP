@@ -98,10 +98,6 @@ namespace HBP.Core.Data
         {
             get { return Columns.Count > 0 && Columns.All((column) => column.IsCompatible(Patients)); }
         }
-        /// <summary>
-        /// Is the visualization opened in a scene ?
-        /// </summary>
-        public bool IsOpen { get { return ApplicationState.Module3D.Visualizations.Contains(this); } }
         #endregion
 
         #region Constructors
@@ -214,20 +210,20 @@ namespace HBP.Core.Data
                 // Find dataInfo.
                 if (exception == null)
                 {
-                    yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_FindDataInfoToRead((localProgress, duration, text) => onChangeProgress(progress + localProgress * findDataInfoToReadProgress, duration, text), (value, e) => { dataInfoByColumn = value; exception = e; }));
+                    yield return CoroutineManager.StartAsync(c_FindDataInfoToRead((localProgress, duration, text) => onChangeProgress(progress + localProgress * findDataInfoToReadProgress, duration, text), (value, e) => { dataInfoByColumn = value; exception = e; }));
                     progress += findDataInfoToReadProgress;
                 }
 
                 // Load Data.
                 if (exception == null)
                 {
-                    yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadData(dataInfoByColumn, (localProgress, duration, text) => onChangeProgress(progress + localProgress * loadDataProgress, duration, text), (e) => { exception = e; }));
+                    yield return CoroutineManager.StartAsync(c_LoadData(dataInfoByColumn, (localProgress, duration, text) => onChangeProgress(progress + localProgress * loadDataProgress, duration, text), (e) => { exception = e; }));
                     progress += loadDataProgress;
                 }
                 // Load Columns.
                 if (exception == null)
                 {
-                    yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadColumns(dataInfoByColumn, (localProgress, duration, text) => onChangeProgress(progress + localProgress * loadColumnsProgress, duration, text), (e) => exception = e));
+                    yield return CoroutineManager.StartAsync(c_LoadColumns(dataInfoByColumn, (localProgress, duration, text) => onChangeProgress(progress + localProgress * loadColumnsProgress, duration, text), (e) => exception = e));
                     progress += loadColumnsProgress;
                 }
 
@@ -240,7 +236,7 @@ namespace HBP.Core.Data
             {
                 if (exception == null)
                 {
-                    yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadFMRIColumns((localProgress, duration, text) => onChangeProgress(progress + localProgress * loadFMRIColumnsProgress, duration, text), (e) => { exception = e; }));
+                    yield return CoroutineManager.StartAsync(c_LoadFMRIColumns((localProgress, duration, text) => onChangeProgress(progress + localProgress * loadFMRIColumnsProgress, duration, text), (e) => { exception = e; }));
                     progress += loadFMRIColumnsProgress;
                 }
             }
@@ -248,7 +244,7 @@ namespace HBP.Core.Data
             {
                 if (exception == null)
                 {
-                    yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadMEGColumns((localProgress, duration, text) => onChangeProgress(progress + localProgress * loadMEGColumnsProgress, duration, text), (e) => { exception = e; }));
+                    yield return CoroutineManager.StartAsync(c_LoadMEGColumns((localProgress, duration, text) => onChangeProgress(progress + localProgress * loadMEGColumnsProgress, duration, text), (e) => { exception = e; }));
                     progress += loadMEGColumnsProgress;
                 }
             }

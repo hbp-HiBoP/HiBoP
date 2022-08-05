@@ -1,9 +1,4 @@
-﻿using HBP.UI.Module3D;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using System;
-using UnityEngine.UI;
+﻿using UnityEngine;
 
 namespace HBP.UI.Module3D
 {

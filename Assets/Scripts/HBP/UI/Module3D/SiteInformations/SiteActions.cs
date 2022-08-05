@@ -7,6 +7,8 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using Tools.Unity;
+using HBP.Core.Data;
 
 namespace HBP.UI.Module3D
 {
@@ -187,7 +189,7 @@ namespace HBP.UI.Module3D
             catch (Exception e)
             {
                 Debug.LogException(e);
-                ApplicationState.DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
+                DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
             }
         }
         #endregion
@@ -202,7 +204,7 @@ namespace HBP.UI.Module3D
 
             m_ColorPickerButton.onClick.AddListener(() =>
             {
-                ApplicationState.ColorPicker.Open(m_ColorPickedImage.color, (c) => m_ColorPickedImage.color = c);
+                ColorPicker.Open(m_ColorPickedImage.color, (c) => m_ColorPickedImage.color = c);
             });
             m_AddLabelToggle.onValueChanged.AddListener(isOn => m_LabelInputField.interactable = m_AddLabelToggle.isOn || m_RemoveLabelToggle.isOn);
             m_RemoveLabelToggle.onValueChanged.AddListener(isOn => m_LabelInputField.interactable = m_AddLabelToggle.isOn || m_RemoveLabelToggle.isOn);
@@ -289,7 +291,7 @@ namespace HBP.UI.Module3D
                 group.Name = name;
             }
             ApplicationState.ProjectLoaded.AddGroup(group);
-            ApplicationState.DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Informational, "Group added to project", string.Format("The group {0} containing the {1} patients of the filtered sites has been added to the project.", group.Name, patients.Count()));
+            DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Informational, "Group added to project", string.Format("The group {0} containing the {1} patients of the filtered sites has been added to the project.", group.Name, patients.Count()));
         }
         /// <summary>
         /// Cancel the export of the filtered sites
@@ -455,14 +457,14 @@ namespace HBP.UI.Module3D
             catch (Exception e)
             {
                 Debug.LogException(e);
-                ApplicationState.DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
+                DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
                 yield break;
             }
             yield return Ninja.JumpToUnity;
 
             // End
             StopExport();
-            ApplicationState.DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Informational, "Sites exported", "The filtered sites have been sucessfully exported to " + csvPath);
+            DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Informational, "Sites exported", "The filtered sites have been sucessfully exported to " + csvPath);
             OnRequestListUpdate.Invoke();
         }
 #endregion

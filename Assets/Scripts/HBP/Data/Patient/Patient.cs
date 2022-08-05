@@ -648,7 +648,7 @@ namespace HBP.Core.Data
         IEnumerator ILoadableFromDatabase<Patient>.LoadFromDatabase(string path, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Patient>> result)
         {
             yield return Ninja.JumpToUnity;
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadFromDatabase(path, OnChangeProgress, result));
+            yield return CoroutineManager.StartAsync(c_LoadFromDatabase(path, OnChangeProgress, result));
             yield return Ninja.JumpBack;
         }
         #endregion

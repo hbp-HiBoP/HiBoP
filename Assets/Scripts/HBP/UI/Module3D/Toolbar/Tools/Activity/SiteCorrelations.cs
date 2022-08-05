@@ -82,7 +82,7 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                ApplicationState.LoadingManager.Load(c_ComputeCorrelations((progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
+                LoadingManager.Load(c_ComputeCorrelations((progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
             });
             m_Load.onClick.AddListener(() =>
             {
@@ -267,11 +267,11 @@ namespace HBP.UI.Module3D.Tools
                 catch (Exception e)
                 {
                     Debug.LogException(e);
-                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Can not save correlations", "Please verify your rights.");
+                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Can not save correlations", "Please verify your rights.");
                     return;
                 }
             }
-            ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Site correlations saved", "Site correlations of this visualization have been saved to <color=#3080ffff>" + saveDirectory + "</color>");
+            DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Site correlations saved", "Site correlations of this visualization have been saved to <color=#3080ffff>" + saveDirectory + "</color>");
         }
         private void LoadCorrelations()
         {
@@ -283,12 +283,12 @@ namespace HBP.UI.Module3D.Tools
                     // Checks
                     if (SelectedScene.Visualization.Patients[0].ID != container.PatientID)
                     {
-                        ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Correlation file is not compatible", "The patient of the correlations files you are trying to load is different from the patient in the visualization.");
+                        DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Correlation file is not compatible", "The patient of the correlations files you are trying to load is different from the patient in the visualization.");
                         return;
                     }
                     if (!container.Columns.All(c => SelectedScene.ColumnsIEEG.Any(col => col.Name == c.Name && col.ColumnIEEGData.Bloc == c.Bloc)))
                     {
-                        ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Correlation file is not compatible", "One of the columns in the correlations files has no corresponding column in the visualization.");
+                        DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Correlation file is not compatible", "One of the columns in the correlations files has no corresponding column in the visualization.");
                         return;
                     }
                     // Load
@@ -364,12 +364,12 @@ namespace HBP.UI.Module3D.Tools
                         }
                     }
                     SelectedScene.DisplayCorrelations = true;
-                    ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+                    HBP3DModule.OnRequestUpdateInToolbar.Invoke();
                 }
                 catch (Exception e)
                 {
                     Debug.LogException(e);
-                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Can not load correlations", "One or multiple files are either missing or invalid.");
+                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Can not load correlations", "One or multiple files are either missing or invalid.");
                 }
             }
 #if UNITY_STANDALONE_OSX
@@ -390,13 +390,13 @@ namespace HBP.UI.Module3D.Tools
         }
         private void ResetCorrelations()
         {
-            ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Reset correlations", "This will erase all loaded or computed correlations. Please make sure you saved the computed correlations to files before reseting them.", () =>
+            DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Reset correlations", "This will erase all loaded or computed correlations. Please make sure you saved the computed correlations to files before reseting them.", () =>
             {
                 foreach (var column in SelectedScene.ColumnsIEEG)
                 {
                     column.CorrelationBySitePair.Clear();
                 }
-                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
             }, "Reset", () => { }, "Cancel");
         }
         #endregion
@@ -422,7 +422,7 @@ namespace HBP.UI.Module3D.Tools
             m_CorrelationsComputing = false;
             onChangeProgress(1, 0, new LoadingText("Correlations computed"));
             SelectedScene.DisplayCorrelations = true;
-            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
     }

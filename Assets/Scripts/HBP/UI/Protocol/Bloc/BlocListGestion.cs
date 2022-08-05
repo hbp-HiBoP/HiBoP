@@ -1,5 +1,4 @@
-﻿using Tools.Unity.Components;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace HBP.UI.Experience.Protocol
 {

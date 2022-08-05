@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
+using HBP.Module3D;
 
 namespace HBP.UI.Module3D
 {
@@ -83,7 +84,7 @@ namespace HBP.UI.Module3D
             m_IEEG.SetActive(false);
             m_CCEP.SetActive(false);
             m_Tags.SetActive(true);
-            ApplicationState.Module3D.OnDisplaySiteInformation.AddListener((siteInfo) =>
+            HBP3DModule.OnDisplaySiteInformation.AddListener((siteInfo) =>
             {
                 SiteInformationDisplayMode mode = siteInfo.Mode;
                 if (mode != m_CurrentMode)

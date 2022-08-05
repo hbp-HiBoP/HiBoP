@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Linq;
 using HBP.Core.Tools;
 
 namespace HBP.Core.DLL.EEG

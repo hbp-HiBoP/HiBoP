@@ -1,10 +1,7 @@
 ﻿using ThirdParty.CielaSpike;
-using HBP.Theme.Components;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Net;
-using System.Runtime.Serialization;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -23,7 +20,7 @@ namespace HBP.UI
 
         public void OpenVersionWindow()
         {
-            ApplicationState.WindowsManager.Open("Version Window");
+            WindowsManager.Open("Version Window");
         }
 
         private IEnumerator c_CheckVersion()

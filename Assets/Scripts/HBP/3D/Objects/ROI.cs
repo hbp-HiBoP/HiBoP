@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -75,6 +74,10 @@ namespace HBP.Core.Object3D
         /// Event called when modifying a sphere of this ROI
         /// </summary>
         public UnityEvent OnChangeSphereParameters = new UnityEvent();
+        /// <summary>
+        /// Event called when selecting or deselecting a sphere
+        /// </summary>
+        public UnityEvent OnChangeSphereSelectionState = new UnityEvent();
         #endregion
 
         #region Private Methods
@@ -97,7 +100,8 @@ namespace HBP.Core.Object3D
                 Spheres[SelectedSphereID].Selected = false;
             }
             SelectedSphereID = -1;
-            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+
+            OnChangeSphereSelectionState.Invoke();
         }
         #endregion
 
@@ -182,7 +186,7 @@ namespace HBP.Core.Object3D
                 Spheres[sphereID].Selected = true;
                 SelectedSphereID = sphereID;
             }
-            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            OnChangeSphereSelectionState.Invoke();
         }
         /// <summary>
         /// Add a new sphere to this ROI

@@ -1,6 +1,8 @@
-﻿namespace HBP.UI.UserPreferences
+﻿using HBP.Display.Preferences;
+
+namespace HBP.UI.Preferences
 {
-    public class LocationPreferencesSubModifier : SubModifier<Core.Data.Preferences.LocationPreferences>
+    public class LocationPreferencesSubModifier : SubModifier<LocationPreferences>
     {
     }
 }

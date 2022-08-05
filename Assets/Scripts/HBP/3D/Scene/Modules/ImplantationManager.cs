@@ -169,11 +169,11 @@ namespace HBP.Module3D
                 {
                     displayMode = SiteInformationDisplayMode.Anatomy;
                 }
-                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(site, true, Input.mousePosition, displayMode, iEEGActivity.ToString("0.00"), iEEGUnit, CCEPAmplitude, CCEPLatency));
+                HBP3DModule.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(site, true, Input.mousePosition, displayMode, iEEGActivity.ToString("0.00"), iEEGUnit, CCEPAmplitude, CCEPLatency));
             }
             else
             {
-                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(null, false, Input.mousePosition));
+                HBP3DModule.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(null, false, Input.mousePosition));
             }
         }
         #endregion

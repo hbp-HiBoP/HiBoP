@@ -11,34 +11,42 @@ namespace HBP.UI
     public class LoadingManager : MonoBehaviour
     {
         #region Properties
-        [SerializeField]
-        private Canvas m_Canvas;
-        public Canvas Canvas
-        {
-            get { return m_Canvas; }
-            set { m_Canvas = value; }
-        }
+        private static LoadingManager m_Instance;
 
-        [SerializeField]
-        GameObject LoadingCirclePrefab;
+        [SerializeField] private Canvas m_Canvas;
+        [SerializeField] GameObject m_LoadingCirclePrefab;
+        #endregion
+
+        #region Private Methods
+        private void Awake()
+        {
+            if (m_Instance == null)
+            {
+                m_Instance = this;
+            }
+            else
+            {
+                Destroy(this);
+            }
+        }
         #endregion
 
         #region Public Methods
-        public LoadingCircle Open()
+        public static LoadingCircle Open()
         {
-            GameObject loadingCircleGameObject = Instantiate(LoadingCirclePrefab, Canvas.transform);
+            GameObject loadingCircleGameObject = Instantiate(m_Instance.m_LoadingCirclePrefab, m_Instance.m_Canvas.transform);
             LoadingCircle loadingCircle = loadingCircleGameObject.GetComponent<LoadingCircle>();
             return loadingCircle;
         }
-        public void Load(IEnumerator action, GenericEvent<float, float, LoadingText> onChangeProgress, Action<TaskState> callBack = null)
+        public static void Load(IEnumerator action, GenericEvent<float, float, LoadingText> onChangeProgress, Action<TaskState> callBack = null)
         {
-            StartCoroutine(c_Load(action, onChangeProgress, callBack));
+            m_Instance.StartCoroutine(c_Load(action, onChangeProgress, callBack));
         }
-        public IEnumerator c_Load(IEnumerator action, GenericEvent<float, float, LoadingText> onChangeProgress, Action<TaskState> callBack = null)
+        public static IEnumerator c_Load(IEnumerator action, GenericEvent<float, float, LoadingText> onChangeProgress, Action<TaskState> callBack = null)
         {
             LoadingCircle loadingCircle = Open();
             onChangeProgress.AddListener((progress, time, message) => loadingCircle.ChangePercentage(progress, time, message));
-            yield return this.StartCoroutineAsync(action, out Task task);
+            yield return m_Instance.StartCoroutineAsync(action, out Task task);
             switch (task.State)
             {
                 case TaskState.Done:
@@ -46,7 +54,7 @@ namespace HBP.UI
                     break;
                 case TaskState.Error:
                     Exception exception = task.Exception;
-                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
+                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
                     break;
             }
             loadingCircle.Close();

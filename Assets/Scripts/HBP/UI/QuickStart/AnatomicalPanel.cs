@@ -5,6 +5,7 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
+using HBP.Core.Data;
 
 namespace HBP.UI.QuickStart
 {
@@ -35,7 +36,7 @@ namespace HBP.UI.QuickStart
         {
             ILoadableFromDatabase<Core.Data.Patient> loadable = new Core.Data.Patient();
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            ApplicationState.LoadingManager.Load(loadable.LoadFromDatabase(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => FinishedLoadingBIDSDatabase(result)), onChangeProgress);
+            LoadingManager.Load(loadable.LoadFromDatabase(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => FinishedLoadingBIDSDatabase(result)), onChangeProgress);
         }
         private void FinishedLoadingBIDSDatabase(IEnumerable<Core.Data.Patient> patients)
         {
@@ -54,7 +55,7 @@ namespace HBP.UI.QuickStart
                     ApplicationState.ProjectLoaded.SetPatients(patients);
                 else
                 {
-                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "No patient have been selected", "You need to select at least one patient in order to continue.");
+                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "No patient have been selected", "You need to select at least one patient in order to continue.");
                     return false;
                 }
             }
@@ -65,13 +66,13 @@ namespace HBP.UI.QuickStart
                     ApplicationState.ProjectLoaded.SetPatients(patients);
                 else
                 {
-                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "No patient have been added", "You need to add at least one patient to the list in order to continue.");
+                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "No patient have been added", "You need to add at least one patient to the list in order to continue.");
                     return false;
                 }
             }
             else
             {
-                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "No option selected", "You need to select an option in order to continue.");
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "No option selected", "You need to select an option in order to continue.");
                 return false;
             }
             return base.OpenNextPanel();

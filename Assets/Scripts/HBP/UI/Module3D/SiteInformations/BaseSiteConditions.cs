@@ -8,6 +8,7 @@ using Tools.CSharp;
 using UnityEngine;
 using UnityEngine.Events;
 using HBP.Core.Exceptions;
+using Tools.Unity;
 
 namespace HBP.UI.Module3D
 {
@@ -380,7 +381,7 @@ namespace HBP.UI.Module3D
             yield return Ninja.JumpToUnity;
             if (exception != null)
             {
-                ApplicationState.DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Warning, exception.ToString(), exception.Message);
+                DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Warning, exception.ToString(), exception.Message);
                 OnEndFilter.Invoke(false);
             }
             else

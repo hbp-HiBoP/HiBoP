@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEngine;
 using HBP.Core.Enums;
 using HBP.Core.Exceptions;
+using HBP.Core.Data;
 
 namespace HBP.Module3D
 {
@@ -175,7 +176,7 @@ namespace HBP.Module3D
             m_Scene.ResetGenerators();
 
             m_Scene.OnUpdateCameraTarget.Invoke(SelectedMesh.Both.Center);
-            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Set the mesh part to be displayed in the scene

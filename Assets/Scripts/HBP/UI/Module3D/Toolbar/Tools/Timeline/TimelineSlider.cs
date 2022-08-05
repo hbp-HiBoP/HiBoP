@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HBP.Module3D;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -110,7 +111,7 @@ namespace HBP.UI.Module3D.Tools
                     }
                 }
             });
-            ApplicationState.Module3D.OnUpdateSelectedColumnTimeLineIndex.AddListener(() =>
+            HBP3DModule.OnUpdateSelectedColumnTimeLineIndex.AddListener(() =>
             {
                 ListenerLock = true;
                 if (SelectedColumn is HBP.Module3D.Column3DDynamic columnDynamic)

@@ -26,7 +26,7 @@ namespace Tools.Unity
             {
                 if (string.IsNullOrEmpty(m_DescriptionInputField.text))
                 {
-                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Empty description", "The description field is empty; we might not be able to help you properly.\nDo you still want to send the bug report without any description ?",
+                    DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Empty description", "The description field is empty; we might not be able to help you properly.\nDo you still want to send the bug report without any description ?",
                         () => { SendMail(); base.OK(); }, "Send",
                         () => { }, "Cancel"
                         );
@@ -42,11 +42,11 @@ namespace Tools.Unity
                 Debug.LogException(e);
                 if (e is SmtpException)
                 {
-                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "The report could not be sent", "Please check your internet connection and try again.");
+                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "The report could not be sent", "Please check your internet connection and try again.");
                 }
                 else
                 {
-                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, e.Source, e.Message);
+                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, e.Source, e.Message);
                 }
                 base.OK();
             }
@@ -131,7 +131,7 @@ namespace Tools.Unity
                         smtpServer.Send(mail);
                     }
 
-                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Bug report successfully sent.", "The issue will be adressed as soon as possible. If you've entered your contact information, we may contact you for further information concerning the bug you encountered.");
+                    DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Bug report successfully sent.", "The issue will be adressed as soon as possible. If you've entered your contact information, we may contact you for further information concerning the bug you encountered.");
                 }
             }
         }

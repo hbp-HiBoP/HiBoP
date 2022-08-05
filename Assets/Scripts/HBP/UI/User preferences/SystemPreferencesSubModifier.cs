@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using HBP.Display.Preferences;
 
-namespace HBP.UI.UserPreferences
+namespace HBP.UI.Preferences
 {
-    public class SystemPreferencesSubModifier : SubModifier<Core.Data.Preferences.SystemPreferences>
+    public class SystemPreferencesSubModifier : SubModifier<SystemPreferences>
     {
         #region Properties
         [SerializeField] Toggle m_MultiThreading;
@@ -39,7 +40,7 @@ namespace HBP.UI.UserPreferences
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(Core.Data.Preferences.SystemPreferences objectToDisplay)
+        protected override void SetFields(SystemPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
 

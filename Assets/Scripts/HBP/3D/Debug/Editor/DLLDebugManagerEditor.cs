@@ -2,7 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace HBP.Module3D.DLL
+namespace HBP.Core.DLL
 {
     [CustomEditor(typeof(DLLDebugManager))]
     public class DLLDebugManagerEditor : Editor

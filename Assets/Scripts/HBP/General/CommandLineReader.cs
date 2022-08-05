@@ -1,8 +1,11 @@
-﻿using HBP.UI;
+﻿using HBP.Core.Data;
+using HBP.Module3D;
+using HBP.UI;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Tools.Unity;
 using UnityEngine;
 
 namespace HBP
@@ -60,7 +63,7 @@ namespace HBP
             {
                 if (arguments.Count == 0)
                 {
-                    ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Couldn't open project", "The project name has not been specified.");
+                    DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Couldn't open project", "The project name has not been specified.");
                 }
                 else
                 {
@@ -71,7 +74,7 @@ namespace HBP
             {
                 if (arguments.Count == 0)
                 {
-                    ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Couldn't open project", "The project name has not been specified.");
+                    DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Couldn't open project", "The project name has not been specified.");
                 }
                 else
                 {
@@ -82,11 +85,11 @@ namespace HBP
             {
                 if (ApplicationState.ProjectLoaded == null)
                 {
-                    ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Project not loaded", "You are trying to open a visualization without opening a project. This is not supported.");
+                    DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Project not loaded", "You are trying to open a visualization without opening a project. This is not supported.");
                 }
                 else if (arguments.Count == 0)
                 {
-                    ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Couldn't load visualizations", "The names of the visualizations have not been specified.");
+                    DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Couldn't load visualizations", "The names of the visualizations have not been specified.");
                 }
                 else
                 {
@@ -99,7 +102,7 @@ namespace HBP
                     {
                         visualizations = from visu in ApplicationState.ProjectLoaded.Visualizations where arguments.Contains(visu.Name) select visu;
                     }
-                    ApplicationState.Module3D.LoadScenes(visualizations);
+                    HBP3DModule.LoadScenes(visualizations);
                 }
             }
             yield return null;

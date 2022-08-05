@@ -1,5 +1,4 @@
 ﻿/// Credit adrien Gannerie
-using System.Collections.Generic;
 
 namespace UnityEngine.UI.Extensions
 {

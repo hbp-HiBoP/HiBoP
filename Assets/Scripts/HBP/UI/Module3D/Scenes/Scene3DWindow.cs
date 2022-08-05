@@ -14,6 +14,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
+using HBP.Core.Data;
 
 namespace HBP.UI.Module3D
 {
@@ -129,7 +130,7 @@ namespace HBP.UI.Module3D
             grid.VerticalHandlers[0].Position = 1.0f;
             grid.SetVerticalHandlersPosition(0);
 
-            ApplicationState.Module3D.OnRemoveScene.AddSafeListener((s) =>
+            HBP3DModule.OnRemoveScene.AddSafeListener((s) =>
             {
                 if (s == scene)
                 {
@@ -169,7 +170,7 @@ namespace HBP.UI.Module3D
         public void Video()
         {
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            ApplicationState.LoadingManager.Load(c_Video(m_Scene.GenerateExportDirectory(), onChangeProgress), onChangeProgress);
+            LoadingManager.Load(c_Video(m_Scene.GenerateExportDirectory(), onChangeProgress), onChangeProgress);
         }
         #endregion
 
@@ -208,7 +209,7 @@ namespace HBP.UI.Module3D
                                 catch (Exception e)
                                 {
                                     Debug.LogException(e);
-                                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
+                                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                                     yield break;
                                 }
                             }
@@ -229,7 +230,7 @@ namespace HBP.UI.Module3D
                     catch (Exception e)
                     {
                         Debug.LogException(e);
-                        ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
+                        DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                         yield break;
                     }
                 }
@@ -255,7 +256,7 @@ namespace HBP.UI.Module3D
                             catch (Exception e)
                             {
                                 Debug.LogException(e);
-                                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
+                                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                                 yield break;
                             }
                             try
@@ -270,7 +271,7 @@ namespace HBP.UI.Module3D
                             catch (Exception e)
                             {
                                 Debug.LogException(e);
-                                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
+                                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                                 yield break;
                             }
                             Dictionary<string, string> curveValues = graph.ToCSV();
@@ -289,7 +290,7 @@ namespace HBP.UI.Module3D
                             catch (Exception e)
                             {
                                 Debug.LogException(e);
-                                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
+                                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                                 yield break;
                             }
                         }
@@ -345,7 +346,7 @@ namespace HBP.UI.Module3D
                             catch (Exception e)
                             {
                                 Debug.LogException(e);
-                                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
+                                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                                 yield break;
                             }
                             trialMatrixScrollRect.viewport.GetComponent<Image>().sprite = mask;
@@ -367,14 +368,14 @@ namespace HBP.UI.Module3D
                             catch (Exception e)
                             {
                                 Debug.LogException(e);
-                                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
+                                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                                 yield break;
                             }
                         }
                     }
                 }
                 // Feedback
-                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Screenshots saved", "Screenshots have been saved in " + path);
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Screenshots saved", "Screenshots have been saved in " + path);
             }
             else
             {
@@ -389,10 +390,10 @@ namespace HBP.UI.Module3D
                 catch (Exception e)
                 {
                     Debug.LogException(e);
-                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
+                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                     yield break;
                 }
-                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Screenshot saved", "A screenshot of the scene has been saved at " + screenshotPath);
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Screenshot saved", "A screenshot of the scene has been saved at " + screenshotPath);
             }
         }
         /// <summary>
@@ -458,7 +459,7 @@ namespace HBP.UI.Module3D
                     //Colormap colormap = Scene3DUI.Columns[j].Colormap;
                     //Texture2D colormapTexture = Texture2DExtension.ScreenRectToTexture(colormap.GetComponent<RectTransform>().ToScreenSpace());
                     //texture2D.SetPixels(horizontalOffset + 5, totalHeight - 5 - colormapTexture.height, colormapTexture.width, colormapTexture.height, colormapTexture.GetPixels());
-                    //Icon icon = ApplicationState.Module3DUI.Scenes[scene].Scene3DUI.Columns[j].Icon;
+                    //Icon icon = HBP3DModuleUI.Scenes[scene].Scene3DUI.Columns[j].Icon;
                     //Texture2D iconTexture = icon.IsActive ? icon.Sprite.texture : null;
                     //if (iconTexture)
                     //{
@@ -497,7 +498,7 @@ namespace HBP.UI.Module3D
             }
             videoStream.Dispose();
             onChangeProgress.Invoke(1, 0, new LoadingText("Finished"));
-            ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Video saved", "A video of the scene has been saved at " + videoPath);
+            DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Video saved", "A video of the scene has been saved at " + videoPath);
         }
         #endregion
     }

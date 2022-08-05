@@ -1,10 +1,11 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using Tools.Unity;
+using HBP.Display.Preferences;
 
-namespace HBP.UI.UserPreferences
+namespace HBP.UI.Preferences
 {
-    public class ProjectPreferencesSubModifier : SubModifier<Core.Data.Preferences.ProjectPreferences>
+    public class ProjectPreferencesSubModifier : SubModifier<ProjectPreferences>
     {
         #region Properties
         [SerializeField] InputField m_DefaultName;
@@ -46,7 +47,7 @@ namespace HBP.UI.UserPreferences
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(Core.Data.Preferences.ProjectPreferences objectToDisplay)
+        protected override void SetFields(ProjectPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
 

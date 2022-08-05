@@ -1,4 +1,4 @@
-﻿using HBP.Module3D;
+﻿using HBP.Core.Object3D;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -67,7 +67,7 @@ namespace HBP.UI.Module3D.Tools
             bool hasIBC = SelectedScene.FMRIManager.CurrentVolume != null && SelectedScene.FMRIManager.DisplayIBCContrasts;
             if (hasIBC)
             {
-                m_ThresholdFMRI.UpdateFMRICalValues(ApplicationState.Module3D.IBCObjects.FMRI, SelectedScene.FMRIManager.FMRINegativeCalMinFactor, SelectedScene.FMRIManager.FMRINegativeCalMaxFactor, SelectedScene.FMRIManager.FMRIPositiveCalMinFactor, SelectedScene.FMRIManager.FMRIPositiveCalMaxFactor);
+                m_ThresholdFMRI.UpdateFMRICalValues(Object3DManager.IBC.FMRI, SelectedScene.FMRIManager.FMRINegativeCalMinFactor, SelectedScene.FMRIManager.FMRINegativeCalMaxFactor, SelectedScene.FMRIManager.FMRIPositiveCalMinFactor, SelectedScene.FMRIManager.FMRIPositiveCalMaxFactor);
                 m_AlphaSlider.value = SelectedScene.FMRIManager.FMRIAlpha;
             }
         }

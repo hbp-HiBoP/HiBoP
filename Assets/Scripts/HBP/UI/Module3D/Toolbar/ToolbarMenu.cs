@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HBP.Module3D;
+using UnityEngine;
 
 namespace HBP.UI.Module3D
 {
@@ -183,11 +184,11 @@ namespace HBP.UI.Module3D
         /// </summary>
         private void Initialize()
         {
-            ApplicationState.Module3D.OnRequestUpdateInToolbar.AddListener(() =>
+            HBP3DModule.OnRequestUpdateInToolbar.AddListener(() =>
             {
                 m_UpdateRequired = true;
             });
-            ApplicationState.Module3D.OnFinishedAddingNewScenes.AddListener(() =>
+            HBP3DModule.OnFinishedAddingNewScenes.AddListener(() =>
             {
                 CurrentToolbar.ShowToolbarCallback();
             });

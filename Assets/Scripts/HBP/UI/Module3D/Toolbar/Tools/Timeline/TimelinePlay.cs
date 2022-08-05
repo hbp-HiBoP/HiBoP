@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
-using UnityEngine.Events;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -42,12 +38,6 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void Initialize()
         {
-            ApplicationState.Module3D.OnStopTimelinePlay.AddListener(() =>
-            {
-                ListenerLock = true;
-                UpdateStatus();
-                ListenerLock = false;
-            });
             m_Toggle.onValueChanged.AddListener((isOn) =>
             {
                 if (ListenerLock) return;

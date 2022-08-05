@@ -1,16 +1,16 @@
 ﻿using ThirdParty.CielaSpike;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using UnityEngine;
+using HBP.Core.Data;
+using HBP.Core.Tools;
 
 namespace HBP.Core.Object3D
 {
     /// <summary>
     /// Class containing the data of the IBC functional atlas
     /// </summary>
-    public class IBCObjects : MonoBehaviour
+    public class IBCObjects
     {
         #region Properties
         /// <summary>
@@ -23,43 +23,21 @@ namespace HBP.Core.Object3D
         #endregion
 
         #region Private Methods
-        private void Awake()
-        {
-            if (ApplicationState.UserPreferences.Data.Atlases.PreloadIBC) Load();
-        }
-        private void OnDestroy()
-        {
-            FMRI?.Clean();
-        }
         #endregion
 
         #region Public Methods
+        public void Clean()
+        {
+            FMRI?.Clean();
+        }
         public void Load()
         {
-            this.StartCoroutineAsync(c_LoadIBC());
-        }
-        #endregion
-
-        #region Coroutines
-        /// <summary>
-        /// Load all the contrast that are in the IBC directory
-        /// </summary>
-        /// <returns>Coroutine return</returns>
-        private IEnumerator c_LoadIBC()
-        {
-            yield return Ninja.JumpToUnity;
-
             Loading = true;
             string csvFile = Path.Combine(ApplicationState.DataPath, "Atlases", "IBC", "map_labels.csv");
             string file = Path.Combine(ApplicationState.DataPath, "Atlases", "IBC", "all_maps.nii.gz");
-
-            yield return Ninja.JumpBack;
             FMRI = new FMRI("IBC", file);
             Information = new IBCInformation(csvFile);
-            yield return Ninja.JumpToUnity;
-
             Loading = false;
-            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
     }

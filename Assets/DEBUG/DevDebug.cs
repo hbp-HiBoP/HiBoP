@@ -9,6 +9,8 @@ using Tools.Unity;
 using System.Collections;
 using System.Collections.Generic;
 using HBP.Core.Enums;
+using HBP.Module3D;
+using HBP.Core.Data;
 
 namespace HBP.Dev
 {
@@ -41,7 +43,7 @@ namespace HBP.Dev
             if (Input.GetKeyDown(KeyCode.F2))
             {
                 m_InitialPositions.Clear();
-                foreach (var site in ApplicationState.Module3D.SelectedColumn.Sites)
+                foreach (var site in HBP3DModule.SelectedColumn.Sites)
                 {
                     m_InitialPositions.Add(site.transform.localPosition);
                 }
@@ -49,11 +51,11 @@ namespace HBP.Dev
             if (Input.GetKeyDown(KeyCode.F3))
             {
                 m_FinalPositions.Clear();
-                Vector3 orientation = ApplicationState.Module3D.SelectedScene.MRIManager.SelectedMRI.Volume.GetOrientationVector(CutOrientation.Sagittal, false);
+                Vector3 orientation = HBP3DModule.SelectedScene.MRIManager.SelectedMRI.Volume.GetOrientationVector(CutOrientation.Sagittal, false);
                 orientation = new Vector3(-orientation.x, orientation.y, orientation.z);
-                Vector3 center = ApplicationState.Module3D.SelectedScene.MeshManager.MeshCenter;
+                Vector3 center = HBP3DModule.SelectedScene.MeshManager.MeshCenter;
                 center = new Vector3(-center.x, center.y, center.z);
-                foreach (var site in ApplicationState.Module3D.SelectedColumn.Sites)
+                foreach (var site in HBP3DModule.SelectedColumn.Sites)
                 {
                     Vector3 vector = site.transform.localPosition - center;
                     float dot = Vector3.Dot(vector, orientation);
@@ -75,7 +77,7 @@ namespace HBP.Dev
             if (m_Initialized && m_Percent < 1)
             {
                 int i = 0;
-                foreach (var site in ApplicationState.Module3D.SelectedColumn.Sites)
+                foreach (var site in HBP3DModule.SelectedColumn.Sites)
                 {
                     site.transform.localPosition = new Vector3(Mathf.Lerp(m_InitialPositions[i].x, m_FinalPositions[i].x, m_Percent), Mathf.Lerp(m_InitialPositions[i].y, m_FinalPositions[i].y, m_Percent), Mathf.Lerp(m_InitialPositions[i].z, m_FinalPositions[i].z, m_Percent));
                     i++;
@@ -121,7 +123,7 @@ namespace HBP.Dev
         private IEnumerator c_ScreenshotWindow(string path)
         {
             yield return new WaitForEndOfFrame();
-            HBP.UI.Window window = ApplicationState.WindowsManager.WindowsReferencer.Windows.FirstOrDefault(w => w.GetComponent<Selector>().Selected);
+            Window window = WindowsManager.WindowsReferencer.Windows.FirstOrDefault(w => w.GetComponent<Selector>().Selected);
             if (!string.IsNullOrEmpty(path))
             {
                 Texture2D image = Texture2DExtension.ScreenRectToTexture(window.GetComponent<RectTransform>().ToScreenSpace());
@@ -131,10 +133,10 @@ namespace HBP.Dev
         }
         private void TestOrientation()
         {
-            Vector3 orientation = ApplicationState.Module3D.SelectedScene.MRIManager.SelectedMRI.Volume.GetOrientationVector(CutOrientation.Sagittal, false);
-            Vector3 center = ApplicationState.Module3D.SelectedScene.MeshManager.MeshCenter;
+            Vector3 orientation = HBP3DModule.SelectedScene.MRIManager.SelectedMRI.Volume.GetOrientationVector(CutOrientation.Sagittal, false);
+            Vector3 center = HBP3DModule.SelectedScene.MeshManager.MeshCenter;
             center = new Vector3(-center.x, center.y, center.z);
-            foreach (var site in ApplicationState.Module3D.SelectedColumn.Sites)
+            foreach (var site in HBP3DModule.SelectedColumn.Sites)
             {
                 Vector3 vector = site.transform.localPosition - center;
                 float dot = Vector3.Dot(vector, orientation);

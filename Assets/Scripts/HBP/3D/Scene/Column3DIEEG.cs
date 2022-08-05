@@ -4,6 +4,7 @@ using Tools.CSharp;
 using UnityEngine;
 using HBP.Core.Exceptions;
 using HBP.Core.Tools;
+using HBP.Core.Data;
 
 namespace HBP.Module3D
 {
@@ -26,7 +27,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Timeline of this column (contains information about the length, the number of samples, the events etc.)
         /// </summary>
-        public override Core.Data.Timeline Timeline
+        public override Timeline Timeline
         {
             get
             {

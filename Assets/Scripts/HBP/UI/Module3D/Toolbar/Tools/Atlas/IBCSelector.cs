@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using UnityEngine.EventSystems;
+﻿using HBP.Core.Object3D;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -48,9 +48,9 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateStatus()
         {
             m_Dropdown.options.Clear();
-            if (ApplicationState.Module3D.IBCObjects.Loaded)
+            if (Object3DManager.IBC.Loaded)
             {
-                foreach (var label in ApplicationState.Module3D.IBCObjects.Information.AllLabels)
+                foreach (var label in Object3DManager.IBC.Information.AllLabels)
                 {
                     m_Dropdown.options.Add(new Dropdown.OptionData(label.PrettyName));
                 }

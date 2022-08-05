@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Core.Data;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -56,7 +57,7 @@ namespace HBP.Module3D
             }
         }
 
-        public Core.Data.FMRITimeline Timeline { get; private set; } = new Core.Data.FMRITimeline();
+        public FMRITimeline Timeline { get; private set; } = new FMRITimeline();
         #endregion
 
         #region Events
@@ -103,8 +104,12 @@ namespace HBP.Module3D
                 OnUpdateCurrentTimelineID.Invoke();
                 if (IsSelected)
                 {
-                    ApplicationState.Module3D.OnUpdateSelectedColumnTimeLineIndex.Invoke();
+                    HBP3DModule.OnUpdateSelectedColumnTimeLineIndex.Invoke();
                 }
+            });
+            Timeline.OnStopTimelinePlay.AddListener(() =>
+            {
+                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
             });
         }
         /// <summary>

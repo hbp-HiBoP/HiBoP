@@ -1,9 +1,12 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using HBP.Display.Preferences;
+using HBP.Module3D;
+using HBP.Core.Object3D;
 
-namespace HBP.UI.UserPreferences
+namespace HBP.UI.Preferences
 {
-    public class AtlasesPreferencesSubModifier : SubModifier<Core.Data.Preferences.AtlasesPreferences>
+    public class AtlasesPreferencesSubModifier : SubModifier<AtlasesPreferences>
     {
         #region Properties
         [SerializeField] Toggle m_MarsAtlas;
@@ -71,14 +74,46 @@ namespace HBP.UI.UserPreferences
             m_DiFuMo512.onValueChanged.AddListener(value => Object.PreloadDiFuMo512 = value);
             m_DiFuMo1024.onValueChanged.AddListener(value => Object.PreloadDiFuMo1024 = value);
             
-            m_LoadMarsAtlas.onClick.AddListener(ApplicationState.Module3D.MarsAtlas.Load);
-            m_LoadJuBrain.onClick.AddListener(ApplicationState.Module3D.JuBrainAtlas.Load);
-            m_LoadIBC.onClick.AddListener(ApplicationState.Module3D.IBCObjects.Load);
-            m_LoadDiFuMo64.onClick.AddListener(() => ApplicationState.Module3D.DiFuMoObjects.Load("64"));
-            m_LoadDiFuMo128.onClick.AddListener(() => ApplicationState.Module3D.DiFuMoObjects.Load("128"));
-            m_LoadDiFuMo256.onClick.AddListener(() => ApplicationState.Module3D.DiFuMoObjects.Load("256"));
-            m_LoadDiFuMo512.onClick.AddListener(() => ApplicationState.Module3D.DiFuMoObjects.Load("512"));
-            m_LoadDiFuMo1024.onClick.AddListener(() => ApplicationState.Module3D.DiFuMoObjects.Load("1024"));
+            m_LoadMarsAtlas.onClick.AddListener(() =>
+            {
+                Object3DManager.MarsAtlas.Load();
+                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+            });
+            m_LoadJuBrain.onClick.AddListener(() =>
+            {
+                Object3DManager.JuBrain.Load();
+                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+            });
+            m_LoadIBC.onClick.AddListener(() =>
+            {
+                Object3DManager.IBC.Load();
+                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+            });
+            m_LoadDiFuMo64.onClick.AddListener(() =>
+            {
+                Object3DManager.DiFuMo.Load("64");
+                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+            });
+            m_LoadDiFuMo128.onClick.AddListener(() =>
+            {
+                Object3DManager.DiFuMo.Load("128");
+                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+            });
+            m_LoadDiFuMo256.onClick.AddListener(() =>
+            {
+                Object3DManager.DiFuMo.Load("256");
+                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+            });
+            m_LoadDiFuMo512.onClick.AddListener(() =>
+            {
+                Object3DManager.DiFuMo.Load("512");
+                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+            });
+            m_LoadDiFuMo1024.onClick.AddListener(() =>
+            {
+                Object3DManager.DiFuMo.Load("1024");
+                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+            });
 
             m_MarsAtlasWebsite.onClick.AddListener(() => Application.OpenURL(@"https://meca-brain.org/software/marsatlas/"));
             m_JuBrainWebsite.onClick.AddListener(() => Application.OpenURL(@"https://www.fz-juelich.de/inm/inm-1/EN/Forschung/JulichBrain/JulichBrain_Webtools/JulichBrain_Webtools_node.html"));
@@ -90,89 +125,89 @@ namespace HBP.UI.UserPreferences
         #region Protected Methods
         protected void Update()
         {
-            if (ApplicationState.Module3D.MarsAtlas.Loaded)
+            if (Object3DManager.MarsAtlas.Loaded)
             {
                 m_LoadMarsAtlas.interactable = false;
                 m_LoadMarsAtlas.GetComponentInChildren<Text>().text = "Loaded";
             }
-            else if (ApplicationState.Module3D.MarsAtlas.Loading)
+            else if (Object3DManager.MarsAtlas.Loading)
             {
                 m_LoadMarsAtlas.interactable = false;
                 m_LoadMarsAtlas.GetComponentInChildren<Text>().text = "Loading...";
             }
-            if (ApplicationState.Module3D.JuBrainAtlas.Loaded)
+            if (Object3DManager.JuBrain.Loaded)
             {
                 m_LoadJuBrain.interactable = false;
                 m_LoadJuBrain.GetComponentInChildren<Text>().text = "Loaded";
             }
-            else if (ApplicationState.Module3D.JuBrainAtlas.Loading)
+            else if (Object3DManager.JuBrain.Loading)
             {
                 m_LoadJuBrain.interactable = false;
                 m_LoadJuBrain.GetComponentInChildren<Text>().text = "Loading...";
             }
-            if (ApplicationState.Module3D.IBCObjects.Loaded)
+            if (Object3DManager.IBC.Loaded)
             {
                 m_LoadIBC.interactable = false;
                 m_LoadIBC.GetComponentInChildren<Text>().text = "Loaded";
             }
-            else if (ApplicationState.Module3D.IBCObjects.Loading)
+            else if (Object3DManager.IBC.Loading)
             {
                 m_LoadIBC.interactable = false;
                 m_LoadIBC.GetComponentInChildren<Text>().text = "Loading...";
             }
-            if (ApplicationState.Module3D.DiFuMoObjects.IsLoaded("64"))
+            if (Object3DManager.DiFuMo.IsLoaded("64"))
             {
                 m_LoadDiFuMo64.interactable = false;
                 m_LoadDiFuMo64.GetComponentInChildren<Text>().text = "Loaded";
             }
-            else if (ApplicationState.Module3D.DiFuMoObjects.IsLoading("64"))
+            else if (Object3DManager.DiFuMo.IsLoading("64"))
             {
                 m_LoadDiFuMo64.interactable = false;
                 m_LoadDiFuMo64.GetComponentInChildren<Text>().text = "Loading...";
             }
-            if (ApplicationState.Module3D.DiFuMoObjects.IsLoaded("128"))
+            if (Object3DManager.DiFuMo.IsLoaded("128"))
             {
                 m_LoadDiFuMo128.interactable = false;
                 m_LoadDiFuMo128.GetComponentInChildren<Text>().text = "Loaded";
             }
-            else if (ApplicationState.Module3D.DiFuMoObjects.IsLoading("128"))
+            else if (Object3DManager.DiFuMo.IsLoading("128"))
             {
                 m_LoadDiFuMo128.interactable = false;
                 m_LoadDiFuMo128.GetComponentInChildren<Text>().text = "Loading...";
             }
-            if (ApplicationState.Module3D.DiFuMoObjects.IsLoaded("256"))
+            if (Object3DManager.DiFuMo.IsLoaded("256"))
             {
                 m_LoadDiFuMo256.interactable = false;
                 m_LoadDiFuMo256.GetComponentInChildren<Text>().text = "Loaded";
             }
-            else if (ApplicationState.Module3D.DiFuMoObjects.IsLoading("256"))
+            else if (Object3DManager.DiFuMo.IsLoading("256"))
             {
                 m_LoadDiFuMo256.interactable = false;
                 m_LoadDiFuMo256.GetComponentInChildren<Text>().text = "Loading...";
             }
-            if (ApplicationState.Module3D.DiFuMoObjects.IsLoaded("512"))
+            if (Object3DManager.DiFuMo.IsLoaded("512"))
             {
                 m_LoadDiFuMo512.interactable = false;
                 m_LoadDiFuMo512.GetComponentInChildren<Text>().text = "Loaded";
             }
-            else if (ApplicationState.Module3D.DiFuMoObjects.IsLoading("512"))
+            else if (Object3DManager.DiFuMo.IsLoading("512"))
             {
                 m_LoadDiFuMo512.interactable = false;
                 m_LoadDiFuMo512.GetComponentInChildren<Text>().text = "Loading...";
             }
-            if (ApplicationState.Module3D.DiFuMoObjects.IsLoaded("1024"))
+            if (Object3DManager.DiFuMo.IsLoaded("1024"))
             {
                 m_LoadDiFuMo1024.interactable = false;
                 m_LoadDiFuMo1024.GetComponentInChildren<Text>().text = "Loaded";
             }
-            else if (ApplicationState.Module3D.DiFuMoObjects.IsLoading("1024"))
+            else if (Object3DManager.DiFuMo.IsLoading("1024"))
             {
                 m_LoadDiFuMo1024.interactable = false;
                 m_LoadDiFuMo1024.GetComponentInChildren<Text>().text = "Loading...";
             }
 
         }
-        protected override void SetFields(Core.Data.Preferences.AtlasesPreferences objectToDisplay)
+        protected override void SetFields(AtlasesPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
 

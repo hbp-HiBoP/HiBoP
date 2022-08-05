@@ -66,7 +66,7 @@ namespace HBP.UI.Module3D.Tools
                 if (!string.IsNullOrEmpty(savePath))
                 {
                     SelectedColumn.SaveSiteStates(savePath);
-                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Site states saved", "Site states of the selected column have been saved to <color=#3080ffff>" + savePath + "</color>");
+                    DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Site states saved", "Site states of the selected column have been saved to <color=#3080ffff>" + savePath + "</color>");
                 }
             }, new string[] { "csv" }, "Save site states to", Application.dataPath);
 #else
@@ -74,7 +74,7 @@ namespace HBP.UI.Module3D.Tools
             if (!string.IsNullOrEmpty(savePath))
             {
                 SelectedColumn.SaveSiteStates(savePath);
-                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Site states saved", "Site states of the selected column have been saved to <color=#3080ffff>" + savePath + "</color>");
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Site states saved", "Site states of the selected column have been saved to <color=#3080ffff>" + savePath + "</color>");
             }
 #endif
         }

@@ -1,12 +1,13 @@
-﻿using Tools.Unity;
-using UnityEngine;
+﻿using UnityEngine;
+using HBP.Display.Preferences;
+using HBP.Core.Data;
 
-namespace HBP.UI.UserPreferences
+namespace HBP.UI.Preferences
 {
     /// <summary>
     /// Window to modify the user preferences.
     /// </summary>
-    public class UserPreferencesModifier : ObjectModifier<Core.Data.Preferences.UserPreferences>
+    public class UserPreferencesModifier : ObjectModifier<UserPreferences>
     {
         #region Properties
         [SerializeField] ProjectPreferencesSubModifier m_ProjectPreferencesSubModifier;
@@ -67,7 +68,7 @@ namespace HBP.UI.UserPreferences
         /// Set the fields.
         /// </summary>
         /// <param name="objectToDisplay">User pereferences to modify</param>
-        protected override void SetFields(Core.Data.Preferences.UserPreferences objectToDisplay)
+        protected override void SetFields(UserPreferences objectToDisplay)
         {
             // General
             m_ProjectPreferencesSubModifier.Object = objectToDisplay.General.Project;

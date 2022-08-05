@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using HBP.Display.Preferences;
+using Tools.Unity;
 
-namespace HBP.UI.UserPreferences
+namespace HBP.UI.Preferences
 {
-    public class GraphPreferencesSubModifier : SubModifier<Core.Data.Preferences.GraphPreferences>
+    public class GraphPreferencesSubModifier : SubModifier<GraphPreferences>
     {
         #region Properties
         [SerializeField] Toggle m_ShowCurvesOfMinimizedColumns;
@@ -37,7 +39,7 @@ namespace HBP.UI.UserPreferences
                 int index = i;
                 m_ColorButtons[index].onClick.AddListener(() =>
                 {
-                    ApplicationState.ColorPicker.Open(Object.GetColor(index), (c) =>
+                    ColorPicker.Open(Object.GetColor(index), (c) =>
                     {
                         Object.SetColor(index, c);
                         m_ColorImages[index].color = c;
@@ -46,7 +48,7 @@ namespace HBP.UI.UserPreferences
             }
             m_Default.onClick.AddListener(() =>
             {
-                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Restore colors to default", "Do you want to restore the colors to their original states?", () =>
+                DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Restore colors to default", "Do you want to restore the colors to their original states?", () =>
                 {
                     Object.SetDefaultColors();
                     SetFields(Object);
@@ -56,7 +58,7 @@ namespace HBP.UI.UserPreferences
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(Core.Data.Preferences.GraphPreferences objectToDisplay)
+        protected override void SetFields(GraphPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
 

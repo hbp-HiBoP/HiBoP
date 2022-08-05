@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using HBP.Core.Enums;
+using HBP.Module3D;
 
 namespace HBP.UI.Module3D
 {
@@ -16,7 +17,7 @@ namespace HBP.UI.Module3D
         {
             if (m_IsInside)
             {
-                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(m_Site, true, Input.mousePosition, SiteInformationDisplayMode.Anatomy));
+                HBP3DModule.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(m_Site, true, Input.mousePosition, SiteInformationDisplayMode.Anatomy));
             }
         }
         #endregion
@@ -32,7 +33,7 @@ namespace HBP.UI.Module3D
         }
         public void OnPointerExit(PointerEventData eventData)
         {
-            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(null, false, Input.mousePosition));
+            HBP3DModule.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(null, false, Input.mousePosition));
             m_IsInside = false;
         }
         #endregion

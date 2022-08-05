@@ -339,7 +339,7 @@ namespace Tools.Unity.Graph
             }
             HBP.Core.Data.BlocData blocData = HBP.Core.Data.DataManager.GetData(dataInfo, column.Data.Bloc);
             HBP.Core.Data.BlocChannelData blocChannelData = HBP.Core.Data.DataManager.GetData(dataInfo, column.Data.Bloc, channel.Channel);
-            Color color = ApplicationState.UserPreferences.Visualization.Graph.GetColor(0, Array.IndexOf(m_Columns, column));
+            Color color = HBP.Core.Data.ApplicationState.UserPreferences.Visualization.Graph.GetColor(0, Array.IndexOf(m_Columns, column));
 
             HBP.Core.Data.ChannelTrial[] trials = blocChannelData.Trials.Where(t => t.IsValid).ToArray();
 
@@ -400,7 +400,7 @@ namespace Tools.Unity.Graph
                 if (dataInfo == null) return null;
             }
             HBP.Core.Data.MEGcData megData = HBP.Core.Data.DataManager.GetData(dataInfo) as HBP.Core.Data.MEGcData;
-            Color color = ApplicationState.UserPreferences.Visualization.Graph.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));
+            Color color = HBP.Core.Data.ApplicationState.UserPreferences.Visualization.Graph.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));
             if (megData == null)
                 return null;
 

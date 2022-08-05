@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HBP.Module3D;
+using UnityEngine;
 
 namespace HBP.UI.Module3D
 {
@@ -49,7 +50,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         public override void ShowToolbarCallback()
         {
-            foreach (HBP.Module3D.Base3DScene scene in ApplicationState.Module3D.Scenes)
+            foreach (HBP.Module3D.Base3DScene scene in HBP3DModule.Scenes)
             {
                 scene.TriangleEraser.IsEnabled = true;
             }
@@ -59,7 +60,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         public override void HideToolbarCallback()
         {
-            foreach (HBP.Module3D.Base3DScene scene in ApplicationState.Module3D.Scenes)
+            foreach (HBP.Module3D.Base3DScene scene in HBP3DModule.Scenes)
             {
                 scene.TriangleEraser.IsEnabled = false;
             }

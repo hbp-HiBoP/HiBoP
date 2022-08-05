@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Core.Data;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Tools.Unity;
@@ -19,12 +20,12 @@ namespace HBP.UI.QuickStart
         {
             if (string.IsNullOrEmpty(m_ProjectName.text))
             {
-                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Name field must be filled", "You need to name your project in order to continue.");
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Name field must be filled", "You need to name your project in order to continue.");
                 return false;
             }
             if (string.IsNullOrEmpty(m_ProjectLocation.Folder) || !Directory.Exists(m_ProjectLocation.Folder))
             {
-                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Directory does not exist", "The input directory does not exist.");
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Directory does not exist", "The input directory does not exist.");
                 return false;
             }
             // Add visualization

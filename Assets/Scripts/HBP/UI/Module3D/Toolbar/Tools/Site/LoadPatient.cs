@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
+using HBP.Module3D;
 
 namespace HBP.UI.Module3D.Tools
 {
@@ -21,7 +22,7 @@ namespace HBP.UI.Module3D.Tools
         {
             m_Button.onClick.AddListener(() =>
             {
-                ApplicationState.Module3D.LoadSinglePatientSceneFromMultiPatientScene(SelectedScene.Visualization, SelectedScene.SelectedColumn.SelectedSite.Information.Patient);
+                HBP3DModule.LoadSinglePatientSceneFromMultiPatientScene(SelectedScene.Visualization, SelectedScene.SelectedColumn.SelectedSite.Information.Patient);
             });
         }
         /// <summary>

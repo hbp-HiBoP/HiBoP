@@ -3,6 +3,8 @@ using System.Collections;
 using ThirdParty.CielaSpike;
 using Tools.Unity;
 using System.Linq;
+using HBP.Core.Data;
+using HBP.Module3D;
 
 namespace HBP.UI
 {
@@ -35,17 +37,17 @@ namespace HBP.UI
         {
             FindObjectOfType<ProjectLoaderSaver>().Load(info);
             base.Close();
-            ApplicationState.WindowsManager.CloseAll();
+            WindowsManager.CloseAll();
         }
         public override void OK()
 		{
             if (ApplicationState.ProjectLoaded != null)
             {
-                if (ApplicationState.ProjectLoaded.Visualizations.Any(v => v.IsOpen))
+                if (ApplicationState.ProjectLoaded.Visualizations.Any(v => HBP3DModule.Visualizations.Contains(v)))
                 {
-                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Opened visualizations", "Some visualizations of the currently loaded project are opened. Loading another project will close any opened visualization.\n\nWould you like to load another project ?", () =>
+                    DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Opened visualizations", "Some visualizations of the currently loaded project are opened. Loading another project will close any opened visualization.\n\nWould you like to load another project ?", () =>
                     {
-                        ApplicationState.Module3D.RemoveAllScenes();
+                        HBP3DModule.RemoveAllScenes();
                         Load(m_ProjectList.ObjectsSelected[0]);
                     },
                     "Load project");

@@ -2,11 +2,11 @@
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
-using HBP.Core.Data.Preferences;
+using HBP.Display.Preferences;
 
-namespace HBP.UI.UserPreferences
+namespace HBP.UI.Preferences
 {
-    public class TrialMatrixPreferencesSubModifier : SubModifier<Core.Data.Preferences.TrialMatrixPreferences>
+    public class TrialMatrixPreferencesSubModifier : SubModifier<TrialMatrixPreferences>
     {
         #region Properties
         [SerializeField] Toggle m_ShowWholeProtocolToggle;
@@ -75,7 +75,7 @@ namespace HBP.UI.UserPreferences
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(Core.Data.Preferences.TrialMatrixPreferences objectToDisplay)
+        protected override void SetFields(TrialMatrixPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
 

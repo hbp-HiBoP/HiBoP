@@ -4,7 +4,7 @@
     {
         public void OpenBugReporter()
         {
-            ApplicationState.WindowsManager.Open("Bug Reporter window");
+            WindowsManager.Open("Bug Reporter window");
         }
     }
 }

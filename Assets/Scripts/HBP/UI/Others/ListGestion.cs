@@ -115,7 +115,7 @@ namespace HBP.UI
         /// <returns>ObjectModifier</returns>
         protected virtual ObjectModifier<T> OpenModifier(T obj)
         {
-            ObjectModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(obj, m_Modifiable);
+            ObjectModifier<T> modifier = WindowsManager.OpenModifier(obj, m_Modifiable);
             modifier.OnOk.AddListener(() => OnSaveModifier(modifier.Object));
             WindowsReferencer.Add(modifier);
             return modifier;

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace HBP.UI
+﻿namespace HBP.UI
 {
     /// <summary>
     /// Abstract window to modify a object.

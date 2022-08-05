@@ -6,6 +6,7 @@ using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using Tools.CSharp;
 using HBP.Core.Interfaces;
+using HBP.Core.Object3D;
 
 namespace HBP.Core.Data
 {
@@ -165,7 +166,7 @@ namespace HBP.Core.Data
                         }
                     }
                     // Look for Mars Atlas specific case and add more information
-                    if (ApplicationState.Module3D.MarsAtlas.Loaded)
+                    if (Object3DManager.MarsAtlas.Loaded)
                     {
                         int marsAtlasIndex = splittedLines[0].IndexOf("MarsAtlas");
                         if (marsAtlasIndex != -1)
@@ -177,12 +178,12 @@ namespace HBP.Core.Data
                             splittedLines[0].Insert(marsAtlasIndex + 5, "Brodmann Area (MarsAtlas)");
                             for (int i = 1; i < splittedLines.Count; ++i)
                             {
-                                int marsAtlasLabel = ApplicationState.Module3D.MarsAtlas.Label(splittedLines[i][marsAtlasIndex]);
-                                splittedLines[i].Insert(marsAtlasIndex + 1, ApplicationState.Module3D.MarsAtlas.Hemisphere(marsAtlasLabel));
-                                splittedLines[i].Insert(marsAtlasIndex + 2, ApplicationState.Module3D.MarsAtlas.Lobe(marsAtlasLabel));
-                                splittedLines[i].Insert(marsAtlasIndex + 3, ApplicationState.Module3D.MarsAtlas.NameFS(marsAtlasLabel));
-                                splittedLines[i].Insert(marsAtlasIndex + 4, ApplicationState.Module3D.MarsAtlas.FullName(marsAtlasLabel));
-                                splittedLines[i].Insert(marsAtlasIndex + 5, ApplicationState.Module3D.MarsAtlas.BrodmannArea(marsAtlasLabel));
+                                int marsAtlasLabel = Object3DManager.MarsAtlas.Label(splittedLines[i][marsAtlasIndex]);
+                                splittedLines[i].Insert(marsAtlasIndex + 1, Object3DManager.MarsAtlas.Hemisphere(marsAtlasLabel));
+                                splittedLines[i].Insert(marsAtlasIndex + 2, Object3DManager.MarsAtlas.Lobe(marsAtlasLabel));
+                                splittedLines[i].Insert(marsAtlasIndex + 3, Object3DManager.MarsAtlas.NameFS(marsAtlasLabel));
+                                splittedLines[i].Insert(marsAtlasIndex + 4, Object3DManager.MarsAtlas.FullName(marsAtlasLabel));
+                                splittedLines[i].Insert(marsAtlasIndex + 5, Object3DManager.MarsAtlas.BrodmannArea(marsAtlasLabel));
                             }
                         }
                     }
@@ -400,7 +401,7 @@ namespace HBP.Core.Data
                             }
                         }
                         // Look for Mars Atlas specific case and add more information
-                        if (ApplicationState.Module3D.MarsAtlas.Loaded)
+                        if (Object3DManager.MarsAtlas.Loaded)
                         {
                             int marsAtlasIndex = splittedLines[0].IndexOf("MarsAtlas");
                             if (marsAtlasIndex != -1)
@@ -412,12 +413,12 @@ namespace HBP.Core.Data
                                 splittedLines[0].Insert(marsAtlasIndex + 5, "Brodmann Area (MarsAtlas)");
                                 for (int i = 1; i < splittedLines.Count; ++i)
                                 {
-                                    int marsAtlasLabel = ApplicationState.Module3D.MarsAtlas.Label(splittedLines[i][marsAtlasIndex]);
-                                    splittedLines[i].Insert(marsAtlasIndex + 1, ApplicationState.Module3D.MarsAtlas.Hemisphere(marsAtlasLabel));
-                                    splittedLines[i].Insert(marsAtlasIndex + 2, ApplicationState.Module3D.MarsAtlas.Lobe(marsAtlasLabel));
-                                    splittedLines[i].Insert(marsAtlasIndex + 3, ApplicationState.Module3D.MarsAtlas.NameFS(marsAtlasLabel));
-                                    splittedLines[i].Insert(marsAtlasIndex + 4, ApplicationState.Module3D.MarsAtlas.FullName(marsAtlasLabel));
-                                    splittedLines[i].Insert(marsAtlasIndex + 5, ApplicationState.Module3D.MarsAtlas.BrodmannArea(marsAtlasLabel));
+                                    int marsAtlasLabel = Object3DManager.MarsAtlas.Label(splittedLines[i][marsAtlasIndex]);
+                                    splittedLines[i].Insert(marsAtlasIndex + 1, Object3DManager.MarsAtlas.Hemisphere(marsAtlasLabel));
+                                    splittedLines[i].Insert(marsAtlasIndex + 2, Object3DManager.MarsAtlas.Lobe(marsAtlasLabel));
+                                    splittedLines[i].Insert(marsAtlasIndex + 3, Object3DManager.MarsAtlas.NameFS(marsAtlasLabel));
+                                    splittedLines[i].Insert(marsAtlasIndex + 4, Object3DManager.MarsAtlas.FullName(marsAtlasLabel));
+                                    splittedLines[i].Insert(marsAtlasIndex + 5, Object3DManager.MarsAtlas.BrodmannArea(marsAtlasLabel));
                                 }
                             }
                         }

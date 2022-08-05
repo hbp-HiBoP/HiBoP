@@ -7,6 +7,8 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using HBP.Core.Exceptions;
+using Tools.Unity;
+using HBP.Core.Data;
 
 namespace HBP.UI
 {
@@ -66,7 +68,7 @@ namespace HBP.UI
             }
             catch (Exception e)
             {
-                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, e.ToString(), e.Message);
+                DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, e.ToString(), e.Message);
             }
         }
         /// <summary>

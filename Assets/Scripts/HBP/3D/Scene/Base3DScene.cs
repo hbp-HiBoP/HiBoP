@@ -11,6 +11,8 @@ using HBP.Core.Enums;
 using HBP.Core.Exceptions;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
+using HBP.Core.Data;
+using HBP.Core.Object3D;
 
 namespace HBP.Module3D
 {
@@ -68,7 +70,7 @@ namespace HBP.Module3D
                 if (m_IsSelected)
                 {
                     OnSelect.Invoke();
-                    ApplicationState.Module3D.OnSelectScene.Invoke(this);
+                    HBP3DModule.OnSelectScene.Invoke(this);
                 }
             }
         }
@@ -291,7 +293,7 @@ namespace HBP.Module3D
                     cut.GetComponent<Renderer>().sharedMaterial = BrainMaterials.CutMaterial;
                 m_DisplayedObjects.SimplifiedBrain.SetActive(!value);
                 BrainMaterials.SetAlpha(BrainMaterials.Alpha);
-                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
             }
         }
 
@@ -560,7 +562,7 @@ namespace HBP.Module3D
                     column.SurfaceNeedsUpdate = true;
 
                 OnUpdateGeneratorState.Invoke(value);
-                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
             }
         }
         
@@ -871,7 +873,7 @@ namespace HBP.Module3D
                 }
             }
             SceneInformation.SitesNeedUpdate = true;
-            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Compute the cuts of the meshes (compute the cuts meshes, fill parameters in the brain mesh shader and reset generators)
@@ -1117,7 +1119,7 @@ namespace HBP.Module3D
                     {
                         ResetGenerators();
                         OnSelectCCEPSource.Invoke();
-                        ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+                        HBP3DModule.OnRequestUpdateInToolbar.Invoke();
                     });
                 }
             }
@@ -1144,7 +1146,7 @@ namespace HBP.Module3D
                     SceneInformation.FunctionalCutTexturesNeedUpdate = true;
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     fmriColumn.SurfaceNeedsUpdate = true;
-                    ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+                    HBP3DModule.OnRequestUpdateInToolbar.Invoke();
                 });
                 fmriColumn.OnUpdateCurrentTimelineID.AddListener(() =>
                 {
@@ -1177,7 +1179,7 @@ namespace HBP.Module3D
                     SceneInformation.FunctionalCutTexturesNeedUpdate = true;
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     megColumn.SurfaceNeedsUpdate = true;
-                    ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+                    HBP3DModule.OnRequestUpdateInToolbar.Invoke();
                 });
                 megColumn.OnUpdateCurrentTimelineID.AddListener(() =>
                 {
@@ -1222,13 +1224,13 @@ namespace HBP.Module3D
             OnChangeVisibleState.Invoke(state);
             if (!state)
             {
-                ApplicationState.Module3D.OnMinimizeScene.Invoke(this);
+                HBP3DModule.OnMinimizeScene.Invoke(this);
             }
             else
             {
-                ApplicationState.Module3D.OnSelectScene.Invoke(this);
-                ApplicationState.Module3D.OnSelectColumn.Invoke(SelectedColumn);
-                ApplicationState.Module3D.OnSelectView.Invoke(SelectedColumn.SelectedView);
+                HBP3DModule.OnSelectScene.Invoke(this);
+                HBP3DModule.OnSelectColumn.Invoke(SelectedColumn);
+                HBP3DModule.OnSelectView.Invoke(SelectedColumn.SelectedView);
             }
             IsSelected = state;
         }
@@ -1456,7 +1458,7 @@ namespace HBP.Module3D
             
             BrainMaterials = new Core.Object3D.BrainMaterials();
 
-            transform.position = new Vector3(HBP3DModule.SPACE_BETWEEN_SCENES_GAME_OBJECTS * ApplicationState.Module3D.NumberOfScenesLoadedSinceStart++, transform.position.y, transform.position.z);
+            transform.position = new Vector3(HBP3DModule.SPACE_BETWEEN_SCENES_GAME_OBJECTS * HBP3DModule.NumberOfScenesLoadedSinceStart++, transform.position.y, transform.position.z);
         }
         /// <summary>
         /// Set up the scene to display it properly
@@ -1526,7 +1528,7 @@ namespace HBP.Module3D
 
             SceneInformation.SitesNeedUpdate = true;
 
-            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Save the current settings of this scene to the configuration of the linked visualization
@@ -1641,7 +1643,7 @@ namespace HBP.Module3D
                 column.ResetConfiguration();
             }
 
-            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Create all required folders and return the path to the folder used for export
@@ -1841,7 +1843,7 @@ namespace HBP.Module3D
             onChangeProgress(progress, 0.0f, new LoadingText("Loading MNI"));
             System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
             watch.Start();
-            yield return new WaitUntil(delegate { return ApplicationState.Module3D.MNIObjects.IsLoaded || watch.ElapsedMilliseconds > 5000; });
+            yield return new WaitUntil(delegate { return Object3DManager.MNI.IsLoaded || watch.ElapsedMilliseconds > 5000; });
             watch.Stop();
             if (watch.ElapsedMilliseconds > 5000)
             {
@@ -1852,7 +1854,7 @@ namespace HBP.Module3D
             // Loading MNI
             progress += loadingMNIProgress;
             onChangeProgress.Invoke(progress, loadingMNITime, new LoadingText("Loading MNI objects"));
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadMNIObjects(e => exception = e));
+            yield return CoroutineManager.StartAsync(c_LoadMNIObjects(e => exception = e));
             if (exception != null)
             {
                 outPut(exception);
@@ -1878,7 +1880,7 @@ namespace HBP.Module3D
                         Core.Data.BaseMesh mesh = Visualization.Patients[0].Meshes[i];
                         progress += loadingMeshProgress;
                         onChangeProgress.Invoke(progress, loadingMeshTime, new LoadingText("Loading Mesh ", mesh.Name, " [" + (i + 1).ToString() + "/" + Visualization.Patients[0].Meshes.Count + "]"));
-                        yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainSurface(mesh, e => exception = e));
+                        yield return CoroutineManager.StartAsync(c_LoadBrainSurface(mesh, e => exception = e));
                     }
                     if (exception != null)
                     {
@@ -1928,7 +1930,7 @@ namespace HBP.Module3D
                         Core.Data.MRI mri = Visualization.Patients[0].MRIs[i];
                         progress += loadingMRIProgress;
                         onChangeProgress.Invoke(progress, loadingMRITime, new LoadingText("Loading MRI ", mri.Name, " [" + (i + 1).ToString() + "/" + Visualization.Patients[0].MRIs.Count + "]"));
-                        yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainVolume(mri, e => exception = e));
+                        yield return CoroutineManager.StartAsync(c_LoadBrainVolume(mri, e => exception = e));
                     }
                     if (exception != null)
                     {
@@ -1961,7 +1963,7 @@ namespace HBP.Module3D
             // Loading Sites
             progress += loadingImplantationsProgress;
             onChangeProgress.Invoke(progress, loadingImplantationsTime, new LoadingText("Loading implantations"));
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadSites(visualization.Patients.ToArray(), e => exception = e));
+            yield return CoroutineManager.StartAsync(c_LoadSites(visualization.Patients.ToArray(), e => exception = e));
             if (exception != null)
             {
                 outPut(exception);
@@ -1971,7 +1973,7 @@ namespace HBP.Module3D
             // Loading Columns
             progress += loadingIEEGProgress;
             onChangeProgress.Invoke(progress, loadingIEEGTime, new LoadingText("Loading columns"));
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadColumns(e => exception = e));
+            yield return CoroutineManager.StartAsync(c_LoadColumns(e => exception = e));
             if (exception != null)
             {
                 outPut(exception);
@@ -2086,10 +2088,10 @@ namespace HBP.Module3D
         {
             try
             {
-                m_MeshManager.Meshes.Add((Core.Object3D.LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.GreyMatter.Clone()));
-                m_MeshManager.Meshes.Add((Core.Object3D.LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.WhiteMatter.Clone()));
-                m_MeshManager.Meshes.Add((Core.Object3D.LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.InflatedWhiteMatter.Clone()));
-                m_MRIManager.MRIs.Add(ApplicationState.Module3D.MNIObjects.MRI);
+                m_MeshManager.Meshes.Add((Core.Object3D.LeftRightMesh3D)(Object3DManager.MNI.GreyMatter.Clone()));
+                m_MeshManager.Meshes.Add((Core.Object3D.LeftRightMesh3D)(Object3DManager.MNI.WhiteMatter.Clone()));
+                m_MeshManager.Meshes.Add((Core.Object3D.LeftRightMesh3D)(Object3DManager.MNI.InflatedWhiteMatter.Clone()));
+                m_MRIManager.MRIs.Add(Object3DManager.MNI.MRI);
             }
             catch (Exception e)
             {
@@ -2206,7 +2208,7 @@ namespace HBP.Module3D
                     Core.DLL.IEEGGenerator generator = dynamicColumn.ActivityGenerator as Core.DLL.IEEGGenerator;
                     currentGenerator = generator;
                     if (dynamicColumn is Column3DCCEP ccepColumn && ccepColumn.IsSourceMarsAtlasLabelSelected)
-                        generator.ComputeActivityAtlas(ccepColumn.ActivityValues, ccepColumn.Timeline.Length, ccepColumn.AreaMask, ApplicationState.Module3D.MarsAtlas);
+                        generator.ComputeActivityAtlas(ccepColumn.ActivityValues, ccepColumn.Timeline.Length, ccepColumn.AreaMask, Object3DManager.MarsAtlas);
                     else
                         generator.ComputeActivity(dynamicColumn.RawElectrodes, dynamicColumn.DynamicParameters.InfluenceDistance, dynamicColumn.ActivityValues, dynamicColumn.Timeline.Length, dynamicColumn.RawElectrodes.NumberOfSites, ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                     generator.AdjustValues(dynamicColumn.DynamicParameters.Middle, dynamicColumn.DynamicParameters.SpanMin, dynamicColumn.DynamicParameters.SpanMax);
@@ -2289,30 +2291,30 @@ namespace HBP.Module3D
             foreach (var mesh in m_MeshManager.Meshes)
             {
                 if (mesh.HasBeenLoadedOutside) continue;
-                if (ApplicationState.Module3D.Scenes.Any(s => s.MeshManager.Meshes.Contains(mesh))) continue;
-                if (ApplicationState.Module3D.Scenes.Any(s => s.MeshManager.PreloadedMeshes.Values.SelectMany(pm => pm).Contains(mesh))) continue;
+                if (HBP3DModule.Scenes.Any(s => s.MeshManager.Meshes.Contains(mesh))) continue;
+                if (HBP3DModule.Scenes.Any(s => s.MeshManager.PreloadedMeshes.Values.SelectMany(pm => pm).Contains(mesh))) continue;
                 mesh.Clean();
             }
             foreach (var mesh in m_MeshManager.PreloadedMeshes.Values.SelectMany(pm => pm))
             {
                 if (mesh.HasBeenLoadedOutside) continue;
-                if (ApplicationState.Module3D.Scenes.Any(s => s.MeshManager.Meshes.Contains(mesh))) continue;
-                if (ApplicationState.Module3D.Scenes.Any(s => s.MeshManager.PreloadedMeshes.Values.SelectMany(pm => pm).Contains(mesh))) continue;
+                if (HBP3DModule.Scenes.Any(s => s.MeshManager.Meshes.Contains(mesh))) continue;
+                if (HBP3DModule.Scenes.Any(s => s.MeshManager.PreloadedMeshes.Values.SelectMany(pm => pm).Contains(mesh))) continue;
                 mesh.Clean();
             }
             // Clean MRIs
             foreach (var mri in m_MRIManager.MRIs)
             {
                 if (mri.HasBeenLoadedOutside) continue;
-                if (ApplicationState.Module3D.Scenes.Any(s => s.MRIManager.MRIs.Contains(mri))) continue;
-                if (ApplicationState.Module3D.Scenes.Any(s => s.MRIManager.PreloadedMRIs.Values.SelectMany(pm => pm).Contains(mri))) continue;
+                if (HBP3DModule.Scenes.Any(s => s.MRIManager.MRIs.Contains(mri))) continue;
+                if (HBP3DModule.Scenes.Any(s => s.MRIManager.PreloadedMRIs.Values.SelectMany(pm => pm).Contains(mri))) continue;
                 mri.Clean();
             }
             foreach (var mri in m_MRIManager.PreloadedMRIs.Values.SelectMany(pm => pm))
             {
                 if (mri.HasBeenLoadedOutside) continue;
-                if (ApplicationState.Module3D.Scenes.Any(s => s.MRIManager.MRIs.Contains(mri))) continue;
-                if (ApplicationState.Module3D.Scenes.Any(s => s.MRIManager.PreloadedMRIs.Values.SelectMany(pm => pm).Contains(mri))) continue;
+                if (HBP3DModule.Scenes.Any(s => s.MRIManager.MRIs.Contains(mri))) continue;
+                if (HBP3DModule.Scenes.Any(s => s.MRIManager.PreloadedMRIs.Values.SelectMany(pm => pm).Contains(mri))) continue;
                 mri.Clean();
             }
         }

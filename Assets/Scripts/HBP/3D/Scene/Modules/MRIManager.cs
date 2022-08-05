@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEngine;
 using HBP.Core.Enums;
 using HBP.Core.Exceptions;
+using HBP.Core.Data;
 
 namespace HBP.Module3D
 {
@@ -134,7 +135,7 @@ namespace HBP.Module3D
             VolumeCenter = SelectedMRI.Volume.Center;
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.ResetGenerators();
-            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Load every MRI that has not been loaded yet

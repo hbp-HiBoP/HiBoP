@@ -61,7 +61,7 @@ namespace HBP.UI.QuickStart
         {
             if (m_List.Objects.All(o => !o.DataInfo.IsOk))
             {
-                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "No valid data", "At least one data must be valid in order to continue.");
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "No valid data", "At least one data must be valid in order to continue.");
                 return false;
             }
             Dataset dataset = new Dataset("QuickStart", ApplicationState.ProjectLoaded.Protocols[0], m_List.Objects.Select(f => f.DataInfo));

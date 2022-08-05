@@ -31,9 +31,9 @@ namespace HBP.UI.Module3D
         /// </summary>
         protected virtual void AddListeners()
         {
-            ApplicationState.Module3D.OnRemoveScene.AddListener((scene) =>
+            HBP3DModule.OnRemoveScene.AddListener((scene) =>
             {
-                if (scene == ApplicationState.Module3D.SelectedScene)
+                if (scene == HBP3DModule.SelectedScene)
                 {
                     m_Tools.ForEach((t) => t.ListenerLock = true);
                     DefaultState();
@@ -41,9 +41,9 @@ namespace HBP.UI.Module3D
                 }
             });
 
-            ApplicationState.Module3D.OnMinimizeScene.AddListener((scene) =>
+            HBP3DModule.OnMinimizeScene.AddListener((scene) =>
             {
-                if (scene == ApplicationState.Module3D.SelectedScene)
+                if (scene == HBP3DModule.SelectedScene)
                 {
                     m_Tools.ForEach((t) => t.ListenerLock = true);
                     DefaultState();
@@ -51,9 +51,9 @@ namespace HBP.UI.Module3D
                 }
             });
 
-            ApplicationState.Module3D.OnSelectScene.AddListener(OnChangeScene);
-            ApplicationState.Module3D.OnSelectColumn.AddListener(OnChangeColumn);
-            ApplicationState.Module3D.OnSelectView.AddListener(OnChangeView);
+            HBP3DModule.OnSelectScene.AddListener(OnChangeScene);
+            HBP3DModule.OnSelectColumn.AddListener(OnChangeColumn);
+            HBP3DModule.OnSelectView.AddListener(OnChangeView);
             
             foreach (Tools.Tool tool in m_Tools)
             {
@@ -80,7 +80,7 @@ namespace HBP.UI.Module3D
             {
                 tool.SelectedScene = scene;
             }
-            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Callback when the selected column is changed
@@ -92,7 +92,7 @@ namespace HBP.UI.Module3D
             {
                 tool.SelectedColumn = column;
             }
-            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Callback when the selected view is changed
@@ -104,7 +104,7 @@ namespace HBP.UI.Module3D
             {
                 tool.SelectedView = view;
             }
-            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
 

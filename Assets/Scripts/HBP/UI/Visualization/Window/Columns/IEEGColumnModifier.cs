@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
 using Tools.Unity;
+using HBP.Core.Data;
 
 namespace HBP.UI
 {

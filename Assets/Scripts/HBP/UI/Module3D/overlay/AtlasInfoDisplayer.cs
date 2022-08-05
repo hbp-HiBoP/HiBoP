@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HBP.Module3D;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
@@ -76,7 +77,7 @@ namespace HBP.UI.Module3D
         public void Initialize()
         {
             m_RectTransform = GetComponent<RectTransform>();
-            ApplicationState.Module3D.OnDisplayAtlasInformation.AddListener((atlasInfo) =>
+            HBP3DModule.OnDisplayAtlasInformation.AddListener((atlasInfo) =>
             {
                 if (atlasInfo.Enabled)
                 {

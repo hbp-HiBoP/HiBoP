@@ -1,5 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
+using HBP.Core.Data;
 using UnityEngine;
 
 namespace Tools.Unity

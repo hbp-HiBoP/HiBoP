@@ -1,4 +1,6 @@
-﻿using Tools.Unity;
+﻿using HBP.Core.Data;
+using HBP.Module3D;
+using Tools.Unity;
 using UnityEngine;
 
 namespace HBP.UI
@@ -15,12 +17,12 @@ namespace HBP.UI
         {
             if (Core.Data.DataManager.HasData)
             {
-                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
+                DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
                 {
                     base.OK();
                     ApplicationState.ProjectLoaded.SetPatients(ListGestion.List.Objects);
                     Core.Data.DataManager.Clear();
-                    ApplicationState.Module3D.ReloadScenes();
+                    HBP3DModule.ReloadScenes();
                 });
             }
             else

@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using UnityEngine.Events;
 
@@ -10,6 +9,8 @@ namespace Tools.Unity
     {
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR
         #region Properties
+        private static MemoryManager m_Instance;
+
         const float DELAY = 5.0f; // in s.
         const long MEMORY_LIMIT = 1000; // in MB
 
@@ -26,17 +27,31 @@ namespace Tools.Unity
             }
         }
         public bool EnoughAvailableMemory { get { return AvailableMemory > MEMORY_LIMIT; } }
-        public UnityEvent OnNotEnoughAvailableMemory = new UnityEvent();
+        public static UnityEvent OnNotEnoughAvailableMemory = new UnityEvent();
         #endregion
 
         #region Private Methods
-        void Start()
+        private void Awake()
         {
-            InvokeRepeating("CheckMemory", 0, DELAY);
+            if (m_Instance == null)
+            {
+                m_Instance = this;
+            }
+            else
+            {
+                Destroy(this);
+            }
         }
-        void CheckMemory()
+        private void Start()
         {
-            if (!EnoughAvailableMemory) OnNotEnoughAvailableMemory.Invoke();
+            //InvokeRepeating("CheckMemory", 0, DELAY);
+        }
+        #endregion
+
+        #region Public Methods
+        public static void CheckMemory()
+        {
+            if (!m_Instance.EnoughAvailableMemory) OnNotEnoughAvailableMemory.Invoke();
         }
         #endregion
 

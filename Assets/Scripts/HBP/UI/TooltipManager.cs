@@ -6,13 +6,15 @@ namespace Tools.Unity
     public class TooltipManager : MonoBehaviour
     {
         #region Properties
+        private static TooltipManager m_Instance;
+
         private static Vector3 m_Offset = new Vector3(0, -20, 0);
         public const float TIME_TO_DISPLAY = 0.7f;
 
-        public bool IsTooltipDisplayed { get; private set; } = false;
+        public static bool IsTooltipDisplayed { get; private set; } = false;
 
         private float m_TimeBeforeHiding = TIME_TO_DISPLAY;
-        public bool TooltipHasBeenDisplayedRecently { get; private set; } = false;
+        public static bool TooltipHasBeenDisplayedRecently { get; private set; } = false;
 
         private bool m_FollowMouse = false;
 
@@ -35,6 +37,17 @@ namespace Tools.Unity
         #endregion
 
         #region Private Methods
+        private void Awake()
+        {
+            if (m_Instance == null)
+            {
+                m_Instance = this;
+            }
+            else
+            {
+                Destroy(this);
+            }
+        }
         private void Update()
         {
             if (!IsTooltipDisplayed)
@@ -72,26 +85,26 @@ namespace Tools.Unity
         #endregion
 
         #region Public Methods
-        public void ShowTooltip(string text, Sprite icon, bool followMouse = false)
+        public static void ShowTooltip(string text, Sprite icon, bool followMouse = false)
         {
-            m_FollowMouse = followMouse;
-            m_Tooltip.gameObject.SetActive(true);
-            m_TextField.text = text;
+            m_Instance.m_FollowMouse = followMouse;
+            m_Instance.m_Tooltip.gameObject.SetActive(true);
+            m_Instance.m_TextField.text = text;
             if (icon != null)
             {
-                m_ImageField.sprite = icon;
-                m_ImageField.gameObject.SetActive(true);
+                m_Instance.m_ImageField.sprite = icon;
+                m_Instance.m_ImageField.gameObject.SetActive(true);
             }
-            else m_ImageField.gameObject.SetActive(false);
-            MoveAtMousePosition();
+            else m_Instance.m_ImageField.gameObject.SetActive(false);
+            m_Instance.MoveAtMousePosition();
 
             IsTooltipDisplayed = true;
             TooltipHasBeenDisplayedRecently = true;
-            m_TimeBeforeHiding = TIME_TO_DISPLAY;
+            m_Instance.m_TimeBeforeHiding = TIME_TO_DISPLAY;
         }
-        public void HideTooltip()
+        public static void HideTooltip()
         {
-            m_Tooltip.gameObject.SetActive(false);
+            m_Instance.m_Tooltip.gameObject.SetActive(false);
             IsTooltipDisplayed = false;
         }
         #endregion

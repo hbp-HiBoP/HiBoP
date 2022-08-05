@@ -2,6 +2,7 @@
 using Tools.Unity;
 using UnityEngine;
 using System.IO;
+using HBP.Core.Data;
 
 namespace HBP.UI
 {
@@ -33,7 +34,7 @@ namespace HBP.UI
         {
             if (new FileInfo(Path.Combine(m_LocationFolderSelector.Folder, string.Format("{0}.hibop", m_NameInputField.text))).Exists)
             {
-                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Project already exists", string.Format("A project named {0} already exists within the selected directory.\n\nWould you like to override this project?", m_NameInputField.text), () =>
+                DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Project already exists", string.Format("A project named {0} already exists within the selected directory.\n\nWould you like to override this project?", m_NameInputField.text), () =>
                 {
                     var preferences = ApplicationState.ProjectLoaded.Preferences.Clone() as Core.Data.ProjectPreferences;
                     preferences.Name = m_NameInputField.text;

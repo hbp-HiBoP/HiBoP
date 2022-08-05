@@ -268,9 +268,9 @@ namespace HBP.Module3D
             RenderSettings.ambientIntensity = AmbientIntensity;
             RenderSettings.skybox = null;
             RenderSettings.ambientLight = AmbientLight;
-            ApplicationState.Module3D.SharedDirectionalLight.transform.eulerAngles = transform.eulerAngles;
-            ApplicationState.Module3D.SharedSpotlight.transform.eulerAngles = transform.eulerAngles;
-            ApplicationState.Module3D.SharedSpotlight.transform.position = transform.position;
+            HBP3DModule.SharedDirectionalLight.transform.eulerAngles = transform.eulerAngles;
+            HBP3DModule.SharedSpotlight.transform.eulerAngles = transform.eulerAngles;
+            HBP3DModule.SharedSpotlight.transform.position = transform.position;
         }
         private void OnPreRender()
         {

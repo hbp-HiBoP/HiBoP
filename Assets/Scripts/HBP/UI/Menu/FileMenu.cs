@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Tools.Unity;
+using UnityEngine;
 
 namespace HBP.UI
 {
@@ -23,11 +24,11 @@ namespace HBP.UI
         #region Public Methods
         public void OpenNewProject()
         {
-            ApplicationState.WindowsManager.Open("New project window");
+            WindowsManager.Open("New project window");
         }
         public void OpenLoadProject()
         {
-            ApplicationState.WindowsManager.Open("Open project window");
+            WindowsManager.Open("Open project window");
         }
         public void Save()
         {
@@ -35,15 +36,15 @@ namespace HBP.UI
         }
         public void OpenSaveProjectAs()
         {
-            ApplicationState.WindowsManager.Open("Save project as window");
+            WindowsManager.Open("Save project as window");
         }
         public void QuickStart()
         {
-            ApplicationState.WindowsManager.Open("Quick start window");
+            WindowsManager.Open("Quick start window");
         }
         public void Quit()
         {
-            ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Quit HiBoP?", "Are you sure you want to quit HiBoP? Make sure all your data is saved.", () => { Application.Quit(); }, "Quit", () => { }, "Cancel");
+            DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Quit HiBoP?", "Are you sure you want to quit HiBoP? Make sure all your data is saved.", () => { Application.Quit(); }, "Quit", () => { }, "Cancel");
         }
         #endregion
     }

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HBP.Core.Data;
+using UnityEngine;
 
 namespace HBP.UI
 {
@@ -14,11 +15,11 @@ namespace HBP.UI
         #region Public Methods
         public void OpenPreferences()
         {
-            ApplicationState.WindowsManager.OpenModifier(ApplicationState.UserPreferences);
+            WindowsManager.OpenModifier(ApplicationState.UserPreferences);
         }
         public void OpenProjectPreferences()
         {
-            var modifier = ApplicationState.WindowsManager.OpenModifier(ApplicationState.ProjectLoaded.Preferences);
+            var modifier = WindowsManager.OpenModifier(ApplicationState.ProjectLoaded.Preferences);
         }
         #endregion
     }

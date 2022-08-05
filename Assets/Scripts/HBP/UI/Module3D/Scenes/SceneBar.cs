@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HBP.Module3D;
+using UnityEngine;
 
 namespace HBP.UI.Module3D
 {
@@ -17,7 +18,7 @@ namespace HBP.UI.Module3D
         #region Private Methods
         private void Awake()
         {
-            ApplicationState.Module3D.OnAddScene.AddListener((scene) =>
+            HBP3DModule.OnAddScene.AddListener((scene) =>
             {
                 SceneBarElement element = Instantiate(m_SceneBarElementPrefab, transform).GetComponent<SceneBarElement>();
                 element.Initialize(scene);

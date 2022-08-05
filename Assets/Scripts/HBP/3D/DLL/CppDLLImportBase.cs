@@ -27,7 +27,7 @@ namespace HBP.Core.DLL
         {
             create_DLL_class();
 #if UNITY_EDITOR
-            ApplicationState.DLLDebugManager?.AddDLLObject(ToString(), m_ID);
+            DLLDebugManager.AddDLLObject(ToString(), m_ID);
 #endif
         }
         /// <summary>
@@ -38,7 +38,7 @@ namespace HBP.Core.DLL
         {
             _handle = new HandleRef(this, ptr);
 #if UNITY_EDITOR
-            ApplicationState.DLLDebugManager?.AddDLLObject(ToString(), m_ID);
+            DLLDebugManager.AddDLLObject(ToString(), m_ID);
 #endif
         }
         /// <summary>
@@ -47,7 +47,7 @@ namespace HBP.Core.DLL
         ~CppDLLImportBase()
         {
 #if UNITY_EDITOR
-            ApplicationState.DLLDebugManager?.RemoveDLLOBject(ToString(), m_ID, HBP.Module3D.DLL.DLLDebugManager.CleanedBy.GC);
+            DLLDebugManager.RemoveDLLOBject(ToString(), m_ID, DLLDebugManager.CleanedBy.GC);
 #endif
             Cleanup();
         }
@@ -65,7 +65,7 @@ namespace HBP.Core.DLL
         public virtual void Dispose()
         {
 #if UNITY_EDITOR
-            ApplicationState.DLLDebugManager?.RemoveDLLOBject(ToString(), m_ID, HBP.Module3D.DLL.DLLDebugManager.CleanedBy.Dispose);
+            DLLDebugManager.RemoveDLLOBject(ToString(), m_ID, DLLDebugManager.CleanedBy.Dispose);
 #endif
             Cleanup();
             GC.SuppressFinalize(this);

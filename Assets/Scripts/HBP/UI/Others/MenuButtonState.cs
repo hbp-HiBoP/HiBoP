@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HBP.Core.Data;
+using UnityEngine;
 
 namespace HBP.UI
 {

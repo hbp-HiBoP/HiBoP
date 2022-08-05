@@ -3,6 +3,7 @@ using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
+using HBP.Core.Data;
 
 namespace HBP.UI.QuickStart
 {
@@ -34,7 +35,7 @@ namespace HBP.UI.QuickStart
             Tools.CSharp.Window window = new Tools.CSharp.Window((int)m_Window.Values.x, (int)m_Window.Values.y);
             if (window.Lenght == 0)
             {
-                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Window length is zero", "The length of the window needs to be strictly above zero in order to continue.");
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Window length is zero", "The length of the window needs to be strictly above zero in order to continue.");
                 return false;
             }
             List<Core.Data.Bloc> blocs = new List<Core.Data.Bloc>();
@@ -49,7 +50,7 @@ namespace HBP.UI.QuickStart
                 }
                 if (blocs.Count == 0)
                 {
-                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "No code found", "You need to put at least one code in the input field in order to continue.");
+                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "No code found", "You need to put at least one code in the input field in order to continue.");
                     return false;
                 }
             }

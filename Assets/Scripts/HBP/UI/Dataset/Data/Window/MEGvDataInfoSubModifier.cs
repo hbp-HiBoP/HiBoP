@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-
-namespace HBP.UI.Experience.Dataset
+﻿namespace HBP.UI.Experience.Dataset
 {
     public class MEGvDataInfoSubModifier : SubModifier<Core.Data.MEGvDataInfo>
     {

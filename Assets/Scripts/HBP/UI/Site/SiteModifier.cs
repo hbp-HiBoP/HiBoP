@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using System.Linq;
 using Tools.CSharp;
+using HBP.Core.Data;
 
 namespace HBP.UI
 {

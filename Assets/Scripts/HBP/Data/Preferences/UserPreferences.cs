@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
 using System.IO;
 using System.Runtime.Serialization;
-using System;
 using Tools.Unity;
 using UnityEngine.Events;
+using HBP.Core.Data;
 
-namespace HBP.Core.Data.Preferences
+namespace HBP.Display.Preferences
 {
     /**
     * \class UserPreferences

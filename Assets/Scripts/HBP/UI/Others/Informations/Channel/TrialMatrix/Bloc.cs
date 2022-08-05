@@ -197,16 +197,16 @@ namespace HBP.UI.TrialMatrix
         }
         void SetSize()
         {
-            switch (ApplicationState.UserPreferences.Visualization.TrialMatrix.SubBlocFormat)
+            switch (Core.Data.ApplicationState.UserPreferences.Visualization.TrialMatrix.SubBlocFormat)
             {
                 case BlocFormatType.TrialHeight:
-                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialHeight * Data.SubBlocs[0].SubTrials.Length;
+                    m_LayoutElement.preferredHeight = Core.Data.ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialHeight * Data.SubBlocs[0].SubTrials.Length;
                     break;
                 case BlocFormatType.TrialRatio:
-                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * Data.SubBlocs[0].SubTrials.Length;
+                    m_LayoutElement.preferredHeight = Core.Data.ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * Data.SubBlocs[0].SubTrials.Length;
                     break;
                 case BlocFormatType.BlocRatio:
-                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width;
+                    m_LayoutElement.preferredHeight = Core.Data.ApplicationState.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width;
                     break;
             }
         }

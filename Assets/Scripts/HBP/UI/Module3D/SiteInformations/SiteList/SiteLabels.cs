@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Module3D;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -69,7 +70,7 @@ namespace HBP.UI.Module3D
                     return;
                 }
 
-                List<string> labels = ApplicationState.Module3D.SelectedColumn.Sites.SelectMany(s => s.State.Labels).Distinct().ToList();
+                List<string> labels = HBP3DModule.SelectedColumn.Sites.SelectMany(s => s.State.Labels).Distinct().ToList();
                 string existingLabel = labels.Find(s => s.StartsWith(text));
                 if (!string.IsNullOrEmpty(existingLabel))
                 {

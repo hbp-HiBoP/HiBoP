@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using HBP.Core.Enums;
+using HBP.Core.Data;
 
 namespace HBP.Module3D
 {
@@ -14,7 +15,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Timeline of this column (contains information about the length, the number of samples, the events etc.)
         /// </summary>
-        public abstract Core.Data.Timeline Timeline { get; }
+        public abstract Timeline Timeline { get; }
 
         /// <summary>
         /// Parameters on how to display the activity on the column
@@ -151,8 +152,12 @@ namespace HBP.Module3D
                 OnUpdateCurrentTimelineID.Invoke();
                 if (IsSelected)
                 {
-                    ApplicationState.Module3D.OnUpdateSelectedColumnTimeLineIndex.Invoke();
+                    HBP3DModule.OnUpdateSelectedColumnTimeLineIndex.Invoke();
                 }
+            });
+            Timeline.OnStopTimelinePlay.AddListener(() =>
+            {
+                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
             });
             SetActivityData();
         }

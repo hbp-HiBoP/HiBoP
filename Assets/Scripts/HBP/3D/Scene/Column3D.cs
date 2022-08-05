@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine.Events;
 using System.Linq;
 using System.IO;
-using HBP.Module3D.DLL;
 using HBP.Core.Enums;
 using Tools.Unity;
 using HBP.Core.Interfaces;
@@ -51,7 +50,7 @@ namespace HBP.Module3D
                 if (m_IsSelected)
                 {
                     OnSelect.Invoke();
-                    ApplicationState.Module3D.OnSelectColumn.Invoke(this);
+                    HBP3DModule.OnSelectColumn.Invoke(this);
                 }
             }
         }
@@ -288,6 +287,10 @@ namespace HBP.Module3D
                             }
                             OnSelectSite.Invoke(SelectedSite);
                         });
+                        site.OnChangeConfiguration.AddListener(() =>
+                        {
+                            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                        });
                         Sites.Add(site);
                     }
                 }
@@ -379,7 +382,7 @@ namespace HBP.Module3D
             catch (System.Exception e)
             {
                 Debug.LogException(e);
-                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Can not save site states", "Please verify your rights.");
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Can not save site states", "Please verify your rights.");
             }
         }
         /// <summary>
@@ -455,7 +458,7 @@ namespace HBP.Module3D
             catch (System.Exception e)
             {
                 Debug.LogException(e);
-                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Can not load site states", "Please verify your files and try again.");
+                DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Can not load site states", "Please verify your files and try again.");
             }
         }
         /// <summary>
@@ -598,7 +601,7 @@ namespace HBP.Module3D
                 site.LoadConfiguration(false);
             }
 
-            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Save the configuration of this column to the data column
@@ -622,7 +625,7 @@ namespace HBP.Module3D
                 site.ResetConfiguration();
             }
 
-            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Compute the UVs of the meshes for the brain activity

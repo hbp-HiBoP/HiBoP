@@ -5,6 +5,7 @@ using System.Linq;
 using HBP.Data.Informations;
 using UnityEngine.UI.Extensions;
 using UnityEngine.Events;
+using Tools.Unity;
 
 namespace HBP.UI.Informations
 {
@@ -131,7 +132,7 @@ namespace HBP.UI.Informations
             var channelStructs = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered && !s.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray();
             if (channelStructs.Length > CHANNEL_WARNING_THRESHOLD)
             {
-                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "High number of sites", string.Format("The number of sites you want to display is high ({0}): the recommended value is less than 50. This can cause performance issues. Do you really want to display that many sites?", channelStructs.Length), () => { GridInformations.Display(channelStructs); }, "Display", () => { }, "Cancel");
+                DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "High number of sites", string.Format("The number of sites you want to display is high ({0}): the recommended value is less than 50. This can cause performance issues. Do you really want to display that many sites?", channelStructs.Length), () => { GridInformations.Display(channelStructs); }, "Display", () => { }, "Cancel");
             }
             else
             {
@@ -170,7 +171,7 @@ namespace HBP.UI.Informations
         #region Private Methods
         private void Awake()
         {
-            ApplicationState.UserPreferences.OnSavePreferences.AddListener(Display);
+            Core.Data.ApplicationState.UserPreferences.OnSavePreferences.AddListener(Display);
         }
         private void Update()
         {
@@ -203,7 +204,7 @@ namespace HBP.UI.Informations
             m_ColumnDataBy3DColumn = new Dictionary<Column3D, Column>();
             foreach (var column in m_Scene.Columns)
             {
-                if(!column.IsMinimized || ApplicationState.UserPreferences.Visualization.Graph.ShowCurvesOfMinimizedColumns)
+                if(!column.IsMinimized || Core.Data.ApplicationState.UserPreferences.Visualization.Graph.ShowCurvesOfMinimizedColumns)
                 {
                     List<ChannelStructsGroup> groups = new List<ChannelStructsGroup>();
                     if (m_Scene.ROIManager.SelectedROI != null)

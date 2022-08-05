@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
-using Tools.Unity.Components;
 using HBP.Core.Tools;
+using Tools.Unity;
+using HBP.Core.Data;
+using HBP.Module3D;
 
 namespace HBP.UI.Experience.Protocol
 {
@@ -17,15 +19,15 @@ namespace HBP.UI.Experience.Protocol
         {
             if (Core.Data.DataManager.HasData)
             {
-                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
+                DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
                 {
                     base.OK();
                     ApplicationState.ProjectLoaded.SetProtocols(m_ListGestion.List.Objects);
                     FindObjectOfType<MenuButtonState>().SetInteractables();
                     GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                    ApplicationState.LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckDatasets(m_ListGestion.ModifiedProtocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
+                    LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckDatasets(m_ListGestion.ModifiedProtocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
                     Core.Data.DataManager.Clear();
-                    ApplicationState.Module3D.ReloadScenes();
+                    HBP3DModule.ReloadScenes();
                 });
             }
             else
@@ -34,7 +36,7 @@ namespace HBP.UI.Experience.Protocol
                 ApplicationState.ProjectLoaded.SetProtocols((m_ListGestion.List.Objects));
                 FindObjectOfType<MenuButtonState>().SetInteractables();
                 GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                ApplicationState.LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckDatasets(m_ListGestion.ModifiedProtocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
+                LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckDatasets(m_ListGestion.ModifiedProtocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
             }
         }
         #endregion

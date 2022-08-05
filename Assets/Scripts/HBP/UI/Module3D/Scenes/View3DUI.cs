@@ -6,8 +6,6 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using HBP.Theme.Components;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace HBP.UI.Module3D
 {
@@ -322,7 +320,7 @@ namespace HBP.UI.Module3D
         public void OnPointerExit(PointerEventData eventData)
         {
             m_PointerIsInView = false;
-            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(null, false, Input.mousePosition));
+            HBP3DModule.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(null, false, Input.mousePosition));
         }
         /// <summary>
         /// Initialize the View3DUI

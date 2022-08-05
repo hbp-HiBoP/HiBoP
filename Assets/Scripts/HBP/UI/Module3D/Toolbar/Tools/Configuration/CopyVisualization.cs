@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using HBP.Core.Data;
+using System.Linq;
+using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 using T = Tools.Unity;
@@ -27,7 +29,7 @@ namespace HBP.UI.Module3D.Tools
                 SelectedScene.SaveConfiguration();
                 if (ApplicationState.ProjectLoaded.Visualizations.Contains(SelectedScene.Visualization))
                 {
-                    ApplicationState.DialogBoxManager.Open(T.DialogBoxManager.AlertType.WarningMultiOptions, "Visualization already exists", "The visualization you are trying to add to the project already exists.\n\nDo you want to create a clone of the selected visualization?\nThis will not link the selected visualization with the newly cloned visualization, but take a snapshot of the selected visualization and save it as a new visualization.", () =>
+                    DialogBoxManager.Open(T.DialogBoxManager.AlertType.WarningMultiOptions, "Visualization already exists", "The visualization you are trying to add to the project already exists.\n\nDo you want to create a clone of the selected visualization?\nThis will not link the selected visualization with the newly cloned visualization, but take a snapshot of the selected visualization and save it as a new visualization.", () =>
                     {
                         Core.Data.Visualization clonedVisualization = SelectedScene.Visualization.Clone() as Core.Data.Visualization;
                         clonedVisualization.GenerateID();
@@ -72,7 +74,7 @@ namespace HBP.UI.Module3D.Tools
                 visualization.Name = name;
             }
             ApplicationState.ProjectLoaded.AddVisualization(visualization);
-            ApplicationState.DialogBoxManager.Open(T.DialogBoxManager.AlertType.Informational, "Visualization saved", "The selected visualization has been saved under the name <color=#3080ffff>" + visualization.Name + "</color>.");
+            DialogBoxManager.Open(T.DialogBoxManager.AlertType.Informational, "Visualization saved", "The selected visualization has been saved under the name <color=#3080ffff>" + visualization.Name + "</color>.");
         }
         #endregion
     }

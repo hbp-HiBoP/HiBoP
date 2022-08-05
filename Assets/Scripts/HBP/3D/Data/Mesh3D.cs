@@ -141,8 +141,8 @@ namespace HBP.Core.Object3D
             {
                 m_Both.FlipTriangles();
                 m_Both.ComputeNormals();
-                if (ApplicationState.Module3D.MarsAtlas.Loaded)
-                    m_Both.SearchMarsParcelFileAndUpdateColors(ApplicationState.Module3D.MarsAtlas, mesh.MarsAtlasPath);
+                if (Object3DManager.MarsAtlas.Loaded)
+                    m_Both.SearchMarsParcelFileAndUpdateColors(Object3DManager.MarsAtlas, mesh.MarsAtlasPath);
                 SimplifiedBoth = m_Both.Simplify();
             }
             m_IsLoading = false;
@@ -272,8 +272,8 @@ namespace HBP.Core.Object3D
             {
                 m_Left.FlipTriangles();
                 m_Left.ComputeNormals();
-                if (ApplicationState.Module3D.MarsAtlas.Loaded)
-                    m_Left.SearchMarsParcelFileAndUpdateColors(ApplicationState.Module3D.MarsAtlas, mesh.LeftMarsAtlasHemisphere);
+                if (Object3DManager.MarsAtlas.Loaded)
+                    m_Left.SearchMarsParcelFileAndUpdateColors(Object3DManager.MarsAtlas, mesh.LeftMarsAtlasHemisphere);
                 SimplifiedLeft = m_Left.Simplify();
             }
 
@@ -282,8 +282,8 @@ namespace HBP.Core.Object3D
             {
                 m_Right.FlipTriangles();
                 m_Right.ComputeNormals();
-                if (ApplicationState.Module3D.MarsAtlas.Loaded)
-                    m_Right.SearchMarsParcelFileAndUpdateColors(ApplicationState.Module3D.MarsAtlas, mesh.RightMarsAtlasHemisphere);
+                if (Object3DManager.MarsAtlas.Loaded)
+                    m_Right.SearchMarsParcelFileAndUpdateColors(Object3DManager.MarsAtlas, mesh.RightMarsAtlasHemisphere);
                 SimplifiedRight = m_Right.Simplify();
             }
 

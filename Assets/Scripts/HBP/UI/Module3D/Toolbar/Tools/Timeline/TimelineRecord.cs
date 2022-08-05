@@ -22,7 +22,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3DUI.Scenes[SelectedScene].Video();
+                Module3DUI.Scenes[SelectedScene].Video();
             });
         }
         /// <summary>

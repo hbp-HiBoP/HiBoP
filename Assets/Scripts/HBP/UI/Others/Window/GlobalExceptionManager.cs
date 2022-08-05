@@ -1,12 +1,26 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using HBP.UI;
 using UnityEngine;
 
 namespace Tools.Unity
 {
     public class GlobalExceptionManager : MonoBehaviour
     {
+        #region Properties
+        private static GlobalExceptionManager m_Instance;
+        #endregion
+
         #region Private Methods
+        private void Awake()
+        {
+            if (m_Instance == null)
+            {
+                m_Instance = this;
+            }
+            else
+            {
+                Destroy(this);
+            }
+        }
         private void OnEnable()
         {
             Application.logMessageReceived += HandleException;
@@ -19,7 +33,7 @@ namespace Tools.Unity
         {
             if (type == LogType.Exception)
             {
-                ApplicationState.WindowsManager.Open("Bug Reporter window");
+                WindowsManager.Open("Bug Reporter window");
             }
         }
         #endregion

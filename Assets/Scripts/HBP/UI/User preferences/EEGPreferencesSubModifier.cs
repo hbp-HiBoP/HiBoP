@@ -3,10 +3,11 @@ using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
+using HBP.Display.Preferences;
 
-namespace HBP.UI.UserPreferences
+namespace HBP.UI.Preferences
 {
-    public class EEGPreferencesSubModifier : SubModifier<Core.Data.Preferences.EEGPreferences>
+    public class EEGPreferencesSubModifier : SubModifier<EEGPreferences>
     {
         #region Properties
         [SerializeField] Dropdown m_EEGAveragingDropdown;
@@ -55,7 +56,7 @@ namespace HBP.UI.UserPreferences
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(Core.Data.Preferences.EEGPreferences objectToDisplay)
+        protected override void SetFields(EEGPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
 

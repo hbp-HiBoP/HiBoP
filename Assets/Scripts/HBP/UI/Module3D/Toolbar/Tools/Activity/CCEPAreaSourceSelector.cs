@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+using HBP.Core.Data;
+using HBP.Core.Object3D;
 
 namespace HBP.UI.Module3D.Tools
 {
@@ -81,15 +83,15 @@ namespace HBP.UI.Module3D.Tools
             m_MarsAtlasDropdown.options.Clear();
             if (SelectedColumn is Column3DCCEP ccepColumn && ccepColumn.Mode == Column3DCCEP.CCEPMode.MarsAtlas)
             {
-                int[] marsAtlasLabels = ApplicationState.Module3D.MarsAtlas.Labels();
+                int[] marsAtlasLabels = Object3DManager.MarsAtlas.Labels();
                 Core.Data.StringTag marsAtlasTag = ApplicationState.ProjectLoaded.Preferences.Tags.FirstOrDefault(t => t.Name == "MarsAtlas") as Core.Data.StringTag;
                 m_MarsAtlasAreas.Add(new MarsAtlasArea { Label = -1, Name = "None", FullName = "None" });
                 foreach (var label in marsAtlasLabels)
                 {
-                    string labelName = string.Format("{0}_{1}", ApplicationState.Module3D.MarsAtlas.Hemisphere(label), ApplicationState.Module3D.MarsAtlas.Name(label));
+                    string labelName = string.Format("{0}_{1}", Object3DManager.MarsAtlas.Hemisphere(label), Object3DManager.MarsAtlas.Name(label));
                     if (ccepColumn.Sources.Any(s => (s.Information.SiteData.Tags.FirstOrDefault(t => t.Tag == marsAtlasTag) as Core.Data.StringTagValue)?.Value == labelName))
                     {
-                        m_MarsAtlasAreas.Add(new MarsAtlasArea { Label = label, Name = labelName, FullName = ApplicationState.Module3D.MarsAtlas.FullName(label) });
+                        m_MarsAtlasAreas.Add(new MarsAtlasArea { Label = label, Name = labelName, FullName = Object3DManager.MarsAtlas.FullName(label) });
                     }
                 }
                 foreach (var area in m_MarsAtlasAreas)

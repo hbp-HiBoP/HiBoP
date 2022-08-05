@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using HBP.Core.Tools;
+using HBP.Core.Data;
 
 namespace HBP.UI
 {
@@ -39,7 +40,7 @@ namespace HBP.UI
             m_TagsSubModifier.Save();
             base.OK();
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            ApplicationState.LoadingManager.Load(c_CheckProject(onChangeProgress), onChangeProgress);
+            LoadingManager.Load(c_CheckProject(onChangeProgress), onChangeProgress);
         }
         #endregion
 

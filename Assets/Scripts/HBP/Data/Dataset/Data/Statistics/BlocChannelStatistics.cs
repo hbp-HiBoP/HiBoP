@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace HBP.Core.Data
+﻿namespace HBP.Core.Data
 {
     public class BlocChannelStatistics
     {

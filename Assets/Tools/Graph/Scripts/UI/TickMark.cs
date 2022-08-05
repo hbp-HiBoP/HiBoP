@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.UI;
 using UnityEngine.UI.Extensions;
 
 namespace Tools.Unity.Graph

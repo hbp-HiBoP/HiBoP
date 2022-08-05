@@ -1,4 +1,6 @@
-﻿using Tools.Unity.Components;
+﻿using HBP.Core.Data;
+using HBP.Module3D;
+using Tools.Unity;
 using UnityEngine;
 
 namespace HBP.UI.Experience.Dataset
@@ -15,12 +17,12 @@ namespace HBP.UI.Experience.Dataset
 		{
             if (Core.Data.DataManager.HasData)
             {
-                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
+                DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
                 {
                     base.OK();
                     ApplicationState.ProjectLoaded.SetDatasets(m_ListGestion.List.Objects);
                     Core.Data.DataManager.Clear();
-                    ApplicationState.Module3D.ReloadScenes();
+                    HBP3DModule.ReloadScenes();
                 });
             }
             else

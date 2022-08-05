@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using UnityEngine;
+using HBP.Core.Enums;
+using HBP.Core.Data;
 
-namespace HBP.Core.Data.Preferences
+namespace HBP.Display.Preferences
 {
     [DataContract]
     public class VisualizationPreferences : ICloneable
@@ -43,8 +45,8 @@ namespace HBP.Core.Data.Preferences
     {
         #region Properties
         [DataMember] public bool AutomaticEEGUpdate { get; set; }
-        [DataMember] public Enums.LayoutDirection VisualizationsLayoutDirection { get; set; }
-        [DataMember] public Enums.SiteInfluenceByDistanceType SiteInfluenceByDistance { get; set; }
+        [DataMember] public LayoutDirection VisualizationsLayoutDirection { get; set; }
+        [DataMember] public SiteInfluenceByDistanceType SiteInfluenceByDistance { get; set; }
         [DataMember] public string DefaultSelectedMRIInSinglePatientVisualization { get; set; }
         [DataMember] public string DefaultSelectedMeshInSinglePatientVisualization { get; set; }
         [DataMember] public string DefaultSelectedImplantationInSinglePatientVisualization { get; set; }
@@ -56,8 +58,8 @@ namespace HBP.Core.Data.Preferences
         #region Constructors
         public _3DPreferences(
             bool automaticEEGUpdate = true,
-            Enums.LayoutDirection visualizationsLayoutDirection = Enums.LayoutDirection.Vertical,
-            Enums.SiteInfluenceByDistanceType siteInfluenceByDistance = Enums.SiteInfluenceByDistanceType.Quadratic,
+            LayoutDirection visualizationsLayoutDirection = LayoutDirection.Vertical,
+            SiteInfluenceByDistanceType siteInfluenceByDistance = SiteInfluenceByDistanceType.Quadratic,
             string defaultSelectedMRIInSinglePatientVisualization = "Preimplantation",
             string defaultSelectedMeshInSinglePatientVisualization = "Grey matter",
             string defaultSelectedImplantationInSinglePatientVisualization = "Patient",
@@ -99,7 +101,7 @@ namespace HBP.Core.Data.Preferences
         [DataMember] public bool TrialsSynchronization { get; set; }
         [DataMember] public bool TrialSmoothing { get; set; }
         [DataMember] public int NumberOfIntermediateValues { get; set; }
-        [DataMember] public Enums.BlocFormatType SubBlocFormat { get; set; }
+        [DataMember] public BlocFormatType SubBlocFormat { get; set; }
         [DataMember] public int TrialHeight { get; set; }
         [DataMember] public float TrialRatio { get; set; }
         [DataMember] public float BlocRatio { get; set; }
@@ -107,7 +109,7 @@ namespace HBP.Core.Data.Preferences
 
         #region Constructors
         public TrialMatrixPreferences(bool showWholeProtocol = false, bool trialsSynchronization = true, bool trialSmooting = true,
-            int numberOfIntermediateValues = 3, Enums.BlocFormatType subBlocFormat = Enums.BlocFormatType.BlocRatio,
+            int numberOfIntermediateValues = 3, BlocFormatType subBlocFormat = BlocFormatType.BlocRatio,
             int trialHeight = (int)(0.3f * (MAXIMUM_TRIAL_HEIGHT - MINIMUM_TRIAL_HEIGHT)), float trialRatio = 0.3f * (MAXIMUM_TRIAL_RATIO - MINIMUM_TRIAL_RATIO), float blocRatio = 0.3f * (MAXIMUM_BLOC_RATIO - MINIMUM_BLOC_RATIO))
         {
             ShowWholeProtocol = showWholeProtocol;

@@ -1,5 +1,4 @@
-﻿using HBP.Module3D;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools

@@ -14,12 +14,12 @@ namespace HBP.UI
         #region Public Methods
         public void OpenPatientGestion()
         {
-            ApplicationState.WindowsManager.Open("Patient gestion window");
+            WindowsManager.Open("Patient gestion window");
         }
 
         public void OpenGroupGestion()
         {
-            ApplicationState.WindowsManager.Open("Group gestion window");
+            WindowsManager.Open("Group gestion window");
         }
         #endregion
     }

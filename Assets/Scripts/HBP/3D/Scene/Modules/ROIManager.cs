@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -99,7 +98,7 @@ namespace HBP.Module3D
             roi.OnUpdateROIName.AddListener(() =>
             {
                 m_Scene.OnUpdateROI.Invoke();
-                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
             });
             roi.OnChangeNumberOfSpheres.AddListener(() =>
             {
@@ -108,6 +107,10 @@ namespace HBP.Module3D
             roi.OnChangeSphereParameters.AddListener(() =>
             {
                 UpdateROIMasks();
+            });
+            roi.OnChangeSphereSelectionState.AddListener(() =>
+            {
+                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
             });
             ROIs.Add(roi);
             UpdateROIMasks();
@@ -208,7 +211,7 @@ namespace HBP.Module3D
             }
             m_Scene.ResetGenerators(false);
             m_Scene.OnUpdateROI.Invoke();
-            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Load the ROIs from the visualization configuration

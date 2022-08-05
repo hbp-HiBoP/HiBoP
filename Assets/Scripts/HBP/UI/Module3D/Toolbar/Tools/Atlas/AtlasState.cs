@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
+using HBP.Core.Object3D;
 
 namespace HBP.UI.Module3D.Tools
 {
@@ -73,10 +74,10 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isIBCAvailable = ApplicationState.Module3D.IBCObjects.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == MeshType.MNI;
-            bool isJuBrainAtlasAvailable = ApplicationState.Module3D.JuBrainAtlas.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == MeshType.MNI;
-            bool canUseMarsAtlas = ApplicationState.Module3D.MarsAtlas.Loaded && (SelectedScene.MeshManager.SelectedMesh.IsMarsAtlasLoaded || SelectedScene.MeshManager.SelectedMesh.Type == MeshType.MNI);
-            bool isDiFuMoAvailable = ApplicationState.Module3D.DiFuMoObjects.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == MeshType.MNI;
+            bool isIBCAvailable = Object3DManager.IBC.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == MeshType.MNI;
+            bool isJuBrainAtlasAvailable = Object3DManager.JuBrain.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == MeshType.MNI;
+            bool canUseMarsAtlas = Object3DManager.MarsAtlas.Loaded && (SelectedScene.MeshManager.SelectedMesh.IsMarsAtlasLoaded || SelectedScene.MeshManager.SelectedMesh.Type == MeshType.MNI);
+            bool isDiFuMoAvailable = Object3DManager.DiFuMo.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == MeshType.MNI;
 
             m_IBCToggle.interactable = isIBCAvailable;
             m_JubrainToggle.interactable = isJuBrainAtlasAvailable;

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using HBP.Core.Data;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -39,7 +40,7 @@ namespace HBP.UI
         /// </summary>
         public virtual void OpenPatientsSelector()
         {
-            ObjectSelector<Core.Data.Patient> selector = ApplicationState.WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Patients.Where(p => !ObjectTemp.Patients.Contains(p)));
+            ObjectSelector<Core.Data.Patient> selector = WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Patients.Where(p => !ObjectTemp.Patients.Contains(p)));
             selector.OnOk.AddListener(() => m_PatientListGestion.List.Add(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }

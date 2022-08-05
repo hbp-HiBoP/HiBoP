@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System.Linq;
+using HBP.Core.Object3D;
 
 namespace HBP.UI.Module3D.Tools
 {
@@ -59,10 +59,10 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateStatus()
         {
             m_AtlasDropdown.options.Clear();
-            if (ApplicationState.Module3D.DiFuMoObjects.Loaded)
+            if (Object3DManager.DiFuMo.Loaded)
             {
                 int count = 0;
-                foreach (var atlas in ApplicationState.Module3D.DiFuMoObjects.FMRIs.Keys.OrderBy(k => int.Parse(k)))
+                foreach (var atlas in Object3DManager.DiFuMo.FMRIs.Keys.OrderBy(k => int.Parse(k)))
                 {
                     m_AtlasDropdown.options.Add(new Dropdown.OptionData(atlas));
                     if (atlas == SelectedScene.FMRIManager.SelectedDiFuMoAtlas)
@@ -73,9 +73,9 @@ namespace HBP.UI.Module3D.Tools
             m_AtlasDropdown.RefreshShownValue();
 
             m_AreaDropdown.options.Clear();
-            if (ApplicationState.Module3D.DiFuMoObjects.Loaded)
+            if (Object3DManager.DiFuMo.Loaded)
             {
-                foreach (var label in ApplicationState.Module3D.DiFuMoObjects.Information[SelectedScene.FMRIManager.SelectedDiFuMoAtlas].AllLabels)
+                foreach (var label in Object3DManager.DiFuMo.Information[SelectedScene.FMRIManager.SelectedDiFuMoAtlas].AllLabels)
                 {
                     m_AreaDropdown.options.Add(new Dropdown.OptionData(label.Name));
                 }

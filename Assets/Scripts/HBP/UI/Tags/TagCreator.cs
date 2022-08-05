@@ -1,7 +1,4 @@
-﻿using HBP.Data;
-using Tools.Unity.Components;
-
-namespace HBP.UI
+﻿namespace HBP.UI
 {
     /// <summary>
     /// Component to create tags.

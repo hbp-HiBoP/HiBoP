@@ -3,7 +3,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 
-namespace HBP.Module3D.DLL
+namespace HBP.Core.DLL
 {
     /// <summary>
     /// A class for managing the debugging of the DLL
@@ -25,6 +25,7 @@ namespace HBP.Module3D.DLL
         #endregion
 
         #region Properties
+        private static DLLDebugManager m_Instance;
         /// <summary>
         /// Do we log all DLL messages to the Unity console ?
         /// </summary>
@@ -60,6 +61,15 @@ namespace HBP.Module3D.DLL
         #region Private Methods
         private void Awake()
         {
+            if (m_Instance == null)
+            {
+                m_Instance = this;
+            }
+            else
+            {
+                Destroy(this);
+            }
+
             if (m_LogDLLToUnity)
             {
                 m_LogCallbackDelegate = new LoggerDelegate(LogCallback);
@@ -103,12 +113,14 @@ namespace HBP.Module3D.DLL
         /// </summary>
         /// <param name="typeString">Type of the object as a string</param>
         /// <param name="id">ID of the object</param>
-        public void AddDLLObject(string typeString, Guid id)
+        public static void AddDLLObject(string typeString, Guid id)
         {
-            if (m_GetInformationAboutDLLObjects)
+            if (m_Instance == null) return;
+
+            if (m_Instance.m_GetInformationAboutDLLObjects)
             {
                 if (typeString == "Tools.CSharp.EEG.Trigger") return;
-                DLLObjects.Add(new DLLObject()
+                m_Instance.DLLObjects.Add(new DLLObject()
                 {
                     Type = typeString,
                     StackTrace = Environment.StackTrace,
@@ -123,11 +135,13 @@ namespace HBP.Module3D.DLL
         /// <param name="typeString">Type of the object as a string</param>
         /// <param name="id">ID of the object</param>
         /// <param name="cleanedBy">How do we remove this object ?</param>
-        public void RemoveDLLOBject(string typeString, Guid id, CleanedBy cleanedBy)
+        public static void RemoveDLLOBject(string typeString, Guid id, CleanedBy cleanedBy)
         {
-            if (m_GetInformationAboutDLLObjects)
+            if (m_Instance == null) return;
+
+            if (m_Instance.m_GetInformationAboutDLLObjects)
             {
-                var objectToRemove = DLLObjects.Find(d => d.Type == typeString && d.ID == id);
+                var objectToRemove = m_Instance.DLLObjects.Find(d => d.Type == typeString && d.ID == id);
                 if (objectToRemove != null) objectToRemove.CleanedBy = cleanedBy;
             }
         }

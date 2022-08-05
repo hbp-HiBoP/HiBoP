@@ -8,6 +8,9 @@ using System.Collections;
 using ThirdParty.CielaSpike;
 using HBP.Core.Exceptions;
 using HBP.Core.Tools;
+using HBP.UI;
+using HBP.Core.Data;
+using HBP.Core.Object3D;
 
 namespace HBP.Module3D
 {
@@ -18,6 +21,8 @@ namespace HBP.Module3D
     public class HBP3DModule : MonoBehaviour
     {
         #region Properties
+        private static HBP3DModule m_Instance;
+
         /// <summary>
         /// Default layer string for the visible meshes layer
         /// </summary>
@@ -30,17 +35,17 @@ namespace HBP.Module3D
         /// <summary>
         /// Currently selected scene
         /// </summary>
-        public Base3DScene SelectedScene
+        public static Base3DScene SelectedScene
         {
             get
             {
-                return m_Scenes.FirstOrDefault(s => s.IsSelected);
+                return m_Instance.m_Scenes.FirstOrDefault(s => s.IsSelected);
             }
         }
         /// <summary>
         /// Currently selected column
         /// </summary>
-        public Column3D SelectedColumn
+        public static Column3D SelectedColumn
         {
             get
             {
@@ -50,7 +55,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Currently selected view
         /// </summary>
-        public View3D SelectedView
+        public static View3D SelectedView
         {
             get
             {
@@ -70,62 +75,40 @@ namespace HBP.Module3D
         /// <summary>
         /// Number of scenes that have been loaded in this instance of HiBoP
         /// </summary>
-        public int NumberOfScenesLoadedSinceStart { get; set; }
+        public static int NumberOfScenesLoadedSinceStart { get; set; }
 
         private List<Base3DScene> m_Scenes = new List<Base3DScene>();
         /// <summary>
         /// List of open scenes
         /// </summary>
-        public ReadOnlyCollection<Base3DScene> Scenes
+        public static ReadOnlyCollection<Base3DScene> Scenes
         {
             get
             {
-                return new ReadOnlyCollection<Base3DScene>(m_Scenes);
+                return new ReadOnlyCollection<Base3DScene>(m_Instance.m_Scenes);
             }
         }
         /// <summary>
         /// List of all the loaded visualizations
         /// </summary>
-        public ReadOnlyCollection<Core.Data.Visualization> Visualizations
+        public static ReadOnlyCollection<Visualization> Visualizations
         {
             get
             {
                 return new ReadOnlyCollection<Core.Data.Visualization>((from scene in Scenes select scene.Visualization).ToList());
             }
         }
-
-        /// <summary>
-        /// Mars Atlas Index DLL Object
-        /// This is used to get information about Mars Atlas and Brodmann areas (name, color etc.)
-        /// </summary>
-        public Core.DLL.MarsAtlas MarsAtlas { get; private set; } = new Core.DLL.MarsAtlas();
-        /// <summary>
-        /// JuBrain Atlas DLL Object
-        /// This is used to get information about JuBrain Atlas areas (name, color etc.)
-        /// </summary>
-        public Core.DLL.JuBrainAtlas JuBrainAtlas { get; private set; } = new Core.DLL.JuBrainAtlas();
-
-        /// <summary>
-        /// MNI Objects
-        /// Contains data for the MNI meshes and MRI
-        /// </summary>
-        public Core.Object3D.MNIObjects MNIObjects;
-        /// <summary>
-        /// IBC Objects
-        /// Contains data for the IBC contrasts (fMRIs)
-        /// </summary>
-        public Core.Object3D.IBCObjects IBCObjects;
-
-        public Core.Object3D.DiFuMoObjects DiFuMoObjects;
         
+        [SerializeField] private GameObject m_SharedDirectionalLight;
         /// <summary>
         /// Shared directional light between all scenes
         /// </summary>
-        public GameObject SharedDirectionalLight;
+        public static GameObject SharedDirectionalLight { get { return m_Instance.m_SharedDirectionalLight; } }
+        [SerializeField] private GameObject m_SharedSpotlight;
         /// <summary>
         /// Shared spotlight between all scenes
         /// </summary>
-        public GameObject SharedSpotlight;
+        public static GameObject SharedSpotlight { get { return m_Instance.m_SharedSpotlight; } }
 
         /// <summary>
         /// Parent gameobject of every scenes
@@ -141,62 +124,66 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when hovering a site to display its information
         /// </summary>
-        [HideInInspector] public GenericEvent<Core.Object3D.SiteInfo> OnDisplaySiteInformation = new GenericEvent<Core.Object3D.SiteInfo>();
+        [HideInInspector] public static GenericEvent<Core.Object3D.SiteInfo> OnDisplaySiteInformation = new GenericEvent<Core.Object3D.SiteInfo>();
         /// <summary>
         /// Event called when hovering a atlas area to display its information
         /// </summary>
-        [HideInInspector] public GenericEvent<AtlasInfo> OnDisplayAtlasInformation = new GenericEvent<AtlasInfo>();
+        [HideInInspector] public static GenericEvent<AtlasInfo> OnDisplayAtlasInformation = new GenericEvent<AtlasInfo>();
         /// <summary>
         /// Event called when a scene is added
         /// </summary>
-        [HideInInspector] public GenericEvent<Base3DScene> OnAddScene = new GenericEvent<Base3DScene>();
+        [HideInInspector] public static GenericEvent<Base3DScene> OnAddScene = new GenericEvent<Base3DScene>();
         /// <summary>
         /// Event called when a scene is removed
         /// </summary>
-        [HideInInspector] public GenericEvent<Base3DScene> OnRemoveScene = new GenericEvent<Base3DScene>();
+        [HideInInspector] public static GenericEvent<Base3DScene> OnRemoveScene = new GenericEvent<Base3DScene>();
         /// <summary>
         /// Event called after all new scenes have been opened and initialized
         /// </summary>
-        [HideInInspector] public UnityEvent OnFinishedAddingNewScenes = new UnityEvent();
+        [HideInInspector] public static UnityEvent OnFinishedAddingNewScenes = new UnityEvent();
         /// <summary>
         /// Event called when changing the selected scene
         /// </summary>
-        [HideInInspector] public GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
+        [HideInInspector] public static GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
         /// <summary>
         /// Event called when minimizing a scene
         /// </summary>
-        [HideInInspector] public GenericEvent<Base3DScene> OnMinimizeScene = new GenericEvent<Base3DScene>();
+        [HideInInspector] public static GenericEvent<Base3DScene> OnMinimizeScene = new GenericEvent<Base3DScene>();
         /// <summary>
         /// Event called when changing the selected column
         /// </summary>
-        [HideInInspector] public GenericEvent<Column3D> OnSelectColumn = new GenericEvent<Column3D>();
+        [HideInInspector] public static GenericEvent<Column3D> OnSelectColumn = new GenericEvent<Column3D>();
         /// <summary>
         /// Event called when changing the selected view
         /// </summary>
-        [HideInInspector] public GenericEvent<View3D> OnSelectView = new GenericEvent<View3D>();
+        [HideInInspector] public static GenericEvent<View3D> OnSelectView = new GenericEvent<View3D>();
         /// <summary>
         /// Event called when changing the index of the timeline of the selected column
         /// </summary>
-        [HideInInspector] public UnityEvent OnUpdateSelectedColumnTimeLineIndex = new UnityEvent();
-        /// <summary>
-        /// Event called when the timeline is stopped because it reached the end
-        /// </summary>
-        [HideInInspector] public UnityEvent OnStopTimelinePlay = new UnityEvent();
+        [HideInInspector] public static UnityEvent OnUpdateSelectedColumnTimeLineIndex = new UnityEvent();
         /// <summary>
         /// Event called when requesting an update in the toolbar
         /// </summary>
-        [HideInInspector] public UnityEvent OnRequestUpdateInToolbar = new UnityEvent();
+        [HideInInspector] public static UnityEvent OnRequestUpdateInToolbar = new UnityEvent();
         #endregion
 
         #region Private Methods
         private void Awake()
         {
+            if (m_Instance == null)
+            {
+                m_Instance = this;
+            }
+            else
+            {
+                Destroy(this);
+            }
+
             this.StartCoroutineAsync(c_Preload3D());
         }
         void OnDestroy()
         {
-            MarsAtlas?.Dispose();
-            JuBrainAtlas?.Dispose();
+            Object3DManager.Clean();
         }
         #endregion
 
@@ -205,16 +192,16 @@ namespace HBP.Module3D
         /// Load a list of visualizations into 3D scenes
         /// </summary>
         /// <param name="visualizations">Visualizations to be loaded</param>
-        public void LoadScenes(IEnumerable<Core.Data.Visualization> visualizations)
+        public static void LoadScenes(IEnumerable<Core.Data.Visualization> visualizations)
         {
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            ApplicationState.LoadingManager.Load(c_Load(visualizations, (progress, duration, text) => onChangeProgress.Invoke(progress, duration,text)), onChangeProgress);
+            LoadingManager.Load(c_Load(visualizations, (progress, duration, text) => onChangeProgress.Invoke(progress, duration,text)), onChangeProgress);
         }
         /// <summary>
         /// Remove every scenes corresponding to a visualization
         /// </summary>
         /// <param name="visualization">Visualization corresponding to the scenes to be removed</param>
-        public void RemoveScene(Core.Data.Visualization visualization)
+        public static void RemoveScene(Core.Data.Visualization visualization)
         {
             Base3DScene[] scenes = Scenes.Where(s => s.Visualization == visualization).ToArray();
             foreach (var scene in scenes)
@@ -226,18 +213,18 @@ namespace HBP.Module3D
         /// Remove a scene
         /// </summary>
         /// <param name="scene">Scene to be removed</param>
-        public void RemoveScene(Base3DScene scene)
+        public static void RemoveScene(Base3DScene scene)
         {
             OnRemoveScene.Invoke(scene);
-            m_Scenes.Remove(scene);
-            StartCoroutine(scene.c_Destroy());
+            m_Instance.m_Scenes.Remove(scene);
+            m_Instance.StartCoroutine(scene.c_Destroy());
         }
         /// <summary>
         /// Load a single patient scene extracted from a visualization
         /// </summary>
         /// <param name="visualization">Visualization from which the new visualization will be extracted</param>
         /// <param name="patient">Patient of the new visualization</param>
-        public void LoadSinglePatientSceneFromMultiPatientScene(Core.Data.Visualization visualization, Core.Data.Patient patient)
+        public static void LoadSinglePatientSceneFromMultiPatientScene(Core.Data.Visualization visualization, Core.Data.Patient patient)
         {
             Base3DScene scene = Scenes.FirstOrDefault(s => s.Visualization == visualization);
             scene.SaveConfiguration();
@@ -263,7 +250,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Save all the configurations of the scenes
         /// </summary>
-        public void SaveConfigurations()
+        public static void SaveConfigurations()
         {
             foreach (var scene in Scenes)
             {
@@ -273,7 +260,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Reload all scenes
         /// </summary>
-        public void ReloadScenes()
+        public static void ReloadScenes()
         {
             SaveConfigurations();
             List<Base3DScene> scenes = Scenes.ToList();
@@ -287,7 +274,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Remove all scenes
         /// </summary>
-        public void RemoveAllScenes()
+        public static void RemoveAllScenes()
         {
             List<Base3DScene> scenes = Scenes.ToList();
             foreach (Base3DScene scene in scenes)
@@ -303,7 +290,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="visualizations">Visualizations to be loaded</param>
         /// <returns></returns>
-        public IEnumerator c_Load(IEnumerable<Core.Data.Visualization> visualizations, Action<float,float, LoadingText> onChangeProgress)
+        public static IEnumerator c_Load(IEnumerable<Core.Data.Visualization> visualizations, Action<float,float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
 
@@ -318,11 +305,11 @@ namespace HBP.Module3D
                 if (!visualization.IsVisualizable) throw new CanNotLoadVisualization(visualization.Name);
 
                 yield return Ninja.JumpToUnity;
-                yield return this.StartCoroutineAsync(visualization.c_Load((localProgress, duration, text) => onChangeProgress(progress + localProgress * visualizationWeight * LOADING_VISUALIZATION_PROGRESS, duration, text)), out Task visualizationLoadingTask);
+                yield return m_Instance.StartCoroutineAsync(visualization.c_Load((localProgress, duration, text) => onChangeProgress(progress + localProgress * visualizationWeight * LOADING_VISUALIZATION_PROGRESS, duration, text)), out Task visualizationLoadingTask);
 
                 if (visualizationLoadingTask.State == TaskState.Done)
                 {
-                    yield return this.StartCoroutineAsync(c_LoadScene(visualization, (localProgress, duration, text) => onChangeProgress(progress + (LOADING_VISUALIZATION_PROGRESS + localProgress * LOADING_SCENE_PROGRESS) * visualizationWeight, duration, text)), out Task sceneLoadingTask);
+                    yield return m_Instance.StartCoroutineAsync(c_LoadScene(visualization, (localProgress, duration, text) => onChangeProgress(progress + (LOADING_VISUALIZATION_PROGRESS + localProgress * LOADING_SCENE_PROGRESS) * visualizationWeight, duration, text)), out Task sceneLoadingTask);
                     if (sceneLoadingTask.State == TaskState.Error)
                     {
                         visualization.Unload();
@@ -343,16 +330,16 @@ namespace HBP.Module3D
         /// <param name="visualization">Visualization to be loaded</param>
         /// <param name="onChangeProgress">Event to update the loading circle</param>
         /// <returns></returns>
-        private IEnumerator c_LoadScene(Core.Data.Visualization visualization, Action<float, float, LoadingText> onChangeProgress)
+        private static IEnumerator c_LoadScene(Core.Data.Visualization visualization, Action<float, float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
 
             Exception exception = null;
 
             yield return Ninja.JumpToUnity;
-            Base3DScene scene = Instantiate(m_ScenePrefab, m_ScenesParent).GetComponent<Base3DScene>();
+            Base3DScene scene = Instantiate(m_Instance.m_ScenePrefab, m_Instance.m_ScenesParent).GetComponent<Base3DScene>();
             scene.Initialize(visualization);
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(scene.c_Initialize(visualization, onChangeProgress, (e) => exception = e));
+            yield return CoroutineManager.StartAsync(scene.c_Initialize(visualization, onChangeProgress, (e) => exception = e));
             if (exception == null)
             {
                 try
@@ -360,7 +347,7 @@ namespace HBP.Module3D
                     // Add the listeners
                     scene.OnSelect.AddListener(() =>
                     {
-                        foreach (Base3DScene s in m_Scenes)
+                        foreach (Base3DScene s in m_Instance.m_Scenes)
                         {
                             if (s != scene)
                             {
@@ -369,9 +356,9 @@ namespace HBP.Module3D
                         }
                     });
                     // Add the scene to the list
-                    m_Scenes.Add(scene);
+                    m_Instance.m_Scenes.Add(scene);
                     scene.FinalizeInitialization();
-                    ApplicationState.Module3D.OnAddScene.Invoke(scene);
+                    OnAddScene.Invoke(scene);
                     scene.LoadConfiguration();
                 }
                 catch (Exception e)
@@ -386,7 +373,7 @@ namespace HBP.Module3D
             }
         }
 
-        private IEnumerator c_Preload3D()
+        private static IEnumerator c_Preload3D()
         {
             yield return Ninja.JumpToUnity;
             // Graphic Settings
@@ -396,10 +383,17 @@ namespace HBP.Module3D
             // Advanced Conditions
             UI.Module3D.AdvancedSiteConditionStrings.LoadConditions();
 
-            // Atlases
+            // Objects 3D
             yield return Ninja.JumpBack;
-            if (ApplicationState.UserPreferences.Data.Atlases.PreloadMarsAtlas) MarsAtlas.Load();
-            if (ApplicationState.UserPreferences.Data.Atlases.PreloadJuBrain) JuBrainAtlas.Load();
+            Object3DManager.MNI.Load();
+            if (ApplicationState.UserPreferences.Data.Atlases.PreloadDiFuMo64) Object3DManager.DiFuMo.Load("64");
+            if (ApplicationState.UserPreferences.Data.Atlases.PreloadDiFuMo128) Object3DManager.DiFuMo.Load("128");
+            if (ApplicationState.UserPreferences.Data.Atlases.PreloadDiFuMo256) Object3DManager.DiFuMo.Load("256");
+            if (ApplicationState.UserPreferences.Data.Atlases.PreloadDiFuMo512) Object3DManager.DiFuMo.Load("512");
+            if (ApplicationState.UserPreferences.Data.Atlases.PreloadDiFuMo1024) Object3DManager.DiFuMo.Load("1024");
+            if (ApplicationState.UserPreferences.Data.Atlases.PreloadIBC) Object3DManager.IBC.Load();
+            if (ApplicationState.UserPreferences.Data.Atlases.PreloadMarsAtlas) Object3DManager.MarsAtlas.Load();
+            if (ApplicationState.UserPreferences.Data.Atlases.PreloadJuBrain) Object3DManager.JuBrain.Load();
         }
         #endregion
     }
