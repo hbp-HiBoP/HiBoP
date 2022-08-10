@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using HBP.Core.Exceptions;
 
-namespace Tools.CSharp.BooleanExpressionParser
+namespace HBP.Display.Tools
 {
-    public class Parser
+    public class BooleanExpressionParser
     {
         public static BooleanExpression Parse(string expression)
         {

@@ -4,14 +4,14 @@ using UnityEngine.Events;
 using System.Linq;
 using System.Collections.Generic;
 using System;
-using data = HBP.Data.Informations;
+using data = HBP.Display.Informations;
 
 namespace HBP.UI.TrialMatrix
 {
     public class TrialMatrixList : MonoBehaviour
     {
         #region Properties
-        public Data.TrialMatrix.Group[] TrialMatrixGroups { get; private set; }
+        public data.TrialMatrix.Group[] TrialMatrixGroups { get; private set; }
         public GenericEvent<Vector2, data.Data> OnLimitsChanged { get; set; }
         public GenericEvent<bool, data.Data> OnAutoLimitsChanged { get; set; }
 
@@ -19,7 +19,7 @@ namespace HBP.UI.TrialMatrix
         #endregion
 
         #region Public Methods
-        public void Set(IEnumerable<Data.TrialMatrix.Group> trialMatrixGroups)
+        public void Set(IEnumerable<data.TrialMatrix.Group> trialMatrixGroups)
         {
             Clear();
             TrialMatrixGroups = trialMatrixGroups.ToArray();
@@ -28,7 +28,7 @@ namespace HBP.UI.TrialMatrix
         #endregion
 
         #region Private Methods
-        void AddGroup(Data.TrialMatrix.Group group)
+        void AddGroup(data.TrialMatrix.Group group)
         {
             GameObject gameObject = new GameObject(group.Name, new Type[] { typeof(RectTransform), typeof(HorizontalLayoutGroup) });
             RectTransform rectTransform = gameObject.GetComponent<RectTransform>();
@@ -41,7 +41,7 @@ namespace HBP.UI.TrialMatrix
             {
                 Destroy(transform.GetChild(c).gameObject);
             }
-            TrialMatrixGroups = new Data.TrialMatrix.Group[0];
+            TrialMatrixGroups = new data.TrialMatrix.Group[0];
         }
         #endregion
     }

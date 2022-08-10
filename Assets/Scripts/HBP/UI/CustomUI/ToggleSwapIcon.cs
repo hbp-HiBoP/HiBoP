@@ -1,4 +1,7 @@
-﻿namespace UnityEngine.UI
+﻿using UnityEngine;
+using UnityEngine.UI;
+
+namespace HBP.Display.UI.Tools
 {
     [RequireComponent(typeof(Toggle))]
     public class ToggleSwapIcon : MonoBehaviour

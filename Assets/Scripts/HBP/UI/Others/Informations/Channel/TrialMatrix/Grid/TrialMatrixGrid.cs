@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
-using data = HBP.Data.TrialMatrix.Grid;
-using HBP.Data.Informations;
+using data = HBP.Display.Informations.TrialMatrix.Grid;
+using HBP.Display.Informations;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 

@@ -13,8 +13,8 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] protected IconCreator m_ObjectCreator;
         public override ObjectCreator<Core.Data.Icon> ObjectCreator => m_ObjectCreator;
 
-        [SerializeField] Tools.CSharp.Window m_Window;
-        public Tools.CSharp.Window Window
+        [SerializeField] Core.Tools.TimeWindow m_Window;
+        public Core.Tools.TimeWindow Window
         {
             get
             {

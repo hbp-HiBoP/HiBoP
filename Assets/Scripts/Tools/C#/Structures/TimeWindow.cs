@@ -2,10 +2,10 @@
 using System.Runtime.Serialization;
 using UnityEngine;
 
-namespace Tools.CSharp
+namespace HBP.Core.Tools
 {
     [DataContract]
-    public struct Window
+    public struct TimeWindow
     {
         #region Properties
         [DataMember] public int Start { get; set; }
@@ -20,12 +20,12 @@ namespace Tools.CSharp
         #endregion
 
         #region Constructors
-        public Window(Vector2Int position)
+        public TimeWindow(Vector2Int position)
         {
             Start = position.x;
             End = position.y;
         }
-        public Window(int start,int end)
+        public TimeWindow(int start,int end)
         {
             Start = start;
             End = end;
@@ -39,9 +39,9 @@ namespace Tools.CSharp
         }
         public override bool Equals(object obj)
         {
-            if (obj is Window)
+            if (obj is TimeWindow)
             {
-                Window window = (Window)obj;
+                TimeWindow window = (TimeWindow)obj;
                 if (window.Start == Start && window.End == End)
                 {
                     return true;
@@ -60,11 +60,11 @@ namespace Tools.CSharp
         {
             return Start.GetHashCode() * End.GetHashCode();
         }
-        public static bool operator ==(Window window1, Window window2)
+        public static bool operator ==(TimeWindow window1, TimeWindow window2)
         {
             return window1.Equals(window2);
         }
-        public static bool operator !=(Window window1, Window window2)
+        public static bool operator !=(TimeWindow window1, TimeWindow window2)
         {
             return !window1.Equals(window2);
         }

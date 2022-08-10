@@ -1,4 +1,4 @@
-﻿namespace HBP.Data.TrialMatrix
+﻿namespace HBP.Display.Informations.TrialMatrix
 {
     public class SubTrial
     {

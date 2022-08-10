@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace Tools.CSharp.BooleanExpressionParser
+namespace HBP.Display.Tools
 {
     public enum TokenType { OpenParenthesis, CloseParenthesis, UnaryOperator, BinaryOperator, Value, EndOfExpression, Space }
 

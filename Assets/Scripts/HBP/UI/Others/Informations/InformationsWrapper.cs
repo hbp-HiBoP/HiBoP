@@ -2,7 +2,7 @@
 using HBP.Module3D;
 using System.Collections.Generic;
 using System.Linq;
-using HBP.Data.Informations;
+using HBP.Display.Informations;
 using UnityEngine.UI.Extensions;
 using UnityEngine.Events;
 using Tools.Unity;

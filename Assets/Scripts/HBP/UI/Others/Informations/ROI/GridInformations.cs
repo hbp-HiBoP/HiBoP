@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
-using data = HBP.Data.Informations;
 using Tools.Unity.Graph;
-using HBP.Data.Informations;
+using HBP.Display.Informations;
 
 namespace HBP.UI.Informations
 {
@@ -30,7 +29,7 @@ namespace HBP.UI.Informations
             Vector2 abscissaDisplayRange = new Vector2(float.MaxValue, float.MinValue);
             foreach (var column in m_Columns)
             {
-                if (column.Data is data.IEEGData || column.Data is data.CCEPData)
+                if (column.Data is IEEGData || column.Data is CCEPData)
                 {
                     Core.Data.SubBloc mainSubBloc = column.Data.Bloc.MainSubBloc;
                     if (mainSubBloc.Window.Start < abscissaDisplayRange.x)
@@ -44,7 +43,7 @@ namespace HBP.UI.Informations
                 }
                 else if (column.Data is MEGData megData)
                 {
-                    Tools.CSharp.Window window = megData.Window;
+                    Core.Tools.TimeWindow window = megData.Window;
                     if (window.Start < abscissaDisplayRange.x)
                     {
                         abscissaDisplayRange = new Vector2(window.Start, abscissaDisplayRange.y);

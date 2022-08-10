@@ -1,8 +1,10 @@
 ﻿using System;
 using UnityEngine.EventSystems;
 using UnityEngine.UI.Extensions;
+using UnityEngine;
+using UnityEngine.UI;
 
-namespace UnityEngine.UI
+namespace HBP.Display.UI.Tools
 {
     [ExecuteInEditMode]
     [AddComponentMenu("Layout/Content Size Clamper", 142)]

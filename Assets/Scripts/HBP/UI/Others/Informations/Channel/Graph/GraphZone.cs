@@ -1,4 +1,4 @@
-﻿using HBP.Data.Informations;
+﻿using HBP.Display.Informations;
 using HBP.UI.TrialMatrix.Grid;
 using System;
 using System.Collections.Generic;
@@ -21,7 +21,7 @@ namespace HBP.UI.Informations
         [SerializeField] GameObject m_TogglesPrefab;
         [SerializeField] RectTransform m_ToggleContainer;
         
-        Tuple<Tuple<Core.Data.Bloc, Core.Data.SubBloc>[], Tools.CSharp.Window>[] m_SubBlocsAndWindowByColumn;
+        Tuple<Tuple<Core.Data.Bloc, Core.Data.SubBloc>[], Core.Tools.TimeWindow>[] m_SubBlocsAndWindowByColumn;
         Dictionary<string, bool> m_StatesByCurves = new Dictionary<string, bool>();
 
         [SerializeField] Queue<Graph> m_GraphPool = new Queue<Graph>();
@@ -99,7 +99,7 @@ namespace HBP.UI.Informations
 
             ClearGraphs();
 
-            Tuple<Graph.Curve[], Tools.CSharp.Window, bool>[] columns = GenerateDataCurve(m_Columns, m_Channels);
+            Tuple<Graph.Curve[], Core.Tools.TimeWindow, bool>[] columns = GenerateDataCurve(m_Columns, m_Channels);
 
             List<float> values = new List<float>();
             foreach (var column in columns)
@@ -228,9 +228,9 @@ namespace HBP.UI.Informations
             }
         }
 
-        Tuple<Graph.Curve[], Tools.CSharp.Window, bool>[] GenerateDataCurve(Column[] columns, ChannelStruct[] channels)
+        Tuple<Graph.Curve[], Core.Tools.TimeWindow, bool>[] GenerateDataCurve(Column[] columns, ChannelStruct[] channels)
         {
-            List<Tuple<Graph.Curve[], Tools.CSharp.Window, bool>> result = new List<Tuple<Graph.Curve[], Tools.CSharp.Window, bool>>();
+            List<Tuple<Graph.Curve[], Core.Tools.TimeWindow, bool>> result = new List<Tuple<Graph.Curve[], Core.Tools.TimeWindow, bool>>();
 
             // Epoched Data
             // Find all visualized blocs and sort by column.
@@ -250,7 +250,7 @@ namespace HBP.UI.Informations
                         curves.Add(curve);
                     }
                 }
-                result.Add(new Tuple<Graph.Curve[], Tools.CSharp.Window, bool>(curves.ToArray(), subBlocsAndWindow.Item2, subBlocsAndWindow.Item1[0].Item2.Type == MainSecondaryEnum.Main));
+                result.Add(new Tuple<Graph.Curve[], Core.Tools.TimeWindow, bool>(curves.ToArray(), subBlocsAndWindow.Item2, subBlocsAndWindow.Item1[0].Item2.Type == MainSecondaryEnum.Main));
             }
 
             // Non-epoched data
@@ -258,7 +258,7 @@ namespace HBP.UI.Informations
             foreach (var column in nonEpochedDataColumns)
             {
                 Graph.Curve curve = GenerateNonEpochedColumnCurve(column, channels);
-                result.Add(new Tuple<Graph.Curve[], Tools.CSharp.Window, bool>(new Graph.Curve[] { curve }, (column.Data as MEGData).Window, true));
+                result.Add(new Tuple<Graph.Curve[], Core.Tools.TimeWindow, bool>(new Graph.Curve[] { curve }, (column.Data as MEGData).Window, true));
             }
 
             return result.ToArray();
@@ -303,7 +303,7 @@ namespace HBP.UI.Informations
                 ChannelsByPatient[channel.Patient].Add(channel.Channel);
             }
             Dictionary<Core.Data.Patient, Core.Data.PatientDataInfo> dataInfoByPatient = new Dictionary<Core.Data.Patient, Core.Data.PatientDataInfo>(ChannelsByPatient.Count);
-            if (column.Data is Data.Informations.IEEGData ieegDataStruct)
+            if (column.Data is IEEGData ieegDataStruct)
             {
                 Core.Data.IEEGDataInfo[] ieegDataInfo = ieegDataStruct.Dataset.GetIEEGDataInfos();
                 foreach (var patient in ChannelsByPatient.Keys)
@@ -311,7 +311,7 @@ namespace HBP.UI.Informations
                     dataInfoByPatient.Add(patient, ieegDataInfo.First(d => d.Patient == patient && d.Name == ieegDataStruct.Name));
                 }
             }
-            else if (column.Data is Data.Informations.CCEPData ccepDataStruct)
+            else if (column.Data is CCEPData ccepDataStruct)
             {
                 Core.Data.CCEPDataInfo[] ccepDataInfo = ccepDataStruct.Dataset.GetCCEPDataInfos();
                 foreach (var patient in ChannelsByPatient.Keys)
@@ -430,11 +430,11 @@ namespace HBP.UI.Informations
         {
             CurveData result = null;
             Core.Data.PatientDataInfo dataInfo = null;
-            if (column.Data is Data.Informations.IEEGData ieegDataStruct)
+            if (column.Data is IEEGData ieegDataStruct)
             {
                 dataInfo = ieegDataStruct.Dataset.GetIEEGDataInfos().First(d => (d.Patient == channel.Patient && d.Name == ieegDataStruct.Name));
             }
-            else if (column.Data is Data.Informations.CCEPData ccepDataStruct)
+            else if (column.Data is CCEPData ccepDataStruct)
             {
                 dataInfo = ccepDataStruct.Dataset.GetCCEPDataInfos().First(d => (d.Patient == channel.Patient && d.StimulatedChannel == ccepDataStruct.Source.Channel && d.Patient == ccepDataStruct.Source.Patient && d.Name == ccepDataStruct.Name));
             }

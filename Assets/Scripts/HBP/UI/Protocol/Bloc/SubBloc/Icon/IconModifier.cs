@@ -2,6 +2,7 @@
 using Tools.Unity;
 using UnityEngine;
 using HBP.Core.Data;
+using HBP.Display.UI.Tools;
 
 namespace HBP.UI.Experience.Protocol
 {
@@ -15,11 +16,11 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] RangeSlider m_WindowSlider;
         [SerializeField] ImageSelector m_ImageSelector;
 
-        Tools.CSharp.Window m_Window;
+        Core.Tools.TimeWindow m_Window;
         /// <summary>
         /// Window of the subBloc.
         /// </summary>
-        public Tools.CSharp.Window Window
+        public Core.Tools.TimeWindow Window
         {
             get
             {
@@ -98,7 +99,7 @@ namespace HBP.UI.Experience.Protocol
         /// <param name="max">Max window</param>
         protected void ChangeWindow(float min, float max)
         {
-            ObjectTemp.Window = new Tools.CSharp.Window((int)min, (int)max);
+            ObjectTemp.Window = new Core.Tools.TimeWindow((int)min, (int)max);
         }
         /// <summary>
         /// Change the image.

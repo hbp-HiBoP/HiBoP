@@ -54,7 +54,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// Temporal window to apply the treatment on the window of the subBloc.
         /// </summary>
-        [DataMember] public Window Window { get; set; }
+        [DataMember] public TimeWindow Window { get; set; }
         /// <summary>
         /// True if we apply the treatment on the baseline, False otherwise.
         /// </summary>
@@ -62,21 +62,21 @@ namespace HBP.Core.Data
         /// <summary>
         /// Temporal window to apply the treatment on the baseline of the subBloc.
         /// </summary>
-        [DataMember] public Window Baseline { get; set; }
+        [DataMember] public TimeWindow Baseline { get; set; }
         #endregion
 
         #region Constructors
         /// <summary>
         /// Create a new Treatment instance with default values.
         /// </summary>
-        public Treatment() : this(true, new Window(), false, new Window(), 0)
+        public Treatment() : this(true, new TimeWindow(), false, new TimeWindow(), 0)
         {
         }
         /// <summary>
         /// Create a new Treatment instance.
         /// </summary>
         /// <param name="ID">Unique identifier</param>
-        public Treatment(string ID) : this(true, new Window(), false, new Window(), 0, ID)
+        public Treatment(string ID) : this(true, new TimeWindow(), false, new TimeWindow(), 0, ID)
         {
 
         }
@@ -88,7 +88,7 @@ namespace HBP.Core.Data
         /// <param name="useOnBaseline">True if we apply the treatment on the baseline, False otherwise</param>
         /// <param name="baseline">Temporal window to apply the treatment on the baseline of the subBloc</param>
         /// <param name="order">Order of the treatmeants to apply to the subBloc</param>
-        public Treatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, int order) : base()
+        public Treatment(bool useOnWindow, TimeWindow window, bool useOnBaseline, TimeWindow baseline, int order) : base()
         {
             UseOnWindow = useOnWindow;
             Window = window;
@@ -105,7 +105,7 @@ namespace HBP.Core.Data
         /// <param name="baseline">Temporal window to apply the treatment on the baseline of the subBloc</param>
         /// <param name="order">Order of the tretmeants to apply to the subBloc</param>
         /// <param name="ID">Unique identifier</param>
-        public Treatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, int order, string ID) : base(ID)
+        public Treatment(bool useOnWindow, TimeWindow window, bool useOnBaseline, TimeWindow baseline, int order, string ID) : base(ID)
         {
             UseOnWindow = useOnWindow;
             Window = window;

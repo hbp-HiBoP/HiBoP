@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.Display.Preferences;
 using HBP.Core.Data;
+using HBP.Display.UI.Tools;
 
 namespace HBP.UI.Experience.Protocol
 {
@@ -156,7 +157,7 @@ namespace HBP.UI.Experience.Protocol
         /// <param name="max">End window</param>
         protected void ChangeWindow(float min, float max)
         {
-            ObjectTemp.Window = new Tools.CSharp.Window(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
+            ObjectTemp.Window = new Core.Tools.TimeWindow(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
             m_IconListGestion.Window = m_ObjectTemp.Window;
             m_TreatmentListGestion.Window = m_ObjectTemp.Window;
             m_TreatmentListGestion.Baseline = m_ObjectTemp.Baseline;
@@ -168,7 +169,7 @@ namespace HBP.UI.Experience.Protocol
         /// <param name="max">End window</param>
         protected void ChangeBaseline(float min, float max)
         {
-            ObjectTemp.Baseline = new Tools.CSharp.Window(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
+            ObjectTemp.Baseline = new Core.Tools.TimeWindow(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
             m_TreatmentListGestion.Baseline = m_ObjectTemp.Baseline;
         }
         /// <summary>

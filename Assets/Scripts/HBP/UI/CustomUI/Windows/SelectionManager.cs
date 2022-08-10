@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
+namespace HBP.UI
+{
 public class SelectionManager : MonoBehaviour
 {
     #region Properties
@@ -29,11 +31,14 @@ public class SelectionManager : MonoBehaviour
     #region Private Methods
     void Awake()
     {
-        if (m_Instance != null && m_Instance != this)
+        if (m_Instance == null)
         {
-            Destroy(gameObject);
+            m_Instance = this;
         }
-        m_Instance = this;
+        else
+        {
+            Destroy(this);
+        }
     }
     void OnChangeSelection(bool selected, Selector selector)
     {
@@ -91,5 +96,6 @@ public class SelectionManager : MonoBehaviour
 
         return new Rect(topLeft, scaledSize);
     }
-    #endregion
+        #endregion
+    }
 }

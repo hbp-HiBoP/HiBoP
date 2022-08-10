@@ -113,7 +113,7 @@ namespace HBP.Core.Data
         /// <param name="afterMax">Maximum Value after rescaled the values</param>
         /// <param name="order">Order of the treatment</param>
         /// <param name="ID">Unique identifier</param>
-        public RescaleTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, float beforeMin, float beforeMax, float afterMin, float afterMax, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
+        public RescaleTreatment(bool useOnWindow, TimeWindow window, bool useOnBaseline, TimeWindow baseline, float beforeMin, float beforeMax, float afterMin, float afterMax, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
         {
             BeforeMin = beforeMin;
             BeforeMax = beforeMax;

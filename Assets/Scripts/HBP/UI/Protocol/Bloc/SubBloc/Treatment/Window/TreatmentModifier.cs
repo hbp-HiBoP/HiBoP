@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.Display.UI.Tools;
 
 namespace HBP.UI.Experience.Protocol
 {
@@ -31,11 +32,11 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] ThresholdTreatmentSubModifier m_ThresholdTreatmentSubModifier;
         [SerializeField] FactorTreatmentSubModifier m_FactorTreatmentSubModifier;
 
-        Tools.CSharp.Window m_Window;
+        Core.Tools.TimeWindow m_Window;
         /// <summary>
         /// SubBloc of the window.
         /// </summary>
-        public Tools.CSharp.Window Window
+        public Core.Tools.TimeWindow Window
         {
             get
             {
@@ -49,11 +50,11 @@ namespace HBP.UI.Experience.Protocol
             }
         }
 
-        Tools.CSharp.Window m_Baseline;
+        Core.Tools.TimeWindow m_Baseline;
         /// <summary>
         /// Baseline of the subBloc.
         /// </summary>
-        public Tools.CSharp.Window Baseline
+        public Core.Tools.TimeWindow Baseline
         {
             get
             {
@@ -242,7 +243,7 @@ namespace HBP.UI.Experience.Protocol
         /// <param name="max">End window</param>
         protected void ChangeWindow(float min, float max)
         {
-            ObjectTemp.Window = new Tools.CSharp.Window(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
+            ObjectTemp.Window = new Core.Tools.TimeWindow(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
         }
         /// <summary>
         /// Change the baseline.
@@ -251,7 +252,7 @@ namespace HBP.UI.Experience.Protocol
         /// <param name="max">End window</param>
         protected void ChangeBaseline(float min, float max)
         {
-            ObjectTemp.Baseline = new Tools.CSharp.Window(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
+            ObjectTemp.Baseline = new Core.Tools.TimeWindow(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
         }
         /// <summary>
         /// Change use on window.

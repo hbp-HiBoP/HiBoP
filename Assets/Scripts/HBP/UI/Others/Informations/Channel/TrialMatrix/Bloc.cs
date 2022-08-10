@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 using System.Collections.Generic;
-using data = HBP.Data.TrialMatrix;
+using data = HBP.Display.Informations.TrialMatrix;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine.UI;
@@ -216,7 +216,7 @@ namespace HBP.UI.TrialMatrix
             subBloc.Set(data, colors, limits);
             m_SubBlocs.Add(subBloc);
         }
-        void AddFiller(Tools.CSharp.Window window)
+        void AddFiller(Core.Tools.TimeWindow window)
         {
             GameObject filler = Instantiate(m_SubBlocFillerPrefab, m_SubBlocContainer);
             filler.GetComponent<LayoutElement>().flexibleWidth = window.End - window.Start;

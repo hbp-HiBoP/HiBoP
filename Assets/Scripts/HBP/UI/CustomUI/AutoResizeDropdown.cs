@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
 
-namespace UnityEngine.UI
+namespace HBP.Display.UI.Tools
 {
     public class AutoResizeDropdown : Dropdown
     {

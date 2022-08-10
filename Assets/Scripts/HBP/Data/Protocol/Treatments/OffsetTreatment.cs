@@ -80,7 +80,7 @@ namespace HBP.Core.Data
         /// <param name="offset">Offset to add to the values</param>
         /// <param name="order">Order of the treatment</param>
         /// <param name="ID">Unique identifier</param>
-        public OffsetTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, float offset, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
+        public OffsetTreatment(bool useOnWindow, TimeWindow window, bool useOnBaseline, TimeWindow baseline, float offset, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
         {
             Offset = offset;
         }

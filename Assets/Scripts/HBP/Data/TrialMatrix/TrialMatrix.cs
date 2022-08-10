@@ -4,7 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Tools.CSharp;
 
-namespace HBP.Data.TrialMatrix
+namespace HBP.Display.Informations.TrialMatrix
 {
     public class TrialMatrix
     {
@@ -14,8 +14,8 @@ namespace HBP.Data.TrialMatrix
         public Vector2 Limits { get; set; }
         public Core.Data.DataInfo DataInfo { get; set; }
         public string Channel { get; set; }
-        List<Tuple<Core.Data.SubBloc[], Window>> m_TimeLimitsByColumn;
-        public List<Tuple<Core.Data.SubBloc[], Window>> TimeLimitsByColumn
+        List<Tuple<Core.Data.SubBloc[], Core.Tools.TimeWindow>> m_TimeLimitsByColumn;
+        public List<Tuple<Core.Data.SubBloc[], Core.Tools.TimeWindow>> TimeLimitsByColumn
         {
             get
             {
@@ -57,7 +57,7 @@ namespace HBP.Data.TrialMatrix
         #endregion
 
         #region Private Method
-        List<Tuple<Core.Data.SubBloc[], Window>> CalculateTimeLimitsByColumn(IEnumerable<Core.Data.Bloc> blocs)
+        List<Tuple<Core.Data.SubBloc[], Core.Tools.TimeWindow>> CalculateTimeLimitsByColumn(IEnumerable<Core.Data.Bloc> blocs)
         {
             List<Tuple<int, List<Core.Data.SubBloc>>> subBlocsByColumns = new List<Tuple<int, List<Core.Data.SubBloc>>>();
             foreach (var bloc in blocs)
@@ -71,15 +71,15 @@ namespace HBP.Data.TrialMatrix
                 }
             }
 
-            List<Tuple<Core.Data.SubBloc[], Window>> timeLimitsByColumns = new List<Tuple<Core.Data.SubBloc[], Window>>();
+            List<Tuple<Core.Data.SubBloc[], Core.Tools.TimeWindow>> timeLimitsByColumns = new List<Tuple<Core.Data.SubBloc[], Core.Tools.TimeWindow>>();
             foreach (var tuple in subBlocsByColumns)
             {
-                Window window = new Window(tuple.Item2.Min(s => s.Window.Start), tuple.Item2.Max(s => s.Window.End));
+                Core.Tools.TimeWindow window = new Core.Tools.TimeWindow(tuple.Item2.Min(s => s.Window.Start), tuple.Item2.Max(s => s.Window.End));
                 foreach (var subBloc in tuple.Item2)
                 {
                     subBloc.Window = window;
                 }
-                timeLimitsByColumns.Add(new Tuple<Core.Data.SubBloc[], Window>(tuple.Item2.ToArray(), window));
+                timeLimitsByColumns.Add(new Tuple<Core.Data.SubBloc[], Core.Tools.TimeWindow>(tuple.Item2.ToArray(), window));
             }
             return timeLimitsByColumns;
         }

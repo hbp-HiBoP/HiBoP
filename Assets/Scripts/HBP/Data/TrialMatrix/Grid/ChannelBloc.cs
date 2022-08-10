@@ -1,11 +1,9 @@
-﻿using HBP.Data.Informations;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Events;
-using static HBP.Data.TrialMatrix.Grid.TrialMatrixGrid;
 
-namespace HBP.Data.TrialMatrix.Grid
+namespace HBP.Display.Informations.TrialMatrix.Grid
 {
     public class ChannelBloc
     {
@@ -31,14 +29,14 @@ namespace HBP.Data.TrialMatrix.Grid
         #endregion
 
         #region Constructors
-        public ChannelBloc(Core.Data.Bloc bloc, TrialMatrixData data, ChannelStruct channel)
+        public ChannelBloc(Core.Data.Bloc bloc, TrialMatrixGrid.TrialMatrixData data, ChannelStruct channel)
         {
             Core.Data.DataInfo dataInfo = null;
-            if(data is IEEGTrialMatrixData iEEGDataStruct)
+            if(data is TrialMatrixGrid.IEEGTrialMatrixData iEEGDataStruct)
             {
                 dataInfo = iEEGDataStruct.Dataset.GetIEEGDataInfos().FirstOrDefault(d => d.Name == iEEGDataStruct.Name && d.Patient == channel.Patient);
             }
-            else if(data is CCEPTrialMatrixData ccepDataStruct)
+            else if(data is TrialMatrixGrid.CCEPTrialMatrixData ccepDataStruct)
             {
                 dataInfo = ccepDataStruct.Dataset.GetCCEPDataInfos().FirstOrDefault(d => d.Name == ccepDataStruct.Name && d.Patient == channel.Patient && d.Patient == ccepDataStruct.Source.Patient && d.StimulatedChannel == ccepDataStruct.Source.Channel);
             }
@@ -73,12 +71,12 @@ namespace HBP.Data.TrialMatrix.Grid
                 SubBlocs = subBlocs.ToArray();
             }
         }
-        public void Standardize(Tuple<Tuple<Core.Data.Bloc,Core.Data.SubBloc>[],Tools.CSharp.Window>[] subBlocsAndWindowByColumn)
+        public void Standardize(Tuple<Tuple<Core.Data.Bloc,Core.Data.SubBloc>[],Core.Tools.TimeWindow>[] subBlocsAndWindowByColumn)
         {
             List<SubBloc> subBlocs = SubBlocs.ToList();
             for (int c = 0; c < subBlocsAndWindowByColumn.Length; c++)
             {
-                Tuple<Tuple<Core.Data.Bloc, Core.Data.SubBloc>[], Tools.CSharp.Window> pair = subBlocsAndWindowByColumn[c];
+                Tuple<Tuple<Core.Data.Bloc, Core.Data.SubBloc>[], Core.Tools.TimeWindow> pair = subBlocsAndWindowByColumn[c];
                 SubBloc subBloc = subBlocs.FirstOrDefault(s => pair.Item1.Any(v => v.Item2 == s.SubBlocProtocol));
                 if (subBloc == null)
                 {

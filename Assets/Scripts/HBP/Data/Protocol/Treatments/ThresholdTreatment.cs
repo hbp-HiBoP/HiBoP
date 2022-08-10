@@ -113,7 +113,7 @@ namespace HBP.Core.Data
         /// <param name="max">Maximum treshold</param>
         /// <param name="order">Order of the treatment</param>
         /// <param name="ID">Unique identifier</param>
-        public ThresholdTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, bool useMinTreshold, float min, bool useMaxTreshold, float max, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
+        public ThresholdTreatment(bool useOnWindow, TimeWindow window, bool useOnBaseline, TimeWindow baseline, bool useMinTreshold, float min, bool useMaxTreshold, float max, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
         {
             UseMinTreshold = useMinTreshold;
             Min = min;

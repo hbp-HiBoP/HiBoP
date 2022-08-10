@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
+using HBP.Display.Informations;
 
 namespace Tools.Unity.Graph
 {
@@ -106,7 +107,7 @@ namespace Tools.Unity.Graph
             }
         }
 
-        public HBP.Data.Informations.ChannelStruct ChannelStruct { get; set; }
+        public ChannelStruct ChannelStruct { get; set; }
 
         [SerializeField] List<Graph.Curve> m_Curves = new List<Graph.Curve>();
         public ReadOnlyCollection<Graph.Curve> Curves

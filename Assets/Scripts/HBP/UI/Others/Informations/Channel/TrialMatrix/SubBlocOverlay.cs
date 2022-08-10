@@ -2,7 +2,7 @@
 using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
-using data = HBP.Data.TrialMatrix;
+using data = HBP.Display.Informations.TrialMatrix;
 using HBP.Core.Enums;
 
 namespace HBP.UI.TrialMatrix.Grid

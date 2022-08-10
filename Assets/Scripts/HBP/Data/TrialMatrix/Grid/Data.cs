@@ -1,12 +1,10 @@
-﻿using HBP.Data.Informations;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Tools.CSharp;
 using UnityEngine;
-using static HBP.Data.TrialMatrix.Grid.TrialMatrixGrid;
 
-namespace HBP.Data.TrialMatrix.Grid
+namespace HBP.Display.Informations.TrialMatrix.Grid
 {
     public class Data
     {
@@ -14,13 +12,13 @@ namespace HBP.Data.TrialMatrix.Grid
         public string Title { get; set; }
         public Bloc[] Blocs { get; set; }
         public Vector2 Limits { get; set; }
-        public Tuple<Tuple<Core.Data.Bloc, Core.Data.SubBloc>[], Window>[] SubBlocsAndWindowByColumn { get; }
-        public TrialMatrixData DataStruct { get; set; }
+        public Tuple<Tuple<Core.Data.Bloc, Core.Data.SubBloc>[], Core.Tools.TimeWindow>[] SubBlocsAndWindowByColumn { get; }
+        public TrialMatrixGrid.TrialMatrixData DataStruct { get; set; }
         public ChannelStruct[] ChannelStructs { get; set; }
         #endregion
 
         #region Constructors
-        public Data(TrialMatrixData dataStruct, ChannelStruct[] channelStructs)
+        public Data(TrialMatrixGrid.TrialMatrixData dataStruct, ChannelStruct[] channelStructs)
         {
             Title = dataStruct.Dataset.Name + " " + dataStruct.Name;
             Blocs = dataStruct.Blocs.Select(bloc => new Bloc(bloc, dataStruct, channelStructs)).ToArray();

@@ -13,8 +13,8 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] protected TreatmentCreator m_ObjectCreator;
         public override ObjectCreator<Core.Data.Treatment> ObjectCreator => m_ObjectCreator;
 
-        Tools.CSharp.Window m_Window;
-        public Tools.CSharp.Window Window
+        Core.Tools.TimeWindow m_Window;
+        public Core.Tools.TimeWindow Window
         {
             get
             {
@@ -31,8 +31,8 @@ namespace HBP.UI.Experience.Protocol
             }
         }
 
-        Tools.CSharp.Window m_Baseline;
-        public Tools.CSharp.Window Baseline
+        Core.Tools.TimeWindow m_Baseline;
+        public Core.Tools.TimeWindow Baseline
         {
             get
             {

@@ -1,4 +1,4 @@
-﻿namespace HBP.Data.TrialMatrix
+﻿namespace HBP.Display.Informations.TrialMatrix
 {
     public class SubBloc
     {
@@ -7,25 +7,25 @@
         {
             get
             {
-                return SubBlocProtocol == null || SubTrials.Length == 0 || Window == default(Tools.CSharp.Window);
+                return SubBlocProtocol == null || SubTrials.Length == 0 || Window == default(Core.Tools.TimeWindow);
             }
         }
         public Core.Data.SubBloc SubBlocProtocol { get; set; }
         public SubTrial[] SubTrials { get; set; }
-        public Tools.CSharp.Window Window { get; set; }
+        public Core.Tools.TimeWindow Window { get; set; }
         #endregion
 
         #region Constructor
-        public SubBloc(Core.Data.SubBloc subBlocProtocol, SubTrial[] subTrials, Tools.CSharp.Window window)
+        public SubBloc(Core.Data.SubBloc subBlocProtocol, SubTrial[] subTrials, Core.Tools.TimeWindow window)
         {
             SubBlocProtocol = subBlocProtocol;
             SubTrials = subTrials;
             Window = window;
         }
-        public SubBloc(Core.Data.SubBloc subBlocProtocol, SubTrial[] subTrials) : this(subBlocProtocol, subTrials, default(Tools.CSharp.Window))
+        public SubBloc(Core.Data.SubBloc subBlocProtocol, SubTrial[] subTrials) : this(subBlocProtocol, subTrials, default(Core.Tools.TimeWindow))
         {
         }
-        public SubBloc(Tools.CSharp.Window window) : this(null, new SubTrial[0], window)
+        public SubBloc(Core.Tools.TimeWindow window) : this(null, new SubTrial[0], window)
         {
         }
         public SubBloc() : this(null, new SubTrial[0])

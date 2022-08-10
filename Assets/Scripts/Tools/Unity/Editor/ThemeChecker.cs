@@ -5,67 +5,70 @@ using UnityEngine;
 using UnityEngine.UI;
 using HBP.Theme.Components;
 
-public class ThemeChecker
+namespace HBP.Dev
 {
-    [MenuItem("Tools/Check Theme/All")]
-    public static void CheckThemeAll()
+    public class ThemeChecker
     {
-        CheckTheme(GetAllGraphicsAndSelectables());
-    }
-    [MenuItem("Tools/Check Theme/Scene")]
-    public static void CheckThemeScene()
-    {
-        CheckTheme(GetSceneGraphicsAndSelectables());
-    }
-    public static List<MonoBehaviour> GetAllGraphicsAndSelectables()
-    {
-        List<MonoBehaviour> elements = new List<MonoBehaviour>();
-        elements.AddRange(Resources.FindObjectsOfTypeAll<Graphic>());
-        elements.AddRange(Resources.FindObjectsOfTypeAll<Selectable>());
-        return elements;
-    }
-    public static List<MonoBehaviour> GetSceneGraphicsAndSelectables()
-    {
-        List<MonoBehaviour> elements = new List<MonoBehaviour>();
-
-        foreach (Graphic graphic in Resources.FindObjectsOfTypeAll(typeof(Graphic)) as Graphic[])
+        [MenuItem("Tools/Check Theme/All")]
+        public static void CheckThemeAll()
         {
-            if (PrefabUtility.GetCorrespondingObjectFromSource(graphic.gameObject) == null && PrefabUtility.GetPrefabObject(graphic.gameObject) != null)
-                continue;
-
-            if (graphic.GetComponent<Mask>())
-                continue;
-
-            if (graphic.GetComponent<RectMask2D>())
-                continue;
-
-            elements.Add(graphic);
+            CheckTheme(GetAllGraphicsAndSelectables());
         }
-        foreach (Selectable selectable in Resources.FindObjectsOfTypeAll(typeof(Selectable)) as Selectable[])
+        [MenuItem("Tools/Check Theme/Scene")]
+        public static void CheckThemeScene()
         {
-            if(PrefabUtility.GetCorrespondingObjectFromSource(selectable.gameObject) == null && PrefabUtility.GetPrefabObject(selectable.gameObject) != null)
-                continue;
-
-            elements.Add(selectable);
+            CheckTheme(GetSceneGraphicsAndSelectables());
         }
-
-        return elements;
-    }
-
-    public static void CheckTheme(List<MonoBehaviour> list)
-    {
-        List<string> fullNames = new List<string>();
-        foreach (var element in list)
+        public static List<MonoBehaviour> GetAllGraphicsAndSelectables()
         {
-            if (!element.GetComponent<ThemeElement>())
+            List<MonoBehaviour> elements = new List<MonoBehaviour>();
+            elements.AddRange(Resources.FindObjectsOfTypeAll<Graphic>());
+            elements.AddRange(Resources.FindObjectsOfTypeAll<Selectable>());
+            return elements;
+        }
+        public static List<MonoBehaviour> GetSceneGraphicsAndSelectables()
+        {
+            List<MonoBehaviour> elements = new List<MonoBehaviour>();
+
+            foreach (Graphic graphic in Resources.FindObjectsOfTypeAll(typeof(Graphic)) as Graphic[])
             {
-                fullNames.Add(element.transform.GetFullName());
+                if (PrefabUtility.GetCorrespondingObjectFromSource(graphic.gameObject) == null && PrefabUtility.GetPrefabObject(graphic.gameObject) != null)
+                    continue;
+
+                if (graphic.GetComponent<Mask>())
+                    continue;
+
+                if (graphic.GetComponent<RectMask2D>())
+                    continue;
+
+                elements.Add(graphic);
             }
+            foreach (Selectable selectable in Resources.FindObjectsOfTypeAll(typeof(Selectable)) as Selectable[])
+            {
+                if (PrefabUtility.GetCorrespondingObjectFromSource(selectable.gameObject) == null && PrefabUtility.GetPrefabObject(selectable.gameObject) != null)
+                    continue;
+
+                elements.Add(selectable);
+            }
+
+            return elements;
         }
-        fullNames.Sort();
-        foreach (var name in fullNames)
+
+        public static void CheckTheme(List<MonoBehaviour> list)
         {
-            Debug.LogWarningFormat("This object has a graphic or a selectable and no theme element: {0}", name);
+            List<string> fullNames = new List<string>();
+            foreach (var element in list)
+            {
+                if (!element.GetComponent<ThemeElement>())
+                {
+                    fullNames.Add(element.transform.GetFullName());
+                }
+            }
+            fullNames.Sort();
+            foreach (var name in fullNames)
+            {
+                Debug.LogWarningFormat("This object has a graphic or a selectable and no theme element: {0}", name);
+            }
         }
     }
 }

@@ -80,7 +80,7 @@ namespace HBP.Core.Data
         /// <param name="factor">Factor to multiply all the values with</param>
         /// <param name="order">Order of the treatmeants to apply to the subBloc</param>
         /// <param name="ID">Unique identifier</param>
-        public FactorTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, float factor, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
+        public FactorTreatment(bool useOnWindow, TimeWindow window, bool useOnBaseline, TimeWindow baseline, float factor, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
         {
             Factor = factor;
         }

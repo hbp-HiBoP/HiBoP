@@ -2,43 +2,46 @@
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-public class Selector : MonoBehaviour
+namespace HBP.UI
 {
-    #region Properties
-    [SerializeField]
-    private bool m_Selected;
-    public bool Selected
+    public class Selector : MonoBehaviour
     {
-        get { return m_Selected; }
-        set
+        #region Properties
+        [SerializeField]
+        private bool m_Selected;
+        public bool Selected
         {
-            m_Selected = value;
-            m_TargetGraphic.gameObject.SetActive(value);
-            OnChangeValue.Invoke(value);
-            if(value) transform.SetAsLastSibling();
+            get { return m_Selected; }
+            set
+            {
+                m_Selected = value;
+                m_TargetGraphic.gameObject.SetActive(value);
+                OnChangeValue.Invoke(value);
+                if (value) transform.SetAsLastSibling();
+            }
         }
-    }
-    public GenericEvent<bool> OnChangeValue = new GenericEvent<bool>();
+        public GenericEvent<bool> OnChangeValue = new GenericEvent<bool>();
 
-    [SerializeField]
-    private Graphic m_TargetGraphic;
-    public Graphic TargetGraphic
-    {
-        get { return m_TargetGraphic; }
-        set { m_TargetGraphic = value; }
-    }
-    #endregion
+        [SerializeField]
+        private Graphic m_TargetGraphic;
+        public Graphic TargetGraphic
+        {
+            get { return m_TargetGraphic; }
+            set { m_TargetGraphic = value; }
+        }
+        #endregion
 
-    #region Private Methods
-    void Start()
-    {
-        SelectionManager selectionManager = FindObjectOfType<SelectionManager>();
-        if (selectionManager) selectionManager.Add(this);
+        #region Private Methods
+        void Start()
+        {
+            SelectionManager selectionManager = FindObjectOfType<SelectionManager>();
+            if (selectionManager) selectionManager.Add(this);
+        }
+        private void OnDestroy()
+        {
+            SelectionManager selectionManager = FindObjectOfType<SelectionManager>();
+            if (selectionManager) selectionManager.Remove(this);
+        }
+        #endregion
     }
-    private void OnDestroy()
-    {
-        SelectionManager selectionManager = FindObjectOfType<SelectionManager>();
-        if (selectionManager) selectionManager.Remove(this);
-    }
-    #endregion
 }

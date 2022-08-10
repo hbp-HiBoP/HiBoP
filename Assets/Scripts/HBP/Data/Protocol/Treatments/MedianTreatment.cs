@@ -69,7 +69,7 @@ namespace HBP.Core.Data
         /// <param name="baseline">Temporal window to apply the treatment on the baseline of the subBloc</param>
         /// <param name="order">Order of the treatment</param>
         /// <param name="ID">Unique identifier</param>
-        public MedianTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
+        public MedianTreatment(bool useOnWindow, TimeWindow window, bool useOnBaseline, TimeWindow baseline, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
         {
         }
         #endregion

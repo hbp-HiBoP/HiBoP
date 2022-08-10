@@ -100,7 +100,7 @@ namespace HBP.Core.Data
         /// <param name="useMaxClamp">True to cap by a maximum value, False otherwise.</param>
         /// <param name="max">Maximum value to cap with</param>
         /// <param name="order">Order of the treatmeants to apply to the subBloc</param>
-        public ClampTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, bool useMinClamp, float min, bool useMaxClamp, float max, int order) : base(useOnWindow, window, useOnBaseline, baseline, order)
+        public ClampTreatment(bool useOnWindow, TimeWindow window, bool useOnBaseline, TimeWindow baseline, bool useMinClamp, float min, bool useMaxClamp, float max, int order) : base(useOnWindow, window, useOnBaseline, baseline, order)
         {
             UseMinClamp = useMinClamp;
             UseMaxClamp = useMaxClamp;
@@ -120,7 +120,7 @@ namespace HBP.Core.Data
         /// <param name="max">Maximum value to cap with</param>
         /// <param name="order">Order of the treatmeants to apply to the subBloc</param>
         /// <param name="ID">Unique identifier</param>
-        public ClampTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, bool useMinClamp, float min , bool useMaxClamp, float max, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
+        public ClampTreatment(bool useOnWindow, TimeWindow window, bool useOnBaseline, TimeWindow baseline, bool useMinClamp, float min , bool useMaxClamp, float max, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
         {
             UseMinClamp = useMinClamp;
             UseMaxClamp = useMaxClamp;

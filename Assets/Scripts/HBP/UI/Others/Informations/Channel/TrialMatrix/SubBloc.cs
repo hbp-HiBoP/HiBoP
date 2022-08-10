@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using Tools.CSharp;
-using data = HBP.Data.TrialMatrix;
+using data = HBP.Display.Informations.TrialMatrix;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
 using UnityEngine.EventSystems;

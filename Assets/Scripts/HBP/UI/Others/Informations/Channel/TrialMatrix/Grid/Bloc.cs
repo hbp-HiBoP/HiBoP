@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
-using data = HBP.Data.TrialMatrix.Grid;
+using data = HBP.Display.Informations.TrialMatrix.Grid;
 
 namespace HBP.UI.TrialMatrix.Grid
 {

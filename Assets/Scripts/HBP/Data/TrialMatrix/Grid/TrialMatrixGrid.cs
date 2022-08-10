@@ -1,9 +1,8 @@
-﻿using HBP.Data.Informations;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace HBP.Data.TrialMatrix.Grid
+namespace HBP.Display.Informations.TrialMatrix.Grid
 {
     public class TrialMatrixGrid
     {

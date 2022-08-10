@@ -2,8 +2,10 @@
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI.Extensions;
+using UnityEngine;
+using UnityEngine.UI;
 
-namespace UnityEngine.UI
+namespace HBP.Display.UI.Tools
 {
     [AddComponentMenu("UI/RangeSlider", 34)]
     [RequireComponent(typeof(RectTransform))]

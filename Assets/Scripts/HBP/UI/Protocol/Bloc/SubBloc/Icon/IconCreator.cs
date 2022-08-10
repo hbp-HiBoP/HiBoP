@@ -7,11 +7,11 @@ namespace HBP.UI.Experience.Protocol
     /// </summary>
     public class IconCreator : ObjectCreator<Core.Data.Icon>
     {
-        Tools.CSharp.Window m_Window;
+        Core.Tools.TimeWindow m_Window;
         /// <summary>
         /// SubBloc window.
         /// </summary>
-        public Tools.CSharp.Window Window
+        public Core.Tools.TimeWindow Window
         {
             get
             {

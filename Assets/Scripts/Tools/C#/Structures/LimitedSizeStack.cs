@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Tools.CSharp
+namespace HBP.Display.Tools
 {
     public class LimitedSizeStack<T> : LinkedList<T>
     {

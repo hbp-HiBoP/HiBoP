@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.Core.Data;
+using HBP.Display.UI.Tools;
 
 namespace HBP.UI.QuickStart
 {
@@ -32,7 +33,7 @@ namespace HBP.UI.QuickStart
         #region Public Methods
         public override bool OpenNextPanel()
         {
-            Tools.CSharp.Window window = new Tools.CSharp.Window((int)m_Window.Values.x, (int)m_Window.Values.y);
+            Core.Tools.TimeWindow window = new Core.Tools.TimeWindow((int)m_Window.Values.x, (int)m_Window.Values.y);
             if (window.Lenght == 0)
             {
                 DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Window length is zero", "The length of the window needs to be strictly above zero in order to continue.");
@@ -44,7 +45,7 @@ namespace HBP.UI.QuickStart
                 if (int.TryParse(codeString, out int code))
                 {
                     Core.Data.Event ev = new Core.Data.Event(string.Format("QS{0}", code), new int[] { code }, MainSecondaryEnum.Main );
-                    Core.Data.SubBloc subBloc = new Core.Data.SubBloc(string.Format("QS{0}", code), 0, MainSecondaryEnum.Main, window, new Tools.CSharp.Window(0, 0), new Core.Data.Event[] { ev }, new Core.Data.Icon[0], new Core.Data.Treatment[0]);
+                    Core.Data.SubBloc subBloc = new Core.Data.SubBloc(string.Format("QS{0}", code), 0, MainSecondaryEnum.Main, window, new Core.Tools.TimeWindow(0, 0), new Core.Data.Event[] { ev }, new Core.Data.Icon[0], new Core.Data.Treatment[0]);
                     Core.Data.Bloc bloc = new Core.Data.Bloc(string.Format("QS{0}", code), 0, "", "", new Core.Data.SubBloc[] { subBloc });
                     blocs.Add(bloc);
                 }

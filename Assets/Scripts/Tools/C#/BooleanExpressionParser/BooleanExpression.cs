@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Tools.CSharp.BooleanExpressionParser
+namespace HBP.Display.Tools
 {
     public enum BooleanExpressionType { Value, And, Or, Not };
 

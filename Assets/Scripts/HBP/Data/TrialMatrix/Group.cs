@@ -2,7 +2,7 @@
 using System.Linq;
 using UnityEngine;
 
-namespace HBP.Data.TrialMatrix
+namespace HBP.Display.Informations.TrialMatrix
 {
     public class Group
     {

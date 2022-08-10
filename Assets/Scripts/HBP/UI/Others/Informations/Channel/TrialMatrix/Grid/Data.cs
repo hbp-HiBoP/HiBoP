@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
-using d = HBP.Data.TrialMatrix.Grid;
+using d = HBP.Display.Informations.TrialMatrix.Grid;
 
 namespace HBP.UI.TrialMatrix.Grid
 {
@@ -160,7 +160,7 @@ namespace HBP.UI.TrialMatrix.Grid
 
             foreach (var channel in data.ChannelStructs)
             {
-                List<Tools.CSharp.Window> limits = new List<Tools.CSharp.Window>();
+                List< Core.Tools.TimeWindow > limits = new List<Core.Tools.TimeWindow>();
                 foreach (var tuple in data.SubBlocsAndWindowByColumn)
                 {
                     limits.Add(tuple.Item2);
@@ -189,7 +189,7 @@ namespace HBP.UI.TrialMatrix.Grid
             m_TimeLegends = new List<TimeLegend>();
             m_Blocs = new List<Bloc>();
         }
-        void AddTimeLegend(Tools.CSharp.Window[] limits)
+        void AddTimeLegend(Core.Tools.TimeWindow[] limits)
         {
             TimeLegend timeLegend = Instantiate(m_TimeLegendPrefab, m_TimeLegendContainer).GetComponent<TimeLegend>();
             timeLegend.Limits = limits;

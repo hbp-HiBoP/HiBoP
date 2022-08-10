@@ -2,8 +2,8 @@
 using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.UI;
-using dg = HBP.Data.TrialMatrix.Grid;
-using data = HBP.Data.TrialMatrix;
+using dg = HBP.Display.Informations.TrialMatrix.Grid;
+using data = HBP.Display.Informations.TrialMatrix;
 using UnityEngine.Events;
 using System.Linq;
 using UnityEngine.UI.Extensions;

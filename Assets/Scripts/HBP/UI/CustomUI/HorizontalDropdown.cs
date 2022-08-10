@@ -1,6 +1,8 @@
 ﻿using UnityEngine.EventSystems;
+using UnityEngine;
+using UnityEngine.UI;
 
-namespace UnityEngine.UI
+namespace HBP.Display.UI.Tools
 {
     public class HorizontalDropdown : Dropdown
     {

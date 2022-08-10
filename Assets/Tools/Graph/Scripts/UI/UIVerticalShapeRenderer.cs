@@ -1,6 +1,4 @@
-﻿/// Credit adrien Gannerie
-
-namespace UnityEngine.UI.Extensions
+﻿namespace UnityEngine.UI.Extensions
 {
     [AddComponentMenu("UI/Extensions/Primitives/UIVerticalShapeRenderer")]
     public class UIVerticalShapeRenderer : UIPrimitiveBase

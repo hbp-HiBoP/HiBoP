@@ -1,4 +1,4 @@
-﻿using data = HBP.Data.Informations;
+﻿using data = HBP.Display.Informations;
 using UnityEngine;
 using UnityEngine.UI;
 

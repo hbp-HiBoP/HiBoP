@@ -2,9 +2,8 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI.Extensions;
-using Tools.CSharp;
 
-namespace HBP.Data.Informations
+namespace HBP.Display.Informations
 {
     [Serializable]
     public class ChannelStruct : IEquatable<ChannelStruct>
@@ -246,8 +245,8 @@ namespace HBP.Data.Informations
     public class MEGData : Data
     {
         #region Properties
-        [SerializeField] Window m_Window;
-        public Window Window
+        [SerializeField] Core.Tools.TimeWindow m_Window;
+        public Core.Tools.TimeWindow Window
         {
             get
             {
@@ -261,7 +260,7 @@ namespace HBP.Data.Informations
         #endregion
 
         #region Constructors
-        public MEGData(Core.Data.Dataset dataset, string data, Window window) : base(dataset, data, null)
+        public MEGData(Core.Data.Dataset dataset, string data, Core.Tools.TimeWindow window) : base(dataset, data, null)
         {
             Window = window;
         }

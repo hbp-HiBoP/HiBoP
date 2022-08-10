@@ -1,7 +1,8 @@
 ﻿using UnityEditor;
 using UnityEditor.UI;
+using UnityEngine;
 
-namespace UnityEngine.UI
+namespace HBP.Display.UI.Tools
 {
     /// <summary>
     ///         <para>Custom Editor for the ContentSizeFitter Component.

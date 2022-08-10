@@ -4,8 +4,10 @@ using System.Text;
 using UnityEditor;
 using UnityEditor.AnimatedValues;
 using UnityEditor.Animations;
+using UnityEngine;
+using UnityEngine.UI;
 
-namespace UnityEngine.UI
+namespace HBP.Display.UI.Tools
 {
     [CustomEditor(typeof(RangeSlider))]
     public class RangeSliderEditor : Editor

@@ -1,10 +1,10 @@
 ﻿using HBP.Module3D;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Tools.CSharp.BooleanExpressionParser;
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Exceptions;
+using HBP.Display.Tools;
 using HBP.Core.Data;
 
 namespace HBP.UI.Module3D
@@ -302,7 +302,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         public void ParseConditions()
         {
-            m_BooleanExpression = Parser.Parse(m_InputField.text.Replace("\n", "").Replace("\r", ""));
+            m_BooleanExpression = BooleanExpressionParser.Parse(m_InputField.text.Replace("\n", "").Replace("\r", ""));
         }
         public void StoreCondition()
         {

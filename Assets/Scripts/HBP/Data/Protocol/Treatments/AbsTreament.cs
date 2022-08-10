@@ -94,7 +94,7 @@ namespace HBP.Core.Data
         /// <param name="useOnBaseline">True if we apply the treatment on the baseline, False otherwise</param>
         /// <param name="baseline">Temporal window to apply the treatment on the baseline of the subBloc</param>
         /// <param name="order">Order of the treatmeants to apply to the subBloc</param>
-        public AbsTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, int order) : base(useOnWindow, window, useOnBaseline, baseline, order)
+        public AbsTreatment(bool useOnWindow, TimeWindow window, bool useOnBaseline, TimeWindow baseline, int order) : base(useOnWindow, window, useOnBaseline, baseline, order)
         {
 
         }
@@ -107,7 +107,7 @@ namespace HBP.Core.Data
         /// <param name="baseline">Temporal window to apply the treatment on the baseline of the subBloc</param>
         /// <param name="order">Order of the treatmeants to apply to the subBloc</param>
         /// <param name="ID">Unique identifier</param>
-        public AbsTreatment(bool useOnWindow, Window window, bool useOnBaseline, Window baseline, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
+        public AbsTreatment(bool useOnWindow, TimeWindow window, bool useOnBaseline, TimeWindow baseline, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
         {
 
         }

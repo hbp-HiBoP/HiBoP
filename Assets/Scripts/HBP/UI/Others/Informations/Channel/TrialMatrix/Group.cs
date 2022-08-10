@@ -45,14 +45,14 @@ namespace HBP.UI.TrialMatrix
                 }              
             }
         }
-        public Data.TrialMatrix.Group Data { get; private set; }
+        public Display.Informations.TrialMatrix.Group Data { get; private set; }
         public TrialMatrix[] TrialMatrices { get; private set; }
 
         [SerializeField] GameObject m_TrialMatrixPrefab;
         #endregion
 
         #region Public Methods
-        public void Set(Data.TrialMatrix.Group groupToDisplay)
+        public void Set(Display.Informations.TrialMatrix.Group groupToDisplay)
         {
             foreach (var trialMatrix in groupToDisplay.TrialMatrices)
             {
@@ -62,7 +62,7 @@ namespace HBP.UI.TrialMatrix
         #endregion
 
         #region Private Methods
-        void AddTrialMatrix(Data.TrialMatrix.TrialMatrix data)
+        void AddTrialMatrix(Display.Informations.TrialMatrix.TrialMatrix data)
         {
             //TrialMatrix trialMatrix = Instantiate(m_TrialMatrixPrefab, transform).GetComponent<TrialMatrix>();
             //trialMatrix.Set(data, UsePrecalculatedLimits ? new Vector2() : Limits);

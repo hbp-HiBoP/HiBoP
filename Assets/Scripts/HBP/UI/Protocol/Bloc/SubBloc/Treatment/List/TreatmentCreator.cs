@@ -5,11 +5,11 @@ namespace HBP.UI.Experience.Protocol
     public class TreatmentCreator : ObjectCreator<Core.Data.Treatment>
     {
         #region Properties
-        Tools.CSharp.Window m_Window;
+        Core.Tools.TimeWindow m_Window;
         /// <summary>
         /// SubBloc Window.
         /// </summary>
-        public Tools.CSharp.Window Window
+        public Core.Tools.TimeWindow Window
         {
             get
             {
@@ -25,11 +25,11 @@ namespace HBP.UI.Experience.Protocol
             }
         }
 
-        Tools.CSharp.Window m_Baseline;
+        Core.Tools.TimeWindow m_Baseline;
         /// <summary>
         /// SubBloc Baseline.
         /// </summary>
-        public Tools.CSharp.Window Baseline
+        public Core.Tools.TimeWindow Baseline
         {
             get
             {

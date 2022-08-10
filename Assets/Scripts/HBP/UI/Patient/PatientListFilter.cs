@@ -2,7 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Tools.CSharp.BooleanExpressionParser;
+using HBP.Display.Tools;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -76,7 +76,7 @@ namespace HBP.UI
         /// </summary>
         private void ParseConditions()
         {
-            m_BooleanExpression = Parser.Parse(m_Conditions.text);
+            m_BooleanExpression = BooleanExpressionParser.Parse(m_Conditions.text);
         }
         /// <summary>
         /// Check all the set conditions for a specific patient

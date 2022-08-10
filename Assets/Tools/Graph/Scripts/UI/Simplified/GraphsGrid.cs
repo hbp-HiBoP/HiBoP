@@ -1,4 +1,4 @@
-﻿using HBP.Data.Informations;
+﻿using HBP.Display.Informations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -288,7 +288,7 @@ namespace Tools.Unity.Graph
             List<Graph.Curve[]> result = new List<Graph.Curve[]>();
 
             // Find all visualized blocs and sort by column.
-            IEnumerable<Column> epochedDataColumns = columns.Where(c => c.Data is HBP.Data.Informations.IEEGData || c.Data is HBP.Data.Informations.CCEPData);
+            IEnumerable<Column> epochedDataColumns = columns.Where(c => c.Data is HBP.Display.Informations.IEEGData || c.Data is HBP.Display.Informations.CCEPData);
             IEnumerable<Column> nonEpochedDataColumns = columns.Where(c => c.Data is MEGData);
             IEnumerable<HBP.Core.Data.Bloc> blocs = epochedDataColumns.Select(c => c.Data.Bloc);
 
@@ -329,11 +329,11 @@ namespace Tools.Unity.Graph
         {
             CurveData result = null;
             HBP.Core.Data.PatientDataInfo dataInfo = null;
-            if (column.Data is HBP.Data.Informations.IEEGData ieegDataStruct)
+            if (column.Data is HBP.Display.Informations.IEEGData ieegDataStruct)
             {
                 dataInfo = ieegDataStruct.Dataset.GetIEEGDataInfos().First(d => (d.Patient == channel.Patient && d.Name == ieegDataStruct.Name));
             }
-            else if (column.Data is HBP.Data.Informations.CCEPData ccepDataStruct)
+            else if (column.Data is HBP.Display.Informations.CCEPData ccepDataStruct)
             {
                 dataInfo = ccepDataStruct.Dataset.GetCCEPDataInfos().First(d => (d.Patient == channel.Patient && d.StimulatedChannel == ccepDataStruct.Source.Channel && d.Patient == ccepDataStruct.Source.Patient && d.Name == ccepDataStruct.Name));
             }
