@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace Tools.Unity.Components
+namespace HBP.UI.Components
 {
     [RequireComponent(typeof(Selectable))]
     public class NavigationGestion : MonoBehaviour

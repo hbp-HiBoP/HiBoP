@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HBP.Display.Module3D;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -37,7 +38,7 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isColumnDynamic = SelectedColumn is HBP.Module3D.Column3DDynamic;
+            bool isColumnDynamic = SelectedColumn is Column3DDynamic;
             bool areAmplitudesComputed = SelectedScene.IsGeneratorUpToDate;
 
             m_RecordVideo.interactable = isColumnDynamic && areAmplitudesComputed;

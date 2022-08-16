@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace Tools.Unity.Window
+namespace HBP.UI.Windows
 {
 	[RequireComponent (typeof (Resizer))]
 	[RequireComponent (typeof (Dragger))]
@@ -96,7 +96,7 @@ namespace Tools.Unity.Window
 		{
 			if(transform.Find("Content").childCount == 0 )
 			{
-				GameObject l_content = GameObject.Instantiate(Content) as GameObject;
+				GameObject l_content = Instantiate(Content) as GameObject;
 				l_content.transform.SetParent(transform.GetChild(1));
 				RectTransform l_contentRectTransform = l_content.GetComponent<RectTransform>();
 				l_contentRectTransform.anchorMax = new Vector2(1,1);

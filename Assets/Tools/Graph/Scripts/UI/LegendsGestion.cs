@@ -6,13 +6,13 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
 
-namespace Tools.Unity.Graph
+namespace HBP.UI.Graphs
 {
     public class LegendsGestion : MonoBehaviour
     {
         #region Properties
         [SerializeField] List<Legend> m_Data = new List<Legend>();
-        [SerializeField] List<Unity.Graph.Legend> m_Legends = new List<Unity.Graph.Legend>();
+        [SerializeField] List<UI.Graphs.Legend> m_Legends = new List<UI.Graphs.Legend>();
 
         [SerializeField] GameObject m_LegendPrefab;
         [SerializeField] RectTransform m_Container;
@@ -51,7 +51,7 @@ namespace Tools.Unity.Graph
 
         void AddLegend(Legend data, RectTransform container)
         {
-            Unity.Graph.Legend legend = Instantiate(m_LegendPrefab, container).GetComponent<Unity.Graph.Legend>();
+            UI.Graphs.Legend legend = Instantiate(m_LegendPrefab, container).GetComponent<UI.Graphs.Legend>();
             legend.OnChangeIsActive.AddListener((enabled) => {data.Enabled = enabled;});
             legend.ID = data.ID;
             legend.Color = data.Color;
@@ -63,7 +63,7 @@ namespace Tools.Unity.Graph
 
             foreach (var subLegend in data.SubLegends) AddLegend(subLegend, legend.Container);
         }
-        void RemoveLegend(Unity.Graph.Legend legend)
+        void RemoveLegend(UI.Graphs.Legend legend)
         {
             if (Application.isPlaying)
             {
@@ -79,7 +79,7 @@ namespace Tools.Unity.Graph
 #endif
             }
             m_Legends.Remove(legend);
-            Unity.Graph.Legend[] subLegends = legend.Container.GetComponentsInChildren<Unity.Graph.Legend>();
+            UI.Graphs.Legend[] subLegends = legend.Container.GetComponentsInChildren<UI.Graphs.Legend>();
             foreach (var subLegend in subLegends)
             {
                 RemoveLegend(subLegend);
@@ -87,7 +87,7 @@ namespace Tools.Unity.Graph
         }
         void UpdateLegend(Legend data)
         {
-            Unity.Graph.Legend legend = m_Legends.FirstOrDefault(l => l.ID == data.ID);
+            UI.Graphs.Legend legend = m_Legends.FirstOrDefault(l => l.ID == data.ID);
 
             if(legend != null)
             {
@@ -104,7 +104,7 @@ namespace Tools.Unity.Graph
         }
         void SetLegends()
         {
-            Unity.Graph.Legend[] legendsToRemove = m_Legends.Where(l => FindLegendByID(l.ID) == null).ToArray();
+            UI.Graphs.Legend[] legendsToRemove = m_Legends.Where(l => FindLegendByID(l.ID) == null).ToArray();
             foreach (var legend in legendsToRemove)
             {
                 RemoveLegend(legend);

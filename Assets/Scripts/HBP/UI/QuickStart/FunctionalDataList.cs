@@ -1,9 +1,11 @@
-﻿namespace HBP.UI.QuickStart
+﻿using HBP.UI.Lists;
+
+namespace HBP.UI.QuickStart
 {
     /// <summary>
     /// List to display DataInfos.
     /// </summary>
-    public class FunctionalDataList : Tools.Unity.Lists.List<FunctionalData>
+    public class FunctionalDataList : List<FunctionalData>
     {
     }
 }

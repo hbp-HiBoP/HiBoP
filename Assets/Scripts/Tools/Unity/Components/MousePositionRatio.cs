@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+﻿using HBP.Core.Tools;
+using UnityEngine;
 using UnityEngine.Events;
 
-namespace Tools.Unity.Components
+namespace HBP.UI.Components
 {
     public class MousePositionRatio : MonoBehaviour
     {

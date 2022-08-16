@@ -4,10 +4,11 @@ using UnityEngine.Events;
 using System.Linq;
 using System.IO;
 using HBP.Core.Enums;
-using Tools.Unity;
 using HBP.Core.Interfaces;
+using HBP.UI;
+using HBP.Core.Tools;
 
-namespace HBP.Module3D
+namespace HBP.Display.Module3D
 {
     /// <summary>
     /// Class containing information about the 3D column (specific meshes, sites, ROIs of the column)
@@ -458,7 +459,7 @@ namespace HBP.Module3D
             catch (System.Exception e)
             {
                 Debug.LogException(e);
-                DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Can not load site states", "Please verify your files and try again.");
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Can not load site states", "Please verify your files and try again.");
             }
         }
         /// <summary>

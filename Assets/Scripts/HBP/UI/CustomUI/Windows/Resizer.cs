@@ -1,19 +1,19 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace Tools.Unity.Window
+namespace HBP.UI.Windows
 {
 	[RequireComponent (typeof (RectTransform))]
 	public class Resizer : MonoBehaviour 
 	{
         #region Properties
-        [SerializeField] HBP.Theme.Element Cursors;
+        [SerializeField] Theme.Element Cursors;
 
-        [SerializeField] HBP.Theme.State Default;
-        [SerializeField] HBP.Theme.State LeftRight;
-        [SerializeField] HBP.Theme.State BottomTop;
-        [SerializeField] HBP.Theme.State TopLeftToBottomRight;
-        [SerializeField] HBP.Theme.State BottomLeftToTopRight;
+        [SerializeField] Theme.State Default;
+        [SerializeField] Theme.State LeftRight;
+        [SerializeField] Theme.State BottomTop;
+        [SerializeField] Theme.State TopLeftToBottomRight;
+        [SerializeField] Theme.State BottomLeftToTopRight;
 
 		/* RectTransforms */
 		RectTransform m_RectTransform;

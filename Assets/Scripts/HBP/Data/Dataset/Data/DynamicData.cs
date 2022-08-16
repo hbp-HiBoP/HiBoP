@@ -9,7 +9,7 @@ namespace HBP.Core.Data
         #region Properties
         public virtual Dictionary<string, float[]> ValuesByChannel { get; set; }
         public virtual Dictionary<string, string> UnitByChannel { get; set; }
-        public virtual Core.Tools.Frequency Frequency { get; set; }
+        public virtual Tools.Frequency Frequency { get; set; }
         protected Dictionary<int, List<EventOccurence>> m_OccurencesByCode;
         #endregion
 
@@ -25,10 +25,10 @@ namespace HBP.Core.Data
         #endregion
 
         #region Constructors
-        public DynamicData() : this(new Dictionary<string, float[]>(), new Dictionary<string, string>(), new Core.Tools.Frequency())
+        public DynamicData() : this(new Dictionary<string, float[]>(), new Dictionary<string, string>(), new Tools.Frequency())
         {
         }
-        public DynamicData(Dictionary<string, float[]> valuesBySite, Dictionary<string, string> unitBySite, Core.Tools.Frequency frequency)
+        public DynamicData(Dictionary<string, float[]> valuesBySite, Dictionary<string, string> unitBySite, Tools.Frequency frequency)
         {
             ValuesByChannel = valuesBySite;
             UnitByChannel = unitBySite;
@@ -37,43 +37,43 @@ namespace HBP.Core.Data
         public DynamicData(DataInfo dataInfo) : this()
         {
             // Read Data.
-            Core.DLL.EEG.File.FileType type;
+            DLL.EEG.File.FileType type;
             string[] files;
             if (dataInfo.DataContainer is Container.BrainVision brainVisionDataContainer)
             {
-                type = Core.DLL.EEG.File.FileType.BrainVision;
+                type = DLL.EEG.File.FileType.BrainVision;
                 files = new string[] { brainVisionDataContainer.Header };
             }
             else if (dataInfo.DataContainer is Container.EDF edfDataContainer)
             {
-                type = Core.DLL.EEG.File.FileType.EDF;
+                type = DLL.EEG.File.FileType.EDF;
                 files = new string[] { edfDataContainer.File };
             }
             else if (dataInfo.DataContainer is Container.Elan elanDataContainer)
             {
-                type = Core.DLL.EEG.File.FileType.ELAN;
+                type = DLL.EEG.File.FileType.ELAN;
                 files = new string[] { elanDataContainer.EEG, elanDataContainer.POS, elanDataContainer.Notes };
             }
             else if (dataInfo.DataContainer is Container.Micromed micromedDataContainer)
             {
-                type = Core.DLL.EEG.File.FileType.Micromed;
+                type = DLL.EEG.File.FileType.Micromed;
                 files = new string[] { micromedDataContainer.Path };
             }
             else if (dataInfo.DataContainer is Container.FIF fifDataContainer)
             {
-                type = Core.DLL.EEG.File.FileType.FIF;
+                type = DLL.EEG.File.FileType.FIF;
                 files = new string[] { fifDataContainer.File };
             }
             else
             {
                 throw new Exception("Invalid data container type");
             }
-            Core.DLL.EEG.File file = new Core.DLL.EEG.File(type, true, files);
+            DLL.EEG.File file = new DLL.EEG.File(type, true, files);
             if (file.getHandle().Handle == IntPtr.Zero)
             {
                 throw new Exception("Data file could not be loaded");
             }
-            List<Core.DLL.EEG.Electrode> channels = file.Electrodes;
+            List<DLL.EEG.Electrode> channels = file.Electrodes;
             foreach (var channel in channels)
             {
                 ValuesByChannel.Add(channel.Label, channel.Data);
@@ -81,7 +81,7 @@ namespace HBP.Core.Data
             }
             Frequency = file.SamplingFrequency;
             m_OccurencesByCode = new Dictionary<int, List<EventOccurence>>();
-            List<Core.DLL.EEG.Trigger> events = file.Triggers;
+            List<DLL.EEG.Trigger> events = file.Triggers;
             foreach (var _event in events)
             {
                 int code = _event.Code;

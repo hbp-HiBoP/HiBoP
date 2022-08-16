@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Tools.Unity.Components
+namespace HBP.UI.Components
 {
     public class CursorWrapper : MonoBehaviour
     {

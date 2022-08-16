@@ -5,7 +5,7 @@ using HBP.Core.Enums;
 using HBP.Core.Exceptions;
 using HBP.Core.Data;
 
-namespace HBP.Module3D
+namespace HBP.Display.Module3D
 {
     /// <summary>
     /// Class responsible for managing the MRIs of the scene
@@ -51,7 +51,7 @@ namespace HBP.Module3D
         /// <summary>
         /// List of the preloaded MRIs of the scene
         /// </summary>
-        public Dictionary<Core.Data.Patient, List<Core.Object3D.MRI3D>> PreloadedMRIs { get; set; } = new Dictionary<Core.Data.Patient, List<Core.Object3D.MRI3D>>();
+        public Dictionary<Patient, List<Core.Object3D.MRI3D>> PreloadedMRIs { get; set; } = new Dictionary<Patient, List<Core.Object3D.MRI3D>>();
         /// <summary>
         /// Min calibration factor (between 0 and 1)
         /// </summary>
@@ -72,7 +72,7 @@ namespace HBP.Module3D
         /// Add a MRI to the MRI manager
         /// </summary>
         /// <param name="mri">MRI to be added</param>
-        public void Add(Core.Data.MRI mri)
+        public void Add(MRI mri)
         {
             if (mri.IsUsable)
             {
@@ -100,7 +100,7 @@ namespace HBP.Module3D
         /// Add a MRI to the MRI manager preloaded MRIs
         /// </summary>
         /// <param name="mri">MRI to be added</param>
-        public void AddPreloaded(Core.Data.MRI mri, Core.Data.Patient patient)
+        public void AddPreloaded(MRI mri, Patient patient)
         {
             if (mri.IsUsable)
             {

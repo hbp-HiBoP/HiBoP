@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 using ThirdParty.ImageEffects;
-using Tools.Unity;
 using HBP.Core.Enums;
+using HBP.Core.Tools;
 
-namespace HBP.Module3D
+namespace HBP.Display.Module3D
 {
     /// <summary>
     /// Class containing information on how to display each view 

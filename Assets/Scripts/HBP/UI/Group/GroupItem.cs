@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
-using Tools.Unity.Lists;
+using HBP.UI.Lists;
 
 namespace HBP.UI
 {
@@ -13,7 +13,7 @@ namespace HBP.UI
 		#region Properties
 		[SerializeField] Text m_NameText;
 		[SerializeField] Text m_PatientsText;
-        [SerializeField] HBP.Theme.State m_ErrorState;
+        [SerializeField] Theme.State m_ErrorState;
 
         /// <summary>
         /// Object to display.

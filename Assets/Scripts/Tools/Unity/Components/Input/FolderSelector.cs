@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using Tools.CSharp;
 
-namespace Tools.Unity
+namespace HBP.UI
 {
     public class FolderSelector : MonoBehaviour
     {
@@ -28,7 +28,7 @@ namespace Tools.Unity
                 m_Inputfield.onEndEdit.Invoke(result);
             }, Message, m_Inputfield.text);
 #else
-            string result = HBP.UI.FileBrowser.GetExistingDirectoryName( Message, m_Inputfield.text);
+            string result = FileBrowser.GetExistingDirectoryName( Message, m_Inputfield.text);
             if (result != string.Empty)
             {
                 result = result.StandardizeToPath();

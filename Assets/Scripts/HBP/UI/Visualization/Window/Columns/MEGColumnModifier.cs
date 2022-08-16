@@ -2,19 +2,19 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
-using Tools.Unity;
 using HBP.Core.Data;
+using HBP.Core.Tools;
 
 namespace HBP.UI
 {
-    public class MEGColumnModifier : SubModifier<Core.Data.MEGColumn>
+    public class MEGColumnModifier : SubModifier<MEGColumn>
     {
         #region Properties
         [SerializeField] Dropdown m_ProtocolDropdown, m_DatasetDropdown;
 
-        List<Core.Data.Protocol> m_Protocols;
-        Core.Data.Protocol m_SelectedProtocol;
-        List<Core.Data.Dataset> m_Datasets;
+        List<Protocol> m_Protocols;
+        Protocol m_SelectedProtocol;
+        List<Dataset> m_Datasets;
 
         public override bool Interactable
         {
@@ -27,7 +27,7 @@ namespace HBP.UI
             }
         }
 
-        public override Core.Data.MEGColumn Object
+        public override MEGColumn Object
         {
             get
             {
@@ -47,8 +47,8 @@ namespace HBP.UI
             }
         }
 
-        Core.Data.Patient[] m_Patients;
-        public Core.Data.Patient[] Patients
+        Patient[] m_Patients;
+        public Patient[] Patients
         {
             get
             {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HBP.Core.Data;
+using System;
 using System.Net;
 using UnityEngine;
 using UnityEngine.UI;

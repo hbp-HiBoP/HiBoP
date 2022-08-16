@@ -19,7 +19,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// Create a new CCEP Data instance.
         /// </summary>
-        public CCEPRawData() : this("", new Dictionary<string, float[]>(), new Dictionary<string, string>(), new Core.Tools.Frequency(), new Patient())
+        public CCEPRawData() : this("", new Dictionary<string, float[]>(), new Dictionary<string, string>(), new Tools.Frequency(), new Patient())
         {
         }
         /// <summary>
@@ -29,7 +29,7 @@ namespace HBP.Core.Data
         /// <param name="unit"></param>
         /// <param name="frequency"></param>
         /// <param name="patient"></param>
-        public CCEPRawData(string channelStimulated, Dictionary<string, float[]> valuesBySite, Dictionary<string, string> unitBySite, Core.Tools.Frequency frequency, Patient patient) : base(valuesBySite, unitBySite, frequency)
+        public CCEPRawData(string channelStimulated, Dictionary<string, float[]> valuesBySite, Dictionary<string, string> unitBySite, Tools.Frequency frequency, Patient patient) : base(valuesBySite, unitBySite, frequency)
         {
             StimulatedChannel = channelStimulated;
             Patient = patient;

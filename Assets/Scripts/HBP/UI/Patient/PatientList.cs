@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using HBP.UI.Lists;
+using System.Linq;
 using UnityEngine;
 
 namespace HBP.UI
@@ -6,7 +7,7 @@ namespace HBP.UI
 	/// <summary>
 	/// List to display patients.
 	/// </summary>
-	public class PatientList : Tools.Unity.Lists.ActionableList<Core.Data.Patient>
+	public class PatientList : ActionableList<Core.Data.Patient>
 	{
         #region Properties
         enum OrderBy { None, Name, DescendingName, Place, DescendingPlace, Date, DescendingDate, Mesh, DescendingMesh, MRI, DescendingMRI, Site, DescendingSite, Tag, DescendingTag }

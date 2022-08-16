@@ -1,5 +1,4 @@
 ﻿using ThirdParty.CielaSpike;
-using HBP.Module3D;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,7 +7,7 @@ using Tools.CSharp;
 using UnityEngine;
 using UnityEngine.Events;
 using HBP.Core.Exceptions;
-using Tools.Unity;
+using HBP.Display.Module3D;
 
 namespace HBP.UI.Module3D
 {
@@ -381,7 +380,7 @@ namespace HBP.UI.Module3D
             yield return Ninja.JumpToUnity;
             if (exception != null)
             {
-                DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Warning, exception.ToString(), exception.Message);
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Warning, exception.ToString(), exception.Message);
                 OnEndFilter.Invoke(false);
             }
             else

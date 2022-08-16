@@ -4,7 +4,7 @@ using System.IO;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
 
-namespace Tools.Unity
+namespace HBP.Core.Tools
 {
     public static class ClassLoaderSaver
     {

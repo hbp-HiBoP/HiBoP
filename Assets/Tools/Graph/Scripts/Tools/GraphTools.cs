@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Tools.Unity.Graph
+namespace HBP.UI.Graphs
 {
     public static class GraphTools
     {

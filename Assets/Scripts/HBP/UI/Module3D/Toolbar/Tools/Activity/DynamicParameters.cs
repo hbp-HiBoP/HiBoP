@@ -1,4 +1,4 @@
-﻿using HBP.Module3D;
+﻿using HBP.Display.Module3D;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -22,7 +22,7 @@ namespace HBP.UI.Module3D.Tools
         /// <summary>
         /// Module to handle the threshold iEEG
         /// </summary>
-        [SerializeField] private Module3D.ThresholdIEEG m_ThresholdIEEG;
+        [SerializeField] private ThresholdIEEG m_ThresholdIEEG;
         /// <summary>
         /// Are the changes applied to all columns ?
         /// </summary>
@@ -86,7 +86,7 @@ namespace HBP.UI.Module3D.Tools
         {
             bool isColumnDynamic = SelectedColumn is Column3DDynamic;
             bool isColumnIEEG = SelectedColumn is Column3DIEEG;
-            bool isColumnCCEPAndSourceSelected = SelectedColumn is HBP.Module3D.Column3DCCEP ccepColumn && ccepColumn.IsSourceSelected;
+            bool isColumnCCEPAndSourceSelected = SelectedColumn is Column3DCCEP ccepColumn && ccepColumn.IsSourceSelected;
 
             gameObject.SetActive(isColumnDynamic);
             m_InputField.interactable = isColumnDynamic;

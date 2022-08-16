@@ -9,7 +9,7 @@ namespace HBP.UI
     /// <summary>
     /// Window to modify the project preferences.
     /// </summary>
-    public class ProjectPreferencesModifier : ObjectModifier<Core.Data.ProjectPreferences>
+    public class ProjectPreferencesModifier : ObjectModifier<ProjectPreferences>
     {
         #region Properties
         [SerializeField] GeneralSubModifer m_GeneralSubModifier;
@@ -58,7 +58,7 @@ namespace HBP.UI
         /// Set the fields.
         /// </summary>
         /// <param name="objectToDisplay">project preferences to display</param>
-        protected override void SetFields(Core.Data.ProjectPreferences objectToDisplay)
+        protected override void SetFields(ProjectPreferences objectToDisplay)
         {
             m_GeneralSubModifier.Object = objectToDisplay;
             m_TagsSubModifier.Object = objectToDisplay;

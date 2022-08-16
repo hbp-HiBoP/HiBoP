@@ -1,4 +1,4 @@
-﻿using HBP.Module3D;
+﻿using HBP.Display.Module3D;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -49,7 +49,7 @@ namespace HBP.UI.Module3D.Tools
         {
             DeleteSubTimelines();
 
-            if (SelectedColumn is HBP.Module3D.Column3DDynamic columnDynamic)
+            if (SelectedColumn is Column3DDynamic columnDynamic)
             {
                 Core.Data.Timeline timeline = columnDynamic.Timeline;
                 m_Slider.maxValue = timeline.Length - 1;
@@ -62,7 +62,7 @@ namespace HBP.UI.Module3D.Tools
                     subTl.GetComponent<RectTransform>().anchorMax = new Vector2(Mathf.InverseLerp(0, timeline.Length - 1, subTimeline.GlobalMaxIndex + subTimeline.After), 1);
                 }
             }
-            else if (SelectedColumn is HBP.Module3D.Column3DFMRI columnFMRI)
+            else if (SelectedColumn is Column3DFMRI columnFMRI)
             {
                 Core.Data.BasicTimeline timeline = columnFMRI.Timeline;
                 m_Slider.maxValue = timeline.Length - 1;
@@ -96,25 +96,25 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 int val = (int)value;
-                if (SelectedColumn is HBP.Module3D.Column3DDynamic)
+                if (SelectedColumn is Column3DDynamic)
                 {
                     foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                     {
-                        ((HBP.Module3D.Column3DDynamic)column).Timeline.CurrentIndex = val;
+                        ((Column3DDynamic)column).Timeline.CurrentIndex = val;
                     }
                 }
-                else if (SelectedColumn is HBP.Module3D.Column3DFMRI)
+                else if (SelectedColumn is Column3DFMRI)
                 {
                     foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                     {
-                        ((HBP.Module3D.Column3DFMRI)column).Timeline.CurrentIndex = val;
+                        ((Column3DFMRI)column).Timeline.CurrentIndex = val;
                     }
                 }
             });
             HBP3DModule.OnUpdateSelectedColumnTimeLineIndex.AddListener(() =>
             {
                 ListenerLock = true;
-                if (SelectedColumn is HBP.Module3D.Column3DDynamic columnDynamic)
+                if (SelectedColumn is Column3DDynamic columnDynamic)
                 {
                     m_Slider.value = columnDynamic.Timeline.CurrentIndex;
                     foreach (Transform subTimeline in m_SubTimelines)
@@ -122,7 +122,7 @@ namespace HBP.UI.Module3D.Tools
                         subTimeline.GetComponent<SubTimeline>().UpdateCurrentTime();
                     }
                 }
-                else if (SelectedColumn is HBP.Module3D.Column3DFMRI columnFMRI)
+                else if (SelectedColumn is Column3DFMRI columnFMRI)
                 {
                     m_Slider.value = columnFMRI.Timeline.CurrentIndex;
                     foreach (Transform subTimeline in m_SubTimelines)
@@ -147,7 +147,7 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isColumnDynamicOrFMRI = SelectedColumn is HBP.Module3D.Column3DDynamic || SelectedColumn is HBP.Module3D.Column3DFMRI;
+            bool isColumnDynamicOrFMRI = SelectedColumn is Column3DDynamic || SelectedColumn is Column3DFMRI;
             bool areAmplitudesComputed = SelectedScene.IsGeneratorUpToDate;
 
             m_Slider.interactable = isColumnDynamicOrFMRI && areAmplitudesComputed;
@@ -157,7 +157,7 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateStatus()
         {
-            if ((SelectedColumn is HBP.Module3D.Column3DDynamic || SelectedColumn is HBP.Module3D.Column3DFMRI) && SelectedScene.IsGeneratorUpToDate)
+            if ((SelectedColumn is Column3DDynamic || SelectedColumn is Column3DFMRI) && SelectedScene.IsGeneratorUpToDate)
             {
                 ShowSubTimelines();
             }

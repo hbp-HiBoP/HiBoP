@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using HBP.Display.Preferences;
-using HBP.Module3D;
 using HBP.Core.Object3D;
+using HBP.Display.Module3D;
 
 namespace HBP.UI.Preferences
 {

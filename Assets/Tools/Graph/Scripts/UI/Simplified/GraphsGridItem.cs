@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-namespace Tools.Unity.Graph
+namespace HBP.UI.Graphs
 {
     public class GraphsGridItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
     {

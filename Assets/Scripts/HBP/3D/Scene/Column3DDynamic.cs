@@ -4,7 +4,7 @@ using UnityEngine.Events;
 using HBP.Core.Enums;
 using HBP.Core.Data;
 
-namespace HBP.Module3D
+namespace HBP.Display.Module3D
 {
     /// <summary>
     /// Base class for the columns containing temporal dynamic data (iEEG, CCEP)
@@ -116,7 +116,7 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
-        public override void Initialize(int idColumn, Core.Data.Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
+        public override void Initialize(int idColumn, Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
 

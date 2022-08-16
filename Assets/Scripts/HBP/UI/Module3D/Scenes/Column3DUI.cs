@@ -1,7 +1,7 @@
-﻿using HBP.Module3D;
+﻿using HBP.Core.Tools;
+using HBP.Display.Module3D;
+using HBP.UI.ResizableGrid;
 using System.Collections.Generic;
-using Tools.Unity;
-using Tools.Unity.ResizableGrid;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -34,7 +34,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Parent resizable grid
         /// </summary>
-        public ResizableGrid ParentGrid { get; private set; }
+        public ResizableGrid.ResizableGrid ParentGrid { get; private set; }
         /// <summary>
         /// Reference to this object's RectTransform
         /// </summary>
@@ -163,7 +163,7 @@ namespace HBP.UI.Module3D
         #region Private Methods
         private void Awake()
         {
-            ParentGrid = GetComponentInParent<ResizableGrid>();
+            ParentGrid = GetComponentInParent<ResizableGrid.ResizableGrid>();
             m_GridColumn = GetComponent<Column>();
         }
         private void Update()

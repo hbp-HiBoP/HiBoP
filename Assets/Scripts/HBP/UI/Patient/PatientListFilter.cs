@@ -7,7 +7,6 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using HBP.Core.Exceptions;
-using Tools.Unity;
 using HBP.Core.Data;
 
 namespace HBP.UI
@@ -58,7 +57,7 @@ namespace HBP.UI
             try
             {
                 ParseConditions();
-                ReadOnlyCollection<Core.Data.Patient> patients = m_PatientList.Objects;
+                ReadOnlyCollection<Patient> patients = m_PatientList.Objects;
                 bool[] result = new bool[patients.Count];
                 for (int i = 0; i < result.Length; i++)
                 {
@@ -68,7 +67,7 @@ namespace HBP.UI
             }
             catch (Exception e)
             {
-                DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, e.ToString(), e.Message);
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, e.ToString(), e.Message);
             }
         }
         /// <summary>
@@ -83,7 +82,7 @@ namespace HBP.UI
         /// </summary>
         /// <param name="patient">Patient to check</param>
         /// <returns>True if the conditions are met</returns>
-        private bool CheckConditions(Core.Data.Patient patient)
+        private bool CheckConditions(Patient patient)
         {
             foreach (var booleanValue in m_BooleanExpression.GetAllBooleanValuesUnderThisOne())
             {
@@ -97,7 +96,7 @@ namespace HBP.UI
         /// <param name="patient">Patient to check</param>
         /// <param name="s">String to be parsed</param>
         /// <returns>True if the patient matches the set of conditions</returns>
-        private bool ParseConditionAndCheckValue(Core.Data.Patient patient, string s)
+        private bool ParseConditionAndCheckValue(Patient patient, string s)
         {
             s = s.ToUpper();
             Regex conditionRegex = new Regex(@"(.+)([=><]{1})(.+)");
@@ -143,11 +142,11 @@ namespace HBP.UI
                 }
                 else
                 {
-                    Core.Data.BaseTag tag = ApplicationState.ProjectLoaded.Preferences.PatientsTags.FirstOrDefault(t => t.Name.ToUpper() == deblankedLabel);
+                    BaseTag tag = ApplicationState.ProjectLoaded.Preferences.PatientsTags.FirstOrDefault(t => t.Name.ToUpper() == deblankedLabel);
                     if (tag == null) tag = ApplicationState.ProjectLoaded.Preferences.GeneralTags.FirstOrDefault(t => t.Name.ToUpper() == deblankedLabel);
                     if (tag != null)
                     {
-                        Core.Data.BaseTagValue tagValue = patient.Tags.FirstOrDefault(t => t.Tag == tag);
+                        BaseTagValue tagValue = patient.Tags.FirstOrDefault(t => t.Tag == tag);
                         if (tagValue != null)
                         {
                             if (groups[2].Value == "=")

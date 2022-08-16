@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Tools.Unity.Lists
+namespace HBP.UI.Lists
 {
     public class ActionableList<T> : SelectableList<T>
     {

@@ -5,7 +5,7 @@ using UnityEngine;
 using HBP.Core.Enums;
 using HBP.Display.Tools;
 
-namespace HBP.Module3D
+namespace HBP.Display.Module3D
 {
     /// <summary>
     /// Class containing tools to erase parts of the brain mesh

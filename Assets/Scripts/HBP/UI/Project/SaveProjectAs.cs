@@ -1,5 +1,4 @@
 ﻿using UnityEngine.UI;
-using Tools.Unity;
 using UnityEngine;
 using System.IO;
 using HBP.Core.Data;
@@ -36,7 +35,7 @@ namespace HBP.UI
             {
                 DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Project already exists", string.Format("A project named {0} already exists within the selected directory.\n\nWould you like to override this project?", m_NameInputField.text), () =>
                 {
-                    var preferences = ApplicationState.ProjectLoaded.Preferences.Clone() as Core.Data.ProjectPreferences;
+                    var preferences = ApplicationState.ProjectLoaded.Preferences.Clone() as ProjectPreferences;
                     preferences.Name = m_NameInputField.text;
                     ApplicationState.ProjectLoaded.Preferences = preferences;
                     FindObjectOfType<ProjectLoaderSaver>().Save(m_LocationFolderSelector.Folder);
@@ -46,7 +45,7 @@ namespace HBP.UI
             }
             else
             {
-                var preferences = ApplicationState.ProjectLoaded.Preferences.Clone() as Core.Data.ProjectPreferences;
+                var preferences = ApplicationState.ProjectLoaded.Preferences.Clone() as ProjectPreferences;
                 preferences.Name = m_NameInputField.text;
                 ApplicationState.ProjectLoaded.Preferences = preferences;
                 FindObjectOfType<ProjectLoaderSaver>().Save(m_LocationFolderSelector.Folder);

@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel;
 using System.Runtime.Serialization;
-using Tools.CSharp;
 using HBP.Core.Tools;
 
 namespace HBP.Core.Data

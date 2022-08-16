@@ -1,7 +1,7 @@
-﻿using Tools.Unity;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Experience.Protocol
 {

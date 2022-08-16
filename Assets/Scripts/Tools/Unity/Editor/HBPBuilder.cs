@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using Tools.CSharp;
 
-namespace Tools.Unity
+namespace HBP.Dev
 {
     public class HBPBuilder : MonoBehaviour
     {

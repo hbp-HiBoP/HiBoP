@@ -1,13 +1,13 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using Tools.Unity;
+using HBP.UI.Lists;
 
 namespace HBP.UI.Experience.Protocol
 {
     /// <summary>
     /// Component to display Icon in list.
     /// </summary>
-    public class IconItem : Tools.Unity.Lists.ActionnableItem<Core.Data.Icon>
+    public class IconItem : ActionnableItem<Core.Data.Icon>
     {
         #region Properties
         [SerializeField] Text m_NameText;

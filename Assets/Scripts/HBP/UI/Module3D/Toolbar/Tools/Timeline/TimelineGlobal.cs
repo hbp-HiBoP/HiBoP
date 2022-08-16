@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HBP.Display.Module3D;
+using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
@@ -45,7 +46,7 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isColumnDynamicOrFMRI = SelectedColumn is HBP.Module3D.Column3DDynamic || SelectedColumn is HBP.Module3D.Column3DFMRI;
+            bool isColumnDynamicOrFMRI = SelectedColumn is Column3DDynamic || SelectedColumn is Column3DFMRI;
             bool areAmplitudesComputed = SelectedScene.IsGeneratorUpToDate;
 
             m_Toggle.interactable = isColumnDynamicOrFMRI && areAmplitudesComputed;

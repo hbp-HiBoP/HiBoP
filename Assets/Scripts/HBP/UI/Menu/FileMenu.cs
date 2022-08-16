@@ -1,5 +1,4 @@
-﻿using Tools.Unity;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace HBP.UI
 {
@@ -44,7 +43,7 @@ namespace HBP.UI
         }
         public void Quit()
         {
-            DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Quit HiBoP?", "Are you sure you want to quit HiBoP? Make sure all your data is saved.", () => { Application.Quit(); }, "Quit", () => { }, "Cancel");
+            DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Quit HiBoP?", "Are you sure you want to quit HiBoP? Make sure all your data is saved.", () => { Application.Quit(); }, "Quit", () => { }, "Cancel");
         }
         #endregion
     }

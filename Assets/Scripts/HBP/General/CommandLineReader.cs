@@ -1,14 +1,12 @@
 ﻿using HBP.Core.Data;
-using HBP.Module3D;
-using HBP.UI;
+using HBP.Display.Module3D;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Tools.Unity;
 using UnityEngine;
 
-namespace HBP
+namespace HBP.UI
 {
     public class CommandLineReader : MonoBehaviour
     {
@@ -63,33 +61,33 @@ namespace HBP
             {
                 if (arguments.Count == 0)
                 {
-                    DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Couldn't open project", "The project name has not been specified.");
+                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Couldn't open project", "The project name has not been specified.");
                 }
                 else
                 {
-                    FindObjectOfType<ProjectLoaderSaver>().Load(new Core.Data.ProjectInfo(ApplicationState.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0] + Core.Data.Project.EXTENSION));
+                    FindObjectOfType<ProjectLoaderSaver>().Load(new ProjectInfo(ApplicationState.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0] + Project.EXTENSION));
                 }
             }
             else if (action == "-pf") // Project File
             {
                 if (arguments.Count == 0)
                 {
-                    DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Couldn't open project", "The project name has not been specified.");
+                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Couldn't open project", "The project name has not been specified.");
                 }
                 else
                 {
-                    FindObjectOfType<ProjectLoaderSaver>().Load(new Core.Data.ProjectInfo(arguments[0]));
+                    FindObjectOfType<ProjectLoaderSaver>().Load(new ProjectInfo(arguments[0]));
                 }
             }
             else if (action == "-v") // Visualization
             {
                 if (ApplicationState.ProjectLoaded == null)
                 {
-                    DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Project not loaded", "You are trying to open a visualization without opening a project. This is not supported.");
+                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Project not loaded", "You are trying to open a visualization without opening a project. This is not supported.");
                 }
                 else if (arguments.Count == 0)
                 {
-                    DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Couldn't load visualizations", "The names of the visualizations have not been specified.");
+                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Couldn't load visualizations", "The names of the visualizations have not been specified.");
                 }
                 else
                 {

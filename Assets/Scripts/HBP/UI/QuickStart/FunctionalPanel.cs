@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq;
-using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Data;
 using HBP.Core.Data.Container;
+using HBP.Core.Tools;
 
 namespace HBP.UI.QuickStart
 {

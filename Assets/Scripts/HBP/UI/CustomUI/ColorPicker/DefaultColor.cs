@@ -2,7 +2,7 @@
 using UnityEngine.UI.Extensions.ColorPicker;
 using UnityEngine.UI;
 
-namespace Tools.Unity
+namespace HBP.UI
 {
     public class DefaultColor : MonoBehaviour
     {

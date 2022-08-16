@@ -1,5 +1,4 @@
-﻿using Tools.Unity;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace HBP.UI
 {

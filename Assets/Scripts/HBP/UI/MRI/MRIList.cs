@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using HBP.UI.Lists;
+using System.Linq;
 using UnityEngine;
 
 namespace HBP.UI
@@ -6,7 +7,7 @@ namespace HBP.UI
     /// <summary>
     /// List to display MRIs.
     /// </summary>
-    public class MRIList : Tools.Unity.Lists.ActionableList<Core.Data.MRI>
+    public class MRIList : ActionableList<Core.Data.MRI>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, HasMRI, DescendingHasMRI }

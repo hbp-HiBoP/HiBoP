@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using HBP.UI.Lists;
+using System.Linq;
 using UnityEngine;
 
 namespace HBP.UI
@@ -6,7 +7,7 @@ namespace HBP.UI
     /// <summary>
     /// List to display coordinates.
     /// </summary>
-    public class CoordinateList : Tools.Unity.Lists.ActionableList<Core.Data.Coordinate>
+    public class CoordinateList : ActionableList<Core.Data.Coordinate>
     {
         #region Properties
         enum OrderBy { None, ReferenceSystem, DescendingReferenceSystem, X, DescendingX, Y, DescendingY, Z, DescendingZ }

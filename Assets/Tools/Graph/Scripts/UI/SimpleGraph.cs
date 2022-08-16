@@ -5,8 +5,9 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
 using HBP.Display.Informations;
+using HBP.Core.Tools;
 
-namespace Tools.Unity.Graph
+namespace HBP.UI.Graphs
 {
     public class SimpleGraph : MonoBehaviour
     {

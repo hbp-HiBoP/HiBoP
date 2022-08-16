@@ -3,13 +3,14 @@ using UnityEngine.UI;
 using System.Linq;
 using System.ComponentModel;
 using HBP.Core.Enums;
+using HBP.UI.Lists;
 
 namespace HBP.UI.Experience.Protocol
 {
     /// <summary>
     /// Component to display subBloc in list.
     /// </summary>
-    public class SubBlocItem : Tools.Unity.Lists.ActionnableItem<Core.Data.SubBloc>
+    public class SubBlocItem : ActionnableItem<Core.Data.SubBloc>
     {
         #region Properties
         [SerializeField] Text m_NameText;
@@ -24,7 +25,7 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] Text m_OrderText;
         [SerializeField] Text m_TypeText;
 
-        [SerializeField] HBP.Theme.State m_ErrorState;
+        [SerializeField] Theme.State m_ErrorState;
 
         /// <summary>
         /// Object to display.

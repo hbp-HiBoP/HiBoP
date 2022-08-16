@@ -208,7 +208,7 @@ namespace HBP.UI
         /// <param name="generateNewIDs"></param>
         protected virtual void OpenSelector(IEnumerable<T> objects, bool multiSelection = false, bool openModifiers = true, bool generateNewIDs = true)
         {
-            ObjectSelector<T> selector = WindowsManager.OpenSelector<T>(objects, multiSelection, openModifiers);
+            ObjectSelector<T> selector = WindowsManager.OpenSelector(objects, multiSelection, openModifiers);
             selector.OnOk.AddListener(() => SaveSelector(selector, generateNewIDs));
             WindowsReferencer.Add(selector);
         }

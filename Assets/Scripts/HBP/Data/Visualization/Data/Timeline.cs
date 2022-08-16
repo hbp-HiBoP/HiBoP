@@ -135,7 +135,7 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         #endregion
 
         #region Constructors
-        public Timeline(Bloc bloc, Dictionary<SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc, Dictionary<SubBloc, int> indexBySubBloc, Core.Tools.Frequency frequency)
+        public Timeline(Bloc bloc, Dictionary<SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc, Dictionary<SubBloc, int> indexBySubBloc, Tools.Frequency frequency)
         {
             Frequency = frequency;
             Unit = "ms";
@@ -188,9 +188,9 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         #endregion
 
         #region Public Methods
-        public void Update(Core.Object3D.FMRI fmri)
+        public void Update(Object3D.FMRI fmri)
         {
-            Frequency = new Core.Tools.Frequency(1);
+            Frequency = new Tools.Frequency(1);
             Unit = "dt";
             Length = fmri.Volumes.Count;
             TimeLength = fmri.Volumes.Count - 1;
@@ -219,7 +219,7 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         /// </summary>
         public float TimeLength { get { return MaxTime - MinTime; } }
         
-        public Core.Tools.Frequency Frequency { get; private set; }
+        public Tools.Frequency Frequency { get; private set; }
 
         private int m_GlobalMinIndex;
         /// <summary>
@@ -270,12 +270,12 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         #endregion
 
         #region Constructors
-        public SubTimeline(Core.Object3D.FMRI fmri)
+        public SubTimeline(Object3D.FMRI fmri)
         {
             Length = fmri.Volumes.Count;
             Before = 0;
             After = 0;
-            Frequency = new Core.Tools.Frequency(1);
+            Frequency = new Tools.Frequency(1);
             MinTime = 0;
             MaxTime = fmri.Volumes.Count - 1;
             FirstSampleTime = MinTime;

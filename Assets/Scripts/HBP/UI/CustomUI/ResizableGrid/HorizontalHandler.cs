@@ -1,12 +1,12 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace Tools.Unity.ResizableGrid
+namespace HBP.UI.ResizableGrid
 {
     public class HorizontalHandler : Handler
     {
         #region Properties
-        [SerializeField] protected HBP.Theme.State m_HorizontalState;
+        [SerializeField] protected Theme.State m_HorizontalState;
 
         /// <summary>
         /// Minimum position of the handler

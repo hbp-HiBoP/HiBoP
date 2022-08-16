@@ -5,12 +5,12 @@ using UnityEngine;
 using System.IO;
 using System;
 using HBP.UI;
-using Tools.Unity;
 using System.Collections;
 using System.Collections.Generic;
 using HBP.Core.Enums;
-using HBP.Module3D;
 using HBP.Core.Data;
+using HBP.Display.Module3D;
+using HBP.Core.Tools;
 
 namespace HBP.Dev
 {
@@ -91,7 +91,7 @@ namespace HBP.Dev
             FileInfo[] files = dir.GetFiles("*.vhdr");
             foreach (var file in files)
             {
-                ApplicationState.ProjectLoaded.Datasets[0].AddData(new HBP.Core.Data.CCEPDataInfo("ccep", new HBP.Core.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), ApplicationState.ProjectLoaded.Patients[0], file.Name.Replace(file.Extension, "")));
+                ApplicationState.ProjectLoaded.Datasets[0].AddData(new CCEPDataInfo("ccep", new Core.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), ApplicationState.ProjectLoaded.Patients[0], file.Name.Replace(file.Extension, "")));
             }
         }
         private void GetAllCCEPData()
@@ -102,7 +102,7 @@ namespace HBP.Dev
             foreach (var dir in patientDirs)
             {
                 string patientName = dir.Name.Substring(4);
-                HBP.Core.Data.Patient patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.Name == patientName);
+                Patient patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.Name == patientName);
                 if (patient == null) continue;
                 DirectoryInfo ieegDir = new DirectoryInfo(Path.Combine(dir.FullName, "ses-postimp01", "ieeg"));
                 FileInfo[] files = ieegDir.GetFiles("*.vhdr").Where(f => f.FullName.Contains("ccep")).ToArray();
@@ -111,7 +111,7 @@ namespace HBP.Dev
                     string site = file.Name.Split('_')[3].Substring(4, 8);
                     if (!site.Contains("p")) site = site.Substring(0, 6);
                     site = site.Insert(site.Length / 2, "-");
-                    ApplicationState.ProjectLoaded.Datasets[0].AddData(new HBP.Core.Data.CCEPDataInfo("ccep", new HBP.Core.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), patient, site));
+                    ApplicationState.ProjectLoaded.Datasets[0].AddData(new CCEPDataInfo("ccep", new Core.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), patient, site));
                 }
             }
         }
@@ -157,7 +157,7 @@ namespace HBP.Dev
         }
         private static void LoadDatabase()
         {
-            HBP.Core.Data.Patient.LoadFromBIDSDatabase(@"Z:\BrainTV\HBP\Development\BaseBidsCCEPGrenoble\07-bids_20190416\07-bids", out HBP.Core.Data.Patient[] patients);
+            Patient.LoadFromBIDSDatabase(@"Z:\BrainTV\HBP\Development\BaseBidsCCEPGrenoble\07-bids_20190416\07-bids", out Patient[] patients);
         }
 #endif
     }

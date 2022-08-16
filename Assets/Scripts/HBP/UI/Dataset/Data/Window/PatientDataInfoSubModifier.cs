@@ -6,21 +6,21 @@ using HBP.Core.Data;
 
 namespace HBP.UI.Experience.Dataset
 {
-    public class PatientDataInfoSubModifier : SubModifier<Core.Data.PatientDataInfo>
+    public class PatientDataInfoSubModifier : SubModifier<PatientDataInfo>
     {
         #region Properties     
-        ReadOnlyCollection<Core.Data.Patient> m_Patients;
+        ReadOnlyCollection<Patient> m_Patients;
         [SerializeField] Dropdown m_PatientDropdown;
 
         public override bool Interactable
         {
             get
             {
-                return base.m_Interactable;
+                return m_Interactable;
             }
             set
             {
-                base.m_Interactable = value;
+                m_Interactable = value;
                 m_PatientDropdown.interactable = value;
             }
         }
@@ -37,7 +37,7 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(Core.Data.PatientDataInfo objectToDisplay)
+        protected override void SetFields(PatientDataInfo objectToDisplay)
         {
             m_PatientDropdown.value = m_Patients.IndexOf(objectToDisplay.Patient);
         }

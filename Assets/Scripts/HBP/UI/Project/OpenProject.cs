@@ -1,14 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
 using ThirdParty.CielaSpike;
-using Tools.Unity;
 using System.Linq;
 using HBP.Core.Data;
-using HBP.Module3D;
+using HBP.Display.Module3D;
+using HBP.UI.Lists;
 
 namespace HBP.UI
 {
-	public class OpenProject : DialogWindow 
+    public class OpenProject : DialogWindow 
 	{
 		#region Properties
 		[SerializeField] FolderSelector m_LocationFolderSelector;
@@ -33,7 +33,7 @@ namespace HBP.UI
         #endregion
 
         #region Public Methods
-        public void Load(Core.Data.ProjectInfo info)
+        public void Load(ProjectInfo info)
         {
             FindObjectOfType<ProjectLoaderSaver>().Load(info);
             base.Close();
@@ -93,18 +93,18 @@ namespace HBP.UI
         {
             yield return Ninja.JumpToUnity;
             m_OKButton.interactable = false;
-            m_ProjectList.Set(new Core.Data.ProjectInfo[0]);
+            m_ProjectList.Set(new ProjectInfo[0]);
             yield return Ninja.JumpBack;
-            string[] paths = Core.Data.Project.GetProject(path).ToArray();
+            string[] paths = Project.GetProject(path).ToArray();
             foreach (string projectPath in paths)
             {
-                Core.Data.ProjectInfo project = new Core.Data.ProjectInfo(projectPath);
+                ProjectInfo project = new ProjectInfo(projectPath);
                 yield return Ninja.JumpToUnity;
                 m_ProjectList.Add(project);
                 yield return Ninja.JumpBack;
             }
             yield return Ninja.JumpToUnity;
-            m_ProjectList.SortByName(Tools.Unity.Lists.BaseList.Sorting.Descending);
+            m_ProjectList.SortByName(BaseList.Sorting.Descending);
         }
         void SetLoadButton()
         {

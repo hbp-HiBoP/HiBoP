@@ -1,9 +1,5 @@
-﻿using ThirdParty.CielaSpike;
-using System.Collections;
-using System.IO;
-using UnityEngine;
+﻿using System.IO;
 using HBP.Core.Data;
-using HBP.Core.Tools;
 
 namespace HBP.Core.Object3D
 {

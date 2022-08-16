@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using Ionic.Zip;
 using HBP.Core.Exceptions;
+using HBP.Core.Tools;
 
 namespace HBP.Core.Data
 {
@@ -63,7 +64,7 @@ namespace HBP.Core.Data
                             FileInfo settingsFile = new FileInfo(System.IO.Path.Combine(ApplicationState.TMPFolder, entry.FileName));
                             if (settingsFile.Exists) settingsFile.Delete();
                             entry.Extract(ApplicationState.TMPFolder);
-                            Settings = global::Tools.Unity.ClassLoaderSaver.LoadFromJson<ProjectPreferences>(settingsFile.FullName);
+                            Settings = ClassLoaderSaver.LoadFromJson<ProjectPreferences>(settingsFile.FullName);
                             settingsFile.Directory.Delete(true);
                         }
                     }

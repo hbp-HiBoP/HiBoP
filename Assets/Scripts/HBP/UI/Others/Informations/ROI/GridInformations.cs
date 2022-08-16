@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
-using Tools.Unity.Graph;
 using HBP.Display.Informations;
+using HBP.UI.Graphs;
 
 namespace HBP.UI.Informations
 {

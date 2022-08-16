@@ -9,7 +9,7 @@ namespace HBP.UI
     /// <summary>
     /// Window to modify site.
     /// </summary>
-    public class SiteModifier : ObjectModifier<Core.Data.Site>
+    public class SiteModifier : ObjectModifier<Site>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -61,7 +61,7 @@ namespace HBP.UI
         /// Set the fields.
         /// </summary>
         /// <param name="objectToDisplay">Site to display</param>
-        protected override void SetFields(Core.Data.Site objectToDisplay)
+        protected override void SetFields(Site objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_CoordinateListGestion.List.Set(objectToDisplay.Coordinates);
@@ -87,7 +87,7 @@ namespace HBP.UI
         /// Called when a coordinate is added to the site.
         /// </summary>
         /// <param name="coordinate">Coordinate added</param>
-        protected void OnAddCoordinate(Core.Data.Coordinate coordinate)
+        protected void OnAddCoordinate(Coordinate coordinate)
         {
             ObjectTemp.Coordinates.AddIfAbsent(coordinate);
         }
@@ -95,7 +95,7 @@ namespace HBP.UI
         /// Called when a coordinate is removed from the site.
         /// </summary>
         /// <param name="coordinate">Coordinate removed</param>
-        protected void OnRemoveCoordinate(Core.Data.Coordinate coordinate)
+        protected void OnRemoveCoordinate(Coordinate coordinate)
         {
             ObjectTemp.Coordinates.Remove(coordinate);
         }
@@ -103,7 +103,7 @@ namespace HBP.UI
         /// Called when a coordinate is updated from the site.
         /// </summary>
         /// <param name="coordinate">Coordiate updated</param>
-        protected void OnUpdateCoordinate(Core.Data.Coordinate coordinate)
+        protected void OnUpdateCoordinate(Coordinate coordinate)
         {
             int index = ObjectTemp.Coordinates.FindIndex(c => c.Equals(coordinate));
             if (index != -1)
@@ -115,7 +115,7 @@ namespace HBP.UI
         /// Called when a tag is added to the site.
         /// </summary>
         /// <param name="tag">Tag added</param>
-        protected void OnAddTag(Core.Data.BaseTagValue tag)
+        protected void OnAddTag(BaseTagValue tag)
         {
             ObjectTemp.Tags.AddIfAbsent(tag);
         }
@@ -123,7 +123,7 @@ namespace HBP.UI
         /// Called when a tag is removed from the site.
         /// </summary>
         /// <param name="tag">Tag removed</param>
-        protected void OnRemoveTag(Core.Data.BaseTagValue tag)
+        protected void OnRemoveTag(BaseTagValue tag)
         {
             ObjectTemp.Tags.Remove(tag);
         }
@@ -131,7 +131,7 @@ namespace HBP.UI
         /// Called when a tag is updated from the site.
         /// </summary>
         /// <param name="tag"></param>
-        protected void OnUpdateTag(Core.Data.BaseTagValue tag)
+        protected void OnUpdateTag(BaseTagValue tag)
         {
             int index = ObjectTemp.Tags.FindIndex(t => t.Equals(tag));
             if(index != -1)

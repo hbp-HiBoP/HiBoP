@@ -6,7 +6,7 @@ using HBP.Core.Exceptions;
 using HBP.Core.Tools;
 using HBP.Core.Data;
 
-namespace HBP.Module3D
+namespace HBP.Display.Module3D
 {
     /// <summary>
     /// Class containing the iEEG data for the column
@@ -17,11 +17,11 @@ namespace HBP.Module3D
         /// <summary>
         /// IEEG data of this column (contains information about what to display)
         /// </summary>
-        public Core.Data.IEEGColumn ColumnIEEGData
+        public IEEGColumn ColumnIEEGData
         {
             get
             {
-                return ColumnData as Core.Data.IEEGColumn;
+                return ColumnData as IEEGColumn;
             }
         }
         /// <summary>
@@ -90,11 +90,11 @@ namespace HBP.Module3D
                 {
                     ActivityUnitsBySiteID[site.Information.Index] = "";
                 }
-                if (ColumnIEEGData.Data.DataByChannelID.TryGetValue(site.Information.FullID, out Core.Data.BlocChannelData blocChannelData))
+                if (ColumnIEEGData.Data.DataByChannelID.TryGetValue(site.Information.FullID, out BlocChannelData blocChannelData))
                 {
                     site.Data = blocChannelData;
                 }
-                if (ColumnIEEGData.Data.StatisticsByChannelID.TryGetValue(site.Information.FullID, out Core.Data.BlocChannelStatistics blocChannelStatistics))
+                if (ColumnIEEGData.Data.StatisticsByChannelID.TryGetValue(site.Information.FullID, out BlocChannelStatistics blocChannelStatistics))
                 {
                     site.Statistics = blocChannelStatistics;
                 }

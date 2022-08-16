@@ -1,5 +1,4 @@
 ﻿using ThirdParty.CielaSpike;
-using HBP.Module3D;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,8 +6,8 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-using Tools.Unity;
 using HBP.Core.Data;
+using HBP.Display.Module3D;
 
 namespace HBP.UI.Module3D
 {
@@ -189,7 +188,7 @@ namespace HBP.UI.Module3D
             catch (Exception e)
             {
                 Debug.LogException(e);
-                DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
             }
         }
         #endregion
@@ -276,7 +275,7 @@ namespace HBP.UI.Module3D
         private void CreateGroup()
         {
             var patients = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered).Select(s => s.Information.Patient).Distinct();
-            Core.Data.Group group = new Core.Data.Group(m_GroupNameInputField.text, patients);
+            Group group = new Group(m_GroupNameInputField.text, patients);
             // Generate unique name
             var projectGroups = ApplicationState.ProjectLoaded.Groups;
             if (projectGroups.Any(g => g.Name == group.Name))
@@ -291,7 +290,7 @@ namespace HBP.UI.Module3D
                 group.Name = name;
             }
             ApplicationState.ProjectLoaded.AddGroup(group);
-            DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Informational, "Group added to project", string.Format("The group {0} containing the {1} patients of the filtered sites has been added to the project.", group.Name, patients.Count()));
+            DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Group added to project", string.Format("The group {0} containing the {1} patients of the filtered sites has been added to the project.", group.Name, patients.Count()));
         }
         /// <summary>
         /// Cancel the export of the filtered sites
@@ -319,7 +318,7 @@ namespace HBP.UI.Module3D
             int length = sites.Count;
 
             // Prepare DataInfo by Patient for performance increase
-            Dictionary<Core.Data.Patient, Core.Data.DataInfo>  dataInfoByPatient = new Dictionary<Core.Data.Patient, Core.Data.DataInfo>();
+            Dictionary<Patient, DataInfo>  dataInfoByPatient = new Dictionary<Patient, DataInfo>();
             for (int i = 0; i < length; i++)
             {
                 Core.Object3D.Site site = sites[i];
@@ -327,12 +326,12 @@ namespace HBP.UI.Module3D
                 {
                     if (m_Scene.SelectedColumn is Column3DIEEG columnIEEG)
                     {
-                        Core.Data.DataInfo dataInfo = m_Scene.Visualization.GetDataInfo(site.Information.Patient, columnIEEG.ColumnIEEGData);
+                        DataInfo dataInfo = m_Scene.Visualization.GetDataInfo(site.Information.Patient, columnIEEG.ColumnIEEGData);
                         dataInfoByPatient.Add(site.Information.Patient, dataInfo);
                     }
                     else if (m_Scene.SelectedColumn is Column3DCCEP columnCCEP)
                     {
-                        Core.Data.DataInfo dataInfo = m_Scene.Visualization.GetDataInfo(site.Information.Patient, columnCCEP.ColumnCCEPData);
+                        DataInfo dataInfo = m_Scene.Visualization.GetDataInfo(site.Information.Patient, columnCCEP.ColumnCCEPData);
                         dataInfoByPatient.Add(site.Information.Patient, dataInfo);
                     }
                 }
@@ -349,7 +348,7 @@ namespace HBP.UI.Module3D
             // Create string builder
             System.Text.StringBuilder csvBuilder = new System.Text.StringBuilder();
             string tagsString = "";
-            IEnumerable<Core.Data.BaseTag> tags = ApplicationState.ProjectLoaded.Preferences.GeneralTags.Concat(ApplicationState.ProjectLoaded.Preferences.SitesTags);
+            IEnumerable<BaseTag> tags = ApplicationState.ProjectLoaded.Preferences.GeneralTags.Concat(ApplicationState.ProjectLoaded.Preferences.SitesTags);
             if (tags.Count() > 0) tagsString = string.Format(",{0}", string.Join(",", tags.Select(t => !t.Name.Contains(",") ? t.Name : string.Format("\"{0}\"", t.Name))));
             csvBuilder.AppendLine("Site,Patient,Place,Date,X,Y,Z,CoordSystem,Labels,DataType,DataFiles" + tagsString);
 
@@ -363,7 +362,7 @@ namespace HBP.UI.Module3D
                 // Get required values
                 Core.Object3D.Site site = sites[i];
                 Vector3 sitePosition = sitePositions[i];
-                Core.Data.DataInfo dataInfo = null;
+                DataInfo dataInfo = null;
                 if (m_Scene.SelectedColumn is Column3DDynamic columnIEEG)
                 {
                     dataInfo = dataInfoByPatient[site.Information.Patient];
@@ -401,7 +400,7 @@ namespace HBP.UI.Module3D
                         throw new Exception("Invalid data container type");
                     }
                 }
-                IEnumerable<Core.Data.BaseTagValue> tagValues = tags.Select(t => site.Information.SiteData.Tags.FirstOrDefault(tv => tv.Tag == t));
+                IEnumerable<BaseTagValue> tagValues = tags.Select(t => site.Information.SiteData.Tags.FirstOrDefault(tv => tv.Tag == t));
                 string tagValuesString = "";
                 if (tagValues.Count() > 0)
                 {
@@ -457,14 +456,14 @@ namespace HBP.UI.Module3D
             catch (Exception e)
             {
                 Debug.LogException(e);
-                DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
                 yield break;
             }
             yield return Ninja.JumpToUnity;
 
             // End
             StopExport();
-            DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Informational, "Sites exported", "The filtered sites have been sucessfully exported to " + csvPath);
+            DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Sites exported", "The filtered sites have been sucessfully exported to " + csvPath);
             OnRequestListUpdate.Invoke();
         }
 #endregion

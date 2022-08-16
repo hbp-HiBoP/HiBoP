@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI.Extensions;
 
-namespace Tools.Unity.Graph
+namespace HBP.UI.Graphs
 {
     public class ShapedCurve : Curve
     {

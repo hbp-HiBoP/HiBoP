@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using System.Linq;
-using Tools.Unity.ResizableGrid;
-using HBP.Module3D;
 using System.Collections.Generic;
+using HBP.Display.Module3D;
+using HBP.UI.ResizableGrid;
 
 namespace HBP.UI.Module3D
 {
@@ -23,7 +23,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Linked resizable grid
         /// </summary>
-        private ResizableGrid m_ResizableGrid;
+        private ResizableGrid.ResizableGrid m_ResizableGrid;
         /// <summary>
         /// Reference to the RectTransform of this object
         /// </summary>
@@ -62,7 +62,7 @@ namespace HBP.UI.Module3D
         private void Awake()
         {
             m_RectTransform = GetComponent<RectTransform>();
-            m_ResizableGrid = GetComponent<ResizableGrid>();
+            m_ResizableGrid = GetComponent<ResizableGrid.ResizableGrid>();
         }
         private void Update()
         {

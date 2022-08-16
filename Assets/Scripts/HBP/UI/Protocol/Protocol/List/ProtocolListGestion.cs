@@ -1,13 +1,13 @@
 ﻿using System.Collections.ObjectModel;
-using System.Collections.Generic;
 using UnityEngine;
+using HBP.UI.Lists;
 
 namespace HBP.UI.Experience.Protocol
 {
     public class ProtocolListGestion : ListGestion<Core.Data.Protocol>
     {
         #region Properties
-        [SerializeField] List<Core.Data.Protocol> m_ModifiedProtocols = new List<Core.Data.Protocol>();
+        [SerializeField] System.Collections.Generic.List<Core.Data.Protocol> m_ModifiedProtocols = new System.Collections.Generic.List<Core.Data.Protocol>();
         public ReadOnlyCollection<Core.Data.Protocol> ModifiedProtocols
         {
             get
@@ -17,7 +17,7 @@ namespace HBP.UI.Experience.Protocol
         }
 
         [SerializeField]protected ProtocolList m_List;
-        public override Tools.Unity.Lists.ActionableList<Core.Data.Protocol> List => m_List;
+        public override ActionableList<Core.Data.Protocol> List => m_List;
 
         [SerializeField] protected ProtocolCreator m_ObjectCreator;
         public override ObjectCreator<Core.Data.Protocol> ObjectCreator => m_ObjectCreator;

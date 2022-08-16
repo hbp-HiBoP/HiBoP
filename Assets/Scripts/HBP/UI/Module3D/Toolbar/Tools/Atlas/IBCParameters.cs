@@ -10,7 +10,7 @@ namespace HBP.UI.Module3D.Tools
         /// <summary>
         /// Module to handle the threshold MRI
         /// </summary>
-        [SerializeField] private Module3D.ThresholdFMRI m_ThresholdFMRI;
+        [SerializeField] private ThresholdFMRI m_ThresholdFMRI;
         /// <summary>
         /// Slider to set the alpha of the contrast
         /// </summary>

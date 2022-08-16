@@ -13,8 +13,8 @@ namespace HBP.Core.Data.Processed
         public Dictionary<string, float[]> ProcessedValuesByChannel { get; set; } = new Dictionary<string, float[]>();
         public Dictionary<string, string> UnitByChannelID { get; set; } = new Dictionary<string, string>();
 
-        private Dictionary<string, Core.Tools.Frequency> m_FrequencyByChannelID = new Dictionary<string, Core.Tools.Frequency>();
-        private List<Core.Tools.Frequency> m_Frequencies = new List<Core.Tools.Frequency>();
+        private Dictionary<string, Tools.Frequency> m_FrequencyByChannelID = new Dictionary<string, Tools.Frequency>();
+        private List<Tools.Frequency> m_Frequencies = new List<Tools.Frequency>();
         public float MaxFrequency { get { return m_Frequencies.Count > 0 ? m_Frequencies.Max(f => f.RawValue) : 0; } }
         #endregion
 
@@ -49,7 +49,7 @@ namespace HBP.Core.Data.Processed
             m_Frequencies.Clear();
             ProcessedValuesByChannel.Clear();
         }
-        public void SetTimeline(Core.Tools.Frequency maxFrequency, Bloc columnBloc, IEnumerable<Bloc> blocs)
+        public void SetTimeline(Tools.Frequency maxFrequency, Bloc columnBloc, IEnumerable<Bloc> blocs)
         {
             // Process frequencies
             m_Frequencies.Add(maxFrequency);
@@ -89,7 +89,7 @@ namespace HBP.Core.Data.Processed
             foreach (var channelID in DataByChannelID.Keys)
             {
                 List<float> values = new List<float>();
-                Core.Tools.Frequency frequency = m_FrequencyByChannelID[channelID];
+                Tools.Frequency frequency = m_FrequencyByChannelID[channelID];
                 BlocChannelStatistics statistics = StatisticsByChannelID[channelID];
                 foreach (var subBloc in columnBloc.OrderedSubBlocs)
                 {

@@ -1,5 +1,4 @@
 ﻿using ThirdParty.CielaSpike;
-using HBP.Module3D;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,13 +8,13 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using Tools.CSharp;
-using Tools.Unity;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using HBP.Core.Data;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
+using HBP.Display.Module3D;
 
 namespace HBP.UI.Module3D.Tools
 {

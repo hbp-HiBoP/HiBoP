@@ -2,8 +2,9 @@
 using UnityEngine.UI;
 using UnityEngine.Events;
 using Tools.CSharp;
+using HBP.Core.Tools;
 
-namespace Tools.Unity
+namespace HBP.UI
 {
     [RequireComponent(typeof(Button))]
     public class ImageSelector : MonoBehaviour
@@ -58,7 +59,7 @@ namespace Tools.Unity
                 }
             }, EXTENSIONS, Message, m_Path);
 #else
-            string result = HBP.UI.FileBrowser.GetExistingFileName(EXTENSIONS, Message, m_Path);
+            string result = FileBrowser.GetExistingFileName(EXTENSIONS, Message, m_Path);
             if (result != string.Empty)
             {
                 result = result.StandardizeToPath();

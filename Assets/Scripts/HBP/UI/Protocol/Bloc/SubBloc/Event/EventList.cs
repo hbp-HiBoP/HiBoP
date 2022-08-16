@@ -1,12 +1,13 @@
 ﻿using System.Linq;
 using UnityEngine;
+using HBP.UI.Lists;
 
 namespace HBP.UI.Experience.Protocol
 {
 	/// <summary>
 	/// List to display events.
 	/// </summary>
-	public class EventList : Tools.Unity.Lists.ActionableList<Core.Data.Event> 
+	public class EventList : ActionableList<Core.Data.Event> 
 	{
         #region Properties
         enum OrderBy { None, Name, DescendingName, Code, DescendingCode, Type, DescendingType }

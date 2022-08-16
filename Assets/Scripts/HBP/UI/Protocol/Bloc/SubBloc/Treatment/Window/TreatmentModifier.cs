@@ -1,17 +1,17 @@
 ﻿using HBP.Core.Data;
+using HBP.Core.Tools;
+using HBP.UI.Tools;
 using System;
 using System.Collections.Generic;
-using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
-using HBP.Display.UI.Tools;
 
 namespace HBP.UI.Experience.Protocol
 {
     /// <summary>
     /// window to modify a treatment.
     /// </summary>
-    public class TreatmentModifier : ObjectModifier<Core.Data.Treatment>
+    public class TreatmentModifier : ObjectModifier<Treatment>
     {
         #region Properties
         [SerializeField] Toggle m_WindowToggle;
@@ -69,7 +69,7 @@ namespace HBP.UI.Experience.Protocol
         }
 
         List<BaseSubModifier> m_SubModifiers;
-        List<Core.Data.Treatment> m_TreatmentsTemp;
+        List<Treatment> m_TreatmentsTemp;
 
         Type[] m_Types;
         /// <summary>
@@ -137,7 +137,7 @@ namespace HBP.UI.Experience.Protocol
             m_BaselineSlider.onValueChanged.AddListener(ChangeBaseline);
 
             m_TypeDropdown.onValueChanged.AddListener(ChangeType);
-            m_Types = m_TypeDropdown.Set(typeof(Core.Data.Treatment));
+            m_Types = m_TypeDropdown.Set(typeof(Treatment));
 
             m_ClampTreatmentSubModifier.Initialize();
             m_AbsTreatmentSubModifier.Initialize();
@@ -163,25 +163,25 @@ namespace HBP.UI.Experience.Protocol
                 m_ThresholdTreatmentSubModifier,
                 m_FactorTreatmentSubModifier
             };
-            m_TreatmentsTemp = new List<Core.Data.Treatment>
+            m_TreatmentsTemp = new List<Treatment>
             {
-                new Core.Data.ClampTreatment(),
-                new Core.Data.AbsTreatment(),
-                new Core.Data.MaxTreatment(),
-                new Core.Data.MinTreatment(),
-                new Core.Data.MeanTreatment(),
-                new Core.Data.MedianTreatment(),
-                new Core.Data.OffsetTreatment(),
-                new Core.Data.RescaleTreatment(),
-                new Core.Data.ThresholdTreatment(),
-                new Core.Data.FactorTreatment()
+                new ClampTreatment(),
+                new AbsTreatment(),
+                new MaxTreatment(),
+                new MinTreatment(),
+                new MeanTreatment(),
+                new MedianTreatment(),
+                new OffsetTreatment(),
+                new RescaleTreatment(),
+                new ThresholdTreatment(),
+                new FactorTreatment()
             };
         }
         /// <summary>
         /// Set the fields.
         /// </summary>
         /// <param name="objectToDisplay">Treatment to display</param>
-        protected override void SetFields(Core.Data.Treatment objectToDisplay)
+        protected override void SetFields(Treatment objectToDisplay)
         {
             int index = m_TreatmentsTemp.FindIndex(t => t.GetType() == ObjectTemp.GetType());
             m_TreatmentsTemp[index] = ObjectTemp;
@@ -227,7 +227,7 @@ namespace HBP.UI.Experience.Protocol
             // Close old subModifier
             m_SubModifiers.Find(subModifier => subModifier.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(m_ObjectTemp.GetType()))).IsActive = false;
 
-            Core.Data.Treatment treatment = m_TreatmentsTemp.Find(t => t.GetType() == type);
+            Treatment treatment = m_TreatmentsTemp.Find(t => t.GetType() == type);
             treatment.Copy(m_ObjectTemp);
             m_ObjectTemp = treatment;
 

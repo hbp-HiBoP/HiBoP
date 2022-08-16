@@ -1,11 +1,10 @@
 ﻿using ThirdParty.CielaSpike;
-using HBP.Module3D;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-using Tools.Unity;
+using HBP.Display.Module3D;
 
 namespace HBP.UI.Module3D
 {
@@ -75,7 +74,7 @@ namespace HBP.UI.Module3D
             catch (Exception e)
             {
                 StopFiltering(false);
-                DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
             }
         }
         public void ResetFilters()

@@ -7,7 +7,7 @@ using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace HBP.Display.UI.Tools
+namespace HBP.UI.Tools
 {
     [CustomEditor(typeof(RangeSlider))]
     public class RangeSliderEditor : Editor
@@ -78,9 +78,9 @@ namespace HBP.Display.UI.Tools
             var minHandleGraphic = m_MinHandleTargetGraphicProperty.objectReferenceValue as Graphic;
             var maxHandleGraphic = m_MaxHandleTargetGraphicProperty.objectReferenceValue as Graphic;
 
-            m_HandleShowColorTint.target = (!m_HandleTransitionProperty.hasMultipleDifferentValues && handleTransition == Button.Transition.ColorTint);
-            m_HandleShowSpriteTrasition.target = (!m_HandleTransitionProperty.hasMultipleDifferentValues && handleTransition == Button.Transition.SpriteSwap);
-            m_HandleShowAnimTransition.target = (!m_HandleTransitionProperty.hasMultipleDifferentValues && handleTransition == Button.Transition.Animation);
+            m_HandleShowColorTint.target = (!m_HandleTransitionProperty.hasMultipleDifferentValues && handleTransition == Selectable.Transition.ColorTint);
+            m_HandleShowSpriteTrasition.target = (!m_HandleTransitionProperty.hasMultipleDifferentValues && handleTransition == Selectable.Transition.SpriteSwap);
+            m_HandleShowAnimTransition.target = (!m_HandleTransitionProperty.hasMultipleDifferentValues && handleTransition == Selectable.Transition.Animation);
 
             EditorGUILayout.PropertyField(m_HandleTransitionProperty, new GUIContent("Transition"));
             EditorGUI.indentLevel++;
@@ -138,9 +138,9 @@ namespace HBP.Display.UI.Tools
 
                 var fillGraphic = m_FillTargetGraphicProperty.objectReferenceValue as Graphic;
 
-                m_FillShowColorTint.target = (!m_FillTransitionProperty.hasMultipleDifferentValues && fillTransition == Button.Transition.ColorTint);
-                m_FillShowSpriteTrasition.target = (!m_FillTransitionProperty.hasMultipleDifferentValues && fillTransition == Button.Transition.SpriteSwap);
-                m_FillShowAnimTransition.target = (!m_FillTransitionProperty.hasMultipleDifferentValues && fillTransition == Button.Transition.Animation);
+                m_FillShowColorTint.target = (!m_FillTransitionProperty.hasMultipleDifferentValues && fillTransition == Selectable.Transition.ColorTint);
+                m_FillShowSpriteTrasition.target = (!m_FillTransitionProperty.hasMultipleDifferentValues && fillTransition == Selectable.Transition.SpriteSwap);
+                m_FillShowAnimTransition.target = (!m_FillTransitionProperty.hasMultipleDifferentValues && fillTransition == Selectable.Transition.Animation);
 
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_FillTransitionProperty, new GUIContent("Transition"));

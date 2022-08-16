@@ -7,7 +7,7 @@
         {
             get
             {
-                return base.m_Interactable;
+                return m_Interactable;
             }
             set
             {

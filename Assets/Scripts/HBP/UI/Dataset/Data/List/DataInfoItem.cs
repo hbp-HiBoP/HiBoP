@@ -1,15 +1,15 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using HBP.Theme.Components;
-using Tools.Unity;
 using Tools.CSharp;
+using HBP.UI.Lists;
 
 namespace HBP.UI.Experience.Dataset
 {
     /// <summary>
     /// Component to display dataInfo in list.
     /// </summary>
-    public class DataInfoItem : Tools.Unity.Lists.ActionnableItem<Core.Data.DataInfo>
+    public class DataInfoItem : ActionnableItem<Core.Data.DataInfo>
     {
         #region Properties
         [SerializeField] Text m_NameText;

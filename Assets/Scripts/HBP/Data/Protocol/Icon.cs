@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
-using Tools.CSharp;
-using Tools.Unity;
 using System.Runtime.Serialization;
 using HBP.Core.Interfaces;
+using HBP.Core.Tools;
 
 namespace HBP.Core.Data
 {
@@ -88,7 +87,7 @@ namespace HBP.Core.Data
         /// Temporal window when the icon is displayed.
         /// </summary>
         [DataMember]
-        public Core.Tools.TimeWindow Window { get; set; }
+        public Tools.TimeWindow Window { get; set; }
         #endregion
 
         #region Constructors
@@ -98,7 +97,7 @@ namespace HBP.Core.Data
         /// <param name="name">Name of the icon</param>
         /// <param name="path">Path of the image icon</param>
         /// <param name="window">Window when the icon is displayed</param>
-        public Icon(string name, string path, Core.Tools.TimeWindow window) : base()
+        public Icon(string name, string path, Tools.TimeWindow window) : base()
         {
             Name = name;
             ImagePath = path;
@@ -111,7 +110,7 @@ namespace HBP.Core.Data
         /// <param name="path">Path of the image icon</param>
         /// <param name="window">Window when the icon is displayed</param>
         /// <param name="ID">Unique identifier</param>
-        public Icon(string name, string path, Core.Tools.TimeWindow window, string ID) : base(ID)
+        public Icon(string name, string path, Tools.TimeWindow window, string ID) : base(ID)
         {
             Name = name;
             ImagePath = path;
@@ -124,20 +123,20 @@ namespace HBP.Core.Data
         /// <param name="path">Path of the image icon</param>
         /// <param name="window">Window when the icon is displayed</param>
         /// <param name="ID">Unique identifier</param>
-        public Icon(string name, string path, Vector2Int window, string ID) : this(name, path, new Core.Tools.TimeWindow(window), ID)
+        public Icon(string name, string path, Vector2Int window, string ID) : this(name, path, new Tools.TimeWindow(window), ID)
         {
         }
         /// <summary>
         /// Create a new Icon instance with default value.
         /// </summary>
-        public Icon() : this("New Icon", string.Empty, new Core.Tools.TimeWindow(-300, 300))
+        public Icon() : this("New Icon", string.Empty, new Tools.TimeWindow(-300, 300))
         {
         }
         /// <summary>
         /// Create a new Icon instance with a specified window.
         /// </summary>
         /// <param name="window">Window when the icon is displayed</param>
-        public Icon(Core.Tools.TimeWindow window): this("New Icon", string.Empty, window)
+        public Icon(Tools.TimeWindow window): this("New Icon", string.Empty, window)
         {
             
         }

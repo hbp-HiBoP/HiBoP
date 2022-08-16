@@ -6,7 +6,7 @@ using System;
 
 namespace UnityEngine.UI.Extensions
 {
-    [System.Serializable]
+    [Serializable]
     public class CableCurve
     {
         [SerializeField]

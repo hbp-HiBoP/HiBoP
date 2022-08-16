@@ -246,7 +246,7 @@ namespace HBP.UI.TrialMatrix
                 if (_event.Type == MainSecondaryEnum.Main)
                 {
                     data.SubTrial subTrial = subBloc.SubTrials[0];
-                    Core.Data.EventInformation.EventOccurence occurence = subTrial.Data.InformationsByEvent[_event].Occurences[0];
+                    EventInformation.EventOccurence occurence = subTrial.Data.InformationsByEvent[_event].Occurences[0];
 
                     GameObject eventGameObject = Instantiate(m_EventPrefab, rectTransform);
                     RectTransform rect = eventGameObject.transform as RectTransform;
@@ -261,7 +261,7 @@ namespace HBP.UI.TrialMatrix
                     for (int i = 0; i < subBloc.SubTrials.Length; i++)
                     {
                         data.SubTrial subTrial = subBloc.SubTrials[i];
-                        Core.Data.EventInformation eventInformation = subTrial.Data.InformationsByEvent[_event];
+                        EventInformation eventInformation = subTrial.Data.InformationsByEvent[_event];
                         foreach (var occurence in eventInformation.Occurences)
                         {
                             GameObject eventGameObject = Instantiate(m_EventPrefab, rectTransform);

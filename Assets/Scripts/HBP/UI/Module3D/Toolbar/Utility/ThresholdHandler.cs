@@ -15,7 +15,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// State to be used for the left-right cursor
         /// </summary>
-        [SerializeField] HBP.Theme.State m_LeftRightState;
+        [SerializeField] Theme.State m_LeftRightState;
         /// <summary>
         /// RectTransform of this handler
         /// </summary>

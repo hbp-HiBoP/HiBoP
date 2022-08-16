@@ -5,7 +5,7 @@ using UnityEngine.UI.Extensions;
 using UnityEngine.Events;
 using System;
 
-namespace Tools.Unity.Graph
+namespace HBP.UI.Graphs
 {
     [CreateAssetMenu(fileName = "Curve", menuName = "Graph/Data/Curve/Empty", order = 1)]
     public class CurveData : ScriptableObject

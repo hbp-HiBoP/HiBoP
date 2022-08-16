@@ -2,7 +2,7 @@
 using System.Linq;
 using UnityEngine;
 
-namespace HBP.Module3D
+namespace HBP.Display.Module3D
 {
     public class ROIManager : MonoBehaviour
     {

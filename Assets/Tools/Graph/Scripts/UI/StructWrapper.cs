@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace Tools.Unity.Graph
+namespace HBP.UI.Graphs
 {
     public class StructWrapper : MonoBehaviour
     {

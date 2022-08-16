@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Tools.Unity.ResizableGrid
+namespace HBP.UI.ResizableGrid
 {
     public class View : MonoBehaviour
     {

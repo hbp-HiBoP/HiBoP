@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Linq;
+using HBP.UI.Lists;
 
 namespace HBP.UI
 {
@@ -7,7 +8,7 @@ namespace HBP.UI
     {
         #region Properties
         [SerializeField] protected TagValueList m_List;
-        public override Tools.Unity.Lists.ActionableList<Core.Data.BaseTagValue> List => m_List;
+        public override ActionableList<Core.Data.BaseTagValue> List => m_List;
 
         [SerializeField] protected TagValueCreator m_ObjectCreator;
         public override ObjectCreator<Core.Data.BaseTagValue> ObjectCreator => m_ObjectCreator;

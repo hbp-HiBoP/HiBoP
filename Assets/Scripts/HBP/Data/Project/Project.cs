@@ -5,7 +5,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using ThirdParty.CielaSpike;
-using Tools.Unity;
 using Ionic.Zip;
 using Tools.CSharp;
 using UnityEngine;
@@ -534,7 +533,7 @@ namespace HBP.Core.Data
                 }
                 catch (Exception e)
                 {
-                    UnityEngine.Debug.LogException(e);
+                    Debug.LogException(e);
                     throw new CanNotDeleteOldProjectDirectory(oldTMPProjectDirectory);
                 }
             }
@@ -724,7 +723,7 @@ namespace HBP.Core.Data
                 }
                 catch (Exception e)
                 {
-                    UnityEngine.Debug.LogException(e);
+                    Debug.LogException(e);
                     throw new CanNotReadGroupFileException(Path.GetFileNameWithoutExtension(groupFile.Name));
                 }
             }
@@ -748,7 +747,7 @@ namespace HBP.Core.Data
                 }
                 catch (Exception e)
                 {
-                    UnityEngine.Debug.LogException(e);
+                    Debug.LogException(e);
                     throw new CanNotReadProtocolFileException(Path.GetFileNameWithoutExtension(protocolFile.Name));
                 }
             }
@@ -774,7 +773,7 @@ namespace HBP.Core.Data
                 }
                 catch (Exception e)
                 {
-                    UnityEngine.Debug.LogException(e);
+                    Debug.LogException(e);
                     throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(datasetFile.Name));
                 }
             }
@@ -802,7 +801,7 @@ namespace HBP.Core.Data
                 }
                 catch (Exception e)
                 {
-                    UnityEngine.Debug.LogException(e);
+                    Debug.LogException(e);
                     throw new CanNotReadVisualizationFileException(Path.GetFileNameWithoutExtension(visualizationFile.Name));
                 }
             }
@@ -822,7 +821,7 @@ namespace HBP.Core.Data
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogException(e);
+                Debug.LogException(e);
                 throw new CanNotSaveSettingsException();
             }
             onChangeProgress.Invoke(1.0f, 0, new LoadingText("Settings saved successfully"));
@@ -844,7 +843,7 @@ namespace HBP.Core.Data
                 }
                 catch (Exception e)
                 {
-                    UnityEngine.Debug.LogException(e);
+                    Debug.LogException(e);
                     throw new CanNotSaveSettingsException();
                 }
                 count++;
@@ -868,7 +867,7 @@ namespace HBP.Core.Data
                 }
                 catch (Exception e)
                 {
-                    UnityEngine.Debug.LogException(e);
+                    Debug.LogException(e);
                     throw new CanNotSaveSettingsException();
                 }
                 count++;
@@ -891,7 +890,7 @@ namespace HBP.Core.Data
                 }
                 catch (Exception e)
                 {
-                    UnityEngine.Debug.LogException(e);
+                    Debug.LogException(e);
                     throw new CanNotSaveSettingsException();
                 }
                 count++;
@@ -915,7 +914,7 @@ namespace HBP.Core.Data
                 }
                 catch (Exception e)
                 {
-                    UnityEngine.Debug.LogException(e);
+                    Debug.LogException(e);
                     throw new CanNotSaveSettingsException();
                 }
                 count++;
@@ -941,7 +940,7 @@ namespace HBP.Core.Data
                 }
                 catch (Exception e)
                 {
-                    UnityEngine.Debug.LogException(e);
+                    Debug.LogException(e);
                     throw new CanNotSaveSettingsException();
                 }
                 count++;

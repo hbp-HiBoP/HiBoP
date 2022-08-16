@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Interfaces;
+using HBP.UI.Lists;
 
 namespace HBP.UI
 {
@@ -52,7 +53,7 @@ namespace HBP.UI
         /// <summary>
         /// UI list which display the elements.
         /// </summary>
-        public abstract Tools.Unity.Lists.ActionableList<T> List { get; }
+        public abstract ActionableList<T> List { get; }
         /// <summary>
         /// ObjectCreator contains all the tools to create a new element.
         /// </summary>

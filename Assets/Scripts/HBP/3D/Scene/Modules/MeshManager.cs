@@ -5,7 +5,7 @@ using HBP.Core.Enums;
 using HBP.Core.Exceptions;
 using HBP.Core.Data;
 
-namespace HBP.Module3D
+namespace HBP.Display.Module3D
 {
     /// <summary>
     /// Class responsible for managing the meshes of the scene
@@ -52,7 +52,7 @@ namespace HBP.Module3D
         /// <summary>
         /// List of all the preloaded meshes of the scene
         /// </summary>
-        public Dictionary<Core.Data.Patient, List<Core.Object3D.Mesh3D>> PreloadedMeshes { get; set; } = new Dictionary<Core.Data.Patient, List<Core.Object3D.Mesh3D>>();
+        public Dictionary<Patient, List<Core.Object3D.Mesh3D>> PreloadedMeshes { get; set; } = new Dictionary<Patient, List<Core.Object3D.Mesh3D>>();
 
         /// <summary>
         /// Mesh part to be displayed in the scene
@@ -77,13 +77,13 @@ namespace HBP.Module3D
         /// Add a mesh to the mesh manager
         /// </summary>
         /// <param name="mesh">Mesh data to be converted to 3D mesh</param>
-        public void Add(Core.Data.BaseMesh mesh)
+        public void Add(BaseMesh mesh)
         {
             if (mesh.IsUsable)
             {
-                if (mesh is Core.Data.LeftRightMesh)
+                if (mesh is LeftRightMesh)
                 {
-                    Core.Object3D.LeftRightMesh3D mesh3D = new Core.Object3D.LeftRightMesh3D((Core.Data.LeftRightMesh)mesh, MeshType.Patient, ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading);
+                    Core.Object3D.LeftRightMesh3D mesh3D = new Core.Object3D.LeftRightMesh3D((LeftRightMesh)mesh, MeshType.Patient, ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading);
 
                     if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
                     {
@@ -103,9 +103,9 @@ namespace HBP.Module3D
                         Meshes.Add(mesh3D);
                     }
                 }
-                else if (mesh is Core.Data.SingleMesh)
+                else if (mesh is SingleMesh)
                 {
-                    Core.Object3D.SingleMesh3D mesh3D = new Core.Object3D.SingleMesh3D((Core.Data.SingleMesh)mesh, MeshType.Patient, ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading);
+                    Core.Object3D.SingleMesh3D mesh3D = new Core.Object3D.SingleMesh3D((SingleMesh)mesh, MeshType.Patient, ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading);
 
                     if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
                     {
@@ -135,15 +135,15 @@ namespace HBP.Module3D
         /// Add a mesh to the mesh manager preloaded meshes
         /// </summary>
         /// <param name="mesh">Mesh data to be converted to 3D mesh</param>
-        public void AddPreloaded(Core.Data.BaseMesh mesh, Core.Data.Patient patient)
+        public void AddPreloaded(BaseMesh mesh, Patient patient)
         {
             if (mesh.IsUsable)
             {
                 if (!PreloadedMeshes.ContainsKey(patient)) PreloadedMeshes.Add(patient, new List<Core.Object3D.Mesh3D>());
-                if (mesh is Core.Data.LeftRightMesh)
-                    PreloadedMeshes[patient].Add(new Core.Object3D.LeftRightMesh3D((Core.Data.LeftRightMesh)mesh, MeshType.Patient, true));
-                else if (mesh is Core.Data.SingleMesh)
-                    PreloadedMeshes[patient].Add(new Core.Object3D.SingleMesh3D((Core.Data.SingleMesh)mesh, MeshType.Patient, true));
+                if (mesh is LeftRightMesh)
+                    PreloadedMeshes[patient].Add(new Core.Object3D.LeftRightMesh3D((LeftRightMesh)mesh, MeshType.Patient, true));
+                else if (mesh is SingleMesh)
+                    PreloadedMeshes[patient].Add(new Core.Object3D.SingleMesh3D((SingleMesh)mesh, MeshType.Patient, true));
             }
         }
         /// <summary>

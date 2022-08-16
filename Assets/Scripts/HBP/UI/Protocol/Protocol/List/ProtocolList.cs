@@ -1,12 +1,13 @@
 ﻿using System.Linq;
 using UnityEngine;
+using HBP.UI.Lists;
 
 namespace HBP.UI.Experience.Protocol
 {
     /// <summary>
     /// List to display protocols.
     /// </summary>
-    public class ProtocolList : Tools.Unity.Lists.ActionableList<Core.Data.Protocol>
+    public class ProtocolList : ActionableList<Core.Data.Protocol>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Blocs, DescendingBlocs }

@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using Tools.CSharp;
+using HBP.Core.Tools;
 
-namespace Tools.Unity
+namespace HBP.UI
 {
     public class FileSelector : MonoBehaviour
     {
@@ -54,7 +55,7 @@ namespace Tools.Unity
                 }
             }, Extension.Split(','), Message, m_InputField.text.ConvertToFullPath());
 #else
-            string result = HBP.UI.FileBrowser.GetExistingFileName(Extension.Split(','), Message, m_InputField.text.ConvertToFullPath());
+            string result = FileBrowser.GetExistingFileName(Extension.Split(','), Message, m_InputField.text.ConvertToFullPath());
             if (result != string.Empty)
             {
                 result = result.StandardizeToPath();

@@ -255,7 +255,7 @@ namespace HBP.Core.DLL
             rayDirectionArray[1] = rayDirection.y;
             rayDirectionArray[2] = rayDirection.z;
 
-            DLL.Surface invisiblePartMesh = new DLL.Surface();
+            Surface invisiblePartMesh = new Surface();
             update_visiblity_mask_with_ray(_handle, invisiblePartMesh.getHandle(), rayDirectionArray, hitPointArray, (int) mode, degrees);
             return invisiblePartMesh;
         }

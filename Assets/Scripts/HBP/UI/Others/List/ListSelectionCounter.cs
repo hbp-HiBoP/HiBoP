@@ -1,10 +1,10 @@
-﻿using Tools.Unity.Lists;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using HBP.Core.Interfaces;
+using HBP.UI.Lists;
 
-namespace Tools.Unity.Components
+namespace HBP.UI.Components
 {
     [RequireComponent(typeof(SelectableList<>))]
     public class ListSelectionCounter : MonoBehaviour

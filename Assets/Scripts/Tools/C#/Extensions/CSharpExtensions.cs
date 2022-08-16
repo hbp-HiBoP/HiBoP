@@ -70,8 +70,8 @@ namespace Tools.CSharp
         {
             path = new Regex("/+").Replace(path, "/");
             path = new Regex("\\\\+").Replace(path, "\\");
-            path = path.Replace('/', System.IO.Path.DirectorySeparatorChar);
-            path = path.Replace('\\', System.IO.Path.DirectorySeparatorChar);
+            path = path.Replace('/', Path.DirectorySeparatorChar);
+            path = path.Replace('\\', Path.DirectorySeparatorChar);
             if (path.StartsWith("\\")) path = "\\" + path;
             return path;
         }

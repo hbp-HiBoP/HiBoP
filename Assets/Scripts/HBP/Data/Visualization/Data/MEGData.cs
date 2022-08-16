@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Tools.CSharp;
 
 namespace HBP.Core.Data.Processed
 {
@@ -13,27 +12,27 @@ namespace HBP.Core.Data.Processed
         public Dictionary<string, float[]> ValuesByChannel { get; set; } = new Dictionary<string, float[]>();
         public Dictionary<string, string> UnitByChannel { get; set; } = new Dictionary<string, string>();
         public Tools.Frequency Frequency { get; set; } = new Tools.Frequency(0);
-        public Core.Tools.TimeWindow Window
+        public Tools.TimeWindow Window
         {
             get
             {
                 if (ValuesByChannel.Count > 0)
                 {
-                    return new Core.Tools.TimeWindow(0, Frequency.ConvertNumberOfSamplesToRoundedMilliseconds(ValuesByChannel.Values.Select(v => v.Length).Max()));
+                    return new Tools.TimeWindow(0, Frequency.ConvertNumberOfSamplesToRoundedMilliseconds(ValuesByChannel.Values.Select(v => v.Length).Max()));
                 }
-                return new Core.Tools.TimeWindow(0, 1);
+                return new Tools.TimeWindow(0, 1);
             }
         }
         #endregion
 
         #region Public Methods
-        public Core.Tools.TimeWindow GetChannelWindow(string channel)
+        public Tools.TimeWindow GetChannelWindow(string channel)
         {
             if (ValuesByChannel.TryGetValue(channel, out float[] values))
             {
-                return new Core.Tools.TimeWindow(0, Frequency.ConvertNumberOfSamplesToRoundedMilliseconds(values.Length));
+                return new Tools.TimeWindow(0, Frequency.ConvertNumberOfSamplesToRoundedMilliseconds(values.Length));
             }
-            return new Core.Tools.TimeWindow(0, 0);
+            return new Tools.TimeWindow(0, 0);
         }
         #endregion
     }
@@ -54,7 +53,7 @@ namespace HBP.Core.Data.Processed
                     MEGItem existingItem = MEGItems.Find(i => i.Patient == vDataInfo.Patient && i.Label == vDataInfo.Name);
                     if (existingItem != null)
                     {
-                        existingItem.FMRI = new Core.Object3D.FMRI(data.FMRI);
+                        existingItem.FMRI = new Object3D.FMRI(data.FMRI);
                     }
                     else
                     {
@@ -62,7 +61,7 @@ namespace HBP.Core.Data.Processed
                         {
                             Label = vDataInfo.Name,
                             Patient = vDataInfo.Patient,
-                            FMRI = new Core.Object3D.FMRI(data.FMRI)
+                            FMRI = new Object3D.FMRI(data.FMRI)
                         };
                         MEGItems.Add(newItem);
                     }

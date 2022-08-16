@@ -1,4 +1,4 @@
-﻿namespace Tools.Unity.Lists
+﻿namespace HBP.UI.Lists
 {
     /// <summary>
     /// List to display string.

@@ -1,13 +1,14 @@
 ﻿using System.ComponentModel;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.UI.Lists;
 
 namespace HBP.UI.Experience.Protocol
 {
     /// <summary>
     /// Component to display treatment in list.
     /// </summary>
-    public class TreatmentItem : Tools.Unity.Lists.ActionnableItem<Core.Data.Treatment>
+    public class TreatmentItem : ActionnableItem<Core.Data.Treatment>
     {
         #region Properties
         [SerializeField] Text m_TypeText;

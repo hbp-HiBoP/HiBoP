@@ -1,12 +1,13 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using HBP.UI.Lists;
 
 namespace HBP.UI
 {
 	/// <summary>
 	/// Component to display project in list.
 	/// </summary>
-	public class ProjectItem : Tools.Unity.Lists.ActionnableItem<Core.Data.ProjectInfo> 
+	public class ProjectItem : ActionnableItem<Core.Data.ProjectInfo> 
 	{
         #region Properties
         [SerializeField] Text m_NameText;
@@ -17,7 +18,7 @@ namespace HBP.UI
         [SerializeField] Text m_DatasetsText;
         [SerializeField] Text m_VisualizationsText;
 
-        [SerializeField] HBP.Theme.State m_EmptyState;
+        [SerializeField] Theme.State m_EmptyState;
 
         /// <summary>
         /// Object to display.

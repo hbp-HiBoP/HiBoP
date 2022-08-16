@@ -12,7 +12,7 @@ using HBP.UI;
 using HBP.Core.Data;
 using HBP.Core.Object3D;
 
-namespace HBP.Module3D
+namespace HBP.Display.Module3D
 {
     /// <summary>
     /// Base class of the 3D module
@@ -95,7 +95,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return new ReadOnlyCollection<Core.Data.Visualization>((from scene in Scenes select scene.Visualization).ToList());
+                return new ReadOnlyCollection<Visualization>((from scene in Scenes select scene.Visualization).ToList());
             }
         }
         
@@ -124,7 +124,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when hovering a site to display its information
         /// </summary>
-        [HideInInspector] public static GenericEvent<Core.Object3D.SiteInfo> OnDisplaySiteInformation = new GenericEvent<Core.Object3D.SiteInfo>();
+        [HideInInspector] public static GenericEvent<SiteInfo> OnDisplaySiteInformation = new GenericEvent<SiteInfo>();
         /// <summary>
         /// Event called when hovering a atlas area to display its information
         /// </summary>
@@ -192,7 +192,7 @@ namespace HBP.Module3D
         /// Load a list of visualizations into 3D scenes
         /// </summary>
         /// <param name="visualizations">Visualizations to be loaded</param>
-        public static void LoadScenes(IEnumerable<Core.Data.Visualization> visualizations)
+        public static void LoadScenes(IEnumerable<Visualization> visualizations)
         {
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
             LoadingManager.Load(c_Load(visualizations, (progress, duration, text) => onChangeProgress.Invoke(progress, duration,text)), onChangeProgress);
@@ -201,7 +201,7 @@ namespace HBP.Module3D
         /// Remove every scenes corresponding to a visualization
         /// </summary>
         /// <param name="visualization">Visualization corresponding to the scenes to be removed</param>
-        public static void RemoveScene(Core.Data.Visualization visualization)
+        public static void RemoveScene(Visualization visualization)
         {
             Base3DScene[] scenes = Scenes.Where(s => s.Visualization == visualization).ToArray();
             foreach (var scene in scenes)
@@ -224,13 +224,13 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="visualization">Visualization from which the new visualization will be extracted</param>
         /// <param name="patient">Patient of the new visualization</param>
-        public static void LoadSinglePatientSceneFromMultiPatientScene(Core.Data.Visualization visualization, Core.Data.Patient patient)
+        public static void LoadSinglePatientSceneFromMultiPatientScene(Visualization visualization, Patient patient)
         {
             Base3DScene scene = Scenes.FirstOrDefault(s => s.Visualization == visualization);
             scene.SaveConfiguration();
-            Core.Data.Visualization visualizationToLoad = visualization.Clone() as Core.Data.Visualization;
+            Visualization visualizationToLoad = visualization.Clone() as Visualization;
             visualizationToLoad.Name = patient.Name;
-            visualizationToLoad.Patients = new List<Core.Data.Patient>() { patient };
+            visualizationToLoad.Patients = new List<Patient>() { patient };
             visualizationToLoad.Configuration.MeshName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization;
             visualizationToLoad.Configuration.MRIName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization;
             visualizationToLoad.Configuration.ImplantationName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization;
@@ -245,7 +245,7 @@ namespace HBP.Module3D
                 visualizationToLoad.Configuration.PreloadedMRIs = scene.MRIManager.PreloadedMRIs[patient];
             }
             visualizationToLoad.GenerateID();
-            LoadScenes(new Core.Data.Visualization[] { visualizationToLoad });
+            LoadScenes(new Visualization[] { visualizationToLoad });
         }
         /// <summary>
         /// Save all the configurations of the scenes
@@ -290,16 +290,16 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="visualizations">Visualizations to be loaded</param>
         /// <returns></returns>
-        public static IEnumerator c_Load(IEnumerable<Core.Data.Visualization> visualizations, Action<float,float, LoadingText> onChangeProgress)
+        public static IEnumerator c_Load(IEnumerable<Visualization> visualizations, Action<float,float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
 
-            Dictionary<Core.Data.Visualization, int> weightByVisualization = visualizations.ToDictionary(v => v, v => (v.CCEPColumns.Count + v.IEEGColumns.Count) * v.Patients.Count + v.AnatomicColumns.Count + v.FMRIColumns.Count + v.MEGColumns.Count);
+            Dictionary<Visualization, int> weightByVisualization = visualizations.ToDictionary(v => v, v => (v.CCEPColumns.Count + v.IEEGColumns.Count) * v.Patients.Count + v.AnatomicColumns.Count + v.FMRIColumns.Count + v.MEGColumns.Count);
             int totalWeight = weightByVisualization.Values.Sum();
             float progress = 0;
             const float LOADING_VISUALIZATION_PROGRESS = 0.5f;
             const float LOADING_SCENE_PROGRESS = 0.5f;
-            foreach (Core.Data.Visualization visualization in visualizations)
+            foreach (Visualization visualization in visualizations)
             {
                 float visualizationWeight = (float)weightByVisualization[visualization] / totalWeight;
                 if (!visualization.IsVisualizable) throw new CanNotLoadVisualization(visualization.Name);
@@ -330,7 +330,7 @@ namespace HBP.Module3D
         /// <param name="visualization">Visualization to be loaded</param>
         /// <param name="onChangeProgress">Event to update the loading circle</param>
         /// <returns></returns>
-        private static IEnumerator c_LoadScene(Core.Data.Visualization visualization, Action<float, float, LoadingText> onChangeProgress)
+        private static IEnumerator c_LoadScene(Visualization visualization, Action<float, float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
 

@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using HBP.Display.Preferences;
-using Tools.Unity;
 
 namespace HBP.UI.Preferences
 {
@@ -48,7 +47,7 @@ namespace HBP.UI.Preferences
             }
             m_Default.onClick.AddListener(() =>
             {
-                DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Restore colors to default", "Do you want to restore the colors to their original states?", () =>
+                DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Restore colors to default", "Do you want to restore the colors to their original states?", () =>
                 {
                     Object.SetDefaultColors();
                     SetFields(Object);

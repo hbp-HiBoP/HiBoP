@@ -1,6 +1,5 @@
-﻿using HBP.Module3D;
+﻿using HBP.Display.Module3D;
 using System.Linq;
-using Tools.Unity.ResizableGrid;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,7 +11,7 @@ namespace HBP.UI.Module3D
         private const float MINIMIZED_THRESHOLD = 260.0f;
         private Base3DScene m_Scene;
         private RectTransform m_RectTransform;
-        private ResizableGrid m_ParentGrid;
+        private ResizableGrid.ResizableGrid m_ParentGrid;
         [SerializeField] private SiteList m_SiteList;
         [SerializeField] private Toggle m_SiteFiltersToggle;
         [SerializeField] private SiteFilters m_SiteFilters;
@@ -34,7 +33,7 @@ namespace HBP.UI.Module3D
         private void Awake()
         {
             m_RectTransform = GetComponent<RectTransform>();
-            m_ParentGrid = GetComponentInParent<ResizableGrid>();
+            m_ParentGrid = GetComponentInParent<ResizableGrid.ResizableGrid>();
         }
         private void Update()
         {

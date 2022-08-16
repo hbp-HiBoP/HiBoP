@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using Tools.Unity.Lists;
 using System.Linq;
+using HBP.UI.Lists;
 
 namespace HBP.UI.Experience.Protocol
 {
@@ -13,7 +13,7 @@ namespace HBP.UI.Experience.Protocol
 		#region Properties
 		[SerializeField] Text m_NameText;
         [SerializeField] Text m_BlocsText;
-        [SerializeField] HBP.Theme.State m_ErrorState;
+        [SerializeField] Theme.State m_ErrorState;
 
         /// <summary>
         /// Object to display.

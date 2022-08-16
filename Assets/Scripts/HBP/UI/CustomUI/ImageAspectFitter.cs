@@ -59,7 +59,7 @@ namespace HBP.UI
             }
             set
             {
-                if (!SetPropertyUtility.SetStruct<bool>(ref this.m_IgnoreLayout, value))
+                if (!SetPropertyUtility.SetStruct(ref this.m_IgnoreLayout, value))
                     return;
                 this.SetDirty();
             }
@@ -73,7 +73,7 @@ namespace HBP.UI
             }
             set
             {
-                if (!SetPropertyUtility.SetStruct<FitMode>(ref this.m_FitMode, value))
+                if (!SetPropertyUtility.SetStruct(ref this.m_FitMode, value))
                     return;
                 this.SetDirty();
             }

@@ -1,4 +1,4 @@
-﻿using HBP.Module3D;
+﻿using HBP.Display.Module3D;
 using UnityEngine;
 
 namespace HBP.UI.Module3D
@@ -33,7 +33,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         public override void ShowToolbarCallback()
         {
-            foreach (HBP.Module3D.Base3DScene scene in HBP3DModule.Scenes)
+            foreach (Base3DScene scene in HBP3DModule.Scenes)
             {
                 scene.ROIManager.ROICreationMode = true;
             }
@@ -43,7 +43,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         public override void HideToolbarCallback()
         {
-            foreach (HBP.Module3D.Base3DScene scene in HBP3DModule.Scenes)
+            foreach (Base3DScene scene in HBP3DModule.Scenes)
             {
                 scene.ROIManager.ROICreationMode = false;
             }

@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace HBP.Module3D
+namespace HBP.Display.Module3D
 {
     /// <summary>
     /// Class containing the parameters for the activity of a dynamic column

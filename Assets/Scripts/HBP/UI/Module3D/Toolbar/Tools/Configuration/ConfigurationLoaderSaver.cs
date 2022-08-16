@@ -1,8 +1,6 @@
 ﻿using HBP.Core.Data;
-using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
-using T = Tools.Unity;
 
 namespace HBP.UI.Module3D.Tools
 {
@@ -34,7 +32,7 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 SelectedScene.SaveConfiguration();
-                DialogBoxManager.Open(T.DialogBoxManager.AlertType.Informational, "Configuration saved", "The configuration of the selected scene has been saved in the visualization <color=#3080ffff>" + SelectedScene.Name + "</color>.\n\nPlease save the project to apply changes in the project files.");
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Configuration saved", "The configuration of the selected scene has been saved in the visualization <color=#3080ffff>" + SelectedScene.Name + "</color>.\n\nPlease save the project to apply changes in the project files.");
             });
             m_Load.onClick.AddListener(() =>
             {
@@ -45,7 +43,7 @@ namespace HBP.UI.Module3D.Tools
                 {
                     if (selector.ObjectsSelected.Length > 0)
                     {
-                        SelectedScene.Visualization.Configuration = selector.ObjectsSelected[0].Configuration.Clone() as Core.Data.VisualizationConfiguration;
+                        SelectedScene.Visualization.Configuration = selector.ObjectsSelected[0].Configuration.Clone() as VisualizationConfiguration;
                         SelectedScene.LoadConfiguration();
                     }
                 });

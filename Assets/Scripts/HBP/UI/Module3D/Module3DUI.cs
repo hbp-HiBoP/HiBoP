@@ -1,9 +1,9 @@
-﻿using HBP.Module3D;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.Core.Data;
+using HBP.Display.Module3D;
 
 namespace HBP.UI.Module3D
 {

@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using UnityEngine;
 using HBP.Core.Enums;
+using HBP.UI.Lists;
 
 namespace HBP.UI.Experience.Protocol
 {
@@ -8,7 +9,7 @@ namespace HBP.UI.Experience.Protocol
     {
         #region Properties
         [SerializeField] protected EventList m_List;
-        public override Tools.Unity.Lists.ActionableList<Core.Data.Event> List => m_List;
+        public override ActionableList<Core.Data.Event> List => m_List;
 
         [SerializeField] protected EventCreator m_ObjectCreator;
         public override ObjectCreator<Core.Data.Event> ObjectCreator => m_ObjectCreator;

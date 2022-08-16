@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Tools.Unity;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -34,11 +33,11 @@ namespace HBP.UI.QuickStart
         }
         private void LoadBIDSDatabase(string path)
         {
-            ILoadableFromDatabase<Core.Data.Patient> loadable = new Core.Data.Patient();
+            ILoadableFromDatabase<Patient> loadable = new Patient();
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
             LoadingManager.Load(loadable.LoadFromDatabase(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => FinishedLoadingBIDSDatabase(result)), onChangeProgress);
         }
-        private void FinishedLoadingBIDSDatabase(IEnumerable<Core.Data.Patient> patients)
+        private void FinishedLoadingBIDSDatabase(IEnumerable<Patient> patients)
         {
             m_BIDSPatientListGestion.List.Set(patients);
             m_BIDSPatientListPanel.gameObject.SetActive(true);
@@ -79,7 +78,7 @@ namespace HBP.UI.QuickStart
         }
         public override bool OpenPreviousPanel()
         {
-            ApplicationState.ProjectLoaded.SetPatients(new Core.Data.Patient[0]);
+            ApplicationState.ProjectLoaded.SetPatients(new Patient[0]);
             return base.OpenPreviousPanel();
         }
         #endregion

@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using Tools.Unity.Lists;
 using HBP.Theme.Components;
+using HBP.UI.Lists;
 
 namespace HBP.UI
 {
@@ -16,7 +16,7 @@ namespace HBP.UI
         [SerializeField] ThemeElement m_MarsAtlasThemeElement;
         [SerializeField] ThemeElement m_TransformationThemeElement;
 
-        [SerializeField] HBP.Theme.State m_ErrorState;
+        [SerializeField] Theme.State m_ErrorState;
 
         /// <summary>
         /// Object to display.

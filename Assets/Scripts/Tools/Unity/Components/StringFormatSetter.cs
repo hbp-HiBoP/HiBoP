@@ -2,7 +2,7 @@
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
 
-namespace Tools.Unity.Components
+namespace HBP.UI.Components
 {
     public class StringFormatSetter : MonoBehaviour
     {

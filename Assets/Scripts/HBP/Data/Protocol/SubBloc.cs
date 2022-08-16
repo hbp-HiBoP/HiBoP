@@ -73,11 +73,11 @@ namespace HBP.Core.Data
         /// <summary>
         /// Window of the SubBloc (\a x : time before main event in ms. \a y : time after main event in ms.)
         /// </summary>
-        [DataMember] public Core.Tools.TimeWindow Window { get; set; }
+        [DataMember] public Tools.TimeWindow Window { get; set; }
         /// <summary>
         /// Baseline of the SubBloc (\a x : start of the Baseline in ms. \a y : end of the Baseline in ms.)
         /// </summary>
-        [DataMember] public Core.Tools.TimeWindow Baseline { get; set; }
+        [DataMember] public Tools.TimeWindow Baseline { get; set; }
         /// <summary>
         /// Main event of the SubBloc.
         /// </summary>
@@ -142,7 +142,7 @@ namespace HBP.Core.Data
         /// <param name="icons">Icons</param>
         /// <param name="treatments">Treatments</param>
         /// <param name="ID">Unique identifier</param>
-        public SubBloc(string name, int order, Enums.MainSecondaryEnum type, Core.Tools.TimeWindow window, Core.Tools.TimeWindow baseline, IEnumerable<Event> events, IEnumerable<Icon> icons, IEnumerable<Treatment> treatments, string ID) : base(ID)
+        public SubBloc(string name, int order, Enums.MainSecondaryEnum type, Tools.TimeWindow window, Tools.TimeWindow baseline, IEnumerable<Event> events, IEnumerable<Icon> icons, IEnumerable<Treatment> treatments, string ID) : base(ID)
         {
             Name = name;
             Order = order;
@@ -164,7 +164,7 @@ namespace HBP.Core.Data
         /// <param name="events">Events</param>
         /// <param name="icons">Icons</param>
         /// <param name="treatments">Treatments</param>
-        public SubBloc(string name, int order, Enums.MainSecondaryEnum type, Core.Tools.TimeWindow window, Core.Tools.TimeWindow baseline, IEnumerable<Event> events, IEnumerable<Icon> icons, IEnumerable<Treatment> treatments) : base()
+        public SubBloc(string name, int order, Enums.MainSecondaryEnum type, Tools.TimeWindow window, Tools.TimeWindow baseline, IEnumerable<Event> events, IEnumerable<Icon> icons, IEnumerable<Treatment> treatments) : base()
         {
             Name = name;
             Order = order;
@@ -178,7 +178,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// Create a new SubBloc instance with default value.
         /// </summary>
-        public SubBloc() : this("New subBloc", 0, Enums.MainSecondaryEnum.Main, new Core.Tools.TimeWindow(-300,300), new Core.Tools.TimeWindow(-300,0), new List<Event>(), new List<Icon>(), new List<Treatment>())
+        public SubBloc() : this("New subBloc", 0, Enums.MainSecondaryEnum.Main, new Tools.TimeWindow(-300,300), new Tools.TimeWindow(-300,0), new List<Event>(), new List<Icon>(), new List<Treatment>())
         {
         }
         /// <summary>

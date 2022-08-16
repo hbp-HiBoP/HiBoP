@@ -1,13 +1,9 @@
 ﻿using ThirdParty.CielaSpike;
-using HBP.Module3D;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Tools.Unity;
-using Tools.Unity.Components;
-using Tools.Unity.ResizableGrid;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
@@ -15,6 +11,8 @@ using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
 using HBP.Core.Data;
+using HBP.Display.Module3D;
+using HBP.UI.Components;
 
 namespace HBP.UI.Module3D
 {
@@ -105,7 +103,7 @@ namespace HBP.UI.Module3D
         {
             m_Scene = scene;
 
-            ResizableGrid grid = GetComponent<ResizableGrid>();
+            ResizableGrid.ResizableGrid grid = GetComponent<ResizableGrid.ResizableGrid>();
             // 3D
             grid.AddColumn();
             grid.AddViewLine(m_SceneUIPrefab);
@@ -244,7 +242,7 @@ namespace HBP.UI.Module3D
                     {
                         if (!Mathf.Approximately(channelInformations.GetComponent<ZoneResizer>().Ratio, 1.0f))
                         {
-                            global::Tools.Unity.Graph.Graph graph = channelInformations.transform.GetComponentInChildren<global::Tools.Unity.Graph.Graph>();
+                            Graphs.Graph graph = channelInformations.transform.GetComponentInChildren<Graphs.Graph>();
                             Texture2D graphTexture = Texture2DExtension.ScreenRectToTexture(graph.GetComponent<RectTransform>().ToScreenSpace());
                             var curvesName = graph.GetEnabledCurvesName();
                             try
@@ -329,7 +327,7 @@ namespace HBP.UI.Module3D
                             try
                             {
                                 List<string> names = new List<string>();
-                                Core.Data.Patient currentPatient = null;
+                                Patient currentPatient = null;
                                 foreach (var channelStruct in informations.ChannelStructs.OrderBy(cs => cs.Patient.Name))
                                 {
                                     if (currentPatient != channelStruct.Patient)
@@ -411,7 +409,7 @@ namespace HBP.UI.Module3D
             int separatorSize = 3;
 
             Column3DDynamic selectedColumnDynamic = m_Scene.SelectedColumn as Column3DDynamic;
-            Core.Data.Timeline timeline = selectedColumnDynamic.Timeline;
+            Timeline timeline = selectedColumnDynamic.Timeline;
             float fps = timeline.Step;
             int numberOfColumns = m_Scene.Columns.Count;
             int numberOfViewLines = m_Scene.ViewLineNumber;

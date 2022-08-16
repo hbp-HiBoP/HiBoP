@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace Tools.Unity.Components
+namespace HBP.UI.Components
 {
     [RequireComponent(typeof(Selectable))]
 	public class DoubleClickEventHandler : MonoBehaviour , IPointerClickHandler

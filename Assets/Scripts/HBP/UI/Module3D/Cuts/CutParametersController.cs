@@ -1,5 +1,4 @@
-﻿using HBP.Module3D;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System;
@@ -7,6 +6,8 @@ using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
 using HBP.Core.Enums;
 using HBP.Core.Data;
+using HBP.Display.Module3D;
+using HBP.UI.Components;
 
 namespace HBP.UI.Module3D
 {
@@ -391,7 +392,7 @@ namespace HBP.UI.Module3D
         {
             m_Scene = scene;
             Cut = cut;
-            m_Image.GetComponent<global::Tools.Unity.Components.ImageRatio>().Type = global::Tools.Unity.Components.ImageRatio.ControlType.WidthControlsHeight;
+            m_Image.GetComponent<ImageRatio>().Type = ImageRatio.ControlType.WidthControlsHeight;
             m_Orientation.options = new List<Dropdown.OptionData>();
             foreach (var orientation in Enum.GetNames(typeof(CutOrientation)))
             {

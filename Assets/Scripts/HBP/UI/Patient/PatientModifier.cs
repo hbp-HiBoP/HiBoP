@@ -8,7 +8,7 @@ namespace HBP.UI
     /// <summary>
     /// Window to modify a patient.
     /// </summary>
-    public class PatientModifier : ObjectModifier<Core.Data.Patient>
+    public class PatientModifier : ObjectModifier<Patient>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -89,7 +89,7 @@ namespace HBP.UI
         /// Set the fields.
         /// </summary>
         /// <param name="objectToDisplay">Patient to display</param>
-        protected override void SetFields(Core.Data.Patient objectToDisplay)
+        protected override void SetFields(Patient objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_PlaceInputField.text = objectToDisplay.Place;
@@ -151,7 +151,7 @@ namespace HBP.UI
         /// Add mesh to the patient.
         /// </summary>
         /// <param name="mesh">Mesh to add</param>
-        protected void AddMesh(Core.Data.BaseMesh mesh)
+        protected void AddMesh(BaseMesh mesh)
         {
             if(!ObjectTemp.Meshes.Contains(mesh))
             {
@@ -162,7 +162,7 @@ namespace HBP.UI
         /// Remove mesh from the patient.
         /// </summary>
         /// <param name="mesh">Mesh to remove</param>
-        protected void RemoveMesh(Core.Data.BaseMesh mesh)
+        protected void RemoveMesh(BaseMesh mesh)
         {
             if(ObjectTemp.Meshes.Contains(mesh))
             {
@@ -173,7 +173,7 @@ namespace HBP.UI
         /// Update mesh from the patient.
         /// </summary>
         /// <param name="mesh">Mesh to update</param>
-        protected void UpdateMesh(Core.Data.BaseMesh mesh)
+        protected void UpdateMesh(BaseMesh mesh)
         {
             int index = ObjectTemp.Meshes.FindIndex(m => m.Equals(mesh));
             if(index != -1)
@@ -186,7 +186,7 @@ namespace HBP.UI
         /// Add MRI to the patient.
         /// </summary>
         /// <param name="mri">MRI to add</param>
-        protected void AddMRI(Core.Data.MRI mri)
+        protected void AddMRI(MRI mri)
         {
             if (!ObjectTemp.MRIs.Contains(mri))
             {
@@ -197,7 +197,7 @@ namespace HBP.UI
         /// Remove MRI from the patient.
         /// </summary>
         /// <param name="mri">MRI to remove</param>
-        protected void RemoveMRI(Core.Data.MRI mri)
+        protected void RemoveMRI(MRI mri)
         {
             if (ObjectTemp.MRIs.Contains(mri))
             {
@@ -208,7 +208,7 @@ namespace HBP.UI
         /// Update MRI from the patient.
         /// </summary>
         /// <param name="mri">MRI to update</param>
-        protected void UpdateMRI(Core.Data.MRI mri)
+        protected void UpdateMRI(MRI mri)
         {
             int index = ObjectTemp.MRIs.FindIndex(m => m.Equals(mri));
             if (index != -1)
@@ -221,7 +221,7 @@ namespace HBP.UI
         /// Add site to the patient.
         /// </summary>
         /// <param name="site">site to add</param>
-        protected void AddSite(Core.Data.Site site)
+        protected void AddSite(Site site)
         {
             if (!ObjectTemp.Sites.Contains(site))
             {
@@ -232,7 +232,7 @@ namespace HBP.UI
         /// Remove site from the patient.
         /// </summary>
         /// <param name="site">site to remove</param>
-        protected void RemoveSite(Core.Data.Site site)
+        protected void RemoveSite(Site site)
         {
             if (ObjectTemp.Sites.Contains(site))
             {
@@ -243,7 +243,7 @@ namespace HBP.UI
         /// Update site from the patient.
         /// </summary>
         /// <param name="site">Site to update</param>
-        protected void UpdateSite(Core.Data.Site site)
+        protected void UpdateSite(Site site)
         {
             int index = ObjectTemp.Sites.FindIndex(s => s.Equals(site));
             if (index != -1)
@@ -256,7 +256,7 @@ namespace HBP.UI
         /// Add tag to the patient.
         /// </summary>
         /// <param name="tag">Tag to add</param>
-        protected void AddTag(Core.Data.BaseTagValue tag)
+        protected void AddTag(BaseTagValue tag)
         {
             if (!ObjectTemp.Tags.Contains(tag))
             {
@@ -267,7 +267,7 @@ namespace HBP.UI
         /// Remove tag from the patient.
         /// </summary>
         /// <param name="tag">Tag to remove</param>
-        protected void RemoveTag(Core.Data.BaseTagValue tag)
+        protected void RemoveTag(BaseTagValue tag)
         {
             if (ObjectTemp.Tags.Contains(tag))
             {
@@ -278,7 +278,7 @@ namespace HBP.UI
         /// Update tag from the patient.
         /// </summary>
         /// <param name="tag">Tag to update</param>
-        protected void UpdateTag(Core.Data.BaseTagValue tag)
+        protected void UpdateTag(BaseTagValue tag)
         {
             int index = ObjectTemp.Tags.FindIndex(t => t.Equals(tag));
             if (index != -1)

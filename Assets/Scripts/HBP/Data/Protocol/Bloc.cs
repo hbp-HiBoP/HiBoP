@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using Tools.CSharp;
-using Tools.Unity;
 using UnityEngine;
 using HBP.Core.Interfaces;
+using HBP.Core.Tools;
 
 namespace HBP.Core.Data
 {
@@ -297,7 +297,7 @@ namespace HBP.Core.Data
         /// </summary>
         /// <param name="blocs">Blocs to display</param>
         /// <returns>Tuple containing a array of tuple of bloc and subbloc</returns>
-        public static Tuple<Tuple<Bloc,SubBloc>[], Core.Tools.TimeWindow>[] GetSubBlocsAndWindowByColumn(IEnumerable<Bloc> blocs)
+        public static Tuple<Tuple<Bloc,SubBloc>[], Tools.TimeWindow>[] GetSubBlocsAndWindowByColumn(IEnumerable<Bloc> blocs)
         {
             List<Tuple<int, List<Tuple<Bloc, SubBloc>>>> subBlocsByColumns = new List<Tuple<int, List<Tuple<Bloc, SubBloc>>>>();
             foreach (var bloc in blocs)
@@ -313,11 +313,11 @@ namespace HBP.Core.Data
             }
             subBlocsByColumns = subBlocsByColumns.OrderBy(t => t.Item1).ToList();
 
-            List<Tuple<Tuple<Bloc,SubBloc>[], Core.Tools.TimeWindow>> timeLimitsByColumns = new List<Tuple<Tuple<Bloc,SubBloc>[], Core.Tools.TimeWindow>>();
+            List<Tuple<Tuple<Bloc,SubBloc>[], Tools.TimeWindow>> timeLimitsByColumns = new List<Tuple<Tuple<Bloc,SubBloc>[], Tools.TimeWindow>>();
             foreach (var tuple in subBlocsByColumns)
             {
-                Core.Tools.TimeWindow window = new Core.Tools.TimeWindow(tuple.Item2.Min(s => s.Item2.Window.Start), tuple.Item2.Max(s => s.Item2.Window.End));
-                timeLimitsByColumns.Add(new Tuple<Tuple<Bloc,SubBloc>[], Core.Tools.TimeWindow>(tuple.Item2.ToArray(), window));
+                Tools.TimeWindow window = new Tools.TimeWindow(tuple.Item2.Min(s => s.Item2.Window.Start), tuple.Item2.Max(s => s.Item2.Window.End));
+                timeLimitsByColumns.Add(new Tuple<Tuple<Bloc,SubBloc>[], Tools.TimeWindow>(tuple.Item2.ToArray(), window));
             }
             return timeLimitsByColumns.ToArray();
         }

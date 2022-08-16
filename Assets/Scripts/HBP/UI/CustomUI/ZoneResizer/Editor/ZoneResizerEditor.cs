@@ -15,8 +15,8 @@ namespace HBP.UI
 
         public override void OnInspectorGUI()
         {
-            instance.LeftRight = (HBP.Theme.State)EditorGUILayout.ObjectField("Left Right State", instance.LeftRight, typeof(HBP.Theme.State), true);
-            instance.TopBottom = (HBP.Theme.State)EditorGUILayout.ObjectField("Top Bottom State", instance.TopBottom, typeof(HBP.Theme.State), true);
+            instance.LeftRight = (Theme.State)EditorGUILayout.ObjectField("Left Right State", instance.LeftRight, typeof(Theme.State), true);
+            instance.TopBottom = (Theme.State)EditorGUILayout.ObjectField("Top Bottom State", instance.TopBottom, typeof(Theme.State), true);
             instance.ThemeElement = (ThemeElement)EditorGUILayout.ObjectField("Theme Element", instance.ThemeElement, typeof(ThemeElement), true);
             instance.Direction = (ZoneResizer.DirectionType)EditorGUILayout.EnumPopup("Direction", instance.Direction);
             switch (instance.Direction)

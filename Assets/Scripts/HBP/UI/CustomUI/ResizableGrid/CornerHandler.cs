@@ -1,12 +1,12 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace Tools.Unity.ResizableGrid
+namespace HBP.UI.ResizableGrid
 {
     public class CornerHandler : Handler
     {
         #region Properties
-        [SerializeField] protected HBP.Theme.State m_CornerState;
+        [SerializeField] protected Theme.State m_CornerState;
 
         /// <summary>
         /// Associated vertical handler

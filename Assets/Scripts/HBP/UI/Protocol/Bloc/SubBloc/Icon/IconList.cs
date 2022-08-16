@@ -1,12 +1,13 @@
 ﻿using System.Linq;
 using UnityEngine;
+using HBP.UI.Lists;
 
 namespace HBP.UI.Experience.Protocol
 {
     /// <summary>
     /// List to display icons.
     /// </summary>
-    public class IconList : Tools.Unity.Lists.ActionableList<Core.Data.Icon>
+    public class IconList : ActionableList<Core.Data.Icon>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Path, DescendingPath, Start, DescendingStart, End, DescendingEnd}

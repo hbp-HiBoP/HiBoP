@@ -2,8 +2,9 @@
 using UnityEngine;
 using UnityEditor;
 using System.IO;
+using HBP.Core.Tools;
 
-namespace Tools.Unity
+namespace HBP.Dev
 {
     public class Texture2DEditor : EditorWindow
     {

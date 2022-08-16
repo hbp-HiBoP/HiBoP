@@ -9,10 +9,9 @@ using System.Linq;
 using UnityEngine.UI.Extensions;
 using System;
 using UnityEngine.EventSystems;
-using Tools.Unity;
-using Tools.Unity.Components;
 using HBP.Core.Enums;
-
+using HBP.UI.Components;
+using HBP.Core.Tools;
 
 namespace HBP.UI.TrialMatrix.Grid
 {

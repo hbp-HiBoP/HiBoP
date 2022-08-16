@@ -1,12 +1,12 @@
 ﻿using System.Linq;
-using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 using data = HBP.Display.Informations.TrialMatrix;
 using HBP.Core.Enums;
+using HBP.Core.Tools;
 
 namespace HBP.UI.TrialMatrix.Grid
-{  
+{
     public class SubBlocOverlay : MonoBehaviour
     {
         #region Properties

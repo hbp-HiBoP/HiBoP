@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.Events;
 using System.Collections;
 using ThirdParty.CielaSpike;
-using Tools.Unity;
 using System.IO;
 using HBP.Core.Enums;
 using HBP.Core.Exceptions;
@@ -14,7 +13,7 @@ using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Core.Object3D;
 
-namespace HBP.Module3D
+namespace HBP.Display.Module3D
 {
     /// <summary>
     /// Class containing all the data concerning the gameObjects, the DLL objects and the parameters of the 3D scene
@@ -52,7 +51,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Visualization associated to this scene
         /// </summary>
-        public Core.Data.Visualization Visualization { get; private set; }
+        public Visualization Visualization { get; private set; }
 
         private bool m_IsSelected;
         /// <summary>
@@ -196,7 +195,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Material used for the brain mesh
         /// </summary>
-        public Core.Object3D.BrainMaterials BrainMaterials { get; private set; }
+        public BrainMaterials BrainMaterials { get; private set; }
 
         private ColorType m_BrainColor = ColorType.BrainColor;
         /// <summary>
@@ -1013,26 +1012,26 @@ namespace HBP.Module3D
         /// Add a column to the scene
         /// </summary>
         /// <param name="type">Base data column</param>
-        private void AddColumn(Core.Data.Column baseColumn)
+        private void AddColumn(Column baseColumn)
         {
             Column3D column = null;
-            if (baseColumn is Core.Data.AnatomicColumn)
+            if (baseColumn is AnatomicColumn)
             {
                 column = Instantiate(m_Column3DAnatomyPrefab, m_ColumnsContainer).GetComponent<Column3D>();
             }
-            else if (baseColumn is Core.Data.IEEGColumn)
+            else if (baseColumn is IEEGColumn)
             {
                 column = Instantiate(m_Column3DIEEGPrefab, m_ColumnsContainer).GetComponent<Column3DIEEG>();
             }
-            else if (baseColumn is Core.Data.CCEPColumn)
+            else if (baseColumn is CCEPColumn)
             {
                 column = Instantiate(m_Column3DCCEPPrefab, m_ColumnsContainer).GetComponent<Column3DCCEP>();
             }
-            else if (baseColumn is Core.Data.FMRIColumn)
+            else if (baseColumn is FMRIColumn)
             {
                 column = Instantiate(m_Column3DFMRIPrefab, m_ColumnsContainer).GetComponent<Column3DFMRI>();
             }
-            else if (baseColumn is Core.Data.MEGColumn)
+            else if (baseColumn is MEGColumn)
             {
                 column = Instantiate(m_Column3DMEGPrefab, m_ColumnsContainer).GetComponent<Column3DMEG>();
             }
@@ -1448,7 +1447,7 @@ namespace HBP.Module3D
         /// Initialize the scene with the corresponding visualization
         /// </summary>
         /// <param name="visualization">Visualization to be loaded in this scene</param>
-        public void Initialize(Core.Data.Visualization visualization)
+        public void Initialize(Visualization visualization)
         {
             BrainColorMapTexture = Texture2DExtension.Generate();
             BrainColorTexture = Texture2DExtension.Generate();
@@ -1456,7 +1455,7 @@ namespace HBP.Module3D
             Visualization = visualization;
             gameObject.name = Visualization.Name;
             
-            BrainMaterials = new Core.Object3D.BrainMaterials();
+            BrainMaterials = new BrainMaterials();
 
             transform.position = new Vector3(HBP3DModule.SPACE_BETWEEN_SCENES_GAME_OBJECTS * HBP3DModule.NumberOfScenesLoadedSinceStart++, transform.position.y, transform.position.z);
         }
@@ -1508,7 +1507,7 @@ namespace HBP.Module3D
 
             for (int i = 0; i < Visualization.Configuration.Views.Count; i++)
             {
-                Core.Data.View view = Visualization.Configuration.Views[i];
+                View view = Visualization.Configuration.Views[i];
                 if (i != 0)
                 {
                     AddViewLine();
@@ -1561,20 +1560,20 @@ namespace HBP.Module3D
             }
             Visualization.Configuration.Cuts = cuts;
 
-            List<Core.Data.View> views = new List<Core.Data.View>();
+            List<View> views = new List<View>();
             if (Columns.Count > 0)
             {
                 foreach (var view in Columns[0].Views)
                 {
-                    views.Add(new Core.Data.View(view.LocalCameraPosition, view.LocalCameraRotation, view.LocalCameraTarget));
+                    views.Add(new View(view.LocalCameraPosition, view.LocalCameraRotation, view.LocalCameraTarget));
                 }
             }
             Visualization.Configuration.Views = views;
 
-            List<Core.Data.RegionOfInterest> rois = new List<Core.Data.RegionOfInterest>();
-            foreach (Core.Object3D.ROI roi in ROIManager.ROIs)
+            List<RegionOfInterest> rois = new List<RegionOfInterest>();
+            foreach (ROI roi in ROIManager.ROIs)
             {
-                rois.Add(new Core.Data.RegionOfInterest(roi));
+                rois.Add(new RegionOfInterest(roi));
             }
             Visualization.Configuration.RegionsOfInterest = rois;
 
@@ -1768,7 +1767,7 @@ namespace HBP.Module3D
 
             if (m_ROIManager.ROICreationMode)
             {
-                Core.Object3D.ROI selectedROI = m_ROIManager.SelectedROI;
+                ROI selectedROI = m_ROIManager.SelectedROI;
                 if (selectedROI)
                 {
                     if (raycastResult == RaycastHitResult.ROI)
@@ -1797,7 +1796,7 @@ namespace HBP.Module3D
         /// <param name="onChangeProgress">Event to update the loading circle</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        public IEnumerator c_Initialize(Core.Data.Visualization visualization, Action<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
+        public IEnumerator c_Initialize(Visualization visualization, Action<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
         {
             Exception exception = null;
 
@@ -1877,7 +1876,7 @@ namespace HBP.Module3D
                 {
                     for (int i = 0; i < Visualization.Patients[0].Meshes.Count; ++i)
                     {
-                        Core.Data.BaseMesh mesh = Visualization.Patients[0].Meshes[i];
+                        BaseMesh mesh = Visualization.Patients[0].Meshes[i];
                         progress += loadingMeshProgress;
                         onChangeProgress.Invoke(progress, loadingMeshTime, new LoadingText("Loading Mesh ", mesh.Name, " [" + (i + 1).ToString() + "/" + Visualization.Patients[0].Meshes.Count + "]"));
                         yield return CoroutineManager.StartAsync(c_LoadBrainSurface(mesh, e => exception = e));
@@ -1895,7 +1894,7 @@ namespace HBP.Module3D
                 {
                     for (int i = 0; i < patient.Meshes.Count; ++i)
                     {
-                        Core.Data.BaseMesh mesh = patient.Meshes[i];
+                        BaseMesh mesh = patient.Meshes[i];
                         progress += loadingMeshProgress;
                         onChangeProgress.Invoke(progress, loadingMeshTime, new LoadingText("Loading Mesh ", string.Format("{0} ({1})", mesh.Name, patient.Name), " [" + (i + 1).ToString() + "/" + patient.Meshes.Count + "]"));
                         yield return Ninja.JumpBack;
@@ -1927,7 +1926,7 @@ namespace HBP.Module3D
                 {
                     for (int i = 0; i < Visualization.Patients[0].MRIs.Count; ++i)
                     {
-                        Core.Data.MRI mri = Visualization.Patients[0].MRIs[i];
+                        MRI mri = Visualization.Patients[0].MRIs[i];
                         progress += loadingMRIProgress;
                         onChangeProgress.Invoke(progress, loadingMRITime, new LoadingText("Loading MRI ", mri.Name, " [" + (i + 1).ToString() + "/" + Visualization.Patients[0].MRIs.Count + "]"));
                         yield return CoroutineManager.StartAsync(c_LoadBrainVolume(mri, e => exception = e));
@@ -1945,7 +1944,7 @@ namespace HBP.Module3D
                 {
                     for (int i = 0; i < patient.MRIs.Count; ++i)
                     {
-                        Core.Data.MRI mri = patient.MRIs[i];
+                        MRI mri = patient.MRIs[i];
                         progress += loadingMeshProgress;
                         onChangeProgress.Invoke(progress, loadingMRITime, new LoadingText("Loading MRI ", string.Format("{0} ({1})", mri.Name, patient.Name), " [" + (i + 1).ToString() + "/" + patient.MRIs.Count + "]"));
                         yield return Ninja.JumpBack;
@@ -1994,7 +1993,7 @@ namespace HBP.Module3D
         /// <param name="mri">MRI to load</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_LoadBrainVolume(Core.Data.MRI mri, Action<Exception> outPut)
+        private IEnumerator c_LoadBrainVolume(MRI mri, Action<Exception> outPut)
         {
             try
             {
@@ -2013,7 +2012,7 @@ namespace HBP.Module3D
         /// <param name="mesh">Mesh to be loaded</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_LoadBrainSurface(Core.Data.BaseMesh mesh, Action<Exception> outPut)
+        private IEnumerator c_LoadBrainSurface(BaseMesh mesh, Action<Exception> outPut)
         {
             try
             {
@@ -2035,9 +2034,9 @@ namespace HBP.Module3D
         /// <param name="updateCircle">Action to update the loading circle</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_LoadSites(IEnumerable<Core.Data.Patient> patients, Action<Exception> outPut)
+        private IEnumerator c_LoadSites(IEnumerable<Patient> patients, Action<Exception> outPut)
         {
-            Dictionary<string, List<Core.Object3D.Implantation3D.SiteInfo>> siteInfoByImplantation = new Dictionary<string, List<Core.Object3D.Implantation3D.SiteInfo>>();
+            Dictionary<string, List<Implantation3D.SiteInfo>> siteInfoByImplantation = new Dictionary<string, List<Implantation3D.SiteInfo>>();
             int patientIndex = 0;
             System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"^([a-zA-Z']+)([0-9]+)$");
             foreach (var patient in patients)
@@ -2047,13 +2046,13 @@ namespace HBP.Module3D
                 {
                     foreach (var coordinate in site.Coordinates)
                     {
-                        if (!siteInfoByImplantation.TryGetValue(coordinate.ReferenceSystem, out List<Core.Object3D.Implantation3D.SiteInfo> siteInfos))
+                        if (!siteInfoByImplantation.TryGetValue(coordinate.ReferenceSystem, out List<Implantation3D.SiteInfo> siteInfos))
                         {
-                            siteInfos = new List<Core.Object3D.Implantation3D.SiteInfo>();
+                            siteInfos = new List<Implantation3D.SiteInfo>();
                             siteInfoByImplantation.Add(coordinate.ReferenceSystem, siteInfos);
                         }
                         System.Text.RegularExpressions.GroupCollection groups = regex.Match(site.Name).Groups;
-                        Core.Object3D.Implantation3D.SiteInfo siteInfo = new Core.Object3D.Implantation3D.SiteInfo()
+                        Implantation3D.SiteInfo siteInfo = new Implantation3D.SiteInfo()
                         {
                             Name = site.Name,
                             Position = coordinate.Position.ToVector3(),
@@ -2088,9 +2087,9 @@ namespace HBP.Module3D
         {
             try
             {
-                m_MeshManager.Meshes.Add((Core.Object3D.LeftRightMesh3D)(Object3DManager.MNI.GreyMatter.Clone()));
-                m_MeshManager.Meshes.Add((Core.Object3D.LeftRightMesh3D)(Object3DManager.MNI.WhiteMatter.Clone()));
-                m_MeshManager.Meshes.Add((Core.Object3D.LeftRightMesh3D)(Object3DManager.MNI.InflatedWhiteMatter.Clone()));
+                m_MeshManager.Meshes.Add((LeftRightMesh3D)(Object3DManager.MNI.GreyMatter.Clone()));
+                m_MeshManager.Meshes.Add((LeftRightMesh3D)(Object3DManager.MNI.WhiteMatter.Clone()));
+                m_MeshManager.Meshes.Add((LeftRightMesh3D)(Object3DManager.MNI.InflatedWhiteMatter.Clone()));
                 m_MRIManager.MRIs.Add(Object3DManager.MNI.MRI);
             }
             catch (Exception e)
@@ -2110,7 +2109,7 @@ namespace HBP.Module3D
             yield return Ninja.JumpToUnity;
             try
             {
-                foreach (Core.Data.Column column in Visualization.Columns)
+                foreach (Column column in Visualization.Columns)
                 {
                     AddColumn(column);
                 }

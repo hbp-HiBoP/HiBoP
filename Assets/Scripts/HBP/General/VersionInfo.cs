@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace HBP
+namespace HBP.Core.Data
 {
     [DataContract]
     public class VersionInfo

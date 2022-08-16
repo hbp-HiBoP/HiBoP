@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace Tools.Unity
+namespace HBP.UI
 {
     public class TooltipManager : MonoBehaviour
     {

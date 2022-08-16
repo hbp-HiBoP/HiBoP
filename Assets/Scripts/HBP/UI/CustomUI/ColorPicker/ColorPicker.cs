@@ -1,10 +1,10 @@
-﻿using System.Linq;
-using Tools.Unity.Components;
+﻿using HBP.UI.Components;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions.ColorPicker;
 
-namespace Tools.Unity
+namespace HBP.UI
 {
     public class ColorPicker : MonoBehaviour
     {

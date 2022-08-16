@@ -1,27 +1,26 @@
 ﻿using HBP.Core.Data;
-using HBP.Module3D;
-using Tools.Unity;
+using HBP.Display.Module3D;
 using UnityEngine;
 
 namespace HBP.UI
 {
-    public class PatientGestion : GestionWindow<Core.Data.Patient>
+    public class PatientGestion : GestionWindow<Patient>
     {
         #region Properties
         [SerializeField] PatientListGestion m_ListGestion;
-        public override ListGestion<Core.Data.Patient> ListGestion => m_ListGestion;
+        public override ListGestion<Patient> ListGestion => m_ListGestion;
         #endregion
 
         #region Public Methods
         public override void OK()
         {
-            if (Core.Data.DataManager.HasData)
+            if (DataManager.HasData)
             {
                 DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
                 {
                     base.OK();
                     ApplicationState.ProjectLoaded.SetPatients(ListGestion.List.Objects);
-                    Core.Data.DataManager.Clear();
+                    DataManager.Clear();
                     HBP3DModule.ReloadScenes();
                 });
             }

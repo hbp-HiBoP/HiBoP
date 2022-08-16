@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using Tools.Unity;
+﻿using HBP.Core.Tools;
+using UnityEngine;
 
 namespace HBP.Core.Data.Processed
 {
@@ -84,7 +84,7 @@ namespace HBP.Core.Data.Processed
         /// <param name="icon">Icon.</param>
         /// <param name="frequency">Frequency of the data.</param>
         /// <param name="timeLine">Time line of the bloc.</param>
-        public Icon(Core.Data.Icon icon, Core.Tools.Frequency frequency, int mainEventPosition, int timelineLength)
+        public Icon(Core.Data.Icon icon, Tools.Frequency frequency, int mainEventPosition, int timelineLength)
         {
             Label = icon.Name;
             IllustrationPath = icon.ImagePath;

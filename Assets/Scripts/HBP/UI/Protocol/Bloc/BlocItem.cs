@@ -1,14 +1,14 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using Tools.Unity;
 using System.Linq;
+using HBP.UI.Lists;
 
 namespace HBP.UI.Experience.Protocol
 {
     /// <summary>
     /// Component to display bloc in list.
     /// </summary>
-	public class BlocItem : Tools.Unity.Lists.ActionnableItem<Core.Data.Bloc>
+	public class BlocItem : ActionnableItem<Core.Data.Bloc>
 	{
         #region Properties
         [SerializeField] Text m_NameText;
@@ -16,7 +16,7 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] Tooltip m_ImageTooltip;
         [SerializeField] Text m_SubBlocsText;
         [SerializeField] Text m_OrderText;
-        [SerializeField] HBP.Theme.State m_ErrorState;
+        [SerializeField] Theme.State m_ErrorState;
 
         /// <summary>
         /// Object to display.

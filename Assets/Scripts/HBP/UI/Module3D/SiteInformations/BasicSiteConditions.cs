@@ -1,6 +1,5 @@
 ﻿using HBP.Core.Data;
-using HBP.Module3D;
-using System.Linq;
+using HBP.Display.Module3D;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -40,7 +39,7 @@ namespace HBP.UI.Module3D
         [SerializeField] Toggle m_Tag;
         [SerializeField] Dropdown m_TagDropdown;
         [SerializeField] InputField m_TagFilter;
-        private Core.Data.BaseTag m_SelectedTag;
+        private BaseTag m_SelectedTag;
 
         // Values
         [SerializeField] Toggle m_Mean;

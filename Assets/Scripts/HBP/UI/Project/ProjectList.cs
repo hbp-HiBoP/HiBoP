@@ -1,12 +1,13 @@
 ﻿using System.Linq;
 using UnityEngine;
+using HBP.UI.Lists;
 
 namespace HBP.UI
 {
     /// <summary>
     /// List to display projects.
     /// </summary>
-    public class ProjectList : Tools.Unity.Lists.ActionableList<Core.Data.ProjectInfo>
+    public class ProjectList : ActionableList<Core.Data.ProjectInfo>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Patients, DescendingPatients, Groups, DescendingGroups, Protocols, DescendingProtocols, Datasets, DescendingDatasets, Visualizations, DescendingVisualizations }

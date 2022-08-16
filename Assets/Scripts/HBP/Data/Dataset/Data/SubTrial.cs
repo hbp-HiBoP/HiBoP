@@ -29,7 +29,7 @@ namespace HBP.Core.Data
             BaselineValuesByChannel = baselineValuesByChannel;
             Found = found;
         }
-        public SubTrial(Dictionary<string, float[]> valuesByChannel, Dictionary<string, string> unitByChannel, EventOccurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Core.Tools.Frequency frequency)
+        public SubTrial(Dictionary<string, float[]> valuesByChannel, Dictionary<string, string> unitByChannel, EventOccurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Tools.Frequency frequency)
         {
             int startIndex = mainEventOccurence.Index + frequency.ConvertToCeiledNumberOfSamples(subBloc.Window.Start);
             int endIndex = mainEventOccurence.Index + frequency.ConvertToFlooredNumberOfSamples(subBloc.Window.End);
@@ -134,7 +134,7 @@ namespace HBP.Core.Data
             }
             return result;
         }
-        Dictionary<Event,EventInformation> FindEvents(EventOccurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Core.Tools.Frequency frequency)
+        Dictionary<Event,EventInformation> FindEvents(EventOccurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Tools.Frequency frequency)
         {
             // Initialize
             Dictionary<Event, EventInformation> result = new Dictionary<Event, EventInformation>(subBloc.Events.Count);

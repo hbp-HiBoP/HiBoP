@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace HBP.Module3D
+namespace HBP.Display.Module3D
 {
     /// <summary>
     /// Class containing FMRI data for a column
@@ -14,11 +14,11 @@ namespace HBP.Module3D
         /// <summary>
         /// FMRI data of this column (contains information about what to display)
         /// </summary>
-        public Core.Data.MEGColumn ColumnMEGData
+        public MEGColumn ColumnMEGData
         {
             get
             {
-                return ColumnData as Core.Data.MEGColumn;
+                return ColumnData as MEGColumn;
             }
         }
         /// <summary>
@@ -79,7 +79,7 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
-        public override void Initialize(int idColumn, Core.Data.Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
+        public override void Initialize(int idColumn, Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
 

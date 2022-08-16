@@ -4,10 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Tools.CSharp;
-using Tools.Unity.Graph;
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
+using HBP.UI.Graphs;
 
 namespace HBP.UI.Informations
 {
@@ -399,7 +399,7 @@ namespace HBP.UI.Informations
         {
             ID += "_" + channel.Channel;
             TrialMatrix.Grid.Data data = m_TrialMatrixGrid.Data.First(d => d.GridData.DataStruct.Dataset == column.Data.Dataset && d.GridData.DataStruct.Blocs.Contains(column.Data.Bloc) && d.GridData.DataStruct.Name == column.Data.Name);
-            TrialMatrix.Grid.Bloc bloc = data.Blocs.First(b => b.Data.Data == column.Data.Bloc);
+            Bloc bloc = data.Blocs.First(b => b.Data.Data == column.Data.Bloc);
             ChannelBloc channelBloc = bloc.ChannelBlocs.First(c => c.Data.Channel == channel);
             CurveData curveData = GetCurveData(column, subBloc, channel, channelBloc.TrialIsSelected);
             Graph.Curve result = new Graph.Curve(channel.Channel, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);

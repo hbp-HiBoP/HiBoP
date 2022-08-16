@@ -1,5 +1,5 @@
-﻿using System;
-using Tools.Unity;
+﻿using HBP.Core.Tools;
+using System;
 using UnityEngine;
 
 namespace HBP.Theme.Components

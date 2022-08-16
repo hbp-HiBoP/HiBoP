@@ -1,9 +1,9 @@
 ﻿using UnityEngine.UI;
-using Tools.Unity;
 using UnityEngine;
 using System;
 using System.Collections.Generic;
 using HBP.Core.Data;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Experience.Dataset
 {
@@ -13,9 +13,9 @@ namespace HBP.UI.Experience.Dataset
     public class DataInfoModifier : ObjectModifier<DataInfo>
     {
         #region Properties
-        public new Core.Data.DataInfo ObjectTemp => m_ObjectTemp;
+        public new DataInfo ObjectTemp => m_ObjectTemp;
 
-        List<Core.Data.DataInfo> m_DataInfoTemp;
+        List<DataInfo> m_DataInfoTemp;
         List<BaseSubModifier> m_SubModifiers;
 
         Type[] m_Types; 
@@ -120,7 +120,7 @@ namespace HBP.UI.Experience.Dataset
 
             m_SubModifiers.Find(s => s.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(ObjectTemp.GetType()))).IsActive = false;
 
-            Core.Data.DataInfo dataInfo = m_DataInfoTemp.Find(d => d.GetType() == type);
+            DataInfo dataInfo = m_DataInfoTemp.Find(d => d.GetType() == type);
             dataInfo.Copy(m_ObjectTemp);
             m_ObjectTemp = dataInfo;
 
@@ -128,14 +128,14 @@ namespace HBP.UI.Experience.Dataset
             subModifier.IsActive = true;
             subModifier.Object = ObjectTemp;
 
-            if (type == typeof(Core.Data.IEEGDataInfo)) m_DataContainerModifier.DataAttribute = new IEEG();
-            else if (type == typeof(Core.Data.CCEPDataInfo)) m_DataContainerModifier.DataAttribute = new CCEP();
-            else if (type == typeof(Core.Data.FMRIDataInfo)) m_DataContainerModifier.DataAttribute = new FMRI();
-            else if (type == typeof(Core.Data.MEGvDataInfo)) m_DataContainerModifier.DataAttribute = new MEGv();
-            else if (type == typeof(Core.Data.MEGcDataInfo)) m_DataContainerModifier.DataAttribute = new MEGc();
+            if (type == typeof(IEEGDataInfo)) m_DataContainerModifier.DataAttribute = new IEEG();
+            else if (type == typeof(CCEPDataInfo)) m_DataContainerModifier.DataAttribute = new CCEP();
+            else if (type == typeof(FMRIDataInfo)) m_DataContainerModifier.DataAttribute = new FMRI();
+            else if (type == typeof(MEGvDataInfo)) m_DataContainerModifier.DataAttribute = new MEGv();
+            else if (type == typeof(MEGcDataInfo)) m_DataContainerModifier.DataAttribute = new MEGc();
 
             m_DataContainerModifier.Object = m_ObjectTemp.DataContainer;
-            if (m_ObjectTemp is Core.Data.PatientDataInfo patientDataInfo) m_PatientDataInfoSubModifier.Object = patientDataInfo;
+            if (m_ObjectTemp is PatientDataInfo patientDataInfo) m_PatientDataInfoSubModifier.Object = patientDataInfo;
         }
         /// <summary>
         /// Change the datacontainer type.

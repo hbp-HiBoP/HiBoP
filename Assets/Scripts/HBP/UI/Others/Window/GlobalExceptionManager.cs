@@ -1,7 +1,7 @@
 ﻿using HBP.UI;
 using UnityEngine;
 
-namespace Tools.Unity
+namespace HBP.Display
 {
     public class GlobalExceptionManager : MonoBehaviour
     {

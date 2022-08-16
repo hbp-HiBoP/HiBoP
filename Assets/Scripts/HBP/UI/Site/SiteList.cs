@@ -1,12 +1,13 @@
 ﻿using System.Linq;
 using UnityEngine;
+using HBP.UI.Lists;
 
 namespace HBP.UI
 {
     /// <summary>
     /// List to display sites.
     /// </summary>
-    public class SiteList : Tools.Unity.Lists.ActionableList<Core.Data.Site>
+    public class SiteList : ActionableList<Core.Data.Site>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Coordinate, DescendingCoordinate, Tag, DescendingTag }

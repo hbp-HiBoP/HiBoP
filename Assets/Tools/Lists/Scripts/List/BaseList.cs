@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace Tools.Unity.Lists
+namespace HBP.UI.Lists
 {
     /// <summary>
     /// Base component for every UI list.

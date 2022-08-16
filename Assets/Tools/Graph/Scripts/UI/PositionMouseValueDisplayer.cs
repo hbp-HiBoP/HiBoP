@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace Tools.Unity.Graph
+namespace HBP.UI.Graphs
 {
     public class PositionMouseValueDisplayer : MonoBehaviour
     {

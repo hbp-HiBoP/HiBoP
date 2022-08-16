@@ -1,8 +1,7 @@
-﻿using HBP.Core.Data;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace Tools.Unity
+namespace HBP.UI
 {
     public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {

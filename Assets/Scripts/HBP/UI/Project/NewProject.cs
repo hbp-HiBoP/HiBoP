@@ -1,11 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using Tools.Unity;
 using System.Linq;
 using System.IO;
-using HBP.Display.Preferences;
 using HBP.Core.Data;
-using HBP.Module3D;
+using HBP.Display.Module3D;
 
 namespace HBP.UI
 {
@@ -73,7 +71,7 @@ namespace HBP.UI
         #region Private Methods
         protected override void SetFields()
 		{
-            HBP.Display.Preferences.ProjectPreferences preferences = ApplicationState.UserPreferences.General.Project;
+            Display.Preferences.ProjectPreferences preferences = ApplicationState.UserPreferences.General.Project;
 
             m_NameInputField.text = preferences.DefaultName;
             m_ProjectLocationFolderSelector.Folder = preferences.DefaultLocation;
@@ -86,8 +84,8 @@ namespace HBP.UI
             {
                 DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Project already exists", string.Format("A project named {0} already exists within the selected directory.\n\nWould you like to override this project?", m_NameInputField.text), () =>
                 {
-                    Core.Data.ProjectPreferences preferences = new Core.Data.ProjectPreferences(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
-                    ApplicationState.ProjectLoaded = new Core.Data.Project(preferences);
+                    ProjectPreferences preferences = new ProjectPreferences(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
+                    ApplicationState.ProjectLoaded = new Project(preferences);
                     ApplicationState.ProjectLoadedLocation = m_ProjectLocationFolderSelector.Folder;
                     FindObjectOfType<ProjectLoaderSaver>().SaveAndReload();
                     base.OK();
@@ -96,8 +94,8 @@ namespace HBP.UI
             }
             else
             {
-                Core.Data.ProjectPreferences preferences = new Core.Data.ProjectPreferences(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
-                ApplicationState.ProjectLoaded = new Core.Data.Project(preferences);
+                ProjectPreferences preferences = new ProjectPreferences(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
+                ApplicationState.ProjectLoaded = new Project(preferences);
                 ApplicationState.ProjectLoadedLocation = m_ProjectLocationFolderSelector.Folder;
                 FindObjectOfType<ProjectLoaderSaver>().SaveAndReload();
                 base.OK();

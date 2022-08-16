@@ -1,10 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using Tools.Unity.Lists;
 using HBP.Theme.Components;
-using Tools.Unity;
 using System.Text;
 using HBP.Core.Enums;
+using HBP.UI.Lists;
 
 namespace HBP.UI.Experience.Protocol
 {
@@ -20,7 +19,7 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] Tooltip m_CodeTooltip;
 
         [SerializeField] Text m_TypeText;
-        [SerializeField] HBP.Theme.State m_ErrorState;
+        [SerializeField] Theme.State m_ErrorState;
 
         /// <summary>
         /// Object to display.

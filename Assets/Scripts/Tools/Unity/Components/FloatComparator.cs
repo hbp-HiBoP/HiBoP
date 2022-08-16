@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 
-namespace Tools.Unity.Components
+namespace HBP.UI.Components
 {
     public class FloatComparator : MonoBehaviour
     {

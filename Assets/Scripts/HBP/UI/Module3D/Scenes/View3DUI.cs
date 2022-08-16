@@ -1,11 +1,10 @@
-﻿using HBP.Module3D;
-using Tools.Unity.ResizableGrid;
-using Tools.Unity;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using HBP.Theme.Components;
+using HBP.Display.Module3D;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Module3D
 {
@@ -27,7 +26,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Theme Element state used when displaying the cursor indicating that the brain is moving or rotating
         /// </summary>
-        [SerializeField] private HBP.Theme.State m_MoveState;
+        [SerializeField] private Theme.State m_MoveState;
         /// <summary>
         /// Reference to the selection ring used to display which site is currently selected in this view
         /// </summary>
@@ -60,7 +59,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Parent resizable grid
         /// </summary>
-        public ResizableGrid ParentGrid { get; set; }
+        public ResizableGrid.ResizableGrid ParentGrid { get; set; }
         /// <summary>
         /// GameObject to hide a minimized view
         /// </summary>
@@ -148,7 +147,7 @@ namespace HBP.UI.Module3D
         #region Private Methods
         private void Awake()
         {
-            ParentGrid = GetComponentInParent<ResizableGrid>();
+            ParentGrid = GetComponentInParent<ResizableGrid.ResizableGrid>();
             m_RectTransform = GetComponent<RectTransform>();
             m_RawImage = GetComponent<RawImage>();
             UsingRenderTexture = true;
@@ -333,7 +332,7 @@ namespace HBP.UI.Module3D
             m_Scene = scene;
             m_Column = column;
             m_View = view;
-            ParentGrid = GetComponentInParent<ResizableGrid>();
+            ParentGrid = GetComponentInParent<ResizableGrid.ResizableGrid>();
             m_RectTransform = GetComponent<RectTransform>();
             m_RawImage = GetComponent<RawImage>();
             UsingRenderTexture = true;

@@ -3,11 +3,11 @@ using UnityEngine;
 
 namespace HBP.UI
 {
-    public class GroupGestion : GestionWindow<Core.Data.Group>
+    public class GroupGestion : GestionWindow<Group>
     {
         #region Properties
         [SerializeField] GroupListGestion m_ListGestion;
-        public override ListGestion<Core.Data.Group> ListGestion => m_ListGestion;
+        public override ListGestion<Group> ListGestion => m_ListGestion;
         #endregion
 
         #region Public Methods

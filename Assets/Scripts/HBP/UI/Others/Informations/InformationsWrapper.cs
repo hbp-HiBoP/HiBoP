@@ -1,11 +1,10 @@
 ﻿using UnityEngine;
-using HBP.Module3D;
 using System.Collections.Generic;
 using System.Linq;
 using HBP.Display.Informations;
 using UnityEngine.UI.Extensions;
 using UnityEngine.Events;
-using Tools.Unity;
+using HBP.Display.Module3D;
 
 namespace HBP.UI.Informations
 {
@@ -132,7 +131,7 @@ namespace HBP.UI.Informations
             var channelStructs = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered && !s.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray();
             if (channelStructs.Length > CHANNEL_WARNING_THRESHOLD)
             {
-                DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "High number of sites", string.Format("The number of sites you want to display is high ({0}): the recommended value is less than 50. This can cause performance issues. Do you really want to display that many sites?", channelStructs.Length), () => { GridInformations.Display(channelStructs); }, "Display", () => { }, "Cancel");
+                DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "High number of sites", string.Format("The number of sites you want to display is high ({0}): the recommended value is less than 50. This can cause performance issues. Do you really want to display that many sites?", channelStructs.Length), () => { GridInformations.Display(channelStructs); }, "Display", () => { }, "Cancel");
             }
             else
             {

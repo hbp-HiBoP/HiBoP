@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using UnityEngine;
+using HBP.UI.Lists;
 
 namespace HBP.UI
 {
@@ -8,12 +8,12 @@ namespace HBP.UI
     {
         #region Properties
         [SerializeField] TagList m_List;
-        public override Tools.Unity.Lists.ActionableList<Core.Data.BaseTag> List => m_List;
+        public override ActionableList<Core.Data.BaseTag> List => m_List;
 
         [SerializeField] TagCreator m_ObjectCreator;
         public override ObjectCreator<Core.Data.BaseTag> ObjectCreator => m_ObjectCreator;
 
-        [SerializeField] List<Core.Data.BaseTag> m_ModifiedTags = new List<Core.Data.BaseTag>();
+        [SerializeField] System.Collections.Generic.List<Core.Data.BaseTag> m_ModifiedTags = new System.Collections.Generic.List<Core.Data.BaseTag>();
         public ReadOnlyCollection<Core.Data.BaseTag> ModifiedTags
         {
             get

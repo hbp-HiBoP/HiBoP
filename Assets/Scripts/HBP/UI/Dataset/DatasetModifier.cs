@@ -81,7 +81,7 @@ namespace HBP.UI.Experience.Dataset
         /// Check the errors.
         /// </summary>
         /// <param name="dataInfo">Check the the errors of the dataInfo</param>
-        protected virtual void CheckErrors(Core.Data.DataInfo dataInfo)
+        protected virtual void CheckErrors(DataInfo dataInfo)
         {
             dataInfo.GetErrors(ObjectTemp.Protocol);
         }
@@ -104,7 +104,7 @@ namespace HBP.UI.Experience.Dataset
         /// Add data to the dataset.
         /// </summary>
         /// <param name="data">dataInfo to add</param>
-        protected void AddData(Core.Data.DataInfo data)
+        protected void AddData(DataInfo data)
         {
             ObjectTemp.AddData(data);
         }
@@ -112,7 +112,7 @@ namespace HBP.UI.Experience.Dataset
         /// Remove data from the dataset.
         /// </summary>
         /// <param name="data">dataInfo to remove</param>
-        protected void RemoveData(Core.Data.DataInfo data)
+        protected void RemoveData(DataInfo data)
         {
             ObjectTemp.RemoveData(data);
         }
@@ -120,7 +120,7 @@ namespace HBP.UI.Experience.Dataset
         /// Update data of the dataset.
         /// </summary>
         /// <param name="data">dataInfo to update</param>
-        protected void UpdateData(Core.Data.DataInfo data)
+        protected void UpdateData(DataInfo data)
         {
             ObjectTemp.UpdateData(data);
         }

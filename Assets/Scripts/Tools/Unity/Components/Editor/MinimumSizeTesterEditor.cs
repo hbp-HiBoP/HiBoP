@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEditor;
 
-namespace Tools.Unity.Components.Editor
+namespace HBP.UI.Components.Editor
 {
     [CustomEditor(typeof(MinimumSizeTester))]
     [CanEditMultipleObjects]

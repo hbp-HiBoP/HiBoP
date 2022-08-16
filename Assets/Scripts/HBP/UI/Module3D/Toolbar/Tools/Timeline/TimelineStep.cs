@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HBP.Display.Module3D;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -50,16 +51,16 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                if (SelectedColumn is HBP.Module3D.Column3DDynamic)
+                if (SelectedColumn is Column3DDynamic)
                 {
-                    foreach (HBP.Module3D.Column3DDynamic column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
+                    foreach (Column3DDynamic column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                     {
                         column.Timeline.CurrentIndex -= column.Timeline.Step;
                     }
                 }
-                else if (SelectedColumn is HBP.Module3D.Column3DFMRI)
+                else if (SelectedColumn is Column3DFMRI)
                 {
-                    foreach (HBP.Module3D.Column3DFMRI column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
+                    foreach (Column3DFMRI column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                     {
                         column.Timeline.CurrentIndex -= column.Timeline.Step;
                     }
@@ -70,16 +71,16 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                if (SelectedColumn is HBP.Module3D.Column3DDynamic)
+                if (SelectedColumn is Column3DDynamic)
                 {
-                    foreach (HBP.Module3D.Column3DDynamic column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
+                    foreach (Column3DDynamic column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                     {
                         column.Timeline.CurrentIndex += column.Timeline.Step;
                     }
                 }
-                else if (SelectedColumn is HBP.Module3D.Column3DFMRI)
+                else if (SelectedColumn is Column3DFMRI)
                 {
-                    foreach (HBP.Module3D.Column3DFMRI column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
+                    foreach (Column3DFMRI column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                     {
                         column.Timeline.CurrentIndex += column.Timeline.Step;
                     }
@@ -108,16 +109,16 @@ namespace HBP.UI.Module3D.Tools
                     m_InputField.text = val.ToString();
                 }
 
-                if (SelectedColumn is HBP.Module3D.Column3DDynamic)
+                if (SelectedColumn is Column3DDynamic)
                 {
-                    foreach (HBP.Module3D.Column3DDynamic column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
+                    foreach (Column3DDynamic column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                     {
                         column.Timeline.Step = step;
                     }
                 }
-                else if (SelectedColumn is HBP.Module3D.Column3DFMRI)
+                else if (SelectedColumn is Column3DFMRI)
                 {
-                    foreach (HBP.Module3D.Column3DFMRI column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
+                    foreach (Column3DFMRI column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                     {
                         column.Timeline.Step = step;
                     }
@@ -139,7 +140,7 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isColumnDynamicOrFMRI = SelectedColumn is HBP.Module3D.Column3DDynamic || SelectedColumn is HBP.Module3D.Column3DFMRI;
+            bool isColumnDynamicOrFMRI = SelectedColumn is Column3DDynamic || SelectedColumn is Column3DFMRI;
             bool areAmplitudesComputed = SelectedScene.IsGeneratorUpToDate;
 
             m_Minus.interactable = isColumnDynamicOrFMRI && areAmplitudesComputed;
@@ -151,11 +152,11 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateStatus()
         {
-            if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)
+            if (SelectedColumn is Column3DDynamic dynamicColumn)
             {
                 m_InputField.text = dynamicColumn.Timeline.Step.ToString();
             }
-            else if (SelectedColumn is HBP.Module3D.Column3DFMRI fmriColumn)
+            else if (SelectedColumn is Column3DFMRI fmriColumn)
             {
                 m_InputField.text = fmriColumn.Timeline.Step.ToString();
             }

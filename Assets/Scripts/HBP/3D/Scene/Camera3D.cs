@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 using ThirdParty.ImageEffects;
 using HBP.Core.Enums;
 
-namespace HBP.Module3D
+namespace HBP.Display.Module3D
 {
     /// <summary>
     /// Camera associated to a view 3D
@@ -192,7 +192,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Ambient light color
         /// </summary>
-        public UnityEngine.Color AmbientLight = new UnityEngine.Color(0.2f, 0.2f, 0.2f, 1);
+        public Color AmbientLight = new Color(0.2f, 0.2f, 0.2f, 1);
 
         /// <summary>
         /// State for the selected view

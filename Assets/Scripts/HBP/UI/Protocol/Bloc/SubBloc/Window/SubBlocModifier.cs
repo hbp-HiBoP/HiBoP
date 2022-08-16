@@ -1,18 +1,18 @@
 ﻿using Tools.CSharp;
-using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.Display.Preferences;
 using HBP.Core.Data;
-using HBP.Display.UI.Tools;
+using HBP.UI.Tools;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Experience.Protocol
 {
     /// <summary>
     /// Window to modify a subBloc.
     /// </summary>
-    public class SubBlocModifier : ObjectModifier<Core.Data.SubBloc>
+    public class SubBlocModifier : ObjectModifier<SubBloc>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -90,7 +90,7 @@ namespace HBP.UI.Experience.Protocol
         /// Set the fields.
         /// </summary>
         /// <param name="objectToDisplay">SubBloc to display</param>
-        protected override void SetFields(Core.Data.SubBloc objectToDisplay)
+        protected override void SetFields(SubBloc objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_OrderInputField.text = objectToDisplay.Order.ToString();
@@ -204,7 +204,7 @@ namespace HBP.UI.Experience.Protocol
         /// Add icon to the subBloc.
         /// </summary>
         /// <param name="icon">Icon to add</param>
-        protected void AddIcon(Core.Data.Icon icon)
+        protected void AddIcon(Icon icon)
         {
             ObjectTemp.Icons.AddIfAbsent(icon);
         }
@@ -212,7 +212,7 @@ namespace HBP.UI.Experience.Protocol
         /// Remove icon from the subBloc.
         /// </summary>
         /// <param name="icon">Icon to remove</param>
-        protected void RemoveIcon(Core.Data.Icon icon)
+        protected void RemoveIcon(Icon icon)
         {
             ObjectTemp.Icons.Remove(icon);
         }
@@ -220,7 +220,7 @@ namespace HBP.UI.Experience.Protocol
         /// Update icon from the subBloc.
         /// </summary>
         /// <param name="icon">Icon to update</param>
-        protected void UpdateIcon(Core.Data.Icon icon)
+        protected void UpdateIcon(Icon icon)
         {
             int index = ObjectTemp.Icons.FindIndex(i => i.Equals(icon));
             if (index != -1)
@@ -232,7 +232,7 @@ namespace HBP.UI.Experience.Protocol
         /// Add treatment to the subBloc.
         /// </summary>
         /// <param name="treatment">Treatment to add</param>
-        protected void AddTreatment(Core.Data.Treatment treatment)
+        protected void AddTreatment(Treatment treatment)
         {
             ObjectTemp.Treatments.AddIfAbsent(treatment);
         }
@@ -240,7 +240,7 @@ namespace HBP.UI.Experience.Protocol
         /// Remove treatment from the subBloc.
         /// </summary>
         /// <param name="treatment">Treatment to remove</param>
-        protected void RemoveTreatment(Core.Data.Treatment treatment)
+        protected void RemoveTreatment(Treatment treatment)
         {
             ObjectTemp.Treatments.Remove(treatment);
         }
@@ -248,7 +248,7 @@ namespace HBP.UI.Experience.Protocol
         /// Update treatment to the subBloc.
         /// </summary>
         /// <param name="treatment">Treatment to update</param>
-        protected void UpdateTreatment(Core.Data.Treatment treatment)
+        protected void UpdateTreatment(Treatment treatment)
         {
             int index = ObjectTemp.Treatments.FindIndex(t => t.Equals(treatment));
             if(index != -1)

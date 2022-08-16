@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
-using HBP.Module3D;
-using Tools.Unity;
 using HBP.Core.Data;
+using HBP.Display.Module3D;
 
 namespace HBP.UI.Visualization
 {
@@ -41,7 +40,7 @@ namespace HBP.UI.Visualization
             var alreadyOpenedVisualizations = visualizations.Where(v => HBP3DModule.Scenes.Any(s => s.Visualization == v));
             if (alreadyOpenedVisualizations.Count() > 0)
             {
-                DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Visualization already opened", "The following visualizations are already opened:\n" + string.Concat(alreadyOpenedVisualizations.Select(v => v.Name + "\n")));
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Visualization already opened", "The following visualizations are already opened:\n" + string.Concat(alreadyOpenedVisualizations.Select(v => v.Name + "\n")));
                 return;
             }
             if (ApplicationState.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
@@ -51,7 +50,7 @@ namespace HBP.UI.Visualization
                 var maybeTooMuchMemoryVisualizations = visualizations.Where(v => v.Patients.Count > patientThreshold);
                 if (maybeTooMuchMemoryVisualizations.Count() > 0)
                 {
-                    DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Memory warning", "One of the visualizations you are trying to display has been detected as a potential memory issue.\nIt may contain too many patients in order to be visualized using the \"Preload all patient data in multi-patient visualizations\" option considering the maximum memory cache set in the user preferences.\n\nDo you still want to display it?",
+                    DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Memory warning", "One of the visualizations you are trying to display has been detected as a potential memory issue.\nIt may contain too many patients in order to be visualized using the \"Preload all patient data in multi-patient visualizations\" option considering the maximum memory cache set in the user preferences.\n\nDo you still want to display it?",
                         () =>
                         {
                             HBP3DModule.LoadScenes(m_ListGestion.List.ObjectsSelected);

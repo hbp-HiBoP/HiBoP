@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace HBP.Display.UI.Tools
+namespace HBP.UI.Tools
 {
     public class HorizontalDropdown : Dropdown
     {

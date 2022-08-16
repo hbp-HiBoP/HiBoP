@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace Tools.Unity.Graph
+namespace HBP.UI.Graphs
 {
     [CustomEditor(typeof(SimpleGraph))]
     public class SimpleGraphEditor : Editor

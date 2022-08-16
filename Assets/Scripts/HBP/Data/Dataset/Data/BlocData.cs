@@ -14,7 +14,7 @@ namespace HBP.Core.Data
                 return Trials.Length > 0 && Trials.Any(t => t.IsValid);
             }
         }
-        public Core.Tools.Frequency Frequency { get; set; }
+        public Tools.Frequency Frequency { get; set; }
         public Trial[] Trials { get; set; }
         #endregion
 

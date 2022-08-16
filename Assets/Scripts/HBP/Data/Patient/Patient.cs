@@ -7,7 +7,6 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using Tools.CSharp;
-using Tools.Unity;
 using HBP.Core.Exceptions;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;

@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
-using Tools.Unity;
 using UnityEngine;
 using HBP.Core.Enums;
+using HBP.Core.Tools;
 
-namespace HBP.Module3D
+namespace HBP.Display.Module3D
 {
     /// <summary>
     /// Contains the textures for the cuts and methods to compute them

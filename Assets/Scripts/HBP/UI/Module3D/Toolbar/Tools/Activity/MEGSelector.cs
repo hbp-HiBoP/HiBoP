@@ -1,7 +1,7 @@
-﻿using HBP.Module3D;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
+using HBP.Display.Module3D;
 
 namespace HBP.UI.Module3D.Tools
 {

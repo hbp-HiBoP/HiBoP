@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEditor;
 
-namespace Tools.Unity.Graph
+namespace HBP.UI.Graphs
 {
     [CustomEditor(typeof(Axe))]
     public class AxeEditor : Editor

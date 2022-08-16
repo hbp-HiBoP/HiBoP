@@ -1,12 +1,13 @@
 ﻿using System.Linq;
 using UnityEngine;
+using HBP.UI.Lists;
 
 namespace HBP.UI.Experience.Dataset
 {
     /// <summary>
     /// List to display datasets.
     /// </summary>
-	public class DatasetList : Tools.Unity.Lists.ActionableList<Core.Data.Dataset>
+	public class DatasetList : ActionableList<Core.Data.Dataset>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Protocol, DescendingProtocol, Data, DescendingData }

@@ -1,6 +1,6 @@
 ﻿using UnityEngine.UI;
 
-namespace Tools.Unity.Lists
+namespace HBP.UI.Lists
 {
     /// <summary>
     /// Component to display a string in a list.

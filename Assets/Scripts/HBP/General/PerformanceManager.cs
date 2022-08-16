@@ -1,7 +1,7 @@
 using HBP.Core.Data;
 using UnityEngine;
 
-namespace Tools.Unity
+namespace HBP.Display
 {
     public class PerformanceManager : MonoBehaviour
     {

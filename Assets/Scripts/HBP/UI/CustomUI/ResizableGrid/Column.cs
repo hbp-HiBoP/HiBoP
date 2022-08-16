@@ -2,7 +2,7 @@
 using System.Collections.ObjectModel;
 using UnityEngine;
 
-namespace Tools.Unity.ResizableGrid
+namespace HBP.UI.ResizableGrid
 {
     public class Column : MonoBehaviour
     {

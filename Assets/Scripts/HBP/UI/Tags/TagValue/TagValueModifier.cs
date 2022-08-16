@@ -1,7 +1,7 @@
-﻿using System;
+﻿using HBP.Core.Tools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 

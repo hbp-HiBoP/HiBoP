@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using Tools.Unity;
 using HBP.Display.Preferences;
 
 namespace HBP.UI.Preferences

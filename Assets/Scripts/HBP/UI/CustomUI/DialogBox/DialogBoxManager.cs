@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 
-namespace Tools.Unity
+namespace HBP.UI
 {
     public class DialogBoxManager : MonoBehaviour
     {

@@ -4,6 +4,7 @@ using System.Collections;
 using System.Net;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Data;
 
 namespace HBP.UI
 {

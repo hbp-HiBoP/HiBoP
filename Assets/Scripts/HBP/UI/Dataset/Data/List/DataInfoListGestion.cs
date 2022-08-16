@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEngine.Events;
 using System.Collections.Generic;
+using HBP.UI.Lists;
 
 namespace HBP.UI.Experience.Dataset
 {
@@ -9,7 +10,7 @@ namespace HBP.UI.Experience.Dataset
     {
         #region Properties
         [SerializeField] protected DataInfoList m_List;
-        public override Tools.Unity.Lists.ActionableList<Core.Data.DataInfo> List => m_List;
+        public override ActionableList<Core.Data.DataInfo> List => m_List;
 
         [SerializeField] protected DataInfoCreator m_ObjectCreator;
         public override ObjectCreator<Core.Data.DataInfo> ObjectCreator => m_ObjectCreator;

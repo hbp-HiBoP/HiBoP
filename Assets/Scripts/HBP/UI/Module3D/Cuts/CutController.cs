@@ -1,12 +1,11 @@
-﻿using HBP.Module3D;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using Tools.Unity.ResizableGrid;
 using UnityEngine;
 using UnityEngine.UI;
-using Tools.Unity;
 using System;
 using HBP.Core.Enums;
+using HBP.Display.Module3D;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Module3D
 {
@@ -30,7 +29,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Parent ResizableGrid in which the panel is
         /// </summary>
-        private ResizableGrid m_ParentGrid;
+        private ResizableGrid.ResizableGrid m_ParentGrid;
         /// <summary>
         /// RectTransform of this object
         /// </summary>
@@ -77,7 +76,7 @@ namespace HBP.UI.Module3D
         #region Private Methods
         private void Awake()
         {
-            m_ParentGrid = GetComponentInParent<ResizableGrid>();
+            m_ParentGrid = GetComponentInParent<ResizableGrid.ResizableGrid>();
             m_RectTransform = GetComponent<RectTransform>();
         }
         private void Update()

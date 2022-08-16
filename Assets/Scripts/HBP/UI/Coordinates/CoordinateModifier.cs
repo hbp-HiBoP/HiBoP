@@ -9,7 +9,7 @@ namespace HBP.UI
     /// <summary>
     /// Window to modify a coordinate.
     /// </summary>
-    public class CoordinateModifier : ObjectModifier<Core.Data.Coordinate>
+    public class CoordinateModifier : ObjectModifier<Coordinate>
     {
         #region Properties
         [SerializeField] InputField m_ReferenceSystemInputField;

@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 using HBP.Core.Tools;
-using Tools.Unity;
 using HBP.Core.Data;
-using HBP.Module3D;
+using HBP.Display.Module3D;
 
 namespace HBP.UI.Experience.Protocol
 {
@@ -17,16 +16,16 @@ namespace HBP.UI.Experience.Protocol
         #region Public Methods
         public override void OK()
         {
-            if (Core.Data.DataManager.HasData)
+            if (DataManager.HasData)
             {
-                DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
+                DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
                 {
                     base.OK();
                     ApplicationState.ProjectLoaded.SetProtocols(m_ListGestion.List.Objects);
                     FindObjectOfType<MenuButtonState>().SetInteractables();
                     GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
                     LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckDatasets(m_ListGestion.ModifiedProtocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
-                    Core.Data.DataManager.Clear();
+                    DataManager.Clear();
                     HBP3DModule.ReloadScenes();
                 });
             }

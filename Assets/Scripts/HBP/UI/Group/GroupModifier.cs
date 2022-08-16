@@ -8,7 +8,7 @@ namespace HBP.UI
 	/// <summary>
 	/// Window to modify a group.
 	/// </summary>
-	public class GroupModifier : ObjectModifier<Core.Data.Group> 
+	public class GroupModifier : ObjectModifier<Group> 
 	{
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -40,7 +40,7 @@ namespace HBP.UI
         /// </summary>
         public virtual void OpenPatientsSelector()
         {
-            ObjectSelector<Core.Data.Patient> selector = WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Patients.Where(p => !ObjectTemp.Patients.Contains(p)));
+            ObjectSelector<Patient> selector = WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Patients.Where(p => !ObjectTemp.Patients.Contains(p)));
             selector.OnOk.AddListener(() => m_PatientListGestion.List.Add(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
@@ -63,7 +63,7 @@ namespace HBP.UI
         /// Set the fields.
         /// </summary>
         /// <param name="objectToDisplay">Group to modify</param>
-        protected override void SetFields(Core.Data.Group objectToDisplay)
+        protected override void SetFields(Group objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_PatientListGestion.List.Set(objectToDisplay.Patients);
@@ -87,7 +87,7 @@ namespace HBP.UI
         /// Add patient to the group.
         /// </summary>
         /// <param name="patient">Patient to add</param>
-        protected void AddPatient(Core.Data.Patient patient)
+        protected void AddPatient(Patient patient)
         {
             ObjectTemp.Patients.Add(patient);
         }
@@ -95,7 +95,7 @@ namespace HBP.UI
         /// Remove patient from the group.
         /// </summary>
         /// <param name="patient">Patient to remove</param>
-        protected void RemovePatient(Core.Data.Patient patient)
+        protected void RemovePatient(Patient patient)
         {
             ObjectTemp.Patients.Remove(patient);
         }

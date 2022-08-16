@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using UnityEngine.Events;
 
-namespace Tools.Unity
+namespace HBP.UI
 {
     [RequireComponent(typeof(Selectable))]
     public class OnInteractableSelectableDecorator : MonoBehaviour

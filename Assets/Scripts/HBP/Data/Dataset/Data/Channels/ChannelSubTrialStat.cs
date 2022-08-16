@@ -79,14 +79,14 @@ namespace HBP.Core.Data
                 }
                 switch (averaging)
                 {
-                    case Enums.AveragingType.Mean:
+                    case AveragingType.Mean:
                         for (int i = 0; i < numberOfSamples; i++)
                         {
                             Values[i] = valuesMatrix[i].Mean();
                             SEM[i] = valuesMatrix[i].SEM();
                         }
                         break;
-                    case Enums.AveragingType.Median:
+                    case AveragingType.Median:
                         for (int i = 0; i < numberOfSamples; i++)
                         {
                             Values[i] = valuesMatrix[i].Median();

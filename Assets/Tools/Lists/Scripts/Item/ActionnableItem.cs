@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 
-namespace Tools.Unity.Lists
+namespace HBP.UI.Lists
 {
     /// <summary>
     /// Component to display a actionnable item in a list.

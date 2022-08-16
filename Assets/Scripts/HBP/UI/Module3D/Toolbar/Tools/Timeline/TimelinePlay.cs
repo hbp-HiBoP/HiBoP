@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HBP.Display.Module3D;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -42,16 +43,16 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                if (SelectedColumn is HBP.Module3D.Column3DDynamic)
+                if (SelectedColumn is Column3DDynamic)
                 {
-                    foreach (HBP.Module3D.Column3DDynamic column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
+                    foreach (Column3DDynamic column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                     {
                         column.Timeline.IsPlaying = m_Toggle.isOn;
                     }
                 }
-                else if (SelectedColumn is HBP.Module3D.Column3DFMRI)
+                else if (SelectedColumn is Column3DFMRI)
                 {
-                    foreach (HBP.Module3D.Column3DFMRI column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
+                    foreach (Column3DFMRI column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                     {
                         column.Timeline.IsPlaying = m_Toggle.isOn;
                     }
@@ -71,7 +72,7 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isColumnDynamicOrFMRI = SelectedColumn is HBP.Module3D.Column3DDynamic || SelectedColumn is HBP.Module3D.Column3DFMRI;
+            bool isColumnDynamicOrFMRI = SelectedColumn is Column3DDynamic || SelectedColumn is Column3DFMRI;
             bool areAmplitudesComputed = SelectedScene.IsGeneratorUpToDate;
 
             m_Toggle.interactable = isColumnDynamicOrFMRI && areAmplitudesComputed;
@@ -81,11 +82,11 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateStatus()
         {
-            if (SelectedColumn is HBP.Module3D.Column3DDynamic dynamicColumn)
+            if (SelectedColumn is Column3DDynamic dynamicColumn)
             {
                 m_Toggle.isOn = dynamicColumn.Timeline.IsPlaying;
             }
-            else if (SelectedColumn is HBP.Module3D.Column3DFMRI fmriColumn)
+            else if (SelectedColumn is Column3DFMRI fmriColumn)
             {
                 m_Toggle.isOn = fmriColumn.Timeline.IsPlaying;
             }

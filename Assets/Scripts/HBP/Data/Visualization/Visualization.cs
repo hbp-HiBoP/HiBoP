@@ -5,7 +5,6 @@ using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using ThirdParty.CielaSpike;
-using Tools.Unity;
 using System.IO;
 using Tools.CSharp;
 using HBP.Core.Exceptions;
@@ -519,7 +518,7 @@ namespace HBP.Core.Data
                         yield break;
                     }
                 }
-                Tools.Frequency maxiEEGFrequency = new Tools.Frequency(iEEGColumns.Max(column => column.Data.MaxFrequency));
+                Frequency maxiEEGFrequency = new Frequency(iEEGColumns.Max(column => column.Data.MaxFrequency));
                 for (int i = 0; i < nbIEEGColumns; ++i)
                 {
                     IEEGColumn column = iEEGColumns[i];
@@ -562,7 +561,7 @@ namespace HBP.Core.Data
                         yield break;
                     }
                 }
-                Tools.Frequency maxCCEPFrequency = new Tools.Frequency(ccepColumns.Max(column => column.Data.Frequencies.Max(f => f.RawValue)));
+                Frequency maxCCEPFrequency = new Frequency(ccepColumns.Max(column => column.Data.Frequencies.Max(f => f.RawValue)));
                 for (int i = 0; i < nbCCEPColumns; ++i)
                 {
                     CCEPColumn column = ccepColumns[i];

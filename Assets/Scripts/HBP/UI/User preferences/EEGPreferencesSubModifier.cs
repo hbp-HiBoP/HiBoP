@@ -1,9 +1,9 @@
 ﻿using Tools.CSharp;
-using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.Display.Preferences;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Preferences
 {

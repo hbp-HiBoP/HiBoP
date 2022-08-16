@@ -1,5 +1,4 @@
-﻿using HBP.UI;
-using System;
+﻿using System;
 using System.IO;
 using System.Net;
 using System.Net.Mail;
@@ -9,7 +8,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Tools.Unity
+namespace HBP.UI
 {
     public class BugReporterWindow : DialogWindow
     {

@@ -1,11 +1,11 @@
-﻿using HBP.Module3D;
-using System.Linq;
+﻿using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Exceptions;
 using HBP.Display.Tools;
 using HBP.Core.Data;
+using HBP.Display.Module3D;
 
 namespace HBP.UI.Module3D
 {
@@ -90,8 +90,8 @@ namespace HBP.UI.Module3D
                 {
                     string label = elements[0].Replace(" ", "").Replace("\"", "").Replace("[", "").Replace("]", "");
                     string value = elements[1].Replace("\"", "");
-                    string deblankedValue = System.Text.RegularExpressions.Regex.Replace(value, "^\\s+", "");
-                    deblankedValue = System.Text.RegularExpressions.Regex.Replace(deblankedValue, "\\s+$", "");
+                    string deblankedValue = Regex.Replace(value, "^\\s+", "");
+                    deblankedValue = Regex.Replace(deblankedValue, "\\s+$", "");
                     if (label == LABEL)
                     {
                         return CheckLabel(site, deblankedValue);
@@ -117,11 +117,11 @@ namespace HBP.UI.Module3D
                         string[] splits = deblankedValue.Split(':');
                         if (splits.Length == 2)
                         {
-                            string tagName = System.Text.RegularExpressions.Regex.Replace(splits[0], "^\\s+", "");
-                            tagName = System.Text.RegularExpressions.Regex.Replace(tagName, "\\s+$", "");
-                            string tagValue = System.Text.RegularExpressions.Regex.Replace(splits[1], "^\\s+", "");
-                            tagValue = System.Text.RegularExpressions.Regex.Replace(tagValue, "\\s+$", "");
-                            Core.Data.BaseTag tag = ApplicationState.ProjectLoaded.Preferences.SitesTags.FirstOrDefault(t => t.Name.ToUpper() == tagName);
+                            string tagName = Regex.Replace(splits[0], "^\\s+", "");
+                            tagName = Regex.Replace(tagName, "\\s+$", "");
+                            string tagValue = Regex.Replace(splits[1], "^\\s+", "");
+                            tagValue = Regex.Replace(tagValue, "\\s+$", "");
+                            BaseTag tag = ApplicationState.ProjectLoaded.Preferences.SitesTags.FirstOrDefault(t => t.Name.ToUpper() == tagName);
                             if (tag == null) tag = ApplicationState.ProjectLoaded.Preferences.GeneralTags.FirstOrDefault(t => t.Name.ToUpper() == tagName);
                             return CheckTag(site, tag, tagValue);
                         }
