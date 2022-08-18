@@ -12,7 +12,9 @@ using HBP.Core.Enums;
 using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Display.Module3D;
-using HBP.UI.Components;
+using HBP.UI.Tools;
+using HBP.UI.Module3D.Informations.TrialMatrix.Grid;
+using HBP.UI.Tools.ResizableGrids;
 
 namespace HBP.UI.Module3D
 {
@@ -103,7 +105,7 @@ namespace HBP.UI.Module3D
         {
             m_Scene = scene;
 
-            ResizableGrid.ResizableGrid grid = GetComponent<ResizableGrid.ResizableGrid>();
+            ResizableGrid grid = GetComponent<ResizableGrid>();
             // 3D
             grid.AddColumn();
             grid.AddViewLine(m_SceneUIPrefab);
@@ -242,7 +244,7 @@ namespace HBP.UI.Module3D
                     {
                         if (!Mathf.Approximately(channelInformations.GetComponent<ZoneResizer>().Ratio, 1.0f))
                         {
-                            Graphs.Graph graph = channelInformations.transform.GetComponentInChildren<Graphs.Graph>();
+                            UI.Tools.Graphs.Graph graph = channelInformations.transform.GetComponentInChildren<UI.Tools.Graphs.Graph>();
                             Texture2D graphTexture = Texture2DExtension.ScreenRectToTexture(graph.GetComponent<RectTransform>().ToScreenSpace());
                             var curvesName = graph.GetEnabledCurvesName();
                             try
@@ -294,7 +296,7 @@ namespace HBP.UI.Module3D
                         }
                         if (!Mathf.Approximately(channelInformations.GetComponent<ZoneResizer>().Ratio, 0.0f))
                         {
-                            ScrollRect trialMatrixScrollRect = channelInformations.GetComponentInChildren<TrialMatrix.Grid.TrialMatrixGrid>().GetComponent<ScrollRect>();
+                            ScrollRect trialMatrixScrollRect = channelInformations.GetComponentInChildren<TrialMatrixGrid>().GetComponent<ScrollRect>();
                             Sprite mask = trialMatrixScrollRect.viewport.GetComponent<Image>().sprite;
                             trialMatrixScrollRect.viewport.GetComponent<Image>().sprite = null;
                             Texture2D trialMatrixTexture;

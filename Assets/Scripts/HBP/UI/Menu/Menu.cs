@@ -2,7 +2,7 @@
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     public class Menu : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {

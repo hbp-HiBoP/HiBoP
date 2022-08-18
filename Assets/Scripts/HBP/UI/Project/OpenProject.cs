@@ -4,9 +4,10 @@ using ThirdParty.CielaSpike;
 using System.Linq;
 using HBP.Core.Data;
 using HBP.Display.Module3D;
-using HBP.UI.Lists;
+using HBP.UI.Tools.Lists;
+using HBP.UI.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     public class OpenProject : DialogWindow 
 	{
@@ -95,7 +96,7 @@ namespace HBP.UI
             m_OKButton.interactable = false;
             m_ProjectList.Set(new ProjectInfo[0]);
             yield return Ninja.JumpBack;
-            string[] paths = Project.GetProject(path).ToArray();
+            string[] paths = Core.Data.Project.GetProject(path).ToArray();
             foreach (string projectPath in paths)
             {
                 ProjectInfo project = new ProjectInfo(projectPath);

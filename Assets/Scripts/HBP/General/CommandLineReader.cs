@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     public class CommandLineReader : MonoBehaviour
     {
@@ -65,7 +65,7 @@ namespace HBP.UI
                 }
                 else
                 {
-                    FindObjectOfType<ProjectLoaderSaver>().Load(new ProjectInfo(ApplicationState.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0] + Project.EXTENSION));
+                    FindObjectOfType<ProjectLoaderSaver>().Load(new ProjectInfo(ApplicationState.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0] + Core.Data.Project.EXTENSION));
                 }
             }
             else if (action == "-pf") // Project File

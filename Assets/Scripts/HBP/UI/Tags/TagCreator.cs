@@ -1,4 +1,6 @@
-﻿namespace HBP.UI
+﻿using HBP.UI.Tools;
+
+namespace HBP.UI.Main
 {
     /// <summary>
     /// Component to create tags.

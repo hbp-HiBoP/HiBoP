@@ -2,7 +2,7 @@
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace HBP.UI.Lists
+namespace HBP.UI.Tools.Lists
 {
     /// <summary>
     /// Abstract component to display selectable item in a list.

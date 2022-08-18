@@ -2,8 +2,9 @@
 using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
+using HBP.UI.Tools;
 
-namespace HBP.UI.Experience.Protocol
+namespace HBP.UI.Main
 {
     /// <summary>
     /// Window to modify a event.

@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace HBP.UI.Components
+namespace HBP.UI.Tools
 {
     [RequireComponent(typeof(RectTransform))]
     public class OnDontMoveEventTrigger : MonoBehaviour

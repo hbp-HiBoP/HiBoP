@@ -1,10 +1,11 @@
 ﻿using HBP.Core.Data;
 using HBP.Theme.Components;
-using HBP.UI.Lists;
+using HBP.UI.Tools.Lists;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.UI.Tools;
 
-namespace HBP.UI.QuickStart
+namespace HBP.UI.Main.QuickStart
 {
     public class FunctionalDataItem : Item<FunctionalData>
     {

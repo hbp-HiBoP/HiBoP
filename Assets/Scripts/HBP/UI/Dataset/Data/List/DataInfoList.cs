@@ -1,8 +1,9 @@
-﻿using HBP.UI.Lists;
+﻿using HBP.UI.Tools.Lists;
 using System.Collections.Generic;
 using System.Linq;
+using HBP.UI.Tools;
 
-namespace HBP.UI.Experience.Dataset
+namespace HBP.UI.Main
 {
     /// <summary>
     /// List to display DataInfos.

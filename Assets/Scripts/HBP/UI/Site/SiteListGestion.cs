@@ -1,8 +1,9 @@
 ﻿using System.Linq;
 using UnityEngine;
-using HBP.UI.Lists;
+using HBP.UI.Tools.Lists;
+using HBP.UI.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     public class SiteListGestion : ListGestion<Core.Data.Site>
     {

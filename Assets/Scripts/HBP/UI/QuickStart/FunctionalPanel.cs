@@ -5,8 +5,9 @@ using UnityEngine.UI;
 using HBP.Core.Data;
 using HBP.Core.Data.Container;
 using HBP.Core.Tools;
+using HBP.UI.Tools;
 
-namespace HBP.UI.QuickStart
+namespace HBP.UI.Main.QuickStart
 {
     public class FunctionalPanel : QuickStartPanel
     {

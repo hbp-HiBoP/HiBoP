@@ -7,7 +7,7 @@ using HBP.Core.Data;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
 
-namespace HBP.UI.Experience.Protocol
+namespace HBP.UI.Main
 {
     /// <summary>
     /// Window to modify a subBloc.

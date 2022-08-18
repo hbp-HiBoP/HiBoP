@@ -1,9 +1,8 @@
 ﻿using HBP.Theme.Components;
-using HBP.UI.Components;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     public class ZoneResizer : MonoBehaviour
     {

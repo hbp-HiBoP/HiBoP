@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using Tools.CSharp;
 using HBP.Core.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     public class FileSelector : MonoBehaviour
     {

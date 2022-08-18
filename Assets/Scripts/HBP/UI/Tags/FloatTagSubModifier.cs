@@ -2,8 +2,9 @@
 using Tools.CSharp;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.UI.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     public class FloatTagSubModifier : SubModifier<Core.Data.FloatTag>
     {

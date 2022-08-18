@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEngine.UI.Extensions;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     [ExecuteInEditMode]
     [AddComponentMenu("Layout/Image Aspect Fitter", 141)]

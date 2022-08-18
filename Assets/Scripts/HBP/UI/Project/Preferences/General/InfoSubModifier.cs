@@ -1,8 +1,9 @@
 ﻿using HBP.Core.Data;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.UI.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     public class InfoSubModifier : SubModifier<ProjectPreferences>
     {

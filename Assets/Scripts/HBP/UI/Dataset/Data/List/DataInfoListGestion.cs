@@ -2,9 +2,10 @@
 using System.Linq;
 using UnityEngine.Events;
 using System.Collections.Generic;
-using HBP.UI.Lists;
+using HBP.UI.Tools.Lists;
+using HBP.UI.Tools;
 
-namespace HBP.UI.Experience.Dataset
+namespace HBP.UI.Main
 {
     public class DataInfoListGestion : ListGestion<Core.Data.DataInfo>
     {

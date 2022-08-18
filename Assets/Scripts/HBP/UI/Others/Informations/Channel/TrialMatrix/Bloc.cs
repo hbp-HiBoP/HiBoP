@@ -9,7 +9,7 @@ using UnityEngine.EventSystems;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
 
-namespace HBP.UI.TrialMatrix
+namespace HBP.UI.Module3D.Informations.TrialMatrix
 {
     public class Bloc : MonoBehaviour
     {

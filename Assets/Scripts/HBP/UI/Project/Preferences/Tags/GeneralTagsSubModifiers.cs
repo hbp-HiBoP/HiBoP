@@ -1,8 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
+using HBP.UI.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     public class GeneralTagsSubModifiers : SubModifier<Core.Data.ProjectPreferences>
     {

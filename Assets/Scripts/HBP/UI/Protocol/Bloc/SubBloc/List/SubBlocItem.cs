@@ -3,9 +3,9 @@ using UnityEngine.UI;
 using System.Linq;
 using System.ComponentModel;
 using HBP.Core.Enums;
-using HBP.UI.Lists;
+using HBP.UI.Tools.Lists;
 
-namespace HBP.UI.Experience.Protocol
+namespace HBP.UI.Main
 {
     /// <summary>
     /// Component to display subBloc in list.

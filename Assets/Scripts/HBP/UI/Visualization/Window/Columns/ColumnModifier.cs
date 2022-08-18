@@ -3,8 +3,9 @@ using UnityEngine.UI;
 using UnityEngine.Events;
 using System;
 using HBP.Core.Tools;
+using HBP.UI.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     public class ColumnModifier : SubModifier<Core.Data.Column>
     {

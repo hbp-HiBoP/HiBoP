@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine.UI.Extensions;
 using System.Collections.ObjectModel;
 
-namespace HBP.UI.Graphs
+namespace HBP.UI.Tools.Graphs
 {
     [RequireComponent(typeof(RectTransform))]
     public class CurvesDisplayer : MonoBehaviour

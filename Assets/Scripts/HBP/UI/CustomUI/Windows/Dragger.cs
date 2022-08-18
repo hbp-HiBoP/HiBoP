@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.UI.Windows
+namespace HBP.UI.Tools
 {
 	[RequireComponent (typeof (RectTransform))]
 	public class Dragger : MonoBehaviour

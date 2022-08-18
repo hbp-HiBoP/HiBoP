@@ -3,9 +3,10 @@ using UnityEngine.UI;
 using HBP.Theme.Components;
 using System.Text;
 using HBP.Core.Enums;
-using HBP.UI.Lists;
+using HBP.UI.Tools.Lists;
+using HBP.UI.Tools;
 
-namespace HBP.UI.Experience.Protocol
+namespace HBP.UI.Main
 {
     /// <summary>
     /// Component to display event in list.

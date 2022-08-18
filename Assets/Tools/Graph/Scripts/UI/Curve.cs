@@ -2,7 +2,7 @@
 using UnityEngine.Profiling;
 using UnityEngine.UI.Extensions;
 
-namespace HBP.UI.Graphs
+namespace HBP.UI.Tools.Graphs
 {
     public class Curve : MonoBehaviour
     {

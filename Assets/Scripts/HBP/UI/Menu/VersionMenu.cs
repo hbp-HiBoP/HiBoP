@@ -5,8 +5,9 @@ using System.Net;
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Data;
+using HBP.UI.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     public class VersionMenu : Menu
     {

@@ -3,8 +3,9 @@ using UnityEngine.UI;
 using Tools.CSharp;
 using System.Globalization;
 using HBP.Core.Data;
+using HBP.UI.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     /// <summary>
     /// Window to modify a coordinate.

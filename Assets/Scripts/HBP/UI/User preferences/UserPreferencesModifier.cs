@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
 using HBP.Display.Preferences;
 using HBP.Core.Data;
+using HBP.UI.Tools;
 
-namespace HBP.UI.Preferences
+namespace HBP.UI.Main.Preferences
 {
     /// <summary>
     /// Window to modify the user preferences.

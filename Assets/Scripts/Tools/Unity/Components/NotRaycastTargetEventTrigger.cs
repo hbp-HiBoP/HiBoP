@@ -2,7 +2,7 @@
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
-namespace HBP.UI.Components
+namespace HBP.UI.Tools
 {
     public class NotRaycastTargetEventTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {

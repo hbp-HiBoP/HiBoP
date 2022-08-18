@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace HBP.UI.Lists
+namespace HBP.UI.Tools.Lists
 {
     /// <summary>
     /// Base generic component for every UI list.

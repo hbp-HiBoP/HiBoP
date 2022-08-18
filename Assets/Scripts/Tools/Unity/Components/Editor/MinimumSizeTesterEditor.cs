@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
 using UnityEditor;
 
-namespace HBP.UI.Components.Editor
+namespace HBP.UI.Tools
 {
     [CustomEditor(typeof(MinimumSizeTester))]
     [CanEditMultipleObjects]
-    public class MinimumSizeTesterEditor : UnityEditor.Editor
+    public class MinimumSizeTesterEditor : Editor
     {
         #region Properties
         SerializedProperty m_UseMinWidth;

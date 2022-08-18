@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using UnityEngine;
 using System.Linq;
 
-namespace HBP.UI.ResizableGrid
+namespace HBP.UI.Tools.ResizableGrids
 {
     public class ResizableGrid : MonoBehaviour
     {

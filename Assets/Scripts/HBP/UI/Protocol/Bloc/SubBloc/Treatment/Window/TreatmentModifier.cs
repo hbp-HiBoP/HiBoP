@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace HBP.UI.Experience.Protocol
+namespace HBP.UI.Main
 {
     /// <summary>
     /// window to modify a treatment.

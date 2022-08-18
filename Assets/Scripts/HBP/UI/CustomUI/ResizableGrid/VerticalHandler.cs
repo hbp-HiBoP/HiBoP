@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace HBP.UI.ResizableGrid
+namespace HBP.UI.Tools.ResizableGrids
 {
     public class VerticalHandler : Handler
     {

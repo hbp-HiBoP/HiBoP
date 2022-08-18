@@ -2,7 +2,7 @@
 using UnityEditor;
 using HBP.Theme.Components;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     [CustomEditor(typeof(ZoneResizer))]
     public class ZoneResizerEditor : Editor

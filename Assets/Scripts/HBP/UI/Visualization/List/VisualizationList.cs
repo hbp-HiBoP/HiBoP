@@ -1,8 +1,9 @@
 ﻿using System.Linq;
 using UnityEngine;
-using HBP.UI.Lists;
+using HBP.UI.Tools.Lists;
+using HBP.UI.Tools;
 
-namespace HBP.UI.Visualization
+namespace HBP.UI.Main
 {
     /// <summary>
     /// List to display visualizations.

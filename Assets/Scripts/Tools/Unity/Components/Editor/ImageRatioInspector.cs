@@ -1,6 +1,6 @@
 ﻿using UnityEditor;
 
-namespace HBP.UI.Components
+namespace HBP.UI.Tools
 {
     [CustomEditor(typeof(ImageRatio))]
     public class ImageRatioInspector : UnityEditor.Editor

@@ -1,8 +1,8 @@
-﻿using HBP.UI.Lists;
+﻿using HBP.UI.Tools.Lists;
 using System.Linq;
 using UnityEngine;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     /// <summary>
     /// Base abstract window to select one or multiple objects in a list of objects.

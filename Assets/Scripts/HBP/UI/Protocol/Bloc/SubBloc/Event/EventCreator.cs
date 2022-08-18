@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 using HBP.Core.Enums;
+using HBP.UI.Tools;
 
-namespace HBP.UI.Experience.Protocol
+namespace HBP.UI.Main
 {
     /// <summary>
     /// Component to create Events.

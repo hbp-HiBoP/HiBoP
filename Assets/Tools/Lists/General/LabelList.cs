@@ -1,4 +1,4 @@
-﻿namespace HBP.UI.Lists
+﻿namespace HBP.UI.Tools.Lists
 {
     /// <summary>
     /// List to display string.

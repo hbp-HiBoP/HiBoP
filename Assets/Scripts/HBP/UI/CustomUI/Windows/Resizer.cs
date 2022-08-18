@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace HBP.UI.Windows
+namespace HBP.UI.Tools
 {
 	[RequireComponent (typeof (RectTransform))]
 	public class Resizer : MonoBehaviour 

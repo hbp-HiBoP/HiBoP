@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
-using HBP.UI.Lists;
+using HBP.UI.Tools.Lists;
+using HBP.UI.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     public class PatientSelector : ObjectSelector<Core.Data.Patient>
     {

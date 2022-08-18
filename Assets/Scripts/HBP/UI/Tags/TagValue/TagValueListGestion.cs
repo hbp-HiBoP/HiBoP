@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
 using System.Linq;
-using HBP.UI.Lists;
+using HBP.UI.Tools.Lists;
+using HBP.UI.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     public class TagValueListGestion : ListGestion<Core.Data.BaseTagValue>
     {

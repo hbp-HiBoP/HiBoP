@@ -1,6 +1,7 @@
 ﻿using System.Linq;
+using HBP.UI.Tools;
 
-namespace HBP.UI.Experience.Protocol
+namespace HBP.UI.Main
 {
     public class TreatmentCreator : ObjectCreator<Core.Data.Treatment>
     {

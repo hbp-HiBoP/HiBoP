@@ -4,8 +4,9 @@ using System;
 using System.Collections.Generic;
 using HBP.Core.Data;
 using HBP.Core.Tools;
+using HBP.UI.Tools;
 
-namespace HBP.UI.Experience.Dataset
+namespace HBP.UI.Main
 {
     /// <summary>
     /// Window to modify a dataInfo.

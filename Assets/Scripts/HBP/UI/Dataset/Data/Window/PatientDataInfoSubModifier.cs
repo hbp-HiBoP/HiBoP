@@ -3,8 +3,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.ObjectModel;
 using HBP.Core.Data;
+using HBP.UI.Tools;
 
-namespace HBP.UI.Experience.Dataset
+namespace HBP.UI.Main
 {
     public class PatientDataInfoSubModifier : SubModifier<PatientDataInfo>
     {

@@ -1,7 +1,8 @@
-﻿using HBP.UI.Lists;
+﻿using HBP.UI.Tools.Lists;
 using UnityEngine;
+using HBP.UI.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     public class PatientListGestion : ListGestion<Core.Data.Patient>
     {

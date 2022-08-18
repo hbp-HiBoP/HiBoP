@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     [RequireComponent(typeof(Selectable))]
     public class InteractableConditions : MonoBehaviour

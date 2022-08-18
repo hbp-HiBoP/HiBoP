@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.UI.Components
+namespace HBP.UI.Tools
 {
     [RequireComponent(typeof(RectTransform))]
     public class MousePositionFollower : MonoBehaviour

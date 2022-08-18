@@ -5,8 +5,9 @@ using System.Collections.Generic;
 using Tools.CSharp;
 using HBP.Core.Data;
 using HBP.Display.Module3D;
+using HBP.UI.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     /// <summary>
     /// Window to modify visualization.

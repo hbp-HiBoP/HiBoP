@@ -1,7 +1,8 @@
 ﻿using System.Linq;
 using UnityEngine;
+using HBP.UI.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     public class AliasesSubModifier : SubModifier<Core.Data.ProjectPreferences>
     {

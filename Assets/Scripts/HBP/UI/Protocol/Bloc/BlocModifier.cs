@@ -2,8 +2,9 @@
 using UnityEngine;
 using HBP.Theme.Components;
 using Tools.CSharp;
+using HBP.UI.Tools;
 
-namespace HBP.UI.Experience.Protocol
+namespace HBP.UI.Main
 {
     /// <summary>
     /// Window to modify a bloc.

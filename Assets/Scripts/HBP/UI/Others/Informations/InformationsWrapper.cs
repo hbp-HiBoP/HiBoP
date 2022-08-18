@@ -5,8 +5,9 @@ using HBP.Display.Informations;
 using UnityEngine.UI.Extensions;
 using UnityEngine.Events;
 using HBP.Display.Module3D;
+using HBP.UI.Tools;
 
-namespace HBP.UI.Informations
+namespace HBP.UI.Module3D.Informations
 {
     public class InformationsWrapper : MonoBehaviour
     {

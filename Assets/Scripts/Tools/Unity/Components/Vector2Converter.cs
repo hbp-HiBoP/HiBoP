@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     public class Vector2Converter : MonoBehaviour
     {

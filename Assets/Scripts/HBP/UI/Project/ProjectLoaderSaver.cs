@@ -6,7 +6,7 @@ using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Display.Module3D;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     public class ProjectLoaderSaver : MonoBehaviour
     {
@@ -14,10 +14,10 @@ namespace HBP.UI
         public void Load(ProjectInfo projectInfo)
         {
             UnityEngine.Profiling.Profiler.BeginSample("1");
-            Project projectToLoad = new Project();
+            Core.Data.Project projectToLoad = new Core.Data.Project();
 
             DataManager.Clear();
-            Project projectLoaded = ApplicationState.ProjectLoaded;
+            Core.Data.Project projectLoaded = ApplicationState.ProjectLoaded;
             string projectLoadedLocation = ApplicationState.ProjectLoadedLocation;
             ApplicationState.ProjectLoaded = projectToLoad;
             ApplicationState.ProjectLoadedLocation = Directory.GetParent(projectInfo.Path).FullName;

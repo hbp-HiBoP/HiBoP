@@ -1,7 +1,8 @@
 ﻿using HBP.Core.Data;
 using UnityEngine;
+using HBP.UI.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     public class GroupGestion : GestionWindow<Group>
     {

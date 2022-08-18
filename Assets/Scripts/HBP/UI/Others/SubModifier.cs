@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     public abstract class BaseSubModifier : MonoBehaviour
     {

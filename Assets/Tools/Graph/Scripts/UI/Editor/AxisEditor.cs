@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 using UnityEditor;
 
-namespace HBP.UI.Graphs
+namespace HBP.UI.Tools.Graphs
 {
-    [CustomEditor(typeof(Axe))]
-    public class AxeEditor : Editor
+    [CustomEditor(typeof(Axis))]
+    public class AxisEditor : Editor
     {
         #region Properties
         bool m_ShowTickMarks = false;

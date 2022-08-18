@@ -8,9 +8,9 @@ using System.Collections;
 using ThirdParty.CielaSpike;
 using HBP.Core.Exceptions;
 using HBP.Core.Tools;
-using HBP.UI;
 using HBP.Core.Data;
 using HBP.Core.Object3D;
+using HBP.UI.Tools;
 
 namespace HBP.Display.Module3D
 {

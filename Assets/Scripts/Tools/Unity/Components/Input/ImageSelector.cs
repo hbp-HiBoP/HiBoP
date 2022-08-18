@@ -4,7 +4,7 @@ using UnityEngine.Events;
 using Tools.CSharp;
 using HBP.Core.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     [RequireComponent(typeof(Button))]
     public class ImageSelector : MonoBehaviour

@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
 
-namespace HBP.UI.Components
+namespace HBP.UI.Tools
 {
     public class Parser : MonoBehaviour
     {

@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
 using System.Linq;
-using HBP.UI.Lists;
+using HBP.UI.Tools.Lists;
+using HBP.UI.Tools;
 
-namespace HBP.UI.Experience.Protocol
+namespace HBP.UI.Main
 {
     public class IconListGestion : ListGestion<Core.Data.Icon>
     {

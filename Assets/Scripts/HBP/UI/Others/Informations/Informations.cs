@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.UI.Informations
+namespace HBP.UI.Module3D.Informations
 {
     public class Informations : MonoBehaviour
     {

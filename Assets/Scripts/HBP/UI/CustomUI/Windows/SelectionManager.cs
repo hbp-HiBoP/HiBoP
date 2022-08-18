@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
 public class SelectionManager : MonoBehaviour
 {

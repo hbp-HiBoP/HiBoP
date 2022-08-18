@@ -2,7 +2,7 @@
 using UnityEngine.Events;
 using HBP.Core.Interfaces;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     /// <summary>
     /// Abstract base class for every window.

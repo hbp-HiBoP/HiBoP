@@ -3,8 +3,9 @@ using UnityEngine;
 using UnityEngine.Events;
 using HBP.Core.Tools;
 using HBP.Core.Data;
+using HBP.UI.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     /// <summary>
     /// Window to modify the project preferences.

@@ -1,4 +1,6 @@
-﻿namespace HBP.UI.Visualization
+﻿using HBP.UI.Tools;
+
+namespace HBP.UI.Main
 {
     /// <summary>
     /// Component to create Visualizations.

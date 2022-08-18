@@ -8,7 +8,7 @@ using HBP.Core.Enums;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     /// <summary>
     /// Component to create a new object ICloneable and ICopiable. 

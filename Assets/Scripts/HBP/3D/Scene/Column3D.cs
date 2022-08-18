@@ -5,8 +5,8 @@ using System.Linq;
 using System.IO;
 using HBP.Core.Enums;
 using HBP.Core.Interfaces;
-using HBP.UI;
 using HBP.Core.Tools;
+using HBP.UI.Tools;
 
 namespace HBP.Display.Module3D
 {

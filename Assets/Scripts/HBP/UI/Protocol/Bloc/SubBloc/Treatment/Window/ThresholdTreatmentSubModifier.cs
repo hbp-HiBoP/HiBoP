@@ -1,8 +1,9 @@
 ﻿using System.Globalization;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.UI.Tools;
 
-namespace HBP.UI.Experience.Protocol
+namespace HBP.UI.Main
 {
     public class ThresholdTreatmentSubModifier : SubModifier<Core.Data.ThresholdTreatment>
     {

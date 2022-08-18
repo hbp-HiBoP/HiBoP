@@ -1,8 +1,9 @@
-﻿using HBP.UI.Lists;
+﻿using HBP.UI.Tools.Lists;
 using System.Linq;
 using UnityEngine;
+using HBP.UI.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     /// <summary>
     /// List to display MRIs.

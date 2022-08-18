@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using UnityEngine.Events;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     /// <summary>
     /// Abstract base class for every dialog window. There is two choices in a dialog window : OK and Close.

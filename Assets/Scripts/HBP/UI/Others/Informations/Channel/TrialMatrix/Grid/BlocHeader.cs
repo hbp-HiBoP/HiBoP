@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace HBP.UI.TrialMatrix.Grid
+namespace HBP.UI.Module3D.Informations.TrialMatrix.Grid
 {
     public class BlocHeader : MonoBehaviour
     {

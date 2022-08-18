@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using Tools.CSharp;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     public class FolderSelector : MonoBehaviour
     {

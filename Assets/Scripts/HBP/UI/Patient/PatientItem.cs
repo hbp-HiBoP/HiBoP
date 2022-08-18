@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
-using HBP.UI.Lists;
+using HBP.UI.Tools.Lists;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     /// <summary>
     /// Component to display patient in list.

@@ -1,7 +1,8 @@
-﻿using HBP.UI.Lists;
+﻿using HBP.UI.Tools.Lists;
 using UnityEngine;
+using HBP.UI.Tools;
 
-namespace HBP.UI.Experience.Dataset
+namespace HBP.UI.Main
 {
     public class DatasetListGestion : ListGestion<Core.Data.Dataset>
     {

@@ -2,8 +2,9 @@
 using UnityEngine;
 using System.IO;
 using HBP.Core.Data;
+using HBP.UI.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     public class SaveProjectAs : DialogWindow
     {

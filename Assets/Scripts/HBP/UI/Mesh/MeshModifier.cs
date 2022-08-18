@@ -3,8 +3,9 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 using HBP.Core.Tools;
+using HBP.UI.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     /// <summary>
     /// Window to modify a mesh.

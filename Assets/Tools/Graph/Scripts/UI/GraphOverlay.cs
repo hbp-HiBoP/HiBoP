@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace HBP.UI.Graphs
+namespace HBP.UI.Tools.Graphs
 {
     public class GraphOverlay : MonoBehaviour
     {

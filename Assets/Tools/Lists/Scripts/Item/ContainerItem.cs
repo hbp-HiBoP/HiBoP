@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using UnityEngine.Events;
 
-namespace HBP.UI.Lists
+namespace HBP.UI.Tools.Lists
 {
     [RequireComponent(typeof(Button))]
 	public class ContainerItem : MonoBehaviour

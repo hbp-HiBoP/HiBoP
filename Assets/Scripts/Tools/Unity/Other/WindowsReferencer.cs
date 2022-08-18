@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     [Serializable]
     public class WindowsReferencer

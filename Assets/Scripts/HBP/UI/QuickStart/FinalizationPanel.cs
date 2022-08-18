@@ -4,8 +4,9 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.UI.Tools;
 
-namespace HBP.UI.QuickStart
+namespace HBP.UI.Main.QuickStart
 {
     public class FinalizationPanel : QuickStartPanel
     {

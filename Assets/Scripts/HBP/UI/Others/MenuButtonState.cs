@@ -1,7 +1,7 @@
 ﻿using HBP.Core.Data;
 using UnityEngine;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     public class MenuButtonState : MonoBehaviour
     {

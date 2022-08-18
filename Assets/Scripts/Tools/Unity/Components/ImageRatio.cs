@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace HBP.UI.Components
+namespace HBP.UI.Tools
 {
     [RequireComponent(typeof(Image))]
     public class ImageRatio : LayoutElement

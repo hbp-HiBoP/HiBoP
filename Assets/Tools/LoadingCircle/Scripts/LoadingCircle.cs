@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     [ExecuteInEditMode]
     public class LoadingCircle : MonoBehaviour

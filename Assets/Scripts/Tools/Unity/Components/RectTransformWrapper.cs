@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.UI.Components
+namespace HBP.UI.Tools
 {
     [RequireComponent(typeof(RectTransform)), ExecuteInEditMode]
     public class RectTransformWrapper : MonoBehaviour

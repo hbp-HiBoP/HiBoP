@@ -5,6 +5,7 @@ using UnityEngine.Events;
 using HBP.Theme.Components;
 using HBP.Display.Module3D;
 using HBP.Core.Tools;
+using HBP.UI.Tools.ResizableGrids;
 
 namespace HBP.UI.Module3D
 {
@@ -59,7 +60,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Parent resizable grid
         /// </summary>
-        public ResizableGrid.ResizableGrid ParentGrid { get; set; }
+        public ResizableGrid ParentGrid { get; set; }
         /// <summary>
         /// GameObject to hide a minimized view
         /// </summary>
@@ -147,7 +148,7 @@ namespace HBP.UI.Module3D
         #region Private Methods
         private void Awake()
         {
-            ParentGrid = GetComponentInParent<ResizableGrid.ResizableGrid>();
+            ParentGrid = GetComponentInParent<ResizableGrid>();
             m_RectTransform = GetComponent<RectTransform>();
             m_RawImage = GetComponent<RawImage>();
             UsingRenderTexture = true;
@@ -332,7 +333,7 @@ namespace HBP.UI.Module3D
             m_Scene = scene;
             m_Column = column;
             m_View = view;
-            ParentGrid = GetComponentInParent<ResizableGrid.ResizableGrid>();
+            ParentGrid = GetComponentInParent<ResizableGrid>();
             m_RectTransform = GetComponent<RectTransform>();
             m_RawImage = GetComponent<RawImage>();
             UsingRenderTexture = true;

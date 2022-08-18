@@ -5,7 +5,7 @@ using HBP.Core.Enums;
 using HBP.Core.Data;
 using HBP.UI.Tools;
 
-namespace HBP.UI.QuickStart
+namespace HBP.UI.Main.QuickStart
 {
     public class EpochingPanel : QuickStartPanel
     {

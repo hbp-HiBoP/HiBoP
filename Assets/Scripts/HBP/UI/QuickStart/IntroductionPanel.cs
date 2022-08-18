@@ -1,4 +1,4 @@
-﻿namespace HBP.UI.QuickStart
+﻿namespace HBP.UI.Main.QuickStart
 {
     public class IntroductionPanel : QuickStartPanel
     {

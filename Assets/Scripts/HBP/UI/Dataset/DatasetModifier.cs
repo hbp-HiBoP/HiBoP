@@ -2,8 +2,9 @@
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.UI.Tools;
 
-namespace HBP.UI.Experience.Dataset
+namespace HBP.UI.Main
 {
     /// <summary>
     /// Window to modify a dataset.

@@ -2,7 +2,7 @@
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     public class ImageResizer : MonoBehaviour, IScrollHandler, IPointerDownHandler
     {

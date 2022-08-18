@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using HBP.Core.Enums;
 using UnityEngine.Events;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     public class CreatorContextMenu : MonoBehaviour
     {

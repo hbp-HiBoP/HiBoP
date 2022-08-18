@@ -1,9 +1,9 @@
 ﻿using Tools.CSharp;
 using UnityEngine;
 using UnityEngine.UI;
-using HBP.UI.Lists;
+using HBP.UI.Tools.Lists;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     /// <summary>
     /// Component to display tag in list.

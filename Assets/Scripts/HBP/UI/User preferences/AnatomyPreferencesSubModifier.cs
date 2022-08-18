@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using HBP.Display.Preferences;
+using HBP.UI.Tools;
 
-namespace HBP.UI.Preferences
+namespace HBP.UI.Main.Preferences
 {
     public class AnatomyPreferencesSubModifier : SubModifier<AnatomicPreferences>
     {

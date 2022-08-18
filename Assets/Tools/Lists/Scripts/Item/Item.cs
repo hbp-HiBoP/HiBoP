@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.UI.Lists
+namespace HBP.UI.Tools.Lists
 {
     /// <summary>
     /// Abstract component to display item in a list.

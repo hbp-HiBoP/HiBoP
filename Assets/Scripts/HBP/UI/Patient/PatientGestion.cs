@@ -1,8 +1,9 @@
 ﻿using HBP.Core.Data;
 using HBP.Display.Module3D;
 using UnityEngine;
+using HBP.UI.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     public class PatientGestion : GestionWindow<Patient>
     {

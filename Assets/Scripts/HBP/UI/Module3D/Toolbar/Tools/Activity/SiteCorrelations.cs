@@ -15,6 +15,7 @@ using HBP.Core.Data;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
 using HBP.Display.Module3D;
+using HBP.UI.Tools;
 
 namespace HBP.UI.Module3D.Tools
 {

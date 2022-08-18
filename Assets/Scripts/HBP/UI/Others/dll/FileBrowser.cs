@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using ThirdParty.SFB;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     public class FileBrowser
     {

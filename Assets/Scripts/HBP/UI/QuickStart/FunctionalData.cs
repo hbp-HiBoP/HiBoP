@@ -1,7 +1,7 @@
 ﻿using System;
 using HBP.Core.Enums;
 
-namespace HBP.UI.QuickStart
+namespace HBP.UI.Main.QuickStart
 {
     public class FunctionalData
     {

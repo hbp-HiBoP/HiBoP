@@ -1,6 +1,6 @@
-﻿using HBP.UI.Lists;
+﻿using HBP.UI.Tools.Lists;
 
-namespace HBP.UI.QuickStart
+namespace HBP.UI.Main.QuickStart
 {
     /// <summary>
     /// List to display DataInfos.

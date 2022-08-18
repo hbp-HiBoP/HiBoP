@@ -5,7 +5,7 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using HBP.Core.Interfaces;
 
-namespace HBP.UI.Lists
+namespace HBP.UI.Tools.Lists
 {
     /// <summary>
     /// List to display elements which can be selected. 

@@ -1,4 +1,4 @@
-﻿namespace HBP.UI
+﻿namespace HBP.UI.Tools
 {
     /// <summary>
     /// Abstract window to modify a object.

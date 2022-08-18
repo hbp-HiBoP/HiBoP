@@ -5,8 +5,9 @@ using UnityEngine.UI;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
 using HBP.Core.Data;
+using HBP.UI.Tools;
 
-namespace HBP.UI.QuickStart
+namespace HBP.UI.Main.QuickStart
 {
     public class AnatomicalPanel : QuickStartPanel
     {

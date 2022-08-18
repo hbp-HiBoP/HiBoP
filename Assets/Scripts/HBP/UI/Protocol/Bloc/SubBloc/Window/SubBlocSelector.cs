@@ -1,8 +1,8 @@
-﻿using HBP.UI.Experience.Protocol;
-using UnityEngine;
-using HBP.UI.Lists;
+﻿using UnityEngine;
+using HBP.UI.Tools.Lists;
+using HBP.UI.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     /// <summary>
     /// Window to select subBlocs.

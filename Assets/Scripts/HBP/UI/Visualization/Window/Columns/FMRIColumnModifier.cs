@@ -4,8 +4,9 @@ using UnityEngine.UI;
 using System.Linq;
 using HBP.Core.Data;
 using HBP.Core.Tools;
+using HBP.UI.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     public class FMRIColumnModifier : SubModifier<FMRIColumn>
     {

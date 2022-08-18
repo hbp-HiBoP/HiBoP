@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.UI.TrialMatrix
+namespace HBP.UI.Module3D.Informations.TrialMatrix
 {
     public class Group : MonoBehaviour
     {

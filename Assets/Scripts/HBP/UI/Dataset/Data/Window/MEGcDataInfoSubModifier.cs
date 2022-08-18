@@ -1,4 +1,6 @@
-﻿namespace HBP.UI.Experience.Dataset
+﻿using HBP.UI.Tools;
+
+namespace HBP.UI.Main
 {
     public class MEGcDataInfoSubModifier : SubModifier<Core.Data.MEGcDataInfo>
     {

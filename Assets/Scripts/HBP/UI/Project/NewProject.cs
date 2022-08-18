@@ -4,8 +4,9 @@ using System.Linq;
 using System.IO;
 using HBP.Core.Data;
 using HBP.Display.Module3D;
+using HBP.UI.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     /// <summary>
     /// Manage the New Project window.
@@ -85,7 +86,7 @@ namespace HBP.UI
                 DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Project already exists", string.Format("A project named {0} already exists within the selected directory.\n\nWould you like to override this project?", m_NameInputField.text), () =>
                 {
                     ProjectPreferences preferences = new ProjectPreferences(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
-                    ApplicationState.ProjectLoaded = new Project(preferences);
+                    ApplicationState.ProjectLoaded = new Core.Data.Project(preferences);
                     ApplicationState.ProjectLoadedLocation = m_ProjectLocationFolderSelector.Folder;
                     FindObjectOfType<ProjectLoaderSaver>().SaveAndReload();
                     base.OK();
@@ -95,7 +96,7 @@ namespace HBP.UI
             else
             {
                 ProjectPreferences preferences = new ProjectPreferences(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
-                ApplicationState.ProjectLoaded = new Project(preferences);
+                ApplicationState.ProjectLoaded = new Core.Data.Project(preferences);
                 ApplicationState.ProjectLoadedLocation = m_ProjectLocationFolderSelector.Folder;
                 FindObjectOfType<ProjectLoaderSaver>().SaveAndReload();
                 base.OK();

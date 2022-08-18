@@ -1,6 +1,6 @@
 ﻿using UnityEditor;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     [CustomEditor(typeof(LoadingCircle))]
     public class LoadingCircleEditor : Editor

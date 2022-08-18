@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace HBP.UI.TrialMatrix
+namespace HBP.UI.Module3D.Informations.TrialMatrix
 {
     [RequireComponent(typeof(LayoutElement))]
     public class TimeBloc : MonoBehaviour

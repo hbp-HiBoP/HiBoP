@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 
-namespace HBP.UI.Components
+namespace HBP.UI.Tools
 {
     public class ToggleMethodCaller : MonoBehaviour
     {

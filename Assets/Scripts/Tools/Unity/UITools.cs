@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Tools.CSharp;
 using UnityEngine.UI;
+using HBP.UI.Tools;
 
 namespace HBP.UI
 {

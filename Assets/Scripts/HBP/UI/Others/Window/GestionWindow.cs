@@ -4,7 +4,7 @@ using UnityEngine.UI;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     /// <summary>
     /// Abstract generic class for every gestion window. A gestion window is a window to modify a list of elements.

@@ -3,8 +3,9 @@ using UnityEngine.UI;
 using System.Linq;
 using Tools.CSharp;
 using HBP.Core.Data;
+using HBP.UI.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     /// <summary>
     /// Window to modify site.

@@ -1,4 +1,6 @@
-﻿namespace HBP.UI.Experience.Dataset
+﻿using HBP.UI.Tools;
+
+namespace HBP.UI.Main
 {
     /// <summary>
     /// Component to create datasets.

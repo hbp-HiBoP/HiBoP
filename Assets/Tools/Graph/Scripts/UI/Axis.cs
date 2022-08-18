@@ -4,10 +4,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UI.Extensions;
 
-namespace HBP.UI.Graphs
+namespace HBP.UI.Tools.Graphs
 {
     [ExecuteInEditMode]
-    public class Axe : MonoBehaviour
+    public class Axis : MonoBehaviour
     {
         #region Properties
         public enum DirectionEnum { LeftToRight, RightToLeft, BottomToTop, TopToBottom }

@@ -3,8 +3,9 @@ using UnityEngine.UI;
 using HBP.Display.Preferences;
 using HBP.Core.Object3D;
 using HBP.Display.Module3D;
+using HBP.UI.Tools;
 
-namespace HBP.UI.Preferences
+namespace HBP.UI.Main.Preferences
 {
     public class AtlasesPreferencesSubModifier : SubModifier<AtlasesPreferences>
     {

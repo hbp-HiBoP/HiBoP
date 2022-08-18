@@ -1,8 +1,8 @@
-﻿using HBP.UI.Lists;
+﻿using HBP.UI.Tools.Lists;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace HBP.UI
+namespace HBP.UI.Main
 {
     /// <summary>
     /// Component to display alias in list.

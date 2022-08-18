@@ -6,7 +6,7 @@ using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
 using d = HBP.Display.Informations.TrialMatrix.Grid;
 
-namespace HBP.UI.TrialMatrix.Grid
+namespace HBP.UI.Module3D.Informations.TrialMatrix.Grid
 {
     public class Data : MonoBehaviour
     {

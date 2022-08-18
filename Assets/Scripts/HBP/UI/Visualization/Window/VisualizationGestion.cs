@@ -3,8 +3,9 @@ using UnityEngine.UI;
 using System.Linq;
 using HBP.Core.Data;
 using HBP.Display.Module3D;
+using HBP.UI.Tools;
 
-namespace HBP.UI.Visualization
+namespace HBP.UI.Main
 {
     public class VisualizationGestion : GestionWindow<Core.Data.Visualization>
     {

@@ -3,8 +3,9 @@ using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.Display.Preferences;
 using HBP.Core.Tools;
+using HBP.UI.Tools;
 
-namespace HBP.UI.Preferences
+namespace HBP.UI.Main.Preferences
 {
     public class ProtocolPreferencesSubModifier : SubModifier<ProtocolPreferences>
     {

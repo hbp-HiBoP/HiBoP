@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEditor;
 
-namespace HBP.UI.Windows
+namespace HBP.UI.Tools
 {
 	public class WindowMenu : EditorWindow
 	{

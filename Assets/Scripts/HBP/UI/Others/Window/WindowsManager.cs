@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     public class WindowsManager : MonoBehaviour
     {

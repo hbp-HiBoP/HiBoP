@@ -10,10 +10,10 @@ using UnityEngine.UI.Extensions;
 using System;
 using UnityEngine.EventSystems;
 using HBP.Core.Enums;
-using HBP.UI.Components;
+using HBP.UI.Tools;
 using HBP.Core.Tools;
 
-namespace HBP.UI.TrialMatrix.Grid
+namespace HBP.UI.Module3D.Informations.TrialMatrix.Grid
 {
     public class ChannelBloc : MonoBehaviour
     {

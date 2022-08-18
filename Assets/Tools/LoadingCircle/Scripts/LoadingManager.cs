@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using HBP.Core.Tools;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     public class LoadingManager : MonoBehaviour
     {

@@ -2,9 +2,10 @@
 using UnityEngine.UI;
 using HBP.Theme.Components;
 using Tools.CSharp;
-using HBP.UI.Lists;
+using HBP.UI.Tools.Lists;
+using HBP.UI.Tools;
 
-namespace HBP.UI.Experience.Dataset
+namespace HBP.UI.Main
 {
     /// <summary>
     /// Component to display dataInfo in list.

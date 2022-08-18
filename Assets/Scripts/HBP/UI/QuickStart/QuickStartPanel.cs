@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.UI.QuickStart
+namespace HBP.UI.Main.QuickStart
 {
     public abstract class QuickStartPanel : MonoBehaviour
     {

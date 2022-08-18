@@ -2,9 +2,9 @@
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Interfaces;
-using HBP.UI.Lists;
+using HBP.UI.Tools.Lists;
 
-namespace HBP.UI
+namespace HBP.UI.Tools
 {
     /// <summary>
     /// Abstract generic base class which manage a list of elements.
