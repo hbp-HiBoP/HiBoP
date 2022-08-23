@@ -399,10 +399,10 @@ namespace HBP.Display.Module3D
         /// <param name="amount">Strafe distance</param>
         public void HorizontalStrafe(float amount)
         {
-            Vector3 strafe = - transform.right * amount * m_Speed;
+            Vector3 strafe = amount * m_Speed * 0.2f * - transform.right;
 
             transform.position = transform.position + strafe;
-            LocalTarget = LocalTarget + strafe;
+            LocalTarget += strafe;
         }
         /// <summary>
         /// Strafe the camera vertically (keeping the same camera direction)
@@ -410,10 +410,10 @@ namespace HBP.Display.Module3D
         /// <param name="amount">Strafe distance</param>
         public void VerticalStrafe(float amount)
         {
-            Vector3 strafe = - transform.up * amount * m_Speed;
+            Vector3 strafe = amount * m_Speed * - transform.up;
 
             transform.position = transform.position + strafe;
-            LocalTarget = LocalTarget + strafe;
+            LocalTarget += strafe;
         }
         /// <summary>
         /// Rotate the camera horizontally

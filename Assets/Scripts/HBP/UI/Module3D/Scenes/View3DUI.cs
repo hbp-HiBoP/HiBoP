@@ -6,6 +6,7 @@ using HBP.Theme.Components;
 using HBP.Display.Module3D;
 using HBP.Core.Tools;
 using HBP.UI.Tools.ResizableGrids;
+using HBP.UI.Tools;
 
 namespace HBP.UI.Module3D
 {
@@ -44,6 +45,8 @@ namespace HBP.UI.Module3D
         /// Prefab for the correlation ring of the selected site for correlations
         /// </summary>
         [SerializeField] private GameObject m_BaseCorrelationRingPrefab;
+
+        private CanvasScalerHandler m_CanvasScalerHandler;
 
         /// <summary>
         /// Associated logical scene 3D
@@ -151,6 +154,7 @@ namespace HBP.UI.Module3D
             ParentGrid = GetComponentInParent<ResizableGrid>();
             m_RectTransform = GetComponent<RectTransform>();
             m_RawImage = GetComponent<RawImage>();
+            m_CanvasScalerHandler = GetComponentInParent<CanvasScalerHandler>();
             UsingRenderTexture = true;
         }
         private void Update()
@@ -260,19 +264,21 @@ namespace HBP.UI.Module3D
         {
             if (IsMinimized) return;
 
+            float scale = m_CanvasScalerHandler.Scale;
+            Vector2 delta = new Vector2(data.delta.x * scale, data.delta.y * scale);
             switch (data.button)
             {
                 case PointerEventData.InputButton.Left:
                     if (m_Scene.ROIManager.ROICreationMode)
                     {
-                        m_Scene.ROIManager.MoveSelectedROISphere(m_View.Camera, data.delta);
+                        m_Scene.ROIManager.MoveSelectedROISphere(m_View.Camera, delta);
                     }
                     break;
                 case PointerEventData.InputButton.Right:
-                    m_View.RotateCamera(data.delta);
+                    m_View.RotateCamera(delta);
                     break;
                 case PointerEventData.InputButton.Middle:
-                    m_View.StrafeCamera(data.delta);
+                    m_View.StrafeCamera(delta);
                     break;
                 default:
                     break;
