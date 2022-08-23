@@ -22,7 +22,7 @@ namespace HBP.UI.Main
                     base.OK();
                     ApplicationState.ProjectLoaded.SetPatients(ListGestion.List.Objects);
                     DataManager.Clear();
-                    HBP3DModule.ReloadScenes();
+                    Module3DMain.ReloadScenes();
                 });
             }
             else

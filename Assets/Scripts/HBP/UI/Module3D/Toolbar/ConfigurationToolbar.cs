@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.UI.Module3D
+namespace HBP.UI.Toolbar
 {
     public class ConfigurationToolbar : Toolbar
     {
@@ -8,8 +8,8 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Tool that allows saving, loading and reseting the configuration of the selected scene
         /// </summary>
-        [SerializeField] private Tools.ConfigurationLoaderSaver m_ConfigurationLoaderSaver;
-        [SerializeField] private Tools.CopyVisualization m_CopyVisualization;
+        [SerializeField] private ConfigurationLoaderSaver m_ConfigurationLoaderSaver;
+        [SerializeField] private CopyVisualization m_CopyVisualization;
         #endregion
 
         #region Private Methods

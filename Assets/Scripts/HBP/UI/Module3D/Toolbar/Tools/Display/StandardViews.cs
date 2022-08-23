@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace HBP.UI.Module3D.Tools
+namespace HBP.UI.Toolbar
 {
     public class StandardViews : Tool
     {

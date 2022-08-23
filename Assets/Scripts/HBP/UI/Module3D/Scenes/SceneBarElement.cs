@@ -48,17 +48,17 @@ namespace HBP.UI.Module3D
         public void Initialize(Base3DScene scene)
         {
             m_Scene = scene;
-            HBP3DModule.OnSelectScene.AddSafeListener((s) => SetSelectedState(s == m_Scene), gameObject);
+            Module3DMain.OnSelectScene.AddSafeListener((s) => SetSelectedState(s == m_Scene), gameObject);
             SetSelectedState(m_Scene.IsSelected);
 
             m_Text.text = scene.Name;
 
             m_Button.onClick.AddListener(() =>
             {
-                HBP3DModule.RemoveScene(scene);
+                Module3DMain.RemoveScene(scene);
             });
 
-            HBP3DModule.OnRemoveScene.AddSafeListener((s) =>
+            Module3DMain.OnRemoveScene.AddSafeListener((s) =>
             {
                 if (s == scene)
                 {

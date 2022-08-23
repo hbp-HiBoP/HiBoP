@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace HBP.UI.Module3D
+namespace HBP.UI.Toolbar
 {
     public abstract class Toolbar : MonoBehaviour
     {
@@ -14,7 +14,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// List of the tools of the toolbar
         /// </summary>
-        protected List<Tools.Tool> m_Tools = new List<Tools.Tool>();
+        protected List<Tool> m_Tools = new List<Tool>();
         #endregion
 
         #region Private Methods
@@ -31,9 +31,9 @@ namespace HBP.UI.Module3D
         /// </summary>
         protected virtual void AddListeners()
         {
-            HBP3DModule.OnRemoveScene.AddListener((scene) =>
+            Module3DMain.OnRemoveScene.AddListener((scene) =>
             {
-                if (scene == HBP3DModule.SelectedScene)
+                if (scene == Module3DMain.SelectedScene)
                 {
                     m_Tools.ForEach((t) => t.ListenerLock = true);
                     DefaultState();
@@ -41,9 +41,9 @@ namespace HBP.UI.Module3D
                 }
             });
 
-            HBP3DModule.OnMinimizeScene.AddListener((scene) =>
+            Module3DMain.OnMinimizeScene.AddListener((scene) =>
             {
-                if (scene == HBP3DModule.SelectedScene)
+                if (scene == Module3DMain.SelectedScene)
                 {
                     m_Tools.ForEach((t) => t.ListenerLock = true);
                     DefaultState();
@@ -51,11 +51,11 @@ namespace HBP.UI.Module3D
                 }
             });
 
-            HBP3DModule.OnSelectScene.AddListener(OnChangeScene);
-            HBP3DModule.OnSelectColumn.AddListener(OnChangeColumn);
-            HBP3DModule.OnSelectView.AddListener(OnChangeView);
+            Module3DMain.OnSelectScene.AddListener(OnChangeScene);
+            Module3DMain.OnSelectColumn.AddListener(OnChangeColumn);
+            Module3DMain.OnSelectView.AddListener(OnChangeView);
             
-            foreach (Tools.Tool tool in m_Tools)
+            foreach (Tool tool in m_Tools)
             {
                 tool.Initialize();
             }
@@ -65,7 +65,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         protected virtual void DefaultState()
         {
-            foreach (Tools.Tool tool in m_Tools)
+            foreach (Tool tool in m_Tools)
             {
                 tool.DefaultState();
             }
@@ -76,11 +76,11 @@ namespace HBP.UI.Module3D
         /// <param name="scene">Scene that has been selected</param>
         protected void OnChangeScene(Base3DScene scene)
         {
-            foreach (Tools.Tool tool in m_Tools)
+            foreach (Tool tool in m_Tools)
             {
                 tool.SelectedScene = scene;
             }
-            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Callback when the selected column is changed
@@ -88,11 +88,11 @@ namespace HBP.UI.Module3D
         /// <param name="column">Column that has been selected</param>
         protected void OnChangeColumn(Column3D column)
         {
-            foreach (Tools.Tool tool in m_Tools)
+            foreach (Tool tool in m_Tools)
             {
                 tool.SelectedColumn = column;
             }
-            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Callback when the selected view is changed
@@ -100,11 +100,11 @@ namespace HBP.UI.Module3D
         /// <param name="view">View that has been selected</param>
         protected void OnChangeView(View3D view)
         {
-            foreach (Tools.Tool tool in m_Tools)
+            foreach (Tool tool in m_Tools)
             {
                 tool.SelectedView = view;
             }
-            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
 
@@ -140,7 +140,7 @@ namespace HBP.UI.Module3D
         public void UpdateToolbar()
         {
             m_Tools.ForEach((t) => t.ListenerLock = true);
-            foreach (Tools.Tool tool in m_Tools)
+            foreach (Tool tool in m_Tools)
             {
                 tool.UpdateTool();
             }

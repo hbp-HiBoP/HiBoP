@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UI.Extensions;
 
-namespace HBP.UI.Tools.Graphs
+namespace HBP.UI.Informations.Graphs
 {
     [ExecuteInEditMode]
     public class Axis : MonoBehaviour

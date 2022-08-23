@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using HBP.UI.Tools;
 
-namespace HBP.UI.Module3D.Tools
+namespace HBP.UI.Toolbar
 {
     public class ConfigurationLoaderSaver : Tool
     {
@@ -39,7 +39,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ObjectSelector<Core.Data.Visualization> selector = WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Visualizations,false);
+                ObjectSelector<Visualization> selector = WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Visualizations,false);
                 selector.OnOk.AddListener(() =>
                 {
                     if (selector.ObjectsSelected.Length > 0)

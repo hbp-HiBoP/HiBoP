@@ -31,8 +31,8 @@ namespace HBP.UI.Main.QuickStart
             // Add visualization
             if (ApplicationState.ProjectLoaded.Protocols.Count == 0) // Anatomical
             {
-                Core.Data.Visualization visualization = new Core.Data.Visualization("QuickStart Anatomy", ApplicationState.ProjectLoaded.Patients, new Column[] { new AnatomicColumn("Anatomy", new BaseConfiguration()) });
-                ApplicationState.ProjectLoaded.SetVisualizations(new Core.Data.Visualization[] { visualization });
+                Visualization visualization = new Visualization("QuickStart Anatomy", ApplicationState.ProjectLoaded.Patients, new Column[] { new AnatomicColumn("Anatomy", new BaseConfiguration()) });
+                ApplicationState.ProjectLoaded.SetVisualizations(new Visualization[] { visualization });
             }
             else // Functional
             {
@@ -51,8 +51,8 @@ namespace HBP.UI.Main.QuickStart
                     IEEGColumn column = new IEEGColumn(string.Format("Code {0}", bloc.MainSubBloc.MainEvent.Codes[0]), new BaseConfiguration(), ApplicationState.ProjectLoaded.Datasets[0], "Data", bloc, new DynamicConfiguration());
                     columns.Add(column);
                 }
-                Core.Data.Visualization visualization = new Core.Data.Visualization("QuickStart", patients, columns, new VisualizationConfiguration());
-                ApplicationState.ProjectLoaded.SetVisualizations(new Core.Data.Visualization[] { visualization });
+                Visualization visualization = new Visualization("QuickStart", patients, columns, new VisualizationConfiguration());
+                ApplicationState.ProjectLoaded.SetVisualizations(new Visualization[] { visualization });
             }
             ApplicationState.ProjectLoaded.Preferences.Name = m_ProjectName.text;
             ApplicationState.ProjectLoadedLocation = m_ProjectLocation.Folder;

@@ -1,7 +1,7 @@
 ﻿using HBP.Display.Module3D;
 using UnityEngine;
 
-namespace HBP.UI.Module3D
+namespace HBP.UI.Toolbar
 {
     public class ROIToolbar : Toolbar
     {
@@ -9,11 +9,11 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Tool to manage the Regions of Interest
         /// </summary>
-        [SerializeField] private Tools.ROIManager m_ROIManager;
+        [SerializeField] private ROIManager m_ROIManager;
         /// <summary>
         /// Tool to import/export ROIs
         /// </summary>
-        [SerializeField] private Tools.ROIExport m_ROIExport;
+        [SerializeField] private ROIExport m_ROIExport;
         #endregion
 
         #region Private Methods
@@ -33,7 +33,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         public override void ShowToolbarCallback()
         {
-            foreach (Base3DScene scene in HBP3DModule.Scenes)
+            foreach (Base3DScene scene in Module3DMain.Scenes)
             {
                 scene.ROIManager.ROICreationMode = true;
             }
@@ -43,7 +43,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         public override void HideToolbarCallback()
         {
-            foreach (Base3DScene scene in HBP3DModule.Scenes)
+            foreach (Base3DScene scene in Module3DMain.Scenes)
             {
                 scene.ROIManager.ROICreationMode = false;
             }

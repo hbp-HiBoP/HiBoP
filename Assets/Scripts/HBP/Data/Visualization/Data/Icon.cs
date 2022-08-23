@@ -84,7 +84,7 @@ namespace HBP.Core.Data.Processed
         /// <param name="icon">Icon.</param>
         /// <param name="frequency">Frequency of the data.</param>
         /// <param name="timeLine">Time line of the bloc.</param>
-        public Icon(Core.Data.Icon icon, Tools.Frequency frequency, int mainEventPosition, int timelineLength)
+        public Icon(Core.Data.Icon icon, Frequency frequency, int mainEventPosition, int timelineLength)
         {
             Label = icon.Name;
             IllustrationPath = icon.ImagePath;
@@ -95,7 +95,7 @@ namespace HBP.Core.Data.Processed
         /// <summary>
         /// Create a new icon instance with default value;
         /// </summary>
-        public Icon() : this(new Core.Data.Icon(), new Tools.Frequency(0), 0, 0)
+        public Icon() : this(new Core.Data.Icon(), new Frequency(0), 0, 0)
         {
         }
 

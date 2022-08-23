@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace HBP.UI.Module3D.Tools
+namespace HBP.UI.Toolbar
 {
     public class ActivityTransparency : Tool
     {

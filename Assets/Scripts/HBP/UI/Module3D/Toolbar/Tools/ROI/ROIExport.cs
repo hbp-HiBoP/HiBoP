@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using HBP.UI.Tools;
 
-namespace HBP.UI.Module3D.Tools
+namespace HBP.UI.Toolbar
 {
     public class ROIExport : Tool
     {
@@ -33,9 +33,9 @@ namespace HBP.UI.Module3D.Tools
                     ClassLoaderSaver.SaveToJSon(ROI, savePath, true);
                     DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Region of Interest saved", "The selected ROI has been saved to <color=#3080ffff>" + savePath + "</color>");
                 }
-            }, new string[] { "roi" }, "Save ROI to", Application.dataPath);
+            }, new string[] { "roi" }, "Save ROI to");
 #else
-            string savePath = FileBrowser.GetSavedFileName(new string[] { "roi" }, "Save ROI to", Application.dataPath);
+            string savePath = FileBrowser.GetSavedFileName(new string[] { "roi" }, "Save ROI to");
             if (!string.IsNullOrEmpty(savePath))
             {
                 Core.Data.RegionOfInterest ROI = new Core.Data.RegionOfInterest(SelectedScene.ROIManager.SelectedROI);

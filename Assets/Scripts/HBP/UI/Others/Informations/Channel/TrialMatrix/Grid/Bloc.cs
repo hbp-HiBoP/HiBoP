@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using data = HBP.Display.Informations.TrialMatrix.Grid;
 
-namespace HBP.UI.Module3D.Informations.TrialMatrix.Grid
+namespace HBP.UI.Informations.TrialMatrix.Grid
 {
     public class Bloc : MonoBehaviour
     {

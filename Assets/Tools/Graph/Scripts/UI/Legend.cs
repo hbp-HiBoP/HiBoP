@@ -2,7 +2,7 @@
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
 
-namespace HBP.UI.Tools.Graphs
+namespace HBP.UI.Informations.Graphs
 {
     public class Legend : MonoBehaviour
     {

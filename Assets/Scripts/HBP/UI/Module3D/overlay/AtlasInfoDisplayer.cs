@@ -77,7 +77,7 @@ namespace HBP.UI.Module3D
         public void Initialize()
         {
             m_RectTransform = GetComponent<RectTransform>();
-            HBP3DModule.OnDisplayAtlasInformation.AddListener((atlasInfo) =>
+            Module3DMain.OnDisplayAtlasInformation.AddListener((atlasInfo) =>
             {
                 if (atlasInfo.Enabled)
                 {

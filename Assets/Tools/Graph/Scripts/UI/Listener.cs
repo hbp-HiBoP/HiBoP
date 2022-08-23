@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
 
-namespace HBP.UI.Tools.Graphs
+namespace HBP.UI.Informations.Graphs
 {
     [RequireComponent(typeof(RectTransform))]
     public class Listener : MonoBehaviour

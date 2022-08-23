@@ -5,7 +5,7 @@ using Tools.CSharp;
 using UnityEngine;
 using data = HBP.Display.Informations.TrialMatrix.Grid;
 
-namespace HBP.UI.Module3D.Informations
+namespace HBP.UI.Informations
 {
     public class TrialMatrixZone : MonoBehaviour
     {

@@ -2,7 +2,7 @@
 using UnityEngine;
 using data = HBP.Display.Informations;
 
-namespace HBP.UI.Module3D.Informations
+namespace HBP.UI.Informations
 {
     public class ChannelInformations : MonoBehaviour
     {

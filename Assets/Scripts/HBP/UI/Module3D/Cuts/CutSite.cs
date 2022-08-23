@@ -43,7 +43,7 @@ namespace HBP.UI.Module3D
         {
             if (m_IsCursorInside)
             {
-                HBP3DModule.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(m_Site, true, Input.mousePosition, SiteInformationDisplayMode.Anatomy));
+                Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(m_Site, true, Input.mousePosition, SiteInformationDisplayMode.Anatomy));
             }
         }
         #endregion
@@ -79,7 +79,7 @@ namespace HBP.UI.Module3D
         }
         public void OnPointerExit(PointerEventData eventData)
         {
-            HBP3DModule.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(null, false, Input.mousePosition));
+            Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(null, false, Input.mousePosition));
             m_IsCursorInside = false;
         }
         public void OnPointerDown(PointerEventData eventData)

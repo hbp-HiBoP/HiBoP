@@ -9,7 +9,7 @@ namespace HBP.UI.Main
     /// <summary>
     /// Window to modify a dataset.
     /// </summary>
-    public class DatasetModifier : ObjectModifier<Core.Data.Dataset>
+    public class DatasetModifier : ObjectModifier<Dataset>
     {
         #region Properties		
         [SerializeField] InputField m_NameInputField;
@@ -63,7 +63,7 @@ namespace HBP.UI.Main
         /// Set the fields.
         /// </summary>
         /// <param name="objectToDisplay">Dataset to modify</param>
-        protected override void SetFields(Core.Data.Dataset objectToDisplay)
+        protected override void SetFields(Dataset objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_ProtocolDropdown.value = ApplicationState.ProjectLoaded.Protocols.IndexOf(objectToDisplay.Protocol);

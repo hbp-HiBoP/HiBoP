@@ -7,8 +7,9 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using UnityEngine.UI.Extensions;
+using HBP.Display.Informations.Graphs;
 
-namespace HBP.UI.Tools.Graphs
+namespace HBP.UI.Informations.Graphs
 {
     public class GraphsGrid : MonoBehaviour
     {

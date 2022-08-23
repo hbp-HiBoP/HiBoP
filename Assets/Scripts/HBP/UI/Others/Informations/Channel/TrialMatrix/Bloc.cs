@@ -9,7 +9,7 @@ using UnityEngine.EventSystems;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
 
-namespace HBP.UI.Module3D.Informations.TrialMatrix
+namespace HBP.UI.Informations.TrialMatrix
 {
     public class Bloc : MonoBehaviour
     {
@@ -216,7 +216,7 @@ namespace HBP.UI.Module3D.Informations.TrialMatrix
             subBloc.Set(data, colors, limits);
             m_SubBlocs.Add(subBloc);
         }
-        void AddFiller(Core.Tools.TimeWindow window)
+        void AddFiller(TimeWindow window)
         {
             GameObject filler = Instantiate(m_SubBlocFillerPrefab, m_SubBlocContainer);
             filler.GetComponent<LayoutElement>().flexibleWidth = window.End - window.Start;

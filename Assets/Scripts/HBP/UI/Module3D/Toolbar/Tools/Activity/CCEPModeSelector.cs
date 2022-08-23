@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace HBP.UI.Module3D.Tools
+namespace HBP.UI.Toolbar
 {
     public class CCEPModeSelector : Tool
     {
@@ -31,14 +31,14 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 ((Column3DCCEP)SelectedColumn).Mode = Column3DCCEP.CCEPMode.Site;
-                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
             m_MarsAtlas.onValueChanged.AddListener(isOn =>
             {
                 if (ListenerLock) return;
 
                 ((Column3DCCEP)SelectedColumn).Mode = Column3DCCEP.CCEPMode.MarsAtlas;
-                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
         }
         /// <summary>

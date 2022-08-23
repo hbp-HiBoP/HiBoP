@@ -157,7 +157,7 @@ namespace HBP.Display.Module3D
                     MeshHasInvisibleTriangles = m_Scene.MeshManager.BrainSurface.VisibilityMask.Contains(0);
                     m_Scene.ResetGenerators();
                     m_Scene.MeshManager.UpdateMeshesFromDLL();
-                    HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                    Module3DMain.OnRequestUpdateInToolbar.Invoke();
                 }
             }
         }
@@ -184,7 +184,7 @@ namespace HBP.Display.Module3D
 
             m_Scene.ResetGenerators();
             m_Scene.MeshManager.UpdateMeshesFromDLL();
-            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Erase triangles and update the invisible mesh
@@ -210,7 +210,7 @@ namespace HBP.Display.Module3D
             m_Scene.ResetGenerators();
             m_Scene.MeshManager.UpdateMeshesFromDLL();
             m_Scene.FMRIManager.UpdateSurfaceFMRIValues();
-            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Cancel the last action and update the invisible mesh
@@ -226,7 +226,7 @@ namespace HBP.Display.Module3D
             m_Scene.ResetGenerators();
             m_Scene.MeshManager.UpdateMeshesFromDLL();
             m_Scene.FMRIManager.UpdateSurfaceFMRIValues();
-            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
     }

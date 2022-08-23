@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.UI.Module3D.Informations.TrialMatrix
+namespace HBP.UI.Informations.TrialMatrix
 {
     public class TimeLegend : MonoBehaviour
     {

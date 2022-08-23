@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine.Events;
 using data = HBP.Display.Informations.TrialMatrix;
 
-namespace HBP.UI.Module3D.Informations.TrialMatrix
+namespace HBP.UI.Informations.TrialMatrix
 {
     public class TrialMatrix : MonoBehaviour
     {

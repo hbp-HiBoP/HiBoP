@@ -17,7 +17,7 @@ using HBP.Core.Tools;
 using HBP.Display.Module3D;
 using HBP.UI.Tools;
 
-namespace HBP.UI.Module3D.Tools
+namespace HBP.UI.Toolbar
 {
     public class SiteCorrelations : Tool
     {
@@ -364,7 +364,7 @@ namespace HBP.UI.Module3D.Tools
                         }
                     }
                     SelectedScene.DisplayCorrelations = true;
-                    HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                    Module3DMain.OnRequestUpdateInToolbar.Invoke();
                 }
                 catch (Exception e)
                 {
@@ -396,7 +396,7 @@ namespace HBP.UI.Module3D.Tools
                 {
                     column.CorrelationBySitePair.Clear();
                 }
-                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
             }, "Reset", () => { }, "Cancel");
         }
         #endregion
@@ -422,7 +422,7 @@ namespace HBP.UI.Module3D.Tools
             m_CorrelationsComputing = false;
             onChangeProgress(1, 0, new LoadingText("Correlations computed"));
             SelectedScene.DisplayCorrelations = true;
-            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
     }

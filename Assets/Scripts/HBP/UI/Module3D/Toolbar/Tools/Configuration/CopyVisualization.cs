@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using HBP.UI.Tools;
 
-namespace HBP.UI.Module3D.Tools
+namespace HBP.UI.Toolbar
 {
     public class CopyVisualization : Tool
     {
@@ -30,7 +30,7 @@ namespace HBP.UI.Module3D.Tools
                 {
                     DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Visualization already exists", "The visualization you are trying to add to the project already exists.\n\nDo you want to create a clone of the selected visualization?\nThis will not link the selected visualization with the newly cloned visualization, but take a snapshot of the selected visualization and save it as a new visualization.", () =>
                     {
-                        Core.Data.Visualization clonedVisualization = SelectedScene.Visualization.Clone() as Core.Data.Visualization;
+                        Visualization clonedVisualization = SelectedScene.Visualization.Clone() as Visualization;
                         clonedVisualization.GenerateID();
                         SaveVisualizationToProject(clonedVisualization);
                     }, "Clone");
@@ -58,7 +58,7 @@ namespace HBP.UI.Module3D.Tools
         #endregion
 
         #region Private Methods
-        private void SaveVisualizationToProject(Core.Data.Visualization visualization)
+        private void SaveVisualizationToProject(Visualization visualization)
         {
             var projectVisualizations = ApplicationState.ProjectLoaded.Visualizations;
             if (projectVisualizations.Any(v => v.Name == visualization.Name))

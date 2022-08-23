@@ -5,7 +5,7 @@ using HBP.Core.Object3D;
 using HBP.Display.Module3D;
 using HBP.UI.Tools;
 
-namespace HBP.UI.Main.Preferences
+namespace HBP.UI.Main
 {
     public class AtlasesPreferencesSubModifier : SubModifier<AtlasesPreferences>
     {
@@ -78,42 +78,42 @@ namespace HBP.UI.Main.Preferences
             m_LoadMarsAtlas.onClick.AddListener(() =>
             {
                 Object3DManager.MarsAtlas.Load();
-                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
             m_LoadJuBrain.onClick.AddListener(() =>
             {
                 Object3DManager.JuBrain.Load();
-                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
             m_LoadIBC.onClick.AddListener(() =>
             {
                 Object3DManager.IBC.Load();
-                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
             m_LoadDiFuMo64.onClick.AddListener(() =>
             {
                 Object3DManager.DiFuMo.Load("64");
-                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
             m_LoadDiFuMo128.onClick.AddListener(() =>
             {
                 Object3DManager.DiFuMo.Load("128");
-                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
             m_LoadDiFuMo256.onClick.AddListener(() =>
             {
                 Object3DManager.DiFuMo.Load("256");
-                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
             m_LoadDiFuMo512.onClick.AddListener(() =>
             {
                 Object3DManager.DiFuMo.Load("512");
-                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
             m_LoadDiFuMo1024.onClick.AddListener(() =>
             {
                 Object3DManager.DiFuMo.Load("1024");
-                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
 
             m_MarsAtlasWebsite.onClick.AddListener(() => Application.OpenURL(@"https://meca-brain.org/software/marsatlas/"));

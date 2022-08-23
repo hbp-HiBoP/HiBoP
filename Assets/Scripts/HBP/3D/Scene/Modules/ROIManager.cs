@@ -98,7 +98,7 @@ namespace HBP.Display.Module3D
             roi.OnUpdateROIName.AddListener(() =>
             {
                 m_Scene.OnUpdateROI.Invoke();
-                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
             roi.OnChangeNumberOfSpheres.AddListener(() =>
             {
@@ -110,7 +110,7 @@ namespace HBP.Display.Module3D
             });
             roi.OnChangeSphereSelectionState.AddListener(() =>
             {
-                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
             ROIs.Add(roi);
             UpdateROIMasks();
@@ -128,7 +128,7 @@ namespace HBP.Display.Module3D
             newROI.Name = roi.Name;
             foreach (Core.Object3D.Sphere sphere in roi.Spheres)
             {
-                newROI.AddSphere(HBP3DModule.DEFAULT_MESHES_LAYER, "Sphere", sphere.Position, sphere.Radius);
+                newROI.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", sphere.Position, sphere.Radius);
             }
         }
         /// <summary>
@@ -211,7 +211,7 @@ namespace HBP.Display.Module3D
             }
             m_Scene.ResetGenerators(false);
             m_Scene.OnUpdateROI.Invoke();
-            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Load the ROIs from the visualization configuration
@@ -225,7 +225,7 @@ namespace HBP.Display.Module3D
                 Core.Object3D.ROI newROI = AddROI(roi.Name);
                 foreach (Core.Data.Sphere sphere in roi.Spheres)
                 {
-                    newROI.AddSphere(HBP3DModule.DEFAULT_MESHES_LAYER, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
+                    newROI.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
                 }
             }
             ROICreationMode = !ROICreationMode;

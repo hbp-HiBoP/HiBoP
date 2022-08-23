@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.UI.Tools.Graphs
+namespace HBP.UI.Informations.Graphs
 {
     public class GraphsGridContainer : MonoBehaviour
     {

@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using System.Linq;
 using HBP.Core.Object3D;
 
-namespace HBP.UI.Module3D.Tools
+namespace HBP.UI.Toolbar
 {
     public class DiFuMoSelector : Tool
     {

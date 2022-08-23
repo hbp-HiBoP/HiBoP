@@ -3,7 +3,7 @@ using HBP.Display.Preferences;
 using HBP.Core.Data;
 using HBP.UI.Tools;
 
-namespace HBP.UI.Main.Preferences
+namespace HBP.UI.Main
 {
     /// <summary>
     /// Window to modify the user preferences.

@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using HBP.Core.Enums;
 
-namespace HBP.UI.Module3D.Tools
+namespace HBP.UI.Toolbar
 {
     public class ExpandErasing : Tool
     {

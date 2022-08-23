@@ -48,11 +48,11 @@ namespace HBP.UI.Main
             }
             if (ApplicationState.ProjectLoaded != null)
             {
-                if (ApplicationState.ProjectLoaded.Visualizations.Any(v => HBP3DModule.Visualizations.Contains(v)))
+                if (ApplicationState.ProjectLoaded.Visualizations.Any(v => Module3DMain.Visualizations.Contains(v)))
                 {
                     DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Opened visualizations", "Some visualizations of the currently loaded project are opened. Loading another project will close any opened visualization.\n\nWould you like to load another project ?", () =>
                     {
-                        HBP3DModule.RemoveAllScenes();
+                        Module3DMain.RemoveAllScenes();
                         CreateNewProject();
                     },
                     "Load project");
@@ -86,7 +86,7 @@ namespace HBP.UI.Main
                 DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Project already exists", string.Format("A project named {0} already exists within the selected directory.\n\nWould you like to override this project?", m_NameInputField.text), () =>
                 {
                     ProjectPreferences preferences = new ProjectPreferences(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
-                    ApplicationState.ProjectLoaded = new Core.Data.Project(preferences);
+                    ApplicationState.ProjectLoaded = new Project(preferences);
                     ApplicationState.ProjectLoadedLocation = m_ProjectLocationFolderSelector.Folder;
                     FindObjectOfType<ProjectLoaderSaver>().SaveAndReload();
                     base.OK();
@@ -96,7 +96,7 @@ namespace HBP.UI.Main
             else
             {
                 ProjectPreferences preferences = new ProjectPreferences(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
-                ApplicationState.ProjectLoaded = new Core.Data.Project(preferences);
+                ApplicationState.ProjectLoaded = new Project(preferences);
                 ApplicationState.ProjectLoadedLocation = m_ProjectLocationFolderSelector.Folder;
                 FindObjectOfType<ProjectLoaderSaver>().SaveAndReload();
                 base.OK();

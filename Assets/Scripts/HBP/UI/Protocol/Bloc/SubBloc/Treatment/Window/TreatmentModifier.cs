@@ -32,11 +32,11 @@ namespace HBP.UI.Main
         [SerializeField] ThresholdTreatmentSubModifier m_ThresholdTreatmentSubModifier;
         [SerializeField] FactorTreatmentSubModifier m_FactorTreatmentSubModifier;
 
-        Core.Tools.TimeWindow m_Window;
+        TimeWindow m_Window;
         /// <summary>
         /// SubBloc of the window.
         /// </summary>
-        public Core.Tools.TimeWindow Window
+        public TimeWindow Window
         {
             get
             {
@@ -50,11 +50,11 @@ namespace HBP.UI.Main
             }
         }
 
-        Core.Tools.TimeWindow m_Baseline;
+        TimeWindow m_Baseline;
         /// <summary>
         /// Baseline of the subBloc.
         /// </summary>
-        public Core.Tools.TimeWindow Baseline
+        public TimeWindow Baseline
         {
             get
             {
@@ -243,7 +243,7 @@ namespace HBP.UI.Main
         /// <param name="max">End window</param>
         protected void ChangeWindow(float min, float max)
         {
-            ObjectTemp.Window = new Core.Tools.TimeWindow(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
+            ObjectTemp.Window = new TimeWindow(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
         }
         /// <summary>
         /// Change the baseline.
@@ -252,7 +252,7 @@ namespace HBP.UI.Main
         /// <param name="max">End window</param>
         protected void ChangeBaseline(float min, float max)
         {
-            ObjectTemp.Baseline = new Core.Tools.TimeWindow(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
+            ObjectTemp.Baseline = new TimeWindow(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
         }
         /// <summary>
         /// Change use on window.

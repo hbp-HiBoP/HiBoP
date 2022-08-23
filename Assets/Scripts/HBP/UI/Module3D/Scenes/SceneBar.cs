@@ -18,7 +18,7 @@ namespace HBP.UI.Module3D
         #region Private Methods
         private void Awake()
         {
-            HBP3DModule.OnAddScene.AddListener((scene) =>
+            Module3DMain.OnAddScene.AddListener((scene) =>
             {
                 SceneBarElement element = Instantiate(m_SceneBarElementPrefab, transform).GetComponent<SceneBarElement>();
                 element.Initialize(scene);

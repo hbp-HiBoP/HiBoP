@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.UI.Tools;
 
-namespace HBP.UI.Module3D.Tools
+namespace HBP.UI.Toolbar
 {
     public class SubTimeline : MonoBehaviour
     {

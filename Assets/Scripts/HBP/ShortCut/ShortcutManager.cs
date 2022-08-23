@@ -318,7 +318,7 @@ namespace HBP.UI.Tools
         }
         private void ChangeSiteSelection(SiteNavigationDirection direction)
         {
-            Base3DScene scene = HBP3DModule.SelectedScene;
+            Base3DScene scene = Module3DMain.SelectedScene;
             if (scene != null)
             {
                 Column3D selectedColumn = scene.SelectedColumn;
@@ -350,7 +350,7 @@ namespace HBP.UI.Tools
         }
         private void ChangeSelectedSiteState()
         {
-            Base3DScene scene = HBP3DModule.SelectedScene;
+            Base3DScene scene = Module3DMain.SelectedScene;
             if (scene)
             {
                 Column3D column = scene.SelectedColumn;

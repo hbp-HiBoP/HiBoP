@@ -8,7 +8,7 @@ using UnityEngine.EventSystems;
 using HBP.Core.Enums;
 using HBP.Core.Data;
 
-namespace HBP.UI.Module3D.Informations.TrialMatrix
+namespace HBP.UI.Informations.TrialMatrix
 {
     public class SubBloc : MonoBehaviour
     {

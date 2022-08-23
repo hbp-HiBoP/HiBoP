@@ -4,7 +4,7 @@ using HBP.Display.Informations;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 
-namespace HBP.UI.Module3D.Informations.TrialMatrix.Grid
+namespace HBP.UI.Informations.TrialMatrix.Grid
 {
     public class TrialMatrixGrid : MonoBehaviour
     {

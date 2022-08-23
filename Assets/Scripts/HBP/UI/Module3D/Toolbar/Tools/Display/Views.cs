@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace HBP.UI.Module3D.Tools
+namespace HBP.UI.Toolbar
 {
     public class Views : Tool
     {
@@ -60,7 +60,7 @@ namespace HBP.UI.Module3D.Tools
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool canAddView = SelectedScene.ViewLineNumber < HBP3DModule.MAXIMUM_VIEW_NUMBER;
+            bool canAddView = SelectedScene.ViewLineNumber < Module3DMain.MAXIMUM_VIEW_NUMBER;
             bool canRemoveView = SelectedScene.ViewLineNumber > 1;
 
             m_Add.interactable = canAddView;

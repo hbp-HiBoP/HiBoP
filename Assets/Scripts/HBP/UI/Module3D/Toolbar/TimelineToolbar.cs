@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.UI.Module3D
+namespace HBP.UI.Toolbar
 {
     public class TimelineToolbar : Toolbar
     {
@@ -27,27 +27,27 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Timeline loop parameters
         /// </summary>
-        [SerializeField] private Tools.TimelineLoop m_TimelineLoop;
+        [SerializeField] private TimelineLoop m_TimelineLoop;
         /// <summary>
         /// Timeline slider
         /// </summary>
-        [SerializeField] private Tools.TimelineSlider m_TimelineSlider;
+        [SerializeField] private TimelineSlider m_TimelineSlider;
         /// <summary>
         /// Timeline slider
         /// </summary>
-        [SerializeField] private Tools.TimelineGlobal m_TimelineGlobal;
+        [SerializeField] private TimelineGlobal m_TimelineGlobal;
         /// <summary>
         /// Timeline step
         /// </summary>
-        [SerializeField] private Tools.TimelineStep m_TimelineStep;
+        [SerializeField] private TimelineStep m_TimelineStep;
         /// <summary>
         /// Timeline play
         /// </summary>
-        [SerializeField] private Tools.TimelinePlay m_TimelinePlay;
+        [SerializeField] private TimelinePlay m_TimelinePlay;
         /// <summary>
         /// Timeline record (used to record a video of the timeline)
         /// </summary>
-        [SerializeField] private Tools.TimelineRecord m_TimelineRecord;
+        [SerializeField] private TimelineRecord m_TimelineRecord;
         #endregion
 
         #region Private Methods

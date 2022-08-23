@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System;
 using data = HBP.Display.Informations;
 
-namespace HBP.UI.Module3D.Informations.TrialMatrix
+namespace HBP.UI.Informations.TrialMatrix
 {
     public class TrialMatrixList : MonoBehaviour
     {

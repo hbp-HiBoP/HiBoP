@@ -18,10 +18,10 @@ namespace HBP.Display.Module3D
     /// Base class of the 3D module
     /// Used to control everything from the outside
     /// </summary>
-    public class HBP3DModule : MonoBehaviour
+    public class Module3DMain : MonoBehaviour
     {
         #region Properties
-        private static HBP3DModule m_Instance;
+        private static Module3DMain m_Instance;
 
         /// <summary>
         /// Default layer string for the visible meshes layer

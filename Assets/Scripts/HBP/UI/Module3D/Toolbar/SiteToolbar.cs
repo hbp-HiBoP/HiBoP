@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.UI.Module3D
+namespace HBP.UI.Toolbar
 {
     public class SiteToolbar : Toolbar
     {
@@ -8,47 +8,47 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Display the name of the selected site
         /// </summary>
-        [SerializeField] private Tools.SelectedSite m_SelectedSite;
+        [SerializeField] private SelectedSite m_SelectedSite;
         /// <summary>
         /// Compare two sites
         /// </summary>
-        [SerializeField] private Tools.CompareSite m_CompareSite;
+        [SerializeField] private CompareSite m_CompareSite;
         /// <summary>
         /// Show all sites
         /// </summary>
-        [SerializeField] private Tools.ShowAllSites m_ShowAllSites;
+        [SerializeField] private ShowAllSites m_ShowAllSites;
         /// <summary>
         /// Change the gain of the sites
         /// </summary>
-        [SerializeField] private Tools.SiteGain m_SiteGain;
+        [SerializeField] private SiteGain m_SiteGain;
         /// <summary>
         /// Load a single patient scene from a multi patient scene
         /// </summary>
-        [SerializeField] private Tools.LoadPatient m_LoadPatient;
+        [SerializeField] private LoadPatient m_LoadPatient;
         /// <summary>
         /// Show or hide blacklisted sites
         /// </summary>
-        [SerializeField] private Tools.BlacklistedSitesDisplay m_BlacklistedSitesDisplay;
+        [SerializeField] private BlacklistedSitesDisplay m_BlacklistedSitesDisplay;
         /// <summary>
         /// Copy the state of the sites to other columns
         /// </summary>
-        [SerializeField] private Tools.SiteStateCopy m_SiteStateCopy;
+        [SerializeField] private SiteStateCopy m_SiteStateCopy;
         /// <summary>
         /// Copy the state of the sites to other columns
         /// </summary>
-        [SerializeField] private Tools.SiteStateExport m_SiteStateExport;
+        [SerializeField] private SiteStateExport m_SiteStateExport;
         /// <summary>
         /// Cut the mesh around the selected site
         /// </summary>
-        [SerializeField] private Tools.CutAroundSite m_CutAroundSite;
+        [SerializeField] private CutAroundSite m_CutAroundSite;
         /// <summary>
         /// Move all sites to one hemisphere
         /// </summary>
-        [SerializeField] private Tools.MoveSites m_MoveSites;
+        [SerializeField] private MoveSites m_MoveSites;
         /// <summary>
         /// Open the Interactive Viewer from HBP
         /// </summary>
-        [SerializeField] private Tools.OpenInteractiveViewer m_OpenInteractiveViewer;
+        [SerializeField] private OpenInteractiveViewer m_OpenInteractiveViewer;
         #endregion
 
         #region Private Methods

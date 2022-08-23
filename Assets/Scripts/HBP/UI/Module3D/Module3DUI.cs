@@ -52,7 +52,7 @@ namespace HBP.UI.Module3D
             m_AtlasInfoDisplayer.Initialize();
             ChangeLayoutDirection();
             
-            HBP3DModule.OnAddScene.AddListener((scene) =>
+            Module3DMain.OnAddScene.AddListener((scene) =>
             {
                 Scene3DWindow sceneWindow = Instantiate(m_SceneWindowPrefab, transform).GetComponent<Scene3DWindow>();
                 sceneWindow.Initialize(scene);

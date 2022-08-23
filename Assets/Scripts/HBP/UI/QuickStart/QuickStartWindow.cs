@@ -52,7 +52,7 @@ namespace HBP.UI.Main.QuickStart
             }
         }
 
-        private Core.Data.Project m_CurrentlyOpenedProject;
+        private Project m_CurrentlyOpenedProject;
         private string m_CurrentlyOpenedProjectLocation;
         #endregion
 
@@ -76,7 +76,7 @@ namespace HBP.UI.Main.QuickStart
             });
             m_CurrentlyOpenedProject = ApplicationState.ProjectLoaded;
             m_CurrentlyOpenedProjectLocation = ApplicationState.ProjectLoadedLocation;
-            ApplicationState.ProjectLoaded = new Core.Data.Project();
+            ApplicationState.ProjectLoaded = new Project();
             ApplicationState.ProjectLoadedLocation = Application.dataPath;
         }
         private void Finish()
@@ -88,7 +88,7 @@ namespace HBP.UI.Main.QuickStart
                 if (state == TaskState.Done)
                 {
                     FindObjectOfType<MenuButtonState>().SetInteractables();
-                    HBP3DModule.LoadScenes(ApplicationState.ProjectLoaded.Visualizations);
+                    Module3DMain.LoadScenes(ApplicationState.ProjectLoaded.Visualizations);
                 }
             });
         }

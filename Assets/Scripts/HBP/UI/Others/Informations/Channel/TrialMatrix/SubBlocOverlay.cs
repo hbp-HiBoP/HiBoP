@@ -5,7 +5,7 @@ using data = HBP.Display.Informations.TrialMatrix;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
 
-namespace HBP.UI.Module3D.Informations.TrialMatrix.Grid
+namespace HBP.UI.Informations.TrialMatrix.Grid
 {
     public class SubBlocOverlay : MonoBehaviour
     {

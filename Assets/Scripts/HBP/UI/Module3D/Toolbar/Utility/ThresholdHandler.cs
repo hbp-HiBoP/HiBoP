@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
-namespace HBP.UI.Module3D
+namespace HBP.UI.Toolbar
 {
     public class ThresholdHandler : MonoBehaviour, IDragHandler, IPointerEnterHandler, IPointerExitHandler
     {

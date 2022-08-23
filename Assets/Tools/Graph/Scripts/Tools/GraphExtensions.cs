@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 
-namespace HBP.UI.Tools.Graphs
+namespace HBP.UI.Informations.Graphs
 {
-    public static class GraphTools
+    public static class GraphExtensions
     {
         public static Vector2 GetRatio(this Rect rect, Limits limits)
         {

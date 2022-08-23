@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using HBP.Display.Informations;
-using HBP.UI.Tools.Graphs;
+using HBP.UI.Informations.Graphs;
 
-namespace HBP.UI.Module3D.Informations
+namespace HBP.UI.Informations
 {
     public class GridInformations : MonoBehaviour
     {

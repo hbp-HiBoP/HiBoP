@@ -50,7 +50,7 @@ namespace HBP.UI.Tools
         /// <returns> return an empty path if no file has been choosen or if an error occurs </returns>
         public static string[] GetExistingFileNames(string[] filtersArray = null, string message = "Select files", string filePath = "")
         {
-            string[] paths = StandaloneFileBrowser.OpenFilePanel(message, string.IsNullOrEmpty(filePath) ? "" : new FileInfo(filePath).DirectoryName, new ExtensionFilter[] { new ExtensionFilter("Files", filtersArray) }, true);
+            string[] paths = StandaloneFileBrowser.OpenFilePanel(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, new ExtensionFilter[] { new ExtensionFilter("Files", filtersArray) }, true);
             return paths;
         }
         /// <summary>
@@ -62,7 +62,7 @@ namespace HBP.UI.Tools
         /// <returns> return an empty path if no file has been choosen or if an error occurs </returns>
         public static string GetSavedFileName(string[] filtersArray = null, string message = "Save to", string filePath = "", string defaultName = "")
         {
-            string path = StandaloneFileBrowser.SaveFilePanel(message, string.IsNullOrEmpty(filePath) ? "" : new FileInfo(filePath).DirectoryName, defaultName, filtersArray == null ? null : new ExtensionFilter[] { new ExtensionFilter("Files", filtersArray) });
+            string path = StandaloneFileBrowser.SaveFilePanel(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, defaultName, filtersArray == null ? null : new ExtensionFilter[] { new ExtensionFilter("Files", filtersArray) });
             return path;
         }
         /// <summary>
@@ -119,7 +119,7 @@ namespace HBP.UI.Tools
         /// <returns> return an empty path if no file has been choosen or if an error occurs </returns>
         public static void GetExistingFileNamesAsync(System.Action<string[]> callback, string[] filtersArray = null, string message = "Select files", string filePath = "")
         {
-            StandaloneFileBrowser.OpenFilePanelAsync(message, string.IsNullOrEmpty(filePath) ? "" : new FileInfo(filePath).DirectoryName, new ExtensionFilter[] { new ExtensionFilter("Files", filtersArray) }, true, callback);
+            StandaloneFileBrowser.OpenFilePanelAsync(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, new ExtensionFilter[] { new ExtensionFilter("Files", filtersArray) }, true, callback);
         }
         /// <summary>
         /// Open a qt file dialog and return the path of a saved file
@@ -131,7 +131,7 @@ namespace HBP.UI.Tools
         /// <returns> return an empty path if no file has been choosen or if an error occurs </returns>
         public static void GetSavedFileNameAsync(System.Action<string> callback, string[] filtersArray = null, string message = "Save to", string filePath = "", string defaultName = "")
         {
-            StandaloneFileBrowser.SaveFilePanelAsync(message, string.IsNullOrEmpty(filePath) ? "" : new FileInfo(filePath).DirectoryName, defaultName, filtersArray == null ? null : new ExtensionFilter[] { new ExtensionFilter("Files", filtersArray) }, callback);
+            StandaloneFileBrowser.SaveFilePanelAsync(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, defaultName, filtersArray == null ? null : new ExtensionFilter[] { new ExtensionFilter("Files", filtersArray) }, callback);
         }
         #endregion
     }

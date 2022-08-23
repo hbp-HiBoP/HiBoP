@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.Display.Module3D;
 
-namespace HBP.UI.Module3D.Tools
+namespace HBP.UI.Toolbar
 {
     public class MEGSelector : Tool
     {

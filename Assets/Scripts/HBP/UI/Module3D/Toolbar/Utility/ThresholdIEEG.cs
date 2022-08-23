@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace HBP.UI.Module3D
+namespace HBP.UI.Toolbar
 {
     public class ThresholdIEEG : MonoBehaviour
     {
@@ -317,7 +317,7 @@ namespace HBP.UI.Module3D
                 }
             });
 
-            HBP3DModule.OnRemoveScene.AddListener((s) =>
+            Module3DMain.OnRemoveScene.AddListener((s) =>
             {
                 foreach (var column in s.ColumnsDynamic)
                 {

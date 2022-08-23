@@ -1,7 +1,7 @@
 ﻿using HBP.Display.Module3D;
 using UnityEngine;
 
-namespace HBP.UI.Module3D
+namespace HBP.UI.Toolbar
 {
     public class DisplaySettingsToolbar : Toolbar
     {
@@ -9,31 +9,31 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Handle automatic rotation
         /// </summary>
-        [SerializeField] private Tools.AutoRotate m_AutoRotate;
+        [SerializeField] private AutoRotate m_AutoRotate;
         /// <summary>
         /// Add / remove views from the selected scene
         /// </summary>
-        [SerializeField] private Tools.Views m_Views;
+        [SerializeField] private Views m_Views;
         /// <summary>
         /// Set the scene to the standard views
         /// </summary>
-        [SerializeField] private Tools.StandardViews m_StandardViews;
+        [SerializeField] private StandardViews m_StandardViews;
         /// <summary>
         /// Set the scene to the standard views
         /// </summary>
-        [SerializeField] private Tools.DefaultView m_DefaultView;
+        [SerializeField] private DefaultView m_DefaultView;
         /// <summary>
         /// Set the scene to the standard views
         /// </summary>
-        [SerializeField] private Tools.ResetViews m_ResetViews;
+        [SerializeField] private ResetViews m_ResetViews;
         /// <summary>
         /// Set the camera control type
         /// </summary>
-        [SerializeField] private Tools.CameraTypes m_CameraTypes;
+        [SerializeField] private CameraTypes m_CameraTypes;
         /// <summary>
         /// Take a screenshot of the selected scene
         /// </summary>
-        [SerializeField] private Tools.Screenshot m_Screenshot;
+        [SerializeField] private Screenshot m_Screenshot;
         #endregion
 
         #region Private Methods
@@ -59,12 +59,12 @@ namespace HBP.UI.Module3D
 
             m_Views.OnClick.AddListener(() =>
             {
-                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
 
             m_StandardViews.OnClick.AddListener(() =>
             {
-                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
         }
         #endregion

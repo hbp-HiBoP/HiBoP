@@ -12,7 +12,7 @@ namespace HBP.UI.Main
     /// <summary>
     /// Window to modify visualization.
     /// </summary>
-    public class VisualizationModifier : ObjectModifier<Core.Data.Visualization>
+    public class VisualizationModifier : ObjectModifier<Visualization>
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
@@ -60,11 +60,11 @@ namespace HBP.UI.Main
         /// </summary>
         public override void OK()
         {
-            if (HBP3DModule.Visualizations.Contains(Object))
+            if (Module3DMain.Visualizations.Contains(Object))
             {
                 DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Visualization already open", "The visualization you are trying to modify is already open. This visualization needs to be closed before saving the changes.\n\nWould you like to close it and save the changes ?", () =>
                 {
-                    HBP3DModule.RemoveScene(Object);
+                    Module3DMain.RemoveScene(Object);
                     base.OK();
                 },
                 "Close & Save");
@@ -150,7 +150,7 @@ namespace HBP.UI.Main
         /// Set the fields.
         /// </summary>
         /// <param name="objectToDisplay">Visualization to modify</param>
-        protected override void SetFields(Core.Data.Visualization objectToDisplay)
+        protected override void SetFields(Visualization objectToDisplay)
         {
             m_NameInputField.text = ObjectTemp.Name;
 

@@ -1,5 +1,4 @@
-﻿using HBP.Display.Preferences;
-namespace HBP.Core.Data
+﻿namespace HBP.Core.Data
 {
     public static class ApplicationState
     {
@@ -36,6 +35,6 @@ namespace HBP.Core.Data
         /// <summary>
         /// General settings of the application.
         /// </summary>
-        public static UserPreferences UserPreferences { get; set; }
+        public static Display.Preferences.UserPreferences UserPreferences { get; set; }
     }
 }

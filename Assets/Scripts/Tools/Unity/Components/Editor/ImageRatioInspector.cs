@@ -3,7 +3,7 @@
 namespace HBP.UI.Tools
 {
     [CustomEditor(typeof(ImageRatio))]
-    public class ImageRatioInspector : UnityEditor.Editor
+    public class ImageRatioInspector : Editor
     {
         #region Properties
         SerializedProperty m_TypeProperty;

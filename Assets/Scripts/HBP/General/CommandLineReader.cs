@@ -91,7 +91,7 @@ namespace HBP.UI.Tools
                 }
                 else
                 {
-                    IEnumerable<Core.Data.Visualization> visualizations;
+                    IEnumerable<Visualization> visualizations;
                     if (arguments[0] == "all")
                     {
                         visualizations = ApplicationState.ProjectLoaded.Visualizations;
@@ -100,7 +100,7 @@ namespace HBP.UI.Tools
                     {
                         visualizations = from visu in ApplicationState.ProjectLoaded.Visualizations where arguments.Contains(visu.Name) select visu;
                     }
-                    HBP3DModule.LoadScenes(visualizations);
+                    Module3DMain.LoadScenes(visualizations);
                 }
             }
             yield return null;

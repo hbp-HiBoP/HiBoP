@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace HBP.UI.Module3D.Tools
+namespace HBP.UI.Toolbar
 {
-    public class ThresholdMRI : Tool
+    public class MRIContrast : Tool
     {
         #region Properties
         /// <summary>
@@ -13,7 +13,7 @@ namespace HBP.UI.Module3D.Tools
         /// <summary>
         /// Module to handle the threshold MRI
         /// </summary>
-        [SerializeField] private Module3D.ThresholdMRI m_ThresholdMRI;
+        [SerializeField] private ThresholdMRI m_ThresholdMRI;
         #endregion
 
         #region Public Methods

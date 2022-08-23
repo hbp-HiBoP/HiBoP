@@ -1,5 +1,5 @@
 ﻿using HBP.Display.Informations;
-using HBP.UI.Module3D.Informations.TrialMatrix.Grid;
+using HBP.UI.Informations.TrialMatrix.Grid;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,9 +7,10 @@ using Tools.CSharp;
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
-using HBP.UI.Tools.Graphs;
+using HBP.UI.Informations.Graphs;
+using HBP.Display.Informations.Graphs;
 
-namespace HBP.UI.Module3D.Informations
+namespace HBP.UI.Informations
 {
     public class GraphZone : MonoBehaviour
     {

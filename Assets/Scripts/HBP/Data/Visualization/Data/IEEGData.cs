@@ -82,8 +82,8 @@ namespace HBP.Core.Data.Processed
             }
 
             // Create timeline and iconic scenario
-            Timeline timeline = new Timeline(columnBloc, eventStatisticsBySubBloc, indexBySubBloc, maxFrequency);
-            IconicScenario = new IconicScenario(columnBloc, maxFrequency, timeline);
+            Timeline = new Timeline(columnBloc, eventStatisticsBySubBloc, indexBySubBloc, maxFrequency);
+            IconicScenario = new IconicScenario(columnBloc, maxFrequency, Timeline);
 
             // Standardize values
             foreach (var channelID in DataByChannelID.Keys)
@@ -94,7 +94,7 @@ namespace HBP.Core.Data.Processed
                 foreach (var subBloc in columnBloc.OrderedSubBlocs)
                 {
                     float[] subBlocValues = statistics.Trial.ChannelSubTrialBySubBloc[subBloc].Values;
-                    SubTimeline subTimeline = timeline.SubTimelinesBySubBloc[subBloc];
+                    SubTimeline subTimeline = Timeline.SubTimelinesBySubBloc[subBloc];
                     if (subTimeline.Before > 0) values.AddRange(Enumerable.Repeat(subBlocValues[0], subTimeline.Before));
                     values.AddRange(subBlocValues.Interpolate(subTimeline.Length, 0, 0));
                     if (subTimeline.After > 0) values.AddRange(Enumerable.Repeat(subBlocValues[subBlocValues.Length - 1], subTimeline.After));

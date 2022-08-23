@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.UI.Tools.Graphs
+namespace HBP.UI.Informations.Graphs
 {
     public struct Limits
     {
@@ -37,11 +37,7 @@ namespace HBP.UI.Tools.Graphs
         #region Public Static Methods
         public static bool operator ==(Limits obj1, Limits obj2)
         {
-            return
-                (obj1.AbscissaMin == obj2.AbscissaMin
-                && obj1.AbscissaMax == obj2.AbscissaMax
-                && obj1.OrdinateMin == obj2.OrdinateMin
-                && obj1.OrdinateMax == obj2.OrdinateMax);
+            return obj1.Equals(obj2);
         }
         public static bool operator !=(Limits obj1, Limits obj2)
         {
@@ -50,6 +46,38 @@ namespace HBP.UI.Tools.Graphs
                 && obj1.AbscissaMax == obj2.AbscissaMax
                 && obj1.OrdinateMin == obj2.OrdinateMin
                 && obj1.OrdinateMax == obj2.OrdinateMax);
+        }
+        /// <summary>
+        /// Operator Equals.
+        /// </summary>
+        /// <param name="obj">Object to test.</param>
+        /// <returns>\a True if equals and \a false otherwise.</returns>
+        public override bool Equals(object obj)
+        {
+            if (obj is Limits limits)
+            {
+                return (AbscissaMin == limits.AbscissaMin
+                    && AbscissaMax == limits.AbscissaMax
+                    && OrdinateMin == limits.OrdinateMin
+                    && OrdinateMax == limits.OrdinateMax);
+            }
+            else
+            {
+                return false;
+            }
+        }
+        /// <summary>
+        /// Get hash code.
+        /// </summary>
+        /// <returns>HashCode.</returns>
+        public override int GetHashCode()
+        {
+            var hashCode = 17;
+            hashCode = hashCode * 31 + AbscissaMin.GetHashCode();
+            hashCode = hashCode * 31 + AbscissaMax.GetHashCode();
+            hashCode = hashCode * 31 + OrdinateMin.GetHashCode();
+            hashCode = hashCode * 31 + OrdinateMax.GetHashCode();
+            return hashCode;
         }
         #endregion
     }

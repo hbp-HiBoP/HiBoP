@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace HBP.UI.Module3D
+namespace HBP.UI.Toolbar
 {
     public class ToolbarSelector : MonoBehaviour
     {

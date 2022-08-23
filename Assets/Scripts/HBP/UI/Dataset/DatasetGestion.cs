@@ -5,11 +5,11 @@ using HBP.UI.Tools;
 
 namespace HBP.UI.Main
 {
-    public class DatasetGestion : GestionWindow<Core.Data.Dataset>
+    public class DatasetGestion : GestionWindow<Dataset>
     {
         #region Properties
         [SerializeField] DatasetListGestion m_ListGestion;
-        public override ListGestion<Core.Data.Dataset> ListGestion => m_ListGestion;
+        public override ListGestion<Dataset> ListGestion => m_ListGestion;
         #endregion
 
         #region Public Methods
@@ -22,7 +22,7 @@ namespace HBP.UI.Main
                     base.OK();
                     ApplicationState.ProjectLoaded.SetDatasets(m_ListGestion.List.Objects);
                     DataManager.Clear();
-                    HBP3DModule.ReloadScenes();
+                    Module3DMain.ReloadScenes();
                 });
             }
             else

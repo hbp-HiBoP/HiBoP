@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.UI.Module3D
+namespace HBP.UI.Toolbar
 {
     public class ActivitySettingsToolbar : Toolbar
     {
@@ -26,38 +26,38 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Activity Global setter
         /// </summary>
-        [SerializeField] private Tools.ActivityGlobal m_ActivityGlobal;
+        [SerializeField] private ActivityGlobal m_ActivityGlobal;
         /// <summary>
         /// IEEG Transparency parameters
         /// </summary>
-        [SerializeField] private Tools.ActivityTransparency m_ActivityTransparency;
+        [SerializeField] private ActivityTransparency m_ActivityTransparency;
         /// <summary>
         /// Dynamic Parameters
         /// </summary>
-        [SerializeField] private Tools.DynamicParameters m_DynamicParameters;
+        [SerializeField] private DynamicParameters m_DynamicParameters;
         /// <summary>
         /// FMRI Parameters
         /// </summary>
-        [SerializeField] private Tools.FMRIParameters m_FMRIParameters;
-        [SerializeField] private Tools.CCEPModeSelector m_CCEPModeSelector;
-        [SerializeField] private Tools.CCEPSiteSourceSelector m_CCEPSiteSourceSelector;
-        [SerializeField] private Tools.CCEPAreaSourceSelector m_CCEPAreaSourceSelector;
+        [SerializeField] private FMRIParameters m_FMRIParameters;
+        [SerializeField] private CCEPModeSelector m_CCEPModeSelector;
+        [SerializeField] private CCEPSiteSourceSelector m_CCEPSiteSourceSelector;
+        [SerializeField] private CCEPAreaSourceSelector m_CCEPAreaSourceSelector;
         /// <summary>
         /// Compute IEEG values
         /// </summary>
-        [SerializeField] private Tools.ComputeActivity m_ComputeActivity;
+        [SerializeField] private ComputeActivity m_ComputeActivity;
         /// <summary>
         /// Compute and display site correlations
         /// </summary>
-        [SerializeField] private Tools.SiteCorrelations m_SiteCorrelations;
+        [SerializeField] private SiteCorrelations m_SiteCorrelations;
         /// <summary>
         /// Select the MRI once the activity is computed
         /// </summary>
-        [SerializeField] private Tools.FMRISelector m_FMRISelector;
+        [SerializeField] private FMRISelector m_FMRISelector;
         /// <summary>
         /// Select the MEG once the activity is computed
         /// </summary>
-        [SerializeField] private Tools.MEGSelector m_MEGSelector;
+        [SerializeField] private MEGSelector m_MEGSelector;
         #endregion
 
         #region Private Methods

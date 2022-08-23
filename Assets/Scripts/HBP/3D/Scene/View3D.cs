@@ -43,7 +43,7 @@ namespace HBP.Display.Module3D
                 if (m_IsSelected)
                 {
                     OnSelect.Invoke();
-                    HBP3DModule.OnSelectView.Invoke(this);
+                    Module3DMain.OnSelectView.Invoke(this);
                 }
             }
         }
@@ -258,7 +258,7 @@ namespace HBP.Display.Module3D
         {
             int layer = 0;
             layer |= 1 << LayerMask.NameToLayer(Layer);
-            layer |= 1 << LayerMask.NameToLayer(HBP3DModule.DEFAULT_MESHES_LAYER);
+            layer |= 1 << LayerMask.NameToLayer(Module3DMain.DEFAULT_MESHES_LAYER);
 
             m_RegularCullingMask = layer;
             m_MinimizedCullingMask = 0;

@@ -44,11 +44,11 @@ namespace HBP.UI.Main
 		{
             if (ApplicationState.ProjectLoaded != null)
             {
-                if (ApplicationState.ProjectLoaded.Visualizations.Any(v => HBP3DModule.Visualizations.Contains(v)))
+                if (ApplicationState.ProjectLoaded.Visualizations.Any(v => Module3DMain.Visualizations.Contains(v)))
                 {
                     DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Opened visualizations", "Some visualizations of the currently loaded project are opened. Loading another project will close any opened visualization.\n\nWould you like to load another project ?", () =>
                     {
-                        HBP3DModule.RemoveAllScenes();
+                        Module3DMain.RemoveAllScenes();
                         Load(m_ProjectList.ObjectsSelected[0]);
                     },
                     "Load project");

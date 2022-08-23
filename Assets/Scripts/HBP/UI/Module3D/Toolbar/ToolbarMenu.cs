@@ -1,7 +1,7 @@
 ﻿using HBP.Display.Module3D;
 using UnityEngine;
 
-namespace HBP.UI.Module3D
+namespace HBP.UI.Toolbar
 {
     public class ToolbarMenu : MonoBehaviour
     {
@@ -184,11 +184,11 @@ namespace HBP.UI.Module3D
         /// </summary>
         private void Initialize()
         {
-            HBP3DModule.OnRequestUpdateInToolbar.AddListener(() =>
+            Module3DMain.OnRequestUpdateInToolbar.AddListener(() =>
             {
                 m_UpdateRequired = true;
             });
-            HBP3DModule.OnFinishedAddingNewScenes.AddListener(() =>
+            Module3DMain.OnFinishedAddingNewScenes.AddListener(() =>
             {
                 CurrentToolbar.ShowToolbarCallback();
             });

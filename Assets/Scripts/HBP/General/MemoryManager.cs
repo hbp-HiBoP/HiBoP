@@ -3,7 +3,7 @@ using System;
 using System.Runtime.InteropServices;
 using UnityEngine.Events;
 
-namespace HBP.Display
+namespace HBP.Display.Tools
 {
     public class MemoryManager : MonoBehaviour
     {

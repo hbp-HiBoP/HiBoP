@@ -176,7 +176,7 @@ namespace HBP.Display.Module3D
             m_Scene.ResetGenerators();
 
             m_Scene.OnUpdateCameraTarget.Invoke(SelectedMesh.Both.Center);
-            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Set the mesh part to be displayed in the scene

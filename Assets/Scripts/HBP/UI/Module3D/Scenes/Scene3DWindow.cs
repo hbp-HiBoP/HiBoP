@@ -13,7 +13,7 @@ using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Display.Module3D;
 using HBP.UI.Tools;
-using HBP.UI.Module3D.Informations.TrialMatrix.Grid;
+using HBP.UI.Informations.TrialMatrix.Grid;
 using HBP.UI.Tools.ResizableGrids;
 
 namespace HBP.UI.Module3D
@@ -130,7 +130,7 @@ namespace HBP.UI.Module3D
             grid.VerticalHandlers[0].Position = 1.0f;
             grid.SetVerticalHandlersPosition(0);
 
-            HBP3DModule.OnRemoveScene.AddSafeListener((s) =>
+            Module3DMain.OnRemoveScene.AddSafeListener((s) =>
             {
                 if (s == scene)
                 {
@@ -244,7 +244,7 @@ namespace HBP.UI.Module3D
                     {
                         if (!Mathf.Approximately(channelInformations.GetComponent<ZoneResizer>().Ratio, 1.0f))
                         {
-                            UI.Tools.Graphs.Graph graph = channelInformations.transform.GetComponentInChildren<UI.Tools.Graphs.Graph>();
+                            Informations.Graphs.Graph graph = channelInformations.transform.GetComponentInChildren<Informations.Graphs.Graph>();
                             Texture2D graphTexture = Texture2DExtension.ScreenRectToTexture(graph.GetComponent<RectTransform>().ToScreenSpace());
                             var curvesName = graph.GetEnabledCurvesName();
                             try

@@ -84,7 +84,7 @@ namespace HBP.UI.Module3D
             m_IEEG.SetActive(false);
             m_CCEP.SetActive(false);
             m_Tags.SetActive(true);
-            HBP3DModule.OnDisplaySiteInformation.AddListener((siteInfo) =>
+            Module3DMain.OnDisplaySiteInformation.AddListener((siteInfo) =>
             {
                 SiteInformationDisplayMode mode = siteInfo.Mode;
                 if (mode != m_CurrentMode)

@@ -7,11 +7,11 @@ using HBP.UI.Tools;
 
 namespace HBP.UI.Main
 {
-    public class ProtocolGestion : GestionWindow<Core.Data.Protocol>
+    public class ProtocolGestion : GestionWindow<Protocol>
     {
         #region Properties
         [SerializeField] ProtocolListGestion m_ListGestion;
-        public override ListGestion<Core.Data.Protocol> ListGestion => m_ListGestion;
+        public override ListGestion<Protocol> ListGestion => m_ListGestion;
         #endregion
 
         #region Public Methods
@@ -27,7 +27,7 @@ namespace HBP.UI.Main
                     GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
                     LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckDatasets(m_ListGestion.ModifiedProtocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
                     DataManager.Clear();
-                    HBP3DModule.ReloadScenes();
+                    Module3DMain.ReloadScenes();
                 });
             }
             else

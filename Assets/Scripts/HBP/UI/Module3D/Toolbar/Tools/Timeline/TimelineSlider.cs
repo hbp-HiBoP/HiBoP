@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace HBP.UI.Module3D.Tools
+namespace HBP.UI.Toolbar
 {
     public class TimelineSlider : Tool
     {
@@ -111,7 +111,7 @@ namespace HBP.UI.Module3D.Tools
                     }
                 }
             });
-            HBP3DModule.OnUpdateSelectedColumnTimeLineIndex.AddListener(() =>
+            Module3DMain.OnUpdateSelectedColumnTimeLineIndex.AddListener(() =>
             {
                 ListenerLock = true;
                 if (SelectedColumn is Column3DDynamic columnDynamic)

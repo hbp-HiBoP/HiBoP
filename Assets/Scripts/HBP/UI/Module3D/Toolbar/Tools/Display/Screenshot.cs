@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+﻿using HBP.UI.Module3D;
+using UnityEngine;
 using UnityEngine.UI;
 
-namespace HBP.UI.Module3D.Tools
+namespace HBP.UI.Toolbar
 {
     public class Screenshot : Tool
     {

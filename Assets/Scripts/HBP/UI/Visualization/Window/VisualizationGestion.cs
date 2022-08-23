@@ -7,12 +7,12 @@ using HBP.UI.Tools;
 
 namespace HBP.UI.Main
 {
-    public class VisualizationGestion : GestionWindow<Core.Data.Visualization>
+    public class VisualizationGestion : GestionWindow<Visualization>
     {
         #region Properties
         [SerializeField] Button m_DisplayButton;
         [SerializeField] VisualizationListGestion m_ListGestion;
-        public override ListGestion<Core.Data.Visualization> ListGestion => m_ListGestion;
+        public override ListGestion<Visualization> ListGestion => m_ListGestion;
 
         public override bool Interactable
         {
@@ -37,8 +37,8 @@ namespace HBP.UI.Main
         }
         public void Display()
         {
-            Core.Data.Visualization[] visualizations = m_ListGestion.List.ObjectsSelected;
-            var alreadyOpenedVisualizations = visualizations.Where(v => HBP3DModule.Scenes.Any(s => s.Visualization == v));
+            Visualization[] visualizations = m_ListGestion.List.ObjectsSelected;
+            var alreadyOpenedVisualizations = visualizations.Where(v => Module3DMain.Scenes.Any(s => s.Visualization == v));
             if (alreadyOpenedVisualizations.Count() > 0)
             {
                 DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Visualization already opened", "The following visualizations are already opened:\n" + string.Concat(alreadyOpenedVisualizations.Select(v => v.Name + "\n")));
@@ -54,13 +54,13 @@ namespace HBP.UI.Main
                     DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Memory warning", "One of the visualizations you are trying to display has been detected as a potential memory issue.\nIt may contain too many patients in order to be visualized using the \"Preload all patient data in multi-patient visualizations\" option considering the maximum memory cache set in the user preferences.\n\nDo you still want to display it?",
                         () =>
                         {
-                            HBP3DModule.LoadScenes(m_ListGestion.List.ObjectsSelected);
+                            Module3DMain.LoadScenes(m_ListGestion.List.ObjectsSelected);
                             OK();
                         }, "Display", () => { }, "Cancel");
                     return;
                 }
             }
-            HBP3DModule.LoadScenes(m_ListGestion.List.ObjectsSelected);
+            Module3DMain.LoadScenes(m_ListGestion.List.ObjectsSelected);
             OK();
         }
         #endregion
@@ -74,7 +74,7 @@ namespace HBP.UI.Main
         }
         void SetDisplay()
         {
-            Core.Data.Visualization[] visualizationsSelected = m_ListGestion.List.ObjectsSelected;
+            Visualization[] visualizationsSelected = m_ListGestion.List.ObjectsSelected;
             m_DisplayButton.interactable = visualizationsSelected.Length > 0 && visualizationsSelected.All(v => v.IsVisualizable) && Interactable;
         }
         protected override void SetFields()

@@ -103,12 +103,12 @@ namespace HBP.Display.Module3D
                 OnUpdateCurrentTimelineID.Invoke();
                 if (IsSelected)
                 {
-                    HBP3DModule.OnUpdateSelectedColumnTimeLineIndex.Invoke();
+                    Module3DMain.OnUpdateSelectedColumnTimeLineIndex.Invoke();
                 }
             });
             Timeline.OnStopTimelinePlay.AddListener(() =>
             {
-                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
         }
         /// <summary>

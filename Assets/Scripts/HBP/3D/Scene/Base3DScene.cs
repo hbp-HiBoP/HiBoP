@@ -69,7 +69,7 @@ namespace HBP.Display.Module3D
                 if (m_IsSelected)
                 {
                     OnSelect.Invoke();
-                    HBP3DModule.OnSelectScene.Invoke(this);
+                    Module3DMain.OnSelectScene.Invoke(this);
                 }
             }
         }
@@ -292,7 +292,7 @@ namespace HBP.Display.Module3D
                     cut.GetComponent<Renderer>().sharedMaterial = BrainMaterials.CutMaterial;
                 m_DisplayedObjects.SimplifiedBrain.SetActive(!value);
                 BrainMaterials.SetAlpha(BrainMaterials.Alpha);
-                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
             }
         }
 
@@ -561,7 +561,7 @@ namespace HBP.Display.Module3D
                     column.SurfaceNeedsUpdate = true;
 
                 OnUpdateGeneratorState.Invoke(value);
-                HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
             }
         }
         
@@ -872,7 +872,7 @@ namespace HBP.Display.Module3D
                 }
             }
             SceneInformation.SitesNeedUpdate = true;
-            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Compute the cuts of the meshes (compute the cuts meshes, fill parameters in the brain mesh shader and reset generators)
@@ -1118,7 +1118,7 @@ namespace HBP.Display.Module3D
                     {
                         ResetGenerators();
                         OnSelectCCEPSource.Invoke();
-                        HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                        Module3DMain.OnRequestUpdateInToolbar.Invoke();
                     });
                 }
             }
@@ -1145,7 +1145,7 @@ namespace HBP.Display.Module3D
                     SceneInformation.FunctionalCutTexturesNeedUpdate = true;
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     fmriColumn.SurfaceNeedsUpdate = true;
-                    HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                    Module3DMain.OnRequestUpdateInToolbar.Invoke();
                 });
                 fmriColumn.OnUpdateCurrentTimelineID.AddListener(() =>
                 {
@@ -1178,7 +1178,7 @@ namespace HBP.Display.Module3D
                     SceneInformation.FunctionalCutTexturesNeedUpdate = true;
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     megColumn.SurfaceNeedsUpdate = true;
-                    HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+                    Module3DMain.OnRequestUpdateInToolbar.Invoke();
                 });
                 megColumn.OnUpdateCurrentTimelineID.AddListener(() =>
                 {
@@ -1223,13 +1223,13 @@ namespace HBP.Display.Module3D
             OnChangeVisibleState.Invoke(state);
             if (!state)
             {
-                HBP3DModule.OnMinimizeScene.Invoke(this);
+                Module3DMain.OnMinimizeScene.Invoke(this);
             }
             else
             {
-                HBP3DModule.OnSelectScene.Invoke(this);
-                HBP3DModule.OnSelectColumn.Invoke(SelectedColumn);
-                HBP3DModule.OnSelectView.Invoke(SelectedColumn.SelectedView);
+                Module3DMain.OnSelectScene.Invoke(this);
+                Module3DMain.OnSelectColumn.Invoke(SelectedColumn);
+                Module3DMain.OnSelectView.Invoke(SelectedColumn.SelectedView);
             }
             IsSelected = state;
         }
@@ -1457,7 +1457,7 @@ namespace HBP.Display.Module3D
             
             BrainMaterials = new BrainMaterials();
 
-            transform.position = new Vector3(HBP3DModule.SPACE_BETWEEN_SCENES_GAME_OBJECTS * HBP3DModule.NumberOfScenesLoadedSinceStart++, transform.position.y, transform.position.z);
+            transform.position = new Vector3(Module3DMain.SPACE_BETWEEN_SCENES_GAME_OBJECTS * Module3DMain.NumberOfScenesLoadedSinceStart++, transform.position.y, transform.position.z);
         }
         /// <summary>
         /// Set up the scene to display it properly
@@ -1527,7 +1527,7 @@ namespace HBP.Display.Module3D
 
             SceneInformation.SitesNeedUpdate = true;
 
-            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Save the current settings of this scene to the configuration of the linked visualization
@@ -1642,7 +1642,7 @@ namespace HBP.Display.Module3D
                 column.ResetConfiguration();
             }
 
-            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Create all required folders and return the path to the folder used for export
@@ -1726,8 +1726,8 @@ namespace HBP.Display.Module3D
             if (SceneInformation.CollidersNeedUpdate) UpdateMeshesColliders();
 
             int layerMask = 0;
-            layerMask |= 1 << LayerMask.NameToLayer(HBP3DModule.HIDDEN_MESHES_LAYER);
-            layerMask |= 1 << LayerMask.NameToLayer(HBP3DModule.DEFAULT_MESHES_LAYER);
+            layerMask |= 1 << LayerMask.NameToLayer(Module3DMain.HIDDEN_MESHES_LAYER);
+            layerMask |= 1 << LayerMask.NameToLayer(Module3DMain.DEFAULT_MESHES_LAYER);
 
             RaycastHitResult raycastResult = column.Raycast(ray, layerMask, out RaycastHit hit);
             Vector3 hitPoint = raycastResult != RaycastHitResult.None ? hit.point - transform.position : Vector3.zero;
@@ -1742,8 +1742,8 @@ namespace HBP.Display.Module3D
         public void ClickOnScene(Ray ray)
         {
             int layerMask = 0;
-            layerMask |= 1 << LayerMask.NameToLayer(HBP3DModule.HIDDEN_MESHES_LAYER);
-            layerMask |= 1 << LayerMask.NameToLayer(HBP3DModule.DEFAULT_MESHES_LAYER);
+            layerMask |= 1 << LayerMask.NameToLayer(Module3DMain.HIDDEN_MESHES_LAYER);
+            layerMask |= 1 << LayerMask.NameToLayer(Module3DMain.DEFAULT_MESHES_LAYER);
 
             RaycastHitResult raycastResult = SelectedColumn.Raycast(ray, layerMask, out RaycastHit hit);
             Vector3 hitPoint = raycastResult != RaycastHitResult.None ? hit.point - transform.position : Vector3.zero;
@@ -1776,7 +1776,7 @@ namespace HBP.Display.Module3D
                     }
                     else if (raycastResult == RaycastHitResult.Mesh || raycastResult == RaycastHitResult.Cut)
                     {
-                        selectedROI.AddSphere(HBP3DModule.DEFAULT_MESHES_LAYER, "Sphere", hitPoint, 5.0f);
+                        selectedROI.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", hitPoint, 5.0f);
                         SceneInformation.SitesNeedUpdate = true;
                     }
                     else
@@ -2290,30 +2290,30 @@ namespace HBP.Display.Module3D
             foreach (var mesh in m_MeshManager.Meshes)
             {
                 if (mesh.HasBeenLoadedOutside) continue;
-                if (HBP3DModule.Scenes.Any(s => s.MeshManager.Meshes.Contains(mesh))) continue;
-                if (HBP3DModule.Scenes.Any(s => s.MeshManager.PreloadedMeshes.Values.SelectMany(pm => pm).Contains(mesh))) continue;
+                if (Module3DMain.Scenes.Any(s => s.MeshManager.Meshes.Contains(mesh))) continue;
+                if (Module3DMain.Scenes.Any(s => s.MeshManager.PreloadedMeshes.Values.SelectMany(pm => pm).Contains(mesh))) continue;
                 mesh.Clean();
             }
             foreach (var mesh in m_MeshManager.PreloadedMeshes.Values.SelectMany(pm => pm))
             {
                 if (mesh.HasBeenLoadedOutside) continue;
-                if (HBP3DModule.Scenes.Any(s => s.MeshManager.Meshes.Contains(mesh))) continue;
-                if (HBP3DModule.Scenes.Any(s => s.MeshManager.PreloadedMeshes.Values.SelectMany(pm => pm).Contains(mesh))) continue;
+                if (Module3DMain.Scenes.Any(s => s.MeshManager.Meshes.Contains(mesh))) continue;
+                if (Module3DMain.Scenes.Any(s => s.MeshManager.PreloadedMeshes.Values.SelectMany(pm => pm).Contains(mesh))) continue;
                 mesh.Clean();
             }
             // Clean MRIs
             foreach (var mri in m_MRIManager.MRIs)
             {
                 if (mri.HasBeenLoadedOutside) continue;
-                if (HBP3DModule.Scenes.Any(s => s.MRIManager.MRIs.Contains(mri))) continue;
-                if (HBP3DModule.Scenes.Any(s => s.MRIManager.PreloadedMRIs.Values.SelectMany(pm => pm).Contains(mri))) continue;
+                if (Module3DMain.Scenes.Any(s => s.MRIManager.MRIs.Contains(mri))) continue;
+                if (Module3DMain.Scenes.Any(s => s.MRIManager.PreloadedMRIs.Values.SelectMany(pm => pm).Contains(mri))) continue;
                 mri.Clean();
             }
             foreach (var mri in m_MRIManager.PreloadedMRIs.Values.SelectMany(pm => pm))
             {
                 if (mri.HasBeenLoadedOutside) continue;
-                if (HBP3DModule.Scenes.Any(s => s.MRIManager.MRIs.Contains(mri))) continue;
-                if (HBP3DModule.Scenes.Any(s => s.MRIManager.PreloadedMRIs.Values.SelectMany(pm => pm).Contains(mri))) continue;
+                if (Module3DMain.Scenes.Any(s => s.MRIManager.MRIs.Contains(mri))) continue;
+                if (Module3DMain.Scenes.Any(s => s.MRIManager.PreloadedMRIs.Values.SelectMany(pm => pm).Contains(mri))) continue;
                 mri.Clean();
             }
         }

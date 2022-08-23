@@ -111,7 +111,7 @@ namespace HBP.Display.Module3D
                 Destroy(InvisibleBrain);
 
             InvisibleBrain = Instantiate(m_InvisibleBrainPrefab, BrainSurfaceMeshesParent);
-            InvisibleBrain.layer = LayerMask.NameToLayer(HBP3DModule.DEFAULT_MESHES_LAYER);
+            InvisibleBrain.layer = LayerMask.NameToLayer(Module3DMain.DEFAULT_MESHES_LAYER);
             InvisibleBrain.transform.localScale = new Vector3(-1, 1, 1);
             InvisibleBrain.transform.localPosition = new Vector3(0, 0, 0);
             InvisibleBrain.SetActive(visible);
@@ -193,7 +193,7 @@ namespace HBP.Display.Module3D
             Brain.GetComponent<Renderer>().sharedMaterial = m_Scene.BrainMaterials.BrainMaterial;
             Brain.GetComponent<MeshFilter>().mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
             Brain.transform.localPosition = Vector3.zero;
-            Brain.layer = LayerMask.NameToLayer(HBP3DModule.HIDDEN_MESHES_LAYER);
+            Brain.layer = LayerMask.NameToLayer(Module3DMain.HIDDEN_MESHES_LAYER);
             Brain.SetActive(true);
         }
         /// <summary>
@@ -206,7 +206,7 @@ namespace HBP.Display.Module3D
 
             SimplifiedBrain = Instantiate(m_SimplifiedBrainPrefab, BrainSurfaceMeshesParent);
             SimplifiedBrain.transform.localPosition = Vector3.zero;
-            SimplifiedBrain.layer = LayerMask.NameToLayer(HBP3DModule.HIDDEN_MESHES_LAYER);
+            SimplifiedBrain.layer = LayerMask.NameToLayer(Module3DMain.HIDDEN_MESHES_LAYER);
             SimplifiedBrain.SetActive(true);
         }
         /// <summary>
@@ -216,7 +216,7 @@ namespace HBP.Display.Module3D
         {
             GameObject cut = Instantiate(m_CutPrefab, m_BrainCutMeshesParent);
             cut.GetComponent<Renderer>().sharedMaterial = m_Scene.BrainMaterials.CutMaterial;
-            cut.layer = LayerMask.NameToLayer(HBP3DModule.DEFAULT_MESHES_LAYER);
+            cut.layer = LayerMask.NameToLayer(Module3DMain.DEFAULT_MESHES_LAYER);
             cut.transform.localPosition = Vector3.zero;
             BrainCutMeshes.Add(cut);
         }

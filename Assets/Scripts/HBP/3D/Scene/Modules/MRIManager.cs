@@ -135,7 +135,7 @@ namespace HBP.Display.Module3D
             VolumeCenter = SelectedMRI.Volume.Center;
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.ResetGenerators();
-            HBP3DModule.OnRequestUpdateInToolbar.Invoke();
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Load every MRI that has not been loaded yet

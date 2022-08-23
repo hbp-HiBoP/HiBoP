@@ -6,7 +6,7 @@ using HBP.Core.Data;
 using HBP.Core.Object3D;
 using HBP.Display.Module3D;
 
-namespace HBP.UI.Module3D.Tools
+namespace HBP.UI.Toolbar
 {
     public class CCEPAreaSourceSelector : Tool
     {

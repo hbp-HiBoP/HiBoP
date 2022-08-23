@@ -6,7 +6,7 @@ using HBP.Display.Preferences;
 using HBP.Core.Tools;
 using HBP.UI.Tools;
 
-namespace HBP.UI.Main.Preferences
+namespace HBP.UI.Main
 {
     public class EEGPreferencesSubModifier : SubModifier<EEGPreferences>
     {

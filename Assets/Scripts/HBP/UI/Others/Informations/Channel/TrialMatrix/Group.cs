@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.UI.Module3D.Informations.TrialMatrix
+namespace HBP.UI.Informations.TrialMatrix
 {
     public class Group : MonoBehaviour
     {
@@ -45,14 +45,14 @@ namespace HBP.UI.Module3D.Informations.TrialMatrix
                 }              
             }
         }
-        public Display.Informations.TrialMatrix.Group Data { get; private set; }
+        public HBP.Display.Informations.TrialMatrix.Group Data { get; private set; }
         public TrialMatrix[] TrialMatrices { get; private set; }
 
         [SerializeField] GameObject m_TrialMatrixPrefab;
         #endregion
 
         #region Public Methods
-        public void Set(Display.Informations.TrialMatrix.Group groupToDisplay)
+        public void Set(HBP.Display.Informations.TrialMatrix.Group groupToDisplay)
         {
             foreach (var trialMatrix in groupToDisplay.TrialMatrices)
             {
@@ -62,7 +62,7 @@ namespace HBP.UI.Module3D.Informations.TrialMatrix
         #endregion
 
         #region Private Methods
-        void AddTrialMatrix(Display.Informations.TrialMatrix.TrialMatrix data)
+        void AddTrialMatrix(HBP.Display.Informations.TrialMatrix.TrialMatrix data)
         {
             //TrialMatrix trialMatrix = Instantiate(m_TrialMatrixPrefab, transform).GetComponent<TrialMatrix>();
             //trialMatrix.Set(data, UsePrecalculatedLimits ? new Vector2() : Limits);

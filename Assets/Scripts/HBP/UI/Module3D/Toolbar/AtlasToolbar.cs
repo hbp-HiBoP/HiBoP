@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.UI.Module3D
+namespace HBP.UI.Toolbar
 {
     public class AtlasToolbar : Toolbar
     {
@@ -8,17 +8,17 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Change the state of the IBC mode
         /// </summary>
-        [SerializeField] private Tools.AtlasState m_IBCState;
+        [SerializeField] private AtlasState m_IBCState;
         /// <summary>
         /// Change the contrast
         /// </summary>
-        [SerializeField] private Tools.IBCSelector m_IBCSelector;
+        [SerializeField] private IBCSelector m_IBCSelector;
         /// <summary>
         /// Change the parameters of the IBC contrasts
         /// </summary>
-        [SerializeField] private Tools.IBCParameters m_IBCParameters;
+        [SerializeField] private IBCParameters m_IBCParameters;
 
-        [SerializeField] private Tools.DiFuMoSelector m_DiFuMoSelector;
+        [SerializeField] private DiFuMoSelector m_DiFuMoSelector;
         #endregion
 
         #region Private Methods

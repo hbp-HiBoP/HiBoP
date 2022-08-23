@@ -14,10 +14,10 @@ namespace HBP.UI.Tools
         public void Load(ProjectInfo projectInfo)
         {
             UnityEngine.Profiling.Profiler.BeginSample("1");
-            Core.Data.Project projectToLoad = new Core.Data.Project();
+            Project projectToLoad = new Project();
 
             DataManager.Clear();
-            Core.Data.Project projectLoaded = ApplicationState.ProjectLoaded;
+            Project projectLoaded = ApplicationState.ProjectLoaded;
             string projectLoadedLocation = ApplicationState.ProjectLoadedLocation;
             ApplicationState.ProjectLoaded = projectToLoad;
             ApplicationState.ProjectLoadedLocation = Directory.GetParent(projectInfo.Path).FullName;
@@ -45,7 +45,7 @@ namespace HBP.UI.Tools
         }
         public void Save(string path)
         {
-            HBP3DModule.SaveConfigurations();
+            Module3DMain.SaveConfigurations();
             ApplicationState.ProjectLoadedLocation = path;
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
             LoadingManager.Load(

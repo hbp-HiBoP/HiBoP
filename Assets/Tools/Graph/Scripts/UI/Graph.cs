@@ -1,4 +1,5 @@
 ﻿using HBP.Core.Tools;
+using HBP.Display.Informations.Graphs;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -7,7 +8,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
 
-namespace HBP.UI.Tools.Graphs
+namespace HBP.UI.Informations.Graphs
 {
     public class Graph : MonoBehaviour
     {
