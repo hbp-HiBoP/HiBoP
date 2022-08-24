@@ -6,8 +6,9 @@ using UnityEngine.Events;
 using HBP.Core.Exceptions;
 using HBP.Core.Data;
 using HBP.Core.Object3D;
+using HBP.Core.Tools;
 
-namespace HBP.Display.Module3D
+namespace HBP.Data.Module3D
 {
     /// <summary>
     /// Class containing the CCEP data for the column

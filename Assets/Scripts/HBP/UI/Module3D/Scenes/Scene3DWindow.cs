@@ -11,7 +11,7 @@ using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
 using HBP.Core.Data;
-using HBP.Display.Module3D;
+using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using HBP.UI.Informations.TrialMatrix.Grid;
 using HBP.UI.Tools.ResizableGrids;

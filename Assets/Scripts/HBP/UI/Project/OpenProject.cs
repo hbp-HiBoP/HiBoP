@@ -3,9 +3,11 @@ using System.Collections;
 using ThirdParty.CielaSpike;
 using System.Linq;
 using HBP.Core.Data;
-using HBP.Display.Module3D;
+using HBP.Data.Module3D;
 using HBP.UI.Tools.Lists;
 using HBP.UI.Tools;
+using HBP.Core.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Main
 {
@@ -85,7 +87,7 @@ namespace HBP.UI.Main
             base.SetFields();
 
             // Set location folder selector.
-            m_LocationFolderSelector.Folder = ApplicationState.UserPreferences.General.Project.DefaultLocation;
+            m_LocationFolderSelector.Folder = PreferencesManager.UserPreferences.General.Project.DefaultLocation;
         }
         #endregion
 
@@ -96,7 +98,7 @@ namespace HBP.UI.Main
             m_OKButton.interactable = false;
             m_ProjectList.Set(new ProjectInfo[0]);
             yield return Ninja.JumpBack;
-            string[] paths = Core.Data.Project.GetProject(path).ToArray();
+            string[] paths = Project.GetProject(path).ToArray();
             foreach (string projectPath in paths)
             {
                 ProjectInfo project = new ProjectInfo(projectPath);

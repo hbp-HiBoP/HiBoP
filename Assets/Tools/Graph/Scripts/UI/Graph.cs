@@ -1,5 +1,5 @@
 ﻿using HBP.Core.Tools;
-using HBP.Display.Informations.Graphs;
+using HBP.Data.Informations.Graphs;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

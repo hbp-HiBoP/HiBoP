@@ -7,8 +7,9 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using HBP.Core.Data;
-using HBP.Display.Module3D;
+using HBP.Data.Module3D;
 using HBP.UI.Tools;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Module3D
 {

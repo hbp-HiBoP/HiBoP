@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using HBP.Display.Informations;
+using HBP.Data.Informations;
 using HBP.UI.Informations.Graphs;
 
 namespace HBP.UI.Informations

@@ -5,8 +5,9 @@ using UnityEngine;
 using HBP.Core.Exceptions;
 using HBP.Core.Tools;
 using HBP.Core.Data;
+using HBP.Data.Preferences;
 
-namespace HBP.Display.Module3D
+namespace HBP.Data.Module3D
 {
     /// <summary>
     /// Class containing the iEEG data for the column
@@ -223,8 +224,8 @@ namespace HBP.Display.Module3D
                     {
                         if (correlationBySite.TryGetValue(s, out float correlationValue))
                         {
-                            float threshold = ApplicationState.UserPreferences.Data.EEG.CorrelationAlpha;
-                            if (ApplicationState.UserPreferences.Data.EEG.BonferroniCorrection) threshold /= siteCount * (siteCount - 1) / 2;
+                            float threshold = PreferencesManager.UserPreferences.Data.EEG.CorrelationAlpha;
+                            if (PreferencesManager.UserPreferences.Data.EEG.BonferroniCorrection) threshold /= siteCount * (siteCount - 1) / 2;
                             if (correlationValue < threshold)
                             {
                                 result.Add(s);

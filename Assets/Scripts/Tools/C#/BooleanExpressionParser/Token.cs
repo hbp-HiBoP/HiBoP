@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace HBP.Display.Tools
+namespace HBP.Data.Tools
 {
     public enum TokenType { OpenParenthesis, CloseParenthesis, UnaryOperator, BinaryOperator, Value, EndOfExpression, Space }
 

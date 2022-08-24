@@ -2,7 +2,7 @@
 using System.Linq;
 using UnityEngine;
 
-namespace HBP.Display.Module3D
+namespace HBP.Data.Module3D
 {
     /// <summary>
     /// Class responsible for the display of fMRIs on the cuts

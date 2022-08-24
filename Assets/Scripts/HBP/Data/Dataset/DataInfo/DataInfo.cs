@@ -6,6 +6,7 @@ using System.Text;
 using UnityEngine.Events;
 using HBP.Core.Errors;
 using HBP.Core.Interfaces;
+using HBP.Core.Tools;
 
 namespace HBP.Core.Data
 {

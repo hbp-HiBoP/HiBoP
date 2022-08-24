@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
 using System.IO;
-using HBP.Display.Preferences;
-using HBP.Core.Tools;
+using HBP.Core.Data;
 
-namespace HBP.Core.Data
+namespace HBP.Core.Tools
 {
     public class ApplicationManager : MonoBehaviour
     {
@@ -12,15 +11,6 @@ namespace HBP.Core.Data
         {
             ApplicationState.ProjectLoaded = null;
             ApplicationState.ProjectLoadedLocation = string.Empty;
-            if (new FileInfo(UserPreferences.PATH).Exists)
-            {
-                ApplicationState.UserPreferences = ClassLoaderSaver.LoadFromJson<UserPreferences>(UserPreferences.PATH);
-            }
-            else
-            {
-                ApplicationState.UserPreferences = new UserPreferences();
-            }
-            ClassLoaderSaver.SaveToJSon(ApplicationState.UserPreferences, UserPreferences.PATH, true);
 #if UNITY_EDITOR
             ApplicationState.DataPath =  Path.Combine(Application.dataPath, "Data");
 #else

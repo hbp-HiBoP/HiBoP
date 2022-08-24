@@ -2,7 +2,7 @@
 using HBP.Core.Enums;
 using HBP.Core.Object3D;
 
-namespace HBP.Display.Module3D
+namespace HBP.Data.Module3D
 {
     /// <summary>
     /// Class responsible for the display of atlases on the brain

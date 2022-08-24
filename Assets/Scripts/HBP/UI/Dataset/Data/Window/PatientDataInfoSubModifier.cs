@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using System.Collections.ObjectModel;
 using HBP.Core.Data;
 using HBP.UI.Tools;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Main
 {

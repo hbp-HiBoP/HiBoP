@@ -1,10 +1,12 @@
 ﻿using HBP.Core.Data;
-using HBP.Display.Module3D;
+using HBP.Data.Module3D;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using HBP.Core.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Tools
 {
@@ -65,7 +67,7 @@ namespace HBP.UI.Tools
                 }
                 else
                 {
-                    FindObjectOfType<ProjectLoaderSaver>().Load(new ProjectInfo(ApplicationState.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0] + Core.Data.Project.EXTENSION));
+                    FindObjectOfType<ProjectLoaderSaver>().Load(new ProjectInfo(PreferencesManager.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0] + Project.EXTENSION));
                 }
             }
             else if (action == "-pf") // Project File

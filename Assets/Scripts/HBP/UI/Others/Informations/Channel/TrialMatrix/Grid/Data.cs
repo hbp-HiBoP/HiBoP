@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
-using d = HBP.Display.Informations.TrialMatrix.Grid;
+using d = HBP.Data.Informations.TrialMatrix.Grid;
 
 namespace HBP.UI.Informations.TrialMatrix.Grid
 {

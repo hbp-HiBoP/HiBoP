@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine.UI.Extensions;
 
-namespace HBP.Display.Informations.Graphs
+namespace HBP.Data.Informations.Graphs
 {
     [CreateAssetMenu(fileName = "ShapedCurve", menuName = "Graph/Data/ShapedCurve", order = 1)]
     public class ShapedCurveData : CurveData

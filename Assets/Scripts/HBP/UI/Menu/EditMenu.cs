@@ -1,6 +1,7 @@
-﻿using HBP.Core.Data;
-using UnityEngine;
+﻿using UnityEngine;
 using HBP.UI.Tools;
+using HBP.Core.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Main
 {
@@ -16,7 +17,7 @@ namespace HBP.UI.Main
         #region Public Methods
         public void OpenPreferences()
         {
-            WindowsManager.OpenModifier(ApplicationState.UserPreferences);
+            WindowsManager.OpenModifier(PreferencesManager.UserPreferences);
         }
         public void OpenProjectPreferences()
         {

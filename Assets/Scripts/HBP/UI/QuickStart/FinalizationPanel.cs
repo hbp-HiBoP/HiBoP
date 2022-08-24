@@ -5,6 +5,8 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.UI.Tools;
+using HBP.Core.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Main.QuickStart
 {
@@ -63,11 +65,11 @@ namespace HBP.UI.Main.QuickStart
             base.Open();
             if (string.IsNullOrEmpty(m_ProjectName.text))
             {
-                m_ProjectName.text = ApplicationState.UserPreferences.General.Project.DefaultName;
+                m_ProjectName.text = PreferencesManager.UserPreferences.General.Project.DefaultName;
             }
             if (string.IsNullOrEmpty(m_ProjectLocation.Folder))
             {
-                m_ProjectLocation.Folder = ApplicationState.UserPreferences.General.Project.DefaultLocation;
+                m_ProjectLocation.Folder = PreferencesManager.UserPreferences.General.Project.DefaultLocation;
             }
         }
         #endregion

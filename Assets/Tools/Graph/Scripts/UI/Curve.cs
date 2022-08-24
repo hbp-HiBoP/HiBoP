@@ -1,4 +1,4 @@
-﻿using HBP.Display.Informations.Graphs;
+﻿using HBP.Data.Informations.Graphs;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.UI.Extensions;

@@ -3,9 +3,10 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Exceptions;
-using HBP.Display.Tools;
+using HBP.Data.Tools;
 using HBP.Core.Data;
-using HBP.Display.Module3D;
+using HBP.Data.Module3D;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Module3D
 {

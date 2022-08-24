@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using UnityEngine;
 using System.Linq;
 using UnityEngine.Events;
-using data = HBP.Display.Informations.TrialMatrix;
+using data = HBP.Data.Informations.TrialMatrix;
 
 namespace HBP.UI.Informations.TrialMatrix
 {

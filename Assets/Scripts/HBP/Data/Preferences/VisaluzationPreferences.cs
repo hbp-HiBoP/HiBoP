@@ -6,7 +6,7 @@ using UnityEngine;
 using HBP.Core.Enums;
 using HBP.Core.Data;
 
-namespace HBP.Display.Preferences
+namespace HBP.Data.Preferences
 {
     [DataContract]
     public class VisualizationPreferences : ICloneable

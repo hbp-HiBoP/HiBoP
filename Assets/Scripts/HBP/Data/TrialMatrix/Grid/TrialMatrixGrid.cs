@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace HBP.Display.Informations.TrialMatrix.Grid
+namespace HBP.Data.Informations.TrialMatrix.Grid
 {
     public class TrialMatrixGrid
     {

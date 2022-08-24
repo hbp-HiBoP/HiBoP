@@ -2,6 +2,7 @@
 using UnityEngine;
 using HBP.Core.Data;
 using HBP.UI.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Main
 {
@@ -70,9 +71,9 @@ namespace HBP.UI.Main
         protected override void SetFields(Icon objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
-            m_WindowSlider.minLimit = ApplicationState.UserPreferences.Data.Protocol.MinLimit;
-            m_WindowSlider.maxLimit = ApplicationState.UserPreferences.Data.Protocol.MaxLimit;
-            m_WindowSlider.step = ApplicationState.UserPreferences.Data.Protocol.Step;
+            m_WindowSlider.minLimit = PreferencesManager.UserPreferences.Data.Protocol.MinLimit;
+            m_WindowSlider.maxLimit = PreferencesManager.UserPreferences.Data.Protocol.MaxLimit;
+            m_WindowSlider.step = PreferencesManager.UserPreferences.Data.Protocol.Step;
             m_WindowSlider.Values = objectToDisplay.Window.ToVector2();
             m_ImageSelector.Path = objectToDisplay.ImagePath;
         }

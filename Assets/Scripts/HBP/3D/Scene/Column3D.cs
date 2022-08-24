@@ -5,7 +5,7 @@ using System.Linq;
 using HBP.Core.Enums;
 using HBP.Core.Interfaces;
 
-namespace HBP.Display.Module3D
+namespace HBP.Data.Module3D
 {
     /// <summary>
     /// Class containing information about the 3D column (specific meshes, sites, ROIs of the column)

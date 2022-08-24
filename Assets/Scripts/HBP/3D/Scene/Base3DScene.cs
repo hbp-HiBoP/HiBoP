@@ -12,8 +12,9 @@ using HBP.Core.Interfaces;
 using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Core.Object3D;
+using HBP.Data.Preferences;
 
-namespace HBP.Display.Module3D
+namespace HBP.Data.Module3D
 {
     /// <summary>
     /// Class containing all the data concerning the gameObjects, the DLL objects and the parameters of the 3D scene
@@ -740,7 +741,7 @@ namespace HBP.Display.Module3D
             if (SceneInformation.GUICutTexturesNeedUpdate) ComputeGUICutTextures();
             if (SceneInformation.FunctionalSurfaceNeedsUpdate) ComputeFunctionalSurface();
             if (SceneInformation.SitesNeedUpdate) UpdateAllColumnsSitesRendering();
-            if (!m_IsGeneratorUpToDate && (ApplicationState.UserPreferences.Visualization._3D.AutomaticEEGUpdate || SceneInformation.GeneratorUpdateRequested)) UpdateGenerator();
+            if (!m_IsGeneratorUpToDate && (PreferencesManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate || SceneInformation.GeneratorUpdateRequested)) UpdateGenerator();
         }
         private void OnDestroy()
         {
@@ -1605,14 +1606,14 @@ namespace HBP.Display.Module3D
             switch (Type)
             {
                 case SceneType.SinglePatient:
-                    m_MeshManager.Select(ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization, true);
-                    m_MRIManager.Select(ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization, true);
-                    m_ImplantationManager.Select(ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization);
+                    m_MeshManager.Select(PreferencesManager.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization, true);
+                    m_MRIManager.Select(PreferencesManager.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization, true);
+                    m_ImplantationManager.Select(PreferencesManager.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization);
                     break;
                 case SceneType.MultiPatients:
-                    m_MeshManager.Select(ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMeshInMultiPatientsVisualization);
-                    m_MRIManager.Select(ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMRIInMultiPatientsVisualization);
-                    m_ImplantationManager.Select(ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInMultiPatientsVisualization);
+                    m_MeshManager.Select(PreferencesManager.UserPreferences.Visualization._3D.DefaultSelectedMeshInMultiPatientsVisualization);
+                    m_MRIManager.Select(PreferencesManager.UserPreferences.Visualization._3D.DefaultSelectedMRIInMultiPatientsVisualization);
+                    m_ImplantationManager.Select(PreferencesManager.UserPreferences.Visualization._3D.DefaultSelectedImplantationInMultiPatientsVisualization);
                     break;
                 default:
                     break;
@@ -1650,7 +1651,7 @@ namespace HBP.Display.Module3D
         /// <returns>Folder that will contain exported files</returns>
         public string GenerateExportDirectory()
         {
-            string result = ApplicationState.UserPreferences.General.Project.DefaultExportLocation;
+            string result = PreferencesManager.UserPreferences.General.Project.DefaultExportLocation;
             if (string.IsNullOrEmpty(result)) result = Path.GetFullPath(Application.dataPath + "/../Export/");
             if (!Directory.Exists(result)) Directory.CreateDirectory(result);
             result = Path.Combine(result, ApplicationState.ProjectLoaded.Preferences.Name);
@@ -1820,7 +1821,7 @@ namespace HBP.Display.Module3D
             else
             {
                 totalProgress = LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + Visualization.Patients.Count * LOADING_IEEG_WEIGHT;
-                if (ApplicationState.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
+                if (PreferencesManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
                 {
                     totalProgress += Visualization.Patients.Sum(p => p.Meshes.Count) * LOADING_MESH_WEIGHT + Visualization.Patients.Sum(p => p.MRIs.Count) * LOADING_MRI_WEIGHT;
                     loadingMeshProgress = LOADING_MESH_WEIGHT / totalProgress;
@@ -1863,7 +1864,7 @@ namespace HBP.Display.Module3D
             // Loading Meshes
             if (Type == SceneType.SinglePatient)
             {
-                if (ApplicationState.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization && Visualization.Configuration.PreloadedMeshes.Count > 0)
+                if (PreferencesManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization && Visualization.Configuration.PreloadedMeshes.Count > 0)
                 {
                     foreach (var mesh in Visualization.Configuration.PreloadedMeshes)
                     {
@@ -1888,7 +1889,7 @@ namespace HBP.Display.Module3D
                     }
                 }
             }
-            else if (ApplicationState.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
+            else if (PreferencesManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
             {
                 foreach (var patient in Visualization.Patients)
                 {
@@ -1913,7 +1914,7 @@ namespace HBP.Display.Module3D
             // Loading MRIs
             if (Type == SceneType.SinglePatient)
             {
-                if (ApplicationState.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization && Visualization.Configuration.PreloadedMRIs.Count > 0)
+                if (PreferencesManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization && Visualization.Configuration.PreloadedMRIs.Count > 0)
                 {
                     foreach (var mri in Visualization.Configuration.PreloadedMRIs)
                     {
@@ -1938,7 +1939,7 @@ namespace HBP.Display.Module3D
                     }
                 }
             }
-            else if (ApplicationState.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
+            else if (PreferencesManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
             {
                 foreach (var patient in Visualization.Patients)
                 {
@@ -2200,7 +2201,7 @@ namespace HBP.Display.Module3D
                 {
                     Core.DLL.DensityGenerator generator = anatomyColumn.ActivityGenerator as Core.DLL.DensityGenerator;
                     currentGenerator = generator;
-                    generator.ComputeActivity(anatomyColumn.RawElectrodes, anatomyColumn.AnatomyParameters.InfluenceDistance, ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                    generator.ComputeActivity(anatomyColumn.RawElectrodes, anatomyColumn.AnatomyParameters.InfluenceDistance, PreferencesManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                 }
                 else if (column is Column3DDynamic dynamicColumn)
                 {
@@ -2209,7 +2210,7 @@ namespace HBP.Display.Module3D
                     if (dynamicColumn is Column3DCCEP ccepColumn && ccepColumn.IsSourceMarsAtlasLabelSelected)
                         generator.ComputeActivityAtlas(ccepColumn.ActivityValues, ccepColumn.Timeline.Length, ccepColumn.AreaMask, Object3DManager.MarsAtlas);
                     else
-                        generator.ComputeActivity(dynamicColumn.RawElectrodes, dynamicColumn.DynamicParameters.InfluenceDistance, dynamicColumn.ActivityValues, dynamicColumn.Timeline.Length, dynamicColumn.RawElectrodes.NumberOfSites, ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                        generator.ComputeActivity(dynamicColumn.RawElectrodes, dynamicColumn.DynamicParameters.InfluenceDistance, dynamicColumn.ActivityValues, dynamicColumn.Timeline.Length, dynamicColumn.RawElectrodes.NumberOfSites, PreferencesManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                     generator.AdjustValues(dynamicColumn.DynamicParameters.Middle, dynamicColumn.DynamicParameters.SpanMin, dynamicColumn.DynamicParameters.SpanMax);
                 }
                 else if (column is Column3DFMRI fmriColumn)

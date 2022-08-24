@@ -5,7 +5,7 @@ using UnityEngine.Events;
 using HBP.Core.Data;
 using HBP.Core.Tools;
 
-namespace HBP.Display.Preferences
+namespace HBP.Data.Preferences
 {
     /**
     * \class UserPreferences

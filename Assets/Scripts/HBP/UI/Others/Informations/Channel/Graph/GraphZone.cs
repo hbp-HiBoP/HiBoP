@@ -1,4 +1,4 @@
-﻿using HBP.Display.Informations;
+﻿using HBP.Data.Informations;
 using HBP.UI.Informations.TrialMatrix.Grid;
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.UI.Informations.Graphs;
-using HBP.Display.Informations.Graphs;
+using HBP.Data.Informations.Graphs;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Informations
 {
@@ -321,7 +322,7 @@ namespace HBP.UI.Informations
                 }
             }
 
-            Color color = Core.Data.ApplicationState.UserPreferences.Visualization.Graph.GetColor(index + 2, Array.IndexOf(m_Columns, column));
+            Color color = PreferencesManager.UserPreferences.Visualization.Graph.GetColor(index + 2, Array.IndexOf(m_Columns, column));
             if (column.ChannelGroups[index].Channels.Count > 1)
             {
                 int channelCount = column.ChannelGroups[index].Channels.Count;
@@ -441,7 +442,7 @@ namespace HBP.UI.Informations
             }
             Core.Data.BlocData blocData = Core.Data.DataManager.GetData(dataInfo, column.Data.Bloc);
             Core.Data.BlocChannelData blocChannelData = Core.Data.DataManager.GetData(dataInfo, column.Data.Bloc, channel.Channel);
-            Color color = Core.Data.ApplicationState.UserPreferences.Visualization.Graph.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));// m_ColorsByColumn.FirstOrDefault(k => k.Key.Item1 == Array.IndexOf(m_Channels, channel) && k.Key.Item2 == column).Value;
+            Color color = PreferencesManager.UserPreferences.Visualization.Graph.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));// m_ColorsByColumn.FirstOrDefault(k => k.Key.Item1 == Array.IndexOf(m_Channels, channel) && k.Key.Item2 == column).Value;
             if (blocChannelData == null)
                 return null;
 
@@ -510,7 +511,7 @@ namespace HBP.UI.Informations
                 if (dataInfo == null) return null;
             }
             Core.Data.MEGcData megData = Core.Data.DataManager.GetData(dataInfo) as Core.Data.MEGcData;
-            Color color = Core.Data.ApplicationState.UserPreferences.Visualization.Graph.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));
+            Color color = PreferencesManager.UserPreferences.Visualization.Graph.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));
             if (megData == null)
                 return null;
 

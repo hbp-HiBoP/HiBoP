@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.Serialization;
+using HBP.Core.Tools;
 
 namespace HBP.Core.Data
 {

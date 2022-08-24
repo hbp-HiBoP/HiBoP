@@ -2,8 +2,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
-using HBP.Core.Data;
-using HBP.Display.Module3D;
+using HBP.Data.Module3D;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Module3D
 {
@@ -60,13 +60,13 @@ namespace HBP.UI.Module3D
                 sceneWindow.gameObject.SetActive(false);
                 m_Scenes.Add(scene, sceneWindow);
             });
-            ApplicationState.UserPreferences.OnSavePreferences.AddListener(ChangeLayoutDirection);
+            PreferencesManager.UserPreferences.OnSavePreferences.AddListener(ChangeLayoutDirection);
         }
         private void ChangeLayoutDirection()
         {
             DestroyImmediate(gameObject.GetComponent<HorizontalOrVerticalLayoutGroup>());
             HorizontalOrVerticalLayoutGroup layout;
-            switch (ApplicationState.UserPreferences.Visualization._3D.VisualizationsLayoutDirection)
+            switch (PreferencesManager.UserPreferences.Visualization._3D.VisualizationsLayoutDirection)
             {
                 case LayoutDirection.Horizontal:
                     layout = gameObject.AddComponent<HorizontalLayoutGroup>();

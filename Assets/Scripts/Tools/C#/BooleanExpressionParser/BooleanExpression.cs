@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace HBP.Display.Tools
+namespace HBP.Data.Tools
 {
     public enum BooleanExpressionType { Value, And, Or, Not };
 

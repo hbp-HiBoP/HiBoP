@@ -4,7 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Tools.CSharp;
 
-namespace HBP.Display.Informations.TrialMatrix
+namespace HBP.Data.Informations.TrialMatrix
 {
     public class TrialMatrix
     {

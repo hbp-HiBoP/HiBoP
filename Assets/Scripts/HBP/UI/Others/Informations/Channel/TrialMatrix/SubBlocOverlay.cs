@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using data = HBP.Display.Informations.TrialMatrix;
+using data = HBP.Data.Informations.TrialMatrix;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
 

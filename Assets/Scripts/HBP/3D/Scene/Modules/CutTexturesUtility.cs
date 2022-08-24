@@ -3,7 +3,7 @@ using UnityEngine;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
 
-namespace HBP.Display.Module3D
+namespace HBP.Data.Module3D
 {
     /// <summary>
     /// Contains the textures for the cuts and methods to compute them

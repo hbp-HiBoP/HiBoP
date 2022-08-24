@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.Serialization;
 using Tools.CSharp;
+using HBP.Data.Preferences;
 
 namespace HBP.Core.Data
 {
@@ -80,13 +81,13 @@ namespace HBP.Core.Data
         /// Create a new project settings instance.
         /// </summary>
         /// <param name="name">Name of the project.</param>
-        public ProjectPreferences(string name) : this(name, ApplicationState.UserPreferences.General.Project.DefaultPatientDatabase, ApplicationState.UserPreferences.General.Project.DefaultLocalizerDatabase, new Alias[0], new BaseTag[0], new BaseTag[0], new BaseTag[0])
+        public ProjectPreferences(string name) : this(name, PreferencesManager.UserPreferences.General.Project.DefaultPatientDatabase, PreferencesManager.UserPreferences.General.Project.DefaultLocalizerDatabase, new Alias[0], new BaseTag[0], new BaseTag[0], new BaseTag[0])
         {
         }
         /// <summary>
         /// Create a new project settings instance with default value.
         /// </summary>
-        public ProjectPreferences() : this(ApplicationState.UserPreferences.General.Project.DefaultName)
+        public ProjectPreferences() : this(PreferencesManager.UserPreferences.General.Project.DefaultName)
         {
         }
         #endregion

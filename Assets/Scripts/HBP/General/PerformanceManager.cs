@@ -1,7 +1,7 @@
-using HBP.Core.Data;
 using UnityEngine;
+using HBP.Data.Preferences;
 
-namespace HBP.Display.Tools
+namespace HBP.Data.Tools
 {
     public class PerformanceManager : MonoBehaviour
     {
@@ -18,7 +18,7 @@ namespace HBP.Display.Tools
             {
                 m_TimeSinceLastAction = 0;
             }
-            if (m_TimeSinceLastAction > ApplicationState.UserPreferences.General.System.SleepModeAfter * 60)
+            if (m_TimeSinceLastAction > PreferencesManager.UserPreferences.General.System.SleepModeAfter * 60)
             {
                 Application.targetFrameRate = 1;
                 m_DarkImage.SetActive(true);

@@ -1,4 +1,4 @@
-﻿namespace HBP.Display.Informations.TrialMatrix
+﻿namespace HBP.Data.Informations.TrialMatrix
 {
     public class SubBloc
     {

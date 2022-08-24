@@ -3,9 +3,9 @@ using System.Linq;
 using Tools.CSharp;
 using UnityEngine;
 using HBP.Core.Enums;
-using HBP.Display.Tools;
+using HBP.Data.Tools;
 
-namespace HBP.Display.Module3D
+namespace HBP.Data.Module3D
 {
     /// <summary>
     /// Class containing tools to erase parts of the brain mesh

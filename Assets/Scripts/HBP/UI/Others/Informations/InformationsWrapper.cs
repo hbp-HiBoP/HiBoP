@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-using HBP.Display.Informations;
+using HBP.Data.Informations;
 using UnityEngine.UI.Extensions;
 using UnityEngine.Events;
-using HBP.Display.Module3D;
+using HBP.Data.Module3D;
 using HBP.UI.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Informations
 {
@@ -171,7 +172,7 @@ namespace HBP.UI.Informations
         #region Private Methods
         private void Awake()
         {
-            Core.Data.ApplicationState.UserPreferences.OnSavePreferences.AddListener(Display);
+            PreferencesManager.UserPreferences.OnSavePreferences.AddListener(Display);
         }
         private void Update()
         {
@@ -204,7 +205,7 @@ namespace HBP.UI.Informations
             m_ColumnDataBy3DColumn = new Dictionary<Column3D, Column>();
             foreach (var column in m_Scene.Columns)
             {
-                if(!column.IsMinimized || Core.Data.ApplicationState.UserPreferences.Visualization.Graph.ShowCurvesOfMinimizedColumns)
+                if(!column.IsMinimized || PreferencesManager.UserPreferences.Visualization.Graph.ShowCurvesOfMinimizedColumns)
                 {
                     List<ChannelStructsGroup> groups = new List<ChannelStructsGroup>();
                     if (m_Scene.ROIManager.SelectedROI != null)

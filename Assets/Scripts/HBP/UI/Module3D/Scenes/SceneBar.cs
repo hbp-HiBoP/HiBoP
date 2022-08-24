@@ -1,4 +1,4 @@
-﻿using HBP.Display.Module3D;
+﻿using HBP.Data.Module3D;
 using UnityEngine;
 
 namespace HBP.UI.Module3D

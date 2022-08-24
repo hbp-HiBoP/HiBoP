@@ -1,13 +1,14 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 using System.Collections.Generic;
-using data = HBP.Display.Informations.TrialMatrix;
+using data = HBP.Data.Informations.TrialMatrix;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Informations.TrialMatrix
 {
@@ -197,16 +198,16 @@ namespace HBP.UI.Informations.TrialMatrix
         }
         void SetSize()
         {
-            switch (Core.Data.ApplicationState.UserPreferences.Visualization.TrialMatrix.SubBlocFormat)
+            switch (PreferencesManager.UserPreferences.Visualization.TrialMatrix.SubBlocFormat)
             {
                 case BlocFormatType.TrialHeight:
-                    m_LayoutElement.preferredHeight = Core.Data.ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialHeight * Data.SubBlocs[0].SubTrials.Length;
+                    m_LayoutElement.preferredHeight = PreferencesManager.UserPreferences.Visualization.TrialMatrix.TrialHeight * Data.SubBlocs[0].SubTrials.Length;
                     break;
                 case BlocFormatType.TrialRatio:
-                    m_LayoutElement.preferredHeight = Core.Data.ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * Data.SubBlocs[0].SubTrials.Length;
+                    m_LayoutElement.preferredHeight = PreferencesManager.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * Data.SubBlocs[0].SubTrials.Length;
                     break;
                 case BlocFormatType.BlocRatio:
-                    m_LayoutElement.preferredHeight = Core.Data.ApplicationState.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width;
+                    m_LayoutElement.preferredHeight = PreferencesManager.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width;
                     break;
             }
         }

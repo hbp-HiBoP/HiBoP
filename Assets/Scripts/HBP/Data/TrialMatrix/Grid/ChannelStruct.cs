@@ -3,7 +3,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI.Extensions;
 
-namespace HBP.Display.Informations
+namespace HBP.Data.Informations
 {
     [Serializable]
     public class ChannelStruct : IEquatable<ChannelStruct>

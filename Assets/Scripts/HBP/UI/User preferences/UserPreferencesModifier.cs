@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
-using HBP.Display.Preferences;
-using HBP.Core.Data;
+using HBP.Data.Preferences;
 using HBP.UI.Tools;
 
 namespace HBP.UI.Main
@@ -60,7 +59,7 @@ namespace HBP.UI.Main
         public override  void OK()
         {
             base.OK();
-            ApplicationState.UserPreferences.Save();
+            PreferencesManager.UserPreferences.Save();
         }
         #endregion
 

@@ -1,4 +1,6 @@
-﻿namespace HBP.Core.Data
+﻿using HBP.Core.Data;
+
+namespace HBP.Core.Tools
 {
     public static class ApplicationState
     {
@@ -31,10 +33,5 @@
         /// Path to the data folder
         /// </summary>
         static public string DataPath { get; set; }
-
-        /// <summary>
-        /// General settings of the application.
-        /// </summary>
-        public static Display.Preferences.UserPreferences UserPreferences { get; set; }
     }
 }

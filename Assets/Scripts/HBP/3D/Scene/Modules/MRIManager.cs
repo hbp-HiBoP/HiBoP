@@ -4,8 +4,9 @@ using UnityEngine;
 using HBP.Core.Enums;
 using HBP.Core.Exceptions;
 using HBP.Core.Data;
+using HBP.Data.Preferences;
 
-namespace HBP.Display.Module3D
+namespace HBP.Data.Module3D
 {
     /// <summary>
     /// Class responsible for managing the MRIs of the scene
@@ -76,8 +77,8 @@ namespace HBP.Display.Module3D
         {
             if (mri.IsUsable)
             {
-                Core.Object3D.MRI3D mri3D = new Core.Object3D.MRI3D(mri, ApplicationState.UserPreferences.Data.Anatomic.MRIPreloading);
-                if (ApplicationState.UserPreferences.Data.Anatomic.MRIPreloading)
+                Core.Object3D.MRI3D mri3D = new Core.Object3D.MRI3D(mri, PreferencesManager.UserPreferences.Data.Anatomic.MRIPreloading);
+                if (PreferencesManager.UserPreferences.Data.Anatomic.MRIPreloading)
                 {
                     if (mri3D.IsLoaded)
                     {

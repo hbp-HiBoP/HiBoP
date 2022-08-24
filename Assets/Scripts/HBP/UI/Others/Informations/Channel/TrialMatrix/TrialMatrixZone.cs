@@ -1,9 +1,10 @@
-﻿using HBP.Display.Informations;
+﻿using HBP.Data.Informations;
 using System.Collections.Generic;
 using System.Linq;
 using Tools.CSharp;
 using UnityEngine;
-using data = HBP.Display.Informations.TrialMatrix.Grid;
+using data = HBP.Data.Informations.TrialMatrix.Grid;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Informations
 {
@@ -17,10 +18,10 @@ namespace HBP.UI.Informations
         #endregion
 
         #region Public Methods
-        public void Display(ChannelStruct[] channelStructs, Data[] dataStructs)
+        public void Display(ChannelStruct[] channelStructs, Data.Informations.Data[] dataStructs)
         {
             List<data.TrialMatrixGrid.TrialMatrixData> dataToDisplay = new List<data.TrialMatrixGrid.TrialMatrixData>();
-            if (Core.Data.ApplicationState.UserPreferences.Visualization.TrialMatrix.ShowWholeProtocol)
+            if (PreferencesManager.UserPreferences.Visualization.TrialMatrix.ShowWholeProtocol)
             {
                 foreach (var data in dataStructs)
                 {

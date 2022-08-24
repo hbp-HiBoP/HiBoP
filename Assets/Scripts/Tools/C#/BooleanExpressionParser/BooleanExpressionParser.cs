@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using HBP.Core.Exceptions;
 
-namespace HBP.Display.Tools
+namespace HBP.Data.Tools
 {
     public class BooleanExpressionParser
     {

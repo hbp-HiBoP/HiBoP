@@ -4,6 +4,8 @@ using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.Core.Data;
 using HBP.UI.Tools;
+using HBP.Core.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Main.QuickStart
 {
@@ -22,9 +24,9 @@ namespace HBP.UI.Main.QuickStart
         protected override void Initialize()
         {
             base.Initialize();
-            m_Window.minLimit = ApplicationState.UserPreferences.Data.Protocol.MinLimit;
-            m_Window.maxLimit = ApplicationState.UserPreferences.Data.Protocol.MaxLimit;
-            m_Window.step = ApplicationState.UserPreferences.Data.Protocol.Step;
+            m_Window.minLimit = PreferencesManager.UserPreferences.Data.Protocol.MinLimit;
+            m_Window.maxLimit = PreferencesManager.UserPreferences.Data.Protocol.MaxLimit;
+            m_Window.step = PreferencesManager.UserPreferences.Data.Protocol.Step;
             m_Window.Values = new Vector2(-500, 500);
         }
         #endregion

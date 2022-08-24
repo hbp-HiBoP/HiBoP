@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 using HBP.Core.Enums;
-using HBP.Display.Module3D;
+using HBP.Data.Module3D;
 using HBP.Core.Tools;
 using HBP.UI.Tools.ResizableGrids;
 

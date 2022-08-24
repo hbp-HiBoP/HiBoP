@@ -3,6 +3,7 @@ using System.Linq;
 using Tools.CSharp;
 using System;
 using HBP.Core.Enums;
+using HBP.Data.Preferences;
 
 namespace HBP.Core.Data
 {
@@ -190,7 +191,7 @@ namespace HBP.Core.Data
                         }
                         break;
                     case NormalizationType.Auto:
-                        switch (ApplicationState.UserPreferences.Data.EEG.Normalization)
+                        switch (PreferencesManager.UserPreferences.Data.EEG.Normalization)
                         {
                             case NormalizationType.None:
                                 foreach (var request in dataRequestCollection) if (m_NormalizeByRequest[request] != NormalizationType.None) NormalizeByNone(request);

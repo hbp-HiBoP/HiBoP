@@ -4,7 +4,7 @@ using UnityEngine.Events;
 using HBP.Core.Enums;
 using HBP.Core.Data;
 
-namespace HBP.Display.Module3D
+namespace HBP.Data.Module3D
 {
     /// <summary>
     /// Base class for the columns containing temporal dynamic data (iEEG, CCEP)

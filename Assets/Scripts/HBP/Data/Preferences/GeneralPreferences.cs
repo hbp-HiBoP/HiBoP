@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace HBP.Display.Preferences
+namespace HBP.Data.Preferences
 {
     [DataContract]
     public class GeneralPreferences : ICloneable

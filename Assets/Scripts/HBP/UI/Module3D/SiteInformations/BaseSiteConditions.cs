@@ -7,7 +7,7 @@ using Tools.CSharp;
 using UnityEngine;
 using UnityEngine.Events;
 using HBP.Core.Exceptions;
-using HBP.Display.Module3D;
+using HBP.Data.Module3D;
 using HBP.UI.Tools;
 
 namespace HBP.UI.Module3D

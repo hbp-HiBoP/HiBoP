@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
-using HBP.Display.Preferences;
+using HBP.Data.Preferences;
 using HBP.Core.Tools;
 using HBP.UI.Tools;
 

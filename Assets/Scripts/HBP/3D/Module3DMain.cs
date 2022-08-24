@@ -11,8 +11,9 @@ using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Core.Object3D;
 using HBP.UI.Tools;
+using HBP.Data.Preferences;
 
-namespace HBP.Display.Module3D
+namespace HBP.Data.Module3D
 {
     /// <summary>
     /// Base class of the 3D module
@@ -231,15 +232,15 @@ namespace HBP.Display.Module3D
             Visualization visualizationToLoad = visualization.Clone() as Visualization;
             visualizationToLoad.Name = patient.Name;
             visualizationToLoad.Patients = new List<Patient>() { patient };
-            visualizationToLoad.Configuration.MeshName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization;
-            visualizationToLoad.Configuration.MRIName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization;
-            visualizationToLoad.Configuration.ImplantationName = ApplicationState.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization;
+            visualizationToLoad.Configuration.MeshName = PreferencesManager.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization;
+            visualizationToLoad.Configuration.MRIName = PreferencesManager.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization;
+            visualizationToLoad.Configuration.ImplantationName = PreferencesManager.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization;
             if (scene.SelectedColumn.SelectedSite)
             {
                 visualizationToLoad.Configuration.FirstSiteToSelect = scene.SelectedColumn.SelectedSite.Information.Name;
                 visualizationToLoad.Configuration.FirstColumnToSelect = scene.Columns.FindIndex(c => c = scene.SelectedColumn);
             }
-            if (ApplicationState.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
+            if (PreferencesManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
             {
                 visualizationToLoad.Configuration.PreloadedMeshes = scene.MeshManager.PreloadedMeshes[patient];
                 visualizationToLoad.Configuration.PreloadedMRIs = scene.MRIManager.PreloadedMRIs[patient];
@@ -386,14 +387,14 @@ namespace HBP.Display.Module3D
             // Objects 3D
             yield return Ninja.JumpBack;
             Object3DManager.MNI.Load();
-            if (ApplicationState.UserPreferences.Data.Atlases.PreloadDiFuMo64) Object3DManager.DiFuMo.Load("64");
-            if (ApplicationState.UserPreferences.Data.Atlases.PreloadDiFuMo128) Object3DManager.DiFuMo.Load("128");
-            if (ApplicationState.UserPreferences.Data.Atlases.PreloadDiFuMo256) Object3DManager.DiFuMo.Load("256");
-            if (ApplicationState.UserPreferences.Data.Atlases.PreloadDiFuMo512) Object3DManager.DiFuMo.Load("512");
-            if (ApplicationState.UserPreferences.Data.Atlases.PreloadDiFuMo1024) Object3DManager.DiFuMo.Load("1024");
-            if (ApplicationState.UserPreferences.Data.Atlases.PreloadIBC) Object3DManager.IBC.Load();
-            if (ApplicationState.UserPreferences.Data.Atlases.PreloadMarsAtlas) Object3DManager.MarsAtlas.Load();
-            if (ApplicationState.UserPreferences.Data.Atlases.PreloadJuBrain) Object3DManager.JuBrain.Load();
+            if (PreferencesManager.UserPreferences.Data.Atlases.PreloadDiFuMo64) Object3DManager.DiFuMo.Load("64");
+            if (PreferencesManager.UserPreferences.Data.Atlases.PreloadDiFuMo128) Object3DManager.DiFuMo.Load("128");
+            if (PreferencesManager.UserPreferences.Data.Atlases.PreloadDiFuMo256) Object3DManager.DiFuMo.Load("256");
+            if (PreferencesManager.UserPreferences.Data.Atlases.PreloadDiFuMo512) Object3DManager.DiFuMo.Load("512");
+            if (PreferencesManager.UserPreferences.Data.Atlases.PreloadDiFuMo1024) Object3DManager.DiFuMo.Load("1024");
+            if (PreferencesManager.UserPreferences.Data.Atlases.PreloadIBC) Object3DManager.IBC.Load();
+            if (PreferencesManager.UserPreferences.Data.Atlases.PreloadMarsAtlas) Object3DManager.MarsAtlas.Load();
+            if (PreferencesManager.UserPreferences.Data.Atlases.PreloadJuBrain) Object3DManager.JuBrain.Load();
         }
         #endregion
     }

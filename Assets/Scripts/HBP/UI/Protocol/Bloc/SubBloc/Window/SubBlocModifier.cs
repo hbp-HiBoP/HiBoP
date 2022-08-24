@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
-using HBP.Display.Preferences;
+using HBP.Data.Preferences;
 using HBP.Core.Data;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
@@ -97,7 +97,7 @@ namespace HBP.UI.Main
             m_TypeDropdown.Set(typeof(MainSecondaryEnum), (int)objectToDisplay.Type);
             m_TypeDropdown.interactable = m_Interactable && ObjectTemp != null && ObjectTemp.Type == MainSecondaryEnum.Secondary;
 
-            ProtocolPreferences preferences = ApplicationState.UserPreferences.Data.Protocol;
+            ProtocolPreferences preferences = PreferencesManager.UserPreferences.Data.Protocol;
             m_WindowSlider.minLimit = preferences.MinLimit;
             m_WindowSlider.maxLimit = preferences.MaxLimit;
             m_WindowSlider.step = preferences.Step;

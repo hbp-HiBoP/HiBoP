@@ -4,9 +4,9 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
-using HBP.Display.Informations;
+using HBP.Data.Informations;
 using HBP.Core.Tools;
-using HBP.Display.Informations.Graphs;
+using HBP.Data.Informations.Graphs;
 
 namespace HBP.UI.Informations.Graphs
 {

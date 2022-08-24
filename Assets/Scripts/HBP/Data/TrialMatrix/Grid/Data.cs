@@ -4,7 +4,7 @@ using System.Linq;
 using Tools.CSharp;
 using UnityEngine;
 
-namespace HBP.Display.Informations.TrialMatrix.Grid
+namespace HBP.Data.Informations.TrialMatrix.Grid
 {
     public class Data
     {

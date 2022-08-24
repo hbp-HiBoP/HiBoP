@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 using UnityEngine;
-using data = HBP.Display.Informations;
+using data = HBP.Data.Informations;
 
 namespace HBP.UI.Informations
 {

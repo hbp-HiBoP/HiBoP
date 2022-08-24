@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-using HBP.Display.Module3D;
+using HBP.Data.Module3D;
 using HBP.UI.Tools;
 
 namespace HBP.UI.Module3D

@@ -1,12 +1,13 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using Tools.CSharp;
-using data = HBP.Display.Informations.TrialMatrix;
+using data = HBP.Data.Informations.TrialMatrix;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
 using UnityEngine.EventSystems;
 using HBP.Core.Enums;
 using HBP.Core.Data;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Informations.TrialMatrix
 {
@@ -147,9 +148,9 @@ namespace HBP.UI.Informations.TrialMatrix
             if(m_Data != null)
             {
                 float[][] trials = ExtractDataTrials(m_Data.SubTrials);
-                if (ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialSmoothing)
+                if (PreferencesManager.UserPreferences.Visualization.TrialMatrix.TrialSmoothing)
                 {
-                    trials = SmoothTrials(trials, ApplicationState.UserPreferences.Visualization.TrialMatrix.NumberOfIntermediateValues);
+                    trials = SmoothTrials(trials, PreferencesManager.UserPreferences.Visualization.TrialMatrix.NumberOfIntermediateValues);
                 }
 
                 Texture2D texture = GenerateTexture(trials, m_Limits, m_Colors);

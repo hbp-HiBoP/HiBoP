@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using HBP.Data.Preferences;
 
 namespace HBP.Core.Data
 {
@@ -15,7 +16,7 @@ namespace HBP.Core.Data
         }
         public SubBlocEventsStatistics(Dictionary<Event, EventInformation[]> informationsByEvent)
         {
-            StatisticsByEvent = informationsByEvent.ToDictionary(kv => kv.Key, kv => new EventStatistics(kv.Value, ApplicationState.UserPreferences.Data.Protocol.PositionAveraging));
+            StatisticsByEvent = informationsByEvent.ToDictionary(kv => kv.Key, kv => new EventStatistics(kv.Value, PreferencesManager.UserPreferences.Data.Protocol.PositionAveraging));
         }
         #endregion
 

@@ -2,8 +2,8 @@
 using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.UI;
-using dg = HBP.Display.Informations.TrialMatrix.Grid;
-using data = HBP.Display.Informations.TrialMatrix;
+using dg = HBP.Data.Informations.TrialMatrix.Grid;
+using data = HBP.Data.Informations.TrialMatrix;
 using UnityEngine.Events;
 using System.Linq;
 using UnityEngine.UI.Extensions;
@@ -12,6 +12,7 @@ using UnityEngine.EventSystems;
 using HBP.Core.Enums;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Informations.TrialMatrix.Grid
 {
@@ -367,16 +368,16 @@ namespace HBP.UI.Informations.TrialMatrix.Grid
             {
                 CanvasScalerHandler canvasScalerHandler = GetComponentInParent<CanvasScalerHandler>();
                 float scale = canvasScalerHandler ? canvasScalerHandler.Scale : 1;
-                switch (Core.Data.ApplicationState.UserPreferences.Visualization.TrialMatrix.SubBlocFormat)
+                switch (PreferencesManager.UserPreferences.Visualization.TrialMatrix.SubBlocFormat)
                 {
                     case BlocFormatType.TrialHeight:
-                        m_LayoutElement.preferredHeight = Core.Data.ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialHeight * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length / scale;
+                        m_LayoutElement.preferredHeight = PreferencesManager.UserPreferences.Visualization.TrialMatrix.TrialHeight * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length / scale;
                         break;
                     case BlocFormatType.TrialRatio:
-                        m_LayoutElement.preferredHeight = Core.Data.ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length / scale;
+                        m_LayoutElement.preferredHeight = PreferencesManager.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length / scale;
                         break;
                     case BlocFormatType.BlocRatio:
-                        m_LayoutElement.preferredHeight = Core.Data.ApplicationState.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width / scale;
+                        m_LayoutElement.preferredHeight = PreferencesManager.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width / scale;
                         break;
                 }
             }

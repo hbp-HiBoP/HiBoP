@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using HBP.Display.Preferences;
+using HBP.Data.Preferences;
 using HBP.Core.Object3D;
-using HBP.Display.Module3D;
+using HBP.Data.Module3D;
 using HBP.UI.Tools;
 
 namespace HBP.UI.Main

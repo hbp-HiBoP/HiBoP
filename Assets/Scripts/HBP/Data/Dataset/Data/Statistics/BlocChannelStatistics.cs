@@ -1,4 +1,6 @@
-﻿namespace HBP.Core.Data
+﻿using HBP.Data.Preferences;
+
+namespace HBP.Core.Data
 {
     public class BlocChannelStatistics
     {
@@ -9,7 +11,7 @@
         #region Constructors
         public BlocChannelStatistics(BlocChannelData data)
         {
-            Trial = new ChannelTrialStat(data.Trials, ApplicationState.UserPreferences.Data.EEG.Averaging);
+            Trial = new ChannelTrialStat(data.Trials, PreferencesManager.UserPreferences.Data.EEG.Averaging);
         }
         #endregion
 

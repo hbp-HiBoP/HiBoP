@@ -3,7 +3,7 @@ using UnityEngine;
 using HBP.Core.Enums;
 using HBP.Core.Exceptions;
 
-namespace HBP.Display.Module3D
+namespace HBP.Data.Module3D
 {
     /// <summary>
     /// Class responsible for managing the implantations of the scene

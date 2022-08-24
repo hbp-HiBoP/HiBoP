@@ -14,8 +14,9 @@ using UnityEngine.UI;
 using HBP.Core.Data;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
-using HBP.Display.Module3D;
+using HBP.Data.Module3D;
 using HBP.UI.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Toolbar
 {
@@ -158,9 +159,9 @@ namespace HBP.UI.Toolbar
             {
                 PatientName = SelectedScene.Visualization.Patients[0].Name,
                 PatientID = SelectedScene.Visualization.Patients[0].ID,
-                DefaultNormalization = ApplicationState.UserPreferences.Data.EEG.Normalization,
-                CorrelationThreshold = ApplicationState.UserPreferences.Data.EEG.CorrelationAlpha,
-                UseBonferroniCorrection = ApplicationState.UserPreferences.Data.EEG.BonferroniCorrection,
+                DefaultNormalization = PreferencesManager.UserPreferences.Data.EEG.Normalization,
+                CorrelationThreshold = PreferencesManager.UserPreferences.Data.EEG.CorrelationAlpha,
+                UseBonferroniCorrection = PreferencesManager.UserPreferences.Data.EEG.BonferroniCorrection,
                 Columns = new List<ColumnContainer>(SelectedScene.ColumnsIEEG.Count)
             };
             foreach (var column in SelectedScene.ColumnsIEEG)
@@ -218,8 +219,8 @@ namespace HBP.UI.Toolbar
                             if (correlationsOfSite.TryGetValue(s, out float correlationValue))
                             {
                                 csvText.Append(correlationValue.ToString("R", CultureInfo.InvariantCulture));
-                                float threshold = ApplicationState.UserPreferences.Data.EEG.CorrelationAlpha;
-                                if (ApplicationState.UserPreferences.Data.EEG.BonferroniCorrection) threshold /= siteCount * (siteCount - 1) / 2;
+                                float threshold = PreferencesManager.UserPreferences.Data.EEG.CorrelationAlpha;
+                                if (PreferencesManager.UserPreferences.Data.EEG.BonferroniCorrection) threshold /= siteCount * (siteCount - 1) / 2;
                                 csvBinaryText.Append(correlationValue < threshold ? 1 : 0);
                             }
                             else

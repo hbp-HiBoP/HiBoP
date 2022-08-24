@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.Display.Module3D
+namespace HBP.Data.Module3D
 {
     /// <summary>
     /// Small class containing information about an area of the JuBrain Atlas

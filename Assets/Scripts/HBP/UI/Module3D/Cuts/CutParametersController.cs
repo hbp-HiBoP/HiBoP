@@ -6,8 +6,9 @@ using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
 using HBP.Core.Enums;
 using HBP.Core.Data;
-using HBP.Display.Module3D;
+using HBP.Data.Module3D;
 using HBP.UI.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Module3D
 {
@@ -467,7 +468,7 @@ namespace HBP.UI.Module3D
         public void DrawLines()
         {
             foreach (Transform child in m_CutLinesRectTransform) Destroy(child.gameObject);
-            if (Cut.Orientation == CutOrientation.Custom || !ApplicationState.UserPreferences.Visualization.Cut.ShowCutLines) return;
+            if (Cut.Orientation == CutOrientation.Custom || !PreferencesManager.UserPreferences.Visualization.Cut.ShowCutLines) return;
 
             Core.DLL.BBox boundingBox = m_Scene.CutGeometryGenerators[Cut.ID].BoundingBox;
             if (boundingBox != null)

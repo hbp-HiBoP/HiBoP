@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 using ThirdParty.ImageEffects;
 using HBP.Core.Enums;
 
-namespace HBP.Display.Module3D
+namespace HBP.Data.Module3D
 {
     /// <summary>
     /// Camera associated to a view 3D

@@ -4,7 +4,7 @@ using ThirdParty.ImageEffects;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
 
-namespace HBP.Display.Module3D
+namespace HBP.Data.Module3D
 {
     /// <summary>
     /// Class containing information on how to display each view 

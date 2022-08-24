@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI.Extensions;
-using HBP.Display.Informations.Graphs;
+using HBP.Data.Informations.Graphs;
 
 namespace HBP.UI.Informations.Graphs
 {
