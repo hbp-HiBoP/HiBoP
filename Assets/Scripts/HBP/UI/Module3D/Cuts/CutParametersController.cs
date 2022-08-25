@@ -9,6 +9,7 @@ using HBP.Core.Data;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using HBP.Data.Preferences;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Module3D
 {
@@ -255,9 +256,9 @@ namespace HBP.UI.Module3D
                 Cut.Orientation = (CutOrientation)value;
                 if (Cut.Orientation == CutOrientation.Custom)
                 {
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomX.text, out float x);
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomY.text, out float y);
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
+                    NumberExtension.TryParseFloat(m_CustomX.text, out float x);
+                    NumberExtension.TryParseFloat(m_CustomY.text, out float y);
+                    NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
                     Cut.Normal = new Vector3(x, y, z);
                 }
                 m_Scene.UpdateCutPlane(Cut, true);
@@ -282,9 +283,9 @@ namespace HBP.UI.Module3D
 
                 if (Cut.Orientation == CutOrientation.Custom)
                 {
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomX.text, out float x);
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomY.text, out float y);
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
+                    NumberExtension.TryParseFloat(m_CustomX.text, out float x);
+                    NumberExtension.TryParseFloat(m_CustomY.text, out float y);
+                    NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
                     Cut.Normal = new Vector3(x, y, z);
                 }
                 m_Scene.UpdateCutPlane(Cut, true);
@@ -295,9 +296,9 @@ namespace HBP.UI.Module3D
 
                 if (Cut.Orientation == CutOrientation.Custom)
                 {
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomX.text, out float x);
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomY.text, out float y);
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
+                    NumberExtension.TryParseFloat(m_CustomX.text, out float x);
+                    NumberExtension.TryParseFloat(m_CustomY.text, out float y);
+                    NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
                     Cut.Normal = new Vector3(x, y, z);
                 }
                 m_Scene.UpdateCutPlane(Cut, true);
@@ -308,9 +309,9 @@ namespace HBP.UI.Module3D
 
                 if (Cut.Orientation == CutOrientation.Custom)
                 {
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomX.text, out float x);
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomY.text, out float y);
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
+                    NumberExtension.TryParseFloat(m_CustomX.text, out float x);
+                    NumberExtension.TryParseFloat(m_CustomY.text, out float y);
+                    NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
                     Cut.Normal = new Vector3(x, y, z);
                 }
                 m_Scene.UpdateCutPlane(Cut, true);
