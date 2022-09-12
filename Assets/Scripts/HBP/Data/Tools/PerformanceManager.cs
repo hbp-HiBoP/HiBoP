@@ -25,7 +25,7 @@ namespace HBP.Data.Tools
             }
             else
             {
-                Application.targetFrameRate = -1;
+                Application.targetFrameRate = PreferencesManager.UserPreferences.General.System.TargetFramerate;
                 m_DarkImage.SetActive(false);
             }
         }

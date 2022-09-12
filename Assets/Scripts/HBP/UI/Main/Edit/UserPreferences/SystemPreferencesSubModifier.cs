@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using HBP.Data.Preferences;
 using HBP.UI.Tools;
+using System.Linq;
 
 namespace HBP.UI.Main
 {
@@ -11,6 +12,7 @@ namespace HBP.UI.Main
         [SerializeField] Toggle m_MultiThreading;
         [SerializeField] Slider m_MemorySizeSlider;
         [SerializeField] Slider m_SleepModeSlider;
+        [SerializeField] Slider m_TargetFramerateSlider;
 
         public override bool Interactable
         {
@@ -37,6 +39,7 @@ namespace HBP.UI.Main
             m_MultiThreading.onValueChanged.AddListener(value => Object.MultiThreading = value);
             m_MemorySizeSlider.onValueChanged.AddListener(value => Object.MemoryCacheLimit = Mathf.FloorToInt(value));
             m_SleepModeSlider.onValueChanged.AddListener(value => Object.SleepModeAfter = Mathf.FloorToInt(value));
+            m_TargetFramerateSlider.onValueChanged.AddListener(value => Object.TargetFramerate = Mathf.FloorToInt(value));
         }
         #endregion
 
@@ -48,9 +51,13 @@ namespace HBP.UI.Main
             m_MemorySizeSlider.maxValue = SystemInfo.systemMemorySize;
             m_MemorySizeSlider.minValue = 0;
 
+            m_TargetFramerateSlider.maxValue = Mathf.RoundToInt(Screen.resolutions.Max(r => r.refreshRate));
+            m_TargetFramerateSlider.minValue = 5;
+
             m_MultiThreading.isOn = objectToDisplay.MultiThreading;
             m_MemorySizeSlider.value = objectToDisplay.MemoryCacheLimit;
             m_SleepModeSlider.value = objectToDisplay.SleepModeAfter;
+            m_TargetFramerateSlider.value = objectToDisplay.TargetFramerate;
         }
         #endregion
     }
