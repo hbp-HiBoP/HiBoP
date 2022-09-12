@@ -129,21 +129,21 @@ namespace HBP.Core.DLL
 
         #region DLL
         [DllImport("hbp_math", EntryPoint = "MeanDouble", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern double Mean(double[] values, int lenght);
+        private static extern double Mean(double[] values, int length);
         [DllImport("hbp_math", EntryPoint = "MeanFloat", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern float Mean(float[] values, int lenght);
+        private static extern float Mean(float[] values, int length);
         [DllImport("hbp_math", EntryPoint = "MeanInt", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern int Mean(int[] values, int lenght);
+        private static extern int Mean(int[] values, int length);
         [DllImport("hbp_math", EntryPoint = "MedianDouble", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern double Median(double[] values, int lenght);
+        private static extern double Median(double[] values, int length);
         [DllImport("hbp_math", EntryPoint = "MedianFloat", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern float Median(float[] values, int lenght);
+        private static extern float Median(float[] values, int length);
         [DllImport("hbp_math", EntryPoint = "MedianInt", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern int Median(int[] values, int lenght);
+        private static extern int Median(int[] values, int length);
         [DllImport("hbp_math", EntryPoint = "StandardDeviation", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern float StandardDeviation(float[] values, int lenght);
+        private static extern float StandardDeviation(float[] values, int length);
         [DllImport("hbp_math", EntryPoint = "SEM", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern float SEM(float[] values, int lenght);
+        private static extern float SEM(float[] values, int length);
         [DllImport("hbp_math", EntryPoint = "Normalize", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern void Normalize(float[] values, int length, float[] targetArray, float average, float standardDeviation);
         [DllImport("hbp_math", EntryPoint = "Lerp", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]

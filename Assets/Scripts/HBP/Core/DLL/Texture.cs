@@ -134,7 +134,7 @@ namespace HBP.Core.DLL
             bool nullDLLTexture = Width == 0 || Height == 0;
             if (nullDLLTexture)
             {
-                texture.Resize(10, 10);
+                texture.Reinitialize(10, 10);
                 Pixels2 = texture.GetPixels32(0);
                 for (int ii = 0; ii < Pixels2.Length; ++ii)
                     Pixels2[ii] = new Color32(0, 0, 0, 255);
@@ -145,7 +145,7 @@ namespace HBP.Core.DLL
 
             if (texture.width != Width || texture.height != Height || forcePinned || !m_IsPinned)
             {
-                texture.Resize(Width, Height);
+                texture.Reinitialize(Width, Height);
                 Pixels2 = texture.GetPixels32(0);
                 if (pixelsHandle2.IsAllocated) pixelsHandle2.Free();
                 pixelsHandle2 = GCHandle.Alloc(Pixels2, GCHandleType.Pinned);

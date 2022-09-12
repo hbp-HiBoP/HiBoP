@@ -33,7 +33,7 @@ namespace HBP.Data.Informations.Graphs
             }
             else
             {
-                Debug.LogWarning("Wrong shape array lenght");
+                Debug.LogWarning("Wrong shape array length");
                 Shapes = new float[Points.Length];
             }
         }

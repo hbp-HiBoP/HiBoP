@@ -540,8 +540,8 @@ namespace HBP.UI.Informations
             List<float> result = new List<float>();
             if (curve.Data != null)
             {
-                int lenght = curve.Data.Points.Length;
-                for (int i = 0; i < lenght; i++)
+                int length = curve.Data.Points.Length;
+                for (int i = 0; i < length; i++)
                 {
                     result.Add(curve.Data.Points[i].y);
                 }

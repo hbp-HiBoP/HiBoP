@@ -113,7 +113,7 @@ namespace HBP.UI.Informations.TrialMatrix
             {
                 m_Colors = colors;
                 m_Limits = limits;
-                m_LayoutElement.flexibleWidth = data.Window.Lenght;
+                m_LayoutElement.flexibleWidth = data.Window.Length;
 
                 if (data.IsFiller)
                 {
@@ -171,7 +171,7 @@ namespace HBP.UI.Informations.TrialMatrix
             {
                 m_LeftFillerLayoutElement.flexibleWidth = m_Data.SubBlocProtocol.Window.Start - m_Data.Window.Start;
                 m_RightFillerLayoutElement.flexibleWidth = m_Data.Window.End - m_Data.SubBlocProtocol.Window.End;
-                m_MainTextureLayoutElement.flexibleWidth = m_Data.SubBlocProtocol.Window.Lenght;
+                m_MainTextureLayoutElement.flexibleWidth = m_Data.SubBlocProtocol.Window.Length;
             }
         }
         Texture2D GenerateTexture(float[][] trials, Vector2 limits, Color[] colors)

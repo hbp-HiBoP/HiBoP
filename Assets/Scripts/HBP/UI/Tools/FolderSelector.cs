@@ -8,7 +8,7 @@ namespace HBP.UI.Tools
     {
         #region Properties
         public InputField.OnChangeEvent onValueChanged { get { return m_Inputfield.onValueChanged; } }
-        public InputField.SubmitEvent onEndEdit { get { return m_Inputfield.onEndEdit; } }
+        public InputField.EndEditEvent onEndEdit { get { return m_Inputfield.onEndEdit; } }
         public bool interactable { set { m_Inputfield.interactable = value; m_Button.interactable = value; } }
         public string Folder { get { return m_Inputfield.text; } set { m_Inputfield.text = value; } }
         public string Message;
@@ -21,7 +21,7 @@ namespace HBP.UI.Tools
         public void Open()
         {
 #if UNITY_STANDALONE_OSX
-            HBP.UI.FileBrowser.GetExistingDirectoryNameAsync((result) =>
+            FileBrowser.GetExistingDirectoryNameAsync((result) =>
             {
                 result = result.StandardizeToPath();
                 m_Inputfield.text = result;

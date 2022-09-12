@@ -119,7 +119,7 @@ namespace HBP.UI.Informations.TrialMatrix
                                     }
 
                                     int percentageActivation = Mathf.RoundToInt(((value - m_Data.Limits.x)/ m_Data.Limits.Range() - 0.5f) * 200.0f);
-                                    float latency = subBloc.SubBlocProtocol.Window.Start + ratio.x * subBloc.SubBlocProtocol.Window.Lenght;
+                                    float latency = subBloc.SubBlocProtocol.Window.Start + ratio.x * subBloc.SubBlocProtocol.Window.Length;
 
                                     m_TrialText.transform.parent.gameObject.SetActive(true);
                                     m_TrialText.text = string.Format("{0}/{1}", trial + 1, subTrials.Length);

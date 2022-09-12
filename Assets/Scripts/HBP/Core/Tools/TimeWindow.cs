@@ -10,7 +10,7 @@ namespace HBP.Core.Tools
         #region Properties
         [DataMember] public int Start { get; set; }
         [DataMember] public int End { get; set; }
-        [IgnoreDataMember] public int Lenght
+        [IgnoreDataMember] public int Length
         {
             get
             {

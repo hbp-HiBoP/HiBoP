@@ -29,7 +29,7 @@ namespace HBP.UI.Toolbar
             {
                 if (!string.IsNullOrEmpty(savePath))
                 {
-                    Data.Visualization.RegionOfInterest ROI = new Data.Visualization.RegionOfInterest(SelectedScene.ROIManager.SelectedROI);
+                    Core.Data.RegionOfInterest ROI = new Core.Data.RegionOfInterest(SelectedScene.ROIManager.SelectedROI);
                     ClassLoaderSaver.SaveToJSon(ROI, savePath, true);
                     DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Region of Interest saved", "The selected ROI has been saved to <color=#3080ffff>" + savePath + "</color>");
                 }

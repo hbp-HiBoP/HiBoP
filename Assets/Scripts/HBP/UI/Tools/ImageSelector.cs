@@ -49,7 +49,7 @@ namespace HBP.UI.Tools
         public void Open()
         {
 #if UNITY_STANDALONE_OSX
-            HBP.UI.FileBrowser.GetExistingFileNameAsync((result) =>
+            FileBrowser.GetExistingFileNameAsync((result) =>
             {
                 if (result != string.Empty)
                 {

@@ -187,9 +187,9 @@ namespace HBP.UI.Informations.Graphs
                 Profiler.EndSample();
 
                 Profiler.BeginSample("DownSampling");
-                int lenght = endIndex + 1 - startIndex;
-                int downSampling = Mathf.Max(1,Mathf.CeilToInt(m_NumberOfPixelsByPoint * lenght / (m_RectTransform.rect.width)));
-                Vector2[] points = new Vector2[lenght / downSampling];
+                int length = endIndex + 1 - startIndex;
+                int downSampling = Mathf.Max(1,Mathf.CeilToInt(m_NumberOfPixelsByPoint * length / (m_RectTransform.rect.width)));
+                Vector2[] points = new Vector2[length / downSampling];
                 for (int i = 0; i < points.Length; i++)
                 {
                     int v = i * downSampling + startIndex;

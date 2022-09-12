@@ -105,7 +105,7 @@ namespace HBP.Core.Data
         {
             get
             {
-                return Window.Lenght > 0 && MainEvent != null && Events.All(e => e.IsVisualizable);
+                return Window.Length > 0 && MainEvent != null && Events.All(e => e.IsVisualizable);
             }
         }
 

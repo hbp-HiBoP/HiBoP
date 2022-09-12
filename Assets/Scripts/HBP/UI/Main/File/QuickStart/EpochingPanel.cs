@@ -35,7 +35,7 @@ namespace HBP.UI.Main.QuickStart
         public override bool OpenNextPanel()
         {
             Core.Tools.TimeWindow window = new Core.Tools.TimeWindow((int)m_Window.Values.x, (int)m_Window.Values.y);
-            if (window.Lenght == 0)
+            if (window.Length == 0)
             {
                 DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Window length is zero", "The length of the window needs to be strictly above zero in order to continue.");
                 return false;
