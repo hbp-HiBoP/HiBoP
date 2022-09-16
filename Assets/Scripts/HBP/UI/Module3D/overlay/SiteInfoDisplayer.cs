@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Enums;
+using HBP.Data.Module3D;
 
 namespace HBP.UI.Module3D
 {
@@ -65,7 +67,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Current selected mode to display the site information
         /// </summary>
-        Data.Enums.SiteInformationDisplayMode m_CurrentMode = Data.Enums.SiteInformationDisplayMode.Anatomy;
+        SiteInformationDisplayMode m_CurrentMode = SiteInformationDisplayMode.Anatomy;
         /// <summary>
         /// RectTransform of this object
         /// </summary>
@@ -82,33 +84,33 @@ namespace HBP.UI.Module3D
             m_IEEG.SetActive(false);
             m_CCEP.SetActive(false);
             m_Tags.SetActive(true);
-            ApplicationState.Module3D.OnDisplaySiteInformation.AddListener((siteInfo) =>
+            Module3DMain.OnDisplaySiteInformation.AddListener((siteInfo) =>
             {
-                Data.Enums.SiteInformationDisplayMode mode = siteInfo.Mode;
+                SiteInformationDisplayMode mode = siteInfo.Mode;
                 if (mode != m_CurrentMode)
                 {
                     m_CurrentMode = mode;
                     switch (mode)
                     {
-                        case Data.Enums.SiteInformationDisplayMode.Anatomy:
+                        case SiteInformationDisplayMode.Anatomy:
                             m_IEEG.SetActive(false);
                             m_CCEP.SetActive(false);
                             m_Tags.SetActive(true);
                             m_States.SetActive(true);
                             break;
-                        case Data.Enums.SiteInformationDisplayMode.IEEG:
+                        case SiteInformationDisplayMode.IEEG:
                             m_IEEG.SetActive(true);
                             m_CCEP.SetActive(false);
                             m_Tags.SetActive(true);
                             m_States.SetActive(true);
                             break;
-                        case Data.Enums.SiteInformationDisplayMode.CCEP:
+                        case SiteInformationDisplayMode.CCEP:
                             m_IEEG.SetActive(false);
                             m_CCEP.SetActive(true);
                             m_Tags.SetActive(true);
                             m_States.SetActive(true);
                             break;
-                        case Data.Enums.SiteInformationDisplayMode.Light:
+                        case SiteInformationDisplayMode.Light:
                             m_IEEG.SetActive(false);
                             m_CCEP.SetActive(false);
                             m_Tags.SetActive(false);
@@ -123,21 +125,21 @@ namespace HBP.UI.Module3D
                     SetPatient(siteInfo.Site.Information.Patient);
                     switch (siteInfo.Mode)
                     {
-                        case Data.Enums.SiteInformationDisplayMode.Anatomy:
+                        case SiteInformationDisplayMode.Anatomy:
                             SetStates(siteInfo.Site);
                             SetTags(siteInfo);
                             break;
-                        case Data.Enums.SiteInformationDisplayMode.IEEG:
+                        case SiteInformationDisplayMode.IEEG:
                             SetIEEG(siteInfo);
                             SetStates(siteInfo.Site);
                             SetTags(siteInfo);
                             break;
-                        case Data.Enums.SiteInformationDisplayMode.CCEP:
+                        case SiteInformationDisplayMode.CCEP:
                             SetCCEP(siteInfo);
                             SetStates(siteInfo.Site);
                             SetTags(siteInfo);
                             break;
-                        case Data.Enums.SiteInformationDisplayMode.Light:
+                        case SiteInformationDisplayMode.Light:
                             break;
                     }
                     ClampToCanvas();
@@ -169,7 +171,7 @@ namespace HBP.UI.Module3D
         /// Set the position of this object on the screen
         /// </summary>
         /// <param name="siteInfo">Information about how to display the information of the site</param>
-        void SetPosition(HBP.Module3D.SiteInfo siteInfo)
+        void SetPosition(Core.Object3D.SiteInfo siteInfo)
         {
             transform.position = siteInfo.Position + new Vector3(0, -20, 0);
         }
@@ -177,7 +179,7 @@ namespace HBP.UI.Module3D
         /// Set the site information (name)
         /// </summary>
         /// <param name="site">Site to display information of</param>
-        void SetSite(HBP.Module3D.Site site)
+        void SetSite(Core.Object3D.Site site)
         {
             m_SiteNameText.text = site.Information.Name;
         }
@@ -185,7 +187,7 @@ namespace HBP.UI.Module3D
         /// Set the patient information (name, place, date)
         /// </summary>
         /// <param name="patient">Patient to display information of</param>
-        void SetPatient(Data.Patient patient)
+        void SetPatient(Core.Data.Patient patient)
         {
             m_PatientText.text = patient.CompleteName;
         }
@@ -193,7 +195,7 @@ namespace HBP.UI.Module3D
         /// Set the states of the site (highlighted, blacklisted)
         /// </summary>
         /// <param name="site">Site to display information of</param>
-        void SetStates(HBP.Module3D.Site site)
+        void SetStates(Core.Object3D.Site site)
         {
             m_IsBlackListedImage.gameObject.SetActive(site.State.IsBlackListed);
             m_IsHighlightedImage.gameObject.SetActive(site.State.IsHighlighted);
@@ -202,7 +204,7 @@ namespace HBP.UI.Module3D
         /// Set the CCEP values of the site (amplitude, latency)
         /// </summary>
         /// <param name="siteInfo">Information about how to display the information of the site</param>
-        void SetCCEP(HBP.Module3D.SiteInfo siteInfo)
+        void SetCCEP(Core.Object3D.SiteInfo siteInfo)
         {
             m_CCEPAmplitudeText.text = siteInfo.CCEPAmplitude;
             m_CCEPLatencyText.text = siteInfo.CCEPLatency;
@@ -211,7 +213,7 @@ namespace HBP.UI.Module3D
         /// Set the iEEG values of the site (amplitude)
         /// </summary>
         /// <param name="siteInfo">Information about how to display the information of the site</param>
-        void SetIEEG(HBP.Module3D.SiteInfo siteInfo)
+        void SetIEEG(Core.Object3D.SiteInfo siteInfo)
         {
             string unit = siteInfo.IEEGUnit;
             if (unit == "microV") unit = "mV";
@@ -222,7 +224,7 @@ namespace HBP.UI.Module3D
         /// Set the atlases of the site (Mars atlas, Brodmann, Freesurfer)
         /// </summary>
         /// <param name="siteInfo">Information about how to display the information of the site</param>
-        void SetTags(HBP.Module3D.SiteInfo siteInfo)
+        void SetTags(Core.Object3D.SiteInfo siteInfo)
         {
             if (siteInfo.Site && siteInfo.Site.Information.SiteData.Tags.Count > 0)
             {

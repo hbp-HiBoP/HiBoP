@@ -1,11 +1,12 @@
-﻿using HBP.Module3D;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using Tools.Unity.ResizableGrid;
 using UnityEngine;
 using UnityEngine.UI;
-using Tools.Unity;
 using System;
+using HBP.Core.Enums;
+using HBP.Data.Module3D;
+using HBP.Core.Tools;
+using HBP.UI.Tools.ResizableGrids;
 
 namespace HBP.UI.Module3D
 {
@@ -60,7 +61,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Array of Tuples containing the orientation of each cut and its respective generated texture
         /// </summary>
-        public Tuple<Data.Enums.CutOrientation, Texture2D>[] CutTextures { get { return (from cutParameterController in m_CutParametersControllers select new Tuple<Data.Enums.CutOrientation, Texture2D>(cutParameterController.Cut.Orientation, cutParameterController.Texture)).ToArray(); } }
+        public Tuple<CutOrientation, Texture2D>[] CutTextures { get { return (from cutParameterController in m_CutParametersControllers select new Tuple<CutOrientation, Texture2D>(cutParameterController.Cut.Orientation, cutParameterController.Texture)).ToArray(); } }
         /// <summary>
         /// Is the panel minimized ?
         /// </summary>
@@ -103,7 +104,7 @@ namespace HBP.UI.Module3D
         /// Add a new cut to the cut controller
         /// </summary>
         /// <param name="cut">Cut that has been added to the scene</param>
-        private void AddCut(Cut cut)
+        private void AddCut(Core.Object3D.Cut cut)
         {
             CutParametersController controller = Instantiate(m_CutControlPrefab, m_Content).GetComponent<CutParametersController>();
             controller.Initialize(m_Scene, cut);
@@ -142,7 +143,7 @@ namespace HBP.UI.Module3D
                 m_CutParametersControllers.Last().OpenControls();
             });
 
-            foreach (Cut cut in m_Scene.Cuts)
+            foreach (Core.Object3D.Cut cut in m_Scene.Cuts)
             {
                 AddCut(cut);
             }

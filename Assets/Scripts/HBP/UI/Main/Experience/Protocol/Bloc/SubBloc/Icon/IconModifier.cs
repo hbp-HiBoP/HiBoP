@@ -1,0 +1,114 @@
+﻿using UnityEngine.UI;
+using UnityEngine;
+using HBP.Core.Data;
+using HBP.UI.Tools;
+using HBP.Data.Preferences;
+
+namespace HBP.UI.Main
+{
+    /// <summary>
+    /// Window to modify a Icon.
+    /// </summary>
+    public class IconModifier : ObjectModifier<Icon>
+    {
+        #region Properties
+        [SerializeField] InputField m_NameInputField;
+        [SerializeField] RangeSlider m_WindowSlider;
+        [SerializeField] ImageSelector m_ImageSelector;
+
+        Core.Tools.TimeWindow m_Window;
+        /// <summary>
+        /// Window of the subBloc.
+        /// </summary>
+        public Core.Tools.TimeWindow Window
+        {
+            get
+            {
+                return m_Window;
+            }
+            set
+            {
+                m_Window = value;
+                m_WindowSlider.minLimit = m_Window.Start;
+                m_WindowSlider.maxLimit = m_Window.End;
+            }
+        }
+
+        /// <summary>
+        /// True if interactable, False otherwise.
+        /// </summary>
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+            set
+            {
+                base.Interactable = value;
+                m_NameInputField.interactable = value;
+                m_WindowSlider.interactable = value;
+                m_ImageSelector.interactable = value;
+            }
+        }
+        #endregion
+
+        #region Protected Methods
+        /// <summary>
+        /// Initialize the window.
+        /// </summary>
+        protected override void Initialize()
+        {
+            base.Initialize();
+            m_NameInputField.onEndEdit.AddListener(ChangeName);
+            m_WindowSlider.onValueChanged.AddListener(ChangeWindow);
+            m_ImageSelector.onValueChanged.AddListener(ChangeImage);
+        }
+        /// <summary>
+        /// Set the fields.
+        /// </summary>
+        /// <param name="objectToDisplay">Icon to modify</param>
+        protected override void SetFields(Icon objectToDisplay)
+        {
+            m_NameInputField.text = objectToDisplay.Name;
+            m_WindowSlider.minLimit = PreferencesManager.UserPreferences.Data.Protocol.MinLimit;
+            m_WindowSlider.maxLimit = PreferencesManager.UserPreferences.Data.Protocol.MaxLimit;
+            m_WindowSlider.step = PreferencesManager.UserPreferences.Data.Protocol.Step;
+            m_WindowSlider.Values = objectToDisplay.Window.ToVector2();
+            m_ImageSelector.Path = objectToDisplay.ImagePath;
+        }
+        /// <summary>
+        /// Change the name of the icon.
+        /// </summary>
+        /// <param name="value">Name</param>
+        protected void ChangeName(string value)
+        {
+            if(value != "")
+            {
+                ObjectTemp.Name = value;
+            }
+            else
+            {
+                m_NameInputField.text = ObjectTemp.Name;
+            }
+        }
+        /// <summary>
+        /// Change the window.
+        /// </summary>
+        /// <param name="min">Min window</param>
+        /// <param name="max">Max window</param>
+        protected void ChangeWindow(float min, float max)
+        {
+            ObjectTemp.Window = new Core.Tools.TimeWindow((int)min, (int)max);
+        }
+        /// <summary>
+        /// Change the image.
+        /// </summary>
+        /// <param name="path">Path to illustration path</param>
+        protected void ChangeImage(string path)
+        {
+            ObjectTemp.ImagePath = path;
+        }
+        #endregion
+    }
+}

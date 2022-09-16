@@ -1,7 +1,8 @@
-﻿using HBP.Module3D;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using HBP.Core.Enums;
+using HBP.Data.Module3D;
 
 namespace HBP.UI.Module3D
 {
@@ -18,7 +19,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Corresponding site in the 3D scene
         /// </summary>
-        private Site m_Site;
+        private Core.Object3D.Site m_Site;
         /// <summary>
         /// Parent scene of the cuts panel
         /// </summary>
@@ -42,7 +43,7 @@ namespace HBP.UI.Module3D
         {
             if (m_IsCursorInside)
             {
-                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(m_Site, true, Input.mousePosition, Data.Enums.SiteInformationDisplayMode.Anatomy));
+                Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(m_Site, true, Input.mousePosition, SiteInformationDisplayMode.Anatomy));
             }
         }
         #endregion
@@ -54,7 +55,7 @@ namespace HBP.UI.Module3D
         /// <param name="scene">Parent scene of the cut parameter controller</param>
         /// <param name="site">Site to display on the cut image</param>
         /// <param name="position">Position ratio of the cut site on the image</param>
-        public void Initialize(Base3DScene scene, Site site, Vector2 position)
+        public void Initialize(Base3DScene scene, Core.Object3D.Site site, Vector2 position)
         {
             m_Scene = scene;
             m_Site = site;
@@ -78,7 +79,7 @@ namespace HBP.UI.Module3D
         }
         public void OnPointerExit(PointerEventData eventData)
         {
-            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition));
+            Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(null, false, Input.mousePosition));
             m_IsCursorInside = false;
         }
         public void OnPointerDown(PointerEventData eventData)

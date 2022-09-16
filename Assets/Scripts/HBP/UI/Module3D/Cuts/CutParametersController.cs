@@ -1,10 +1,15 @@
-﻿using HBP.Module3D;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
+using HBP.Core.Enums;
+using HBP.Core.Data;
+using HBP.Data.Module3D;
+using HBP.UI.Tools;
+using HBP.Data.Preferences;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Module3D
 {
@@ -17,7 +22,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Cut affected to this parameters controller
         /// </summary>
-        public Cut Cut { get; private set; }
+        public Core.Object3D.Cut Cut { get; private set; }
         /// <summary>
         /// Parent scene of the corresponding cut controller
         /// </summary>
@@ -185,10 +190,10 @@ namespace HBP.UI.Module3D
         /// </summary>
         private void AddListeners()
         {
-            Cut.OnUpdateGUITextures.AddListener((column) =>
+            Cut.OnUpdateGUITextures.AddListener(() =>
             {
                 Destroy(m_Image.sprite);
-                Texture2D texture = column.CutTextures.GUIBrainCutTextures[Cut.ID];
+                Texture2D texture = Module3DMain.SelectedColumn.CutTextures.GUIBrainCutTextures[Cut.ID];
                 m_Image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0, 0));
                 m_Image.sprite.texture.filterMode = FilterMode.Trilinear;
                 m_Image.sprite.texture.anisoLevel = 9;
@@ -248,12 +253,12 @@ namespace HBP.UI.Module3D
             {
                 if (m_IsUIUpdating) return;
 
-                Cut.Orientation = (Data.Enums.CutOrientation)value;
-                if (Cut.Orientation == Data.Enums.CutOrientation.Custom)
+                Cut.Orientation = (CutOrientation)value;
+                if (Cut.Orientation == CutOrientation.Custom)
                 {
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomX.text, out float x);
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomY.text, out float y);
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
+                    NumberExtension.TryParseFloat(m_CustomX.text, out float x);
+                    NumberExtension.TryParseFloat(m_CustomY.text, out float y);
+                    NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
                     Cut.Normal = new Vector3(x, y, z);
                 }
                 m_Scene.UpdateCutPlane(Cut, true);
@@ -276,11 +281,11 @@ namespace HBP.UI.Module3D
             {
                 if (m_IsUIUpdating) return;
 
-                if (Cut.Orientation == Data.Enums.CutOrientation.Custom)
+                if (Cut.Orientation == CutOrientation.Custom)
                 {
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomX.text, out float x);
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomY.text, out float y);
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
+                    NumberExtension.TryParseFloat(m_CustomX.text, out float x);
+                    NumberExtension.TryParseFloat(m_CustomY.text, out float y);
+                    NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
                     Cut.Normal = new Vector3(x, y, z);
                 }
                 m_Scene.UpdateCutPlane(Cut, true);
@@ -289,11 +294,11 @@ namespace HBP.UI.Module3D
             {
                 if (m_IsUIUpdating) return;
 
-                if (Cut.Orientation == Data.Enums.CutOrientation.Custom)
+                if (Cut.Orientation == CutOrientation.Custom)
                 {
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomX.text, out float x);
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomY.text, out float y);
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
+                    NumberExtension.TryParseFloat(m_CustomX.text, out float x);
+                    NumberExtension.TryParseFloat(m_CustomY.text, out float y);
+                    NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
                     Cut.Normal = new Vector3(x, y, z);
                 }
                 m_Scene.UpdateCutPlane(Cut, true);
@@ -302,11 +307,11 @@ namespace HBP.UI.Module3D
             {
                 if (m_IsUIUpdating) return;
 
-                if (Cut.Orientation == Data.Enums.CutOrientation.Custom)
+                if (Cut.Orientation == CutOrientation.Custom)
                 {
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomX.text, out float x);
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomY.text, out float y);
-                    global::Tools.CSharp.NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
+                    NumberExtension.TryParseFloat(m_CustomX.text, out float x);
+                    NumberExtension.TryParseFloat(m_CustomY.text, out float y);
+                    NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
                     Cut.Normal = new Vector3(x, y, z);
                 }
                 m_Scene.UpdateCutPlane(Cut, true);
@@ -348,8 +353,8 @@ namespace HBP.UI.Module3D
                 m_Orientation.gameObject.SetActive(true);
                 m_Position.transform.parent.gameObject.SetActive(true);
 
-                m_Flip.gameObject.SetActive(Cut.Orientation != Data.Enums.CutOrientation.Custom);
-                m_CustomValues.gameObject.SetActive(Cut.Orientation == Data.Enums.CutOrientation.Custom);
+                m_Flip.gameObject.SetActive(Cut.Orientation != CutOrientation.Custom);
+                m_CustomValues.gameObject.SetActive(Cut.Orientation == CutOrientation.Custom);
             }
             else
             {
@@ -359,18 +364,18 @@ namespace HBP.UI.Module3D
                 m_Flip.gameObject.SetActive(false);
                 m_CustomValues.gameObject.SetActive(false);
             }
-            m_PositionInformation.SetActive(Cut.Orientation != Data.Enums.CutOrientation.Custom);
+            m_PositionInformation.SetActive(Cut.Orientation != CutOrientation.Custom);
             switch (Cut.Orientation)
             {
-                case Data.Enums.CutOrientation.Axial:
+                case CutOrientation.Axial:
                     m_PositionTitle.text = "Z";
                     m_PositionValue.text = Cut.Point.z.ToString("N2");
                     break;
-                case Data.Enums.CutOrientation.Coronal:
+                case CutOrientation.Coronal:
                     m_PositionTitle.text = "Y";
                     m_PositionValue.text = Cut.Point.y.ToString("N2");
                     break;
-                case Data.Enums.CutOrientation.Sagittal:
+                case CutOrientation.Sagittal:
                     m_PositionTitle.text = "X";
                     m_PositionValue.text = Cut.Point.x.ToString("N2");
                     break;
@@ -385,13 +390,13 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="scene">Parent scene of the cut controller</param>
         /// <param name="cut">Cut associated to this controller</param>
-        public void Initialize(Base3DScene scene, Cut cut)
+        public void Initialize(Base3DScene scene, Core.Object3D.Cut cut)
         {
             m_Scene = scene;
             Cut = cut;
-            m_Image.GetComponent<global::Tools.Unity.Components.ImageRatio>().Type = global::Tools.Unity.Components.ImageRatio.ControlType.WidthControlsHeight;
+            m_Image.GetComponent<ImageRatio>().Type = ImageRatio.ControlType.WidthControlsHeight;
             m_Orientation.options = new List<Dropdown.OptionData>();
-            foreach (var orientation in Enum.GetNames(typeof(Data.Enums.CutOrientation)))
+            foreach (var orientation in Enum.GetNames(typeof(CutOrientation)))
             {
                 m_Orientation.options.Add(new Dropdown.OptionData(orientation));
             }
@@ -422,9 +427,9 @@ namespace HBP.UI.Module3D
         public void ShowSites()
         {
             foreach (Transform child in m_SitesRectTransform) Destroy(child.gameObject);
-            if (Cut.Orientation == Data.Enums.CutOrientation.Custom) return;
+            if (Cut.Orientation == CutOrientation.Custom) return;
             
-            List<Site> sites = new List<Site>();
+            List<Core.Object3D.Site> sites = new List<Core.Object3D.Site>();
             m_Scene.SelectedColumn.RawElectrodes.GetSitesOnPlane(Cut, 1.0f, out int[] result);
             foreach (var site in m_Scene.SelectedColumn.Sites)
             {
@@ -440,15 +445,15 @@ namespace HBP.UI.Module3D
                 float horizontalRatio = 0, verticalRatio = 0;
                 switch (Cut.Orientation)
                 {
-                    case Data.Enums.CutOrientation.Axial:
+                    case CutOrientation.Axial:
                         horizontalRatio = Cut.Flip ? 1.0f - ratio.x : ratio.x;
                         verticalRatio = ratio.y;
                         break;
-                    case Data.Enums.CutOrientation.Coronal:
+                    case CutOrientation.Coronal:
                         horizontalRatio = Cut.Flip ? 1.0f - ratio.x : ratio.x;
                         verticalRatio = Cut.Flip ? 1.0f - ratio.y : ratio.y;
                         break;
-                    case Data.Enums.CutOrientation.Sagittal:
+                    case CutOrientation.Sagittal:
                         horizontalRatio = Cut.Flip ? 1.0f - ratio.y : ratio.y;
                         verticalRatio = Cut.Flip ? ratio.x : 1.0f - ratio.x;
                         break;
@@ -464,9 +469,9 @@ namespace HBP.UI.Module3D
         public void DrawLines()
         {
             foreach (Transform child in m_CutLinesRectTransform) Destroy(child.gameObject);
-            if (Cut.Orientation == Data.Enums.CutOrientation.Custom || !ApplicationState.UserPreferences.Visualization.Cut.ShowCutLines) return;
+            if (Cut.Orientation == CutOrientation.Custom || !PreferencesManager.UserPreferences.Visualization.Cut.ShowCutLines) return;
 
-            HBP.Module3D.DLL.BBox boundingBox = m_Scene.CutGeometryGenerators[Cut.ID].BoundingBox;
+            Core.DLL.BBox boundingBox = m_Scene.CutGeometryGenerators[Cut.ID].BoundingBox;
             if (boundingBox != null)
             {
                 Vector3 min = boundingBox.Min;
@@ -474,9 +479,9 @@ namespace HBP.UI.Module3D
 
                 foreach (var cut in m_Scene.Cuts)
                 {
-                    if (cut == Cut || cut.Orientation == Data.Enums.CutOrientation.Custom) continue;
+                    if (cut == Cut || cut.Orientation == CutOrientation.Custom) continue;
 
-                    Segment3 segment = boundingBox.IntersectionSegmentBetweenTwoPlanes(Cut, cut);
+                    Core.Object3D.Segment3 segment = boundingBox.IntersectionSegmentBetweenTwoPlanes(Cut, cut);
                     List<Vector2> linePoints = new List<Vector2>();
                     if (segment != null)
                     {
@@ -486,15 +491,15 @@ namespace HBP.UI.Module3D
                             float horizontalRatio = 0, verticalRatio = 0;
                             switch (Cut.Orientation)
                             {
-                                case Data.Enums.CutOrientation.Axial:
+                                case CutOrientation.Axial:
                                     horizontalRatio = Cut.Flip ? 1.0f - ratio.x : ratio.x;
                                     verticalRatio = ratio.y;
                                     break;
-                                case Data.Enums.CutOrientation.Coronal:
+                                case CutOrientation.Coronal:
                                     horizontalRatio = Cut.Flip ? 1.0f - ratio.x : ratio.x;
                                     verticalRatio = Cut.Flip ? 1.0f - ratio.y : ratio.y;
                                     break;
-                                case Data.Enums.CutOrientation.Sagittal:
+                                case CutOrientation.Sagittal:
                                     horizontalRatio = Cut.Flip ? 1.0f - ratio.y : ratio.y;
                                     verticalRatio = Cut.Flip ? ratio.x : 1.0f - ratio.x;
                                     break;

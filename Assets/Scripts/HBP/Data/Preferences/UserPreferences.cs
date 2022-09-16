@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
 using System.IO;
 using System.Runtime.Serialization;
-using HBP.UI.Theme;
-using System;
+using UnityEngine.Events;
+using HBP.Core.Data;
+using HBP.Core.Tools;
 
 namespace HBP.Data.Preferences
 {
@@ -23,10 +24,13 @@ namespace HBP.Data.Preferences
     {
         #region Properties
         public static string PATH = Path.Combine(Application.persistentDataPath, "Preferences.txt");
-        public Theme Theme;
         [DataMember] public GeneralPreferences General { get; set; }
         [DataMember] public DataPreferences Data { get; set; }
         [DataMember] public VisualizationPreferences Visualization { get; set; }
+        #endregion
+
+        #region Events
+        public UnityEvent OnSavePreferences = new UnityEvent();
         #endregion
 
         #region Constructors
@@ -48,6 +52,11 @@ namespace HBP.Data.Preferences
         #endregion
 
         #region Public Methods
+        public void Save()
+        {
+            ClassLoaderSaver.SaveToJSon(this, PATH, true);
+            OnSavePreferences.Invoke();
+        }
         public override object Clone()
         {
             return new UserPreferences(General.Clone() as GeneralPreferences, Data.Clone() as DataPreferences, Visualization.Clone() as VisualizationPreferences, ID);

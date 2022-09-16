@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
-using HBP.Data.Enums;
+using HBP.Core.Enums;
 
 namespace HBP.Data.Preferences
 {

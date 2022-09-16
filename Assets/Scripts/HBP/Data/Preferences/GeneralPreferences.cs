@@ -96,25 +96,27 @@ namespace HBP.Data.Preferences
         [DataMember] public bool MultiThreading { get; set; }
         [DataMember] public int MemoryCacheLimit { get; set; }
         [DataMember] public int SleepModeAfter { get; set; }
+        [DataMember] public int TargetFramerate { get; set; }
         #endregion
 
         #region Constructors
-        public SystemPreferences() : this(true, 0, 1)
+        public SystemPreferences() : this(true, 0, 1, 60)
         {
 
         }
-        public SystemPreferences(bool multiThreading, int memoryCacheLimit, int sleepModeAfter)
+        public SystemPreferences(bool multiThreading, int memoryCacheLimit, int sleepModeAfter, int targetFramerate)
         {
             MultiThreading = multiThreading;
             MemoryCacheLimit = memoryCacheLimit;
             SleepModeAfter = sleepModeAfter;
+            TargetFramerate = targetFramerate;
         }
         #endregion
 
         #region Public Methods
         public object Clone()
         {
-            return new SystemPreferences(MultiThreading, MemoryCacheLimit, SleepModeAfter);
+            return new SystemPreferences(MultiThreading, MemoryCacheLimit, SleepModeAfter, TargetFramerate);
         }
         #endregion
     }

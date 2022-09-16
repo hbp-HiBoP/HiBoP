@@ -1,8 +1,9 @@
-﻿using HBP.Module3D;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Enums;
+using HBP.Data.Module3D;
 
 namespace HBP.UI.Module3D
 {
@@ -33,13 +34,13 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Links between the type of a color and its sprite
         /// </summary>
-        private Dictionary<Data.Enums.ColorType, Sprite> m_SpriteByColorType = new Dictionary<Data.Enums.ColorType, Sprite>();
+        private Dictionary<ColorType, Sprite> m_SpriteByColorType = new Dictionary<ColorType, Sprite>();
         #endregion
 
         #region Private Methods
         private void Awake()
         {
-            foreach (var colormap in System.Enum.GetValues(typeof(Data.Enums.ColorType)).Cast<Data.Enums.ColorType>())
+            foreach (var colormap in System.Enum.GetValues(typeof(ColorType)).Cast<ColorType>())
             {
                 m_SpriteByColorType.Add(colormap, Resources.Load<Sprite>(System.IO.Path.Combine("Colormaps", string.Format("colormap_{0}", ((int)colormap).ToString()))) as Sprite);
             }
@@ -63,7 +64,7 @@ namespace HBP.UI.Module3D
                 IsActive = value;
                 if (IsActive && column is Column3DAnatomy anatomyColumn)
                 {
-                    int density = Mathf.FloorToInt((anatomyColumn.ActivityGenerator as HBP.Module3D.DLL.DensityGenerator).MaxDensity);
+                    int density = Mathf.FloorToInt((anatomyColumn.ActivityGenerator as Core.DLL.DensityGenerator).MaxDensity);
                     m_Min.text = "0";
                     m_Mid.text = (density / 2).ToString();
                     m_Max.text = density.ToString();
@@ -109,7 +110,7 @@ namespace HBP.UI.Module3D
         #region Private Methods
         private void UpdateTextFMRI(Column3DFMRI fmriColumn)
         {
-            MRICalValues values = fmriColumn.SelectedFMRI.NIFTI.ExtremeValues;
+            Core.Tools.MRICalValues values = fmriColumn.SelectedFMRI.NIFTI.ExtremeValues;
             float min = values.Min;
             float max = values.Max;
             float negativeMin = fmriColumn.FMRIParameters.FMRINegativeCalMinFactor * min;
@@ -137,7 +138,7 @@ namespace HBP.UI.Module3D
         }
         private void UpdateTextMEG(Column3DMEG megColumn)
         {
-            MRICalValues values = megColumn.SelectedFMRI.NIFTI.ExtremeValues;
+            Core.Tools.MRICalValues values = megColumn.SelectedFMRI.NIFTI.ExtremeValues;
             float min = values.Min;
             float max = values.Max;
             float negativeMin = megColumn.MEGParameters.FMRINegativeCalMinFactor * min;

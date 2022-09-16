@@ -1,5 +1,4 @@
-﻿using HBP.Module3D;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace HBP.UI.Module3D
 {
@@ -12,7 +11,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Currently selected site
         /// </summary>
-        public Site Site { get; set; }
+        public Core.Object3D.Site Site { get; set; }
         /// <summary>
         /// Camera of the corresponding View3D
         /// </summary>
