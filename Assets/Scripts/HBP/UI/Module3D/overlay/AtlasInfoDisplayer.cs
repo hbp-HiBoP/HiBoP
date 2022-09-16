@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HBP.Data.Module3D;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
@@ -76,14 +77,14 @@ namespace HBP.UI.Module3D
         public void Initialize()
         {
             m_RectTransform = GetComponent<RectTransform>();
-            ApplicationState.Module3D.OnDisplayAtlasInformation.AddListener((atlasInfo) =>
+            Module3DMain.OnDisplayAtlasInformation.AddListener((atlasInfo) =>
             {
                 if (atlasInfo.Enabled)
                 {
                     transform.position = atlasInfo.Position + new Vector3(0, -20, 0);
                     switch (atlasInfo.Type)
                     {
-                        case HBP.Module3D.AtlasInfo.AtlasType.MarsAtlas:
+                        case AtlasInfo.AtlasType.MarsAtlas:
                             m_MarsAtlasArea.gameObject.SetActive(true);
                             m_JuBrainArea.gameObject.SetActive(false);
                             m_MarsAtlasNameText.text = atlasInfo.Information1;
@@ -92,7 +93,7 @@ namespace HBP.UI.Module3D
                             m_NameFSText.text = atlasInfo.Information4;
                             m_FullNameText.text = atlasInfo.Information5;
                             break;
-                        case HBP.Module3D.AtlasInfo.AtlasType.JuBrainAtlas:
+                        case AtlasInfo.AtlasType.JuBrainAtlas:
                             m_MarsAtlasArea.gameObject.SetActive(false);
                             m_JuBrainArea.gameObject.SetActive(true);
                             m_JuBrainNameText.text = atlasInfo.Information1;

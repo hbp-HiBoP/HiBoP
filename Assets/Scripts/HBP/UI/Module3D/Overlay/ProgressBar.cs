@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using HBP.UI.Tools;
 
 namespace HBP.UI.Module3D
 {
@@ -24,7 +25,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Small circle that shows the computing is still in progress
         /// </summary>
-        [SerializeField] private global::Tools.Unity.UpdateCircle m_UpdateCircle;
+        [SerializeField] private UpdateCircle m_UpdateCircle;
 
         /// <summary>
         /// Previous value of the progress

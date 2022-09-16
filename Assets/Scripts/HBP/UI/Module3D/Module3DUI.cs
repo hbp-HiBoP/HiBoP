@@ -1,8 +1,9 @@
-﻿using HBP.Module3D;
-using System.Collections.Generic;
-using Tools.Unity;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Enums;
+using HBP.Data.Module3D;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Module3D
 {
@@ -12,6 +13,8 @@ namespace HBP.UI.Module3D
     public class Module3DUI : MonoBehaviour
     {
         #region Properties
+        private static Module3DUI m_Instance;
+
         /// <summary>
         /// Reference to the SiteInfoDisplayer of the software
         /// </summary>
@@ -24,7 +27,8 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Dictionary containing all scene windows by 3D scene
         /// </summary>
-        public Dictionary<Base3DScene, Scene3DWindow> Scenes { get; private set; } = new Dictionary<Base3DScene, Scene3DWindow>();
+        private Dictionary<Base3DScene, Scene3DWindow> m_Scenes = new Dictionary<Base3DScene, Scene3DWindow>();
+        public static Dictionary<Base3DScene, Scene3DWindow> Scenes { get { return m_Instance.m_Scenes; } }
 
         /// <summary>
         /// Prefab for the Scene3DWindow object
@@ -35,30 +39,39 @@ namespace HBP.UI.Module3D
         #region Private Methods
         private void Awake()
         {
+            if (m_Instance == null)
+            {
+                m_Instance = this;
+            }
+            else
+            {
+                Destroy(this);
+            }
+
             m_SiteInfoDisplayer.Initialize();
             m_AtlasInfoDisplayer.Initialize();
             ChangeLayoutDirection();
             
-            ApplicationState.Module3D.OnAddScene.AddListener((scene) =>
+            Module3DMain.OnAddScene.AddListener((scene) =>
             {
                 Scene3DWindow sceneWindow = Instantiate(m_SceneWindowPrefab, transform).GetComponent<Scene3DWindow>();
                 sceneWindow.Initialize(scene);
                 m_SiteInfoDisplayer.transform.SetAsLastSibling();
                 sceneWindow.gameObject.SetActive(false);
-                Scenes.Add(scene, sceneWindow);
+                m_Scenes.Add(scene, sceneWindow);
             });
-            ApplicationState.UserPreferences.OnSavePreferences.AddListener(ChangeLayoutDirection);
+            PreferencesManager.UserPreferences.OnSavePreferences.AddListener(ChangeLayoutDirection);
         }
         private void ChangeLayoutDirection()
         {
             DestroyImmediate(gameObject.GetComponent<HorizontalOrVerticalLayoutGroup>());
             HorizontalOrVerticalLayoutGroup layout;
-            switch (ApplicationState.UserPreferences.Visualization._3D.VisualizationsLayoutDirection)
+            switch (PreferencesManager.UserPreferences.Visualization._3D.VisualizationsLayoutDirection)
             {
-                case Data.Enums.LayoutDirection.Horizontal:
+                case LayoutDirection.Horizontal:
                     layout = gameObject.AddComponent<HorizontalLayoutGroup>();
                     break;
-                case Data.Enums.LayoutDirection.Vertical:
+                case LayoutDirection.Vertical:
                     layout = gameObject.AddComponent<VerticalLayoutGroup>();
                     break;
                 default:

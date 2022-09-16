@@ -1,4 +1,4 @@
-﻿using HBP.Module3D;
+﻿using HBP.Data.Module3D;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -28,7 +28,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Currently displayed icon
         /// </summary>
-        private Data.Visualization.Icon m_CurrentIcon;
+        private Core.Data.Processed.Icon m_CurrentIcon;
         /// <summary>
         /// Sprite of the current icon
         /// </summary>
@@ -36,7 +36,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// List of all icons used for this column
         /// </summary>
-        private List<Data.Visualization.Icon> m_Icons;
+        private List<Core.Data.Processed.Icon> m_Icons;
         #endregion
 
         #region Public Methods
@@ -75,7 +75,7 @@ namespace HBP.UI.Module3D
                 {
                     if (!scene.IsGeneratorUpToDate) return;
 
-                    Data.Visualization.Icon icon = m_Icons.FirstOrDefault((i) => i.StartPosition <= dynamicColumn.Timeline.CurrentIndex && i.EndPosition >= dynamicColumn.Timeline.CurrentIndex);
+                    Core.Data.Processed.Icon icon = m_Icons.FirstOrDefault((i) => i.StartPosition <= dynamicColumn.Timeline.CurrentIndex && i.EndPosition >= dynamicColumn.Timeline.CurrentIndex);
                     if (icon == null)
                     {
                         IsActive = false;
