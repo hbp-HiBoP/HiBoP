@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Core.Enums;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HBP.Core.Data
@@ -10,9 +11,9 @@ namespace HBP.Core.Data
         #endregion
 
         #region Constructors
-        public ChannelStatistics(ChannelData data)
+        public ChannelStatistics(ChannelData data, AveragingType averaging)
         {
-            data.DataByBloc.ToDictionary(kv => kv.Key, kv => new BlocChannelStatistics(kv.Value));
+            data.DataByBloc.ToDictionary(kv => kv.Key, kv => new BlocChannelStatistics(kv.Value, averaging));
         }
         #endregion
 

@@ -7,7 +7,6 @@ using System.Text.RegularExpressions;
 using HBP.Core.Interfaces;
 using HBP.Core.Object3D;
 using HBP.Core.Tools;
-using HBP.Data.Preferences;
 
 namespace HBP.Core.Data
 {
@@ -54,6 +53,10 @@ namespace HBP.Core.Data
         /// Tags of the site.
         /// </summary>
         [DataMember] public List<BaseTagValue> Tags { get; set; }
+        /// <summary>
+        /// Do we need to fix site names ?
+        /// </summary>
+        [IgnoreDataMember] public static bool SiteNameCorrection = true;
         #endregion
 
         #region Constructors
@@ -292,7 +295,7 @@ namespace HBP.Core.Data
                         Site site = new Site();
                         string[] splits = Regex.Split(line, "[\\s\t]+");
                         if (splits.Length < 4) continue;
-                        site.Name = PreferencesManager.UserPreferences.Data.Anatomic.SiteNameCorrection ? FixName(splits[0]) : splits[0];
+                        site.Name = SiteNameCorrection ? FixName(splits[0]) : splits[0];
                         if (!NumberExtension.TryParseFloat(splits[1], out float x)) continue;
                         if (!NumberExtension.TryParseFloat(splits[2], out float y)) continue;
                         if (!NumberExtension.TryParseFloat(splits[3], out float z)) continue;
@@ -327,7 +330,7 @@ namespace HBP.Core.Data
                         while ((line = csvsr.ReadLine()) != null)
                         {
                             string[] args = line.Split('\t');
-                            string siteName = PreferencesManager.UserPreferences.Data.Anatomic.SiteNameCorrection ? FixName(args[indices[0]]) : args[indices[0]];
+                            string siteName = SiteNameCorrection ? FixName(args[indices[0]]) : args[indices[0]];
                             Site site = result.FirstOrDefault(s => s.Name == siteName);
                             if (site != null)
                             {
@@ -362,7 +365,7 @@ namespace HBP.Core.Data
                         Site site = new Site();
                         string[] splits = Regex.Split(line, "[\\s\t]+");
                         if (splits.Length < 4) continue;
-                        site.Name = PreferencesManager.UserPreferences.Data.Anatomic.SiteNameCorrection ? FixName(splits[0]) : splits[0];
+                        site.Name = SiteNameCorrection ? FixName(splits[0]) : splits[0];
                         if (!NumberExtension.TryParseFloat(splits[1], out float x)) continue;
                         if (!NumberExtension.TryParseFloat(splits[2], out float y)) continue;
                         if (!NumberExtension.TryParseFloat(splits[3], out float z)) continue;
@@ -444,7 +447,7 @@ namespace HBP.Core.Data
                         for (int l = 1; l < splittedLines.Count; l++)
                         {
                             List<string> values = splittedLines[l];
-                            string name = PreferencesManager.UserPreferences.Data.Anatomic.SiteNameCorrection ? FixName(values[0]) : values[0];
+                            string name = SiteNameCorrection ? FixName(values[0]) : values[0];
                             List<BaseTagValue> tagValues = new List<BaseTagValue>();
                             for (int i = 1; i < values.Count; i++)
                             {

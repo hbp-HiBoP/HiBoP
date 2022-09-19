@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
+using HBP.Core.Data;
 using HBP.Core.Enums;
 
 namespace HBP.Data.Preferences
@@ -40,8 +41,28 @@ namespace HBP.Data.Preferences
     public class EEGPreferences : ICloneable
     {
         #region Properties
-        [DataMember] public AveragingType Averaging { get; set; }
-        [DataMember] public NormalizationType Normalization { get; set; }
+        [DataMember] public AveragingType Averaging
+        {
+            get
+            {
+                return DataManager.DefaultAveraging;
+            }
+            set
+            {
+                DataManager.DefaultAveraging = value;
+            }
+        }
+        [DataMember] public NormalizationType Normalization
+        {
+            get
+            {
+                return DataManager.DefaultNormalization;
+            }
+            set
+            {
+                DataManager.DefaultNormalization = value;
+            }
+        }
         [DataMember] public float CorrelationAlpha { get; set; }
         [DataMember] public bool BonferroniCorrection { get; set; }
         #endregion
@@ -72,7 +93,17 @@ namespace HBP.Data.Preferences
     public class ProtocolPreferences : ICloneable
     {
         #region Properties
-        [DataMember] public AveragingType PositionAveraging { get; set; }
+        [DataMember] public AveragingType PositionAveraging
+        {
+            get
+            {
+                return DataManager.DefaultPositionAveraging;
+            }
+            set
+            {
+                DataManager.DefaultPositionAveraging = value;
+            }
+        }
         [DataMember] public float MinLimit { get; set; }
         [DataMember] public float MaxLimit { get; set; }
         [DataMember] public int Step { get; set; }
@@ -104,7 +135,17 @@ namespace HBP.Data.Preferences
     public class AnatomicPreferences : ICloneable
     {
         #region Properties
-        [DataMember] public bool SiteNameCorrection { get; set; }
+        [DataMember] public bool SiteNameCorrection
+        {
+            get
+            {
+                return Site.SiteNameCorrection;
+            }
+            set
+            {
+                Site.SiteNameCorrection = value;
+            }
+        }
         [DataMember] public bool MeshPreloading { get; set; }
         [DataMember] public bool MRIPreloading { get; set; }
         [DataMember] public bool ImplantationPreloading { get; set; }

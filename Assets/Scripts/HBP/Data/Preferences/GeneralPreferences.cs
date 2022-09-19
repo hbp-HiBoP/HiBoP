@@ -39,10 +39,40 @@ namespace HBP.Data.Preferences
     public class ProjectPreferences : ICloneable
     {
         #region Properties
-        [DataMember] public string DefaultName { get; set; }
+        [DataMember] public string DefaultName
+        {
+            get
+            {
+                return Core.Data.ProjectPreferences.DefaultName;
+            }
+            set
+            {
+                Core.Data.ProjectPreferences.DefaultName = value;
+            }
+        }
         [DataMember] public string DefaultLocation { get; set; }
-        [DataMember] public string DefaultPatientDatabase { get; set; }
-        [DataMember] public string DefaultLocalizerDatabase { get; set; }
+        [DataMember] public string DefaultPatientDatabase
+        {
+            get
+            {
+                return Core.Data.ProjectPreferences.DefaultPatientDatabase;
+            }
+            set
+            {
+                Core.Data.ProjectPreferences.DefaultPatientDatabase = value;
+            }
+        }
+        [DataMember] public string DefaultLocalizerDatabase
+        {
+            get
+            {
+                return Core.Data.ProjectPreferences.DefaultLocalizerDatabase;
+            }
+            set
+            {
+                Core.Data.ProjectPreferences.DefaultLocalizerDatabase = value;
+            }
+        }
         [DataMember] public string DefaultExportLocation { get; set; }
         #endregion
 

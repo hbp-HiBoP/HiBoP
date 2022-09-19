@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.Serialization;
 using HBP.Core.Tools;
-using HBP.Data.Preferences;
 
 namespace HBP.Core.Data
 {
@@ -45,6 +44,9 @@ namespace HBP.Core.Data
         [DataMember] public List<BaseTag> GeneralTags { get; set; }
         [DataMember] public List<BaseTag> PatientsTags { get; set; }
         [DataMember] public List<BaseTag> SitesTags { get; set; }
+        [IgnoreDataMember] public static string DefaultName = "New Project";
+        [IgnoreDataMember] public static string DefaultPatientDatabase = "";
+        [IgnoreDataMember] public static string DefaultLocalizerDatabase = "";
         #endregion
 
         #region Constructors
@@ -81,13 +83,13 @@ namespace HBP.Core.Data
         /// Create a new project settings instance.
         /// </summary>
         /// <param name="name">Name of the project.</param>
-        public ProjectPreferences(string name) : this(name, PreferencesManager.UserPreferences.General.Project.DefaultPatientDatabase, PreferencesManager.UserPreferences.General.Project.DefaultLocalizerDatabase, new Alias[0], new BaseTag[0], new BaseTag[0], new BaseTag[0])
+        public ProjectPreferences(string name) : this(name, DefaultPatientDatabase, DefaultLocalizerDatabase, new Alias[0], new BaseTag[0], new BaseTag[0], new BaseTag[0])
         {
         }
         /// <summary>
         /// Create a new project settings instance with default value.
         /// </summary>
-        public ProjectPreferences() : this(PreferencesManager.UserPreferences.General.Project.DefaultName)
+        public ProjectPreferences() : this(DefaultName)
         {
         }
         #endregion

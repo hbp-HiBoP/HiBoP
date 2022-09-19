@@ -2,7 +2,6 @@
 using System.Linq;
 using System;
 using HBP.Core.Enums;
-using HBP.Data.Preferences;
 using HBP.Core.DLL;
 
 namespace HBP.Core.Data
@@ -30,6 +29,11 @@ namespace HBP.Core.Data
 
         // Normalize
         static Dictionary<BlocRequest, NormalizationType> m_NormalizeByRequest = new Dictionary<BlocRequest, NormalizationType>();
+
+        // Default values
+        public static NormalizationType DefaultNormalization = NormalizationType.None;
+        public static AveragingType DefaultAveraging = AveragingType.Mean;
+        public static AveragingType DefaultPositionAveraging = AveragingType.Mean;
         public static bool HasData
         {
             get
@@ -191,7 +195,7 @@ namespace HBP.Core.Data
                         }
                         break;
                     case NormalizationType.Auto:
-                        switch (PreferencesManager.UserPreferences.Data.EEG.Normalization)
+                        switch (DefaultNormalization)
                         {
                             case NormalizationType.None:
                                 foreach (var request in dataRequestCollection) if (m_NormalizeByRequest[request] != NormalizationType.None) NormalizeByNone(request);
@@ -445,7 +449,7 @@ namespace HBP.Core.Data
                 else
                 {
                     ChannelData channelData = GetData(request);
-                    ChannelStatistics channelStatistics = new ChannelStatistics(channelData);
+                    ChannelStatistics channelStatistics = new ChannelStatistics(channelData, DefaultAveraging);
                     m_ChannelStatisticsByRequest.Add(request, channelStatistics);
                     return channelStatistics;
                 }
@@ -467,7 +471,7 @@ namespace HBP.Core.Data
                 else
                 {
                     BlocChannelData blocChannelData = GetData(request);
-                    BlocChannelStatistics blocChannelStatistics = new BlocChannelStatistics(blocChannelData);
+                    BlocChannelStatistics blocChannelStatistics = new BlocChannelStatistics(blocChannelData, DefaultAveraging);
                     m_BlocChannelStatisticsByRequest.Add(request, blocChannelStatistics);
                     return blocChannelStatistics;
                 }
@@ -505,7 +509,7 @@ namespace HBP.Core.Data
                 }
                 else
                 {
-                    BlocEventsStatistics blocEventsStatistics = new BlocEventsStatistics(request.DataInfo, request.Bloc);
+                    BlocEventsStatistics blocEventsStatistics = new BlocEventsStatistics(request.DataInfo, request.Bloc, DefaultPositionAveraging);
                     m_BlocEventsStatisticsByRequest.Add(request, blocEventsStatistics);
                     return blocEventsStatistics;
                 }
