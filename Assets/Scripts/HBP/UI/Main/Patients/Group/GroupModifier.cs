@@ -91,7 +91,7 @@ namespace HBP.UI.Main
         /// <param name="patient">Patient to add</param>
         protected void AddPatient(Patient patient)
         {
-            ObjectTemp.Patients.Add(patient);
+            ObjectTemp.Patients.AddIfAbsent(patient);
         }
         /// <summary>
         /// Remove patient from the group.
