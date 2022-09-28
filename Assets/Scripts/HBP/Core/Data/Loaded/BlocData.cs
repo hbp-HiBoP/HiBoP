@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace HBP.Core.Data
 {
@@ -64,11 +65,12 @@ namespace HBP.Core.Data
             {
                 string order = orders[i];
                 string[] parts = order.Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
-                if (parts.Length == 3)
+                if (parts.Length >= 3)
                 {
                     string subBlocName = parts[0];
-                    string eventName = parts[1];
-                    string command = parts[2];
+                    string eventName = string.Join('_', parts[1..^1]);
+                    string command = parts[^1];
+                    Debug.Log(subBlocName + " " + eventName + " " + command);
                     SubBloc subBloc = bloc.SubBlocs.FirstOrDefault(s => s.Name == subBlocName);
                     if (subBloc != null)
                     {
