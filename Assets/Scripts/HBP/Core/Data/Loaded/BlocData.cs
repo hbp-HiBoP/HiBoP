@@ -70,7 +70,6 @@ namespace HBP.Core.Data
                     string subBlocName = parts[0];
                     string eventName = string.Join('_', parts[1..^1]);
                     string command = parts[^1];
-                    Debug.Log(subBlocName + " " + eventName + " " + command);
                     SubBloc subBloc = bloc.SubBlocs.FirstOrDefault(s => s.Name == subBlocName);
                     if (subBloc != null)
                     {

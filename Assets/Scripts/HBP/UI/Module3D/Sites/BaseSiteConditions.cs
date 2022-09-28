@@ -262,6 +262,7 @@ namespace HBP.UI.Module3D
                 float[] allValues = site.Statistics.Trial.AllValues;
                 if (allValues.Length > 0)
                 {
+                    Debug.Log(string.Join(' ', allValues.Select(v => v.ToString())));
                     return CompareValue(allValues.Max(), superior, stringValue);
                 }
             }
@@ -314,6 +315,7 @@ namespace HBP.UI.Module3D
         /// <returns>True if the float value matches the condition</returns>
         private bool CompareValue(float value, bool superior, string stringValueToCompare)
         {
+            Debug.Log(value);
             if (NumberExtension.TryParseFloat(stringValueToCompare, out float valueToCompare))
             {
                 return superior ? value > valueToCompare : value < valueToCompare;
