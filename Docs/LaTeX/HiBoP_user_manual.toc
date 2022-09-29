@@ -1,4 +1,4 @@
-\babel@toc {english}{}
+\babel@toc {english}{}\relax 
 \contentsline {section}{\numberline {1}HiBoP project}{2}{}%
 \contentsline {paragraph}{}{2}{}%
 \contentsline {paragraph}{}{2}{}%
@@ -17,83 +17,84 @@
 \contentsline {subsection}{\numberline {1.5}Datasets}{3}{}%
 \contentsline {paragraph}{}{3}{}%
 \contentsline {paragraph}{}{3}{}%
+\contentsline {paragraph}{}{4}{}%
 \contentsline {subsection}{\numberline {1.6}Visualizations}{4}{}%
 \contentsline {paragraph}{}{4}{}%
 \contentsline {section}{\numberline {2}HiBoP description}{4}{}%
 \contentsline {paragraph}{}{4}{}%
 \contentsline {subsection}{\numberline {2.1}User Preferences}{4}{}%
 \contentsline {paragraph}{}{4}{}%
-\contentsline {subsection}{\numberline {2.2}Project management}{6}{}%
-\contentsline {subsubsection}{\numberline {2.2.1}Creating, opening and saving a project}{6}{}%
-\contentsline {paragraph}{}{6}{}%
-\contentsline {paragraph}{}{7}{}%
-\contentsline {paragraph}{}{7}{}%
-\contentsline {paragraph}{}{7}{}%
-\contentsline {subsubsection}{\numberline {2.2.2}Patients management}{7}{}%
+\contentsline {subsection}{\numberline {2.2}Project management}{7}{}%
+\contentsline {subsubsection}{\numberline {2.2.1}Creating, opening and saving a project}{7}{}%
 \contentsline {paragraph}{}{7}{}%
 \contentsline {paragraph}{}{8}{}%
 \contentsline {paragraph}{}{8}{}%
-\contentsline {subsubsection}{\numberline {2.2.3}Functional data management}{9}{}%
+\contentsline {paragraph}{}{8}{}%
+\contentsline {subsubsection}{\numberline {2.2.2}Patients management}{8}{}%
+\contentsline {paragraph}{}{8}{}%
 \contentsline {paragraph}{}{9}{}%
-\contentsline {paragraph}{}{10}{}%
+\contentsline {paragraph}{}{9}{}%
+\contentsline {subsubsection}{\numberline {2.2.3}Functional data management}{10}{}%
 \contentsline {paragraph}{}{10}{}%
 \contentsline {paragraph}{}{11}{}%
+\contentsline {paragraph}{}{11}{}%
 \contentsline {paragraph}{}{12}{}%
-\contentsline {paragraph}{}{12}{}%
-\contentsline {paragraph}{}{12}{}%
-\contentsline {subsubsection}{\numberline {2.2.4}Visualizations management}{13}{}%
 \contentsline {paragraph}{}{13}{}%
 \contentsline {paragraph}{}{13}{}%
-\contentsline {paragraph}{}{14}{}%
-\contentsline {subsection}{\numberline {2.3}3D Visualization}{14}{}%
+\contentsline {paragraph}{}{13}{}%
+\contentsline {subsubsection}{\numberline {2.2.4}Visualizations management}{14}{}%
 \contentsline {paragraph}{}{14}{}%
 \contentsline {paragraph}{}{14}{}%
 \contentsline {paragraph}{}{15}{}%
+\contentsline {subsection}{\numberline {2.3}3D Visualization}{15}{}%
 \contentsline {paragraph}{}{15}{}%
-\contentsline {subsubsection}{\numberline {2.3.1}Cuts}{15}{}%
 \contentsline {paragraph}{}{15}{}%
-\contentsline {subsubsection}{\numberline {2.3.2}Sites list}{16}{}%
 \contentsline {paragraph}{}{16}{}%
 \contentsline {paragraph}{}{16}{}%
+\contentsline {subsubsection}{\numberline {2.3.1}Cuts}{16}{}%
 \contentsline {paragraph}{}{16}{}%
+\contentsline {subsubsection}{\numberline {2.3.2}Sites list}{17}{}%
 \contentsline {paragraph}{}{17}{}%
-\contentsline {subsubsection}{\numberline {2.3.3}Scene settings}{17}{}%
-\contentsline {subsubsection}{\numberline {2.3.4}Display settings}{18}{}%
-\contentsline {subsubsection}{\numberline {2.3.5}Activity settings}{18}{}%
+\contentsline {paragraph}{}{17}{}%
+\contentsline {paragraph}{}{17}{}%
 \contentsline {paragraph}{}{18}{}%
-\contentsline {paragraph}{}{18}{}%
-\contentsline {paragraph}{}{18}{}%
+\contentsline {subsubsection}{\numberline {2.3.3}Scene settings}{18}{}%
+\contentsline {subsubsection}{\numberline {2.3.4}Display settings}{19}{}%
+\contentsline {subsubsection}{\numberline {2.3.5}Activity settings}{19}{}%
 \contentsline {paragraph}{}{19}{}%
 \contentsline {paragraph}{}{19}{}%
-\contentsline {subsubsection}{\numberline {2.3.6}Timeline}{19}{}%
-\contentsline {subsubsection}{\numberline {2.3.7}Sites}{19}{}%
-\contentsline {subsubsection}{\numberline {2.3.8}Regions of Interest}{20}{}%
 \contentsline {paragraph}{}{20}{}%
 \contentsline {paragraph}{}{20}{}%
-\contentsline {subsubsection}{\numberline {2.3.9}Atlas}{20}{}%
-\contentsline {subsubsection}{\numberline {2.3.10}Triangle eraser}{21}{}%
-\contentsline {subsubsection}{\numberline {2.3.11}Configuration}{21}{}%
+\contentsline {paragraph}{}{20}{}%
+\contentsline {subsubsection}{\numberline {2.3.6}Timeline}{20}{}%
+\contentsline {subsubsection}{\numberline {2.3.7}Sites}{21}{}%
+\contentsline {subsubsection}{\numberline {2.3.8}Regions of Interest}{21}{}%
 \contentsline {paragraph}{}{21}{}%
-\contentsline {subsection}{\numberline {2.4}Graphs and Trial Matrices}{21}{}%
 \contentsline {paragraph}{}{21}{}%
-\contentsline {subsubsection}{\numberline {2.4.1}Graphs}{22}{}%
+\contentsline {subsubsection}{\numberline {2.3.9}Atlas}{22}{}%
+\contentsline {subsubsection}{\numberline {2.3.10}Triangle eraser}{22}{}%
+\contentsline {subsubsection}{\numberline {2.3.11}Configuration}{22}{}%
 \contentsline {paragraph}{}{22}{}%
+\contentsline {subsection}{\numberline {2.4}Graphs and Trial Matrices}{22}{}%
 \contentsline {paragraph}{}{22}{}%
-\contentsline {subsubsection}{\numberline {2.4.2}Trial matrices}{23}{}%
+\contentsline {subsubsection}{\numberline {2.4.1}Graphs}{23}{}%
 \contentsline {paragraph}{}{23}{}%
-\contentsline {subsubsection}{\numberline {2.4.3}Graphs grid}{24}{}%
+\contentsline {paragraph}{}{23}{}%
+\contentsline {subsubsection}{\numberline {2.4.2}Trial matrices}{24}{}%
 \contentsline {paragraph}{}{24}{}%
-\contentsline {section}{\numberline {A}Adding and removing data of a HiBoP project}{24}{}%
-\contentsline {subsection}{\numberline {A.1}General rule}{24}{}%
-\contentsline {paragraph}{}{24}{}%
+\contentsline {subsubsection}{\numberline {2.4.3}Graphs grid}{25}{}%
 \contentsline {paragraph}{}{25}{}%
-\contentsline {subsection}{\numberline {A.2}Specific cases}{25}{}%
-\contentsline {subsubsection}{\numberline {A.2.1}Patients}{25}{}%
+\contentsline {section}{\numberline {A}Adding and removing data of a HiBoP project}{25}{}%
+\contentsline {subsection}{\numberline {A.1}General rule}{25}{}%
 \contentsline {paragraph}{}{25}{}%
-\contentsline {subsubsection}{\numberline {A.2.2}Sites}{25}{}%
-\contentsline {paragraph}{}{25}{}%
-\contentsline {section}{\numberline {B}Channel correlations}{25}{}%
-\contentsline {paragraph}{}{25}{}%
-\contentsline {paragraph}{}{25}{}%
-\contentsline {paragraph}{}{25}{}%
-\contentsline {paragraph}{}{25}{}%
+\contentsline {paragraph}{}{26}{}%
+\contentsline {subsection}{\numberline {A.2}Specific cases}{26}{}%
+\contentsline {subsubsection}{\numberline {A.2.1}Patients}{26}{}%
+\contentsline {paragraph}{}{26}{}%
+\contentsline {subsubsection}{\numberline {A.2.2}Sites}{26}{}%
+\contentsline {paragraph}{}{26}{}%
+\contentsline {section}{\numberline {B}Channel correlations}{26}{}%
+\contentsline {paragraph}{}{26}{}%
+\contentsline {paragraph}{}{26}{}%
+\contentsline {paragraph}{}{26}{}%
+\contentsline {paragraph}{}{26}{}%

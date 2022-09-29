@@ -10,7 +10,7 @@
 \usepackage{float}
 \usepackage[english]{babel}
 \usepackage[margin=1.1in]{geometry}
-\title{Human Intracranial Brain Observation Player \\ User Manual}
+\title{HiBoP User Manual}
 \author{\textsc{BONTEMPS Benjamin} \\ \textsc{CHATARD Benoît} \\ \textsc{GANNERIE Adrien} \\ \textsc{LANCE Florian} \\ \textsc{SIPP Florian}}
 \lstset{
 	frame = single,
@@ -20,7 +20,7 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-This document is the user manual of the Human Intracranial Brain Observation Player (HiBoP). HiBoP is being developed by the Centre de Recherche en Neurosciences de Lyon (CRNL), with funds from the Human Brain Project (HBP) to visualize large datasets of intracranial electroencephalography (iEEG) and functional MRI data. This document has been written for the 3.0.0 version of HiBoP.
+This document is the user manual of the Human Intracranial Brain Observation Player (HiBoP). HiBoP is being developed by the Centre de Recherche en Neurosciences de Lyon (CRNL), with funds from the Human Brain Project (HBP) to visualize large datasets of intracranial electroencephalography (iEEG) and functional MRI data. This document has been written for the 4.0.0 version of HiBoP.
 \end{abstract}
 \tableofcontents
 \section{HiBoP project} \label{data}
@@ -60,16 +60,23 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
 \paragraph{} This subfolder contains .group files, which are simple lists of patients.
 \subsection{Protocols}
 \paragraph{} This subfolder contains .prov files. The .prov extension stands for \textbf{protocol visualization}. Typically, an iEEG functional data file in HiBoP is a set of time series (one for each channel) with data for each sample from the beginning to the end of the recording session. In addition, information about the events of the experimental paradigm is stored, each event being identified using a code (e.g. an event of code 10 occured at sample 134567).
-\paragraph{} Some file formats allow for such data to be stored conveniently. The formats supported by HiBoP are ELAN\footnote{\label{ELAN}ELAN format – ELAN is freely available at http://elan.lyon.inserm.fr}, Micromed, BrainVision and EDF.
 \paragraph{} The .prov file instructs HiBoP on how to epoch the data based on the events. It consists of blocs which contain a list of subblocs. Each bloc or subbloc will be sorted using first their respective order and then alphabetically using their respective names.
 \paragraph{} Each subbloc is centered around a specific event, called \textbf{main event}, for a specific time window (for instance, consider all events with code 10 and extract for each of them a window ranging from 200ms before to 700ms after that event). You can specify secondary events which do not interfere in the epoching. You can also set a baseline window, which is used for the baseline correction (described in more details in Section \ref{preferences}). 
 \paragraph{} Each bloc also has a sorting method, which is used to sort the trials obtained from the epoching according to specific conditions (code of the main event, latency of the secondary event...). The syntax used here for a condition is \textit{SUBBLOC\_EVENT\_COMMAND} where SUBBLOC is the name of the sub-bloc, EVENT the name of the event and COMMAND the sorting parameter (which can be LATENCY or CODE). You can specify multiple conditions which are separated by a semi-colon, each of which are interpreted in the order they have been written. The rest of the .prov file is straightforward: you can ask HiBoP to show images (.png or .jpg) at specific time windows, or to associate an image to a bloc. You can also apply treatments on some time windows of the epoched values (e.g. you can compute the absolute value of the values from 100ms to 400ms after the main event).
+\paragraph{} \textbf{Important note:} You need to make a whole protocol with blocs and subblocs only if you want to visualize iEEG or CCEP data. In the case of fMRI, you only need to create an empty protocol (which is still required to organize the data).
 \subsection{Datasets}
-\paragraph{} This subfolder contains .dataset files, which summarize and link together anatomical and functional data for a given cognitive task.
-A dataset is a list of data information (datainfo), each of them connecting one patient (and its anatomical data) to functional data for a single experiment.
-\paragraph{} A datainfo can be of type iEEG, CCEP or fMRI. In the case of iEEG, you can specify a normalization method (see Section \ref{preferences} for detailed information about normalization). In the case of CCEP, you have to specify the channel that has been stimulated. Each datainfo contains a data container which handles the data files.
+\paragraph{} This subfolder contains .dataset files, which summarize and link together anatomical and functional data for a given cognitive task. A dataset is a list of data information (datainfo), each of them connecting one patient (and its anatomical data) to functional data for a single experiment.
+\paragraph{} A datainfo can be of type iEEG, CCEP, fMRI, MEGc or MEGv. In the case of iEEG, you can specify a normalization method (see Section \ref{preferences} for detailed information about normalization). In the case of CCEP, you have to specify the channel that has been stimulated. MEGc corresponds to MEG data represented as time series (similar to iEEG) and MEGv corresponds to MEG data represented in voxels (similar to fMRI). Each datainfo contains a data container which handles the data files.
+\paragraph{} A data container can be of type ELAN\footnote{\label{ELAN}ELAN format – ELAN is freely available at http://elan.lyon.inserm.fr}, Micromed, BrainVision, EDF, NIFTI-1 or FIF. Each datainfo type can handle some of these data types:
+\begin{itemize}
+\item \textbf{iEEG}: ELAN, Micromed, BrainVision, EDF
+\item \textbf{CCEP}: ELAN, Micromed, BrainVision, EDF
+\item \textbf{fMRI}: NIFTI-1
+\item \textbf{MEGc}: BrainVision, EDF, FIF
+\item \textbf{MEGv}: NIFTI-1
+\end{itemize}
 \subsection{Visualizations}
-\paragraph{} This subfolder contains .visualization files, which describe the contents of a visualization: it is composed of patients and columns. Each column allow one to visualize either the anatomy of the chosen patients or iEEG/CCEP/fMRI data. The file also stores the configuration of the visualization (most of the parameters modified within the visualization can be saved as the configuration of the visualization).
+\paragraph{} This subfolder contains .visualization files, which describe the contents of a visualization: it is composed of patients and columns. Each column allow one to visualize either the anatomy of the chosen patients or iEEG/CCEP/fMRI/MEG\footnote{\label{MEG}In the case of a MEG column, MEGc and MEGv data will be used together if they both have the same data name set in the MEG column.} data. The file also stores the configuration of the visualization (most of the parameters modified within the visualization can be saved as the configuration of the visualization).
 \section{HiBoP description}\label{UI}
 \paragraph{} This section will describe in details how to use HiBoP to create a HiBoP project and how to visualize the data. The first thing to do is to open HiBoP (if you need them, instructions are in the README.md file located next to the executable). If you have any doubt about what an interface element does, you can hover it for a second and a tooltip will appear telling you what it does.
 \subsection{User Preferences}\label{preferences}
@@ -106,6 +113,8 @@ A dataset is a list of data information (datainfo), each of them connecting one 
 \begin{itemize}
 \item \textbf{Enable multithreading}: Enable multithreading for calculation (e.g. EEG signal on the brain mesh)
 \item \textbf{Memory cache limit}: Maximum amount of memory taken by HiBoP
+\item \textbf{Target framerate}: Maximum amount of frames displayed each second
+\item \textbf{Sleep mode}: Time before HiBoP enters sleep mode, reducing used computer resources
 \end{itemize}
 \end{itemize}
 \end{itemize}
@@ -165,6 +174,10 @@ A dataset is a list of data information (datainfo), each of them connecting one 
 \begin{itemize}
 \item \textbf{Enable automatic EEG update}: Triggers the update of the brain activity on the brain each time a parameter is changed in the visualization
 \item \textbf{Site influence by distance}: Controls how a site influence its environment (constant amplitude, linear decrease or quadratic decrease)
+\end{itemize}
+\item \textbf{Display}
+\begin{itemize}
+\item \textbf{Visualizations layout}: Layout to use when multiple visualizations are open at the same time
 \end{itemize}
 \item \textbf{Single/Multi patient visualization}
 \begin{itemize}
@@ -301,7 +314,7 @@ A dataset is a list of data information (datainfo), each of them connecting one 
 \end{center}
 \caption{\label{datasetModifierUI}Dataset modifier}
 \end{figure}
-\paragraph{} A data information has a name and is linked to a patient. A data information can be either an iEEG, CCEP or fMRI data information. In the case of an iEEG data information, you can specify the normalization method for this specific data (this overwrites the global parameter for normalization unless "Auto" is selected), and there can only be one data information for each [name, patient]. In the case of a CCEP data information, you have to specify the stimulated site for this data, and there can only be one data information for each [name, patient, stimulated site]. In the case of a fMRI data information, there can only be one data information for each [name, patient].
+\paragraph{} A data information has a name and is linked to a patient. A data information can be either an iEEG, CCEP, fMRI or MEG data information. In the case of an iEEG data information, you can specify the normalization method for this specific data (this overwrites the global parameter for normalization unless "Auto" is selected), and there can only be one data information for each [name, patient]. In the case of a CCEP data information, you have to specify the stimulated site for this data, and there can only be one data information for each [name, patient, stimulated site]. In the case of a fMRI data information, there can only be one data information for each [name, patient]. In the case of a MEG data information, there can only be one data information for each [name, patient] for each MEG data category (MEGc and MEGv). If a MEGc and a MEGv data information share the same name and the same patient, they will both be loaded in the corresponding MEG column.
 \paragraph{} Data information are identified by their names, so if you want to visualize data of several patients in the same column, you have to give them the same name. As for the data you can choose the data format and fill all the required fields.
 \begin{figure}[H]
 \begin{center}
@@ -317,7 +330,7 @@ A dataset is a list of data information (datainfo), each of them connecting one 
 \end{center}
 \caption{\label{visuGestionUI}Visualizations manager}
 \end{figure}
-\paragraph{} A visualization has a name, patients and columns. To edit all of this information, you can use the visualization modifier window (Figure \ref{visuModifierUI}). To add a column, click on the "+" button under the "Columns" panel. You can then edit the column by setting the name, the type (Anatomy, iEEG, CCEP or fMRI), the protocol, the bloc, the dataset and the data name to be used in this column. Do not forget that if multiple patients are added to the visualization, they must have at least one data information with the same name. If this condition is not matched, there will be a warning you can hover to see which patient is problematic.
+\paragraph{} A visualization has a name, patients and columns. To edit all of this information, you can use the visualization modifier window (Figure \ref{visuModifierUI}). To add a column, click on the "+" button under the "Columns" panel. You can then edit the column by setting the name, the type (Anatomy, iEEG, CCEP, fMRI or MEG), the protocol, the bloc, the dataset and the data name to be used in this column. Do not forget that if multiple patients are added to the visualization, they must have at least one data information with the same name. If this condition is not matched, there will be a warning you can hover to see which patient is problematic.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.4]{VisualizationModifier.png}
@@ -399,6 +412,7 @@ A dataset is a list of data information (datainfo), each of them connecting one 
 \begin{itemize}
 \item You can highlight, unhighlight, blacklist, unblacklist, change the color and add labels to the filtered sites. This allows you to set the states of multiple sites at once, which is conveniant compared to setting the states one by one (Figure \ref{sitesAction}).
 \item You can export a list of the filtered sites to a csv file. This file contains the name, the patient name, place and date, the coordinates of the site and the coordinate system used, the data files of the corresponding channel and every tags of the site.
+\item You can display the mean curve of all the filtered sites in the Graph panel (more information in section \ref{graphs})
 \end{itemize}
 \begin{figure}[H]
 \begin{center}
@@ -523,6 +537,7 @@ A dataset is a list of data information (datainfo), each of them connecting one 
 \item Compare two sites : select a site, click on this button, then select another site to compare them.
 \item Load the single patient scene corresponding to the patient whose site is selected.
 \item Cut the brain mesh around the select site. While this setting is on, the cut will be applied each time a site is selected.
+\item Move all sites to a selected hemisphere using a symmetry plane. This will only move them visually and it does not affect any computation process.
 \item Copy the states of the sites of the selected column to every other columns.
 \item Save the states of the sites in a .csv file.
 \item Load a .csv file with the states of the sites to the selected column.
@@ -580,7 +595,7 @@ A dataset is a list of data information (datainfo), each of them connecting one 
 \includegraphics[scale=0.5]{Configuration.png}
 \end{center}
 \end{figure}
-\paragraph{} This toolbar allow you to save, load or reset the configuration of the selected scene. Beware, saving the configuration will just save it to the loaded visualization: to write the changes in the corresponding file, you still have to save the whole project.
+\paragraph{} This toolbar allow you to save, load or reset the configuration of the selected scene. Beware, saving the configuration will just save it to the loaded visualization: to write the changes in the corresponding file, you still have to save the whole project. It also allows you to copy the currently selected visualization to a new one saved within the project.
 \subsection{Graphs and Trial Matrices}\label{graphs}
 \paragraph{} The middle panel allows you to examine more precise information about the iEEG data of specific sites. You can open it using the handlers or if it is closed, it will automatically open once you select a site.
 \subsubsection{Graphs}
