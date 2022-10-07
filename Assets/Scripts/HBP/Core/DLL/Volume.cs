@@ -162,7 +162,7 @@ namespace HBP.Core.DLL
         #region Memory Management
         public BBox()
         {
-            _handle = new HandleRef(this,create_BBox());
+            _handle = new HandleRef(this, create_BBox());
         }
         public BBox(IntPtr bBoxPointer)
         {
@@ -406,6 +406,43 @@ namespace HBP.Core.DLL
         static private extern void get_vertices_values_Volume(HandleRef handleVolume, HandleRef surfaceHandle, float[] result);
         [DllImport("hbp_export", EntryPoint = "get_colors_from_values_Volume", CallingConvention = CallingConvention.Cdecl)]
         static private extern void get_colors_from_values_Volume(HandleRef handleVolume, float[] values, int valuesLength, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha, float[] result);
+        #endregion
+    }
+
+    public class MultiVolume : CppDLLImportBase
+    {
+        #region Public Methods
+        public void AddVolume(Volume volume)
+        {
+            add_volume_MultiVolume(_handle, volume.getHandle());
+        }
+        #endregion
+
+        #region Memory Management
+        /// <summary>
+        /// Allocate DLL memory
+        /// </summary>
+        protected override void create_DLL_class()
+        {
+            _handle = new HandleRef(this, create_MultiVolume());
+        }
+        /// <summary>
+        /// Clean DLL memory
+        /// </summary>
+        protected override void delete_DLL_class()
+        {
+            delete_MultiVolume(_handle);
+        }
+        #endregion
+
+        #region DLLimport
+        [DllImport("hbp_export", EntryPoint = "create_MultiVolume", CallingConvention = CallingConvention.Cdecl)]
+        static private extern IntPtr create_MultiVolume();
+        [DllImport("hbp_export", EntryPoint = "delete_MultiVolume", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void delete_MultiVolume(HandleRef handleMultiVolume);
+        [DllImport("hbp_export", EntryPoint = "add_volume_MultiVolume", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void add_volume_MultiVolume(HandleRef handleMultiVolume, HandleRef handleVolume);
+
         #endregion
     }
 }
