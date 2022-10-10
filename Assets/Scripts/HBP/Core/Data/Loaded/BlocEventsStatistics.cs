@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Core.Enums;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HBP.Core.Data
@@ -10,10 +11,10 @@ namespace HBP.Core.Data
         #endregion
 
         #region Constructors
-        public BlocEventsStatistics(DataInfo dataInfo, Bloc bloc)
+        public BlocEventsStatistics(DataInfo dataInfo, Bloc bloc, AveragingType averaging)
         {
             BlocData blocData = DataManager.GetData(dataInfo, bloc);
-            EventsStatisticsBySubBloc = bloc.SubBlocs.ToDictionary(s => s, s => new SubBlocEventsStatistics(blocData, s));
+            EventsStatisticsBySubBloc = bloc.SubBlocs.ToDictionary(s => s, s => new SubBlocEventsStatistics(blocData, s, averaging));
         }
         #endregion
 

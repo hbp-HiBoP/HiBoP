@@ -22,8 +22,16 @@ namespace HBP.Dev
         private float m_Percent;
         private bool m_Initialized = false;
         private float m_TimeSinceLastAction = 0;
+        private void OnApplicationQuit()
+        {
+            Debug.Log("quitting");
+            using StreamWriter sw = new(Path.Combine(Application.persistentDataPath, "quit.txt"));
+            sw.WriteLine("quit");
+            sw.Close();
+        }
         private void Update()
         {
+            /*
             // FRAMRATE
             m_TimeSinceLastAction += Time.deltaTime;
             if (Input.GetAxis("Mouse X") != 0 || Input.GetAxis("Mouse Y") != 0 || Input.anyKey || Input.anyKeyDown)
@@ -84,6 +92,7 @@ namespace HBP.Dev
                 }
                 m_Percent += Time.deltaTime;
             }
+            */
         }
         private void MarsAtlasCCEP()
         {

@@ -10,8 +10,12 @@ namespace HBP.Core.DLL
         #region Public Methods
         public void ComputeActivity(IEnumerable<Volume> volumes)
         {
-            HandleRef[] volumeHandleRefs = volumes.Select(v => v.getHandle()).ToArray();
-            compute_activity_MEGGenerator(_handle, volumeHandleRefs, volumeHandleRefs.Length);
+            MultiVolume multiVolume = new MultiVolume();
+            foreach (var volume in volumes)
+            {
+                multiVolume.AddVolume(volume);
+            }
+            compute_activity_MEGGenerator(_handle, multiVolume.getHandle());
         }
         public void AdjustValues(float fmriNegativeCalMinFactor, float fmriNegativeCalMaxFactor, float fmriPositiveCalMinFactor, float fmriPositiveCalMaxFactor)
         {
@@ -46,7 +50,7 @@ namespace HBP.Core.DLL
         [DllImport("hbp_export", EntryPoint = "delete_MEGGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void delete_MEGGenerator(HandleRef generator);
         [DllImport("hbp_export", EntryPoint = "compute_activity_MEGGenerator", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void compute_activity_MEGGenerator(HandleRef generator, HandleRef[] volumes, int volumesNumber);
+        static private extern void compute_activity_MEGGenerator(HandleRef generator, HandleRef multiVolume);
         [DllImport("hbp_export", EntryPoint = "adjust_values_MEGGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void adjust_values_MEGGenerator(HandleRef generator, float negativeMin, float negativeMax, float positiveMin, float positiveMax);
         [DllImport("hbp_export", EntryPoint = "set_hide_values_MEGGenerator", CallingConvention = CallingConvention.Cdecl)]

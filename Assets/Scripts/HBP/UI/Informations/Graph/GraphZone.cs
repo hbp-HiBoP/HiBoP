@@ -352,10 +352,22 @@ namespace HBP.UI.Informations
                     }
                 }
                 // Compute mean and SEM of the values
-                for (int i = 0; i < length; ++i)
+                switch (Core.Data.DataManager.DefaultAveraging)
                 {
-                    values[i] = sum[i].Mean();
-                    standardDeviations[i] = sum[i].SEM();
+                    case AveragingType.Mean:
+                        for (int i = 0; i < length; i++)
+                        {
+                            values[i] = sum[i].Mean();
+                            standardDeviations[i] = sum[i].SEM();
+                        }
+                        break;
+                    case AveragingType.Median:
+                        for (int i = 0; i < length; i++)
+                        {
+                            values[i] = sum[i].Median();
+                            standardDeviations[i] = sum[i].SEM();
+                        }
+                        break;
                 }
 
                 // Generate points.
@@ -464,15 +476,32 @@ namespace HBP.UI.Informations
 
                 float[] values = new float[channelSubTrials[0].Values.Length];
                 float[] standardDeviations = new float[values.Length];
-                for (int i = 0; i < values.Length; i++)
+                switch (Core.Data.DataManager.DefaultAveraging)
                 {
-                    List<float> sum = new List<float>();
-                    for (int l = 0; l < trialsToUse.Count; l++)
-                    {
-                        sum.Add(channelSubTrials[l].Values[i]);
-                    }
-                    values[i] = sum.ToArray().Mean();
-                    standardDeviations[i] = sum.ToArray().SEM();
+                    case AveragingType.Mean:
+                        for (int i = 0; i < values.Length; i++)
+                        {
+                            List<float> sum = new List<float>();
+                            for (int l = 0; l < trialsToUse.Count; l++)
+                            {
+                                sum.Add(channelSubTrials[l].Values[i]);
+                            }
+                            values[i] = sum.ToArray().Mean();
+                            standardDeviations[i] = sum.ToArray().SEM();
+                        }
+                        break;
+                    case AveragingType.Median:
+                        for (int i = 0; i < values.Length; i++)
+                        {
+                            List<float> sum = new List<float>();
+                            for (int l = 0; l < trialsToUse.Count; l++)
+                            {
+                                sum.Add(channelSubTrials[l].Values[i]);
+                            }
+                            values[i] = sum.ToArray().Median();
+                            standardDeviations[i] = sum.ToArray().SEM();
+                        }
+                        break;
                 }
 
                 // Generate points.
@@ -571,15 +600,32 @@ namespace HBP.UI.Informations
 
                 float[] values = new float[channelSubTrials[0].Values.Length];
                 float[] standardDeviations = new float[values.Length];
-                for (int i = 0; i < values.Length; i++)
+                switch (Core.Data.DataManager.DefaultAveraging)
                 {
-                    List<float> sum = new List<float>();
-                    for (int l = 0; l < trialsToUse.Count; l++)
-                    {
-                        sum.Add(channelSubTrials[l].Values[i]);
-                    }
-                    values[i] = sum.ToArray().Mean();
-                    standardDeviations[i] = sum.ToArray().SEM();
+                    case AveragingType.Mean:
+                        for (int i = 0; i < values.Length; i++)
+                        {
+                            List<float> sum = new List<float>();
+                            for (int l = 0; l < trialsToUse.Count; l++)
+                            {
+                                sum.Add(channelSubTrials[l].Values[i]);
+                            }
+                            values[i] = sum.ToArray().Mean();
+                            standardDeviations[i] = sum.ToArray().SEM();
+                        }
+                        break;
+                    case AveragingType.Median:
+                        for (int i = 0; i < values.Length; i++)
+                        {
+                            List<float> sum = new List<float>();
+                            for (int l = 0; l < trialsToUse.Count; l++)
+                            {
+                                sum.Add(channelSubTrials[l].Values[i]);
+                            }
+                            values[i] = sum.ToArray().Median();
+                            standardDeviations[i] = sum.ToArray().SEM();
+                        }
+                        break;
                 }
 
                 // Generate points.

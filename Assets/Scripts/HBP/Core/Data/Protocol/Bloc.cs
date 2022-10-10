@@ -195,11 +195,11 @@ namespace HBP.Core.Data
             {
                 string order = orders[i];
                 string[] parts = order.Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
-                if (parts.Length == 3)
+                if (parts.Length >= 3)
                 {
                     string subBlocName = parts[0];
-                    string eventName = parts[1];
-                    string command = parts[2];
+                    string eventName = string.Join('_', parts[1..^1]);
+                    string command = parts[^1];
                     SubBloc subBloc = SubBlocs.FirstOrDefault(s => s.Name == subBlocName);
                     if (subBloc != null)
                     {
@@ -260,13 +260,13 @@ namespace HBP.Core.Data
                 case SortingMethodError.NoSortingConditionFound:
                     return "No sorting condition found.";
                 case SortingMethodError.InvalidNumberOfElements:
-                    return "Invalid number of elements (must be 3 elements per condition).";
+                    return "Invalid number of elements (must be 3 elements per condition: SubBlocName_Event_Command).";
                 case SortingMethodError.SubBlocNotFound:
                     return "Sub bloc not found.";
                 case SortingMethodError.EventNotFound:
                     return "Event not found within sub bloc.";
                 case SortingMethodError.InvalidCommand:
-                    return "Command is invalid (must be \"CODE\" or \"LATENCY\").";
+                    return "Command is invalid (must be \"CODE\" or \"LATENCY\", case sensitive).";
                 default:
                     return "Unknown error.";
             }

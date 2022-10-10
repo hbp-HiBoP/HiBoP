@@ -461,6 +461,8 @@ namespace HBP.Core.Data
 
             yield return Ninja.JumpBack;
 
+            Directory.Delete(ApplicationState.ExtractProjectFolder, true);
+
             onChangeProgress.Invoke(1.0f, 0, new LoadingText("Project loaded successfully."));
         }
         public IEnumerator c_Save(string path, Action<float, float, LoadingText> onChangeProgress)
@@ -484,8 +486,7 @@ namespace HBP.Core.Data
 
             if (string.IsNullOrEmpty(path)) throw new Exceptions.DirectoryNotFoundException("");
             if (!Directory.Exists(path)) throw new Exceptions.DirectoryNotFoundException(path);
-            DirectoryInfo tmpProjectDirectory = Directory.CreateDirectory(ApplicationState.ExtractProjectFolder + "-temp");
-            string oldTMPProjectDirectory = ApplicationState.ExtractProjectFolder;
+            DirectoryInfo projectDirectory = Directory.Exists(ApplicationState.ExtractProjectFolder) ? new DirectoryInfo(ApplicationState.ExtractProjectFolder) : Directory.CreateDirectory(ApplicationState.ExtractProjectFolder);
             progress += initializationProgress;
 
             onChangeProgress.Invoke(progress, 0, new LoadingText("Saving project"));
@@ -493,59 +494,33 @@ namespace HBP.Core.Data
             yield return Ninja.JumpToUnity;
 
             // Save Settings.
-            yield return CoroutineManager.StartAsync(c_SaveSettings(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * settingsProgress, duration, text)));
+            yield return CoroutineManager.StartAsync(c_SaveSettings(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * settingsProgress, duration, text)));
             progress += settingsProgress;
 
             // Save Patients
-            yield return CoroutineManager.StartAsync(c_SavePatients(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * patientsProgress, duration, text)));
+            yield return CoroutineManager.StartAsync(c_SavePatients(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * patientsProgress, duration, text)));
             progress += patientsProgress;
 
             // Save Groups.
-            yield return CoroutineManager.StartAsync(c_SaveGroups(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * groupsProgress, duration, text)));
+            yield return CoroutineManager.StartAsync(c_SaveGroups(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * groupsProgress, duration, text)));
             progress += groupsProgress;
 
             // Save Protocols.
-            yield return CoroutineManager.StartAsync(c_SaveProtocols(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * protocolsProgress, duration, text)));
+            yield return CoroutineManager.StartAsync(c_SaveProtocols(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * protocolsProgress, duration, text)));
             progress += protocolsProgress;
 
             // Save Datasets
-            yield return CoroutineManager.StartAsync(c_SaveDatasets(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * datasetsProgress, duration, text)));
+            yield return CoroutineManager.StartAsync(c_SaveDatasets(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * datasetsProgress, duration, text)));
             progress += datasetsProgress;
 
             // Save Visualizations.
-            yield return CoroutineManager.StartAsync(c_SaveVisualizations(tmpProjectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text)));
+            yield return CoroutineManager.StartAsync(c_SaveVisualizations(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text)));
             progress += visualizationsProgress;
 
             yield return Ninja.JumpBack;
 
-            // Copy Icons.
-            CopyIcons(Path.Combine(oldTMPProjectDirectory, "Protocols", "Icons"), Path.Combine(tmpProjectDirectory.FullName, "Protocols", "Icons"));
-
             // Deleting old directories.
             onChangeProgress.Invoke(progress + finalizationProgress, 0.75f, new LoadingText("Finalizing."));
-
-            if (Directory.Exists(oldTMPProjectDirectory))
-            {
-                try
-                {
-                    Directory.Delete(oldTMPProjectDirectory, true);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    throw new CanNotDeleteOldProjectDirectory(oldTMPProjectDirectory);
-                }
-            }
-
-            try
-            {
-                tmpProjectDirectory.MoveTo(oldTMPProjectDirectory);
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                throw new CanNotRenameProjectDirectory();
-            }
             progress += finalizationProgress;
 
             // Zipping
@@ -553,9 +528,10 @@ namespace HBP.Core.Data
             if (File.Exists(filePath)) File.Delete(filePath);
             using (ZipFile zip = new ZipFile(filePath))
             {
-                zip.AddDirectory(oldTMPProjectDirectory);
+                zip.AddDirectory(ApplicationState.ExtractProjectFolder);
                 zip.Save();
             }
+            Directory.Delete(ApplicationState.ExtractProjectFolder, true);
 
             onChangeProgress.Invoke(1, 0, new LoadingText("Project saved successfully."));
         }

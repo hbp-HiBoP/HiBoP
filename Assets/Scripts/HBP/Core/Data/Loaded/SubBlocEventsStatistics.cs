@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using HBP.Data.Preferences;
+using HBP.Core.Enums;
 
 namespace HBP.Core.Data
 {
@@ -11,12 +11,12 @@ namespace HBP.Core.Data
         #endregion
 
         #region Constructors
-        public SubBlocEventsStatistics(BlocData data, SubBloc subBloc) : this(subBloc.Events.ToDictionary(e => e, e => data.Trials.Where(t => t.SubTrialBySubBloc[subBloc].Found).Select(t => t.SubTrialBySubBloc[subBloc].InformationsByEvent[e]).ToArray()))
+        public SubBlocEventsStatistics(BlocData data, SubBloc subBloc, AveragingType averaging) : this(subBloc.Events.ToDictionary(e => e, e => data.Trials.Where(t => t.SubTrialBySubBloc[subBloc].Found).Select(t => t.SubTrialBySubBloc[subBloc].InformationsByEvent[e]).ToArray()), averaging)
         {
         }
-        public SubBlocEventsStatistics(Dictionary<Event, EventInformation[]> informationsByEvent)
+        public SubBlocEventsStatistics(Dictionary<Event, EventInformation[]> informationsByEvent, AveragingType averaging)
         {
-            StatisticsByEvent = informationsByEvent.ToDictionary(kv => kv.Key, kv => new EventStatistics(kv.Value, PreferencesManager.UserPreferences.Data.Protocol.PositionAveraging));
+            StatisticsByEvent = informationsByEvent.ToDictionary(kv => kv.Key, kv => new EventStatistics(kv.Value, averaging));
         }
         #endregion
 

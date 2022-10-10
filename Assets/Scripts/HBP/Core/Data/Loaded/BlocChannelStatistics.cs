@@ -1,4 +1,4 @@
-﻿using HBP.Data.Preferences;
+﻿using HBP.Core.Enums;
 
 namespace HBP.Core.Data
 {
@@ -9,9 +9,9 @@ namespace HBP.Core.Data
         #endregion
 
         #region Constructors
-        public BlocChannelStatistics(BlocChannelData data)
+        public BlocChannelStatistics(BlocChannelData data, AveragingType averaging)
         {
-            Trial = new ChannelTrialStat(data.Trials, PreferencesManager.UserPreferences.Data.EEG.Averaging);
+            Trial = new ChannelTrialStat(data.Trials, averaging);
         }
         #endregion
 
