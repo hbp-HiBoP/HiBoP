@@ -2262,14 +2262,16 @@ namespace HBP.Data.Module3D
             }
             yield return Ninja.JumpToUnity;
             m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = null;
-            m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().sharedMesh;
+            if (m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().sharedMesh.triangles.Length > 0)
+                m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().sharedMesh;
 
             // update cuts colliders
             for (int ii = 0; ii < m_DisplayedObjects.BrainCutMeshes.Count; ++ii)
             {
                 yield return Ninja.JumpToUnity;
                 m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshCollider>().sharedMesh = null;
-                m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh;
+                if (m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh.triangles.Length > 0)
+                    m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh;
                 yield return Ninja.JumpBack;
             }
 
