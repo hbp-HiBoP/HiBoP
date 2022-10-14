@@ -1,15 +1,15 @@
-﻿using ThirdParty.CielaSpike;
+﻿using HBP.Core.Data;
+using HBP.Core.Tools;
+using HBP.Data.Module3D;
+using HBP.UI.Tools;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using ThirdParty.CielaSpike;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-using HBP.Core.Data;
-using HBP.Data.Module3D;
-using HBP.UI.Tools;
-using HBP.Core.Tools;
 
 namespace HBP.UI.Module3D
 {
@@ -23,15 +23,6 @@ namespace HBP.UI.Module3D
         /// Associated 3D scene
         /// </summary>
         private Base3DScene m_Scene;
-        /// <summary>
-        /// Currently computing coroutine (for the export of the sites to a csv file)
-        /// </summary>
-        private Coroutine m_Coroutine;
-
-        /// <summary>
-        /// Progress bar used to display a feedback when filtering or applying an action
-        /// </summary>
-        [SerializeField] private SiteConditionsProgressBar m_ProgressBar;
 
         /// <summary>
         /// Toggle used to display or hide the actions panel
@@ -107,28 +98,31 @@ namespace HBP.UI.Module3D
         /// Toggle to choose to apply the modifications in the states of the filtered sites to the selected column or to all columns at once
         /// </summary>
         [SerializeField] private Toggle m_AllColumnsToggle;
-
-        /// <summary>
-        /// Toggle to specify that the action to be apply is an export to a csv file
-        /// </summary>
-        [SerializeField] private Toggle m_ExportSitesToggle;
-        /// <summary>
-        /// Toggle to specify that the action to be apply is a group creation
-        /// </summary>
-        [SerializeField] private Toggle m_CreateGroupToggle;
-        /// <summary>
-        /// Inputfield to specify the name of the newly created group
-        /// </summary>
-        [SerializeField] private InputField m_GroupNameInputField;
-        /// <summary>
-        /// Toggle to specify that the action to be apply is a graph display
-        /// </summary>
-        [SerializeField] private Toggle m_DisplayGraphsToggle;
-
         /// <summary>
         /// Button to trigger the application of the action
         /// </summary>
-        [SerializeField] private Button m_ApplyButton;
+        [SerializeField] private Button m_ApplyChangesButton;
+
+        /// <summary>
+        /// Button to specify that the action to be apply is an export to a csv file
+        /// </summary>
+        [SerializeField] private Button m_ExportSitesButton;
+        /// <summary>
+        /// Button to specify that the action to be apply is a group creation
+        /// </summary>
+        [SerializeField] private Button m_CreateGroupButton;
+        /// <summary>
+        /// Button to specify that the action to be apply is a graph display
+        /// </summary>
+        [SerializeField] private Button m_DisplayGraphsButton;
+        /// <summary>
+        /// Currently computing coroutine (for the export of the sites to a csv file)
+        /// </summary>
+        private Coroutine m_Coroutine;
+        /// <summary>
+        /// Progress bar used to display a feedback when filtering or applying an action
+        /// </summary>
+        [SerializeField] private SiteConditionsProgressBar m_ExportSitesProgressBar;
 
         /// <summary>
         /// Do we need an update in the progress bar ?
@@ -159,33 +153,7 @@ namespace HBP.UI.Module3D
         {
             try
             {
-                if (m_ChangeStateToggle.isOn)
-                {
-                    ChangeSitesStates();
-                }
-                else if (m_OtherToggle.isOn)
-                {
-                    if (m_ExportSitesToggle.isOn)
-                    {
-                        if (m_Coroutine != null)
-                        {
-                            StopCoroutine(m_Coroutine);
-                            StopExport();
-                        }
-                        else
-                        {
-                            ExportSites();
-                        }
-                    }
-                    else if (m_CreateGroupToggle.isOn)
-                    {
-                        CreateGroup();
-                    }
-                    else if (m_DisplayGraphsToggle.isOn)
-                    {
-                        DisplayGraphs();
-                    }
-                }
+                ChangeSitesStates();
             }
             catch (Exception e)
             {
@@ -201,7 +169,10 @@ namespace HBP.UI.Module3D
             m_OnOffToggle.onValueChanged.AddListener(m_ActionsPanel.gameObject.SetActive);
             m_ChangeStateToggle.onValueChanged.AddListener(m_ChangeStatePanel.SetActive);
             m_OtherToggle.onValueChanged.AddListener(m_OtherPanel.SetActive);
-            m_ApplyButton.onClick.AddListener(ApplyAction);
+            m_ApplyChangesButton.onClick.AddListener(ApplyAction);
+            m_CreateGroupButton.onClick.AddListener(CreateGroup);
+            m_DisplayGraphsButton.onClick.AddListener(DisplayGraphs);
+            m_ExportSitesButton.onClick.AddListener(ExportSites);
 
             m_ColorPickerButton.onClick.AddListener(() =>
             {
@@ -210,7 +181,6 @@ namespace HBP.UI.Module3D
             m_AddLabelToggle.onValueChanged.AddListener(isOn => m_LabelInputField.interactable = m_AddLabelToggle.isOn || m_RemoveLabelToggle.isOn);
             m_RemoveLabelToggle.onValueChanged.AddListener(isOn => m_LabelInputField.interactable = m_AddLabelToggle.isOn || m_RemoveLabelToggle.isOn);
             m_ColorToggle.onValueChanged.AddListener(isOn => m_ColorPickerButton.interactable = isOn);
-            m_CreateGroupToggle.onValueChanged.AddListener(isOn => m_GroupNameInputField.interactable = isOn);
         }
         private void Update()
         {
@@ -253,15 +223,22 @@ namespace HBP.UI.Module3D
         /// </summary>
         private void ExportSites()
         {
-#if UNITY_STANDALONE_OSX
-            FileBrowser.GetSavedFileNameAsync((csvPath) =>
+            if (m_Coroutine != null)
             {
-                if (string.IsNullOrEmpty(csvPath)) return;
+                StopCoroutine(m_Coroutine);
+                StopExport();
+            }
+            else
+            {
+#if UNITY_STANDALONE_OSX
+                FileBrowser.GetSavedFileNameAsync((csvPath) =>
+                {
+                    if (string.IsNullOrEmpty(csvPath)) return;
 
-                m_ProgressBar.Begin();
-                List<Core.Object3D.Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered).ToList();
-                m_Coroutine = this.StartCoroutineAsync(c_ExportSites(sites, csvPath));
-            }, new string[] { "csv" }, "Save sites to");
+                    m_ExportSitesProgressBar.Begin();
+                    List<Core.Object3D.Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered).ToList();
+                    m_Coroutine = this.StartCoroutineAsync(c_ExportSites(sites, csvPath));
+                }, new string[] { "csv" }, "Save sites to");
 #else
             string csvPath = FileBrowser.GetSavedFileName(new string[] { "csv" }, "Save sites to");
             if (string.IsNullOrEmpty(csvPath)) return;
@@ -270,6 +247,7 @@ namespace HBP.UI.Module3D
             List<Core.Object3D.Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered).ToList();
             m_Coroutine = this.StartCoroutineAsync(c_ExportSites(sites, csvPath));
 #endif
+            }
         }
         /// <summary>
         /// Create a group from all patients of filtered sites
@@ -277,22 +255,26 @@ namespace HBP.UI.Module3D
         private void CreateGroup()
         {
             var patients = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered).Select(s => s.Information.Patient).Distinct();
-            Group group = new Group(m_GroupNameInputField.text, patients);
-            // Generate unique name
-            var projectGroups = ApplicationState.ProjectLoaded.Groups;
-            if (projectGroups.Any(g => g.Name == group.Name))
+            Group group = new Group("New group", patients);
+            ObjectModifier<Group> modifier = WindowsManager.OpenModifier(group);
+            modifier.OnOk.AddListener(() =>
             {
-                int count = 1;
-                string name = string.Format("{0}({1})", group.Name, count);
-                while (projectGroups.Any(g => g.Name == name))
+                // Generate unique name
+                var projectGroups = ApplicationState.ProjectLoaded.Groups;
+                if (projectGroups.Any(g => g.Name == group.Name))
                 {
-                    count++;
-                    name = string.Format("{0}({1})", group.Name, count);
+                    int count = 1;
+                    string name = string.Format("{0}({1})", group.Name, count);
+                    while (projectGroups.Any(g => g.Name == name))
+                    {
+                        count++;
+                        name = string.Format("{0}({1})", group.Name, count);
+                    }
+                    group.Name = name;
                 }
-                group.Name = name;
-            }
-            ApplicationState.ProjectLoaded.AddGroup(group);
-            DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Group added to project", string.Format("The group {0} containing the {1} patients of the filtered sites has been added to the project.", group.Name, patients.Count()));
+                ApplicationState.ProjectLoaded.AddGroup(group);
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Group added to project", string.Format("The group {0} containing the {1} patients of the filtered sites has been added to the project.", group.Name, patients.Count()));
+            });
         }
         /// <summary>
         /// Cancel the export of the filtered sites
@@ -300,7 +282,7 @@ namespace HBP.UI.Module3D
         private void StopExport()
         {
             m_Coroutine = null;
-            m_ProgressBar.End();
+            m_ExportSitesProgressBar.End();
         }
         private void DisplayGraphs()
         {
@@ -341,7 +323,7 @@ namespace HBP.UI.Module3D
                 if (m_UpdateUI || i == length - 1)
                 {
                     yield return Ninja.JumpToUnity;
-                    m_ProgressBar.Progress(0.5f * ((float)(i + 1) / length));
+                    m_ExportSitesProgressBar.Progress(0.5f * ((float)(i + 1) / length));
                     m_UpdateUI = false;
                     yield return Ninja.JumpBack;
                 }
@@ -440,7 +422,7 @@ namespace HBP.UI.Module3D
                 if (m_UpdateUI || i == length - 1)
                 {
                     yield return Ninja.JumpToUnity;
-                    m_ProgressBar.Progress(0.5f * (1 + (float)(i + 1) / length));
+                    m_ExportSitesProgressBar.Progress(0.5f * (1 + (float)(i + 1) / length));
                     m_UpdateUI = false;
                     yield return Ninja.JumpBack;
                 }
