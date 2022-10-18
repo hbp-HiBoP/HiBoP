@@ -62,6 +62,10 @@ namespace HBP.UI.Tools
             {
                 MoveAtMousePosition();
             }
+            if (IsTooltipDisplayed)
+            {
+                ClampToCanvas();
+            }
         }
         private void ClampToCanvas()
         {
@@ -80,7 +84,6 @@ namespace HBP.UI.Tools
         private void MoveAtMousePosition()
         {
             m_Tooltip.position = Input.mousePosition + m_Offset;
-            ClampToCanvas();
         }
         #endregion
 
