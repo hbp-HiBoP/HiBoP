@@ -1733,7 +1733,7 @@ namespace HBP.Data.Module3D
             RaycastHitResult raycastResult = column.Raycast(ray, layerMask, out RaycastHit hit);
             Vector3 hitPoint = raycastResult != RaycastHitResult.None ? hit.point - transform.position : Vector3.zero;
 
-            m_AtlasManager.DisplayAtlasInformation(raycastResult == RaycastHitResult.Cut || raycastResult == RaycastHitResult.Mesh, hitPoint);
+            m_AtlasManager.DisplayAtlasInformation((raycastResult == RaycastHitResult.Cut || raycastResult == RaycastHitResult.Mesh) && MeshManager.SelectedMesh.Type == MeshType.MNI, hitPoint); // FIXME when we have hoverable atlases in single patient scenes
             m_ImplantationManager.DisplaySiteInformation(raycastResult == RaycastHitResult.Site, column, hit);
         }
         /// <summary>

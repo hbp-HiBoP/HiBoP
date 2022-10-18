@@ -243,7 +243,7 @@ namespace HBP.UI.Module3D
             string csvPath = FileBrowser.GetSavedFileName(new string[] { "csv" }, "Save sites to");
             if (string.IsNullOrEmpty(csvPath)) return;
 
-            m_ProgressBar.Begin();
+            m_ExportSitesProgressBar.Begin();
             List<Core.Object3D.Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered).ToList();
             m_Coroutine = this.StartCoroutineAsync(c_ExportSites(sites, csvPath));
 #endif
