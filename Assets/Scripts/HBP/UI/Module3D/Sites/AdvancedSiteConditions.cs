@@ -26,6 +26,7 @@ namespace HBP.UI.Module3D
         public const string IN_LEFT_HEMISPHERE = "L";
         public const string IN_RIGHT_HEMISPHERE = "R";
         public const string ON_PLANE = "CUT";
+        public const string ATLAS_AREA = "ATLAS_AREA";
         public const string NAME = "NAME";
         public const string PATIENT_NAME = "PAT_NAME";
         public const string PATIENT_PLACE = "PAT_PLACE";
@@ -112,6 +113,10 @@ namespace HBP.UI.Module3D
                     else if (label == PATIENT_DATE)
                     {
                         return CheckPatientDate(site, deblankedValue);
+                    }
+                    else if (label == ATLAS_AREA)
+                    {
+                        return CheckAtlas(site, deblankedValue);
                     }
                     else if (label == TAG)
                     {
