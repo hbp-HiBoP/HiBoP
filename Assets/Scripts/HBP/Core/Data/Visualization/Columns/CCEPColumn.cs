@@ -134,6 +134,17 @@ namespace HBP.Core.Data
         #endregion
 
         #region Public Methods
+        public override void GenerateID()
+        {
+            base.GenerateID();
+            DynamicConfiguration.GenerateID();
+        }
+        public override List<BaseData> GetAllIdentifiable()
+        {
+            List<BaseData> IDs = base.GetAllIdentifiable();
+            IDs.AddRange(DynamicConfiguration.GetAllIdentifiable());
+            return IDs;
+        }
         public override bool IsCompatible(IEnumerable<Patient> patients)
         {
             CCEPDataInfo[] ccepDataInfos = Dataset?.GetCCEPDataInfos();
@@ -142,11 +153,6 @@ namespace HBP.Core.Data
         public override void Unload()
         {
             Data.Unload();
-        }
-        public override void GenerateID()
-        {
-            base.GenerateID();
-            DynamicConfiguration.GenerateID();
         }
         #endregion
 

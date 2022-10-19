@@ -9,6 +9,7 @@ using Ionic.Zip;
 using UnityEngine;
 using HBP.Core.Exceptions;
 using HBP.Core.Tools;
+using HBP.Core.Interfaces;
 
 namespace HBP.Core.Data
 {
@@ -403,6 +404,89 @@ namespace HBP.Core.Data
                 ProjectInfo projectInfo = new ProjectInfo(directoryPaths);
             }
             return projectsDirectories.FirstOrDefault((project) => new ProjectInfo(project).Settings.ID == ID);
+        }
+        public Dictionary<string, List<string>> CheckProjectIDs()
+        {
+            Dictionary<string, List<string>> dataByID = new Dictionary<string, List<string>>();
+            void addToDict(BaseData data, string name)
+            {
+                if (dataByID.ContainsKey(data.ID)) dataByID[data.ID].Add(name);
+                else dataByID.Add(data.ID, new List<string>(new string[] { name }));
+            }
+            string getName(INameable data)
+            {
+                return string.Format("{0} ({1})", data.Name, getType(data as BaseData));
+            }
+            string getType(BaseData data)
+            {
+                return data.GetType().ToString().Split('.').Last();
+            }
+            // Settings
+            addToDict(Preferences, getType(Preferences));
+            foreach (var alias in Preferences.Aliases) addToDict(alias, string.Format("{0} ({1})", alias.Key, getType(alias)));
+            foreach (var tag in Preferences.Tags) addToDict(tag, getName(tag));
+            // Patients
+            foreach (var patient in m_Patients)
+            {
+                addToDict(patient, getName(patient));
+                foreach (var mesh in patient.Meshes) addToDict(mesh, getName(mesh));
+                foreach (var mri in patient.MRIs) addToDict(mri, getName(mri));
+                foreach (var site in patient.Sites)
+                {
+                    addToDict(site, getName(site));
+                    foreach (var coordinate in site.Coordinates) addToDict(coordinate, getName(coordinate));
+                    foreach (var tagValue in site.Tags) addToDict(tagValue, getName(tagValue));
+                }
+                foreach (var tagValue in patient.Tags) addToDict(tagValue, getName(tagValue));
+            }
+            // Groups
+            foreach (var group in m_Groups) addToDict(group, getName(group));
+            // Protocols
+            foreach (var protocol in m_Protocols)
+            {
+                addToDict(protocol, getName(protocol));
+                foreach (var bloc in protocol.Blocs)
+                {
+                    addToDict(bloc, getName(bloc));
+                    foreach (var subBloc in bloc.SubBlocs)
+                    {
+                        addToDict(subBloc, getName(subBloc));
+                        foreach (var ev in subBloc.Events) addToDict(ev, getName(ev));
+                        foreach (var icon in subBloc.Icons) addToDict(icon, getName(icon));
+                        foreach (var treatment in subBloc.Treatments) addToDict(treatment, getName(treatment));
+                    }
+                }
+            }
+            // Datasets
+            foreach (var dataset in m_Datasets)
+            {
+                addToDict(dataset, getName(dataset));
+                foreach (var data in dataset.Data)
+                {
+                    addToDict(data, getName(data));
+                    addToDict(data.DataContainer, getName(data.DataContainer));
+                }
+            }
+            // Visualizations
+            foreach (var visualization in m_Visualizations)
+            {
+                addToDict(visualization, getName(visualization));
+                foreach (var column in visualization.Columns)
+                {
+                    addToDict(column, getName(column));
+                    addToDict(column.BaseConfiguration, getName(column.BaseConfiguration));
+                    foreach (var siteConfig in column.BaseConfiguration.ConfigurationBySite.Values) addToDict(siteConfig);
+                }
+                foreach (var anatomicColumn in visualization.AnatomicColumns) addToDict(anatomicColumn.AnatomicConfiguration, getName(anatomicColumn.AnatomicConfiguration));
+                foreach (var ieegColumn in visualization.IEEGColumns) addToDict(ieegColumn.DynamicConfiguration, getName(ieegColumn.DynamicConfiguration));
+                foreach (var ccepColumn in visualization.CCEPColumns) addToDict(ccepColumn.DynamicConfiguration, getName(ccepColumn.DynamicConfiguration));
+                foreach (var fmriColumn in visualization.FMRIColumns) addToDict(fmriColumn.FMRIConfiguration, getName(fmriColumn.FMRIConfiguration));
+                foreach (var megColumn in visualization.MEGColumns) addToDict(megColumn.MEGConfiguration, getName(megColumn.MEGConfiguration));
+            }
+            // Check unicity and return error string
+            Dictionary<string, List<string>> problematicData = new Dictionary<string, List<string>>();
+            foreach (var kv in dataByID) if (kv.Value.Count > 1) problematicData.Add(kv.Key, kv.Value);
+            return problematicData;
         }
 
         public IEnumerator c_Load(ProjectInfo projectInfo, Action<float, float, LoadingText> onChangeProgress)

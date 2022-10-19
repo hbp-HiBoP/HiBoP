@@ -25,9 +25,9 @@ namespace HBP.UI.Toolbar
         private void Open()
         {
             // TODO : replace by correct values
-            Vector3 sitePosition = Module3DMain.SelectedColumn.SelectedSite.transform.localPosition;
+            Vector3 sitePosition = SelectedColumn.SelectedSite.transform.localPosition;
             Quaternion quaternion = new Quaternion(-0.3f, 0.7f, -0.5f, 0.2f);
-            View3D view = Module3DMain.SelectedView;
+            View3D view = SelectedView;
             if (view)
             {
                 quaternion = view.LocalCameraRotation * Quaternion.Euler(0, 180, 0);

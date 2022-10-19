@@ -5,6 +5,9 @@ using ThirdParty.CielaSpike;
 using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Data.Module3D;
+using System.Collections.Generic;
+using HBP.Core.Interfaces;
+using System.Linq;
 
 namespace HBP.UI.Tools
 {
@@ -34,6 +37,17 @@ namespace HBP.UI.Tools
                     if (taskState == TaskState.Done)
                     {
                         FindObjectOfType<MenuButtonState>().SetInteractables();
+                        Dictionary<string, List<string>> problematicData = ApplicationState.ProjectLoaded.CheckProjectIDs();
+                        if (problematicData.Count > 0)
+                        {
+                            string result = "";
+                            foreach (var kv in problematicData)
+                            {
+                                if (kv.Value.Count > 1) result += string.Format("{0}\n{1}\n\n", kv.Key, string.Join(", ", kv.Value));
+                            }
+                            DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "IDs issue", string.Format("Some IDs of this project are used by multiple different objects:\n\n{0}\nYou have two options: you can regenerate the IDs of problematic objects automatically, but this can unlink some of your objects (for example, some datasets may not be linked to the right protocol), or you can leave them as is but you may encounter issues and will need to fix the IDs manually later.\nWhat do you want to do?", result),
+                                () => { }, "Regenerate IDs", () => { }, "Leave IDs as is");
+                        }
                     }
                     else
                     {
