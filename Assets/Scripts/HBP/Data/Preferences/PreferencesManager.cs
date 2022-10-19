@@ -1,4 +1,5 @@
 using HBP.Core.Tools;
+using System;
 using System.IO;
 using UnityEngine;
 
@@ -27,7 +28,15 @@ namespace HBP.Data.Preferences
 
             if (new FileInfo(UserPreferences.PATH).Exists)
             {
-                m_UserPreferences = ClassLoaderSaver.LoadFromJson<UserPreferences>(UserPreferences.PATH);
+                try
+                {
+                    m_UserPreferences = ClassLoaderSaver.LoadFromJson<UserPreferences>(UserPreferences.PATH);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    m_UserPreferences = new UserPreferences();
+                }
             }
             else
             {

@@ -41,6 +41,7 @@ namespace HBP.UI.Main
                 m_ProtocolsText.SetIEnumerableFieldInItem(value.Protocols, m_EmptyState);
                 m_DatasetsText.SetIEnumerableFieldInItem(value.Datasets, m_EmptyState);
                 m_VisualizationsText.SetIEnumerableFieldInItem(value.Visualizations, m_EmptyState);
+                Interactable = value.Settings.CanLoadProject;
             }
         }
         #endregion

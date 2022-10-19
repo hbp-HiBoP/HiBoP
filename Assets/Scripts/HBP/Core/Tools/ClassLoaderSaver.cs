@@ -11,50 +11,20 @@ namespace HBP.Core.Tools
         public static T LoadFromXML<T>(string path) where T : new()
         {
             T result = new T();
-            try
+            using (StreamReader streamReader = new StreamReader(path))
             {
-                using (StreamReader streamReader = new StreamReader(path))
-                {
-                    XmlSerializer serializer = new XmlSerializer(typeof(T));
-                    result = (T)serializer.Deserialize(streamReader.BaseStream);
-                    streamReader.Close();
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
+                XmlSerializer serializer = new XmlSerializer(typeof(T));
+                result = (T)serializer.Deserialize(streamReader.BaseStream);
+                streamReader.Close();
             }
             return result;
         }
         public static T LoadFromJson<T>(string path) where T : new()
         {
             T result = new T();
-            try
+            using (StreamReader streamReader = new StreamReader(path))
             {
-                using (StreamReader streamReader = new StreamReader(path))
-                {
-                    result = JsonConvert.DeserializeObject<T>(streamReader.ReadToEnd(), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
-            return result;
-        }
-        public static T LoadFromJson2<T>(string path) where T : new()
-        {
-            T result = new T();
-            try
-            {
-                using (StreamReader streamReader = new StreamReader(path))
-                {
-                    result = JsonConvert.DeserializeObject<T>(streamReader.ReadToEnd(), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
+                result = JsonConvert.DeserializeObject<T>(streamReader.ReadToEnd(), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
             }
             return result;
         }

@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.UI.Tools;
+using System;
 
 namespace HBP.UI.Toolbar
 {
@@ -54,11 +55,19 @@ namespace HBP.UI.Toolbar
             {
                 if (!string.IsNullOrEmpty(loadPath))
                 {
-                    Core.Data.RegionOfInterest serializedROI = ClassLoaderSaver.LoadFromJson<Core.Data.RegionOfInterest>(loadPath);
-                    Core.Object3D.ROI roi = SelectedScene.ROIManager.AddROI(serializedROI.Name);
-                    foreach (Core.Data.Sphere sphere in serializedROI.Spheres)
+                    try
                     {
-                        roi.AddSphere(SelectedColumn.Layer, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
+                        Core.Data.RegionOfInterest serializedROI = ClassLoaderSaver.LoadFromJson<Core.Data.RegionOfInterest>(loadPath);
+                        Core.Object3D.ROI roi = SelectedScene.ROIManager.AddROI(serializedROI.Name);
+                        foreach (Core.Data.Sphere sphere in serializedROI.Spheres)
+                        {
+                            roi.AddSphere(SelectedColumn.Layer, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                        DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Can not load ROI", "The ROI file you are trying to load is not valid.");
                     }
                 }
             }, new string[] { "roi" }, "Load ROI file");
@@ -66,11 +75,19 @@ namespace HBP.UI.Toolbar
             string loadPath = FileBrowser.GetExistingFileName(new string[] { "roi" }, "Load ROI file");
             if (!string.IsNullOrEmpty(loadPath))
             {
-                Core.Data.RegionOfInterest serializedROI = ClassLoaderSaver.LoadFromJson<Core.Data.RegionOfInterest>(loadPath);
-                Core.Object3D.ROI roi = SelectedScene.ROIManager.AddROI(serializedROI.Name);
-                foreach (Core.Data.Sphere sphere in serializedROI.Spheres)
+                try
                 {
-                    roi.AddSphere(SelectedColumn.Layer, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
+                    Core.Data.RegionOfInterest serializedROI = ClassLoaderSaver.LoadFromJson<Core.Data.RegionOfInterest>(loadPath);
+                    Core.Object3D.ROI roi = SelectedScene.ROIManager.AddROI(serializedROI.Name);
+                    foreach (Core.Data.Sphere sphere in serializedROI.Spheres)
+                    {
+                        roi.AddSphere(SelectedColumn.Layer, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Can not load ROI", "The ROI file you are trying to load is not valid.");
                 }
             }
 #endif
