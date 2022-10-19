@@ -43,7 +43,7 @@ namespace HBP.Core.Exceptions
     public class CannotLoadDataInfoException : HBPException
     {
         public CannotLoadDataInfoException() { }
-        public CannotLoadDataInfoException(string data, string patient, string additionalInformation = "") : base("Can not load <color=red>" + data + "</color> for <color=red>" + patient + "</color>.\n\n" + additionalInformation + "\n\nPlease check your data files.")
+        public CannotLoadDataInfoException(string data, string patient, string additionalInformation = "") : base("Can not load <color=red>" + data + "</color> for <color=red>" + patient + "</color>.\n<i>Exception thrown: " + additionalInformation + "</i>\n\nPlease check your data files.")
         {
             Title = "Data can not be loaded";
         }
