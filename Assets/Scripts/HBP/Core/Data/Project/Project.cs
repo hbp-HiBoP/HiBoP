@@ -405,13 +405,13 @@ namespace HBP.Core.Data
             }
             return projectsDirectories.FirstOrDefault((project) => new ProjectInfo(project).Settings.ID == ID);
         }
-        public Dictionary<string, List<string>> CheckProjectIDs()
+        public Dictionary<string, List<Tuple<BaseData, string>>> CheckProjectIDs()
         {
-            Dictionary<string, List<string>> dataByID = new Dictionary<string, List<string>>();
+            Dictionary<string, List<Tuple<BaseData, string>>> dataByID = new Dictionary<string, List<Tuple<BaseData, string>>>();
             void addToDict(BaseData data, string name)
             {
-                if (dataByID.ContainsKey(data.ID)) dataByID[data.ID].Add(name);
-                else dataByID.Add(data.ID, new List<string>(new string[] { name }));
+                if (dataByID.ContainsKey(data.ID)) dataByID[data.ID].Add(new Tuple<BaseData, string>(data, name));
+                else dataByID.Add(data.ID, new List<Tuple<BaseData, string>>(new Tuple<BaseData, string>[] { new Tuple<BaseData, string>(data, name) }));
             }
             string getName(INameable data)
             {
@@ -429,15 +429,15 @@ namespace HBP.Core.Data
             foreach (var patient in m_Patients)
             {
                 addToDict(patient, getName(patient));
-                foreach (var mesh in patient.Meshes) addToDict(mesh, string.Format("{0}_{1} ({2})", patient.CompleteName, mesh.Name, getType(mesh)));
-                foreach (var mri in patient.MRIs) addToDict(mri, string.Format("{0}_{1} ({2})", patient.CompleteName, mri.Name, getType(mri)));
+                foreach (var mesh in patient.Meshes) addToDict(mesh, string.Format("{0} / {1}", getName(patient), getName(mesh)));
+                foreach (var mri in patient.MRIs) addToDict(mri, string.Format("{0} / {1}", getName(patient), getName(mri)));
                 foreach (var site in patient.Sites)
                 {
-                    addToDict(site, string.Format("{0}_{1} ({2})", patient.CompleteName, site.Name, getType(site)));
-                    foreach (var coordinate in site.Coordinates) addToDict(coordinate, string.Format("{0}_{1}_{2} ({3})", patient.CompleteName, site.Name, coordinate.ReferenceSystem, getType(coordinate)));
-                    foreach (var tagValue in site.Tags) addToDict(tagValue, string.Format("{0}_{1}_{2} ({3})", patient.CompleteName, site.Name, tagValue.Tag.Name, getType(tagValue)));
+                    addToDict(site, string.Format("{0} / {1}", getName(patient), getName(site)));
+                    foreach (var coordinate in site.Coordinates) addToDict(coordinate, string.Format("{0} / {1} / {2}", getName(patient), getName(site), string.Format("{0} ({1})", coordinate.ReferenceSystem, getType(coordinate))));
+                    foreach (var tagValue in site.Tags) addToDict(tagValue, string.Format("{0} / {1} / {2}", getName(patient), getName(site), string.Format("{0} ({1})", tagValue.Tag.Name, getType(tagValue))));
                 }
-                foreach (var tagValue in patient.Tags) addToDict(tagValue, string.Format("{0}_{1} ({2})", patient.CompleteName, tagValue.Tag.Name, getType(tagValue)));
+                foreach (var tagValue in patient.Tags) addToDict(tagValue, string.Format("{0} / {1}", getName(patient), string.Format("{0} ({1})", tagValue.Tag.Name, getType(tagValue))));
             }
             // Groups
             foreach (var group in m_Groups) addToDict(group, getName(group));
@@ -447,13 +447,13 @@ namespace HBP.Core.Data
                 addToDict(protocol, getName(protocol));
                 foreach (var bloc in protocol.Blocs)
                 {
-                    addToDict(bloc, string.Format("{0}_{1} ({2})", protocol.Name, bloc.Name, getType(bloc)));
+                    addToDict(bloc, string.Format("{0} / {1}", getName(protocol), getName(bloc)));
                     foreach (var subBloc in bloc.SubBlocs)
                     {
-                        addToDict(subBloc, string.Format("{0}_{1}_{2} ({3})", protocol.Name, bloc.Name, subBloc.Name, getType(subBloc)));
-                        foreach (var ev in subBloc.Events) addToDict(ev, string.Format("{0}_{1}_{2}_{3} ({4})", protocol.Name, bloc.Name, subBloc.Name, ev.Name, getType(ev)));
-                        foreach (var icon in subBloc.Icons) addToDict(icon, string.Format("{0}_{1}_{2}_{3} ({4})", protocol.Name, bloc.Name, subBloc.Name, icon.Name, getType(icon)));
-                        foreach (var treatment in subBloc.Treatments) addToDict(treatment, string.Format("{0}_{1}_{2}_{3}", protocol.Name, bloc.Name, subBloc.Name, getType(treatment)));
+                        addToDict(subBloc, string.Format("{0} / {1} / {2}", getName(protocol), getName(bloc), getName(subBloc)));
+                        foreach (var ev in subBloc.Events) addToDict(ev, string.Format("{0} / {1} / {2} / {3}", getName(protocol), getName(bloc), getName(subBloc), getName(ev)));
+                        foreach (var icon in subBloc.Icons) addToDict(icon, string.Format("{0} / {1} / {2} / {3}", getName(protocol), getName(bloc), getName(subBloc), getName(icon)));
+                        foreach (var treatment in subBloc.Treatments) addToDict(treatment, string.Format("{0} / {1} / {2} / {3}", getName(protocol), getName(bloc), getName(subBloc), getType(treatment)));
                     }
                 }
             }
@@ -463,8 +463,8 @@ namespace HBP.Core.Data
                 addToDict(dataset, getName(dataset));
                 foreach (var data in dataset.Data)
                 {
-                    addToDict(data, string.Format("{0}_{1} ({2})", dataset.Name, data.Name, getType(data)));
-                    addToDict(data.DataContainer, string.Format("{0}_{1}_{2}", dataset.Name, data.Name, getType(data.DataContainer)));
+                    addToDict(data, string.Format("{0} / {1}", getName(dataset), getName(data)));
+                    addToDict(data.DataContainer, string.Format("{0} / {1} / {2}", getName(dataset), getName(data), getType(data.DataContainer)));
                 }
             }
             // Visualizations
@@ -473,18 +473,18 @@ namespace HBP.Core.Data
                 addToDict(visualization, getName(visualization));
                 foreach (var column in visualization.Columns)
                 {
-                    addToDict(column, string.Format("{0}_{1} ({2})", visualization.Name, column.Name, getType(column)));
-                    addToDict(column.BaseConfiguration, string.Format("{0}_{1}_{2}", visualization.Name, column.Name, getType(column.BaseConfiguration)));
-                    foreach (var siteConfig in column.BaseConfiguration.ConfigurationBySite) addToDict(siteConfig.Value, string.Format("{0}_{1}_{2}_{3} ({4})", visualization.Name, column.Name, getType(column.BaseConfiguration), siteConfig.Key, getType(siteConfig.Value)));
+                    addToDict(column, string.Format("{0} / {1}", getName(visualization), getName(column)));
+                    addToDict(column.BaseConfiguration, string.Format("{0} / {1} / {2}", getName(visualization), getName(column), getType(column.BaseConfiguration)));
+                    foreach (var siteConfig in column.BaseConfiguration.ConfigurationBySite) addToDict(siteConfig.Value, string.Format("{0} / {1} / {2})", getName(visualization), getName(column), string.Format("{0} ({1})", siteConfig.Key, getType(siteConfig.Value))));
                 }
-                foreach (var anatomicColumn in visualization.AnatomicColumns) addToDict(anatomicColumn.AnatomicConfiguration, string.Format("{0}_{1}_{2}", visualization.Name, anatomicColumn.Name, getType(anatomicColumn.AnatomicConfiguration)));
-                foreach (var ieegColumn in visualization.IEEGColumns) addToDict(ieegColumn.DynamicConfiguration, string.Format("{0}_{1}_{2}", visualization.Name, ieegColumn.Name, getType(ieegColumn.DynamicConfiguration)));
-                foreach (var ccepColumn in visualization.CCEPColumns) addToDict(ccepColumn.DynamicConfiguration, string.Format("{0}_{1}_{2}", visualization.Name, ccepColumn.Name, getType(ccepColumn.DynamicConfiguration)));
-                foreach (var fmriColumn in visualization.FMRIColumns) addToDict(fmriColumn.FMRIConfiguration, string.Format("{0}_{1}_{2}", visualization.Name, fmriColumn.Name, getType(fmriColumn.FMRIConfiguration)));
-                foreach (var megColumn in visualization.MEGColumns) addToDict(megColumn.MEGConfiguration, string.Format("{0}_{1}_{2}", visualization.Name, megColumn.Name, getType(megColumn.MEGConfiguration)));
+                foreach (var anatomicColumn in visualization.AnatomicColumns) addToDict(anatomicColumn.AnatomicConfiguration, string.Format("{0} / {1} / {2}", getName(visualization), getName(anatomicColumn), getType(anatomicColumn.AnatomicConfiguration)));
+                foreach (var ieegColumn in visualization.IEEGColumns) addToDict(ieegColumn.DynamicConfiguration, string.Format("{0} / {1} / {2}", getName(visualization), getName(ieegColumn), getType(ieegColumn.DynamicConfiguration)));
+                foreach (var ccepColumn in visualization.CCEPColumns) addToDict(ccepColumn.DynamicConfiguration, string.Format("{0} / {1} / {2}", getName(visualization), getName(ccepColumn), getType(ccepColumn.DynamicConfiguration)));
+                foreach (var fmriColumn in visualization.FMRIColumns) addToDict(fmriColumn.FMRIConfiguration, string.Format("{0} / {1} / {2}", getName(visualization), getName(fmriColumn), getType(fmriColumn.FMRIConfiguration)));
+                foreach (var megColumn in visualization.MEGColumns) addToDict(megColumn.MEGConfiguration, string.Format("{0} / {1} / {2}", getName(visualization), getName(megColumn), getType(megColumn.MEGConfiguration)));
             }
             // Check unicity and return error string
-            Dictionary<string, List<string>> problematicData = new Dictionary<string, List<string>>();
+            Dictionary<string, List<Tuple<BaseData, string>>> problematicData = new Dictionary<string, List<Tuple<BaseData, string>>>();
             foreach (var kv in dataByID) if (kv.Value.Count > 1) problematicData.Add(kv.Key, kv.Value);
             return problematicData;
         }
