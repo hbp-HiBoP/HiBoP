@@ -148,6 +148,7 @@ namespace HBP.Core.Data
             List<BaseMesh> meshes = new List<BaseMesh>();
             DirectoryInfo parent = new DirectoryInfo(path);
             DirectoryInfo t1mr1 = new DirectoryInfo(Path.Combine(path, "t1mri"));
+            DirectoryInfo ct = new DirectoryInfo(Path.Combine(path, "ct"));
 
             DirectoryInfo preimplantationDirectory = null, preTransformationsDirectory = null;
             FileInfo preTransformation = null;
@@ -176,6 +177,20 @@ namespace HBP.Core.Data
             }
             string postTransformationPath = string.Empty;
             if (postTransformation != null && postTransformation.Exists) postTransformationPath = postTransformation.FullName;
+            // CT
+            DirectoryInfo ctDirectory = null, ctTransformationsDirectory = null;
+            FileInfo ctTransformation = null;
+            ctDirectory = ct.GetDirectories("CTpost_*").FirstOrDefault();
+            if (ctDirectory != null && ctDirectory.Exists)
+            {
+                ctTransformationsDirectory = new DirectoryInfo(Path.Combine(ctDirectory.FullName, "registration"));
+                if (ctTransformationsDirectory != null && ctTransformationsDirectory.Exists)
+                {
+                    ctTransformation = ctTransformationsDirectory.GetFiles("CT-" + parent.Name + "_" + ctDirectory.Name + "_TO_Scanner_Based.trm").FirstOrDefault();
+                }
+            }
+            string ctTransformationPath = string.Empty;
+            if (ctTransformation != null && ctTransformation.Exists) ctTransformationPath = ctTransformation.FullName;
             // Mesh
             DirectoryInfo meshDirectory = new DirectoryInfo(Path.Combine(preimplantationDirectory.FullName, "default_analysis", "segmentation", "mesh"));
             if(meshDirectory.Exists)
@@ -188,6 +203,10 @@ namespace HBP.Core.Data
                     if (!string.IsNullOrEmpty(postTransformationPath))
                     {
                         meshes.Add(new LeftRightMesh("Grey matter post", postTransformationPath, greyMatterLeftHemisphere.FullName, greyMatterRightHemisphere.FullName, string.Empty, string.Empty));
+                    }
+                    if (!string.IsNullOrEmpty(ctTransformationPath))
+                    {
+                        meshes.Add(new LeftRightMesh("Grey matter CT", ctTransformationPath, greyMatterLeftHemisphere.FullName, greyMatterRightHemisphere.FullName, string.Empty, string.Empty));
                     }
                 }
 
@@ -204,6 +223,10 @@ namespace HBP.Core.Data
                     if (!string.IsNullOrEmpty(postTransformationPath))
                     {
                         meshes.Add(new LeftRightMesh("White matter post", postTransformationPath, whiteMatterLeftHemisphere.FullName, whiteMatterRightHemisphere.FullName, marsAtlasLeftHemispherePath, marsAtlasRightHemispherePath));
+                    }
+                    if (!string.IsNullOrEmpty(ctTransformationPath))
+                    {
+                        meshes.Add(new LeftRightMesh("White matter CT", ctTransformationPath, whiteMatterLeftHemisphere.FullName, whiteMatterRightHemisphere.FullName, marsAtlasLeftHemispherePath, marsAtlasRightHemispherePath));
                     }
                 }
             }

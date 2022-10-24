@@ -123,6 +123,10 @@ namespace HBP.Core.Data
                 {
                     referenceSystem = "Post";
                 }
+                else if (referenceSystem.Contains("CTPost"))
+                {
+                    referenceSystem = "CT";
+                }
                 var ptsSites = LoadSitesFromPTSFile(referenceSystem, file.FullName);
                 foreach (var site in ptsSites)
                 {
