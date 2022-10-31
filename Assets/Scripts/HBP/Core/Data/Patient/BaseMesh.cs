@@ -147,12 +147,12 @@ namespace HBP.Core.Data
         {
             List<BaseMesh> meshes = new List<BaseMesh>();
             DirectoryInfo parent = new DirectoryInfo(path);
-            DirectoryInfo t1mr1 = new DirectoryInfo(Path.Combine(path, "t1mri"));
+            DirectoryInfo t1mri = new DirectoryInfo(Path.Combine(path, "t1mri"));
             DirectoryInfo ct = new DirectoryInfo(Path.Combine(path, "ct"));
 
             DirectoryInfo preimplantationDirectory = null, preTransformationsDirectory = null;
             FileInfo preTransformation = null;
-            preimplantationDirectory = t1mr1.GetDirectories("T1pre_*").FirstOrDefault();
+            if (t1mri.Exists) preimplantationDirectory = t1mri.GetDirectories("T1pre_*").FirstOrDefault();
             if (preimplantationDirectory != null && preimplantationDirectory.Exists)
             {
                 preTransformationsDirectory = new DirectoryInfo(Path.Combine(preimplantationDirectory.FullName, "registration"));
@@ -166,7 +166,7 @@ namespace HBP.Core.Data
             // Post
             DirectoryInfo postimplantationDirectory = null, postTransformationsDirectory = null;
             FileInfo postTransformation = null;
-            postimplantationDirectory = t1mr1.GetDirectories("T1post_*").FirstOrDefault();
+            if (t1mri.Exists) postimplantationDirectory = t1mri.GetDirectories("T1post_*").FirstOrDefault();
             if (postimplantationDirectory != null && postimplantationDirectory.Exists)
             {
                 postTransformationsDirectory = new DirectoryInfo(Path.Combine(postimplantationDirectory.FullName, "registration"));
@@ -180,7 +180,7 @@ namespace HBP.Core.Data
             // CT
             DirectoryInfo ctDirectory = null, ctTransformationsDirectory = null;
             FileInfo ctTransformation = null;
-            ctDirectory = ct.GetDirectories("CTpost_*").FirstOrDefault();
+            if (ct.Exists) ctDirectory = ct.GetDirectories("CTpost_*").FirstOrDefault();
             if (ctDirectory != null && ctDirectory.Exists)
             {
                 ctTransformationsDirectory = new DirectoryInfo(Path.Combine(ctDirectory.FullName, "registration"));

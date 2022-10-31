@@ -168,13 +168,16 @@ namespace HBP.Core.Data
                 }
 
                 // CT
-                DirectoryInfo ctDirectory = ct.GetDirectories("CTpost_*", SearchOption.TopDirectoryOnly).FirstOrDefault();
-                if (ctDirectory != null && ctDirectory.Exists)
+                if (ct != null && ct.Exists)
                 {
-                    FileInfo ctMRIFile = ctDirectory.GetFiles(directoryInfo.Name + "-CTPost_*" + EXTENSION).FirstOrDefault();
-                    if (ctMRIFile != null && ctMRIFile.Exists)
+                    DirectoryInfo ctDirectory = ct.GetDirectories("CTpost_*", SearchOption.TopDirectoryOnly).FirstOrDefault();
+                    if (ctDirectory != null && ctDirectory.Exists)
                     {
-                        MRIs.Add(new MRI("CT", ctMRIFile.FullName));
+                        FileInfo ctMRIFile = ctDirectory.GetFiles(directoryInfo.Name + "-CTPost_*" + EXTENSION).FirstOrDefault();
+                        if (ctMRIFile != null && ctMRIFile.Exists)
+                        {
+                            MRIs.Add(new MRI("CT", ctMRIFile.FullName));
+                        }
                     }
                 }
             }
