@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Core.Interfaces;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 namespace HBP.Core.Data
@@ -13,7 +14,7 @@ namespace HBP.Core.Data
     * \detail Visualization column is a class which contains the base information of the visualization column.
     */
     [DataContract]
-    public abstract class Column : BaseData
+    public abstract class Column : BaseData, INameable
     {
         #region Properties
         /// <summary>

@@ -61,6 +61,17 @@ namespace HBP.Core.Data
         #endregion
 
         #region Public Methods
+        public override void GenerateID()
+        {
+            base.GenerateID();
+            FMRIConfiguration.GenerateID();
+        }
+        public override List<BaseData> GetAllIdentifiable()
+        {
+            List<BaseData> IDs = base.GetAllIdentifiable();
+            IDs.AddRange(FMRIConfiguration.GetAllIdentifiable());
+            return IDs;
+        }
         public override object Clone()
         {
             return new FMRIColumn(Name, BaseConfiguration.Clone() as BaseConfiguration, Dataset, FMRIConfiguration.Clone() as FMRIConfiguration, ID);

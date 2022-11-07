@@ -29,6 +29,8 @@ namespace HBP.UI.Module3D
         [SerializeField] Toggle m_RightHemisphere;
         [SerializeField] Toggle m_OnPlane;
         [SerializeField] Toggle m_NotOnPlane;
+        [SerializeField] Toggle m_Atlas;
+        [SerializeField] InputField m_AtlasFilter;
 
         // Information
         [SerializeField] Toggle m_SiteName;
@@ -124,6 +126,7 @@ namespace HBP.UI.Module3D
             if (m_RightHemisphere.isOn) result &= CheckInRightHemisphere(site);
             if (m_OnPlane.isOn) result &= CheckOnPlane(site);
             if (m_NotOnPlane.isOn) result &= !CheckOnPlane(site);
+            if (m_Atlas.isOn) result &= CheckAtlas(site, m_AtlasFilter.text);
             return result;
         }
         /// <summary>

@@ -61,6 +61,17 @@ namespace HBP.Core.Data
         #endregion
 
         #region Public Methods
+        public override void GenerateID()
+        {
+            base.GenerateID();
+            MEGConfiguration.GenerateID();
+        }
+        public override List<BaseData> GetAllIdentifiable()
+        {
+            List<BaseData> IDs = base.GetAllIdentifiable();
+            IDs.AddRange(MEGConfiguration.GetAllIdentifiable());
+            return IDs;
+        }
         public override object Clone()
         {
             return new MEGColumn(Name, BaseConfiguration.Clone() as BaseConfiguration, Dataset, MEGConfiguration.Clone() as MEGConfiguration, ID);

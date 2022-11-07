@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
 namespace HBP.UI.Tools
@@ -48,6 +49,10 @@ namespace HBP.UI.Tools
         private float m_TimeSinceEntered = 0.0f;
         #endregion
 
+        #region Events
+        public UnityEvent OnBeforeDisplayTooltip = new UnityEvent();
+        #endregion
+
         #region Private Methods
         private void Update()
         {
@@ -56,6 +61,7 @@ namespace HBP.UI.Tools
                 m_TimeSinceEntered += Time.deltaTime;
                 if ((m_TimeSinceEntered > TooltipManager.TIME_TO_DISPLAY || (TooltipManager.TooltipHasBeenDisplayedRecently && m_TimeSinceEntered > TooltipManager.TIME_TO_DISPLAY/3)) && !TooltipManager.IsTooltipDisplayed)
                 {
+                    OnBeforeDisplayTooltip.Invoke();
                     TooltipManager.ShowTooltip(m_Text, m_Image, m_FollowMouse);
                 }
                 if (Input.GetAxis("Mouse X") !=0 && Input.GetAxis("Mouse Y") != 0)

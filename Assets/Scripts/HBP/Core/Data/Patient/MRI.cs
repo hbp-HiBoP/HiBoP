@@ -141,6 +141,7 @@ namespace HBP.Core.Data
             if (string.IsNullOrEmpty(path) || !Directory.Exists(path)) return MRIs.ToArray();
             DirectoryInfo directoryInfo = new DirectoryInfo(path);
             DirectoryInfo t1mriDirectoy = directoryInfo.GetDirectories("t1mri", SearchOption.TopDirectoryOnly).FirstOrDefault();
+            DirectoryInfo ct = directoryInfo.GetDirectories("ct", SearchOption.TopDirectoryOnly).FirstOrDefault();
 
             if (t1mriDirectoy != null && t1mriDirectoy.Exists)
             {
@@ -163,6 +164,20 @@ namespace HBP.Core.Data
                     if (postimplantationMRIFile != null && postimplantationMRIFile.Exists)
                     {
                         MRIs.Add(new MRI("Postimplantation", postimplantationMRIFile.FullName));
+                    }
+                }
+
+                // CT
+                if (ct != null && ct.Exists)
+                {
+                    DirectoryInfo ctDirectory = ct.GetDirectories("CTpost_*", SearchOption.TopDirectoryOnly).FirstOrDefault();
+                    if (ctDirectory != null && ctDirectory.Exists)
+                    {
+                        FileInfo ctMRIFile = ctDirectory.GetFiles(directoryInfo.Name + "-CTPost_*" + EXTENSION).FirstOrDefault();
+                        if (ctMRIFile != null && ctMRIFile.Exists)
+                        {
+                            MRIs.Add(new MRI("CT", ctMRIFile.FullName));
+                        }
                     }
                 }
             }

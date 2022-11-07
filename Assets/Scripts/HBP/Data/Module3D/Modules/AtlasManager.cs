@@ -167,7 +167,7 @@ namespace HBP.Data.Module3D
                 string[] information = SelectedAtlas.GetInformation(HoveredArea);
                 if (information.Length == 5)
                 {
-                    Module3DMain.OnDisplayAtlasInformation.Invoke(new AtlasInfo(true, Input.mousePosition, SelectedAtlas is Core.DLL.MarsAtlas ? AtlasInfo.AtlasType.MarsAtlas : AtlasInfo.AtlasType.JuBrainAtlas, information[0] + "(" + HoveredArea + ")", information[1], information[2], information[3], information[4]));
+                    Module3DMain.OnDisplayAtlasInformation.Invoke(new AtlasInfo(true, Input.mousePosition, SelectedAtlas is Core.DLL.MarsAtlas ? AtlasInfo.AtlasType.MarsAtlas : AtlasInfo.AtlasType.JuBrainAtlas, information[0] + " - ID:" + HoveredArea, information[1], information[2], information[3], information[4]));
                 }
                 else
                 {

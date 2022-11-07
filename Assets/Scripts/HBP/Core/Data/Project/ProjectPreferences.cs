@@ -47,6 +47,7 @@ namespace HBP.Core.Data
         [IgnoreDataMember] public static string DefaultName = "New Project";
         [IgnoreDataMember] public static string DefaultPatientDatabase = "";
         [IgnoreDataMember] public static string DefaultLocalizerDatabase = "";
+        [IgnoreDataMember] public bool CanLoadProject = true;
         #endregion
 
         #region Constructors

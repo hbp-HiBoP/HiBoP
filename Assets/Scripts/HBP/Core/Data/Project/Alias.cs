@@ -33,10 +33,12 @@ namespace HBP.Core.Data
         #region Public Methods
         public void ConvertKeyToValue(ref string s)
         {
+            if (string.IsNullOrEmpty(Value)) return;
             s = s.Replace(Key, Value);
         }
         public void ConvertValueToKey(ref string s)
         {
+            if (string.IsNullOrEmpty(Value)) return;
             s = s.Replace(Value, Key);
         }
         #endregion

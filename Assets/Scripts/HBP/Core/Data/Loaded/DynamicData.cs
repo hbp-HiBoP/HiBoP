@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace HBP.Core.Data
 {
@@ -76,8 +77,16 @@ namespace HBP.Core.Data
             List<DLL.EEG.Electrode> channels = file.Electrodes;
             foreach (var channel in channels)
             {
-                ValuesByChannel.Add(channel.Label, channel.Data);
-                UnitByChannel.Add(channel.Label, channel.Unit);
+                try
+                {
+                    ValuesByChannel.Add(channel.Label, channel.Data);
+                    UnitByChannel.Add(channel.Label, channel.Unit);
+                }
+                catch (ArgumentException e)
+                {
+                    Debug.LogException(e);
+                    throw new Exception(string.Format("The data file contains multiple {0} channels.", channel.Label));
+                }
             }
             Frequency = file.SamplingFrequency;
             m_OccurencesByCode = new Dictionary<int, List<EventOccurence>>();

@@ -193,7 +193,7 @@ namespace HBP.UI.Module3D
             Cut.OnUpdateGUITextures.AddListener(() =>
             {
                 Destroy(m_Image.sprite);
-                Texture2D texture = Module3DMain.SelectedColumn.CutTextures.GUIBrainCutTextures[Cut.ID];
+                Texture2D texture = m_Scene.SelectedColumn.CutTextures.GUIBrainCutTextures[Cut.ID];
                 m_Image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0, 0));
                 m_Image.sprite.texture.filterMode = FilterMode.Trilinear;
                 m_Image.sprite.texture.anisoLevel = 9;

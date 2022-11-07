@@ -123,6 +123,10 @@ namespace HBP.Core.Data
                 {
                     referenceSystem = "Post";
                 }
+                else if (referenceSystem.Contains("CTPost"))
+                {
+                    referenceSystem = "CT";
+                }
                 var ptsSites = LoadSitesFromPTSFile(referenceSystem, file.FullName);
                 foreach (var site in ptsSites)
                 {
@@ -175,11 +179,11 @@ namespace HBP.Core.Data
                         int marsAtlasIndex = splittedLines[0].IndexOf("MarsAtlas");
                         if (marsAtlasIndex != -1)
                         {
-                            splittedLines[0].Insert(marsAtlasIndex + 1, "Hemisphere (MarsAtlas)");
-                            splittedLines[0].Insert(marsAtlasIndex + 2, "Lobe (MarsAtlas)");
-                            splittedLines[0].Insert(marsAtlasIndex + 3, "Name_FS (MarsAtlas)");
-                            splittedLines[0].Insert(marsAtlasIndex + 4, "Full name (MarsAtlas)");
-                            splittedLines[0].Insert(marsAtlasIndex + 5, "Brodmann Area (MarsAtlas)");
+                            splittedLines[0].Insert(marsAtlasIndex + 1, "Hemisphere-MarsAtlas");
+                            splittedLines[0].Insert(marsAtlasIndex + 2, "Lobe-MarsAtlas");
+                            splittedLines[0].Insert(marsAtlasIndex + 3, "NameFS-MarsAtlas");
+                            splittedLines[0].Insert(marsAtlasIndex + 4, "Fullname-MarsAtlas");
+                            splittedLines[0].Insert(marsAtlasIndex + 5, "BrodmannArea-MarsAtlas");
                             for (int i = 1; i < splittedLines.Count; ++i)
                             {
                                 int marsAtlasLabel = Object3DManager.MarsAtlas.Label(splittedLines[i][marsAtlasIndex]);
@@ -410,11 +414,11 @@ namespace HBP.Core.Data
                             int marsAtlasIndex = splittedLines[0].IndexOf("MarsAtlas");
                             if (marsAtlasIndex != -1)
                             {
-                                splittedLines[0].Insert(marsAtlasIndex + 1, "Hemisphere (MarsAtlas)");
-                                splittedLines[0].Insert(marsAtlasIndex + 2, "Lobe (MarsAtlas)");
-                                splittedLines[0].Insert(marsAtlasIndex + 3, "Name_FS (MarsAtlas)");
-                                splittedLines[0].Insert(marsAtlasIndex + 4, "Full name (MarsAtlas)");
-                                splittedLines[0].Insert(marsAtlasIndex + 5, "Brodmann Area (MarsAtlas)");
+                                splittedLines[0].Insert(marsAtlasIndex + 1, "Hemisphere-MarsAtlas");
+                                splittedLines[0].Insert(marsAtlasIndex + 2, "Lobe-MarsAtlas");
+                                splittedLines[0].Insert(marsAtlasIndex + 3, "NameFS-MarsAtlas");
+                                splittedLines[0].Insert(marsAtlasIndex + 4, "Fullname-MarsAtlas");
+                                splittedLines[0].Insert(marsAtlasIndex + 5, "Brodmann-MarsAtlas");
                                 for (int i = 1; i < splittedLines.Count; ++i)
                                 {
                                     int marsAtlasLabel = Object3DManager.MarsAtlas.Label(splittedLines[i][marsAtlasIndex]);

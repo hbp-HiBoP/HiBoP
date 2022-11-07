@@ -143,6 +143,44 @@ namespace HBP.UI.Module3D
             return m_Scene.ImplantationManager.SelectedImplantation.RawSiteList.IsSiteOnAnyPlane(site, from cut in m_Scene.Cuts select cut as Core.Object3D.Plane, 1.0f);
         }
         /// <summary>
+        /// Check if the site is in a specific area of the selected atlas
+        /// </summary>
+        /// <param name="site">Site to check</param>
+        /// <param name="areaName">Name to use for the checking</param>
+        /// <returns>True if the site is in the specified area of the selected atlas</returns>
+        protected bool CheckAtlas(Core.Object3D.Site site, string areaName)
+        {
+            if (m_Scene.AtlasManager.SelectedAtlas != null)
+            {
+                int areaID = m_Scene.AtlasManager.SelectedAtlas.GetClosestAreaIndex(site.Information.DefaultPosition);
+                if (int.TryParse(areaName, out int comparedID))
+                {
+                    if (areaID == comparedID) return true;
+                }
+                string[] areaInformation = m_Scene.AtlasManager.SelectedAtlas.GetInformation(areaID);
+                if (areaInformation.Length == 5)
+                {
+                    if (m_Scene.AtlasManager.SelectedAtlas is MarsAtlas)
+                    {
+                        // Check in name
+                        if (areaInformation[0].ToUpper().Contains(areaName.ToUpper())) return true;
+                        // Check in full name
+                        if (areaInformation[4].ToUpper().Contains(areaName.ToUpper())) return true;
+                    }
+                    else
+                    {
+                        // Check in region
+                        if (areaInformation[0].ToUpper().Contains(areaName.ToUpper())) return true;
+                        // Check in location
+                        if (areaInformation[1].ToUpper().Contains(areaName.ToUpper())) return true;
+                        // Check in area label
+                        if (areaInformation[2].ToUpper().Contains(areaName.ToUpper())) return true;
+                    }
+                }
+            }
+            return false;
+        }
+        /// <summary>
         /// Check if the site name contains the input string
         /// </summary>
         /// <param name="site">Site to check</param>
@@ -156,7 +194,7 @@ namespace HBP.UI.Module3D
         /// Check if the site patient name contains the input string
         /// </summary>
         /// <param name="site">Site to check</param>
-        /// <param name="patientName">Name to use for the checking</param>
+        /// <param name="areaName">Name to use for the checking</param>
         /// <returns>True if the site patient name contains the input string</returns>
         protected bool CheckPatientName(Core.Object3D.Site site, string patientName)
         {

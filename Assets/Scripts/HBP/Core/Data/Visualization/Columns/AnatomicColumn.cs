@@ -29,6 +29,17 @@ namespace HBP.Core.Data
         #endregion
 
         #region Public Methods
+        public override void GenerateID()
+        {
+            base.GenerateID();
+            AnatomicConfiguration.GenerateID();
+        }
+        public override List<BaseData> GetAllIdentifiable()
+        {
+            List<BaseData> IDs = base.GetAllIdentifiable();
+            IDs.AddRange(AnatomicConfiguration.GetAllIdentifiable());
+            return IDs;
+        }
         public override object Clone()
         {
             return new AnatomicColumn(Name, BaseConfiguration.Clone() as BaseConfiguration, AnatomicConfiguration.Clone() as AnatomicConfiguration, ID);

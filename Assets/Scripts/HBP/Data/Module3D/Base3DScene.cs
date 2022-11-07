@@ -1733,7 +1733,7 @@ namespace HBP.Data.Module3D
             RaycastHitResult raycastResult = column.Raycast(ray, layerMask, out RaycastHit hit);
             Vector3 hitPoint = raycastResult != RaycastHitResult.None ? hit.point - transform.position : Vector3.zero;
 
-            m_AtlasManager.DisplayAtlasInformation(raycastResult == RaycastHitResult.Cut || raycastResult == RaycastHitResult.Mesh, hitPoint);
+            m_AtlasManager.DisplayAtlasInformation((raycastResult == RaycastHitResult.Cut || raycastResult == RaycastHitResult.Mesh) && MeshManager.SelectedMesh.Type == MeshType.MNI, hitPoint); // FIXME when we have hoverable atlases in single patient scenes
             m_ImplantationManager.DisplaySiteInformation(raycastResult == RaycastHitResult.Site, column, hit);
         }
         /// <summary>
@@ -2262,14 +2262,16 @@ namespace HBP.Data.Module3D
             }
             yield return Ninja.JumpToUnity;
             m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = null;
-            m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().sharedMesh;
+            if (m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().sharedMesh.triangles.Length > 0)
+                m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().sharedMesh;
 
             // update cuts colliders
             for (int ii = 0; ii < m_DisplayedObjects.BrainCutMeshes.Count; ++ii)
             {
                 yield return Ninja.JumpToUnity;
                 m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshCollider>().sharedMesh = null;
-                m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh;
+                if (m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh.triangles.Length > 0)
+                    m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh;
                 yield return Ninja.JumpBack;
             }
 
