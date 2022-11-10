@@ -90,6 +90,8 @@ namespace HBP.UI.Tools
         #region Public Methods
         public static void ShowTooltip(string text, Sprite icon, bool followMouse = false)
         {
+            if (m_Instance == null) return;
+
             m_Instance.m_FollowMouse = followMouse;
             m_Instance.m_Tooltip.gameObject.SetActive(true);
             m_Instance.m_TextField.text = text;
@@ -107,6 +109,8 @@ namespace HBP.UI.Tools
         }
         public static void HideTooltip()
         {
+            if (m_Instance == null) return;
+
             m_Instance.m_Tooltip.gameObject.SetActive(false);
             IsTooltipDisplayed = false;
         }
