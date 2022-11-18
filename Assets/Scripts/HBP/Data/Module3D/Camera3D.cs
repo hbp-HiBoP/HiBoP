@@ -272,10 +272,6 @@ namespace HBP.Data.Module3D
             Module3DMain.SharedSpotlight.transform.eulerAngles = transform.eulerAngles;
             Module3DMain.SharedSpotlight.transform.position = transform.position;
         }
-        private void OnPreRender()
-        {
-            m_AssociatedScene.UpdateColumnRendering(m_AssociatedColumn);
-        }
         private void OnPostRender()
         {
             DrawGL();

@@ -216,7 +216,7 @@ namespace HBP.Data.Module3D
         {
             GameObject cut = Instantiate(m_CutPrefab, m_BrainCutMeshesParent);
             cut.GetComponent<Renderer>().sharedMaterial = m_Scene.BrainMaterials.CutMaterial;
-            cut.layer = LayerMask.NameToLayer(Module3DMain.DEFAULT_MESHES_LAYER);
+            cut.layer = LayerMask.NameToLayer(Module3DMain.HIDDEN_MESHES_LAYER);
             cut.transform.localPosition = Vector3.zero;
             BrainCutMeshes.Add(cut);
         }

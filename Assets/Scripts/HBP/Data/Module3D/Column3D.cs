@@ -81,6 +81,10 @@ namespace HBP.Data.Module3D
         /// Surface mesh displayed in this column
         /// </summary>
         public GameObject BrainMesh { get; protected set; }
+        /// <summary>
+        /// Meshes of the cuts
+        /// </summary>
+        public List<GameObject> BrainCutMeshes { get; private set; } = new List<GameObject>();
 
         /// <summary>
         /// Views of this column
@@ -153,6 +157,10 @@ namespace HBP.Data.Module3D
         /// Parent of the meshes displayed in this column
         /// </summary>
         [SerializeField] private Transform m_BrainSurfaceMeshesParent;
+        /// <summary>
+        /// Parent of the meshes of the cuts
+        /// </summary>
+        [SerializeField] private Transform m_CutMeshesParent;
         /// <summary>
         /// Parent of the sites displayed in this column
         /// </summary>
@@ -318,9 +326,31 @@ namespace HBP.Data.Module3D
         /// Update the number of cuts (called when changing the number of cuts in the scene)
         /// </summary>
         /// <param name="nbCuts">Number of cuts</param>
-        public void UpdateCutsPlanesNumber(int nbCuts, List<Core.DLL.CutGeometryGenerator> cutGeometryGenerators)
+        public void UpdateCutsPlanesNumber(int nbCuts, List<Core.DLL.CutGeometryGenerator> cutGeometryGenerators, List<GameObject> cutMeshes)
         {
             CutTextures.Resize(nbCuts, cutGeometryGenerators, ActivityGenerator);
+            while (BrainCutMeshes.Count < nbCuts)
+            {
+                GameObject cut = cutMeshes[BrainCutMeshes.Count];
+                GameObject columnCut = Instantiate(cut, m_CutMeshesParent);
+                columnCut.layer = LayerMask.NameToLayer(Layer);
+                columnCut.GetComponent<MeshFilter>().mesh = Instantiate(cut.GetComponent<MeshFilter>().mesh);
+                columnCut.SetActive(true);
+                BrainCutMeshes.Add(columnCut);
+            }
+            while (BrainCutMeshes.Count > nbCuts)
+            {
+                Destroy(BrainCutMeshes[BrainCutMeshes.Count - 1]);
+                BrainCutMeshes.RemoveAt(BrainCutMeshes.Count - 1);
+            }
+        }
+        public void UpdateColumnCutMeshes(List<GameObject> cutMeshes)
+        {
+            for (int i = 0; i < BrainCutMeshes.Count; ++i)
+            {
+                DestroyImmediate(BrainCutMeshes[i].GetComponent<MeshFilter>().sharedMesh);
+                BrainCutMeshes[i].GetComponent<MeshFilter>().sharedMesh = Instantiate(cutMeshes[i].GetComponent<MeshFilter>().mesh);
+            }
         }
         /// <summary>
         /// Update the visibility, the size and the color of the sites depending on their state

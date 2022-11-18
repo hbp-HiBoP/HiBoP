@@ -291,6 +291,9 @@ namespace HBP.Data.Module3D
                     column.BrainMesh.GetComponent<Renderer>().sharedMaterial = BrainMaterials.BrainMaterial;
                 foreach (var cut in m_DisplayedObjects.BrainCutMeshes)
                     cut.GetComponent<Renderer>().sharedMaterial = BrainMaterials.CutMaterial;
+                foreach (var column in Columns)
+                    foreach (var cut in column.BrainCutMeshes)
+                        cut.GetComponent<Renderer>().sharedMaterial = BrainMaterials.CutMaterial;
                 m_DisplayedObjects.SimplifiedBrain.SetActive(!value);
                 BrainMaterials.SetAlpha(BrainMaterials.Alpha);
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
@@ -772,6 +775,10 @@ namespace HBP.Data.Module3D
                 if (m_AtlasManager.DisplayAtlas) m_AtlasManager.ColorCuts(column);
                 else if (m_FMRIManager.DisplayFMRI) m_FMRIManager.ColorCuts(column);
                 else if (m_IsGeneratorUpToDate) column.CutTextures.ColorCutsTexturesWithActivity();
+                for (int i = 0; i < Cuts.Count; ++i)
+                {
+                    column.BrainCutMeshes[i].GetComponent<Renderer>().material.mainTexture = column.CutTextures.BrainCutTextures[i];
+                }
             }
             SceneInformation.FunctionalCutTexturesNeedUpdate = false;
             UnityEngine.Profiling.Profiler.EndSample();
@@ -891,7 +898,7 @@ namespace HBP.Data.Module3D
 
             // Fill parameters in shader
             UnityEngine.Profiling.Profiler.BeginSample("cut_generator Fill shader");
-            BrainMaterials.SetCuts(Cuts);
+            BrainMaterials.SetCuts(Cuts, 1.0f, Quaternion.identity);
             UnityEngine.Profiling.Profiler.EndSample();
 
             // Update cut generators
@@ -901,6 +908,10 @@ namespace HBP.Data.Module3D
                 CutGeometryGenerators[ii].Initialize(m_MRIManager.SelectedMRI.Volume, Cuts[ii], 1);
                 CutGeometryGenerators[ii].UpdateSurfaceUV(generatedCutMeshes[ii]);
                 generatedCutMeshes[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
+            }
+            foreach (var column in Columns)
+            {
+                column.UpdateColumnCutMeshes(m_DisplayedObjects.BrainCutMeshes);
             }
             UnityEngine.Profiling.Profiler.EndSample();
 
@@ -1006,7 +1017,7 @@ namespace HBP.Data.Module3D
 
             for (int c = 0; c < Columns.Count; c++)
             {
-                Columns[c].UpdateCutsPlanesNumber(nbCuts, CutGeometryGenerators);
+                Columns[c].UpdateCutsPlanesNumber(nbCuts, CutGeometryGenerators, m_DisplayedObjects.BrainCutMeshes);
             }
         }
         /// <summary>
@@ -1675,17 +1686,6 @@ namespace HBP.Data.Module3D
                 {
                     site.State.ApplyState(selectedColumn.SiteStateBySiteID[site.Information.FullID]);
                 }
-            }
-        }
-        /// <summary>
-        /// Update the data rendering for a column
-        /// </summary>
-        /// <param name="column">Column to be updated</param>
-        public void UpdateColumnRendering(Column3D column)
-        {
-            for (int i = 0; i < Cuts.Count; ++i)
-            {
-                m_DisplayedObjects.BrainCutMeshes[i].GetComponent<Renderer>().material.mainTexture = column.CutTextures.BrainCutTextures[i];
             }
         }
         /// <summary>
