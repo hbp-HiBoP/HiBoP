@@ -157,6 +157,24 @@ namespace HBP.Core.DLL
                 return new Object3D.Segment3(new Vector3(result[0], result[1], result[2]), new Vector3(result[3], result[4], result[5]));
             }
         }
+        /// <summary>
+        /// Merge two BBox into one
+        /// </summary>
+        /// <param name="other"></param>
+        public void Update(BBox other)
+        {
+            update_BBox(_handle, other.getHandle());
+        }
+        /// <summary>
+        /// Get the offset value for a cut plane given the number of cuts
+        /// </summary>
+        /// <param name="cutPlane">Cut plane to compute the offset for</param>
+        /// <param name="nbCuts">Number of desired cuts</param>
+        /// <returns>Value of the offset</returns>
+        public float SizeOffsetCutPlane(Object3D.Plane cutPlane, int nbCuts)
+        {
+            return size_offset_cut_plane_Surface(_handle, cutPlane.ConvertToArray(), nbCuts);
+        }
         #endregion
 
         #region Memory Management
@@ -167,6 +185,13 @@ namespace HBP.Core.DLL
         public BBox(IntPtr bBoxPointer)
         {
             _handle = new HandleRef(this, bBoxPointer);
+        }
+        public static BBox Merge(BBox bbox1, BBox bbox2)
+        {
+            BBox bbox = new BBox();
+            bbox.Update(bbox1);
+            bbox.Update(bbox2);
+            return bbox;
         }
         /// <summary>
         /// Allocate DLL memory
@@ -205,6 +230,10 @@ namespace HBP.Core.DLL
         static private extern bool find_intersection_segment_BBox(HandleRef handleBBox, float[] planeA, float[] planeB, float[] interPoints);
         [DllImport("hbp_export", EntryPoint = "getCenter_BBox", CallingConvention = CallingConvention.Cdecl)]
         static private extern void getCenter_BBox(HandleRef handleBBox, float[] center);
+        [DllImport("hbp_export", EntryPoint = "update_BBox", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void update_BBox(HandleRef handleBBox1, HandleRef handleBBox2);
+        [DllImport("hbp_export", EntryPoint = "size_offset_cut_plane_Surface", CallingConvention = CallingConvention.Cdecl)]
+        static private extern float size_offset_cut_plane_Surface(HandleRef handleSurface, float[] planeCut, int nbCuts);
         #endregion
     }
 

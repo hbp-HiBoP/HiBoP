@@ -197,6 +197,7 @@ namespace HBP.UI.Module3D
                 m_Image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0, 0));
                 m_Image.sprite.texture.filterMode = FilterMode.Trilinear;
                 m_Image.sprite.texture.anisoLevel = 9;
+                m_Image.preserveAspect = true;
             });
             m_Scene.OnUpdateCuts.AddListener(() =>
             {
@@ -394,7 +395,6 @@ namespace HBP.UI.Module3D
         {
             m_Scene = scene;
             Cut = cut;
-            m_Image.GetComponent<ImageRatio>().Type = ImageRatio.ControlType.WidthControlsHeight;
             m_Orientation.options = new List<Dropdown.OptionData>();
             foreach (var orientation in Enum.GetNames(typeof(CutOrientation)))
             {
@@ -439,6 +439,21 @@ namespace HBP.UI.Module3D
                 }
             }
 
+            // Account for aspect ratio
+            float verticalOffset = 0, horizontalOffset = 0;
+            if (m_Image.sprite != null)
+            {
+                float aspectRatio = (float)m_Image.sprite.texture.width / m_Image.sprite.texture.height;
+                if (aspectRatio > 1)
+                {
+                    verticalOffset = (aspectRatio - 1f) / 2;
+                }
+                else if (aspectRatio < 1)
+                {
+                    horizontalOffset = (1f - aspectRatio) / 2;
+                }
+            }
+
             foreach (var site in sites)
             {
                 Vector2 ratio = m_Scene.CutGeometryGenerators[Cut.ID].GetPositionRatioOnTexture(site.transform.localPosition);
@@ -458,6 +473,8 @@ namespace HBP.UI.Module3D
                         verticalRatio = Cut.Flip ? ratio.x : 1.0f - ratio.x;
                         break;
                 }
+                horizontalRatio = Mathf.Lerp(horizontalOffset, 1f - horizontalOffset, horizontalRatio);
+                verticalRatio = Mathf.Lerp(verticalOffset, 1f - verticalOffset, verticalRatio);
 
                 CutSite cutSite = Instantiate(m_SitePrefab, m_SitesRectTransform).GetComponent<CutSite>();
                 cutSite.Initialize(m_Scene, site, new Vector2(horizontalRatio, verticalRatio));
@@ -476,6 +493,21 @@ namespace HBP.UI.Module3D
             {
                 Vector3 min = boundingBox.Min;
                 Vector3 max = boundingBox.Max;
+
+                // Account for aspect ratio
+                float verticalOffset = 0, horizontalOffset = 0;
+                if (m_Image.sprite != null)
+                {
+                    float aspectRatio = (float)m_Image.sprite.texture.width / m_Image.sprite.texture.height;
+                    if (aspectRatio > 1)
+                    {
+                        verticalOffset = (aspectRatio - 1f) / 2;
+                    }
+                    else if (aspectRatio < 1)
+                    {
+                        horizontalOffset = (1f - aspectRatio) / 2;
+                    }
+                }
 
                 foreach (var cut in m_Scene.Cuts)
                 {
@@ -504,6 +536,8 @@ namespace HBP.UI.Module3D
                                     verticalRatio = Cut.Flip ? ratio.x : 1.0f - ratio.x;
                                     break;
                             }
+                            horizontalRatio = Mathf.Lerp(horizontalOffset, 1f - horizontalOffset, horizontalRatio);
+                            verticalRatio = Mathf.Lerp(verticalOffset, 1f - verticalOffset, verticalRatio);
                             linePoints.Add(new Vector2(horizontalRatio, verticalRatio));
                         }
                         addRatioOfPoint(segment.End1);

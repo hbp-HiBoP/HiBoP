@@ -352,16 +352,6 @@ namespace HBP.Core.DLL
             IsMarsAtlasLoaded &= surfaceToAdd.IsMarsAtlasLoaded;
         }
         /// <summary>
-        /// Get the offset value for a cut plane given the number of cuts
-        /// </summary>
-        /// <param name="cutPlane">Cut plane to compute the offset for</param>
-        /// <param name="nbCuts">Number of desired cuts</param>
-        /// <returns>Value of the offset</returns>
-        public float SizeOffsetCutPlane(Object3D.Plane cutPlane, int nbCuts)
-        {            
-            return size_offset_cut_plane_Surface(_handle, cutPlane.ConvertToArray(), nbCuts);
-        }
-        /// <summary>
         /// Update the corresponding Unity mesh using the surface
         /// </summary>
         /// <param name="mesh">Mesh to be updated</param>
@@ -640,8 +630,6 @@ namespace HBP.Core.DLL
         static private extern IntPtr bounding_box_Surface(HandleRef handleSurface);
         [DllImport("hbp_export", EntryPoint = "cube_bounding_box_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr cube_bounding_box_Surface(HandleRef handleSurface, float[] planes, int planesCount);
-        [DllImport("hbp_export", EntryPoint = "size_offset_cut_plane_Surface", CallingConvention = CallingConvention.Cdecl)]
-        static private extern float size_offset_cut_plane_Surface(HandleRef handleSurface, float[] planeCut, int nbCuts);
         [DllImport("hbp_export", EntryPoint = "get_mesh_from_bounding_box_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr get_mesh_from_bounding_box_Surface(HandleRef handleSurface, int precision);
         [DllImport("hbp_export", EntryPoint = "delete_MultiSurface", CallingConvention = CallingConvention.Cdecl)]

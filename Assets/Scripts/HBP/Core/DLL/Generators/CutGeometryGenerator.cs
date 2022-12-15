@@ -17,7 +17,7 @@ namespace HBP.Core.DLL
         #endregion
 
         #region Public Methods
-        public void Initialize(Volume volume, Object3D.Cut cut, float sizeFactor)
+        public void Initialize(Volume volume, Object3D.Cut cut, int maxTextureSize)
         {
             float[] planeCut = new float[6];
             for (int ii = 0; ii < 3; ++ii)
@@ -25,7 +25,7 @@ namespace HBP.Core.DLL
                 planeCut[ii] = cut.Point[ii];
                 planeCut[ii + 3] = cut.Normal[ii];
             }
-            initialize_CutGeometryGenerator(_handle, volume.getHandle(), planeCut, (int)cut.Orientation, cut.Flip, sizeFactor);
+            initialize_CutGeometryGenerator(_handle, volume.getHandle(), planeCut, (int)cut.Orientation, cut.Flip, maxTextureSize);
         }
         public void UpdateSurfaceUV(Surface cutSurface)
         {
@@ -63,7 +63,7 @@ namespace HBP.Core.DLL
         [DllImport("hbp_export", EntryPoint = "delete_CutGeometryGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void delete_CutGeometryGenerator(HandleRef generator);
         [DllImport("hbp_export", EntryPoint = "initialize_CutGeometryGenerator", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void initialize_CutGeometryGenerator(HandleRef generator, HandleRef volume, float[] planeCut, int orientation, bool flip, float sizeFactor);
+        static private extern void initialize_CutGeometryGenerator(HandleRef generator, HandleRef volume, float[] planeCut, int orientation, bool flip, int maxTextureSize);
         [DllImport("hbp_export", EntryPoint = "update_mesh_UV_CutGeometryGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void update_mesh_UV_CutGeometryGenerator(HandleRef generator, HandleRef surface);
         [DllImport("hbp_export", EntryPoint = "get_position_ratio_on_texture_CutGeometryGenerator", CallingConvention = CallingConvention.Cdecl)]
