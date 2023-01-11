@@ -2,6 +2,7 @@
 using UnityEngine;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.Data.Module3D
 {
@@ -77,7 +78,7 @@ namespace HBP.Data.Module3D
             }
             for (int i = 0; i < size; i++)
             {
-                CutGenerators[i].Initialize(activityGenerator, cutGeometryGenerators[i], 4);
+                CutGenerators[i].Initialize(activityGenerator, cutGeometryGenerators[i], PreferencesManager.UserPreferences.Visualization._3D.RawCuts ? 0 : 4);
             }
         }
         /// <summary>
@@ -87,7 +88,7 @@ namespace HBP.Data.Module3D
         /// <param name="indexCut">Index of the cut</param>
         /// <param name="MRICalMinFactor">Cal Min Factor</param>
         /// <param name="MRICalMaxFactor">Cal Max Factor</param>
-        public void CreateMRITexture(Core.DLL.Volume volume, int indexCut, float MRICalMinFactor, float MRICalMaxFactor, int blurFactor)
+        public void CreateMRITexture(Core.DLL.Volume volume, int indexCut, float MRICalMinFactor, float MRICalMaxFactor)
         {
             Core.DLL.CutGenerator cutGenerator = CutGenerators[indexCut];
             UnityEngine.Profiling.Profiler.BeginSample("FillTextureWithVolume");

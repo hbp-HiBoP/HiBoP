@@ -730,6 +730,7 @@ namespace HBP.Data.Module3D
                 UpdateVisibleState(true);
                 SceneInformation.CompletelyLoaded = true;
                 OnSceneCompletelyLoaded.Invoke();
+                PreferencesManager.UserPreferences.OnSavePreferences.AddListener(() => SceneInformation.CutsNeedUpdate = true);
                 if (Visualization.Configuration.FirstColumnToSelect < Columns.Count)
                 {
                     Columns[Visualization.Configuration.FirstColumnToSelect].SelectFirstOrDefaultSiteByName(Visualization.Configuration.FirstSiteToSelect);
@@ -758,7 +759,7 @@ namespace HBP.Data.Module3D
             UnityEngine.Profiling.Profiler.BeginSample("ComputeBaseCutTextures");
             foreach (Column3D column in Columns)
                 foreach (Core.Object3D.Cut cut in Cuts)
-                    column.CutTextures.CreateMRITexture(MRIManager.SelectedMRI.Volume, cut.ID, MRIManager.MRICalMinFactor, MRIManager.MRICalMaxFactor, 3);
+                    column.CutTextures.CreateMRITexture(MRIManager.SelectedMRI.Volume, cut.ID, MRIManager.MRICalMinFactor, MRIManager.MRICalMaxFactor);
 
             SceneInformation.BaseCutTexturesNeedUpdate = false;
             UnityEngine.Profiling.Profiler.EndSample();
@@ -893,7 +894,12 @@ namespace HBP.Data.Module3D
             UnityEngine.Profiling.Profiler.BeginSample("cut_generator Create cut");
             List<Core.DLL.Surface> generatedCutMeshes = new List<Core.DLL.Surface>(Cuts.Count);
             if (Cuts.Count > 0)
-                generatedCutMeshes = MeshManager.BrainSurface.GenerateCutSurfaces(Cuts, false, StrongCuts);
+            {
+                if (PreferencesManager.UserPreferences.Visualization._3D.RawCuts)
+                    generatedCutMeshes = MeshManager.BrainSurface.GenerateRawCutSurfaces(Cuts, false, StrongCuts);
+                else
+                    generatedCutMeshes = MeshManager.BrainSurface.GenerateCutSurfaces(Cuts, false, StrongCuts);
+            }
             UnityEngine.Profiling.Profiler.EndSample();
 
             // Fill parameters in shader

@@ -45,6 +45,7 @@ namespace HBP.Data.Preferences
     {
         #region Properties
         [DataMember] public bool AutomaticEEGUpdate { get; set; }
+        [DataMember] public bool RawCuts { get; set; }
         [DataMember] public LayoutDirection VisualizationsLayoutDirection { get; set; }
         [DataMember] public SiteInfluenceByDistanceType SiteInfluenceByDistance { get; set; }
         [DataMember] public string DefaultSelectedMRIInSinglePatientVisualization { get; set; }
@@ -58,6 +59,7 @@ namespace HBP.Data.Preferences
         #region Constructors
         public _3DPreferences(
             bool automaticEEGUpdate = true,
+            bool rawCuts = false,
             LayoutDirection visualizationsLayoutDirection = LayoutDirection.Vertical,
             SiteInfluenceByDistanceType siteInfluenceByDistance = SiteInfluenceByDistanceType.Quadratic,
             string defaultSelectedMRIInSinglePatientVisualization = "Preimplantation",
@@ -68,6 +70,7 @@ namespace HBP.Data.Preferences
             string defaultSelectedImplantationInMultiPatientsVisualization = "MNI")
         {
             AutomaticEEGUpdate = automaticEEGUpdate;
+            RawCuts = rawCuts;
             VisualizationsLayoutDirection = visualizationsLayoutDirection;
             SiteInfluenceByDistance = siteInfluenceByDistance;
             DefaultSelectedMRIInSinglePatientVisualization = defaultSelectedMRIInSinglePatientVisualization;
@@ -82,7 +85,7 @@ namespace HBP.Data.Preferences
         #region Public Methods
         public object Clone()
         {
-            return new _3DPreferences(AutomaticEEGUpdate, VisualizationsLayoutDirection, SiteInfluenceByDistance, DefaultSelectedMRIInSinglePatientVisualization, DefaultSelectedMeshInSinglePatientVisualization, DefaultSelectedImplantationInSinglePatientVisualization, DefaultSelectedMRIInMultiPatientsVisualization, DefaultSelectedMeshInMultiPatientsVisualization, DefaultSelectedImplantationInMultiPatientsVisualization);
+            return new _3DPreferences(AutomaticEEGUpdate, RawCuts, VisualizationsLayoutDirection, SiteInfluenceByDistance, DefaultSelectedMRIInSinglePatientVisualization, DefaultSelectedMeshInSinglePatientVisualization, DefaultSelectedImplantationInSinglePatientVisualization, DefaultSelectedMRIInMultiPatientsVisualization, DefaultSelectedMeshInMultiPatientsVisualization, DefaultSelectedImplantationInMultiPatientsVisualization);
         }
         #endregion
     }
