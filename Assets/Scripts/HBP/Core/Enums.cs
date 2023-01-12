@@ -38,7 +38,7 @@ namespace HBP.Core.Enums
     public enum SiteNavigationDirection { Left, Right }
     public enum SiteType { Normal, Positive, Negative, Source, NotASource, BlackListed, NonePos, NoneNeg };
     public enum MainSecondaryEnum { Main, Secondary }
-    public enum CreationType { FromScratch, FromExistingObject, FromFile, FromDatabase }
+    public enum CreationType { FromScratch, FromExistingObject, FromFile, FromDatabase, FromDirectory }
     public enum RaycastHitResult { None, Cut, Mesh, Site, ROI }
     public enum LayoutDirection { Horizontal, Vertical }
 }

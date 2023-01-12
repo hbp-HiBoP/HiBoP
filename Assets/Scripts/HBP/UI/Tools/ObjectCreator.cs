@@ -49,6 +49,22 @@ namespace HBP.UI.Tools
             }
         }
 
+        [SerializeField] bool m_IsLoadableFromDirectory = true;
+        /// <summary>
+        /// True if the Object of type T is creatable from a database, False otherwise.
+        /// </summary>
+        public bool IsCreatableFromDirectory
+        {
+            get
+            {
+                return m_IsLoadableFromDirectory;
+            }
+            set
+            {
+                m_IsLoadableFromDirectory = value;
+            }
+        }
+
         [SerializeField] bool m_IsCreatableFromScratch = true;
         /// <summary>
         /// True if the Object of type T is creatable from scratch, False otherwise.
@@ -126,17 +142,20 @@ namespace HBP.UI.Tools
             bool createableFromFile = IsCreatableFromFile && typeof(T).GetInterfaces().Contains(typeof(ILoadable<T>));
             bool createableFromDatabase = IsCreatableFromDatabase && typeof(T).GetInterfaces().Contains(typeof(ILoadableFromDatabase<T>));
             bool createableFromExistingObjects = IsCreatableFromExistingObject && ExistingObjects.Count > 0;
+            bool creatableFromDirectory = IsCreatableFromDirectory && typeof(T).GetInterfaces().Contains(typeof(ILoadableFromDirectory<T>));
 
-            if (createableFromScratch && !createableFromFile && !createableFromDatabase && !createableFromExistingObjects) CreateFromScratch();
-            else if (!createableFromScratch && createableFromFile && !createableFromDatabase && !createableFromExistingObjects) CreateFromFile();
-            else if (!createableFromScratch && !createableFromFile && createableFromDatabase && !createableFromExistingObjects) CreateFromDatabase();
-            else if (!createableFromScratch && !createableFromFile && !createableFromDatabase && createableFromExistingObjects) CreateFromExistingObject();
+            if (createableFromScratch && !createableFromFile && !createableFromDatabase && !createableFromExistingObjects && !creatableFromDirectory) CreateFromScratch();
+            else if (!createableFromScratch && createableFromFile && !createableFromDatabase && !createableFromExistingObjects && !creatableFromDirectory) CreateFromFile();
+            else if (!createableFromScratch && !createableFromFile && createableFromDatabase && !createableFromExistingObjects && !creatableFromDirectory) CreateFromDatabase();
+            else if (!createableFromScratch && !createableFromFile && !createableFromDatabase && createableFromExistingObjects && !creatableFromDirectory) CreateFromExistingObject();
+            else if (!createableFromScratch && !createableFromFile && !createableFromDatabase && !createableFromExistingObjects && creatableFromDirectory) CreateFromDirectory();
             else
             {
                 m_CreatorContextMenu.IsCreatableFromScratch = createableFromScratch;
                 m_CreatorContextMenu.IsCreatableFromExistingObjects = createableFromExistingObjects;
                 m_CreatorContextMenu.IsCreatableFromFile = createableFromFile;
                 m_CreatorContextMenu.IsCreatableFromDatabase = createableFromDatabase;
+                m_CreatorContextMenu.IsCreatableFromDirectory = creatableFromDirectory;
                 m_CreatorContextMenu.Open();
             }
         }
@@ -159,6 +178,9 @@ namespace HBP.UI.Tools
                     break;
                 case CreationType.FromDatabase:
                     CreateFromDatabase();
+                    break;
+                case CreationType.FromDirectory:
+                    CreateFromDirectory();
                     break;
             }
             m_CreatorContextMenu.Close();
@@ -190,6 +212,13 @@ namespace HBP.UI.Tools
         public virtual void CreateFromDatabase()
         {
             SelectDatabase();
+        }
+        /// <summary>
+        /// Create a new object from a directory
+        /// </summary>
+        public virtual void CreateFromDirectory()
+        {
+            SelectDirectory();
         }
         #endregion
 
@@ -341,11 +370,40 @@ namespace HBP.UI.Tools
             }
 #endif
         }
+        protected virtual void SelectDirectory()
+        {
+#if UNITY_STANDALONE_OSX
+            FileBrowser.GetExistingDirectoryNamesAsync((paths) =>
+            {
+                if (paths.Length > 0)
+                {
+                    ILoadableFromDirectory<T> loadable = new T() as ILoadableFromDirectory<T>;
+                    GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+                    LoadingManager.Load(loadable.LoadFromDirectory(paths, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => OnEndLoadFromDirectory(result.ToArray())), onChangeProgress);
+                }
+            });
+#else
+            string[] paths = FileBrowser.GetExistingDirectoryNames();
+            if (paths.Length > 0)
+            {
+                ILoadableFromDirectory<T> loadable = new T() as ILoadableFromDirectory<T>;
+                GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+                LoadingManager.Load(loadable.LoadFromDirectory(paths, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => OnEndLoadFromDirectory(result.ToArray())), onChangeProgress);
+            }
+#endif
+        }
         /// <summary>
         /// Called when the asynchronious method to load objects from the database are ended.
         /// </summary>
         /// <param name="result">Objects created from the database</param>
         protected virtual void OnEndLoadFromDatabase(T[] result)
+        {
+            if (result.Length > 0)
+            {
+                OpenSelector(result, true, false, false);
+            }
+        }
+        protected virtual void OnEndLoadFromDirectory(T[] result)
         {
             if (result.Length > 0)
             {

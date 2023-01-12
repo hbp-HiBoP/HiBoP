@@ -22,6 +22,17 @@ namespace HBP.UI.Tools
             return paths.Length > 0 ? (m_LastSelectedDirectory = paths[0]) : string.Empty;
         }
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="directoryPath"></param>
+        /// <returns></returns>
+        public static string[] GetExistingDirectoryNames(string message = "Select a directory", string directoryPath = "")
+        {
+            string[] paths = StandaloneFileBrowser.OpenFolderPanel(message, string.IsNullOrEmpty(directoryPath) ? m_LastSelectedDirectory : directoryPath, true);
+            return paths;
+        }
+        /// <summary>
         /// Open a qt file dialog and return the path of a selected file.
         /// </summary>
         /// <param name="filtersArray"> extension filters of the files of be displayed in the file dialog (ex: filtersArray[0] = "txt", filtersArray[1] = "png" ...) </param>
@@ -77,6 +88,13 @@ namespace HBP.UI.Tools
             StandaloneFileBrowser.OpenFolderPanelAsync(message, string.IsNullOrEmpty(directoryPath) ? m_LastSelectedDirectory : directoryPath, false, (paths) =>
             {
                 callback(paths.Length > 0 ? (m_LastSelectedDirectory = paths[0]) : string.Empty);
+            });
+        }
+        public static void GetExistingDirectoryNamesAsync(System.Action<string[]> callback, string message = "Select a directory", string directoryPath = "")
+        {
+            StandaloneFileBrowser.OpenFolderPanelAsync(message, string.IsNullOrEmpty(directoryPath) ? m_LastSelectedDirectory : directoryPath, true, (paths) =>
+            {
+                callback(paths);
             });
         }
         /// <summary>
