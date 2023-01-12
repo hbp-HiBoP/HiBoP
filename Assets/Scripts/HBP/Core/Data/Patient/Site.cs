@@ -110,38 +110,41 @@ namespace HBP.Core.Data
             var sites = new List<Site>();
             var parent = new DirectoryInfo(path);
             var implantationDirection = new DirectoryInfo(Path.Combine(path, "implantation"));
-            var ptsFiles = implantationDirection.GetFiles("*.pts", SearchOption.TopDirectoryOnly);
-            var csvFiles = implantationDirection.GetFiles("*.csv", SearchOption.TopDirectoryOnly);
-            foreach (var file in ptsFiles)
+            if (implantationDirection.Exists)
             {
-                string referenceSystem = file.Name.Replace(parent.Name, "").Replace("_", "").Replace(".pts", "");
-                if (referenceSystem == "")
+                var ptsFiles = implantationDirection.GetFiles("*.pts", SearchOption.TopDirectoryOnly);
+                var csvFiles = implantationDirection.GetFiles("*.csv", SearchOption.TopDirectoryOnly);
+                foreach (var file in ptsFiles)
                 {
-                    referenceSystem = "Patient";
+                    string referenceSystem = file.Name.Replace(parent.Name, "").Replace("_", "").Replace(".pts", "");
+                    if (referenceSystem == "")
+                    {
+                        referenceSystem = "Patient";
+                    }
+                    else if (referenceSystem.Contains("T1Post"))
+                    {
+                        referenceSystem = "Post";
+                    }
+                    else if (referenceSystem.Contains("CTPost"))
+                    {
+                        referenceSystem = "CT";
+                    }
+                    var ptsSites = LoadSitesFromPTSFile(referenceSystem, file.FullName);
+                    foreach (var site in ptsSites)
+                    {
+                        var existingSite = sites.FirstOrDefault(s => s.Name == site.Name);
+                        if (existingSite == null) sites.Add(site);
+                        else existingSite.Coordinates.AddRange(site.Coordinates);
+                    }
                 }
-                else if (referenceSystem.Contains("T1Post"))
+                foreach (var file in csvFiles)
                 {
-                    referenceSystem = "Post";
-                }
-                else if (referenceSystem.Contains("CTPost"))
-                {
-                    referenceSystem = "CT";
-                }
-                var ptsSites = LoadSitesFromPTSFile(referenceSystem, file.FullName);
-                foreach (var site in ptsSites)
-                {
-                    var existingSite = sites.FirstOrDefault(s => s.Name == site.Name);
-                    if (existingSite == null) sites.Add(site);
-                    else existingSite.Coordinates.AddRange(site.Coordinates);
-                }
-            }
-            foreach (var file in csvFiles)
-            {
-                var csvSites = LoadSitesFromCSVFile(file.FullName);
-                foreach (var site in csvSites)
-                {
-                    var existingSite = sites.FirstOrDefault(s => s.Name == site.Name);
-                    if (existingSite != null) existingSite.Tags.AddRange(site.Tags);
+                    var csvSites = LoadSitesFromCSVFile(file.FullName);
+                    foreach (var site in csvSites)
+                    {
+                        var existingSite = sites.FirstOrDefault(s => s.Name == site.Name);
+                        if (existingSite != null) existingSite.Tags.AddRange(site.Tags);
+                    }
                 }
             }
             return sites;

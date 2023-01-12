@@ -407,7 +407,10 @@ namespace HBP.UI.Tools
         {
             if (result.Length > 0)
             {
-                OpenSelector(result, true, false, false);
+                if (result.Length == 1)
+                    OnObjectCreated.Invoke(result[0]);
+                else
+                    OpenSelector(result, true, false, false);
             }
         }
         #endregion
