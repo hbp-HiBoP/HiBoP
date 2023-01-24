@@ -396,9 +396,7 @@ namespace HBP.Data.Module3D
         public void AddView()
         {
             View3D view = Instantiate(m_ViewPrefab, transform.Find("Views")).GetComponent<View3D>();
-            view.gameObject.name = "View " + Views.Count;
-            view.LineID = Views.Count;
-            view.Layer = Layer;
+            view.Initialize(Views.Count, Layer);
             view.OnSelect.AddListener(() =>
             {
                 foreach (View3D v in Views)

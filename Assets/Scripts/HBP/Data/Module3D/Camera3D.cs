@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine.Rendering;
 using ThirdParty.ImageEffects;
 using HBP.Core.Enums;
+using System.Linq;
 
 namespace HBP.Data.Module3D
 {
@@ -79,11 +80,25 @@ namespace HBP.Data.Module3D
         /// Zoom speed of the camera
         /// </summary>
         [SerializeField] private float m_ZoomSpeed = 1.0f;
-        
+
+        private bool m_DisplayRotationCircles = false;
         /// <summary>
         /// Do we display the rotation circles ?
         /// </summary>
-        public bool DisplayRotationCircles { get; set; }
+        public bool DisplayRotationCircles
+        {
+            get
+            {
+                return m_DisplayRotationCircles;
+            }
+            set
+            {
+                m_DisplayRotationCircles = value;
+                m_CircleX.gameObject.SetActive(value);
+                m_CircleY.gameObject.SetActive(value);
+                m_CircleZ.gameObject.SetActive(value);
+            }
+        }
         /// <summary>
         /// Radius of the rotation circles
         /// </summary>
@@ -159,6 +174,10 @@ namespace HBP.Data.Module3D
         /// </summary>
         private Vector3[] m_ZRotationCircleVertices;
 
+        [SerializeField] private LineRenderer m_CircleX;
+        [SerializeField] private LineRenderer m_CircleY;
+        [SerializeField] private LineRenderer m_CircleZ;
+
         /// <summary>
         /// Vertices of the plane cut circle
         /// </summary>
@@ -172,6 +191,17 @@ namespace HBP.Data.Module3D
         /// Do we display cut circle ?
         /// </summary>
         private bool m_DisplayCutsCircles = false;
+        public bool DisplayCutsCircles
+        {
+            get { return m_DisplayCutsCircles; }
+            set
+            {
+                m_DisplayCutsCircles = value;
+                m_CutCircle.gameObject.SetActive(value);
+                m_CutCross1.gameObject.SetActive(value);
+                m_CutCross2.gameObject.SetActive(value);
+            }
+        }
         /// <summary>
         /// Time before the cut circle disappear
         /// </summary>
@@ -180,6 +210,10 @@ namespace HBP.Data.Module3D
         /// Time since we begin to display circles
         /// </summary>
         private float m_DisplayPlanesTimer = 0f;
+
+        [SerializeField] private LineRenderer m_CutCircle;
+        [SerializeField] private LineRenderer m_CutCross1;
+        [SerializeField] private LineRenderer m_CutCross2;
 
         /// <summary>
         /// Ambient mode for the camera
@@ -223,9 +257,9 @@ namespace HBP.Data.Module3D
             AutomaticRotationSpeed = m_AssociatedScene.AutomaticRotationSpeed;
 
             // rotation circles
-            m_XRotationCircleVertices = Core.Object3D.Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), m_RotationCirclesRadius, 150);
-            m_YRotationCircleVertices = Core.Object3D.Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), m_RotationCirclesRadius, 150);
-            m_ZRotationCircleVertices = Core.Object3D.Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), m_RotationCirclesRadius, 150);
+            m_XRotationCircleVertices = Core.Object3D.Geometry.Create3DCirclePoints(Vector3.zero, m_RotationCirclesRadius, 150);
+            m_YRotationCircleVertices = Core.Object3D.Geometry.Create3DCirclePoints(Vector3.zero, m_RotationCirclesRadius, 150);
+            m_ZRotationCircleVertices = Core.Object3D.Geometry.Create3DCirclePoints(Vector3.zero, m_RotationCirclesRadius, 150);
             for (int ii = 0; ii < m_XRotationCircleVertices.Length; ++ii)
             {
                 m_XRotationCircleVertices[ii] = Quaternion.AngleAxis(90, Vector3.up) * m_XRotationCircleVertices[ii];
@@ -244,14 +278,30 @@ namespace HBP.Data.Module3D
                     normal.x *= -1;
                     Quaternion q = Quaternion.FromToRotation(new Vector3(0, 0, 1), normal);
                     m_PlanesCutsCirclesVertices.Add(Core.Object3D.Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), 100, 150));
-                    for (int jj = 0; jj < 150; ++jj)
+                    for (int jj = 0; jj < m_PlanesCutsCirclesVertices[ii].Length; ++jj)
                     {
                         m_PlanesCutsCirclesVertices[ii][jj] = q * m_PlanesCutsCirclesVertices[ii][jj];
                         m_PlanesCutsCirclesVertices[ii][jj] += point;
                     }
                 }
+
+                m_CutCircle.material = m_PlaneMaterial;
+                m_CutCircle.positionCount = m_PlanesCutsCirclesVertices[m_AssociatedScene.LastPlaneModifiedIndex].Length;
+                m_CutCircle.SetPositions(m_PlanesCutsCirclesVertices[m_AssociatedScene.LastPlaneModifiedIndex].Select(p => p - m_AssociatedView.transform.position).ToArray());
+                m_CutCircle.startWidth = 1f;
+
+                m_CutCross1.material = m_PlaneMaterial;
+                m_CutCross1.positionCount = 2;
+                m_CutCross1.SetPositions(new Vector3[] { m_PlanesCutsCirclesVertices[m_AssociatedScene.LastPlaneModifiedIndex][m_CutCircle.positionCount / 8], m_PlanesCutsCirclesVertices[m_AssociatedScene.LastPlaneModifiedIndex][5 * m_CutCircle.positionCount / 8] });
+                m_CutCross1.startWidth = 1f;
+
+                m_CutCross2.material = m_PlaneMaterial;
+                m_CutCross2.positionCount = 2;
+                m_CutCross2.SetPositions(new Vector3[] { m_PlanesCutsCirclesVertices[m_AssociatedScene.LastPlaneModifiedIndex][3 * m_CutCircle.positionCount / 8], m_PlanesCutsCirclesVertices[m_AssociatedScene.LastPlaneModifiedIndex][7 * m_CutCircle.positionCount / 8] });
+                m_CutCross2.startWidth = 1f;
+
                 m_DisplayPlanesTimer = 0;
-                m_DisplayCutsCircles = true;
+                DisplayCutsCircles = true;
             });
 
             m_AssociatedScene.OnUpdateCameraTarget.AddListener((target) =>
@@ -271,10 +321,6 @@ namespace HBP.Data.Module3D
             Module3DMain.SharedDirectionalLight.transform.eulerAngles = transform.eulerAngles;
             Module3DMain.SharedSpotlight.transform.eulerAngles = transform.eulerAngles;
             Module3DMain.SharedSpotlight.transform.position = transform.position;
-        }
-        private void OnPostRender()
-        {
-            DrawGL();
         }
         private void Update()
         {
@@ -298,6 +344,33 @@ namespace HBP.Data.Module3D
                 m_Camera.GetComponent<Theme.ThemeElement>().Set();
             }
             AutomaticCameraRotation();
+            if (DisplayRotationCircles) SetRotationCirclesPositions();
+            if (m_DisplayPlanesTimer < m_DisplayPlanesTimeRemaining)
+                m_DisplayPlanesTimer += Time.deltaTime;
+            else
+                DisplayCutsCircles = false;
+        }
+        private void SetRotationCirclesPositions()
+        {
+            float scaleRatio = m_Distance / m_MaxDistance;
+
+            m_CircleX.material = m_XCircleMaterial;
+            m_CircleX.positionCount = m_XRotationCircleVertices.Length;
+            m_CircleX.SetPositions(m_XRotationCircleVertices.Select(p => Target + scaleRatio * p - m_AssociatedView.transform.position).ToArray());
+            m_CircleX.loop = true;
+            m_CircleX.startWidth = scaleRatio * 1.4f;
+
+            m_CircleY.material = m_YCircleMaterial;
+            m_CircleY.positionCount = m_YRotationCircleVertices.Length;
+            m_CircleY.SetPositions(m_YRotationCircleVertices.Select(p => Target + scaleRatio * p - m_AssociatedView.transform.position).ToArray());
+            m_CircleY.loop = true;
+            m_CircleY.startWidth = scaleRatio * 1.4f;
+
+            m_CircleZ.material = m_ZCircleMaterial;
+            m_CircleZ.positionCount = m_ZRotationCircleVertices.Length;
+            m_CircleZ.SetPositions(m_ZRotationCircleVertices.Select(p => Target + scaleRatio * p - m_AssociatedView.transform.position).ToArray());
+            m_CircleZ.loop = true;
+            m_CircleZ.startWidth = scaleRatio * 1.4f;
         }
         /// <summary>
         /// Make the camera rotate automatically
@@ -307,83 +380,6 @@ namespace HBP.Data.Module3D
             if (AutomaticRotation)
             {
                 HorizontalRotation(AutomaticRotationSpeed * Time.deltaTime);
-            }
-        }
-        /// <summary>
-        /// Draw the GL objects (cut and rotation circles)
-        /// </summary>
-        private void DrawGL()
-        {
-            if (m_AssociatedView.IsMinimized)
-                return;
-
-            if (m_DisplayCutsCircles)
-            {
-                if (m_DisplayPlanesTimer < m_DisplayPlanesTimeRemaining)
-                {
-                    m_DisplayPlanesTimer += Time.deltaTime;
-                    m_PlaneMaterial.SetPass(0);
-                    {
-                        int ii = m_AssociatedScene.LastPlaneModifiedIndex;
-                        if (ii < m_PlanesCutsCirclesVertices.Count)
-                        {
-                            for (int jj = 0; jj < m_PlanesCutsCirclesVertices[ii].Length; ++jj)
-                            {
-                                GL.Begin(GL.LINES);
-                                GL.Vertex(m_PlanesCutsCirclesVertices[ii][jj]);
-                                GL.Vertex(m_PlanesCutsCirclesVertices[ii][(jj + 1) % m_PlanesCutsCirclesVertices[ii].Length]);
-                                GL.End();
-                            }
-
-                            GL.Begin(GL.LINES);
-                            GL.Vertex(m_PlanesCutsCirclesVertices[ii][m_PlanesCutsCirclesVertices[ii].Length / 8]);
-                            GL.Vertex(m_PlanesCutsCirclesVertices[ii][5 * m_PlanesCutsCirclesVertices[ii].Length / 8]);
-                            GL.End();
-                            GL.Begin(GL.LINES);
-                            GL.Vertex(m_PlanesCutsCirclesVertices[ii][3 * m_PlanesCutsCirclesVertices[ii].Length / 8]);
-                            GL.Vertex(m_PlanesCutsCirclesVertices[ii][7 * m_PlanesCutsCirclesVertices[ii].Length / 8]);
-                            GL.End();
-                        }
-                    }
-                }
-                else
-                    m_DisplayCutsCircles = false;
-            }
-
-            if (DisplayRotationCircles)
-            {
-                //GL.PushMatrix();
-                m_XCircleMaterial.SetPass(0);
-
-                float scaleRatio = m_Distance / m_MaxDistance;
-
-                for (int ii = 0; ii < m_XRotationCircleVertices.Length; ++ii)
-                {
-                    GL.Begin(GL.LINES);
-                    GL.Vertex(Target + scaleRatio * m_XRotationCircleVertices[ii]);
-                    GL.Vertex(Target + scaleRatio * m_XRotationCircleVertices[(ii + 1) % m_XRotationCircleVertices.Length]);
-                    GL.End();
-                }
-
-                m_YCircleMaterial.SetPass(0);
-
-                for (int ii = 0; ii < m_YRotationCircleVertices.Length; ++ii)
-                {
-                    GL.Begin(GL.LINES);
-                    GL.Vertex(Target + scaleRatio * m_YRotationCircleVertices[ii]);
-                    GL.Vertex(Target + scaleRatio * m_YRotationCircleVertices[(ii + 1) % m_YRotationCircleVertices.Length]);
-                    GL.End();
-                }
-
-                m_ZCircleMaterial.SetPass(0);
-
-                for (int ii = 0; ii < m_ZRotationCircleVertices.Length; ++ii)
-                {
-                    GL.Begin(GL.LINES);
-                    GL.Vertex(Target + scaleRatio * m_ZRotationCircleVertices[ii]);
-                    GL.Vertex(Target + scaleRatio * m_ZRotationCircleVertices[(ii + 1) % m_ZRotationCircleVertices.Length]);
-                    GL.End();
-                }
             }
         }
         #endregion
@@ -467,6 +463,13 @@ namespace HBP.Data.Module3D
             transform.localEulerAngles = m_OriginalRotationEuler;
             Target = m_OriginalTarget;
             transform.position = Target - transform.forward * m_StartDistance;
+        }
+
+        public void SetCirclesLayer(string layer)
+        {
+            m_CircleX.gameObject.layer = LayerMask.NameToLayer(layer);
+            m_CircleY.gameObject.layer = LayerMask.NameToLayer(layer);
+            m_CircleZ.gameObject.layer = LayerMask.NameToLayer(layer);
         }
         #endregion
     }
