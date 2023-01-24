@@ -730,7 +730,11 @@ namespace HBP.Data.Module3D
                 UpdateVisibleState(true);
                 SceneInformation.CompletelyLoaded = true;
                 OnSceneCompletelyLoaded.Invoke();
-                PreferencesManager.UserPreferences.OnSavePreferences.AddListener(() => SceneInformation.CutsNeedUpdate = true);
+                PreferencesManager.UserPreferences.OnSavePreferences.AddListener(() =>
+                {
+                    UpdateCutNumber(m_DisplayedObjects.BrainCutMeshes.Count);
+                    SceneInformation.CutsNeedUpdate = true;
+                });
                 if (Visualization.Configuration.FirstColumnToSelect < Columns.Count)
                 {
                     Columns[Visualization.Configuration.FirstColumnToSelect].SelectFirstOrDefaultSiteByName(Visualization.Configuration.FirstSiteToSelect);
