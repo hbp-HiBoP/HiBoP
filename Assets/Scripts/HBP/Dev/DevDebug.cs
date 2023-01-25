@@ -22,15 +22,33 @@ namespace HBP.Dev
         private float m_Percent;
         private bool m_Initialized = false;
         private float m_TimeSinceLastAction = 0;
-        private void OnApplicationQuit()
+/*        private void OnApplicationQuit()
         {
             Debug.Log("quitting");
             using StreamWriter sw = new(Path.Combine(Application.persistentDataPath, "quit.txt"));
             sw.WriteLine("quit");
             sw.Close();
-        }
+        }*/
         private void Update()
         {
+/*            if (Input.GetKeyDown(KeyCode.A))
+            {
+                Core.Object3D.Cut cut = Module3DMain.SelectedScene.Cuts[0];
+                cut.Position -= 1.0f / cut.NumberOfCuts;
+                Module3DMain.SelectedScene.UpdateCutPlane(cut, true);
+            }
+            if (Input.GetKeyDown(KeyCode.B))
+            {
+                Core.Object3D.Cut cut = Module3DMain.SelectedScene.Cuts[0];
+                cut.Flip = !cut.Flip;
+                Module3DMain.SelectedScene.UpdateCutPlane(cut, true);
+            }
+            if (Input.GetKeyDown(KeyCode.C))
+            {
+                Core.Object3D.Cut cut = Module3DMain.SelectedScene.Cuts[0];
+                cut.Orientation = (CutOrientation)(((int)cut.Orientation + 1) % 3);
+                Module3DMain.SelectedScene.UpdateCutPlane(cut, true);
+            }*/
             /*
             // FRAMRATE
             m_TimeSinceLastAction += Time.deltaTime;

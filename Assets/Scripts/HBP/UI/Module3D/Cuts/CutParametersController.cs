@@ -408,6 +408,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         public void OpenControls()
         {
+            m_Scene.UpdateCutPlane(Cut, true);
             AreControlsOpen = true;
             UpdateUI();
             OnOpenControls.Invoke();

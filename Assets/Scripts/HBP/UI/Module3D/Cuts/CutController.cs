@@ -7,6 +7,7 @@ using HBP.Core.Enums;
 using HBP.Data.Module3D;
 using HBP.Core.Tools;
 using HBP.UI.Tools.ResizableGrids;
+using HBP.Core.Object3D;
 
 namespace HBP.UI.Module3D
 {
@@ -72,6 +73,7 @@ namespace HBP.UI.Module3D
                 return Mathf.Abs(m_RectTransform.rect.width - m_ParentGrid.MinimumViewWidth) <= MINIMIZED_THRESHOLD;
             }
         }
+        public Cut SelectedCut { get { return m_CutParametersControllers.FirstOrDefault(c => c.AreControlsOpen)?.Cut; } }
         #endregion
 
         #region Private Methods
@@ -139,7 +141,7 @@ namespace HBP.UI.Module3D
             m_Scene = scene;
             m_AddCutButton.onClick.AddListener(() =>
             {
-                m_Scene.AddCutPlane();
+                Cut cut = m_Scene.AddCutPlane();
                 m_CutParametersControllers.Last().OpenControls();
             });
 
@@ -159,6 +161,16 @@ namespace HBP.UI.Module3D
                 }
                 m_AddCutButton.gameObject.SetActive(!isOn);
             });
+        }
+        public void OpenNextController()
+        {
+            if (m_CutParametersControllers.Count == 0) return;
+
+            var controller = m_CutParametersControllers.FirstOrDefault(c => c.AreControlsOpen);
+            int index = 0;
+            if (controller != null)
+                index = m_CutParametersControllers.IndexOf(controller);
+            m_CutParametersControllers[(index + 1) % m_CutParametersControllers.Count].OpenControls();
         }
         #endregion
     }
