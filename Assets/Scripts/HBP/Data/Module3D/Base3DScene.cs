@@ -867,22 +867,12 @@ namespace HBP.Data.Module3D
         /// <param name="site">Site that has been clicked</param>
         private void ClickOnSiteCallback(Core.Object3D.Site site)
         {
-            if ((SelectedColumn is Column3DDynamic || SelectedColumn is Column3DMEG) && site)
+            if (site)
             {
                 List<Core.Object3D.Site> sites = new List<Core.Object3D.Site>();
                 if (ImplantationManager.SiteToCompare) sites.Add(ImplantationManager.SiteToCompare);
                 sites.Add(site);
-                if (SelectedColumn is Column3DCCEP ccepColumn)
-                {
-                    if (ccepColumn.IsSourceSiteSelected)
-                    {
-                        OnRequestSiteInformation.Invoke(sites);
-                    }
-                }
-                else
-                {
-                    OnRequestSiteInformation.Invoke(sites);
-                }
+                OnRequestSiteInformation.Invoke(sites);
             }
             SceneInformation.SitesNeedUpdate = true;
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
