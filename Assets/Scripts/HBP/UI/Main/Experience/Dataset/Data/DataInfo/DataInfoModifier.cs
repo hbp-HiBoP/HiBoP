@@ -30,6 +30,7 @@ namespace HBP.UI.Main
         [SerializeField] iEEGDataInfoSubModifier m_iEEGDataInfoSubModifier;
         [SerializeField] CCEPDataInfoSubModifier m_CCEPDataInfoSubModifier;
         [SerializeField] FMRIDataInfoSubModifier m_FMRIDataInfoSubModifier;
+        [SerializeField] SharedFMRIDataInfoSubModifier m_SharedFMRIDataInfoSubModifier;
         [SerializeField] MEGvDataInfoSubModifier m_MEGvDataInfoSubModifier;
         [SerializeField] MEGcDataInfoSubModifier m_MEGcDataInfoSubModifier;
 
@@ -86,6 +87,7 @@ namespace HBP.UI.Main
                 m_iEEGDataInfoSubModifier,
                 m_CCEPDataInfoSubModifier,
                 m_FMRIDataInfoSubModifier,
+                m_SharedFMRIDataInfoSubModifier,
                 m_MEGvDataInfoSubModifier,
                 m_MEGcDataInfoSubModifier
             };
@@ -95,6 +97,7 @@ namespace HBP.UI.Main
                 new IEEGDataInfo(),
                 new CCEPDataInfo(),
                 new FMRIDataInfo(),
+                new SharedFMRIDataInfo(),
                 new MEGvDataInfo(),
                 new MEGcDataInfo()
             };
@@ -102,6 +105,7 @@ namespace HBP.UI.Main
             m_iEEGDataInfoSubModifier.Initialize();
             m_CCEPDataInfoSubModifier.Initialize();
             m_FMRIDataInfoSubModifier.Initialize();
+            m_SharedFMRIDataInfoSubModifier.Initialize();
             m_MEGvDataInfoSubModifier.Initialize();
             m_MEGcDataInfoSubModifier.Initialize();
 
@@ -119,6 +123,7 @@ namespace HBP.UI.Main
         {
             Type type = m_Types[value];
 
+            m_PatientDataInfoSubModifier.IsActive = false;
             m_SubModifiers.Find(s => s.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(ObjectTemp.GetType()))).IsActive = false;
 
             DataInfo dataInfo = m_DataInfoTemp.Find(d => d.GetType() == type);
@@ -132,11 +137,16 @@ namespace HBP.UI.Main
             if (type == typeof(IEEGDataInfo)) m_DataContainerModifier.DataAttribute = new IEEG();
             else if (type == typeof(CCEPDataInfo)) m_DataContainerModifier.DataAttribute = new CCEP();
             else if (type == typeof(FMRIDataInfo)) m_DataContainerModifier.DataAttribute = new FMRI();
+            else if (type == typeof(SharedFMRIDataInfo)) m_DataContainerModifier.DataAttribute = new FMRI();
             else if (type == typeof(MEGvDataInfo)) m_DataContainerModifier.DataAttribute = new MEGv();
             else if (type == typeof(MEGcDataInfo)) m_DataContainerModifier.DataAttribute = new MEGc();
 
             m_DataContainerModifier.Object = m_ObjectTemp.DataContainer;
-            if (m_ObjectTemp is PatientDataInfo patientDataInfo) m_PatientDataInfoSubModifier.Object = patientDataInfo;
+            if (m_ObjectTemp is PatientDataInfo patientDataInfo)
+            {
+                m_PatientDataInfoSubModifier.IsActive = true;
+                m_PatientDataInfoSubModifier.Object = patientDataInfo;
+            }
         }
         /// <summary>
         /// Change the datacontainer type.

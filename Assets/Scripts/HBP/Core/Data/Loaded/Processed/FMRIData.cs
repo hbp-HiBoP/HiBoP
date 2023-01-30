@@ -10,12 +10,17 @@ namespace HBP.Core.Data.Processed
         #endregion
 
         #region Public Methods
-        public void Load(IEnumerable<FMRIDataInfo> columnData)
+        public void Load(IEnumerable<FMRIDataInfo> columnData, IEnumerable<SharedFMRIDataInfo> sharedFMRIs)
         {
             foreach (FMRIDataInfo dataInfo in columnData)
             {
                 Core.Data.FMRIData data = DataManager.GetData(dataInfo) as Core.Data.FMRIData;
                 FMRIs.Add(new Tuple<Object3D.FMRI, Patient>(new Object3D.FMRI(data.FMRI), dataInfo.Patient));
+            }
+            foreach (SharedFMRIDataInfo dataInfo in sharedFMRIs)
+            {
+                Core.Data.FMRIData data = DataManager.GetData(dataInfo) as Core.Data.FMRIData;
+                FMRIs.Add(new Tuple<Object3D.FMRI, Patient>(new Object3D.FMRI(data.FMRI), null));
             }
         }
         public void Unload()

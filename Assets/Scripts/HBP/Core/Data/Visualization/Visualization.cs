@@ -598,11 +598,12 @@ namespace HBP.Core.Data
                 {
                     FMRIColumn fmriColumn = fmriColumns[i];
                     FMRIDataInfo[] dataInfos = fmriColumn.Dataset.GetFMRIDataInfos().Where(data => Patients.Contains(data.Patient)).ToArray();
+                    SharedFMRIDataInfo[] sharedFMRIDataInfos = fmriColumn.Dataset.GetSharedFMRIDataInfos();
                     progress += loadingDataStep;
-                    onChangeProgress(progress, TIME_BY_DATAINFO * dataInfos.Length, new LoadingText("Loading FMRI column ", fmriColumn.Name, " [" + (i + 1) + "/" + nbFMRIColumns + "]"));
+                    onChangeProgress(progress, TIME_BY_DATAINFO * (dataInfos.Length + sharedFMRIDataInfos.Length), new LoadingText("Loading FMRI column ", fmriColumn.Name, " [" + (i + 1) + "/" + nbFMRIColumns + "]"));
                     try
                     {
-                        fmriColumn.Data.Load(dataInfos);
+                        fmriColumn.Data.Load(dataInfos, sharedFMRIDataInfos);
                     }
                     catch (Exception e)
                     {
