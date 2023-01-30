@@ -53,19 +53,9 @@ namespace HBP.UI.Toolbar
             m_Dropdown.options.Clear();
             if (SelectedColumn is Column3DFMRI fmriColumn)
             {
-                if (SelectedScene.Type == SceneType.MultiPatients)
+                foreach (var fmri in fmriColumn.ColumnFMRIData.Data.FMRIs)
                 {
-                    foreach (var fmri in fmriColumn.ColumnFMRIData.Data.FMRIs)
-                    {
-                        m_Dropdown.options.Add(new Dropdown.OptionData(string.Format("{0} ({1})", fmri.Item1.Name, fmri.Item2.Name)));
-                    }
-                }
-                else
-                {
-                    foreach (var fmri in fmriColumn.ColumnFMRIData.Data.FMRIs)
-                    {
-                        m_Dropdown.options.Add(new Dropdown.OptionData(fmri.Item1.Name));
-                    }
+                    m_Dropdown.options.Add(new Dropdown.OptionData(string.Format("{0} ({1})", fmri.Item1.Name, fmri.Item2 != null ? fmri.Item2.Name : "Shared")));
                 }
                 m_Dropdown.value = fmriColumn.SelectedFMRIIndex;
             }

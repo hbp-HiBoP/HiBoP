@@ -52,7 +52,7 @@ namespace HBP.Core.Data
     /// </list>
     /// </remarks>
     [DataContract]
-    public class Patient : BaseData, ILoadable<Patient>, ILoadableFromDatabase<Patient>, INameable
+    public class Patient : BaseData, ILoadable<Patient>, ILoadableFromDatabase<Patient>, ILoadableFromDirectory<Patient>, INameable
     {
         #region Properties
         /// <summary>
@@ -212,8 +212,8 @@ namespace HBP.Core.Data
             string[] nameElements = directory.Name.Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
             if (nameElements.Length != 3) return false;
             DirectoryInfo[] directories = directory.GetDirectories();
-            if (!directories.Any((dir) => dir.Name == "implantation") || !directories.Any((dir) => dir.Name == "t1mri")) return false;
-            return true;
+            if (directories.Any((dir) => dir.Name == "implantation") || directories.Any((dir) => dir.Name == "t1mri")) return true;
+            return false;
         }
         /// <summary>
         /// Loads patients from a directory
@@ -588,6 +588,27 @@ namespace HBP.Core.Data
             yield return Ninja.JumpToUnity;
             result(patients);
         }
+        /// <summary>
+        /// Coroutine to load patients from database. Implementation of ILoadableFromDatabase.
+        /// </summary>
+        /// <param name="paths">The specified path of the patient file.</param>
+        /// <param name="OnChangeProgress">Action called on change progress.</param>
+        /// <param name="result">The patients loaded.</param>
+        /// <returns></returns>
+        public static IEnumerator c_LoadFromDirectory(string[] paths, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Patient>> result)
+        {
+            yield return Ninja.JumpBack;
+            List<Patient> patients = new List<Patient>(paths.Length);
+            foreach (var path in paths)
+            {
+                if(LoadFromDirectory(path, out Patient patient))
+                {
+                    patients.Add(patient);
+                }
+            }
+            yield return Ninja.JumpToUnity;
+            result(patients);
+        }
         #endregion
 
         #region Private Static Methods
@@ -647,6 +668,12 @@ namespace HBP.Core.Data
         {
             yield return Ninja.JumpToUnity;
             yield return CoroutineManager.StartAsync(c_LoadFromDatabase(path, OnChangeProgress, result));
+            yield return Ninja.JumpBack;
+        }
+        IEnumerator ILoadableFromDirectory<Patient>.LoadFromDirectory(string[] paths, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Patient>> result)
+        {
+            yield return Ninja.JumpToUnity;
+            yield return CoroutineManager.StartAsync(c_LoadFromDirectory(paths, OnChangeProgress, result));
             yield return Ninja.JumpBack;
         }
         #endregion

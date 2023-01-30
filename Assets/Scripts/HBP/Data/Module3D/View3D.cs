@@ -249,14 +249,19 @@ namespace HBP.Data.Module3D
         [HideInInspector] public UnityEvent OnMoveView = new UnityEvent();
         #endregion
 
-        #region Private Methods
-        private void Awake()
+        #region Public Methods
+        public void Initialize(int lineID, string columnLayer)
         {
+            gameObject.name = "View " + lineID;
+            LineID = lineID;
+            Layer = "View" + lineID;
+
+            m_Camera3D.SetCirclesLayer(Layer);
+
             Default();
-        }
-        private void Start()
-        {
+
             int layer = 0;
+            layer |= 1 << LayerMask.NameToLayer(columnLayer);
             layer |= 1 << LayerMask.NameToLayer(Layer);
             layer |= 1 << LayerMask.NameToLayer(Module3DMain.DEFAULT_MESHES_LAYER);
 
@@ -271,16 +276,7 @@ namespace HBP.Data.Module3D
             {
                 m_Camera3D.CullingMask = m_MinimizedCullingMask;
             }
-
-            if (!m_Initialized)
-            {
-                Default();
-                m_Initialized = true;
-            }
         }
-        #endregion
-
-        #region Public Methods
         /// <summary>
         /// Synchronize the camera of this view using the camera from a reference view
         /// </summary>

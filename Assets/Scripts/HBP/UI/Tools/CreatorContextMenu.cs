@@ -36,6 +36,20 @@ namespace HBP.UI.Tools
             }
         }
 
+        [SerializeField] bool m_IsLoadableFromDirectory = false;
+        public bool IsCreatableFromDirectory
+        {
+            get
+            {
+                return m_IsLoadableFromDirectory;
+            }
+            set
+            {
+                m_IsLoadableFromDirectory = value;
+                Set();
+            }
+        }
+
         [SerializeField] bool m_IsCreatableFromScratch = false;
         public bool IsCreatableFromScratch
         {
@@ -68,6 +82,7 @@ namespace HBP.UI.Tools
         [SerializeField] Button m_FromExistingObjectButton;
         [SerializeField] Button m_FromFileButton;
         [SerializeField] Button m_FromDatabaseButton;
+        [SerializeField] Button m_FromDirectoryButton;
         [SerializeField] Button m_Blocker;
         #endregion
 
@@ -82,6 +97,7 @@ namespace HBP.UI.Tools
             m_FromExistingObjectButton.onClick.AddListener(() => OnSelectType.Invoke(CreationType.FromExistingObject));
             m_FromFileButton.onClick.AddListener(() => OnSelectType.Invoke(CreationType.FromFile));
             m_FromDatabaseButton.onClick.AddListener(() => OnSelectType.Invoke(CreationType.FromDatabase));
+            m_FromDirectoryButton.onClick.AddListener(() => OnSelectType.Invoke(CreationType.FromDirectory));
         }
         private void Set()
         {
@@ -89,6 +105,7 @@ namespace HBP.UI.Tools
             m_FromExistingObjectButton.gameObject.SetActive(IsCreatableFromExistingObjects);
             m_FromFileButton.gameObject.SetActive(IsCreatableFromFile);
             m_FromDatabaseButton.gameObject.SetActive(IsCreatableFromDatabase);
+            m_FromDirectoryButton.gameObject.SetActive(IsCreatableFromDirectory);
         }
         #endregion
 

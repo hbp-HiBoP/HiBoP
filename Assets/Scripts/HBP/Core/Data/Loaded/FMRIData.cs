@@ -20,6 +20,17 @@ namespace HBP.Core.Data
                 throw new Exception("Invalid data container type");
             }
         }
+        public FMRIData(SharedFMRIDataInfo dataInfo)
+        {
+            if (dataInfo.DataContainer is Container.Nifti niftiDataContainer)
+            {
+                FMRI = new MRI(dataInfo.Name, niftiDataContainer.File);
+            }
+            else
+            {
+                throw new Exception("Invalid data container type");
+            }
+        }
         #endregion
 
         #region Public Methods

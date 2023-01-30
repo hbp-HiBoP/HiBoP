@@ -291,6 +291,9 @@ namespace HBP.Data.Module3D
                     column.BrainMesh.GetComponent<Renderer>().sharedMaterial = BrainMaterials.BrainMaterial;
                 foreach (var cut in m_DisplayedObjects.BrainCutMeshes)
                     cut.GetComponent<Renderer>().sharedMaterial = BrainMaterials.CutMaterial;
+                foreach (var column in Columns)
+                    foreach (var cut in column.BrainCutMeshes)
+                        cut.GetComponent<Renderer>().sharedMaterial = BrainMaterials.CutMaterial;
                 m_DisplayedObjects.SimplifiedBrain.SetActive(!value);
                 BrainMaterials.SetAlpha(BrainMaterials.Alpha);
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
@@ -727,6 +730,11 @@ namespace HBP.Data.Module3D
                 UpdateVisibleState(true);
                 SceneInformation.CompletelyLoaded = true;
                 OnSceneCompletelyLoaded.Invoke();
+                PreferencesManager.UserPreferences.OnSavePreferences.AddListener(() =>
+                {
+                    UpdateCutNumber(m_DisplayedObjects.BrainCutMeshes.Count);
+                    SceneInformation.CutsNeedUpdate = true;
+                });
                 if (Visualization.Configuration.FirstColumnToSelect < Columns.Count)
                 {
                     Columns[Visualization.Configuration.FirstColumnToSelect].SelectFirstOrDefaultSiteByName(Visualization.Configuration.FirstSiteToSelect);
@@ -755,7 +763,7 @@ namespace HBP.Data.Module3D
             UnityEngine.Profiling.Profiler.BeginSample("ComputeBaseCutTextures");
             foreach (Column3D column in Columns)
                 foreach (Core.Object3D.Cut cut in Cuts)
-                    column.CutTextures.CreateMRITexture(MRIManager.SelectedMRI.Volume, cut.ID, MRIManager.MRICalMinFactor, MRIManager.MRICalMaxFactor, 3);
+                    column.CutTextures.CreateMRITexture(MRIManager.SelectedMRI.Volume, cut.ID, MRIManager.MRICalMinFactor, MRIManager.MRICalMaxFactor);
 
             SceneInformation.BaseCutTexturesNeedUpdate = false;
             UnityEngine.Profiling.Profiler.EndSample();
@@ -772,6 +780,10 @@ namespace HBP.Data.Module3D
                 if (m_AtlasManager.DisplayAtlas) m_AtlasManager.ColorCuts(column);
                 else if (m_FMRIManager.DisplayFMRI) m_FMRIManager.ColorCuts(column);
                 else if (m_IsGeneratorUpToDate) column.CutTextures.ColorCutsTexturesWithActivity();
+                for (int i = 0; i < Cuts.Count; ++i)
+                {
+                    column.BrainCutMeshes[i].GetComponent<Renderer>().material.mainTexture = column.CutTextures.BrainCutTextures[i];
+                }
             }
             SceneInformation.FunctionalCutTexturesNeedUpdate = false;
             UnityEngine.Profiling.Profiler.EndSample();
@@ -855,22 +867,12 @@ namespace HBP.Data.Module3D
         /// <param name="site">Site that has been clicked</param>
         private void ClickOnSiteCallback(Core.Object3D.Site site)
         {
-            if ((SelectedColumn is Column3DDynamic || SelectedColumn is Column3DMEG) && site)
+            if (site)
             {
                 List<Core.Object3D.Site> sites = new List<Core.Object3D.Site>();
                 if (ImplantationManager.SiteToCompare) sites.Add(ImplantationManager.SiteToCompare);
                 sites.Add(site);
-                if (SelectedColumn is Column3DCCEP ccepColumn)
-                {
-                    if (ccepColumn.IsSourceSiteSelected)
-                    {
-                        OnRequestSiteInformation.Invoke(sites);
-                    }
-                }
-                else
-                {
-                    OnRequestSiteInformation.Invoke(sites);
-                }
+                OnRequestSiteInformation.Invoke(sites);
             }
             SceneInformation.SitesNeedUpdate = true;
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
@@ -886,21 +888,30 @@ namespace HBP.Data.Module3D
             UnityEngine.Profiling.Profiler.BeginSample("cut_generator Create cut");
             List<Core.DLL.Surface> generatedCutMeshes = new List<Core.DLL.Surface>(Cuts.Count);
             if (Cuts.Count > 0)
-                generatedCutMeshes = MeshManager.BrainSurface.GenerateCutSurfaces(Cuts, false, StrongCuts);
+            {
+                if (PreferencesManager.UserPreferences.Visualization._3D.RawCuts)
+                    generatedCutMeshes = MeshManager.BrainSurface.GenerateRawCutSurfaces(Cuts, false, StrongCuts);
+                else
+                    generatedCutMeshes = MeshManager.BrainSurface.GenerateCutSurfaces(Cuts, false, StrongCuts);
+            }
             UnityEngine.Profiling.Profiler.EndSample();
 
             // Fill parameters in shader
             UnityEngine.Profiling.Profiler.BeginSample("cut_generator Fill shader");
-            BrainMaterials.SetCuts(Cuts);
+            BrainMaterials.SetCuts(Cuts, 1.0f, Quaternion.identity);
             UnityEngine.Profiling.Profiler.EndSample();
 
             // Update cut generators
             UnityEngine.Profiling.Profiler.BeginSample("cut_generator Update generators");
             for (int ii = 0; ii < Cuts.Count; ++ii)
             {
-                CutGeometryGenerators[ii].Initialize(m_MRIManager.SelectedMRI.Volume, Cuts[ii], 1);
+                CutGeometryGenerators[ii].Initialize(m_MRIManager.SelectedMRI.Volume, Cuts[ii], -1);
                 CutGeometryGenerators[ii].UpdateSurfaceUV(generatedCutMeshes[ii]);
                 generatedCutMeshes[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
+            }
+            foreach (var column in Columns)
+            {
+                column.UpdateColumnCutMeshes(m_DisplayedObjects.BrainCutMeshes);
             }
             UnityEngine.Profiling.Profiler.EndSample();
 
@@ -1006,7 +1017,7 @@ namespace HBP.Data.Module3D
 
             for (int c = 0; c < Columns.Count; c++)
             {
-                Columns[c].UpdateCutsPlanesNumber(nbCuts, CutGeometryGenerators);
+                Columns[c].UpdateCutsPlanesNumber(nbCuts, CutGeometryGenerators, m_DisplayedObjects.BrainCutMeshes);
             }
         }
         /// <summary>
@@ -1363,18 +1374,21 @@ namespace HBP.Data.Module3D
             if (changedByUser) LastPlaneModifiedIndex = cut.ID;
 
             // Cuts base on the mesh
+            Core.DLL.BBox bbox = new Core.DLL.BBox();
             float offset;
             if (MeshManager.BrainSurface != null)
             {
                 Core.Object3D.Plane plane = new Core.Object3D.Plane(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
                 m_MRIManager.SelectedMRI.Volume.SetPlaneWithOrientation(plane, cut.Orientation, false);
-                offset = MeshManager.BrainSurface.SizeOffsetCutPlane(plane, cut.NumberOfCuts);
-                offset *= 1.05f; // upsize a little bit the bbox for planes
+                bbox = Core.DLL.BBox.Merge(m_MRIManager.SelectedMRI.Volume.BoundingBox, m_MeshManager.BrainSurface.BoundingBox);
+                offset = bbox.SizeOffsetCutPlane(plane, cut.NumberOfCuts);
+                //offset = MeshManager.BrainSurface.BoundingBox.SizeOffsetCutPlane(plane, cut.NumberOfCuts);
+                //offset *= 1.05f; // upsize a little bit the bbox for planes
             }
             else
                 offset = 0.1f;
 
-            cut.Point = MeshManager.MeshCenter + cut.Normal.normalized * (cut.Position - 0.5f) * offset * cut.NumberOfCuts;
+            cut.Point = bbox.Center + cut.Normal.normalized * (cut.Position - 0.5f) * offset * cut.NumberOfCuts;
 
             SceneInformation.CutsNeedUpdate = true;
 
@@ -1408,10 +1422,13 @@ namespace HBP.Data.Module3D
             
             Vector3 sitePosition = new Vector3(-site.transform.localPosition.x, site.transform.localPosition.y, site.transform.localPosition.z);
 
+            Core.DLL.BBox bbox = Core.DLL.BBox.Merge(m_MRIManager.SelectedMRI.Volume.BoundingBox, m_MeshManager.BrainSurface.BoundingBox);
+            Vector3 center = bbox.Center;
+
             Core.Object3D.Cut axialCut = AddCutPlane();
-            Vector3 axialPoint = MeshManager.MeshCenter + (Vector3.Dot(sitePosition - MeshManager.MeshCenter, axialCut.Normal) / Vector3.Dot(axialCut.Normal, axialCut.Normal)) * axialCut.Normal;
-            float axialOffset = MeshManager.BrainSurface.SizeOffsetCutPlane(axialCut, axialCut.NumberOfCuts) * 1.05f;
-            axialCut.Position = ((axialPoint.z - MeshManager.MeshCenter.z) / (axialCut.Normal.z * axialOffset * axialCut.NumberOfCuts)) + 0.5f;
+            Vector3 axialPoint = center + (Vector3.Dot(sitePosition - center, axialCut.Normal) / Vector3.Dot(axialCut.Normal, axialCut.Normal)) * axialCut.Normal;
+            float axialOffset = bbox.SizeOffsetCutPlane(axialCut, axialCut.NumberOfCuts);
+            axialCut.Position = ((axialPoint.z - center.z) / (axialCut.Normal.z * axialOffset * axialCut.NumberOfCuts)) + 0.5f;
             if (axialCut.Position < 0.5f)
             {
                 axialCut.Flip = true;
@@ -1420,9 +1437,9 @@ namespace HBP.Data.Module3D
             UpdateCutPlane(axialCut);
 
             Core.Object3D.Cut coronalCut = AddCutPlane();
-            Vector3 coronalPoint = MeshManager.MeshCenter + (Vector3.Dot(sitePosition - MeshManager.MeshCenter, coronalCut.Normal) / Vector3.Dot(coronalCut.Normal, coronalCut.Normal)) * coronalCut.Normal;
-            float coronalOffset = MeshManager.BrainSurface.SizeOffsetCutPlane(coronalCut, coronalCut.NumberOfCuts) * 1.05f;
-            coronalCut.Position = ((coronalPoint.y - MeshManager.MeshCenter.y) / (coronalCut.Normal.y * coronalOffset * coronalCut.NumberOfCuts)) + 0.5f;
+            Vector3 coronalPoint = center + (Vector3.Dot(sitePosition - center, coronalCut.Normal) / Vector3.Dot(coronalCut.Normal, coronalCut.Normal)) * coronalCut.Normal;
+            float coronalOffset = bbox.SizeOffsetCutPlane(coronalCut, coronalCut.NumberOfCuts);
+            coronalCut.Position = ((coronalPoint.y - center.y) / (coronalCut.Normal.y * coronalOffset * coronalCut.NumberOfCuts)) + 0.5f;
             if (coronalCut.Position < 0.5f)
             {
                 coronalCut.Flip = true;
@@ -1431,9 +1448,9 @@ namespace HBP.Data.Module3D
             UpdateCutPlane(coronalCut);
 
             Core.Object3D.Cut sagittalCut = AddCutPlane();
-            Vector3 sagittalPoint = MeshManager.MeshCenter + (Vector3.Dot(sitePosition - MeshManager.MeshCenter, sagittalCut.Normal) / Vector3.Dot(sagittalCut.Normal, sagittalCut.Normal)) * sagittalCut.Normal;
-            float sagittalOffset = MeshManager.BrainSurface.SizeOffsetCutPlane(sagittalCut, sagittalCut.NumberOfCuts) * 1.05f;
-            sagittalCut.Position = ((sagittalPoint.x - MeshManager.MeshCenter.x) / (sagittalCut.Normal.x * sagittalOffset * sagittalCut.NumberOfCuts)) + 0.5f;
+            Vector3 sagittalPoint = center + (Vector3.Dot(sitePosition - center, sagittalCut.Normal) / Vector3.Dot(sagittalCut.Normal, sagittalCut.Normal)) * sagittalCut.Normal;
+            float sagittalOffset = bbox.SizeOffsetCutPlane(sagittalCut, sagittalCut.NumberOfCuts);
+            sagittalCut.Position = ((sagittalPoint.x - center.x) / (sagittalCut.Normal.x * sagittalOffset * sagittalCut.NumberOfCuts)) + 0.5f;
             if (sagittalCut.Position < 0.5f)
             {
                 sagittalCut.Flip = true;
@@ -1675,17 +1692,6 @@ namespace HBP.Data.Module3D
                 {
                     site.State.ApplyState(selectedColumn.SiteStateBySiteID[site.Information.FullID]);
                 }
-            }
-        }
-        /// <summary>
-        /// Update the data rendering for a column
-        /// </summary>
-        /// <param name="column">Column to be updated</param>
-        public void UpdateColumnRendering(Column3D column)
-        {
-            for (int i = 0; i < Cuts.Count; ++i)
-            {
-                m_DisplayedObjects.BrainCutMeshes[i].GetComponent<Renderer>().material.mainTexture = column.CutTextures.BrainCutTextures[i];
             }
         }
         /// <summary>

@@ -6,6 +6,8 @@ using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.Data.Module3D;
 using HBP.UI.Main;
+using HBP.UI.Module3D;
+using HBP.Core.Object3D;
 
 namespace HBP.UI.Tools
 {
@@ -35,6 +37,7 @@ namespace HBP.UI.Tools
                 return Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
             }
         }
+        private bool IsModPressed { get { return IsControlPressed || IsAltPressed || IsShiftPressed; } }
         private bool IsArrowKeyPressed
         {
             get
@@ -148,13 +151,21 @@ namespace HBP.UI.Tools
                 return IsControlPressed && Input.GetKey(KeyCode.Y);
             }
         }
-        private const float DELAY = 0.2f;
+        private const float SITE_SELECTION_DELAY = 0.2f;
+        private const float CUT_ACTION_DELAY = 0.02f;
         private float m_Timer = 0.0f;
         private bool SiteSelectionActionPerformed
         {
             get
             {
-                return (IsArrowKeyPressed && m_Timer >= DELAY) || IsArrowKeyDown;
+                return ((IsArrowKeyPressed && m_Timer >= SITE_SELECTION_DELAY) || IsArrowKeyDown) && !IsModPressed;
+            }
+        }
+        private bool CutModificationActionPerformed
+        {
+            get
+            {
+                return ((IsArrowKeyPressed && m_Timer >= CUT_ACTION_DELAY) || IsArrowKeyDown || Input.GetKeyDown(KeyCode.F) || Input.GetKeyDown(KeyCode.C) || Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.Tab)) && IsControlPressed;
             }
         }
         private bool ChangeSiteStateActionPerformed
@@ -254,6 +265,11 @@ namespace HBP.UI.Tools
             else if (ChangeSiteStateActionPerformed)
             {
                 ChangeSelectedSiteState();
+            }
+            else if (CutModificationActionPerformed)
+            {
+                m_Timer = 0;
+                PerformActionOnCut();
             }
         }
         private void NewProject()
@@ -408,6 +424,43 @@ namespace HBP.UI.Tools
                                 break;
                         }
                     }
+                }
+            }
+        }
+        private void PerformActionOnCut()
+        {
+            CutController selectedCutController = Module3DUI.Scenes.FirstOrDefault(s => s.Key.IsSelected).Value?.CutController;
+            if (selectedCutController != null)
+            {
+                if (Input.GetKeyDown(KeyCode.A))
+                {
+                    Module3DMain.SelectedScene.AddCutPlane();
+                    selectedCutController.OpenNextController();
+                }
+                else if (Input.GetKeyDown(KeyCode.Tab))
+                {
+                    selectedCutController.OpenNextController();
+                }
+                Cut selectedCut = selectedCutController.SelectedCut;
+                if (selectedCut != null)
+                {
+                    if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.DownArrow))
+                    {
+                        selectedCut.Position -= 1.0f / selectedCut.NumberOfCuts;
+                    }
+                    else if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.UpArrow))
+                    {
+                        selectedCut.Position += 1.0f / selectedCut.NumberOfCuts;
+                    }
+                    else if (Input.GetKeyDown(KeyCode.F))
+                    {
+                        selectedCut.Flip = !selectedCut.Flip;
+                    }
+                    else if (Input.GetKeyDown(KeyCode.C))
+                    {
+                        selectedCut.Orientation = (CutOrientation)(((int)selectedCut.Orientation + 1) % 3);
+                    }
+                    Module3DMain.SelectedScene.UpdateCutPlane(selectedCut, true);
                 }
             }
         }
