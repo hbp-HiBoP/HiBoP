@@ -61,7 +61,7 @@ namespace HBP.UI.Toolbar
                         Core.Object3D.ROI roi = SelectedScene.ROIManager.AddROI(serializedROI.Name);
                         foreach (Core.Data.Sphere sphere in serializedROI.Spheres)
                         {
-                            roi.AddSphere(SelectedColumn.Layer, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
+                            roi.AddSphere(Data.Module3D.Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
                         }
                     }
                     catch (Exception e)
@@ -81,7 +81,7 @@ namespace HBP.UI.Toolbar
                     Core.Object3D.ROI roi = SelectedScene.ROIManager.AddROI(serializedROI.Name);
                     foreach (Core.Data.Sphere sphere in serializedROI.Spheres)
                     {
-                        roi.AddSphere(SelectedColumn.Layer, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
+                        roi.AddSphere(Data.Module3D.Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
                     }
                 }
                 catch (Exception e)
@@ -92,9 +92,9 @@ namespace HBP.UI.Toolbar
             }
 #endif
         }
-#endregion
+        #endregion
 
-#region Public Methods
+        #region Public Methods
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
