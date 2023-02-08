@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HBP.Data.Module3D;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Toolbar
@@ -46,7 +47,7 @@ namespace HBP.UI.Toolbar
             m_ROISelector.options.Add(new Dropdown.OptionData("None"));
             for (int i = 0; i < SelectedScene.ROIManager.ROIs.Count; i++)
             {
-                Core.Object3D.ROI roi = SelectedScene.ROIManager.ROIs[i];
+                ROI roi = SelectedScene.ROIManager.ROIs[i];
                 if (roi.Name == "ROI")
                 {
                     m_ROISelector.options.Add(new Dropdown.OptionData("ROI " + i));
@@ -65,12 +66,12 @@ namespace HBP.UI.Toolbar
         {
             m_SphereSelector.options.Clear();
             m_SphereSelector.options.Add(new Dropdown.OptionData("None"));
-            Core.Object3D.ROI selectedROI = SelectedScene.ROIManager.SelectedROI;
+            ROI selectedROI = SelectedScene.ROIManager.SelectedROI;
             if (selectedROI)
             {
                 for (int i = 0; i < selectedROI.Spheres.Count; i++)
                 {
-                    Core.Object3D.Sphere sphere = selectedROI.Spheres[i];
+                    Sphere sphere = selectedROI.Spheres[i];
                     m_SphereSelector.options.Add(new Dropdown.OptionData("Sphere " + i + " (R=" + sphere.Radius.ToString("N1") + ")"));
                 }
             }

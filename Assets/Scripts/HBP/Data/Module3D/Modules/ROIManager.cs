@@ -19,13 +19,13 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// List of the ROIs of this column
         /// </summary>
-        public List<Core.Object3D.ROI> ROIs { get; protected set; } = new List<Core.Object3D.ROI>();
+        public List<ROI> ROIs { get; protected set; } = new List<ROI>();
 
-        protected Core.Object3D.ROI m_SelectedROI = null;
+        protected ROI m_SelectedROI = null;
         /// <summary>
         /// Currently selected ROI
         /// </summary>
-        public Core.Object3D.ROI SelectedROI
+        public ROI SelectedROI
         {
             get
             {
@@ -91,9 +91,9 @@ namespace HBP.Data.Module3D
         /// </summary>
         /// <param name="name">Name of the new ROI</param>
         /// <returns>Newly created ROI</returns>
-        public Core.Object3D.ROI AddROI(string name = "ROI")
+        public ROI AddROI(string name = "ROI")
         {
-            Core.Object3D.ROI roi = m_DisplayedObjects.InstantiateROI();
+            ROI roi = m_DisplayedObjects.InstantiateROI();
             roi.Name = name;
             roi.OnUpdateROIName.AddListener(() =>
             {
@@ -122,11 +122,11 @@ namespace HBP.Data.Module3D
         /// Create a new ROI using the parameters of another ROI
         /// </summary>
         /// <param name="roi">ROI to copy parameters from</param>
-        public void CopyROI(Core.Object3D.ROI roi)
+        public void CopyROI(ROI roi)
         {
-            Core.Object3D.ROI newROI = AddROI();
+            ROI newROI = AddROI();
             newROI.Name = roi.Name;
-            foreach (Core.Object3D.Sphere sphere in roi.Spheres)
+            foreach (Sphere sphere in roi.Spheres)
             {
                 newROI.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", sphere.Position, sphere.Radius);
             }
@@ -222,7 +222,7 @@ namespace HBP.Data.Module3D
             ROICreationMode = !ROICreationMode;
             foreach (Core.Data.RegionOfInterest roi in rois)
             {
-                Core.Object3D.ROI newROI = AddROI(roi.Name);
+                ROI newROI = AddROI(roi.Name);
                 foreach (Core.Data.Sphere sphere in roi.Spheres)
                 {
                     newROI.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", sphere.Position.ToVector3(), sphere.Radius);

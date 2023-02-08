@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace HBP.Core.Object3D
+namespace HBP.Data.Module3D
 {
     /// <summary>
     /// Class containing information about a Region Of Interest in the scene
@@ -49,7 +49,7 @@ namespace HBP.Core.Object3D
         /// <summary>
         /// Pointer to the DLL object corresponding to this ROI
         /// </summary>
-        private DLL.ROI m_DLLROI;
+        private Core.DLL.ROI m_DLLROI;
         /// <summary>
         /// List of this spheres of this ROI
         /// </summary>
@@ -83,7 +83,7 @@ namespace HBP.Core.Object3D
         #region Private Methods
         void Awake()
         {
-            m_DLLROI = new DLL.ROI();
+            m_DLLROI = new Core.DLL.ROI();
             SelectedSphereID = -1;
         }
         private void OnDestroy()
@@ -138,7 +138,7 @@ namespace HBP.Core.Object3D
         /// </summary>
         /// <param name="plots">Raw list of the sites of the scene</param>
         /// <param name="mask">ROI mask for the sites (true if a site is not in this ROI)</param>
-        public void UpdateMask(DLL.RawSiteList plots, bool[] mask)
+        public void UpdateMask(Core.DLL.RawSiteList plots, bool[] mask)
         {
             m_DLLROI.UpdateMask(plots, mask);
         }

@@ -507,7 +507,7 @@ namespace HBP.Data.Module3D
                 if (hit.transform.parent.gameObject.name == "Cuts") result = RaycastHitResult.Cut;
                 if (hit.transform.parent.gameObject.name == "Brains" || hit.transform.parent.gameObject.name == "Erased Brains") result = RaycastHitResult.Mesh;
                 if (hit.collider.GetComponent<Core.Object3D.Site>() != null) result = RaycastHitResult.Site;
-                if (hit.collider.GetComponent<Core.Object3D.Sphere>() != null) result = RaycastHitResult.ROI;
+                if (hit.collider.GetComponent<Sphere>() != null) result = RaycastHitResult.ROI;
             }
             return result;
         }

@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using HBP.UI.Tools;
 using System;
+using System.Linq;
+using HBP.Data.Module3D;
 
 namespace HBP.UI.Toolbar
 {
@@ -30,7 +32,7 @@ namespace HBP.UI.Toolbar
             {
                 if (!string.IsNullOrEmpty(savePath))
                 {
-                    Core.Data.RegionOfInterest ROI = new Core.Data.RegionOfInterest(SelectedScene.ROIManager.SelectedROI);
+                    Core.Data.RegionOfInterest ROI = new Core.Data.RegionOfInterest(SelectedScene.ROIManager.SelectedROI.Name, SelectedScene.ROIManager.SelectedROI.Spheres.Select(s => new Core.Data.Sphere(s.Position, s.Radius)).ToList());
                     ClassLoaderSaver.SaveToJSon(ROI, savePath, true);
                     DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Region of Interest saved", "The selected ROI has been saved to <color=#3080ffff>" + savePath + "</color>");
                 }
@@ -39,7 +41,7 @@ namespace HBP.UI.Toolbar
             string savePath = FileBrowser.GetSavedFileName(new string[] { "roi" }, "Save ROI to");
             if (!string.IsNullOrEmpty(savePath))
             {
-                Core.Data.RegionOfInterest ROI = new Core.Data.RegionOfInterest(SelectedScene.ROIManager.SelectedROI);
+                Core.Data.RegionOfInterest ROI = new Core.Data.RegionOfInterest(SelectedScene.ROIManager.SelectedROI.Name, SelectedScene.ROIManager.SelectedROI.Spheres.Select(s => new Core.Data.Sphere(s.Position, s.Radius)).ToList());
                 ClassLoaderSaver.SaveToJSon(ROI, savePath, true);
                 DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Region of Interest saved", "The selected ROI has been saved to <color=#3080ffff>" + savePath + "</color>");
             }
@@ -58,7 +60,7 @@ namespace HBP.UI.Toolbar
                     try
                     {
                         Core.Data.RegionOfInterest serializedROI = ClassLoaderSaver.LoadFromJson<Core.Data.RegionOfInterest>(loadPath);
-                        Core.Object3D.ROI roi = SelectedScene.ROIManager.AddROI(serializedROI.Name);
+                        ROI roi = SelectedScene.ROIManager.AddROI(serializedROI.Name);
                         foreach (Core.Data.Sphere sphere in serializedROI.Spheres)
                         {
                             roi.AddSphere(Data.Module3D.Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
@@ -78,7 +80,7 @@ namespace HBP.UI.Toolbar
                 try
                 {
                     Core.Data.RegionOfInterest serializedROI = ClassLoaderSaver.LoadFromJson<Core.Data.RegionOfInterest>(loadPath);
-                    Core.Object3D.ROI roi = SelectedScene.ROIManager.AddROI(serializedROI.Name);
+                    ROI roi = SelectedScene.ROIManager.AddROI(serializedROI.Name);
                     foreach (Core.Data.Sphere sphere in serializedROI.Spheres)
                     {
                         roi.AddSphere(Data.Module3D.Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", sphere.Position.ToVector3(), sphere.Radius);

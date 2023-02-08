@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+﻿using HBP.Core.Object3D;
+using UnityEngine;
 using UnityEngine.Events;
 
-namespace HBP.Core.Object3D
+namespace HBP.Data.Module3D
 {
     /// <summary>
     /// This class defines a Sphere of a <see cref="ROI"/>
