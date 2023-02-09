@@ -19,6 +19,7 @@ namespace HBP.UI.Main
         [SerializeField] Tooltip m_ErrorText;
 
         [SerializeField] Theme.State m_OKState;
+        [SerializeField] Theme.State m_WarningState;
         [SerializeField] Theme.State m_ErrorState;
 
         /// <summary>
@@ -37,8 +38,17 @@ namespace HBP.UI.Main
                 if (value is Core.Data.PatientDataInfo patientDataInfo) m_PatientText.text = patientDataInfo.Patient.Name;
                 else m_PatientText.text = "None";
                 m_TypeText.text = value.GetType().GetDisplayName();
-                m_ErrorText.Text = Object.GetErrorsMessage();
-                m_StateThemeElement.Set(value.IsOk ? m_OKState : m_ErrorState);
+
+                var errors = Object.Errors;
+                var warnings = Object.Warnings;
+                if (errors.Length > 0 && warnings.Length > 0)
+                    m_ErrorText.Text = Object.GetErrorsMessage() + "\n\n" + Object.GetWarningsMessage();
+                else if (warnings.Length > 0)
+                    m_ErrorText.Text = Object.GetWarningsMessage();
+                else
+                    m_ErrorText.Text = Object.GetErrorsMessage();
+
+                m_StateThemeElement.Set(value.IsOk ? (warnings.Length > 0 ? m_WarningState : m_OKState) : m_ErrorState);
             }
         }
         #endregion

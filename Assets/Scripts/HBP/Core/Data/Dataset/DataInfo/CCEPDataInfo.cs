@@ -70,6 +70,17 @@ namespace HBP.Core.Data
                 return errors.Distinct().ToArray();
             }
         }
+
+        protected Warning[] m_CCEPWarnings = new Warning[0];
+        public override Warning[] Warnings
+        {
+            get
+            {
+                List<Warning> warnings = new List<Warning>(base.Warnings);
+                warnings.AddRange(m_CCEPWarnings);
+                return warnings.Distinct().ToArray();
+            }
+        }
         #endregion
 
         #region Constructors
@@ -179,12 +190,29 @@ namespace HBP.Core.Data
                     errors.Add(new BlocsCantBeEpochedError());
                 }
             }
-            if(!m_Patient.Sites.Any(site => site.Name == StimulatedChannel))
+            if (!m_Patient.Sites.Any(site => site.Name == StimulatedChannel))
             {
                 errors.Add(new ChannelNotFoundError());
             }
             m_CCEPErrors = errors.ToArray();
             return m_CCEPErrors;
+        }
+        public override Warning[] GetWarnings(Protocol protocol)
+        {
+            List<Warning> warnings = new List<Warning>(base.GetWarnings(protocol));
+            warnings.AddRange(GetCCEPWarnings(protocol));
+            return warnings.Distinct().ToArray();
+        }
+        /// <summary>
+        /// Get all dataInfo errors related to CCEP.
+        /// </summary>
+        /// <param name="protocol"></param>
+        /// <returns>CCEP related errors</returns>
+        public virtual Warning[] GetCCEPWarnings(Protocol protocol)
+        {
+            List<Warning> warnings = new List<Warning>();
+            m_CCEPWarnings = warnings.ToArray();
+            return m_CCEPWarnings;
         }
         #endregion
     }

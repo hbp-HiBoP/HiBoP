@@ -93,6 +93,8 @@ namespace HBP.Core.Data.Processed
                 BlocChannelStatistics statistics = StatisticsByChannelID[channelID];
                 foreach (var subBloc in columnBloc.OrderedSubBlocs)
                 {
+                    if (!statistics.Trial.ChannelSubTrialBySubBloc.ContainsKey(subBloc)) continue;
+
                     float[] subBlocValues = statistics.Trial.ChannelSubTrialBySubBloc[subBloc].Values;
                     SubTimeline subTimeline = Timeline.SubTimelinesBySubBloc[subBloc];
                     if (subTimeline.Before > 0) values.AddRange(Enumerable.Repeat(subBlocValues[0], subTimeline.Before));

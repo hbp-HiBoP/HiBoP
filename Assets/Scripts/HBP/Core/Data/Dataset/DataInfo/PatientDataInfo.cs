@@ -71,6 +71,17 @@ namespace HBP.Core.Data
                 return errors.Distinct().ToArray();
             }
         }
+
+        protected Warning[] m_PatientWarnings = new Warning[0];
+        public override Warning[] Warnings
+        {
+            get
+            {
+                List<Warning> warnings = new List<Warning>(base.Warnings);
+                warnings.AddRange(m_PatientWarnings);
+                return warnings.Distinct().ToArray();
+            }
+        }
         #endregion
 
         #region Constructors
@@ -139,6 +150,18 @@ namespace HBP.Core.Data
             if (Patient == null) errors.Add(new PatientEmptyError());
             m_PatientErrors = errors.ToArray();
             return m_PatientErrors;
+        }
+        public override Warning[] GetWarnings(Protocol protocol)
+        {
+            List<Warning> warnings = new List<Warning>(base.GetWarnings(protocol));
+            warnings.AddRange(GetPatientWarnings());
+            return warnings.Distinct().ToArray();
+        }
+        public Warning[] GetPatientWarnings()
+        {
+            List<Warning> warnings = new List<Warning>();
+            m_PatientWarnings = warnings.ToArray();
+            return m_PatientWarnings;
         }
         #endregion
 

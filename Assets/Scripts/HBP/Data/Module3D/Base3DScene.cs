@@ -1591,7 +1591,7 @@ namespace HBP.Data.Module3D
             List<RegionOfInterest> rois = new List<RegionOfInterest>();
             foreach (ROI roi in ROIManager.ROIs)
             {
-                rois.Add(new RegionOfInterest(roi));
+                rois.Add(new RegionOfInterest(roi.name, roi.Spheres.Select(s => new Core.Data.Sphere(s.Position, s.Radius)).ToList()));
             }
             Visualization.Configuration.RegionsOfInterest = rois;
 

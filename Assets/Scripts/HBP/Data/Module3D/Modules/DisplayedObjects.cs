@@ -224,9 +224,9 @@ namespace HBP.Data.Module3D
         /// Instantiate a ROI on the scene
         /// </summary>
         /// <returns>The ROI object that has been instantiated</returns>
-        public Core.Object3D.ROI InstantiateROI()
+        public ROI InstantiateROI()
         {
-            return Instantiate(m_ROIPrefab, m_ROIParent).GetComponent<Core.Object3D.ROI>();
+            return Instantiate(m_ROIPrefab, m_ROIParent).GetComponent<ROI>();
         }
         #endregion
     }

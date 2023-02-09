@@ -435,14 +435,7 @@ namespace HBP.Core.Data
                     {
                         foreach (var column in dataInfoByColumn.Keys)
                         {
-                            if (column is IEEGColumn iEEGColumn)
-                            {
-                                if(epochedData.DataByBloc.TryGetValue(iEEGColumn.Bloc, out BlocData blocData) && !blocData.IsValid)
-                                {
-                                    throw new Exception("No bloc " + iEEGColumn.Bloc.Name + " could be epoched.");
-                                }
-                            }
-                            else if (column is CCEPColumn ccepColumn)
+                            if (column is CCEPColumn ccepColumn)
                             {
                                 if (epochedData.DataByBloc.TryGetValue(ccepColumn.Bloc, out BlocData blocData) && !blocData.IsValid)
                                 {

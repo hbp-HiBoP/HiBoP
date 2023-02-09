@@ -72,6 +72,17 @@ namespace HBP.Core.Data
                 return errors.Distinct().ToArray();
             }
         }
+
+        protected Warning[] m_iEEGWarnings = new Warning[0];
+        public override Warning[] Warnings
+        {
+            get
+            {
+                List<Warning> warnings = new List<Warning>(base.Warnings);
+                warnings.AddRange(m_iEEGWarnings);
+                return warnings.Distinct().ToArray();
+            }
+        }
         #endregion
 
         #region Constructors
@@ -140,6 +151,18 @@ namespace HBP.Core.Data
         public virtual Error[] GetiEEGErrors(Protocol protocol)
         {
             List<Error> errors = new List<Error>();
+            m_iEEGErrors = errors.ToArray();
+            return m_iEEGErrors;
+        }
+        public override Warning[] GetWarnings(Protocol protocol)
+        {
+            List<Warning> warnings = new List<Warning>(base.GetWarnings(protocol));
+            warnings.AddRange(GetiEEGWarnings(protocol));
+            return warnings.Distinct().ToArray();
+        }
+        public virtual Warning[] GetiEEGWarnings(Protocol protocol)
+        {
+            List<Warning> warnings = new List<Warning>();
             if (m_DataContainer.IsOk)
             {
                 DLL.EEG.File.FileType type;
@@ -178,11 +201,16 @@ namespace HBP.Core.Data
                 if (protocol.IsVisualizable && !protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))))
                 {
                     IEnumerable<string> blocsNotFound = protocol.Blocs.Where(bloc => !bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))).Select(bloc => bloc.Name);
-                    errors.Add(new BlocsCantBeEpochedError(string.Join(", ", blocsNotFound)));
+                    warnings.Add(new BlocsCantBeEpochedWarning(string.Join(", ", blocsNotFound)));
+                }
+                List<DLL.EEG.Electrode> electrodes = file.Electrodes;
+                if (!Patient.Sites.Any(s => electrodes.Any(e => e.Label == s.Name)))
+                {
+                    warnings.Add(new NoMatchingSiteWarning());
                 }
             }
-            m_iEEGErrors = errors.ToArray();
-            return m_iEEGErrors;
+            m_iEEGWarnings = warnings.ToArray();
+            return m_iEEGWarnings;
         }
         #endregion
     }

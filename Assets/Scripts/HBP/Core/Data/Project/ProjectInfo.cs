@@ -60,7 +60,7 @@ namespace HBP.Core.Data
                         {
                             Visualizations++;
                         }
-                        else if (entry.FileName.EndsWith(ProjectPreferences.EXTENSION))
+                        else if (entry.FileName.EndsWith(ProjectPreferences.EXTENSION) && entry.FileName.StartsWith(System.IO.Path.GetFileNameWithoutExtension(path)))
                         {
                             FileInfo settingsFile = new FileInfo(System.IO.Path.Combine(ApplicationState.TMPFolder, entry.FileName));
                             if (settingsFile.Exists) settingsFile.Delete();

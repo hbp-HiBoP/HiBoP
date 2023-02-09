@@ -302,7 +302,7 @@ namespace HBP.UI.Module3D
         {
             if (IsMinimized) return;
 
-            Core.Object3D.ROI selectedROI = m_Scene.ROIManager.SelectedROI;
+            ROI selectedROI = m_Scene.ROIManager.SelectedROI;
             if (m_Scene.ROIManager.ROICreationMode && selectedROI)
             {
                 if (selectedROI.SelectedSphereID != -1)

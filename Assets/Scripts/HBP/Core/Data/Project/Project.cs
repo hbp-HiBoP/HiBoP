@@ -632,7 +632,7 @@ namespace HBP.Core.Data
                 for (int j = 0; j < dataset.Data.Count; ++j, ++count)
                 {
                     DataInfo data = dataset.Data[j];
-                    data.GetErrors(dataset.Protocol);
+                    data.GetErrorsAndWarnings(dataset.Protocol);
 
                     string message;
                     if (data is PatientDataInfo patientDataInfo) message = patientDataInfo.Name + " | " + dataset.Protocol.Name + " | " + patientDataInfo.Patient.Name;

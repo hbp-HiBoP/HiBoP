@@ -85,7 +85,7 @@ namespace HBP.UI.Main
         /// <param name="dataInfo">Check the the errors of the dataInfo</param>
         protected virtual void CheckErrors(DataInfo dataInfo)
         {
-            dataInfo.GetErrors(ObjectTemp.Protocol);
+            dataInfo.GetErrorsAndWarnings(ObjectTemp.Protocol);
         }
         /// <summary>
         /// Change the name.
