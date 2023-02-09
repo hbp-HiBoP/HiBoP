@@ -203,8 +203,12 @@ namespace HBP.Core.Data
                     IEnumerable<string> blocsNotFound = protocol.Blocs.Where(bloc => !bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))).Select(bloc => bloc.Name);
                     warnings.Add(new BlocsCantBeEpochedWarning(string.Join(", ", blocsNotFound)));
                 }
+                List<DLL.EEG.Electrode> electrodes = file.Electrodes;
+                if (!Patient.Sites.Any(s => electrodes.Any(e => e.Label == s.Name)))
+                {
+                    warnings.Add(new NoMatchingSiteWarning());
+                }
             }
-            //TODO : matching sites warning
             m_iEEGWarnings = warnings.ToArray();
             return m_iEEGWarnings;
         }
