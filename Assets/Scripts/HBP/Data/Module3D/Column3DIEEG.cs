@@ -128,6 +128,9 @@ namespace HBP.Data.Module3D
                     }
                 }
             }
+
+            if (DynamicParameters.MinimumAmplitude == float.MaxValue) DynamicParameters.MinimumAmplitude = -1;
+            if (DynamicParameters.MaximumAmplitude == float.MinValue) DynamicParameters.MaximumAmplitude = 1;
             ActivityValuesOfUnmaskedSites = iEEGNotMasked.ToArray();
         }
         #endregion
