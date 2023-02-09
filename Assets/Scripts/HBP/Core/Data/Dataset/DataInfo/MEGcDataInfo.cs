@@ -54,13 +54,24 @@ namespace HBP.Core.Data
     public class MEGcDataInfo : PatientDataInfo
     {
         #region Properties
-        protected Error[] m_FMRIErrors = new Error[0];
+        protected Error[] m_MEGErrors = new Error[0];
         public override Error[] Errors
         {
             get
             {
                 List<Error> errors = new List<Error>(base.Errors);
-                errors.AddRange(m_FMRIErrors);
+                errors.AddRange(m_MEGErrors);
+                return errors.Distinct().ToArray();
+            }
+        }
+
+        protected Warning[] m_MEGWarnings = new Warning[0];
+        public override Warning[] Warnings
+        {
+            get
+            {
+                List<Warning> errors = new List<Warning>(base.Warnings);
+                errors.AddRange(m_MEGWarnings);
                 return errors.Distinct().ToArray();
             }
         }
@@ -127,9 +138,25 @@ namespace HBP.Core.Data
         public virtual Error[] GetMEGErrors(Protocol protocol)
         {
             List<Error> errors = new List<Error>();
-            // TODO
-            m_FMRIErrors = errors.ToArray();
-            return m_FMRIErrors;
+            m_MEGErrors = errors.ToArray();
+            return m_MEGErrors;
+        }
+        public override Warning[] GetWarnings(Protocol protocol)
+        {
+            List<Warning> warnings = new List<Warning>(base.GetWarnings(protocol));
+            warnings.AddRange(GetMEGWarnings(protocol));
+            return warnings.Distinct().ToArray();
+        }
+        /// <summary>
+        /// Get all dataInfo errors related to CCEP.
+        /// </summary>
+        /// <param name="protocol"></param>
+        /// <returns>CCEP related errors</returns>
+        public virtual Warning[] GetMEGWarnings(Protocol protocol)
+        {
+            List<Warning> warnings = new List<Warning>();
+            m_MEGWarnings = warnings.ToArray();
+            return m_MEGWarnings;
         }
         #endregion
     }

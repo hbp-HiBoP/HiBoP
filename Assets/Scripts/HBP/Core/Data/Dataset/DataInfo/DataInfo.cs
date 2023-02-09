@@ -85,6 +85,8 @@ namespace HBP.Core.Data
         /// </summary>
         protected Error[] m_NameErrors = new Error[0];
 
+        protected Warning[] m_NameWarnings = new Warning[0];
+
         /// <summary>
         /// True if the dataInfo is visualizable, False otherwise.
         /// </summary>
@@ -107,6 +109,20 @@ namespace HBP.Core.Data
                 errors.AddRange(m_NameErrors);
                 errors.AddRange(m_DataContainer.Errors);
                 return errors.Distinct().ToArray();
+            }
+        }
+
+        /// <summary>
+        /// All dataInfo warnings.
+        /// </summary>
+        public virtual Warning[] Warnings
+        {
+            get
+            {
+                List<Warning> warnings = new List<Warning>();
+                warnings.AddRange(m_NameWarnings);
+                warnings.AddRange(m_DataContainer.Warnings);
+                return warnings.Distinct().ToArray();
             }
         }
 
@@ -180,6 +196,7 @@ namespace HBP.Core.Data
             if (errors.Length == 0) stringBuilder.Append(string.Format("• {0}", "No error detected."));
             else
             {
+                stringBuilder.AppendLine("Errors:");
                 for (int i = 0; i < errors.Length - 1; i++)
                 {
                     if (errors[i].Message != "")
@@ -205,6 +222,70 @@ namespace HBP.Core.Data
                 }
             }
             return stringBuilder.ToString();
+        }
+        /// <summary>
+        /// Get all dataInfo warnings.
+        /// </summary>
+        /// <param name="protocol">Protocol of the dataset the dataInfo belongs to.</param>
+        /// <returns>All dataInfo errors.</returns>
+        public virtual Warning[] GetWarnings(Protocol protocol)
+        {
+            List<Warning> warnings = new List<Warning>();
+            warnings.AddRange(m_DataContainer.GetWarnings());
+            return warnings.Distinct().ToArray();
+        }
+        /// <summary>
+        /// Get all naming-related errors.
+        /// </summary>
+        /// <returns>All naming-related errors.</returns>
+        public virtual Warning[] GetNameWarnings()
+        {
+            List<Warning> warnings = new List<Warning>();
+            m_NameWarnings = warnings.ToArray();
+            return m_NameWarnings;
+        }
+        /// <summary>
+        /// Get all message warnings in a readable form.
+        /// </summary>
+        /// <returns></returns>
+        public virtual string GetWarningsMessage()
+        {
+            Warning[] warnings = Warnings;
+            StringBuilder stringBuilder = new StringBuilder();
+            if (warnings.Length == 0) stringBuilder.Append(string.Format("• {0}", "No error detected."));
+            else
+            {
+                stringBuilder.AppendLine("Warnings:");
+                for (int i = 0; i < warnings.Length - 1; i++)
+                {
+                    if (warnings[i].Message != "")
+                    {
+                        stringBuilder.AppendLine(string.Format("• {0} ({1})", warnings[i].Title, warnings[i].Message));
+
+                    }
+                    else
+                    {
+                        stringBuilder.AppendLine(string.Format("• {0}", warnings[i].Title));
+
+                    }
+                }
+                if (warnings.Last().Message != "")
+                {
+                    stringBuilder.Append(string.Format("• {0} ({1})", warnings.Last().Title, warnings.Last().Message));
+
+                }
+                else
+                {
+                    stringBuilder.Append(string.Format("• {0}", warnings.Last().Title));
+
+                }
+            }
+            return stringBuilder.ToString();
+        }
+        public virtual void GetErrorsAndWarnings(Protocol protocol)
+        {
+            GetErrors(protocol);
+            GetWarnings(protocol);
         }
         /// <summary>
         /// Generate a new unique identifier.

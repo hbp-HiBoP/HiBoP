@@ -174,7 +174,7 @@ namespace HBP.Core.Data
             if (!m_Data.Contains(data))
             {
                 m_Data.Add(data);
-                UnityAction action = new UnityAction(() => { data.GetErrors(Protocol); });
+                UnityAction action = new UnityAction(() => { data.GetErrorsAndWarnings(Protocol); });
                 m_ActionByDataInfo.Add(data, action);
                 data.OnRequestErrorCheck.AddListener(action);
                 return true;
@@ -248,7 +248,7 @@ namespace HBP.Core.Data
         {
             if (m_Data != null)
             {
-                foreach (DataInfo dataInfo in m_Data) dataInfo.GetErrors(Protocol);
+                foreach (DataInfo dataInfo in m_Data) dataInfo.GetErrorsAndWarnings(Protocol);
             }
         }
         public override void GenerateID()
@@ -517,7 +517,7 @@ namespace HBP.Core.Data
             Protocol = protocol;
             foreach (var data in m_Data)
             {
-                UnityAction action = new UnityAction(() => data.GetErrors(Protocol));
+                UnityAction action = new UnityAction(() => data.GetErrorsAndWarnings(Protocol));
                 m_ActionByDataInfo.Add(data, action);
                 data.OnRequestErrorCheck.AddListener(action);
             }

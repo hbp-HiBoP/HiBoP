@@ -137,4 +137,58 @@
         }
         #endregion
     }
+
+
+    public abstract class Warning
+    {
+        #region Properties
+        public virtual string Title { get; }
+        public virtual string Message { get; }
+        #endregion
+
+        #region Constructors
+        public Warning() : this("Warning", "Unkwown")
+        {
+
+        }
+        public Warning(string title, string message)
+        {
+            Title = title;
+            Message = message;
+        }
+        #endregion
+
+        #region Public Methods
+        public override string ToString()
+        {
+            return Title + " : " + Message;
+        }
+        #endregion
+    }
+    public class NoMatchingSiteWarning : Warning
+    {
+        #region Constructors
+        public NoMatchingSiteWarning() : this("")
+        {
+
+        }
+        public NoMatchingSiteWarning(string message) : base("No channel of this data has a name matching a site name of the corresponding patient.", message)
+        {
+
+        }
+        #endregion
+    }
+    public class BlocsCantBeEpochedWarning : Warning
+    {
+        #region Constructors
+        public BlocsCantBeEpochedWarning() : this("")
+        {
+
+        }
+        public BlocsCantBeEpochedWarning(string message) : base("At least one of the blocs of the protocol can't be epoched", message)
+        {
+
+        }
+        #endregion
+    }
 }

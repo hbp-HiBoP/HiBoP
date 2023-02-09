@@ -108,6 +108,14 @@ namespace HBP.Data.Module3D
                     return;
                 }
             }
+            if (column.ActivityValuesOfUnmaskedSites.Length == 0)
+            {
+                SpanMin = 0;
+                Middle = 0;
+                SpanMax = 0;
+                OnUpdateSpanValues.Invoke();
+                return;
+            }
             float middle = column.ActivityValuesOfUnmaskedSites.Mean();
             Vector2 limits = column.ActivityValuesOfUnmaskedSites.CalculateValueLimit();
             Middle = middle;

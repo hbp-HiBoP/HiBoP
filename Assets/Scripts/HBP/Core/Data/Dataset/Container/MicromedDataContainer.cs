@@ -76,6 +76,12 @@ namespace HBP.Core.Data.Container
             m_Errors = errors.ToArray();
             return m_Errors;
         }
+        public override Warning[] GetWarnings()
+        {
+            List<Warning> warnings = new List<Warning>();
+            m_Warnings = warnings.ToArray();
+            return m_Warnings;
+        }
         public override void CopyDataToDirectory(DirectoryInfo dataInfoDirectory, string projectDirectory, string oldProjectDirectory)
         {
             SavedPath = Path.CopyToDirectory(dataInfoDirectory).Replace(projectDirectory, oldProjectDirectory);

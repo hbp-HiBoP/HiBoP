@@ -100,10 +100,6 @@ namespace HBP.Data.Module3D
                     site.Statistics = blocChannelStatistics;
                 }
             }
-            if (numberOfSitesWithValues == 0)
-            {
-                throw new NoMatchingSitesException();
-            }
 
             DynamicParameters.MinimumAmplitude = float.MaxValue;
             DynamicParameters.MaximumAmplitude = float.MinValue;

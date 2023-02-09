@@ -31,6 +31,8 @@ namespace HBP.Core.Data
             TotalNumberOfTrials = siteTrials.Length;
             NumberOfValidTrials = siteTrials.Count(s => s.IsValid);
 
+            if (TotalNumberOfTrials == 0) return;
+
             foreach (var subBloc in siteTrials[0].ChannelSubTrialBySubBloc.Keys)
             {
                 ChannelSubTrial[] siteSubTrials = new ChannelSubTrial[TotalNumberOfTrials];

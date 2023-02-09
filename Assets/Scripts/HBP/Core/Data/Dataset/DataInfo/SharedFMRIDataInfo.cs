@@ -64,6 +64,17 @@ namespace HBP.Core.Data
                 return errors.Distinct().ToArray();
             }
         }
+
+        protected Warning[] m_FMRIWarnings = new Warning[0];
+        public override Warning[] Warnings
+        {
+            get
+            {
+                List<Warning> warnings = new List<Warning>(base.Warnings);
+                warnings.AddRange(m_FMRIWarnings);
+                return warnings.Distinct().ToArray();
+            }
+        }
         #endregion
 
         #region Constructors
@@ -130,6 +141,23 @@ namespace HBP.Core.Data
             // TODO
             m_FMRIErrors = errors.ToArray();
             return m_FMRIErrors;
+        }
+        public override Warning[] GetWarnings(Protocol protocol)
+        {
+            List<Warning> warnings = new List<Warning>(base.GetWarnings(protocol));
+            warnings.AddRange(GetFMRIWarnings(protocol));
+            return warnings.Distinct().ToArray();
+        }
+        /// <summary>
+        /// Get all dataInfo errors related to CCEP.
+        /// </summary>
+        /// <param name="protocol"></param>
+        /// <returns>CCEP related errors</returns>
+        public virtual Warning[] GetFMRIWarnings(Protocol protocol)
+        {
+            List<Warning> warnings = new List<Warning>();
+            m_FMRIWarnings = warnings.ToArray();
+            return m_FMRIWarnings;
         }
         #endregion
     }

@@ -43,6 +43,20 @@ namespace HBP.Core.Data.Container
             }
         }
 
+        protected Warning[] m_Warnings = new Warning[0];
+        /// <summary>
+        /// Errors of the dataContainer.
+        /// </summary>
+        public virtual Warning[] Warnings
+        {
+            get
+            {
+                List<Warning> warnings = new List<Warning>();
+                warnings.AddRange(m_Warnings);
+                return warnings.Distinct().ToArray();
+            }
+        }
+
         /// <summary>
         /// True if the dataContainer is OK, False otherwise.
         /// </summary>v 
@@ -84,6 +98,7 @@ namespace HBP.Core.Data.Container
         /// </summary>
         /// <returns>DataContainer errors</returns>
         public abstract Error[] GetErrors();
+        public abstract Warning[] GetWarnings();
 
         public abstract void ConvertAllPathsToFullPaths();
         #endregion
