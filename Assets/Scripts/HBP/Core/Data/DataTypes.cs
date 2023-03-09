@@ -8,5 +8,6 @@ namespace HBP.Core.Data
     public class FMRI : DataAttribute { }
     public class MEGv : DataAttribute { }
     public class MEGc : DataAttribute { }
+    public class Static : DataAttribute { }
     public class Hide : Attribute { }
 }

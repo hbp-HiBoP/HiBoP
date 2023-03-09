@@ -160,6 +160,10 @@ namespace HBP.Core.Data
         {
             return m_Data.OfType<SharedFMRIDataInfo>().ToArray();
         }
+        public StaticDataInfo[] GetStaticDataInfos()
+        {
+            return m_Data.OfType<StaticDataInfo>().ToArray();
+        }
         public PatientDataInfo[] GetMEGDataInfos()
         {
             return m_Data.Where(d => d is MEGcDataInfo || d is MEGvDataInfo).Select(d => d as PatientDataInfo).ToArray();

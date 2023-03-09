@@ -89,6 +89,15 @@ namespace HBP.Core.Data
                 return new ReadOnlyCollection<MEGColumn>(Columns.OfType<MEGColumn>().ToArray());
             }
         }
+
+        public ReadOnlyCollection<StaticColumn> StaticColumns
+        {
+            get
+            {
+                return new ReadOnlyCollection<StaticColumn>(Columns.OfType<StaticColumn>().ToArray());
+            }
+        }
+
         /// <summary>
         /// Test if the visualization is visualizable.
         /// </summary>
@@ -184,13 +193,14 @@ namespace HBP.Core.Data
             int nbDynamicColumns = CCEPColumns.Count + IEEGColumns.Count;
             int nbFMRIColumns = FMRIColumns.Count;
             int nbMEGColumns = MEGColumns.Count;
+            int nbStaticColumns = StaticColumns.Count;
 
             onChangeProgress(0, 0, new LoadingText("Loading Visualization"));
 
             Exception exception = null;
             int nbPatients = Patients.Count;
 
-            float steps = 1 + 2 * nbPatients * nbDynamicColumns + nbFMRIColumns + nbMEGColumns;
+            float steps = 1 + 2 * nbPatients * nbDynamicColumns + nbFMRIColumns + nbMEGColumns + nbStaticColumns;
             float progress = 0.0f;
 
             float findDataInfoToReadProgress = 1 / steps;
@@ -198,6 +208,7 @@ namespace HBP.Core.Data
             float loadColumnsProgress = nbPatients * nbDynamicColumns / steps;
             float loadFMRIColumnsProgress = nbFMRIColumns / steps;
             float loadMEGColumnsProgress = nbMEGColumns / steps;
+            float loadStaticColumnsProgress = nbStaticColumns / steps;
 
             yield return Ninja.JumpToUnity;
 
@@ -244,6 +255,14 @@ namespace HBP.Core.Data
                 {
                     yield return CoroutineManager.StartAsync(c_LoadMEGColumns((localProgress, duration, text) => onChangeProgress(progress + localProgress * loadMEGColumnsProgress, duration, text), (e) => { exception = e; }));
                     progress += loadMEGColumnsProgress;
+                }
+            }
+            if (nbStaticColumns > 0)
+            {
+                if (exception == null)
+                {
+                    yield return CoroutineManager.StartAsync(c_LoadStaticColumns((localProgress, duration, text) => onChangeProgress(progress + localProgress * loadStaticColumnsProgress, duration, text), (e) => { exception = e; }));
+                    progress += loadFMRIColumnsProgress;
                 }
             }
             yield return Ninja.JumpBack;
@@ -633,6 +652,42 @@ namespace HBP.Core.Data
                     try
                     {
                         megColumn.Data.Load(dataInfos);
+                    }
+                    catch (Exception e)
+                    {
+                        UnityEngine.Debug.LogException(e);
+                        exception = e;
+                        outPut(exception);
+                        yield break;
+                    }
+                }
+            }
+            outPut(exception);
+        }
+        IEnumerator c_LoadStaticColumns(Action<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
+        {
+            yield return Ninja.JumpBack;
+
+            Exception exception = null;
+
+            ReadOnlyCollection<StaticColumn> staticColumns = StaticColumns;
+            int nbStaticColumns = staticColumns.Count;
+
+            float progress = 0;
+            const float TIME_BY_DATAINFO = 1f;
+            float loadingDataStep = 1f / nbStaticColumns;
+
+            if (nbStaticColumns > 0)
+            {
+                for (int i = 0; i < nbStaticColumns; ++i)
+                {
+                    StaticColumn staticColumn = staticColumns[i];
+                    StaticDataInfo[] dataInfos = staticColumn.Dataset.GetStaticDataInfos().Where(data => Patients.Contains(data.Patient)).ToArray();
+                    progress += loadingDataStep;
+                    onChangeProgress(progress, TIME_BY_DATAINFO * dataInfos.Length, new LoadingText("Loading Static column ", staticColumn.Name, " [" + (i + 1) + "/" + nbStaticColumns + "]"));
+                    try
+                    {
+                        staticColumn.Data.Load(dataInfos);
                     }
                     catch (Exception e)
                     {

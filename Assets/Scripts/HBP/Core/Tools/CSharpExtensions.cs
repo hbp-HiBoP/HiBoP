@@ -217,6 +217,12 @@ namespace HBP.Core.Tools
             result = 0;
             return false;
         }
+        public static float ParseFloat(string text)
+        {
+            if (TryParseFloat(text, out float result))
+                return result;
+            return 0;
+        }
     }
 
     public static class FileSystemExtensions

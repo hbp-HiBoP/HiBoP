@@ -267,6 +267,11 @@ namespace HBP.Core.Data
                     FMRIData data = new FMRIData(FMRIDataInfo);
                     m_DataByRequest.Add(request, data);
                 }
+                else if (request.DataInfo is StaticDataInfo staticDataInfo)
+                {
+                    StaticData data = new StaticData(staticDataInfo);
+                    m_DataByRequest.Add(request, data);
+                }
                 else if (request.DataInfo is SharedFMRIDataInfo sharedFMRIDataInfo)
                 {
                     FMRIData data = new FMRIData(sharedFMRIDataInfo);

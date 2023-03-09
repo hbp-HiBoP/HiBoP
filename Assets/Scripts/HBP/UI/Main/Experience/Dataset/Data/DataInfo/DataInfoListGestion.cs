@@ -104,6 +104,21 @@ namespace HBP.UI.Main
                     obj.Name = name;
                 }
             }
+            else if (obj is Core.Data.StaticDataInfo staticDataInfo)
+            {
+                IEnumerable<Core.Data.StaticDataInfo> staticDataInfos = List.Objects.OfType<Core.Data.StaticDataInfo>();
+                if (staticDataInfos.Any(p => p.Name == obj.Name && p.Patient == staticDataInfo.Patient && !p.Equals(staticDataInfo)))
+                {
+                    int count = 1;
+                    string name = string.Format("{0}({1})", obj.Name, count);
+                    while (staticDataInfos.Any(p => p.Name == name && p.Patient == staticDataInfo.Patient && !p.Equals(staticDataInfo)))
+                    {
+                        count++;
+                        name = string.Format("{0}({1})", obj.Name, count);
+                    }
+                    obj.Name = name;
+                }
+            }
             else
             {
                 if (m_List.Objects.Any(p => p.GetType() == obj.GetType() && p.Name == obj.Name && !p.Equals(obj)))
