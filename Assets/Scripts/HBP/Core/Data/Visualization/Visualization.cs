@@ -316,6 +316,10 @@ namespace HBP.Core.Data
             {
                 return GetDataInfo(column).OfType<CCEPDataInfo>().First((dataInfo) => dataInfo.Patient == patient);
             }
+            else if (column is StaticColumn staticColumn)
+            {
+                return GetDataInfo(column).OfType<StaticDataInfo>().First((dataInfo) => dataInfo.Patient == patient);
+            }
             else
             {
                 return null;

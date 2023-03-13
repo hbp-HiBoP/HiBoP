@@ -178,6 +178,10 @@ namespace HBP.Data.Module3D
             {
                 timelineIndex = megColumn.SelectedVolumeIndex;
             }
+            else if (Column is Column3DStatic staticColumn)
+            {
+                timelineIndex = staticColumn.SelectedLabelIndex;
+            }
 
             for (int i = 0; i < CutGenerators.Count; ++i)
             {

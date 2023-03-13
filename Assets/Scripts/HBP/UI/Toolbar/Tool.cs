@@ -93,6 +93,10 @@ namespace HBP.UI.Toolbar
                 {
                     columns.AddRange(SelectedScene.ColumnsMEG);
                 }
+                else if (SelectedColumn is Column3DStatic)
+                {
+                    columns.AddRange(SelectedScene.ColumnsStatic);
+                }
             }
             else
             {

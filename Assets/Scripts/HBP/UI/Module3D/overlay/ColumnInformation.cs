@@ -76,6 +76,17 @@ namespace HBP.UI.Module3D
                     m_Data.text = megColumn.SelectedMEGItem.Label;
                 });
             }
+            else if (column is Column3DStatic staticColumn)
+            {
+                m_Protocol.text = staticColumn.ColumnStaticData.Dataset.Protocol.Name;
+                m_Bloc.text = "Static";
+                m_Dataset.text = staticColumn.ColumnStaticData.Dataset.Name;
+                m_Data.text = string.Format("{0} ({1})", staticColumn.ColumnStaticData.DataName, staticColumn.Labels[staticColumn.SelectedLabelIndex]);
+                staticColumn.OnUpdateSelectedLabel.AddListener(() =>
+                {
+                    m_Data.text = string.Format("{0} ({1})", staticColumn.ColumnStaticData.DataName, staticColumn.Labels[staticColumn.SelectedLabelIndex]);
+                });
+            }
             else
             {
                 IsActive = false;

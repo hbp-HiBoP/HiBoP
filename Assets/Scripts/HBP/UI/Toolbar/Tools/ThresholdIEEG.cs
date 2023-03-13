@@ -140,6 +140,35 @@ namespace HBP.UI.Toolbar
             UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
+        /// Update IEEG Histogram Texture
+        /// </summary>
+        private void UpdateIEEGHistogram(Column3DStatic column)
+        {
+            UnityEngine.Profiling.Profiler.BeginSample("IEEG HISTOGRAM");
+            string histogramID = GenerateHistogramID(column);
+            if (!m_Histograms.TryGetValue(histogramID, out m_IEEGHistogram))
+            {
+                float[] iEEGValues = column.ActivityValuesOfUnmaskedSites;
+                if (!m_IEEGHistogram)
+                {
+                    m_IEEGHistogram = new Texture2D(1, 1);
+                }
+                if (iEEGValues.Length > 0)
+                {
+                    Core.DLL.Texture texture = Core.DLL.Texture.GenerateDistributionHistogram(iEEGValues, 440, 440, m_MinAmplitude, m_MaxAmplitude);
+                    texture.UpdateTexture2D(m_IEEGHistogram);
+                    texture.Dispose();
+                }
+                else
+                {
+                    m_IEEGHistogram = Texture2D.blackTexture;
+                }
+                m_Histograms.Add(histogramID, m_IEEGHistogram);
+            }
+            m_Histogram.texture = m_IEEGHistogram;
+            UnityEngine.Profiling.Profiler.EndSample();
+        }
+        /// <summary>
         /// Set the values of the threshold
         /// </summary>
         /// <param name="minFactor"></param>
@@ -342,6 +371,28 @@ namespace HBP.UI.Toolbar
 
             // Non-fixed values
             SetValues((column.DynamicParameters.SpanMin - m_MinAmplitude) / m_Amplitude, (column.DynamicParameters.Middle - m_MinAmplitude) / m_Amplitude, (column.DynamicParameters.SpanMax - m_MinAmplitude) / m_Amplitude);
+
+            UpdateIEEGHistogram(column);
+
+            m_Initialized = true;
+        }
+        /// <summary>
+        /// Update IEEG values
+        /// </summary>
+        /// <param name="values">IEEG data values</param>
+        public void UpdateIEEGValues(Column3DStatic column)
+        {
+            m_Initialized = false;
+
+            // Fixed values
+            m_MinAmplitude = column.StaticParameters.MinimumAmplitude;
+            m_MaxAmplitude = column.StaticParameters.MaximumAmplitude;
+            m_Amplitude = m_MaxAmplitude - m_MinAmplitude;
+            m_MinText.text = m_MinAmplitude.ToString("N2");
+            m_MaxText.text = m_MaxAmplitude.ToString("N2");
+
+            // Non-fixed values
+            SetValues((column.StaticParameters.SpanMin - m_MinAmplitude) / m_Amplitude, (column.StaticParameters.Middle - m_MinAmplitude) / m_Amplitude, (column.StaticParameters.SpanMax - m_MinAmplitude) / m_Amplitude);
 
             UpdateIEEGHistogram(column);
 

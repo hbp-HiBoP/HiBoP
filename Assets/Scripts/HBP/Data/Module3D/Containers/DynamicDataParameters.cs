@@ -123,6 +123,23 @@ namespace HBP.Data.Module3D
             SpanMax = Mathf.Clamp(limits[1], MinimumAmplitude, MaximumAmplitude);
             OnUpdateSpanValues.Invoke();
         }
+        public void ResetSpanValues(Column3DStatic column)
+        {
+            if (column.ActivityValuesOfUnmaskedSites.Length == 0)
+            {
+                SpanMin = 0;
+                Middle = 0;
+                SpanMax = 0;
+                OnUpdateSpanValues.Invoke();
+                return;
+            }
+            float middle = column.ActivityValuesOfUnmaskedSites.Mean();
+            Vector2 limits = column.ActivityValuesOfUnmaskedSites.CalculateValueLimit();
+            Middle = middle;
+            SpanMin = Mathf.Clamp(limits[0], MinimumAmplitude, MaximumAmplitude);
+            SpanMax = Mathf.Clamp(limits[1], MinimumAmplitude, MaximumAmplitude);
+            OnUpdateSpanValues.Invoke();
+        }
         #endregion
     }
 }
