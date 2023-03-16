@@ -181,6 +181,39 @@ namespace HBP.UI.Module3D
             return false;
         }
         /// <summary>
+        /// Check if the position of the site is above or under the input value
+        /// </summary>
+        /// <param name="site">Site to check</param>
+        /// <param name="superior">True if the condition is "above", false otherwise</param>
+        /// <param name="stringValue">Value to be compared</param>
+        /// <returns>True if the mean of the values matches the condition</returns>
+        protected bool CheckX(Core.Object3D.Site site, bool superior, string stringValue)
+        {
+            return CompareValue(-site.Information.DefaultPosition.x, superior, stringValue);
+        }
+        /// <summary>
+        /// Check if the position of the site is above or under the input value
+        /// </summary>
+        /// <param name="site">Site to check</param>
+        /// <param name="superior">True if the condition is "above", false otherwise</param>
+        /// <param name="stringValue">Value to be compared</param>
+        /// <returns>True if the mean of the values matches the condition</returns>
+        protected bool CheckY(Core.Object3D.Site site, bool superior, string stringValue)
+        {
+            return CompareValue(site.Information.DefaultPosition.y, superior, stringValue);
+        }
+        /// <summary>
+        /// Check if the position of the site is above or under the input value
+        /// </summary>
+        /// <param name="site">Site to check</param>
+        /// <param name="superior">True if the condition is "above", false otherwise</param>
+        /// <param name="stringValue">Value to be compared</param>
+        /// <returns>True if the mean of the values matches the condition</returns>
+        protected bool CheckZ(Core.Object3D.Site site, bool superior, string stringValue)
+        {
+            return CompareValue(site.Information.DefaultPosition.z, superior, stringValue);
+        }
+        /// <summary>
         /// Check if the site name contains the input string
         /// </summary>
         /// <param name="site">Site to check</param>
