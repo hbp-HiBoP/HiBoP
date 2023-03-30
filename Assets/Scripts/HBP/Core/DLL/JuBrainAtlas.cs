@@ -17,9 +17,9 @@ namespace HBP.Core.DLL
         #region Public Methods
         public void Load()
         {
-            string leftNIIPath = Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "jubrain_left_nlin2Stdcolin27.nii.gz");
-            string rightNIIPath = Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "jubrain_right_nlin2Stdcolin27.nii.gz");
-            string jsonPath = Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "jubrain.json");
+            string leftNIIPath = Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "JulichBrainAtlas_3.0_areas_MPM_l_N10_nlin2StdColin27_public_103b99ab1e99961eeffe414978ffb415.nii.gz");
+            string rightNIIPath = Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "JulichBrainAtlas_3.0_areas_MPM_r_N10_nlin2StdColin27_public_ff55a994bb8c9e5dace0c93b6fa3e2a7.nii.gz");
+            string jsonPath = Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "jubrain_labels.json");
             Load(leftNIIPath, rightNIIPath, jsonPath);
         }
         /// <summary>
