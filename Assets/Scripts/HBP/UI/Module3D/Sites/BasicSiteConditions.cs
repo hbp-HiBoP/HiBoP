@@ -31,6 +31,15 @@ namespace HBP.UI.Module3D
         [SerializeField] Toggle m_NotOnPlane;
         [SerializeField] Toggle m_Atlas;
         [SerializeField] InputField m_AtlasFilter;
+        [SerializeField] Toggle m_X;
+        [SerializeField] Toggle m_XSuperior;
+        [SerializeField] InputField m_XValue;
+        [SerializeField] Toggle m_Y;
+        [SerializeField] Toggle m_YSuperior;
+        [SerializeField] InputField m_YValue;
+        [SerializeField] Toggle m_Z;
+        [SerializeField] Toggle m_ZSuperior;
+        [SerializeField] InputField m_ZValue;
 
         // Information
         [SerializeField] Toggle m_SiteName;
@@ -127,6 +136,9 @@ namespace HBP.UI.Module3D
             if (m_OnPlane.isOn) result &= CheckOnPlane(site);
             if (m_NotOnPlane.isOn) result &= !CheckOnPlane(site);
             if (m_Atlas.isOn) result &= CheckAtlas(site, m_AtlasFilter.text);
+            if (m_X.isOn) result &= CheckX(site, m_XSuperior.isOn, m_XValue.text);
+            if (m_Y.isOn) result &= CheckY(site, m_XSuperior.isOn, m_YValue.text);
+            if (m_Z.isOn) result &= CheckZ(site, m_XSuperior.isOn, m_ZValue.text);
             return result;
         }
         /// <summary>

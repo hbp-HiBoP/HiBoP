@@ -41,32 +41,65 @@ namespace HBP.UI.Toolbar
                 if (ListenerLock) return;
 
                 NumberExtension.TryParseFloat(value, out float val);
-                
-                foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
+
+                if (SelectedColumn is Column3DDynamic)
                 {
-                    ((Column3DDynamic)column).DynamicParameters.InfluenceDistance = val;
+                    foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
+                    {
+                        ((Column3DDynamic)column).DynamicParameters.InfluenceDistance = val;
+                    }
+                    m_InputField.text = ((Column3DDynamic)SelectedColumn).DynamicParameters.InfluenceDistance.ToString("N2");
                 }
-                m_InputField.text = ((Column3DDynamic)SelectedColumn).DynamicParameters.InfluenceDistance.ToString("N2");
+                else if (SelectedColumn is Column3DStatic)
+                {
+                    foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
+                    {
+                        ((Column3DStatic)column).StaticParameters.InfluenceDistance = val;
+                    }
+                    m_InputField.text = ((Column3DStatic)SelectedColumn).StaticParameters.InfluenceDistance.ToString("N2");
+                }
             });
             m_ThresholdIEEG.Initialize();
             m_ThresholdIEEG.OnChangeValues.AddListener((min, mid, max) =>
             {
                 if (ListenerLock) return;
 
-                foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
+                if (SelectedColumn is Column3DDynamic)
                 {
-                    ((Column3DDynamic)column).DynamicParameters.SetSpanValues(min, mid, max);
+                    foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
+                    {
+                        ((Column3DDynamic)column).DynamicParameters.SetSpanValues(min, mid, max);
+                    }
+                }
+                else if (SelectedColumn is Column3DStatic)
+                {
+                    foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
+                    {
+                        ((Column3DStatic)column).StaticParameters.SetSpanValues(min, mid, max);
+                    }
                 }
             });
             m_Auto.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
 
-                foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
+                if (SelectedColumn is Column3DDynamic)
                 {
-                    Column3DDynamic dynamicColumn = column as Column3DDynamic;
-                    dynamicColumn.DynamicParameters.ResetSpanValues(dynamicColumn);
-                    m_ThresholdIEEG.UpdateIEEGValues(dynamicColumn);
+                    foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
+                    {
+                        Column3DDynamic dynamicColumn = column as Column3DDynamic;
+                        dynamicColumn.DynamicParameters.ResetSpanValues(dynamicColumn);
+                        m_ThresholdIEEG.UpdateIEEGValues(dynamicColumn);
+                    }
+                }
+                else if (SelectedColumn is Column3DStatic)
+                {
+                    foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
+                    {
+                        Column3DStatic staticColumn = column as Column3DStatic;
+                        staticColumn.StaticParameters.ResetSpanValues(staticColumn);
+                        m_ThresholdIEEG.UpdateIEEGValues(staticColumn);
+                    }
                 }
             });
         }
@@ -88,10 +121,11 @@ namespace HBP.UI.Toolbar
             bool isColumnDynamic = SelectedColumn is Column3DDynamic;
             bool isColumnIEEG = SelectedColumn is Column3DIEEG;
             bool isColumnCCEPAndSourceSelected = SelectedColumn is Column3DCCEP ccepColumn && ccepColumn.IsSourceSelected;
+            bool isColumnStatic = SelectedColumn is Column3DStatic;
 
-            gameObject.SetActive(isColumnDynamic);
-            m_InputField.interactable = isColumnDynamic;
-            m_Button.interactable = isColumnIEEG || isColumnCCEPAndSourceSelected;
+            gameObject.SetActive(isColumnDynamic || isColumnStatic);
+            m_InputField.interactable = isColumnDynamic || isColumnStatic;
+            m_Button.interactable = isColumnIEEG || isColumnCCEPAndSourceSelected || isColumnStatic;
         }
         /// <summary>
         /// Update the status of the tool
@@ -103,6 +137,12 @@ namespace HBP.UI.Toolbar
                 m_InputField.text = dynamicColumn.DynamicParameters.InfluenceDistance.ToString("N2");
                 m_ThresholdIEEG.CleanHistograms();
                 m_ThresholdIEEG.UpdateIEEGValues(dynamicColumn);
+            }
+            else if (SelectedColumn is Column3DStatic staticColumn)
+            {
+                m_InputField.text = staticColumn.StaticParameters.InfluenceDistance.ToString("N2");
+                m_ThresholdIEEG.CleanHistograms();
+                m_ThresholdIEEG.UpdateIEEGValues(staticColumn);
             }
             else
             {

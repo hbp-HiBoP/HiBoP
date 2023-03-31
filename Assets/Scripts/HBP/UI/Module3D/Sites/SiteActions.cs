@@ -236,16 +236,16 @@ namespace HBP.UI.Module3D
                     if (string.IsNullOrEmpty(csvPath)) return;
 
                     m_ExportSitesProgressBar.Begin();
-                    List<Core.Object3D.Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered).ToList();
+                    List<Core.Object3D.Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered && !s.State.IsMasked).ToList();
                     m_Coroutine = this.StartCoroutineAsync(c_ExportSites(sites, csvPath));
                 }, new string[] { "csv" }, "Save sites to");
 #else
-            string csvPath = FileBrowser.GetSavedFileName(new string[] { "csv" }, "Save sites to");
-            if (string.IsNullOrEmpty(csvPath)) return;
+                string csvPath = FileBrowser.GetSavedFileName(new string[] { "csv" }, "Save sites to");
+                if (string.IsNullOrEmpty(csvPath)) return;
 
-            m_ExportSitesProgressBar.Begin();
-            List<Core.Object3D.Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered).ToList();
-            m_Coroutine = this.StartCoroutineAsync(c_ExportSites(sites, csvPath));
+                m_ExportSitesProgressBar.Begin();
+                List<Core.Object3D.Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered && !s.State.IsMasked).ToList();
+                m_Coroutine = this.StartCoroutineAsync(c_ExportSites(sites, csvPath));
 #endif
             }
         }
@@ -318,6 +318,11 @@ namespace HBP.UI.Module3D
                         DataInfo dataInfo = m_Scene.Visualization.GetDataInfo(site.Information.Patient, columnCCEP.ColumnCCEPData);
                         dataInfoByPatient.Add(site.Information.Patient, dataInfo);
                     }
+                    else if (m_Scene.SelectedColumn is Column3DStatic columnStatic)
+                    {
+                        DataInfo dataInfo = m_Scene.Visualization.GetDataInfo(site.Information.Patient, columnStatic.ColumnStaticData);
+                        dataInfoByPatient.Add(site.Information.Patient, dataInfo);
+                    }
                 }
                 // Update progressbar
                 if (m_UpdateUI || i == length - 1)
@@ -347,7 +352,7 @@ namespace HBP.UI.Module3D
                 Core.Object3D.Site site = sites[i];
                 Vector3 sitePosition = sitePositions[i];
                 DataInfo dataInfo = null;
-                if (m_Scene.SelectedColumn is Column3DDynamic columnIEEG)
+                if (m_Scene.SelectedColumn is Column3DDynamic || m_Scene.SelectedColumn is Column3DStatic)
                 {
                     dataInfo = dataInfoByPatient[site.Information.Patient];
                 }

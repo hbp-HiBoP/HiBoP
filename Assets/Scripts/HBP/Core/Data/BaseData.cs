@@ -165,7 +165,10 @@ namespace HBP.Core.Data
         /// </summary>
         protected virtual void OnDeserialized()
         {
-
+            if (string.IsNullOrEmpty(ID))
+            {
+                GenerateID();
+            }
         }
         #endregion
     }

@@ -58,6 +58,10 @@ namespace HBP.UI.Toolbar
         /// Select the MEG once the activity is computed
         /// </summary>
         [SerializeField] private MEGSelector m_MEGSelector;
+        /// <summary>
+        /// Select the Static label once the activity is computed
+        /// </summary>
+        [SerializeField] private StaticLabelSelector m_StaticLabelSelector;
         #endregion
 
         #region Private Methods
@@ -77,6 +81,7 @@ namespace HBP.UI.Toolbar
             m_Tools.Add(m_SiteCorrelations);
             m_Tools.Add(m_FMRISelector);
             m_Tools.Add(m_MEGSelector);
+            m_Tools.Add(m_StaticLabelSelector);
         }
         /// <summary>
         /// Add the listeners to the elements of the toolbar

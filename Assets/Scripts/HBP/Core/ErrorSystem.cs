@@ -137,7 +137,19 @@
         }
         #endregion
     }
+    public class InvalidDataFileError : Error
+    {
+        #region Properties
+        public InvalidDataFileError() : this("")
+        {
 
+        }
+        public InvalidDataFileError(string message) : base("Input file is invalid.", message)
+        {
+
+        }
+        #endregion
+    }
 
     public abstract class Warning
     {

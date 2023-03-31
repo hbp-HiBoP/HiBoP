@@ -33,6 +33,7 @@ namespace HBP.UI.Main
         [SerializeField] SharedFMRIDataInfoSubModifier m_SharedFMRIDataInfoSubModifier;
         [SerializeField] MEGvDataInfoSubModifier m_MEGvDataInfoSubModifier;
         [SerializeField] MEGcDataInfoSubModifier m_MEGcDataInfoSubModifier;
+        [SerializeField] StaticDataInfoSubModifier m_StaticDataInfoSubModifier;
 
         /// <summary>
         /// True if interactable, False otherwise.
@@ -89,7 +90,8 @@ namespace HBP.UI.Main
                 m_FMRIDataInfoSubModifier,
                 m_SharedFMRIDataInfoSubModifier,
                 m_MEGvDataInfoSubModifier,
-                m_MEGcDataInfoSubModifier
+                m_MEGcDataInfoSubModifier,
+                m_StaticDataInfoSubModifier
             };
 
             m_DataInfoTemp = new List<DataInfo>
@@ -99,7 +101,8 @@ namespace HBP.UI.Main
                 new FMRIDataInfo(),
                 new SharedFMRIDataInfo(),
                 new MEGvDataInfo(),
-                new MEGcDataInfo()
+                new MEGcDataInfo(),
+                new StaticDataInfo()
             };
 
             m_iEEGDataInfoSubModifier.Initialize();
@@ -108,6 +111,7 @@ namespace HBP.UI.Main
             m_SharedFMRIDataInfoSubModifier.Initialize();
             m_MEGvDataInfoSubModifier.Initialize();
             m_MEGcDataInfoSubModifier.Initialize();
+            m_StaticDataInfoSubModifier.Initialize();
 
             m_NameInputField.onEndEdit.AddListener(ChangeName);
 
@@ -140,6 +144,7 @@ namespace HBP.UI.Main
             else if (type == typeof(SharedFMRIDataInfo)) m_DataContainerModifier.DataAttribute = new FMRI();
             else if (type == typeof(MEGvDataInfo)) m_DataContainerModifier.DataAttribute = new MEGv();
             else if (type == typeof(MEGcDataInfo)) m_DataContainerModifier.DataAttribute = new MEGc();
+            else if (type == typeof(StaticDataInfo)) m_DataContainerModifier.DataAttribute = new Static();
 
             m_DataContainerModifier.Object = m_ObjectTemp.DataContainer;
             if (m_ObjectTemp is PatientDataInfo patientDataInfo)

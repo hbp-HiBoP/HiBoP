@@ -148,6 +148,11 @@ namespace HBP.Data.Module3D
                     iEEGUnit = columnIEEG.ActivityUnitsBySiteID[siteID];
                     iEEGActivity = columnIEEG.ActivityValuesBySiteID[siteID][columnIEEG.Timeline.CurrentIndex];
                 }
+                else if (column is Column3DStatic columnStatic)
+                {
+                    iEEGUnit = "";
+                    iEEGActivity = columnStatic.ActivityValuesByLabelIDBySiteID[siteID][columnStatic.SelectedLabelIndex];
+                }
                 // Send Event
                 SiteInformationDisplayMode displayMode;
                 if (m_Scene.IsGeneratorUpToDate)
@@ -156,7 +161,7 @@ namespace HBP.Data.Module3D
                     {
                         displayMode = SiteInformationDisplayMode.CCEP;
                     }
-                    else if (column is Column3DIEEG)
+                    else if (column is Column3DIEEG || column is Column3DStatic)
                     {
                         displayMode = SiteInformationDisplayMode.IEEG;
                     }

@@ -534,9 +534,9 @@ namespace HBP.Core.DLL
         /// <param name="rawSiteList">List of the sites of the scene</param>
         /// <param name="index">Index of the considered site</param>
         /// <returns>True if the site is inside the surface</returns>
-        public bool IsSiteInside(RawSiteList rawSiteList, int index)
+        public bool IsPointInside(Vector3 point)
         {
-            return is_point_inside_Surface(_handle, rawSiteList.getHandle(), index);
+            return is_point_inside_Surface(_handle, -point.x, point.y, point.z);
         }
         /// <summary>
         /// Returns a cube bbox around the mesh depending on the cuts used
@@ -652,7 +652,7 @@ namespace HBP.Core.DLL
         [DllImport("hbp_export", EntryPoint = "simplify_mesh_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern void simplify_mesh_Surface(HandleRef handleSurface, int triangleCount, int agressiveness);
         [DllImport("hbp_export", EntryPoint = "is_point_inside_Surface", CallingConvention = CallingConvention.Cdecl)]
-        static private extern bool is_point_inside_Surface(HandleRef handleSurface, HandleRef handleRawSiteList, int id);
+        static private extern bool is_point_inside_Surface(HandleRef handleSurface, float x, float y, float z);
         [DllImport("hbp_export", EntryPoint = "update_visiblity_mask_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern void update_visiblity_mask_Surface(HandleRef handleSurface, HandleRef handleInvisiblePartSurface, int[] visibilityMask);
         [DllImport("hbp_export", EntryPoint = "update_visiblity_mask_with_ray", CallingConvention = CallingConvention.Cdecl)]

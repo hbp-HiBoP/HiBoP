@@ -27,6 +27,9 @@ namespace HBP.UI.Module3D
         public const string IN_RIGHT_HEMISPHERE = "R";
         public const string ON_PLANE = "CUT";
         public const string ATLAS_AREA = "ATLAS_AREA";
+        public const string POS_X = "X";
+        public const string POS_Y = "Y";
+        public const string POS_Z = "Z";
         public const string NAME = "NAME";
         public const string PATIENT_NAME = "PAT_NAME";
         public const string PATIENT_PLACE = "PAT_PLACE";
@@ -117,6 +120,39 @@ namespace HBP.UI.Module3D
                     else if (label == ATLAS_AREA)
                     {
                         return CheckAtlas(site, deblankedValue);
+                    }
+                    else if (label == POS_X)
+                    {
+                        if (s.Contains("<"))
+                        {
+                            return CheckX(site, false, deblankedValue);
+                        }
+                        else if (s.Contains(">"))
+                        {
+                            return CheckX(site, true, deblankedValue);
+                        }
+                    }
+                    else if (label == POS_Y)
+                    {
+                        if (s.Contains("<"))
+                        {
+                            return CheckY(site, false, deblankedValue);
+                        }
+                        else if (s.Contains(">"))
+                        {
+                            return CheckY(site, true, deblankedValue);
+                        }
+                    }
+                    else if (label == POS_Z)
+                    {
+                        if (s.Contains("<"))
+                        {
+                            return CheckZ(site, false, deblankedValue);
+                        }
+                        else if (s.Contains(">"))
+                        {
+                            return CheckZ(site, true, deblankedValue);
+                        }
                     }
                     else if (label == TAG)
                     {

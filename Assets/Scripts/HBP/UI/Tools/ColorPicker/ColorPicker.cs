@@ -46,13 +46,13 @@ namespace HBP.UI.Tools
             if (m_Instance == null)
             {
                 m_Instance = this;
+                m_Instance.gameObject.SetActive(false);
+                m_Blocker.onClick.AddListener(Close);
             }
             else
             {
                 Destroy(this);
             }
-
-            m_Blocker.onClick.AddListener(Close);
         }
         private void SetBlockerPosition()
         {

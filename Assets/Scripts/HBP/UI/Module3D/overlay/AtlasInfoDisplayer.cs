@@ -97,10 +97,10 @@ namespace HBP.UI.Module3D
                             m_MarsAtlasArea.gameObject.SetActive(false);
                             m_JuBrainArea.gameObject.SetActive(true);
                             m_JuBrainNameText.text = atlasInfo.Information1;
-                            m_LocationText.text = atlasInfo.Information2;
-                            m_AreaLabelText.text = atlasInfo.Information3;
-                            m_StatusText.text = atlasInfo.Information4;
-                            m_DOIText.text = atlasInfo.Information5;
+                            //m_LocationText.text = atlasInfo.Information2;
+                            //m_AreaLabelText.text = atlasInfo.Information3;
+                            //m_StatusText.text = atlasInfo.Information4;
+                            //m_DOIText.text = atlasInfo.Information5;
                             break;
                     }
                     ClampToCanvas();

@@ -17,6 +17,7 @@ namespace HBP.UI.Main
         [SerializeField] FMRIColumnModifier m_FMRIColumnModifier;
         [SerializeField] AnatomicColumnModifier m_AnatomicColumnModifier;
         [SerializeField] MEGColumnModifier m_MEGColumnModifier;
+        [SerializeField] StaticColumnModifier m_StaticColumnModifier;
 
         Type[] m_Types;
 
@@ -64,6 +65,7 @@ namespace HBP.UI.Main
                 m_CCEPColumnModifier.Patients = value;
                 m_FMRIColumnModifier.Patients = value;
                 m_MEGColumnModifier.Patients = value;
+                m_StaticColumnModifier.Patients = value;
             }
         }
 
@@ -84,6 +86,7 @@ namespace HBP.UI.Main
                 m_FMRIColumnModifier.Interactable = value;
                 m_AnatomicColumnModifier.Interactable = value;
                 m_MEGColumnModifier.Interactable = value;
+                m_StaticColumnModifier.Interactable = value;
             }
         }
 
@@ -118,6 +121,7 @@ namespace HBP.UI.Main
                     m_CCEPColumnModifier.IsActive = false;
                     m_FMRIColumnModifier.IsActive = false;
                     m_MEGColumnModifier.IsActive = false;
+                    m_StaticColumnModifier.IsActive = false;
                 }
                 else if (type == typeof(Core.Data.IEEGColumn))
                 {
@@ -129,6 +133,7 @@ namespace HBP.UI.Main
                     m_CCEPColumnModifier.IsActive = false;
                     m_FMRIColumnModifier.IsActive = false;
                     m_MEGColumnModifier.IsActive = false;
+                    m_StaticColumnModifier.IsActive = false;
                 }
                 else if (type == typeof(Core.Data.CCEPColumn))
                 {
@@ -140,6 +145,7 @@ namespace HBP.UI.Main
                     m_CCEPColumnModifier.IsActive = true;
                     m_FMRIColumnModifier.IsActive = false;
                     m_MEGColumnModifier.IsActive = false;
+                    m_StaticColumnModifier.IsActive = false;
                 }
                 else if (type == typeof(Core.Data.FMRIColumn))
                 {
@@ -151,6 +157,7 @@ namespace HBP.UI.Main
                     m_CCEPColumnModifier.IsActive = false;
                     m_FMRIColumnModifier.IsActive = true;
                     m_MEGColumnModifier.IsActive = false;
+                    m_StaticColumnModifier.IsActive = false;
                 }
                 else if (type == typeof(Core.Data.MEGColumn))
                 {
@@ -162,6 +169,19 @@ namespace HBP.UI.Main
                     m_CCEPColumnModifier.IsActive = false;
                     m_FMRIColumnModifier.IsActive = false;
                     m_MEGColumnModifier.IsActive = true;
+                    m_StaticColumnModifier.IsActive = false;
+                }
+                else if (type == typeof(Core.Data.StaticColumn))
+                {
+                    if (!(m_Object is Core.Data.StaticColumn)) Object = new Core.Data.StaticColumn(Object.Name, Object.BaseConfiguration);
+                    m_StaticColumnModifier.Object = Object as Core.Data.StaticColumn;
+
+                    m_AnatomicColumnModifier.IsActive = false;
+                    m_IEEGColumnModifier.IsActive = false;
+                    m_CCEPColumnModifier.IsActive = false;
+                    m_FMRIColumnModifier.IsActive = false;
+                    m_MEGColumnModifier.IsActive = false;
+                    m_StaticColumnModifier.IsActive = true;
                 }
             }
         }

@@ -24,12 +24,14 @@ namespace HBP.UI.Main
                     ApplicationState.ProjectLoaded.SetPatients(ListGestion.List.Objects);
                     DataManager.Clear();
                     Module3DMain.ReloadScenes();
+                    UITools.CheckProjectIDAndAskForRegeneration();
                 });
             }
             else
             {
                 base.OK();
                 ApplicationState.ProjectLoaded.SetPatients(ListGestion.List.Objects);
+                UITools.CheckProjectIDAndAskForRegeneration();
             }
             FindObjectOfType<MenuButtonState>().SetInteractables();
         }

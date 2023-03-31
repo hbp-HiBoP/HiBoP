@@ -19,6 +19,7 @@ namespace HBP.UI.Main
         [SerializeField] MicromedDataContainerSubModifier m_MicromedDataContainerSubModifier;
         [SerializeField] NiftiDataContainerSubModifier m_NiftiDataContainerSubModifier;
         [SerializeField] FIFDataContainerSubModifier m_FIFDataContainerSubModifier;
+        [SerializeField] CSVDataContainerSubModifier m_CSVDataContainerSubModifier;
 
         Type[] m_Types;
         Elan m_ElanDataContainerTemp;
@@ -27,6 +28,7 @@ namespace HBP.UI.Main
         BrainVision m_BrainVisionDataContainerTemp;
         Nifti m_NiftiDataContainerTemp;
         FIF m_FIFDataContainerTemp;
+        CSV m_CSVDataContainerTemp;
 
         DataAttribute m_DataAttribute;
         public DataAttribute DataAttribute
@@ -61,6 +63,7 @@ namespace HBP.UI.Main
                 m_MicromedDataContainerSubModifier.Interactable = value;
                 m_NiftiDataContainerSubModifier.Interactable = value;
                 m_FIFDataContainerSubModifier.Interactable = value;
+                m_CSVDataContainerSubModifier.Interactable = value;
             }
         }
         #endregion
@@ -85,6 +88,7 @@ namespace HBP.UI.Main
                 m_MicromedDataContainerSubModifier.IsActive = false;
                 m_NiftiDataContainerSubModifier.IsActive = false;
                 m_FIFDataContainerSubModifier.IsActive = false;
+                m_CSVDataContainerSubModifier.IsActive = false;
 
                 m_ElanDataContainerSubModifier.Object = m_ElanDataContainerTemp;
                 m_Object = m_ElanDataContainerTemp;
@@ -97,6 +101,7 @@ namespace HBP.UI.Main
                 m_MicromedDataContainerSubModifier.IsActive = false;
                 m_NiftiDataContainerSubModifier.IsActive = false;
                 m_FIFDataContainerSubModifier.IsActive = false;
+                m_CSVDataContainerSubModifier.IsActive = false;
 
                 m_BrainVisionDataContainerSubModifier.Object = m_BrainVisionDataContainerTemp;
                 m_Object = m_BrainVisionDataContainerTemp;
@@ -109,6 +114,7 @@ namespace HBP.UI.Main
                 m_MicromedDataContainerSubModifier.IsActive = false;
                 m_NiftiDataContainerSubModifier.IsActive = false;
                 m_FIFDataContainerSubModifier.IsActive = false;
+                m_CSVDataContainerSubModifier.IsActive = false;
 
                 m_EDFDataContainerSubModifier.Object = m_EDFDataContainerTemp;
                 m_Object = m_EDFDataContainerTemp;
@@ -121,6 +127,7 @@ namespace HBP.UI.Main
                 m_MicromedDataContainerSubModifier.IsActive = true;
                 m_NiftiDataContainerSubModifier.IsActive = false;
                 m_FIFDataContainerSubModifier.IsActive = false;
+                m_CSVDataContainerSubModifier.IsActive = false;
 
                 m_MicromedDataContainerSubModifier.Object = m_MicromedDataContainerTemp;
                 m_Object = m_MicromedDataContainerTemp;
@@ -133,6 +140,7 @@ namespace HBP.UI.Main
                 m_MicromedDataContainerSubModifier.IsActive = false;
                 m_NiftiDataContainerSubModifier.IsActive = true;
                 m_FIFDataContainerSubModifier.IsActive = false;
+                m_CSVDataContainerSubModifier.IsActive = false;
 
                 m_NiftiDataContainerSubModifier.Object = m_NiftiDataContainerTemp;
                 m_Object = m_NiftiDataContainerTemp;
@@ -145,9 +153,23 @@ namespace HBP.UI.Main
                 m_MicromedDataContainerSubModifier.IsActive = false;
                 m_NiftiDataContainerSubModifier.IsActive = false;
                 m_FIFDataContainerSubModifier.IsActive = true;
+                m_CSVDataContainerSubModifier.IsActive = false;
 
                 m_FIFDataContainerSubModifier.Object = m_FIFDataContainerTemp;
                 m_Object = m_FIFDataContainerTemp;
+            }
+            else if (type == typeof(CSV))
+            {
+                m_ElanDataContainerSubModifier.IsActive = false;
+                m_BrainVisionDataContainerSubModifier.IsActive = false;
+                m_EDFDataContainerSubModifier.IsActive = false;
+                m_MicromedDataContainerSubModifier.IsActive = false;
+                m_NiftiDataContainerSubModifier.IsActive = false;
+                m_FIFDataContainerSubModifier.IsActive = false;
+                m_CSVDataContainerSubModifier.IsActive = true;
+
+                m_CSVDataContainerSubModifier.Object = m_CSVDataContainerTemp;
+                m_Object = m_CSVDataContainerTemp;
             }
             else
             {
@@ -157,6 +179,7 @@ namespace HBP.UI.Main
                 m_MicromedDataContainerSubModifier.IsActive = false;
                 m_NiftiDataContainerSubModifier.IsActive = false;
                 m_FIFDataContainerSubModifier.IsActive = false;
+                m_CSVDataContainerSubModifier.IsActive = false;
             }
             OnChangeDataType.Invoke();
         }
@@ -171,6 +194,7 @@ namespace HBP.UI.Main
             m_MicromedDataContainerTemp = new Micromed("", objectToDisplay.ID);
             m_NiftiDataContainerTemp = new Nifti("", objectToDisplay.ID);
             m_FIFDataContainerTemp = new FIF("", objectToDisplay.ID);
+            m_CSVDataContainerTemp = new CSV("", objectToDisplay.ID);
 
             if (objectToDisplay is Elan)
             {
@@ -195,6 +219,10 @@ namespace HBP.UI.Main
             else if (objectToDisplay is FIF)
             {
                 m_FIFDataContainerTemp = objectToDisplay as FIF;
+            }
+            else if (objectToDisplay is CSV)
+            {
+                m_CSVDataContainerTemp = objectToDisplay as CSV;
             }
             m_ContainerTypeDropdown.SetValue(Array.IndexOf(m_Types, Object.GetType()));
         }

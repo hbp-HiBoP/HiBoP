@@ -198,6 +198,7 @@ namespace HBP.UI.Module3D
                 m_Image.sprite.texture.filterMode = FilterMode.Trilinear;
                 m_Image.sprite.texture.anisoLevel = 9;
                 m_Image.preserveAspect = true;
+                DrawLines();
             });
             m_Scene.OnUpdateCuts.AddListener(() =>
             {

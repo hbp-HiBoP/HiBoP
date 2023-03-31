@@ -173,6 +173,10 @@ namespace HBP.Data.Module3D
         /// </summary>
         public List<Column3DMEG> ColumnsMEG { get { return Columns.OfType<Column3DMEG>().ToList(); } }
         /// <summary>
+        /// Static columns of the scene
+        /// </summary>
+        public List<Column3DStatic> ColumnsStatic { get { return Columns.OfType<Column3DStatic>().ToList(); } }
+        /// <summary>
         /// Number of views in any column
         /// </summary>
         public int ViewLineNumber
@@ -616,6 +620,10 @@ namespace HBP.Data.Module3D
         /// </summary>
         [SerializeField] private GameObject m_Column3DMEGPrefab;
         /// <summary>
+        /// Prefab for the Column3DStatic
+        /// </summary>
+        [SerializeField] private GameObject m_Column3DStaticPrefab;
+        /// <summary>
         /// Transform where to instantiate columns
         /// </summary>
         [SerializeField] private Transform m_ColumnsContainer;
@@ -1047,6 +1055,10 @@ namespace HBP.Data.Module3D
             {
                 column = Instantiate(m_Column3DMEGPrefab, m_ColumnsContainer).GetComponent<Column3DMEG>();
             }
+            else if (baseColumn is StaticColumn)
+            {
+                column = Instantiate(m_Column3DStaticPrefab, m_ColumnsContainer).GetComponent<Column3DStatic>();
+            }
             column.gameObject.name = "Column " + Columns.Count;
             column.OnSelect.AddListener(() =>
             {
@@ -1198,6 +1210,28 @@ namespace HBP.Data.Module3D
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     SceneInformation.SitesNeedUpdate = true;
                     megColumn.SurfaceNeedsUpdate = true;
+                });
+            }
+            else if (column is Column3DStatic staticColumn)
+            {
+                staticColumn.StaticParameters.OnUpdateSpanValues.AddListener(() =>
+                {
+                    ((Core.DLL.IEEGGenerator)staticColumn.ActivityGenerator).AdjustValues(staticColumn.StaticParameters.Middle, staticColumn.StaticParameters.SpanMin, staticColumn.StaticParameters.SpanMax);
+                    SceneInformation.FunctionalCutTexturesNeedUpdate = true;
+                    SceneInformation.FunctionalSurfaceNeedsUpdate = true;
+                    staticColumn.SurfaceNeedsUpdate = true;
+                    SceneInformation.SitesNeedUpdate = true;
+                });
+                staticColumn.StaticParameters.OnUpdateInfluenceDistance.AddListener(() =>
+                {
+                    ResetGenerators(false);
+                });
+                staticColumn.OnUpdateSelectedLabel.AddListener(() =>
+                {
+                    SceneInformation.FunctionalCutTexturesNeedUpdate = true;
+                    SceneInformation.FunctionalSurfaceNeedsUpdate = true;
+                    SceneInformation.SitesNeedUpdate = true;
+                    staticColumn.SurfaceNeedsUpdate = true;
                 });
             }
             column.Initialize(Columns.Count, baseColumn, m_ImplantationManager.SelectedImplantation, m_DisplayedObjects.SitesPatientParent);
@@ -2232,6 +2266,13 @@ namespace HBP.Data.Module3D
                     currentGenerator = generator;
                     generator.ComputeActivity(megColumn.ColumnMEGData.Data.MEGItems.SelectMany(fmri => fmri.FMRI.Volumes));
                     generator.AdjustValues(megColumn.MEGParameters.FMRINegativeCalMinFactor, megColumn.MEGParameters.FMRINegativeCalMaxFactor, megColumn.MEGParameters.FMRIPositiveCalMinFactor, megColumn.MEGParameters.FMRIPositiveCalMaxFactor);
+                }
+                else if (column is Column3DStatic staticColumn)
+                {
+                    Core.DLL.IEEGGenerator generator = staticColumn.ActivityGenerator as Core.DLL.IEEGGenerator;
+                    currentGenerator = generator;
+                    generator.ComputeActivity(staticColumn.RawElectrodes, staticColumn.StaticParameters.InfluenceDistance, staticColumn.ActivityValues, staticColumn.Labels.Length, staticColumn.RawElectrodes.NumberOfSites, PreferencesManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                    generator.AdjustValues(staticColumn.StaticParameters.Middle, staticColumn.StaticParameters.SpanMin, staticColumn.StaticParameters.SpanMax);
                 }
                 if (SceneInformation.GeneratorNeedsUpdate) yield break;
             }

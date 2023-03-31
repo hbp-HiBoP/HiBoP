@@ -99,7 +99,7 @@ namespace HBP.UI.Module3D
         /// <returns>True if the site is in the currently selected mesh</returns>
         protected bool CheckInMesh(Core.Object3D.Site site)
         {
-            return m_Scene.MeshManager.SelectedMesh.SimplifiedBoth.IsSiteInside(m_Scene.ImplantationManager.SelectedImplantation.RawSiteList, site.Information.Index);
+            return m_Scene.MeshManager.SelectedMesh.SimplifiedBoth.IsPointInside(site.Information.DefaultPosition);
         }
         /// <summary>
         /// Check if the site is in the left hemisphere of the currently selected mesh
@@ -110,7 +110,7 @@ namespace HBP.UI.Module3D
         {
             if (m_Scene.MeshManager.SelectedMesh is Core.Object3D.LeftRightMesh3D mesh)
             {
-                return mesh.SimplifiedLeft.IsSiteInside(m_Scene.ImplantationManager.SelectedImplantation.RawSiteList, site.Information.Index);
+                return mesh.SimplifiedLeft.IsPointInside(site.Information.DefaultPosition);
             }
             else
             {
@@ -126,7 +126,7 @@ namespace HBP.UI.Module3D
         {
             if (m_Scene.MeshManager.SelectedMesh is Core.Object3D.LeftRightMesh3D mesh)
             {
-                return mesh.SimplifiedRight.IsSiteInside(m_Scene.ImplantationManager.SelectedImplantation.RawSiteList, site.Information.Index);
+                return mesh.SimplifiedRight.IsPointInside(site.Information.DefaultPosition);
             }
             else
             {
@@ -179,6 +179,39 @@ namespace HBP.UI.Module3D
                 }
             }
             return false;
+        }
+        /// <summary>
+        /// Check if the position of the site is above or under the input value
+        /// </summary>
+        /// <param name="site">Site to check</param>
+        /// <param name="superior">True if the condition is "above", false otherwise</param>
+        /// <param name="stringValue">Value to be compared</param>
+        /// <returns>True if the mean of the values matches the condition</returns>
+        protected bool CheckX(Core.Object3D.Site site, bool superior, string stringValue)
+        {
+            return CompareValue(-site.Information.DefaultPosition.x, superior, stringValue);
+        }
+        /// <summary>
+        /// Check if the position of the site is above or under the input value
+        /// </summary>
+        /// <param name="site">Site to check</param>
+        /// <param name="superior">True if the condition is "above", false otherwise</param>
+        /// <param name="stringValue">Value to be compared</param>
+        /// <returns>True if the mean of the values matches the condition</returns>
+        protected bool CheckY(Core.Object3D.Site site, bool superior, string stringValue)
+        {
+            return CompareValue(site.Information.DefaultPosition.y, superior, stringValue);
+        }
+        /// <summary>
+        /// Check if the position of the site is above or under the input value
+        /// </summary>
+        /// <param name="site">Site to check</param>
+        /// <param name="superior">True if the condition is "above", false otherwise</param>
+        /// <param name="stringValue">Value to be compared</param>
+        /// <returns>True if the mean of the values matches the condition</returns>
+        protected bool CheckZ(Core.Object3D.Site site, bool superior, string stringValue)
+        {
+            return CompareValue(site.Information.DefaultPosition.z, superior, stringValue);
         }
         /// <summary>
         /// Check if the site name contains the input string

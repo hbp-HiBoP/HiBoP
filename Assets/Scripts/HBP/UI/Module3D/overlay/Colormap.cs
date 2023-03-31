@@ -104,6 +104,15 @@ namespace HBP.UI.Module3D
                     UpdateTextMEG(megColumn);
                 });
             }
+            else if (column is Column3DStatic staticColumn)
+            {
+                staticColumn.StaticParameters.OnUpdateSpanValues.AddListener(() =>
+                {
+                    m_Min.text = staticColumn.StaticParameters.SpanMin.ToString("0.00");
+                    m_Mid.text = staticColumn.StaticParameters.Middle.ToString("0.00");
+                    m_Max.text = staticColumn.StaticParameters.SpanMax.ToString("0.00");
+                });
+            }
         }
         #endregion
 
