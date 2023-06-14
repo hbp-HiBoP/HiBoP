@@ -117,7 +117,7 @@ namespace HBP.UI.Main
             });
 
             m_MarsAtlasWebsite.onClick.AddListener(() => Application.OpenURL(@"https://meca-brain.org/software/marsatlas/"));
-            m_JuBrainWebsite.onClick.AddListener(() => Application.OpenURL(@"https://www.fz-juelich.de/inm/inm-1/EN/Forschung/JulichBrain/JulichBrain_Webtools/JulichBrain_Webtools_node.html"));
+            m_JuBrainWebsite.onClick.AddListener(() => Application.OpenURL(@"https://julich-brain-atlas.de/"));
             m_IBCWebsite.onClick.AddListener(() => Application.OpenURL(@"https://project.inria.fr/IBC/"));
             m_DiFuMoWebsite.onClick.AddListener(() => Application.OpenURL(@"https://github.com/Parietal-INRIA/DiFuMo"));
         }

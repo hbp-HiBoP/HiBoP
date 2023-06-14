@@ -26,7 +26,7 @@ namespace HBP.Core.Object3D
         {
             m_Loading[atlas] = true;
             string csvFile = Path.Combine(ApplicationState.DataPath, "Atlases", "DiFuMo", atlas, string.Format("labels_{0}_dictionary.csv", atlas));
-            string file = Path.Combine(ApplicationState.DataPath, "Atlases", "DiFuMo", atlas, "maps.nii.gz");
+            string file = Path.Combine(ApplicationState.DataPath, "Atlases", "DiFuMo", atlas, "3mm", "maps.nii.gz");
             FMRIs.Add(atlas, new FMRI(atlas, file));
             Information.Add(atlas, new DiFuMoInformation(csvFile));
             m_Loading[atlas] = false;

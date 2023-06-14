@@ -158,24 +158,17 @@ namespace HBP.UI.Module3D
                     if (areaID == comparedID) return true;
                 }
                 string[] areaInformation = m_Scene.AtlasManager.SelectedAtlas.GetInformation(areaID);
-                if (areaInformation.Length == 5)
+                if (m_Scene.AtlasManager.SelectedAtlas is MarsAtlas && areaInformation.Length == 5)
                 {
-                    if (m_Scene.AtlasManager.SelectedAtlas is MarsAtlas)
-                    {
-                        // Check in name
-                        if (areaInformation[0].ToUpper().Contains(areaName.ToUpper())) return true;
-                        // Check in full name
-                        if (areaInformation[4].ToUpper().Contains(areaName.ToUpper())) return true;
-                    }
-                    else
-                    {
-                        // Check in region
-                        if (areaInformation[0].ToUpper().Contains(areaName.ToUpper())) return true;
-                        // Check in location
-                        if (areaInformation[1].ToUpper().Contains(areaName.ToUpper())) return true;
-                        // Check in area label
-                        if (areaInformation[2].ToUpper().Contains(areaName.ToUpper())) return true;
-                    }
+                    // Check in name
+                    if (areaInformation[0].ToUpper().Contains(areaName.ToUpper())) return true;
+                    // Check in full name
+                    if (areaInformation[4].ToUpper().Contains(areaName.ToUpper())) return true;
+                }
+                else if (m_Scene.AtlasManager.SelectedAtlas is JuBrainAtlas && areaInformation.Length == 1 && !string.IsNullOrEmpty(areaInformation[0]))
+                {
+                    // Check in area name
+                    if (areaInformation[0].ToUpper().Contains(areaName.ToUpper())) return true;
                 }
             }
             return false;
