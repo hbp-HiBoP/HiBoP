@@ -48,12 +48,11 @@ namespace HBP.UI.Toolbar
             m_Toggle.interactable = true;
         }
         /// <summary>
-        /// Set the global mode
+        /// 
         /// </summary>
-        /// <param name="isOn">Global mode activated</param>
-        public void Set(bool isOn)
+        public override void UpdateStatus()
         {
-            m_Toggle.isOn = isOn;
+            m_Toggle.isOn = GetComponentInParent<ActivitySettingsToolbar>(true).IsGlobal;
         }
         #endregion
     }
