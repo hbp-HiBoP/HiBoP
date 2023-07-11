@@ -39,7 +39,6 @@ namespace HBP.Data.Module3D
                 if (m_Scene.MeshManager.SelectedMesh.Type == MeshType.MNI)
                 {
                     UpdateAtlasIndices();
-                    UpdateAtlasColors();
                 }
             }
         }
@@ -59,7 +58,6 @@ namespace HBP.Data.Module3D
                 m_DisplayJuBrainAtlas = value;
                 m_Scene.BrainMaterials.SetDisplayAtlas(m_DisplayJuBrainAtlas);
                 UpdateAtlasIndices();
-                UpdateAtlasColors();
             }
         }
 
@@ -138,6 +136,7 @@ namespace HBP.Data.Module3D
         {
             m_JuBrainAtlasIndices = Object3DManager.JuBrain.GetSurfaceAreaLabels(m_Scene.MeshManager.BrainSurface);
             m_MarsAtlasIndices = Object3DManager.MarsAtlas.GetSurfaceAreaLabels(m_Scene.MeshManager.BrainSurface);
+            UpdateAtlasColors();
         }
         /// <summary>
         /// Update all colors for the atlas for all vertices

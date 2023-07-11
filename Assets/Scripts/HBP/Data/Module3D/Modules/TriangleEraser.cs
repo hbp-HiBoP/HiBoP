@@ -184,6 +184,8 @@ namespace HBP.Data.Module3D
 
             m_Scene.ResetGenerators();
             m_Scene.MeshManager.UpdateMeshesFromDLL();
+            m_Scene.FMRIManager.UpdateSurfaceFMRIValues();
+            m_Scene.AtlasManager.UpdateAtlasColors();
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
@@ -210,6 +212,7 @@ namespace HBP.Data.Module3D
             m_Scene.ResetGenerators();
             m_Scene.MeshManager.UpdateMeshesFromDLL();
             m_Scene.FMRIManager.UpdateSurfaceFMRIValues();
+            m_Scene.AtlasManager.UpdateAtlasColors();
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
@@ -226,6 +229,7 @@ namespace HBP.Data.Module3D
             m_Scene.ResetGenerators();
             m_Scene.MeshManager.UpdateMeshesFromDLL();
             m_Scene.FMRIManager.UpdateSurfaceFMRIValues();
+            m_Scene.AtlasManager.UpdateAtlasColors();
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
