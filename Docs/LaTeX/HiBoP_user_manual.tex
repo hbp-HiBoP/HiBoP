@@ -20,7 +20,7 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-This document is the user manual of the Human Intracranial Brain Observation Player (HiBoP). HiBoP is being developed by the Centre de Recherche en Neurosciences de Lyon (CRNL), with funds from the Human Brain Project (HBP) to visualize large datasets of intracranial electroencephalography (iEEG) and functional MRI data. This document has been written for the 4.0.0 version of HiBoP.
+This document is the user manual of the Human Intracranial Brain Observation Player (HiBoP). HiBoP is being developed by the Centre de Recherche en Neurosciences de Lyon (CRNL), with funds from the Human Brain Project (HBP) to visualize large datasets of intracranial electroencephalography (iEEG) and functional MRI data. This document has been written for the 4.3.2 version of HiBoP.
 \end{abstract}
 \tableofcontents
 \section{HiBoP project} \label{data}
@@ -50,7 +50,7 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
 }
 \end{minipage}
 }
-\caption{\label{projectDirectory}Project directory hierarchy}
+\caption{Project directory hierarchy}\label{projectDirectory}
 \end{figure}
 \subsection{Settings}
 \paragraph{} The .settings file at the root of the project archive describes some project settings. This file contains the name of the project, a default path for the anatomical data of the patients and a default path for the functional data, as well as aliases to shorten paths in other files. It also contains all the tags defined in the project. These tags are used to add more information on the patients or on the sites of the patients.
@@ -66,14 +66,16 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
 \paragraph{} \textbf{Important note:} You need to make a whole protocol with blocs and subblocs only if you want to visualize iEEG or CCEP data. In the case of fMRI, you only need to create an empty protocol (which is still required to organize the data).
 \subsection{Datasets}
 \paragraph{} This subfolder contains .dataset files, which summarize and link together anatomical and functional data for a given cognitive task. A dataset is a list of data information (datainfo), each of them connecting one patient (and its anatomical data) to functional data for a single experiment.
-\paragraph{} A datainfo can be of type iEEG, CCEP, fMRI, MEGc or MEGv. In the case of iEEG, you can specify a normalization method (see Section \ref{preferences} for detailed information about normalization). In the case of CCEP, you have to specify the channel that has been stimulated. MEGc corresponds to MEG data represented as time series (similar to iEEG) and MEGv corresponds to MEG data represented in voxels (similar to fMRI). Each datainfo contains a data container which handles the data files.
-\paragraph{} A data container can be of type ELAN\footnote{\label{ELAN}ELAN format – ELAN is freely available at http://elan.lyon.inserm.fr}, Micromed, BrainVision, EDF, NIFTI-1 or FIF. Each datainfo type can handle some of these data types:
+\paragraph{} A datainfo can be of type iEEG, CCEP, fMRI, shared fMRI, MEGc, MEGv or static. In the case of iEEG, you can specify a normalization method (see Section \ref{preferences} for detailed information about normalization). In the case of CCEP, you have to specify the channel that has been stimulated. MEGc corresponds to MEG data represented as time series (similar to iEEG) and MEGv corresponds to MEG data represented in voxels (similar to fMRI). Shared fMRI is a fMRI not linked to a specific patient. Static data is channeled data with one float value per label per channel stored in a csv file. Each datainfo contains a data container which handles the data files.
+\paragraph{} A data container can be of type ELAN\footnote{\label{ELAN}ELAN format – ELAN is freely available at http://elan.lyon.inserm.fr}, Micromed, BrainVision, EDF, NIFTI-1, FIF or csv. Each datainfo type can handle some of these data types:
 \begin{itemize}
 \item \textbf{iEEG}: ELAN, Micromed, BrainVision, EDF
 \item \textbf{CCEP}: ELAN, Micromed, BrainVision, EDF
 \item \textbf{fMRI}: NIFTI-1
+\item \textbf{Shared fMRI}: NIFTI-1
 \item \textbf{MEGc}: BrainVision, EDF, FIF
 \item \textbf{MEGv}: NIFTI-1
+\item \textbf{Static}: csv
 \end{itemize}
 \subsection{Visualizations}
 \paragraph{} This subfolder contains .visualization files, which describe the contents of a visualization: it is composed of patients and columns. Each column allow one to visualize either the anatomy of the chosen patients or iEEG/CCEP/fMRI/MEG\footnote{\label{MEG}In the case of a MEG column, MEGc and MEGv data will be used together if they both have the same data name set in the MEG column.} data. The file also stores the configuration of the visualization (most of the parameters modified within the visualization can be saved as the configuration of the visualization).
@@ -85,7 +87,7 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
 \begin{center}
 \includegraphics[scale=0.5]{Preferences.png}
 \end{center}
-\caption{\label{preferencesUI}User Preferences}
+\caption{User Preferences}\label{preferencesUI}
 \end{figure}
 \begin{itemize}
 \item \textbf{General}
@@ -170,9 +172,10 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
 \begin{itemize}
 \item \textbf{3D}
 \begin{itemize}
-\item \textbf{EEG}
+\item \textbf{Data}
 \begin{itemize}
-\item \textbf{Enable automatic EEG update}: Triggers the update of the brain activity on the brain each time a parameter is changed in the visualization
+\item \textbf{Enable automatic activity update}: Triggers the update of the brain activity on the brain each time a parameter is changed in the visualization
+\item \textbf{Raw MRI cuts}: Does not smoothen the cuts and shows the whole cut square in the 3D visualization
 \item \textbf{Site influence by distance}: Controls how a site influence its environment (constant amplitude, linear decrease or quadratic decrease)
 \end{itemize}
 \item \textbf{Display}
@@ -227,21 +230,21 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
 \begin{center}
 \includegraphics[scale=0.5]{NewProject.png}
 \end{center}
-\caption{\label{newProjectUI}Create a new project}
+\caption{Create a new project}\label{newProjectUI}
 \end{figure}
 \paragraph{} In order to open a previously created project (Figure \ref{openProjectUI}), you have to tell where your projects are located. Once these are loaded, you can either double click on the project you want to open or select the project and then click on Open. You can also sort projects using specific parameters.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{OpenProject.png}
 \end{center}
-\caption{\label{openProjectUI}Open a project}
+\caption{Open a project}\label{openProjectUI}
 \end{figure}
 \paragraph{} If you want to save a project to a different location or with a different name than when it was open, you can use the "Save as" menu (Figure \ref{saveProjectUI}).
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{SaveAs.png}
 \end{center}
-\caption{\label{saveProjectUI}Save a project as}
+\caption{Save a project as}\label{saveProjectUI}
 \end{figure}
 \paragraph{} All of these menus are located in the File menu at the top of the screen.
 \subsubsection{Patients management}
@@ -250,27 +253,27 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
 \begin{center}
 \includegraphics[scale=0.5]{PatientGestion.png}
 \end{center}
-\caption{\label{patientGestionUI}Patients manager}
+\caption{Patients manager}\label{patientGestionUI}
 \end{figure}
 \paragraph{} To edit any loaded patient, you can double click\footnote{The process of double clicking an item to edit it is common to most windows of HiBoP} on it. This will open the patient modifier window (Figure \ref{patientModifierUI}) which will allow you to edit anything concerning the metadata or the anatomical data of this patient. You can navigate between anatomical data types using the tabs in the middle of the window.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{PatientModifier.png}
 \end{center}
-\caption{\label{patientModifierUI}Patient modifier}
+\caption{Patient modifier}\label{patientModifierUI}
 \end{figure}
 \paragraph{} As stated in section \ref{data}, you can also create groups of patients to add them more easily to the visualizations. This is done through the groups manager window (Figure \ref{groupGestionUI}). Adding and removing patients from a group is very similar to the patients manager window (Figure \ref{groupModifierUI}).
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{GroupGestion.png}
 \end{center}
-\caption{\label{groupGestionUI}Groups manager}
+\caption{Groups manager}\label{groupGestionUI}
 \end{figure}
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{GroupModifier.png}
 \end{center}
-\caption{\label{groupModifierUI}Group modifier}
+\caption{Group modifier}\label{groupModifierUI}
 \end{figure}
 \subsubsection{Functional data management}
 \paragraph{} The first thing to do concerning functional data management is to create a protocol. This protocol will be used to epoch the iEEG data, but is also mandatory for other types of data such as fMRI (because a dataset requires a protocol). In the case of data that do not need to be epoched, you do not need to create any bloc for the protocol. You can create a protocol using the protocol manager window (Figure \ref{protocolGestionUI}).
@@ -278,41 +281,41 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
 \begin{center}
 \includegraphics[scale=0.5]{ProtocolGestion.png}
 \end{center}
-\caption{\label{protocolGestionUI}Protocols manager}
+\caption{Protocols manager}\label{protocolGestionUI}
 \end{figure}
 \paragraph{} Editing a protocol consists of defining the blocs for this protocol. This is done with the protocol modifier window (Figure \ref{protocolModifierUI}).
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{ProtocolModifier.png}
 \end{center}
-\caption{\label{protocolModifierUI}Protocol modifier}
+\caption{Protocol modifier}\label{protocolModifierUI}
 \end{figure}
 \paragraph{} A bloc can be edited with the bloc modifier window (Figure \ref{blocModifierUI}). There you can specify the name, the sorting method, and define the subblocs using the subbloc modifier window (Figure \ref{subBlocModifierUI}). There, you can edit the name, the order, the type (main or secondary), the window, the baseline window, the events, the iconic scenario and the treatments of the subbloc.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{BlocModifier.png}
 \end{center}
-\caption{\label{blocModifierUI}Bloc modifier}
+\caption{Bloc modifier}\label{blocModifierUI}
 \end{figure}
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{SubBlocModifier.png}
 \end{center}
-\caption{\label{subBlocModifierUI}SubBloc modifier}
+\caption{SubBloc modifier}\label{subBlocModifierUI}
 \end{figure}
 \paragraph{} When your protocols are correctly defined, you are ready to create your datasets. This will be done using the datasets manager window (Figure \ref{datasetGestionUI}).
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{DatasetGestion.png}
 \end{center}
-\caption{\label{datasetGestionUI}Datasets manager}
+\caption{Datasets manager}\label{datasetGestionUI}
 \end{figure}
 \paragraph{} For a given dataset, you need to give it a name and assign a protocol. All the data included in this dataset will be epoched regarding the chosen protocol. With the dataset modifier window (Figure \ref{datasetModifierUI}), you can add and edit data information. Each data information has a little colored box which indicates the status of the data information : red means it is unsuable, whereas green means you can visualize it. You can hover this box to have more information about the data information status.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{DatasetModifier.png}
 \end{center}
-\caption{\label{datasetModifierUI}Dataset modifier}
+\caption{Dataset modifier}\label{datasetModifierUI}
 \end{figure}
 \paragraph{} A data information has a name and is linked to a patient. A data information can be either an iEEG, CCEP, fMRI or MEG data information. In the case of an iEEG data information, you can specify the normalization method for this specific data (this overwrites the global parameter for normalization unless "Auto" is selected), and there can only be one data information for each [name, patient]. In the case of a CCEP data information, you have to specify the stimulated site for this data, and there can only be one data information for each [name, patient, stimulated site]. In the case of a fMRI data information, there can only be one data information for each [name, patient]. In the case of a MEG data information, there can only be one data information for each [name, patient] for each MEG data category (MEGc and MEGv). If a MEGc and a MEGv data information share the same name and the same patient, they will both be loaded in the corresponding MEG column.
 \paragraph{} Data information are identified by their names, so if you want to visualize data of several patients in the same column, you have to give them the same name. As for the data you can choose the data format and fill all the required fields.
@@ -320,7 +323,7 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
 \begin{center}
 \includegraphics[scale=0.5]{DataInfoModifier.png}
 \end{center}
-\caption{\label{dataInfoModifierUI}Data information modifier}
+\caption{Data information modifier}\label{dataInfoModifierUI}
 \end{figure}
 \subsubsection{Visualizations management}
 \paragraph{} When everything is set up, you can create visualizations. This is done using the visualization manager window (Figure \ref{visuGestionUI}).
@@ -328,14 +331,14 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
 \begin{center}
 \includegraphics[scale=0.5]{VisualizationGestion.png}
 \end{center}
-\caption{\label{visuGestionUI}Visualizations manager}
+\caption{Visualizations manager}\label{visuGestionUI}
 \end{figure}
 \paragraph{} A visualization has a name, patients and columns. To edit all of this information, you can use the visualization modifier window (Figure \ref{visuModifierUI}). To add a column, click on the "+" button under the "Columns" panel. You can then edit the column by setting the name, the type (Anatomy, iEEG, CCEP, fMRI or MEG), the protocol, the bloc, the dataset and the data name to be used in this column. Do not forget that if multiple patients are added to the visualization, they must have at least one data information with the same name. If this condition is not matched, there will be a warning you can hover to see which patient is problematic.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.4]{VisualizationModifier.png}
 \end{center}
-\caption{\label{visuModifierUI}Visualization modifier}
+\caption{Visualization modifier}\label{visuModifierUI}
 \end{figure}
 \paragraph{} Once your visualizations are ready to be displayed, you can select them and click the "Display" button.
 \subsection{3D Visualization}
@@ -344,7 +347,7 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
 \begin{center}
 \includegraphics[scale=0.22]{GlobalUI.png}
 \end{center}
-\caption{\label{globalUI}HiBoP user interface}
+\caption{HiBoP user interface}\label{globalUI}
 \end{figure}
 \paragraph{} The main user interface of HiBoP can be decomposed as follow (Figure \ref{globalUI}) :
 \begin{itemize}
@@ -393,7 +396,7 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
 \begin{center}
 \includegraphics[scale=0.5]{Cut.png}
 \end{center}
-\caption{\label{cut}Cut parameters panel}
+\caption{Cut parameters panel}\label{cut}
 \end{figure}
 \subsubsection{Sites list}\label{sitesList}
 \paragraph{} A list of all the sites of the scene is available in the corresponding panel (Figure \ref{sitesListPanel}). This list displays all sites of the visualization and their attributes. You can highlight or blacklist a site, change its color and set labels.
@@ -401,7 +404,7 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
 \begin{center}
 \includegraphics[scale=0.5]{SitesList.png}
 \end{center}
-\caption{\label{sitesListPanel}Sites list panel}
+\caption{Sites list panel}\label{sitesListPanel}
 \end{figure}
 \paragraph{} This panel also contains a submenu called "Filter sites" which allows you to filter the sites using various criteria. Only the filtered sites will then appear in the list and on the 3D scene. There are two ways of filtering the sites:
 \begin{itemize}
@@ -418,13 +421,13 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
 \begin{center}
 \includegraphics[scale=0.5]{BasicStates.png}
 \end{center}
-\caption{\label{basicStates}"Filter sites" submenu}
+\caption{"Filter sites" submenu}\label{basicStates}
 \end{figure}
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{SitesAction.png}
 \end{center}
-\caption{\label{sitesAction}"Apply action on filtered sites" submenu}
+\caption{"Apply action on filtered sites" submenu}\label{sitesAction}
 \end{figure}
 \paragraph{} The following sections will explain the different functionalities of each toolbar.
 \subsubsection{Scene settings}
@@ -603,7 +606,7 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
 \begin{center}
 \includegraphics[scale=0.35]{Graph.png}
 \end{center}
-\caption{\label{graph}Graph for a protocol and three blocs (site U'8)}
+\caption{Graph for a protocol and three blocs (site U'8)}\label{graph}
 \end{figure}
 \paragraph{} Curves are generated for each column (or not minimized columns, depending on the chosen preferences):
 \begin{itemize}
@@ -623,7 +626,7 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
 \begin{center}
 \includegraphics[scale=0.35]{TrialMatrix.png}
 \end{center}
-\caption{\label{trialMatrix}Trial matrix of a site}
+\caption{Trial matrix of a site}\label{trialMatrix}
 \end{figure}
 \paragraph{} Trial matrices are usefull to inspect iEEG activity of a site trial by trial. Trials are sorted according to the sorting method of a protocol bloc. You can change the color scale by clicking on it (same process as changing the viewport of the graph). Again, you can hover the matrix to get precise information about the hovered section (like in graphs). You can also select specific trials; only the selected trials will be taken into account when computing the values of the corresponding curve. To select trials, you can :
 \begin{itemize}
@@ -636,7 +639,7 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
 \begin{center}
 \includegraphics[scale=0.45]{Grid.png}
 \end{center}
-\caption{\label{graphsGrid}Example graphs grid}
+\caption{Example graphs grid}\label{graphsGrid}
 \end{figure}
 \paragraph{} The graphs grid can be used to visualize graphs of multiple sites at once. A graph will be generated for each site that is filtered. You can then drag and drop the graph of a site in order to sort them "by hand", select and display or filter them, and change the zoom to visualize more graphs at once.
 \appendix
@@ -648,6 +651,7 @@ This document is the user manual of the Human Intracranial Brain Observation Pla
 \item \textbf{From existing object}: this option allows you to select an already existing object of the project for the given data type. It will then clone this object to a new object. This can increase the efficiency when creating different objects that have common fields.
 \item \textbf{From file}: this allows you to select a file that contains information about an object of a specific data type. The description of the files for every data types is available at section \ref{data}.
 \item \textbf{From database}: this allows you to add multiple objects at once using the path to a database. Selecting this option will ask you to browse to a database formatted for the data type you are adding. Once the database is loaded, you can select which objects you want to add and press "OK" to add them all to the project.
+\item \textbf{From directory}: this is almost the same as "From database", except it only takes one specific directory into account, allowing to import only one object instead of loading a whole database and then selecting which objects you want to import.
 \end{itemize}
 \paragraph{} Removing data is done by selecting the elements to be removed in the list and using the "-" button to the left of the list.
 \subsection{Specific cases}
