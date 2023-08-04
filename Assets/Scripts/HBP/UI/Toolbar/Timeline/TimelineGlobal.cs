@@ -52,12 +52,11 @@ namespace HBP.UI.Toolbar
             m_Toggle.interactable = isColumnDynamicOrFMRI && areAmplitudesComputed;
         }
         /// <summary>
-        /// Set the global mode
+        /// 
         /// </summary>
-        /// <param name="isOn">Global mode activated</param>
-        public void Set(bool isOn)
+        public override void UpdateStatus()
         {
-            m_Toggle.isOn = isOn;
+            m_Toggle.isOn = GetComponentInParent<TimelineToolbar>(true).IsGlobal;
         }
         #endregion
     }

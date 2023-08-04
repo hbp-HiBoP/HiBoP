@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HBP.Data.Module3D;
+using UnityEngine;
 
 namespace HBP.UI.Toolbar
 {
@@ -93,17 +94,9 @@ namespace HBP.UI.Toolbar
             m_ActivityGlobal.OnChangeValue.AddListener((global) =>
             {
                 IsGlobal = global;
+                m_ToolbarMenu.TimelineToolbar.IsGlobal = global;
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
-        }
-        #endregion
-
-        #region Public Methods
-        /// <summary>
-        /// Called when showing this toolbar
-        /// </summary>
-        public override void ShowToolbarCallback()
-        {
-            m_ActivityGlobal.Set(m_ToolbarMenu.TimelineToolbar.IsGlobal);
         }
         #endregion
     }
