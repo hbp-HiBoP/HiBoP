@@ -182,3 +182,20 @@ Update Mode: updateDependencies
 
 The following packages were updated:
   com.unity.ide.visualstudio from version 2.0.16 to 2.0.18
+
+=== Fri Nov  8 14:31:10 2024
+
+Packages were changed.
+Update Mode: updateDependencies
+
+The following packages were added:
+  com.unity.ai.navigation@2.0.4
+  com.unity.modules.accessibility@1.0.0
+  com.unity.multiplayer.center@1.0.0
+The following packages were updated:
+  com.unity.ide.visualstudio from version 2.0.18 to 2.0.22
+  com.unity.test-framework from version 1.1.33 to 1.4.5
+  com.unity.timeline from version 1.6.4 to 1.8.7
+  com.unity.ugui from version 1.0.0 to 2.0.0
+The following packages were removed:
+  com.unity.textmeshpro@3.0.6

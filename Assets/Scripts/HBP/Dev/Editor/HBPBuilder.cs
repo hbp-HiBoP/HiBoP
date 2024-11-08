@@ -29,7 +29,7 @@ namespace HBP.Dev
                     os = "linux64";
                     break;
                 case BuildTarget.StandaloneOSX:
-                    UnityEditor.OSXStandalone.UserBuildSettings.architecture = UnityEditor.OSXStandalone.MacOSArchitecture.ARM64;
+                    UnityEditor.OSXStandalone.UserBuildSettings.architecture = UnityEditor.Build.OSArchitecture.ARM64;
                     os = "macos64";
                     break;
             }
@@ -75,7 +75,7 @@ namespace HBP.Dev
                 file.Delete();
             }
 
-            if (target == BuildTarget.StandaloneOSX && UnityEditor.OSXStandalone.UserBuildSettings.architecture == UnityEditor.OSXStandalone.MacOSArchitecture.ARM64)
+            if (target == BuildTarget.StandaloneOSX && UnityEditor.OSXStandalone.UserBuildSettings.architecture == UnityEditor.Build.OSArchitecture.ARM64)
             {
                 string pluginsPath = Path.Join(dataDirectory, "Contents", "PlugIns");
                 DirectoryInfo pluginsDirectory = new DirectoryInfo(pluginsPath);
