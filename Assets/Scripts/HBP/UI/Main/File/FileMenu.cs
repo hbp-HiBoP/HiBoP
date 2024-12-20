@@ -6,7 +6,6 @@ namespace HBP.UI.Main
     public class FileMenu : Menu
     {
         #region Properties
-        [SerializeField] ProjectLoaderSaver m_ProjectLoaderSaver;
         [SerializeField] InteractableConditions m_NewProjectInteractableConditions;
         public InteractableConditions NewProjectInteractableConditions { get { return m_NewProjectInteractableConditions; } }
         [SerializeField] InteractableConditions m_OpenProjectInteractableConditions;
@@ -32,7 +31,7 @@ namespace HBP.UI.Main
         }
         public void Save()
         {
-            m_ProjectLoaderSaver.Save();
+            ProjectLoaderSaver.Save();
         }
         public void OpenSaveProjectAs()
         {

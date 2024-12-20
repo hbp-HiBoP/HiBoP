@@ -19,11 +19,9 @@ namespace HBP.Data.Module3D
     /// Base class of the 3D module
     /// Used to control everything from the outside
     /// </summary>
-    public class Module3DMain : MonoBehaviour
+    public class Module3DMain : Singleton<Module3DMain>
     {
         #region Properties
-        private static Module3DMain m_Instance;
-
         /// <summary>
         /// Default layer string for the visible meshes layer
         /// </summary>
@@ -169,17 +167,8 @@ namespace HBP.Data.Module3D
         #endregion
 
         #region Private Methods
-        private void Awake()
+        protected override void Initialization()
         {
-            if (m_Instance == null)
-            {
-                m_Instance = this;
-            }
-            else
-            {
-                Destroy(this);
-            }
-
             this.StartCoroutineAsync(c_Preload3D());
         }
         void OnDestroy()

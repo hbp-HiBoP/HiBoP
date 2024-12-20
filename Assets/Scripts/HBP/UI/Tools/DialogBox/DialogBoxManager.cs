@@ -1,13 +1,12 @@
-﻿using UnityEngine;
+﻿using HBP.Core.Tools;
+using UnityEngine;
 using UnityEngine.Events;
 
 namespace HBP.UI.Tools
 {
-    public class DialogBoxManager : MonoBehaviour
+    public class DialogBoxManager : Singleton<DialogBoxManager>
     {
         #region Properties
-        private static DialogBoxManager m_Instance;
-
         [SerializeField] private GameObject m_InformationAlertPrefab;
         [SerializeField] private GameObject m_WarningAlertPrefab;
         [SerializeField] private GameObject m_ErrorAlertPrefab;
@@ -15,20 +14,6 @@ namespace HBP.UI.Tools
         [SerializeField] private Canvas m_Canvas;
 
         public enum AlertType { Informational, Warning, Error, WarningMultiOptions }
-        #endregion
-
-        #region Private Methods
-        private void Awake()
-        {
-            if (m_Instance == null)
-            {
-                m_Instance = this;
-            }
-            else
-            {
-                Destroy(this);
-            }
-        }
         #endregion
 
         #region Public Methods

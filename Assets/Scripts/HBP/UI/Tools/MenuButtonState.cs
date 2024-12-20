@@ -3,19 +3,18 @@ using HBP.Core.Tools;
 
 namespace HBP.UI.Tools
 {
-    public class MenuButtonState : MonoBehaviour
+    public class MenuButtonState : Singleton<MenuButtonState>
     {
         #region Properties
-        [SerializeField]
-        InteractableConditions[] m_Interactables;
+        [SerializeField] InteractableConditions[] m_Interactables;
         #endregion
 
         #region Public Methods
-        public void SetInteractables()
+        public static void SetInteractables()
         {
-            foreach (InteractableConditions b in m_Interactables)
+            foreach (InteractableConditions b in m_Instance.m_Interactables)
             {
-                SetInteractable(b);
+                m_Instance.SetInteractable(b);
             }
         }
         #endregion
@@ -28,43 +27,43 @@ namespace HBP.UI.Tools
 
         void SetInteractable(InteractableConditions buttonGestion)
         {
-            bool l_interactable = true;
+            bool interactable = true;
             if (buttonGestion.NeedProject)
             {
                 if (ApplicationState.ProjectLoaded == null)
                 {
-                    l_interactable = false;
+                    interactable = false;
                 }
             }
             if (buttonGestion.NeedPatient)
             {
                 if (ApplicationState.ProjectLoaded != null && ApplicationState.ProjectLoaded.Patients.Count == 0)
                 {
-                    l_interactable = false;
+                    interactable = false;
                 }
             }
             if (buttonGestion.NeedGroup)
             {
                 if (ApplicationState.ProjectLoaded != null && ApplicationState.ProjectLoaded.Groups.Count == 0)
                 {
-                    l_interactable = false;
+                    interactable = false;
                 }
             }
             if (buttonGestion.NeedProtocol)
             {
                 if (ApplicationState.ProjectLoaded != null && ApplicationState.ProjectLoaded.Protocols.Count == 0)
                 {
-                    l_interactable = false;
+                    interactable = false;
                 }
             }
             if (buttonGestion.NeedDataset)
             {
                 if (ApplicationState.ProjectLoaded != null && ApplicationState.ProjectLoaded.Datasets.Count == 0)
                 {
-                    l_interactable = false;
+                    interactable = false;
                 }
             }
-            buttonGestion.interactable = l_interactable;
+            buttonGestion.interactable = interactable;
         }
         #endregion
     }

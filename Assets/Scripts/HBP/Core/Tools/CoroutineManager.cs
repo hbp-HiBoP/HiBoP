@@ -5,25 +5,10 @@ using ThirdParty.CielaSpike;
 
 namespace HBP.Core.Tools
 {
-    public class CoroutineManager : MonoBehaviour
+    public class CoroutineManager : Singleton<CoroutineManager>
     {
         #region Properties
-        private static CoroutineManager m_Instance;
         private List<Coroutine> m_Coroutines = new List<Coroutine>();
-        #endregion
-
-        #region Private Methods
-        private void Awake()
-        {
-            if (m_Instance == null)
-            {
-                m_Instance = this;
-            }
-            else
-            {
-                Destroy(this);
-            }
-        }
         #endregion
 
         #region Public Methods

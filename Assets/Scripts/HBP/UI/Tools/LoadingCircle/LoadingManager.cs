@@ -7,27 +7,11 @@ using HBP.Core.Tools;
 
 namespace HBP.UI.Tools
 {
-    public class LoadingManager : MonoBehaviour
+    public class LoadingManager : Singleton<LoadingManager>
     {
         #region Properties
-        private static LoadingManager m_Instance;
-
         [SerializeField] private Canvas m_Canvas;
         [SerializeField] GameObject m_LoadingCirclePrefab;
-        #endregion
-
-        #region Private Methods
-        private void Awake()
-        {
-            if (m_Instance == null)
-            {
-                m_Instance = this;
-            }
-            else
-            {
-                Destroy(this);
-            }
-        }
         #endregion
 
         #region Public Methods
@@ -57,7 +41,7 @@ namespace HBP.UI.Tools
                     break;
             }
             loadingCircle.Close();
-            if (callBack != null) callBack.Invoke(task.State);
+            callBack?.Invoke(task.State);
         }
         #endregion
     }

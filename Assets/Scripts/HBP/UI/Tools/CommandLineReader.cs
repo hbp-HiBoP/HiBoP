@@ -67,7 +67,7 @@ namespace HBP.UI.Tools
                 }
                 else
                 {
-                    FindObjectOfType<ProjectLoaderSaver>().Load(new ProjectInfo(PreferencesManager.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0] + Project.EXTENSION));
+                    ProjectLoaderSaver.Load(new ProjectInfo(PreferencesManager.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0] + Project.EXTENSION));
                 }
             }
             else if (action == "-pf") // Project File
@@ -78,7 +78,7 @@ namespace HBP.UI.Tools
                 }
                 else
                 {
-                    FindObjectOfType<ProjectLoaderSaver>().Load(new ProjectInfo(arguments[0]));
+                    ProjectLoaderSaver.Load(new ProjectInfo(arguments[0]));
                 }
             }
             else if (action == "-v") // Visualization

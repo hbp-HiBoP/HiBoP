@@ -40,7 +40,7 @@ namespace HBP.UI.Main
                     var preferences = ApplicationState.ProjectLoaded.Preferences.Clone() as ProjectPreferences;
                     preferences.Name = m_NameInputField.text;
                     ApplicationState.ProjectLoaded.Preferences = preferences;
-                    FindObjectOfType<ProjectLoaderSaver>().Save(m_LocationFolderSelector.Folder);
+                    ProjectLoaderSaver.Save(m_LocationFolderSelector.Folder);
                     base.OK();
                 },
                 "OK");
@@ -50,7 +50,7 @@ namespace HBP.UI.Main
                 var preferences = ApplicationState.ProjectLoaded.Preferences.Clone() as ProjectPreferences;
                 preferences.Name = m_NameInputField.text;
                 ApplicationState.ProjectLoaded.Preferences = preferences;
-                FindObjectOfType<ProjectLoaderSaver>().Save(m_LocationFolderSelector.Folder);
+                ProjectLoaderSaver.Save(m_LocationFolderSelector.Folder);
                 base.OK();
             }
         }

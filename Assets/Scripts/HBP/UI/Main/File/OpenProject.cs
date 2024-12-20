@@ -38,7 +38,7 @@ namespace HBP.UI.Main
         #region Public Methods
         public void Load(ProjectInfo info)
         {
-            FindObjectOfType<ProjectLoaderSaver>().Load(info);
+            ProjectLoaderSaver.Load(info);
             base.Close();
             WindowsManager.CloseAll();
         }

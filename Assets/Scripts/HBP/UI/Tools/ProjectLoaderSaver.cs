@@ -1,33 +1,24 @@
-﻿using UnityEngine;
-using UnityEngine.Events;
+﻿using UnityEngine.Events;
 using System.IO;
 using ThirdParty.CielaSpike;
 using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Data.Module3D;
-using System.Collections.Generic;
-using HBP.Core.Interfaces;
-using System.Linq;
-using System;
 
 namespace HBP.UI.Tools
 {
-    public class ProjectLoaderSaver : MonoBehaviour
+    public class ProjectLoaderSaver
     {
         #region Public Methods  
-        public void Load(ProjectInfo projectInfo)
+        public static void Load(ProjectInfo projectInfo)
         {
-            UnityEngine.Profiling.Profiler.BeginSample("1");
-            Project projectToLoad = new Project();
+            Project projectToLoad = new();
 
             DataManager.Clear();
             Project projectLoaded = ApplicationState.ProjectLoaded;
             string projectLoadedLocation = ApplicationState.ProjectLoadedLocation;
             ApplicationState.ProjectLoaded = projectToLoad;
-            ApplicationState.ProjectLoadedLocation = Directory.GetParent(projectInfo.Path).FullName;
-
-            UnityEngine.Profiling.Profiler.EndSample();
-            UnityEngine.Profiling.Profiler.BeginSample("2");
+            ApplicationState.ProjectLoadedLocation = Directory.GetParent(projectInfo.Path).FullName; 
 
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
             LoadingManager.Load(
@@ -37,7 +28,7 @@ namespace HBP.UI.Tools
                 {
                     if (taskState == TaskState.Done)
                     {
-                        FindObjectOfType<MenuButtonState>().SetInteractables();
+                        MenuButtonState.SetInteractables();
                         UITools.CheckProjectIDAndAskForRegeneration();
                     }
                     else
@@ -46,9 +37,8 @@ namespace HBP.UI.Tools
                         ApplicationState.ProjectLoadedLocation = projectLoadedLocation;
                     }
                 });
-            UnityEngine.Profiling.Profiler.EndSample();
         }
-        public void Save(string path)
+        public static void Save(string path)
         {
             Module3DMain.SaveConfigurations();
             ApplicationState.ProjectLoadedLocation = path;
@@ -57,14 +47,14 @@ namespace HBP.UI.Tools
                 ApplicationState.ProjectLoaded.c_Save(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)),
                 onChangeProgress);
         }
-        public void Save()
+        public static void Save()
         {
             Save(ApplicationState.ProjectLoadedLocation);
         }
-        public void SaveAndReload()
+        public static void SaveAndReload()
         {
             Save();
-            FindObjectOfType<MenuButtonState>().SetInteractables();
+            MenuButtonState.SetInteractables();
         }
         #endregion
     }

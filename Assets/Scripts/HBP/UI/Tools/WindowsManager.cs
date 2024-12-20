@@ -1,15 +1,14 @@
-﻿using System;
+﻿using HBP.Core.Tools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 namespace HBP.UI.Tools
 {
-    public class WindowsManager : MonoBehaviour
+    public class WindowsManager : Singleton<WindowsManager>
     {
         #region Properties
-        private static WindowsManager m_Instance;
-
         [SerializeField] GameObject[] m_Windows;
         public RectTransform Container;
         public static WindowsReferencer WindowsReferencer = new WindowsReferencer();
@@ -101,17 +100,8 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Private Methods
-        private void Awake()
+        protected override void Initialization()
         {
-            if (m_Instance == null)
-            {
-                m_Instance = this;
-            }
-            else
-            {
-                Destroy(this);
-            }
-
             m_Windows = Resources.LoadAll<GameObject>("Prefabs/UI/Windows/");
             WindowsReferencer.OnCloseWindow.AddListener(OnCloseWindow);
         }

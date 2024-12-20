@@ -34,13 +34,11 @@ namespace HBP.UI.Tools
         #region Private Methods
         void Start()
         {
-            SelectionManager selectionManager = FindObjectOfType<SelectionManager>();
-            if (selectionManager) selectionManager.Add(this);
+            SelectionManager.Add(this);
         }
         private void OnDestroy()
         {
-            SelectionManager selectionManager = FindObjectOfType<SelectionManager>();
-            if (selectionManager) selectionManager.Remove(this);
+            SelectionManager.Remove(this);
         }
         #endregion
     }

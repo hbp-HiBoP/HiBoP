@@ -90,7 +90,7 @@ namespace HBP.UI.Main
                     Core.Data.ProjectPreferences preferences = new Core.Data.ProjectPreferences(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
                     ApplicationState.ProjectLoaded = new Project(preferences);
                     ApplicationState.ProjectLoadedLocation = m_ProjectLocationFolderSelector.Folder;
-                    FindObjectOfType<ProjectLoaderSaver>().SaveAndReload();
+                    ProjectLoaderSaver.SaveAndReload();
                     base.OK();
                 },
                 "OK");
@@ -100,7 +100,7 @@ namespace HBP.UI.Main
                 Core.Data.ProjectPreferences preferences = new Core.Data.ProjectPreferences(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
                 ApplicationState.ProjectLoaded = new Project(preferences);
                 ApplicationState.ProjectLoadedLocation = m_ProjectLocationFolderSelector.Folder;
-                FindObjectOfType<ProjectLoaderSaver>().SaveAndReload();
+                ProjectLoaderSaver.SaveAndReload();
                 base.OK();
             }
         }

@@ -1,13 +1,12 @@
-﻿using UnityEngine;
+﻿using HBP.Core.Tools;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Tools
 {
-    public class TooltipManager : MonoBehaviour
+    public class TooltipManager : Singleton<TooltipManager>
     {
         #region Properties
-        private static TooltipManager m_Instance;
-
         private static Vector3 m_Offset = new Vector3(0, -20, 0);
         public const float TIME_TO_DISPLAY = 0.7f;
 
@@ -37,17 +36,6 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Private Methods
-        private void Awake()
-        {
-            if (m_Instance == null)
-            {
-                m_Instance = this;
-            }
-            else
-            {
-                Destroy(this);
-            }
-        }
         private void Update()
         {
             if (!IsTooltipDisplayed)

@@ -23,7 +23,7 @@ namespace HBP.UI.Main
                 {
                     base.OK();
                     ApplicationState.ProjectLoaded.SetProtocols(m_ListGestion.List.Objects);
-                    FindObjectOfType<MenuButtonState>().SetInteractables();
+                    MenuButtonState.SetInteractables();
                     GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
                     LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckDatasets(m_ListGestion.ModifiedProtocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
                     DataManager.Clear();
@@ -35,7 +35,7 @@ namespace HBP.UI.Main
             {
                 base.OK();
                 ApplicationState.ProjectLoaded.SetProtocols((m_ListGestion.List.Objects));
-                FindObjectOfType<MenuButtonState>().SetInteractables();
+                MenuButtonState.SetInteractables();
                 GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
                 LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckDatasets(m_ListGestion.ModifiedProtocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
                 UITools.CheckProjectIDAndAskForRegeneration();

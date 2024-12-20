@@ -34,7 +34,7 @@ namespace HBP.Data.Tools
         #region Default Values
         public static Token Not { get { return new Token(TokenType.UnaryOperator, NOT_STRING); } }
         public static Token And { get { return new Token(TokenType.BinaryOperator, AND_STRING); } }
-        public static Token Or { get { return new Token(TokenType.BinaryOperator, OR_STRING); } }
+        public static Token Or { get { return new Token(TokenType.BinaryOperator, OR_STRING); } } 
         public static Token OpenParenthesis { get { return new Token(TokenType.OpenParenthesis, OPEN_PARENTHESIS_STRING); } }
         public static Token CloseParenthesis { get { return new Token(TokenType.CloseParenthesis, CLOSE_PARENTHESIS_STRING); } }
         #endregion

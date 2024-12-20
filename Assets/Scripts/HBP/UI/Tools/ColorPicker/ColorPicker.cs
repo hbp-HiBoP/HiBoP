@@ -1,15 +1,14 @@
-﻿using System.Linq;
+﻿using HBP.Core.Tools;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions.ColorPicker;
 
 namespace HBP.UI.Tools
 {
-    public class ColorPicker : MonoBehaviour
+    public class ColorPicker : Singleton<ColorPicker>
     {
         #region Properties
-        private static ColorPicker m_Instance;
-
         [SerializeField] private ColorPickerControl m_ColorPickerControl;
         [SerializeField] private UnityEngine.UI.Button m_Blocker;
         private ColorEvent m_OnColorPicked = new ColorEvent();
@@ -41,18 +40,10 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Private Methods
-        private void Awake()
+        protected override void Initialization()
         {
-            if (m_Instance == null)
-            {
-                m_Instance = this;
-                m_Instance.gameObject.SetActive(false);
-                m_Blocker.onClick.AddListener(Close);
-            }
-            else
-            {
-                Destroy(this);
-            }
+            m_Instance.gameObject.SetActive(false);
+            m_Blocker.onClick.AddListener(Close);
         }
         private void SetBlockerPosition()
         {

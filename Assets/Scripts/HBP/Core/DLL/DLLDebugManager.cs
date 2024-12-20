@@ -2,13 +2,14 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using HBP.Core.Tools;
 
 namespace HBP.Core.DLL
 {
     /// <summary>
     /// A class for managing the debugging of the DLL
     /// </summary>
-    public class DLLDebugManager : MonoBehaviour
+    public class DLLDebugManager : Singleton<DLLDebugManager>
     {
 
         #region Internal Classes
@@ -25,7 +26,6 @@ namespace HBP.Core.DLL
         #endregion
 
         #region Properties
-        private static DLLDebugManager m_Instance;
         /// <summary>
         /// Do we log all DLL messages to the Unity console ?
         /// </summary>
@@ -59,17 +59,8 @@ namespace HBP.Core.DLL
         #endregion;
 
         #region Private Methods
-        private void Awake()
+        protected override void Initialization()
         {
-            if (m_Instance == null)
-            {
-                m_Instance = this;
-            }
-            else
-            {
-                Destroy(this);
-            }
-
             if (m_LogDLLToUnity)
             {
                 m_LogCallbackDelegate = new LoggerDelegate(LogCallback);

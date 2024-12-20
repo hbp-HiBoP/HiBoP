@@ -4,17 +4,16 @@ using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.Data.Module3D;
 using HBP.Data.Preferences;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Module3D
 {
     /// <summary>
     /// Base class for the UI of the 3D
     /// </summary>
-    public class Module3DUI : MonoBehaviour
+    public class Module3DUI : Singleton<Module3DUI>
     {
         #region Properties
-        private static Module3DUI m_Instance;
-
         /// <summary>
         /// Reference to the SiteInfoDisplayer of the software
         /// </summary>
@@ -37,17 +36,8 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
-        private void Awake()
+        protected override void Initialization()
         {
-            if (m_Instance == null)
-            {
-                m_Instance = this;
-            }
-            else
-            {
-                Destroy(this);
-            }
-
             m_SiteInfoDisplayer.Initialize();
             m_AtlasInfoDisplayer.Initialize();
             ChangeLayoutDirection();

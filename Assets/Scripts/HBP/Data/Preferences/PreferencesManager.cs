@@ -5,27 +5,16 @@ using UnityEngine;
 
 namespace HBP.Data.Preferences
 {
-    public class PreferencesManager : MonoBehaviour
+    public class PreferencesManager : Singleton<PreferencesManager>
     {
         #region Properties
-        private static PreferencesManager m_Instance;
-
         private UserPreferences m_UserPreferences;
         public static UserPreferences UserPreferences { get { return m_Instance.m_UserPreferences; } }
         #endregion
 
         #region Private Methods
-        private void Awake()
+        protected override void Initialization()
         {
-            if (m_Instance == null)
-            {
-                m_Instance = this;
-            }
-            else
-            {
-                Destroy(this);
-            }
-
             if (new FileInfo(UserPreferences.PATH).Exists)
             {
                 try
