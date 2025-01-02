@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.crnl.hibop_utilities": {
+      "version": "https://github.com/hbp-HiBoP/HiBoP_Utilities.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "60059ebbddebb2fe2e3d72d2780c4b0fffb6d58c"
+    },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
       "depth": 0,
@@ -55,9 +62,9 @@
       "depth": 0,
       "source": "registry",
       "dependencies": {
+        "com.unity.modules.audio": "1.0.0",
         "com.unity.modules.director": "1.0.0",
         "com.unity.modules.animation": "1.0.0",
-        "com.unity.modules.audio": "1.0.0",
         "com.unity.modules.particlesystem": "1.0.0"
       },
       "url": "https://packages.unity.com"

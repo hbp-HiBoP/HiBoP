@@ -8,10 +8,11 @@ using HBP.Data.Module3D;
 using HBP.UI.Main;
 using HBP.UI.Module3D;
 using HBP.Core.Object3D;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Tools
 {
-    public class ShortcutManager : MonoBehaviour
+    public class ShortcutManager : Singleton<ShortcutManager>
     {
         #region Properties
         private MainMenu m_MainMenu;

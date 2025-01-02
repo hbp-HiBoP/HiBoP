@@ -1,9 +1,10 @@
 using UnityEngine;
 using HBP.Data.Preferences;
+using HBP.Core.Tools;
 
 namespace HBP.Data.Tools
 {
-    public class PerformanceManager : MonoBehaviour
+    public class PerformanceManager : Singleton<PerformanceManager>
     {
         #region Properties
         [SerializeField] private GameObject m_DarkImage;
