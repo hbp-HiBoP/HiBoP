@@ -65,7 +65,7 @@ namespace HBP.UI.Module3D
 
             m_Color.onClick.AddListener(() =>
             {
-                ColorPicker.Open(Object.State.Color, (c) => Object.State.Color = c);
+                ColorPickerManager.OpenColorPicker(Object.State.Color, (c) => Object.State.Color = c);
             });
         }
         private void Update()

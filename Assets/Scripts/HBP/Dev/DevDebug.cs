@@ -31,6 +31,10 @@ namespace HBP.Dev
         }*/
         private void Update()
         {
+            if (Input.GetKeyDown(KeyCode.F1))
+            {
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Test", "Test");
+            }
 /*            if (Input.GetKeyDown(KeyCode.A))
             {
                 Core.Object3D.Cut cut = Module3DMain.SelectedScene.Cuts[0];

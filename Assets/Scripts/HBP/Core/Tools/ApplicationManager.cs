@@ -4,10 +4,10 @@ using HBP.Core.Data;
 
 namespace HBP.Core.Tools
 {
-    public class ApplicationManager : MonoBehaviour
+    public class ApplicationManager : Singleton<ApplicationManager>
     {
         #region Private Methods
-        private void Awake()
+        protected override void Initialization()
         {
             ApplicationState.ProjectLoaded = null;
             ApplicationState.ProjectLoadedLocation = string.Empty;

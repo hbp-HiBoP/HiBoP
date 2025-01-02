@@ -176,7 +176,7 @@ namespace HBP.UI.Module3D
 
             m_ColorPickerButton.onClick.AddListener(() =>
             {
-                ColorPicker.Open(m_ColorPickedImage.color, (c) => m_ColorPickedImage.color = c);
+                ColorPickerManager.OpenColorPicker(m_ColorPickedImage.color, (c) => m_ColorPickedImage.color = c);
             });
             m_AddLabelToggle.onValueChanged.AddListener(isOn => m_LabelInputField.interactable = m_AddLabelToggle.isOn || m_RemoveLabelToggle.isOn);
             m_RemoveLabelToggle.onValueChanged.AddListener(isOn => m_LabelInputField.interactable = m_AddLabelToggle.isOn || m_RemoveLabelToggle.isOn);

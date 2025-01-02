@@ -12,7 +12,6 @@ namespace HBP.UI.Tools
         #region Properties
         [SerializeField] private Selector m_Selection;
         List<Selector> m_Selectors = new List<Selector>();
-        public GraphicRaycaster GraphicRaycaster;
         #endregion
 
         #region Public Methods
@@ -51,7 +50,7 @@ namespace HBP.UI.Tools
                 Selector selector = null;
                 PointerEventData pointerEventData = new PointerEventData(EventSystem.current);
                 pointerEventData.position = Input.mousePosition;
-                var results = FindObjectsOfType<GraphicRaycaster>().SelectMany(r => { List<RaycastResult> res = new List<RaycastResult>(); r.Raycast(pointerEventData, res); return res; }).OrderByDescending(r => r.sortingOrder).ThenByDescending(r => r.depth);
+                var results = FindObjectsByType<GraphicRaycaster>(FindObjectsSortMode.None).SelectMany(r => { List<RaycastResult> res = new List<RaycastResult>(); r.Raycast(pointerEventData, res); return res; }).OrderByDescending(r => r.sortingOrder).ThenByDescending(r => r.depth);
                 foreach (var result in results)
                 {
                     selector = result.gameObject.GetComponentInParent<Selector>();

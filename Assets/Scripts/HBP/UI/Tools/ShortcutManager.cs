@@ -14,7 +14,16 @@ namespace HBP.UI.Tools
     public class ShortcutManager : MonoBehaviour
     {
         #region Properties
-        [SerializeField] MainMenu m_MainMenu;
+        private MainMenu m_MainMenu;
+        private MainMenu MainMenu
+        {
+            get
+            {
+                if (m_MainMenu == null)
+                    m_MainMenu = FindFirstObjectByType<MainMenu>();
+                return m_MainMenu;
+            }
+        }
 
         private bool IsControlPressed
         {
@@ -274,63 +283,63 @@ namespace HBP.UI.Tools
         }
         private void NewProject()
         {
-            if (m_MainMenu.FileMenu.NewProjectInteractableConditions.interactable)
-                m_MainMenu.FileMenu.OpenNewProject();
+            if (MainMenu.FileMenu.NewProjectInteractableConditions.interactable)
+                MainMenu.FileMenu.OpenNewProject();
         }
         private void OpenProject()
         {
-            if (m_MainMenu.FileMenu.OpenProjectInteractableConditions.interactable)
-                m_MainMenu.FileMenu.OpenLoadProject();
+            if (MainMenu.FileMenu.OpenProjectInteractableConditions.interactable)
+                MainMenu.FileMenu.OpenLoadProject();
         }
         private void Save()
         {
-            if (m_MainMenu.FileMenu.SaveProjectInteractableConditions.interactable)
-                m_MainMenu.FileMenu.Save();
+            if (MainMenu.FileMenu.SaveProjectInteractableConditions.interactable)
+                MainMenu.FileMenu.Save();
         }
         private void SaveAs()
         {
-            if (m_MainMenu.FileMenu.SaveProjectAsInteractableConditions.interactable)
-                m_MainMenu.FileMenu.OpenSaveProjectAs();
+            if (MainMenu.FileMenu.SaveProjectAsInteractableConditions.interactable)
+                MainMenu.FileMenu.OpenSaveProjectAs();
         }
         private void Quit()
         {
-            if (m_MainMenu.FileMenu.QuitInteractableConditions.interactable)
-                m_MainMenu.FileMenu.Quit();
+            if (MainMenu.FileMenu.QuitInteractableConditions.interactable)
+                MainMenu.FileMenu.Quit();
         }
         private void UserPreferences()
         {
-            if (m_MainMenu.EditMenu.PreferencesInteractableConditions.interactable)
-                m_MainMenu.EditMenu.OpenPreferences();
+            if (MainMenu.EditMenu.PreferencesInteractableConditions.interactable)
+                MainMenu.EditMenu.OpenPreferences();
         }
         private void ProjectPreferences()
         {
-            if (m_MainMenu.EditMenu.ProjectPreferencesInteractableConditions.interactable)
-                m_MainMenu.EditMenu.OpenProjectPreferences();
+            if (MainMenu.EditMenu.ProjectPreferencesInteractableConditions.interactable)
+                MainMenu.EditMenu.OpenProjectPreferences();
         }
         private void Patients()
         {
-            if (m_MainMenu.PatientMenu.PatientsInteractableConditions.interactable)
-                m_MainMenu.PatientMenu.OpenPatientGestion();
+            if (MainMenu.PatientMenu.PatientsInteractableConditions.interactable)
+                MainMenu.PatientMenu.OpenPatientGestion();
         }
         private void Groups()
         {
-            if (m_MainMenu.PatientMenu.GroupsInteractableConditions.interactable)
-                m_MainMenu.PatientMenu.OpenGroupGestion();
+            if (MainMenu.PatientMenu.GroupsInteractableConditions.interactable)
+                MainMenu.PatientMenu.OpenGroupGestion();
         }
         private void Protocols()
         {
-            if (m_MainMenu.ExperienceMenu.ProtocolsInteractableConditions.interactable)
-                m_MainMenu.ExperienceMenu.OpenProtocolGestion();
+            if (MainMenu.ExperienceMenu.ProtocolsInteractableConditions.interactable)
+                MainMenu.ExperienceMenu.OpenProtocolGestion();
         }
         private void Datasets()
         {
-            if (m_MainMenu.ExperienceMenu.DatasetsInteractableConditions.interactable)
-                m_MainMenu.ExperienceMenu.OpenDatasetGestion();
+            if (MainMenu.ExperienceMenu.DatasetsInteractableConditions.interactable)
+                MainMenu.ExperienceMenu.OpenDatasetGestion();
         }
         private void Visualizations()
         {
-            if (m_MainMenu.VisualizationMenu.InteractableConditions.interactable)
-                m_MainMenu.VisualizationMenu.OpenVisualizationGestion();
+            if (MainMenu.VisualizationMenu.InteractableConditions.interactable)
+                MainMenu.VisualizationMenu.OpenVisualizationGestion();
         }
         private void ChangeSiteSelection(SiteNavigationDirection direction)
         {
@@ -372,7 +381,7 @@ namespace HBP.UI.Tools
                 Column3D column = scene.SelectedColumn;
                 if (column)
                 {
-                    Core.Object3D.Site selectedSite = column.SelectedSite;
+                    Site selectedSite = column.SelectedSite;
                     if (selectedSite)
                     {
                         List<Core.Object3D.Site> sites = new List<Core.Object3D.Site>();
@@ -418,7 +427,7 @@ namespace HBP.UI.Tools
                                     int index = m_ChangeColorActions.IndexOf(downAction);
                                     if (index == -1) break;
 
-                                    Color color = ColorPicker.GetDefaultColor(index);
+                                    Color color = ColorPickerManager.GetDefaultColor(index);
                                     foreach (var site in sites) site.State.Color = color;
                                 }
                                 break;

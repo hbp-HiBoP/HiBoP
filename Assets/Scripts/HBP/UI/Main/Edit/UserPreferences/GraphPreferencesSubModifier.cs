@@ -39,7 +39,7 @@ namespace HBP.UI.Main
                 int index = i;
                 m_ColorButtons[index].onClick.AddListener(() =>
                 {
-                    ColorPicker.Open(Object.GetColor(index), (c) =>
+                    ColorPickerManager.OpenColorPicker(Object.GetColor(index), (c) =>
                     {
                         Object.SetColor(index, c);
                         m_ColorImages[index].color = c;
