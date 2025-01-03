@@ -36,7 +36,7 @@ namespace HBP.Core.Enums
     public enum MeshType { Patient, MNI }
     public enum TriEraserMode { OneTri, Cylinder, Zone, Invert, Expand };
     public enum SiteNavigationDirection { Left, Right }
-    public enum SiteType { Normal, Positive, Negative, Source, NotASource, BlackListed, NonePos, NoneNeg };
+    public enum SiteType { Normal, Positive, Negative, Source, NotASource, BlackListed };
     public enum MainSecondaryEnum { Main, Secondary }
     public enum CreationType { FromScratch, FromExistingObject, FromFile, FromDatabase, FromDirectory }
     public enum RaycastHitResult { None, Cut, Mesh, Site, ROI }
