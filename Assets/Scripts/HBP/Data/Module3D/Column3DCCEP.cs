@@ -508,7 +508,7 @@ namespace HBP.Data.Module3D
                     siteType = SiteType.Normal;
                 }
                 if (!activity) site.IsActive = true;
-                site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.Site.GetSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
+                site.GetComponent<MeshRenderer>().sharedMaterial = Module3DMain.SharedMaterials.Site.GetSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
                 site.transform.localScale *= gain;
             }
         }

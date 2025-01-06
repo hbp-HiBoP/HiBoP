@@ -89,11 +89,11 @@ namespace HBP.Data.Module3D
                 m_Selected = value;
                 if (m_Selected)
                 {
-                    GetComponent<Renderer>().sharedMaterial = SharedMaterials.ROI.Selected;
+                    GetComponent<Renderer>().sharedMaterial = Module3DMain.SharedMaterials.ROI.Selected;
                 }
                 else
                 {
-                    GetComponent<Renderer>().sharedMaterial = SharedMaterials.ROI.Normal;
+                    GetComponent<Renderer>().sharedMaterial = Module3DMain.SharedMaterials.ROI.Normal;
                 }
             }
         }

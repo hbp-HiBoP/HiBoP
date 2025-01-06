@@ -1,147 +1,87 @@
 ﻿using HBP.Core.Enums;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 
 namespace HBP.Core.Object3D
 {
     /// <summary>
-    /// Class managing the materials for some objects on the scene (ROI, Sites, Selection Ring)
+    /// Class managing the materials for some objects on the scene (ROI, Sites)
     /// </summary>
-    public static class SharedMaterials
+    [CreateAssetMenu(fileName = "SharedMaterials", menuName = "HBP/General/SharedMaterials")]
+    public class SharedMaterials : ScriptableObject
     {
         #region Properties
         /// <summary>
         /// Materials used for the ROI spheres
         /// </summary>
-        public static ROIMaterials ROI { get; private set; } = new ROIMaterials();
+        [field: SerializeField] public ROIMaterials ROI { get; private set; } = new ROIMaterials();
         /// <summary>
         /// Materials used for the sites
         /// </summary>
-        public static SiteMaterials Site { get; private set; } = new SiteMaterials();
+        [field: SerializeField] public SiteMaterials Site { get; private set; } = new SiteMaterials();
         #endregion
     }
 
     /// <summary>
     /// Class containing the materials of the ROI spheres
     /// </summary>
+    [System.Serializable]
     public class ROIMaterials
     {
         #region Properties
         /// <summary>
         /// Material used for a ROI sphere in a regular state
         /// </summary>
-        public Material Normal { get; private set; }
+        [field: SerializeField] public Material Normal { get; private set; }
         /// <summary>
         /// Material used for a ROI sphere when it is selected
         /// </summary>
-        public Material Selected { get; private set; }
-        #endregion
-
-        #region Constructors
-        public ROIMaterials()
-        {
-            Load();
-        }
-        #endregion
-
-        #region Private Methods
-        /// <summary>
-        /// Load the materials for the ROIs
-        /// </summary>
-        public void Load()
-        {
-            Normal = Object.Instantiate(Resources.Load("Materials/ROI/ROI", typeof(Material))) as Material;
-            Selected = Object.Instantiate(Resources.Load("Materials/ROI/ROISelected", typeof(Material))) as Material;
-        }
+        [field: SerializeField] public Material Selected { get; private set; }
         #endregion
     }
 
-    /// <summary>
+    /// <summary> 
     /// Class containing the materials of the sites
     /// </summary>
+    [System.Serializable]
     public class SiteMaterials
     {
         #region Properties
         /// <summary>
         /// Dictionary containing the site material for each color that has been used in the scene
         /// </summary>
-        private Dictionary<Color, Material> m_MaterialByColor;
+        private Dictionary<Color, Material> m_MaterialByColor = new();
 
         /// <summary>
         /// Default material for a site
         /// </summary>
-        public Material Basic { get; private set; }
+        [field: SerializeField] public Material Basic { get; private set; }
 
         /// <summary>
         /// Material used when the activity of the site is negative
         /// </summary>
-        public Material Negative { get; private set; }
+        [field: SerializeField] public SiteMaterial Negative { get; private set; }
         /// <summary>
         /// Material used when the activity of the site is positive
         /// </summary>
-        public Material Positive { get; private set; }
+        [field: SerializeField] public SiteMaterial Positive { get; private set; }
         /// <summary>
         /// Material used when the site is blacklisted
         /// </summary>
-        public Material BlackListed { get; private set; }
-
-        /// <summary>
-        /// Material used when the activity of the site is negative and the site is highlighted
-        /// </summary>
-        public Material NegativeHighlighted { get; private set; }
-        /// <summary>
-        /// Material used when the activity of the site is positive and the site is highlighted
-        /// </summary>
-        public Material PositiveHighlighted { get; private set; }
-        /// <summary>
-        /// Material used when the site is blacklisted and highlighted
-        /// </summary>
-        public Material BlackListedHighlighted { get; private set; }
+        [field: SerializeField] public SiteMaterial Blacklisted { get; private set; }
 
         /// <summary>
         /// Material used if the site is a source for CCEP
         /// </summary>
-        public Material Source { get; private set; }
-        /// <summary>
-        /// Material used if the site is a source for CCEP and is highlighted
-        /// </summary>
-        public Material SourceHighlighted { get; private set; }
+        [field: SerializeField] public SiteMaterial Source { get; private set; }
         /// <summary>
         /// Material used if the site is not a source for CCEP
         /// </summary>
-        public Material NotASource { get; private set; }
-        /// <summary>
-        /// Material used if the site is not a source for CCEP and is highlighted
-        /// </summary>
-        public Material NotASourceHighlighted { get; private set; }
-        #endregion
-
-        #region Constructors
-        public SiteMaterials()
-        {
-            m_MaterialByColor = new Dictionary<Color, Material>();
-            Load();
-        }
+        [field: SerializeField] public SiteMaterial NotASource { get; private set; }
         #endregion
 
         #region Private Methods
-        /// <summary>
-        /// Load the materials for the sites
-        /// </summary>
-        private void Load()
-        {
-            BlackListed = Object.Instantiate(Resources.Load("Materials/Sites/Blacklisted", typeof(Material))) as Material;
-            Negative = Object.Instantiate(Resources.Load("Materials/Sites/Negative", typeof(Material))) as Material;
-            Basic = Object.Instantiate(Resources.Load("Materials/Sites/Basic", typeof(Material))) as Material;
-            Positive = Object.Instantiate(Resources.Load("Materials/Sites/Positive", typeof(Material))) as Material;
-            BlackListedHighlighted = Object.Instantiate(Resources.Load("Materials/Sites/BlacklistedHighlighted", typeof(Material))) as Material;
-            NegativeHighlighted = Object.Instantiate(Resources.Load("Materials/Sites/NegativeHighlighted", typeof(Material))) as Material;
-            PositiveHighlighted = Object.Instantiate(Resources.Load("Materials/Sites/PositiveHighlighted", typeof(Material))) as Material;
-            Source = Object.Instantiate(Resources.Load("Materials/Sites/Source", typeof(Material))) as Material;
-            SourceHighlighted = Object.Instantiate(Resources.Load("Materials/Sites/SourceHighlighted", typeof(Material))) as Material;
-            NotASource = Object.Instantiate(Resources.Load("Materials/Sites/NotASource", typeof(Material))) as Material;
-            NotASourceHighlighted = Object.Instantiate(Resources.Load("Materials/Sites/NotASourceHighlighted", typeof(Material))) as Material;
-        }
         /// <summary>
         /// Get the site material corresponding to the input color
         /// </summary>
@@ -173,14 +113,21 @@ namespace HBP.Core.Object3D
         {
             return siteType switch
             {
-                SiteType.Positive => highlighted ? PositiveHighlighted : Positive,
-                SiteType.Negative => highlighted ? NegativeHighlighted : Negative,
-                SiteType.Source => highlighted ? SourceHighlighted : Source,
-                SiteType.NotASource => highlighted ? NotASourceHighlighted : NotASource,
-                SiteType.BlackListed => highlighted ? BlackListedHighlighted : BlackListed,
+                SiteType.Positive => highlighted ? Positive.Highlighted : Positive.Normal,
+                SiteType.Negative => highlighted ? Negative.Highlighted : Negative.Normal,
+                SiteType.Source => highlighted ? Source.Highlighted : Source.Normal,
+                SiteType.NotASource => highlighted ? NotASource.Highlighted : NotASource.Normal,
+                SiteType.BlackListed => highlighted ? Blacklisted.Highlighted : Blacklisted.Normal,
                 _ => GetMaterial(baseColor, highlighted),
             };
         }
         #endregion
+    }
+
+    [System.Serializable]
+    public class SiteMaterial
+    {
+        [field: SerializeField] public Material Normal { get; private set; }
+        [field: SerializeField] public Material Highlighted { get; private set; }
     }
 }

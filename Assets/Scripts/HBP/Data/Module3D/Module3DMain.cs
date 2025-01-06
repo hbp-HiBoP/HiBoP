@@ -97,7 +97,10 @@ namespace HBP.Data.Module3D
                 return new ReadOnlyCollection<Visualization>((from scene in Scenes select scene.Visualization).ToList());
             }
         }
-        
+
+        [SerializeField] private SharedMaterials m_SharedMaterials;
+        public static SharedMaterials SharedMaterials { get { return m_Instance.m_SharedMaterials; } }
+
         [SerializeField] private GameObject m_SharedDirectionalLight;
         /// <summary>
         /// Shared directional light between all scenes
