@@ -23,9 +23,11 @@ namespace HBP.Dev
             switch (target)
             {
                 case BuildTarget.StandaloneWindows64:
+                    UnityEditor.WindowsStandalone.UserBuildSettings.architecture = UnityEditor.Build.OSArchitecture.x64;
                     os = "win64";
                     break;
                 case BuildTarget.StandaloneLinux64:
+                    UnityEditor.WindowsStandalone.UserBuildSettings.architecture = UnityEditor.Build.OSArchitecture.x64;
                     os = "linux64";
                     break;
                 case BuildTarget.StandaloneOSX:
