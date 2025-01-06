@@ -10,25 +10,25 @@ namespace HBP.UI.Tools
     public class LoadingManager : Singleton<LoadingManager>
     {
         #region Properties
-        [SerializeField] private Canvas m_Canvas;
-        [SerializeField] GameObject m_LoadingCirclePrefab;
+        [SerializeField] private LoadingCircle m_LoadingCircle;
+        #endregion
+
+        #region Private Methods
+        protected override void Initialization()
+        {
+            m_LoadingCircle.Initialize();
+        }
         #endregion
 
         #region Public Methods
-        public static LoadingCircle Open()
-        {
-            GameObject loadingCircleGameObject = Instantiate(m_Instance.m_LoadingCirclePrefab, m_Instance.m_Canvas.transform);
-            LoadingCircle loadingCircle = loadingCircleGameObject.GetComponent<LoadingCircle>();
-            return loadingCircle;
-        }
         public static void Load(IEnumerator action, GenericEvent<float, float, LoadingText> onChangeProgress, Action<TaskState> callBack = null)
         {
             m_Instance.StartCoroutine(c_Load(action, onChangeProgress, callBack));
         }
         public static IEnumerator c_Load(IEnumerator action, GenericEvent<float, float, LoadingText> onChangeProgress, Action<TaskState> callBack = null)
         {
-            LoadingCircle loadingCircle = Open();
-            onChangeProgress.AddListener((progress, time, message) => loadingCircle.ChangePercentage(progress, time, message));
+            m_Instance.m_LoadingCircle.Open();
+            onChangeProgress.AddListener((progress, time, message) => m_Instance.m_LoadingCircle.ChangePercentage(progress, time, message));
             yield return m_Instance.StartCoroutineAsync(action, out Task task);
             switch (task.State)
             {
@@ -40,7 +40,7 @@ namespace HBP.UI.Tools
                     DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
                     break;
             }
-            loadingCircle.Close();
+            m_Instance.m_LoadingCircle.Close();
             callBack?.Invoke(task.State);
         }
         #endregion

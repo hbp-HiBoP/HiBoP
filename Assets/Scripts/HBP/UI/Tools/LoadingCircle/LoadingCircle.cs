@@ -28,6 +28,7 @@ namespace HBP.UI.Tools
 
         [SerializeField] Image m_IconProgress;
         [SerializeField] Image m_FillProgress;
+        [SerializeField] RectTransform m_Informations;
         [SerializeField] Text m_LoadingEffectText;
         [SerializeField] Text m_PrefixText;
         [SerializeField] Text m_InformationText;
@@ -35,6 +36,16 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Public Methods
+        public void Initialize()
+        {
+            m_Sprites = new Sprite[101];
+            for (int i = 0; i < 101; ++i)
+            {
+                string path = Path.Combine("BrainAnim", i.ToString());
+                m_Sprites[i] = Resources.Load<Sprite>(path);
+            }
+            Close();
+        }
         public void ChangePercentage(float progress, float durationInSeconds, LoadingText message)
         {
             m_LastProgress = m_TargetProgress;
@@ -43,9 +54,14 @@ namespace HBP.UI.Tools
             m_CurrentDurationInSeconds = 0;
             Text = message;
         }
+        public void Open()
+        {
+            gameObject.SetActive(true);
+        }
         public void Close()
         {
-            Destroy(gameObject);
+            gameObject.SetActive(false);
+            Reset();
         }
         public void ShowInformations()
         {
@@ -76,15 +92,6 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Private Methods
-        private void Awake()
-        {
-            m_Sprites = new Sprite[101];
-            for (int i = 0; i < 101; ++i)
-            {
-                string path = Path.Combine("BrainAnim", i.ToString());
-                m_Sprites[i] = Resources.Load<Sprite>(path) as Sprite;
-            }
-        }
         void LateUpdate()
         {
             if (!loading && m_LoadingEffectText.gameObject.activeSelf) m_TextCoroutine = StartCoroutine(c_TextLoadingEffect());
@@ -112,6 +119,15 @@ namespace HBP.UI.Tools
                 m_SuffixText.SetLayoutElementMinimumWidthToContainWholeText();
                 m_LastText = Text;
             }
+        }
+
+        private void Reset()
+        {
+            m_IconProgress.sprite = m_Sprites[0];
+            m_FillProgress.fillAmount = 0;
+            m_Informations.gameObject.SetActive(false);
+            m_Informations.anchoredPosition = Vector2.zero;
+            m_Informations.sizeDelta = Vector2.zero;
         }
         #endregion
     }
