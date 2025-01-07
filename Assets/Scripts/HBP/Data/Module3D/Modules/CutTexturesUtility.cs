@@ -78,7 +78,7 @@ namespace HBP.Data.Module3D
             }
             for (int i = 0; i < size; i++)
             {
-                CutGenerators[i].Initialize(activityGenerator, cutGeometryGenerators[i], PreferencesManager.UserPreferences.Visualization._3D.RawCuts ? 0 : 4);
+                CutGenerators[i].Initialize(activityGenerator, cutGeometryGenerators[i], PersistentDataManager.UserPreferences.Visualization._3D.RawCuts ? 0 : 4);
             }
         }
         /// <summary>

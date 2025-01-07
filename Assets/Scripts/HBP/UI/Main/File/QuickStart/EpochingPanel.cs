@@ -24,9 +24,9 @@ namespace HBP.UI.Main.QuickStart
         protected override void Initialize()
         {
             base.Initialize();
-            m_Window.minLimit = PreferencesManager.UserPreferences.Data.Protocol.MinLimit;
-            m_Window.maxLimit = PreferencesManager.UserPreferences.Data.Protocol.MaxLimit;
-            m_Window.step = PreferencesManager.UserPreferences.Data.Protocol.Step;
+            m_Window.minLimit = PersistentDataManager.UserPreferences.Data.Protocol.MinLimit;
+            m_Window.maxLimit = PersistentDataManager.UserPreferences.Data.Protocol.MaxLimit;
+            m_Window.step = PersistentDataManager.UserPreferences.Data.Protocol.Step;
             m_Window.Values = new Vector2(-500, 500);
         }
         #endregion

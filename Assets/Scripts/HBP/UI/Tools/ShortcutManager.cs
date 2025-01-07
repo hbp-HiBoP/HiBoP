@@ -312,6 +312,11 @@ namespace HBP.UI.Tools
             if (MainMenu.EditMenu.PreferencesInteractableConditions.interactable)
                 MainMenu.EditMenu.OpenPreferences();
         }
+        private void TagsManager()
+        {
+            if (MainMenu.EditMenu.TagsManagerInteractableConditions.interactable)
+                MainMenu.EditMenu.OpenTagsManager();
+        }
         private void ProjectPreferences()
         {
             if (MainMenu.EditMenu.ProjectPreferencesInteractableConditions.interactable)

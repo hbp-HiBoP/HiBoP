@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Runtime.Serialization;
 using HBP.Core.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.Core.Data
 {
@@ -123,7 +124,7 @@ namespace HBP.Core.Data
         {
             base.OnDeserialized();
             Value = Value;
-            Tag = ApplicationState.ProjectLoaded.Preferences.Tags.FirstOrDefault(t => t.ID == m_TagID);
+            Tag = PersistentDataManager.Tags.AllTags.FirstOrDefault(t => t.ID == m_TagID);
         }
         protected override void OnSerializing()
         {

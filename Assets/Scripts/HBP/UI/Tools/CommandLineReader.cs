@@ -67,7 +67,7 @@ namespace HBP.UI.Tools
                 }
                 else
                 {
-                    ProjectLoaderSaver.Load(new ProjectInfo(PreferencesManager.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0] + Project.EXTENSION));
+                    ProjectLoaderSaver.Load(new ProjectInfo(PersistentDataManager.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0] + Project.EXTENSION));
                 }
             }
             else if (action == "-pf") // Project File

@@ -191,15 +191,15 @@ namespace HBP.UI.Main
             m_TypeDropdown.SetValue(Array.IndexOf(m_Types, objectToDisplay.GetType()));
 
             m_WindowToggle.isOn = objectToDisplay.UseOnWindow;
-            m_WindowSlider.minLimit = PreferencesManager.UserPreferences.Data.Protocol.MinLimit;
-            m_WindowSlider.maxLimit = PreferencesManager.UserPreferences.Data.Protocol.MaxLimit;
-            m_WindowSlider.step = PreferencesManager.UserPreferences.Data.Protocol.Step;
+            m_WindowSlider.minLimit = PersistentDataManager.UserPreferences.Data.Protocol.MinLimit;
+            m_WindowSlider.maxLimit = PersistentDataManager.UserPreferences.Data.Protocol.MaxLimit;
+            m_WindowSlider.step = PersistentDataManager.UserPreferences.Data.Protocol.Step;
             m_WindowSlider.Values = objectToDisplay.Window.ToVector2();
 
             m_BaselineToggle.isOn = objectToDisplay.UseOnBaseline;
-            m_BaselineSlider.minLimit = PreferencesManager.UserPreferences.Data.Protocol.MinLimit;
-            m_BaselineSlider.maxLimit = PreferencesManager.UserPreferences.Data.Protocol.MaxLimit;
-            m_BaselineSlider.step = PreferencesManager.UserPreferences.Data.Protocol.Step;
+            m_BaselineSlider.minLimit = PersistentDataManager.UserPreferences.Data.Protocol.MinLimit;
+            m_BaselineSlider.maxLimit = PersistentDataManager.UserPreferences.Data.Protocol.MaxLimit;
+            m_BaselineSlider.step = PersistentDataManager.UserPreferences.Data.Protocol.Step;
             m_BaselineSlider.Values = objectToDisplay.Baseline.ToVector2();
         }
         /// <summary>

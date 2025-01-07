@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using HBP.Core.Exceptions;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.Core.Data
 {
@@ -231,18 +232,18 @@ namespace HBP.Core.Data
                 int.TryParse(directoryNameParts[1], out int date);
                 string name = directoryNameParts[2];
                 string place = directoryNameParts[0];
-                IEnumerable<BaseTag> tags = ApplicationState.ProjectLoaded.Preferences.GeneralTags.Concat(ApplicationState.ProjectLoaded.Preferences.PatientsTags);
+                IEnumerable<BaseTag> tags = PersistentDataManager.Tags.GeneralTags.Concat(PersistentDataManager.Tags.PatientsTags);
                 IntTag dateTag = tags.OfType<IntTag>().FirstOrDefault(t => t.Name == "Date");
                 if (dateTag == null)
                 {
                     dateTag = new IntTag("Date");
-                    ApplicationState.ProjectLoaded.Preferences.PatientsTags.Add(dateTag);
+                    PersistentDataManager.Tags.PatientsTags.Add(dateTag);
                 }
                 StringTag placeTag = tags.OfType<StringTag>().FirstOrDefault(t => t.Name == "Place");
                 if (placeTag == null)
                 {
                     placeTag = new StringTag("Place");
-                    ApplicationState.ProjectLoaded.Preferences.PatientsTags.Add(placeTag);
+                    PersistentDataManager.Tags.PatientsTags.Add(placeTag);
                 }
                 IntTagValue dateTagValue = new IntTagValue(dateTag, date);
                 StringTagValue placeTagValue = new StringTagValue(placeTag, place);
@@ -505,16 +506,16 @@ namespace HBP.Core.Data
                 if (tagValuesBySubjectID.TryGetValue(pair.Key, out Dictionary<string, string> subjectTags))
                 {
                     // Add tags to project.
-                    IEnumerable<BaseTag> projectTags = ApplicationState.ProjectLoaded.Preferences.PatientsTags.Concat(ApplicationState.ProjectLoaded.Preferences.GeneralTags);
+                    IEnumerable<BaseTag> projectTags = PersistentDataManager.Tags.PatientsTags.Concat(PersistentDataManager.Tags.GeneralTags);
                     foreach (var tagName in subjectTags.Keys)
                     {
                         if (!projectTags.Any(t => t.Name == tagName))
                         {
-                            ApplicationState.ProjectLoaded.Preferences.PatientsTags.Add(new StringTag(tagName));
+                            PersistentDataManager.Tags.PatientsTags.Add(new StringTag(tagName));
                         }
                     }
                     // Add tags to patient
-                    projectTags = ApplicationState.ProjectLoaded.Preferences.PatientsTags.Concat(ApplicationState.ProjectLoaded.Preferences.GeneralTags);
+                    projectTags = PersistentDataManager.Tags.PatientsTags.Concat(PersistentDataManager.Tags.GeneralTags);
                     foreach (var subjectTag in subjectTags)
                     {
                         BaseTag tag = projectTags.FirstOrDefault(t => t.Name == subjectTag.Key);

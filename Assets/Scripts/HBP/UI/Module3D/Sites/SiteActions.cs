@@ -1,6 +1,7 @@
 ﻿using HBP.Core.Data;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
+using HBP.Data.Preferences;
 using HBP.UI.Tools;
 using System;
 using System.Collections;
@@ -337,7 +338,7 @@ namespace HBP.UI.Module3D
             // Create string builder
             System.Text.StringBuilder csvBuilder = new System.Text.StringBuilder();
             string tagsString = "";
-            IEnumerable<BaseTag> tags = ApplicationState.ProjectLoaded.Preferences.GeneralTags.Concat(ApplicationState.ProjectLoaded.Preferences.SitesTags);
+            IEnumerable<BaseTag> tags = PersistentDataManager.Tags.GeneralTags.Concat(PersistentDataManager.Tags.SitesTags);
             if (tags.Count() > 0) tagsString = string.Format(",{0}", string.Join(",", tags.Select(t => !t.Name.Contains(",") ? t.Name : string.Format("\"{0}\"", t.Name))));
             csvBuilder.AppendLine("Site,Patient,Place,Date,X,Y,Z,CoordSystem,Labels,DataType,DataFiles" + tagsString);
 

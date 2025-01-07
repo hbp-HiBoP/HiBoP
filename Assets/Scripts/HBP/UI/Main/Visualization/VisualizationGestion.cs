@@ -47,9 +47,9 @@ namespace HBP.UI.Main
                 DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Visualization already opened", "The following visualizations are already opened:\n" + string.Concat(alreadyOpenedVisualizations.Select(v => v.Name + "\n")));
                 return;
             }
-            if (PreferencesManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
+            if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
             {
-                int maxMemory = PreferencesManager.UserPreferences.General.System.MemoryCacheLimit == 0 ? SystemInfo.systemMemorySize : PreferencesManager.UserPreferences.General.System.MemoryCacheLimit;
+                int maxMemory = PersistentDataManager.UserPreferences.General.System.MemoryCacheLimit == 0 ? SystemInfo.systemMemorySize : PersistentDataManager.UserPreferences.General.System.MemoryCacheLimit;
                 float patientThreshold = ((float)maxMemory / 400) - 3f; // raw approximation
                 var maybeTooMuchMemoryVisualizations = visualizations.Where(v => v.Patients.Count > patientThreshold);
                 if (maybeTooMuchMemoryVisualizations.Count() > 0)

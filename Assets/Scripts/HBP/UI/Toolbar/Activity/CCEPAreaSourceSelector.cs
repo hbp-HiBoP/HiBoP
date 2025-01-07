@@ -6,6 +6,7 @@ using HBP.Core.Data;
 using HBP.Core.Object3D;
 using HBP.Data.Module3D;
 using HBP.Core.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Toolbar
 {
@@ -85,7 +86,7 @@ namespace HBP.UI.Toolbar
             if (SelectedColumn is Column3DCCEP ccepColumn && ccepColumn.Mode == Column3DCCEP.CCEPMode.MarsAtlas)
             {
                 int[] marsAtlasLabels = Object3DManager.MarsAtlas.Labels();
-                StringTag marsAtlasTag = ApplicationState.ProjectLoaded.Preferences.Tags.FirstOrDefault(t => t.Name == "MarsAtlas") as StringTag;
+                StringTag marsAtlasTag = PersistentDataManager.Tags.AllTags.FirstOrDefault(t => t.Name == "MarsAtlas") as StringTag;
                 m_MarsAtlasAreas.Add(new MarsAtlasArea { Label = -1, Name = "None", FullName = "None" });
                 foreach (var label in marsAtlasLabels)
                 {

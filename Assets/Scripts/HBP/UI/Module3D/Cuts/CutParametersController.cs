@@ -488,7 +488,7 @@ namespace HBP.UI.Module3D
         public void DrawLines()
         {
             foreach (Transform child in m_CutLinesRectTransform) Destroy(child.gameObject);
-            if (Cut.Orientation == CutOrientation.Custom || !PreferencesManager.UserPreferences.Visualization.Cut.ShowCutLines) return;
+            if (Cut.Orientation == CutOrientation.Custom || !PersistentDataManager.UserPreferences.Visualization.Cut.ShowCutLines) return;
 
             Core.DLL.BBox boundingBox = m_Scene.CutGeometryGenerators[Cut.ID].BoundingBox;
             if (boundingBox != null)

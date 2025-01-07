@@ -10,6 +10,7 @@ using HBP.Core.Exceptions;
 using HBP.Core.Data;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Main
 {
@@ -144,8 +145,8 @@ namespace HBP.UI.Main
                 }
                 else
                 {
-                    BaseTag tag = ApplicationState.ProjectLoaded.Preferences.PatientsTags.FirstOrDefault(t => t.Name.ToUpper() == deblankedLabel);
-                    if (tag == null) tag = ApplicationState.ProjectLoaded.Preferences.GeneralTags.FirstOrDefault(t => t.Name.ToUpper() == deblankedLabel);
+                    BaseTag tag = PersistentDataManager.Tags.PatientsTags.FirstOrDefault(t => t.Name.ToUpper() == deblankedLabel);
+                    if (tag == null) tag = PersistentDataManager.Tags.GeneralTags.FirstOrDefault(t => t.Name.ToUpper() == deblankedLabel);
                     if (tag != null)
                     {
                         BaseTagValue tagValue = patient.Tags.FirstOrDefault(t => t.Tag == tag);

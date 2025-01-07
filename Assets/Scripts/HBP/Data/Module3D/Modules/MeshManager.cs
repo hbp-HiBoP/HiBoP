@@ -84,9 +84,9 @@ namespace HBP.Data.Module3D
             {
                 if (mesh is LeftRightMesh)
                 {
-                    Core.Object3D.LeftRightMesh3D mesh3D = new Core.Object3D.LeftRightMesh3D((LeftRightMesh)mesh, MeshType.Patient, PreferencesManager.UserPreferences.Data.Anatomic.MeshPreloading);
+                    Core.Object3D.LeftRightMesh3D mesh3D = new Core.Object3D.LeftRightMesh3D((LeftRightMesh)mesh, MeshType.Patient, PersistentDataManager.UserPreferences.Data.Anatomic.MeshPreloading);
 
-                    if (PreferencesManager.UserPreferences.Data.Anatomic.MeshPreloading)
+                    if (PersistentDataManager.UserPreferences.Data.Anatomic.MeshPreloading)
                     {
                         if (mesh3D.IsLoaded)
                         {
@@ -106,9 +106,9 @@ namespace HBP.Data.Module3D
                 }
                 else if (mesh is SingleMesh)
                 {
-                    Core.Object3D.SingleMesh3D mesh3D = new Core.Object3D.SingleMesh3D((SingleMesh)mesh, MeshType.Patient, PreferencesManager.UserPreferences.Data.Anatomic.MeshPreloading);
+                    Core.Object3D.SingleMesh3D mesh3D = new Core.Object3D.SingleMesh3D((SingleMesh)mesh, MeshType.Patient, PersistentDataManager.UserPreferences.Data.Anatomic.MeshPreloading);
 
-                    if (PreferencesManager.UserPreferences.Data.Anatomic.MeshPreloading)
+                    if (PersistentDataManager.UserPreferences.Data.Anatomic.MeshPreloading)
                     {
                         if (mesh3D.IsLoaded)
                         {

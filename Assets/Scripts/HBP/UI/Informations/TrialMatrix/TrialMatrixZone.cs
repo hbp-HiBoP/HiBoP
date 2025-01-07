@@ -20,7 +20,7 @@ namespace HBP.UI.Informations
         public void Display(ChannelStruct[] channelStructs, Data.Informations.Data[] dataStructs)
         {
             List<data.TrialMatrixGrid.TrialMatrixData> dataToDisplay = new List<data.TrialMatrixGrid.TrialMatrixData>();
-            if (PreferencesManager.UserPreferences.Visualization.TrialMatrix.ShowWholeProtocol)
+            if (PersistentDataManager.UserPreferences.Visualization.TrialMatrix.ShowWholeProtocol)
             {
                 foreach (var data in dataStructs)
                 {

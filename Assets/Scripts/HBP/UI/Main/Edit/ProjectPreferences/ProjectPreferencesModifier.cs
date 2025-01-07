@@ -14,7 +14,6 @@ namespace HBP.UI.Main
     {
         #region Properties
         [SerializeField] GeneralSubModifer m_GeneralSubModifier;
-        [SerializeField] TagsSubModifiers m_TagsSubModifier;
 
         /// <summary>
         /// True if interactable, False otherwise.
@@ -26,7 +25,6 @@ namespace HBP.UI.Main
             {
                 base.Interactable = value;
                 m_GeneralSubModifier.Interactable = value;
-                m_TagsSubModifier.Interactable = value;
             }
         }
         #endregion
@@ -38,7 +36,6 @@ namespace HBP.UI.Main
         public override void OK()
         {
             m_GeneralSubModifier.Save();
-            m_TagsSubModifier.Save();
             base.OK();
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
             LoadingManager.Load(c_CheckProject(onChangeProgress), onChangeProgress);
@@ -53,7 +50,6 @@ namespace HBP.UI.Main
         {
             base.Initialize();
             m_GeneralSubModifier.Initialize();
-            m_TagsSubModifier.Initialize();
         }
         /// <summary>
         /// Set the fields.
@@ -62,15 +58,13 @@ namespace HBP.UI.Main
         protected override void SetFields(ProjectPreferences objectToDisplay)
         {
             m_GeneralSubModifier.Object = objectToDisplay;
-            m_TagsSubModifier.Object = objectToDisplay;
         }
         #endregion
 
         #region Coroutines
         private IEnumerator c_CheckProject(GenericEvent<float, float, LoadingText> onChangeProgress)
         {
-            yield return ApplicationState.ProjectLoaded.c_CheckPatientTagValues(m_TagsSubModifier.ModifiedTags, (progress, duration, text) => onChangeProgress.Invoke(progress * 0.5f, duration, text));
-            yield return ApplicationState.ProjectLoaded.c_CheckDatasets(ApplicationState.ProjectLoaded.Protocols, (progress, duration, text) => onChangeProgress.Invoke(progress * 0.5f + 0.5f, duration, text));
+            yield return ApplicationState.ProjectLoaded.c_CheckDatasets(ApplicationState.ProjectLoaded.Protocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text));
         }
         #endregion
     }

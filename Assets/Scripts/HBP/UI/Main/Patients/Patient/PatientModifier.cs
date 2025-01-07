@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Main
 {
@@ -100,7 +101,7 @@ namespace HBP.UI.Main
             m_MeshListGestion.List.Set(objectToDisplay.Meshes);
             m_MRIListGestion.List.Set(objectToDisplay.MRIs);
             m_SiteListGestion.List.Set(objectToDisplay.Sites);
-            m_TagValueListGestion.Tags = ApplicationState.ProjectLoaded.Preferences.PatientsTags.Concat(ApplicationState.ProjectLoaded.Preferences.GeneralTags).ToArray();
+            m_TagValueListGestion.Tags = PersistentDataManager.Tags.PatientsTags.Concat(PersistentDataManager.Tags.GeneralTags).ToArray();
             m_TagValueListGestion.List.Set(objectToDisplay.Tags);
         }
         /// <summary>

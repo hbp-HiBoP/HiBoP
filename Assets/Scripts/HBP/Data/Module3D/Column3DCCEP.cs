@@ -7,6 +7,7 @@ using HBP.Core.Exceptions;
 using HBP.Core.Data;
 using HBP.Core.Object3D;
 using HBP.Core.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.Data.Module3D
 {
@@ -311,7 +312,7 @@ namespace HBP.Data.Module3D
                 site.State.IsMasked = true;
             }
 
-            StringTag marsAtlasTag = ApplicationState.ProjectLoaded.Preferences.Tags.FirstOrDefault(t => t.Name == "MarsAtlas") as StringTag;
+            StringTag marsAtlasTag = PersistentDataManager.Tags.AllTags.FirstOrDefault(t => t.Name == "MarsAtlas") as StringTag;
             if (marsAtlasTag == null)
                 throw new System.Exception("MarsAtlas tag has not been found !");
 

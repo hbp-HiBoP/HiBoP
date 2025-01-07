@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using HBP.Core.Interfaces;
 using HBP.Core.Object3D;
 using HBP.Core.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.Core.Data
 {
@@ -203,18 +204,18 @@ namespace HBP.Core.Data
                     List<string> columns = splittedLines[0];
                     if (loadTags)
                     {
-                        IEnumerable<BaseTag> tags = ApplicationState.ProjectLoaded.Preferences.SitesTags.Concat(ApplicationState.ProjectLoaded.Preferences.GeneralTags);
+                        IEnumerable<BaseTag> tags = PersistentDataManager.Tags.SitesTags.Concat(PersistentDataManager.Tags.GeneralTags);
                         foreach (var column in columns)
                         {
                             if (column != "name" && column != "x" && column != "y" && column != "z" && !tags.Any(t => t.Name == column))
                             {
-                                ApplicationState.ProjectLoaded.Preferences.SitesTags.Add(new StringTag(column));
+                                PersistentDataManager.Tags.SitesTags.Add(new StringTag(column));
                             }
                         }
                     }
 
                     // Create sites.
-                    IEnumerable<BaseTag> projectTags = ApplicationState.ProjectLoaded.Preferences.SitesTags.Concat(ApplicationState.ProjectLoaded.Preferences.GeneralTags);
+                    IEnumerable<BaseTag> projectTags = PersistentDataManager.Tags.SitesTags.Concat(PersistentDataManager.Tags.GeneralTags);
                     for (int l = 1; l < splittedLines.Count; l++)
                     {
                         Site site = new Site("", new Coordinate[] { new Coordinate(referenceSystem, new UnityEngine.Vector3()) }, new BaseTagValue[0]);
@@ -328,8 +329,8 @@ namespace HBP.Core.Data
                         for (int i = 0; i < firstLineSplits.Length; i++)
                         {
                             if (indices.Contains(i)) continue;
-                            BaseTag associatedTag = ApplicationState.ProjectLoaded.Preferences.SitesTags.FirstOrDefault(t => t.Name == firstLineSplits[i]);
-                            if (associatedTag == null) associatedTag = ApplicationState.ProjectLoaded.Preferences.GeneralTags.FirstOrDefault(t => t.Name == firstLineSplits[i]);
+                            BaseTag associatedTag = PersistentDataManager.Tags.SitesTags.FirstOrDefault(t => t.Name == firstLineSplits[i]);
+                            if (associatedTag == null) associatedTag = PersistentDataManager.Tags.GeneralTags.FirstOrDefault(t => t.Name == firstLineSplits[i]);
                             tagByColumnIndex.Add(i, associatedTag);
                         }
                         // Fill tags
@@ -442,11 +443,11 @@ namespace HBP.Core.Data
                             BaseTag tag = null;
                             if (tagName != "MNI" && tagName != "Contact" && tagName != "contact")
                             {
-                                tag = ApplicationState.ProjectLoaded.Preferences.SitesTags.Concat(ApplicationState.ProjectLoaded.Preferences.GeneralTags).FirstOrDefault(t => t.Name == tagName);
+                                tag = PersistentDataManager.Tags.SitesTags.Concat(PersistentDataManager.Tags.GeneralTags).FirstOrDefault(t => t.Name == tagName);
                                 if (tag == null)
                                 {
                                     tag = new StringTag(tagNames[i]);
-                                    ApplicationState.ProjectLoaded.Preferences.SitesTags.Add(tag);
+                                    PersistentDataManager.Tags.SitesTags.Add(tag);
                                 }
                             }
                             tags[i] = tag;

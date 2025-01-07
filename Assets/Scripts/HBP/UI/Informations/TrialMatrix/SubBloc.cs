@@ -148,9 +148,9 @@ namespace HBP.UI.Informations.TrialMatrix
             if(m_Data != null)
             {
                 float[][] trials = ExtractDataTrials(m_Data.SubTrials);
-                if (PreferencesManager.UserPreferences.Visualization.TrialMatrix.TrialSmoothing)
+                if (PersistentDataManager.UserPreferences.Visualization.TrialMatrix.TrialSmoothing)
                 {
-                    trials = SmoothTrials(trials, PreferencesManager.UserPreferences.Visualization.TrialMatrix.NumberOfIntermediateValues);
+                    trials = SmoothTrials(trials, PersistentDataManager.UserPreferences.Visualization.TrialMatrix.NumberOfIntermediateValues);
                 }
 
                 Texture2D texture = GenerateTexture(trials, m_Limits, m_Colors);

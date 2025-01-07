@@ -17,7 +17,6 @@ namespace HBP.UI.Main
         {
             WindowsManager.Open("Patient gestion window");
         }
-
         public void OpenGroupGestion()
         {
             WindowsManager.Open("Group gestion window");

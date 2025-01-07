@@ -158,9 +158,9 @@ namespace HBP.UI.Toolbar
             {
                 PatientName = SelectedScene.Visualization.Patients[0].Name,
                 PatientID = SelectedScene.Visualization.Patients[0].ID,
-                DefaultNormalization = PreferencesManager.UserPreferences.Data.EEG.Normalization,
-                CorrelationThreshold = PreferencesManager.UserPreferences.Data.EEG.CorrelationAlpha,
-                UseBonferroniCorrection = PreferencesManager.UserPreferences.Data.EEG.BonferroniCorrection,
+                DefaultNormalization = PersistentDataManager.UserPreferences.Data.EEG.Normalization,
+                CorrelationThreshold = PersistentDataManager.UserPreferences.Data.EEG.CorrelationAlpha,
+                UseBonferroniCorrection = PersistentDataManager.UserPreferences.Data.EEG.BonferroniCorrection,
                 Columns = new List<ColumnContainer>(SelectedScene.ColumnsIEEG.Count)
             };
             foreach (var column in SelectedScene.ColumnsIEEG)
@@ -218,8 +218,8 @@ namespace HBP.UI.Toolbar
                             if (correlationsOfSite.TryGetValue(s, out float correlationValue))
                             {
                                 csvText.Append(correlationValue.ToString("R", CultureInfo.InvariantCulture));
-                                float threshold = PreferencesManager.UserPreferences.Data.EEG.CorrelationAlpha;
-                                if (PreferencesManager.UserPreferences.Data.EEG.BonferroniCorrection) threshold /= siteCount * (siteCount - 1) / 2;
+                                float threshold = PersistentDataManager.UserPreferences.Data.EEG.CorrelationAlpha;
+                                if (PersistentDataManager.UserPreferences.Data.EEG.BonferroniCorrection) threshold /= siteCount * (siteCount - 1) / 2;
                                 csvBinaryText.Append(correlationValue < threshold ? 1 : 0);
                             }
                             else

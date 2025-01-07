@@ -224,15 +224,15 @@ namespace HBP.Data.Module3D
             Visualization visualizationToLoad = visualization.Clone() as Visualization;
             visualizationToLoad.Name = patient.Name;
             visualizationToLoad.Patients = new List<Patient>() { patient };
-            visualizationToLoad.Configuration.MeshName = PreferencesManager.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization;
-            visualizationToLoad.Configuration.MRIName = PreferencesManager.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization;
-            visualizationToLoad.Configuration.ImplantationName = PreferencesManager.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization;
+            visualizationToLoad.Configuration.MeshName = PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization;
+            visualizationToLoad.Configuration.MRIName = PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization;
+            visualizationToLoad.Configuration.ImplantationName = PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization;
             if (scene.SelectedColumn.SelectedSite)
             {
                 visualizationToLoad.Configuration.FirstSiteToSelect = scene.SelectedColumn.SelectedSite.Information.Name;
                 visualizationToLoad.Configuration.FirstColumnToSelect = scene.Columns.FindIndex(c => c = scene.SelectedColumn);
             }
-            if (PreferencesManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
+            if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
             {
                 visualizationToLoad.Configuration.PreloadedMeshes = scene.MeshManager.PreloadedMeshes[patient];
                 visualizationToLoad.Configuration.PreloadedMRIs = scene.MRIManager.PreloadedMRIs[patient];
@@ -379,14 +379,14 @@ namespace HBP.Data.Module3D
             // Objects 3D
             yield return Ninja.JumpBack;
             Object3DManager.MNI.Load();
-            if (PreferencesManager.UserPreferences.Data.Atlases.PreloadDiFuMo64) Object3DManager.DiFuMo.Load("64");
-            if (PreferencesManager.UserPreferences.Data.Atlases.PreloadDiFuMo128) Object3DManager.DiFuMo.Load("128");
-            if (PreferencesManager.UserPreferences.Data.Atlases.PreloadDiFuMo256) Object3DManager.DiFuMo.Load("256");
-            if (PreferencesManager.UserPreferences.Data.Atlases.PreloadDiFuMo512) Object3DManager.DiFuMo.Load("512");
-            if (PreferencesManager.UserPreferences.Data.Atlases.PreloadDiFuMo1024) Object3DManager.DiFuMo.Load("1024");
-            if (PreferencesManager.UserPreferences.Data.Atlases.PreloadIBC) Object3DManager.IBC.Load();
-            if (PreferencesManager.UserPreferences.Data.Atlases.PreloadMarsAtlas) Object3DManager.MarsAtlas.Load();
-            if (PreferencesManager.UserPreferences.Data.Atlases.PreloadJuBrain) Object3DManager.JuBrain.Load();
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo64) Object3DManager.DiFuMo.Load("64");
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo128) Object3DManager.DiFuMo.Load("128");
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo256) Object3DManager.DiFuMo.Load("256");
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo512) Object3DManager.DiFuMo.Load("512");
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo1024) Object3DManager.DiFuMo.Load("1024");
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadIBC) Object3DManager.IBC.Load();
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadMarsAtlas) Object3DManager.MarsAtlas.Load();
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadJuBrain) Object3DManager.JuBrain.Load();
         }
         #endregion
     }

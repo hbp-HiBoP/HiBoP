@@ -367,16 +367,16 @@ namespace HBP.UI.Informations.TrialMatrix
             {
                 CanvasScalerHandler canvasScalerHandler = GetComponentInParent<CanvasScalerHandler>();
                 float scale = canvasScalerHandler ? canvasScalerHandler.Scale : 1;
-                switch (PreferencesManager.UserPreferences.Visualization.TrialMatrix.SubBlocFormat)
+                switch (PersistentDataManager.UserPreferences.Visualization.TrialMatrix.SubBlocFormat)
                 {
                     case BlocFormatType.TrialHeight:
-                        m_LayoutElement.preferredHeight = PreferencesManager.UserPreferences.Visualization.TrialMatrix.TrialHeight * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length / scale;
+                        m_LayoutElement.preferredHeight = PersistentDataManager.UserPreferences.Visualization.TrialMatrix.TrialHeight * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length / scale;
                         break;
                     case BlocFormatType.TrialRatio:
-                        m_LayoutElement.preferredHeight = PreferencesManager.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length / scale;
+                        m_LayoutElement.preferredHeight = PersistentDataManager.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length / scale;
                         break;
                     case BlocFormatType.BlocRatio:
-                        m_LayoutElement.preferredHeight = PreferencesManager.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width / scale;
+                        m_LayoutElement.preferredHeight = PersistentDataManager.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width / scale;
                         break;
                 }
             }

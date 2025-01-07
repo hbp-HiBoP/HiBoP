@@ -12,16 +12,22 @@ namespace HBP.UI.Main
         public InteractableConditions PreferencesInteractableConditions { get { return m_PreferencesInteractableConditions; } }
         [SerializeField] InteractableConditions m_ProjectPreferencesInteractableConditions;
         public InteractableConditions ProjectPreferencesInteractableConditions { get { return m_ProjectPreferencesInteractableConditions; } }
+        [SerializeField] InteractableConditions m_TagsManagerInteractableConditions;
+        public InteractableConditions TagsManagerInteractableConditions { get { return m_TagsManagerInteractableConditions; } }
         #endregion
 
         #region Public Methods
         public void OpenPreferences()
         {
-            WindowsManager.OpenModifier(PreferencesManager.UserPreferences);
+            WindowsManager.OpenModifier(PersistentDataManager.UserPreferences);
         }
         public void OpenProjectPreferences()
         {
-            var modifier = WindowsManager.OpenModifier(ApplicationState.ProjectLoaded.Preferences);
+            WindowsManager.OpenModifier(ApplicationState.ProjectLoaded.Preferences);
+        }
+        public void OpenTagsManager()
+        {
+            WindowsManager.OpenModifier(PersistentDataManager.Tags);
         }
         #endregion
     }

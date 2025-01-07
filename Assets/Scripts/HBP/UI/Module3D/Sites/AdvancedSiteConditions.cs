@@ -7,6 +7,7 @@ using HBP.Data.Tools;
 using HBP.Core.Data;
 using HBP.Data.Module3D;
 using HBP.Core.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Module3D
 {
@@ -163,8 +164,8 @@ namespace HBP.UI.Module3D
                             tagName = Regex.Replace(tagName, "\\s+$", "");
                             string tagValue = Regex.Replace(splits[1], "^\\s+", "");
                             tagValue = Regex.Replace(tagValue, "\\s+$", "");
-                            BaseTag tag = ApplicationState.ProjectLoaded.Preferences.SitesTags.FirstOrDefault(t => t.Name.ToUpper() == tagName);
-                            if (tag == null) tag = ApplicationState.ProjectLoaded.Preferences.GeneralTags.FirstOrDefault(t => t.Name.ToUpper() == tagName);
+                            BaseTag tag = PersistentDataManager.Tags.SitesTags.FirstOrDefault(t => t.Name.ToUpper() == tagName);
+                            if (tag == null) tag = PersistentDataManager.Tags.GeneralTags.FirstOrDefault(t => t.Name.ToUpper() == tagName);
                             return CheckTag(site, tag, tagValue);
                         }
                     }

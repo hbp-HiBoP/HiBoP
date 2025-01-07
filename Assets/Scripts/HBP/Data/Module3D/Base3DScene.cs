@@ -738,7 +738,7 @@ namespace HBP.Data.Module3D
                 UpdateVisibleState(true);
                 SceneInformation.CompletelyLoaded = true;
                 OnSceneCompletelyLoaded.Invoke();
-                PreferencesManager.UserPreferences.OnSavePreferences.AddListener(() =>
+                PersistentDataManager.UserPreferences.OnSavePreferences.AddListener(() =>
                 {
                     UpdateCutNumber(m_DisplayedObjects.BrainCutMeshes.Count);
                     SceneInformation.CutsNeedUpdate = true;
@@ -757,7 +757,7 @@ namespace HBP.Data.Module3D
             if (SceneInformation.GUICutTexturesNeedUpdate) ComputeGUICutTextures();
             if (SceneInformation.FunctionalSurfaceNeedsUpdate) ComputeFunctionalSurface();
             if (SceneInformation.SitesNeedUpdate) UpdateAllColumnsSitesRendering();
-            if (!m_IsGeneratorUpToDate && (PreferencesManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate || SceneInformation.GeneratorUpdateRequested)) UpdateGenerator();
+            if (!m_IsGeneratorUpToDate && (PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate || SceneInformation.GeneratorUpdateRequested)) UpdateGenerator();
         }
         private void OnDestroy()
         {
@@ -897,7 +897,7 @@ namespace HBP.Data.Module3D
             List<Core.DLL.Surface> generatedCutMeshes = new List<Core.DLL.Surface>(Cuts.Count);
             if (Cuts.Count > 0)
             {
-                if (PreferencesManager.UserPreferences.Visualization._3D.RawCuts)
+                if (PersistentDataManager.UserPreferences.Visualization._3D.RawCuts)
                     generatedCutMeshes = MeshManager.BrainSurface.GenerateRawCutSurfaces(Cuts, false, StrongCuts);
                 else
                     generatedCutMeshes = MeshManager.BrainSurface.GenerateCutSurfaces(Cuts, false, StrongCuts);
@@ -1657,14 +1657,14 @@ namespace HBP.Data.Module3D
             switch (Type)
             {
                 case SceneType.SinglePatient:
-                    m_MeshManager.Select(PreferencesManager.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization, true);
-                    m_MRIManager.Select(PreferencesManager.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization, true);
-                    m_ImplantationManager.Select(PreferencesManager.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization);
+                    m_MeshManager.Select(PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization, true);
+                    m_MRIManager.Select(PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization, true);
+                    m_ImplantationManager.Select(PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization);
                     break;
                 case SceneType.MultiPatients:
-                    m_MeshManager.Select(PreferencesManager.UserPreferences.Visualization._3D.DefaultSelectedMeshInMultiPatientsVisualization);
-                    m_MRIManager.Select(PreferencesManager.UserPreferences.Visualization._3D.DefaultSelectedMRIInMultiPatientsVisualization);
-                    m_ImplantationManager.Select(PreferencesManager.UserPreferences.Visualization._3D.DefaultSelectedImplantationInMultiPatientsVisualization);
+                    m_MeshManager.Select(PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMeshInMultiPatientsVisualization);
+                    m_MRIManager.Select(PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMRIInMultiPatientsVisualization);
+                    m_ImplantationManager.Select(PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedImplantationInMultiPatientsVisualization);
                     break;
                 default:
                     break;
@@ -1702,7 +1702,7 @@ namespace HBP.Data.Module3D
         /// <returns>Folder that will contain exported files</returns>
         public string GenerateExportDirectory()
         {
-            string result = PreferencesManager.UserPreferences.General.Project.DefaultExportLocation;
+            string result = PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation;
             if (string.IsNullOrEmpty(result)) result = Path.GetFullPath(Application.dataPath + "/../Export/");
             if (!Directory.Exists(result)) Directory.CreateDirectory(result);
             result = Path.Combine(result, ApplicationState.ProjectLoaded.Preferences.Name);
@@ -1861,7 +1861,7 @@ namespace HBP.Data.Module3D
             else
             {
                 totalProgress = LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + Visualization.Patients.Count * LOADING_IEEG_WEIGHT;
-                if (PreferencesManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
+                if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
                 {
                     totalProgress += Visualization.Patients.Sum(p => p.Meshes.Count) * LOADING_MESH_WEIGHT + Visualization.Patients.Sum(p => p.MRIs.Count) * LOADING_MRI_WEIGHT;
                     loadingMeshProgress = LOADING_MESH_WEIGHT / totalProgress;
@@ -1904,7 +1904,7 @@ namespace HBP.Data.Module3D
             // Loading Meshes
             if (Type == SceneType.SinglePatient)
             {
-                if (PreferencesManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization && Visualization.Configuration.PreloadedMeshes.Count > 0)
+                if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization && Visualization.Configuration.PreloadedMeshes.Count > 0)
                 {
                     foreach (var mesh in Visualization.Configuration.PreloadedMeshes)
                     {
@@ -1929,7 +1929,7 @@ namespace HBP.Data.Module3D
                     }
                 }
             }
-            else if (PreferencesManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
+            else if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
             {
                 foreach (var patient in Visualization.Patients)
                 {
@@ -1954,7 +1954,7 @@ namespace HBP.Data.Module3D
             // Loading MRIs
             if (Type == SceneType.SinglePatient)
             {
-                if (PreferencesManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization && Visualization.Configuration.PreloadedMRIs.Count > 0)
+                if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization && Visualization.Configuration.PreloadedMRIs.Count > 0)
                 {
                     foreach (var mri in Visualization.Configuration.PreloadedMRIs)
                     {
@@ -1979,7 +1979,7 @@ namespace HBP.Data.Module3D
                     }
                 }
             }
-            else if (PreferencesManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
+            else if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
             {
                 foreach (var patient in Visualization.Patients)
                 {
@@ -2241,7 +2241,7 @@ namespace HBP.Data.Module3D
                 {
                     Core.DLL.DensityGenerator generator = anatomyColumn.ActivityGenerator as Core.DLL.DensityGenerator;
                     currentGenerator = generator;
-                    generator.ComputeActivity(anatomyColumn.RawElectrodes, anatomyColumn.AnatomyParameters.InfluenceDistance, PreferencesManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                    generator.ComputeActivity(anatomyColumn.RawElectrodes, anatomyColumn.AnatomyParameters.InfluenceDistance, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                 }
                 else if (column is Column3DDynamic dynamicColumn)
                 {
@@ -2250,7 +2250,7 @@ namespace HBP.Data.Module3D
                     if (dynamicColumn is Column3DCCEP ccepColumn && ccepColumn.IsSourceMarsAtlasLabelSelected)
                         generator.ComputeActivityAtlas(ccepColumn.ActivityValues, ccepColumn.Timeline.Length, ccepColumn.AreaMask, Object3DManager.MarsAtlas);
                     else
-                        generator.ComputeActivity(dynamicColumn.RawElectrodes, dynamicColumn.DynamicParameters.InfluenceDistance, dynamicColumn.ActivityValues, dynamicColumn.Timeline.Length, dynamicColumn.RawElectrodes.NumberOfSites, PreferencesManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                        generator.ComputeActivity(dynamicColumn.RawElectrodes, dynamicColumn.DynamicParameters.InfluenceDistance, dynamicColumn.ActivityValues, dynamicColumn.Timeline.Length, dynamicColumn.RawElectrodes.NumberOfSites, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                     generator.AdjustValues(dynamicColumn.DynamicParameters.Middle, dynamicColumn.DynamicParameters.SpanMin, dynamicColumn.DynamicParameters.SpanMax);
                 }
                 else if (column is Column3DFMRI fmriColumn)
@@ -2271,7 +2271,7 @@ namespace HBP.Data.Module3D
                 {
                     Core.DLL.IEEGGenerator generator = staticColumn.ActivityGenerator as Core.DLL.IEEGGenerator;
                     currentGenerator = generator;
-                    generator.ComputeActivity(staticColumn.RawElectrodes, staticColumn.StaticParameters.InfluenceDistance, staticColumn.ActivityValues, staticColumn.Labels.Length, staticColumn.RawElectrodes.NumberOfSites, PreferencesManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                    generator.ComputeActivity(staticColumn.RawElectrodes, staticColumn.StaticParameters.InfluenceDistance, staticColumn.ActivityValues, staticColumn.Labels.Length, staticColumn.RawElectrodes.NumberOfSites, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                     generator.AdjustValues(staticColumn.StaticParameters.Middle, staticColumn.StaticParameters.SpanMin, staticColumn.StaticParameters.SpanMax);
                 }
                 if (SceneInformation.GeneratorNeedsUpdate) yield break;

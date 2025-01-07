@@ -341,7 +341,7 @@ namespace HBP.UI.Informations.Graphs
             }
             Core.Data.BlocData blocData = Core.Data.DataManager.GetData(dataInfo, column.Data.Bloc);
             Core.Data.BlocChannelData blocChannelData = Core.Data.DataManager.GetData(dataInfo, column.Data.Bloc, channel.Channel);
-            Color color = PreferencesManager.UserPreferences.Visualization.Graph.GetColor(0, Array.IndexOf(m_Columns, column));
+            Color color = PersistentDataManager.UserPreferences.Visualization.Graph.GetColor(0, Array.IndexOf(m_Columns, column));
 
             Core.Data.ChannelTrial[] trials = blocChannelData.Trials.Where(t => t.IsValid).ToArray();
 
@@ -419,7 +419,7 @@ namespace HBP.UI.Informations.Graphs
                 if (dataInfo == null) return null;
             }
             Core.Data.MEGcData megData = Core.Data.DataManager.GetData(dataInfo) as Core.Data.MEGcData;
-            Color color = PreferencesManager.UserPreferences.Visualization.Graph.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));
+            Color color = PersistentDataManager.UserPreferences.Visualization.Graph.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));
             if (megData == null)
                 return null;
 

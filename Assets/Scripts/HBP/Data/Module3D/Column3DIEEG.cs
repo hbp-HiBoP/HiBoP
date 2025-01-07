@@ -223,8 +223,8 @@ namespace HBP.Data.Module3D
                     {
                         if (correlationBySite.TryGetValue(s, out float correlationValue))
                         {
-                            float threshold = PreferencesManager.UserPreferences.Data.EEG.CorrelationAlpha;
-                            if (PreferencesManager.UserPreferences.Data.EEG.BonferroniCorrection) threshold /= siteCount * (siteCount - 1) / 2;
+                            float threshold = PersistentDataManager.UserPreferences.Data.EEG.CorrelationAlpha;
+                            if (PersistentDataManager.UserPreferences.Data.EEG.BonferroniCorrection) threshold /= siteCount * (siteCount - 1) / 2;
                             if (correlationValue < threshold)
                             {
                                 result.Add(s);

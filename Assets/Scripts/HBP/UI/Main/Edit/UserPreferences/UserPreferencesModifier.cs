@@ -59,7 +59,7 @@ namespace HBP.UI.Main
         public override  void OK()
         {
             base.OK();
-            PreferencesManager.UserPreferences.Save();
+            PersistentDataManager.UserPreferences.Save();
         }
         #endregion
 

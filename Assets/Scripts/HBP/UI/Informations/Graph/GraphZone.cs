@@ -323,7 +323,7 @@ namespace HBP.UI.Informations
                 }
             }
 
-            Color color = PreferencesManager.UserPreferences.Visualization.Graph.GetColor(index + 2, Array.IndexOf(m_Columns, column));
+            Color color = PersistentDataManager.UserPreferences.Visualization.Graph.GetColor(index + 2, Array.IndexOf(m_Columns, column));
             if (column.ChannelGroups[index].Channels.Count > 1)
             {
                 int channelCount = column.ChannelGroups[index].Channels.Count;
@@ -455,7 +455,7 @@ namespace HBP.UI.Informations
             }
             Core.Data.BlocData blocData = Core.Data.DataManager.GetData(dataInfo, column.Data.Bloc);
             Core.Data.BlocChannelData blocChannelData = Core.Data.DataManager.GetData(dataInfo, column.Data.Bloc, channel.Channel);
-            Color color = PreferencesManager.UserPreferences.Visualization.Graph.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));// m_ColorsByColumn.FirstOrDefault(k => k.Key.Item1 == Array.IndexOf(m_Channels, channel) && k.Key.Item2 == column).Value;
+            Color color = PersistentDataManager.UserPreferences.Visualization.Graph.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));// m_ColorsByColumn.FirstOrDefault(k => k.Key.Item1 == Array.IndexOf(m_Channels, channel) && k.Key.Item2 == column).Value;
             if (blocChannelData == null)
                 return null;
 
@@ -541,7 +541,7 @@ namespace HBP.UI.Informations
                 if (dataInfo == null) return null;
             }
             Core.Data.MEGcData megData = Core.Data.DataManager.GetData(dataInfo) as Core.Data.MEGcData;
-            Color color = PreferencesManager.UserPreferences.Visualization.Graph.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));
+            Color color = PersistentDataManager.UserPreferences.Visualization.Graph.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));
             if (megData == null)
                 return null;
 

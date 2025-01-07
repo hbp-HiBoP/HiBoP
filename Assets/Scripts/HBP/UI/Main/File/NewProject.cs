@@ -74,7 +74,7 @@ namespace HBP.UI.Main
         #region Private Methods
         protected override void SetFields()
 		{
-            Data.Preferences.ProjectPreferences preferences = PreferencesManager.UserPreferences.General.Project;
+            Data.Preferences.ProjectPreferences preferences = PersistentDataManager.UserPreferences.General.Project;
 
             m_NameInputField.text = preferences.DefaultName;
             m_ProjectLocationFolderSelector.Folder = preferences.DefaultLocation;

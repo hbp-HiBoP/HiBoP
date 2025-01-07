@@ -10,6 +10,7 @@ using UnityEngine;
 using HBP.Core.Exceptions;
 using HBP.Core.Tools;
 using HBP.Core.Interfaces;
+using HBP.Data.Preferences;
 
 namespace HBP.Core.Data
 {
@@ -424,7 +425,6 @@ namespace HBP.Core.Data
             // Settings
             addToDict(Preferences, getType(Preferences));
             foreach (var alias in Preferences.Aliases) addToDict(alias, string.Format("{0} ({1})", alias.Key, getType(alias)));
-            foreach (var tag in Preferences.Tags) addToDict(tag, getName(tag));
             // Patients
             foreach (var patient in m_Patients)
             {
@@ -652,11 +652,13 @@ namespace HBP.Core.Data
             {
                 var patient = m_Patients[p];
                 onChangeProgress.Invoke((float)(p + 1) / length, 0.1f, new LoadingText("Checking ", patient.Name, " [" + (p + 1) + "/" + length + "]"));
-                patient.Tags.RemoveAll(t => t.Tag == null || !Preferences.Tags.Contains(t.Tag));
-                BaseTagValue[] tagsToUpdate = patient.Tags.Where(t => tags.Contains(t.Tag)).ToArray();
+                patient.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
+                foreach (var site in patient.Sites) site.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
+                List<BaseTagValue> tagsToUpdate = patient.Tags.Where(t => tags.Contains(t.Tag)).ToList();
+                tagsToUpdate.AddRange(patient.Sites.SelectMany(s => s.Tags).Where(t => tags.Contains(t.Tag)));
                 foreach (var tagValue in tagsToUpdate)
                 {
-                    if (tagValue.Tag is IntTag && !(tagValue is IntTagValue))
+                    if (tagValue.Tag is IntTag && tagValue is not IntTagValue)
                     {
                         patient.Tags.Remove(tagValue);
                         var newTagValue = new IntTagValue();
@@ -664,7 +666,7 @@ namespace HBP.Core.Data
                         patient.Tags.Add(newTagValue);
                         newTagValue.UpdateValue();
                     }
-                    else if (tagValue.Tag is FloatTag && !(tagValue is FloatTagValue))
+                    else if (tagValue.Tag is FloatTag && tagValue is not FloatTagValue)
                     {
                         patient.Tags.Remove(tagValue);
                         var newTagValue = new FloatTagValue();
@@ -672,7 +674,7 @@ namespace HBP.Core.Data
                         patient.Tags.Add(newTagValue);
                         newTagValue.UpdateValue();
                     }
-                    else if (tagValue.Tag is BoolTag && !(tagValue is BoolTagValue))
+                    else if (tagValue.Tag is BoolTag && tagValue is not BoolTagValue)
                     {
                         patient.Tags.Remove(tagValue);
                         var newTagValue = new BoolTagValue();
@@ -680,7 +682,7 @@ namespace HBP.Core.Data
                         patient.Tags.Add(newTagValue);
                         newTagValue.UpdateValue();
                     }
-                    else if (tagValue.Tag is EmptyTag && !(tagValue is EmptyTagValue))
+                    else if (tagValue.Tag is EmptyTag && tagValue is not EmptyTagValue)
                     {
                         patient.Tags.Remove(tagValue);
                         var newTagValue = new EmptyTagValue();
@@ -688,7 +690,7 @@ namespace HBP.Core.Data
                         patient.Tags.Add(newTagValue);
                         newTagValue.UpdateValue();
                     }
-                    else if (tagValue.Tag is EnumTag && !(tagValue is EnumTagValue))
+                    else if (tagValue.Tag is EnumTag && tagValue is not EnumTagValue)
                     {
                         patient.Tags.Remove(tagValue);
                         var newTagValue = new EnumTagValue();
@@ -696,7 +698,7 @@ namespace HBP.Core.Data
                         patient.Tags.Add(newTagValue);
                         newTagValue.UpdateValue();
                     }
-                    else if (tagValue.Tag is StringTag && !(tagValue is StringTagValue))
+                    else if (tagValue.Tag is StringTag && tagValue is not StringTagValue)
                     {
                         patient.Tags.Remove(tagValue);
                         var newTagValue = new StringTagValue();
@@ -760,7 +762,7 @@ namespace HBP.Core.Data
             }
             SetPatients(patients.ToArray());
             yield return Ninja.JumpToUnity;
-            yield return CoroutineManager.StartAsync(c_CheckPatientTagValues(Preferences.Tags, (localProgress, duration, text) => onChangeProgress.Invoke(LOADING_PROGRESS + localProgress * CHECKING_PROGRESS, duration, text)));
+            yield return CoroutineManager.StartAsync(c_CheckPatientTagValues(PersistentDataManager.Tags.AllTags, (localProgress, duration, text) => onChangeProgress.Invoke(LOADING_PROGRESS + localProgress * CHECKING_PROGRESS, duration, text)));
             yield return Ninja.JumpBack;
             onChangeProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
         }

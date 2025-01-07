@@ -65,11 +65,11 @@ namespace HBP.UI.Main.QuickStart
             base.Open();
             if (string.IsNullOrEmpty(m_ProjectName.text))
             {
-                m_ProjectName.text = PreferencesManager.UserPreferences.General.Project.DefaultName;
+                m_ProjectName.text = PersistentDataManager.UserPreferences.General.Project.DefaultName;
             }
             if (string.IsNullOrEmpty(m_ProjectLocation.Folder))
             {
-                m_ProjectLocation.Folder = PreferencesManager.UserPreferences.General.Project.DefaultLocation;
+                m_ProjectLocation.Folder = PersistentDataManager.UserPreferences.General.Project.DefaultLocation;
             }
         }
         #endregion

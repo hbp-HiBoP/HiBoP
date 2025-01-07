@@ -50,13 +50,13 @@ namespace HBP.UI.Module3D
                 sceneWindow.gameObject.SetActive(false);
                 m_Scenes.Add(scene, sceneWindow);
             });
-            PreferencesManager.UserPreferences.OnSavePreferences.AddListener(ChangeLayoutDirection);
+            PersistentDataManager.UserPreferences.OnSavePreferences.AddListener(ChangeLayoutDirection);
         }
         private void ChangeLayoutDirection()
         {
             DestroyImmediate(gameObject.GetComponent<HorizontalOrVerticalLayoutGroup>());
             HorizontalOrVerticalLayoutGroup layout;
-            switch (PreferencesManager.UserPreferences.Visualization._3D.VisualizationsLayoutDirection)
+            switch (PersistentDataManager.UserPreferences.Visualization._3D.VisualizationsLayoutDirection)
             {
                 case LayoutDirection.Horizontal:
                     layout = gameObject.AddComponent<HorizontalLayoutGroup>();

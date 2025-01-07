@@ -5,7 +5,7 @@ using HBP.UI.Tools;
 
 namespace HBP.UI.Main
 {
-    public class GeneralTagsSubModifiers : SubModifier<Core.Data.ProjectPreferences>
+    public class GeneralTagsSubModifiers : SubModifier<Core.Data.TagCollection>
     {
         #region Properties
         [SerializeField] TagListGestion m_TagListGestion;
@@ -17,7 +17,7 @@ namespace HBP.UI.Main
             get => base.Interactable;
             set
             {
-                 base.Interactable = value;
+                base.Interactable = value;
                 m_TagListGestion.Interactable = value;
             }
         }
@@ -32,7 +32,7 @@ namespace HBP.UI.Main
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(Core.Data.ProjectPreferences objectToDisplay)
+        protected override void SetFields(Core.Data.TagCollection objectToDisplay)
         {
             base.SetFields(objectToDisplay);
             m_TagListGestion.List.Set(objectToDisplay.GeneralTags);

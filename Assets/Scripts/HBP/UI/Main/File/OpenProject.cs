@@ -87,7 +87,7 @@ namespace HBP.UI.Main
             base.SetFields();
 
             // Set location folder selector.
-            m_LocationFolderSelector.Folder = PreferencesManager.UserPreferences.General.Project.DefaultLocation;
+            m_LocationFolderSelector.Folder = PersistentDataManager.UserPreferences.General.Project.DefaultLocation;
         }
         #endregion
 
