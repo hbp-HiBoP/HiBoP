@@ -300,6 +300,7 @@ namespace HBP.Data.Module3D
                         cut.GetComponent<Renderer>().sharedMaterial = BrainMaterials.CutMaterial;
                 m_DisplayedObjects.SimplifiedBrain.SetActive(!value);
                 BrainMaterials.SetAlpha(BrainMaterials.Alpha);
+                SceneInformation.CutsNeedUpdate = true;
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             }
         }
