@@ -27,7 +27,7 @@ namespace HBP.UI.Main
         public override void Save()
         {
             base.Save();
-            Object.GeneralTags = m_TagListGestion.List.Objects.ToList();
+            Object.SetGeneralTags(m_TagListGestion.List.Objects.ToList());
         }
         #endregion
 

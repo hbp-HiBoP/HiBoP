@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace HBP.UI.Main
 {
-    public class AboutMenu : Menu
+    public class HelpMenu : Menu
     {
         #region Properties
         [SerializeField] private MenuButton m_OpenVersionWindowButton;

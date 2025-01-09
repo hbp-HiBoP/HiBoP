@@ -237,13 +237,13 @@ namespace HBP.Core.Data
                 if (dateTag == null)
                 {
                     dateTag = new IntTag("Date");
-                    PersistentDataManager.Tags.PatientsTags.Add(dateTag);
+                    PersistentDataManager.Tags.AddPatientTag(dateTag);
                 }
                 StringTag placeTag = tags.OfType<StringTag>().FirstOrDefault(t => t.Name == "Place");
                 if (placeTag == null)
                 {
                     placeTag = new StringTag("Place");
-                    PersistentDataManager.Tags.PatientsTags.Add(placeTag);
+                    PersistentDataManager.Tags.AddPatientTag(placeTag);
                 }
                 IntTagValue dateTagValue = new IntTagValue(dateTag, date);
                 StringTagValue placeTagValue = new StringTagValue(placeTag, place);
@@ -511,7 +511,7 @@ namespace HBP.Core.Data
                     {
                         if (!projectTags.Any(t => t.Name == tagName))
                         {
-                            PersistentDataManager.Tags.PatientsTags.Add(new StringTag(tagName));
+                            PersistentDataManager.Tags.AddPatientTag(new StringTag(tagName));
                         }
                     }
                     // Add tags to patient

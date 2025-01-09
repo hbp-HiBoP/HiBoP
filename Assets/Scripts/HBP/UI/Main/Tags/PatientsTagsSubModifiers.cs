@@ -26,7 +26,7 @@ namespace HBP.UI.Main
         public override void Save()
         {
             base.Save();
-            Object.PatientsTags = m_TagListGestion.List.Objects.ToList();
+            Object.SetPatientTags(m_TagListGestion.List.Objects.ToList());
         }
         #endregion
 

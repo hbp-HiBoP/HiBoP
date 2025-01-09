@@ -209,7 +209,7 @@ namespace HBP.Core.Data
                         {
                             if (column != "name" && column != "x" && column != "y" && column != "z" && !tags.Any(t => t.Name == column))
                             {
-                                PersistentDataManager.Tags.SitesTags.Add(new StringTag(column));
+                                PersistentDataManager.Tags.AddSiteTag(new StringTag(column));
                             }
                         }
                     }
@@ -447,7 +447,7 @@ namespace HBP.Core.Data
                                 if (tag == null)
                                 {
                                     tag = new StringTag(tagNames[i]);
-                                    PersistentDataManager.Tags.SitesTags.Add(tag);
+                                    PersistentDataManager.Tags.AddSiteTag(tag);
                                 }
                             }
                             tags[i] = tag;

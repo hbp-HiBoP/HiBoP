@@ -20,14 +20,14 @@ namespace HBP.UI.Main
         [SerializeField] DatabaseMenu m_DatabaseMenu;
         public DatabaseMenu DatabaseMenu { get { return m_DatabaseMenu; } }
 
-        [SerializeField] AboutMenu m_AboutMenu;
-        public AboutMenu AboutMenu { get { return m_AboutMenu; } }
+        [SerializeField] HelpMenu m_HelpMenu;
+        public HelpMenu HelpMenu { get { return m_HelpMenu; } }
 
         bool IsOneMenuOpen
         {
             get
             {
-                return m_FileMenu.IsOpen || m_EditMenu.IsOpen || m_ProjectMenu.IsOpen || m_DatabaseMenu.IsOpen || m_AboutMenu.IsOpen;
+                return m_FileMenu.IsOpen || m_EditMenu.IsOpen || m_ProjectMenu.IsOpen || m_DatabaseMenu.IsOpen || m_HelpMenu.IsOpen;
             }
         }
         #endregion
@@ -39,7 +39,7 @@ namespace HBP.UI.Main
             SetupMenu(m_EditMenu);
             SetupMenu(m_ProjectMenu);
             SetupMenu(m_DatabaseMenu);
-            SetupMenu(m_AboutMenu);
+            SetupMenu(m_HelpMenu);
         }
         void Update()
         {
@@ -79,7 +79,7 @@ namespace HBP.UI.Main
             if (menu != m_EditMenu) m_EditMenu.Close();
             if (menu != m_ProjectMenu) m_ProjectMenu.Close();
             if (menu != m_DatabaseMenu) m_DatabaseMenu.Close();
-            if (menu != m_AboutMenu) m_AboutMenu.Close();
+            if (menu != m_HelpMenu) m_HelpMenu.Close();
         }
         private void CloseAll()
         {
@@ -87,7 +87,7 @@ namespace HBP.UI.Main
             m_EditMenu.Close();
             m_ProjectMenu.Close();
             m_DatabaseMenu.Close();
-            m_AboutMenu.Close();
+            m_HelpMenu.Close();
         }
         #endregion
     }
