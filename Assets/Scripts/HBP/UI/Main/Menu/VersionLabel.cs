@@ -1,30 +1,26 @@
-﻿using ThirdParty.CielaSpike;
-using System;
-using System.Collections;
+using HBP.Core.Data;
 using System.Net;
+using System;
+using ThirdParty.CielaSpike;
 using UnityEngine;
 using UnityEngine.UI;
-using HBP.Core.Data;
+using System.Collections;
 using HBP.UI.Tools;
 
 namespace HBP.UI.Main
 {
-    public class VersionMenu : Menu
+    public class VersionLabel : MonoBehaviour
     {
+        #region Properties
         [SerializeField] Text m_Text;
-        [SerializeField] Image m_Image;
+        #endregion
 
+        #region Private Methods
         private void Awake()
         {
             m_Text.text = string.Format("{0} {1}", Application.productName, Application.version);
             this.StartCoroutineAsync(c_CheckVersion());
         }
-
-        public void OpenVersionWindow()
-        {
-            WindowsManager.Open("Version Window");
-        }
-
         private IEnumerator c_CheckVersion()
         {
             yield return Ninja.JumpToUnity;
@@ -45,7 +41,14 @@ namespace HBP.UI.Main
                 }
             }
             yield return Ninja.JumpToUnity;
-            m_Image.gameObject.SetActive(string.Compare(version, Application.version) > 0);
+            if (string.Compare(version, Application.version) > 0)
+            {
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "New version available", "A new version of HiBoP is available. Please update to the latest version.", () =>
+                {
+                    WindowsManager.Open("Version Window");
+                });
+            }
         }
+        #endregion
     }
 }

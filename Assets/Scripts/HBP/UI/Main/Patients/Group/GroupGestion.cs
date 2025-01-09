@@ -17,7 +17,7 @@ namespace HBP.UI.Main
         {
             base.OK();
             ApplicationState.ProjectLoaded.SetGroups(ListGestion.List.Objects);
-            MenuButtonState.SetInteractables();
+            InteractableStateManager.SetInteractables();
             UITools.CheckProjectIDAndAskForRegeneration();
         }
         #endregion

@@ -4,6 +4,7 @@ using ThirdParty.CielaSpike;
 using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Data.Module3D;
+using HBP.UI.Main;
 
 namespace HBP.UI.Tools
 {
@@ -28,7 +29,7 @@ namespace HBP.UI.Tools
                 {
                     if (taskState == TaskState.Done)
                     {
-                        MenuButtonState.SetInteractables();
+                        InteractableStateManager.SetInteractables();
                         UITools.CheckProjectIDAndAskForRegeneration();
                     }
                     else
@@ -54,7 +55,7 @@ namespace HBP.UI.Tools
         public static void SaveAndReload()
         {
             Save();
-            MenuButtonState.SetInteractables();
+            InteractableStateManager.SetInteractables();
         }
         #endregion
     }

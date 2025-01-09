@@ -33,7 +33,7 @@ namespace HBP.UI.Main
                 ApplicationState.ProjectLoaded.SetDatasets(m_ListGestion.List.Objects);
                 UITools.CheckProjectIDAndAskForRegeneration();
             }
-            MenuButtonState.SetInteractables();
+            InteractableStateManager.SetInteractables();
         }
         #endregion
 

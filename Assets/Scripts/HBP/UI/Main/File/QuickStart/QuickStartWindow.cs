@@ -87,7 +87,7 @@ namespace HBP.UI.Main.QuickStart
             {
                 if (state == TaskState.Done)
                 {
-                    MenuButtonState.SetInteractables();
+                    InteractableStateManager.SetInteractables();
                     Module3DMain.LoadScenes(ApplicationState.ProjectLoaded.Visualizations);
                 }
             });

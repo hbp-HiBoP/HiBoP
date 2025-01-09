@@ -1,15 +1,17 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
-namespace HBP.UI.Tools
+namespace HBP.UI.Main
 {
+    [RequireComponent(typeof(InteractableConditions)), RequireComponent(typeof(Button))]
     public class Menu : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         #region Properties
         [SerializeField] RectTransform m_SubMenu;
-        [SerializeField] InteractableConditions m_InteractableConditions;
-        public InteractableConditions InteractableConditions { get { return m_InteractableConditions; } }
+        private InteractableConditions m_InteractableConditions;
+        private Button m_Button;
 
         bool m_IsOpen;
         public bool IsOpen
@@ -49,6 +51,15 @@ namespace HBP.UI.Tools
 
         public GenericEvent<bool> OnChangeOpenState { get; } = new GenericEvent<bool>();
         public GenericEvent<bool> OnHover { get; } = new GenericEvent<bool>();
+        #endregion
+
+        #region Private Methods
+        protected virtual void Awake()
+        {
+            m_InteractableConditions = GetComponent<InteractableConditions>();
+            m_Button = GetComponent<Button>();
+            m_Button.onClick.AddListener(SwapOpenState);
+        }
         #endregion
 
         #region Public Methods
