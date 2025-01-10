@@ -1,4 +1,6 @@
-﻿using HBP.Core.Tools;
+﻿using HBP.Core.Data;
+using HBP.Core.Tools;
+using Newtonsoft.Json;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -97,10 +99,10 @@ namespace HBP.Dev
             }
 
             FileInfo readme = new FileInfo(projectPath + "README.md");
-            readme.CopyTo(buildDirectory + readme.Name);
+            readme.CopyTo(buildDirectory + readme.Name, true);
 
             FileInfo documentation = new FileInfo(projectPath + "Docs/LaTeX/HiBoP_user_manual.pdf");
-            documentation.CopyTo(buildDirectory + documentation.Name);
+            documentation.CopyTo(buildDirectory + documentation.Name, true);
         }
     }
 
@@ -135,6 +137,7 @@ namespace HBP.Dev
             m_MacOSX = GUILayout.Toggle(m_MacOSX, "MacOSX");
             if (GUILayout.Button("Build!"))
             {
+                WriteBuildInfo();
                 if (m_BuildDirectory[m_BuildDirectory.Length - 1] != '/' && m_BuildDirectory[m_BuildDirectory.Length - 1] != '\\')
                 {
                     m_BuildDirectory += '/';
@@ -153,6 +156,18 @@ namespace HBP.Dev
                 }
                 Close();
             }
+        }
+
+        void WriteBuildInfo()
+        {
+            BuildInfo buildInfo = new BuildInfo()
+            {
+                UnityVersion = Application.unityVersion,
+                Version = Application.version,
+                BuildDate = System.DateTime.Now
+            };
+            File.WriteAllText("Assets/Resources/BuildInfo.json", JsonConvert.SerializeObject(buildInfo));
+            AssetDatabase.Refresh();
         }
     }
 }

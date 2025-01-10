@@ -3,7 +3,7 @@
 namespace HBP.Core.Data
 {
     [DataContract]
-    public class VersionInfo
+    public class GithubVersionInfo
     {
         [DataMember(Name = "tag_name")]
         public string VersionNumber { get; set; }
