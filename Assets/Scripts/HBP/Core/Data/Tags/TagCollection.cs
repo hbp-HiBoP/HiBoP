@@ -91,41 +91,50 @@ namespace HBP.Core.Data
                 m_SitesTags = tagsCollection.m_SitesTags;
             }
         }
-        public void AddGeneralTag(BaseTag tag)
+        public void AddGeneralTag(BaseTag tag, bool autoSave = true)
         {
             m_GeneralTags.Add(tag);
+            if (autoSave) Save();
         }
-        public void RemoveGeneralTag(BaseTag tag)
+        public void RemoveGeneralTag(BaseTag tag, bool autoSave = true)
         {
             m_GeneralTags.Remove(tag);
+            if (autoSave) Save();
         }
-        public void SetGeneralTags(IEnumerable<BaseTag> tags)
+        public void SetGeneralTags(IEnumerable<BaseTag> tags, bool autoSave = true)
         {
             m_GeneralTags = tags.ToList();
+            if (autoSave) Save();
         }
-        public void AddPatientTag(BaseTag tag)
+        public void AddPatientTag(BaseTag tag, bool autoSave = true)
         {
             m_PatientsTags.Add(tag);
+            if (autoSave) Save();
         }
-        public void RemovePatientTag(BaseTag tag)
+        public void RemovePatientTag(BaseTag tag, bool autoSave = true)
         {
             m_PatientsTags.Remove(tag);
+            if (autoSave) Save();
         }
-        public void SetPatientTags(IEnumerable<BaseTag> tags)
+        public void SetPatientTags(IEnumerable<BaseTag> tags, bool autoSave = true)
         {
             m_PatientsTags = tags.ToList();
+            if (autoSave) Save();
         }
-        public void AddSiteTag(BaseTag tag)
+        public void AddSiteTag(BaseTag tag, bool autoSave = true)
         {
             m_SitesTags.Add(tag);
+            if (autoSave) Save();
         }
-        public void RemoveSiteTag(BaseTag tag)
+        public void RemoveSiteTag(BaseTag tag, bool autoSave = true)
         {
             m_SitesTags.Remove(tag);
+            if (autoSave) Save();
         }
-        public void SetSiteTags(IEnumerable<BaseTag> tags)
+        public void SetSiteTags(IEnumerable<BaseTag> tags, bool autoSave = true)
         {
             m_SitesTags = tags.ToList();
+            if (autoSave) Save();
         }
         #endregion
     }
