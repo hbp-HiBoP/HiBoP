@@ -11,6 +11,7 @@ using HBP.Core.Exceptions;
 using HBP.Core.Tools;
 using HBP.Core.Interfaces;
 using HBP.Data.Preferences;
+using HBP.Data.Database;
 
 namespace HBP.Core.Data
 {
@@ -71,15 +72,6 @@ namespace HBP.Core.Data
             get { return new ReadOnlyCollection<Group>(m_Groups); }
         }
 
-        List<Protocol> m_Protocols = new List<Protocol>();
-        /// <summary>
-        /// Protocols of the project.
-        /// </summary>
-        public ReadOnlyCollection<Protocol> Protocols
-        {
-            get { return new ReadOnlyCollection<Protocol>(m_Protocols); }
-        }
-
         List<Dataset> m_Datasets = new List<Dataset>();
         /// <summary>
         /// Datasets of the project.
@@ -110,12 +102,11 @@ namespace HBP.Core.Data
         /// <param name="datasets">Datasets of the project.</param>
         /// <param name="visualizations">Single patient visualizations of the project.</param>
         /// <param name="multiVisualizations">Multi patients visualizations of the project.</param>
-        public Project(ProjectPreferences settings, IEnumerable<Patient> patients, IEnumerable<Group> groups, IEnumerable<Protocol> protocols, IEnumerable<Dataset> datasets, IEnumerable<Visualization> visualizations)
+        public Project(ProjectPreferences settings, IEnumerable<Patient> patients, IEnumerable<Group> groups, IEnumerable<Dataset> datasets, IEnumerable<Visualization> visualizations)
         {
             Preferences = settings;
             SetPatients(patients);
             SetGroups(groups);
-            SetProtocols(protocols);
             SetDatasets(datasets);
             SetVisualizations(visualizations);
         }
@@ -123,7 +114,7 @@ namespace HBP.Core.Data
         /// Create a new project with only the settings.
         /// </summary>
         /// <param name="settings">Settings of the project.</param>
-        public Project(ProjectPreferences settings) : this(settings, new Patient[0], new Group[0], new Protocol[0], new Dataset[0], new Visualization[0])
+        public Project(ProjectPreferences settings) : this(settings, new Patient[0], new Group[0], new Dataset[0], new Visualization[0])
         {
         }
         /// <summary>
@@ -224,48 +215,6 @@ namespace HBP.Core.Data
             foreach (Group group in groups)
             {
                 RemoveGroup(group);
-            }
-        }
-        // Protocols.
-        public void SetProtocols(IEnumerable<Protocol> protocols)
-        {
-            m_Protocols = new List<Protocol>();
-            AddProtocol(protocols);
-            RemoveDataset((from dataset in m_Datasets where !m_Protocols.Any(p => p == dataset.Protocol) select dataset).ToArray());
-            foreach (Visualization visualization in m_Visualizations)
-            {
-                IEEGColumn[] columnsToRemove = visualization.Columns.Where(c => c is IEEGColumn).Select(c => c as IEEGColumn).Where(c => !m_Protocols.Any(p => p == c.Dataset.Protocol)).ToArray();
-                foreach (Column column in columnsToRemove)
-                {
-                    visualization.Columns.Remove(column);
-                }
-            }
-        }
-        public void AddProtocol(Protocol protocol)
-        {
-            m_Protocols.Add(protocol);
-        }
-        public void AddProtocol(IEnumerable<Protocol> protocols)
-        {
-            foreach (Protocol protocol in protocols)
-            {
-                AddProtocol(protocol);
-            }
-        }
-        public void RemoveProtocol(Protocol protocol)
-        {
-            m_Datasets.RemoveAll((d) => d.Protocol == protocol);
-            foreach (Visualization visualization in m_Visualizations)
-            {
-                visualization.Columns.RemoveAll((column) => (column is IEEGColumn) && (column as IEEGColumn).Dataset.Protocol == protocol);
-            }
-            m_Protocols.Remove(protocol);
-        }
-        public void RemoveProtocol(IEnumerable<Protocol> protocols)
-        {
-            foreach (Protocol protocol in protocols)
-            {
-                RemoveProtocol(protocol);
             }
         }
         // Datasets.
@@ -441,22 +390,6 @@ namespace HBP.Core.Data
             }
             // Groups
             foreach (var group in m_Groups) addToDict(group, getName(group));
-            // Protocols
-            foreach (var protocol in m_Protocols)
-            {
-                addToDict(protocol, getName(protocol));
-                foreach (var bloc in protocol.Blocs)
-                {
-                    addToDict(bloc, string.Format("{0} / {1}", getName(protocol), getName(bloc)));
-                    foreach (var subBloc in bloc.SubBlocs)
-                    {
-                        addToDict(subBloc, string.Format("{0} / {1} / {2}", getName(protocol), getName(bloc), getName(subBloc)));
-                        foreach (var ev in subBloc.Events) addToDict(ev, string.Format("{0} / {1} / {2} / {3}", getName(protocol), getName(bloc), getName(subBloc), getName(ev)));
-                        foreach (var icon in subBloc.Icons) addToDict(icon, string.Format("{0} / {1} / {2} / {3}", getName(protocol), getName(bloc), getName(subBloc), getName(icon)));
-                        foreach (var treatment in subBloc.Treatments) addToDict(treatment, string.Format("{0} / {1} / {2} / {3}", getName(protocol), getName(bloc), getName(subBloc), getType(treatment)));
-                    }
-                }
-            }
             // Datasets
             foreach (var dataset in m_Datasets)
             {
@@ -531,10 +464,6 @@ namespace HBP.Core.Data
             yield return CoroutineManager.StartAsync(c_LoadGroups(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * groupsProgress, duration, text)));
             progress += groupsProgress;
 
-            // Load Protocols.
-            yield return CoroutineManager.StartAsync(c_LoadProtocols(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * protocolsProgress, duration, text)));
-            progress += protocolsProgress;
-
             // Load Datasets.
             yield return CoroutineManager.StartAsync(c_LoadDatasets(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * datasetsProgress, duration, text)));
             progress += datasetsProgress;
@@ -553,14 +482,13 @@ namespace HBP.Core.Data
         {
             yield return Ninja.JumpBack;
             // Initialize progress.
-            float steps = 12 + m_Patients.Count + m_Groups.Count + m_Protocols.Count + m_Datasets.Count + m_Visualizations.Count;
+            float steps = 12 + m_Patients.Count + m_Groups.Count + m_Datasets.Count + m_Visualizations.Count;
             float progress = 0.0f;
 
             float initializationProgress = 1 / steps;
             float settingsProgress = 1 / steps;
             float patientsProgress = m_Patients.Count / steps;
             float groupsProgress = m_Groups.Count / steps;
-            float protocolsProgress = m_Protocols.Count / steps;
             float datasetsProgress = m_Datasets.Count / steps;
             float visualizationsProgress = m_Visualizations.Count / steps;
             float finalizationProgress = 10 / steps;
@@ -588,10 +516,6 @@ namespace HBP.Core.Data
             // Save Groups.
             yield return CoroutineManager.StartAsync(c_SaveGroups(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * groupsProgress, duration, text)));
             progress += groupsProgress;
-
-            // Save Protocols.
-            yield return CoroutineManager.StartAsync(c_SaveProtocols(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * protocolsProgress, duration, text)));
-            progress += protocolsProgress;
 
             // Save Datasets
             yield return CoroutineManager.StartAsync(c_SaveDatasets(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * datasetsProgress, duration, text)));
@@ -791,30 +715,6 @@ namespace HBP.Core.Data
             SetGroups(groups.ToArray());
             onChangeProgress.Invoke(1.0f, 0, new LoadingText("Groups loaded successfully"));
         }
-        IEnumerator c_LoadProtocols(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
-        {
-            yield return Ninja.JumpBack;
-            //Load Protocols
-            List<Protocol> protocols = new List<Protocol>();
-            DirectoryInfo protocolDirectory = projectDirectory.GetDirectories("Protocols", SearchOption.TopDirectoryOnly)[0];
-            FileInfo[] protocolFiles = protocolDirectory.GetFiles("*" + Protocol.EXTENSION, SearchOption.TopDirectoryOnly);
-            for (int i = 0; i < protocolFiles.Length; ++i)
-            {
-                FileInfo protocolFile = protocolFiles[i];
-                onChangeProgress.Invoke((float)(i + 1) / protocolFiles.Length, 0, new LoadingText("Loading protocol ", Path.GetFileNameWithoutExtension(protocolFile.Name), " [" + (i + 1).ToString() + "/" + protocolFiles.Length + "]"));
-                try
-                {
-                    protocols.Add(ClassLoaderSaver.LoadFromJson<Protocol>(protocolFile.FullName));
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    throw new CanNotReadProtocolFileException(Path.GetFileNameWithoutExtension(protocolFile.Name));
-                }
-            }
-            SetProtocols(protocols.ToArray());
-            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Protocols loaded successfully"));
-        }
         IEnumerator c_LoadDatasets(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
         {
             const float LOADING_TIME = 0.01f;
@@ -840,7 +740,7 @@ namespace HBP.Core.Data
             }
             SetDatasets(datasets.ToArray());
             yield return Ninja.JumpToUnity;
-            yield return CoroutineManager.StartAsync(c_CheckDatasets(m_Protocols, (localProgress, duration, text) => onChangeProgress.Invoke(LOADING_TIME + localProgress * CHECKING_TIME, duration, text)));
+            yield return CoroutineManager.StartAsync(c_CheckDatasets(DatabaseManager.Database.Protocols, (localProgress, duration, text) => onChangeProgress.Invoke(LOADING_TIME + localProgress * CHECKING_TIME, duration, text)));
             yield return Ninja.JumpBack;
             onChangeProgress.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
         }
@@ -934,29 +834,6 @@ namespace HBP.Core.Data
                 count++;
             }
             onChangeProgress.Invoke(1.0f, 0, new LoadingText("Groups saved successfully"));
-        }
-        IEnumerator c_SaveProtocols(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
-        {
-            yield return Ninja.JumpBack;
-            // Save protocols
-            DirectoryInfo protocolDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Protocols"));
-            int count = 0;
-            int length = m_Protocols.Count();
-            foreach (Protocol protocol in m_Protocols)
-            {
-                onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving protocol ", protocol.Name, " [" + (count + 1).ToString() + "/" + length + "]"));
-                try
-                {
-                    ClassLoaderSaver.SaveToJSon(protocol, Path.Combine(protocolDirectory.FullName, protocol.Name + Protocol.EXTENSION));
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    throw new CanNotSaveSettingsException();
-                }
-                count++;
-            }
-            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Protocols saved successfully"));
         }
         IEnumerator c_SaveDatasets(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
         {

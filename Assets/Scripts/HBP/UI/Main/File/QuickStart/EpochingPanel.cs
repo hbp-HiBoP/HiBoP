@@ -6,6 +6,7 @@ using HBP.Core.Data;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
 using HBP.Data.Preferences;
+using HBP.Data.Database;
 
 namespace HBP.UI.Main.QuickStart
 {
@@ -57,12 +58,12 @@ namespace HBP.UI.Main.QuickStart
                 }
             }
             Protocol protocol = new Protocol("QuickStart", blocs);
-            ApplicationState.LoadedProject.SetProtocols(new Protocol[] { protocol });
+            DatabaseManager.Database.SetProtocols(new Protocol[] { protocol });
             return base.OpenNextPanel();
         }
         public override bool OpenPreviousPanel()
         {
-            ApplicationState.LoadedProject.SetProtocols(new Protocol[0]);
+            DatabaseManager.Database.SetProtocols(new Protocol[0]);
             return base.OpenPreviousPanel();
         }
         #endregion

@@ -5,6 +5,7 @@ using System.Linq;
 using HBP.Core.Data;
 using HBP.Core.Tools;
 using HBP.UI.Tools;
+using HBP.Data.Database;
 
 namespace HBP.UI.Main
 {
@@ -85,7 +86,7 @@ namespace HBP.UI.Main
         // Protocol.
         void SetProtocolDropdown()
         {
-            m_Protocols = ApplicationState.LoadedProject.Protocols.Where(p => p.IsVisualizable).ToList();
+            m_Protocols = DatabaseManager.Database.Protocols.Where(p => p.IsVisualizable).ToList();
             SetProtocolDropdownInteractable(m_Protocols != null && m_Patients != null && m_Protocols.Count > 0 && m_Patients.Length > 0);
         }
         void OnChangeProtocol(int value)

@@ -381,11 +381,10 @@ namespace HBP.Core.Tools
             if (layoutElement)
             {
                 int totalWidth = 0;
-                CharacterInfo charInfo = new CharacterInfo();
                 char[] stringArray = text.text.ToCharArray();
                 foreach (var c in stringArray)
                 {
-                    text.font.GetCharacterInfo(c, out charInfo, text.fontSize);
+                    text.font.GetCharacterInfo(c, out CharacterInfo charInfo, text.fontSize);
                     totalWidth += charInfo.advance;
                 }
                 text.GetComponent<LayoutElement>().minWidth = totalWidth;

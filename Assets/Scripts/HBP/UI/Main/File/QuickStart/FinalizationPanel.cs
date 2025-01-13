@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
 using HBP.Data.Preferences;
+using HBP.Data.Database;
 
 namespace HBP.UI.Main.QuickStart
 {
@@ -31,7 +32,7 @@ namespace HBP.UI.Main.QuickStart
                 return false;
             }
             // Add visualization
-            if (ApplicationState.LoadedProject.Protocols.Count == 0) // Anatomical
+            if (DatabaseManager.Database.Protocols.Count == 0) // Anatomical
             {
                 Visualization visualization = new Visualization("QuickStart Anatomy", ApplicationState.LoadedProject.Patients, new Column[] { new AnatomicColumn("Anatomy", new BaseConfiguration()) });
                 ApplicationState.LoadedProject.SetVisualizations(new Visualization[] { visualization });
@@ -47,7 +48,7 @@ namespace HBP.UI.Main.QuickStart
                     }
                 }
                 List<IEEGColumn> columns = new List<IEEGColumn>();
-                Protocol protocol = ApplicationState.LoadedProject.Protocols[0];
+                Protocol protocol = DatabaseManager.Database.Protocols[0];
                 foreach (var bloc in protocol.Blocs)
                 {
                     IEEGColumn column = new IEEGColumn(string.Format("Code {0}", bloc.MainSubBloc.MainEvent.Codes[0]), new BaseConfiguration(), ApplicationState.LoadedProject.Datasets[0], "Data", bloc, new DynamicConfiguration());

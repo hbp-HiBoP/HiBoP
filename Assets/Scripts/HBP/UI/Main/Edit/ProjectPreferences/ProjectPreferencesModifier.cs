@@ -4,6 +4,7 @@ using UnityEngine.Events;
 using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.UI.Tools;
+using HBP.Data.Database;
 
 namespace HBP.UI.Main
 {
@@ -64,7 +65,7 @@ namespace HBP.UI.Main
         #region Coroutines
         private IEnumerator c_CheckProject(GenericEvent<float, float, LoadingText> onChangeProgress)
         {
-            yield return ApplicationState.LoadedProject.c_CheckDatasets(ApplicationState.LoadedProject.Protocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text));
+            yield return ApplicationState.LoadedProject.c_CheckDatasets(DatabaseManager.Database.Protocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text));
         }
         #endregion
     }

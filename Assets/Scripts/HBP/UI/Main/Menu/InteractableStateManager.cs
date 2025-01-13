@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using HBP.Core.Tools;
+using HBP.Data.Database;
 
 namespace HBP.UI.Main
 {
@@ -55,7 +56,7 @@ namespace HBP.UI.Main
             }
             if (interactableConditions.NeedProtocol)
             {
-                if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Protocols.Count == 0)
+                if (DatabaseManager.Database.Protocols.Count == 0)
                 {
                     interactable = false;
                 }

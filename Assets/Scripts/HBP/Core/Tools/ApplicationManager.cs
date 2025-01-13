@@ -7,19 +7,6 @@ namespace HBP.Core.Tools
     public class ApplicationManager : Manager<ApplicationManager>
     {
         #region Private Methods
-        protected override void Initialization()
-        {
-            base.Initialization();
-            ApplicationState.LoadedProject = null;
-            ApplicationState.LoadedProjectLocation = string.Empty;
-#if UNITY_EDITOR
-            ApplicationState.DataPath =  Path.Combine(Application.dataPath, "Data");
-#else
-            ApplicationState.DataPath = Path.Combine(Application.dataPath, "..", "Data");
-#endif
-            ApplicationState.TMPFolder = Path.Combine(Application.persistentDataPath, "tmp");
-            ApplicationState.ExtractProjectFolder = Path.Combine(Application.persistentDataPath, ApplicationState.InstanceID);
-        }
         private void OnDestroy()
         {
             DataManager.Clear();
