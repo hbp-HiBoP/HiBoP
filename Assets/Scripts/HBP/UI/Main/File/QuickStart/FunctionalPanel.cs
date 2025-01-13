@@ -45,12 +45,12 @@ namespace HBP.UI.Main.QuickStart
             var functionalDataObjects = m_List.Objects;
             foreach (var functionalData in functionalDataObjects)
             {
-                if (!ApplicationState.ProjectLoaded.Patients.Any(p => functionalData.DataInfo.Patient == p))
+                if (!ApplicationState.LoadedProject.Patients.Any(p => functionalData.DataInfo.Patient == p))
                 {
                     m_List.Remove(functionalData);
                 }
             }
-            foreach (var patient in ApplicationState.ProjectLoaded.Patients)
+            foreach (var patient in ApplicationState.LoadedProject.Patients)
             {
                 if (!functionalDataObjects.Any(f => f.DataInfo.Patient == patient))
                 {
@@ -65,13 +65,13 @@ namespace HBP.UI.Main.QuickStart
                 DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "No valid data", "At least one data must be valid in order to continue.");
                 return false;
             }
-            Dataset dataset = new Dataset("QuickStart", ApplicationState.ProjectLoaded.Protocols[0], m_List.Objects.Select(f => f.DataInfo));
-            ApplicationState.ProjectLoaded.SetDatasets(new Dataset[] { dataset });
+            Dataset dataset = new Dataset("QuickStart", ApplicationState.LoadedProject.Protocols[0], m_List.Objects.Select(f => f.DataInfo));
+            ApplicationState.LoadedProject.SetDatasets(new Dataset[] { dataset });
             return base.OpenNextPanel();
         }
         public override bool OpenPreviousPanel()
         {
-            ApplicationState.ProjectLoaded.SetDatasets(new Dataset[0]);
+            ApplicationState.LoadedProject.SetDatasets(new Dataset[0]);
             return base.OpenPreviousPanel();
         }
         #endregion

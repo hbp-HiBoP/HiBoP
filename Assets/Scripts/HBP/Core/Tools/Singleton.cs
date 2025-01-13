@@ -18,7 +18,6 @@ namespace HBP.Core.Tools
             else
             {
                 m_Instance = this as T;
-                DontDestroyOnLoad(this);
                 Initialization();
             }
         }

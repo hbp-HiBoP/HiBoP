@@ -4,7 +4,7 @@ using UnityEngine.Events;
 
 namespace HBP.UI.Tools
 {
-    public class DialogBoxManager : Singleton<DialogBoxManager>
+    public class DialogBoxManager : Manager<DialogBoxManager>
     {
         #region Properties
         [SerializeField] private GameObject m_InformationAlertPrefab;

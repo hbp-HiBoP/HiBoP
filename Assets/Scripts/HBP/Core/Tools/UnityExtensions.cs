@@ -341,7 +341,7 @@ namespace HBP.Core.Tools
                 localPath = ApplicationState.ExtractProjectFolder + localPath;
             }
             
-            foreach (var alias in ApplicationState.ProjectLoaded.Preferences.Aliases)
+            foreach (var alias in ApplicationState.LoadedProject.Preferences.Aliases)
             {
                 alias.ConvertKeyToValue(ref localPath);
             }
@@ -357,7 +357,7 @@ namespace HBP.Core.Tools
                 localPath = PROJECT_TOKEN + path.Remove(0, ApplicationState.ExtractProjectFolder.Length);
             }
             
-            foreach (var alias in ApplicationState.ProjectLoaded.Preferences.Aliases)
+            foreach (var alias in ApplicationState.LoadedProject.Preferences.Aliases)
             {
                 alias.ConvertValueToKey(ref localPath);
             }

@@ -21,7 +21,7 @@ namespace HBP.UI.Main
                 DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
                 {
                     base.OK();
-                    ApplicationState.ProjectLoaded.SetDatasets(m_ListGestion.List.Objects);
+                    ApplicationState.LoadedProject.SetDatasets(m_ListGestion.List.Objects);
                     DataManager.Clear();
                     Module3DMain.ReloadScenes();
                     UITools.CheckProjectIDAndAskForRegeneration();
@@ -30,7 +30,7 @@ namespace HBP.UI.Main
             else
             {
                 base.OK();
-                ApplicationState.ProjectLoaded.SetDatasets(m_ListGestion.List.Objects);
+                ApplicationState.LoadedProject.SetDatasets(m_ListGestion.List.Objects);
                 UITools.CheckProjectIDAndAskForRegeneration();
             }
             InteractableStateManager.SetInteractables();
@@ -40,7 +40,7 @@ namespace HBP.UI.Main
         #region Private Methods
         protected override void SetFields()
 		{
-            ListGestion.List.Set(ApplicationState.ProjectLoaded.Datasets);
+            ListGestion.List.Set(ApplicationState.LoadedProject.Datasets);
             base.SetFields();
         }
         #endregion

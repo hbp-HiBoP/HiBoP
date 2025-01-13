@@ -33,7 +33,7 @@ namespace HBP.UI.Main
         {
             base.Initialize();
             m_PatientDropdown.onValueChanged.AddListener((i) => Object.Patient = m_Patients[i]);
-            m_Patients = ApplicationState.ProjectLoaded.Patients;
+            m_Patients = ApplicationState.LoadedProject.Patients;
             m_PatientDropdown.options = (from patient in m_Patients select new Dropdown.OptionData(patient.CompleteName, null)).ToList();
         }
         #endregion

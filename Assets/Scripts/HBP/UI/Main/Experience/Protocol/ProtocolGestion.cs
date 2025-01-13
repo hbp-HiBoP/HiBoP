@@ -22,10 +22,10 @@ namespace HBP.UI.Main
                 DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
                 {
                     base.OK();
-                    ApplicationState.ProjectLoaded.SetProtocols(m_ListGestion.List.Objects);
+                    ApplicationState.LoadedProject.SetProtocols(m_ListGestion.List.Objects);
                     InteractableStateManager.SetInteractables();
                     GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                    LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckDatasets(m_ListGestion.ModifiedProtocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
+                    LoadingManager.Load(ApplicationState.LoadedProject.c_CheckDatasets(m_ListGestion.ModifiedProtocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
                     DataManager.Clear();
                     Module3DMain.ReloadScenes();
                     UITools.CheckProjectIDAndAskForRegeneration();
@@ -34,10 +34,10 @@ namespace HBP.UI.Main
             else
             {
                 base.OK();
-                ApplicationState.ProjectLoaded.SetProtocols((m_ListGestion.List.Objects));
+                ApplicationState.LoadedProject.SetProtocols((m_ListGestion.List.Objects));
                 InteractableStateManager.SetInteractables();
                 GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckDatasets(m_ListGestion.ModifiedProtocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
+                LoadingManager.Load(ApplicationState.LoadedProject.c_CheckDatasets(m_ListGestion.ModifiedProtocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
                 UITools.CheckProjectIDAndAskForRegeneration();
             }
         }
@@ -47,7 +47,7 @@ namespace HBP.UI.Main
         protected override void SetFields()
         {
             base.SetFields();
-            ListGestion.List.Set(ApplicationState.ProjectLoaded.Protocols);
+            ListGestion.List.Set(ApplicationState.LoadedProject.Protocols);
         }
         #endregion
     }

@@ -64,7 +64,7 @@ namespace HBP.UI.Main
         #region Coroutines
         private IEnumerator c_CheckProject(GenericEvent<float, float, LoadingText> onChangeProgress)
         {
-            yield return ApplicationState.ProjectLoaded.c_CheckDatasets(ApplicationState.ProjectLoaded.Protocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text));
+            yield return ApplicationState.LoadedProject.c_CheckDatasets(ApplicationState.LoadedProject.Protocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text));
         }
         #endregion
     }

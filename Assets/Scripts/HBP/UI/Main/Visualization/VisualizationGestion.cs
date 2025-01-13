@@ -34,7 +34,7 @@ namespace HBP.UI.Main
         #region Public Methods
         public override void OK()
         {
-            ApplicationState.ProjectLoaded.SetVisualizations(m_ListGestion.List.Objects);
+            ApplicationState.LoadedProject.SetVisualizations(m_ListGestion.List.Objects);
             base.OK();
             UITools.CheckProjectIDAndAskForRegeneration();
         }
@@ -83,7 +83,7 @@ namespace HBP.UI.Main
         protected override void SetFields()
         {
             base.SetFields();
-            m_ListGestion.List.Set(ApplicationState.ProjectLoaded.Visualizations);
+            m_ListGestion.List.Set(ApplicationState.LoadedProject.Visualizations);
             SetDisplay();
         }
         #endregion

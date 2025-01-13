@@ -185,7 +185,7 @@ namespace HBP.UI.Module3D
         {
             yield return new WaitForEndOfFrame();
 
-            string openedProjectName = ApplicationState.ProjectLoaded.Preferences.Name;
+            string openedProjectName = ApplicationState.LoadedProject.Preferences.Name;
 
             if (multipleFiles) // TODO : add iconic scenario and / or scales
             {
@@ -417,7 +417,7 @@ namespace HBP.UI.Module3D
             int numberOfViewLines = m_Scene.ViewLineNumber;
             int timelineLength = timeline.Length;
 
-            string videoPath = path + string.Format("{0}_{1}.avi", ApplicationState.ProjectLoaded.Preferences.Name, m_Scene.Name);
+            string videoPath = path + string.Format("{0}_{1}.avi", ApplicationState.LoadedProject.Preferences.Name, m_Scene.Name);
             ClassLoaderSaver.GenerateUniqueSavePath(ref videoPath);
 
             Core.DLL.VideoStream videoStream = new Core.DLL.VideoStream();

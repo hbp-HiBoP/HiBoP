@@ -48,10 +48,10 @@ namespace HBP.UI.Main
             m_SitesSubModifiers.Save();
             base.OK();
             PersistentDataManager.Tags.Save();
-            if (ApplicationState.ProjectLoaded != null)
+            if (ApplicationState.LoadedProject != null)
             {
                 GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckPatientTagValues(ModifiedTags, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
+                LoadingManager.Load(ApplicationState.LoadedProject.c_CheckPatientTagValues(ModifiedTags, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
             }
         }
         #endregion

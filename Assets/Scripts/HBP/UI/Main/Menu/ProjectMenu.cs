@@ -38,7 +38,7 @@ namespace HBP.UI.Main
         #region Public Methods
         public void OpenProjectPreferences()
         {
-            WindowsManager.OpenModifier(ApplicationState.ProjectLoaded.Preferences);
+            WindowsManager.OpenModifier(ApplicationState.LoadedProject.Preferences);
         }
         public void OpenPatientGestion()
         {

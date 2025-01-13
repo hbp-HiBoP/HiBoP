@@ -4,7 +4,7 @@ using UnityEngine.Events;
 
 namespace HBP.UI.Tools
 {
-    public class ColorPickerManager : Singleton<ColorPickerManager>
+    public class ColorPickerManager : Manager<ColorPickerManager>
     {
         #region Properties
         [SerializeField] private ColorPicker m_ColorPicker;
@@ -24,6 +24,7 @@ namespace HBP.UI.Tools
         #region Private Methods
         protected override void Initialization()
         {
+            base.Initialization();
             m_ColorPicker.gameObject.SetActive(false);
         }
         #endregion

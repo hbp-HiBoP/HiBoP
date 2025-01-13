@@ -74,21 +74,21 @@ namespace HBP.UI.Main.QuickStart
                 if (CurrentPanel == null)
                     Finish();
             });
-            m_CurrentlyOpenedProject = ApplicationState.ProjectLoaded;
-            m_CurrentlyOpenedProjectLocation = ApplicationState.ProjectLoadedLocation;
-            ApplicationState.ProjectLoaded = new Project();
-            ApplicationState.ProjectLoadedLocation = Application.dataPath;
+            m_CurrentlyOpenedProject = ApplicationState.LoadedProject;
+            m_CurrentlyOpenedProjectLocation = ApplicationState.LoadedProjectLocation;
+            ApplicationState.LoadedProject = new Project();
+            ApplicationState.LoadedProjectLocation = Application.dataPath;
         }
         private void Finish()
         {
             base.Close();
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            LoadingManager.Load(ApplicationState.ProjectLoaded.c_Save(ApplicationState.ProjectLoadedLocation, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress, (state) =>
+            LoadingManager.Load(ApplicationState.LoadedProject.c_Save(ApplicationState.LoadedProjectLocation, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress, (state) =>
             {
                 if (state == TaskState.Done)
                 {
                     InteractableStateManager.SetInteractables();
-                    Module3DMain.LoadScenes(ApplicationState.ProjectLoaded.Visualizations);
+                    Module3DMain.LoadScenes(ApplicationState.LoadedProject.Visualizations);
                 }
             });
         }
@@ -98,8 +98,8 @@ namespace HBP.UI.Main.QuickStart
         public override void Close()
         {
             base.Close();
-            ApplicationState.ProjectLoaded = m_CurrentlyOpenedProject;
-            ApplicationState.ProjectLoadedLocation = m_CurrentlyOpenedProjectLocation;
+            ApplicationState.LoadedProject = m_CurrentlyOpenedProject;
+            ApplicationState.LoadedProjectLocation = m_CurrentlyOpenedProjectLocation;
         }
         #endregion
     }

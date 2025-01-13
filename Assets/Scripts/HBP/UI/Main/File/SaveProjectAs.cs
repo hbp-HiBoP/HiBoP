@@ -37,9 +37,9 @@ namespace HBP.UI.Main
             {
                 DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Project already exists", string.Format("A project named {0} already exists within the selected directory.\n\nWould you like to override this project?", m_NameInputField.text), () =>
                 {
-                    var preferences = ApplicationState.ProjectLoaded.Preferences.Clone() as ProjectPreferences;
+                    var preferences = ApplicationState.LoadedProject.Preferences.Clone() as ProjectPreferences;
                     preferences.Name = m_NameInputField.text;
-                    ApplicationState.ProjectLoaded.Preferences = preferences;
+                    ApplicationState.LoadedProject.Preferences = preferences;
                     ProjectLoaderSaver.Save(m_LocationFolderSelector.Folder);
                     base.OK();
                 },
@@ -47,9 +47,9 @@ namespace HBP.UI.Main
             }
             else
             {
-                var preferences = ApplicationState.ProjectLoaded.Preferences.Clone() as ProjectPreferences;
+                var preferences = ApplicationState.LoadedProject.Preferences.Clone() as ProjectPreferences;
                 preferences.Name = m_NameInputField.text;
-                ApplicationState.ProjectLoaded.Preferences = preferences;
+                ApplicationState.LoadedProject.Preferences = preferences;
                 ProjectLoaderSaver.Save(m_LocationFolderSelector.Folder);
                 base.OK();
             }
@@ -59,8 +59,8 @@ namespace HBP.UI.Main
         #region Private Methods
         protected override void Initialize()
         {
-            m_NameInputField.text = ApplicationState.ProjectLoaded.Preferences.Name;
-            m_LocationFolderSelector.Folder = ApplicationState.ProjectLoadedLocation;
+            m_NameInputField.text = ApplicationState.LoadedProject.Preferences.Name;
+            m_LocationFolderSelector.Folder = ApplicationState.LoadedProjectLocation;
         }
         #endregion
     }

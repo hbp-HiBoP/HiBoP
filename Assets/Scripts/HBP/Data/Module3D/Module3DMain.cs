@@ -262,7 +262,7 @@ namespace HBP.Data.Module3D
                 RemoveScene(scene);
             }
             IEnumerable<string> visualizationIDs = (from scene in scenes select scene.Visualization.ID);
-            LoadScenes(from visualization in ApplicationState.ProjectLoaded.Visualizations where visualizationIDs.Contains(visualization.ID) select visualization);
+            LoadScenes(from visualization in ApplicationState.LoadedProject.Visualizations where visualizationIDs.Contains(visualization.ID) select visualization);
         }
         /// <summary>
         /// Remove all scenes

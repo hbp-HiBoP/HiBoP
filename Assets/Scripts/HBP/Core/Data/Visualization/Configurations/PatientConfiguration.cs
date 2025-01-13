@@ -75,7 +75,7 @@ namespace HBP.Core.Data
         void OnDeserialized(StreamingContext streamingContext)
         {
             Color = m_Color.ToColor();
-            m_Patient = ApplicationState.ProjectLoaded.Patients.First((p) => p.ID == m_PatientID);
+            m_Patient = ApplicationState.LoadedProject.Patients.First((p) => p.ID == m_PatientID);
         }
         #endregion
     }

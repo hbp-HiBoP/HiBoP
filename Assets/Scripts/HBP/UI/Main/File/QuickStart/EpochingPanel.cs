@@ -57,12 +57,12 @@ namespace HBP.UI.Main.QuickStart
                 }
             }
             Protocol protocol = new Protocol("QuickStart", blocs);
-            ApplicationState.ProjectLoaded.SetProtocols(new Protocol[] { protocol });
+            ApplicationState.LoadedProject.SetProtocols(new Protocol[] { protocol });
             return base.OpenNextPanel();
         }
         public override bool OpenPreviousPanel()
         {
-            ApplicationState.ProjectLoaded.SetProtocols(new Protocol[0]);
+            ApplicationState.LoadedProject.SetProtocols(new Protocol[0]);
             return base.OpenPreviousPanel();
         }
         #endregion

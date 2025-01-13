@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace HBP.Data.Preferences
 {
-    public class PersistentDataManager : Singleton<PersistentDataManager>
+    public class PersistentDataManager : Manager<PersistentDataManager>
     {
         #region Properties
         private UserPreferences m_UserPreferences;
@@ -19,48 +19,9 @@ namespace HBP.Data.Preferences
         #region Private Methods
         protected override void Initialization()
         {
-            InitializePreferences();
-            InitializeTags();
-        }
-        private void InitializePreferences()
-        {
-            if (new FileInfo(UserPreferences.PATH).Exists)
-            {
-                try
-                {
-                    m_UserPreferences = ClassLoaderSaver.LoadFromJson<UserPreferences>(UserPreferences.PATH);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    m_UserPreferences = new UserPreferences();
-                }
-            }
-            else
-            {
-                m_UserPreferences = new UserPreferences();
-            }
-            m_UserPreferences.Save();
-        }
-        private void InitializeTags()
-        {
-            if (new FileInfo(TagCollection.PATH).Exists)
-            {
-                try
-                {
-                    m_Tags = ClassLoaderSaver.LoadFromJson<TagCollection>(TagCollection.PATH);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    m_Tags = new TagCollection();
-                }
-            }
-            else
-            {
-                m_Tags = new TagCollection();
-            }
-            m_Tags.Save();
+            base.Initialization();
+            m_UserPreferences = UserPreferences.Initialize();
+            m_Tags = TagCollection.Initialize();
         }
         #endregion
     }

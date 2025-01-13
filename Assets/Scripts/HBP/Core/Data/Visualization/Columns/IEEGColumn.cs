@@ -31,7 +31,7 @@ namespace HBP.Core.Data
         {
             get
             {
-                return ApplicationState.ProjectLoaded.Datasets.FirstOrDefault(p => p.ID == datasetID);
+                return ApplicationState.LoadedProject.Datasets.FirstOrDefault(p => p.ID == datasetID);
             }
             set
             {
@@ -109,7 +109,7 @@ namespace HBP.Core.Data
         }
         public IEEGColumn(string name, BaseConfiguration baseConfiguration, IEnumerable<Patient> patients) : this(name,baseConfiguration)
         {
-            foreach (Dataset dataset in ApplicationState.ProjectLoaded.Datasets)
+            foreach (Dataset dataset in ApplicationState.LoadedProject.Datasets)
             {
                 IEEGDataInfo[] iEEGDataInfos = dataset.GetIEEGDataInfos();
                 foreach (var dataName in dataset.Data.Select(data => data.Name).Distinct())

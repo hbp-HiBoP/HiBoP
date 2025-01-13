@@ -40,7 +40,7 @@ namespace HBP.UI.Tools
         }
         public static void CheckProjectIDAndAskForRegeneration()
         {
-            Dictionary<string, List<Tuple<BaseData, string>>> problematicData = ApplicationState.ProjectLoaded.CheckProjectIDs();
+            Dictionary<string, List<Tuple<BaseData, string>>> problematicData = ApplicationState.LoadedProject.CheckProjectIDs();
             if (problematicData.Count > 0)
             {
                 string displayedString = "";
@@ -51,7 +51,7 @@ namespace HBP.UI.Tools
                 string[] lines = displayedString.Split("\n");
                 if (lines.Length > 20)
                 {
-                    string duplicateFilePath = Path.Combine(ApplicationState.ProjectLoadedLocation, string.Format("{0}_duplicate_IDs.txt", ApplicationState.ProjectLoaded.Preferences.Name));
+                    string duplicateFilePath = Path.Combine(ApplicationState.LoadedProjectLocation, string.Format("{0}_duplicate_IDs.txt", ApplicationState.LoadedProject.Preferences.Name));
                     displayedString = "";
                     for (int i = 0; i < 18; ++i)
                     {

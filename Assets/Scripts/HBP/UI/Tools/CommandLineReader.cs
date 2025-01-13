@@ -56,6 +56,7 @@ namespace HBP.UI.Tools
                     yield return StartCoroutine(c_ApplyAction(actions[i], arguments[i]));
                 }
             }
+            Destroy(gameObject);
         }
         private IEnumerator c_ApplyAction(string action, List<string> arguments)
         {
@@ -83,7 +84,7 @@ namespace HBP.UI.Tools
             }
             else if (action == "-v") // Visualization
             {
-                if (ApplicationState.ProjectLoaded == null)
+                if (ApplicationState.LoadedProject == null)
                 {
                     DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Project not loaded", "You are trying to open a visualization without opening a project. This is not supported.");
                 }
@@ -96,11 +97,11 @@ namespace HBP.UI.Tools
                     IEnumerable<Visualization> visualizations;
                     if (arguments[0] == "all")
                     {
-                        visualizations = ApplicationState.ProjectLoaded.Visualizations;
+                        visualizations = ApplicationState.LoadedProject.Visualizations;
                     }
                     else
                     {
-                        visualizations = from visu in ApplicationState.ProjectLoaded.Visualizations where arguments.Contains(visu.Name) select visu;
+                        visualizations = from visu in ApplicationState.LoadedProject.Visualizations where arguments.Contains(visu.Name) select visu;
                     }
                     Module3DMain.LoadScenes(visualizations);
                 }

@@ -113,7 +113,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// Create a new Dataset instance with default values.
         /// </summary>
-        public Dataset() : this("New dataset", ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(), new DataInfo[0], Guid.NewGuid().ToString())
+        public Dataset() : this("New dataset", ApplicationState.LoadedProject.Protocols.FirstOrDefault(), new DataInfo[0], Guid.NewGuid().ToString())
         {
         }
         #endregion
@@ -330,15 +330,15 @@ namespace HBP.Core.Data
             IEnumerable<DirectoryInfo> directories = directory.GetDirectories().SelectMany(d => d.GetDirectories());
             int length = directories.Count();
             int progress = 0;
-            Dictionary<Protocol, Dataset> datasetByProtocol = new Dictionary<Protocol, Dataset>(ApplicationState.ProjectLoaded.Protocols.Count);
-            foreach (var protocol in ApplicationState.ProjectLoaded.Protocols)
+            Dictionary<Protocol, Dataset> datasetByProtocol = new Dictionary<Protocol, Dataset>(ApplicationState.LoadedProject.Protocols.Count);
+            foreach (var protocol in ApplicationState.LoadedProject.Protocols)
             {
                 datasetByProtocol.Add(protocol, new Dataset(protocol.Name, protocol, new DataInfo[0]));
             }
             foreach (var dir in directories)
             {
                 OnChangeProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading localizer ", dir.Name, " [" + (progress + 1) + "/" + length + "]"));
-                Patient patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID.ToUpper().CompareTo(dir.Name.ToUpper()) == 0);
+                Patient patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID.ToUpper().CompareTo(dir.Name.ToUpper()) == 0);
                 if (patient != null)
                 {
                     DirectoryInfo[] subDirectories = dir.GetDirectories();
@@ -347,7 +347,7 @@ namespace HBP.Core.Data
                         string[] splits = subdir.Name.Split('_');
                         if (splits.Length == 4)
                         {
-                            Protocol protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.Name == splits[3]);
+                            Protocol protocol = ApplicationState.LoadedProject.Protocols.FirstOrDefault(p => p.Name == splits[3]);
                             if (protocol != null)
                             {
                                 FileInfo rawEEG = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".eeg"));
@@ -398,8 +398,8 @@ namespace HBP.Core.Data
             DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(path);
             if (!databaseDirectoryInfo.Exists) return;
 
-            Dictionary<Protocol, Dataset> datasetByProtocol = new Dictionary<Protocol, Dataset>(ApplicationState.ProjectLoaded.Protocols.Count);
-            foreach (var protocol in ApplicationState.ProjectLoaded.Protocols)
+            Dictionary<Protocol, Dataset> datasetByProtocol = new Dictionary<Protocol, Dataset>(ApplicationState.LoadedProject.Protocols.Count);
+            foreach (var protocol in ApplicationState.LoadedProject.Protocols)
             {
                 datasetByProtocol.Add(protocol, new Dataset(protocol.Name, protocol, new DataInfo[0]));
             }
@@ -412,10 +412,10 @@ namespace HBP.Core.Data
                 Match match = brainvisionHeaderRegex.Match(file.FullName);
                 if (match.Success)
                 {
-                    Patient patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.Name.CompareTo(match.Groups[1].Value) == 0);
+                    Patient patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.Name.CompareTo(match.Groups[1].Value) == 0);
                     if (patient != null)
                     {
-                        Protocol protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.Name == match.Groups[5].Value);
+                        Protocol protocol = ApplicationState.LoadedProject.Protocols.FirstOrDefault(p => p.Name == match.Groups[5].Value);
                         if (protocol != null)
                         {
                             string acq = string.IsNullOrEmpty(match.Groups[7].Value) ? "raw" : match.Groups[7].Value;
@@ -434,10 +434,10 @@ namespace HBP.Core.Data
                 Match match = edfRegex.Match(file.FullName);
                 if (match.Success)
                 {
-                    Patient patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID.ToUpper().CompareTo(match.Groups[1].Value.ToUpper()) == 0);
+                    Patient patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID.ToUpper().CompareTo(match.Groups[1].Value.ToUpper()) == 0);
                     if (patient != null)
                     {
-                        Protocol protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.Name == match.Groups[3].Value);
+                        Protocol protocol = ApplicationState.LoadedProject.Protocols.FirstOrDefault(p => p.Name == match.Groups[3].Value);
                         if (protocol != null)
                         {
                             string acq = string.IsNullOrEmpty(match.Groups[4].Value) ? "raw" : match.Groups[4].Value;
@@ -516,8 +516,8 @@ namespace HBP.Core.Data
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            var protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.ID == m_ProtocolID);
-            if (protocol == null) protocol = ApplicationState.ProjectLoaded.Protocols.First();
+            var protocol = ApplicationState.LoadedProject.Protocols.FirstOrDefault(p => p.ID == m_ProtocolID);
+            if (protocol == null) protocol = ApplicationState.LoadedProject.Protocols.First();
             Protocol = protocol;
             foreach (var data in m_Data)
             {

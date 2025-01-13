@@ -18,7 +18,7 @@ namespace HBP.Core.Data
         {
             get
             {
-                return ApplicationState.ProjectLoaded.Datasets.FirstOrDefault(p => p.ID == datasetID);
+                return ApplicationState.LoadedProject.Datasets.FirstOrDefault(p => p.ID == datasetID);
             }
             set
             {

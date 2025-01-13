@@ -6,7 +6,7 @@ using HBP.Core.Tools;
 
 namespace HBP.Data.Tools
 {
-    public class MemoryManager : Singleton<MemoryManager>
+    public class MemoryManager : Manager<MemoryManager>
     {
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR
         #region Properties

@@ -1,6 +1,6 @@
 namespace HBP.Core.Tools
 {
-    public class InputManager : Singleton<InputManager>
+    public class InputManager : Manager<InputManager>
     {
 
     }

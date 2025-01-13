@@ -4,6 +4,7 @@ using System.Runtime.Serialization;
 using UnityEngine.Events;
 using HBP.Core.Data;
 using HBP.Core.Tools;
+using System;
 
 namespace HBP.Data.Preferences
 {
@@ -52,6 +53,23 @@ namespace HBP.Data.Preferences
         #endregion
 
         #region Public Methods
+        public static UserPreferences Initialize()
+        {
+            UserPreferences userPreferences = new UserPreferences();
+            if (new FileInfo(PATH).Exists)
+            {
+                try
+                {
+                    userPreferences = ClassLoaderSaver.LoadFromJson<UserPreferences>(PATH);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
+            }
+            userPreferences.Save();
+            return userPreferences;
+        }
         public void Save()
         {
             ClassLoaderSaver.SaveToJSon(this, PATH, true);

@@ -7,7 +7,7 @@ using HBP.Core.Tools;
 
 namespace HBP.UI.Tools
 {
-    public class LoadingManager : Singleton<LoadingManager>
+    public class LoadingManager : Manager<LoadingManager>
     {
         #region Properties
         [SerializeField] private LoadingCircle m_LoadingCircle;
@@ -16,6 +16,7 @@ namespace HBP.UI.Tools
         #region Private Methods
         protected override void Initialization()
         {
+            base.Initialization();
             m_LoadingCircle.Initialize();
         }
         #endregion

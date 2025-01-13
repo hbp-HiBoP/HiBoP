@@ -55,19 +55,12 @@ namespace HBP.UI.Module3D
         private void ChangeLayoutDirection()
         {
             DestroyImmediate(gameObject.GetComponent<HorizontalOrVerticalLayoutGroup>());
-            HorizontalOrVerticalLayoutGroup layout;
-            switch (PersistentDataManager.UserPreferences.Visualization._3D.VisualizationsLayoutDirection)
+            HorizontalOrVerticalLayoutGroup layout = PersistentDataManager.UserPreferences.Visualization._3D.VisualizationsLayoutDirection switch
             {
-                case LayoutDirection.Horizontal:
-                    layout = gameObject.AddComponent<HorizontalLayoutGroup>();
-                    break;
-                case LayoutDirection.Vertical:
-                    layout = gameObject.AddComponent<VerticalLayoutGroup>();
-                    break;
-                default:
-                    layout = gameObject.AddComponent<VerticalLayoutGroup>();
-                    break;
-            }
+                LayoutDirection.Horizontal => gameObject.AddComponent<HorizontalLayoutGroup>(),
+                LayoutDirection.Vertical => gameObject.AddComponent<VerticalLayoutGroup>(),
+                _ => gameObject.AddComponent<VerticalLayoutGroup>(),
+            };
             layout.childControlHeight = true;
             layout.childControlWidth = true;
             layout.childForceExpandHeight = true;

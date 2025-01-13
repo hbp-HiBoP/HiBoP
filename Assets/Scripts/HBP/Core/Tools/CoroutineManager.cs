@@ -5,7 +5,7 @@ using ThirdParty.CielaSpike;
 
 namespace HBP.Core.Tools
 {
-    public class CoroutineManager : Singleton<CoroutineManager>
+    public class CoroutineManager : Manager<CoroutineManager>
     {
         #region Properties
         private List<Coroutine> m_Coroutines = new List<Coroutine>();

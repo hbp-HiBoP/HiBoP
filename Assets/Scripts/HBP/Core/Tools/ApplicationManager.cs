@@ -4,13 +4,14 @@ using HBP.Core.Data;
 
 namespace HBP.Core.Tools
 {
-    public class ApplicationManager : Singleton<ApplicationManager>
+    public class ApplicationManager : Manager<ApplicationManager>
     {
         #region Private Methods
         protected override void Initialization()
         {
-            ApplicationState.ProjectLoaded = null;
-            ApplicationState.ProjectLoadedLocation = string.Empty;
+            base.Initialization();
+            ApplicationState.LoadedProject = null;
+            ApplicationState.LoadedProjectLocation = string.Empty;
 #if UNITY_EDITOR
             ApplicationState.DataPath =  Path.Combine(Application.dataPath, "Data");
 #else

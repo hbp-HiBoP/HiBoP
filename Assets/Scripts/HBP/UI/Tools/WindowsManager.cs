@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace HBP.UI.Tools
 {
-    public class WindowsManager : Singleton<WindowsManager>
+    public class WindowsManager : Manager<WindowsManager>
     {
         #region Properties
         [SerializeField] GameObject[] m_Windows;
@@ -102,6 +102,7 @@ namespace HBP.UI.Tools
         #region Private Methods
         protected override void Initialization()
         {
+            base.Initialization();
             m_Windows = Resources.LoadAll<GameObject>("Prefabs/UI/Windows/");
             WindowsReferencer.OnCloseWindow.AddListener(OnCloseWindow);
         }

@@ -52,7 +52,7 @@ namespace HBP.UI.Main.QuickStart
             {
                 var patients = m_BIDSPatientListGestion.List.ObjectsSelected;
                 if (patients.Length > 0)
-                    ApplicationState.ProjectLoaded.SetPatients(patients);
+                    ApplicationState.LoadedProject.SetPatients(patients);
                 else
                 {
                     DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "No patient have been selected", "You need to select at least one patient in order to continue.");
@@ -63,7 +63,7 @@ namespace HBP.UI.Main.QuickStart
             {
                 var patients = m_NotBIDSPatientListGestion.List.Objects;
                 if (patients.Count > 0)
-                    ApplicationState.ProjectLoaded.SetPatients(patients);
+                    ApplicationState.LoadedProject.SetPatients(patients);
                 else
                 {
                     DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "No patient have been added", "You need to add at least one patient to the list in order to continue.");
@@ -79,7 +79,7 @@ namespace HBP.UI.Main.QuickStart
         }
         public override bool OpenPreviousPanel()
         {
-            ApplicationState.ProjectLoaded.SetPatients(new Patient[0]);
+            ApplicationState.LoadedProject.SetPatients(new Patient[0]);
             return base.OpenPreviousPanel();
         }
         #endregion

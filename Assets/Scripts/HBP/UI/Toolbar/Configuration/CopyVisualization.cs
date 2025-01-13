@@ -27,7 +27,7 @@ namespace HBP.UI.Toolbar
                 if (ListenerLock) return;
 
                 SelectedScene.SaveConfiguration();
-                if (ApplicationState.ProjectLoaded.Visualizations.Contains(SelectedScene.Visualization))
+                if (ApplicationState.LoadedProject.Visualizations.Contains(SelectedScene.Visualization))
                 {
                     DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Visualization already exists", "The visualization you are trying to add to the project already exists.\n\nDo you want to create a clone of the selected visualization?\nThis will not link the selected visualization with the newly cloned visualization, but take a snapshot of the selected visualization and save it as a new visualization.", () =>
                     {
@@ -61,7 +61,7 @@ namespace HBP.UI.Toolbar
         #region Private Methods
         private void SaveVisualizationToProject(Visualization visualization)
         {
-            var projectVisualizations = ApplicationState.ProjectLoaded.Visualizations;
+            var projectVisualizations = ApplicationState.LoadedProject.Visualizations;
             if (projectVisualizations.Any(v => v.Name == visualization.Name))
             {
                 int count = 1;
@@ -73,7 +73,7 @@ namespace HBP.UI.Toolbar
                 }
                 visualization.Name = name;
             }
-            ApplicationState.ProjectLoaded.AddVisualization(visualization);
+            ApplicationState.LoadedProject.AddVisualization(visualization);
             DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Visualization saved", "The selected visualization has been saved under the name <color=#3080ffff>" + visualization.Name + "</color>.");
         }
         #endregion

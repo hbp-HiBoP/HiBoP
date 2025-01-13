@@ -7,7 +7,7 @@ using HBP.Core.Tools;
 
 namespace HBP.UI.Tools
 {
-    public class SelectionManager : Singleton<SelectionManager>
+    public class SelectionManager : Manager<SelectionManager>
     {
         #region Properties
         [SerializeField] private Selector m_Selection;

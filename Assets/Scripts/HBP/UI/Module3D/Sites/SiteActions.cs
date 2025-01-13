@@ -261,7 +261,7 @@ namespace HBP.UI.Module3D
             modifier.OnOk.AddListener(() =>
             {
                 // Generate unique name
-                var projectGroups = ApplicationState.ProjectLoaded.Groups;
+                var projectGroups = ApplicationState.LoadedProject.Groups;
                 if (projectGroups.Any(g => g.Name == group.Name))
                 {
                     int count = 1;
@@ -273,7 +273,7 @@ namespace HBP.UI.Module3D
                     }
                     group.Name = name;
                 }
-                ApplicationState.ProjectLoaded.AddGroup(group);
+                ApplicationState.LoadedProject.AddGroup(group);
                 DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Group added to project", string.Format("The group {0} containing the {1} patients of the filtered sites has been added to the project.", group.Name, patients.Count()));
             });
         }

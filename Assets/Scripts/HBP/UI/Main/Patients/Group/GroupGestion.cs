@@ -16,7 +16,7 @@ namespace HBP.UI.Main
         public override void OK()
         {
             base.OK();
-            ApplicationState.ProjectLoaded.SetGroups(ListGestion.List.Objects);
+            ApplicationState.LoadedProject.SetGroups(ListGestion.List.Objects);
             InteractableStateManager.SetInteractables();
             UITools.CheckProjectIDAndAskForRegeneration();
         }
@@ -26,7 +26,7 @@ namespace HBP.UI.Main
         protected override void SetFields()
         {
             base.SetFields();
-            m_ListGestion.List.Set(ApplicationState.ProjectLoaded.Groups);
+            m_ListGestion.List.Set(ApplicationState.LoadedProject.Groups);
         }
         #endregion
     }

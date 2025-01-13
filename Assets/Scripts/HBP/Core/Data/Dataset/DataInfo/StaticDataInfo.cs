@@ -105,7 +105,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
-        public StaticDataInfo() : this("Data", new Container.CSV(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault())
+        public StaticDataInfo() : this("Data", new Container.CSV(), ApplicationState.LoadedProject.Patients.FirstOrDefault())
         {
 
         }

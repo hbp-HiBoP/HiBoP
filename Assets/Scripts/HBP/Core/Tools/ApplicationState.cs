@@ -12,12 +12,12 @@ namespace HBP.Core.Tools
         /// <summary>
         /// Project loaded on the application.
         /// </summary>
-        public static Project ProjectLoaded { get; set; }
+        public static Project LoadedProject { get; set; }
 
         /// <summary>
         /// Location of the project loaded.
         /// </summary>
-        public static string ProjectLoadedLocation { get; set; }
+        public static string LoadedProjectLocation { get; set; }
 
         /// <summary>
         /// TMP folder to store the open projects

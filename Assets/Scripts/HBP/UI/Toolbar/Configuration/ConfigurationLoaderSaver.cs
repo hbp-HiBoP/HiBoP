@@ -40,7 +40,7 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                ObjectSelector<Visualization> selector = WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Visualizations,false);
+                ObjectSelector<Visualization> selector = WindowsManager.OpenSelector(ApplicationState.LoadedProject.Visualizations,false);
                 selector.OnOk.AddListener(() =>
                 {
                     if (selector.ObjectsSelected.Length > 0)

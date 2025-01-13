@@ -58,6 +58,24 @@ namespace HBP.Core.Data
         #endregion
 
         #region Public Methods
+        public static TagCollection Initialize()
+        {
+            TagCollection tagsCollection = new TagCollection();
+            if (new FileInfo(PATH).Exists)
+            {
+                try
+                {
+                    tagsCollection = ClassLoaderSaver.LoadFromJson<TagCollection>(PATH);
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogException(e);
+                    tagsCollection = new TagCollection();
+                }
+            }
+            tagsCollection.Save();
+            return tagsCollection;
+        }
         public override void GenerateID()
         {
             base.GenerateID();

@@ -3,7 +3,7 @@ using HBP.Core.Tools;
 
 namespace HBP.UI.Main
 {
-    public class InteractableStateManager : Singleton<InteractableStateManager>
+    public class InteractableStateManager : Manager<InteractableStateManager>
     {
         #region Properties
         private InteractableConditions[] m_Interactables;
@@ -22,6 +22,7 @@ namespace HBP.UI.Main
         #region Private Methods
         protected override void Initialization()
         {
+            base.Initialization();
             m_Interactables = FindObjectsByType<InteractableConditions>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         }
         void Start()
@@ -33,35 +34,35 @@ namespace HBP.UI.Main
             bool interactable = true;
             if (interactableConditions.NeedProject)
             {
-                if (ApplicationState.ProjectLoaded == null)
+                if (ApplicationState.LoadedProject == null)
                 {
                     interactable = false;
                 }
             }
             if (interactableConditions.NeedPatient)
             {
-                if (ApplicationState.ProjectLoaded != null && ApplicationState.ProjectLoaded.Patients.Count == 0)
+                if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Patients.Count == 0)
                 {
                     interactable = false;
                 }
             }
             if (interactableConditions.NeedGroup)
             {
-                if (ApplicationState.ProjectLoaded != null && ApplicationState.ProjectLoaded.Groups.Count == 0)
+                if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Groups.Count == 0)
                 {
                     interactable = false;
                 }
             }
             if (interactableConditions.NeedProtocol)
             {
-                if (ApplicationState.ProjectLoaded != null && ApplicationState.ProjectLoaded.Protocols.Count == 0)
+                if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Protocols.Count == 0)
                 {
                     interactable = false;
                 }
             }
             if (interactableConditions.NeedDataset)
             {
-                if (ApplicationState.ProjectLoaded != null && ApplicationState.ProjectLoaded.Datasets.Count == 0)
+                if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Count == 0)
                 {
                     interactable = false;
                 }

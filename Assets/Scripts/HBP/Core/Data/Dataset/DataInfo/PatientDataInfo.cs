@@ -58,7 +58,7 @@ namespace HBP.Core.Data
         public Patient Patient
         {
             get { return m_Patient; }
-            set { m_PatientID = value.ID; m_Patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == m_PatientID); m_PatientErrors = GetPatientErrors(); }
+            set { m_PatientID = value.ID; m_Patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == m_PatientID); m_PatientErrors = GetPatientErrors(); }
         }
 
         protected Error[] m_PatientErrors = new Error[0];
@@ -109,7 +109,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// Create a new PatientDataInfo instance.
         /// </summary>
-        public PatientDataInfo() : this("Data", new Container.Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault())
+        public PatientDataInfo() : this("Data", new Container.Elan(), ApplicationState.LoadedProject.Patients.FirstOrDefault())
         {
         }
         #endregion
@@ -169,7 +169,7 @@ namespace HBP.Core.Data
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            m_Patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == m_PatientID);
+            m_Patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == m_PatientID);
         }
         #endregion
     }

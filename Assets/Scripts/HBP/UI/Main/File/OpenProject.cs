@@ -44,9 +44,9 @@ namespace HBP.UI.Main
         }
         public override void OK()
 		{
-            if (ApplicationState.ProjectLoaded != null)
+            if (ApplicationState.LoadedProject != null)
             {
-                if (ApplicationState.ProjectLoaded.Visualizations.Any(v => Module3DMain.Visualizations.Contains(v)))
+                if (ApplicationState.LoadedProject.Visualizations.Any(v => Module3DMain.Visualizations.Contains(v)))
                 {
                     DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Opened visualizations", "Some visualizations of the currently loaded project are opened. Loading another project will close any opened visualization.\n\nWould you like to load another project ?", () =>
                     {

@@ -16,10 +16,10 @@ namespace HBP.UI.Tools
             Project projectToLoad = new();
 
             DataManager.Clear();
-            Project projectLoaded = ApplicationState.ProjectLoaded;
-            string projectLoadedLocation = ApplicationState.ProjectLoadedLocation;
-            ApplicationState.ProjectLoaded = projectToLoad;
-            ApplicationState.ProjectLoadedLocation = Directory.GetParent(projectInfo.Path).FullName; 
+            Project projectLoaded = ApplicationState.LoadedProject;
+            string projectLoadedLocation = ApplicationState.LoadedProjectLocation;
+            ApplicationState.LoadedProject = projectToLoad;
+            ApplicationState.LoadedProjectLocation = Directory.GetParent(projectInfo.Path).FullName; 
 
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
             LoadingManager.Load(
@@ -34,23 +34,23 @@ namespace HBP.UI.Tools
                     }
                     else
                     {
-                        ApplicationState.ProjectLoaded = projectLoaded;
-                        ApplicationState.ProjectLoadedLocation = projectLoadedLocation;
+                        ApplicationState.LoadedProject = projectLoaded;
+                        ApplicationState.LoadedProjectLocation = projectLoadedLocation;
                     }
                 });
         }
         public static void Save(string path)
         {
             Module3DMain.SaveConfigurations();
-            ApplicationState.ProjectLoadedLocation = path;
+            ApplicationState.LoadedProjectLocation = path;
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
             LoadingManager.Load(
-                ApplicationState.ProjectLoaded.c_Save(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)),
+                ApplicationState.LoadedProject.c_Save(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)),
                 onChangeProgress);
         }
         public static void Save()
         {
-            Save(ApplicationState.ProjectLoadedLocation);
+            Save(ApplicationState.LoadedProjectLocation);
         }
         public static void SaveAndReload()
         {

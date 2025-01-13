@@ -102,37 +102,37 @@ namespace HBP.UI.Main.QuickStart
                 m_BrainVisionHeader.onValueChanged.AddListener(t =>
                 {
                     value.BrainVisionDataContainer.Header = t;
-                    value.DataInfo.GetErrors(ApplicationState.ProjectLoaded.Protocols[0]);
+                    value.DataInfo.GetErrors(ApplicationState.LoadedProject.Protocols[0]);
                 });
                 m_MicromedFile.onValueChanged.RemoveAllListeners();
                 m_MicromedFile.onValueChanged.AddListener(t =>
                 {
                     value.MicromedDataContainer.Path = t;
-                    value.DataInfo.GetErrors(ApplicationState.ProjectLoaded.Protocols[0]);
+                    value.DataInfo.GetErrors(ApplicationState.LoadedProject.Protocols[0]);
                 });
                 m_ELANEEGFile.onValueChanged.RemoveAllListeners();
                 m_ELANEEGFile.onValueChanged.AddListener(t =>
                 {
                     value.ElanDataContainer.EEG = t;
-                    value.DataInfo.GetErrors(ApplicationState.ProjectLoaded.Protocols[0]);
+                    value.DataInfo.GetErrors(ApplicationState.LoadedProject.Protocols[0]);
                 });
                 m_ELANPOSFile.onValueChanged.RemoveAllListeners();
                 m_ELANPOSFile.onValueChanged.AddListener(t =>
                 {
                     value.ElanDataContainer.POS = t;
-                    value.DataInfo.GetErrors(ApplicationState.ProjectLoaded.Protocols[0]);
+                    value.DataInfo.GetErrors(ApplicationState.LoadedProject.Protocols[0]);
                 });
                 m_EDFFile.onValueChanged.RemoveAllListeners();
                 m_EDFFile.onValueChanged.AddListener(t =>
                 {
                     value.EDFDataContainer.File = t;
-                    value.DataInfo.GetErrors(ApplicationState.ProjectLoaded.Protocols[0]);
+                    value.DataInfo.GetErrors(ApplicationState.LoadedProject.Protocols[0]);
                 });
                 m_FIFFile.onValueChanged.RemoveAllListeners();
                 m_FIFFile.onValueChanged.AddListener(t =>
                 {
                     value.FIFDataContainer.File = t;
-                    value.DataInfo.GetErrors(ApplicationState.ProjectLoaded.Protocols[0]);
+                    value.DataInfo.GetErrors(ApplicationState.LoadedProject.Protocols[0]);
                 });
 
                 m_ErrorText.Text = value.DataInfo.GetErrorsMessage();

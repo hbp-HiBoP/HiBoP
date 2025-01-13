@@ -76,7 +76,7 @@ namespace HBP.Core.Data
         {
             get
             {
-                return ApplicationState.ProjectLoaded.Datasets.FirstOrDefault((d) => d.Data.Contains(this));
+                return ApplicationState.LoadedProject.Datasets.FirstOrDefault((d) => d.Data.Contains(this));
             }
         }
 

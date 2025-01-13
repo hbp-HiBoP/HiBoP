@@ -9,7 +9,7 @@ namespace HBP.Core.DLL
     /// <summary>
     /// A class for managing the debugging of the DLL
     /// </summary>
-    public class DLLDebugManager : Singleton<DLLDebugManager>
+    public class DLLDebugManager : Manager<DLLDebugManager>
     {
 
         #region Internal Classes
@@ -61,6 +61,7 @@ namespace HBP.Core.DLL
         #region Private Methods
         protected override void Initialization()
         {
+            base.Initialization();
             if (m_LogDLLToUnity)
             {
                 m_LogCallbackDelegate = new LoggerDelegate(LogCallback);

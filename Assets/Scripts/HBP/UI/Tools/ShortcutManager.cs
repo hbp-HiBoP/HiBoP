@@ -12,7 +12,7 @@ using HBP.Core.Tools;
 
 namespace HBP.UI.Tools
 {
-    public class ShortcutManager : Singleton<ShortcutManager>
+    public class ShortcutManager : Manager<ShortcutManager>
     {
         #region Properties
         private MainMenu m_MainMenu;

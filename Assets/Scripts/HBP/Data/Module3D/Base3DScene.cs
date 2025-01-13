@@ -1706,7 +1706,7 @@ namespace HBP.Data.Module3D
             string result = PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation;
             if (string.IsNullOrEmpty(result)) result = Path.GetFullPath(Application.dataPath + "/../Export/");
             if (!Directory.Exists(result)) Directory.CreateDirectory(result);
-            result = Path.Combine(result, ApplicationState.ProjectLoaded.Preferences.Name);
+            result = Path.Combine(result, ApplicationState.LoadedProject.Preferences.Name);
             if (!Directory.Exists(result)) Directory.CreateDirectory(result);
             result = Path.Combine(result, Name);
             if (!Directory.Exists(result)) Directory.CreateDirectory(result);

@@ -82,7 +82,7 @@ namespace HBP.UI.Main
         // Protocol.
         void SetProtocolDropdown()
         {
-            m_Protocols = ApplicationState.ProjectLoaded.Protocols.ToList();
+            m_Protocols = ApplicationState.LoadedProject.Protocols.ToList();
             SetProtocolDropdownInteractable(m_Protocols != null && m_Patients != null && m_Protocols.Count > 0 && m_Patients.Length > 0);
         }
         void OnChangeProtocol(int value)
@@ -117,7 +117,7 @@ namespace HBP.UI.Main
         }
         void SetDatasetDropdown()
         {
-            m_Datasets = ApplicationState.ProjectLoaded.Datasets.Where((d) => d.Protocol == m_SelectedProtocol && ((d.GetFMRIDataInfos().Length > 0 && d.GetFMRIDataInfos().Any(dataInfo => dataInfo.IsOk && m_Patients.Any(p => dataInfo.Patient == p))) || d.GetSharedFMRIDataInfos().Length > 0)).ToList();
+            m_Datasets = ApplicationState.LoadedProject.Datasets.Where((d) => d.Protocol == m_SelectedProtocol && ((d.GetFMRIDataInfos().Length > 0 && d.GetFMRIDataInfos().Any(dataInfo => dataInfo.IsOk && m_Patients.Any(p => dataInfo.Patient == p))) || d.GetSharedFMRIDataInfos().Length > 0)).ToList();
             SetDatasetDropdownInteractable(m_Datasets != null && m_Patients != null && m_Datasets.Count > 0 && m_ProtocolDropdown.interactable && m_Patients.Length > 0);
         }
         void SetDatasetDropdownInteractable(bool interactable)

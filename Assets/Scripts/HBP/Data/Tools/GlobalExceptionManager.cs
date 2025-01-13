@@ -4,7 +4,7 @@ using HBP.Core.Tools;
 
 namespace HBP.Data.Tools
 {
-    public class GlobalExceptionManager : Singleton<GlobalExceptionManager>
+    public class GlobalExceptionManager : Manager<GlobalExceptionManager>
     {
         #region Private Methods
         private void OnEnable()
