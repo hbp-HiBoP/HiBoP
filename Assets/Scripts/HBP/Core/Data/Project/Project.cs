@@ -373,7 +373,6 @@ namespace HBP.Core.Data
             }
             // Settings
             addToDict(Preferences, getType(Preferences));
-            foreach (var alias in Preferences.Aliases) addToDict(alias, string.Format("{0} ({1})", alias.Key, getType(alias)));
             // Patients
             foreach (var patient in m_Patients)
             {

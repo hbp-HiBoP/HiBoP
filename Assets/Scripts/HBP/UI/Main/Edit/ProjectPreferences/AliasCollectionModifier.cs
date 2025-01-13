@@ -1,10 +1,12 @@
 ﻿using System.Linq;
 using UnityEngine;
 using HBP.UI.Tools;
+using HBP.Core.Data;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Main
 {
-    public class AliasesSubModifier : SubModifier<Core.Data.ProjectPreferences>
+    public class AliasCollectionModifier : ObjectModifier<AliasCollection>
     {
         #region Properties
         [SerializeField] AliasListGestion m_AliasListGestion;
@@ -21,22 +23,22 @@ namespace HBP.UI.Main
         #endregion
 
         #region Public Methods
-        public override void Save()
+        public override void OK()
         {
-            base.Save();
-            Object.Aliases = m_AliasListGestion.List.Objects.ToList();
-        }
-        public override void Initialize()
-        {
-            base.Initialize();
-            m_AliasListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
+            base.OK();
+            Object.SetAliases(m_AliasListGestion.List.Objects.ToList());
+            PersistentDataManager.Aliases.Save();
         }
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(Core.Data.ProjectPreferences objectToDisplay)
+        protected override void Initialize()
         {
-            base.SetFields(objectToDisplay);
+            base.Initialize();
+            m_AliasListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
+        }
+        protected override void SetFields(AliasCollection objectToDisplay)
+        {
             m_AliasListGestion.List.Set(objectToDisplay.Aliases);
         }
         #endregion

@@ -13,6 +13,9 @@ namespace HBP.UI.Main
 
         [SerializeField] private MenuButton m_OpenTagsManagerButton;
         public MenuButton OpenTagsManagerButton { get { return m_OpenTagsManagerButton; } }
+
+        [SerializeField] private MenuButton m_OpenAliasesManagerButton;
+        public MenuButton OpenAliasesManagerButton { get { return m_OpenAliasesManagerButton; } }
         #endregion
 
         #region Private Methods
@@ -21,6 +24,7 @@ namespace HBP.UI.Main
             base.Awake();
             m_OpenPreferencesButton.Initialize(this, OpenPreferences);
             m_OpenTagsManagerButton.Initialize(this, OpenTagsManager);
+            m_OpenAliasesManagerButton.Initialize(this, OpenAliasesManager);
         }
         #endregion
 
@@ -32,6 +36,10 @@ namespace HBP.UI.Main
         public void OpenTagsManager()
         {
             WindowsManager.OpenModifier(PersistentDataManager.Tags);
+        }
+        public void OpenAliasesManager()
+        {
+            WindowsManager.OpenModifier(PersistentDataManager.Aliases);
         }
         #endregion
     }

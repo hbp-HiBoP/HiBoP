@@ -14,6 +14,9 @@ namespace HBP.Data.Preferences
 
         private TagCollection m_Tags;
         public static TagCollection Tags { get { return m_Instance.m_Tags; } }
+
+        private AliasCollection m_Aliases;
+        public static AliasCollection Aliases { get { return m_Instance.m_Aliases; } }
         #endregion
 
         #region Private Methods
@@ -22,6 +25,7 @@ namespace HBP.Data.Preferences
             base.Initialization();
             m_UserPreferences = UserPreferences.Initialize();
             m_Tags = TagCollection.Initialize();
+            m_Aliases = AliasCollection.Initialize();
         }
         #endregion
     }
