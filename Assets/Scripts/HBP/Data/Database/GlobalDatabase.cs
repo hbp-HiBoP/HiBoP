@@ -22,32 +22,47 @@ namespace HBP.Data.Database
 
         private List<Protocol> m_Protocols = new List<Protocol>();
         public ReadOnlyCollection<Protocol> Protocols => new ReadOnlyCollection<Protocol>(m_Protocols);
+
+        private List<DatabaseReference> m_DatabaseReferences = new List<DatabaseReference>();
+        public ReadOnlyCollection<DatabaseReference> DatabaseReferences => new ReadOnlyCollection<DatabaseReference>(m_DatabaseReferences);
+
+        private List<Patient> m_Patients = new List<Patient>();
+        public ReadOnlyCollection<Patient> Patients => new ReadOnlyCollection<Patient>(m_Patients);
         #endregion
 
         #region Getters/Setters
-        // Protocols.
         public void SetProtocols(IEnumerable<Protocol> protocols)
         {
-            m_Protocols = new List<Protocol>();
-            AddProtocol(protocols);
+            m_Protocols = protocols.ToList();
         }
-        public void AddProtocol(Protocol protocol)
+        public void SetDatabaseReferences(IEnumerable<DatabaseReference> databaseReferences)
         {
-            m_Protocols.Add(protocol);
+            m_DatabaseReferences = databaseReferences.ToList();
         }
-        public void AddProtocol(IEnumerable<Protocol> protocols)
+
+        public void SetPatients(IEnumerable<Patient> patients)
         {
-            foreach (Protocol protocol in protocols)
-                AddProtocol(protocol);
+            m_Patients = patients.ToList();
         }
-        public void RemoveProtocol(Protocol protocol)
+        public void AddPatient(Patient patient)
         {
-            m_Protocols.Remove(protocol);
+            if (!m_Patients.Contains(patient))
+                m_Patients.Add(patient);
         }
-        public void RemoveProtocol(IEnumerable<Protocol> protocols)
+        public void AddPatients(IEnumerable<Patient> patients)
         {
-            foreach (Protocol protocol in protocols)
-                RemoveProtocol(protocol);
+            foreach (Patient patient in patients)
+                AddPatient(patient);
+        }
+        public void RemovePatient(Patient patient)
+        {
+            if (m_Patients.Contains(patient))
+                m_Patients.Remove(patient);
+        }
+        public void RemovePatients(IEnumerable<Patient> patients)
+        {
+            foreach (Patient patient in patients)
+                RemovePatient(patient);
         }
         #endregion
 
@@ -63,6 +78,8 @@ namespace HBP.Data.Database
                 database.SaveSettings();
             }
             database.LoadProtocols(ApplicationState.DatabasePath);
+            database.LoadDatabaseReferences(ApplicationState.DatabasePath);
+            database.LoadPatients(ApplicationState.DatabasePath);
             return database;
         }
         public void SaveProtocols()
@@ -70,6 +87,16 @@ namespace HBP.Data.Database
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
             LoadingManager.Load(c_SaveProtocols(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke), onChangeProgress);
         } 
+        public void SaveDatabaseReferences()
+        {
+            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+            LoadingManager.Load(c_SaveDatabaseReferences(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke), onChangeProgress);
+        }
+        public void SavePatients()
+        {
+            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+            LoadingManager.Load(c_SavePatients(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke), onChangeProgress);
+        }
         #endregion
 
         #region Private Methods
@@ -78,6 +105,7 @@ namespace HBP.Data.Database
             DirectoryInfo defaultDatabaseDirectory = new DirectoryInfo(Path.Combine(ApplicationState.DataPath, "DefaultDatabase"));
             defaultDatabaseDirectory.CopyFilesRecursively(new DirectoryInfo(ApplicationState.DatabasePath));
         }
+
         private void LoadSettings()
         {
             if (new FileInfo(GlobalDatabaseSettings.PATH).Exists)
@@ -98,6 +126,7 @@ namespace HBP.Data.Database
             m_Settings.Initialized = true;
             ClassLoaderSaver.SaveToJSon(m_Settings, GlobalDatabaseSettings.PATH, true);
         }
+
         private void LoadProtocols(string rootDirectory)
         {
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
@@ -128,11 +157,11 @@ namespace HBP.Data.Database
             SetProtocols(protocols.ToArray());
             onChangeProgress.Invoke(1.0f, 0, new LoadingText("Protocols loaded successfully"));
         }
-        IEnumerator c_SaveProtocols(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
+        IEnumerator c_SaveProtocols(DirectoryInfo rootDirectory, Action<float, float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
             // Save protocols
-            DirectoryInfo protocolDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Protocols"));
+            DirectoryInfo protocolDirectory = Directory.CreateDirectory(Path.Combine(rootDirectory.FullName, "Protocols"));
             int count = 0;
             int length = m_Protocols.Count();
             foreach (Protocol protocol in m_Protocols)
@@ -150,6 +179,111 @@ namespace HBP.Data.Database
                 count++;
             }
             onChangeProgress.Invoke(1.0f, 0, new LoadingText("Protocols saved successfully"));
+        }
+
+        private void LoadDatabaseReferences(string rootDirectory)
+        {
+            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+            LoadingManager.Load(c_LoadDatabaseReferences(new DirectoryInfo(rootDirectory), onChangeProgress), onChangeProgress);
+        }
+        IEnumerator c_LoadDatabaseReferences(DirectoryInfo rootDirectory, GenericEvent<float, float, LoadingText> onChangeProgress)
+        {
+            yield return Ninja.JumpBack;
+            // Load References
+            List<DatabaseReference> databaseReferences = new List<DatabaseReference>();
+            FileInfo[] referenceFiles = rootDirectory.GetFiles("*" + DatabaseReference.EXTENSION, SearchOption.TopDirectoryOnly);
+            for (int i = 0; i < referenceFiles.Length; ++i)
+            {
+                FileInfo referenceFile = referenceFiles[i];
+                onChangeProgress.Invoke((float)(i + 1) / referenceFiles.Length, 0, new LoadingText("Loading reference ", Path.GetFileNameWithoutExtension(referenceFile.Name), " [" + (i + 1).ToString() + "/" + referenceFiles.Length + "]"));
+                try
+                {
+                    databaseReferences.Add(ClassLoaderSaver.LoadFromJson<DatabaseReference>(referenceFile.FullName));
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    throw e;
+                }
+            }
+            m_DatabaseReferences = databaseReferences;
+            onChangeProgress.Invoke(1.0f, 0, new LoadingText("References loaded successfully"));
+        }
+        IEnumerator c_SaveDatabaseReferences(DirectoryInfo rootDirectory, Action<float, float, LoadingText> onChangeProgress)
+        {
+            yield return Ninja.JumpBack;
+            // Save references
+            int count = 0;
+            int length = m_DatabaseReferences.Count();
+            foreach (DatabaseReference databaseReference in m_DatabaseReferences)
+            {
+                onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving reference ", databaseReference.Name, " [" + (count + 1).ToString() + "/" + length + "]"));
+                try
+                {
+                    ClassLoaderSaver.SaveToJSon(databaseReference, Path.Combine(rootDirectory.FullName, databaseReference.Name + DatabaseReference.EXTENSION), true);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    throw new CanNotSaveSettingsException();
+                }
+                count++;
+            }
+            onChangeProgress.Invoke(1.0f, 0, new LoadingText("References saved successfully"));
+        }
+
+        private void LoadPatients(string rootDirectory)
+        {
+            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+            LoadingManager.Load(c_LoadPatients(new DirectoryInfo(rootDirectory), onChangeProgress), onChangeProgress);
+        }
+        IEnumerator c_SavePatients(DirectoryInfo rootDirectory, Action<float, float, LoadingText> onChangeProgress)
+        {
+            yield return Ninja.JumpBack;
+            // Save patients
+            DirectoryInfo patientsDirectory = Directory.CreateDirectory(Path.Combine(rootDirectory.FullName, "Patients"));
+            int count = 0;
+            int length = m_Patients.Count();
+            foreach (Patient patient in m_Patients)
+            {
+                onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving patient ", patient.Name, " [" + (count + 1).ToString() + "/" + length + "]"));
+                try
+                {
+                    ClassLoaderSaver.SaveToJSon(patient, Path.Combine(patientsDirectory.FullName, patient.ID + Patient.EXTENSION), true);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    throw new CanNotSaveSettingsException();
+                }
+                count++;
+            }
+            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Patients saved successfully"));
+        }
+        IEnumerator c_LoadPatients(DirectoryInfo rootDirectory, GenericEvent<float, float, LoadingText> onChangeProgress)
+        {
+            yield return Ninja.JumpBack;
+            // Load Patients
+            List<Patient> patients = new List<Patient>();
+            DirectoryInfo patientsDirectory = new DirectoryInfo(Path.Combine(rootDirectory.FullName, "Patients"));
+            if (!patientsDirectory.Exists) patientsDirectory.Create();
+            FileInfo[] patientFiles = patientsDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
+            for (int i = 0; i < patientFiles.Length; ++i)
+            {
+                FileInfo patientFile = patientFiles[i];
+                onChangeProgress.Invoke((float)(i + 1) / patientFiles.Length, 0, new LoadingText("Loading patient ", Path.GetFileNameWithoutExtension(patientFile.Name), " [" + (i + 1).ToString() + "/" + patientFiles.Length + "]"));
+                try
+                {
+                    patients.Add(ClassLoaderSaver.LoadFromJson<Patient>(patientFile.FullName));
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    throw e;
+                }
+            }
+            SetPatients(patients.ToArray());
+            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
         }
         #endregion
     }

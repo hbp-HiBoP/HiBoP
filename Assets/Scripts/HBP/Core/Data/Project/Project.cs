@@ -297,7 +297,6 @@ namespace HBP.Core.Data
                 {
                     bool hasPatientsDirectory = false;
                     bool hasGroupsDirectory = false;
-                    bool hasProtocolsDirectory = false;
                     bool hasDatasetsDirectory = false;
                     bool hasVisualizationsDirectory = false;
                     bool hasSettingsFile = false;
@@ -310,10 +309,6 @@ namespace HBP.Core.Data
                         else if (entryFileName == "Groups/")
                         {
                             hasGroupsDirectory = true;
-                        }
-                        else if (entryFileName == "Protocols/")
-                        {
-                            hasProtocolsDirectory = true;
                         }
                         else if (entryFileName == "Datasets/")
                         {
@@ -328,7 +323,7 @@ namespace HBP.Core.Data
                             hasSettingsFile = true;
                         }
                     }
-                    isProject = hasPatientsDirectory && hasGroupsDirectory && hasProtocolsDirectory && hasDatasetsDirectory && hasVisualizationsDirectory && hasSettingsFile;
+                    isProject = hasPatientsDirectory && hasGroupsDirectory && hasDatasetsDirectory && hasVisualizationsDirectory && hasSettingsFile;
                 }
             }
             return isProject;
