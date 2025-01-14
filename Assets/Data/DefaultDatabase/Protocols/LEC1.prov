@@ -1,0 +1,138 @@
+{
+  "Name": "LEC1",
+  "Blocs": [
+    {
+      "IllustrationPath": "",
+      "Name": "SEMANTIC",
+      "Order": 0,
+      "Sort": "Main_RESPONSE_LATENCY;Main_SEMANTIC_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 3500
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "SEMANTIC",
+              "Codes": [
+                10
+              ],
+              "Type": 0,
+              "ID": "6b858bd4-5d33-4cde-8347-6033e0f9ad8c"
+            },
+            {
+              "Name": "RESPONSE",
+              "Codes": [
+                1,
+                2
+              ],
+              "Type": 1,
+              "ID": "9b499c2e-8834-46d4-923f-99d93cbadb36"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "c83326b8-8251-41bb-b6fa-9019a6b01d1b"
+        }
+      ],
+      "ID": "efb2d14e-db9b-46dc-86bd-b2c685e2d592"
+    },
+    {
+      "IllustrationPath": "",
+      "Name": "PHONETIC",
+      "Order": 1,
+      "Sort": "Main_RESPONSE_LATENCY;Main_PHONETIC_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 3500
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "PHONETIC",
+              "Codes": [
+                20
+              ],
+              "Type": 0,
+              "ID": "b9d887f8-b392-41ab-8e4b-dd8110044ecd"
+            },
+            {
+              "Name": "RESPONSE",
+              "Codes": [
+                1,
+                2
+              ],
+              "Type": 1,
+              "ID": "d93bf870-8512-4012-8cf6-37d5a8e8dbb8"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "f674777c-de4e-41b1-b467-b586f453ff1b"
+        }
+      ],
+      "ID": "9cecc3da-030b-4a4b-b348-063560427d5c"
+    },
+    {
+      "IllustrationPath": "",
+      "Name": "VISUAL",
+      "Order": 2,
+      "Sort": "Main_RESPONSE_LATENCY;Main_VISUAL_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 3500
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "VISUAL",
+              "Codes": [
+                30
+              ],
+              "Type": 0,
+              "ID": "52766c89-13a8-4542-ba1d-c307206347cd"
+            },
+            {
+              "Name": "RESPONSE",
+              "Codes": [
+                1,
+                2
+              ],
+              "Type": 1,
+              "ID": "a852aa1f-2455-4889-bd6b-9a3839caebec"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "242f77af-f410-43e3-9146-c88f1e9f7f90"
+        }
+      ],
+      "ID": "05e3475b-a828-4146-8858-46139d219e97"
+    }
+  ],
+  "ID": "d5eb6081-7c70-4fda-a8f3-bc4c31ecebe6"
+}

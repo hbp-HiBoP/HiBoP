@@ -14,13 +14,13 @@ using UnityEngine.Events;
 
 namespace HBP.Data.Database
 {
-    public class Database
+    public class GlobalDatabase
     {
         #region Properties
-        List<Protocol> m_Protocols = new List<Protocol>();
-        /// <summary>
-        /// Protocols of the project.
-        /// </summary>
+        private GlobalDatabaseSettings m_Settings = new GlobalDatabaseSettings();
+        public GlobalDatabaseSettings Settings => m_Settings;
+
+        private List<Protocol> m_Protocols = new List<Protocol>();
         public ReadOnlyCollection<Protocol> Protocols => new ReadOnlyCollection<Protocol>(m_Protocols);
         #endregion
 
@@ -52,9 +52,16 @@ namespace HBP.Data.Database
         #endregion
 
         #region Public Methods
-        public static Database Initialize()
+        public static GlobalDatabase Initialize()
         {
-            Database database = new Database();
+            GlobalDatabase database = new GlobalDatabase();
+            if (!new DirectoryInfo(ApplicationState.DatabasePath).Exists) Directory.CreateDirectory(ApplicationState.DatabasePath);
+            database.LoadSettings();
+            if (!database.Settings.Initialized)
+            {
+                CopyDefaultDatabase();
+                database.SaveSettings();
+            }
             database.LoadProtocols(ApplicationState.DatabasePath);
             return database;
         }
@@ -66,6 +73,31 @@ namespace HBP.Data.Database
         #endregion
 
         #region Private Methods
+        private static void CopyDefaultDatabase()
+        {
+            DirectoryInfo defaultDatabaseDirectory = new DirectoryInfo(Path.Combine(ApplicationState.DataPath, "DefaultDatabase"));
+            defaultDatabaseDirectory.CopyFilesRecursively(new DirectoryInfo(ApplicationState.DatabasePath));
+        }
+        private void LoadSettings()
+        {
+            if (new FileInfo(GlobalDatabaseSettings.PATH).Exists)
+            {
+                try
+                {
+                    m_Settings = ClassLoaderSaver.LoadFromJson<GlobalDatabaseSettings>(GlobalDatabaseSettings.PATH);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    throw e;
+                }
+            }
+        }
+        private void SaveSettings()
+        {
+            m_Settings.Initialized = true;
+            ClassLoaderSaver.SaveToJSon(m_Settings, GlobalDatabaseSettings.PATH, true);
+        }
         private void LoadProtocols(string rootDirectory)
         {
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
@@ -108,7 +140,7 @@ namespace HBP.Data.Database
                 onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving protocol ", protocol.Name, " [" + (count + 1).ToString() + "/" + length + "]"));
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(protocol, Path.Combine(protocolDirectory.FullName, protocol.Name + Protocol.EXTENSION));
+                    ClassLoaderSaver.SaveToJSon(protocol, Path.Combine(protocolDirectory.FullName, protocol.Name + Protocol.EXTENSION), true);
                 }
                 catch (Exception e)
                 {
