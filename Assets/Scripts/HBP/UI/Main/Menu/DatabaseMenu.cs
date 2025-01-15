@@ -11,6 +11,9 @@ namespace HBP.UI.Main
 
         [SerializeField] private MenuButton m_OpenDatabaseGestionButton;
         public MenuButton OpenDatabaseGestionButton { get { return m_OpenDatabaseGestionButton; } }
+
+        [SerializeField] private MenuButton m_OpenDatabaseBrowserButton;
+        public MenuButton OpenDatabaseBrowserButton { get { return m_OpenDatabaseBrowserButton; } }
         #endregion
 
         #region Private Methods
@@ -19,6 +22,7 @@ namespace HBP.UI.Main
             base.Awake();
             m_OpenProtocolGestionButton.Initialize(this, OpenProtocolGestion);
             m_OpenDatabaseGestionButton.Initialize(this, OpenDatabaseGestion);
+            m_OpenDatabaseBrowserButton.Initialize(this, OpenDatabaseBrowser);
         }
         #endregion
 
@@ -30,6 +34,10 @@ namespace HBP.UI.Main
         public void OpenDatabaseGestion()
         {
             WindowsManager.Open("Database Reference gestion window");
+        }
+        public void OpenDatabaseBrowser()
+        {
+            WindowsManager.Open("Database browser window");
         }
         #endregion
     }
