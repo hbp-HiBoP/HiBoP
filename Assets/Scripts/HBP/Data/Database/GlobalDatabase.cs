@@ -1,6 +1,7 @@
 using HBP.Core.Data;
 using HBP.Core.Exceptions;
 using HBP.Core.Tools;
+using HBP.UI.Main;
 using HBP.UI.Tools;
 using System;
 using System.Collections;
@@ -79,6 +80,7 @@ namespace HBP.Data.Database
             }
             database.LoadProtocols(ApplicationState.DatabasePath);
             database.LoadDatabaseReferences(ApplicationState.DatabasePath);
+            // TODO: Do not load patients if the user does not want to
             database.LoadPatients(ApplicationState.DatabasePath);
             return database;
         }
@@ -89,6 +91,7 @@ namespace HBP.Data.Database
         } 
         public void SaveDatabaseReferences()
         {
+            // TODO: Remove patients that are not in the database references and warn the user before
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
             LoadingManager.Load(c_SaveDatabaseReferences(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke), onChangeProgress);
         }
@@ -96,6 +99,12 @@ namespace HBP.Data.Database
         {
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
             LoadingManager.Load(c_SavePatients(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke), onChangeProgress);
+        }
+
+        public void UpdateDatabases(IEnumerable<DatabaseReference> databaseReferences, UnityAction onUpdated)
+        {
+            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+            LoadingManager.Load(c_UpdateDatabases(databaseReferences, onChangeProgress, onUpdated), onChangeProgress);
         }
         #endregion
 
@@ -284,6 +293,36 @@ namespace HBP.Data.Database
             }
             SetPatients(patients.ToArray());
             onChangeProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
+        }
+        
+        IEnumerator c_UpdateDatabases(IEnumerable<DatabaseReference> databaseReferences, GenericEvent<float, float, LoadingText> onChangeProgress, UnityAction onUpdated)
+        {
+            yield return Ninja.JumpBack;
+            foreach (var databaseReference in databaseReferences)
+            {
+                switch (databaseReference.Type)
+                {
+                    case DatabaseType.Brainvisa:
+                        Patient.LoadFromIntranatDatabase(databaseReference.Path, out Patient[] patients, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text));
+                        foreach (var patient in patients) patient.CorrespondingDatabaseID = databaseReference.ID;
+                        // TODO: Warn that patients will be deleted / overwritten
+                        m_Patients.RemoveAll(p => patients.Contains(p) || p.CorrespondingDatabaseID == databaseReference.ID);
+                        m_Patients.AddRange(patients);
+                        break;
+                    case DatabaseType.Localizer:
+                        // TODO: Datasets
+                        break;
+                    case DatabaseType.BIDS:
+                        // TODO: Both
+                        break;
+                }
+                databaseReference.LastUpdated = DateTime.Now;
+            }
+            yield return Ninja.JumpToUnity;
+            yield return CoroutineManager.StartAsync(c_SavePatients(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke));
+            yield return CoroutineManager.StartAsync(c_SaveDatabaseReferences(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke));
+            DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Databases updated", "The databases have been updated successfully");
+            onUpdated();
         }
         #endregion
     }

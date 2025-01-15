@@ -19,25 +19,14 @@ namespace HBP.UI.Tools
         #region Public Methods
         public static void Open(AlertType type, string title, string message, UnityAction button1action = null, string button1name = "", UnityAction button2action = null, string button2name = "")
         {
-            GameObject dialogBox;
-            switch (type)
+            GameObject dialogBox = type switch
             {
-                case AlertType.Informational:
-                    dialogBox = Instantiate(m_Instance.m_InformationAlertPrefab, m_Instance.m_Canvas.transform);
-                    break;
-                case AlertType.Warning:
-                    dialogBox = Instantiate(m_Instance.m_WarningAlertPrefab, m_Instance.m_Canvas.transform);
-                    break;
-                case AlertType.Error:
-                    dialogBox = Instantiate(m_Instance.m_ErrorAlertPrefab, m_Instance.m_Canvas.transform);
-                    break;
-                case AlertType.WarningMultiOptions:
-                    dialogBox = Instantiate(m_Instance.m_WarningAlertMultiOptionsPrefab, m_Instance.m_Canvas.transform);
-                    break;
-                default:
-                    dialogBox = Instantiate(m_Instance.m_InformationAlertPrefab, m_Instance.m_Canvas.transform);
-                    break;
-            }
+                AlertType.Informational => Instantiate(m_Instance.m_InformationAlertPrefab, m_Instance.m_Canvas.transform),
+                AlertType.Warning => Instantiate(m_Instance.m_WarningAlertPrefab, m_Instance.m_Canvas.transform),
+                AlertType.Error => Instantiate(m_Instance.m_ErrorAlertPrefab, m_Instance.m_Canvas.transform),
+                AlertType.WarningMultiOptions => Instantiate(m_Instance.m_WarningAlertMultiOptionsPrefab, m_Instance.m_Canvas.transform),
+                _ => Instantiate(m_Instance.m_InformationAlertPrefab, m_Instance.m_Canvas.transform),
+            };
             dialogBox.transform.SetAsLastSibling();
             if (type == AlertType.WarningMultiOptions)
             {

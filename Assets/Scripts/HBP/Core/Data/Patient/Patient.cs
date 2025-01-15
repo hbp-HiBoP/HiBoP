@@ -88,6 +88,7 @@ namespace HBP.Core.Data
         /// Tags of the patient.
         /// </summary>
         [DataMember] public List<BaseTagValue> Tags { get; set; }
+        [DataMember] public string CorrespondingDatabaseID { get; set; }
         /// <summary>
         /// Complete name of the patient. Name (Place-Date).
         /// </summary>
@@ -106,7 +107,7 @@ namespace HBP.Core.Data
         /// <param name="sites">Sites of the patient.</param>
         /// <param name="tags">Tags of the patient.</param>
         /// <param name="ID">Unique identifier to identify the patient.</param>
-        public Patient(string name, string place, int date, IEnumerable<BaseMesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Site> sites, IEnumerable<BaseTagValue> tags, string ID) : base(ID)
+        public Patient(string name, string place, int date, IEnumerable<BaseMesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Site> sites, IEnumerable<BaseTagValue> tags, string correspondingDatabaseID, string ID) : base(ID)
         {
             Name = name;
             Place = place;
@@ -115,6 +116,7 @@ namespace HBP.Core.Data
             this.MRIs = MRIs.ToList();
             Sites = sites.ToList();
             Tags = tags.ToList();
+            CorrespondingDatabaseID = correspondingDatabaseID;
         }
         /// <summary>
         /// Create a new instance of Patient.
@@ -126,7 +128,7 @@ namespace HBP.Core.Data
         /// <param name="MRIs">MRI scans of the patient.</param>
         /// <param name="sites">Sites of the patient.</param>
         /// <param name="tags">Tags of the patient.</param>
-        public Patient(string name, string place, int date, IEnumerable<BaseMesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Site> sites, IEnumerable<BaseTagValue> tags) : base()
+        public Patient(string name, string place, int date, IEnumerable<BaseMesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Site> sites, IEnumerable<BaseTagValue> tags, string correspondingDatabaseID) : base()
         {
             Name = name;
             Place = place;
@@ -135,11 +137,12 @@ namespace HBP.Core.Data
             this.MRIs = MRIs.ToList();
             Sites = sites.ToList();
             Tags = tags.ToList();
+            CorrespondingDatabaseID = correspondingDatabaseID;
         }
         /// <summary>
         /// Create a new instance of Patient.
         /// </summary>
-        public Patient() : this("Unknown", "Unknown", 0, new BaseMesh[0], new MRI[0], new Site[0], new BaseTagValue[0])
+        public Patient() : this("Unknown", "Unknown", 0, new BaseMesh[0], new MRI[0], new Site[0], new BaseTagValue[0], "")
         {
         }
         #endregion
@@ -247,7 +250,7 @@ namespace HBP.Core.Data
                 }
                 IntTagValue dateTagValue = new IntTagValue(dateTag, date);
                 StringTagValue placeTagValue = new StringTagValue(placeTag, place);
-                result = new Patient(name, place, date, BaseMesh.LoadFromDirectory(path), MRI.LoadFromDirectory(path), Site.LoadFromIntranatDirectory(path), new BaseTagValue[] { dateTagValue, placeTagValue }, directory.Name);
+                result = new Patient(name, place, date, BaseMesh.LoadFromDirectory(path), MRI.LoadFromDirectory(path), Site.LoadFromIntranatDirectory(path), new BaseTagValue[] { dateTagValue, placeTagValue }, "", directory.Name);
                 return true;
             }
             return false;
@@ -567,7 +570,7 @@ namespace HBP.Core.Data
                 }
 
                 // Create patient.
-                Patient patient = new Patient(pair.Key, "", 0, meshes, mris, sites, tags);
+                Patient patient = new Patient(pair.Key, "", 0, meshes, mris, sites, tags, "");
                 patientsList.Add(patient);
             }
             patients = patientsList.ToArray();
@@ -632,7 +635,7 @@ namespace HBP.Core.Data
         /// <returns>object cloned.</returns>
         public override object Clone()
         {
-            return new Patient(Name, Place, Date, Meshes.DeepClone(), MRIs.DeepClone(), Sites.DeepClone(), Tags.DeepClone(), ID);
+            return new Patient(Name, Place, Date, Meshes.DeepClone(), MRIs.DeepClone(), Sites.DeepClone(), Tags.DeepClone(), CorrespondingDatabaseID, ID);
         }
         /// <summary>
         /// Copy the instance.
@@ -650,6 +653,7 @@ namespace HBP.Core.Data
                 MRIs = patient.MRIs;
                 Sites = patient.Sites;
                 Tags = patient.Tags;
+                CorrespondingDatabaseID = patient.CorrespondingDatabaseID;
             }
         }
         #endregion
