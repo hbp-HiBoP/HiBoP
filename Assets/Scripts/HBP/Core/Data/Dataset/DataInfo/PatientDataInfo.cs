@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using HBP.Core.Tools;
+using HBP.Data.Database;
 
 namespace HBP.Core.Data
 {
@@ -58,7 +59,7 @@ namespace HBP.Core.Data
         public Patient Patient
         {
             get { return m_Patient; }
-            set { m_PatientID = value.ID; m_Patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == m_PatientID); m_PatientErrors = GetPatientErrors(); }
+            set { m_PatientID = value != null ? value.ID : ""; m_Patient = value; m_PatientErrors = GetPatientErrors(); }
         }
 
         protected Error[] m_PatientErrors = new Error[0];
@@ -169,7 +170,10 @@ namespace HBP.Core.Data
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            m_Patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == m_PatientID);
+            if (ApplicationState.LoadedProject != null)
+                m_Patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == m_PatientID);
+            else
+                m_Patient = DatabaseManager.Database.Patients.FirstOrDefault(p => p.ID == m_PatientID);
         }
         #endregion
     }

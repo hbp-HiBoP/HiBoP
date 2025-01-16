@@ -10,6 +10,8 @@ using HBP.Core.Exceptions;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
 using HBP.Data.Preferences;
+using HBP.Data.Database;
+using UnityEngine;
 
 namespace HBP.Core.Data
 {
@@ -583,14 +585,11 @@ namespace HBP.Core.Data
         /// <param name="OnChangeProgress">Action called on change progress.</param>
         /// <param name="result">The patients loaded.</param>
         /// <returns></returns>
-        public static IEnumerator c_LoadFromDatabase(string path, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Patient>> result)
+        public static IEnumerator c_LoadFromDatabase(Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Patient>> result)
         {
-            yield return Ninja.JumpBack;
-            Patient[] patients;
-            if (IsBIDSDirectory(path)) LoadFromBIDSDatabase(path, out patients, OnChangeProgress);
-            else LoadFromIntranatDatabase(path, out patients, OnChangeProgress);
+            yield return new WaitUntil(() => DatabaseManager.Database.IsLoaded);
             yield return Ninja.JumpToUnity;
-            result(patients);
+            result(DatabaseManager.Database.Patients);
         }
         /// <summary>
         /// Coroutine to load patients from database. Implementation of ILoadableFromDatabase.
@@ -669,10 +668,10 @@ namespace HBP.Core.Data
             result = new Patient[] { patient };
             return success;
         }
-        IEnumerator ILoadableFromDatabase<Patient>.LoadFromDatabase(string path, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Patient>> result)
+        IEnumerator ILoadableFromDatabase<Patient>.LoadFromDatabase(Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Patient>> result)
         {
             yield return Ninja.JumpToUnity;
-            yield return CoroutineManager.StartAsync(c_LoadFromDatabase(path, OnChangeProgress, result));
+            yield return CoroutineManager.StartAsync(c_LoadFromDatabase(OnChangeProgress, result));
             yield return Ninja.JumpBack;
         }
         IEnumerator ILoadableFromDirectory<Patient>.LoadFromDirectory(string[] paths, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Patient>> result)

@@ -13,6 +13,7 @@ using HBP.Core.Exceptions;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
 using HBP.Data.Database;
+using UnityEngine;
 
 namespace HBP.Core.Data
 {
@@ -83,6 +84,8 @@ namespace HBP.Core.Data
                 return new ReadOnlyCollection<DataInfo>(m_Data);
             }
         }
+
+        [DataMember] public string CorrespondingDatabaseID { get; set; }
         #endregion
 
         #region Constructors
@@ -93,10 +96,11 @@ namespace HBP.Core.Data
         /// <param name="protocol">Protocol used during the experiment</param>
         /// <param name="data">DataInfo of the dataset</param>
         /// <param name="ID">Unique identifier</param>
-        public Dataset(string name, Protocol protocol, IEnumerable<DataInfo> data, string ID) : base(ID)
+        public Dataset(string name, Protocol protocol, IEnumerable<DataInfo> data, string correspondingDatabaseID, string ID) : base(ID)
         {
             Name = name;
             Protocol = protocol;
+            CorrespondingDatabaseID = correspondingDatabaseID;
             SetData(data);
         }
         /// <summary>
@@ -105,16 +109,17 @@ namespace HBP.Core.Data
         /// <param name="name">Name of the dataset</param>
         /// <param name="protocol">Protocol used during the experiment</param>
         /// <param name="data">DataInfo of the dataset</param>
-        public Dataset(string name, Protocol protocol, IEnumerable<DataInfo> data) : base()
+        public Dataset(string name, Protocol protocol, IEnumerable<DataInfo> data, string correspondingDatabaseID) : base()
         {
             Name = name;
             Protocol = protocol;
+            CorrespondingDatabaseID = correspondingDatabaseID;
             SetData(data);
         }
         /// <summary>
         /// Create a new Dataset instance with default values.
         /// </summary>
-        public Dataset() : this("New dataset", DatabaseManager.Database.Protocols.FirstOrDefault(), new DataInfo[0], Guid.NewGuid().ToString())
+        public Dataset() : this("New dataset", DatabaseManager.Database.Protocols.FirstOrDefault(), new DataInfo[0], "", Guid.NewGuid().ToString())
         {
         }
         #endregion
@@ -334,12 +339,12 @@ namespace HBP.Core.Data
             Dictionary<Protocol, Dataset> datasetByProtocol = new Dictionary<Protocol, Dataset>(DatabaseManager.Database.Protocols.Count);
             foreach (var protocol in DatabaseManager.Database.Protocols)
             {
-                datasetByProtocol.Add(protocol, new Dataset(protocol.Name, protocol, new DataInfo[0]));
+                datasetByProtocol.Add(protocol, new Dataset(protocol.Name, protocol, new DataInfo[0], ""));
             }
             foreach (var dir in directories)
             {
                 OnChangeProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading localizer ", dir.Name, " [" + (progress + 1) + "/" + length + "]"));
-                Patient patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID.ToUpper().CompareTo(dir.Name.ToUpper()) == 0);
+                Patient patient = DatabaseManager.Database.Patients.FirstOrDefault(p => p.ID.ToUpper().CompareTo(dir.Name.ToUpper()) == 0);
                 if (patient != null)
                 {
                     DirectoryInfo[] subDirectories = dir.GetDirectories();
@@ -402,7 +407,7 @@ namespace HBP.Core.Data
             Dictionary<Protocol, Dataset> datasetByProtocol = new Dictionary<Protocol, Dataset>(DatabaseManager.Database.Protocols.Count);
             foreach (var protocol in DatabaseManager.Database.Protocols)
             {
-                datasetByProtocol.Add(protocol, new Dataset(protocol.Name, protocol, new DataInfo[0]));
+                datasetByProtocol.Add(protocol, new Dataset(protocol.Name, protocol, new DataInfo[0], ""));
             }
 
             // Brainvision
@@ -413,7 +418,7 @@ namespace HBP.Core.Data
                 Match match = brainvisionHeaderRegex.Match(file.FullName);
                 if (match.Success)
                 {
-                    Patient patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.Name.CompareTo(match.Groups[1].Value) == 0);
+                    Patient patient = DatabaseManager.Database.Patients.FirstOrDefault(p => p.Name.CompareTo(match.Groups[1].Value) == 0);
                     if (patient != null)
                     {
                         Protocol protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.Name == match.Groups[5].Value);
@@ -459,12 +464,27 @@ namespace HBP.Core.Data
         /// <param name="OnChangeProgress">Action called on change progress.</param>
         /// <param name="result">The datasets loaded.</param>
         /// <returns></returns>
-        public static IEnumerator c_LoadFromDatabase(string path, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Dataset>> result)
+        public static IEnumerator c_LoadFromDatabase(Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Dataset>> result)
         {
-            yield return Ninja.JumpBack;
-            Dataset[] datasets;
-            if (IsBIDSDirectory(path)) LoadFromBIDSDatabase(path, out datasets, OnChangeProgress);
-            else LoadFromLocalizersDatabase(path, out datasets, OnChangeProgress);
+            yield return new WaitUntil(() => DatabaseManager.Database.IsLoaded);
+
+            List<Dataset> datasets = DatabaseManager.Database.Datasets.DeepClone().ToList();
+            foreach (var dataset in datasets)
+            {
+                List<DataInfo> dataToDelete = new();
+                foreach (var dataInfo in dataset.Data)
+                {
+                    if (dataInfo is PatientDataInfo patientDataInfo)
+                    {
+                        Patient projectPatient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == patientDataInfo.Patient.ID);
+                        if (projectPatient != null)
+                            patientDataInfo.Patient = projectPatient;
+                        else
+                            dataToDelete.Add(patientDataInfo);
+                    }
+                }
+                dataset.RemoveData(dataToDelete);
+            }
             yield return Ninja.JumpToUnity;
             result(datasets);
         }
@@ -490,7 +510,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance</returns>
         public override object Clone()
         {
-            return new Dataset(Name, Protocol, Data.DeepClone(), ID);
+            return new Dataset(Name, Protocol, Data.DeepClone(), CorrespondingDatabaseID, ID);
         }
         /// <summary>
         /// Copy this a instance to this instance.
@@ -503,6 +523,7 @@ namespace HBP.Core.Data
             {
                 Name = dataset.Name;
                 Protocol = dataset.Protocol;
+                CorrespondingDatabaseID = dataset.CorrespondingDatabaseID;
                 SetData(dataset.Data);
             }
         }
@@ -550,10 +571,10 @@ namespace HBP.Core.Data
             result = new Dataset[] { dataset };
             return success;
         }
-        IEnumerator ILoadableFromDatabase<Dataset>.LoadFromDatabase(string path, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Dataset>> result)
+        IEnumerator ILoadableFromDatabase<Dataset>.LoadFromDatabase(Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Dataset>> result)
         {
             yield return Ninja.JumpToUnity;
-            yield return CoroutineManager.StartAsync(c_LoadFromDatabase(path, OnChangeProgress, result));
+            yield return CoroutineManager.StartAsync(c_LoadFromDatabase(OnChangeProgress, result));
             yield return Ninja.JumpBack;
         }
         #endregion

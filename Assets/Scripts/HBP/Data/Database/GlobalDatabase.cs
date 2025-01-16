@@ -29,6 +29,11 @@ namespace HBP.Data.Database
 
         private List<Patient> m_Patients = new List<Patient>();
         public ReadOnlyCollection<Patient> Patients => new ReadOnlyCollection<Patient>(m_Patients);
+
+        private List<Dataset> m_Datasets = new List<Dataset>();
+        public ReadOnlyCollection<Dataset> Datasets => new ReadOnlyCollection<Dataset>(m_Datasets);
+
+        public bool IsLoaded { get; private set; } = false;
         #endregion
 
         #region Getters/Setters
@@ -40,30 +45,13 @@ namespace HBP.Data.Database
         {
             m_DatabaseReferences = databaseReferences.ToList();
         }
-
         public void SetPatients(IEnumerable<Patient> patients)
         {
             m_Patients = patients.ToList();
         }
-        public void AddPatient(Patient patient)
+        public void SetDatasets(IEnumerable<Dataset> datasets)
         {
-            if (!m_Patients.Contains(patient))
-                m_Patients.Add(patient);
-        }
-        public void AddPatients(IEnumerable<Patient> patients)
-        {
-            foreach (Patient patient in patients)
-                AddPatient(patient);
-        }
-        public void RemovePatient(Patient patient)
-        {
-            if (m_Patients.Contains(patient))
-                m_Patients.Remove(patient);
-        }
-        public void RemovePatients(IEnumerable<Patient> patients)
-        {
-            foreach (Patient patient in patients)
-                RemovePatient(patient);
+            m_Datasets = datasets.ToList();
         }
         #endregion
 
@@ -78,10 +66,8 @@ namespace HBP.Data.Database
                 CopyDefaultDatabase();
                 database.SaveSettings();
             }
-            database.LoadProtocols(ApplicationState.DatabasePath);
-            database.LoadDatabaseReferences(ApplicationState.DatabasePath);
-            // TODO: Do not load patients if the user does not want to
-            database.LoadPatients(ApplicationState.DatabasePath);
+            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+            LoadingManager.Load(database.c_LoadDatabase(ApplicationState.DatabasePath, onChangeProgress), onChangeProgress);
             return database;
         }
         public void SaveProtocols()
@@ -99,6 +85,11 @@ namespace HBP.Data.Database
         {
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
             LoadingManager.Load(c_SavePatients(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke), onChangeProgress);
+        }
+        public void SaveDatasets()
+        {
+            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+            LoadingManager.Load(c_SaveDatasets(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke), onChangeProgress);
         }
 
         public void UpdateDatabases(IEnumerable<DatabaseReference> databaseReferences, UnityAction onUpdated)
@@ -136,11 +127,18 @@ namespace HBP.Data.Database
             ClassLoaderSaver.SaveToJSon(m_Settings, GlobalDatabaseSettings.PATH, true);
         }
 
-        private void LoadProtocols(string rootDirectory)
+        private IEnumerator c_LoadDatabase(string rootDirectory, GenericEvent<float, float, LoadingText> onChangeProgress)
         {
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            LoadingManager.Load(c_LoadProtocols(new DirectoryInfo(rootDirectory), onChangeProgress), onChangeProgress);
+            yield return Ninja.JumpToUnity;
+            yield return CoroutineManager.StartAsync(c_LoadProtocols(new DirectoryInfo(rootDirectory), onChangeProgress));
+            yield return CoroutineManager.StartAsync(c_LoadDatabaseReferences(new DirectoryInfo(rootDirectory), onChangeProgress));
+            // TODO: Do not load patients/datasets if the user does not want to
+            yield return CoroutineManager.StartAsync(c_LoadPatients(new DirectoryInfo(rootDirectory), onChangeProgress));
+            yield return CoroutineManager.StartAsync(c_LoadDatasets(new DirectoryInfo(rootDirectory), onChangeProgress));
+            yield return Ninja.JumpBack;
+            IsLoaded = true;
         }
+
         IEnumerator c_LoadProtocols(DirectoryInfo rootDirectory, GenericEvent<float, float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
@@ -190,11 +188,6 @@ namespace HBP.Data.Database
             onChangeProgress.Invoke(1.0f, 0, new LoadingText("Protocols saved successfully"));
         }
 
-        private void LoadDatabaseReferences(string rootDirectory)
-        {
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            LoadingManager.Load(c_LoadDatabaseReferences(new DirectoryInfo(rootDirectory), onChangeProgress), onChangeProgress);
-        }
         IEnumerator c_LoadDatabaseReferences(DirectoryInfo rootDirectory, GenericEvent<float, float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
@@ -241,11 +234,6 @@ namespace HBP.Data.Database
             onChangeProgress.Invoke(1.0f, 0, new LoadingText("References saved successfully"));
         }
 
-        private void LoadPatients(string rootDirectory)
-        {
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            LoadingManager.Load(c_LoadPatients(new DirectoryInfo(rootDirectory), onChangeProgress), onChangeProgress);
-        }
         IEnumerator c_SavePatients(DirectoryInfo rootDirectory, Action<float, float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpBack;
@@ -294,32 +282,103 @@ namespace HBP.Data.Database
             SetPatients(patients.ToArray());
             onChangeProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
         }
+
+        IEnumerator c_SaveDatasets(DirectoryInfo rootDirectory, Action<float, float, LoadingText> onChangeProgress)
+        {
+            yield return Ninja.JumpBack;
+            // Save datasets
+            DirectoryInfo datasetsDirectory = Directory.CreateDirectory(Path.Combine(rootDirectory.FullName, "Datasets"));
+            int count = 0;
+            int length = m_Datasets.Count();
+            foreach (Dataset dataset in m_Datasets)
+            {
+                onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving dataset ", dataset.Name, " [" + (count + 1).ToString() + "/" + length + "]"));
+                try
+                {
+                    ClassLoaderSaver.SaveToJSon(dataset, Path.Combine(datasetsDirectory.FullName, dataset.ID + Dataset.EXTENSION), true);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    throw new CanNotSaveSettingsException();
+                }
+                count++;
+            }
+            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Datasets saved successfully"));
+        }
+        IEnumerator c_LoadDatasets(DirectoryInfo rootDirectory, GenericEvent<float, float, LoadingText> onChangeProgress)
+        {
+            yield return Ninja.JumpBack;
+            // Load Datasets
+            List<Dataset> datasets = new List<Dataset>();
+            DirectoryInfo datasetsDirectory = new DirectoryInfo(Path.Combine(rootDirectory.FullName, "Datasets"));
+            if (!datasetsDirectory.Exists) datasetsDirectory.Create();
+            FileInfo[] datasetFiles = datasetsDirectory.GetFiles("*" + Dataset.EXTENSION, SearchOption.TopDirectoryOnly);
+            for (int i = 0; i < datasetFiles.Length; ++i)
+            {
+                FileInfo datasetFile = datasetFiles[i];
+                onChangeProgress.Invoke((float)(i + 1) / datasetFiles.Length, 0, new LoadingText("Loading dataset ", Path.GetFileNameWithoutExtension(datasetFile.Name), " [" + (i + 1).ToString() + "/" + datasetFiles.Length + "]"));
+                try
+                {
+                    datasets.Add(ClassLoaderSaver.LoadFromJson<Dataset>(datasetFile.FullName));
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    throw e;
+                }
+            }
+            SetDatasets(datasets.ToArray());
+            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
+        }
         
         IEnumerator c_UpdateDatabases(IEnumerable<DatabaseReference> databaseReferences, GenericEvent<float, float, LoadingText> onChangeProgress, UnityAction onUpdated)
         {
             yield return Ninja.JumpBack;
+            var brainvisaDatabaseReferences = databaseReferences.Where(d => d.Type == DatabaseType.Brainvisa).ToArray();
+            var localizerDatabaseReferences = databaseReferences.Where(d => d.Type == DatabaseType.Localizer).ToArray();
+            var bidsDatabaseReferences = databaseReferences.Where(d => d.Type == DatabaseType.BIDS).ToArray();
+            // Load patients first
+            foreach (var brainvisaDatabaseReference in brainvisaDatabaseReferences)
+            {
+                Patient.LoadFromIntranatDatabase(brainvisaDatabaseReference.Path, out Patient[] patients, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text));
+                foreach (var patient in patients) patient.CorrespondingDatabaseID = brainvisaDatabaseReference.ID;
+                // TODO: Warn that patients will be deleted / overwritten
+                m_Patients.RemoveAll(p => patients.Contains(p) || p.CorrespondingDatabaseID == brainvisaDatabaseReference.ID);
+                m_Patients.AddRange(patients);
+            }
+            foreach (var bidsDatabaseReference in bidsDatabaseReferences)
+            {
+                Patient.LoadFromBIDSDatabase(bidsDatabaseReference.Path, out Patient[] patients, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text));
+                foreach (var patient in patients) patient.CorrespondingDatabaseID = bidsDatabaseReference.ID;
+                // TODO: Warn that patients will be deleted / overwritten
+                m_Patients.RemoveAll(p => patients.Contains(p) || p.CorrespondingDatabaseID == bidsDatabaseReference.ID);
+                m_Patients.AddRange(patients);
+            }
+            // Then load datasets
+            foreach (var localizerDatabaseReference in localizerDatabaseReferences)
+            {
+                Dataset.LoadFromLocalizersDatabase(localizerDatabaseReference.Path, out Dataset[] datasets, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text));
+                foreach (var dataset in datasets) dataset.CorrespondingDatabaseID = localizerDatabaseReference.ID;
+                // TODO: Warn that datasets will be deleted / overwritten
+                m_Datasets.RemoveAll(d => datasets.Contains(d) || d.CorrespondingDatabaseID == localizerDatabaseReference.ID);
+                m_Datasets.AddRange(datasets);
+            }
+            foreach (var bidsDatabaseReference in bidsDatabaseReferences)
+            {
+                Dataset.LoadFromBIDSDatabase(bidsDatabaseReference.Path, out Dataset[] datasets, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text));
+                foreach (var dataset in datasets) dataset.CorrespondingDatabaseID = bidsDatabaseReference.ID;
+                // TODO: Warn that datasets will be deleted / overwritten
+                m_Datasets.RemoveAll(d => datasets.Contains(d) || d.CorrespondingDatabaseID == bidsDatabaseReference.ID);
+                m_Datasets.AddRange(datasets);
+            }
             foreach (var databaseReference in databaseReferences)
             {
-                switch (databaseReference.Type)
-                {
-                    case DatabaseType.Brainvisa:
-                        Patient.LoadFromIntranatDatabase(databaseReference.Path, out Patient[] patients, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text));
-                        foreach (var patient in patients) patient.CorrespondingDatabaseID = databaseReference.ID;
-                        // TODO: Warn that patients will be deleted / overwritten
-                        m_Patients.RemoveAll(p => patients.Contains(p) || p.CorrespondingDatabaseID == databaseReference.ID);
-                        m_Patients.AddRange(patients);
-                        break;
-                    case DatabaseType.Localizer:
-                        // TODO: Datasets
-                        break;
-                    case DatabaseType.BIDS:
-                        // TODO: Both
-                        break;
-                }
                 databaseReference.LastUpdated = DateTime.Now;
             }
             yield return Ninja.JumpToUnity;
             yield return CoroutineManager.StartAsync(c_SavePatients(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke));
+            yield return CoroutineManager.StartAsync(c_SaveDatasets(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke));
             yield return CoroutineManager.StartAsync(c_SaveDatabaseReferences(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke));
             DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Databases updated", "The databases have been updated successfully");
             onUpdated();

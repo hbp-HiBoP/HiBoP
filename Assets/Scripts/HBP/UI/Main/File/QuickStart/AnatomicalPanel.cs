@@ -36,7 +36,7 @@ namespace HBP.UI.Main.QuickStart
         {
             ILoadableFromDatabase<Patient> loadable = new Patient();
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            LoadingManager.Load(loadable.LoadFromDatabase(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => FinishedLoadingBIDSDatabase(result)), onChangeProgress);
+            LoadingManager.Load(loadable.LoadFromDatabase((progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => FinishedLoadingBIDSDatabase(result)), onChangeProgress);
         }
         private void FinishedLoadingBIDSDatabase(IEnumerable<Patient> patients)
         {

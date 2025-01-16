@@ -6,6 +6,7 @@ using UnityEngine.Events;
 using HBP.Core.Enums;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
+using System.IO;
 
 namespace HBP.UI.Tools
 {
@@ -211,7 +212,9 @@ namespace HBP.UI.Tools
         /// </summary>
         public virtual void CreateFromDatabase()
         {
-            SelectDatabase();
+            ILoadableFromDatabase<T> loadable = new T() as ILoadableFromDatabase<T>;
+            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+            LoadingManager.Load(loadable.LoadFromDatabase((progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => OnEndLoadFromDatabase(result.ToArray())), onChangeProgress);
         }
         /// <summary>
         /// Create a new object from a directory
@@ -342,31 +345,6 @@ namespace HBP.UI.Tools
             foreach (var item in items)
             {
                 OnObjectCreated.Invoke(item);
-            }
-#endif
-        }
-        /// <summary>
-        /// Open a browser to select a folder database and load objects asynchroniously.
-        /// </summary>
-        protected virtual void SelectDatabase()
-        {
-#if UNITY_STANDALONE_OSX
-            FileBrowser.GetExistingDirectoryNameAsync((path) =>
-            {
-                if (path != null)
-                {
-                    ILoadableFromDatabase<T> loadable = new T() as ILoadableFromDatabase<T>;
-                    GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                    LoadingManager.Load(loadable.LoadFromDatabase(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => OnEndLoadFromDatabase(result.ToArray())), onChangeProgress);
-                }
-            });
-#else
-            string path = FileBrowser.GetExistingDirectoryName();
-            if (path != null)
-            {
-                ILoadableFromDatabase<T> loadable = new T() as ILoadableFromDatabase<T>;
-                GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                LoadingManager.Load(loadable.LoadFromDatabase(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => OnEndLoadFromDatabase(result.ToArray())), onChangeProgress);
             }
 #endif
         }

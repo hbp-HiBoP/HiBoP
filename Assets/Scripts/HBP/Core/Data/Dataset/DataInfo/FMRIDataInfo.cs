@@ -102,7 +102,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
-        public FMRIDataInfo() : this("Data", new Container.Elan(), ApplicationState.LoadedProject.Patients.FirstOrDefault())
+        public FMRIDataInfo() : this("Data", new Container.Elan(), null)
         {
 
         }

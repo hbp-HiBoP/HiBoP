@@ -7,6 +7,6 @@ namespace HBP.Core.Interfaces
 {
     public interface ILoadableFromDatabase<T>
     {
-        IEnumerator LoadFromDatabase(string path, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<T>> result);
+        IEnumerator LoadFromDatabase(Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<T>> result);
     }
 }
