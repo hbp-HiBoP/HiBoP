@@ -356,22 +356,42 @@ namespace HBP.Data.Database
                 m_Patients.AddRange(patients);
             }
             // Then load datasets
+            List<Dataset> generatedDatasets = new();
             foreach (var localizerDatabaseReference in localizerDatabaseReferences)
             {
                 Dataset.LoadFromLocalizersDatabase(localizerDatabaseReference.Path, out Dataset[] datasets, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text));
-                foreach (var dataset in datasets) dataset.CorrespondingDatabaseID = localizerDatabaseReference.ID;
-                // TODO: Warn that datasets will be deleted / overwritten
-                m_Datasets.RemoveAll(d => datasets.Contains(d) || d.CorrespondingDatabaseID == localizerDatabaseReference.ID);
-                m_Datasets.AddRange(datasets);
+                foreach (var dataset in datasets)
+                    foreach (var data in dataset.Data)
+                        data.CorrespondingDatabaseID = localizerDatabaseReference.ID;
+                generatedDatasets.AddRange(datasets);
             }
             foreach (var bidsDatabaseReference in bidsDatabaseReferences)
             {
                 Dataset.LoadFromBIDSDatabase(bidsDatabaseReference.Path, out Dataset[] datasets, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text));
-                foreach (var dataset in datasets) dataset.CorrespondingDatabaseID = bidsDatabaseReference.ID;
-                // TODO: Warn that datasets will be deleted / overwritten
-                m_Datasets.RemoveAll(d => datasets.Contains(d) || d.CorrespondingDatabaseID == bidsDatabaseReference.ID);
-                m_Datasets.AddRange(datasets);
+                foreach (var dataset in datasets)
+                    foreach (var data in dataset.Data)
+                        data.CorrespondingDatabaseID = bidsDatabaseReference.ID; generatedDatasets.AddRange(datasets);
             }
+            // TODO: Warn that datasets will be deleted / overwritten
+            foreach (var dataset in m_Datasets)
+            {
+                dataset.RemoveData(dataset.Data.Where(d => databaseReferences.Any(r => r.ID == d.CorrespondingDatabaseID)).ToList());
+            }
+            m_Datasets.RemoveAll(d => d.Data.Count == 0);
+            foreach (var dataset in generatedDatasets)
+            {
+                Dataset protocolDataset = m_Datasets.FirstOrDefault(d => d.Protocol == dataset.Protocol);
+                if (protocolDataset == null)
+                {
+                    protocolDataset = dataset;
+                    m_Datasets.Add(protocolDataset);
+                }
+                else
+                {
+                    protocolDataset.AddData(dataset.Data);
+                }
+            }
+            // Update last updated
             foreach (var databaseReference in databaseReferences)
             {
                 databaseReference.LastUpdated = DateTime.Now;

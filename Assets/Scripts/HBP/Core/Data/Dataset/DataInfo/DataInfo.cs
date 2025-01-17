@@ -69,6 +69,8 @@ namespace HBP.Core.Data
             set { m_DataContainer = value; m_DataContainer.GetErrors(); m_DataContainer.OnRequestErrorCheck.AddListener(OnRequestErrorCheck.Invoke); }
         }
 
+        [DataMember] public string CorrespondingDatabaseID { get; set; }
+
         /// <summary>
         /// Dataset the dataInfo belongs to.
         /// </summary>
@@ -139,25 +141,27 @@ namespace HBP.Core.Data
         /// <param name="name">Name of the dataInfo.</param>
         /// <param name="dataContainer">Data container of the dataInfo.</param>
         /// <param name="ID">Unique identifier of the dataInfo.</param>
-        public DataInfo(string name, Container.DataContainer dataContainer, string ID) : base(ID)
+        public DataInfo(string name, Container.DataContainer dataContainer, string correspondingDatabaseID, string ID) : base(ID)
         {
             Name = name;
             DataContainer = dataContainer;
+            CorrespondingDatabaseID = correspondingDatabaseID;
         }
         /// <summary>
         /// Create a new DataInfo instance.
         /// </summary>
         /// <param name="name">Name of the dataInfo.</param>
         /// <param name="dataContainer">Data container of the dataInfo.</param>
-        public DataInfo(string name, Container.DataContainer dataContainer) : base()
+        public DataInfo(string name, Container.DataContainer dataContainer, string correspondingDatabaseID) : base()
         {
             Name = name;
             DataContainer = dataContainer;
+            CorrespondingDatabaseID = correspondingDatabaseID;
         }
         /// <summary>
         /// Create a new DataInfo instance with default value.
         /// </summary>
-        public DataInfo() : this("Data", new Container.Elan(), Guid.NewGuid().ToString())
+        public DataInfo() : this("Data", new Container.Elan(), "", Guid.NewGuid().ToString())
         {
         }
         #endregion
@@ -310,7 +314,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new DataInfo(Name, DataContainer.Clone() as Container.DataContainer, ID);
+            return new DataInfo(Name, DataContainer.Clone() as Container.DataContainer, CorrespondingDatabaseID, ID);
         }
         /// <summary>
         /// Copy an instance to this instance.
@@ -323,6 +327,7 @@ namespace HBP.Core.Data
             {
                 Name = dataInfo.Name;
                 DataContainer = dataInfo.DataContainer;
+                CorrespondingDatabaseID = dataInfo.CorrespondingDatabaseID;
             }
         }
         #endregion

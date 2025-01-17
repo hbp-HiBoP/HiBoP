@@ -86,7 +86,7 @@ namespace HBP.Core.Data
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="channel">Stimulated channel.</param>
         /// <param name="id">Unique identifier</param>
-        public SharedFMRIDataInfo(string name, Container.DataContainer dataContainer, string ID) : base(name, dataContainer, ID)
+        public SharedFMRIDataInfo(string name, Container.DataContainer dataContainer, string correspondingDatabaseID, string ID) : base(name, dataContainer, correspondingDatabaseID, ID)
         {
         }
         /// <summary>
@@ -96,13 +96,13 @@ namespace HBP.Core.Data
         /// <param name="dataContainer">Data container of the CCEP dataInfo.</param>
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="channel">Stimulated channel.</param>
-        public SharedFMRIDataInfo(string name, Container.DataContainer dataContainer) : base(name, dataContainer)
+        public SharedFMRIDataInfo(string name, Container.DataContainer dataContainer, string correspondingDatabaseID) : base(name, dataContainer, correspondingDatabaseID)
         {
         }
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
-        public SharedFMRIDataInfo() : this("Data", new Container.Nifti())
+        public SharedFMRIDataInfo() : this("Data", new Container.Nifti(), "")
         {
 
         }
@@ -115,7 +115,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new SharedFMRIDataInfo(Name, DataContainer.Clone() as Container.DataContainer, ID);
+            return new SharedFMRIDataInfo(Name, DataContainer.Clone() as Container.DataContainer, CorrespondingDatabaseID, ID);
         }
         public override void Copy(object copy)
         {

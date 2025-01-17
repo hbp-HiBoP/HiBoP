@@ -30,7 +30,7 @@ namespace HBP.Data.Database
             Path = path;
             LastUpdated = lastUpdated;
         }
-        public DatabaseReference() : this("New Database", DatabaseType.Brainvisa, "", DateTime.Now)
+        public DatabaseReference() : this("New Database", DatabaseType.Brainvisa, "", DateTime.MinValue)
         {
         }
         #endregion

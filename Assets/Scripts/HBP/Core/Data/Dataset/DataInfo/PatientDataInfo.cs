@@ -93,7 +93,7 @@ namespace HBP.Core.Data
         /// <param name="dataContainer">Data container of the patient dataInfo.</param>
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="ID">Unique identifier</param>
-        public PatientDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string ID) : base(name, dataContainer, ID)
+        public PatientDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string correspondingDatabaseID, string ID) : base(name, dataContainer, correspondingDatabaseID, ID)
         {
             Patient = patient;
         }
@@ -103,14 +103,14 @@ namespace HBP.Core.Data
         /// <param name="name">Name of the patient dataInfo.</param>
         /// <param name="dataContainer">Data container of the patient dataInfo.</param>
         /// <param name="patient">Patient related to the data.</param>
-        public PatientDataInfo(string name, Container.DataContainer dataContainer, Patient patient) : base(name, dataContainer)
+        public PatientDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string correspondingDatabaseID) : base(name, dataContainer, correspondingDatabaseID)
         {
             Patient = patient;
         }
         /// <summary>
         /// Create a new PatientDataInfo instance.
         /// </summary>
-        public PatientDataInfo() : this("Data", new Container.Elan(), ApplicationState.LoadedProject.Patients.FirstOrDefault())
+        public PatientDataInfo() : this("Data", new Container.Elan(), ApplicationState.LoadedProject.Patients.FirstOrDefault(), "")
         {
         }
         #endregion
@@ -122,7 +122,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new PatientDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, ID);
+            return new PatientDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, CorrespondingDatabaseID, ID);
         }
         public override void Copy(object obj)
         {

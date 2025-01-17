@@ -118,7 +118,7 @@ namespace HBP.Dev
             FileInfo[] files = dir.GetFiles("*.vhdr");
             foreach (var file in files)
             {
-                ApplicationState.LoadedProject.Datasets[0].AddData(new CCEPDataInfo("ccep", new Core.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), ApplicationState.LoadedProject.Patients[0], file.Name.Replace(file.Extension, "")));
+                ApplicationState.LoadedProject.Datasets[0].AddData(new CCEPDataInfo("ccep", new Core.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), ApplicationState.LoadedProject.Patients[0], file.Name.Replace(file.Extension, ""), ""));
             }
         }
         private void GetAllCCEPData()
@@ -138,7 +138,7 @@ namespace HBP.Dev
                     string site = file.Name.Split('_')[3].Substring(4, 8);
                     if (!site.Contains("p")) site = site.Substring(0, 6);
                     site = site.Insert(site.Length / 2, "-");
-                    ApplicationState.LoadedProject.Datasets[0].AddData(new CCEPDataInfo("ccep", new Core.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), patient, site));
+                    ApplicationState.LoadedProject.Datasets[0].AddData(new CCEPDataInfo("ccep", new Core.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), patient, site, ""));
                 }
             }
         }

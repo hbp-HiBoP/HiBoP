@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using HBP.Core.Data;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
+using HBP.Data.Database;
 
 namespace HBP.UI.Main
 {
@@ -33,7 +34,14 @@ namespace HBP.UI.Main
         {
             base.Initialize();
             m_PatientDropdown.onValueChanged.AddListener((i) => Object.Patient = m_Patients[i]);
-            m_Patients = ApplicationState.LoadedProject.Patients;
+            if (ApplicationState.LoadedProject != null)
+            {
+                m_Patients = ApplicationState.LoadedProject.Patients;
+            }
+            else
+            {
+                m_Patients = DatabaseManager.Database.Patients;
+            }
             m_PatientDropdown.options = (from patient in m_Patients select new Dropdown.OptionData(patient.CompleteName, null)).ToList();
         }
         #endregion

@@ -1,5 +1,6 @@
 using HBP.Data.Database;
 using HBP.UI.Tools.Lists;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -24,7 +25,7 @@ namespace HBP.UI.Database
                 base.Object = value;
                 m_NameText.text = value.Name;
                 m_TypeText.text = value.Type.ToString();
-                m_LastUpdatedText.text = value.LastUpdated.ToString();
+                m_LastUpdatedText.text = value.LastUpdated == DateTime.MinValue ? "Never Updated" : value.LastUpdated.ToString();
             }
         }
         #endregion

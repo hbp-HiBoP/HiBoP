@@ -94,7 +94,7 @@ namespace HBP.Core.Data
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="normalization">Normalization of the iEEG data.</param>
         /// <param name="ID">Unique identifier</param>
-        public IEEGDataInfo(string name, Container.DataContainer dataContainer, Patient patient, NormalizationType normalization, string ID) : base(name, dataContainer, patient,ID)
+        public IEEGDataInfo(string name, Container.DataContainer dataContainer, Patient patient, NormalizationType normalization, string correspondingDatabaseID, string ID) : base(name, dataContainer, patient, correspondingDatabaseID, ID)
         {
             Normalization = normalization;
         }
@@ -105,14 +105,14 @@ namespace HBP.Core.Data
         /// <param name="dataContainer">Data container of the iEEG data.</param>
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="normalization">Normalization of the iEEG data.</param>
-        public IEEGDataInfo(string name, Container.DataContainer dataContainer, Patient patient, NormalizationType normalization) : base(name, dataContainer, patient)
+        public IEEGDataInfo(string name, Container.DataContainer dataContainer, Patient patient, NormalizationType normalization, string correspondingDatabaseID) : base(name, dataContainer, patient, correspondingDatabaseID)
         {
             Normalization = normalization;
         }
         /// <summary>
         /// Create a new iEEG dataInfo instance.
         /// </summary>
-        public IEEGDataInfo() : this("Data", new Container.Elan(), null, NormalizationType.Auto)
+        public IEEGDataInfo() : this("Data", new Container.Elan(), null, NormalizationType.Auto, "")
         {
         }
         #endregion
@@ -124,7 +124,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new IEEGDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, Normalization, ID);
+            return new IEEGDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, Normalization, CorrespondingDatabaseID, ID);
         }
         public override void Copy(object obj)
         {

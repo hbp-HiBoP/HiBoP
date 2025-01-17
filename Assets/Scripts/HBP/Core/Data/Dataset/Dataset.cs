@@ -84,8 +84,6 @@ namespace HBP.Core.Data
                 return new ReadOnlyCollection<DataInfo>(m_Data);
             }
         }
-
-        [DataMember] public string CorrespondingDatabaseID { get; set; }
         #endregion
 
         #region Constructors
@@ -96,11 +94,10 @@ namespace HBP.Core.Data
         /// <param name="protocol">Protocol used during the experiment</param>
         /// <param name="data">DataInfo of the dataset</param>
         /// <param name="ID">Unique identifier</param>
-        public Dataset(string name, Protocol protocol, IEnumerable<DataInfo> data, string correspondingDatabaseID, string ID) : base(ID)
+        public Dataset(string name, Protocol protocol, IEnumerable<DataInfo> data, string ID) : base(ID)
         {
             Name = name;
             Protocol = protocol;
-            CorrespondingDatabaseID = correspondingDatabaseID;
             SetData(data);
         }
         /// <summary>
@@ -109,17 +106,16 @@ namespace HBP.Core.Data
         /// <param name="name">Name of the dataset</param>
         /// <param name="protocol">Protocol used during the experiment</param>
         /// <param name="data">DataInfo of the dataset</param>
-        public Dataset(string name, Protocol protocol, IEnumerable<DataInfo> data, string correspondingDatabaseID) : base()
+        public Dataset(string name, Protocol protocol, IEnumerable<DataInfo> data) : base()
         {
             Name = name;
             Protocol = protocol;
-            CorrespondingDatabaseID = correspondingDatabaseID;
             SetData(data);
         }
         /// <summary>
         /// Create a new Dataset instance with default values.
         /// </summary>
-        public Dataset() : this("New dataset", DatabaseManager.Database.Protocols.FirstOrDefault(), new DataInfo[0], "", Guid.NewGuid().ToString())
+        public Dataset() : this("New dataset", DatabaseManager.Database.Protocols.FirstOrDefault(), new DataInfo[0], Guid.NewGuid().ToString())
         {
         }
         #endregion
@@ -223,7 +219,12 @@ namespace HBP.Core.Data
         /// <returns>True if its worked, False otherwise</returns>
         public bool RemoveData(IEnumerable<DataInfo> data)
         {
-            return data.All((d) => RemoveData(d));
+            bool result = true;
+            foreach (var d in data)
+            {
+                result &= RemoveData(d);
+            }
+            return result;
         }
         /// <summary>
         /// Update a specified dataInfo.
@@ -339,7 +340,7 @@ namespace HBP.Core.Data
             Dictionary<Protocol, Dataset> datasetByProtocol = new Dictionary<Protocol, Dataset>(DatabaseManager.Database.Protocols.Count);
             foreach (var protocol in DatabaseManager.Database.Protocols)
             {
-                datasetByProtocol.Add(protocol, new Dataset(protocol.Name, protocol, new DataInfo[0], ""));
+                datasetByProtocol.Add(protocol, new Dataset(protocol.Name, protocol, new DataInfo[0]));
             }
             foreach (var dir in directories)
             {
@@ -359,7 +360,7 @@ namespace HBP.Core.Data
                                 FileInfo rawEEG = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".eeg"));
                                 FileInfo rawPos = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".pos"));
                                 if (rawEEG.Exists && rawPos.Exists)
-                                    datasetByProtocol[protocol].AddData(new IEEGDataInfo("raw", new Container.Elan(rawEEG.FullName, rawPos.FullName, ""), patient, NormalizationType.Auto));
+                                    datasetByProtocol[protocol].AddData(new IEEGDataInfo("raw", new Container.Elan(rawEEG.FullName, rawPos.FullName, ""), patient, NormalizationType.Auto, ""));
 
                                 string ds = GetDownsamplingString(subdir);
                                 if (!string.IsNullOrEmpty(ds))
@@ -377,7 +378,7 @@ namespace HBP.Core.Data
                                                 FileInfo eeg = new FileInfo(Path.Combine(subdir.FullName, string.Format("{0}_{1}", subdir.Name, freq), string.Format("{0}_{1}_{2}_{3}.eeg", subdir.Name, freq, ds, ts)));
                                                 if (eeg.Exists)
                                                 {
-                                                    datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", freq, ts), new Container.Elan(eeg.FullName, posDS.FullName, ""), patient, NormalizationType.Auto));
+                                                    datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}{2}", freq, ds, ts), new Container.Elan(eeg.FullName, posDS.FullName, ""), patient, NormalizationType.Auto, ""));
                                                 }
                                             }
                                         }
@@ -407,7 +408,7 @@ namespace HBP.Core.Data
             Dictionary<Protocol, Dataset> datasetByProtocol = new Dictionary<Protocol, Dataset>(DatabaseManager.Database.Protocols.Count);
             foreach (var protocol in DatabaseManager.Database.Protocols)
             {
-                datasetByProtocol.Add(protocol, new Dataset(protocol.Name, protocol, new DataInfo[0], ""));
+                datasetByProtocol.Add(protocol, new Dataset(protocol.Name, protocol, new DataInfo[0]));
             }
 
             // Brainvision
@@ -426,7 +427,7 @@ namespace HBP.Core.Data
                         {
                             string acq = string.IsNullOrEmpty(match.Groups[7].Value) ? "raw" : match.Groups[7].Value;
                             string run = string.IsNullOrEmpty(match.Groups[9].Value) ? "" : "-" + match.Groups[9].Value;
-                            datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", acq, run), new Container.BrainVision(file.FullName), patient, NormalizationType.Auto));
+                            datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", acq, run), new Container.BrainVision(file.FullName), patient, NormalizationType.Auto, ""));
                         }
                     }
                 }
@@ -448,7 +449,7 @@ namespace HBP.Core.Data
                         {
                             string acq = string.IsNullOrEmpty(match.Groups[4].Value) ? "raw" : match.Groups[4].Value;
                             string run = string.IsNullOrEmpty(match.Groups[5].Value) ? "" : "-" + match.Groups[5].Value;
-                            datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", acq, run), new Container.EDF(file.FullName), patient, NormalizationType.Auto));
+                            datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", acq, run), new Container.EDF(file.FullName), patient, NormalizationType.Auto, ""));
                         }
                     }
                 }
@@ -510,7 +511,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance</returns>
         public override object Clone()
         {
-            return new Dataset(Name, Protocol, Data.DeepClone(), CorrespondingDatabaseID, ID);
+            return new Dataset(Name, Protocol, Data.DeepClone(), ID);
         }
         /// <summary>
         /// Copy this a instance to this instance.
@@ -523,7 +524,6 @@ namespace HBP.Core.Data
             {
                 Name = dataset.Name;
                 Protocol = dataset.Protocol;
-                CorrespondingDatabaseID = dataset.CorrespondingDatabaseID;
                 SetData(dataset.Data);
             }
         }
