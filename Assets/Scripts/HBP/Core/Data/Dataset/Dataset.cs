@@ -378,7 +378,7 @@ namespace HBP.Core.Data
                                                 FileInfo eeg = new FileInfo(Path.Combine(subdir.FullName, string.Format("{0}_{1}", subdir.Name, freq), string.Format("{0}_{1}_{2}_{3}.eeg", subdir.Name, freq, ds, ts)));
                                                 if (eeg.Exists)
                                                 {
-                                                    datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}{2}", freq, ds, ts), new Container.Elan(eeg.FullName, posDS.FullName, ""), patient, NormalizationType.Auto, ""));
+                                                    datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", freq, ts), new Container.Elan(eeg.FullName, posDS.FullName, ""), patient, NormalizationType.Auto, ""));
                                                 }
                                             }
                                         }

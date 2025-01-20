@@ -77,19 +77,8 @@ namespace HBP.Data.Database
         } 
         public void SaveDatabaseReferences()
         {
-            // TODO: Remove patients that are not in the database references and warn the user before
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
             LoadingManager.Load(c_SaveDatabaseReferences(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke), onChangeProgress);
-        }
-        public void SavePatients()
-        {
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            LoadingManager.Load(c_SavePatients(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke), onChangeProgress);
-        }
-        public void SaveDatasets()
-        {
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            LoadingManager.Load(c_SaveDatasets(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke), onChangeProgress);
         }
 
         public void UpdateDatabases(IEnumerable<DatabaseReference> databaseReferences, UnityAction onUpdated)
@@ -243,6 +232,17 @@ namespace HBP.Data.Database
             referencesDirectory.Delete(true);
             referencesTempDirectory.MoveTo(referencesDirectory.FullName);
             onChangeProgress.Invoke(1.0f, 0, new LoadingText("References saved successfully"));
+            // Remove patients and datasets that are not in the database references
+            // TODO : warn the user that patients and datasets will be deleted
+            m_Patients.RemoveAll(p => !m_DatabaseReferences.Any(r => r.ID == p.CorrespondingDatabaseID));
+            foreach (var dataset in m_Datasets)
+            {
+                dataset.RemoveData(dataset.Data.Where(d => m_DatabaseReferences.All(r => r.ID != d.CorrespondingDatabaseID) || (d is PatientDataInfo pd && !m_Patients.Contains(pd.Patient))).ToList());
+            }
+            m_Datasets.RemoveAll(d => d.Data.Count == 0);
+            yield return Ninja.JumpToUnity;
+            yield return CoroutineManager.StartAsync(c_SavePatients(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke));
+            yield return CoroutineManager.StartAsync(c_SaveDatasets(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke));
         }
 
         IEnumerator c_SavePatients(DirectoryInfo rootDirectory, Action<float, float, LoadingText> onChangeProgress)
@@ -250,6 +250,7 @@ namespace HBP.Data.Database
             yield return Ninja.JumpBack;
             // Save patients
             DirectoryInfo patientsDirectory = Directory.CreateDirectory(Path.Combine(rootDirectory.FullName, "Patients"));
+            DirectoryInfo patientsTempDirectory = Directory.CreateDirectory(Path.Combine(rootDirectory.FullName, "PatientsTemp"));
             int count = 0;
             int length = m_Patients.Count();
             foreach (Patient patient in m_Patients)
@@ -257,7 +258,7 @@ namespace HBP.Data.Database
                 onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving patient ", patient.Name, " [" + (count + 1).ToString() + "/" + length + "]"));
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(patient, Path.Combine(patientsDirectory.FullName, patient.ID + Patient.EXTENSION), true);
+                    ClassLoaderSaver.SaveToJSon(patient, Path.Combine(patientsTempDirectory.FullName, patient.ID + Patient.EXTENSION), true);
                 }
                 catch (Exception e)
                 {
@@ -266,6 +267,9 @@ namespace HBP.Data.Database
                 }
                 count++;
             }
+            // Move files
+            patientsDirectory.Delete(true);
+            patientsTempDirectory.MoveTo(patientsDirectory.FullName);
             onChangeProgress.Invoke(1.0f, 0, new LoadingText("Patients saved successfully"));
         }
         IEnumerator c_LoadPatients(DirectoryInfo rootDirectory, GenericEvent<float, float, LoadingText> onChangeProgress)
@@ -299,6 +303,7 @@ namespace HBP.Data.Database
             yield return Ninja.JumpBack;
             // Save datasets
             DirectoryInfo datasetsDirectory = Directory.CreateDirectory(Path.Combine(rootDirectory.FullName, "Datasets"));
+            DirectoryInfo datasetsTempDirectory = Directory.CreateDirectory(Path.Combine(rootDirectory.FullName, "DatasetsTemp"));
             int count = 0;
             int length = m_Datasets.Count();
             foreach (Dataset dataset in m_Datasets)
@@ -306,7 +311,7 @@ namespace HBP.Data.Database
                 onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving dataset ", dataset.Name, " [" + (count + 1).ToString() + "/" + length + "]"));
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(dataset, Path.Combine(datasetsDirectory.FullName, dataset.ID + Dataset.EXTENSION), true);
+                    ClassLoaderSaver.SaveToJSon(dataset, Path.Combine(datasetsTempDirectory.FullName, dataset.Name + Dataset.EXTENSION), true);
                 }
                 catch (Exception e)
                 {
@@ -315,6 +320,9 @@ namespace HBP.Data.Database
                 }
                 count++;
             }
+            // Move files
+            datasetsDirectory.Delete(true);
+            datasetsTempDirectory.MoveTo(datasetsDirectory.FullName);
             onChangeProgress.Invoke(1.0f, 0, new LoadingText("Datasets saved successfully"));
         }
         IEnumerator c_LoadDatasets(DirectoryInfo rootDirectory, GenericEvent<float, float, LoadingText> onChangeProgress)
@@ -408,8 +416,6 @@ namespace HBP.Data.Database
                 databaseReference.LastUpdated = DateTime.Now;
             }
             yield return Ninja.JumpToUnity;
-            yield return CoroutineManager.StartAsync(c_SavePatients(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke));
-            yield return CoroutineManager.StartAsync(c_SaveDatasets(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke));
             yield return CoroutineManager.StartAsync(c_SaveDatabaseReferences(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke));
             DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Databases updated", "The databases have been updated successfully");
             onUpdated();
