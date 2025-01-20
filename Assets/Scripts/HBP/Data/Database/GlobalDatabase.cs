@@ -169,6 +169,7 @@ namespace HBP.Data.Database
             yield return Ninja.JumpBack;
             // Save protocols
             DirectoryInfo protocolDirectory = Directory.CreateDirectory(Path.Combine(rootDirectory.FullName, "Protocols"));
+            DirectoryInfo protocolTempDirectory = Directory.CreateDirectory(Path.Combine(rootDirectory.FullName, "ProtocolsTemp"));
             int count = 0;
             int length = m_Protocols.Count();
             foreach (Protocol protocol in m_Protocols)
@@ -176,7 +177,7 @@ namespace HBP.Data.Database
                 onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving protocol ", protocol.Name, " [" + (count + 1).ToString() + "/" + length + "]"));
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(protocol, Path.Combine(protocolDirectory.FullName, protocol.Name + Protocol.EXTENSION), true);
+                    ClassLoaderSaver.SaveToJSon(protocol, Path.Combine(protocolTempDirectory.FullName, protocol.Name + Protocol.EXTENSION), true);
                 }
                 catch (Exception e)
                 {
@@ -185,6 +186,9 @@ namespace HBP.Data.Database
                 }
                 count++;
             }
+            // Move files
+            protocolDirectory.Delete(true);
+            protocolTempDirectory.MoveTo(protocolDirectory.FullName);
             onChangeProgress.Invoke(1.0f, 0, new LoadingText("Protocols saved successfully"));
         }
 
@@ -193,7 +197,9 @@ namespace HBP.Data.Database
             yield return Ninja.JumpBack;
             // Load References
             List<DatabaseReference> databaseReferences = new List<DatabaseReference>();
-            FileInfo[] referenceFiles = rootDirectory.GetFiles("*" + DatabaseReference.EXTENSION, SearchOption.TopDirectoryOnly);
+            DirectoryInfo referencesDirectory = Directory.CreateDirectory(Path.Combine(rootDirectory.FullName, "References"));
+            if (!referencesDirectory.Exists) referencesDirectory.Create();
+            FileInfo[] referenceFiles = referencesDirectory.GetFiles("*" + DatabaseReference.EXTENSION, SearchOption.TopDirectoryOnly);
             for (int i = 0; i < referenceFiles.Length; ++i)
             {
                 FileInfo referenceFile = referenceFiles[i];
@@ -215,6 +221,8 @@ namespace HBP.Data.Database
         {
             yield return Ninja.JumpBack;
             // Save references
+            DirectoryInfo referencesDirectory = Directory.CreateDirectory(Path.Combine(rootDirectory.FullName, "References"));
+            DirectoryInfo referencesTempDirectory = Directory.CreateDirectory(Path.Combine(rootDirectory.FullName, "ReferencesTemp"));
             int count = 0;
             int length = m_DatabaseReferences.Count();
             foreach (DatabaseReference databaseReference in m_DatabaseReferences)
@@ -222,7 +230,7 @@ namespace HBP.Data.Database
                 onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving reference ", databaseReference.Name, " [" + (count + 1).ToString() + "/" + length + "]"));
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(databaseReference, Path.Combine(rootDirectory.FullName, databaseReference.Name + DatabaseReference.EXTENSION), true);
+                    ClassLoaderSaver.SaveToJSon(databaseReference, Path.Combine(referencesTempDirectory.FullName, databaseReference.Name + DatabaseReference.EXTENSION), true);
                 }
                 catch (Exception e)
                 {
@@ -231,6 +239,9 @@ namespace HBP.Data.Database
                 }
                 count++;
             }
+            // Move files
+            referencesDirectory.Delete(true);
+            referencesTempDirectory.MoveTo(referencesDirectory.FullName);
             onChangeProgress.Invoke(1.0f, 0, new LoadingText("References saved successfully"));
         }
 

@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace HBP.Core.Tools
 {
@@ -54,7 +55,26 @@ namespace HBP.Core.Tools
                 if(!overwrite) GenerateUniqueSavePath(ref path);
                 using (StreamWriter streamWriter = new StreamWriter(path))
                 {
-                    string json = JsonConvert.SerializeObject(instance, Formatting.Indented, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, TypeNameAssemblyFormat = System.Runtime.Serialization.Formatters.FormatterAssemblyStyle.Simple });
+                    string json = JsonConvert.SerializeObject(instance, Formatting.Indented, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple });
+                    streamWriter.Write(json);
+                    streamWriter.Close();
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                return false;
+            }
+        }
+        public static bool SaveToJSon<T>(IEnumerable<T> instance, string path, bool overwrite = false) where T : new()
+        {
+            try
+            {
+                if (!overwrite) GenerateUniqueSavePath(ref path);
+                using (StreamWriter streamWriter = new StreamWriter(path))
+                {
+                    string json = JsonConvert.SerializeObject(instance, Formatting.Indented, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple });
                     streamWriter.Write(json);
                     streamWriter.Close();
                 }
