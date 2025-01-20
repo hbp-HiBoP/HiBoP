@@ -35,6 +35,7 @@ namespace HBP.UI.Database
         }
         public void UpdateDatabases()
         {
+            DatabaseManager.Database.SetDatabaseReferences(m_ListGestion.List.Objects);
             DatabaseManager.Database.UpdateDatabases(m_ListGestion.List.ObjectsSelected, m_ListGestion.List.Refresh);
         }
         #endregion
