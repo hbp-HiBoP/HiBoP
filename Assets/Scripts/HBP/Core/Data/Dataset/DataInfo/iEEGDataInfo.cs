@@ -204,7 +204,7 @@ namespace HBP.Core.Data
                     warnings.Add(new BlocsCantBeEpochedWarning(string.Join(", ", blocsNotFound)));
                 }
                 List<DLL.EEG.Electrode> electrodes = file.Electrodes;
-                if (!Patient.Sites.Any(s => electrodes.Any(e => e.Label == s.Name)))
+                if (Patient != null && !Patient.Sites.Any(s => electrodes.Any(e => e.Label == s.Name)))
                 {
                     warnings.Add(new NoMatchingSiteWarning());
                 }

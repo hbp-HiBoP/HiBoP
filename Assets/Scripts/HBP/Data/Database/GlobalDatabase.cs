@@ -61,13 +61,13 @@ namespace HBP.Data.Database
             GlobalDatabase database = new GlobalDatabase();
             if (!new DirectoryInfo(ApplicationState.DatabasePath).Exists) Directory.CreateDirectory(ApplicationState.DatabasePath);
             database.LoadSettings();
-            if (!database.Settings.Initialized)
+            if (!database.Settings.IsFirstUse)
             {
                 CopyDefaultDatabase();
                 database.SaveSettings();
             }
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            LoadingManager.Load(database.c_LoadDatabase(ApplicationState.DatabasePath, onChangeProgress), onChangeProgress);
+            CoroutineManager.StartAsync(database.c_InitializeDatabase(ApplicationState.DatabasePath, onChangeProgress));
             return database;
         }
         public void SaveProtocols()
@@ -81,6 +81,11 @@ namespace HBP.Data.Database
             LoadingManager.Load(c_SaveDatabaseReferences(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke), onChangeProgress);
         }
 
+        public void LoadDatabase()
+        {
+            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+            LoadingManager.Load(c_LoadDatabase(ApplicationState.DatabasePath, onChangeProgress), onChangeProgress);
+        }
         public void UpdateDatabases(IEnumerable<DatabaseReference> databaseReferences, UnityAction onUpdated)
         {
             GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
@@ -112,19 +117,22 @@ namespace HBP.Data.Database
         }
         private void SaveSettings()
         {
-            m_Settings.Initialized = true;
+            m_Settings.IsFirstUse = true;
             ClassLoaderSaver.SaveToJSon(m_Settings, GlobalDatabaseSettings.PATH, true);
         }
 
-        private IEnumerator c_LoadDatabase(string rootDirectory, GenericEvent<float, float, LoadingText> onChangeProgress)
+        private IEnumerator c_InitializeDatabase(string rootDirectory, GenericEvent<float, float, LoadingText> onChangeProgress)
         {
             yield return Ninja.JumpToUnity;
             yield return CoroutineManager.StartAsync(c_LoadProtocols(new DirectoryInfo(rootDirectory), onChangeProgress));
             yield return CoroutineManager.StartAsync(c_LoadDatabaseReferences(new DirectoryInfo(rootDirectory), onChangeProgress));
-            // TODO: Do not load patients/datasets if the user does not want to
+            LoadDatabase();
+        }
+        private IEnumerator c_LoadDatabase(string rootDirectory, GenericEvent<float, float, LoadingText> onChangeProgress)
+        {
+            yield return Ninja.JumpToUnity;
             yield return CoroutineManager.StartAsync(c_LoadPatients(new DirectoryInfo(rootDirectory), onChangeProgress));
             yield return CoroutineManager.StartAsync(c_LoadDatasets(new DirectoryInfo(rootDirectory), onChangeProgress));
-            yield return Ninja.JumpBack;
             IsLoaded = true;
         }
 

@@ -34,14 +34,10 @@ namespace HBP.UI.Main
         {
             base.Initialize();
             m_PatientDropdown.onValueChanged.AddListener((i) => Object.Patient = m_Patients[i]);
-            if (ApplicationState.LoadedProject != null)
-            {
+            if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Contains(Object.Dataset))
                 m_Patients = ApplicationState.LoadedProject.Patients;
-            }
             else
-            {
                 m_Patients = DatabaseManager.Database.Patients;
-            }
             m_PatientDropdown.options = (from patient in m_Patients select new Dropdown.OptionData(patient.CompleteName, null)).ToList();
         }
         #endregion

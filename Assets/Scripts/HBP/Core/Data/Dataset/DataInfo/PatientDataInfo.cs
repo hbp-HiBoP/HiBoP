@@ -58,8 +58,25 @@ namespace HBP.Core.Data
         ///
         public Patient Patient
         {
-            get { return m_Patient; }
-            set { m_PatientID = value != null ? value.ID : ""; m_Patient = value; m_PatientErrors = GetPatientErrors(); }
+            get
+            {
+                if (m_Patient == null)
+                {
+                    if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Contains(Dataset))
+                        m_Patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == m_PatientID);
+                    else
+                        m_Patient = DatabaseManager.Database.Patients.FirstOrDefault(p => p.ID == m_PatientID);
+                    m_PatientErrors = GetPatientErrors();
+
+                }
+                return m_Patient;
+            }
+            set
+            {
+                m_PatientID = value != null ? value.ID : "";
+                m_Patient = value;
+                m_PatientErrors = GetPatientErrors();
+            }
         }
 
         protected Error[] m_PatientErrors = new Error[0];
@@ -148,7 +165,7 @@ namespace HBP.Core.Data
         public Error[] GetPatientErrors()
         {
             List<Error> errors = new List<Error>();
-            if (Patient == null) errors.Add(new PatientEmptyError());
+            if (m_Patient == null) errors.Add(new PatientEmptyError());
             m_PatientErrors = errors.ToArray();
             return m_PatientErrors;
         }
@@ -170,10 +187,10 @@ namespace HBP.Core.Data
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            if (ApplicationState.LoadedProject != null)
-                m_Patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == m_PatientID);
+            if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Contains(Dataset))
+                Patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == m_PatientID);
             else
-                m_Patient = DatabaseManager.Database.Patients.FirstOrDefault(p => p.ID == m_PatientID);
+                Patient = DatabaseManager.Database.Patients.FirstOrDefault(p => p.ID == m_PatientID);
         }
         #endregion
     }

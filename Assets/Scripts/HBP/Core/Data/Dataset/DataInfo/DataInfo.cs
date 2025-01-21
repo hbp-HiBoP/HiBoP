@@ -7,6 +7,7 @@ using UnityEngine.Events;
 using HBP.Core.Errors;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
+using HBP.Data.Database;
 
 namespace HBP.Core.Data
 {
@@ -78,7 +79,10 @@ namespace HBP.Core.Data
         {
             get
             {
-                return ApplicationState.LoadedProject.Datasets.FirstOrDefault((d) => d.Data.Contains(this));
+                if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.Contains(this)))
+                    return ApplicationState.LoadedProject.Datasets.FirstOrDefault((d) => d.Data.Contains(this));
+                else
+                    return DatabaseManager.Database.Datasets.FirstOrDefault((d) => d.Data.Contains(this));
             }
         }
 

@@ -11,6 +11,7 @@ using HBP.Core.Data;
 using HBP.Data.Module3D;
 using HBP.Core.Tools;
 using HBP.UI.Tools;
+using HBP.Data.Database;
 
 namespace HBP.Dev
 {
@@ -31,6 +32,14 @@ namespace HBP.Dev
         }*/
         private void Update()
         {
+            if (Input.GetKeyDown(KeyCode.F1))
+            {
+                CheckProjectAndDatabaseIntegrity();
+            }
+            if (Input.GetKeyDown(KeyCode.F2))
+            {
+                DatabaseManager.Database.LoadDatabase();
+            }
 /*            if (Input.GetKeyDown(KeyCode.A))
             {
                 Core.Object3D.Cut cut = Module3DMain.SelectedScene.Cuts[0];
@@ -111,6 +120,32 @@ namespace HBP.Dev
                 m_Percent += Time.deltaTime;
             }
             */
+        }
+        private void CheckProjectAndDatabaseIntegrity()
+        {
+            // Database
+            foreach (var dataset in DatabaseManager.Database.Datasets)
+            {
+                foreach (var data in dataset.Data.OfType<PatientDataInfo>())
+                {
+                    if (!DatabaseManager.Database.Patients.Contains(data.Patient))
+                    {
+                        Debug.LogError(string.Format("Patient of {0}-{1} not found in database", dataset.Name, data.Name));
+                    }
+                }
+            }
+            // Project
+            if (ApplicationState.LoadedProject == null) return;
+            foreach (var dataset in ApplicationState.LoadedProject.Datasets)
+            {
+                foreach (var data in dataset.Data.OfType<PatientDataInfo>())
+                {
+                    if (!ApplicationState.LoadedProject.Patients.Contains(data.Patient))
+                    {
+                        Debug.LogError(string.Format("Patient of {0}-{1} not found in project", dataset.Name, data.Name));
+                    }
+                }
+            }
         }
         private void MarsAtlasCCEP()
         {

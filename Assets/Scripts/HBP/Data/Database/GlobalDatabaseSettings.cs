@@ -11,17 +11,17 @@ namespace HBP.Data.Database
     {
         #region Properties
         public static string PATH = Path.Combine(ApplicationState.DatabasePath, "Settings.json");
-        [DataMember] public bool Initialized { get; set; }
+        [DataMember] public bool IsFirstUse { get; set; }
         #endregion
 
         #region Constructors
         public GlobalDatabaseSettings(string ID) : base(ID)
         {
-            Initialized = false;
+            IsFirstUse = false;
         }
         public GlobalDatabaseSettings() : base()
         {
-            Initialized = false;
+            IsFirstUse = false;
         }
         #endregion
 
@@ -30,12 +30,12 @@ namespace HBP.Data.Database
         {
             return new GlobalDatabaseSettings(ID)
             {
-                Initialized = Initialized
+                IsFirstUse = IsFirstUse
             };
         }
         public void Copy(GlobalDatabaseSettings settings)
         {
-            Initialized = settings.Initialized;
+            IsFirstUse = settings.IsFirstUse;
         }
         #endregion
     }
