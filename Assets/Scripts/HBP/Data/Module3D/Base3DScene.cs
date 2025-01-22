@@ -646,7 +646,7 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Event called when progressing in updating generator
         /// </summary>
-        [HideInInspector] public GenericEvent<float, string, float> OnProgressUpdateGenerator = new GenericEvent<float, string, float>();
+        [HideInInspector] public GenericEvent<float, string> OnProgressUpdateGenerator = new GenericEvent<float, string>();
         /// <summary>
         /// Event for updating the planes cuts display in the cameras
         /// </summary>
@@ -1741,7 +1741,7 @@ namespace HBP.Data.Module3D
             SceneInformation.GeneratorNeedsUpdate = false;
             IsGeneratorUpToDate = false;
             SceneInformation.GeneratorUpdateRequested = false;
-            StartCoroutine(c_ComputeGenerators());
+            ComputeGenerators();
         }
         /// <summary>
         /// Function to be called everytime we want to reset IEEG
@@ -2192,11 +2192,11 @@ namespace HBP.Data.Module3D
         /// Start the update of the generators for the iEEG signal on the brain
         /// </summary>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_ComputeGenerators()
+        private async void ComputeGenerators()
         {
             m_UpdatingGenerators = true;
             OnUpdatingGenerators.Invoke(true);
-            yield return this.StartCoroutineAsync(c_LoadActivity());
+            await new AsyncMethod(LoadActivityAsync).ExecuteAsync();
             m_UpdatingGenerators = false;
             OnUpdatingGenerators.Invoke(false);
 
@@ -2206,82 +2206,101 @@ namespace HBP.Data.Module3D
         /// Compute the iEEG values on the brain
         /// </summary>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_LoadActivity()
+        private async System.Threading.Tasks.Task LoadActivityAsync(Func<float, string, System.Threading.Tasks.Task> updateProgress)
         {
             Core.DLL.ActivityGenerator currentGenerator = null;
             string currentMessage = "";
             int currentColumn = 0;
             int numberOfColumns = Columns.Count;
-            IEnumerator checkProgress()
+            async void checkProgress()
             {
-                while(true)
+                while (true)
                 {
-                    if (SceneInformation.GeneratorNeedsUpdate) yield break;
+                    if (SceneInformation.GeneratorNeedsUpdate) return;
                     float currentProgress = 0;
                     if (currentGenerator != null)
                     {
                         currentProgress = ((float)currentColumn / numberOfColumns) + (currentGenerator.Progress / numberOfColumns);
                     }
-                    OnProgressUpdateGenerator.Invoke(currentProgress, currentMessage, 0.05f);
-                    yield return new WaitForSeconds(0.05f);
+                    Debug.Log(currentProgress);
+                    OnProgressUpdateGenerator.Invoke(currentProgress, currentMessage);
+                    await new WaitForSeconds(0.05f);
                 }
             }
-            yield return Ninja.JumpToUnity;
-            Coroutine coroutine = this.StartCoroutineAsync(checkProgress());
-            yield return Ninja.JumpBack;
-
-            currentMessage = "Initializing";
-            for (int i = 0; i < Columns.Count; i++)
+            checkProgress();
+            //IEnumerator checkProgress()
+            //{
+            //    while(true)
+            //    {
+            //        if (SceneInformation.GeneratorNeedsUpdate) yield break;
+            //        float currentProgress = 0;
+            //        if (currentGenerator != null)
+            //        {
+            //            currentProgress = ((float)currentColumn / numberOfColumns) + (currentGenerator.Progress / numberOfColumns);
+            //        }
+            //        OnProgressUpdateGenerator.Invoke(currentProgress, currentMessage, 0.05f);
+            //        yield return new WaitForSeconds(0.05f);
+            //    }
+            //}
+            //yield return Ninja.JumpToUnity;
+            //Coroutine coroutine = this.StartCoroutineAsync(checkProgress());
+            //yield return Ninja.JumpBack;
+            await System.Threading.Tasks.Task.Run(() =>
             {
-                Column3D column = Columns[i];
-                currentColumn = i;
-                currentMessage = "Loading " + column.Name;
-                column.UpdateDLLSitesMask(m_ROIManager.SelectedROI != null);
-                if (SceneInformation.GeneratorNeedsUpdate) yield break;
-                if (column is Column3DAnatomy anatomyColumn)
+                currentMessage = "Initializing";
+                for (int i = 0; i < Columns.Count; i++)
                 {
-                    Core.DLL.DensityGenerator generator = anatomyColumn.ActivityGenerator as Core.DLL.DensityGenerator;
-                    currentGenerator = generator;
-                    generator.ComputeActivity(anatomyColumn.RawElectrodes, anatomyColumn.AnatomyParameters.InfluenceDistance, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                    Column3D column = Columns[i];
+                    currentColumn = i;
+                    currentMessage = "Loading " + column.Name;
+                    column.UpdateDLLSitesMask(m_ROIManager.SelectedROI != null);
+                    if (SceneInformation.GeneratorNeedsUpdate) return;
+                    if (column is Column3DAnatomy anatomyColumn)
+                    {
+                        Core.DLL.DensityGenerator generator = anatomyColumn.ActivityGenerator as Core.DLL.DensityGenerator;
+                        currentGenerator = generator;
+                        generator.ComputeActivity(anatomyColumn.RawElectrodes, anatomyColumn.AnatomyParameters.InfluenceDistance, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                    }
+                    else if (column is Column3DDynamic dynamicColumn)
+                    {
+                        Core.DLL.IEEGGenerator generator = dynamicColumn.ActivityGenerator as Core.DLL.IEEGGenerator;
+                        currentGenerator = generator;
+                        if (dynamicColumn is Column3DCCEP ccepColumn && ccepColumn.IsSourceMarsAtlasLabelSelected)
+                            generator.ComputeActivityAtlas(ccepColumn.ActivityValues, ccepColumn.Timeline.Length, ccepColumn.AreaMask, Object3DManager.MarsAtlas);
+                        else
+                            generator.ComputeActivity(dynamicColumn.RawElectrodes, dynamicColumn.DynamicParameters.InfluenceDistance, dynamicColumn.ActivityValues, dynamicColumn.Timeline.Length, dynamicColumn.RawElectrodes.NumberOfSites, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                        generator.AdjustValues(dynamicColumn.DynamicParameters.Middle, dynamicColumn.DynamicParameters.SpanMin, dynamicColumn.DynamicParameters.SpanMax);
+                    }
+                    else if (column is Column3DFMRI fmriColumn)
+                    {
+                        Core.DLL.FMRIGenerator generator = fmriColumn.ActivityGenerator as Core.DLL.FMRIGenerator;
+                        currentGenerator = generator;
+                        generator.ComputeActivity(fmriColumn.ColumnFMRIData.Data.FMRIs.SelectMany(fmri => fmri.Item1.Volumes));
+                        generator.AdjustValues(fmriColumn.FMRIParameters.FMRINegativeCalMinFactor, fmriColumn.FMRIParameters.FMRINegativeCalMaxFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMinFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMaxFactor);
+                    }
+                    else if (column is Column3DMEG megColumn)
+                    {
+                        Core.DLL.MEGGenerator generator = megColumn.ActivityGenerator as Core.DLL.MEGGenerator;
+                        currentGenerator = generator;
+                        generator.ComputeActivity(megColumn.ColumnMEGData.Data.MEGItems.SelectMany(fmri => fmri.FMRI.Volumes));
+                        generator.AdjustValues(megColumn.MEGParameters.FMRINegativeCalMinFactor, megColumn.MEGParameters.FMRINegativeCalMaxFactor, megColumn.MEGParameters.FMRIPositiveCalMinFactor, megColumn.MEGParameters.FMRIPositiveCalMaxFactor);
+                    }
+                    else if (column is Column3DStatic staticColumn)
+                    {
+                        Core.DLL.IEEGGenerator generator = staticColumn.ActivityGenerator as Core.DLL.IEEGGenerator;
+                        currentGenerator = generator;
+                        generator.ComputeActivity(staticColumn.RawElectrodes, staticColumn.StaticParameters.InfluenceDistance, staticColumn.ActivityValues, staticColumn.Labels.Length, staticColumn.RawElectrodes.NumberOfSites, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                        generator.AdjustValues(staticColumn.StaticParameters.Middle, staticColumn.StaticParameters.SpanMin, staticColumn.StaticParameters.SpanMax);
+                    }
+                    if (SceneInformation.GeneratorNeedsUpdate) return;
                 }
-                else if (column is Column3DDynamic dynamicColumn)
-                {
-                    Core.DLL.IEEGGenerator generator = dynamicColumn.ActivityGenerator as Core.DLL.IEEGGenerator;
-                    currentGenerator = generator;
-                    if (dynamicColumn is Column3DCCEP ccepColumn && ccepColumn.IsSourceMarsAtlasLabelSelected)
-                        generator.ComputeActivityAtlas(ccepColumn.ActivityValues, ccepColumn.Timeline.Length, ccepColumn.AreaMask, Object3DManager.MarsAtlas);
-                    else
-                        generator.ComputeActivity(dynamicColumn.RawElectrodes, dynamicColumn.DynamicParameters.InfluenceDistance, dynamicColumn.ActivityValues, dynamicColumn.Timeline.Length, dynamicColumn.RawElectrodes.NumberOfSites, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
-                    generator.AdjustValues(dynamicColumn.DynamicParameters.Middle, dynamicColumn.DynamicParameters.SpanMin, dynamicColumn.DynamicParameters.SpanMax);
-                }
-                else if (column is Column3DFMRI fmriColumn)
-                {
-                    Core.DLL.FMRIGenerator generator = fmriColumn.ActivityGenerator as Core.DLL.FMRIGenerator;
-                    currentGenerator = generator;
-                    generator.ComputeActivity(fmriColumn.ColumnFMRIData.Data.FMRIs.SelectMany(fmri => fmri.Item1.Volumes));
-                    generator.AdjustValues(fmriColumn.FMRIParameters.FMRINegativeCalMinFactor, fmriColumn.FMRIParameters.FMRINegativeCalMaxFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMinFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMaxFactor);
-                }
-                else if (column is Column3DMEG megColumn)
-                {
-                    Core.DLL.MEGGenerator generator = megColumn.ActivityGenerator as Core.DLL.MEGGenerator;
-                    currentGenerator = generator;
-                    generator.ComputeActivity(megColumn.ColumnMEGData.Data.MEGItems.SelectMany(fmri => fmri.FMRI.Volumes));
-                    generator.AdjustValues(megColumn.MEGParameters.FMRINegativeCalMinFactor, megColumn.MEGParameters.FMRINegativeCalMaxFactor, megColumn.MEGParameters.FMRIPositiveCalMinFactor, megColumn.MEGParameters.FMRIPositiveCalMaxFactor);
-                }
-                else if (column is Column3DStatic staticColumn)
-                {
-                    Core.DLL.IEEGGenerator generator = staticColumn.ActivityGenerator as Core.DLL.IEEGGenerator;
-                    currentGenerator = generator;
-                    generator.ComputeActivity(staticColumn.RawElectrodes, staticColumn.StaticParameters.InfluenceDistance, staticColumn.ActivityValues, staticColumn.Labels.Length, staticColumn.RawElectrodes.NumberOfSites, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
-                    generator.AdjustValues(staticColumn.StaticParameters.Middle, staticColumn.StaticParameters.SpanMin, staticColumn.StaticParameters.SpanMax);
-                }
-                if (SceneInformation.GeneratorNeedsUpdate) yield break;
-            }
 
-            currentMessage = "Finalizing";
-            yield return Ninja.JumpToUnity;
-            StopCoroutine(coroutine);
-            yield return new WaitForSeconds(0.1f);
+                currentMessage = "Finalizing";
+            });
+            await new WaitForUpdate();
+            //yield return Ninja.JumpToUnity;
+            //StopCoroutine(coroutine);
+            //yield return new WaitForSeconds(0.1f);
         }
         /// <summary>
         /// Update the colliders (cuts and brain meshes)

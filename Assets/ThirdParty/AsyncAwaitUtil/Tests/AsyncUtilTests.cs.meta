@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: cb4f149e5fdd59e45958e5b591ca42e6
+timeCreated: 1503457821
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 101056
+  packageName: Async Await Support
+  packageVersion: 0.1.2
+  assetPath: Assets/Plugins/AsyncAwaitUtil/Tests/AsyncUtilTests.cs
+  uploadId: 244207

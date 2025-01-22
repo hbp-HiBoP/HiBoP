@@ -90,6 +90,7 @@ namespace HBP.UI.Module3D
                 m_UpdateCircle.StartAnimation();
                 gameObject.SetActive(true);
                 m_Fill.anchorMax = new Vector2(0.0f, 1.0f);
+                m_CurrentProgress = 0;
                 m_TargetProgress = 0;
                 m_PreviousProgress = 0;
             }

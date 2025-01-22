@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: b1985c3a9f17306419ee984450d97ffa
+timeCreated: 1506503311
+licenseType: Store
+DefaultImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 101056
+  packageName: Async Await Support
+  packageVersion: 0.1.2
+  assetPath: Assets/Plugins/AsyncAwaitUtil/Documentation/ReadMe_files/font-awesome.min.css
+  uploadId: 244207

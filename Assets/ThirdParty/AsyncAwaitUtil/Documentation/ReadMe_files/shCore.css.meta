@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 4141587b0e66e4e4dbfff848df4ddee7
+timeCreated: 1506503311
+licenseType: Store
+DefaultImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 101056
+  packageName: Async Await Support
+  packageVersion: 0.1.2
+  assetPath: Assets/Plugins/AsyncAwaitUtil/Documentation/ReadMe_files/shCore.css
+  uploadId: 244207

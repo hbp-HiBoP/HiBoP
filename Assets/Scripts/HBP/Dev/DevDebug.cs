@@ -12,6 +12,7 @@ using HBP.Data.Module3D;
 using HBP.Core.Tools;
 using HBP.UI.Tools;
 using HBP.Data.Database;
+using System.Threading.Tasks;
 
 namespace HBP.Dev
 {
@@ -23,23 +24,26 @@ namespace HBP.Dev
         private float m_Percent;
         private bool m_Initialized = false;
         private float m_TimeSinceLastAction = 0;
-/*        private void OnApplicationQuit()
+        /*        private void OnApplicationQuit()
+                {
+                    Debug.Log("quitting");
+                    using StreamWriter sw = new(Path.Combine(Application.persistentDataPath, "quit.txt"));
+                    sw.WriteLine("quit");
+                    sw.Close();
+                }*/
+        private void Start()
         {
-            Debug.Log("quitting");
-            using StreamWriter sw = new(Path.Combine(Application.persistentDataPath, "quit.txt"));
-            sw.WriteLine("quit");
-            sw.Close();
-        }*/
+        }
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.F1))
-            {
-                CheckProjectAndDatabaseIntegrity();
-            }
-            if (Input.GetKeyDown(KeyCode.F2))
-            {
-                DatabaseManager.Database.LoadDatabase();
-            }
+            //if (Input.GetKeyDown(KeyCode.F1))
+            //{
+            //    CheckProjectAndDatabaseIntegrity();
+            //}
+            //if (Input.GetKeyDown(KeyCode.F2))
+            //{
+            //    DatabaseManager.Database.LoadDatabase();
+            //}
 /*            if (Input.GetKeyDown(KeyCode.A))
             {
                 Core.Object3D.Cut cut = Module3DMain.SelectedScene.Cuts[0];
@@ -120,6 +124,20 @@ namespace HBP.Dev
                 m_Percent += Time.deltaTime;
             }
             */
+        }
+        private async void ThrowError()
+        {
+            await ThrowErrorAsync();
+        }
+        private async Task ThrowErrorAsync()
+        {
+            await ThrowErrorAsync2();
+            throw new Exception("Test");
+        }
+        private async Task ThrowErrorAsync2()
+        {
+            await new WaitForSeconds(1);
+            throw new Exception("Test2");
         }
         private void CheckProjectAndDatabaseIntegrity()
         {

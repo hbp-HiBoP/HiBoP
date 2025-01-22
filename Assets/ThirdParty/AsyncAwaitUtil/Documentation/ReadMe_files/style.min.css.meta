@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 601023394f5f81c48b6ee8a7f63522cf
+timeCreated: 1506503311
+licenseType: Store
+DefaultImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 101056
+  packageName: Async Await Support
+  packageVersion: 0.1.2
+  assetPath: Assets/Plugins/AsyncAwaitUtil/Documentation/ReadMe_files/style.min.css
+  uploadId: 244207

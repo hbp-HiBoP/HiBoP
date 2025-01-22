@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 0a467472112afef41a04d89bb288500f
+timeCreated: 1525587959
+licenseType: Store
+DefaultImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 101056
+  packageName: Async Await Support
+  packageVersion: 0.1.2
+  assetPath: Assets/Plugins/AsyncAwaitUtil/UniRx.zip
+  uploadId: 244207
