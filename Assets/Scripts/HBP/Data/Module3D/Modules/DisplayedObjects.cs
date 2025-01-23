@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace HBP.Data.Module3D
@@ -120,7 +121,7 @@ namespace HBP.Data.Module3D
         /// Instantiate all the gameObjects representing the sites on the scene
         /// </summary>
         /// <param name="implantation">Implantation to be instantiated</param>
-        public void InstantiateImplantation(Core.Object3D.Implantation3D implantation)
+        public async Task InstantiateImplantationAsync(Core.Object3D.Implantation3D implantation)
         {
             foreach (Transform sitePatient in m_SitesMeshesParent)
             {
@@ -151,7 +152,7 @@ namespace HBP.Data.Module3D
                 // Instantiate sites
                 foreach (var siteInfo in implantation.GetSitesOfPatient(patient))
                 {
-                    GameObject siteGameObject = Instantiate(m_SitePrefab, electrodeTransforms[siteInfo.Electrode]);
+                    GameObject siteGameObject = (await InstantiateAsync(m_SitePrefab, electrodeTransforms[siteInfo.Electrode]))[0]; // FIX THIS
                     siteGameObject.name = siteInfo.Name;
 
                     siteGameObject.transform.localPosition = siteInfo.UnityPosition;

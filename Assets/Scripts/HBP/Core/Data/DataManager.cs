@@ -228,9 +228,6 @@ namespace HBP.Core.Data
                 UnloadStatistics(m_BlocRequestsRequiringStatisticsReset.Pop());
             }
         }
-
-        // CCEP
-        //public static 
         #endregion
 
         #region Private Methods

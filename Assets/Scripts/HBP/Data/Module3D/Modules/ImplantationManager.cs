@@ -106,11 +106,11 @@ namespace HBP.Data.Module3D
         /// Set the implantation to be used
         /// </summary>
         /// <param name="implantationName">Name of the implantation to use</param>
-        public void Select(string implantationName)
+        public async void Select(string implantationName)
         {
             int implantationID = Implantations.FindIndex(i => i.Name == implantationName);
             SelectedImplantationID = implantationID > 0 ? implantationID : 0;
-            m_DisplayedObjects.InstantiateImplantation(SelectedImplantation);
+            await m_DisplayedObjects.InstantiateImplantationAsync(SelectedImplantation);
             
             // reset selected site
             for (int ii = 0; ii < m_Scene.Columns.Count; ++ii)

@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
-using System.Collections;
-using ThirdParty.CielaSpike;
 using System.IO;
 using HBP.Core.Enums;
 using HBP.Core.Exceptions;
@@ -14,6 +12,7 @@ using HBP.Core.Data;
 using HBP.Core.Object3D;
 using HBP.Data.Preferences;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace HBP.Data.Module3D
 {
@@ -984,10 +983,11 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Update the brain and the cuts meshes colliders
         /// </summary>
-        private void UpdateMeshesColliders()
+        private async void UpdateMeshesColliders()
         {
-            this.StartCoroutineAsync(c_UpdateMeshesColliders());
+            await new WaitUntil(() => !m_UpdatingColliders);
             SceneInformation.CollidersNeedUpdate = false;
+            await UpdateMeshesCollidersAsync();
         }
         /// <summary>
         /// Update the sites rendering for all columns
@@ -1521,7 +1521,7 @@ namespace HBP.Data.Module3D
             Columns[0].Views[0].IsSelected = true; // Select default view
             Columns[0].SelectFirstOrDefaultSiteByName();
             SceneInformation.Initialized = true;
-            this.StartCoroutineAsync(c_LoadMissingAnatomy());
+            LoadMissingAnatomy();
         }
         /// <summary>
         /// Load the visualization configuration from the loaded visualization
@@ -1839,10 +1839,8 @@ namespace HBP.Data.Module3D
         /// <param name="onChangeProgress">Event to update the loading circle</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        public IEnumerator c_Initialize(Visualization visualization, Action<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
+        public async Task InitializeAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress)
         {
-            Exception exception = null;
-
             // Compute progress variables
             float progress = 0f;
             float totalProgress = 0, loadingMeshProgress = 0, loadingMeshTime = 0, loadingMRIProgress = 0, loadingMRITime = 0, loadingImplantationsProgress = 0, loadingImplantationsTime = 0, loadingMNIProgress = 0, loadingMNITime = 0, loadingIEEGProgress = 0, loadingIEEGTime = 0;
@@ -1878,30 +1876,24 @@ namespace HBP.Data.Module3D
                 loadingIEEGProgress = (Visualization.Patients.Count * LOADING_IEEG_WEIGHT) / totalProgress;
                 loadingIEEGTime = (Visualization.Patients.Count * LOADING_IEEG_WEIGHT) / 1000.0f;
             }
-            yield return Ninja.JumpToUnity;
+            await new WaitForUpdate();
             onChangeProgress(progress, 0.0f, new LoadingText());
 
             // Checking MNI
             onChangeProgress(progress, 0.0f, new LoadingText("Loading MNI"));
             System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
             watch.Start();
-            yield return new WaitUntil(delegate { return Object3DManager.MNI.IsLoaded || watch.ElapsedMilliseconds > 5000; });
+            await new WaitUntil(() => Object3DManager.MNI.IsLoaded || watch.ElapsedMilliseconds > 5000);
             watch.Stop();
             if (watch.ElapsedMilliseconds > 5000)
             {
-                outPut(new CanNotLoadMNI());
-                yield break;
+                throw new CanNotLoadMNI();
             }
 
             // Loading MNI
             progress += loadingMNIProgress;
             onChangeProgress.Invoke(progress, loadingMNITime, new LoadingText("Loading MNI objects"));
-            yield return CoroutineManager.StartAsync(c_LoadMNIObjects(e => exception = e));
-            if (exception != null)
-            {
-                outPut(exception);
-                yield break;
-            }
+            await LoadMNIObjectsAsync();
 
             // Loading Meshes
             if (Type == SceneType.SinglePatient)
@@ -1922,12 +1914,7 @@ namespace HBP.Data.Module3D
                         BaseMesh mesh = Visualization.Patients[0].Meshes[i];
                         progress += loadingMeshProgress;
                         onChangeProgress.Invoke(progress, loadingMeshTime, new LoadingText("Loading Mesh ", mesh.Name, " [" + (i + 1).ToString() + "/" + Visualization.Patients[0].Meshes.Count + "]"));
-                        yield return CoroutineManager.StartAsync(c_LoadBrainSurface(mesh, e => exception = e));
-                    }
-                    if (exception != null)
-                    {
-                        outPut(exception);
-                        yield break;
+                        await LoadBrainSurfaceAsync(mesh);
                     }
                 }
             }
@@ -1940,14 +1927,9 @@ namespace HBP.Data.Module3D
                         BaseMesh mesh = patient.Meshes[i];
                         progress += loadingMeshProgress;
                         onChangeProgress.Invoke(progress, loadingMeshTime, new LoadingText("Loading Mesh ", string.Format("{0} ({1})", mesh.Name, patient.Name), " [" + (i + 1).ToString() + "/" + patient.Meshes.Count + "]"));
-                        yield return Ninja.JumpBack;
+                        await new WaitForBackgroundThread();
                         m_MeshManager.AddPreloaded(mesh, patient);
-                        yield return Ninja.JumpToUnity;
-                    }
-                    if (exception != null)
-                    {
-                        outPut(exception);
-                        yield break;
+                        await new WaitForUpdate();
                     }
                 }
             }
@@ -1972,12 +1954,7 @@ namespace HBP.Data.Module3D
                         MRI mri = Visualization.Patients[0].MRIs[i];
                         progress += loadingMRIProgress;
                         onChangeProgress.Invoke(progress, loadingMRITime, new LoadingText("Loading MRI ", mri.Name, " [" + (i + 1).ToString() + "/" + Visualization.Patients[0].MRIs.Count + "]"));
-                        yield return CoroutineManager.StartAsync(c_LoadBrainVolume(mri, e => exception = e));
-                    }
-                    if (exception != null)
-                    {
-                        outPut(exception);
-                        yield break;
+                        await LoadBrainVolumeAsync(mri);
                     }
                 }
             }
@@ -1990,14 +1967,9 @@ namespace HBP.Data.Module3D
                         MRI mri = patient.MRIs[i];
                         progress += loadingMeshProgress;
                         onChangeProgress.Invoke(progress, loadingMRITime, new LoadingText("Loading MRI ", string.Format("{0} ({1})", mri.Name, patient.Name), " [" + (i + 1).ToString() + "/" + patient.MRIs.Count + "]"));
-                        yield return Ninja.JumpBack;
+                        await new WaitForBackgroundThread();
                         m_MRIManager.AddPreloaded(mri, patient);
-                        yield return Ninja.JumpToUnity;
-                    }
-                    if (exception != null)
-                    {
-                        outPut(exception);
-                        yield break;
+                        await new WaitForUpdate();
                     }
                 }
             }
@@ -2005,22 +1977,12 @@ namespace HBP.Data.Module3D
             // Loading Sites
             progress += loadingImplantationsProgress;
             onChangeProgress.Invoke(progress, loadingImplantationsTime, new LoadingText("Loading implantations"));
-            yield return CoroutineManager.StartAsync(c_LoadSites(visualization.Patients.ToArray(), e => exception = e));
-            if (exception != null)
-            {
-                outPut(exception);
-                yield break;
-            }
+            await LoadSitesAsync(visualization.Patients.ToArray());
 
             // Loading Columns
             progress += loadingIEEGProgress;
             onChangeProgress.Invoke(progress, loadingIEEGTime, new LoadingText("Loading columns"));
-            yield return CoroutineManager.StartAsync(c_LoadColumns(e => exception = e));
-            if (exception != null)
-            {
-                outPut(exception);
-                yield break;
-            }
+            await LoadColumnsAsync();
 
             // Finalization
             foreach (Column3D column in Columns)
@@ -2028,7 +1990,6 @@ namespace HBP.Data.Module3D
                 column.InitializeColumnMeshes(m_DisplayedObjects.Brain);
             }
             OnUpdateCameraTarget.Invoke(m_MeshManager.SelectedMesh.Both.Center);
-            outPut(exception);
         }
         /// <summary>
         /// Load a MRI to the scene
@@ -2036,8 +1997,9 @@ namespace HBP.Data.Module3D
         /// <param name="mri">MRI to load</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_LoadBrainVolume(MRI mri, Action<Exception> outPut)
+        private async Task LoadBrainVolumeAsync(MRI mri)
         {
+            await new WaitForBackgroundThread();
             try
             {
                 m_MRIManager.Add(mri);
@@ -2045,9 +2007,9 @@ namespace HBP.Data.Module3D
             catch (Exception e)
             {
                 Debug.LogException(e);
-                outPut(new CanNotLoadNIIFile(mri.File));
-                yield break;
+                throw new CanNotLoadNIIFile(mri.File);
             }
+            await new WaitForUpdate();
         }
         /// <summary>
         /// Load a mesh to the scene
@@ -2055,8 +2017,9 @@ namespace HBP.Data.Module3D
         /// <param name="mesh">Mesh to be loaded</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_LoadBrainSurface(BaseMesh mesh, Action<Exception> outPut)
+        private async Task LoadBrainSurfaceAsync(BaseMesh mesh)
         {
+            await new WaitForBackgroundThread();
             try
             {
                 m_MeshManager.Add(mesh);
@@ -2064,10 +2027,9 @@ namespace HBP.Data.Module3D
             catch (Exception e)
             {
                 Debug.LogException(e);
-                outPut(new CanNotLoadGIIFile(mesh.Name));
-                yield break;
+                throw new CanNotLoadGIIFile(mesh.Name);
             }
-            yield return true;
+            await new WaitForUpdate();
         }
         /// <summary>
         /// Load the implantation files to the scene
@@ -2077,11 +2039,12 @@ namespace HBP.Data.Module3D
         /// <param name="updateCircle">Action to update the loading circle</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_LoadSites(IEnumerable<Patient> patients, Action<Exception> outPut)
+        private async Task LoadSitesAsync(IEnumerable<Patient> patients)
         {
-            Dictionary<string, List<Implantation3D.SiteInfo>> siteInfoByImplantation = new Dictionary<string, List<Implantation3D.SiteInfo>>();
+            await new WaitForBackgroundThread();
+            Dictionary<string, List<Implantation3D.SiteInfo>> siteInfoByImplantation = new();
             int patientIndex = 0;
-            System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"^([a-zA-Z']+)([0-9]+)$");
+            System.Text.RegularExpressions.Regex regex = new(@"^([a-zA-Z']+)([0-9]+)$");
             foreach (var patient in patients)
             {
                 int siteIndex = 0;
@@ -2095,7 +2058,7 @@ namespace HBP.Data.Module3D
                             siteInfoByImplantation.Add(coordinate.ReferenceSystem, siteInfos);
                         }
                         System.Text.RegularExpressions.GroupCollection groups = regex.Match(site.Name).Groups;
-                        Implantation3D.SiteInfo siteInfo = new Implantation3D.SiteInfo()
+                        Implantation3D.SiteInfo siteInfo = new()
                         {
                             Name = site.Name,
                             Position = coordinate.Position.ToVector3(),
@@ -2117,77 +2080,55 @@ namespace HBP.Data.Module3D
                 m_ImplantationManager.Add(kv.Key, kv.Value, patients);
             }
             
-            yield return Ninja.JumpToUnity;
+            await new WaitForUpdate();
+            UnityEngine.Profiling.Profiler.BeginSample("SelectImplantation");
             m_ImplantationManager.Select("");
-            yield return Ninja.JumpBack;
+            UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
         /// Copy the MNI objects references to this scene
         /// </summary>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_LoadMNIObjects(Action<Exception> outPut)
+        private async Task LoadMNIObjectsAsync()
         {
-            try
-            {
-                m_MeshManager.Meshes.Add((LeftRightMesh3D)(Object3DManager.MNI.GreyMatter.Clone()));
-                m_MeshManager.Meshes.Add((LeftRightMesh3D)(Object3DManager.MNI.WhiteMatter.Clone()));
-                m_MeshManager.Meshes.Add((LeftRightMesh3D)(Object3DManager.MNI.InflatedWhiteMatter.Clone()));
-                m_MRIManager.MRIs.Add(Object3DManager.MNI.MRI);
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                outPut(new CanNotLoadMNI());
-                yield break;
-            }
+            await new WaitForBackgroundThread();
+            m_MeshManager.Meshes.Add((LeftRightMesh3D)(Object3DManager.MNI.GreyMatter.Clone()));
+            m_MeshManager.Meshes.Add((LeftRightMesh3D)(Object3DManager.MNI.WhiteMatter.Clone()));
+            m_MeshManager.Meshes.Add((LeftRightMesh3D)(Object3DManager.MNI.InflatedWhiteMatter.Clone()));
+            m_MRIManager.MRIs.Add(Object3DManager.MNI.MRI);
+
+            await new WaitForUpdate();
         }
         /// <summary>
         /// Load the iEEG values to the columns
         /// </summary>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_LoadColumns(Action<Exception> outPut)
+        private async Task LoadColumnsAsync()
         {
-            yield return Ninja.JumpToUnity;
-            try
-            {
-                foreach (Column column in Visualization.Columns)
-                {
-                    AddColumn(column);
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                outPut(e);
-                yield break;
-            }
-            yield return Ninja.JumpBack;
+            UnityEngine.Profiling.Profiler.BeginSample("LoadColumnsAsync");
+            foreach (Column column in Visualization.Columns)
+                AddColumn(column);
+            UnityEngine.Profiling.Profiler.EndSample();
 
-            try
-            {
-                foreach (var column in Columns)
-                {
-                    column.ComputeActivityData();
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                outPut(e);
-                yield break;
-            }
+            await new WaitForBackgroundThread();
+            foreach (var column in Columns)
+                column.ComputeActivityData();
+
+            await new WaitForUpdate();
         }
         /// <summary>
         /// Load missing anatomy if not preloaded
         /// </summary>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_LoadMissingAnatomy()
+        private async void LoadMissingAnatomy()
         {
-            yield return Ninja.JumpBack;
-            m_MeshManager.LoadMissing();
-            m_MRIManager.LoadMissing();
+            await Task.Run(() =>
+            {
+                m_MeshManager.LoadMissing();
+                m_MRIManager.LoadMissing();
+            });
         }
         /// <summary>
         /// Start the update of the generators for the iEEG signal on the brain
@@ -2197,7 +2138,7 @@ namespace HBP.Data.Module3D
         {
             m_UpdatingGenerators = true;
             OnUpdatingGenerators.Invoke(true);
-            await new AsyncMethod(LoadActivityAsync).ExecuteAsync();
+            await LoadActivityAsync();
             m_UpdatingGenerators = false;
             OnUpdatingGenerators.Invoke(false);
 
@@ -2207,7 +2148,7 @@ namespace HBP.Data.Module3D
         /// Compute the iEEG values on the brain
         /// </summary>
         /// <returns>Coroutine return</returns>
-        private async System.Threading.Tasks.Task LoadActivityAsync(Func<float, string, System.Threading.Tasks.Task> updateProgress)
+        private async Task LoadActivityAsync()
         {
             Core.DLL.ActivityGenerator currentGenerator = null;
             string currentMessage = "";
@@ -2229,87 +2170,81 @@ namespace HBP.Data.Module3D
             }
             CancellationTokenSource source = new CancellationTokenSource();
             checkProgress(source.Token);
-            await System.Threading.Tasks.Task.Run(() =>
-            {
-                currentMessage = "Initializing";
-                for (int i = 0; i < Columns.Count; i++)
-                {
-                    Column3D column = Columns[i];
-                    currentColumn = i;
-                    currentMessage = "Loading " + column.Name;
-                    column.UpdateDLLSitesMask(m_ROIManager.SelectedROI != null);
-                    if (SceneInformation.GeneratorNeedsUpdate) return;
-                    if (column is Column3DAnatomy anatomyColumn)
-                    {
-                        Core.DLL.DensityGenerator generator = anatomyColumn.ActivityGenerator as Core.DLL.DensityGenerator;
-                        currentGenerator = generator;
-                        generator.ComputeActivity(anatomyColumn.RawElectrodes, anatomyColumn.AnatomyParameters.InfluenceDistance, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
-                    }
-                    else if (column is Column3DDynamic dynamicColumn)
-                    {
-                        Core.DLL.IEEGGenerator generator = dynamicColumn.ActivityGenerator as Core.DLL.IEEGGenerator;
-                        currentGenerator = generator;
-                        if (dynamicColumn is Column3DCCEP ccepColumn && ccepColumn.IsSourceMarsAtlasLabelSelected)
-                            generator.ComputeActivityAtlas(ccepColumn.ActivityValues, ccepColumn.Timeline.Length, ccepColumn.AreaMask, Object3DManager.MarsAtlas);
-                        else
-                            generator.ComputeActivity(dynamicColumn.RawElectrodes, dynamicColumn.DynamicParameters.InfluenceDistance, dynamicColumn.ActivityValues, dynamicColumn.Timeline.Length, dynamicColumn.RawElectrodes.NumberOfSites, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
-                        generator.AdjustValues(dynamicColumn.DynamicParameters.Middle, dynamicColumn.DynamicParameters.SpanMin, dynamicColumn.DynamicParameters.SpanMax);
-                    }
-                    else if (column is Column3DFMRI fmriColumn)
-                    {
-                        Core.DLL.FMRIGenerator generator = fmriColumn.ActivityGenerator as Core.DLL.FMRIGenerator;
-                        currentGenerator = generator;
-                        generator.ComputeActivity(fmriColumn.ColumnFMRIData.Data.FMRIs.SelectMany(fmri => fmri.Item1.Volumes));
-                        generator.AdjustValues(fmriColumn.FMRIParameters.FMRINegativeCalMinFactor, fmriColumn.FMRIParameters.FMRINegativeCalMaxFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMinFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMaxFactor);
-                    }
-                    else if (column is Column3DMEG megColumn)
-                    {
-                        Core.DLL.MEGGenerator generator = megColumn.ActivityGenerator as Core.DLL.MEGGenerator;
-                        currentGenerator = generator;
-                        generator.ComputeActivity(megColumn.ColumnMEGData.Data.MEGItems.SelectMany(fmri => fmri.FMRI.Volumes));
-                        generator.AdjustValues(megColumn.MEGParameters.FMRINegativeCalMinFactor, megColumn.MEGParameters.FMRINegativeCalMaxFactor, megColumn.MEGParameters.FMRIPositiveCalMinFactor, megColumn.MEGParameters.FMRIPositiveCalMaxFactor);
-                    }
-                    else if (column is Column3DStatic staticColumn)
-                    {
-                        Core.DLL.IEEGGenerator generator = staticColumn.ActivityGenerator as Core.DLL.IEEGGenerator;
-                        currentGenerator = generator;
-                        generator.ComputeActivity(staticColumn.RawElectrodes, staticColumn.StaticParameters.InfluenceDistance, staticColumn.ActivityValues, staticColumn.Labels.Length, staticColumn.RawElectrodes.NumberOfSites, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
-                        generator.AdjustValues(staticColumn.StaticParameters.Middle, staticColumn.StaticParameters.SpanMin, staticColumn.StaticParameters.SpanMax);
-                    }
-                    if (SceneInformation.GeneratorNeedsUpdate) return;
-                }
 
-                currentMessage = "Finalizing";
-            });
+            await new WaitForBackgroundThread();
+            currentMessage = "Initializing";
+            for (int i = 0; i < Columns.Count; i++)
+            {
+                Column3D column = Columns[i];
+                currentColumn = i;
+                currentMessage = "Loading " + column.Name;
+                column.UpdateDLLSitesMask(m_ROIManager.SelectedROI != null);
+                if (SceneInformation.GeneratorNeedsUpdate) return;
+                if (column is Column3DAnatomy anatomyColumn)
+                {
+                    Core.DLL.DensityGenerator generator = anatomyColumn.ActivityGenerator as Core.DLL.DensityGenerator;
+                    currentGenerator = generator;
+                    generator.ComputeActivity(anatomyColumn.RawElectrodes, anatomyColumn.AnatomyParameters.InfluenceDistance, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                }
+                else if (column is Column3DDynamic dynamicColumn)
+                {
+                    Core.DLL.IEEGGenerator generator = dynamicColumn.ActivityGenerator as Core.DLL.IEEGGenerator;
+                    currentGenerator = generator;
+                    if (dynamicColumn is Column3DCCEP ccepColumn && ccepColumn.IsSourceMarsAtlasLabelSelected)
+                        generator.ComputeActivityAtlas(ccepColumn.ActivityValues, ccepColumn.Timeline.Length, ccepColumn.AreaMask, Object3DManager.MarsAtlas);
+                    else
+                        generator.ComputeActivity(dynamicColumn.RawElectrodes, dynamicColumn.DynamicParameters.InfluenceDistance, dynamicColumn.ActivityValues, dynamicColumn.Timeline.Length, dynamicColumn.RawElectrodes.NumberOfSites, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                    generator.AdjustValues(dynamicColumn.DynamicParameters.Middle, dynamicColumn.DynamicParameters.SpanMin, dynamicColumn.DynamicParameters.SpanMax);
+                }
+                else if (column is Column3DFMRI fmriColumn)
+                {
+                    Core.DLL.FMRIGenerator generator = fmriColumn.ActivityGenerator as Core.DLL.FMRIGenerator;
+                    currentGenerator = generator;
+                    generator.ComputeActivity(fmriColumn.ColumnFMRIData.Data.FMRIs.SelectMany(fmri => fmri.Item1.Volumes));
+                    generator.AdjustValues(fmriColumn.FMRIParameters.FMRINegativeCalMinFactor, fmriColumn.FMRIParameters.FMRINegativeCalMaxFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMinFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMaxFactor);
+                }
+                else if (column is Column3DMEG megColumn)
+                {
+                    Core.DLL.MEGGenerator generator = megColumn.ActivityGenerator as Core.DLL.MEGGenerator;
+                    currentGenerator = generator;
+                    generator.ComputeActivity(megColumn.ColumnMEGData.Data.MEGItems.SelectMany(fmri => fmri.FMRI.Volumes));
+                    generator.AdjustValues(megColumn.MEGParameters.FMRINegativeCalMinFactor, megColumn.MEGParameters.FMRINegativeCalMaxFactor, megColumn.MEGParameters.FMRIPositiveCalMinFactor, megColumn.MEGParameters.FMRIPositiveCalMaxFactor);
+                }
+                else if (column is Column3DStatic staticColumn)
+                {
+                    Core.DLL.IEEGGenerator generator = staticColumn.ActivityGenerator as Core.DLL.IEEGGenerator;
+                    currentGenerator = generator;
+                    generator.ComputeActivity(staticColumn.RawElectrodes, staticColumn.StaticParameters.InfluenceDistance, staticColumn.ActivityValues, staticColumn.Labels.Length, staticColumn.RawElectrodes.NumberOfSites, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                    generator.AdjustValues(staticColumn.StaticParameters.Middle, staticColumn.StaticParameters.SpanMin, staticColumn.StaticParameters.SpanMax);
+                }
+                if (SceneInformation.GeneratorNeedsUpdate) return;
+            }
+            currentMessage = "Finalizing";
             source.Cancel();
+
             await new WaitForUpdate();
         }
         /// <summary>
         /// Update the colliders (cuts and brain meshes)
         /// </summary>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_UpdateMeshesColliders()
+        private async Task UpdateMeshesCollidersAsync()
         {
-            while (m_UpdatingColliders)
-            {
-                yield return new WaitForSeconds(0.05f);
-            }
-
             m_UpdatingColliders = true;
 
-            yield return Ninja.JumpBack;
-            List<Core.DLL.Surface> cuts;
+            await new WaitForBackgroundThread();
+            List<Core.DLL.Surface> cuts = new();
             if (Cuts.Count > 0) cuts = new List<Core.DLL.Surface>(MeshManager.SimplifiedMeshToUse.Cut(Cuts.ToArray(), false, StrongCuts));
             else cuts = new List<Core.DLL.Surface>() { (Core.DLL.Surface)MeshManager.SimplifiedMeshToUse.Clone() };
-            yield return Ninja.JumpToUnity;
 
+            await new WaitForUpdate();
             cuts[0].UpdateMeshFromDLL(m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().mesh);
-            yield return Ninja.JumpBack;
+
+            await new WaitForBackgroundThread();
             foreach (var cut in cuts)
-            {
                 cut.Dispose();
-            }
-            yield return Ninja.JumpToUnity;
+
+            await new WaitForUpdate();
             m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = null;
             if (m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().sharedMesh.triangles.Length > 0)
                 m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().sharedMesh;
@@ -2317,11 +2252,9 @@ namespace HBP.Data.Module3D
             // update cuts colliders
             for (int ii = 0; ii < m_DisplayedObjects.BrainCutMeshes.Count; ++ii)
             {
-                yield return Ninja.JumpToUnity;
                 m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshCollider>().sharedMesh = null;
                 if (m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh.triangles.Length > 0)
                     m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh;
-                yield return Ninja.JumpBack;
             }
 
             m_UpdatingColliders = false;
@@ -2330,14 +2263,14 @@ namespace HBP.Data.Module3D
         /// Coroutine triggered when destroying the scene (waiting for generators to be updated before completely destroying the scene)
         /// </summary>
         /// <returns>Coroutine return</returns>
-        public IEnumerator c_Destroy()
+        public async void Clean()
         {
             SceneInformation.GeneratorNeedsUpdate = true;
             m_DestroyRequested = true;
-            yield return new WaitUntil(delegate { return !m_UpdatingGenerators; });
+            await new WaitUntil(() => !m_UpdatingGenerators);
             Visualization.Unload();
             Destroy(gameObject);
-            Resources.UnloadUnusedAssets();
+            await Resources.UnloadUnusedAssets();
             // Clean Meshes
             foreach (var mesh in m_MeshManager.Meshes)
             {

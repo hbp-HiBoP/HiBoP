@@ -73,7 +73,7 @@ namespace HBP.Core.Data
             }
             set
             {
-                m_PatientID = value != null ? value.ID : "";
+                if (value != null) m_PatientID = value.ID;
                 m_Patient = value;
                 m_PatientErrors = GetPatientErrors();
             }

@@ -7,21 +7,15 @@ namespace HBP.Core.Tools
     public class AsyncMethod
     {
         #region Properties
-        private readonly Func<Func<float, string, Task>, Task> m_TaskToExecute;
-
-        private float m_Progress;
-        public float Progress => m_Progress;
-
-        private string m_Message;
-        public string Message => m_Message;
+        private readonly Func<Action<float, float, LoadingText>, Task> m_TaskToExecute;
         #endregion
 
         #region Events
-        public GenericEvent<float, string> OnUpdateProgress = new();
+        public GenericEvent<float, float, LoadingText> OnUpdateProgress = new();
         #endregion
 
         #region Constructors
-        public AsyncMethod(Func<Func<float, string, Task>, Task> taskToExecute)
+        public AsyncMethod(Func<Action<float, float, LoadingText>, Task> taskToExecute)
         {
             m_TaskToExecute = taskToExecute;
         }
@@ -35,12 +29,9 @@ namespace HBP.Core.Tools
         #endregion
 
         #region Private Methods
-        private async Task UpdateProgressAsync(float progress, string message)
+        private void UpdateProgressAsync(float progress, float duration, LoadingText message)
         {
-            m_Progress = progress;
-            m_Message = message;
-            OnUpdateProgress.Invoke(m_Progress, m_Message);
-            await Task.Yield();
+            OnUpdateProgress.Invoke(progress, duration, message);
         }
         #endregion
     }

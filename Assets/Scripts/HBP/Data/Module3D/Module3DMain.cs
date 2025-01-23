@@ -172,7 +172,7 @@ namespace HBP.Data.Module3D
         #region Private Methods
         protected override void Initialization()
         {
-            this.StartCoroutineAsync(c_Preload3D());
+            Preload3D();
         }
         void OnDestroy()
         {
@@ -187,8 +187,7 @@ namespace HBP.Data.Module3D
         /// <param name="visualizations">Visualizations to be loaded</param>
         public static void LoadScenes(IEnumerable<Visualization> visualizations)
         {
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            LoadingManager.Load(c_Load(visualizations, (progress, duration, text) => onChangeProgress.Invoke(progress, duration,text)), onChangeProgress);
+            LoadingManager.Load((update) => LoadAsync(visualizations, update));
         }
         /// <summary>
         /// Remove every scenes corresponding to a visualization
@@ -210,7 +209,7 @@ namespace HBP.Data.Module3D
         {
             OnRemoveScene.Invoke(scene);
             m_Instance.m_Scenes.Remove(scene);
-            m_Instance.StartCoroutine(scene.c_Destroy());
+            scene.Clean();
         }
         /// <summary>
         /// Load a single patient scene extracted from a visualization
@@ -283,10 +282,9 @@ namespace HBP.Data.Module3D
         /// </summary>
         /// <param name="visualizations">Visualizations to be loaded</param>
         /// <returns></returns>
-        public static IEnumerator c_Load(IEnumerable<Visualization> visualizations, Action<float,float, LoadingText> onChangeProgress)
+        public static async System.Threading.Tasks.Task LoadAsync(IEnumerable<Visualization> visualizations, Action<float, float, LoadingText> onChangeProgress)
         {
-            yield return Ninja.JumpBack;
-
+            await new WaitForBackgroundThread();
             Dictionary<Visualization, int> weightByVisualization = visualizations.ToDictionary(v => v, v => (v.CCEPColumns.Count + v.IEEGColumns.Count) * v.Patients.Count + v.AnatomicColumns.Count + v.FMRIColumns.Count + v.MEGColumns.Count + v.StaticColumns.Count);
             int totalWeight = weightByVisualization.Values.Sum();
             float progress = 0;
@@ -294,26 +292,21 @@ namespace HBP.Data.Module3D
             const float LOADING_SCENE_PROGRESS = 0.5f;
             foreach (Visualization visualization in visualizations)
             {
-                float visualizationWeight = (float)weightByVisualization[visualization] / totalWeight;
-                if (!visualization.IsVisualizable) throw new CanNotLoadVisualization(visualization.Name);
-
-                yield return Ninja.JumpToUnity;
-                yield return m_Instance.StartCoroutineAsync(visualization.c_Load((localProgress, duration, text) => onChangeProgress(progress + localProgress * visualizationWeight * LOADING_VISUALIZATION_PROGRESS, duration, text)), out Task visualizationLoadingTask);
-
-                if (visualizationLoadingTask.State == TaskState.Done)
+                try
                 {
-                    yield return m_Instance.StartCoroutineAsync(c_LoadScene(visualization, (localProgress, duration, text) => onChangeProgress(progress + (LOADING_VISUALIZATION_PROGRESS + localProgress * LOADING_SCENE_PROGRESS) * visualizationWeight, duration, text)), out Task sceneLoadingTask);
-                    if (sceneLoadingTask.State == TaskState.Error)
-                    {
-                        visualization.Unload();
-                        throw sceneLoadingTask.Exception;
-                    }
+                    float visualizationWeight = (float)weightByVisualization[visualization] / totalWeight;
+                    if (!visualization.IsVisualizable) throw new CanNotLoadVisualization(visualization.Name);
+                    await new WaitForUpdate();
+                    await visualization.LoadAsync((localProgress, duration, text) => onChangeProgress(progress + localProgress * visualizationWeight * LOADING_VISUALIZATION_PROGRESS, duration, text));
+                    await LoadSceneAsync(visualization, (localProgress, duration, text) => onChangeProgress(progress + (LOADING_VISUALIZATION_PROGRESS + localProgress * LOADING_SCENE_PROGRESS) * visualizationWeight, duration, text));
+                    progress += visualizationWeight;
                 }
-                else
+                catch (Exception e)
                 {
-                    throw visualizationLoadingTask.Exception;
+                    Debug.LogException(e);
+                    visualization.Unload();
+                    throw e;
                 }
-                progress += visualizationWeight;
             }
             OnFinishedAddingNewScenes.Invoke();
         }
@@ -323,52 +316,31 @@ namespace HBP.Data.Module3D
         /// <param name="visualization">Visualization to be loaded</param>
         /// <param name="onChangeProgress">Event to update the loading circle</param>
         /// <returns></returns>
-        private static IEnumerator c_LoadScene(Visualization visualization, Action<float, float, LoadingText> onChangeProgress)
+        private static async System.Threading.Tasks.Task LoadSceneAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress)
         {
-            yield return Ninja.JumpBack;
-
-            Exception exception = null;
-
-            yield return Ninja.JumpToUnity;
             Base3DScene scene = Instantiate(m_Instance.m_ScenePrefab, m_Instance.m_ScenesParent).GetComponent<Base3DScene>();
             scene.Initialize(visualization);
-            yield return CoroutineManager.StartAsync(scene.c_Initialize(visualization, onChangeProgress, (e) => exception = e));
-            if (exception == null)
+            await scene.InitializeAsync(visualization, onChangeProgress);
+            // Add the listeners
+            scene.OnSelect.AddListener(() =>
             {
-                try
+                foreach (Base3DScene s in m_Instance.m_Scenes)
                 {
-                    // Add the listeners
-                    scene.OnSelect.AddListener(() =>
+                    if (s != scene)
                     {
-                        foreach (Base3DScene s in m_Instance.m_Scenes)
-                        {
-                            if (s != scene)
-                            {
-                                s.IsSelected = false;
-                            }
-                        }
-                    });
-                    // Add the scene to the list
-                    m_Instance.m_Scenes.Add(scene);
-                    scene.FinalizeInitialization();
-                    OnAddScene.Invoke(scene);
-                    scene.LoadConfiguration();
+                        s.IsSelected = false;
+                    }
                 }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    exception = e;
-                }
-            }
-            else
-            {
-                throw exception;
-            }
+            });
+            // Add the scene to the list
+            m_Instance.m_Scenes.Add(scene);
+            scene.FinalizeInitialization();
+            OnAddScene.Invoke(scene);
+            scene.LoadConfiguration();
         }
 
-        private static IEnumerator c_Preload3D()
+        private static async void Preload3D()
         {
-            yield return Ninja.JumpToUnity;
             // Graphic Settings
             QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
             QualitySettings.antiAliasing = 8;
@@ -377,7 +349,7 @@ namespace HBP.Data.Module3D
             UI.Module3D.AdvancedSiteConditionStrings.LoadConditions();
 
             // Objects 3D
-            yield return Ninja.JumpBack;
+            await new WaitForBackgroundThread();
             Object3DManager.MNI.Load();
             if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo64) Object3DManager.DiFuMo.Load("64");
             if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo128) Object3DManager.DiFuMo.Load("128");
