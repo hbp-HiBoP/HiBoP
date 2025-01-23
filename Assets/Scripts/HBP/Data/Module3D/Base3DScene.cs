@@ -13,6 +13,7 @@ using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Core.Object3D;
 using HBP.Data.Preferences;
+using System.Threading;
 
 namespace HBP.Data.Module3D
 {
@@ -2212,39 +2213,22 @@ namespace HBP.Data.Module3D
             string currentMessage = "";
             int currentColumn = 0;
             int numberOfColumns = Columns.Count;
-            async void checkProgress()
+            async void checkProgress(CancellationToken cancellationToken)
             {
                 while (true)
                 {
-                    if (SceneInformation.GeneratorNeedsUpdate) return;
+                    if (cancellationToken.IsCancellationRequested) return;
                     float currentProgress = 0;
                     if (currentGenerator != null)
                     {
                         currentProgress = ((float)currentColumn / numberOfColumns) + (currentGenerator.Progress / numberOfColumns);
                     }
-                    Debug.Log(currentProgress);
                     OnProgressUpdateGenerator.Invoke(currentProgress, currentMessage);
                     await new WaitForSeconds(0.05f);
                 }
             }
-            checkProgress();
-            //IEnumerator checkProgress()
-            //{
-            //    while(true)
-            //    {
-            //        if (SceneInformation.GeneratorNeedsUpdate) yield break;
-            //        float currentProgress = 0;
-            //        if (currentGenerator != null)
-            //        {
-            //            currentProgress = ((float)currentColumn / numberOfColumns) + (currentGenerator.Progress / numberOfColumns);
-            //        }
-            //        OnProgressUpdateGenerator.Invoke(currentProgress, currentMessage, 0.05f);
-            //        yield return new WaitForSeconds(0.05f);
-            //    }
-            //}
-            //yield return Ninja.JumpToUnity;
-            //Coroutine coroutine = this.StartCoroutineAsync(checkProgress());
-            //yield return Ninja.JumpBack;
+            CancellationTokenSource source = new CancellationTokenSource();
+            checkProgress(source.Token);
             await System.Threading.Tasks.Task.Run(() =>
             {
                 currentMessage = "Initializing";
@@ -2297,10 +2281,8 @@ namespace HBP.Data.Module3D
 
                 currentMessage = "Finalizing";
             });
+            source.Cancel();
             await new WaitForUpdate();
-            //yield return Ninja.JumpToUnity;
-            //StopCoroutine(coroutine);
-            //yield return new WaitForSeconds(0.1f);
         }
         /// <summary>
         /// Update the colliders (cuts and brain meshes)
