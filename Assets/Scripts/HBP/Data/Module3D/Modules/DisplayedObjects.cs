@@ -121,7 +121,7 @@ namespace HBP.Data.Module3D
         /// Instantiate all the gameObjects representing the sites on the scene
         /// </summary>
         /// <param name="implantation">Implantation to be instantiated</param>
-        public async Task InstantiateImplantationAsync(Core.Object3D.Implantation3D implantation)
+        public void InstantiateImplantation(Core.Object3D.Implantation3D implantation)
         {
             foreach (Transform sitePatient in m_SitesMeshesParent)
             {
@@ -152,7 +152,7 @@ namespace HBP.Data.Module3D
                 // Instantiate sites
                 foreach (var siteInfo in implantation.GetSitesOfPatient(patient))
                 {
-                    GameObject siteGameObject = (await InstantiateAsync(m_SitePrefab, electrodeTransforms[siteInfo.Electrode]))[0]; // FIX THIS
+                    GameObject siteGameObject = Instantiate(m_SitePrefab, electrodeTransforms[siteInfo.Electrode]);
                     siteGameObject.name = siteInfo.Name;
 
                     siteGameObject.transform.localPosition = siteInfo.UnityPosition;
