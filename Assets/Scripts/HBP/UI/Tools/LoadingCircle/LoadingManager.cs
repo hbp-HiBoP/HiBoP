@@ -22,6 +22,25 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Public Methods
+        public static async System.Threading.Tasks.Task<T> LoadAsync<T>(Func<Action<float, float, LoadingText>, System.Threading.Tasks.Task<T>> taskToExecute)
+        {
+            AsyncMethod<T> method = new(taskToExecute);
+            m_Instance.m_LoadingCircle.Open();
+            method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.m_LoadingCircle.ChangePercentage(progress, 0, message));
+            try
+            {
+                return await method.ExecuteAsync();
+            }
+            catch (Exception e)
+            {
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, e.ToString(), e.Message);
+                return default;
+            }
+            finally
+            {
+                m_Instance.m_LoadingCircle.Close();
+            }
+        }
         public static async void Load(Func<Action<float, float, LoadingText>, System.Threading.Tasks.Task> taskToExecute)
         {
             AsyncMethod method = new AsyncMethod(taskToExecute);

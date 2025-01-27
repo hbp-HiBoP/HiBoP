@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace HBP.Core.Object3D
 {
@@ -37,32 +38,47 @@ namespace HBP.Core.Object3D
 
         #region Properties
         public List<Labels> AllLabels { get; } = new List<Labels>();
+        public bool Loaded { get; private set; } = false;
+        public bool Loading { get; private set; } = false;
         #endregion
 
         #region Constructors
         public DiFuMoInformation(string csvFile)
         {
-            Regex csvParser = new Regex(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
-            if (new FileInfo(csvFile).Exists)
+            LoadAsync(csvFile);
+        }
+        #endregion
+
+        #region Private Methods
+        private async void LoadAsync(string csvFile)
+        {
+            await Task.Run(() =>
             {
-                using (StreamReader sr = new StreamReader(csvFile))
+                Loading = true;
+                Regex csvParser = new Regex(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
+                if (new FileInfo(csvFile).Exists)
                 {
-                    string line = sr.ReadLine();
-                    while (!string.IsNullOrEmpty(line = sr.ReadLine()))
+                    using (StreamReader sr = new StreamReader(csvFile))
                     {
-                        string[] splits = csvParser.Split(line);
-                        int component = splits.Length > 0 ? int.Parse(splits[0]) - 1 : 0;
-                        string name = splits.Length > 1 ? splits[1].TrimStart(' ', '"').TrimEnd('"') : "";
-                        string yeoNetworks7 = splits.Length > 2 ? splits[2].TrimStart(' ', '"').TrimEnd('"') : "";
-                        string yeoNetworks17 = splits.Length > 3 ? splits[3].TrimStart(' ', '"').TrimEnd('"') : "";
-                        float gm = splits.Length > 4 && NumberExtension.TryParseFloat(splits[4], out float gmValue) ? gmValue : 0;
-                        float wm = splits.Length > 5 && NumberExtension.TryParseFloat(splits[5], out float wmValue) ? wmValue : 0;
-                        float csf = splits.Length > 6 && NumberExtension.TryParseFloat(splits[6], out float csfValue) ? csfValue : 0;
-                        AllLabels.Add(new Labels(component, name, yeoNetworks7, yeoNetworks17, gm, wm, csf));
+                        string line = sr.ReadLine();
+                        while (!string.IsNullOrEmpty(line = sr.ReadLine()))
+                        {
+                            string[] splits = csvParser.Split(line);
+                            int component = splits.Length > 0 ? int.Parse(splits[0]) - 1 : 0;
+                            string name = splits.Length > 1 ? splits[1].TrimStart(' ', '"').TrimEnd('"') : "";
+                            string yeoNetworks7 = splits.Length > 2 ? splits[2].TrimStart(' ', '"').TrimEnd('"') : "";
+                            string yeoNetworks17 = splits.Length > 3 ? splits[3].TrimStart(' ', '"').TrimEnd('"') : "";
+                            float gm = splits.Length > 4 && NumberExtension.TryParseFloat(splits[4], out float gmValue) ? gmValue : 0;
+                            float wm = splits.Length > 5 && NumberExtension.TryParseFloat(splits[5], out float wmValue) ? wmValue : 0;
+                            float csf = splits.Length > 6 && NumberExtension.TryParseFloat(splits[6], out float csfValue) ? csfValue : 0;
+                            AllLabels.Add(new Labels(component, name, yeoNetworks7, yeoNetworks17, gm, wm, csf));
+                        }
                     }
+                    AllLabels.Sort(delegate (Labels a, Labels b) { return a.Component.CompareTo(b.Component); });
                 }
-                AllLabels.Sort(delegate (Labels a, Labels b) { return a.Component.CompareTo(b.Component); });
-            }
+                Loading = false;
+                Loaded = true;
+            });
         }
         #endregion
 

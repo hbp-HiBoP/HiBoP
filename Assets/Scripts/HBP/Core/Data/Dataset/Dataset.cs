@@ -14,6 +14,7 @@ using HBP.Core.Interfaces;
 using HBP.Core.Tools;
 using HBP.Data.Database;
 using UnityEngine;
+using System.Threading.Tasks;
 
 namespace HBP.Core.Data
 {
@@ -294,7 +295,7 @@ namespace HBP.Core.Data
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogException(e);
+                Debug.LogException(e);
                 throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(path));
             }
         }
@@ -456,12 +457,12 @@ namespace HBP.Core.Data
         /// Coroutine to load datasets from database. Implementation of ILoadableFromDatabase.
         /// </summary>
         /// <param name="path">The specified path of the dataset file.</param>
-        /// <param name="OnChangeProgress">Action called on change progress.</param>
+        /// <param name="update">Action called on change progress.</param>
         /// <param name="result">The datasets loaded.</param>
         /// <returns></returns>
-        public static IEnumerator c_LoadFromDatabase(Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Dataset>> result)
+        private static async Task<IEnumerable<Dataset>> LoadFromDatabaseAsync(Action<float, float, LoadingText> update)
         {
-            yield return new WaitUntil(() => DatabaseManager.Database.IsLoaded);
+            await new WaitUntil(() => DatabaseManager.Database.IsLoaded);
 
             List<Dataset> datasets = DatabaseManager.Database.Datasets.DeepClone().ToList();
             foreach (var dataset in datasets)
@@ -480,8 +481,7 @@ namespace HBP.Core.Data
                 }
                 dataset.RemoveData(dataToDelete);
             }
-            yield return Ninja.JumpToUnity;
-            result(datasets);
+            return datasets;
         }
         #endregion
 
@@ -559,11 +559,9 @@ namespace HBP.Core.Data
             result = new Dataset[] { dataset };
             return success;
         }
-        IEnumerator ILoadableFromDatabase<Dataset>.LoadFromDatabase(Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Dataset>> result)
+        async Task<IEnumerable<Dataset>> ILoadableFromDatabase<Dataset>.LoadFromDatabase(Action<float, float, LoadingText> updateProgress)
         {
-            yield return Ninja.JumpToUnity;
-            yield return CoroutineManager.StartAsync(c_LoadFromDatabase(OnChangeProgress, result));
-            yield return Ninja.JumpBack;
+            return await LoadFromDatabaseAsync(updateProgress);
         }
         #endregion
     }

@@ -1,5 +1,4 @@
-﻿using ThirdParty.CielaSpike;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -12,6 +11,7 @@ using HBP.Core.Tools;
 using HBP.Data.Preferences;
 using HBP.Data.Database;
 using UnityEngine;
+using System.Threading.Tasks;
 
 namespace HBP.Core.Data
 {
@@ -585,32 +585,32 @@ namespace HBP.Core.Data
         /// <param name="OnChangeProgress">Action called on change progress.</param>
         /// <param name="result">The patients loaded.</param>
         /// <returns></returns>
-        public static IEnumerator c_LoadFromDatabase(Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Patient>> result)
+        public static async Task<IEnumerable<Patient>> LoadFromDatabaseAsync(Action<float, float, LoadingText> updateProgress)
         {
-            yield return new WaitUntil(() => DatabaseManager.Database.IsLoaded);
-            yield return Ninja.JumpToUnity;
-            result(DatabaseManager.Database.Patients);
+            await new WaitUntil(() => DatabaseManager.Database.IsLoaded);
+            return DatabaseManager.Database.Patients;
         }
         /// <summary>
         /// Coroutine to load patients from database. Implementation of ILoadableFromDatabase.
         /// </summary>
         /// <param name="paths">The specified path of the patient file.</param>
-        /// <param name="OnChangeProgress">Action called on change progress.</param>
+        /// <param name="updateProgress">Action called on change progress.</param>
         /// <param name="result">The patients loaded.</param>
         /// <returns></returns>
-        public static IEnumerator c_LoadFromDirectory(string[] paths, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Patient>> result)
+        public static async Task<IEnumerable<Patient>> LoadFromDirectoryAsync(string[] paths, Action<float, float, LoadingText> updateProgress)
         {
-            yield return Ninja.JumpBack;
             List<Patient> patients = new List<Patient>(paths.Length);
-            foreach (var path in paths)
+            await Task.Run(() =>
             {
-                if(LoadFromDirectory(path, out Patient patient))
+                foreach (var path in paths)
                 {
-                    patients.Add(patient);
+                    if (LoadFromDirectory(path, out Patient patient))
+                    {
+                        patients.Add(patient);
+                    }
                 }
-            }
-            yield return Ninja.JumpToUnity;
-            result(patients);
+            });
+            return patients;
         }
         #endregion
 
@@ -668,17 +668,13 @@ namespace HBP.Core.Data
             result = new Patient[] { patient };
             return success;
         }
-        IEnumerator ILoadableFromDatabase<Patient>.LoadFromDatabase(Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Patient>> result)
+        async Task<IEnumerable<Patient>> ILoadableFromDatabase<Patient>.LoadFromDatabase(Action<float, float, LoadingText> updateProgress)
         {
-            yield return Ninja.JumpToUnity;
-            yield return CoroutineManager.StartAsync(c_LoadFromDatabase(OnChangeProgress, result));
-            yield return Ninja.JumpBack;
+            return await LoadFromDatabaseAsync(updateProgress);
         }
-        IEnumerator ILoadableFromDirectory<Patient>.LoadFromDirectory(string[] paths, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Patient>> result)
+        async Task<IEnumerable<Patient>> ILoadableFromDirectory<Patient>.LoadFromDirectory(string[] paths, Action<float, float, LoadingText> updateProgress)
         {
-            yield return Ninja.JumpToUnity;
-            yield return CoroutineManager.StartAsync(c_LoadFromDirectory(paths, OnChangeProgress, result));
-            yield return Ninja.JumpBack;
+            return await LoadFromDirectoryAsync(paths, updateProgress);
         }
         #endregion
 

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace HBP.Core.Object3D
 {
@@ -40,30 +41,45 @@ namespace HBP.Core.Object3D
 
         #region Properties
         public List<Labels> AllLabels { get; } = new List<Labels>();
+        public bool Loaded { get; private set; } = false;
+        public bool Loading { get; private set; } = false;
         #endregion
 
         #region Constructors
         public IBCInformation(string csvFile)
         {
-            Regex csvParser = new Regex(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
-            if (new FileInfo(csvFile).Exists)
+            LoadAsync(csvFile);
+        }
+        #endregion
+
+        #region Private Methods
+        private async void LoadAsync(string csvFile)
+        {
+            await Task.Run(() =>
             {
-                using (StreamReader sr = new StreamReader(csvFile))
+                Loading = true;
+                Regex csvParser = new Regex(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
+                if (new FileInfo(csvFile).Exists)
                 {
-                    string line = sr.ReadLine();
-                    while (!string.IsNullOrEmpty(line = sr.ReadLine()))
+                    using (StreamReader sr = new StreamReader(csvFile))
                     {
-                        string[] splits = csvParser.Split(line);
-                        int index = splits.Length > 0 ? int.Parse(splits[0]) - 1 : 0;
-                        string task = splits.Length > 1 ? splits[1].TrimStart(' ', '"').TrimEnd('"') : "";
-                        string contrast = splits.Length > 2 ? splits[2].TrimStart(' ', '"').TrimEnd('"') : "";
-                        string prettyName = splits.Length > 3 ? splits[3].TrimStart(' ', '"').TrimEnd('"') : "";
-                        string controlCondition = splits.Length > 4 ? splits[4].TrimStart(' ', '"').TrimEnd('"') : "";
-                        string targetCondition = splits.Length > 5 ? splits[5].TrimStart(' ', '"').TrimEnd('"') : "";
-                        AllLabels.Add(new Labels(index, task, contrast, prettyName, controlCondition, targetCondition));
+                        string line = sr.ReadLine();
+                        while (!string.IsNullOrEmpty(line = sr.ReadLine()))
+                        {
+                            string[] splits = csvParser.Split(line);
+                            int index = splits.Length > 0 ? int.Parse(splits[0]) - 1 : 0;
+                            string task = splits.Length > 1 ? splits[1].TrimStart(' ', '"').TrimEnd('"') : "";
+                            string contrast = splits.Length > 2 ? splits[2].TrimStart(' ', '"').TrimEnd('"') : "";
+                            string prettyName = splits.Length > 3 ? splits[3].TrimStart(' ', '"').TrimEnd('"') : "";
+                            string controlCondition = splits.Length > 4 ? splits[4].TrimStart(' ', '"').TrimEnd('"') : "";
+                            string targetCondition = splits.Length > 5 ? splits[5].TrimStart(' ', '"').TrimEnd('"') : "";
+                            AllLabels.Add(new Labels(index, task, contrast, prettyName, controlCondition, targetCondition));
+                        }
                     }
                 }
-            }
+                Loading = false;
+                Loaded = true;
+            });
         }
         #endregion
 

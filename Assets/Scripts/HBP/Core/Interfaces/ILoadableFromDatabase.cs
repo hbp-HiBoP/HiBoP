@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using HBP.Core.Tools;
 
 namespace HBP.Core.Interfaces
 {
     public interface ILoadableFromDatabase<T>
     {
-        IEnumerator LoadFromDatabase(Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<T>> result);
+        Task<IEnumerable<T>> LoadFromDatabase(Action<float, float, LoadingText> updateProgress);
     }
 }

@@ -32,11 +32,11 @@ namespace HBP.UI.Main.QuickStart
             m_NotBIDS.onValueChanged.AddListener(m_NotBIDSPanel.gameObject.SetActive);
             m_BIDSFolderSelector.onEndEdit.AddListener(LoadBIDSDatabase);
         }
-        private void LoadBIDSDatabase(string path)
+        private async void LoadBIDSDatabase(string path)
         {
             ILoadableFromDatabase<Patient> loadable = new Patient();
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            LoadingManager.Load(loadable.LoadFromDatabase((progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => FinishedLoadingBIDSDatabase(result)), onChangeProgress);
+            var result = await LoadingManager.LoadAsync(update => loadable.LoadFromDatabase(update));
+            FinishedLoadingBIDSDatabase(result);
         }
         private void FinishedLoadingBIDSDatabase(IEnumerable<Patient> patients)
         {

@@ -6,7 +6,6 @@ using UnityEngine.Events;
 using HBP.Core.Enums;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
-using System.IO;
 
 namespace HBP.UI.Tools
 {
@@ -210,11 +209,12 @@ namespace HBP.UI.Tools
         /// <summary>
         /// Create a new object from a database.
         /// </summary>
-        public virtual void CreateFromDatabase()
+        public async virtual void CreateFromDatabase()
         {
             ILoadableFromDatabase<T> loadable = new T() as ILoadableFromDatabase<T>;
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            LoadingManager.Load(loadable.LoadFromDatabase((progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => OnEndLoadFromDatabase(result.ToArray())), onChangeProgress);
+            var result = await LoadingManager.LoadAsync((update) => loadable.LoadFromDatabase(update));
+            if (result.Count() > 0)
+                OpenSelector(result, true, false, false);
         }
         /// <summary>
         /// Create a new object from a directory
@@ -348,16 +348,23 @@ namespace HBP.UI.Tools
             }
 #endif
         }
-        protected virtual void SelectDirectory()
+        protected async virtual void SelectDirectory()
         {
 #if UNITY_STANDALONE_OSX
-            FileBrowser.GetExistingDirectoryNamesAsync((paths) =>
+            FileBrowser.GetExistingDirectoryNamesAsync(async (paths) =>
             {
                 if (paths.Length > 0)
                 {
                     ILoadableFromDirectory<T> loadable = new T() as ILoadableFromDirectory<T>;
-                    GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                    LoadingManager.Load(loadable.LoadFromDirectory(paths, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => OnEndLoadFromDirectory(result.ToArray())), onChangeProgress);
+                    var result = await LoadingManager.LoadAsync(update => loadable.LoadFromDirectory(paths, update));
+                    var length = result.Count();
+                    if (length > 0)
+                    {
+                        if (length == 1)
+                            OnObjectCreated.Invoke(result.First());
+                        else
+                            OpenSelector(result, true, false, false);
+                    }
                 }
             });
 #else
@@ -365,31 +372,17 @@ namespace HBP.UI.Tools
             if (paths.Length > 0)
             {
                 ILoadableFromDirectory<T> loadable = new T() as ILoadableFromDirectory<T>;
-                GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                LoadingManager.Load(loadable.LoadFromDirectory(paths, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => OnEndLoadFromDirectory(result.ToArray())), onChangeProgress);
+                var result = await LoadingManager.LoadAsync(update => loadable.LoadFromDirectory(paths, update));
+                var length = result.Count();
+                if (length > 0)
+                {
+                    if (length == 1)
+                        OnObjectCreated.Invoke(result.First());
+                    else
+                        OpenSelector(result, true, false, false);
+                }
             }
 #endif
-        }
-        /// <summary>
-        /// Called when the asynchronious method to load objects from the database are ended.
-        /// </summary>
-        /// <param name="result">Objects created from the database</param>
-        protected virtual void OnEndLoadFromDatabase(T[] result)
-        {
-            if (result.Length > 0)
-            {
-                OpenSelector(result, true, false, false);
-            }
-        }
-        protected virtual void OnEndLoadFromDirectory(T[] result)
-        {
-            if (result.Length > 0)
-            {
-                if (result.Length == 1)
-                    OnObjectCreated.Invoke(result[0]);
-                else
-                    OpenSelector(result, true, false, false);
-            }
         }
         #endregion
     }

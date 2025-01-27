@@ -14,8 +14,8 @@ namespace HBP.Core.Object3D
         /// </summary>
         public IBCInformation Information { get; private set; }
         public FMRI FMRI { get; private set; }
-        public bool Loaded { get { return FMRI != null; } }
-        public bool Loading { get; private set; } = false;
+        public bool Loaded => FMRI != null && Information != null && FMRI.Loaded && Information.Loaded;
+        public bool Loading => FMRI != null && Information != null && (FMRI.Loading || Information.Loading);
         #endregion
 
         #region Private Methods
@@ -28,12 +28,10 @@ namespace HBP.Core.Object3D
         }
         public void Load()
         {
-            Loading = true;
             string csvFile = Path.Combine(ApplicationState.DataPath, "Atlases", "IBC", "map_labels.csv");
             string file = Path.Combine(ApplicationState.DataPath, "Atlases", "IBC", "all_maps.nii.gz");
             FMRI = new FMRI("IBC", file);
             Information = new IBCInformation(csvFile);
-            Loading = false;
         }
         #endregion
     }

@@ -339,7 +339,7 @@ namespace HBP.Data.Module3D
             scene.LoadConfiguration();
         }
 
-        private static async void Preload3D()
+        private static void Preload3D()
         {
             // Graphic Settings
             QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
@@ -349,7 +349,6 @@ namespace HBP.Data.Module3D
             UI.Module3D.AdvancedSiteConditionStrings.LoadConditions();
 
             // Objects 3D
-            await new WaitForBackgroundThread();
             Object3DManager.MNI.Load();
             if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo64) Object3DManager.DiFuMo.Load("64");
             if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo128) Object3DManager.DiFuMo.Load("128");
