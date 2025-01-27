@@ -170,8 +170,7 @@ namespace HBP.UI.Toolbar
                 dataInfo.DataContainer.ConvertAllPathsToFullPaths();
                 container.Columns.Add(new ColumnContainer() { Name = column.Name, Bloc = bloc, Data = dataInfo, CorrelationsFile = string.Format("{0}_{1}_correlations.csv", container.PatientName, column.Name), CorrelationsBinaryFile = string.Format("{0}_{1}_significant.csv", container.PatientName, column.Name), CorrelationsMeanFile = string.Format("{0}_{1}_pearson.csv", container.PatientName, column.Name) });
             }
-            string saveDirectory = Path.Combine(SelectedScene.GenerateExportDirectory(), "Correlations");
-            ClassLoaderSaver.GenerateUniqueDirectoryPath(ref saveDirectory);
+            string saveDirectory = Path.Combine(SelectedScene.GenerateExportDirectory(), "Correlations").GenerateUniqueDirectoryPath();
             if (!Directory.Exists(saveDirectory)) Directory.CreateDirectory(saveDirectory);
             ClassLoaderSaver.SaveToJSon(container, Path.Combine(saveDirectory, string.Format("{0}_Correlations.json", container.PatientName)));
 

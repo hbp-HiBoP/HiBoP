@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace HBP.Core.Tools
 {
@@ -115,6 +116,30 @@ namespace HBP.Core.Tools
                 stringBuilder.Append("  • None");
             }
             return stringBuilder.ToString();
+        }
+        public static string GenerateUniqueFilePath(this string path)
+        {
+            string result = path;
+            string extension = Path.GetExtension(result);
+            string pathWithoutExtension = Path.GetFullPath(result).Remove(Path.GetFullPath(result).Length - extension.Length);
+            int count = 0;
+            while (File.Exists(result))
+            {
+                string temp = string.Format("{0}({1})", pathWithoutExtension, ++count);
+                result = temp + extension;
+            }
+            return result;
+        }
+        public static string GenerateUniqueDirectoryPath(this string path)
+        {
+            string result = path;
+            string fullPath = Path.GetFullPath(result);
+            int count = 0;
+            while (Directory.Exists(result))
+            {
+                result = string.Format("{0}({1})", fullPath, ++count);
+            }
+            return result;
         }
     }
 
@@ -252,6 +277,23 @@ namespace HBP.Core.Tools
 
             File.Copy(file.FullName, newFilePath, overwrite);
             return newFilePath;
+        }
+    }
+
+    public static class TaskExtension
+    {
+        public static async Task WhenAllSequenced(IEnumerable<Task> tasks)
+        {
+            foreach (var task in tasks)
+                await task;
+        }
+        public static async Task<IEnumerable<T>> WhenAllSequenced<T>(IEnumerable<Task<T>> tasks)
+        {
+            T[] results = new T[tasks.Count()];
+            int i = 0;
+            foreach (var task in tasks)
+                results[i++] = await task;
+            return results;
         }
     }
 }

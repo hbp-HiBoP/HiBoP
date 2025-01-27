@@ -152,9 +152,9 @@ namespace HBP.Core.Data
         #endregion
 
         #region Public Methods
-        public override Error[] GetErrors(Protocol protocol)
+        public override Error[] GetErrors()
         {
-            List<Error> errors = new List<Error>(base.GetErrors(protocol));
+            List<Error> errors = new List<Error>(base.GetErrors());
             errors.AddRange(GetPatientErrors());
             return errors.Distinct().ToArray();
         }
@@ -169,9 +169,9 @@ namespace HBP.Core.Data
             m_PatientErrors = errors.ToArray();
             return m_PatientErrors;
         }
-        public override Warning[] GetWarnings(Protocol protocol)
+        public override Warning[] GetWarnings()
         {
-            List<Warning> warnings = new List<Warning>(base.GetWarnings(protocol));
+            List<Warning> warnings = new List<Warning>(base.GetWarnings());
             warnings.AddRange(GetPatientWarnings());
             return warnings.Distinct().ToArray();
         }

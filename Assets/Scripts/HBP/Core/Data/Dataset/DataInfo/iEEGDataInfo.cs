@@ -137,10 +137,10 @@ namespace HBP.Core.Data
         #endregion
 
         #region Public Methods
-        public override Error[] GetErrors(Protocol protocol)
+        public override Error[] GetErrors()
         {
-            List<Error> errors = new List<Error>(base.GetErrors(protocol));
-            errors.AddRange(GetiEEGErrors(protocol));
+            List<Error> errors = new List<Error>(base.GetErrors());
+            errors.AddRange(GetiEEGErrors());
             return errors.Distinct().ToArray();
         }
         /// <summary>
@@ -148,19 +148,19 @@ namespace HBP.Core.Data
         /// </summary>
         /// <param name="protocol">Protocol of the dataset the dataInfo belongs to.</param>
         /// <returns>iEEG related errors</returns>
-        public virtual Error[] GetiEEGErrors(Protocol protocol)
+        public virtual Error[] GetiEEGErrors()
         {
             List<Error> errors = new List<Error>();
             m_iEEGErrors = errors.ToArray();
             return m_iEEGErrors;
         }
-        public override Warning[] GetWarnings(Protocol protocol)
+        public override Warning[] GetWarnings()
         {
-            List<Warning> warnings = new List<Warning>(base.GetWarnings(protocol));
-            warnings.AddRange(GetiEEGWarnings(protocol));
+            List<Warning> warnings = new List<Warning>(base.GetWarnings());
+            warnings.AddRange(GetiEEGWarnings());
             return warnings.Distinct().ToArray();
         }
-        public virtual Warning[] GetiEEGWarnings(Protocol protocol)
+        public virtual Warning[] GetiEEGWarnings()
         {
             List<Warning> warnings = new List<Warning>();
             if (m_DataContainer.IsOk)
@@ -198,6 +198,7 @@ namespace HBP.Core.Data
                 }
                 DLL.EEG.File file = new DLL.EEG.File(type, false, files);
                 List<DLL.EEG.Trigger> triggers = file.Triggers;
+                Protocol protocol = Dataset.Protocol;
                 if (protocol.IsVisualizable && !protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))))
                 {
                     IEnumerable<string> blocsNotFound = protocol.Blocs.Where(bloc => !bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))).Select(bloc => bloc.Name);
@@ -208,7 +209,7 @@ namespace HBP.Core.Data
                 {
                     warnings.Add(new NoMatchingSiteWarning());
                 }
-            }
+        }
             m_iEEGWarnings = warnings.ToArray();
             return m_iEEGWarnings;
         }

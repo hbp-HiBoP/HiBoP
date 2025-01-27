@@ -136,10 +136,10 @@ namespace HBP.Core.Data
         #endregion
 
         #region Public Methods
-        public override Error[] GetErrors(Protocol protocol)
+        public override Error[] GetErrors()
         {
-            List<Error> errors = new List<Error>(base.GetErrors(protocol));
-            errors.AddRange(GetCCEPErrors(protocol));
+            List<Error> errors = new List<Error>(base.GetErrors());
+            errors.AddRange(GetCCEPErrors());
             return errors.Distinct().ToArray();
         }
         /// <summary>
@@ -147,7 +147,7 @@ namespace HBP.Core.Data
         /// </summary>
         /// <param name="protocol"></param>
         /// <returns>CCEP related errors</returns>
-        public virtual Error[] GetCCEPErrors(Protocol protocol)
+        public virtual Error[] GetCCEPErrors()
         {
             List<Error> errors = new List<Error>();
             if (m_DataContainer.IsOk)
@@ -185,6 +185,7 @@ namespace HBP.Core.Data
                 }
                 DLL.EEG.File file = new DLL.EEG.File(type, false, files);
                 List<DLL.EEG.Trigger> triggers = file.Triggers;
+                Protocol protocol = Dataset.Protocol;
                 if (protocol.IsVisualizable && !protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))))
                 {
                     errors.Add(new BlocsCantBeEpochedError());
@@ -197,10 +198,10 @@ namespace HBP.Core.Data
             m_CCEPErrors = errors.ToArray();
             return m_CCEPErrors;
         }
-        public override Warning[] GetWarnings(Protocol protocol)
+        public override Warning[] GetWarnings()
         {
-            List<Warning> warnings = new List<Warning>(base.GetWarnings(protocol));
-            warnings.AddRange(GetCCEPWarnings(protocol));
+            List<Warning> warnings = new List<Warning>(base.GetWarnings());
+            warnings.AddRange(GetCCEPWarnings());
             return warnings.Distinct().ToArray();
         }
         /// <summary>
@@ -208,7 +209,7 @@ namespace HBP.Core.Data
         /// </summary>
         /// <param name="protocol"></param>
         /// <returns>CCEP related errors</returns>
-        public virtual Warning[] GetCCEPWarnings(Protocol protocol)
+        public virtual Warning[] GetCCEPWarnings()
         {
             List<Warning> warnings = new List<Warning>();
             m_CCEPWarnings = warnings.ToArray();

@@ -72,7 +72,6 @@ namespace HBP.Core.Data
             }
         }
 
-        Dictionary<DataInfo, UnityAction> m_ActionByDataInfo;
         [DataMember(Order = 4, Name = "Data")] List<DataInfo> m_Data;
         /// <summary>
         /// DataInfo of the dataset.
@@ -179,10 +178,8 @@ namespace HBP.Core.Data
         {
             if (!m_Data.Contains(data))
             {
+                data.Dataset = this;
                 m_Data.Add(data);
-                UnityAction action = new UnityAction(() => { data.GetErrorsAndWarnings(Protocol); });
-                m_ActionByDataInfo.Add(data, action);
-                data.OnRequestErrorCheck.AddListener(action);
                 return true;
             }
             else return false;
@@ -206,8 +203,6 @@ namespace HBP.Core.Data
             if (m_Data.Contains(data))
             {
                 m_Data.Remove(data);
-                data.OnRequestErrorCheck.RemoveListener(m_ActionByDataInfo[data]);
-                m_ActionByDataInfo.Remove(data);
                 return true;
             }
             else return false;
@@ -249,7 +244,6 @@ namespace HBP.Core.Data
         public bool SetData(IEnumerable<DataInfo> data)
         {
             m_Data = new List<DataInfo>();
-            m_ActionByDataInfo = new Dictionary<DataInfo, UnityAction>();
             return data.All((d) => AddData(d));
         }
         /// <summary>
@@ -259,7 +253,7 @@ namespace HBP.Core.Data
         {
             if (m_Data != null)
             {
-                foreach (DataInfo dataInfo in m_Data) dataInfo.GetErrorsAndWarnings(Protocol);
+                foreach (DataInfo dataInfo in m_Data) dataInfo.GetErrorsAndWarnings();
             }
         }
         public override void GenerateID()
@@ -538,15 +532,9 @@ namespace HBP.Core.Data
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            var protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.ID == m_ProtocolID);
-            if (protocol == null) protocol = DatabaseManager.Database.Protocols.First();
+            foreach (var data in m_Data) data.Dataset = this;
+            var protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.ID == m_ProtocolID) ?? DatabaseManager.Database.Protocols.First();
             Protocol = protocol;
-            foreach (var data in m_Data)
-            {
-                UnityAction action = new UnityAction(() => data.GetErrorsAndWarnings(Protocol));
-                m_ActionByDataInfo.Add(data, action);
-                data.OnRequestErrorCheck.AddListener(action);
-            }
         }
         #endregion
 

@@ -124,10 +124,10 @@ namespace HBP.Core.Data
         #endregion
 
         #region Public Methods
-        public override Error[] GetErrors(Protocol protocol)
+        public override Error[] GetErrors()
         {
-            List<Error> errors = new List<Error>(base.GetErrors(protocol));
-            errors.AddRange(GetMEGErrors(protocol));
+            List<Error> errors = new List<Error>(base.GetErrors());
+            errors.AddRange(GetMEGErrors());
             return errors.Distinct().ToArray();
         }
         /// <summary>
@@ -135,16 +135,16 @@ namespace HBP.Core.Data
         /// </summary>
         /// <param name="protocol"></param>
         /// <returns>CCEP related errors</returns>
-        public virtual Error[] GetMEGErrors(Protocol protocol)
+        public virtual Error[] GetMEGErrors()
         {
             List<Error> errors = new List<Error>();
             m_MEGErrors = errors.ToArray();
             return m_MEGErrors;
         }
-        public override Warning[] GetWarnings(Protocol protocol)
+        public override Warning[] GetWarnings()
         {
-            List<Warning> warnings = new List<Warning>(base.GetWarnings(protocol));
-            warnings.AddRange(GetMEGWarnings(protocol));
+            List<Warning> warnings = new List<Warning>(base.GetWarnings());
+            warnings.AddRange(GetMEGWarnings());
             return warnings.Distinct().ToArray();
         }
         /// <summary>
@@ -152,7 +152,7 @@ namespace HBP.Core.Data
         /// </summary>
         /// <param name="protocol"></param>
         /// <returns>CCEP related errors</returns>
-        public virtual Warning[] GetMEGWarnings(Protocol protocol)
+        public virtual Warning[] GetMEGWarnings()
         {
             List<Warning> warnings = new List<Warning>();
             m_MEGWarnings = warnings.ToArray();

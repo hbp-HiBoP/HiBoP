@@ -124,10 +124,10 @@ namespace HBP.Core.Data
         #endregion
 
         #region Public Methods
-        public override Error[] GetErrors(Protocol protocol)
+        public override Error[] GetErrors()
         {
-            List<Error> errors = new List<Error>(base.GetErrors(protocol));
-            errors.AddRange(GetFMRIErrors(protocol));
+            List<Error> errors = new List<Error>(base.GetErrors());
+            errors.AddRange(GetFMRIErrors());
             return errors.Distinct().ToArray();
         }
         /// <summary>
@@ -135,17 +135,17 @@ namespace HBP.Core.Data
         /// </summary>
         /// <param name="protocol"></param>
         /// <returns>CCEP related errors</returns>
-        public virtual Error[] GetFMRIErrors(Protocol protocol)
+        public virtual Error[] GetFMRIErrors()
         {
             List<Error> errors = new List<Error>();
             // TODO
             m_FMRIErrors = errors.ToArray();
             return m_FMRIErrors;
         }
-        public override Warning[] GetWarnings(Protocol protocol)
+        public override Warning[] GetWarnings()
         {
-            List<Warning> warnings = new List<Warning>(base.GetWarnings(protocol));
-            warnings.AddRange(GetFMRIWarnings(protocol));
+            List<Warning> warnings = new List<Warning>(base.GetWarnings());
+            warnings.AddRange(GetFMRIWarnings());
             return warnings.Distinct().ToArray();
         }
         /// <summary>
@@ -153,7 +153,7 @@ namespace HBP.Core.Data
         /// </summary>
         /// <param name="protocol"></param>
         /// <returns>CCEP related errors</returns>
-        public virtual Warning[] GetFMRIWarnings(Protocol protocol)
+        public virtual Warning[] GetFMRIWarnings()
         {
             List<Warning> warnings = new List<Warning>();
             m_FMRIWarnings = warnings.ToArray();

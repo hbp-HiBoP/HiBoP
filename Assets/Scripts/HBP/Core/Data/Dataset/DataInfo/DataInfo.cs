@@ -67,7 +67,7 @@ namespace HBP.Core.Data
         public Container.DataContainer DataContainer
         {
             get { return m_DataContainer; }
-            set { m_DataContainer = value; m_DataContainer.GetErrors(); m_DataContainer.OnRequestErrorCheck.AddListener(OnRequestErrorCheck.Invoke); }
+            set { m_DataContainer = value; m_DataContainer.GetErrors(); m_DataContainer.OnRequestErrorCheck.AddListener(GetErrorsAndWarnings); }
         }
 
         [DataMember] public string CorrespondingDatabaseID { get; set; }
@@ -75,16 +75,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// Dataset the dataInfo belongs to.
         /// </summary>
-        public Dataset Dataset
-        {
-            get
-            {
-                if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.Contains(this)))
-                    return ApplicationState.LoadedProject.Datasets.FirstOrDefault((d) => d.Data.Contains(this));
-                else
-                    return DatabaseManager.Database.Datasets.FirstOrDefault((d) => d.Data.Contains(this));
-            }
-        }
+        public Dataset Dataset { get; set; }
 
         /// <summary>
         /// Naming-related errors.
@@ -176,7 +167,7 @@ namespace HBP.Core.Data
         /// </summary>
         /// <param name="protocol">Protocol of the dataset the dataInfo belongs to.</param>
         /// <returns>All dataInfo errors.</returns>
-        public virtual Error[] GetErrors(Protocol protocol)
+        public virtual Error[] GetErrors()
         {
             List<Error> errors = new List<Error>(GetNameErrors());
             errors.AddRange(m_DataContainer.GetErrors());
@@ -236,7 +227,7 @@ namespace HBP.Core.Data
         /// </summary>
         /// <param name="protocol">Protocol of the dataset the dataInfo belongs to.</param>
         /// <returns>All dataInfo errors.</returns>
-        public virtual Warning[] GetWarnings(Protocol protocol)
+        public virtual Warning[] GetWarnings()
         {
             List<Warning> warnings = new List<Warning>();
             warnings.AddRange(m_DataContainer.GetWarnings());
@@ -290,10 +281,10 @@ namespace HBP.Core.Data
             }
             return stringBuilder.ToString();
         }
-        public virtual void GetErrorsAndWarnings(Protocol protocol)
+        public virtual void GetErrorsAndWarnings()
         {
-            GetErrors(protocol);
-            GetWarnings(protocol);
+            GetErrors();
+            GetWarnings();
         }
         /// <summary>
         /// Generate a new unique identifier.

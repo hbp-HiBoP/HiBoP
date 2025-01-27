@@ -1,37 +1,34 @@
 using HBP.Core.Data;
-using HBP.Core.Exceptions;
 using HBP.Core.Tools;
-using HBP.UI.Main;
 using HBP.UI.Tools;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using ThirdParty.CielaSpike;
 using UnityEngine;
 using UnityEngine.Events;
+using System.Threading.Tasks;
 
 namespace HBP.Data.Database
 {
     public class GlobalDatabase
     {
         #region Properties
-        private GlobalDatabaseSettings m_Settings = new GlobalDatabaseSettings();
+        private GlobalDatabaseSettings m_Settings = new();
         public GlobalDatabaseSettings Settings => m_Settings;
 
-        private List<Protocol> m_Protocols = new List<Protocol>();
-        public ReadOnlyCollection<Protocol> Protocols => new ReadOnlyCollection<Protocol>(m_Protocols);
+        private List<Protocol> m_Protocols = new();
+        public ReadOnlyCollection<Protocol> Protocols => new(m_Protocols);
 
-        private List<DatabaseReference> m_DatabaseReferences = new List<DatabaseReference>();
-        public ReadOnlyCollection<DatabaseReference> DatabaseReferences => new ReadOnlyCollection<DatabaseReference>(m_DatabaseReferences);
+        private List<DatabaseReference> m_DatabaseReferences = new();
+        public ReadOnlyCollection<DatabaseReference> DatabaseReferences => new(m_DatabaseReferences);
 
-        private List<Patient> m_Patients = new List<Patient>();
-        public ReadOnlyCollection<Patient> Patients => new ReadOnlyCollection<Patient>(m_Patients);
+        private List<Patient> m_Patients = new();
+        public ReadOnlyCollection<Patient> Patients => new(m_Patients);
 
-        private List<Dataset> m_Datasets = new List<Dataset>();
-        public ReadOnlyCollection<Dataset> Datasets => new ReadOnlyCollection<Dataset>(m_Datasets);
+        private List<Dataset> m_Datasets = new();
+        public ReadOnlyCollection<Dataset> Datasets => new(m_Datasets);
 
         public bool IsLoaded { get; private set; } = false;
         #endregion
@@ -45,20 +42,12 @@ namespace HBP.Data.Database
         {
             m_DatabaseReferences = databaseReferences.ToList();
         }
-        public void SetPatients(IEnumerable<Patient> patients)
-        {
-            m_Patients = patients.ToList();
-        }
-        public void SetDatasets(IEnumerable<Dataset> datasets)
-        {
-            m_Datasets = datasets.ToList();
-        }
         #endregion
 
         #region Public Methods
         public static GlobalDatabase Initialize()
         {
-            GlobalDatabase database = new GlobalDatabase();
+            GlobalDatabase database = new();
             if (!new DirectoryInfo(ApplicationState.DatabasePath).Exists) Directory.CreateDirectory(ApplicationState.DatabasePath);
             database.LoadSettings();
             if (!database.Settings.IsFirstUse)
@@ -66,30 +55,25 @@ namespace HBP.Data.Database
                 CopyDefaultDatabase();
                 database.SaveSettings();
             }
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            CoroutineManager.StartAsync(database.c_InitializeDatabase(ApplicationState.DatabasePath, onChangeProgress));
+            database.InitializeDatabase();
             return database;
         }
-        public void SaveProtocols()
+        public async void SaveProtocols()
         {
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            LoadingManager.Load(c_SaveProtocols(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke), onChangeProgress);
+            await SaveProtocolsAsync();
         } 
-        public void SaveDatabaseReferences()
+        public async void SaveDatabaseReferences()
         {
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            LoadingManager.Load(c_SaveDatabaseReferences(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke), onChangeProgress);
+            await SaveDatabaseReferencesAsync();
         }
 
-        public void LoadDatabase()
+        public async void LoadDatabase()
         {
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            LoadingManager.Load(c_LoadDatabase(ApplicationState.DatabasePath, onChangeProgress), onChangeProgress);
+            await LoadDatabaseAsync();
         }
         public void UpdateDatabases(IEnumerable<DatabaseReference> databaseReferences, UnityAction onUpdated)
         {
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            LoadingManager.Load(c_UpdateDatabases(databaseReferences, onChangeProgress, onUpdated), onChangeProgress);
+            LoadingManager.Load((update) => UpdateDatabasesAsync(databaseReferences, update, onUpdated));
         }
         #endregion
 
@@ -121,254 +105,108 @@ namespace HBP.Data.Database
             ClassLoaderSaver.SaveToJSon(m_Settings, GlobalDatabaseSettings.PATH, true);
         }
 
-        private IEnumerator c_InitializeDatabase(string rootDirectory, GenericEvent<float, float, LoadingText> onChangeProgress)
+        private async void InitializeDatabase()
         {
-            yield return Ninja.JumpToUnity;
-            yield return CoroutineManager.StartAsync(c_LoadProtocols(new DirectoryInfo(rootDirectory), onChangeProgress));
-            yield return CoroutineManager.StartAsync(c_LoadDatabaseReferences(new DirectoryInfo(rootDirectory), onChangeProgress));
+            await LoadProtocolsAsync();
+            await LoadDatabaseReferencesAsync();
             LoadDatabase();
         }
-        private IEnumerator c_LoadDatabase(string rootDirectory, GenericEvent<float, float, LoadingText> onChangeProgress)
+        private async Task LoadDatabaseAsync()
         {
-            yield return Ninja.JumpToUnity;
-            yield return CoroutineManager.StartAsync(c_LoadPatients(new DirectoryInfo(rootDirectory), onChangeProgress));
-            yield return CoroutineManager.StartAsync(c_LoadDatasets(new DirectoryInfo(rootDirectory), onChangeProgress));
+            System.Diagnostics.Stopwatch stopwatch = new();
+            stopwatch.Start();
+            await LoadPatientsAsync();
+            await LoadDatasetsAsync();
             IsLoaded = true;
+            stopwatch.Stop();
+            Debug.Log("Database loaded in " + stopwatch.ElapsedMilliseconds + " ms");
         }
 
-        IEnumerator c_LoadProtocols(DirectoryInfo rootDirectory, GenericEvent<float, float, LoadingText> onChangeProgress)
+        private async Task LoadProtocolsAsync()
         {
-            yield return Ninja.JumpBack;
-            // Load Protocols
             List<Protocol> protocols = new List<Protocol>();
-            DirectoryInfo protocolDirectory = new DirectoryInfo(Path.Combine(rootDirectory.FullName, "Protocols"));
+            DirectoryInfo protocolDirectory = new DirectoryInfo(Path.Combine(ApplicationState.DatabasePath, "Protocols"));
             if (!protocolDirectory.Exists) protocolDirectory.Create();
             FileInfo[] protocolFiles = protocolDirectory.GetFiles("*" + Protocol.EXTENSION, SearchOption.TopDirectoryOnly);
-            for (int i = 0; i < protocolFiles.Length; ++i)
-            {
-                FileInfo protocolFile = protocolFiles[i];
-                onChangeProgress.Invoke((float)(i + 1) / protocolFiles.Length, 0, new LoadingText("Loading protocol ", Path.GetFileNameWithoutExtension(protocolFile.Name), " [" + (i + 1).ToString() + "/" + protocolFiles.Length + "]"));
-                try
-                {
-                    protocols.Add(ClassLoaderSaver.LoadFromJson<Protocol>(protocolFile.FullName));
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    throw new CanNotReadProtocolFileException(Path.GetFileNameWithoutExtension(protocolFile.Name));
-                }
-            }
-            SetProtocols(protocols.ToArray());
-            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Protocols loaded successfully"));
+            m_Protocols = (await Task.WhenAll(protocolFiles.Select(pf => ClassLoaderSaver.LoadFromJsonAsync<Protocol>(pf.FullName)))).ToList();
         }
-        IEnumerator c_SaveProtocols(DirectoryInfo rootDirectory, Action<float, float, LoadingText> onChangeProgress)
+        private async Task SaveProtocolsAsync()
         {
-            yield return Ninja.JumpBack;
-            // Save protocols
-            DirectoryInfo protocolDirectory = Directory.CreateDirectory(Path.Combine(rootDirectory.FullName, "Protocols"));
-            DirectoryInfo protocolTempDirectory = Directory.CreateDirectory(Path.Combine(rootDirectory.FullName, "ProtocolsTemp"));
-            int count = 0;
-            int length = m_Protocols.Count();
-            foreach (Protocol protocol in m_Protocols)
-            {
-                onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving protocol ", protocol.Name, " [" + (count + 1).ToString() + "/" + length + "]"));
-                try
-                {
-                    ClassLoaderSaver.SaveToJSon(protocol, Path.Combine(protocolTempDirectory.FullName, protocol.Name + Protocol.EXTENSION), true);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    throw new CanNotSaveSettingsException();
-                }
-                count++;
-            }
-            // Move files
+            DirectoryInfo protocolDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "Protocols"));
+            DirectoryInfo protocolTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "ProtocolsTemp"));
+            await Task.WhenAll(m_Protocols.Select(p => ClassLoaderSaver.SaveToJSonAsync(p, Path.Combine(protocolTempDirectory.FullName, p.Name + Protocol.EXTENSION), true)));
             protocolDirectory.Delete(true);
             protocolTempDirectory.MoveTo(protocolDirectory.FullName);
-            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Protocols saved successfully"));
         }
 
-        IEnumerator c_LoadDatabaseReferences(DirectoryInfo rootDirectory, GenericEvent<float, float, LoadingText> onChangeProgress)
+        private async Task LoadDatabaseReferencesAsync()
         {
-            yield return Ninja.JumpBack;
-            // Load References
             List<DatabaseReference> databaseReferences = new List<DatabaseReference>();
-            DirectoryInfo referencesDirectory = Directory.CreateDirectory(Path.Combine(rootDirectory.FullName, "References"));
+            DirectoryInfo referencesDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "References"));
             if (!referencesDirectory.Exists) referencesDirectory.Create();
             FileInfo[] referenceFiles = referencesDirectory.GetFiles("*" + DatabaseReference.EXTENSION, SearchOption.TopDirectoryOnly);
-            for (int i = 0; i < referenceFiles.Length; ++i)
-            {
-                FileInfo referenceFile = referenceFiles[i];
-                onChangeProgress.Invoke((float)(i + 1) / referenceFiles.Length, 0, new LoadingText("Loading reference ", Path.GetFileNameWithoutExtension(referenceFile.Name), " [" + (i + 1).ToString() + "/" + referenceFiles.Length + "]"));
-                try
-                {
-                    databaseReferences.Add(ClassLoaderSaver.LoadFromJson<DatabaseReference>(referenceFile.FullName));
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    throw e;
-                }
-            }
-            m_DatabaseReferences = databaseReferences;
-            onChangeProgress.Invoke(1.0f, 0, new LoadingText("References loaded successfully"));
+            m_DatabaseReferences = (await Task.WhenAll(referenceFiles.Select(rf => ClassLoaderSaver.LoadFromJsonAsync<DatabaseReference>(rf.FullName)))).ToList();
         }
-        IEnumerator c_SaveDatabaseReferences(DirectoryInfo rootDirectory, Action<float, float, LoadingText> onChangeProgress)
+        private async Task SaveDatabaseReferencesAsync()
         {
-            yield return Ninja.JumpBack;
-            // Save references
-            DirectoryInfo referencesDirectory = Directory.CreateDirectory(Path.Combine(rootDirectory.FullName, "References"));
-            DirectoryInfo referencesTempDirectory = Directory.CreateDirectory(Path.Combine(rootDirectory.FullName, "ReferencesTemp"));
-            int count = 0;
-            int length = m_DatabaseReferences.Count();
-            foreach (DatabaseReference databaseReference in m_DatabaseReferences)
-            {
-                onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving reference ", databaseReference.Name, " [" + (count + 1).ToString() + "/" + length + "]"));
-                try
-                {
-                    ClassLoaderSaver.SaveToJSon(databaseReference, Path.Combine(referencesTempDirectory.FullName, databaseReference.Name + DatabaseReference.EXTENSION), true);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    throw new CanNotSaveSettingsException();
-                }
-                count++;
-            }
-            // Move files
+            DirectoryInfo referencesDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "References"));
+            DirectoryInfo referencesTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "ReferencesTemp"));
+            await Task.WhenAll(m_DatabaseReferences.Select(dr => ClassLoaderSaver.SaveToJSonAsync(dr, Path.Combine(referencesTempDirectory.FullName, dr.Name + DatabaseReference.EXTENSION), true)));
             referencesDirectory.Delete(true);
             referencesTempDirectory.MoveTo(referencesDirectory.FullName);
-            onChangeProgress.Invoke(1.0f, 0, new LoadingText("References saved successfully"));
             // Remove patients and datasets that are not in the database references
             // TODO : warn the user that patients and datasets will be deleted
             m_Patients.RemoveAll(p => !m_DatabaseReferences.Any(r => r.ID == p.CorrespondingDatabaseID));
-            foreach (var dataset in m_Datasets)
-            {
-                dataset.RemoveData(dataset.Data.Where(d => m_DatabaseReferences.All(r => r.ID != d.CorrespondingDatabaseID) || (d is PatientDataInfo pd && !m_Patients.Contains(pd.Patient))).ToList());
-            }
+            foreach (var dataset in m_Datasets) dataset.RemoveData(dataset.Data.Where(d => m_DatabaseReferences.All(r => r.ID != d.CorrespondingDatabaseID) || (d is PatientDataInfo pd && !m_Patients.Contains(pd.Patient))).ToList());
             m_Datasets.RemoveAll(d => d.Data.Count == 0);
-            yield return Ninja.JumpToUnity;
-            yield return CoroutineManager.StartAsync(c_SavePatients(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke));
-            yield return CoroutineManager.StartAsync(c_SaveDatasets(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke));
+            await SavePatientsAsync();
+            await SaveDatasetsAsync();
         }
 
-        IEnumerator c_SavePatients(DirectoryInfo rootDirectory, Action<float, float, LoadingText> onChangeProgress)
+        private async Task LoadPatientsAsync()
         {
-            yield return Ninja.JumpBack;
-            // Save patients
-            DirectoryInfo patientsDirectory = Directory.CreateDirectory(Path.Combine(rootDirectory.FullName, "Patients"));
-            DirectoryInfo patientsTempDirectory = Directory.CreateDirectory(Path.Combine(rootDirectory.FullName, "PatientsTemp"));
-            int count = 0;
-            int length = m_Patients.Count();
-            foreach (Patient patient in m_Patients)
-            {
-                onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving patient ", patient.Name, " [" + (count + 1).ToString() + "/" + length + "]"));
-                try
-                {
-                    ClassLoaderSaver.SaveToJSon(patient, Path.Combine(patientsTempDirectory.FullName, patient.ID + Patient.EXTENSION), true);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    throw new CanNotSaveSettingsException();
-                }
-                count++;
-            }
-            // Move files
-            patientsDirectory.Delete(true);
-            patientsTempDirectory.MoveTo(patientsDirectory.FullName);
-            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Patients saved successfully"));
-        }
-        IEnumerator c_LoadPatients(DirectoryInfo rootDirectory, GenericEvent<float, float, LoadingText> onChangeProgress)
-        {
-            yield return Ninja.JumpBack;
-            // Load Patients
             List<Patient> patients = new List<Patient>();
-            DirectoryInfo patientsDirectory = new DirectoryInfo(Path.Combine(rootDirectory.FullName, "Patients"));
+            DirectoryInfo patientsDirectory = new DirectoryInfo(Path.Combine(ApplicationState.DatabasePath, "Patients"));
             if (!patientsDirectory.Exists) patientsDirectory.Create();
             FileInfo[] patientFiles = patientsDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
-            for (int i = 0; i < patientFiles.Length; ++i)
-            {
-                FileInfo patientFile = patientFiles[i];
-                onChangeProgress.Invoke((float)(i + 1) / patientFiles.Length, 0, new LoadingText("Loading patient ", Path.GetFileNameWithoutExtension(patientFile.Name), " [" + (i + 1).ToString() + "/" + patientFiles.Length + "]"));
-                try
-                {
-                    patients.Add(ClassLoaderSaver.LoadFromJson<Patient>(patientFile.FullName));
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    throw e;
-                }
-            }
-            SetPatients(patients.ToArray());
-            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
+            m_Patients = (await Task.WhenAll(patientFiles.Select(pf => ClassLoaderSaver.LoadFromJsonAsync<Patient>(pf.FullName)))).ToList();
+        }
+        private async Task SavePatientsAsync()
+        {
+            DirectoryInfo patientsDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "Patients"));
+            DirectoryInfo patientsTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "PatientsTemp"));
+            await Task.WhenAll(m_Patients.Select(p => ClassLoaderSaver.SaveToJSonAsync(p, Path.Combine(patientsTempDirectory.FullName, p.ID + Patient.EXTENSION), true)));
+            patientsDirectory.Delete(true);
+            patientsTempDirectory.MoveTo(patientsDirectory.FullName);
         }
 
-        IEnumerator c_SaveDatasets(DirectoryInfo rootDirectory, Action<float, float, LoadingText> onChangeProgress)
+        private async Task LoadDatasetsAsync()
         {
-            yield return Ninja.JumpBack;
-            // Save datasets
-            DirectoryInfo datasetsDirectory = Directory.CreateDirectory(Path.Combine(rootDirectory.FullName, "Datasets"));
-            DirectoryInfo datasetsTempDirectory = Directory.CreateDirectory(Path.Combine(rootDirectory.FullName, "DatasetsTemp"));
-            int count = 0;
-            int length = m_Datasets.Count();
-            foreach (Dataset dataset in m_Datasets)
-            {
-                onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving dataset ", dataset.Name, " [" + (count + 1).ToString() + "/" + length + "]"));
-                try
-                {
-                    ClassLoaderSaver.SaveToJSon(dataset, Path.Combine(datasetsTempDirectory.FullName, dataset.Name + Dataset.EXTENSION), true);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    throw new CanNotSaveSettingsException();
-                }
-                count++;
-            }
-            // Move files
-            datasetsDirectory.Delete(true);
-            datasetsTempDirectory.MoveTo(datasetsDirectory.FullName);
-            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Datasets saved successfully"));
-        }
-        IEnumerator c_LoadDatasets(DirectoryInfo rootDirectory, GenericEvent<float, float, LoadingText> onChangeProgress)
-        {
-            yield return Ninja.JumpBack;
-            // Load Datasets
             List<Dataset> datasets = new List<Dataset>();
-            DirectoryInfo datasetsDirectory = new DirectoryInfo(Path.Combine(rootDirectory.FullName, "Datasets"));
+            DirectoryInfo datasetsDirectory = new DirectoryInfo(Path.Combine(ApplicationState.DatabasePath, "Datasets"));
             if (!datasetsDirectory.Exists) datasetsDirectory.Create();
             FileInfo[] datasetFiles = datasetsDirectory.GetFiles("*" + Dataset.EXTENSION, SearchOption.TopDirectoryOnly);
-            for (int i = 0; i < datasetFiles.Length; ++i)
-            {
-                FileInfo datasetFile = datasetFiles[i];
-                onChangeProgress.Invoke((float)(i + 1) / datasetFiles.Length, 0, new LoadingText("Loading dataset ", Path.GetFileNameWithoutExtension(datasetFile.Name), " [" + (i + 1).ToString() + "/" + datasetFiles.Length + "]"));
-                try
-                {
-                    datasets.Add(ClassLoaderSaver.LoadFromJson<Dataset>(datasetFile.FullName));
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    throw e;
-                }
-            }
-            SetDatasets(datasets.ToArray());
-            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
+            m_Datasets = (await Task.WhenAll(datasetFiles.Select(df => ClassLoaderSaver.LoadFromJsonAsync<Dataset>(df.FullName)))).ToList();
+        }
+        private async Task SaveDatasetsAsync()
+        {
+            DirectoryInfo datasetsDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "Datasets"));
+            DirectoryInfo datasetsTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "DatasetsTemp"));
+            await Task.WhenAll(m_Datasets.Select(d => ClassLoaderSaver.SaveToJSonAsync(d, Path.Combine(datasetsTempDirectory.FullName, d.Name + Dataset.EXTENSION), true)));
+            datasetsDirectory.Delete(true);
+            datasetsTempDirectory.MoveTo(datasetsDirectory.FullName);
         }
         
-        IEnumerator c_UpdateDatabases(IEnumerable<DatabaseReference> databaseReferences, GenericEvent<float, float, LoadingText> onChangeProgress, UnityAction onUpdated)
+        private async Task UpdateDatabasesAsync(IEnumerable<DatabaseReference> databaseReferences, Action<float, float, LoadingText> updateProgress, UnityAction onUpdated)
         {
-            yield return Ninja.JumpBack;
+            await new WaitForBackgroundThread();
             var brainvisaDatabaseReferences = databaseReferences.Where(d => d.Type == DatabaseType.Brainvisa).ToArray();
             var localizerDatabaseReferences = databaseReferences.Where(d => d.Type == DatabaseType.Localizer).ToArray();
             var bidsDatabaseReferences = databaseReferences.Where(d => d.Type == DatabaseType.BIDS).ToArray();
             // Load patients first
             foreach (var brainvisaDatabaseReference in brainvisaDatabaseReferences)
             {
-                Patient.LoadFromIntranatDatabase(brainvisaDatabaseReference.Path, out Patient[] patients, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text));
+                Patient.LoadFromIntranatDatabase(brainvisaDatabaseReference.Path, out Patient[] patients, updateProgress);
                 foreach (var patient in patients) patient.CorrespondingDatabaseID = brainvisaDatabaseReference.ID;
                 // TODO: Warn that patients will be deleted / overwritten
                 m_Patients.RemoveAll(p => patients.Contains(p) || p.CorrespondingDatabaseID == brainvisaDatabaseReference.ID);
@@ -376,7 +214,7 @@ namespace HBP.Data.Database
             }
             foreach (var bidsDatabaseReference in bidsDatabaseReferences)
             {
-                Patient.LoadFromBIDSDatabase(bidsDatabaseReference.Path, out Patient[] patients, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text));
+                Patient.LoadFromBIDSDatabase(bidsDatabaseReference.Path, out Patient[] patients, updateProgress);
                 foreach (var patient in patients) patient.CorrespondingDatabaseID = bidsDatabaseReference.ID;
                 // TODO: Warn that patients will be deleted / overwritten
                 m_Patients.RemoveAll(p => patients.Contains(p) || p.CorrespondingDatabaseID == bidsDatabaseReference.ID);
@@ -386,7 +224,7 @@ namespace HBP.Data.Database
             List<Dataset> generatedDatasets = new();
             foreach (var localizerDatabaseReference in localizerDatabaseReferences)
             {
-                Dataset.LoadFromLocalizersDatabase(localizerDatabaseReference.Path, out Dataset[] datasets, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text));
+                Dataset.LoadFromLocalizersDatabase(localizerDatabaseReference.Path, out Dataset[] datasets, updateProgress);
                 foreach (var dataset in datasets)
                     foreach (var data in dataset.Data)
                         data.CorrespondingDatabaseID = localizerDatabaseReference.ID;
@@ -394,10 +232,11 @@ namespace HBP.Data.Database
             }
             foreach (var bidsDatabaseReference in bidsDatabaseReferences)
             {
-                Dataset.LoadFromBIDSDatabase(bidsDatabaseReference.Path, out Dataset[] datasets, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text));
+                Dataset.LoadFromBIDSDatabase(bidsDatabaseReference.Path, out Dataset[] datasets, updateProgress);
                 foreach (var dataset in datasets)
                     foreach (var data in dataset.Data)
-                        data.CorrespondingDatabaseID = bidsDatabaseReference.ID; generatedDatasets.AddRange(datasets);
+                        data.CorrespondingDatabaseID = bidsDatabaseReference.ID;
+                generatedDatasets.AddRange(datasets);
             }
             // TODO: Warn that datasets will be deleted / overwritten
             foreach (var dataset in m_Datasets)
@@ -423,8 +262,8 @@ namespace HBP.Data.Database
             {
                 databaseReference.LastUpdated = DateTime.Now;
             }
-            yield return Ninja.JumpToUnity;
-            yield return CoroutineManager.StartAsync(c_SaveDatabaseReferences(new DirectoryInfo(ApplicationState.DatabasePath), onChangeProgress.Invoke));
+            await SaveDatabaseReferencesAsync();
+            await new WaitForUpdate();
             DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Databases updated", "The databases have been updated successfully");
             onUpdated();
         }

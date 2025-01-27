@@ -202,8 +202,7 @@ namespace HBP.UI.Module3D
                             {
                                 try
                                 {
-                                    string viewFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Brain.png", openedProjectName, m_Scene.Name, column.Name));
-                                    ClassLoaderSaver.GenerateUniqueSavePath(ref viewFilePath);
+                                    string viewFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Brain.png", openedProjectName, m_Scene.Name, column.Name)).GenerateUniqueFilePath();
                                     view.GetTexture(2048, 2048, new Color(0.0f, 0.0f, 0.0f, 0.0f)).SaveToPNG(viewFilePath);
                                 }
                                 catch (Exception e)
@@ -223,8 +222,7 @@ namespace HBP.UI.Module3D
                 {
                     try
                     {
-                        string cutFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Cut.png", openedProjectName, m_Scene.Name, cutTextures[i].Item1.ToString()));
-                        ClassLoaderSaver.GenerateUniqueSavePath(ref cutFilePath);
+                        string cutFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Cut.png", openedProjectName, m_Scene.Name, cutTextures[i].Item1.ToString())).GenerateUniqueFilePath();
                         cutTextures[i].Item2.SaveToPNG(cutFilePath);
                     }
                     catch (Exception e)
@@ -249,8 +247,7 @@ namespace HBP.UI.Module3D
                             var curvesName = graph.GetEnabledCurvesName();
                             try
                             {
-                                string graphFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Graph.png", openedProjectName, m_Scene.Name, string.Join("-", curvesName)));
-                                ClassLoaderSaver.GenerateUniqueSavePath(ref graphFilePath);
+                                string graphFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Graph.png", openedProjectName, m_Scene.Name, string.Join("-", curvesName))).GenerateUniqueFilePath();
                                 graphTexture.SaveToPNG(graphFilePath);
                             }
                             catch (Exception e)
@@ -261,8 +258,7 @@ namespace HBP.UI.Module3D
                             }
                             try
                             {
-                                string graphFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Graph.svg", openedProjectName, m_Scene.Name, string.Join("-", curvesName)));
-                                ClassLoaderSaver.GenerateUniqueSavePath(ref graphFilePath);
+                                string graphFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Graph.svg", openedProjectName, m_Scene.Name, string.Join("-", curvesName))).GenerateUniqueFilePath();
                                 using (StreamWriter sw = new StreamWriter(graphFilePath))
                                 {
                                     sw.Write(graph.ToSVG());
@@ -279,8 +275,7 @@ namespace HBP.UI.Module3D
                             {
                                 foreach (var curve in curveValues)
                                 {
-                                    string curveFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Curve.csv", openedProjectName, m_Scene.Name, curve.Key));
-                                    ClassLoaderSaver.GenerateUniqueSavePath(ref curveFilePath);
+                                    string curveFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Curve.csv", openedProjectName, m_Scene.Name, curve.Key)).GenerateUniqueFilePath();
                                     using (StreamWriter sw = new StreamWriter(curveFilePath))
                                     {
                                         sw.Write(curve.Value);
@@ -339,8 +334,7 @@ namespace HBP.UI.Module3D
                                     }
                                     names.Add(channelStruct.Channel);
                                 }
-                                string trialMatrixFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_TrialMatrix.png", openedProjectName, m_Scene.Name, string.Join("-", names)));
-                                ClassLoaderSaver.GenerateUniqueSavePath(ref trialMatrixFilePath);
+                                string trialMatrixFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_TrialMatrix.png", openedProjectName, m_Scene.Name, string.Join("-", names))).GenerateUniqueFilePath();
                                 trialMatrixTexture.SaveToPNG(trialMatrixFilePath);
                             }
                             catch (Exception e)
@@ -358,8 +352,7 @@ namespace HBP.UI.Module3D
                         {
                             try
                             {
-                                string graphFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Graph.svg", openedProjectName, m_Scene.Name, string.Format("{0}-{1}", graph.ChannelStruct.Patient.Name, graph.ChannelStruct.Channel)));
-                                ClassLoaderSaver.GenerateUniqueSavePath(ref graphFilePath);
+                                string graphFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Graph.svg", openedProjectName, m_Scene.Name, string.Format("{0}-{1}", graph.ChannelStruct.Patient.Name, graph.ChannelStruct.Channel))).GenerateUniqueFilePath();
                                 using (StreamWriter sw = new StreamWriter(graphFilePath))
                                 {
                                     sw.Write(graph.ToSVG());
@@ -381,8 +374,7 @@ namespace HBP.UI.Module3D
             {
                 Rect sceneRect = GetComponent<RectTransform>().ToScreenSpace();
                 Texture2D sceneTexture = Texture2DExtension.ScreenRectToTexture(sceneRect);
-                string screenshotPath = Path.Combine(path, string.Format("{0}_{1}_fullscene.png", openedProjectName, m_Scene.Name));
-                ClassLoaderSaver.GenerateUniqueSavePath(ref screenshotPath);
+                string screenshotPath = Path.Combine(path, string.Format("{0}_{1}_fullscene.png", openedProjectName, m_Scene.Name)).GenerateUniqueFilePath();
                 try
                 {
                     sceneTexture.SaveToPNG(screenshotPath);
@@ -417,8 +409,7 @@ namespace HBP.UI.Module3D
             int numberOfViewLines = m_Scene.ViewLineNumber;
             int timelineLength = timeline.Length;
 
-            string videoPath = path + string.Format("{0}_{1}.avi", ApplicationState.LoadedProject.Preferences.Name, m_Scene.Name);
-            ClassLoaderSaver.GenerateUniqueSavePath(ref videoPath);
+            string videoPath = path + string.Format("{0}_{1}.avi", ApplicationState.LoadedProject.Preferences.Name, m_Scene.Name).GenerateUniqueFilePath();
 
             Core.DLL.VideoStream videoStream = new Core.DLL.VideoStream();
             videoStream.Open(videoPath, totalWidth, totalHeight, fps);

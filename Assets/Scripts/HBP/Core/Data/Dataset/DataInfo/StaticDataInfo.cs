@@ -127,10 +127,10 @@ namespace HBP.Core.Data
         #endregion
 
         #region Public Methods
-        public override Error[] GetErrors(Protocol protocol)
+        public override Error[] GetErrors()
         {
-            List<Error> errors = new List<Error>(base.GetErrors(protocol));
-            errors.AddRange(GetStaticErrors(protocol));
+            List<Error> errors = new List<Error>(base.GetErrors());
+            errors.AddRange(GetStaticErrors());
             return errors.Distinct().ToArray();
         }
         /// <summary>
@@ -138,7 +138,7 @@ namespace HBP.Core.Data
         /// </summary>
         /// <param name="protocol"></param>
         /// <returns>CCEP related errors</returns>
-        public virtual Error[] GetStaticErrors(Protocol protocol)
+        public virtual Error[] GetStaticErrors()
         {
             List<Error> errors = new List<Error>();
             if (DataContainer is Container.CSV csvDataContainer)
@@ -177,10 +177,10 @@ namespace HBP.Core.Data
             m_StaticErrors = errors.ToArray();
             return m_StaticErrors;
         }
-        public override Warning[] GetWarnings(Protocol protocol)
+        public override Warning[] GetWarnings()
         {
-            List<Warning> warnings = new List<Warning>(base.GetWarnings(protocol));
-            warnings.AddRange(GetStaticWarnings(protocol));
+            List<Warning> warnings = new List<Warning>(base.GetWarnings());
+            warnings.AddRange(GetStaticWarnings());
             return warnings.Distinct().ToArray();
         }
         /// <summary>
@@ -188,7 +188,7 @@ namespace HBP.Core.Data
         /// </summary>
         /// <param name="protocol"></param>
         /// <returns>CCEP related errors</returns>
-        public virtual Warning[] GetStaticWarnings(Protocol protocol)
+        public virtual Warning[] GetStaticWarnings()
         {
             List<Warning> warnings = new List<Warning>();
             m_StaticWarnings = warnings.ToArray();

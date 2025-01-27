@@ -315,8 +315,11 @@ namespace HBP.Core.DLL
         /// <returns>Name of the site</returns>
         public string SiteName(int patientIndex, int electrodeIndex, int siteIndex)
         {
-            IntPtr result = site_name_PatientElectrodesList(_handle, patientIndex, electrodeIndex, siteIndex);
-            return Marshal.PtrToStringAnsi(result);
+            lock (typeof(Marshal))
+            {
+                IntPtr result = site_name_PatientElectrodesList(_handle, patientIndex, electrodeIndex, siteIndex);
+                return Marshal.PtrToStringAnsi(result);
+            }
         }
         /// <summary>
         /// Fill the <see cref="RawSiteList"/> using the full electrodes list
@@ -341,8 +344,11 @@ namespace HBP.Core.DLL
         /// <returns>Name of the patient</returns>
         public string PatientName(int patientIndex)
         {
-            IntPtr result = patient_name_PatientElectrodesList(_handle, patientIndex);
-            return Marshal.PtrToStringAnsi(result);
+            lock (typeof(Marshal))
+            {
+                IntPtr result = patient_name_PatientElectrodesList(_handle, patientIndex);
+                return Marshal.PtrToStringAnsi(result);
+            }
         }
         /// <summary>
         /// Get the name of the electrode
@@ -352,8 +358,11 @@ namespace HBP.Core.DLL
         /// <returns>Name of the electrode</returns>
         public string ElectrodeName(int patientIndex, int electrodeIndex)
         {
-            IntPtr result = electrode_name_PatientElectrodesList(_handle, patientIndex, electrodeIndex);
-            return Marshal.PtrToStringAnsi(result);
+            lock (typeof(Marshal))
+            {
+                IntPtr result = electrode_name_PatientElectrodesList(_handle, patientIndex, electrodeIndex);
+                return Marshal.PtrToStringAnsi(result);
+            }
         }
         /// <summary>
         /// Get the mars atlas label of a site
@@ -375,8 +384,11 @@ namespace HBP.Core.DLL
         /// <returns></returns>
         public string FreesurferLabelOfSite(int patientIndex, int electrodeIndex, int siteIndex)
         {
-            IntPtr result = site_freesurfer_label_PatientElectrodesList(_handle, patientIndex, electrodeIndex, siteIndex);
-            return Marshal.PtrToStringAnsi(result);
+            lock (typeof(Marshal))
+            {
+                IntPtr result = site_freesurfer_label_PatientElectrodesList(_handle, patientIndex, electrodeIndex, siteIndex);
+                return Marshal.PtrToStringAnsi(result);
+            }
         }
         public object Clone()
         {

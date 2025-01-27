@@ -41,10 +41,13 @@ namespace HBP.Core.DLL
         /// <returns>Name of the hemipshere</returns>
         public string Hemisphere(int id)
         {
-            if (id < 0) return "not found";
+            lock (typeof(Marshal))
+            {
+                if (id < 0) return "not found";
 
-            IntPtr result = hemisphere_MarsAtlasIndex(_handle, id);
-            return Marshal.PtrToStringAnsi(result);
+                IntPtr result = hemisphere_MarsAtlasIndex(_handle, id);
+                return Marshal.PtrToStringAnsi(result);
+            }
         }
         /// <summary>
         /// Return the name of the lobe given a mars atlas label ID
@@ -53,10 +56,13 @@ namespace HBP.Core.DLL
         /// <returns>Name of the lobe</returns>
         public string Lobe(int label)
         {
-            if (label < 0) return "not found";
+            lock (typeof(Marshal))
+            {
+                if (label < 0) return "not found";
 
-            IntPtr result = lobe_MarsAtlasIndex(_handle, label);
-            return Marshal.PtrToStringAnsi(result);
+                IntPtr result = lobe_MarsAtlasIndex(_handle, label);
+                return Marshal.PtrToStringAnsi(result);
+            }
         }
         /// <summary>
         /// Return the name of the name fs given a mars atlas label ID
@@ -65,10 +71,13 @@ namespace HBP.Core.DLL
         /// <returns>Name of the name fs</returns>
         public string NameFS(int label)
         {
-            if (label < 0) return "not found";
+            lock (typeof(Marshal))
+            {
+                if (label < 0) return "not found";
 
-            IntPtr result = nameFS_MarsAtlasIndex(_handle, label);
-            return Marshal.PtrToStringAnsi(result);
+                IntPtr result = nameFS_MarsAtlasIndex(_handle, label);
+                return Marshal.PtrToStringAnsi(result);
+            }
         }
         /// <summary>
         /// Return the name of a mars atlas area given a mars atlas label ID
@@ -77,10 +86,13 @@ namespace HBP.Core.DLL
         /// <returns>Name of the mars atlas area</returns>
         public string Name(int label)
         {
-            if (label < 0) return "not found";
+            lock (typeof(Marshal))
+            {
+                if (label < 0) return "not found";
 
-            IntPtr result = name_MarsAtlasIndex(_handle, label);
-            return Marshal.PtrToStringAnsi(result);
+                IntPtr result = name_MarsAtlasIndex(_handle, label);
+                return Marshal.PtrToStringAnsi(result);
+            }
         }
         /// <summary>
         /// Return the full name of a mars atlas area given a mars atlas label ID
@@ -89,10 +101,13 @@ namespace HBP.Core.DLL
         /// <returns>Full name of the mars atlas area</returns>
         public string FullName(int label)
         {
-            if (label < 0) return "not found";
+            lock (typeof(Marshal))
+            {
+                if (label < 0) return "not found";
 
-            IntPtr result = fullName_MarsAtlasIndex(_handle, label);
-            return Marshal.PtrToStringAnsi(result);
+                IntPtr result = fullName_MarsAtlasIndex(_handle, label);
+                return Marshal.PtrToStringAnsi(result);
+            }
         }
         /// <summary>
         /// Return the name of the brodmann area given a mars atlas label ID
@@ -101,10 +116,13 @@ namespace HBP.Core.DLL
         /// <returns>Name of the brodmann area</returns>
         public string BrodmannArea(int label)
         {
-            if (label < 0) return "not found";
+            lock (typeof(Marshal))
+            {
+                if (label < 0) return "not found";
 
-            IntPtr result = BA_MarsAtlasIndex(_handle, label);
-            return Marshal.PtrToStringAnsi(result);
+                IntPtr result = BA_MarsAtlasIndex(_handle, label);
+                return Marshal.PtrToStringAnsi(result);
+            }
         }
         /// <summary>
         /// Generate a sites list for group CCEP depending on the MarsAtlas
