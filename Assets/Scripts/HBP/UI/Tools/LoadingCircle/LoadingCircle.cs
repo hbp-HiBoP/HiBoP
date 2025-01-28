@@ -3,6 +3,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Tools;
+using System.Threading;
 
 namespace HBP.UI.Tools
 {
@@ -20,10 +21,6 @@ namespace HBP.UI.Tools
         float m_CurrentDurationInSeconds;
         public float DurationInSeconds { get; set; }
 
-        Coroutine m_TextCoroutine;
-
-
-        bool loading;
         Sprite[] m_Sprites;
 
         [SerializeField] Image m_IconProgress;
@@ -76,27 +73,28 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Coroutines
-        IEnumerator c_TextLoadingEffect()
+        private async void TextLoadingEffect()
         {
-            loading = true;
-            m_LoadingEffectText.text = "";
-            yield return new WaitForSeconds(0.25f);
-            m_LoadingEffectText.text = ".";
-            yield return new WaitForSeconds(0.25f);
-            m_LoadingEffectText.text = "..";
-            yield return new WaitForSeconds(0.25f);
-            m_LoadingEffectText.text = "...";
-            yield return new WaitForSeconds(0.25f);
-            loading = false;
+            while (true)
+            {
+                await new WaitUntil(() => gameObject.activeSelf);
+                m_LoadingEffectText.text = "";
+                await new WaitForSeconds(0.25f);
+                m_LoadingEffectText.text = ".";
+                await new WaitForSeconds(0.25f);
+                m_LoadingEffectText.text = "..";
+                await new WaitForSeconds(0.25f);
+                m_LoadingEffectText.text = "...";
+                await new WaitForSeconds(0.25f);
+            }
         }
         #endregion
 
         #region Private Methods
-        void LateUpdate()
+        private void Awake()
         {
-            if (!loading && m_LoadingEffectText.gameObject.activeSelf) m_TextCoroutine = StartCoroutine(c_TextLoadingEffect());
+            TextLoadingEffect();
         }
-
         private void Update()
         {
             if (!Mathf.Approximately(Progress, m_TargetProgress))
@@ -110,8 +108,6 @@ namespace HBP.UI.Tools
             }
             if (Text != m_LastText)
             {
-                StopCoroutine(m_TextCoroutine);
-                loading = false;
                 m_PrefixText.text = Text.Prefix;
                 m_PrefixText.SetLayoutElementMinimumWidthToContainWholeText();
                 m_InformationText.text = Text.Message;

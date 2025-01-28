@@ -6,6 +6,7 @@ using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Data.Preferences;
 using HBP.Core.DLL;
+using System.Threading.Tasks;
 
 namespace HBP.Data.Module3D
 {
@@ -151,60 +152,63 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Compute correlations for all site pairs
         /// </summary>
-        public void ComputeCorrelations(Action<float, float, LoadingText> onChangeProgress = null)
+        public async Task ComputeCorrelationsAsync(Action<float, float, LoadingText> updateProgress)
         {
-            CorrelationBySitePair.Clear();
-            CorrelationMeanBySitePair.Clear();
-            onChangeProgress?.Invoke(0, 0, new LoadingText("Computing correlations"));
-            Dictionary<Core.Object3D.Site, List<double[]>> valuesByChannel = new Dictionary<Core.Object3D.Site, List<double[]>>();
-            foreach (var site in Sites)
+            await Task.Run(() =>
             {
-                if (site.Data != null && !site.State.IsBlackListed)
+                CorrelationBySitePair.Clear();
+                CorrelationMeanBySitePair.Clear();
+                updateProgress.Invoke(0, 0, new LoadingText("Computing correlations"));
+                Dictionary<Core.Object3D.Site, List<double[]>> valuesByChannel = new Dictionary<Core.Object3D.Site, List<double[]>>();
+                foreach (var site in Sites)
                 {
-                    List<double[]> values = new List<double[]>();
-                    for (int i = 0; i < site.Data.Trials.Length; ++i)
+                    if (site.Data != null && !site.State.IsBlackListed)
                     {
-                        double[] arrayValues = new double[site.Data.Trials[i].Values.Length];
-                        for (int j = 0; j < arrayValues.Length; ++j)
+                        List<double[]> values = new List<double[]>();
+                        for (int i = 0; i < site.Data.Trials.Length; ++i)
                         {
-                            arrayValues[j] = site.Data.Trials[i].Values[j];
+                            double[] arrayValues = new double[site.Data.Trials[i].Values.Length];
+                            for (int j = 0; j < arrayValues.Length; ++j)
+                            {
+                                arrayValues[j] = site.Data.Trials[i].Values[j];
+                            }
+                            values.Add(arrayValues);
                         }
-                        values.Add(arrayValues);
+                        valuesByChannel.Add(site, values);
                     }
-                    valuesByChannel.Add(site, values);
                 }
-            }
-            int siteCount = valuesByChannel.Count;
-            int progressCount = 0;
-            foreach (var kv1 in valuesByChannel)
-            {
-                onChangeProgress?.Invoke((float)progressCount++ / siteCount, 0, new LoadingText("Computing correlations for ", string.Format("{0} in {1}", kv1.Key.Information.Name, Name)));
-                Dictionary<Core.Object3D.Site, float> correlation = new Dictionary<Core.Object3D.Site, float>();
-                Dictionary<Core.Object3D.Site, float> mean = new Dictionary<Core.Object3D.Site, float>();
-                int numberOfTrials = kv1.Value.Count;
-
-                foreach (var kv2 in valuesByChannel)
+                int siteCount = valuesByChannel.Count;
+                int progressCount = 0;
+                foreach (var kv1 in valuesByChannel)
                 {
-                    if (kv1.Key == kv2.Key) continue;
-                    if (kv2.Value.Count != numberOfTrials) continue;
+                    updateProgress.Invoke((float)progressCount++ / siteCount, 0, new LoadingText("Computing correlations for ", string.Format("{0} in {1}", kv1.Key.Information.Name, Name)));
+                    Dictionary<Core.Object3D.Site, float> correlation = new Dictionary<Core.Object3D.Site, float>();
+                    Dictionary<Core.Object3D.Site, float> mean = new Dictionary<Core.Object3D.Site, float>();
+                    int numberOfTrials = kv1.Value.Count;
 
-                    double[] blackData = new double[numberOfTrials];
-                    double[] greyData = new double[numberOfTrials * (numberOfTrials - 1)];
+                    foreach (var kv2 in valuesByChannel)
+                    {
+                        if (kv1.Key == kv2.Key) continue;
+                        if (kv2.Value.Count != numberOfTrials) continue;
 
-                    int count = 0;
-                    for (int i = 0; i < numberOfTrials; ++i)
-                        for (int j = 0; j < numberOfTrials; ++j)
-                            if (i == j)
-                                blackData[i] = MathDLL.Pearson(kv1.Value[i], kv2.Value[i]);
-                            else
-                                greyData[count++] = MathDLL.Pearson(kv1.Value[i], kv2.Value[j]);
+                        double[] blackData = new double[numberOfTrials];
+                        double[] greyData = new double[numberOfTrials * (numberOfTrials - 1)];
 
-                    correlation.Add(kv2.Key, (float)MathDLL.WilcoxonRankSum(blackData, greyData));
-                    mean.Add(kv2.Key, (float)blackData.Mean());
+                        int count = 0;
+                        for (int i = 0; i < numberOfTrials; ++i)
+                            for (int j = 0; j < numberOfTrials; ++j)
+                                if (i == j)
+                                    blackData[i] = MathDLL.Pearson(kv1.Value[i], kv2.Value[i]);
+                                else
+                                    greyData[count++] = MathDLL.Pearson(kv1.Value[i], kv2.Value[j]);
+
+                        correlation.Add(kv2.Key, (float)MathDLL.WilcoxonRankSum(blackData, greyData));
+                        mean.Add(kv2.Key, (float)blackData.Mean());
+                    }
+                    CorrelationBySitePair.Add(kv1.Key, correlation);
+                    CorrelationMeanBySitePair.Add(kv1.Key, mean);
                 }
-                CorrelationBySitePair.Add(kv1.Key, correlation);
-                CorrelationMeanBySitePair.Add(kv1.Key, mean);
-            }
+            });
         }
         /// <summary>
         /// Which sites are correlated to the input one ?

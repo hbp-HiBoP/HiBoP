@@ -1,8 +1,5 @@
-﻿using ThirdParty.CielaSpike;
-using System;
-using System.Collections;
+﻿using System;
 using UnityEngine;
-using UnityEngine.Events;
 using HBP.Core.Tools;
 
 namespace HBP.UI.Tools
@@ -41,6 +38,24 @@ namespace HBP.UI.Tools
                 m_Instance.m_LoadingCircle.Close();
             }
         }
+        public static async System.Threading.Tasks.Task LoadAsync(Func<Action<float, float, LoadingText>, System.Threading.Tasks.Task> taskToExecute)
+        {
+            AsyncMethod method = new(taskToExecute);
+            m_Instance.m_LoadingCircle.Open();
+            method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.m_LoadingCircle.ChangePercentage(progress, 0, message));
+            try
+            {
+                await method.ExecuteAsync();
+            }
+            catch (Exception e)
+            {
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, e.ToString(), e.Message);
+            }
+            finally
+            {
+                m_Instance.m_LoadingCircle.Close();
+            }
+        }
         public static async void Load(Func<Action<float, float, LoadingText>, System.Threading.Tasks.Task> taskToExecute)
         {
             AsyncMethod method = new AsyncMethod(taskToExecute);
@@ -55,28 +70,6 @@ namespace HBP.UI.Tools
                 DialogBoxManager.Open(DialogBoxManager.AlertType.Error, e.ToString(), e.Message);
             }
             m_Instance.m_LoadingCircle.Close();
-        }
-        public static void Load(IEnumerator action, GenericEvent<float, float, LoadingText> onChangeProgress, Action<TaskState> callBack = null)
-        {
-            m_Instance.StartCoroutine(c_Load(action, onChangeProgress, callBack));
-        }
-        public static IEnumerator c_Load(IEnumerator action, GenericEvent<float, float, LoadingText> onChangeProgress, Action<TaskState> callBack = null)
-        {
-            m_Instance.m_LoadingCircle.Open();
-            onChangeProgress.AddListener((progress, time, message) => m_Instance.m_LoadingCircle.ChangePercentage(progress, time, message));
-            yield return m_Instance.StartCoroutineAsync(action, out Task task);
-            switch (task.State)
-            {
-                case TaskState.Done:
-                    yield return new WaitForSeconds(0.2f);
-                    break;
-                case TaskState.Error:
-                    Exception exception = task.Exception;
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
-                    break;
-            }
-            m_Instance.m_LoadingCircle.Close();
-            callBack?.Invoke(task.State);
         }
         #endregion
     }

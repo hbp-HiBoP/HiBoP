@@ -5,6 +5,8 @@ using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.UI.Tools;
 using HBP.Data.Database;
+using System;
+using System.Threading.Tasks;
 
 namespace HBP.UI.Main
 {
@@ -38,8 +40,7 @@ namespace HBP.UI.Main
         {
             m_GeneralSubModifier.Save();
             base.OK();
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            LoadingManager.Load(c_CheckProject(onChangeProgress), onChangeProgress);
+            LoadingManager.Load(update => CheckProjectAsync(update));
         }
         #endregion
 
@@ -63,9 +64,9 @@ namespace HBP.UI.Main
         #endregion
 
         #region Coroutines
-        private IEnumerator c_CheckProject(GenericEvent<float, float, LoadingText> onChangeProgress)
+        private async Task CheckProjectAsync(Action<float, float, LoadingText> updateProgress)
         {
-            yield return ApplicationState.LoadedProject.c_CheckDatasets(DatabaseManager.Database.Protocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text));
+            await ApplicationState.LoadedProject.CheckDatasetsAsync(DatabaseManager.Database.Protocols, updateProgress);
         }
         #endregion
     }

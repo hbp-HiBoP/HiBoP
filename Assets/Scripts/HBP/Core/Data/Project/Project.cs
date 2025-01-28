@@ -1,10 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using ThirdParty.CielaSpike;
 using Ionic.Zip;
 using UnityEngine;
 using HBP.Core.Exceptions;
@@ -293,38 +291,36 @@ namespace HBP.Core.Data
             bool isProject = false;
             if (new FileInfo(path).Extension == EXTENSION)
             {
-                using (ZipFile zip = ZipFile.Read(path))
+                using ZipFile zip = ZipFile.Read(path);
+                bool hasPatientsDirectory = false;
+                bool hasGroupsDirectory = false;
+                bool hasDatasetsDirectory = false;
+                bool hasVisualizationsDirectory = false;
+                bool hasSettingsFile = false;
+                foreach (var entryFileName in zip.EntryFileNames)
                 {
-                    bool hasPatientsDirectory = false;
-                    bool hasGroupsDirectory = false;
-                    bool hasDatasetsDirectory = false;
-                    bool hasVisualizationsDirectory = false;
-                    bool hasSettingsFile = false;
-                    foreach (var entryFileName in zip.EntryFileNames)
+                    if (entryFileName == "Patients/")
                     {
-                        if (entryFileName == "Patients/")
-                        {
-                            hasPatientsDirectory = true;
-                        }
-                        else if (entryFileName == "Groups/")
-                        {
-                            hasGroupsDirectory = true;
-                        }
-                        else if (entryFileName == "Datasets/")
-                        {
-                            hasDatasetsDirectory = true;
-                        }
-                        else if (entryFileName == "Visualizations/")
-                        {
-                            hasVisualizationsDirectory = true;
-                        }
-                        else if (entryFileName.EndsWith(ProjectPreferences.EXTENSION))
-                        {
-                            hasSettingsFile = true;
-                        }
+                        hasPatientsDirectory = true;
                     }
-                    isProject = hasPatientsDirectory && hasGroupsDirectory && hasDatasetsDirectory && hasVisualizationsDirectory && hasSettingsFile;
+                    else if (entryFileName == "Groups/")
+                    {
+                        hasGroupsDirectory = true;
+                    }
+                    else if (entryFileName == "Datasets/")
+                    {
+                        hasDatasetsDirectory = true;
+                    }
+                    else if (entryFileName == "Visualizations/")
+                    {
+                        hasVisualizationsDirectory = true;
+                    }
+                    else if (entryFileName.EndsWith(ProjectPreferences.EXTENSION))
+                    {
+                        hasSettingsFile = true;
+                    }
                 }
+                isProject = hasPatientsDirectory && hasGroupsDirectory && hasDatasetsDirectory && hasVisualizationsDirectory && hasSettingsFile;
             }
             return isProject;
         }
@@ -416,10 +412,8 @@ namespace HBP.Core.Data
             return problematicData;
         }
 
-        public IEnumerator c_Load(ProjectInfo projectInfo, Action<float, float, LoadingText> onChangeProgress)
+        public async System.Threading.Tasks.Task LoadAsync(ProjectInfo projectInfo, Action<float, float, LoadingText> updateProgress)
         {
-            yield return Ninja.JumpBack;
-
             // Initialize progress.
             float steps = 1 + projectInfo.Patients + projectInfo.Groups + projectInfo.Protocols + 5 * projectInfo.Patients * projectInfo.Datasets + projectInfo.Visualizations;
             float progress = 0.0f;
@@ -431,50 +425,44 @@ namespace HBP.Core.Data
             float datasetsProgress = 5 * projectInfo.Patients * projectInfo.Datasets / steps;
             float visualizationsProgress = projectInfo.Visualizations / steps;
 
-            onChangeProgress.Invoke(progress, 0, new LoadingText("Loading project"));
+            updateProgress.Invoke(progress, 0, new LoadingText("Loading project"));
 
             // Unzipping
-            if (Directory.Exists(ApplicationState.ExtractProjectFolder)) Directory.Delete(ApplicationState.ExtractProjectFolder, true);
-            using (ZipFile zip = ZipFile.Read(projectInfo.Path))
+            await System.Threading.Tasks.Task.Run(() =>
             {
+                if (Directory.Exists(ApplicationState.ExtractProjectFolder)) Directory.Delete(ApplicationState.ExtractProjectFolder, true);
+                using ZipFile zip = ZipFile.Read(projectInfo.Path);
                 zip.ExtractAll(ApplicationState.ExtractProjectFolder, ExtractExistingFileAction.OverwriteSilently);
-            }
-
-            if (!File.Exists(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file exists.
-            if (!IsProject(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file is a project.
+                if (!File.Exists(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file exists.
+                if (!IsProject(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file is a project.
+            });
             DirectoryInfo projectDirectory = new DirectoryInfo(ApplicationState.ExtractProjectFolder);
 
-            yield return Ninja.JumpToUnity;
-
             // Load Settings.
-            yield return CoroutineManager.StartAsync(c_LoadSettings(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * settingsProgress, duration, text)));
+            await LoadSettingsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * settingsProgress, duration, text));
             progress += settingsProgress;
 
             // Load Patients.
-            yield return CoroutineManager.StartAsync(c_LoadPatients(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * patientsProgress, duration, text)));
+            await LoadPatientsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * patientsProgress, duration, text));
             progress += patientsProgress;
 
             // Load Groups.
-            yield return CoroutineManager.StartAsync(c_LoadGroups(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * groupsProgress, duration, text)));
+            await LoadGroupsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * groupsProgress, duration, text));
             progress += groupsProgress;
 
             // Load Datasets.
-            yield return CoroutineManager.StartAsync(c_LoadDatasets(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * datasetsProgress, duration, text)));
+            await LoadDatasetsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * datasetsProgress, duration, text));
             progress += datasetsProgress;
 
             // Load Visualizations.
-            yield return CoroutineManager.StartAsync(c_LoadVisualizations(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text)));
+            await LoadVisualizationsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text));
             progress += visualizationsProgress;
 
-            yield return Ninja.JumpBack;
-
             Directory.Delete(ApplicationState.ExtractProjectFolder, true);
-
-            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Project loaded successfully."));
+            updateProgress.Invoke(1.0f, 0, new LoadingText("Project loaded successfully."));
         }
-        public IEnumerator c_Save(string path, Action<float, float, LoadingText> onChangeProgress)
+        public async System.Threading.Tasks.Task SaveAsync(string path, Action<float, float, LoadingText> updateProgress)
         {
-            yield return Ninja.JumpBack;
             // Initialize progress.
             float steps = 12 + m_Patients.Count + m_Groups.Count + m_Datasets.Count + m_Visualizations.Count;
             float progress = 0.0f;
@@ -488,189 +476,183 @@ namespace HBP.Core.Data
             float finalizationProgress = 10 / steps;
 
             // Initialization.
-            onChangeProgress.Invoke(progress, 0, new LoadingText("Initialization"));
+            updateProgress.Invoke(progress, 0, new LoadingText("Initialization"));
 
             if (string.IsNullOrEmpty(path)) throw new Exceptions.DirectoryNotFoundException("");
             if (!Directory.Exists(path)) throw new Exceptions.DirectoryNotFoundException(path);
             DirectoryInfo projectDirectory = Directory.Exists(ApplicationState.ExtractProjectFolder) ? new DirectoryInfo(ApplicationState.ExtractProjectFolder) : Directory.CreateDirectory(ApplicationState.ExtractProjectFolder);
             progress += initializationProgress;
 
-            onChangeProgress.Invoke(progress, 0, new LoadingText("Saving project"));
-
-            yield return Ninja.JumpToUnity;
+            updateProgress.Invoke(progress, 0, new LoadingText("Saving project"));
 
             // Save Settings.
-            yield return CoroutineManager.StartAsync(c_SaveSettings(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * settingsProgress, duration, text)));
+            await SaveSettingsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * settingsProgress, duration, text));
             progress += settingsProgress;
 
             // Save Patients
-            yield return CoroutineManager.StartAsync(c_SavePatients(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * patientsProgress, duration, text)));
+            await SavePatientsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * patientsProgress, duration, text));
             progress += patientsProgress;
 
             // Save Groups.
-            yield return CoroutineManager.StartAsync(c_SaveGroups(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * groupsProgress, duration, text)));
+            await SaveGroupsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * groupsProgress, duration, text));
             progress += groupsProgress;
 
             // Save Datasets
-            yield return CoroutineManager.StartAsync(c_SaveDatasets(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * datasetsProgress, duration, text)));
+            await SaveDatasetsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * datasetsProgress, duration, text));
             progress += datasetsProgress;
 
             // Save Visualizations.
-            yield return CoroutineManager.StartAsync(c_SaveVisualizations(projectDirectory, (localProgress, duration, text) => onChangeProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text)));
+            await SaveVisualizationsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text));
             progress += visualizationsProgress;
 
-            yield return Ninja.JumpBack;
-
             // Deleting old directories.
-            onChangeProgress.Invoke(progress + finalizationProgress, 0.75f, new LoadingText("Finalizing."));
+            updateProgress.Invoke(progress + finalizationProgress, 0.75f, new LoadingText("Finalizing."));
             progress += finalizationProgress;
 
             // Zipping
-            string filePath = Path.Combine(path, FileName);
-            if (File.Exists(filePath)) File.Delete(filePath);
-            using (ZipFile zip = new ZipFile(filePath))
+            await System.Threading.Tasks.Task.Run(() =>
             {
-                zip.AddDirectory(ApplicationState.ExtractProjectFolder);
-                zip.Save();
-            }
-            Directory.Delete(ApplicationState.ExtractProjectFolder, true);
+                string filePath = Path.Combine(path, FileName);
+                if (File.Exists(filePath)) File.Delete(filePath);
+                using (ZipFile zip = new(filePath))
+                {
+                    zip.AddDirectory(ApplicationState.ExtractProjectFolder);
+                    zip.Save();
+                }
+                Directory.Delete(ApplicationState.ExtractProjectFolder, true);
+            });
 
-            onChangeProgress.Invoke(1, 0, new LoadingText("Project saved successfully."));
+            updateProgress.Invoke(1, 0, new LoadingText("Project saved successfully."));
         }
 
-        public IEnumerator c_CheckDatasets(IEnumerable<Protocol> protocols, Action<float, float, LoadingText> onChangeProgress)
+        public async System.Threading.Tasks.Task CheckDatasetsAsync(IEnumerable<Protocol> protocols, Action<float, float, LoadingText> updateProgress)
         {
-            yield return Ninja.JumpBack;
-
-            IEnumerable<Dataset> datasets = m_Datasets.Where(d => protocols.Contains(d.Protocol));
-            int count = 0;
-            int length = datasets.SelectMany(d => d.Data).Count();
-            foreach (var dataset in datasets)
+            await System.Threading.Tasks.Task.Run(() =>
             {
-                for (int j = 0; j < dataset.Data.Count; ++j, ++count)
+                IEnumerable<Dataset> datasets = m_Datasets.Where(d => protocols.Contains(d.Protocol));
+                int count = 0;
+                int length = datasets.SelectMany(d => d.Data).Count();
+                foreach (var dataset in datasets)
                 {
-                    DataInfo data = dataset.Data[j];
-                    data.GetErrorsAndWarnings();
+                    for (int j = 0; j < dataset.Data.Count; ++j, ++count)
+                    {
+                        DataInfo data = dataset.Data[j];
+                        data.GetErrorsAndWarnings();
 
-                    string message;
-                    if (data is PatientDataInfo patientDataInfo) message = patientDataInfo.Name + " | " + dataset.Protocol.Name + " | " + patientDataInfo.Patient.Name;
-                    else message = data.Name + " | " + dataset.Protocol.Name;
+                        string message;
+                        if (data is PatientDataInfo patientDataInfo) message = patientDataInfo.Name + " | " + dataset.Protocol.Name + " | " + patientDataInfo.Patient.Name;
+                        else message = data.Name + " | " + dataset.Protocol.Name;
 
-                    onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Checking ", message, " [" + (count + 1) + "/" + length + "]"));
+                        updateProgress.Invoke((float)count / length, 0, new LoadingText("Checking ", message, " [" + (count + 1) + "/" + length + "]"));
+                    }
                 }
-            }
+            });
         }
-        public IEnumerator c_CheckPatientTagValues(IEnumerable<BaseTag> tags, Action<float, float, LoadingText> onChangeProgress)
+        public async System.Threading.Tasks.Task CheckPatientTagValuesAsync(IEnumerable<BaseTag> tags, Action<float, float, LoadingText> updateProgress)
         {
-            yield return Ninja.JumpBack;
-
-            // Test patient TagValues;
-            int length = m_Patients.Count;
-            for (int p = 0; p < length; p++)
+            await System.Threading.Tasks.Task.Run(() =>
             {
-                var patient = m_Patients[p];
-                onChangeProgress.Invoke((float)(p + 1) / length, 0.1f, new LoadingText("Checking ", patient.Name, " [" + (p + 1) + "/" + length + "]"));
-                patient.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
-                foreach (var site in patient.Sites) site.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
-                List<BaseTagValue> tagsToUpdate = patient.Tags.Where(t => tags.Contains(t.Tag)).ToList();
-                tagsToUpdate.AddRange(patient.Sites.SelectMany(s => s.Tags).Where(t => tags.Contains(t.Tag)));
-                foreach (var tagValue in tagsToUpdate)
+                int length = m_Patients.Count;
+                for (int p = 0; p < length; p++)
                 {
-                    if (tagValue.Tag is IntTag && tagValue is not IntTagValue)
+                    var patient = m_Patients[p];
+                    updateProgress.Invoke((float)(p + 1) / length, 0.1f, new LoadingText("Checking ", patient.Name, " [" + (p + 1) + "/" + length + "]"));
+                    patient.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
+                    foreach (var site in patient.Sites) site.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
+                    List<BaseTagValue> tagsToUpdate = patient.Tags.Where(t => tags.Contains(t.Tag)).ToList();
+                    tagsToUpdate.AddRange(patient.Sites.SelectMany(s => s.Tags).Where(t => tags.Contains(t.Tag)));
+                    foreach (var tagValue in tagsToUpdate)
                     {
-                        patient.Tags.Remove(tagValue);
-                        var newTagValue = new IntTagValue();
-                        newTagValue.Copy(tagValue);
-                        patient.Tags.Add(newTagValue);
-                        newTagValue.UpdateValue();
-                    }
-                    else if (tagValue.Tag is FloatTag && tagValue is not FloatTagValue)
-                    {
-                        patient.Tags.Remove(tagValue);
-                        var newTagValue = new FloatTagValue();
-                        newTagValue.Copy(tagValue);
-                        patient.Tags.Add(newTagValue);
-                        newTagValue.UpdateValue();
-                    }
-                    else if (tagValue.Tag is BoolTag && tagValue is not BoolTagValue)
-                    {
-                        patient.Tags.Remove(tagValue);
-                        var newTagValue = new BoolTagValue();
-                        newTagValue.Copy(tagValue);
-                        patient.Tags.Add(newTagValue);
-                        newTagValue.UpdateValue();
-                    }
-                    else if (tagValue.Tag is EmptyTag && tagValue is not EmptyTagValue)
-                    {
-                        patient.Tags.Remove(tagValue);
-                        var newTagValue = new EmptyTagValue();
-                        newTagValue.Copy(tagValue);
-                        patient.Tags.Add(newTagValue);
-                        newTagValue.UpdateValue();
-                    }
-                    else if (tagValue.Tag is EnumTag && tagValue is not EnumTagValue)
-                    {
-                        patient.Tags.Remove(tagValue);
-                        var newTagValue = new EnumTagValue();
-                        newTagValue.Copy(tagValue);
-                        patient.Tags.Add(newTagValue);
-                        newTagValue.UpdateValue();
-                    }
-                    else if (tagValue.Tag is StringTag && tagValue is not StringTagValue)
-                    {
-                        patient.Tags.Remove(tagValue);
-                        var newTagValue = new StringTagValue();
-                        newTagValue.Copy(tagValue);
-                        patient.Tags.Add(newTagValue);
-                        newTagValue.UpdateValue();
-                    }
-                    else
-                    {
-                        tagValue.UpdateValue();
+                        if (tagValue.Tag is IntTag && tagValue is not IntTagValue)
+                        {
+                            patient.Tags.Remove(tagValue);
+                            var newTagValue = new IntTagValue();
+                            newTagValue.Copy(tagValue);
+                            patient.Tags.Add(newTagValue);
+                            newTagValue.UpdateValue();
+                        }
+                        else if (tagValue.Tag is FloatTag && tagValue is not FloatTagValue)
+                        {
+                            patient.Tags.Remove(tagValue);
+                            var newTagValue = new FloatTagValue();
+                            newTagValue.Copy(tagValue);
+                            patient.Tags.Add(newTagValue);
+                            newTagValue.UpdateValue();
+                        }
+                        else if (tagValue.Tag is BoolTag && tagValue is not BoolTagValue)
+                        {
+                            patient.Tags.Remove(tagValue);
+                            var newTagValue = new BoolTagValue();
+                            newTagValue.Copy(tagValue);
+                            patient.Tags.Add(newTagValue);
+                            newTagValue.UpdateValue();
+                        }
+                        else if (tagValue.Tag is EmptyTag && tagValue is not EmptyTagValue)
+                        {
+                            patient.Tags.Remove(tagValue);
+                            var newTagValue = new EmptyTagValue();
+                            newTagValue.Copy(tagValue);
+                            patient.Tags.Add(newTagValue);
+                            newTagValue.UpdateValue();
+                        }
+                        else if (tagValue.Tag is EnumTag && tagValue is not EnumTagValue)
+                        {
+                            patient.Tags.Remove(tagValue);
+                            var newTagValue = new EnumTagValue();
+                            newTagValue.Copy(tagValue);
+                            patient.Tags.Add(newTagValue);
+                            newTagValue.UpdateValue();
+                        }
+                        else if (tagValue.Tag is StringTag && tagValue is not StringTagValue)
+                        {
+                            patient.Tags.Remove(tagValue);
+                            var newTagValue = new StringTagValue();
+                            newTagValue.Copy(tagValue);
+                            patient.Tags.Add(newTagValue);
+                            newTagValue.UpdateValue();
+                        }
+                        else
+                        {
+                            tagValue.UpdateValue();
+                        }
                     }
                 }
-            }
+            });
         }
         #endregion
 
         #region Private Methods
-        IEnumerator c_LoadSettings(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
+        private async System.Threading.Tasks.Task LoadSettingsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
-            yield return Ninja.JumpBack;
-            onChangeProgress.Invoke(0, 0, new LoadingText("Loading settings"));
-
+            updateProgress.Invoke(0, 0, new LoadingText("Loading settings"));
             FileInfo[] settingsFiles = projectDirectory.GetFiles("*" + ProjectPreferences.EXTENSION, SearchOption.TopDirectoryOnly);
             if (settingsFiles.Length == 0) throw new SettingsFileNotFoundException(); // Test if settings files found.
             else if (settingsFiles.Length > 1) throw new MultipleSettingsFilesFoundException(); // Test if multiple settings files found.
             try
             {
-                Preferences = ClassLoaderSaver.LoadFromJson<ProjectPreferences>(settingsFiles[0].FullName);
+                Preferences = await ClassLoaderSaver.LoadFromJsonAsync<ProjectPreferences>(settingsFiles[0].FullName);
             }
             catch (Exception e)
             {
                 Debug.LogException(e);
                 throw new CanNotReadSettingsFileException(settingsFiles[0].Name);
             }
-            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Settings loaded successfully"));
+            updateProgress.Invoke(1.0f, 0, new LoadingText("Settings loaded successfully"));
         }
-        IEnumerator c_LoadPatients(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
+        private async System.Threading.Tasks.Task LoadPatientsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             const float LOADING_PROGRESS = 0.99f;
             const float CHECKING_PROGRESS = 0.01f;
-
-            yield return Ninja.JumpBack;
-
-            // Load patients.
             List<Patient> patients = new List<Patient>();
             DirectoryInfo patientDirectory = projectDirectory.GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
             for (int i = 0; i < patientFiles.Length; ++i)
             {
                 FileInfo patientFile = patientFiles[i];
-                onChangeProgress.Invoke((float)(i + 1) / patientFiles.Length * LOADING_PROGRESS, 0, new LoadingText("Loading patient ", Path.GetFileNameWithoutExtension(patientFile.Name), " [" + (i + 1).ToString() + "/" + patientFiles.Length + "]"));
+                updateProgress.Invoke((float)(i + 1) / patientFiles.Length * LOADING_PROGRESS, 0, new LoadingText("Loading patient ", Path.GetFileNameWithoutExtension(patientFile.Name), " [" + (i + 1).ToString() + "/" + patientFiles.Length + "]"));
                 try
                 {
-                    patients.Add(ClassLoaderSaver.LoadFromJson<Patient>(patientFile.FullName));
+                    patients.Add(await ClassLoaderSaver.LoadFromJsonAsync<Patient>(patientFile.FullName));
                 }
                 catch (Exception e)
                 {
@@ -679,26 +661,21 @@ namespace HBP.Core.Data
                 }
             }
             SetPatients(patients.ToArray());
-            yield return Ninja.JumpToUnity;
-            yield return CoroutineManager.StartAsync(c_CheckPatientTagValues(PersistentDataManager.Tags.AllTags, (localProgress, duration, text) => onChangeProgress.Invoke(LOADING_PROGRESS + localProgress * CHECKING_PROGRESS, duration, text)));
-            yield return Ninja.JumpBack;
-            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
+            await CheckPatientTagValuesAsync(PersistentDataManager.Tags.AllTags, (localProgress, duration, text) => updateProgress.Invoke(LOADING_PROGRESS + localProgress * CHECKING_PROGRESS, duration, text));
+            updateProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
         }
-        IEnumerator c_LoadGroups(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
+        private async System.Threading.Tasks.Task LoadGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
-            yield return Ninja.JumpBack;
-
-            // Load groups.
             List<Group> groups = new List<Group>();
             DirectoryInfo groupDirectory = projectDirectory.GetDirectories("Groups", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] groupFiles = groupDirectory.GetFiles("*" + Group.EXTENSION, SearchOption.TopDirectoryOnly);
             for (int i = 0; i < groupFiles.Length; ++i)
             {
                 FileInfo groupFile = groupFiles[i];
-                onChangeProgress.Invoke((float)(i + 1) / groupFiles.Length, 0, new LoadingText("Loading group ", Path.GetFileNameWithoutExtension(groupFile.Name), " [" + (i + 1).ToString() + "/" + groupFiles.Length + "]"));
+                updateProgress.Invoke((float)(i + 1) / groupFiles.Length, 0, new LoadingText("Loading group ", Path.GetFileNameWithoutExtension(groupFile.Name), " [" + (i + 1).ToString() + "/" + groupFiles.Length + "]"));
                 try
                 {
-                    groups.Add(ClassLoaderSaver.LoadFromJson<Group>(groupFile.FullName));
+                    groups.Add(await ClassLoaderSaver.LoadFromJsonAsync<Group>(groupFile.FullName));
                 }
                 catch (Exception e)
                 {
@@ -707,24 +684,22 @@ namespace HBP.Core.Data
                 }
             }
             SetGroups(groups.ToArray());
-            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Groups loaded successfully"));
+            updateProgress.Invoke(1.0f, 0, new LoadingText("Groups loaded successfully"));
         }
-        IEnumerator c_LoadDatasets(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
+        private async System.Threading.Tasks.Task LoadDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             const float LOADING_TIME = 0.01f;
             const float CHECKING_TIME = 0.99f;
-            yield return Ninja.JumpBack;
-            //Load Datasets
             List<Dataset> datasets = new List<Dataset>();
             DirectoryInfo datasetDirectory = projectDirectory.GetDirectories("Datasets", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] datasetFiles = datasetDirectory.GetFiles("*" + Dataset.EXTENSION, SearchOption.TopDirectoryOnly);
             for (int i = 0; i < datasetFiles.Length; ++i)
             {
                 FileInfo datasetFile = datasetFiles[i];
-                onChangeProgress.Invoke((float)(i + 1) / datasetFiles.Length * LOADING_TIME, 0, new LoadingText("Loading dataset ", Path.GetFileNameWithoutExtension(datasetFile.Name), " [" + (i + 1).ToString() + "/" + datasetFiles.Length + "]"));
+                updateProgress.Invoke((float)(i + 1) / datasetFiles.Length * LOADING_TIME, 0, new LoadingText("Loading dataset ", Path.GetFileNameWithoutExtension(datasetFile.Name), " [" + (i + 1).ToString() + "/" + datasetFiles.Length + "]"));
                 try
                 {
-                    datasets.Add(ClassLoaderSaver.LoadFromJson<Dataset>(datasetFile.FullName));
+                    datasets.Add(await ClassLoaderSaver.LoadFromJsonAsync<Dataset>(datasetFile.FullName));
                 }
                 catch (Exception e)
                 {
@@ -733,26 +708,21 @@ namespace HBP.Core.Data
                 }
             }
             SetDatasets(datasets.ToArray());
-            yield return Ninja.JumpToUnity;
-            yield return CoroutineManager.StartAsync(c_CheckDatasets(DatabaseManager.Database.Protocols, (localProgress, duration, text) => onChangeProgress.Invoke(LOADING_TIME + localProgress * CHECKING_TIME, duration, text)));
-            yield return Ninja.JumpBack;
-            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
+            await CheckDatasetsAsync(DatabaseManager.Database.Protocols, (localProgress, duration, text) => updateProgress.Invoke(LOADING_TIME + localProgress * CHECKING_TIME, duration, text));
+            updateProgress.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
         }
-        IEnumerator c_LoadVisualizations(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
+        private async System.Threading.Tasks.Task LoadVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
-            yield return Ninja.JumpBack;
-            //Load Visualizations
             DirectoryInfo visualizationsDirectory = projectDirectory.GetDirectories("Visualizations", SearchOption.TopDirectoryOnly)[0];
-
             List<Visualization> visualizations = new List<Visualization>();
             FileInfo[] visualizationFiles = visualizationsDirectory.GetFiles("*" + Visualization.EXTENSION, SearchOption.TopDirectoryOnly);
             for (int i = 0; i < visualizationFiles.Length; ++i)
             {
                 FileInfo visualizationFile = visualizationFiles[i];
-                onChangeProgress.Invoke((float)(i + 1) / visualizationFiles.Length, 0, new LoadingText("Loading visualization ", Path.GetFileNameWithoutExtension(visualizationFile.Name), " [" + (i + 1).ToString() + "/" + visualizationFiles.Length + "]"));
+                updateProgress.Invoke((float)(i + 1) / visualizationFiles.Length, 0, new LoadingText("Loading visualization ", Path.GetFileNameWithoutExtension(visualizationFile.Name), " [" + (i + 1).ToString() + "/" + visualizationFiles.Length + "]"));
                 try
                 {
-                    visualizations.Add(ClassLoaderSaver.LoadFromJson<Visualization>(visualizationFile.FullName));
+                    visualizations.Add(await ClassLoaderSaver.LoadFromJsonAsync<Visualization>(visualizationFile.FullName));
                 }
                 catch (Exception e)
                 {
@@ -761,40 +731,34 @@ namespace HBP.Core.Data
                 }
             }
             SetVisualizations(visualizations.ToArray());
-            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Visualizations loaded successfully"));
+            updateProgress.Invoke(1.0f, 0, new LoadingText("Visualizations loaded successfully"));
         }
 
-        IEnumerator c_SaveSettings(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
+        private async System.Threading.Tasks.Task SaveSettingsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
-            // Save settings
-            yield return Ninja.JumpBack;
-            onChangeProgress.Invoke(0, 0, new LoadingText("Saving settings"));
-
+            updateProgress.Invoke(0, 0, new LoadingText("Saving settings"));
             try
             {
-                ClassLoaderSaver.SaveToJSon(Preferences, Path.Combine(projectDirectory.FullName, Preferences.Name + ProjectPreferences.EXTENSION));
+                await ClassLoaderSaver.SaveToJSonAsync(Preferences, Path.Combine(projectDirectory.FullName, Preferences.Name + ProjectPreferences.EXTENSION));
             }
             catch (Exception e)
             {
                 Debug.LogException(e);
                 throw new CanNotSaveSettingsException();
             }
-            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Settings saved successfully"));
+            updateProgress.Invoke(1.0f, 0, new LoadingText("Settings saved successfully"));
         }
-        IEnumerator c_SavePatients(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
+        private async System.Threading.Tasks.Task SavePatientsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
-            yield return Ninja.JumpBack;
             DirectoryInfo patientDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Patients"));
-            // Save patients
-
             int count = 0;
             int length = m_Patients.Count();
             foreach (Patient patient in m_Patients)
             {
-                onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving patient ", patient.ID, " [" + (count + 1) + "/" + length + "]"));
+                updateProgress.Invoke((float)count / length, 0, new LoadingText("Saving patient ", patient.ID, " [" + (count + 1) + "/" + length + "]"));
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(patient, Path.Combine(patientDirectory.FullName, patient.ID + Patient.EXTENSION));
+                    await ClassLoaderSaver.SaveToJSonAsync(patient, Path.Combine(patientDirectory.FullName, patient.ID + Patient.EXTENSION));
                 }
                 catch (Exception e)
                 {
@@ -803,22 +767,19 @@ namespace HBP.Core.Data
                 }
                 count++;
             }
-            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Patients saved successfully"));
+            updateProgress.Invoke(1.0f, 0, new LoadingText("Patients saved successfully"));
         }
-        IEnumerator c_SaveGroups(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
+        private async System.Threading.Tasks.Task SaveGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
-            yield return Ninja.JumpBack;
-            // Save groups
             DirectoryInfo groupDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Groups"));
-
             int count = 0;
             int length = m_Patients.Count();
             foreach (Group group in m_Groups)
             {
-                onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving group ", group.Name, " [" + (count + 1) + "/" + length + "]"));
+                updateProgress.Invoke((float)count / length, 0, new LoadingText("Saving group ", group.Name, " [" + (count + 1) + "/" + length + "]"));
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(group, Path.Combine(groupDirectory.FullName, group.Name + Group.EXTENSION));
+                    await ClassLoaderSaver.SaveToJSonAsync(group, Path.Combine(groupDirectory.FullName, group.Name + Group.EXTENSION));
                 }
                 catch (Exception e)
                 {
@@ -827,22 +788,20 @@ namespace HBP.Core.Data
                 }
                 count++;
             }
-            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Groups saved successfully"));
+            updateProgress.Invoke(1.0f, 0, new LoadingText("Groups saved successfully"));
         }
-        IEnumerator c_SaveDatasets(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
+        private async System.Threading.Tasks.Task SaveDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
-            yield return Ninja.JumpBack;
-            //Save datasets
             DirectoryInfo datasetDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Datasets"));
 
             int count = 0;
             int length = m_Datasets.Count();
             foreach (Dataset dataset in m_Datasets)
             {
-                onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving dataset ", dataset.Name, " [" + (count + 1).ToString() + "/" + length + "]"));
+                updateProgress.Invoke((float)count / length, 0, new LoadingText("Saving dataset ", dataset.Name, " [" + (count + 1).ToString() + "/" + length + "]"));
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(dataset, Path.Combine(datasetDirectory.FullName, dataset.Name + Dataset.EXTENSION));
+                    await ClassLoaderSaver.SaveToJSonAsync(dataset, Path.Combine(datasetDirectory.FullName, dataset.Name + Dataset.EXTENSION));
                 }
                 catch (Exception e)
                 {
@@ -851,24 +810,19 @@ namespace HBP.Core.Data
                 }
                 count++;
             }
-            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Datasets saved successfully"));
+            updateProgress.Invoke(1.0f, 0, new LoadingText("Datasets saved successfully"));
         }
-        IEnumerator c_SaveVisualizations(DirectoryInfo projectDirectory, Action<float, float, LoadingText> onChangeProgress)
+        private async System.Threading.Tasks.Task SaveVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             DirectoryInfo visualizationDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Visualizations"));
-
-            //Save singleVisualizations
             int count = 0;
             int length = m_Visualizations.Count();
             foreach (Visualization visualization in m_Visualizations)
             {
-                yield return Ninja.JumpToUnity;
-                onChangeProgress.Invoke((float)count / length, 0, new LoadingText("Saving visualization ", visualization.Name, " [" + (count + 1) + "/" + length + "]"));
-                yield return Ninja.JumpBack;
-
+                updateProgress.Invoke((float)count / length, 0, new LoadingText("Saving visualization ", visualization.Name, " [" + (count + 1) + "/" + length + "]"));
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(visualization, Path.Combine(visualizationDirectory.FullName, visualization.Name + Visualization.EXTENSION));
+                    await ClassLoaderSaver.SaveToJSonAsync(visualization, Path.Combine(visualizationDirectory.FullName, visualization.Name + Visualization.EXTENSION));
                 }
                 catch (Exception e)
                 {
@@ -877,91 +831,88 @@ namespace HBP.Core.Data
                 }
                 count++;
             }
-            onChangeProgress.Invoke(1.0f, 0, new LoadingText("Visualizations saved successfully"));
+            updateProgress.Invoke(1.0f, 0, new LoadingText("Visualizations saved successfully"));
         }
 
-        void CopyIcons(string oldIconsDirectoryPath, string newIconsDirectoryPath)
+        private void CopyIcons(string oldIconsDirectoryPath, string newIconsDirectoryPath)
         {
             new DirectoryInfo(oldIconsDirectoryPath).CopyFilesRecursively(new DirectoryInfo(newIconsDirectoryPath));
         }
-        IEnumerator c_EmbedDataIntoProjectFile(DirectoryInfo projectDirectory, string oldProjectDirectory, Action<float, float, LoadingText> onChangeProgress)
+        private async System.Threading.Tasks.Task EmbedDataIntoProjectFileAsync(DirectoryInfo projectDirectory, string oldProjectDirectory, Action<float, float, LoadingText> updateProgress)
         {
-            DirectoryInfo dataDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Data"));
-
-            float progress = 0.0f;
-            float progressStep = 1.0f / (Patients.Count + Datasets.Count);
-
-            yield return Ninja.JumpToUnity;
-            onChangeProgress.Invoke(progress, 0, new LoadingText("Copying data"));
-            yield return Ninja.JumpBack;
-
-            // Save Patient Data
-            if (Patients.Count > 0)
+            await System.Threading.Tasks.Task.Run(() =>
             {
-                DirectoryInfo patientsDirectory = Directory.CreateDirectory(Path.Combine(dataDirectory.FullName, "Anatomy"));
-                foreach (var patient in Patients)
-                {
-                    yield return Ninja.JumpToUnity;
-                    progress += progressStep;
-                    onChangeProgress.Invoke(progress, 0, new LoadingText("Copying ", patient.Name, " anatomical data"));
-                    yield return Ninja.JumpBack;
+                DirectoryInfo dataDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Data"));
 
-                    DirectoryInfo patientDirectory = Directory.CreateDirectory(Path.Combine(patientsDirectory.FullName, patient.ID));
-                    if (patient.Meshes.Count > 0)
-                    {
-                        DirectoryInfo meshesDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "Meshes"));
-                        foreach (var mesh in patient.Meshes)
-                        {
-                            if (mesh is SingleMesh)
-                            {
-                                SingleMesh singleMesh = mesh as SingleMesh;
-                                singleMesh.Path = singleMesh.Path.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
-                                singleMesh.MarsAtlasPath = singleMesh.MarsAtlasPath.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
-                            }
-                            else if (mesh is LeftRightMesh)
-                            {
-                                LeftRightMesh singleMesh = mesh as LeftRightMesh;
-                                singleMesh.LeftHemisphere = singleMesh.LeftHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
-                                singleMesh.RightHemisphere = singleMesh.RightHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
-                                singleMesh.LeftMarsAtlasHemisphere = singleMesh.LeftMarsAtlasHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
-                                singleMesh.RightMarsAtlasHemisphere = singleMesh.RightMarsAtlasHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
-                            }
-                            mesh.Transformation = mesh.Transformation.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
-                        }
-                    }
-                    if (patient.MRIs.Count > 0)
-                    {
-                        DirectoryInfo mriDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "MRIs"));
-                        foreach (var mri in patient.MRIs)
-                        {
-                            mri.File = mri.File.CopyToDirectory(mriDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
-                        }
-                    }
-                }
-            }
-            // Save Localizer Data
-            if (Datasets.Count > 0)
-            {
-                DirectoryInfo localizersDirectory = Directory.CreateDirectory(Path.Combine(dataDirectory.FullName, "Functional"));
-                foreach (var dataset in Datasets)
+                float progress = 0.0f;
+                float progressStep = 1.0f / (Patients.Count + Datasets.Count);
+
+                updateProgress.Invoke(progress, 0, new LoadingText("Copying data"));
+
+                // Save Patient Data
+                if (Patients.Count > 0)
                 {
-                    if (dataset.Data.Count > 0)
+                    DirectoryInfo patientsDirectory = Directory.CreateDirectory(Path.Combine(dataDirectory.FullName, "Anatomy"));
+                    foreach (var patient in Patients)
                     {
-                        yield return Ninja.JumpToUnity;
                         progress += progressStep;
-                        onChangeProgress.Invoke(progress, 0, new LoadingText("Copying ", dataset.Name));
-                        yield return Ninja.JumpBack;
+                        updateProgress.Invoke(progress, 0, new LoadingText("Copying ", patient.Name, " anatomical data"));
 
-                        DirectoryInfo datasetDirectory = Directory.CreateDirectory(Path.Combine(localizersDirectory.FullName, dataset.Name));
-                        foreach (var data in dataset.Data)
+                        DirectoryInfo patientDirectory = Directory.CreateDirectory(Path.Combine(patientsDirectory.FullName, patient.ID));
+                        if (patient.Meshes.Count > 0)
                         {
-                            DirectoryInfo dataInfoDirectory = new DirectoryInfo(Path.Combine(datasetDirectory.FullName, data.Name));
-                            if (!dataInfoDirectory.Exists) dataInfoDirectory = Directory.CreateDirectory(dataInfoDirectory.FullName);
-                            data.DataContainer.CopyDataToDirectory(dataInfoDirectory, projectDirectory.FullName, oldProjectDirectory);
+                            DirectoryInfo meshesDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "Meshes"));
+                            foreach (var mesh in patient.Meshes)
+                            {
+                                if (mesh is SingleMesh)
+                                {
+                                    SingleMesh singleMesh = mesh as SingleMesh;
+                                    singleMesh.Path = singleMesh.Path.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                                    singleMesh.MarsAtlasPath = singleMesh.MarsAtlasPath.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                                }
+                                else if (mesh is LeftRightMesh)
+                                {
+                                    LeftRightMesh singleMesh = mesh as LeftRightMesh;
+                                    singleMesh.LeftHemisphere = singleMesh.LeftHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                                    singleMesh.RightHemisphere = singleMesh.RightHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                                    singleMesh.LeftMarsAtlasHemisphere = singleMesh.LeftMarsAtlasHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                                    singleMesh.RightMarsAtlasHemisphere = singleMesh.RightMarsAtlasHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                                }
+                                mesh.Transformation = mesh.Transformation.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                            }
+                        }
+                        if (patient.MRIs.Count > 0)
+                        {
+                            DirectoryInfo mriDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "MRIs"));
+                            foreach (var mri in patient.MRIs)
+                            {
+                                mri.File = mri.File.CopyToDirectory(mriDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                            }
                         }
                     }
                 }
-            }
+                // Save Localizer Data
+                if (Datasets.Count > 0)
+                {
+                    DirectoryInfo localizersDirectory = Directory.CreateDirectory(Path.Combine(dataDirectory.FullName, "Functional"));
+                    foreach (var dataset in Datasets)
+                    {
+                        if (dataset.Data.Count > 0)
+                        {
+                            progress += progressStep;
+                            updateProgress.Invoke(progress, 0, new LoadingText("Copying ", dataset.Name));
+
+                            DirectoryInfo datasetDirectory = Directory.CreateDirectory(Path.Combine(localizersDirectory.FullName, dataset.Name));
+                            foreach (var data in dataset.Data)
+                            {
+                                DirectoryInfo dataInfoDirectory = new DirectoryInfo(Path.Combine(datasetDirectory.FullName, data.Name));
+                                if (!dataInfoDirectory.Exists) dataInfoDirectory = Directory.CreateDirectory(dataInfoDirectory.FullName);
+                                data.DataContainer.CopyDataToDirectory(dataInfoDirectory, projectDirectory.FullName, oldProjectDirectory);
+                            }
+                        }
+                    }
+                }
+            });
         }
         #endregion
     }

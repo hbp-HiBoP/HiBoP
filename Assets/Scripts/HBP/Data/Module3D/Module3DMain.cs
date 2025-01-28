@@ -4,8 +4,6 @@ using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.Events;
 using System.Linq;
-using System.Collections;
-using ThirdParty.CielaSpike;
 using HBP.Core.Exceptions;
 using HBP.Core.Tools;
 using HBP.Core.Data;

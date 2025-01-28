@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
-using ThirdParty.CielaSpike;
 using System.Linq;
 using HBP.Core.Data;
 using HBP.Data.Module3D;
@@ -76,7 +74,7 @@ namespace HBP.UI.Main
             m_ProjectList.OnAction.AddListener((info, i) => Load(info));
 
             // Initialise location folder selector.
-            m_LocationFolderSelector.onValueChanged.AddListener((value) => this.StartCoroutineAsync(c_DisplayProjects(value)));
+            m_LocationFolderSelector.onValueChanged.AddListener((value) => DisplayProjects(value));
 
             // Base method.
             base.Initialize();
@@ -92,22 +90,26 @@ namespace HBP.UI.Main
         #endregion
 
         #region Coroutines
-        IEnumerator c_DisplayProjects(string path)
+        private async void DisplayProjects(string path)
         {
-            yield return Ninja.JumpToUnity;
-            m_OKButton.interactable = false;
-            m_ProjectList.Set(new ProjectInfo[0]);
-            yield return Ninja.JumpBack;
-            string[] paths = Project.GetProject(path).ToArray();
-            foreach (string projectPath in paths)
+            try
             {
-                ProjectInfo project = new ProjectInfo(projectPath);
-                yield return Ninja.JumpToUnity;
-                m_ProjectList.Add(project);
-                yield return Ninja.JumpBack;
+                m_OKButton.interactable = false;
+                m_ProjectList.Set(new ProjectInfo[0]);
+                string[] paths = Project.GetProject(path).ToArray();
+                foreach (string projectPath in paths)
+                {
+                    await new WaitForBackgroundThread();
+                    ProjectInfo project = new ProjectInfo(projectPath);
+                    await new WaitForUpdate();
+                    m_ProjectList.Add(project);
+                }
+                m_ProjectList.SortByName(BaseList.Sorting.Descending);
             }
-            yield return Ninja.JumpToUnity;
-            m_ProjectList.SortByName(BaseList.Sorting.Descending);
+            catch(System.Exception e)
+            {
+                Debug.LogException(e);
+            }
         }
         void SetLoadButton()
         {

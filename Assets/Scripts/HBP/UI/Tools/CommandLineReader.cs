@@ -7,6 +7,7 @@ using System.Linq;
 using UnityEngine;
 using HBP.Core.Tools;
 using HBP.Data.Preferences;
+using System.Threading.Tasks;
 
 namespace HBP.UI.Tools
 {
@@ -17,14 +18,14 @@ namespace HBP.UI.Tools
         {
             string[] args = System.Environment.GetCommandLineArgs();
             #if UNITY_EDITOR
-            //args = new string[] { "HiBoP", "-p", "AllModalities", "-v", "VISU"};
+            //args = new string[] { "HiBoP", "-p", "VISU", "-v", "VISU"};
             #endif
-            StartCoroutine(c_InterpreteCommandLineArguments(args));
+            InterpreteCommandLineArguments(args);
         }
         #endregion
 
         #region Coroutines
-        private IEnumerator c_InterpreteCommandLineArguments(string[] args)
+        private async void InterpreteCommandLineArguments(string[] args)
         {
             if (args.Length != 0)
             {
@@ -53,12 +54,12 @@ namespace HBP.UI.Tools
                 }
                 for (int i = 0; i < actions.Count; ++i)
                 {
-                    yield return StartCoroutine(c_ApplyAction(actions[i], arguments[i]));
+                    await ApplyActionAsync(actions[i], arguments[i]);
                 }
             }
             Destroy(gameObject);
         }
-        private IEnumerator c_ApplyAction(string action, List<string> arguments)
+        private async Task ApplyActionAsync(string action, List<string> arguments)
         {
             if (action == "-p") // Project
             {
@@ -68,7 +69,7 @@ namespace HBP.UI.Tools
                 }
                 else
                 {
-                    ProjectLoaderSaver.Load(new ProjectInfo(PersistentDataManager.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0] + Project.EXTENSION));
+                    await ProjectLoaderSaver.LoadAsync(new ProjectInfo(PersistentDataManager.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0] + Project.EXTENSION));
                 }
             }
             else if (action == "-pf") // Project File
@@ -79,7 +80,7 @@ namespace HBP.UI.Tools
                 }
                 else
                 {
-                    ProjectLoaderSaver.Load(new ProjectInfo(arguments[0]));
+                    await ProjectLoaderSaver.LoadAsync(new ProjectInfo(arguments[0]));
                 }
             }
             else if (action == "-v") // Visualization
@@ -106,7 +107,6 @@ namespace HBP.UI.Tools
                     Module3DMain.LoadScenes(visualizations);
                 }
             }
-            yield return null;
         }
         #endregion
     }

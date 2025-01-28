@@ -26,8 +26,7 @@ namespace HBP.UI.Main
                     DatabaseManager.Database.SetProtocols(m_ListGestion.List.Objects);
                     DatabaseManager.Database.SaveProtocols();
                     InteractableStateManager.SetInteractables();
-                    GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                    LoadingManager.Load(ApplicationState.LoadedProject.c_CheckDatasets(m_ListGestion.ModifiedProtocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
+                    LoadingManager.Load(update => ApplicationState.LoadedProject.CheckDatasetsAsync(m_ListGestion.ModifiedProtocols, update));
                     DataManager.Clear();
                     Module3DMain.ReloadScenes();
                     UITools.CheckProjectIDAndAskForRegeneration();
@@ -39,10 +38,9 @@ namespace HBP.UI.Main
                 DatabaseManager.Database.SetProtocols(m_ListGestion.List.Objects);
                 DatabaseManager.Database.SaveProtocols();
                 InteractableStateManager.SetInteractables();
-                GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
                 if (ApplicationState.LoadedProject != null)
                 {
-                    LoadingManager.Load(ApplicationState.LoadedProject.c_CheckDatasets(m_ListGestion.ModifiedProtocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
+                    LoadingManager.Load(update => ApplicationState.LoadedProject.CheckDatasetsAsync(m_ListGestion.ModifiedProtocols, update));
                     UITools.CheckProjectIDAndAskForRegeneration();
                 }
             }

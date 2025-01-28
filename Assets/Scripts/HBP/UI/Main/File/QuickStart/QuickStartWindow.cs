@@ -1,6 +1,4 @@
-﻿using ThirdParty.CielaSpike;
-using UnityEngine;
-using UnityEngine.Events;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Tools;
 using HBP.Core.Data;
@@ -79,18 +77,12 @@ namespace HBP.UI.Main.QuickStart
             ApplicationState.LoadedProject = new Project();
             ApplicationState.LoadedProjectLocation = Application.dataPath;
         }
-        private void Finish()
+        private async void Finish()
         {
             base.Close();
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            LoadingManager.Load(ApplicationState.LoadedProject.c_Save(ApplicationState.LoadedProjectLocation, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress, (state) =>
-            {
-                if (state == TaskState.Done)
-                {
-                    InteractableStateManager.SetInteractables();
-                    Module3DMain.LoadScenes(ApplicationState.LoadedProject.Visualizations);
-                }
-            });
+            await LoadingManager.LoadAsync(update => ApplicationState.LoadedProject.SaveAsync(ApplicationState.LoadedProjectLocation, update));
+            InteractableStateManager.SetInteractables();
+            Module3DMain.LoadScenes(ApplicationState.LoadedProject.Visualizations);
         }
         #endregion
 

@@ -1,11 +1,8 @@
-﻿using ThirdParty.CielaSpike;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using HBP.Core.Enums;
@@ -159,9 +156,17 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="path">Path to the directory to save the screenshot</param>
         /// <param name="multipleFiles">If true, multiple files (images, csv, svg ...) will be saved; if false, a simple screenshot of the whole window will be taken</param>
-        public void Screenshot(bool multipleFiles = false)
+        public async void Screenshot(bool multipleFiles = false)
         {
-            StartCoroutine(c_Screenshot(m_Scene.GenerateExportDirectory(), multipleFiles));
+            try
+            {
+                await ScreenshotAsync(m_Scene.GenerateExportDirectory(), multipleFiles);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
+            }
         }
         /// <summary>
         /// Take a video of the timeline of the scene
@@ -169,8 +174,7 @@ namespace HBP.UI.Module3D
         /// <param name="path">Path to the directory to save the video</param>
         public void Video()
         {
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            LoadingManager.Load(c_Video(m_Scene.GenerateExportDirectory(), onChangeProgress), onChangeProgress);
+            LoadingManager.Load(update => VideoAsync(m_Scene.GenerateExportDirectory(), update));
         }
         #endregion
 
@@ -181,10 +185,9 @@ namespace HBP.UI.Module3D
         /// <param name="path">Path to the directory to save the screenshot</param>
         /// <param name="multipleFiles">If true, multiple files (images, csv, svg ...) will be saved; if false, a simple screenshot of the whole window will be taken</param>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_Screenshot(string path, bool multipleFiles)
+        private async System.Threading.Tasks.Task ScreenshotAsync(string path, bool multipleFiles)
         {
-            yield return new WaitForEndOfFrame();
-
+            await new WaitForEndOfFrame();
             string openedProjectName = ApplicationState.LoadedProject.Preferences.Name;
 
             if (multipleFiles) // TODO : add iconic scenario and / or scales
@@ -200,17 +203,8 @@ namespace HBP.UI.Module3D
                             View3D view = column.Views[v];
                             if (!view.IsMinimized)
                             {
-                                try
-                                {
-                                    string viewFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Brain.png", openedProjectName, m_Scene.Name, column.Name)).GenerateUniqueFilePath();
-                                    view.GetTexture(2048, 2048, new Color(0.0f, 0.0f, 0.0f, 0.0f)).SaveToPNG(viewFilePath);
-                                }
-                                catch (Exception e)
-                                {
-                                    Debug.LogException(e);
-                                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
-                                    yield break;
-                                }
+                                string viewFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Brain.png", openedProjectName, m_Scene.Name, column.Name)).GenerateUniqueFilePath();
+                                view.GetTexture(2048, 2048, new Color(0.0f, 0.0f, 0.0f, 0.0f)).SaveToPNG(viewFilePath);
                             }
                         }
                     }
@@ -220,17 +214,8 @@ namespace HBP.UI.Module3D
                 Tuple<CutOrientation, Texture2D>[] cutTextures = cutUI.CutTextures;
                 for (int i = 0; i < cutTextures.Length; i++)
                 {
-                    try
-                    {
-                        string cutFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Cut.png", openedProjectName, m_Scene.Name, cutTextures[i].Item1.ToString())).GenerateUniqueFilePath();
-                        cutTextures[i].Item2.SaveToPNG(cutFilePath);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogException(e);
-                        DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
-                        yield break;
-                    }
+                    string cutFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Cut.png", openedProjectName, m_Scene.Name, cutTextures[i].Item1.ToString())).GenerateUniqueFilePath();
+                    cutTextures[i].Item2.SaveToPNG(cutFilePath);
                 }
                 // Graph and Trial Matrix
                 Informations.InformationsWrapper informations = GetComponentInChildren<Informations.InformationsWrapper>();
@@ -245,48 +230,19 @@ namespace HBP.UI.Module3D
                             Informations.Graphs.Graph graph = channelInformations.transform.GetComponentInChildren<Informations.Graphs.Graph>();
                             Texture2D graphTexture = Texture2DExtension.ScreenRectToTexture(graph.GetComponent<RectTransform>().ToScreenSpace());
                             var curvesName = graph.GetEnabledCurvesName();
-                            try
+                            string graphFilePathPNG = Path.Combine(path, string.Format("{0}_{1}_{2}_Graph.png", openedProjectName, m_Scene.Name, string.Join("-", curvesName))).GenerateUniqueFilePath();
+                            graphTexture.SaveToPNG(graphFilePathPNG);
+                            string graphFilePathSVG = Path.Combine(path, string.Format("{0}_{1}_{2}_Graph.svg", openedProjectName, m_Scene.Name, string.Join("-", curvesName))).GenerateUniqueFilePath();
+                            using (StreamWriter sw = new(graphFilePathSVG))
                             {
-                                string graphFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Graph.png", openedProjectName, m_Scene.Name, string.Join("-", curvesName))).GenerateUniqueFilePath();
-                                graphTexture.SaveToPNG(graphFilePath);
-                            }
-                            catch (Exception e)
-                            {
-                                Debug.LogException(e);
-                                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
-                                yield break;
-                            }
-                            try
-                            {
-                                string graphFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Graph.svg", openedProjectName, m_Scene.Name, string.Join("-", curvesName))).GenerateUniqueFilePath();
-                                using (StreamWriter sw = new StreamWriter(graphFilePath))
-                                {
-                                    sw.Write(graph.ToSVG());
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                Debug.LogException(e);
-                                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
-                                yield break;
+                                sw.Write(graph.ToSVG());
                             }
                             Dictionary<string, string> curveValues = graph.ToCSV();
-                            try
+                            foreach (var curve in curveValues)
                             {
-                                foreach (var curve in curveValues)
-                                {
-                                    string curveFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Curve.csv", openedProjectName, m_Scene.Name, curve.Key)).GenerateUniqueFilePath();
-                                    using (StreamWriter sw = new StreamWriter(curveFilePath))
-                                    {
-                                        sw.Write(curve.Value);
-                                    }
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                Debug.LogException(e);
-                                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
-                                yield break;
+                                string curveFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Curve.csv", openedProjectName, m_Scene.Name, curve.Key)).GenerateUniqueFilePath();
+                                using StreamWriter sw = new(curveFilePath);
+                                sw.Write(curve.Value);
                             }
                         }
                         if (!Mathf.Approximately(channelInformations.GetComponent<ZoneResizer>().Ratio, 0.0f))
@@ -311,7 +267,7 @@ namespace HBP.UI.Module3D
                                         isFinished = true;
                                     }
                                     trialMatrixScrollRect.verticalNormalizedPosition = position;
-                                    yield return new WaitForEndOfFrame();
+                                    await new WaitForEndOfFrame();
                                     Texture2D trialMatrixTextureFragment = Texture2DExtension.ScreenRectToTexture(trialMatrixScrollRect.viewport.ToScreenSpace());
                                     trialMatrixTexture.SetPixels(0, (int)(position * trialMatrixTexture.height - position * trialMatrixTextureFragment.height), trialMatrixTextureFragment.width, trialMatrixTextureFragment.height, trialMatrixTextureFragment.GetPixels());
                                     position += step;
@@ -321,28 +277,19 @@ namespace HBP.UI.Module3D
                             {
                                 trialMatrixTexture = Texture2DExtension.ScreenRectToTexture(trialMatrixScrollRect.content.ToScreenSpace());
                             }
-                            try
+                            List<string> names = new List<string>();
+                            Patient currentPatient = null;
+                            foreach (var channelStruct in informations.ChannelStructs.OrderBy(cs => cs.Patient.Name))
                             {
-                                List<string> names = new List<string>();
-                                Patient currentPatient = null;
-                                foreach (var channelStruct in informations.ChannelStructs.OrderBy(cs => cs.Patient.Name))
+                                if (currentPatient != channelStruct.Patient)
                                 {
-                                    if (currentPatient != channelStruct.Patient)
-                                    {
-                                        currentPatient = channelStruct.Patient;
-                                        names.Add(currentPatient.Name);
-                                    }
-                                    names.Add(channelStruct.Channel);
+                                    currentPatient = channelStruct.Patient;
+                                    names.Add(currentPatient.Name);
                                 }
-                                string trialMatrixFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_TrialMatrix.png", openedProjectName, m_Scene.Name, string.Join("-", names))).GenerateUniqueFilePath();
-                                trialMatrixTexture.SaveToPNG(trialMatrixFilePath);
+                                names.Add(channelStruct.Channel);
                             }
-                            catch (Exception e)
-                            {
-                                Debug.LogException(e);
-                                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
-                                yield break;
-                            }
+                            string trialMatrixFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_TrialMatrix.png", openedProjectName, m_Scene.Name, string.Join("-", names))).GenerateUniqueFilePath();
+                            trialMatrixTexture.SaveToPNG(trialMatrixFilePath);
                             trialMatrixScrollRect.viewport.GetComponent<Image>().sprite = mask;
                         }
                     }
@@ -350,20 +297,9 @@ namespace HBP.UI.Module3D
                     {
                         foreach (var graph in gridInformations.Grid.Graphs.Where(g => g.IsSelected))
                         {
-                            try
-                            {
-                                string graphFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Graph.svg", openedProjectName, m_Scene.Name, string.Format("{0}-{1}", graph.ChannelStruct.Patient.Name, graph.ChannelStruct.Channel))).GenerateUniqueFilePath();
-                                using (StreamWriter sw = new StreamWriter(graphFilePath))
-                                {
-                                    sw.Write(graph.ToSVG());
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                Debug.LogException(e);
-                                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
-                                yield break;
-                            }
+                            string graphFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Graph.svg", openedProjectName, m_Scene.Name, string.Format("{0}-{1}", graph.ChannelStruct.Patient.Name, graph.ChannelStruct.Channel))).GenerateUniqueFilePath();
+                            using StreamWriter sw = new StreamWriter(graphFilePath);
+                            sw.Write(graph.ToSVG());
                         }
                     }
                 }
@@ -375,16 +311,7 @@ namespace HBP.UI.Module3D
                 Rect sceneRect = GetComponent<RectTransform>().ToScreenSpace();
                 Texture2D sceneTexture = Texture2DExtension.ScreenRectToTexture(sceneRect);
                 string screenshotPath = Path.Combine(path, string.Format("{0}_{1}_fullscene.png", openedProjectName, m_Scene.Name)).GenerateUniqueFilePath();
-                try
-                {
-                    sceneTexture.SaveToPNG(screenshotPath);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
-                    yield break;
-                }
+                sceneTexture.SaveToPNG(screenshotPath);
                 DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Screenshot saved", "A screenshot of the scene has been saved at " + screenshotPath);
             }
         }
@@ -393,10 +320,8 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="path">Path to where to save the video</param>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_Video(string path, GenericEvent<float, float, LoadingText> onChangeProgress)
+        private async System.Threading.Tasks.Task VideoAsync(string path, Action<float, float, LoadingText> updateProgress)
         {
-            yield return Ninja.JumpToUnity;
-
             int totalWidth = 1920;
             int totalHeight = 1080;
             int timelineSize = 10;
@@ -426,12 +351,12 @@ namespace HBP.UI.Module3D
 
             for (int i = 0; i < timelineLength; i++)
             {
-                onChangeProgress.Invoke((float)i / (timelineLength - 1), 0, new LoadingText("Taking video of the timeline"));
+                updateProgress.Invoke((float)i / (timelineLength - 1), 0, new LoadingText("Taking video of the timeline"));
 
                 foreach (var column in m_Scene.ColumnsDynamic)
                     column.Timeline.CurrentIndex = i;
 
-                yield return new WaitForEndOfFrame();
+                await new WaitForEndOfFrame();
 
                 int width = totalWidth / numberOfColumns;
                 int height = totalHeight / numberOfViewLines;
@@ -488,7 +413,7 @@ namespace HBP.UI.Module3D
                 videoStream.WriteFrame(texture);
             }
             videoStream.Dispose();
-            onChangeProgress.Invoke(1, 0, new LoadingText("Finished"));
+            updateProgress.Invoke(1, 0, new LoadingText("Finished"));
             DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Video saved", "A video of the scene has been saved at " + videoPath);
         }
         #endregion

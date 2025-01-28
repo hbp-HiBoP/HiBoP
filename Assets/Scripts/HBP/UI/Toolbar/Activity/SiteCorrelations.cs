@@ -1,5 +1,4 @@
-﻿using ThirdParty.CielaSpike;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -16,6 +15,7 @@ using HBP.Core.Tools;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using HBP.Data.Preferences;
+using System.Threading.Tasks;
 
 namespace HBP.UI.Toolbar
 {
@@ -81,8 +81,7 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                LoadingManager.Load(c_ComputeCorrelations((progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
+                LoadingManager.Load(update => ComputeCorrelations(update));
             });
             m_Load.onClick.AddListener(() =>
             {
@@ -404,22 +403,19 @@ namespace HBP.UI.Toolbar
         /// <summary>
         /// Compute correlations for all ieeg columns
         /// </summary>
-        /// <param name="onChangeProgress">Action for the loading circle</param>
+        /// <param name="updateProgress">Action for the loading circle</param>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_ComputeCorrelations(Action<float, float, LoadingText> onChangeProgress)
+        private async Task ComputeCorrelations(Action<float, float, LoadingText> updateProgress)
         {
-            yield return Ninja.JumpToUnity;
             m_CorrelationsComputing = true;
             UpdateInteractable();
-            yield return Ninja.JumpBack;
             List<Column3DIEEG> columns = SelectedScene.ColumnsIEEG;
             for (int i = 0; i < columns.Count; i++)
             {
-                columns[i].ComputeCorrelations((progress, duration, text) => { onChangeProgress((i + progress) / columns.Count, duration, text); } );
+                await columns[i].ComputeCorrelationsAsync((progress, duration, text) => { updateProgress((i + progress) / columns.Count, duration, text); } );
             }
-            yield return Ninja.JumpToUnity;
             m_CorrelationsComputing = false;
-            onChangeProgress(1, 0, new LoadingText("Correlations computed"));
+            updateProgress(1, 0, new LoadingText("Correlations computed"));
             SelectedScene.DisplayCorrelations = true;
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }

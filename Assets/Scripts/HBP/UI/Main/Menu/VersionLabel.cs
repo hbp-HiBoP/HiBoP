@@ -1,11 +1,11 @@
 using HBP.Core.Data;
 using System.Net;
 using System;
-using ThirdParty.CielaSpike;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using HBP.UI.Tools;
+using System.Threading.Tasks;
 
 namespace HBP.UI.Main
 {
@@ -19,17 +19,16 @@ namespace HBP.UI.Main
         private void Awake()
         {
             m_Text.text = string.Format("{0} {1}", Application.productName, Application.version);
-            this.StartCoroutineAsync(c_CheckVersion());
+            CheckVersion();
         }
-        private IEnumerator c_CheckVersion()
+        private async void CheckVersion()
         {
-            yield return Ninja.JumpToUnity;
             string version = Application.version;
-            yield return Ninja.JumpBack;
-            using (WebClient wc = new WebClient())
+            await Task.Run(() =>
             {
                 try
                 {
+                    using WebClient wc = new();
                     wc.Headers.Add("User-Agent: Other");
                     string jsonString = wc.DownloadString("https://api.github.com/repos/hbp-HiBoP/HiBoP/releases/latest");
                     var versionInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<GithubVersionInfo>(jsonString);
@@ -39,8 +38,7 @@ namespace HBP.UI.Main
                 {
                     Debug.LogException(e);
                 }
-            }
-            yield return Ninja.JumpToUnity;
+            });
             if (string.Compare(version, Application.version) > 0)
             {
                 DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "New version available", "A new version of HiBoP is available. Please update to the latest version.", () =>
