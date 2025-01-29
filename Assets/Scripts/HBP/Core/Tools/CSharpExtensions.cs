@@ -6,7 +6,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace HBP.Core.Tools
 {
@@ -294,6 +296,136 @@ namespace HBP.Core.Tools
             foreach (var task in tasks)
                 results[i++] = await task;
             return results;
+        }
+        public static async Task PerformMultipleTasksAsync(IEnumerable<Func<Task>> tasks, float startProgress, float endProgress, string loadingText, Action<float, float, LoadingText> updateProgress, int maxConcurrency = 0, bool parallel = true)
+        {
+            bool loading = true;
+            int count = 0;
+            var taskList = tasks.ToList();
+            int length = taskList.Count;
+            async void setProgress()
+            {
+                while (loading)
+                {
+                    if (count == 0)
+                        updateProgress.Invoke(startProgress, 0, new LoadingText(loadingText));
+                    else
+                        updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0, new LoadingText(loadingText, " ", count + "/" + length));
+                    await new WaitForEndOfFrame();
+                }
+            }
+            setProgress();
+            if (parallel)
+            {
+                if (maxConcurrency == 0)
+                {
+                    var tasksToExecute = taskList.Select(async task =>
+                    {
+                        await task();
+                        Interlocked.Increment(ref count);
+                    });
+                    await Task.WhenAll(tasksToExecute);
+                }
+                else
+                {
+                    using var semaphore = new SemaphoreSlim(maxConcurrency);
+                    var tasksToExecute = taskList.Select(async task =>
+                    {
+                        await semaphore.WaitAsync();
+                        try
+                        {
+                            await task();
+                            Interlocked.Increment(ref count);
+                        }
+                        finally
+                        {
+                            semaphore.Release();
+                        }
+                    });
+
+                    await Task.WhenAll(tasksToExecute);
+                }
+            }
+            else
+            {
+                foreach (var task in taskList)
+                {
+                    await task();
+                    Interlocked.Increment(ref count);
+                }
+            }
+            loading = false;
+        }
+        public static async Task<IEnumerable<T>> PerformMultipleTasksAsync<T>(IEnumerable<Func<Task<T>>> tasks, float startProgress, float endProgress, string loadingText, Action<float, float, LoadingText> updateProgress, int maxConcurrency = 0, bool parallel = true)
+        {
+            bool loading = true;
+            int count = 0;
+            var taskList = tasks.ToList();
+            int length = taskList.Count;
+            async void setProgress()
+            {
+                while (loading)
+                {
+                    if (count == 0)
+                        updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0, new LoadingText(loadingText));
+                    else
+                        updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0, new LoadingText(loadingText, " ", count + "/" + length));
+                    await new WaitForEndOfFrame();
+                }
+            }
+            setProgress();
+            if (parallel)
+            {
+                if (maxConcurrency == 0)
+                {
+                    var tasksToExecute = taskList.Select(async task =>
+                    {
+                        T data = await task();
+                        Interlocked.Increment(ref count);
+                        return data;
+                    });
+                    var result = await Task.WhenAll(tasksToExecute);
+                    loading = false;
+                    return result;
+                }
+                else
+                {
+                    using var semaphore = new SemaphoreSlim(maxConcurrency);
+                    var results = new List<T>();
+                    var tasksToExecute = taskList.Select(async task =>
+                    {
+                        await semaphore.WaitAsync();
+                        try
+                        {
+                            T data = await task();
+                            Interlocked.Increment(ref count);
+                            lock (results)
+                            {
+                                results.Add(data);
+                            }
+                        }
+                        finally
+                        {
+                            semaphore.Release();
+                        }
+                    });
+
+                    await Task.WhenAll(tasksToExecute);
+                    loading = false;
+                    return results;
+                }
+            }
+            else
+            {
+                List<T> result = new List<T>();
+                foreach (var task in taskList)
+                {
+                    result.Add(await task());
+                    Interlocked.Increment(ref count);
+                }
+                loading = false;
+                return result;
+            }
         }
     }
 }

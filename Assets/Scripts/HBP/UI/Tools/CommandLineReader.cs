@@ -18,7 +18,7 @@ namespace HBP.UI.Tools
         {
             string[] args = System.Environment.GetCommandLineArgs();
             #if UNITY_EDITOR
-            //args = new string[] { "HiBoP", "-p", "VISU", "-v", "VISU"};
+            args = new string[] { "HiBoP", "-p", "VISU", "-v", "VISU"};
             #endif
             InterpreteCommandLineArguments(args);
         }

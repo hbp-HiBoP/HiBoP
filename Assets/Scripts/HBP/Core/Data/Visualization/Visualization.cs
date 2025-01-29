@@ -8,6 +8,8 @@ using HBP.Core.Exceptions;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
 using System.Threading.Tasks;
+using System.Diagnostics;
+using HBP.Data.Preferences;
 
 namespace HBP.Core.Data
 {
@@ -399,53 +401,50 @@ namespace HBP.Core.Data
 
             return dataInfoByColumn;
         }
-        private async Task LoadDataAsync(Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn, Action<float, float, LoadingText> onChangeProgress)
+        private async Task LoadDataAsync(Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn, Action<float, float, LoadingText> updateProgress)
         {
-            await new WaitForBackgroundThread();
-
-            IEnumerable<DataInfo> dataInfoCollection = dataInfoByColumn.SelectMany(d => d.Value).Distinct();
-            int count = 0;
-            int length = dataInfoCollection.Count();
             const float LOADING_DATA_PROGRESS = 0.95f;
             const float NORMALIZING_DATA_PROGRESS = 0.05f;
-            foreach (var dataInfo in dataInfoCollection)
+            IEnumerable<DataInfo> dataInfoCollection = dataInfoByColumn.SelectMany(d => d.Value).Distinct();
+            var tasks = dataInfoCollection.Select(dataInfo => (Func<Task>)(async () =>
             {
-                onChangeProgress(((float)count / length) * LOADING_DATA_PROGRESS, 1.0f, new LoadingText("Loading ", string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name) + (dataInfo is PatientDataInfo patientDataInfo ? " for " + patientDataInfo.Patient.Name : ""), " [" + (count + 1) + "/" + length + "]"));
-
-                try
                 {
-                    // PROBABLY FIXME
-                    Data data = DataManager.GetData(dataInfo);
-                    if (data is EpochedData epochedData)
+                    try
                     {
-                        foreach (var column in dataInfoByColumn.Keys)
+                        await Task.Run(() =>
                         {
-                            if (column is CCEPColumn ccepColumn)
+                            // PROBABLY FIXME
+                            Data data = DataManager.GetData(dataInfo);
+                            if (data is EpochedData epochedData)
                             {
-                                if (epochedData.DataByBloc.TryGetValue(ccepColumn.Bloc, out BlocData blocData) && !blocData.IsValid)
+                                foreach (var column in dataInfoByColumn.Keys)
                                 {
-                                    throw new Exception("No bloc " + ccepColumn.Bloc.Name + " could be epoched.");
+                                    if (column is CCEPColumn ccepColumn)
+                                    {
+                                        if (epochedData.DataByBloc.TryGetValue(ccepColumn.Bloc, out BlocData blocData) && !blocData.IsValid)
+                                        {
+                                            throw new Exception("No bloc " + ccepColumn.Bloc.Name + " could be epoched.");
+                                        }
+                                    }
                                 }
                             }
-                        }
+                        });
+                    }
+                    catch (CannotEpochAllTrialsException e)
+                    {
+                        UnityEngine.Debug.LogException(e);
+                        throw new CannotLoadDataInfoException(string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name), (dataInfo is PatientDataInfo pDataInfo ? pDataInfo.Patient.Name : "Unkwown patient"), string.Format("You are trying to epoch a bloc from index {0} to index {1} while the minimum possible index is {2} and the maximum possible index is {3}.", e.StartIndex, e.EndIndex, 0, e.Length));
+                    }
+                    catch (Exception e)
+                    {
+                        UnityEngine.Debug.LogException(e);
+                        throw new CannotLoadDataInfoException(string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name), (dataInfo is PatientDataInfo pDataInfo ? pDataInfo.Patient.Name : "Unkwown patient"), e.Message);
                     }
                 }
-                catch (CannotEpochAllTrialsException e)
-                {
-                    UnityEngine.Debug.LogException(e);
-                    throw new CannotLoadDataInfoException(string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name), (dataInfo is PatientDataInfo pDataInfo ? pDataInfo.Patient.Name : "Unkwown patient"), string.Format("You are trying to epoch a bloc from index {0} to index {1} while the minimum possible index is {2} and the maximum possible index is {3}.", e.StartIndex, e.EndIndex, 0, e.Length));
-                }
-                catch (Exception e)
-                {
-                    UnityEngine.Debug.LogException(e);
-                    throw new CannotLoadDataInfoException(string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name), (dataInfo is PatientDataInfo pDataInfo ? pDataInfo.Patient.Name : "Unkwown patient"), e.Message);
-                }
-                count++;
-            }
-            onChangeProgress.Invoke(LOADING_DATA_PROGRESS + NORMALIZING_DATA_PROGRESS, 1.0f, new LoadingText("Normalizing data"));
-            DataManager.NormalizeiEEGData();
-
-            await new WaitForUpdate();
+            }));
+            await TaskExtension.PerformMultipleTasksAsync(tasks, 0, LOADING_DATA_PROGRESS, "Loading data", updateProgress, 5, PersistentDataManager.UserPreferences.General.System.MultiThreading);
+            updateProgress.Invoke(LOADING_DATA_PROGRESS + NORMALIZING_DATA_PROGRESS, 1.0f, new LoadingText("Normalizing data"));
+            await Task.Run(() => DataManager.NormalizeiEEGData());
         }
         private async Task LoadColumnsAsync(Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn, Action<float, float, LoadingText> onChangeProgress)
         {

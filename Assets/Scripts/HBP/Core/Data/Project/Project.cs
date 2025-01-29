@@ -537,83 +537,87 @@ namespace HBP.Core.Data
         public async Task CheckDatasetsAsync(IEnumerable<Protocol> protocols, Action<float, float, LoadingText> updateProgress)
         {
             IEnumerable<Dataset> datasets = m_Datasets.Where(d => protocols.Contains(d.Protocol));
-            var tasks = datasets.SelectMany(d => d.Data).Select(async d =>
+            var tasks = datasets.SelectMany(d => d.Data).Select(d => (Func<Task>)(async () =>
             {
-                await Task.Run(() =>
                 {
-                    d.GetErrorsAndWarnings();
-                });
-            });
-            await PerformMultipleTasksAsync(tasks, 0, 1, "Checking datasets", updateProgress);
+                    await Task.Run(() =>
+                    {
+                        d.GetErrorsAndWarnings();
+                    });
+                }
+            }));
+            await TaskExtension.PerformMultipleTasksAsync(tasks, 0, 1, "Checking datasets", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
         }
         public async Task CheckPatientTagValuesAsync(IEnumerable<BaseTag> tags, Action<float, float, LoadingText> updateProgress)
         {
-            var tasks = m_Patients.Select(async patient =>
+            var tasks = m_Patients.Select(patient => (Func<Task>)(async () =>
             {
-                await Task.Run(() =>
                 {
-                    patient.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
-                    foreach (var site in patient.Sites) site.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
-                    List<BaseTagValue> tagsToUpdate = patient.Tags.Where(t => tags.Contains(t.Tag)).ToList();
-                    tagsToUpdate.AddRange(patient.Sites.SelectMany(s => s.Tags).Where(t => tags.Contains(t.Tag)));
-                    foreach (var tagValue in tagsToUpdate)
+                    await Task.Run(() =>
                     {
-                        if (tagValue.Tag is IntTag && tagValue is not IntTagValue)
+                        patient.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
+                        foreach (var site in patient.Sites) site.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
+                        List<BaseTagValue> tagsToUpdate = patient.Tags.Where(t => tags.Contains(t.Tag)).ToList();
+                        tagsToUpdate.AddRange(patient.Sites.SelectMany(s => s.Tags).Where(t => tags.Contains(t.Tag)));
+                        foreach (var tagValue in tagsToUpdate)
                         {
-                            patient.Tags.Remove(tagValue);
-                            var newTagValue = new IntTagValue();
-                            newTagValue.Copy(tagValue);
-                            patient.Tags.Add(newTagValue);
-                            newTagValue.UpdateValue();
+                            if (tagValue.Tag is IntTag && tagValue is not IntTagValue)
+                            {
+                                patient.Tags.Remove(tagValue);
+                                var newTagValue = new IntTagValue();
+                                newTagValue.Copy(tagValue);
+                                patient.Tags.Add(newTagValue);
+                                newTagValue.UpdateValue();
+                            }
+                            else if (tagValue.Tag is FloatTag && tagValue is not FloatTagValue)
+                            {
+                                patient.Tags.Remove(tagValue);
+                                var newTagValue = new FloatTagValue();
+                                newTagValue.Copy(tagValue);
+                                patient.Tags.Add(newTagValue);
+                                newTagValue.UpdateValue();
+                            }
+                            else if (tagValue.Tag is BoolTag && tagValue is not BoolTagValue)
+                            {
+                                patient.Tags.Remove(tagValue);
+                                var newTagValue = new BoolTagValue();
+                                newTagValue.Copy(tagValue);
+                                patient.Tags.Add(newTagValue);
+                                newTagValue.UpdateValue();
+                            }
+                            else if (tagValue.Tag is EmptyTag && tagValue is not EmptyTagValue)
+                            {
+                                patient.Tags.Remove(tagValue);
+                                var newTagValue = new EmptyTagValue();
+                                newTagValue.Copy(tagValue);
+                                patient.Tags.Add(newTagValue);
+                                newTagValue.UpdateValue();
+                            }
+                            else if (tagValue.Tag is EnumTag && tagValue is not EnumTagValue)
+                            {
+                                patient.Tags.Remove(tagValue);
+                                var newTagValue = new EnumTagValue();
+                                newTagValue.Copy(tagValue);
+                                patient.Tags.Add(newTagValue);
+                                newTagValue.UpdateValue();
+                            }
+                            else if (tagValue.Tag is StringTag && tagValue is not StringTagValue)
+                            {
+                                patient.Tags.Remove(tagValue);
+                                var newTagValue = new StringTagValue();
+                                newTagValue.Copy(tagValue);
+                                patient.Tags.Add(newTagValue);
+                                newTagValue.UpdateValue();
+                            }
+                            else
+                            {
+                                tagValue.UpdateValue();
+                            }
                         }
-                        else if (tagValue.Tag is FloatTag && tagValue is not FloatTagValue)
-                        {
-                            patient.Tags.Remove(tagValue);
-                            var newTagValue = new FloatTagValue();
-                            newTagValue.Copy(tagValue);
-                            patient.Tags.Add(newTagValue);
-                            newTagValue.UpdateValue();
-                        }
-                        else if (tagValue.Tag is BoolTag && tagValue is not BoolTagValue)
-                        {
-                            patient.Tags.Remove(tagValue);
-                            var newTagValue = new BoolTagValue();
-                            newTagValue.Copy(tagValue);
-                            patient.Tags.Add(newTagValue);
-                            newTagValue.UpdateValue();
-                        }
-                        else if (tagValue.Tag is EmptyTag && tagValue is not EmptyTagValue)
-                        {
-                            patient.Tags.Remove(tagValue);
-                            var newTagValue = new EmptyTagValue();
-                            newTagValue.Copy(tagValue);
-                            patient.Tags.Add(newTagValue);
-                            newTagValue.UpdateValue();
-                        }
-                        else if (tagValue.Tag is EnumTag && tagValue is not EnumTagValue)
-                        {
-                            patient.Tags.Remove(tagValue);
-                            var newTagValue = new EnumTagValue();
-                            newTagValue.Copy(tagValue);
-                            patient.Tags.Add(newTagValue);
-                            newTagValue.UpdateValue();
-                        }
-                        else if (tagValue.Tag is StringTag && tagValue is not StringTagValue)
-                        {
-                            patient.Tags.Remove(tagValue);
-                            var newTagValue = new StringTagValue();
-                            newTagValue.Copy(tagValue);
-                            patient.Tags.Add(newTagValue);
-                            newTagValue.UpdateValue();
-                        }
-                        else
-                        {
-                            tagValue.UpdateValue();
-                        }
-                    }
-                });
-            });
-            await PerformMultipleTasksAsync(tasks, 0, 1, "Checking patients", updateProgress);
+                    });
+                }
+            }));
+            await TaskExtension.PerformMultipleTasksAsync(tasks, 0, 1, "Checking patients", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
         }
         #endregion
 
@@ -642,19 +646,21 @@ namespace HBP.Core.Data
             List<Patient> patients = new List<Patient>();
             DirectoryInfo patientDirectory = projectDirectory.GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
-            var tasks = patientFiles.Select(async file =>
+            var tasks = patientFiles.Select(file => (Func<Task<Patient>>)(async () =>
             {
-                try
                 {
-                    return await ClassLoaderSaver.LoadFromJsonAsync<Patient>(file.FullName);
+                    try
+                    {
+                        return await ClassLoaderSaver.LoadFromJsonAsync<Patient>(file.FullName);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                        throw new CanNotReadPatientFileException(Path.GetFileNameWithoutExtension(file.Name));
+                    }
                 }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    throw new CanNotReadPatientFileException(Path.GetFileNameWithoutExtension(file.Name));
-                }
-            });
-            patients.AddRange(await PerformMultipleTasksAsync(tasks, 0, LOADING_PROGRESS, "Loading patients", updateProgress));
+            }));
+            patients.AddRange(await TaskExtension.PerformMultipleTasksAsync(tasks, 0, LOADING_PROGRESS, "Loading patients", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading));
             SetPatients(patients.ToArray());
             await CheckPatientTagValuesAsync(PersistentDataManager.Tags.AllTags, (localProgress, duration, text) => updateProgress.Invoke(LOADING_PROGRESS + localProgress * CHECKING_PROGRESS, duration, text));
             updateProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
@@ -664,19 +670,21 @@ namespace HBP.Core.Data
             List<Group> groups = new List<Group>();
             DirectoryInfo groupDirectory = projectDirectory.GetDirectories("Groups", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] groupFiles = groupDirectory.GetFiles("*" + Group.EXTENSION, SearchOption.TopDirectoryOnly);
-            var tasks = groupFiles.Select(async file =>
+            var tasks = groupFiles.Select(file => (Func<Task<Group>>)(async () =>
             {
-                try
                 {
-                    return await ClassLoaderSaver.LoadFromJsonAsync<Group>(file.FullName);
+                    try
+                    {
+                        return await ClassLoaderSaver.LoadFromJsonAsync<Group>(file.FullName);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                        throw new CanNotReadGroupFileException(Path.GetFileNameWithoutExtension(file.Name));
+                    }
                 }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    throw new CanNotReadGroupFileException(Path.GetFileNameWithoutExtension(file.Name));
-                }
-            });
-            groups.AddRange(await PerformMultipleTasksAsync(tasks, 0, 1, "Loading groups", updateProgress));
+            }));
+            groups.AddRange(await TaskExtension.PerformMultipleTasksAsync(tasks, 0, 1, "Loading groups", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading));
             SetGroups(groups.ToArray());
             updateProgress.Invoke(1.0f, 0, new LoadingText("Groups loaded successfully"));
         }
@@ -687,19 +695,21 @@ namespace HBP.Core.Data
             List<Dataset> datasets = new List<Dataset>();
             DirectoryInfo datasetDirectory = projectDirectory.GetDirectories("Datasets", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] datasetFiles = datasetDirectory.GetFiles("*" + Dataset.EXTENSION, SearchOption.TopDirectoryOnly);
-            var tasks = datasetFiles.Select(async file =>
+            var tasks = datasetFiles.Select(file => (Func<Task<Dataset>>)(async () =>
             {
-                try
                 {
-                    return await ClassLoaderSaver.LoadFromJsonAsync<Dataset>(file.FullName);
+                    try
+                    {
+                        return await ClassLoaderSaver.LoadFromJsonAsync<Dataset>(file.FullName);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                        throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(file.Name));
+                    }
                 }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(file.Name));
-                }
-            });
-            datasets.AddRange(await PerformMultipleTasksAsync(tasks, 0, LOADING_TIME, "Loading datasets", updateProgress));
+            }));
+            datasets.AddRange(await TaskExtension.PerformMultipleTasksAsync(tasks, 0, LOADING_TIME, "Loading datasets", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading));
             SetDatasets(datasets.ToArray());
             await CheckDatasetsAsync(DatabaseManager.Database.Protocols, (localProgress, duration, text) => updateProgress.Invoke(LOADING_TIME + localProgress * CHECKING_TIME, duration, text));
             updateProgress.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
@@ -709,19 +719,21 @@ namespace HBP.Core.Data
             DirectoryInfo visualizationsDirectory = projectDirectory.GetDirectories("Visualizations", SearchOption.TopDirectoryOnly)[0];
             List<Visualization> visualizations = new List<Visualization>();
             FileInfo[] visualizationFiles = visualizationsDirectory.GetFiles("*" + Visualization.EXTENSION, SearchOption.TopDirectoryOnly);
-            var tasks = visualizationFiles.Select(async file =>
+            var tasks = visualizationFiles.Select(file => (Func<Task<Visualization>>)(async () =>
             {
-                try
                 {
-                    return await ClassLoaderSaver.LoadFromJsonAsync<Visualization>(file.FullName);
+                    try
+                    {
+                        return await ClassLoaderSaver.LoadFromJsonAsync<Visualization>(file.FullName);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                        throw new CanNotReadVisualizationFileException(Path.GetFileNameWithoutExtension(file.Name));
+                    }
                 }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    throw new CanNotReadVisualizationFileException(Path.GetFileNameWithoutExtension(file.Name));
-                }
-            });
-            visualizations.AddRange(await PerformMultipleTasksAsync(tasks, 0, 1, "Loading visualizations", updateProgress));
+            }));
+            visualizations.AddRange(await TaskExtension.PerformMultipleTasksAsync(tasks, 0, 1, "Loading visualizations", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading));
             SetVisualizations(visualizations.ToArray());
             updateProgress.Invoke(1.0f, 0, new LoadingText("Visualizations loaded successfully"));
         }
@@ -743,73 +755,81 @@ namespace HBP.Core.Data
         private async Task SavePatientsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             DirectoryInfo patientDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Patients"));
-            var tasks = m_Patients.Select(async patient =>
+            var tasks = m_Patients.Select(patient => (Func<Task>)(async () =>
             {
-                try
                 {
-                    await ClassLoaderSaver.SaveToJSonAsync(patient, Path.Combine(patientDirectory.FullName, patient.ID + Patient.EXTENSION));
+                    try
+                    {
+                        await ClassLoaderSaver.SaveToJSonAsync(patient, Path.Combine(patientDirectory.FullName, patient.ID + Patient.EXTENSION));
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                        throw new CanNotSaveSettingsException();
+                    }
                 }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    throw new CanNotSaveSettingsException();
-                }
-            });
-            await PerformMultipleTasksAsync(tasks, 0, 1, "Saving patients", updateProgress);
+            }));
+            await TaskExtension.PerformMultipleTasksAsync(tasks, 0, 1, "Saving patients", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Patients saved successfully"));
         }
         private async Task SaveGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             DirectoryInfo groupDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Groups"));
-            var tasks = m_Groups.Select(async group =>
+            var tasks = m_Groups.Select(group => (Func<Task>)(async () =>
             {
-                try
                 {
-                    await ClassLoaderSaver.SaveToJSonAsync(group, Path.Combine(groupDirectory.FullName, group.Name + Group.EXTENSION));
+                    try
+                    {
+                        await ClassLoaderSaver.SaveToJSonAsync(group, Path.Combine(groupDirectory.FullName, group.Name + Group.EXTENSION));
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                        throw new CanNotSaveSettingsException();
+                    }
                 }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    throw new CanNotSaveSettingsException();
-                }
-            });
-            await PerformMultipleTasksAsync(tasks, 0, 1, "Saving groups", updateProgress);
+            }));
+            await TaskExtension.PerformMultipleTasksAsync(tasks, 0, 1, "Saving groups", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Groups saved successfully"));
         }
         private async Task SaveDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             DirectoryInfo datasetDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Datasets"));
-            var tasks = m_Datasets.Select(async dataset =>
+            var tasks = m_Datasets.Select(dataset => (Func<Task>)(async () =>
             {
-                try
                 {
-                    await ClassLoaderSaver.SaveToJSonAsync(dataset, Path.Combine(datasetDirectory.FullName, dataset.Name + Dataset.EXTENSION));
+                    try
+                    {
+                        await ClassLoaderSaver.SaveToJSonAsync(dataset, Path.Combine(datasetDirectory.FullName, dataset.Name + Dataset.EXTENSION));
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                        throw new CanNotSaveSettingsException();
+                    }
                 }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    throw new CanNotSaveSettingsException();
-                }
-            });
-            await PerformMultipleTasksAsync(tasks, 0, 1, "Saving datasets", updateProgress);
+            }));
+            await TaskExtension.PerformMultipleTasksAsync(tasks, 0, 1, "Saving datasets", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Datasets saved successfully"));
         }
         private async Task SaveVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             DirectoryInfo visualizationDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Visualizations"));
-            var tasks = m_Visualizations.Select(async visualization =>
+            var tasks = m_Visualizations.Select(visualization => (Func<Task>)(async () =>
             {
-                try
                 {
-                    await ClassLoaderSaver.SaveToJSonAsync(visualization, Path.Combine(visualizationDirectory.FullName, visualization.Name + Visualization.EXTENSION));
+                    try
+                    {
+                        await ClassLoaderSaver.SaveToJSonAsync(visualization, Path.Combine(visualizationDirectory.FullName, visualization.Name + Visualization.EXTENSION));
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                        throw new CanNotSaveSettingsException();
+                    }
                 }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    throw new CanNotSaveSettingsException();
-                }
-            });
-            await PerformMultipleTasksAsync(tasks, 0, 1, "Saving visualizations", updateProgress);
+            }));
+            await TaskExtension.PerformMultipleTasksAsync(tasks, 0, 1, "Saving visualizations", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Visualizations saved successfully"));
         }
 
@@ -892,78 +912,6 @@ namespace HBP.Core.Data
                     }
                 }
             });
-        }
-
-        private async Task PerformMultipleTasksAsync(IEnumerable<Task> tasks, float startProgress, float endProgress, string loadingText, Action<float, float, LoadingText> updateProgress, bool parallel = true)
-        {
-            bool loading = true;
-            int count = 1;
-            var taskList = tasks.ToList();
-            int length = taskList.Count;
-            async void setProgress()
-            {
-                while (loading)
-                {
-                    updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0, new LoadingText(loadingText, " ", count + "/" + length));
-                    await new WaitForEndOfFrame();
-                }
-            }
-            setProgress();
-            var tasksToExecute = taskList.Select(async task =>
-            {
-                await task;
-                Interlocked.Increment(ref count);
-            });
-            if (parallel)
-            {
-                await Task.WhenAll(tasksToExecute);
-            }
-            else
-            {
-                foreach (var task in tasksToExecute)
-                {
-                    await task;
-                }
-            }
-            loading = false;
-        }
-        private async Task<IEnumerable<T>> PerformMultipleTasksAsync<T>(IEnumerable<Task<T>> tasks, float startProgress, float endProgress, string loadingText, Action<float, float, LoadingText> updateProgress, bool parallel = true)
-        {
-            bool loading = true;
-            int count = 1;
-            var taskList = tasks.ToList();
-            int length = taskList.Count;
-            async void setProgress()
-            {
-                while (loading)
-                {
-                    updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0, new LoadingText(loadingText, " ", count + "/" + length));
-                    await new WaitForEndOfFrame();
-                }
-            }
-            setProgress();
-            var tasksToExecute = taskList.Select(async task =>
-            {
-                T data = await task;
-                Interlocked.Increment(ref count);
-                return data;
-            });
-            if (parallel)
-            {
-                var result = await Task.WhenAll(tasksToExecute);
-                loading = false;
-                return result;
-            }
-            else
-            {
-                List<T> result = new List<T>();
-                foreach (var task in tasksToExecute)
-                {
-                    result.Add(await task);
-                }
-                loading = false;
-                return result;
-            }
         }
         #endregion
     }
