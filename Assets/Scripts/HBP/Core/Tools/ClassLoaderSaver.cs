@@ -23,10 +23,10 @@ namespace HBP.Core.Tools
         public static async Task<T> LoadFromJsonAsync<T>(string path) where T : new()
         {
             T result = new T();
-            using (StreamReader streamReader = new StreamReader(path))
-            {
-                result = await Task.Run(() => JsonConvert.DeserializeObject<T>(streamReader.ReadToEnd(), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto }));
-            }
+            await Task.Run(() => {
+                using StreamReader streamReader = new(path);
+                result = JsonConvert.DeserializeObject<T>(streamReader.ReadToEnd(), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+            });
             return result;
         }
         public static bool SaveToJSon<T>(T instance, string path, bool overwrite = false) where T : new()
@@ -52,13 +52,14 @@ namespace HBP.Core.Tools
         {
             try
             {
-                if (!overwrite) path = path.GenerateUniqueFilePath();
-                using (StreamWriter streamWriter = new StreamWriter(path))
+                await Task.Run(() =>
                 {
-                    string json = await Task.Run(() => JsonConvert.SerializeObject(instance, Formatting.Indented, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple }));
+                    if (!overwrite) path = path.GenerateUniqueFilePath();
+                    using StreamWriter streamWriter = new(path);
+                    string json = JsonConvert.SerializeObject(instance, Formatting.Indented, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple });
                     streamWriter.Write(json);
                     streamWriter.Close();
-                }
+                });
                 return true;
             }
             catch (Exception e)

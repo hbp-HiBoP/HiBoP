@@ -10,6 +10,9 @@ using HBP.Core.Tools;
 using HBP.Core.Interfaces;
 using HBP.Data.Preferences;
 using HBP.Data.Database;
+using System.Threading;
+using System.Threading.Tasks;
+using UnityEngine.UIElements;
 
 namespace HBP.Core.Data
 {
@@ -412,23 +415,29 @@ namespace HBP.Core.Data
             return problematicData;
         }
 
-        public async System.Threading.Tasks.Task LoadAsync(ProjectInfo projectInfo, Action<float, float, LoadingText> updateProgress)
+        public async Task LoadAsync(ProjectInfo projectInfo, Action<float, float, LoadingText> updateProgress)
         {
             // Initialize progress.
-            float steps = 1 + projectInfo.Patients + projectInfo.Groups + projectInfo.Protocols + 5 * projectInfo.Patients * projectInfo.Datasets + projectInfo.Visualizations;
             float progress = 0.0f;
 
-            float settingsProgress = 1 / steps;
-            float patientsProgress = projectInfo.Patients / steps;
-            float groupsProgress = projectInfo.Groups / steps;
-            float protocolsProgress = projectInfo.Protocols / steps;
-            float datasetsProgress = 5 * projectInfo.Patients * projectInfo.Datasets / steps;
-            float visualizationsProgress = projectInfo.Visualizations / steps;
+            float settingsProgress = 1;
+            float patientsProgress = 2 * projectInfo.Patients;
+            float groupsProgress = projectInfo.Groups;
+            float protocolsProgress = projectInfo.Protocols;
+            float datasetsProgress = projectInfo.Patients * projectInfo.Datasets;
+            float visualizationsProgress = projectInfo.Visualizations;
+            float steps = settingsProgress + groupsProgress + patientsProgress + protocolsProgress + datasetsProgress + visualizationsProgress;
+            settingsProgress /= steps;
+            patientsProgress /= steps;
+            groupsProgress /= steps;
+            protocolsProgress /= steps;
+            datasetsProgress /= steps;
+            visualizationsProgress /= steps;
 
             updateProgress.Invoke(progress, 0, new LoadingText("Loading project"));
 
             // Unzipping
-            await System.Threading.Tasks.Task.Run(() =>
+            await Task.Run(() =>
             {
                 if (Directory.Exists(ApplicationState.ExtractProjectFolder)) Directory.Delete(ApplicationState.ExtractProjectFolder, true);
                 using ZipFile zip = ZipFile.Read(projectInfo.Path);
@@ -461,7 +470,7 @@ namespace HBP.Core.Data
             Directory.Delete(ApplicationState.ExtractProjectFolder, true);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Project loaded successfully."));
         }
-        public async System.Threading.Tasks.Task SaveAsync(string path, Action<float, float, LoadingText> updateProgress)
+        public async Task SaveAsync(string path, Action<float, float, LoadingText> updateProgress)
         {
             // Initialize progress.
             float steps = 12 + m_Patients.Count + m_Groups.Count + m_Datasets.Count + m_Visualizations.Count;
@@ -506,11 +515,11 @@ namespace HBP.Core.Data
             progress += visualizationsProgress;
 
             // Deleting old directories.
-            updateProgress.Invoke(progress + finalizationProgress, 0.75f, new LoadingText("Finalizing."));
+            updateProgress.Invoke(progress + finalizationProgress, 0.75f, new LoadingText("Finalizing"));
             progress += finalizationProgress;
 
             // Zipping
-            await System.Threading.Tasks.Task.Run(() =>
+            await Task.Run(() =>
             {
                 string filePath = Path.Combine(path, FileName);
                 if (File.Exists(filePath)) File.Delete(filePath);
@@ -522,41 +531,27 @@ namespace HBP.Core.Data
                 Directory.Delete(ApplicationState.ExtractProjectFolder, true);
             });
 
-            updateProgress.Invoke(1, 0, new LoadingText("Project saved successfully."));
+            updateProgress.Invoke(1, 0, new LoadingText("Project saved successfully"));
         }
 
-        public async System.Threading.Tasks.Task CheckDatasetsAsync(IEnumerable<Protocol> protocols, Action<float, float, LoadingText> updateProgress)
+        public async Task CheckDatasetsAsync(IEnumerable<Protocol> protocols, Action<float, float, LoadingText> updateProgress)
         {
-            await System.Threading.Tasks.Task.Run(() =>
+            IEnumerable<Dataset> datasets = m_Datasets.Where(d => protocols.Contains(d.Protocol));
+            var tasks = datasets.SelectMany(d => d.Data).Select(async d =>
             {
-                IEnumerable<Dataset> datasets = m_Datasets.Where(d => protocols.Contains(d.Protocol));
-                int count = 0;
-                int length = datasets.SelectMany(d => d.Data).Count();
-                foreach (var dataset in datasets)
+                await Task.Run(() =>
                 {
-                    for (int j = 0; j < dataset.Data.Count; ++j, ++count)
-                    {
-                        DataInfo data = dataset.Data[j];
-                        data.GetErrorsAndWarnings();
-
-                        string message;
-                        if (data is PatientDataInfo patientDataInfo) message = patientDataInfo.Name + " | " + dataset.Protocol.Name + " | " + patientDataInfo.Patient.Name;
-                        else message = data.Name + " | " + dataset.Protocol.Name;
-
-                        updateProgress.Invoke((float)count / length, 0, new LoadingText("Checking ", message, " [" + (count + 1) + "/" + length + "]"));
-                    }
-                }
+                    d.GetErrorsAndWarnings();
+                });
             });
+            await PerformMultipleTasksAsync(tasks, 0, 1, "Checking datasets", updateProgress);
         }
-        public async System.Threading.Tasks.Task CheckPatientTagValuesAsync(IEnumerable<BaseTag> tags, Action<float, float, LoadingText> updateProgress)
+        public async Task CheckPatientTagValuesAsync(IEnumerable<BaseTag> tags, Action<float, float, LoadingText> updateProgress)
         {
-            await System.Threading.Tasks.Task.Run(() =>
+            var tasks = m_Patients.Select(async patient =>
             {
-                int length = m_Patients.Count;
-                for (int p = 0; p < length; p++)
+                await Task.Run(() =>
                 {
-                    var patient = m_Patients[p];
-                    updateProgress.Invoke((float)(p + 1) / length, 0.1f, new LoadingText("Checking ", patient.Name, " [" + (p + 1) + "/" + length + "]"));
                     patient.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
                     foreach (var site in patient.Sites) site.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
                     List<BaseTagValue> tagsToUpdate = patient.Tags.Where(t => tags.Contains(t.Tag)).ToList();
@@ -616,13 +611,14 @@ namespace HBP.Core.Data
                             tagValue.UpdateValue();
                         }
                     }
-                }
+                });
             });
+            await PerformMultipleTasksAsync(tasks, 0, 1, "Checking patients", updateProgress);
         }
         #endregion
 
         #region Private Methods
-        private async System.Threading.Tasks.Task LoadSettingsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async Task LoadSettingsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             updateProgress.Invoke(0, 0, new LoadingText("Loading settings"));
             FileInfo[] settingsFiles = projectDirectory.GetFiles("*" + ProjectPreferences.EXTENSION, SearchOption.TopDirectoryOnly);
@@ -639,102 +635,98 @@ namespace HBP.Core.Data
             }
             updateProgress.Invoke(1.0f, 0, new LoadingText("Settings loaded successfully"));
         }
-        private async System.Threading.Tasks.Task LoadPatientsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async Task LoadPatientsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
-            const float LOADING_PROGRESS = 0.99f;
-            const float CHECKING_PROGRESS = 0.01f;
+            const float LOADING_PROGRESS = 0.60f;
+            const float CHECKING_PROGRESS = 0.40f;
             List<Patient> patients = new List<Patient>();
             DirectoryInfo patientDirectory = projectDirectory.GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
-            for (int i = 0; i < patientFiles.Length; ++i)
+            var tasks = patientFiles.Select(async file =>
             {
-                FileInfo patientFile = patientFiles[i];
-                updateProgress.Invoke((float)(i + 1) / patientFiles.Length * LOADING_PROGRESS, 0, new LoadingText("Loading patient ", Path.GetFileNameWithoutExtension(patientFile.Name), " [" + (i + 1).ToString() + "/" + patientFiles.Length + "]"));
                 try
                 {
-                    patients.Add(await ClassLoaderSaver.LoadFromJsonAsync<Patient>(patientFile.FullName));
+                    return await ClassLoaderSaver.LoadFromJsonAsync<Patient>(file.FullName);
                 }
                 catch (Exception e)
                 {
                     Debug.LogException(e);
-                    throw new CanNotReadPatientFileException(Path.GetFileNameWithoutExtension(patientFile.Name));
+                    throw new CanNotReadPatientFileException(Path.GetFileNameWithoutExtension(file.Name));
                 }
-            }
+            });
+            patients.AddRange(await PerformMultipleTasksAsync(tasks, 0, LOADING_PROGRESS, "Loading patients", updateProgress));
             SetPatients(patients.ToArray());
             await CheckPatientTagValuesAsync(PersistentDataManager.Tags.AllTags, (localProgress, duration, text) => updateProgress.Invoke(LOADING_PROGRESS + localProgress * CHECKING_PROGRESS, duration, text));
             updateProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
         }
-        private async System.Threading.Tasks.Task LoadGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async Task LoadGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             List<Group> groups = new List<Group>();
             DirectoryInfo groupDirectory = projectDirectory.GetDirectories("Groups", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] groupFiles = groupDirectory.GetFiles("*" + Group.EXTENSION, SearchOption.TopDirectoryOnly);
-            for (int i = 0; i < groupFiles.Length; ++i)
+            var tasks = groupFiles.Select(async file =>
             {
-                FileInfo groupFile = groupFiles[i];
-                updateProgress.Invoke((float)(i + 1) / groupFiles.Length, 0, new LoadingText("Loading group ", Path.GetFileNameWithoutExtension(groupFile.Name), " [" + (i + 1).ToString() + "/" + groupFiles.Length + "]"));
                 try
                 {
-                    groups.Add(await ClassLoaderSaver.LoadFromJsonAsync<Group>(groupFile.FullName));
+                    return await ClassLoaderSaver.LoadFromJsonAsync<Group>(file.FullName);
                 }
                 catch (Exception e)
                 {
                     Debug.LogException(e);
-                    throw new CanNotReadGroupFileException(Path.GetFileNameWithoutExtension(groupFile.Name));
+                    throw new CanNotReadGroupFileException(Path.GetFileNameWithoutExtension(file.Name));
                 }
-            }
+            });
+            groups.AddRange(await PerformMultipleTasksAsync(tasks, 0, 1, "Loading groups", updateProgress));
             SetGroups(groups.ToArray());
             updateProgress.Invoke(1.0f, 0, new LoadingText("Groups loaded successfully"));
         }
-        private async System.Threading.Tasks.Task LoadDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async Task LoadDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             const float LOADING_TIME = 0.01f;
             const float CHECKING_TIME = 0.99f;
             List<Dataset> datasets = new List<Dataset>();
             DirectoryInfo datasetDirectory = projectDirectory.GetDirectories("Datasets", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] datasetFiles = datasetDirectory.GetFiles("*" + Dataset.EXTENSION, SearchOption.TopDirectoryOnly);
-            for (int i = 0; i < datasetFiles.Length; ++i)
+            var tasks = datasetFiles.Select(async file =>
             {
-                FileInfo datasetFile = datasetFiles[i];
-                updateProgress.Invoke((float)(i + 1) / datasetFiles.Length * LOADING_TIME, 0, new LoadingText("Loading dataset ", Path.GetFileNameWithoutExtension(datasetFile.Name), " [" + (i + 1).ToString() + "/" + datasetFiles.Length + "]"));
                 try
                 {
-                    datasets.Add(await ClassLoaderSaver.LoadFromJsonAsync<Dataset>(datasetFile.FullName));
+                    return await ClassLoaderSaver.LoadFromJsonAsync<Dataset>(file.FullName);
                 }
                 catch (Exception e)
                 {
                     Debug.LogException(e);
-                    throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(datasetFile.Name));
+                    throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(file.Name));
                 }
-            }
+            });
+            datasets.AddRange(await PerformMultipleTasksAsync(tasks, 0, LOADING_TIME, "Loading datasets", updateProgress));
             SetDatasets(datasets.ToArray());
             await CheckDatasetsAsync(DatabaseManager.Database.Protocols, (localProgress, duration, text) => updateProgress.Invoke(LOADING_TIME + localProgress * CHECKING_TIME, duration, text));
             updateProgress.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
         }
-        private async System.Threading.Tasks.Task LoadVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async Task LoadVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             DirectoryInfo visualizationsDirectory = projectDirectory.GetDirectories("Visualizations", SearchOption.TopDirectoryOnly)[0];
             List<Visualization> visualizations = new List<Visualization>();
             FileInfo[] visualizationFiles = visualizationsDirectory.GetFiles("*" + Visualization.EXTENSION, SearchOption.TopDirectoryOnly);
-            for (int i = 0; i < visualizationFiles.Length; ++i)
+            var tasks = visualizationFiles.Select(async file =>
             {
-                FileInfo visualizationFile = visualizationFiles[i];
-                updateProgress.Invoke((float)(i + 1) / visualizationFiles.Length, 0, new LoadingText("Loading visualization ", Path.GetFileNameWithoutExtension(visualizationFile.Name), " [" + (i + 1).ToString() + "/" + visualizationFiles.Length + "]"));
                 try
                 {
-                    visualizations.Add(await ClassLoaderSaver.LoadFromJsonAsync<Visualization>(visualizationFile.FullName));
+                    return await ClassLoaderSaver.LoadFromJsonAsync<Visualization>(file.FullName);
                 }
                 catch (Exception e)
                 {
                     Debug.LogException(e);
-                    throw new CanNotReadVisualizationFileException(Path.GetFileNameWithoutExtension(visualizationFile.Name));
+                    throw new CanNotReadVisualizationFileException(Path.GetFileNameWithoutExtension(file.Name));
                 }
-            }
+            });
+            visualizations.AddRange(await PerformMultipleTasksAsync(tasks, 0, 1, "Loading visualizations", updateProgress));
             SetVisualizations(visualizations.ToArray());
             updateProgress.Invoke(1.0f, 0, new LoadingText("Visualizations loaded successfully"));
         }
 
-        private async System.Threading.Tasks.Task SaveSettingsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async Task SaveSettingsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             updateProgress.Invoke(0, 0, new LoadingText("Saving settings"));
             try
@@ -748,14 +740,11 @@ namespace HBP.Core.Data
             }
             updateProgress.Invoke(1.0f, 0, new LoadingText("Settings saved successfully"));
         }
-        private async System.Threading.Tasks.Task SavePatientsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async Task SavePatientsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             DirectoryInfo patientDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Patients"));
-            int count = 0;
-            int length = m_Patients.Count();
-            foreach (Patient patient in m_Patients)
+            var tasks = m_Patients.Select(async patient =>
             {
-                updateProgress.Invoke((float)count / length, 0, new LoadingText("Saving patient ", patient.ID, " [" + (count + 1) + "/" + length + "]"));
                 try
                 {
                     await ClassLoaderSaver.SaveToJSonAsync(patient, Path.Combine(patientDirectory.FullName, patient.ID + Patient.EXTENSION));
@@ -765,18 +754,15 @@ namespace HBP.Core.Data
                     Debug.LogException(e);
                     throw new CanNotSaveSettingsException();
                 }
-                count++;
-            }
+            });
+            await PerformMultipleTasksAsync(tasks, 0, 1, "Saving patients", updateProgress);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Patients saved successfully"));
         }
-        private async System.Threading.Tasks.Task SaveGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async Task SaveGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             DirectoryInfo groupDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Groups"));
-            int count = 0;
-            int length = m_Patients.Count();
-            foreach (Group group in m_Groups)
+            var tasks = m_Groups.Select(async group =>
             {
-                updateProgress.Invoke((float)count / length, 0, new LoadingText("Saving group ", group.Name, " [" + (count + 1) + "/" + length + "]"));
                 try
                 {
                     await ClassLoaderSaver.SaveToJSonAsync(group, Path.Combine(groupDirectory.FullName, group.Name + Group.EXTENSION));
@@ -786,19 +772,15 @@ namespace HBP.Core.Data
                     Debug.LogException(e);
                     throw new CanNotSaveSettingsException();
                 }
-                count++;
-            }
+            });
+            await PerformMultipleTasksAsync(tasks, 0, 1, "Saving groups", updateProgress);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Groups saved successfully"));
         }
-        private async System.Threading.Tasks.Task SaveDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async Task SaveDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             DirectoryInfo datasetDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Datasets"));
-
-            int count = 0;
-            int length = m_Datasets.Count();
-            foreach (Dataset dataset in m_Datasets)
+            var tasks = m_Datasets.Select(async dataset =>
             {
-                updateProgress.Invoke((float)count / length, 0, new LoadingText("Saving dataset ", dataset.Name, " [" + (count + 1).ToString() + "/" + length + "]"));
                 try
                 {
                     await ClassLoaderSaver.SaveToJSonAsync(dataset, Path.Combine(datasetDirectory.FullName, dataset.Name + Dataset.EXTENSION));
@@ -808,18 +790,15 @@ namespace HBP.Core.Data
                     Debug.LogException(e);
                     throw new CanNotSaveSettingsException();
                 }
-                count++;
-            }
+            });
+            await PerformMultipleTasksAsync(tasks, 0, 1, "Saving datasets", updateProgress);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Datasets saved successfully"));
         }
-        private async System.Threading.Tasks.Task SaveVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async Task SaveVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             DirectoryInfo visualizationDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Visualizations"));
-            int count = 0;
-            int length = m_Visualizations.Count();
-            foreach (Visualization visualization in m_Visualizations)
+            var tasks = m_Visualizations.Select(async visualization =>
             {
-                updateProgress.Invoke((float)count / length, 0, new LoadingText("Saving visualization ", visualization.Name, " [" + (count + 1) + "/" + length + "]"));
                 try
                 {
                     await ClassLoaderSaver.SaveToJSonAsync(visualization, Path.Combine(visualizationDirectory.FullName, visualization.Name + Visualization.EXTENSION));
@@ -829,8 +808,8 @@ namespace HBP.Core.Data
                     Debug.LogException(e);
                     throw new CanNotSaveSettingsException();
                 }
-                count++;
-            }
+            });
+            await PerformMultipleTasksAsync(tasks, 0, 1, "Saving visualizations", updateProgress);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Visualizations saved successfully"));
         }
 
@@ -838,9 +817,9 @@ namespace HBP.Core.Data
         {
             new DirectoryInfo(oldIconsDirectoryPath).CopyFilesRecursively(new DirectoryInfo(newIconsDirectoryPath));
         }
-        private async System.Threading.Tasks.Task EmbedDataIntoProjectFileAsync(DirectoryInfo projectDirectory, string oldProjectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async Task EmbedDataIntoProjectFileAsync(DirectoryInfo projectDirectory, string oldProjectDirectory, Action<float, float, LoadingText> updateProgress)
         {
-            await System.Threading.Tasks.Task.Run(() =>
+            await Task.Run(() =>
             {
                 DirectoryInfo dataDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Data"));
 
@@ -913,6 +892,78 @@ namespace HBP.Core.Data
                     }
                 }
             });
+        }
+
+        private async Task PerformMultipleTasksAsync(IEnumerable<Task> tasks, float startProgress, float endProgress, string loadingText, Action<float, float, LoadingText> updateProgress, bool parallel = true)
+        {
+            bool loading = true;
+            int count = 1;
+            var taskList = tasks.ToList();
+            int length = taskList.Count;
+            async void setProgress()
+            {
+                while (loading)
+                {
+                    updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0, new LoadingText(loadingText, " ", count + "/" + length));
+                    await new WaitForEndOfFrame();
+                }
+            }
+            setProgress();
+            var tasksToExecute = taskList.Select(async task =>
+            {
+                await task;
+                Interlocked.Increment(ref count);
+            });
+            if (parallel)
+            {
+                await Task.WhenAll(tasksToExecute);
+            }
+            else
+            {
+                foreach (var task in tasksToExecute)
+                {
+                    await task;
+                }
+            }
+            loading = false;
+        }
+        private async Task<IEnumerable<T>> PerformMultipleTasksAsync<T>(IEnumerable<Task<T>> tasks, float startProgress, float endProgress, string loadingText, Action<float, float, LoadingText> updateProgress, bool parallel = true)
+        {
+            bool loading = true;
+            int count = 1;
+            var taskList = tasks.ToList();
+            int length = taskList.Count;
+            async void setProgress()
+            {
+                while (loading)
+                {
+                    updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0, new LoadingText(loadingText, " ", count + "/" + length));
+                    await new WaitForEndOfFrame();
+                }
+            }
+            setProgress();
+            var tasksToExecute = taskList.Select(async task =>
+            {
+                T data = await task;
+                Interlocked.Increment(ref count);
+                return data;
+            });
+            if (parallel)
+            {
+                var result = await Task.WhenAll(tasksToExecute);
+                loading = false;
+                return result;
+            }
+            else
+            {
+                List<T> result = new List<T>();
+                foreach (var task in tasksToExecute)
+                {
+                    result.Add(await task);
+                }
+                loading = false;
+                return result;
+            }
         }
         #endregion
     }

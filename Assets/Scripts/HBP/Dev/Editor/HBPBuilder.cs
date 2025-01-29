@@ -19,7 +19,7 @@ namespace HBP.Dev
             BuildProjectAndZipIt(@"D:/HBP/HiBoP_builds/", false, BuildTarget.StandaloneOSX);
         }
 
-        public static void BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target)
+        public static void BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target, bool connectProfiler = false)
         {
             string os = "";
             switch (target)
@@ -56,6 +56,10 @@ namespace HBP.Dev
             }
 
             BuildOptions buildOptions = development ? BuildOptions.Development : BuildOptions.None;
+            if (connectProfiler)
+            {
+                buildOptions |= BuildOptions.ConnectWithProfiler;
+            }
             BuildPlayerOptions buildPlayerOptions = new BuildPlayerOptions
             {
                 locationPathName = buildDirectory + hibopName,
@@ -110,6 +114,7 @@ namespace HBP.Dev
     {
         private string m_BuildDirectory = @"C:\HBP\Builds\HiBoP";
         private bool m_DevelopmentBuild = false;
+        private bool m_ConnectProfiler = false;
         private bool m_Windows = true;
         private bool m_Linux = true;
         private bool m_MacOSX = true;
@@ -132,6 +137,7 @@ namespace HBP.Dev
             }
             GUILayout.EndHorizontal();
             m_DevelopmentBuild = GUILayout.Toggle(m_DevelopmentBuild, "Development Build");
+            m_ConnectProfiler = GUILayout.Toggle(m_ConnectProfiler, "Connect Profiler");
             m_Windows = GUILayout.Toggle(m_Windows, "Windows");
             m_Linux = GUILayout.Toggle(m_Linux, "Linux");
             m_MacOSX = GUILayout.Toggle(m_MacOSX, "MacOSX");
@@ -144,15 +150,15 @@ namespace HBP.Dev
                 }
                 if (m_Windows)
                 {
-                    HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneWindows64);
+                    HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneWindows64, m_ConnectProfiler);
                 }
                 if (m_Linux)
                 {
-                    HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneLinux64);
+                    HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneLinux64, m_ConnectProfiler);
                 }
                 if (m_MacOSX)
                 {
-                    HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneOSX);
+                    HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneOSX, m_ConnectProfiler);
                 }
                 Close();
             }
