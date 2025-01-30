@@ -341,6 +341,7 @@ namespace HBP.Data.Module3D
             // Graphic Settings
             QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
             QualitySettings.antiAliasing = 8;
+            QualitySettings.vSyncCount = 0;
 
             // Advanced Conditions
             UI.Module3D.AdvancedSiteConditionStrings.LoadConditions();

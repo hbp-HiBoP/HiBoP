@@ -79,7 +79,7 @@ namespace HBP.UI.Tools
         {
             while (!token.IsCancellationRequested)
             {
-                await UniTask.WaitUntil(() => gameObject.activeSelf);
+                await UniTask.WaitUntil(() => gameObject && gameObject.activeSelf);
                 m_LoadingEffectText.text = "";
                 await UniTask.WaitForSeconds(0.25f);
                 m_LoadingEffectText.text = ".";

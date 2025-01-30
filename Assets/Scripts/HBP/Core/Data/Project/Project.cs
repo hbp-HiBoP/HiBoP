@@ -543,7 +543,7 @@ namespace HBP.Core.Data
                     d.GetErrorsAndWarnings();
                 });
             }));
-            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Checking datasets", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
+            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Checking datasets", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
         }
         public async UniTask CheckPatientTagValuesAsync(IEnumerable<BaseTag> tags, Action<float, float, LoadingText> updateProgress)
         {
@@ -612,7 +612,7 @@ namespace HBP.Core.Data
                     }
                 });
             }));
-            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Checking patients", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
+            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Checking patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
         }
         #endregion
 
@@ -655,7 +655,7 @@ namespace HBP.Core.Data
                     }
                 }
             }));
-            patients.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, LOADING_PROGRESS, "Loading patients", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading));
+            patients.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, LOADING_PROGRESS, "Loading patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading));
             SetPatients(patients.ToArray());
             await CheckPatientTagValuesAsync(PersistentDataManager.Tags.AllTags, (localProgress, duration, text) => updateProgress.Invoke(LOADING_PROGRESS + localProgress * CHECKING_PROGRESS, duration, text));
             updateProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
@@ -679,7 +679,7 @@ namespace HBP.Core.Data
                     }
                 }
             }));
-            groups.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading groups", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading));
+            groups.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading groups", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading));
             SetGroups(groups.ToArray());
             updateProgress.Invoke(1.0f, 0, new LoadingText("Groups loaded successfully"));
         }
@@ -704,7 +704,7 @@ namespace HBP.Core.Data
                     }
                 }
             }));
-            datasets.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, LOADING_TIME, "Loading datasets", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading));
+            datasets.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, LOADING_TIME, "Loading datasets", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading));
             SetDatasets(datasets.ToArray());
             await CheckDatasetsAsync(DatabaseManager.Database.Protocols, (localProgress, duration, text) => updateProgress.Invoke(LOADING_TIME + localProgress * CHECKING_TIME, duration, text));
             updateProgress.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
@@ -728,7 +728,7 @@ namespace HBP.Core.Data
                     }
                 }
             }));
-            visualizations.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading visualizations", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading));
+            visualizations.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading visualizations", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading));
             SetVisualizations(visualizations.ToArray());
             updateProgress.Invoke(1.0f, 0, new LoadingText("Visualizations loaded successfully"));
         }
@@ -764,7 +764,7 @@ namespace HBP.Core.Data
                     }
                 }
             }));
-            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving patients", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
+            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Patients saved successfully"));
         }
         private async UniTask SaveGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
@@ -784,7 +784,7 @@ namespace HBP.Core.Data
                     }
                 }
             }));
-            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving groups", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
+            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving groups", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Groups saved successfully"));
         }
         private async UniTask SaveDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
@@ -804,7 +804,7 @@ namespace HBP.Core.Data
                     }
                 }
             }));
-            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving datasets", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
+            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving datasets", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Datasets saved successfully"));
         }
         private async UniTask SaveVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
@@ -824,7 +824,7 @@ namespace HBP.Core.Data
                     }
                 }
             }));
-            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving visualizations", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
+            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving visualizations", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Visualizations saved successfully"));
         }
 
