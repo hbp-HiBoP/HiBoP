@@ -38,9 +38,9 @@ namespace HBP.UI.Tools
             }
             text.text = size.ToString();
         }
-        public static void CheckProjectIDAndAskForRegeneration()
+        public static async void CheckProjectIDAndAskForRegeneration()
         {
-            Dictionary<string, List<Tuple<BaseData, string>>> problematicData = ApplicationState.LoadedProject.CheckProjectIDs();
+            Dictionary<string, List<Tuple<BaseData, string>>> problematicData = await ApplicationState.LoadedProject.CheckProjectIDsAsync();
             if (problematicData.Count > 0)
             {
                 string displayedString = "";

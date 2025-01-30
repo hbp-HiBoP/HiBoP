@@ -408,27 +408,25 @@ namespace HBP.Core.Data
             IEnumerable<DataInfo> dataInfoCollection = dataInfoByColumn.SelectMany(d => d.Value).Distinct();
             var tasks = dataInfoCollection.Select(dataInfo => (Func<Task>)(async () =>
             {
+                await Task.Run(() =>
                 {
                     try
                     {
-                        await Task.Run(() =>
+                        // PROBABLY FIXME
+                        Data data = DataManager.GetData(dataInfo);
+                        if (data is EpochedData epochedData)
                         {
-                            // PROBABLY FIXME
-                            Data data = DataManager.GetData(dataInfo);
-                            if (data is EpochedData epochedData)
+                            foreach (var column in dataInfoByColumn.Keys)
                             {
-                                foreach (var column in dataInfoByColumn.Keys)
+                                if (column is CCEPColumn ccepColumn)
                                 {
-                                    if (column is CCEPColumn ccepColumn)
+                                    if (epochedData.DataByBloc.TryGetValue(ccepColumn.Bloc, out BlocData blocData) && !blocData.IsValid)
                                     {
-                                        if (epochedData.DataByBloc.TryGetValue(ccepColumn.Bloc, out BlocData blocData) && !blocData.IsValid)
-                                        {
-                                            throw new Exception("No bloc " + ccepColumn.Bloc.Name + " could be epoched.");
-                                        }
+                                        throw new Exception("No bloc " + ccepColumn.Bloc.Name + " could be epoched.");
                                     }
                                 }
                             }
-                        });
+                        }
                     }
                     catch (CannotEpochAllTrialsException e)
                     {
@@ -440,7 +438,7 @@ namespace HBP.Core.Data
                         UnityEngine.Debug.LogException(e);
                         throw new CannotLoadDataInfoException(string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name), (dataInfo is PatientDataInfo pDataInfo ? pDataInfo.Patient.Name : "Unkwown patient"), e.Message);
                     }
-                }
+                });
             }));
             await TaskExtension.PerformMultipleTasksAsync(tasks, 0, LOADING_DATA_PROGRESS, "Loading data", updateProgress, 5, PersistentDataManager.UserPreferences.General.System.MultiThreading);
             updateProgress.Invoke(LOADING_DATA_PROGRESS + NORMALIZING_DATA_PROGRESS, 1.0f, new LoadingText("Normalizing data"));

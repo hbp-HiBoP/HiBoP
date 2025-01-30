@@ -18,7 +18,7 @@ namespace HBP.UI.Tools
         {
             string[] args = System.Environment.GetCommandLineArgs();
             #if UNITY_EDITOR
-            args = new string[] { "HiBoP", "-p", "VISU", "-v", "VISU"};
+            //args = new string[] { "HiBoP", "-p", "VISU", "-v", "VISU"};
             #endif
             InterpreteCommandLineArguments(args);
         }
@@ -95,14 +95,10 @@ namespace HBP.UI.Tools
                 }
                 else
                 {
-                    IEnumerable<Visualization> visualizations;
-                    if (arguments[0] == "all")
+                    IEnumerable<Visualization> visualizations = from visu in ApplicationState.LoadedProject.Visualizations where arguments.Contains(visu.Name) select visu;
+                    if (visualizations.Count() == 0 && arguments[0] == "all")
                     {
                         visualizations = ApplicationState.LoadedProject.Visualizations;
-                    }
-                    else
-                    {
-                        visualizations = from visu in ApplicationState.LoadedProject.Visualizations where arguments.Contains(visu.Name) select visu;
                     }
                     Module3DMain.LoadScenes(visualizations);
                 }

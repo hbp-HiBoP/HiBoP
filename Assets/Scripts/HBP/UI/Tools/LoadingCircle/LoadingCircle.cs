@@ -23,6 +23,8 @@ namespace HBP.UI.Tools
 
         Sprite[] m_Sprites;
 
+        private CancellationTokenSource m_CancellationTokenSource;
+
         [SerializeField] Image m_IconProgress;
         [SerializeField] Image m_FillProgress;
         [SerializeField] RectTransform m_Informations;
@@ -73,9 +75,9 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Coroutines
-        private async void TextLoadingEffect()
+        private async void TextLoadingEffect(CancellationToken token)
         {
-            while (true)
+            while (!token.IsCancellationRequested)
             {
                 await new WaitUntil(() => gameObject.activeSelf);
                 m_LoadingEffectText.text = "";
@@ -93,7 +95,8 @@ namespace HBP.UI.Tools
         #region Private Methods
         private void Awake()
         {
-            TextLoadingEffect();
+            m_CancellationTokenSource = new();
+            TextLoadingEffect(m_CancellationTokenSource.Token);
         }
         private void Update()
         {
@@ -109,14 +112,11 @@ namespace HBP.UI.Tools
             if (Text != m_LastText)
             {
                 m_PrefixText.text = Text.Prefix;
-                m_PrefixText.SetLayoutElementMinimumWidthToContainWholeText();
                 m_InformationText.text = Text.Message;
                 m_SuffixText.text = Text.Suffix;
-                m_SuffixText.SetLayoutElementMinimumWidthToContainWholeText();
                 m_LastText = Text;
             }
         }
-
         private void Reset()
         {
             m_IconProgress.sprite = m_Sprites[0];
@@ -124,6 +124,10 @@ namespace HBP.UI.Tools
             m_Informations.gameObject.SetActive(false);
             m_Informations.anchoredPosition = Vector2.zero;
             m_Informations.sizeDelta = Vector2.zero;
+        }
+        private void OnDestroy()
+        {
+            m_CancellationTokenSource.Cancel();
         }
         #endregion
     }
