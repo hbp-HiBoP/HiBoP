@@ -297,24 +297,12 @@ namespace HBP.Core.Tools
                 results[i++] = await task;
             return results;
         }
-        public static async Task PerformMultipleTasksAsync(IEnumerable<Func<Task>> tasks, float startProgress, float endProgress, string loadingText, Action<float, float, LoadingText> updateProgress, int maxConcurrency = 0, bool parallel = true)
+        public static async Task PerformMultipleTasksAsync(IEnumerable<Func<Task>> tasks, float startProgress, float endProgress, string loadingText, Action<float, float, LoadingText> updateProgress, int maxConcurrency, bool parallel)
         {
-            bool loading = true;
-            int count = 0;
             var taskList = tasks.ToList();
+            int count = 0;
             int length = taskList.Count;
-            async void setProgress()
-            {
-                while (loading)
-                {
-                    if (count == 0)
-                        updateProgress.Invoke(startProgress, 0, new LoadingText(loadingText));
-                    else
-                        updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0, new LoadingText(loadingText, " ", count + "/" + length));
-                    await new WaitForEndOfFrame();
-                }
-            }
-            setProgress();
+            updateProgress.Invoke(startProgress, 0, new LoadingText(loadingText));
             if (parallel)
             {
                 if (maxConcurrency == 0)
@@ -322,7 +310,11 @@ namespace HBP.Core.Tools
                     var tasksToExecute = taskList.Select(async task =>
                     {
                         await task();
-                        Interlocked.Increment(ref count);
+                        lock (updateProgress)
+                        {
+                            count++;
+                            updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0, new LoadingText(loadingText, " ", count + "/" + length));
+                        }
                     });
                     await Task.WhenAll(tasksToExecute);
                 }
@@ -335,7 +327,11 @@ namespace HBP.Core.Tools
                         try
                         {
                             await task();
-                            Interlocked.Increment(ref count);
+                            lock (updateProgress)
+                            {
+                                count++;
+                                updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0, new LoadingText(loadingText, " ", count + "/" + length));
+                            }
                         }
                         finally
                         {
@@ -351,29 +347,17 @@ namespace HBP.Core.Tools
                 foreach (var task in taskList)
                 {
                     await task();
-                    Interlocked.Increment(ref count);
+                    count++;
+                    updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0, new LoadingText(loadingText, " ", count + "/" + length));
                 }
             }
-            loading = false;
         }
-        public static async Task<IEnumerable<T>> PerformMultipleTasksAsync<T>(IEnumerable<Func<Task<T>>> tasks, float startProgress, float endProgress, string loadingText, Action<float, float, LoadingText> updateProgress, int maxConcurrency = 0, bool parallel = true)
+        public static async Task<IEnumerable<T>> PerformMultipleTasksAsync<T>(IEnumerable<Func<Task<T>>> tasks, float startProgress, float endProgress, string loadingText, Action<float, float, LoadingText> updateProgress, int maxConcurrency, bool parallel)
         {
-            bool loading = true;
-            int count = 0;
             var taskList = tasks.ToList();
+            int count = 0;
             int length = taskList.Count;
-            async void setProgress()
-            {
-                while (loading)
-                {
-                    if (count == 0)
-                        updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0, new LoadingText(loadingText));
-                    else
-                        updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0, new LoadingText(loadingText, " ", count + "/" + length));
-                    await new WaitForEndOfFrame();
-                }
-            }
-            setProgress();
+            updateProgress.Invoke(startProgress, 0, new LoadingText(loadingText));
             if (parallel)
             {
                 if (maxConcurrency == 0)
@@ -381,11 +365,14 @@ namespace HBP.Core.Tools
                     var tasksToExecute = taskList.Select(async task =>
                     {
                         T data = await task();
-                        Interlocked.Increment(ref count);
+                        lock (updateProgress)
+                        {
+                            count++;
+                            updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0, new LoadingText(loadingText, " ", count + "/" + length));
+                        }
                         return data;
                     });
                     var result = await Task.WhenAll(tasksToExecute);
-                    loading = false;
                     return result;
                 }
                 else
@@ -398,7 +385,11 @@ namespace HBP.Core.Tools
                         try
                         {
                             T data = await task();
-                            Interlocked.Increment(ref count);
+                            lock (updateProgress)
+                            {
+                                count++;
+                                updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0, new LoadingText(loadingText, " ", count + "/" + length));
+                            }
                             lock (results)
                             {
                                 results.Add(data);
@@ -411,7 +402,6 @@ namespace HBP.Core.Tools
                     });
 
                     await Task.WhenAll(tasksToExecute);
-                    loading = false;
                     return results;
                 }
             }
@@ -421,9 +411,9 @@ namespace HBP.Core.Tools
                 foreach (var task in taskList)
                 {
                     result.Add(await task());
-                    Interlocked.Increment(ref count);
+                    count++;
+                    updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0, new LoadingText(loadingText, " ", count + "/" + length));
                 }
-                loading = false;
                 return result;
             }
         }
