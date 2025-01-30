@@ -12,6 +12,7 @@ using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using HBP.UI.Informations.TrialMatrix;
 using HBP.UI.Tools.ResizableGrids;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Module3D
 {
@@ -185,9 +186,9 @@ namespace HBP.UI.Module3D
         /// <param name="path">Path to the directory to save the screenshot</param>
         /// <param name="multipleFiles">If true, multiple files (images, csv, svg ...) will be saved; if false, a simple screenshot of the whole window will be taken</param>
         /// <returns>Coroutine return</returns>
-        private async System.Threading.Tasks.Task ScreenshotAsync(string path, bool multipleFiles)
+        private async UniTask ScreenshotAsync(string path, bool multipleFiles)
         {
-            await new WaitForEndOfFrame();
+            await UniTask.WaitForEndOfFrame();
             string openedProjectName = ApplicationState.LoadedProject.Preferences.Name;
 
             if (multipleFiles) // TODO : add iconic scenario and / or scales
@@ -267,7 +268,7 @@ namespace HBP.UI.Module3D
                                         isFinished = true;
                                     }
                                     trialMatrixScrollRect.verticalNormalizedPosition = position;
-                                    await new WaitForEndOfFrame();
+                                    await UniTask.WaitForEndOfFrame();
                                     Texture2D trialMatrixTextureFragment = Texture2DExtension.ScreenRectToTexture(trialMatrixScrollRect.viewport.ToScreenSpace());
                                     trialMatrixTexture.SetPixels(0, (int)(position * trialMatrixTexture.height - position * trialMatrixTextureFragment.height), trialMatrixTextureFragment.width, trialMatrixTextureFragment.height, trialMatrixTextureFragment.GetPixels());
                                     position += step;
@@ -320,7 +321,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="path">Path to where to save the video</param>
         /// <returns>Coroutine return</returns>
-        private async System.Threading.Tasks.Task VideoAsync(string path, Action<float, float, LoadingText> updateProgress)
+        private async UniTask VideoAsync(string path, Action<float, float, LoadingText> updateProgress)
         {
             int totalWidth = 1920;
             int totalHeight = 1080;
@@ -356,7 +357,7 @@ namespace HBP.UI.Module3D
                 foreach (var column in m_Scene.ColumnsDynamic)
                     column.Timeline.CurrentIndex = i;
 
-                await new WaitForEndOfFrame();
+                await UniTask.WaitForEndOfFrame();
 
                 int width = totalWidth / numberOfColumns;
                 int height = totalHeight / numberOfViewLines;

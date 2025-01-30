@@ -11,8 +11,8 @@ using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Core.Object3D;
 using HBP.Data.Preferences;
+using Cysharp.Threading.Tasks;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace HBP.Data.Module3D
 {
@@ -1839,7 +1839,7 @@ namespace HBP.Data.Module3D
         /// <param name="onChangeProgress">Event to update the loading circle</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        public async Task InitializeAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress)
+        public async UniTask InitializeAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress)
         {
             // Compute progress variables
             float progress = 0f;
@@ -1876,7 +1876,7 @@ namespace HBP.Data.Module3D
                 loadingIEEGProgress = (Visualization.Patients.Count * LOADING_IEEG_WEIGHT) / totalProgress;
                 loadingIEEGTime = (Visualization.Patients.Count * LOADING_IEEG_WEIGHT) / 1000.0f;
             }
-            await new WaitForUpdate();
+            await UniTask.SwitchToMainThread();
             onChangeProgress(progress, 0.0f, new LoadingText());
 
             // Checking MNI
@@ -1927,9 +1927,9 @@ namespace HBP.Data.Module3D
                         BaseMesh mesh = patient.Meshes[i];
                         progress += loadingMeshProgress;
                         onChangeProgress.Invoke(progress, loadingMeshTime, new LoadingText("Loading Mesh ", string.Format("{0} ({1})", mesh.Name, patient.Name), " [" + (i + 1).ToString() + "/" + patient.Meshes.Count + "]"));
-                        await new WaitForBackgroundThread();
+                        await UniTask.SwitchToThreadPool();
                         m_MeshManager.AddPreloaded(mesh, patient);
-                        await new WaitForUpdate();
+                        await UniTask.SwitchToMainThread();
                     }
                 }
             }
@@ -1967,9 +1967,9 @@ namespace HBP.Data.Module3D
                         MRI mri = patient.MRIs[i];
                         progress += loadingMeshProgress;
                         onChangeProgress.Invoke(progress, loadingMRITime, new LoadingText("Loading MRI ", string.Format("{0} ({1})", mri.Name, patient.Name), " [" + (i + 1).ToString() + "/" + patient.MRIs.Count + "]"));
-                        await new WaitForBackgroundThread();
+                        await UniTask.SwitchToThreadPool();
                         m_MRIManager.AddPreloaded(mri, patient);
-                        await new WaitForUpdate();
+                        await UniTask.SwitchToMainThread();
                     }
                 }
             }
@@ -1997,19 +1997,20 @@ namespace HBP.Data.Module3D
         /// <param name="mri">MRI to load</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        private async Task LoadBrainVolumeAsync(MRI mri)
+        private async UniTask LoadBrainVolumeAsync(MRI mri)
         {
-            await new WaitForBackgroundThread();
-            try
+            await UniTask.RunOnThreadPool(() =>
             {
-                m_MRIManager.Add(mri);
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                throw new CanNotLoadNIIFile(mri.File);
-            }
-            await new WaitForUpdate();
+                try
+                {
+                    m_MRIManager.Add(mri);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    throw new CanNotLoadNIIFile(mri.File);
+                }
+            });
         }
         /// <summary>
         /// Load a mesh to the scene
@@ -2017,19 +2018,20 @@ namespace HBP.Data.Module3D
         /// <param name="mesh">Mesh to be loaded</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        private async Task LoadBrainSurfaceAsync(BaseMesh mesh)
+        private async UniTask LoadBrainSurfaceAsync(BaseMesh mesh)
         {
-            await new WaitForBackgroundThread();
-            try
+            await UniTask.RunOnThreadPool(() =>
             {
-                m_MeshManager.Add(mesh);
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                throw new CanNotLoadGIIFile(mesh.Name);
-            }
-            await new WaitForUpdate();
+                try
+                {
+                    m_MeshManager.Add(mesh);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    throw new CanNotLoadGIIFile(mesh.Name);
+                }
+            });
         }
         /// <summary>
         /// Load the implantation files to the scene
@@ -2039,84 +2041,80 @@ namespace HBP.Data.Module3D
         /// <param name="updateCircle">Action to update the loading circle</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        private async Task LoadSitesAsync(IEnumerable<Patient> patients)
+        private async UniTask LoadSitesAsync(IEnumerable<Patient> patients)
         {
-            await new WaitForBackgroundThread();
-            Dictionary<string, List<Implantation3D.SiteInfo>> siteInfoByImplantation = new();
-            int patientIndex = 0;
-            System.Text.RegularExpressions.Regex regex = new(@"^([a-zA-Z']+)([0-9]+)$");
-            foreach (var patient in patients)
+            await UniTask.RunOnThreadPool(() =>
             {
-                int siteIndex = 0;
-                foreach (var site in patient.Sites)
+                Dictionary<string, List<Implantation3D.SiteInfo>> siteInfoByImplantation = new();
+                int patientIndex = 0;
+                System.Text.RegularExpressions.Regex regex = new(@"^([a-zA-Z']+)([0-9]+)$");
+                foreach (var patient in patients)
                 {
-                    foreach (var coordinate in site.Coordinates)
+                    int siteIndex = 0;
+                    foreach (var site in patient.Sites)
                     {
-                        if (!siteInfoByImplantation.TryGetValue(coordinate.ReferenceSystem, out List<Implantation3D.SiteInfo> siteInfos))
+                        foreach (var coordinate in site.Coordinates)
                         {
-                            siteInfos = new List<Implantation3D.SiteInfo>();
-                            siteInfoByImplantation.Add(coordinate.ReferenceSystem, siteInfos);
+                            if (!siteInfoByImplantation.TryGetValue(coordinate.ReferenceSystem, out List<Implantation3D.SiteInfo> siteInfos))
+                            {
+                                siteInfos = new List<Implantation3D.SiteInfo>();
+                                siteInfoByImplantation.Add(coordinate.ReferenceSystem, siteInfos);
+                            }
+                            System.Text.RegularExpressions.GroupCollection groups = regex.Match(site.Name).Groups;
+                            Implantation3D.SiteInfo siteInfo = new()
+                            {
+                                Name = site.Name,
+                                Position = coordinate.Position.ToVector3(),
+                                Patient = patient,
+                                Electrode = groups.Count == 3 ? groups[1].ToString() : "Other",
+                                PatientIndex = patientIndex,
+                                Index = siteIndex,
+                                SiteData = site
+                            };
+                            siteInfos.Add(siteInfo);
                         }
-                        System.Text.RegularExpressions.GroupCollection groups = regex.Match(site.Name).Groups;
-                        Implantation3D.SiteInfo siteInfo = new()
-                        {
-                            Name = site.Name,
-                            Position = coordinate.Position.ToVector3(),
-                            Patient = patient,
-                            Electrode = groups.Count == 3 ? groups[1].ToString() : "Other",
-                            PatientIndex = patientIndex,
-                            Index = siteIndex,
-                            SiteData = site
-                        };
-                        siteInfos.Add(siteInfo);
+                        siteIndex++;
                     }
-                    siteIndex++;
+                    patientIndex++;
                 }
-                patientIndex++;
-            }
 
-            foreach (var kv in siteInfoByImplantation)
-            {
-                m_ImplantationManager.Add(kv.Key, kv.Value, patients);
-            }
-            
-            await new WaitForUpdate();
-            UnityEngine.Profiling.Profiler.BeginSample("SelectImplantation");
+                foreach (var kv in siteInfoByImplantation)
+                {
+                    m_ImplantationManager.Add(kv.Key, kv.Value, patients);
+                }
+            });
             m_ImplantationManager.Select("");
-            UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
         /// Copy the MNI objects references to this scene
         /// </summary>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        private async Task LoadMNIObjectsAsync()
+        private async UniTask LoadMNIObjectsAsync()
         {
-            await new WaitForBackgroundThread();
-            m_MeshManager.Meshes.Add((LeftRightMesh3D)(Object3DManager.MNI.GreyMatter.Clone()));
-            m_MeshManager.Meshes.Add((LeftRightMesh3D)(Object3DManager.MNI.WhiteMatter.Clone()));
-            m_MeshManager.Meshes.Add((LeftRightMesh3D)(Object3DManager.MNI.InflatedWhiteMatter.Clone()));
-            m_MRIManager.MRIs.Add(Object3DManager.MNI.MRI);
-
-            await new WaitForUpdate();
+            await UniTask.RunOnThreadPool(() =>
+            {
+                m_MeshManager.Meshes.Add((LeftRightMesh3D)(Object3DManager.MNI.GreyMatter.Clone()));
+                m_MeshManager.Meshes.Add((LeftRightMesh3D)(Object3DManager.MNI.WhiteMatter.Clone()));
+                m_MeshManager.Meshes.Add((LeftRightMesh3D)(Object3DManager.MNI.InflatedWhiteMatter.Clone()));
+                m_MRIManager.MRIs.Add(Object3DManager.MNI.MRI);
+            });
         }
         /// <summary>
         /// Load the iEEG values to the columns
         /// </summary>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        private async Task LoadColumnsAsync()
+        private async UniTask LoadColumnsAsync()
         {
-            UnityEngine.Profiling.Profiler.BeginSample("LoadColumnsAsync");
             foreach (Column column in Visualization.Columns)
                 AddColumn(column);
-            UnityEngine.Profiling.Profiler.EndSample();
 
-            await new WaitForBackgroundThread();
-            foreach (var column in Columns)
-                column.ComputeActivityData();
-
-            await new WaitForUpdate();
+            await UniTask.RunOnThreadPool(() =>
+            {
+                foreach (var column in Columns)
+                    column.ComputeActivityData();
+            });
         }
         /// <summary>
         /// Load missing anatomy if not preloaded
@@ -2124,7 +2122,7 @@ namespace HBP.Data.Module3D
         /// <returns>Coroutine return</returns>
         private async void LoadMissingAnatomy()
         {
-            await Task.Run(() =>
+            await UniTask.RunOnThreadPool(() =>
             {
                 m_MeshManager.LoadMissing();
                 m_MRIManager.LoadMissing();
@@ -2148,7 +2146,7 @@ namespace HBP.Data.Module3D
         /// Compute the iEEG values on the brain
         /// </summary>
         /// <returns>Coroutine return</returns>
-        private async Task LoadActivityAsync()
+        private async UniTask LoadActivityAsync()
         {
             Core.DLL.ActivityGenerator currentGenerator = null;
             string currentMessage = "";
@@ -2165,86 +2163,86 @@ namespace HBP.Data.Module3D
                         currentProgress = ((float)currentColumn / numberOfColumns) + (currentGenerator.Progress / numberOfColumns);
                     }
                     OnProgressUpdateGenerator.Invoke(currentProgress, currentMessage);
-                    await new WaitForSeconds(0.05f);
+                    await UniTask.WaitForSeconds(0.05f);
                 }
             }
-            CancellationTokenSource source = new CancellationTokenSource();
+            CancellationTokenSource source = new();
             checkProgress(source.Token);
 
-            await new WaitForBackgroundThread();
-            currentMessage = "Initializing";
-            for (int i = 0; i < Columns.Count; i++)
+            await UniTask.RunOnThreadPool(() =>
             {
-                Column3D column = Columns[i];
-                currentColumn = i;
-                currentMessage = "Loading " + column.Name;
-                column.UpdateDLLSitesMask(m_ROIManager.SelectedROI != null);
-                if (SceneInformation.GeneratorNeedsUpdate) return;
-                if (column is Column3DAnatomy anatomyColumn)
+                currentMessage = "Initializing";
+                for (int i = 0; i < Columns.Count; i++)
                 {
-                    Core.DLL.DensityGenerator generator = anatomyColumn.ActivityGenerator as Core.DLL.DensityGenerator;
-                    currentGenerator = generator;
-                    generator.ComputeActivity(anatomyColumn.RawElectrodes, anatomyColumn.AnatomyParameters.InfluenceDistance, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                    Column3D column = Columns[i];
+                    currentColumn = i;
+                    currentMessage = "Loading " + column.Name;
+                    column.UpdateDLLSitesMask(m_ROIManager.SelectedROI != null);
+                    if (SceneInformation.GeneratorNeedsUpdate) return;
+                    if (column is Column3DAnatomy anatomyColumn)
+                    {
+                        Core.DLL.DensityGenerator generator = anatomyColumn.ActivityGenerator as Core.DLL.DensityGenerator;
+                        currentGenerator = generator;
+                        generator.ComputeActivity(anatomyColumn.RawElectrodes, anatomyColumn.AnatomyParameters.InfluenceDistance, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                    }
+                    else if (column is Column3DDynamic dynamicColumn)
+                    {
+                        Core.DLL.IEEGGenerator generator = dynamicColumn.ActivityGenerator as Core.DLL.IEEGGenerator;
+                        currentGenerator = generator;
+                        if (dynamicColumn is Column3DCCEP ccepColumn && ccepColumn.IsSourceMarsAtlasLabelSelected)
+                            generator.ComputeActivityAtlas(ccepColumn.ActivityValues, ccepColumn.Timeline.Length, ccepColumn.AreaMask, Object3DManager.MarsAtlas);
+                        else
+                            generator.ComputeActivity(dynamicColumn.RawElectrodes, dynamicColumn.DynamicParameters.InfluenceDistance, dynamicColumn.ActivityValues, dynamicColumn.Timeline.Length, dynamicColumn.RawElectrodes.NumberOfSites, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                        generator.AdjustValues(dynamicColumn.DynamicParameters.Middle, dynamicColumn.DynamicParameters.SpanMin, dynamicColumn.DynamicParameters.SpanMax);
+                    }
+                    else if (column is Column3DFMRI fmriColumn)
+                    {
+                        Core.DLL.FMRIGenerator generator = fmriColumn.ActivityGenerator as Core.DLL.FMRIGenerator;
+                        currentGenerator = generator;
+                        generator.ComputeActivity(fmriColumn.ColumnFMRIData.Data.FMRIs.SelectMany(fmri => fmri.Item1.Volumes));
+                        generator.AdjustValues(fmriColumn.FMRIParameters.FMRINegativeCalMinFactor, fmriColumn.FMRIParameters.FMRINegativeCalMaxFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMinFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMaxFactor);
+                    }
+                    else if (column is Column3DMEG megColumn)
+                    {
+                        Core.DLL.MEGGenerator generator = megColumn.ActivityGenerator as Core.DLL.MEGGenerator;
+                        currentGenerator = generator;
+                        generator.ComputeActivity(megColumn.ColumnMEGData.Data.MEGItems.SelectMany(fmri => fmri.FMRI.Volumes));
+                        generator.AdjustValues(megColumn.MEGParameters.FMRINegativeCalMinFactor, megColumn.MEGParameters.FMRINegativeCalMaxFactor, megColumn.MEGParameters.FMRIPositiveCalMinFactor, megColumn.MEGParameters.FMRIPositiveCalMaxFactor);
+                    }
+                    else if (column is Column3DStatic staticColumn)
+                    {
+                        Core.DLL.IEEGGenerator generator = staticColumn.ActivityGenerator as Core.DLL.IEEGGenerator;
+                        currentGenerator = generator;
+                        generator.ComputeActivity(staticColumn.RawElectrodes, staticColumn.StaticParameters.InfluenceDistance, staticColumn.ActivityValues, staticColumn.Labels.Length, staticColumn.RawElectrodes.NumberOfSites, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
+                        generator.AdjustValues(staticColumn.StaticParameters.Middle, staticColumn.StaticParameters.SpanMin, staticColumn.StaticParameters.SpanMax);
+                    }
+                    if (SceneInformation.GeneratorNeedsUpdate) return;
                 }
-                else if (column is Column3DDynamic dynamicColumn)
-                {
-                    Core.DLL.IEEGGenerator generator = dynamicColumn.ActivityGenerator as Core.DLL.IEEGGenerator;
-                    currentGenerator = generator;
-                    if (dynamicColumn is Column3DCCEP ccepColumn && ccepColumn.IsSourceMarsAtlasLabelSelected)
-                        generator.ComputeActivityAtlas(ccepColumn.ActivityValues, ccepColumn.Timeline.Length, ccepColumn.AreaMask, Object3DManager.MarsAtlas);
-                    else
-                        generator.ComputeActivity(dynamicColumn.RawElectrodes, dynamicColumn.DynamicParameters.InfluenceDistance, dynamicColumn.ActivityValues, dynamicColumn.Timeline.Length, dynamicColumn.RawElectrodes.NumberOfSites, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
-                    generator.AdjustValues(dynamicColumn.DynamicParameters.Middle, dynamicColumn.DynamicParameters.SpanMin, dynamicColumn.DynamicParameters.SpanMax);
-                }
-                else if (column is Column3DFMRI fmriColumn)
-                {
-                    Core.DLL.FMRIGenerator generator = fmriColumn.ActivityGenerator as Core.DLL.FMRIGenerator;
-                    currentGenerator = generator;
-                    generator.ComputeActivity(fmriColumn.ColumnFMRIData.Data.FMRIs.SelectMany(fmri => fmri.Item1.Volumes));
-                    generator.AdjustValues(fmriColumn.FMRIParameters.FMRINegativeCalMinFactor, fmriColumn.FMRIParameters.FMRINegativeCalMaxFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMinFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMaxFactor);
-                }
-                else if (column is Column3DMEG megColumn)
-                {
-                    Core.DLL.MEGGenerator generator = megColumn.ActivityGenerator as Core.DLL.MEGGenerator;
-                    currentGenerator = generator;
-                    generator.ComputeActivity(megColumn.ColumnMEGData.Data.MEGItems.SelectMany(fmri => fmri.FMRI.Volumes));
-                    generator.AdjustValues(megColumn.MEGParameters.FMRINegativeCalMinFactor, megColumn.MEGParameters.FMRINegativeCalMaxFactor, megColumn.MEGParameters.FMRIPositiveCalMinFactor, megColumn.MEGParameters.FMRIPositiveCalMaxFactor);
-                }
-                else if (column is Column3DStatic staticColumn)
-                {
-                    Core.DLL.IEEGGenerator generator = staticColumn.ActivityGenerator as Core.DLL.IEEGGenerator;
-                    currentGenerator = generator;
-                    generator.ComputeActivity(staticColumn.RawElectrodes, staticColumn.StaticParameters.InfluenceDistance, staticColumn.ActivityValues, staticColumn.Labels.Length, staticColumn.RawElectrodes.NumberOfSites, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
-                    generator.AdjustValues(staticColumn.StaticParameters.Middle, staticColumn.StaticParameters.SpanMin, staticColumn.StaticParameters.SpanMax);
-                }
-                if (SceneInformation.GeneratorNeedsUpdate) return;
-            }
-            currentMessage = "Finalizing";
-            source.Cancel();
-
-            await new WaitForUpdate();
+                currentMessage = "Finalizing";
+                source.Cancel();
+            });
         }
         /// <summary>
         /// Update the colliders (cuts and brain meshes)
         /// </summary>
         /// <returns>Coroutine return</returns>
-        private async Task UpdateMeshesCollidersAsync()
+        private async UniTask UpdateMeshesCollidersAsync()
         {
             m_UpdatingColliders = true;
 
-            await new WaitForBackgroundThread();
+            await UniTask.SwitchToThreadPool();
             List<Core.DLL.Surface> cuts = new();
             if (Cuts.Count > 0) cuts = new List<Core.DLL.Surface>(MeshManager.SimplifiedMeshToUse.Cut(Cuts.ToArray(), false, StrongCuts));
             else cuts = new List<Core.DLL.Surface>() { (Core.DLL.Surface)MeshManager.SimplifiedMeshToUse.Clone() };
 
-            await new WaitForUpdate();
+            await UniTask.SwitchToMainThread();
             cuts[0].UpdateMeshFromDLL(m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().mesh);
 
-            await new WaitForBackgroundThread();
+            await UniTask.SwitchToThreadPool();
             foreach (var cut in cuts)
                 cut.Dispose();
 
-            await new WaitForUpdate();
+            await UniTask.SwitchToMainThread();
             m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = null;
             if (m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().sharedMesh.triangles.Length > 0)
                 m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().sharedMesh;

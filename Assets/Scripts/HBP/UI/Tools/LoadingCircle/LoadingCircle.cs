@@ -1,9 +1,9 @@
-﻿using System.Collections;
-using System.IO;
+﻿using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Tools;
 using System.Threading;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Tools
 {
@@ -79,15 +79,15 @@ namespace HBP.UI.Tools
         {
             while (!token.IsCancellationRequested)
             {
-                await new WaitUntil(() => gameObject.activeSelf);
+                await UniTask.WaitUntil(() => gameObject.activeSelf);
                 m_LoadingEffectText.text = "";
-                await new WaitForSeconds(0.25f);
+                await UniTask.WaitForSeconds(0.25f);
                 m_LoadingEffectText.text = ".";
-                await new WaitForSeconds(0.25f);
+                await UniTask.WaitForSeconds(0.25f);
                 m_LoadingEffectText.text = "..";
-                await new WaitForSeconds(0.25f);
+                await UniTask.WaitForSeconds(0.25f);
                 m_LoadingEffectText.text = "...";
-                await new WaitForSeconds(0.25f);
+                await UniTask.WaitForSeconds(0.25f);
             }
         }
         #endregion

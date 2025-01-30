@@ -4,7 +4,7 @@ using HBP.Core.Data;
 using HBP.Data.Module3D;
 using HBP.UI.Main;
 using System;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Tools
 {
@@ -15,7 +15,7 @@ namespace HBP.UI.Tools
         {
             await LoadAsync(projectInfo);
         }
-        public async static Task LoadAsync(ProjectInfo projectInfo)
+        public async static UniTask LoadAsync(ProjectInfo projectInfo)
         {
             Project projectToLoad = new();
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -10,6 +9,7 @@ using HBP.UI.Tools;
 using HBP.Core.DLL;
 using HBP.Core.Tools;
 using System.Threading;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Module3D
 {
@@ -413,36 +413,37 @@ namespace HBP.UI.Module3D
                         filteredSite.State.IsFiltered = true;
                     }
                     OnFilter.Invoke(progress);
-                    await new WaitForEndOfFrame();
+                    await UniTask.WaitForEndOfFrame();
                 }
             }
             reportProgress(progressToken);
-            try
+            bool filtered = false;
+            await UniTask.RunOnThreadPool(() =>
             {
-                await new WaitForBackgroundThread();
-                for (int i = 0; i < length; ++i)
+                try
                 {
-                    token.ThrowIfCancellationRequested();
-                    Core.Object3D.Site site = sites[i];
-                    bool match = CheckConditions(site);
-                    if (match)
+                    for (int i = 0; i < length; ++i)
                     {
-                        m_MatchingSites.Enqueue(site);
+                        token.ThrowIfCancellationRequested();
+                        Core.Object3D.Site site = sites[i];
+                        bool match = CheckConditions(site);
+                        if (match)
+                        {
+                            m_MatchingSites.Enqueue(site);
+                        }
+                        progress = (float)(i + 1) / length;
                     }
-                    progress = (float)(i + 1) / length;
+                    filtered = true;
                 }
-                await new WaitForUpdate();
-                OnEndFilter.Invoke(true);
-            }
-            catch (OperationCanceledException)
-            {
-                OnEndFilter.Invoke(false);
-            }
-            catch (Exception e)
-            {
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
-                OnEndFilter.Invoke(false);
-            }
+                catch (OperationCanceledException)
+                {
+                }
+                catch (Exception e)
+                {
+                    DialogBoxManager.Open(DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
+                }
+            });
+            OnEndFilter.Invoke(filtered);
         }
         #endregion
     }

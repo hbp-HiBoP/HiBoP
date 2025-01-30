@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace HBP.Core.Object3D
 {
@@ -38,7 +38,7 @@ namespace HBP.Core.Object3D
         /// </summary>
         private async void Load(string file)
         {
-            await Task.Run(() =>
+            await UniTask.RunOnThreadPool(() =>
             {
                 Loading = true;
                 NIFTI.Load(file);

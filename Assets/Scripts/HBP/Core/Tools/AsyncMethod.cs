@@ -1,5 +1,5 @@
+using Cysharp.Threading.Tasks;
 using System;
-using System.Threading.Tasks;
 using UnityEngine.Events;
 
 namespace HBP.Core.Tools
@@ -7,7 +7,7 @@ namespace HBP.Core.Tools
     public class AsyncMethod
     {
         #region Properties
-        private readonly Func<Action<float, float, LoadingText>, Task> m_TaskToExecute;
+        private readonly Func<Action<float, float, LoadingText>, UniTask> m_TaskToExecute;
         #endregion
 
         #region Events
@@ -15,14 +15,14 @@ namespace HBP.Core.Tools
         #endregion
 
         #region Constructors
-        public AsyncMethod(Func<Action<float, float, LoadingText>, Task> taskToExecute)
+        public AsyncMethod(Func<Action<float, float, LoadingText>, UniTask> taskToExecute)
         {
             m_TaskToExecute = taskToExecute;
         }
         #endregion
 
         #region Public Methods
-        public async Task ExecuteAsync()
+        public async UniTask ExecuteAsync()
         {
             await m_TaskToExecute(UpdateProgressAsync);
         }
@@ -39,7 +39,7 @@ namespace HBP.Core.Tools
     public class AsyncMethod<T>
     {
         #region Properties
-        private readonly Func<Action<float, float, LoadingText>, Task<T>> m_TaskToExecute;
+        private readonly Func<Action<float, float, LoadingText>, UniTask<T>> m_TaskToExecute;
         #endregion
 
         #region Events
@@ -47,14 +47,14 @@ namespace HBP.Core.Tools
         #endregion
 
         #region Constructors
-        public AsyncMethod(Func<Action<float, float, LoadingText>, Task<T>> taskToExecute)
+        public AsyncMethod(Func<Action<float, float, LoadingText>, UniTask<T>> taskToExecute)
         {
             m_TaskToExecute = taskToExecute;
         }
         #endregion
 
         #region Public Methods
-        public async Task<T> ExecuteAsync()
+        public async UniTask<T> ExecuteAsync()
         {
             return await m_TaskToExecute(UpdateProgressAsync);
         }

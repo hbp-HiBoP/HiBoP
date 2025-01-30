@@ -12,7 +12,7 @@ using HBP.Data.Module3D;
 using HBP.Core.Tools;
 using HBP.UI.Tools;
 using HBP.Data.Database;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.Dev
 {
@@ -129,14 +129,14 @@ namespace HBP.Dev
         {
             await ThrowErrorAsync();
         }
-        private async Task ThrowErrorAsync()
+        private async UniTask ThrowErrorAsync()
         {
             await ThrowErrorAsync2();
             throw new Exception("Test");
         }
-        private async Task ThrowErrorAsync2()
+        private async UniTask ThrowErrorAsync2()
         {
-            await new WaitForSeconds(1);
+            await UniTask.WaitForSeconds(1);
             throw new Exception("Test2");
         }
         private void CheckProjectAndDatabaseIntegrity()

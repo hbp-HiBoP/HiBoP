@@ -1,4 +1,5 @@
-﻿using HBP.Core.Data;
+﻿using Cysharp.Threading.Tasks;
+using HBP.Core.Data;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
 using HBP.Data.Preferences;
@@ -304,14 +305,14 @@ namespace HBP.UI.Module3D
                 {
                     if (cancellationToken.IsCancellationRequested) return;
                     m_ExportSitesProgressBar.Progress(progress);
-                    await new WaitForEndOfFrame();
+                    await UniTask.WaitForEndOfFrame();
                 }
             }
             m_ProgressSource = new();
             reportProgress(m_ProgressSource.Token);
-            await new WaitForBackgroundThread();
+            await UniTask.SwitchToThreadPool();
             // Prepare DataInfo by Patient for performance increase
-            Dictionary<Patient, DataInfo>  dataInfoByPatient = new Dictionary<Patient, DataInfo>();
+            Dictionary <Patient, DataInfo>  dataInfoByPatient = new Dictionary<Patient, DataInfo>();
             for (int i = 0; i < length; i++)
             {
                 if (token.IsCancellationRequested) return;
@@ -346,9 +347,9 @@ namespace HBP.UI.Module3D
             csvBuilder.AppendLine("Site,Patient,Place,Date,X,Y,Z,CoordSystem,Labels,DataType,DataFiles" + tagsString);
 
             // Prepare sites positions for performance increase
-            await new WaitForUpdate();
-            List<Vector3> sitePositions = sites.Select(s => s.transform.localPosition).ToList();
-            await new WaitForBackgroundThread();
+            await UniTask.SwitchToMainThread();
+            List <Vector3> sitePositions = sites.Select(s => s.transform.localPosition).ToList();
+            await UniTask.SwitchToThreadPool();
 
             for (int i = 0; i < length; i++)
             {
@@ -446,7 +447,7 @@ namespace HBP.UI.Module3D
             }
 
             // End
-            await new WaitForUpdate();
+            await UniTask.SwitchToMainThread();
             StopExport();
             DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Sites exported", "The filtered sites have been sucessfully exported to " + csvPath);
             OnRequestListUpdate.Invoke();

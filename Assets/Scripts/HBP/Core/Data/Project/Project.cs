@@ -10,9 +10,7 @@ using HBP.Core.Tools;
 using HBP.Core.Interfaces;
 using HBP.Data.Preferences;
 using HBP.Data.Database;
-using System.Threading;
-using System.Threading.Tasks;
-using UnityEngine.UIElements;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.Core.Data
 {
@@ -349,9 +347,9 @@ namespace HBP.Core.Data
             }
             return projectsDirectories.FirstOrDefault((project) => new ProjectInfo(project).Settings.ID == ID);
         }
-        public async Task<Dictionary<string, List<Tuple<BaseData, string>>>> CheckProjectIDsAsync()
+        public async UniTask<Dictionary<string, List<Tuple<BaseData, string>>>> CheckProjectIDsAsync()
         {
-            return await Task.Run(() =>
+            return await UniTask.RunOnThreadPool(() =>
             {
                 Dictionary<string, List<Tuple<BaseData, string>>> dataByID = new Dictionary<string, List<Tuple<BaseData, string>>>();
                 void addToDict(BaseData data, string name)
@@ -418,7 +416,7 @@ namespace HBP.Core.Data
             });
         }
 
-        public async Task LoadAsync(ProjectInfo projectInfo, Action<float, float, LoadingText> updateProgress)
+        public async UniTask LoadAsync(ProjectInfo projectInfo, Action<float, float, LoadingText> updateProgress)
         {
             // Initialize progress.
             float progress = 0.0f;
@@ -440,15 +438,14 @@ namespace HBP.Core.Data
             updateProgress.Invoke(progress, 0, new LoadingText("Loading project"));
 
             // Unzipping
-            await Task.Run(() =>
-            {
-                if (Directory.Exists(ApplicationState.ExtractProjectFolder)) Directory.Delete(ApplicationState.ExtractProjectFolder, true);
-                using ZipFile zip = ZipFile.Read(projectInfo.Path);
-                zip.ExtractAll(ApplicationState.ExtractProjectFolder, ExtractExistingFileAction.OverwriteSilently);
-                if (!File.Exists(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file exists.
-                if (!IsProject(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file is a project.
-            });
+            await UniTask.SwitchToThreadPool();
+            if (Directory.Exists(ApplicationState.ExtractProjectFolder)) Directory.Delete(ApplicationState.ExtractProjectFolder, true);
+            using ZipFile zip = ZipFile.Read(projectInfo.Path);
+            zip.ExtractAll(ApplicationState.ExtractProjectFolder, ExtractExistingFileAction.OverwriteSilently);
+            if (!File.Exists(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file exists.
+            if (!IsProject(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file is a project.
             DirectoryInfo projectDirectory = new DirectoryInfo(ApplicationState.ExtractProjectFolder);
+            await UniTask.SwitchToMainThread();
 
             // Load Settings.
             await LoadSettingsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * settingsProgress, duration, text));
@@ -473,7 +470,7 @@ namespace HBP.Core.Data
             Directory.Delete(ApplicationState.ExtractProjectFolder, true);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Project loaded successfully."));
         }
-        public async Task SaveAsync(string path, Action<float, float, LoadingText> updateProgress)
+        public async UniTask SaveAsync(string path, Action<float, float, LoadingText> updateProgress)
         {
             // Initialize progress.
             float steps = 12 + m_Patients.Count + m_Groups.Count + m_Datasets.Count + m_Visualizations.Count;
@@ -522,110 +519,105 @@ namespace HBP.Core.Data
             progress += finalizationProgress;
 
             // Zipping
-            await Task.Run(() =>
+            await UniTask.SwitchToThreadPool();
+            string filePath = Path.Combine(path, FileName);
+            if (File.Exists(filePath)) File.Delete(filePath);
+            using (ZipFile zip = new(filePath))
             {
-                string filePath = Path.Combine(path, FileName);
-                if (File.Exists(filePath)) File.Delete(filePath);
-                using (ZipFile zip = new(filePath))
-                {
-                    zip.AddDirectory(ApplicationState.ExtractProjectFolder);
-                    zip.Save();
-                }
-                Directory.Delete(ApplicationState.ExtractProjectFolder, true);
-            });
+                zip.AddDirectory(ApplicationState.ExtractProjectFolder);
+                zip.Save();
+            }
+            Directory.Delete(ApplicationState.ExtractProjectFolder, true);
+            await UniTask.SwitchToMainThread();
 
             updateProgress.Invoke(1, 0, new LoadingText("Project saved successfully"));
         }
 
-        public async Task CheckDatasetsAsync(IEnumerable<Protocol> protocols, Action<float, float, LoadingText> updateProgress)
+        public async UniTask CheckDatasetsAsync(IEnumerable<Protocol> protocols, Action<float, float, LoadingText> updateProgress)
         {
             IEnumerable<Dataset> datasets = m_Datasets.Where(d => protocols.Contains(d.Protocol));
-            var tasks = datasets.SelectMany(d => d.Data).Select(d => (Func<Task>)(async () =>
+            var tasks = datasets.SelectMany(d => d.Data).Select(d => (Func<UniTask>)(async () =>
             {
+                await UniTask.RunOnThreadPool(() =>
                 {
-                    await Task.Run(() =>
-                    {
-                        d.GetErrorsAndWarnings();
-                    });
-                }
+                    d.GetErrorsAndWarnings();
+                });
             }));
-            await TaskExtension.PerformMultipleTasksAsync(tasks, 0, 1, "Checking datasets", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
+            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Checking datasets", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
         }
-        public async Task CheckPatientTagValuesAsync(IEnumerable<BaseTag> tags, Action<float, float, LoadingText> updateProgress)
+        public async UniTask CheckPatientTagValuesAsync(IEnumerable<BaseTag> tags, Action<float, float, LoadingText> updateProgress)
         {
-            var tasks = m_Patients.Select(patient => (Func<Task>)(async () =>
+            var tasks = m_Patients.Select(patient => (Func<UniTask>)(async () =>
             {
+                await UniTask.RunOnThreadPool(() =>
                 {
-                    await Task.Run(() =>
+                    patient.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
+                    foreach (var site in patient.Sites) site.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
+                    List<BaseTagValue> tagsToUpdate = patient.Tags.Where(t => tags.Contains(t.Tag)).ToList();
+                    tagsToUpdate.AddRange(patient.Sites.SelectMany(s => s.Tags).Where(t => tags.Contains(t.Tag)));
+                    foreach (var tagValue in tagsToUpdate)
                     {
-                        patient.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
-                        foreach (var site in patient.Sites) site.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
-                        List<BaseTagValue> tagsToUpdate = patient.Tags.Where(t => tags.Contains(t.Tag)).ToList();
-                        tagsToUpdate.AddRange(patient.Sites.SelectMany(s => s.Tags).Where(t => tags.Contains(t.Tag)));
-                        foreach (var tagValue in tagsToUpdate)
+                        if (tagValue.Tag is IntTag && tagValue is not IntTagValue)
                         {
-                            if (tagValue.Tag is IntTag && tagValue is not IntTagValue)
-                            {
-                                patient.Tags.Remove(tagValue);
-                                var newTagValue = new IntTagValue();
-                                newTagValue.Copy(tagValue);
-                                patient.Tags.Add(newTagValue);
-                                newTagValue.UpdateValue();
-                            }
-                            else if (tagValue.Tag is FloatTag && tagValue is not FloatTagValue)
-                            {
-                                patient.Tags.Remove(tagValue);
-                                var newTagValue = new FloatTagValue();
-                                newTagValue.Copy(tagValue);
-                                patient.Tags.Add(newTagValue);
-                                newTagValue.UpdateValue();
-                            }
-                            else if (tagValue.Tag is BoolTag && tagValue is not BoolTagValue)
-                            {
-                                patient.Tags.Remove(tagValue);
-                                var newTagValue = new BoolTagValue();
-                                newTagValue.Copy(tagValue);
-                                patient.Tags.Add(newTagValue);
-                                newTagValue.UpdateValue();
-                            }
-                            else if (tagValue.Tag is EmptyTag && tagValue is not EmptyTagValue)
-                            {
-                                patient.Tags.Remove(tagValue);
-                                var newTagValue = new EmptyTagValue();
-                                newTagValue.Copy(tagValue);
-                                patient.Tags.Add(newTagValue);
-                                newTagValue.UpdateValue();
-                            }
-                            else if (tagValue.Tag is EnumTag && tagValue is not EnumTagValue)
-                            {
-                                patient.Tags.Remove(tagValue);
-                                var newTagValue = new EnumTagValue();
-                                newTagValue.Copy(tagValue);
-                                patient.Tags.Add(newTagValue);
-                                newTagValue.UpdateValue();
-                            }
-                            else if (tagValue.Tag is StringTag && tagValue is not StringTagValue)
-                            {
-                                patient.Tags.Remove(tagValue);
-                                var newTagValue = new StringTagValue();
-                                newTagValue.Copy(tagValue);
-                                patient.Tags.Add(newTagValue);
-                                newTagValue.UpdateValue();
-                            }
-                            else
-                            {
-                                tagValue.UpdateValue();
-                            }
+                            patient.Tags.Remove(tagValue);
+                            var newTagValue = new IntTagValue();
+                            newTagValue.Copy(tagValue);
+                            patient.Tags.Add(newTagValue);
+                            newTagValue.UpdateValue();
                         }
-                    });
-                }
+                        else if (tagValue.Tag is FloatTag && tagValue is not FloatTagValue)
+                        {
+                            patient.Tags.Remove(tagValue);
+                            var newTagValue = new FloatTagValue();
+                            newTagValue.Copy(tagValue);
+                            patient.Tags.Add(newTagValue);
+                            newTagValue.UpdateValue();
+                        }
+                        else if (tagValue.Tag is BoolTag && tagValue is not BoolTagValue)
+                        {
+                            patient.Tags.Remove(tagValue);
+                            var newTagValue = new BoolTagValue();
+                            newTagValue.Copy(tagValue);
+                            patient.Tags.Add(newTagValue);
+                            newTagValue.UpdateValue();
+                        }
+                        else if (tagValue.Tag is EmptyTag && tagValue is not EmptyTagValue)
+                        {
+                            patient.Tags.Remove(tagValue);
+                            var newTagValue = new EmptyTagValue();
+                            newTagValue.Copy(tagValue);
+                            patient.Tags.Add(newTagValue);
+                            newTagValue.UpdateValue();
+                        }
+                        else if (tagValue.Tag is EnumTag && tagValue is not EnumTagValue)
+                        {
+                            patient.Tags.Remove(tagValue);
+                            var newTagValue = new EnumTagValue();
+                            newTagValue.Copy(tagValue);
+                            patient.Tags.Add(newTagValue);
+                            newTagValue.UpdateValue();
+                        }
+                        else if (tagValue.Tag is StringTag && tagValue is not StringTagValue)
+                        {
+                            patient.Tags.Remove(tagValue);
+                            var newTagValue = new StringTagValue();
+                            newTagValue.Copy(tagValue);
+                            patient.Tags.Add(newTagValue);
+                            newTagValue.UpdateValue();
+                        }
+                        else
+                        {
+                            tagValue.UpdateValue();
+                        }
+                    }
+                });
             }));
-            await TaskExtension.PerformMultipleTasksAsync(tasks, 0, 1, "Checking patients", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
+            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Checking patients", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
         }
         #endregion
 
         #region Private Methods
-        private async Task LoadSettingsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async UniTask LoadSettingsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             updateProgress.Invoke(0, 0, new LoadingText("Loading settings"));
             FileInfo[] settingsFiles = projectDirectory.GetFiles("*" + ProjectPreferences.EXTENSION, SearchOption.TopDirectoryOnly);
@@ -642,14 +634,14 @@ namespace HBP.Core.Data
             }
             updateProgress.Invoke(1.0f, 0, new LoadingText("Settings loaded successfully"));
         }
-        private async Task LoadPatientsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async UniTask LoadPatientsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             const float LOADING_PROGRESS = 0.60f;
             const float CHECKING_PROGRESS = 0.40f;
             List<Patient> patients = new List<Patient>();
             DirectoryInfo patientDirectory = projectDirectory.GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
-            var tasks = patientFiles.Select(file => (Func<Task<Patient>>)(async () =>
+            var tasks = patientFiles.Select(file => (Func<UniTask<Patient>>)(async () =>
             {
                 {
                     try
@@ -663,17 +655,17 @@ namespace HBP.Core.Data
                     }
                 }
             }));
-            patients.AddRange(await TaskExtension.PerformMultipleTasksAsync(tasks, 0, LOADING_PROGRESS, "Loading patients", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading));
+            patients.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, LOADING_PROGRESS, "Loading patients", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading));
             SetPatients(patients.ToArray());
             await CheckPatientTagValuesAsync(PersistentDataManager.Tags.AllTags, (localProgress, duration, text) => updateProgress.Invoke(LOADING_PROGRESS + localProgress * CHECKING_PROGRESS, duration, text));
             updateProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
         }
-        private async Task LoadGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async UniTask LoadGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             List<Group> groups = new List<Group>();
             DirectoryInfo groupDirectory = projectDirectory.GetDirectories("Groups", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] groupFiles = groupDirectory.GetFiles("*" + Group.EXTENSION, SearchOption.TopDirectoryOnly);
-            var tasks = groupFiles.Select(file => (Func<Task<Group>>)(async () =>
+            var tasks = groupFiles.Select(file => (Func<UniTask<Group>>)(async () =>
             {
                 {
                     try
@@ -687,18 +679,18 @@ namespace HBP.Core.Data
                     }
                 }
             }));
-            groups.AddRange(await TaskExtension.PerformMultipleTasksAsync(tasks, 0, 1, "Loading groups", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading));
+            groups.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading groups", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading));
             SetGroups(groups.ToArray());
             updateProgress.Invoke(1.0f, 0, new LoadingText("Groups loaded successfully"));
         }
-        private async Task LoadDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async UniTask LoadDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             const float LOADING_TIME = 0.01f;
             const float CHECKING_TIME = 0.99f;
             List<Dataset> datasets = new List<Dataset>();
             DirectoryInfo datasetDirectory = projectDirectory.GetDirectories("Datasets", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] datasetFiles = datasetDirectory.GetFiles("*" + Dataset.EXTENSION, SearchOption.TopDirectoryOnly);
-            var tasks = datasetFiles.Select(file => (Func<Task<Dataset>>)(async () =>
+            var tasks = datasetFiles.Select(file => (Func<UniTask<Dataset>>)(async () =>
             {
                 {
                     try
@@ -712,17 +704,17 @@ namespace HBP.Core.Data
                     }
                 }
             }));
-            datasets.AddRange(await TaskExtension.PerformMultipleTasksAsync(tasks, 0, LOADING_TIME, "Loading datasets", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading));
+            datasets.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, LOADING_TIME, "Loading datasets", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading));
             SetDatasets(datasets.ToArray());
             await CheckDatasetsAsync(DatabaseManager.Database.Protocols, (localProgress, duration, text) => updateProgress.Invoke(LOADING_TIME + localProgress * CHECKING_TIME, duration, text));
             updateProgress.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
         }
-        private async Task LoadVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async UniTask LoadVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             DirectoryInfo visualizationsDirectory = projectDirectory.GetDirectories("Visualizations", SearchOption.TopDirectoryOnly)[0];
             List<Visualization> visualizations = new List<Visualization>();
             FileInfo[] visualizationFiles = visualizationsDirectory.GetFiles("*" + Visualization.EXTENSION, SearchOption.TopDirectoryOnly);
-            var tasks = visualizationFiles.Select(file => (Func<Task<Visualization>>)(async () =>
+            var tasks = visualizationFiles.Select(file => (Func<UniTask<Visualization>>)(async () =>
             {
                 {
                     try
@@ -736,12 +728,12 @@ namespace HBP.Core.Data
                     }
                 }
             }));
-            visualizations.AddRange(await TaskExtension.PerformMultipleTasksAsync(tasks, 0, 1, "Loading visualizations", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading));
+            visualizations.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading visualizations", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading));
             SetVisualizations(visualizations.ToArray());
             updateProgress.Invoke(1.0f, 0, new LoadingText("Visualizations loaded successfully"));
         }
 
-        private async Task SaveSettingsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async UniTask SaveSettingsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             updateProgress.Invoke(0, 0, new LoadingText("Saving settings"));
             try
@@ -755,10 +747,10 @@ namespace HBP.Core.Data
             }
             updateProgress.Invoke(1.0f, 0, new LoadingText("Settings saved successfully"));
         }
-        private async Task SavePatientsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async UniTask SavePatientsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             DirectoryInfo patientDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Patients"));
-            var tasks = m_Patients.Select(patient => (Func<Task>)(async () =>
+            var tasks = m_Patients.Select(patient => (Func<UniTask>)(async () =>
             {
                 {
                     try
@@ -772,13 +764,13 @@ namespace HBP.Core.Data
                     }
                 }
             }));
-            await TaskExtension.PerformMultipleTasksAsync(tasks, 0, 1, "Saving patients", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
+            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving patients", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Patients saved successfully"));
         }
-        private async Task SaveGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async UniTask SaveGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             DirectoryInfo groupDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Groups"));
-            var tasks = m_Groups.Select(group => (Func<Task>)(async () =>
+            var tasks = m_Groups.Select(group => (Func<UniTask>)(async () =>
             {
                 {
                     try
@@ -792,13 +784,13 @@ namespace HBP.Core.Data
                     }
                 }
             }));
-            await TaskExtension.PerformMultipleTasksAsync(tasks, 0, 1, "Saving groups", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
+            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving groups", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Groups saved successfully"));
         }
-        private async Task SaveDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async UniTask SaveDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             DirectoryInfo datasetDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Datasets"));
-            var tasks = m_Datasets.Select(dataset => (Func<Task>)(async () =>
+            var tasks = m_Datasets.Select(dataset => (Func<UniTask>)(async () =>
             {
                 {
                     try
@@ -812,13 +804,13 @@ namespace HBP.Core.Data
                     }
                 }
             }));
-            await TaskExtension.PerformMultipleTasksAsync(tasks, 0, 1, "Saving datasets", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
+            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving datasets", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Datasets saved successfully"));
         }
-        private async Task SaveVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async UniTask SaveVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             DirectoryInfo visualizationDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Visualizations"));
-            var tasks = m_Visualizations.Select(visualization => (Func<Task>)(async () =>
+            var tasks = m_Visualizations.Select(visualization => (Func<UniTask>)(async () =>
             {
                 {
                     try
@@ -832,7 +824,7 @@ namespace HBP.Core.Data
                     }
                 }
             }));
-            await TaskExtension.PerformMultipleTasksAsync(tasks, 0, 1, "Saving visualizations", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
+            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving visualizations", updateProgress, 10, PersistentDataManager.UserPreferences.General.System.MultiThreading);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Visualizations saved successfully"));
         }
 
@@ -840,9 +832,9 @@ namespace HBP.Core.Data
         {
             new DirectoryInfo(oldIconsDirectoryPath).CopyFilesRecursively(new DirectoryInfo(newIconsDirectoryPath));
         }
-        private async Task EmbedDataIntoProjectFileAsync(DirectoryInfo projectDirectory, string oldProjectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async UniTask EmbedDataIntoProjectFileAsync(DirectoryInfo projectDirectory, string oldProjectDirectory, Action<float, float, LoadingText> updateProgress)
         {
-            await Task.Run(() =>
+            await UniTask.RunOnThreadPool(() =>
             {
                 DirectoryInfo dataDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Data"));
 

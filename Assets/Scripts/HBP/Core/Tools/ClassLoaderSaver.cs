@@ -3,9 +3,7 @@ using System;
 using System.IO;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using HBP.Core.Data;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.Core.Tools
 {
@@ -20,10 +18,10 @@ namespace HBP.Core.Tools
             }
             return result;
         }
-        public static async Task<T> LoadFromJsonAsync<T>(string path) where T : new()
+        public static async UniTask<T> LoadFromJsonAsync<T>(string path) where T : new()
         {
             T result = new T();
-            await Task.Run(() => {
+            await UniTask.RunOnThreadPool(() => {
                 using StreamReader streamReader = new(path);
                 result = JsonConvert.DeserializeObject<T>(streamReader.ReadToEnd(), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
             });
@@ -48,11 +46,11 @@ namespace HBP.Core.Tools
                 return false;
             }
         }
-        public static async Task<bool> SaveToJSonAsync<T>(T instance, string path, bool overwrite = false) where T : new()
+        public static async UniTask<bool> SaveToJSonAsync<T>(T instance, string path, bool overwrite = false) where T : new()
         {
             try
             {
-                await Task.Run(() =>
+                await UniTask.RunOnThreadPool(() =>
                 {
                     if (!overwrite) path = path.GenerateUniqueFilePath();
                     using StreamWriter streamWriter = new(path);

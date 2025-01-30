@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using HBP.UI.Tools;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Main
 {
@@ -24,15 +24,15 @@ namespace HBP.UI.Main
         private async void CheckVersion()
         {
             string version = Application.version;
-            await Task.Run(() =>
+            await UniTask.RunOnThreadPool(() =>
             {
                 try
                 {
-                    using WebClient wc = new();
-                    wc.Headers.Add("User-Agent: Other");
-                    string jsonString = wc.DownloadString("https://api.github.com/repos/hbp-HiBoP/HiBoP/releases/latest");
-                    var versionInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<GithubVersionInfo>(jsonString);
-                    version = versionInfo.VersionNumber;
+                        using WebClient wc = new();
+                        wc.Headers.Add("User-Agent: Other");
+                        string jsonString = wc.DownloadString("https://api.github.com/repos/hbp-HiBoP/HiBoP/releases/latest");
+                        var versionInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<GithubVersionInfo>(jsonString);
+                        version = versionInfo.VersionNumber;
                 }
                 catch (Exception e)
                 {

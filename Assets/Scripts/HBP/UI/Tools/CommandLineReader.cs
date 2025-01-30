@@ -1,13 +1,12 @@
 ﻿using HBP.Core.Data;
 using HBP.Data.Module3D;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
 using HBP.Core.Tools;
 using HBP.Data.Preferences;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Tools
 {
@@ -59,7 +58,7 @@ namespace HBP.UI.Tools
             }
             Destroy(gameObject);
         }
-        private async Task ApplyActionAsync(string action, List<string> arguments)
+        private async UniTask ApplyActionAsync(string action, List<string> arguments)
         {
             if (action == "-p") // Project
             {

@@ -6,6 +6,7 @@ using HBP.UI.Tools.Lists;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
 using HBP.Data.Preferences;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Main
 {
@@ -99,9 +100,9 @@ namespace HBP.UI.Main
                 string[] paths = Project.GetProject(path).ToArray();
                 foreach (string projectPath in paths)
                 {
-                    await new WaitForBackgroundThread();
+                    await UniTask.SwitchToThreadPool();
                     ProjectInfo project = new ProjectInfo(projectPath);
-                    await new WaitForUpdate();
+                    await UniTask.SwitchToMainThread();
                     m_ProjectList.Add(project);
                 }
                 m_ProjectList.SortByName(BaseList.Sorting.Descending);

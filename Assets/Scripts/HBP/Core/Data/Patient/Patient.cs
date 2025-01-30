@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,7 +10,7 @@ using HBP.Core.Tools;
 using HBP.Data.Preferences;
 using HBP.Data.Database;
 using UnityEngine;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.Core.Data
 {
@@ -585,9 +584,9 @@ namespace HBP.Core.Data
         /// <param name="OnChangeProgress">Action called on change progress.</param>
         /// <param name="result">The patients loaded.</param>
         /// <returns></returns>
-        public static async Task<IEnumerable<Patient>> LoadFromDatabaseAsync(Action<float, float, LoadingText> updateProgress)
+        public static async UniTask<IEnumerable<Patient>> LoadFromDatabaseAsync(Action<float, float, LoadingText> updateProgress)
         {
-            await new WaitUntil(() => DatabaseManager.Database.IsLoaded);
+            await UniTask.WaitUntil(() => DatabaseManager.Database.IsLoaded);
             return DatabaseManager.Database.Patients;
         }
         /// <summary>
@@ -597,10 +596,10 @@ namespace HBP.Core.Data
         /// <param name="updateProgress">Action called on change progress.</param>
         /// <param name="result">The patients loaded.</param>
         /// <returns></returns>
-        public static async Task<IEnumerable<Patient>> LoadFromDirectoryAsync(string[] paths, Action<float, float, LoadingText> updateProgress)
+        public static async UniTask<IEnumerable<Patient>> LoadFromDirectoryAsync(string[] paths, Action<float, float, LoadingText> updateProgress)
         {
             List<Patient> patients = new List<Patient>(paths.Length);
-            await Task.Run(() =>
+            await UniTask.RunOnThreadPool(() =>
             {
                 foreach (var path in paths)
                 {
@@ -668,11 +667,11 @@ namespace HBP.Core.Data
             result = new Patient[] { patient };
             return success;
         }
-        async Task<IEnumerable<Patient>> ILoadableFromDatabase<Patient>.LoadFromDatabase(Action<float, float, LoadingText> updateProgress)
+        async UniTask<IEnumerable<Patient>> ILoadableFromDatabase<Patient>.LoadFromDatabase(Action<float, float, LoadingText> updateProgress)
         {
             return await LoadFromDatabaseAsync(updateProgress);
         }
-        async Task<IEnumerable<Patient>> ILoadableFromDirectory<Patient>.LoadFromDirectory(string[] paths, Action<float, float, LoadingText> updateProgress)
+        async UniTask<IEnumerable<Patient>> ILoadableFromDirectory<Patient>.LoadFromDirectory(string[] paths, Action<float, float, LoadingText> updateProgress)
         {
             return await LoadFromDirectoryAsync(paths, updateProgress);
         }

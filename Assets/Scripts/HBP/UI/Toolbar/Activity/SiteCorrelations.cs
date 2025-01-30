@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -7,7 +6,6 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 using HBP.Core.Data;
 using HBP.Core.Enums;
@@ -15,7 +13,7 @@ using HBP.Core.Tools;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using HBP.Data.Preferences;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Toolbar
 {
@@ -405,7 +403,7 @@ namespace HBP.UI.Toolbar
         /// </summary>
         /// <param name="updateProgress">Action for the loading circle</param>
         /// <returns>Coroutine return</returns>
-        private async Task ComputeCorrelations(Action<float, float, LoadingText> updateProgress)
+        private async UniTask ComputeCorrelations(Action<float, float, LoadingText> updateProgress)
         {
             m_CorrelationsComputing = true;
             UpdateInteractable();

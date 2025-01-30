@@ -11,7 +11,7 @@ using HBP.Core.Interfaces;
 using HBP.Core.Tools;
 using HBP.Data.Database;
 using UnityEngine;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.Core.Data
 {
@@ -457,9 +457,9 @@ namespace HBP.Core.Data
         /// <param name="update">Action called on change progress.</param>
         /// <param name="result">The datasets loaded.</param>
         /// <returns></returns>
-        private static async Task<IEnumerable<Dataset>> LoadFromDatabaseAsync(Action<float, float, LoadingText> update)
+        private static async UniTask<IEnumerable<Dataset>> LoadFromDatabaseAsync(Action<float, float, LoadingText> update)
         {
-            await new WaitUntil(() => DatabaseManager.Database.IsLoaded);
+            await UniTask.WaitUntil(() => DatabaseManager.Database.IsLoaded);
 
             List<Dataset> datasets = DatabaseManager.Database.Datasets.DeepClone().ToList();
             foreach (var dataset in datasets)
@@ -556,7 +556,7 @@ namespace HBP.Core.Data
             result = new Dataset[] { dataset };
             return success;
         }
-        async Task<IEnumerable<Dataset>> ILoadableFromDatabase<Dataset>.LoadFromDatabase(Action<float, float, LoadingText> updateProgress)
+        async UniTask<IEnumerable<Dataset>> ILoadableFromDatabase<Dataset>.LoadFromDatabase(Action<float, float, LoadingText> updateProgress)
         {
             return await LoadFromDatabaseAsync(updateProgress);
         }

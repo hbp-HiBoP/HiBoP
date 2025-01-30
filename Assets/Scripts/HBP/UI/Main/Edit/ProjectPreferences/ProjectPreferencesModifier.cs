@@ -1,12 +1,10 @@
-﻿using System.Collections;
-using UnityEngine;
-using UnityEngine.Events;
+﻿using UnityEngine;
 using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.UI.Tools;
 using HBP.Data.Database;
 using System;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Main
 {
@@ -64,7 +62,7 @@ namespace HBP.UI.Main
         #endregion
 
         #region Coroutines
-        private async Task CheckProjectAsync(Action<float, float, LoadingText> updateProgress)
+        private async UniTask CheckProjectAsync(Action<float, float, LoadingText> updateProgress)
         {
             await ApplicationState.LoadedProject.CheckDatasetsAsync(DatabaseManager.Database.Protocols, updateProgress);
         }

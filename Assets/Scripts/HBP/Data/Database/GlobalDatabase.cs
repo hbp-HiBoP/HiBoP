@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.Data.Database
 {
@@ -111,7 +111,7 @@ namespace HBP.Data.Database
             await LoadDatabaseReferencesAsync();
             LoadDatabase();
         }
-        private async Task LoadDatabaseAsync()
+        private async UniTask LoadDatabaseAsync()
         {
             System.Diagnostics.Stopwatch stopwatch = new();
             stopwatch.Start();
@@ -122,36 +122,36 @@ namespace HBP.Data.Database
             Debug.Log("Database loaded in " + stopwatch.ElapsedMilliseconds + " ms");
         }
 
-        private async Task LoadProtocolsAsync()
+        private async UniTask LoadProtocolsAsync()
         {
             List<Protocol> protocols = new List<Protocol>();
             DirectoryInfo protocolDirectory = new DirectoryInfo(Path.Combine(ApplicationState.DatabasePath, "Protocols"));
             if (!protocolDirectory.Exists) protocolDirectory.Create();
             FileInfo[] protocolFiles = protocolDirectory.GetFiles("*" + Protocol.EXTENSION, SearchOption.TopDirectoryOnly);
-            m_Protocols = (await Task.WhenAll(protocolFiles.Select(pf => ClassLoaderSaver.LoadFromJsonAsync<Protocol>(pf.FullName)))).ToList();
+            m_Protocols = (await UniTask.WhenAll(protocolFiles.Select(pf => ClassLoaderSaver.LoadFromJsonAsync<Protocol>(pf.FullName)))).ToList();
         }
-        private async Task SaveProtocolsAsync()
+        private async UniTask SaveProtocolsAsync()
         {
             DirectoryInfo protocolDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "Protocols"));
             DirectoryInfo protocolTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "ProtocolsTemp"));
-            await Task.WhenAll(m_Protocols.Select(p => ClassLoaderSaver.SaveToJSonAsync(p, Path.Combine(protocolTempDirectory.FullName, p.Name + Protocol.EXTENSION), true)));
+            await UniTask.WhenAll(m_Protocols.Select(p => ClassLoaderSaver.SaveToJSonAsync(p, Path.Combine(protocolTempDirectory.FullName, p.Name + Protocol.EXTENSION), true)));
             protocolDirectory.Delete(true);
             protocolTempDirectory.MoveTo(protocolDirectory.FullName);
         }
 
-        private async Task LoadDatabaseReferencesAsync()
+        private async UniTask LoadDatabaseReferencesAsync()
         {
             List<DatabaseReference> databaseReferences = new List<DatabaseReference>();
             DirectoryInfo referencesDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "References"));
             if (!referencesDirectory.Exists) referencesDirectory.Create();
             FileInfo[] referenceFiles = referencesDirectory.GetFiles("*" + DatabaseReference.EXTENSION, SearchOption.TopDirectoryOnly);
-            m_DatabaseReferences = (await Task.WhenAll(referenceFiles.Select(rf => ClassLoaderSaver.LoadFromJsonAsync<DatabaseReference>(rf.FullName)))).ToList();
+            m_DatabaseReferences = (await UniTask.WhenAll(referenceFiles.Select(rf => ClassLoaderSaver.LoadFromJsonAsync<DatabaseReference>(rf.FullName)))).ToList();
         }
-        private async Task SaveDatabaseReferencesAsync()
+        private async UniTask SaveDatabaseReferencesAsync()
         {
             DirectoryInfo referencesDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "References"));
             DirectoryInfo referencesTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "ReferencesTemp"));
-            await Task.WhenAll(m_DatabaseReferences.Select(dr => ClassLoaderSaver.SaveToJSonAsync(dr, Path.Combine(referencesTempDirectory.FullName, dr.Name + DatabaseReference.EXTENSION), true)));
+            await UniTask.WhenAll(m_DatabaseReferences.Select(dr => ClassLoaderSaver.SaveToJSonAsync(dr, Path.Combine(referencesTempDirectory.FullName, dr.Name + DatabaseReference.EXTENSION), true)));
             referencesDirectory.Delete(true);
             referencesTempDirectory.MoveTo(referencesDirectory.FullName);
             // Remove patients and datasets that are not in the database references
@@ -163,43 +163,43 @@ namespace HBP.Data.Database
             await SaveDatasetsAsync();
         }
 
-        private async Task LoadPatientsAsync()
+        private async UniTask LoadPatientsAsync()
         {
             List<Patient> patients = new List<Patient>();
             DirectoryInfo patientsDirectory = new DirectoryInfo(Path.Combine(ApplicationState.DatabasePath, "Patients"));
             if (!patientsDirectory.Exists) patientsDirectory.Create();
             FileInfo[] patientFiles = patientsDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
-            m_Patients = (await Task.WhenAll(patientFiles.Select(pf => ClassLoaderSaver.LoadFromJsonAsync<Patient>(pf.FullName)))).ToList();
+            m_Patients = (await UniTask.WhenAll(patientFiles.Select(pf => ClassLoaderSaver.LoadFromJsonAsync<Patient>(pf.FullName)))).ToList();
         }
-        private async Task SavePatientsAsync()
+        private async UniTask SavePatientsAsync()
         {
             DirectoryInfo patientsDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "Patients"));
             DirectoryInfo patientsTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "PatientsTemp"));
-            await Task.WhenAll(m_Patients.Select(p => ClassLoaderSaver.SaveToJSonAsync(p, Path.Combine(patientsTempDirectory.FullName, p.ID + Patient.EXTENSION), true)));
+            await UniTask.WhenAll(m_Patients.Select(p => ClassLoaderSaver.SaveToJSonAsync(p, Path.Combine(patientsTempDirectory.FullName, p.ID + Patient.EXTENSION), true)));
             patientsDirectory.Delete(true);
             patientsTempDirectory.MoveTo(patientsDirectory.FullName);
         }
 
-        private async Task LoadDatasetsAsync()
+        private async UniTask LoadDatasetsAsync()
         {
             List<Dataset> datasets = new List<Dataset>();
             DirectoryInfo datasetsDirectory = new DirectoryInfo(Path.Combine(ApplicationState.DatabasePath, "Datasets"));
             if (!datasetsDirectory.Exists) datasetsDirectory.Create();
             FileInfo[] datasetFiles = datasetsDirectory.GetFiles("*" + Dataset.EXTENSION, SearchOption.TopDirectoryOnly);
-            m_Datasets = (await Task.WhenAll(datasetFiles.Select(df => ClassLoaderSaver.LoadFromJsonAsync<Dataset>(df.FullName)))).ToList();
+            m_Datasets = (await UniTask.WhenAll(datasetFiles.Select(df => ClassLoaderSaver.LoadFromJsonAsync<Dataset>(df.FullName)))).ToList();
         }
-        private async Task SaveDatasetsAsync()
+        private async UniTask SaveDatasetsAsync()
         {
             DirectoryInfo datasetsDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "Datasets"));
             DirectoryInfo datasetsTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "DatasetsTemp"));
-            await Task.WhenAll(m_Datasets.Select(d => ClassLoaderSaver.SaveToJSonAsync(d, Path.Combine(datasetsTempDirectory.FullName, d.Name + Dataset.EXTENSION), true)));
+            await UniTask.WhenAll(m_Datasets.Select(d => ClassLoaderSaver.SaveToJSonAsync(d, Path.Combine(datasetsTempDirectory.FullName, d.Name + Dataset.EXTENSION), true)));
             datasetsDirectory.Delete(true);
             datasetsTempDirectory.MoveTo(datasetsDirectory.FullName);
         }
         
-        private async Task UpdateDatabasesAsync(IEnumerable<DatabaseReference> databaseReferences, Action<float, float, LoadingText> updateProgress, UnityAction onUpdated)
+        private async UniTask UpdateDatabasesAsync(IEnumerable<DatabaseReference> databaseReferences, Action<float, float, LoadingText> updateProgress, UnityAction onUpdated)
         {
-            await new WaitForBackgroundThread();
+            await UniTask.SwitchToThreadPool();
             var brainvisaDatabaseReferences = databaseReferences.Where(d => d.Type == DatabaseType.Brainvisa).ToArray();
             var localizerDatabaseReferences = databaseReferences.Where(d => d.Type == DatabaseType.Localizer).ToArray();
             var bidsDatabaseReferences = databaseReferences.Where(d => d.Type == DatabaseType.BIDS).ToArray();
@@ -263,7 +263,7 @@ namespace HBP.Data.Database
                 databaseReference.LastUpdated = DateTime.Now;
             }
             await SaveDatabaseReferencesAsync();
-            await new WaitForUpdate();
+            await UniTask.SwitchToMainThread();
             DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Databases updated", "The databases have been updated successfully");
             onUpdated();
         }

@@ -10,6 +10,7 @@ using HBP.Core.Data;
 using HBP.Core.Object3D;
 using HBP.UI.Tools;
 using HBP.Data.Preferences;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.Data.Module3D
 {
@@ -280,9 +281,8 @@ namespace HBP.Data.Module3D
         /// </summary>
         /// <param name="visualizations">Visualizations to be loaded</param>
         /// <returns></returns>
-        public static async System.Threading.Tasks.Task LoadAsync(IEnumerable<Visualization> visualizations, Action<float, float, LoadingText> onChangeProgress)
+        public static async UniTask LoadAsync(IEnumerable<Visualization> visualizations, Action<float, float, LoadingText> onChangeProgress)
         {
-            await new WaitForBackgroundThread();
             Dictionary<Visualization, int> weightByVisualization = visualizations.ToDictionary(v => v, v => (v.CCEPColumns.Count + v.IEEGColumns.Count) * v.Patients.Count + v.AnatomicColumns.Count + v.FMRIColumns.Count + v.MEGColumns.Count + v.StaticColumns.Count);
             int totalWeight = weightByVisualization.Values.Sum();
             float progress = 0;
@@ -294,7 +294,6 @@ namespace HBP.Data.Module3D
                 {
                     float visualizationWeight = (float)weightByVisualization[visualization] / totalWeight;
                     if (!visualization.IsVisualizable) throw new CanNotLoadVisualization(visualization.Name);
-                    await new WaitForUpdate();
                     await visualization.LoadAsync((localProgress, duration, text) => onChangeProgress(progress + localProgress * visualizationWeight * LOADING_VISUALIZATION_PROGRESS, duration, text));
                     await LoadSceneAsync(visualization, (localProgress, duration, text) => onChangeProgress(progress + (LOADING_VISUALIZATION_PROGRESS + localProgress * LOADING_SCENE_PROGRESS) * visualizationWeight, duration, text));
                     progress += visualizationWeight;
@@ -314,7 +313,7 @@ namespace HBP.Data.Module3D
         /// <param name="visualization">Visualization to be loaded</param>
         /// <param name="onChangeProgress">Event to update the loading circle</param>
         /// <returns></returns>
-        private static async System.Threading.Tasks.Task LoadSceneAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress)
+        private static async UniTask LoadSceneAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress)
         {
             Base3DScene scene = Instantiate(m_Instance.m_ScenePrefab, m_Instance.m_ScenesParent).GetComponent<Base3DScene>();
             scene.Initialize(visualization);

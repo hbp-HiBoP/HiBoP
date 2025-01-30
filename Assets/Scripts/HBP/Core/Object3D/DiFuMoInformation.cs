@@ -1,8 +1,8 @@
-﻿using HBP.Core.Tools;
+﻿using Cysharp.Threading.Tasks;
+using HBP.Core.Tools;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace HBP.Core.Object3D
 {
@@ -52,7 +52,7 @@ namespace HBP.Core.Object3D
         #region Private Methods
         private async void LoadAsync(string csvFile)
         {
-            await Task.Run(() =>
+            await UniTask.RunOnThreadPool(() =>
             {
                 Loading = true;
                 Regex csvParser = new Regex(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");

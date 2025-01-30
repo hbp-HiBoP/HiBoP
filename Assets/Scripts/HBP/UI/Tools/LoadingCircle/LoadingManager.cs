@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using HBP.Core.Tools;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Tools
 {
@@ -19,7 +20,7 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Public Methods
-        public static async System.Threading.Tasks.Task<T> LoadAsync<T>(Func<Action<float, float, LoadingText>, System.Threading.Tasks.Task<T>> taskToExecute)
+        public static async UniTask<T> LoadAsync<T>(Func<Action<float, float, LoadingText>, UniTask<T>> taskToExecute)
         {
             AsyncMethod<T> method = new(taskToExecute);
             m_Instance.m_LoadingCircle.Open();
@@ -38,7 +39,7 @@ namespace HBP.UI.Tools
                 m_Instance.m_LoadingCircle.Close();
             }
         }
-        public static async System.Threading.Tasks.Task LoadAsync(Func<Action<float, float, LoadingText>, System.Threading.Tasks.Task> taskToExecute)
+        public static async UniTask LoadAsync(Func<Action<float, float, LoadingText>, UniTask> taskToExecute)
         {
             AsyncMethod method = new(taskToExecute);
             m_Instance.m_LoadingCircle.Open();
@@ -56,7 +57,7 @@ namespace HBP.UI.Tools
                 m_Instance.m_LoadingCircle.Close();
             }
         }
-        public static async void Load(Func<Action<float, float, LoadingText>, System.Threading.Tasks.Task> taskToExecute)
+        public static async void Load(Func<Action<float, float, LoadingText>, UniTask> taskToExecute)
         {
             AsyncMethod method = new AsyncMethod(taskToExecute);
             m_Instance.m_LoadingCircle.Open();

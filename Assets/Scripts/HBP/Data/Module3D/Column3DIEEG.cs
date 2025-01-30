@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using HBP.Core.Exceptions;
 using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Data.Preferences;
 using HBP.Core.DLL;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.Data.Module3D
 {
@@ -152,9 +151,9 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Compute correlations for all site pairs
         /// </summary>
-        public async Task ComputeCorrelationsAsync(Action<float, float, LoadingText> updateProgress)
+        public async UniTask ComputeCorrelationsAsync(Action<float, float, LoadingText> updateProgress)
         {
-            await Task.Run(() =>
+            await UniTask.RunOnThreadPool(() =>
             {
                 CorrelationBySitePair.Clear();
                 CorrelationMeanBySitePair.Clear();

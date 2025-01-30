@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Cysharp.Threading.Tasks;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -7,7 +8,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace HBP.Core.Tools
@@ -282,14 +282,14 @@ namespace HBP.Core.Tools
         }
     }
 
-    public static class TaskExtension
+    public static class UniTaskExtensions
     {
-        public static async Task WhenAllSequenced(IEnumerable<Task> tasks)
+        public static async UniTask WhenAllSequenced(IEnumerable<UniTask> tasks)
         {
             foreach (var task in tasks)
                 await task;
         }
-        public static async Task<IEnumerable<T>> WhenAllSequenced<T>(IEnumerable<Task<T>> tasks)
+        public static async UniTask<IEnumerable<T>> WhenAllSequenced<T>(IEnumerable<UniTask<T>> tasks)
         {
             T[] results = new T[tasks.Count()];
             int i = 0;
@@ -297,7 +297,7 @@ namespace HBP.Core.Tools
                 results[i++] = await task;
             return results;
         }
-        public static async Task PerformMultipleTasksAsync(IEnumerable<Func<Task>> tasks, float startProgress, float endProgress, string loadingText, Action<float, float, LoadingText> updateProgress, int maxConcurrency, bool parallel)
+        public static async UniTask PerformMultipleTasksAsync(IEnumerable<Func<UniTask>> tasks, float startProgress, float endProgress, string loadingText, Action<float, float, LoadingText> updateProgress, int maxConcurrency, bool parallel)
         {
             var taskList = tasks.ToList();
             int count = 0;
@@ -316,7 +316,7 @@ namespace HBP.Core.Tools
                             updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0, new LoadingText(loadingText, " ", count + "/" + length));
                         }
                     });
-                    await Task.WhenAll(tasksToExecute);
+                    await UniTask.WhenAll(tasksToExecute);
                 }
                 else
                 {
@@ -339,7 +339,7 @@ namespace HBP.Core.Tools
                         }
                     });
 
-                    await Task.WhenAll(tasksToExecute);
+                    await UniTask.WhenAll(tasksToExecute);
                 }
             }
             else
@@ -352,7 +352,7 @@ namespace HBP.Core.Tools
                 }
             }
         }
-        public static async Task<IEnumerable<T>> PerformMultipleTasksAsync<T>(IEnumerable<Func<Task<T>>> tasks, float startProgress, float endProgress, string loadingText, Action<float, float, LoadingText> updateProgress, int maxConcurrency, bool parallel)
+        public static async UniTask<IEnumerable<T>> PerformMultipleTasksAsync<T>(IEnumerable<Func<UniTask<T>>> tasks, float startProgress, float endProgress, string loadingText, Action<float, float, LoadingText> updateProgress, int maxConcurrency, bool parallel)
         {
             var taskList = tasks.ToList();
             int count = 0;
@@ -372,7 +372,7 @@ namespace HBP.Core.Tools
                         }
                         return data;
                     });
-                    var result = await Task.WhenAll(tasksToExecute);
+                    var result = await UniTask.WhenAll(tasksToExecute);
                     return result;
                 }
                 else
@@ -401,7 +401,7 @@ namespace HBP.Core.Tools
                         }
                     });
 
-                    await Task.WhenAll(tasksToExecute);
+                    await UniTask.WhenAll(tasksToExecute);
                     return results;
                 }
             }

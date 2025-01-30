@@ -2,6 +2,7 @@
 using System.Collections;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Informations.Graphs
 {
@@ -125,7 +126,7 @@ namespace HBP.UI.Informations.Graphs
 
         async void OnRect()
         {
-            await new WaitForEndOfFrame();
+            await UniTask.WaitForEndOfFrame();
             Rect rect = m_RectTransform.rect;
             if (m_LastHeight != rect.height || m_LastWidth != rect.width)
             {
