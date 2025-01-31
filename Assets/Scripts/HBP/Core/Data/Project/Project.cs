@@ -420,7 +420,6 @@ namespace HBP.Core.Data
         {
             // Initialize progress.
             float progress = 0.0f;
-
             float settingsProgress = 1;
             float patientsProgress = 2 * projectInfo.Patients;
             float groupsProgress = projectInfo.Groups;
@@ -438,14 +437,12 @@ namespace HBP.Core.Data
             updateProgress.Invoke(progress, 0, new LoadingText("Loading project"));
 
             // Unzipping
-            await UniTask.SwitchToThreadPool();
             if (Directory.Exists(ApplicationState.ExtractProjectFolder)) Directory.Delete(ApplicationState.ExtractProjectFolder, true);
             using ZipFile zip = ZipFile.Read(projectInfo.Path);
             zip.ExtractAll(ApplicationState.ExtractProjectFolder, ExtractExistingFileAction.OverwriteSilently);
             if (!File.Exists(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file exists.
             if (!IsProject(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file is a project.
             DirectoryInfo projectDirectory = new DirectoryInfo(ApplicationState.ExtractProjectFolder);
-            await UniTask.SwitchToMainThread();
 
             // Load Settings.
             await LoadSettingsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * settingsProgress, duration, text));
@@ -538,10 +535,8 @@ namespace HBP.Core.Data
             IEnumerable<Dataset> datasets = m_Datasets.Where(d => protocols.Contains(d.Protocol));
             var tasks = datasets.SelectMany(d => d.Data).Select(d => (Func<UniTask>)(async () =>
             {
-                await UniTask.RunOnThreadPool(() =>
-                {
-                    d.GetErrorsAndWarnings();
-                });
+                await UniTask.SwitchToThreadPool();
+                d.GetErrorsAndWarnings();
             }));
             await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Checking datasets", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
         }
@@ -549,68 +544,66 @@ namespace HBP.Core.Data
         {
             var tasks = m_Patients.Select(patient => (Func<UniTask>)(async () =>
             {
-                await UniTask.RunOnThreadPool(() =>
+                await UniTask.SwitchToThreadPool();
+                patient.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
+                foreach (var site in patient.Sites) site.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
+                List<BaseTagValue> tagsToUpdate = patient.Tags.Where(t => tags.Contains(t.Tag)).ToList();
+                tagsToUpdate.AddRange(patient.Sites.SelectMany(s => s.Tags).Where(t => tags.Contains(t.Tag)));
+                foreach (var tagValue in tagsToUpdate)
                 {
-                    patient.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
-                    foreach (var site in patient.Sites) site.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
-                    List<BaseTagValue> tagsToUpdate = patient.Tags.Where(t => tags.Contains(t.Tag)).ToList();
-                    tagsToUpdate.AddRange(patient.Sites.SelectMany(s => s.Tags).Where(t => tags.Contains(t.Tag)));
-                    foreach (var tagValue in tagsToUpdate)
+                    if (tagValue.Tag is IntTag && tagValue is not IntTagValue)
                     {
-                        if (tagValue.Tag is IntTag && tagValue is not IntTagValue)
-                        {
-                            patient.Tags.Remove(tagValue);
-                            var newTagValue = new IntTagValue();
-                            newTagValue.Copy(tagValue);
-                            patient.Tags.Add(newTagValue);
-                            newTagValue.UpdateValue();
-                        }
-                        else if (tagValue.Tag is FloatTag && tagValue is not FloatTagValue)
-                        {
-                            patient.Tags.Remove(tagValue);
-                            var newTagValue = new FloatTagValue();
-                            newTagValue.Copy(tagValue);
-                            patient.Tags.Add(newTagValue);
-                            newTagValue.UpdateValue();
-                        }
-                        else if (tagValue.Tag is BoolTag && tagValue is not BoolTagValue)
-                        {
-                            patient.Tags.Remove(tagValue);
-                            var newTagValue = new BoolTagValue();
-                            newTagValue.Copy(tagValue);
-                            patient.Tags.Add(newTagValue);
-                            newTagValue.UpdateValue();
-                        }
-                        else if (tagValue.Tag is EmptyTag && tagValue is not EmptyTagValue)
-                        {
-                            patient.Tags.Remove(tagValue);
-                            var newTagValue = new EmptyTagValue();
-                            newTagValue.Copy(tagValue);
-                            patient.Tags.Add(newTagValue);
-                            newTagValue.UpdateValue();
-                        }
-                        else if (tagValue.Tag is EnumTag && tagValue is not EnumTagValue)
-                        {
-                            patient.Tags.Remove(tagValue);
-                            var newTagValue = new EnumTagValue();
-                            newTagValue.Copy(tagValue);
-                            patient.Tags.Add(newTagValue);
-                            newTagValue.UpdateValue();
-                        }
-                        else if (tagValue.Tag is StringTag && tagValue is not StringTagValue)
-                        {
-                            patient.Tags.Remove(tagValue);
-                            var newTagValue = new StringTagValue();
-                            newTagValue.Copy(tagValue);
-                            patient.Tags.Add(newTagValue);
-                            newTagValue.UpdateValue();
-                        }
-                        else
-                        {
-                            tagValue.UpdateValue();
-                        }
+                        patient.Tags.Remove(tagValue);
+                        var newTagValue = new IntTagValue();
+                        newTagValue.Copy(tagValue);
+                        patient.Tags.Add(newTagValue);
+                        newTagValue.UpdateValue();
                     }
-                });
+                    else if (tagValue.Tag is FloatTag && tagValue is not FloatTagValue)
+                    {
+                        patient.Tags.Remove(tagValue);
+                        var newTagValue = new FloatTagValue();
+                        newTagValue.Copy(tagValue);
+                        patient.Tags.Add(newTagValue);
+                        newTagValue.UpdateValue();
+                    }
+                    else if (tagValue.Tag is BoolTag && tagValue is not BoolTagValue)
+                    {
+                        patient.Tags.Remove(tagValue);
+                        var newTagValue = new BoolTagValue();
+                        newTagValue.Copy(tagValue);
+                        patient.Tags.Add(newTagValue);
+                        newTagValue.UpdateValue();
+                    }
+                    else if (tagValue.Tag is EmptyTag && tagValue is not EmptyTagValue)
+                    {
+                        patient.Tags.Remove(tagValue);
+                        var newTagValue = new EmptyTagValue();
+                        newTagValue.Copy(tagValue);
+                        patient.Tags.Add(newTagValue);
+                        newTagValue.UpdateValue();
+                    }
+                    else if (tagValue.Tag is EnumTag && tagValue is not EnumTagValue)
+                    {
+                        patient.Tags.Remove(tagValue);
+                        var newTagValue = new EnumTagValue();
+                        newTagValue.Copy(tagValue);
+                        patient.Tags.Add(newTagValue);
+                        newTagValue.UpdateValue();
+                    }
+                    else if (tagValue.Tag is StringTag && tagValue is not StringTagValue)
+                    {
+                        patient.Tags.Remove(tagValue);
+                        var newTagValue = new StringTagValue();
+                        newTagValue.Copy(tagValue);
+                        patient.Tags.Add(newTagValue);
+                        newTagValue.UpdateValue();
+                    }
+                    else
+                    {
+                        tagValue.UpdateValue();
+                    }
+                }
             }));
             await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Checking patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
         }
@@ -643,16 +636,14 @@ namespace HBP.Core.Data
             FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
             var tasks = patientFiles.Select(file => (Func<UniTask<Patient>>)(async () =>
             {
+                try
                 {
-                    try
-                    {
-                        return await ClassLoaderSaver.LoadFromJsonAsync<Patient>(file.FullName);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogException(e);
-                        throw new CanNotReadPatientFileException(Path.GetFileNameWithoutExtension(file.Name));
-                    }
+                    return await ClassLoaderSaver.LoadFromJsonAsync<Patient>(file.FullName);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    throw new CanNotReadPatientFileException(Path.GetFileNameWithoutExtension(file.Name));
                 }
             }));
             patients.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, LOADING_PROGRESS, "Loading patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading));
@@ -667,16 +658,14 @@ namespace HBP.Core.Data
             FileInfo[] groupFiles = groupDirectory.GetFiles("*" + Group.EXTENSION, SearchOption.TopDirectoryOnly);
             var tasks = groupFiles.Select(file => (Func<UniTask<Group>>)(async () =>
             {
+                try
                 {
-                    try
-                    {
-                        return await ClassLoaderSaver.LoadFromJsonAsync<Group>(file.FullName);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogException(e);
-                        throw new CanNotReadGroupFileException(Path.GetFileNameWithoutExtension(file.Name));
-                    }
+                    return await ClassLoaderSaver.LoadFromJsonAsync<Group>(file.FullName);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    throw new CanNotReadGroupFileException(Path.GetFileNameWithoutExtension(file.Name));
                 }
             }));
             groups.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading groups", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading));
@@ -692,16 +681,14 @@ namespace HBP.Core.Data
             FileInfo[] datasetFiles = datasetDirectory.GetFiles("*" + Dataset.EXTENSION, SearchOption.TopDirectoryOnly);
             var tasks = datasetFiles.Select(file => (Func<UniTask<Dataset>>)(async () =>
             {
+                try
                 {
-                    try
-                    {
-                        return await ClassLoaderSaver.LoadFromJsonAsync<Dataset>(file.FullName);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogException(e);
-                        throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(file.Name));
-                    }
+                    return await ClassLoaderSaver.LoadFromJsonAsync<Dataset>(file.FullName);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(file.Name));
                 }
             }));
             datasets.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, LOADING_TIME, "Loading datasets", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading));
@@ -716,16 +703,14 @@ namespace HBP.Core.Data
             FileInfo[] visualizationFiles = visualizationsDirectory.GetFiles("*" + Visualization.EXTENSION, SearchOption.TopDirectoryOnly);
             var tasks = visualizationFiles.Select(file => (Func<UniTask<Visualization>>)(async () =>
             {
+                try
                 {
-                    try
-                    {
-                        return await ClassLoaderSaver.LoadFromJsonAsync<Visualization>(file.FullName);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogException(e);
-                        throw new CanNotReadVisualizationFileException(Path.GetFileNameWithoutExtension(file.Name));
-                    }
+                    return await ClassLoaderSaver.LoadFromJsonAsync<Visualization>(file.FullName);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    throw new CanNotReadVisualizationFileException(Path.GetFileNameWithoutExtension(file.Name));
                 }
             }));
             visualizations.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading visualizations", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading));
@@ -752,16 +737,14 @@ namespace HBP.Core.Data
             DirectoryInfo patientDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Patients"));
             var tasks = m_Patients.Select(patient => (Func<UniTask>)(async () =>
             {
+                try
                 {
-                    try
-                    {
-                        await ClassLoaderSaver.SaveToJSonAsync(patient, Path.Combine(patientDirectory.FullName, patient.ID + Patient.EXTENSION));
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogException(e);
-                        throw new CanNotSaveSettingsException();
-                    }
+                    await ClassLoaderSaver.SaveToJSonAsync(patient, Path.Combine(patientDirectory.FullName, patient.ID + Patient.EXTENSION));
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    throw new CanNotSaveSettingsException();
                 }
             }));
             await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
@@ -772,16 +755,14 @@ namespace HBP.Core.Data
             DirectoryInfo groupDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Groups"));
             var tasks = m_Groups.Select(group => (Func<UniTask>)(async () =>
             {
+                try
                 {
-                    try
-                    {
-                        await ClassLoaderSaver.SaveToJSonAsync(group, Path.Combine(groupDirectory.FullName, group.Name + Group.EXTENSION));
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogException(e);
-                        throw new CanNotSaveSettingsException();
-                    }
+                    await ClassLoaderSaver.SaveToJSonAsync(group, Path.Combine(groupDirectory.FullName, group.Name + Group.EXTENSION));
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    throw new CanNotSaveSettingsException();
                 }
             }));
             await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving groups", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
@@ -792,16 +773,14 @@ namespace HBP.Core.Data
             DirectoryInfo datasetDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Datasets"));
             var tasks = m_Datasets.Select(dataset => (Func<UniTask>)(async () =>
             {
+                try
                 {
-                    try
-                    {
-                        await ClassLoaderSaver.SaveToJSonAsync(dataset, Path.Combine(datasetDirectory.FullName, dataset.Name + Dataset.EXTENSION));
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogException(e);
-                        throw new CanNotSaveSettingsException();
-                    }
+                    await ClassLoaderSaver.SaveToJSonAsync(dataset, Path.Combine(datasetDirectory.FullName, dataset.Name + Dataset.EXTENSION));
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    throw new CanNotSaveSettingsException();
                 }
             }));
             await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving datasets", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
@@ -812,16 +791,14 @@ namespace HBP.Core.Data
             DirectoryInfo visualizationDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Visualizations"));
             var tasks = m_Visualizations.Select(visualization => (Func<UniTask>)(async () =>
             {
+                try
                 {
-                    try
-                    {
-                        await ClassLoaderSaver.SaveToJSonAsync(visualization, Path.Combine(visualizationDirectory.FullName, visualization.Name + Visualization.EXTENSION));
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogException(e);
-                        throw new CanNotSaveSettingsException();
-                    }
+                    await ClassLoaderSaver.SaveToJSonAsync(visualization, Path.Combine(visualizationDirectory.FullName, visualization.Name + Visualization.EXTENSION));
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    throw new CanNotSaveSettingsException();
                 }
             }));
             await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving visualizations", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
@@ -834,79 +811,77 @@ namespace HBP.Core.Data
         }
         private async UniTask EmbedDataIntoProjectFileAsync(DirectoryInfo projectDirectory, string oldProjectDirectory, Action<float, float, LoadingText> updateProgress)
         {
-            await UniTask.RunOnThreadPool(() =>
+            await UniTask.SwitchToThreadPool();
+            DirectoryInfo dataDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Data"));
+
+            float progress = 0.0f;
+            float progressStep = 1.0f / (Patients.Count + Datasets.Count);
+
+            updateProgress.Invoke(progress, 0, new LoadingText("Copying data"));
+
+            // Save Patient Data
+            if (Patients.Count > 0)
             {
-                DirectoryInfo dataDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Data"));
-
-                float progress = 0.0f;
-                float progressStep = 1.0f / (Patients.Count + Datasets.Count);
-
-                updateProgress.Invoke(progress, 0, new LoadingText("Copying data"));
-
-                // Save Patient Data
-                if (Patients.Count > 0)
+                DirectoryInfo patientsDirectory = Directory.CreateDirectory(Path.Combine(dataDirectory.FullName, "Anatomy"));
+                foreach (var patient in Patients)
                 {
-                    DirectoryInfo patientsDirectory = Directory.CreateDirectory(Path.Combine(dataDirectory.FullName, "Anatomy"));
-                    foreach (var patient in Patients)
+                    progress += progressStep;
+                    updateProgress.Invoke(progress, 0, new LoadingText("Copying ", patient.Name, " anatomical data"));
+
+                    DirectoryInfo patientDirectory = Directory.CreateDirectory(Path.Combine(patientsDirectory.FullName, patient.ID));
+                    if (patient.Meshes.Count > 0)
+                    {
+                        DirectoryInfo meshesDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "Meshes"));
+                        foreach (var mesh in patient.Meshes)
+                        {
+                            if (mesh is SingleMesh)
+                            {
+                                SingleMesh singleMesh = mesh as SingleMesh;
+                                singleMesh.Path = singleMesh.Path.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                                singleMesh.MarsAtlasPath = singleMesh.MarsAtlasPath.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                            }
+                            else if (mesh is LeftRightMesh)
+                            {
+                                LeftRightMesh singleMesh = mesh as LeftRightMesh;
+                                singleMesh.LeftHemisphere = singleMesh.LeftHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                                singleMesh.RightHemisphere = singleMesh.RightHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                                singleMesh.LeftMarsAtlasHemisphere = singleMesh.LeftMarsAtlasHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                                singleMesh.RightMarsAtlasHemisphere = singleMesh.RightMarsAtlasHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                            }
+                            mesh.Transformation = mesh.Transformation.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                        }
+                    }
+                    if (patient.MRIs.Count > 0)
+                    {
+                        DirectoryInfo mriDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "MRIs"));
+                        foreach (var mri in patient.MRIs)
+                        {
+                            mri.File = mri.File.CopyToDirectory(mriDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                        }
+                    }
+                }
+            }
+            // Save Localizer Data
+            if (Datasets.Count > 0)
+            {
+                DirectoryInfo localizersDirectory = Directory.CreateDirectory(Path.Combine(dataDirectory.FullName, "Functional"));
+                foreach (var dataset in Datasets)
+                {
+                    if (dataset.Data.Count > 0)
                     {
                         progress += progressStep;
-                        updateProgress.Invoke(progress, 0, new LoadingText("Copying ", patient.Name, " anatomical data"));
+                        updateProgress.Invoke(progress, 0, new LoadingText("Copying ", dataset.Name));
 
-                        DirectoryInfo patientDirectory = Directory.CreateDirectory(Path.Combine(patientsDirectory.FullName, patient.ID));
-                        if (patient.Meshes.Count > 0)
+                        DirectoryInfo datasetDirectory = Directory.CreateDirectory(Path.Combine(localizersDirectory.FullName, dataset.Name));
+                        foreach (var data in dataset.Data)
                         {
-                            DirectoryInfo meshesDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "Meshes"));
-                            foreach (var mesh in patient.Meshes)
-                            {
-                                if (mesh is SingleMesh)
-                                {
-                                    SingleMesh singleMesh = mesh as SingleMesh;
-                                    singleMesh.Path = singleMesh.Path.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
-                                    singleMesh.MarsAtlasPath = singleMesh.MarsAtlasPath.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
-                                }
-                                else if (mesh is LeftRightMesh)
-                                {
-                                    LeftRightMesh singleMesh = mesh as LeftRightMesh;
-                                    singleMesh.LeftHemisphere = singleMesh.LeftHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
-                                    singleMesh.RightHemisphere = singleMesh.RightHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
-                                    singleMesh.LeftMarsAtlasHemisphere = singleMesh.LeftMarsAtlasHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
-                                    singleMesh.RightMarsAtlasHemisphere = singleMesh.RightMarsAtlasHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
-                                }
-                                mesh.Transformation = mesh.Transformation.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
-                            }
-                        }
-                        if (patient.MRIs.Count > 0)
-                        {
-                            DirectoryInfo mriDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "MRIs"));
-                            foreach (var mri in patient.MRIs)
-                            {
-                                mri.File = mri.File.CopyToDirectory(mriDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
-                            }
+                            DirectoryInfo dataInfoDirectory = new DirectoryInfo(Path.Combine(datasetDirectory.FullName, data.Name));
+                            if (!dataInfoDirectory.Exists) dataInfoDirectory = Directory.CreateDirectory(dataInfoDirectory.FullName);
+                            data.DataContainer.CopyDataToDirectory(dataInfoDirectory, projectDirectory.FullName, oldProjectDirectory);
                         }
                     }
                 }
-                // Save Localizer Data
-                if (Datasets.Count > 0)
-                {
-                    DirectoryInfo localizersDirectory = Directory.CreateDirectory(Path.Combine(dataDirectory.FullName, "Functional"));
-                    foreach (var dataset in Datasets)
-                    {
-                        if (dataset.Data.Count > 0)
-                        {
-                            progress += progressStep;
-                            updateProgress.Invoke(progress, 0, new LoadingText("Copying ", dataset.Name));
-
-                            DirectoryInfo datasetDirectory = Directory.CreateDirectory(Path.Combine(localizersDirectory.FullName, dataset.Name));
-                            foreach (var data in dataset.Data)
-                            {
-                                DirectoryInfo dataInfoDirectory = new DirectoryInfo(Path.Combine(datasetDirectory.FullName, data.Name));
-                                if (!dataInfoDirectory.Exists) dataInfoDirectory = Directory.CreateDirectory(dataInfoDirectory.FullName);
-                                data.DataContainer.CopyDataToDirectory(dataInfoDirectory, projectDirectory.FullName, oldProjectDirectory);
-                            }
-                        }
-                    }
-                }
-            });
+            }
         }
         #endregion
     }

@@ -28,7 +28,7 @@ namespace HBP.Core.Object3D
         public FMRI(string name, string file)
         {
             Name = name;
-            Load(file);
+            Load(file).Forget();
         }
         #endregion
 
@@ -36,19 +36,17 @@ namespace HBP.Core.Object3D
         /// <summary>
         /// Load the FMRI
         /// </summary>
-        private async void Load(string file)
+        private async UniTaskVoid Load(string file)
         {
-            await UniTask.RunOnThreadPool(() =>
+            await UniTask.SwitchToThreadPool();
+            Loading = true;
+            NIFTI.Load(file);
+            for (int i = 0; i < NIFTI.NumberOfVolumes; i++)
             {
-                Loading = true;
-                NIFTI.Load(file);
-                for (int i = 0; i < NIFTI.NumberOfVolumes; i++)
-                {
-                    Volumes.Add(NIFTI.ExtractVolume(i));
-                }
-                Loading = false;
-                Loaded = true;
-            });
+                Volumes.Add(NIFTI.ExtractVolume(i));
+            }
+            Loading = false;
+            Loaded = true;
         }
         #endregion
 

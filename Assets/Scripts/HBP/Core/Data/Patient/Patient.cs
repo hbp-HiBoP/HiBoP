@@ -599,16 +599,14 @@ namespace HBP.Core.Data
         public static async UniTask<IEnumerable<Patient>> LoadFromDirectoryAsync(string[] paths, Action<float, float, LoadingText> updateProgress)
         {
             List<Patient> patients = new List<Patient>(paths.Length);
-            await UniTask.RunOnThreadPool(() =>
+            await UniTask.SwitchToThreadPool();
+            foreach (var path in paths)
             {
-                foreach (var path in paths)
+                if (LoadFromDirectory(path, out Patient patient))
                 {
-                    if (LoadFromDirectory(path, out Patient patient))
-                    {
-                        patients.Add(patient);
-                    }
+                    patients.Add(patient);
                 }
-            });
+            }
             return patients;
         }
         #endregion

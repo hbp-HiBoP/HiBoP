@@ -18,7 +18,7 @@ namespace HBP.UI.Main
             base.OK();
             ApplicationState.LoadedProject.SetGroups(ListGestion.List.Objects);
             InteractableStateManager.SetInteractables();
-            UITools.CheckProjectIDAndAskForRegeneration();
+            UITools.CheckProjectIDAndAskForRegeneration().Forget();
         }
         #endregion
 

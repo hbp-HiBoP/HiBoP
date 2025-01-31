@@ -208,7 +208,7 @@ namespace HBP.Data.Module3D
         {
             OnRemoveScene.Invoke(scene);
             m_Instance.m_Scenes.Remove(scene);
-            scene.Clean();
+            scene.Clean().Forget();
         }
         /// <summary>
         /// Load a single patient scene extracted from a visualization
@@ -347,7 +347,7 @@ namespace HBP.Data.Module3D
             UI.Module3D.AdvancedSiteConditionStrings.LoadConditions();
 
             // Objects 3D
-            Object3DManager.MNI.Load();
+            Object3DManager.MNI.Load().Forget();
             if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo64) Object3DManager.DiFuMo.Load("64");
             if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo128) Object3DManager.DiFuMo.Load("128");
             if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo256) Object3DManager.DiFuMo.Load("256");

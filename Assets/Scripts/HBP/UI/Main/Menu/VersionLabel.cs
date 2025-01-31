@@ -19,26 +19,25 @@ namespace HBP.UI.Main
         private void Awake()
         {
             m_Text.text = string.Format("{0} {1}", Application.productName, Application.version);
-            CheckVersion();
+            CheckVersion().Forget();
         }
-        private async void CheckVersion()
+        private async UniTaskVoid CheckVersion()
         {
             string version = Application.version;
-            await UniTask.RunOnThreadPool(() =>
+            await UniTask.SwitchToThreadPool();
+            try
             {
-                try
-                {
-                        using WebClient wc = new();
-                        wc.Headers.Add("User-Agent: Other");
-                        string jsonString = wc.DownloadString("https://api.github.com/repos/hbp-HiBoP/HiBoP/releases/latest");
-                        var versionInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<GithubVersionInfo>(jsonString);
-                        version = versionInfo.VersionNumber;
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                }
-            });
+                using WebClient wc = new();
+                wc.Headers.Add("User-Agent: Other");
+                string jsonString = wc.DownloadString("https://api.github.com/repos/hbp-HiBoP/HiBoP/releases/latest");
+                var versionInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<GithubVersionInfo>(jsonString);
+                version = versionInfo.VersionNumber;
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+            await UniTask.SwitchToMainThread();
             if (string.Compare(version, Application.version) > 0)
             {
                 DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "New version available", "A new version of HiBoP is available. Please update to the latest version.", () =>

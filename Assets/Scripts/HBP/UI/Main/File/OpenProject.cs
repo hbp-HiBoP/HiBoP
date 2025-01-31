@@ -37,7 +37,7 @@ namespace HBP.UI.Main
         #region Public Methods
         public void Load(ProjectInfo info)
         {
-            ProjectLoaderSaver.Load(info);
+            ProjectLoaderSaver.Load(info).Forget();
             base.Close();
             WindowsManager.CloseAll();
         }
@@ -75,7 +75,7 @@ namespace HBP.UI.Main
             m_ProjectList.OnAction.AddListener((info, i) => Load(info));
 
             // Initialise location folder selector.
-            m_LocationFolderSelector.onValueChanged.AddListener((value) => DisplayProjects(value));
+            m_LocationFolderSelector.onValueChanged.AddListener((value) => DisplayProjects(value).Forget());
 
             // Base method.
             base.Initialize();
@@ -91,7 +91,7 @@ namespace HBP.UI.Main
         #endregion
 
         #region Coroutines
-        private async void DisplayProjects(string path)
+        private async UniTaskVoid DisplayProjects(string path)
         {
             try
             {

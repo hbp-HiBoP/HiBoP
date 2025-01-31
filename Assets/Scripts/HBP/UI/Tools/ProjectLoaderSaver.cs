@@ -5,13 +5,14 @@ using HBP.Data.Module3D;
 using HBP.UI.Main;
 using System;
 using Cysharp.Threading.Tasks;
+using UnityEngine;
 
 namespace HBP.UI.Tools
 {
     public class ProjectLoaderSaver
     {
         #region Public Methods  
-        public async static void Load(ProjectInfo projectInfo)
+        public async static UniTaskVoid Load(ProjectInfo projectInfo)
         {
             await LoadAsync(projectInfo);
         }
@@ -29,7 +30,7 @@ namespace HBP.UI.Tools
             {
                 await LoadingManager.LoadAsync(update => projectToLoad.LoadAsync(projectInfo, update));
                 InteractableStateManager.SetInteractables();
-                UITools.CheckProjectIDAndAskForRegeneration();
+                UITools.CheckProjectIDAndAskForRegeneration().Forget();
             }
             catch (Exception)
             {

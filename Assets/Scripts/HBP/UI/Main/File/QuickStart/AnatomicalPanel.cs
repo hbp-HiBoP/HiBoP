@@ -6,6 +6,7 @@ using HBP.Core.Interfaces;
 using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.UI.Tools;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Main.QuickStart
 {
@@ -30,9 +31,9 @@ namespace HBP.UI.Main.QuickStart
             base.Initialize();
             m_BIDS.onValueChanged.AddListener(m_BIDSPanel.gameObject.SetActive);
             m_NotBIDS.onValueChanged.AddListener(m_NotBIDSPanel.gameObject.SetActive);
-            m_BIDSFolderSelector.onEndEdit.AddListener(LoadBIDSDatabase);
+            m_BIDSFolderSelector.onEndEdit.AddListener((path) => LoadBIDSDatabase(path).Forget());
         }
-        private async void LoadBIDSDatabase(string path)
+        private async UniTaskVoid LoadBIDSDatabase(string path)
         {
             ILoadableFromDatabase<Patient> loadable = new Patient();
             var result = await LoadingManager.LoadAsync(update => loadable.LoadFromDatabase(update));

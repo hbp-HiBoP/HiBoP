@@ -125,7 +125,7 @@ namespace HBP.Dev
             }
             */
         }
-        private async void ThrowError()
+        private async UniTaskVoid ThrowError()
         {
             await ThrowErrorAsync();
         }

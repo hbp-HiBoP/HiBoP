@@ -157,7 +157,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="path">Path to the directory to save the screenshot</param>
         /// <param name="multipleFiles">If true, multiple files (images, csv, svg ...) will be saved; if false, a simple screenshot of the whole window will be taken</param>
-        public async void Screenshot(bool multipleFiles = false)
+        public async UniTaskVoid Screenshot(bool multipleFiles = false)
         {
             try
             {

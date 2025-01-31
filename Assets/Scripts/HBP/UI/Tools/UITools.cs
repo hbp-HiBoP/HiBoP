@@ -8,6 +8,7 @@ using System.IO;
 using UnityEngine;
 using System;
 using HBP.Core.Data;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Tools
 {
@@ -38,7 +39,7 @@ namespace HBP.UI.Tools
             }
             text.text = size.ToString();
         }
-        public static async void CheckProjectIDAndAskForRegeneration()
+        public static async UniTaskVoid CheckProjectIDAndAskForRegeneration()
         {
             Dictionary<string, List<Tuple<BaseData, string>>> problematicData = await ApplicationState.LoadedProject.CheckProjectIDsAsync();
             if (problematicData.Count > 0)

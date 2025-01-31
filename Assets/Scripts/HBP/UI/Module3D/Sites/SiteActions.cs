@@ -241,7 +241,7 @@ namespace HBP.UI.Module3D
                 m_ExportSitesProgressBar.Begin();
                 List<Core.Object3D.Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered && !s.State.IsMasked).ToList();
                 m_ExportSource = new();
-                ExportSites(sites, csvPath, m_ExportSource.Token);
+                ExportSites(sites, csvPath, m_ExportSource.Token).Forget();
 #endif
             }
         }
@@ -294,12 +294,12 @@ namespace HBP.UI.Module3D
         /// <param name="sites">List of the sites to export</param>
         /// <param name="csvPath">Path to the csv file</param>
         /// <returns>Coroutine return</returns>
-        private async void ExportSites(List<Core.Object3D.Site> sites, string csvPath, CancellationToken token)
+        private async UniTaskVoid ExportSites(List<Core.Object3D.Site> sites, string csvPath, CancellationToken token)
         {
             int length = sites.Count;
             m_Exporting = true;
             float progress = 0;
-            async void reportProgress(CancellationToken cancellationToken)
+            async UniTaskVoid reportProgress(CancellationToken cancellationToken)
             {
                 while (true)
                 {
@@ -309,7 +309,7 @@ namespace HBP.UI.Module3D
                 }
             }
             m_ProgressSource = new();
-            reportProgress(m_ProgressSource.Token);
+            reportProgress(m_ProgressSource.Token).Forget();
             await UniTask.SwitchToThreadPool();
             // Prepare DataInfo by Patient for performance increase
             Dictionary <Patient, DataInfo>  dataInfoByPatient = new Dictionary<Patient, DataInfo>();

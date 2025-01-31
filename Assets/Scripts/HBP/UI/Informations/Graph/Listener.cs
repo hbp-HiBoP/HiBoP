@@ -112,7 +112,7 @@ namespace HBP.UI.Informations.Graphs
         {
             if (gameObject.activeInHierarchy)
             {
-                OnRect();
+                OnRect().Forget();
             }
         }
         void SetOrdinateDisplayRange()
@@ -124,7 +124,7 @@ namespace HBP.UI.Informations.Graphs
             OnChangeAbscissaDisplayRange.Invoke(m_AbscissaDisplayRange);
         }
 
-        async void OnRect()
+        async UniTaskVoid OnRect()
         {
             await UniTask.WaitForEndOfFrame();
             Rect rect = m_RectTransform.rect;

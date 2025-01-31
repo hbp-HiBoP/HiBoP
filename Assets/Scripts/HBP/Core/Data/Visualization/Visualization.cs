@@ -404,41 +404,39 @@ namespace HBP.Core.Data
             IEnumerable<DataInfo> dataInfoCollection = dataInfoByColumn.SelectMany(d => d.Value).Distinct();
             var tasks = dataInfoCollection.Select(dataInfo => (Func<UniTask>)(async () =>
             {
-                await UniTask.RunOnThreadPool(() =>
+                await UniTask.SwitchToThreadPool();
+                try
                 {
-                    try
+                    // PROBABLY FIXME
+                    Data data = DataManager.GetData(dataInfo);
+                    if (data is EpochedData epochedData)
                     {
-                        // PROBABLY FIXME
-                        Data data = DataManager.GetData(dataInfo);
-                        if (data is EpochedData epochedData)
+                        foreach (var column in dataInfoByColumn.Keys)
                         {
-                            foreach (var column in dataInfoByColumn.Keys)
+                            if (column is CCEPColumn ccepColumn)
                             {
-                                if (column is CCEPColumn ccepColumn)
+                                if (epochedData.DataByBloc.TryGetValue(ccepColumn.Bloc, out BlocData blocData) && !blocData.IsValid)
                                 {
-                                    if (epochedData.DataByBloc.TryGetValue(ccepColumn.Bloc, out BlocData blocData) && !blocData.IsValid)
-                                    {
-                                        throw new Exception("No bloc " + ccepColumn.Bloc.Name + " could be epoched.");
-                                    }
+                                    throw new Exception("No bloc " + ccepColumn.Bloc.Name + " could be epoched.");
                                 }
                             }
                         }
                     }
-                    catch (CannotEpochAllTrialsException e)
-                    {
-                        UnityEngine.Debug.LogException(e);
-                        throw new CannotLoadDataInfoException(string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name), (dataInfo is PatientDataInfo pDataInfo ? pDataInfo.Patient.Name : "Unkwown patient"), string.Format("You are trying to epoch a bloc from index {0} to index {1} while the minimum possible index is {2} and the maximum possible index is {3}.", e.StartIndex, e.EndIndex, 0, e.Length));
-                    }
-                    catch (Exception e)
-                    {
-                        UnityEngine.Debug.LogException(e);
-                        throw new CannotLoadDataInfoException(string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name), (dataInfo is PatientDataInfo pDataInfo ? pDataInfo.Patient.Name : "Unkwown patient"), e.Message);
-                    }
-                });
+                }
+                catch (CannotEpochAllTrialsException e)
+                {
+                    UnityEngine.Debug.LogException(e);
+                    throw new CannotLoadDataInfoException(string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name), (dataInfo is PatientDataInfo pDataInfo ? pDataInfo.Patient.Name : "Unkwown patient"), string.Format("You are trying to epoch a bloc from index {0} to index {1} while the minimum possible index is {2} and the maximum possible index is {3}.", e.StartIndex, e.EndIndex, 0, e.Length));
+                }
+                catch (Exception e)
+                {
+                    UnityEngine.Debug.LogException(e);
+                    throw new CannotLoadDataInfoException(string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name), (dataInfo is PatientDataInfo pDataInfo ? pDataInfo.Patient.Name : "Unkwown patient"), e.Message);
+                }
             }));
             await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, LOADING_DATA_PROGRESS, "Loading data", updateProgress, 5, PersistentDataManager.UserPreferences.General.System.MultiThreading);
             updateProgress.Invoke(LOADING_DATA_PROGRESS + NORMALIZING_DATA_PROGRESS, 1.0f, new LoadingText("Normalizing data"));
-            await UniTask.RunOnThreadPool(() => DataManager.NormalizeiEEGData());
+            DataManager.NormalizeiEEGData();
         }
         private async UniTask LoadColumnsAsync(Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn, Action<float, float, LoadingText> onChangeProgress)
         {
@@ -507,76 +505,71 @@ namespace HBP.Core.Data
         }
         private async UniTask LoadFMRIColumnsAsync(Action<float, float, LoadingText> onChangeProgress)
         {
-            await UniTask.RunOnThreadPool(() =>
+            await UniTask.SwitchToThreadPool();
+            ReadOnlyCollection<FMRIColumn> fmriColumns = FMRIColumns;
+            int nbFMRIColumns = fmriColumns.Count;
+
+            float progress = 0;
+            const float TIME_BY_DATAINFO = 1f;
+            float loadingDataStep = 1f / nbFMRIColumns;
+
+            if (nbFMRIColumns > 0)
             {
-                ReadOnlyCollection<FMRIColumn> fmriColumns = FMRIColumns;
-                int nbFMRIColumns = fmriColumns.Count;
-
-                float progress = 0;
-                const float TIME_BY_DATAINFO = 1f;
-                float loadingDataStep = 1f / nbFMRIColumns;
-
-                if (nbFMRIColumns > 0)
+                for (int i = 0; i < nbFMRIColumns; ++i)
                 {
-                    for (int i = 0; i < nbFMRIColumns; ++i)
-                    {
-                        FMRIColumn fmriColumn = fmriColumns[i];
-                        FMRIDataInfo[] dataInfos = fmriColumn.Dataset.GetFMRIDataInfos().Where(data => Patients.Contains(data.Patient)).ToArray();
-                        SharedFMRIDataInfo[] sharedFMRIDataInfos = fmriColumn.Dataset.GetSharedFMRIDataInfos();
-                        progress += loadingDataStep;
-                        onChangeProgress(progress, TIME_BY_DATAINFO * (dataInfos.Length + sharedFMRIDataInfos.Length), new LoadingText("Loading FMRI column ", fmriColumn.Name, " [" + (i + 1) + "/" + nbFMRIColumns + "]"));
-                        fmriColumn.Data.Load(dataInfos, sharedFMRIDataInfos);
-                    }
+                    FMRIColumn fmriColumn = fmriColumns[i];
+                    FMRIDataInfo[] dataInfos = fmriColumn.Dataset.GetFMRIDataInfos().Where(data => Patients.Contains(data.Patient)).ToArray();
+                    SharedFMRIDataInfo[] sharedFMRIDataInfos = fmriColumn.Dataset.GetSharedFMRIDataInfos();
+                    progress += loadingDataStep;
+                    onChangeProgress(progress, TIME_BY_DATAINFO * (dataInfos.Length + sharedFMRIDataInfos.Length), new LoadingText("Loading FMRI column ", fmriColumn.Name, " [" + (i + 1) + "/" + nbFMRIColumns + "]"));
+                    fmriColumn.Data.Load(dataInfos, sharedFMRIDataInfos);
                 }
-            });
+            }
+
         }
         private async UniTask LoadMEGColumnsAsync(Action<float, float, LoadingText> onChangeProgress)
         {
-            await UniTask.RunOnThreadPool(() =>
+            await UniTask.SwitchToThreadPool();
+            ReadOnlyCollection<MEGColumn> megColumns = MEGColumns;
+            int nbMegColumns = megColumns.Count;
+
+            float progress = 0;
+            const float TIME_BY_DATAINFO = 1f;
+            float loadingDataStep = 1f / nbMegColumns;
+
+            if (nbMegColumns > 0)
             {
-                ReadOnlyCollection<MEGColumn> megColumns = MEGColumns;
-                int nbMegColumns = megColumns.Count;
-
-                float progress = 0;
-                const float TIME_BY_DATAINFO = 1f;
-                float loadingDataStep = 1f / nbMegColumns;
-
-                if (nbMegColumns > 0)
+                for (int i = 0; i < nbMegColumns; ++i)
                 {
-                    for (int i = 0; i < nbMegColumns; ++i)
-                    {
-                        MEGColumn megColumn = megColumns[i];
-                        PatientDataInfo[] dataInfos = megColumn.Dataset.GetMEGDataInfos().Where(data => Patients.Contains(data.Patient)).ToArray();
-                        progress += loadingDataStep;
-                        onChangeProgress(progress, TIME_BY_DATAINFO * dataInfos.Length, new LoadingText("Loading MEG column ", megColumn.Name, " [" + (i + 1) + "/" + nbMegColumns + "]"));
-                        megColumn.Data.Load(dataInfos);
-                    }
+                    MEGColumn megColumn = megColumns[i];
+                    PatientDataInfo[] dataInfos = megColumn.Dataset.GetMEGDataInfos().Where(data => Patients.Contains(data.Patient)).ToArray();
+                    progress += loadingDataStep;
+                    onChangeProgress(progress, TIME_BY_DATAINFO * dataInfos.Length, new LoadingText("Loading MEG column ", megColumn.Name, " [" + (i + 1) + "/" + nbMegColumns + "]"));
+                    megColumn.Data.Load(dataInfos);
                 }
-            });
+            }
         }
         private async UniTask LoadStaticColumnsAsync(Action<float, float, LoadingText> onChangeProgress)
         {
-            await UniTask.RunOnThreadPool(() =>
+            await UniTask.SwitchToThreadPool();
+            ReadOnlyCollection<StaticColumn> staticColumns = StaticColumns;
+            int nbStaticColumns = staticColumns.Count;
+
+            float progress = 0;
+            const float TIME_BY_DATAINFO = 1f;
+            float loadingDataStep = 1f / nbStaticColumns;
+
+            if (nbStaticColumns > 0)
             {
-                ReadOnlyCollection<StaticColumn> staticColumns = StaticColumns;
-                int nbStaticColumns = staticColumns.Count;
-
-                float progress = 0;
-                const float TIME_BY_DATAINFO = 1f;
-                float loadingDataStep = 1f / nbStaticColumns;
-
-                if (nbStaticColumns > 0)
+                for (int i = 0; i < nbStaticColumns; ++i)
                 {
-                    for (int i = 0; i < nbStaticColumns; ++i)
-                    {
-                        StaticColumn staticColumn = staticColumns[i];
-                        StaticDataInfo[] dataInfos = staticColumn.Dataset.GetStaticDataInfos().Where(data => Patients.Contains(data.Patient) && staticColumn.DataName == data.Name).ToArray();
-                        progress += loadingDataStep;
-                        onChangeProgress(progress, TIME_BY_DATAINFO * dataInfos.Length, new LoadingText("Loading Static column ", staticColumn.Name, " [" + (i + 1) + "/" + nbStaticColumns + "]"));
-                        staticColumn.Data.Load(dataInfos);
-                    }
+                    StaticColumn staticColumn = staticColumns[i];
+                    StaticDataInfo[] dataInfos = staticColumn.Dataset.GetStaticDataInfos().Where(data => Patients.Contains(data.Patient) && staticColumn.DataName == data.Name).ToArray();
+                    progress += loadingDataStep;
+                    onChangeProgress(progress, TIME_BY_DATAINFO * dataInfos.Length, new LoadingText("Loading Static column ", staticColumn.Name, " [" + (i + 1) + "/" + nbStaticColumns + "]"));
+                    staticColumn.Data.Load(dataInfos);
                 }
-            });
+            }
         }
         #endregion
 

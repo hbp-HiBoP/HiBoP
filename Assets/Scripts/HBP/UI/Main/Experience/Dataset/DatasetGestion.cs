@@ -24,14 +24,14 @@ namespace HBP.UI.Main
                     ApplicationState.LoadedProject.SetDatasets(m_ListGestion.List.Objects);
                     DataManager.Clear();
                     Module3DMain.ReloadScenes();
-                    UITools.CheckProjectIDAndAskForRegeneration();
+                    UITools.CheckProjectIDAndAskForRegeneration().Forget();
                 });
             }
             else
             {
                 base.OK();
                 ApplicationState.LoadedProject.SetDatasets(m_ListGestion.List.Objects);
-                UITools.CheckProjectIDAndAskForRegeneration();
+                UITools.CheckProjectIDAndAskForRegeneration().Forget();
             }
             InteractableStateManager.SetInteractables();
         }

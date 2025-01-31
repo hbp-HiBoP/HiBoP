@@ -30,7 +30,7 @@ namespace HBP.UI.Database
         {
             base.OK();
             DatabaseManager.Database.SetDatabaseReferences(m_ListGestion.List.Objects);
-            DatabaseManager.Database.SaveDatabaseReferences();
+            DatabaseManager.Database.SaveDatabaseReferences().Forget();
             InteractableStateManager.SetInteractables();
         }
         public void UpdateDatabases()

@@ -70,11 +70,11 @@ namespace HBP.UI.Module3D
                 if (m_AdvancedToggle.isOn)
                 {
                     m_AdvancedSiteConditions.ParseConditions();
-                    m_AdvancedSiteConditions.FilterSitesWithConditions(sites, m_FilterSource.Token, m_ProgressSource.Token);
+                    m_AdvancedSiteConditions.FilterSitesWithConditions(sites, m_FilterSource.Token, m_ProgressSource.Token).Forget();
                 }
                 else
                 {
-                    m_BasicSiteConditions.FilterSitesWithConditions(sites, m_FilterSource.Token, m_ProgressSource.Token);
+                    m_BasicSiteConditions.FilterSitesWithConditions(sites, m_FilterSource.Token, m_ProgressSource.Token).Forget();
                 }
             }
             catch (Exception e)

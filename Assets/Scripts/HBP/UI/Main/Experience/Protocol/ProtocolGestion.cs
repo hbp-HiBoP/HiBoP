@@ -24,24 +24,24 @@ namespace HBP.UI.Main
                 {
                     base.OK();
                     DatabaseManager.Database.SetProtocols(m_ListGestion.List.Objects);
-                    DatabaseManager.Database.SaveProtocols();
+                    DatabaseManager.Database.SaveProtocols().Forget();
                     InteractableStateManager.SetInteractables();
                     LoadingManager.Load(update => ApplicationState.LoadedProject.CheckDatasetsAsync(m_ListGestion.ModifiedProtocols, update));
                     DataManager.Clear();
                     Module3DMain.ReloadScenes();
-                    UITools.CheckProjectIDAndAskForRegeneration();
+                    UITools.CheckProjectIDAndAskForRegeneration().Forget();
                 });
             }
             else
             {
                 base.OK();
                 DatabaseManager.Database.SetProtocols(m_ListGestion.List.Objects);
-                DatabaseManager.Database.SaveProtocols();
+                DatabaseManager.Database.SaveProtocols().Forget();
                 InteractableStateManager.SetInteractables();
                 if (ApplicationState.LoadedProject != null)
                 {
                     LoadingManager.Load(update => ApplicationState.LoadedProject.CheckDatasetsAsync(m_ListGestion.ModifiedProtocols, update));
-                    UITools.CheckProjectIDAndAskForRegeneration();
+                    UITools.CheckProjectIDAndAskForRegeneration().Forget();
                 }
             }
         }

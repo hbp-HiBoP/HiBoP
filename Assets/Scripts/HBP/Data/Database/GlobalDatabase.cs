@@ -55,20 +55,21 @@ namespace HBP.Data.Database
                 CopyDefaultDatabase();
                 database.SaveSettings();
             }
-            database.InitializeDatabase();
+            database.InitializeDatabase().Forget();
             return database;
         }
-        public async void SaveProtocols()
+        public async UniTaskVoid SaveProtocols()
         {
             await SaveProtocolsAsync();
         } 
-        public async void SaveDatabaseReferences()
+        public async UniTaskVoid SaveDatabaseReferences()
         {
             await SaveDatabaseReferencesAsync();
         }
 
-        public async void LoadDatabase()
+        public async UniTaskVoid LoadDatabase()
         {
+            await UniTask.SwitchToThreadPool();
             await LoadDatabaseAsync();
         }
         public void UpdateDatabases(IEnumerable<DatabaseReference> databaseReferences, UnityAction onUpdated)
@@ -105,21 +106,17 @@ namespace HBP.Data.Database
             ClassLoaderSaver.SaveToJSon(m_Settings, GlobalDatabaseSettings.PATH, true);
         }
 
-        private async void InitializeDatabase()
+        private async UniTaskVoid InitializeDatabase()
         {
             await LoadProtocolsAsync();
             await LoadDatabaseReferencesAsync();
-            LoadDatabase();
+            LoadDatabase().Forget();
         }
         private async UniTask LoadDatabaseAsync()
         {
-            System.Diagnostics.Stopwatch stopwatch = new();
-            stopwatch.Start();
             await LoadPatientsAsync();
             await LoadDatasetsAsync();
             IsLoaded = true;
-            stopwatch.Stop();
-            Debug.Log("Database loaded in " + stopwatch.ElapsedMilliseconds + " ms");
         }
 
         private async UniTask LoadProtocolsAsync()

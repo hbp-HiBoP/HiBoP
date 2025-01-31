@@ -36,7 +36,7 @@ namespace HBP.UI.Main
         {
             ApplicationState.LoadedProject.SetVisualizations(m_ListGestion.List.Objects);
             base.OK();
-            UITools.CheckProjectIDAndAskForRegeneration();
+            UITools.CheckProjectIDAndAskForRegeneration().Forget();
         }
         public void Display()
         {

@@ -4,6 +4,7 @@ using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Main.QuickStart
 {
@@ -70,14 +71,14 @@ namespace HBP.UI.Main.QuickStart
                 if (CurrentPanel.OpenNextPanel())
                     CurrentPanel = CurrentPanel.NextPanel;
                 if (CurrentPanel == null)
-                    Finish();
+                    Finish().Forget();
             });
             m_CurrentlyOpenedProject = ApplicationState.LoadedProject;
             m_CurrentlyOpenedProjectLocation = ApplicationState.LoadedProjectLocation;
             ApplicationState.LoadedProject = new Project();
             ApplicationState.LoadedProjectLocation = Application.dataPath;
         }
-        private async void Finish()
+        private async UniTaskVoid Finish()
         {
             base.Close();
             await LoadingManager.LoadAsync(update => ApplicationState.LoadedProject.SaveAsync(ApplicationState.LoadedProjectLocation, update));

@@ -20,11 +20,9 @@ namespace HBP.Core.Tools
         }
         public static async UniTask<T> LoadFromJsonAsync<T>(string path) where T : new()
         {
-            T result = new T();
-            await UniTask.RunOnThreadPool(() => {
-                using StreamReader streamReader = new(path);
-                result = JsonConvert.DeserializeObject<T>(streamReader.ReadToEnd(), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
-            });
+            await UniTask.SwitchToThreadPool();
+            using StreamReader streamReader = new(path);
+            T result = JsonConvert.DeserializeObject<T>(streamReader.ReadToEnd(), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
             return result;
         }
         public static bool SaveToJSon<T>(T instance, string path, bool overwrite = false) where T : new()
@@ -32,12 +30,10 @@ namespace HBP.Core.Tools
             try
             {
                 if (!overwrite) path = path.GenerateUniqueFilePath();
-                using (StreamWriter streamWriter = new StreamWriter(path))
-                {
-                    string json = JsonConvert.SerializeObject(instance, Formatting.Indented, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple });
-                    streamWriter.Write(json);
-                    streamWriter.Close();
-                }
+                using StreamWriter streamWriter = new StreamWriter(path);
+                string json = JsonConvert.SerializeObject(instance, Formatting.Indented, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple });
+                streamWriter.Write(json);
+                streamWriter.Close();
                 return true;
             }
             catch (Exception e)
@@ -50,14 +46,12 @@ namespace HBP.Core.Tools
         {
             try
             {
-                await UniTask.RunOnThreadPool(() =>
-                {
-                    if (!overwrite) path = path.GenerateUniqueFilePath();
-                    using StreamWriter streamWriter = new(path);
-                    string json = JsonConvert.SerializeObject(instance, Formatting.Indented, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple });
-                    streamWriter.Write(json);
-                    streamWriter.Close();
-                });
+                await UniTask.SwitchToThreadPool();
+                if (!overwrite) path = path.GenerateUniqueFilePath();
+                using StreamWriter streamWriter = new(path);
+                string json = JsonConvert.SerializeObject(instance, Formatting.Indented, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple });
+                streamWriter.Write(json);
+                streamWriter.Close();
                 return true;
             }
             catch (Exception e)

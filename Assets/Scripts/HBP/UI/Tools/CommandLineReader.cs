@@ -19,12 +19,12 @@ namespace HBP.UI.Tools
             #if UNITY_EDITOR
             //args = new string[] { "HiBoP", "-p", "VISU", "-v", "VISU"};
             #endif
-            InterpreteCommandLineArguments(args);
+            InterpreteCommandLineArguments(args).Forget();
         }
         #endregion
 
         #region Coroutines
-        private async void InterpreteCommandLineArguments(string[] args)
+        private async UniTaskVoid InterpreteCommandLineArguments(string[] args)
         {
             if (args.Length != 0)
             {

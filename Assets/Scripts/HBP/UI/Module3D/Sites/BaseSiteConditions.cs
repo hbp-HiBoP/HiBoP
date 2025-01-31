@@ -398,11 +398,11 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="sites">List of the sites to be checked using the set of conditions defined in the subclasses</param>
         /// <returns>Coroutine return</returns>
-        public async void FilterSitesWithConditions(List<Core.Object3D.Site> sites, CancellationToken token, CancellationToken progressToken)
+        public async UniTaskVoid FilterSitesWithConditions(List<Core.Object3D.Site> sites, CancellationToken token, CancellationToken progressToken)
         {
             int length = sites.Count;
             float progress = 0;
-            async void reportProgress(CancellationToken cancellationToken)
+            async UniTaskVoid reportProgress(CancellationToken cancellationToken)
             {
                 while (true)
                 {
@@ -416,33 +416,31 @@ namespace HBP.UI.Module3D
                     await UniTask.WaitForEndOfFrame();
                 }
             }
-            reportProgress(progressToken);
+            reportProgress(progressToken).Forget();
             bool filtered = false;
-            await UniTask.RunOnThreadPool(() =>
+            await UniTask.SwitchToThreadPool();
+            try
             {
-                try
+                for (int i = 0; i < length; ++i)
                 {
-                    for (int i = 0; i < length; ++i)
+                    token.ThrowIfCancellationRequested();
+                    Core.Object3D.Site site = sites[i];
+                    bool match = CheckConditions(site);
+                    if (match)
                     {
-                        token.ThrowIfCancellationRequested();
-                        Core.Object3D.Site site = sites[i];
-                        bool match = CheckConditions(site);
-                        if (match)
-                        {
-                            m_MatchingSites.Enqueue(site);
-                        }
-                        progress = (float)(i + 1) / length;
+                        m_MatchingSites.Enqueue(site);
                     }
-                    filtered = true;
+                    progress = (float)(i + 1) / length;
                 }
-                catch (OperationCanceledException)
-                {
-                }
-                catch (Exception e)
-                {
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
-                }
-            });
+                filtered = true;
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception e)
+            {
+                DialogBoxManager.Open(DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
+            }
             OnEndFilter.Invoke(filtered);
         }
         #endregion

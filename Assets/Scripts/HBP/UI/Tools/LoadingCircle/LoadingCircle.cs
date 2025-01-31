@@ -75,7 +75,7 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Coroutines
-        private async void TextLoadingEffect(CancellationToken token)
+        private async UniTaskVoid TextLoadingEffect(CancellationToken token)
         {
             while (!token.IsCancellationRequested)
             {
@@ -96,7 +96,7 @@ namespace HBP.UI.Tools
         private void Awake()
         {
             m_CancellationTokenSource = new();
-            TextLoadingEffect(m_CancellationTokenSource.Token);
+            //TextLoadingEffect(m_CancellationTokenSource.Token).Forget();
         }
         private void Update()
         {

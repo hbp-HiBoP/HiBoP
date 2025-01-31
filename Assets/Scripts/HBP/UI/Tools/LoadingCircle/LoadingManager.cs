@@ -27,15 +27,18 @@ namespace HBP.UI.Tools
             method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.m_LoadingCircle.ChangePercentage(progress, 0, message));
             try
             {
+                await UniTask.SwitchToThreadPool();
                 return await method.ExecuteAsync();
             }
             catch (Exception e)
             {
+                await UniTask.SwitchToMainThread();
                 DialogBoxManager.Open(DialogBoxManager.AlertType.Error, e.ToString(), e.Message);
                 return default;
             }
             finally
             {
+                await UniTask.SwitchToMainThread();
                 m_Instance.m_LoadingCircle.Close();
             }
         }
@@ -46,28 +49,37 @@ namespace HBP.UI.Tools
             method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.m_LoadingCircle.ChangePercentage(progress, 0, message));
             try
             {
+                await UniTask.SwitchToThreadPool();
                 await method.ExecuteAsync();
             }
             catch (Exception e)
             {
+                await UniTask.SwitchToMainThread();
                 DialogBoxManager.Open(DialogBoxManager.AlertType.Error, e.ToString(), e.Message);
             }
-            finally
-            {
-                m_Instance.m_LoadingCircle.Close();
-            }
+            await UniTask.SwitchToMainThread();
+            m_Instance.m_LoadingCircle.Close();
         }
-        public static async void Load(Func<Action<float, float, LoadingText>, UniTask> taskToExecute)
+        public static void Load(Func<Action<float, float, LoadingText>, UniTask> taskToExecute)
         {
-            AsyncMethod method = new AsyncMethod(taskToExecute);
+            LoadVoid(taskToExecute).Forget();
+        }
+        #endregion
+
+        #region Private Methods
+        private static async UniTaskVoid LoadVoid(Func<Action<float, float, LoadingText>, UniTask> taskToExecute)
+        {
+            AsyncMethod method = new(taskToExecute);
             m_Instance.m_LoadingCircle.Open();
             method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.m_LoadingCircle.ChangePercentage(progress, 0, message));
             try
             {
+                await UniTask.SwitchToThreadPool();
                 await method.ExecuteAsync();
             }
             catch (Exception e)
             {
+                await UniTask.SwitchToMainThread();
                 DialogBoxManager.Open(DialogBoxManager.AlertType.Error, e.ToString(), e.Message);
             }
             m_Instance.m_LoadingCircle.Close();
