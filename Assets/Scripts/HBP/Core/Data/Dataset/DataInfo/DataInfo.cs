@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using System.Text;
 using UnityEngine.Events;
 using HBP.Core.Errors;
 using HBP.Core.Interfaces;
-using HBP.Core.Tools;
-using HBP.Data.Database;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
@@ -46,11 +44,11 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class DataInfo : BaseData, INameable
     {
         #region Properties
-        [DataMember(Name = "Name")] protected string m_Name;
+        [JsonProperty("Name")] protected string m_Name;
         /// <summary>
         /// Name of the data.
         /// </summary>
@@ -60,7 +58,7 @@ namespace HBP.Core.Data
             set { m_Name = value; m_NameErrors = GetNameErrors(); }
         }
 
-        [DataMember(Name = "DataContainer")] protected Container.DataContainer m_DataContainer;
+        [JsonProperty("DataContainer")] protected Container.DataContainer m_DataContainer;
         /// <summary>
         /// Data container containing all the paths to functional data files.
         /// </summary>
@@ -70,7 +68,7 @@ namespace HBP.Core.Data
             set { m_DataContainer = value; m_DataContainer.GetErrors(); m_DataContainer.OnRequestErrorCheck.AddListener(GetErrorsAndWarnings); }
         }
 
-        [DataMember] public string CorrespondingDatabaseID { get; set; }
+        [JsonProperty] public string CorrespondingDatabaseID { get; set; }
 
         /// <summary>
         /// Dataset the dataInfo belongs to.

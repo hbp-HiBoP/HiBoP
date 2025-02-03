@@ -1,14 +1,15 @@
 using HBP.Core.Tools;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace HBP.Core.Data
 {
+    [JsonObject(MemberSerialization.OptIn)]
     public class TagCollection : BaseData
     {
         #region Properties
@@ -25,13 +26,13 @@ namespace HBP.Core.Data
             }
         }
 
-        [DataMember] private List<BaseTag> m_GeneralTags;
+        [JsonProperty] private List<BaseTag> m_GeneralTags;
         public ReadOnlyCollection<BaseTag> GeneralTags => new ReadOnlyCollection<BaseTag>(m_GeneralTags);
 
-        [DataMember] private List<BaseTag> m_PatientsTags;
+        [JsonProperty] private List<BaseTag> m_PatientsTags;
         public ReadOnlyCollection<BaseTag> PatientsTags => new ReadOnlyCollection<BaseTag>(m_PatientsTags);
 
-        [DataMember] private List<BaseTag> m_SitesTags;
+        [JsonProperty] private List<BaseTag> m_SitesTags;
         public ReadOnlyCollection<BaseTag> SitesTags => new ReadOnlyCollection<BaseTag>(m_SitesTags);
         #endregion
 

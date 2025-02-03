@@ -3,7 +3,6 @@ using System.Net;
 using System;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
 using HBP.UI.Tools;
 using Cysharp.Threading.Tasks;
 

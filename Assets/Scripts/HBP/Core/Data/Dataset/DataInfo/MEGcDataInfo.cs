@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Runtime.Serialization;
 using HBP.Core.Errors;
-using HBP.Core.Tools;
 
 namespace HBP.Core.Data
 {
@@ -50,7 +48,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("MEGc")]
+    [DisplayName("MEGc")]
     public class MEGcDataInfo : PatientDataInfo
     {
         #region Properties

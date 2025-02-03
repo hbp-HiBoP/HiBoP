@@ -1,12 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Runtime.Serialization;
-using HBP.Core.Tools;
+﻿using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class ProjectPreferences : BaseData
     {
         #region Properties
@@ -17,19 +13,19 @@ namespace HBP.Core.Data
         /// <summary>
         /// Project settings name.
         /// </summary>
-        [DataMember] public string Name { get; set; }
+        [JsonProperty] public string Name { get; set; }
         /// <summary>
         /// Patient database.
         /// </summary>
-        [DataMember] public string PatientDatabase { get; set; }
+        [JsonProperty] public string PatientDatabase { get; set; }
         /// <summary>
         /// Localizer database.
         /// </summary>
-        [DataMember] public string LocalizerDatabase { get; set; }
-        [IgnoreDataMember] public static string DefaultName = "New Project";
-        [IgnoreDataMember] public static string DefaultPatientDatabase = "";
-        [IgnoreDataMember] public static string DefaultLocalizerDatabase = "";
-        [IgnoreDataMember] public bool CanLoadProject = true;
+        [JsonProperty] public string LocalizerDatabase { get; set; }
+        [JsonIgnore] public static string DefaultName = "New Project";
+        [JsonIgnore] public static string DefaultPatientDatabase = "";
+        [JsonIgnore] public static string DefaultLocalizerDatabase = "";
+        [JsonIgnore] public bool CanLoadProject = true;
         #endregion
 
         #region Constructors

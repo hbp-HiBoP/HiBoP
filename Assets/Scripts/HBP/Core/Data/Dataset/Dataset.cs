@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using System.IO;
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
@@ -12,6 +11,7 @@ using HBP.Core.Tools;
 using HBP.Data.Database;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
@@ -42,7 +42,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class Dataset : BaseData, ILoadable<Dataset>, ILoadableFromDatabase<Dataset>, INameable
     {
         #region Properties
@@ -50,9 +50,9 @@ namespace HBP.Core.Data
         /// <summary>
         /// Name of the dataset.
         /// </summary>
-        [DataMember] public string Name { get; set; }
+        [JsonProperty] public string Name { get; set; }
 
-        [DataMember(Name = "Protocol", Order = 3)] string m_ProtocolID;
+        [JsonProperty("Protocol", Order = 3)] string m_ProtocolID;
         Protocol m_Protocol;
         /// <summary>
         /// Protocol used during the experiment.
@@ -70,7 +70,7 @@ namespace HBP.Core.Data
             }
         }
 
-        [DataMember(Order = 4, Name = "Data")] List<DataInfo> m_Data;
+        [JsonProperty("Data", Order = 4)] List<DataInfo> m_Data;
         /// <summary>
         /// DataInfo of the dataset.
         /// </summary>

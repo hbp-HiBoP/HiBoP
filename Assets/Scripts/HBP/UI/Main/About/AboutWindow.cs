@@ -1,7 +1,6 @@
 using HBP.UI.Tools;
 using System.Globalization;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace HBP.UI.Main
 {

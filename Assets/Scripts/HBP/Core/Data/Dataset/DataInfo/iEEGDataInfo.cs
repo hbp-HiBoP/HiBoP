@@ -3,9 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Runtime.Serialization;
 using HBP.Core.Enums;
-using HBP.Core.Tools;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
@@ -52,14 +51,14 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("iEEG")]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("iEEG")]
     public class IEEGDataInfo : PatientDataInfo, IEpochable
     {
         #region Properties
         /// <summary>
         /// Normalization of the Data.
         /// </summary>
-        [DataMember(Name = "Normalization")]
+        [JsonProperty("Normalization")]
         public NormalizationType Normalization { get; set; }
 
         protected Error[] m_iEEGErrors = new Error[0];

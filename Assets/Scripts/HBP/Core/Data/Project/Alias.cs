@@ -1,15 +1,15 @@
-﻿using System.Runtime.Serialization;
-using UnityEngine;
+﻿using UnityEngine;
 using HBP.Core.Interfaces;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class Alias : BaseData, INameable
     {
         #region Properties
-        [DataMember] public string Key { get; set; }
-        [DataMember] public string Value { get; set; }
+        [JsonProperty] public string Key { get; set; }
+        [JsonProperty] public string Value { get; set; }
         string INameable.Name { get => Key; set => Key = value; }
         #endregion
 

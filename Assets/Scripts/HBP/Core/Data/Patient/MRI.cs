@@ -1,9 +1,9 @@
 ﻿using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Collections.Generic;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
@@ -30,7 +30,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class MRI : BaseData, INameable
     {
         #region Properties
@@ -41,11 +41,11 @@ namespace HBP.Core.Data
         /// <summary>
         /// Name of the MRI.
         /// </summary>
-        [DataMember] public string Name { get; set; }
+        [JsonProperty] public string Name { get; set; }
         /// <summary>
         /// MRI file path with Alias.
         /// </summary>
-        [DataMember(Name = "File")] public string SavedFile { get; protected set; }
+        [JsonProperty("File")] public string SavedFile { get; protected set; }
         /// <summary>
         /// MRI file path without Alias.
         /// </summary>

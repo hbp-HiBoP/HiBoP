@@ -630,8 +630,8 @@ namespace HBP.Core.Data
         }
         private async UniTask LoadPatientsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
-            const float LOADING_PROGRESS = 0.60f;
-            const float CHECKING_PROGRESS = 0.40f;
+            const float LOADING_PROGRESS = 0.95f;
+            const float CHECKING_PROGRESS = 0.05f;
             List<Patient> patients = new List<Patient>();
             DirectoryInfo patientDirectory = projectDirectory.GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);

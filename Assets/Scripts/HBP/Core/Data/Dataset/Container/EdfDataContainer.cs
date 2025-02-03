@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization;
 using HBP.Core.Errors;
 using System.ComponentModel;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data.Container
 {
@@ -29,7 +29,7 @@ namespace HBP.Core.Data.Container
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("EDF"), IEEG, CCEP, MEGc]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("EDF"), IEEG, CCEP, MEGc]
     public class EDF : DataContainer
     {
         #region Properties
@@ -41,7 +41,7 @@ namespace HBP.Core.Data.Container
         /// <summary>
         /// Path to the EDF file with Alias.
         /// </summary>
-        [DataMember(Name = "EDF")] public string SavedFile { get; protected set; } = "";
+        [JsonProperty("EDF")] public string SavedFile { get; protected set; } = "";
         /// <summary>
         /// Path to the EDF file without Alias.
         /// </summary>

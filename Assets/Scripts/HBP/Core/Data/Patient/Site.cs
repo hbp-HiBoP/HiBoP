@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using HBP.Core.Interfaces;
 using HBP.Core.Object3D;
 using HBP.Core.Tools;
 using HBP.Data.Preferences;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
@@ -38,26 +38,26 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class Site : BaseData, INameable, ILoadable<Site>
     {
         #region Properties
         /// <summary>
         /// Name of the site.
         /// </summary>
-        [DataMember] public string Name { get; set; }
+        [JsonProperty] public string Name { get; set; }
         /// <summary>
         /// Coordinates of the site in specific reference systems.
         /// </summary>
-        [DataMember] public List<Coordinate> Coordinates { get; set; }
+        [JsonProperty] public List<Coordinate> Coordinates { get; set; }
         /// <summary>
         /// Tags of the site.
         /// </summary>
-        [DataMember] public List<BaseTagValue> Tags { get; set; }
+        [JsonProperty] public List<BaseTagValue> Tags { get; set; }
         /// <summary>
         /// Do we need to fix site names ?
         /// </summary>
-        [IgnoreDataMember] public static bool SiteNameCorrection = true;
+        [JsonIgnore] public static bool SiteNameCorrection = true;
         #endregion
 
         #region Constructors

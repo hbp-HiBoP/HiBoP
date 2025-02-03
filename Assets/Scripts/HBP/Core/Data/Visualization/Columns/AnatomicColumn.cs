@@ -1,14 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.ComponentModel;
-using System.Runtime.Serialization;
 
 namespace HBP.Core.Data
 {
-    [DataContract, DisplayName("Anatomic")]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("Anatomic")]
     public class AnatomicColumn : Column
     {
         #region Properties
-        [DataMember] public AnatomicConfiguration AnatomicConfiguration { get; set; }
+        [JsonProperty] public AnatomicConfiguration AnatomicConfiguration { get; set; }
         #endregion
 
         #region Constructors

@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization;
 using HBP.Core.Errors;
 using System.ComponentModel;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data.Container
 {
@@ -29,7 +29,7 @@ namespace HBP.Core.Data.Container
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("Elan"), IEEG, CCEP]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("Elan"), IEEG, CCEP]
     public class Elan : DataContainer
     {
         #region Properties
@@ -53,7 +53,7 @@ namespace HBP.Core.Data.Container
         /// <summary>
         /// Path to the EEG file with Alias.
         /// </summary>
-        [DataMember(Name = "EEG")] public string SavedEEG { get; protected set; } = "";
+        [JsonProperty("EEG")] public string SavedEEG { get; protected set; } = "";
         /// <summary>
         /// Path to the EEG file without Alias.
         /// </summary>
@@ -76,7 +76,7 @@ namespace HBP.Core.Data.Container
         /// <summary>
         /// Path to the POS file with Alias.
         /// </summary>
-        [DataMember(Name = "POS")] public string SavedPOS { get; protected set; } = "";
+        [JsonProperty("POS")] public string SavedPOS { get; protected set; } = "";
         /// <summary>
         /// Path of the POS file without Alias.
         /// </summary>
@@ -89,7 +89,7 @@ namespace HBP.Core.Data.Container
         /// <summary>
         /// Path to the notes file with Alias.
         /// </summary>
-        [DataMember(Name = "Notes")] public string SavedNotes { get; protected set; } = "";
+        [JsonProperty("Notes")] public string SavedNotes { get; protected set; } = "";
         /// <summary>
         /// Path of the notes file without Alias.
         /// </summary>

@@ -1,18 +1,18 @@
+using Newtonsoft.Json;
 using System;
-using System.Runtime.Serialization;
 
 namespace HBP.Core.Data
 {
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class BuildInfo
     {
-        [DataMember(Name = "Version")]
+        [JsonProperty("Version")]
         public string Version { get; set; }
 
-        [DataMember(Name = "UnityVersion")]
+        [JsonProperty("UnityVersion")]
         public string UnityVersion { get; set; }
 
-        [DataMember(Name = "BuildDate")]
+        [JsonProperty("BuildDate")]
         public DateTime BuildDate { get; set; }
     }
 }

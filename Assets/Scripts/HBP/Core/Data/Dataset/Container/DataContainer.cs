@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using UnityEngine.Events;
 using HBP.Core.Errors;
 
@@ -25,7 +24,6 @@ namespace HBP.Core.Data.Container
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
     public abstract class DataContainer : BaseData
     {
         #region Properties

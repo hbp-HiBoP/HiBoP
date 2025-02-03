@@ -1,7 +1,7 @@
 ﻿using HBP.Core.Tools;
+using Newtonsoft.Json;
 using System.ComponentModel;
 using System.IO;
-using System.Runtime.Serialization;
 
 namespace HBP.Core.Data
 {
@@ -36,14 +36,14 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("Single")]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("Single")]
     public class SingleMesh : BaseMesh
     {
         #region Properties
         /// <summary>
         /// Mesh file path with Alias.
         /// </summary>
-        [DataMember(Order = 1, Name = "Path")] public string SavedPath { get; protected set; }
+        [JsonProperty("Path", Order = 1)] public string SavedPath { get; protected set; }
         /// <summary>
         /// Mesh file path without Alias.
         /// </summary>
@@ -61,7 +61,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// MarsAtlas file path with Alias.
         /// </summary>
-        [DataMember(Order = 2, Name = "MarsAtlasPath")] public string SavedMarsAtlasPath { get; protected set; }
+        [JsonProperty("MarsAtlasPath", Order = 2)] public string SavedMarsAtlasPath { get; protected set; }
         /// <summary>
         /// MarsAtlas file path without Alias.
         /// </summary>

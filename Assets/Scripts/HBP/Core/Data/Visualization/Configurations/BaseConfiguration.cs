@@ -1,21 +1,21 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class BaseConfiguration : BaseData
     {
         #region Properties
         /// <summary>
         /// IEEG Transparency
         /// </summary>
-        [DataMember(Name = "Activity Alpha")] public float ActivityAlpha { get; set; }
+        [JsonProperty("Activity Alpha")] public float ActivityAlpha { get; set; }
         /// <summary>
         /// Configuration of the sites.
         /// </summary>
-        [DataMember] public Dictionary<string, SiteConfiguration> ConfigurationBySite { get; set; }
+        [JsonProperty] public Dictionary<string, SiteConfiguration> ConfigurationBySite { get; set; }
         #endregion
 
         #region Constructors

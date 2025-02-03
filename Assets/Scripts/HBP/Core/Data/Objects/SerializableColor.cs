@@ -1,19 +1,15 @@
 ﻿using UnityEngine;
-using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public struct SerializableColor
     {
-        [DataMember]
-        float r;
-        [DataMember]
-        float g;
-        [DataMember]
-        float b;
-        [DataMember]
-        float a;
+        [JsonProperty] float r;
+        [JsonProperty] float g;
+        [JsonProperty] float b;
+        [JsonProperty] float a;
 
         public SerializableColor(Color color)
         {

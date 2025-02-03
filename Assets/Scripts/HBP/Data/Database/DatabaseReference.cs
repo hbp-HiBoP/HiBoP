@@ -1,18 +1,18 @@
 using HBP.Core.Data;
+using Newtonsoft.Json;
 using System;
-using System.Runtime.Serialization;
 
 namespace HBP.Data.Database
 {
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class DatabaseReference : BaseData
     {
         #region Properties
         public const string EXTENSION = ".hibopdb";
-        [DataMember(Name = "Name")] public string Name { get; set; }
-        [DataMember(Name = "Type")] public DatabaseType Type { get; set; }
-        [DataMember(Name = "Path")] public string Path { get; set; }
-        [DataMember(Name = "LastUpdated")] public DateTime LastUpdated { get; set; }
+        [JsonProperty("Name")] public string Name { get; set; }
+        [JsonProperty("Type")] public DatabaseType Type { get; set; }
+        [JsonProperty("Path")] public string Path { get; set; }
+        [JsonProperty("LastUpdated")] public DateTime LastUpdated { get; set; }
         #endregion
 
         #region Constructors

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using HBP.Core.Errors;
 using HBP.Core.Tools;
@@ -53,7 +52,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("Static")]
+    [DisplayName("Static")]
     public class StaticDataInfo : PatientDataInfo
     {
         #region Properties

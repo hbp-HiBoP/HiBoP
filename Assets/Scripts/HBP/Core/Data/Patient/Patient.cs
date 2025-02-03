@@ -2,15 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using HBP.Core.Exceptions;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
 using HBP.Data.Preferences;
 using HBP.Data.Database;
-using UnityEngine;
 using Cysharp.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
@@ -53,7 +52,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class Patient : BaseData, ILoadable<Patient>, ILoadableFromDatabase<Patient>, ILoadableFromDirectory<Patient>, INameable
     {
         #region Properties
@@ -64,36 +63,36 @@ namespace HBP.Core.Data
         /// <summary>
         /// Name of the patient.
         /// </summary>
-        [DataMember] public string Name { get; set; }
+        [JsonProperty] public string Name { get; set; }
         /// <summary>
         /// Year in which the patient was implanted.
         /// </summary>
-        [DataMember] public int Date { get; set; }
+        [JsonProperty] public int Date { get; set; }
         /// <summary>
         /// Place where the patient had the operation.
         /// </summary>
-        [DataMember] public string Place { get; set; }
+        [JsonProperty] public string Place { get; set; }
         /// <summary>
         /// Meshes of the patient.
         /// </summary>
-        [DataMember] public List<BaseMesh> Meshes { get; set; }
+        [JsonProperty] public List<BaseMesh> Meshes { get; set; }
         /// <summary>
         /// MRI scans of the patient.
         /// </summary>
-        [DataMember] public List<MRI> MRIs { get; set; }
+        [JsonProperty] public List<MRI> MRIs { get; set; }
         /// <summary>
         /// Sites of the patient.
         /// </summary>
-        [DataMember] public List<Site> Sites { get; set; }
+        [JsonProperty] public List<Site> Sites { get; set; }
         /// <summary>
         /// Tags of the patient.
         /// </summary>
-        [DataMember] public List<BaseTagValue> Tags { get; set; }
-        [DataMember] public string CorrespondingDatabaseID { get; set; }
+        [JsonProperty] public List<BaseTagValue> Tags { get; set; }
+        [JsonProperty] public string CorrespondingDatabaseID { get; set; }
         /// <summary>
         /// Complete name of the patient. Name (Place-Date).
         /// </summary>
-        [IgnoreDataMember] public string CompleteName { get { return Name + " (" + Place + " - " + Date + ")"; } }
+        [JsonIgnore] public string CompleteName { get { return Name + " (" + Place + " - " + Date + ")"; } }
         #endregion
 
         #region Constructors

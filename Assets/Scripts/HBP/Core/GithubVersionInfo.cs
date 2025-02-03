@@ -1,17 +1,17 @@
-﻿using System.Runtime.Serialization;
+﻿using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class GithubVersionInfo
     {
-        [DataMember(Name = "tag_name")]
+        [JsonProperty("tag_name")]
         public string VersionNumber { get; set; }
 
-        [DataMember(Name = "html_url")]
+        [JsonProperty("html_url")]
         public string URL { get; set; }
 
-        [DataMember(Name = "body")]
+        [JsonProperty("body")]
         public string Description { get; set; }
     }
 }

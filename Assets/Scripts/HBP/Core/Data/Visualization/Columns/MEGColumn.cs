@@ -1,16 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Runtime.Serialization;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
-    [DataContract, DisplayName("MEG")]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("MEG")]
     public class MEGColumn : Column
     {
         #region Properties
-        [DataMember(Name = "Dataset")] string datasetID;
+        [JsonProperty("Dataset")] string datasetID;
         /// <summary>
         /// Dataset of the column.
         /// </summary>
@@ -33,12 +33,12 @@ namespace HBP.Core.Data
             }
         }
         
-        [DataMember] public MEGConfiguration MEGConfiguration { get; set; }
+        [JsonProperty] public MEGConfiguration MEGConfiguration { get; set; }
 
         /// <summary>
         /// Data of the column.
         /// </summary>
-        [IgnoreDataMember] public Processed.MEGData Data { get; set; } = new Processed.MEGData();
+        [JsonIgnore] public Processed.MEGData Data { get; set; } = new Processed.MEGData();
         #endregion
 
         #region Constructors

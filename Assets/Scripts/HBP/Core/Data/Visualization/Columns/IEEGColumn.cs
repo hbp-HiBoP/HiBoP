@@ -1,8 +1,8 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using System.ComponentModel;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
@@ -19,11 +19,11 @@ namespace HBP.Core.Data
     *   - \a Protocol.
     *   - \a Bloc.
     */
-    [DataContract, DisplayName("iEEG")]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("iEEG")]
     public class IEEGColumn : Column
     {
         #region Properties
-        [DataMember(Name = "Dataset")] string datasetID;
+        [JsonProperty("Dataset")] string datasetID;
         /// <summary>
         /// Dataset of the column.
         /// </summary>
@@ -49,9 +49,9 @@ namespace HBP.Core.Data
         /// <summary>
         /// Data name of the column.
         /// </summary>
-        [DataMember] public string DataName { get; set; }
+        [JsonProperty] public string DataName { get; set; }
 
-        [DataMember(Name = "Bloc")] string blocID;
+        [JsonProperty("Bloc")] string blocID;
         /// <summary>
         /// Protocol bloc of the column.
         /// </summary>
@@ -84,12 +84,12 @@ namespace HBP.Core.Data
         /// <summary>
         /// Configuration of the column.
         /// </summary>
-        [DataMember] public DynamicConfiguration DynamicConfiguration { get; set; }
+        [JsonProperty] public DynamicConfiguration DynamicConfiguration { get; set; }
 
         /// <summary>
         /// Data of the column.
         /// </summary>
-        [IgnoreDataMember] public Processed.IEEGData Data { get; set; } = new Processed.IEEGData();
+        [JsonIgnore] public Processed.IEEGData Data { get; set; } = new Processed.IEEGData();
         #endregion
 
         #region Constructors

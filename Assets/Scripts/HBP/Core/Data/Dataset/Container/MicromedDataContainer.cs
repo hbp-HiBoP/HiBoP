@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization;
 using HBP.Core.Errors;
 using System.ComponentModel;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data.Container
 {
@@ -30,7 +30,7 @@ namespace HBP.Core.Data.Container
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("Micromed"), IEEG, CCEP]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("Micromed"), IEEG, CCEP]
     public class Micromed : DataContainer
     {
         #region Properties
@@ -39,7 +39,7 @@ namespace HBP.Core.Data.Container
         /// <summary>
         /// Path to the EEG file with Alias.
         /// </summary>
-        [DataMember(Name = "TRC")] public string SavedPath { get; protected set; } = "";
+        [JsonProperty("TRC")] public string SavedPath { get; protected set; } = "";
         /// <summary>
         /// Path of the EEG file without Alias.
         /// </summary>

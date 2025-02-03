@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Runtime.Serialization;
 using HBP.Core.Errors;
-using HBP.Core.Tools;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
@@ -51,14 +50,14 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("CCEP")]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("CCEP")]
     public class CCEPDataInfo : PatientDataInfo, IEpochable
     {
         #region Properties
         /// <summary>
         /// Stimulated channel.
         /// </summary>
-        [DataMember] public string StimulatedChannel { get; set; }
+        [JsonProperty] public string StimulatedChannel { get; set; }
 
         protected Error[] m_CCEPErrors = new Error[0];
         public override Error[] Errors

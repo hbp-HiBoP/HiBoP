@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
@@ -18,23 +19,23 @@ namespace HBP.Core.Data
     *   - \a Color of the patient.
     *   - \a Patient electrode configurations.
     */
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class PatientConfiguration : ICloneable
     {
         #region Properties
-        [DataMember(Name = "Patient")]
+        [JsonProperty("Patient")]
         string m_PatientID;
         Patient m_Patient;
 
-        [DataMember(Name = "ConfigurationByElectrode")]
+        [JsonProperty("ConfigurationByElectrode")]
         Dictionary <string, ElectrodeConfiguration> m_ConfigurationByElectrodeName;
         /// <summary>
         /// Configuration of the patient electrodes.
         /// </summary>
-        [IgnoreDataMember]
+        [JsonIgnore]
         public Dictionary<string,ElectrodeConfiguration> ConfigurationByElectrode { get; set; }
 
-        [DataMember(Name = "Color")]
+        [JsonProperty("Color")]
         SerializableColor m_Color;
         /// <summary>
         /// Color of the patient.

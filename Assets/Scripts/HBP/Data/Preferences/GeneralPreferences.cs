@@ -1,16 +1,16 @@
-﻿using System;
-using System.Runtime.Serialization;
+﻿using Newtonsoft.Json;
+using System;
 
 namespace HBP.Data.Preferences
 {
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class GeneralPreferences : ICloneable
     {
         #region Properties
-        [DataMember] public ProjectPreferences Project { get; set; }
-        [DataMember] public ThemePreferences Theme { get; set; }
-        [DataMember] public LocationPreferences Location { get; set; }
-        [DataMember] public SystemPreferences System { get; set; }
+        [JsonProperty] public ProjectPreferences Project { get; set; }
+        [JsonProperty] public ThemePreferences Theme { get; set; }
+        [JsonProperty] public LocationPreferences Location { get; set; }
+        [JsonProperty] public SystemPreferences System { get; set; }
         #endregion
 
         #region Constructors
@@ -35,11 +35,11 @@ namespace HBP.Data.Preferences
         #endregion
     }
 
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class ProjectPreferences : ICloneable
     {
         #region Properties
-        [DataMember] public string DefaultName
+        [JsonProperty] public string DefaultName
         {
             get
             {
@@ -50,8 +50,8 @@ namespace HBP.Data.Preferences
                 Core.Data.ProjectPreferences.DefaultName = value;
             }
         }
-        [DataMember] public string DefaultLocation { get; set; }
-        [DataMember] public string DefaultPatientDatabase
+        [JsonProperty] public string DefaultLocation { get; set; }
+        [JsonProperty] public string DefaultPatientDatabase
         {
             get
             {
@@ -62,7 +62,7 @@ namespace HBP.Data.Preferences
                 Core.Data.ProjectPreferences.DefaultPatientDatabase = value;
             }
         }
-        [DataMember] public string DefaultLocalizerDatabase
+        [JsonProperty] public string DefaultLocalizerDatabase
         {
             get
             {
@@ -73,7 +73,7 @@ namespace HBP.Data.Preferences
                 Core.Data.ProjectPreferences.DefaultLocalizerDatabase = value;
             }
         }
-        [DataMember] public string DefaultExportLocation { get; set; }
+        [JsonProperty] public string DefaultExportLocation { get; set; }
         #endregion
 
         #region Constructors
@@ -99,7 +99,7 @@ namespace HBP.Data.Preferences
         #endregion
     }
 
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class ThemePreferences : ICloneable
     {
         #region Public Methods
@@ -109,7 +109,8 @@ namespace HBP.Data.Preferences
         }
         #endregion
     }
-    [DataContract]
+
+    [JsonObject(MemberSerialization.OptIn)]
     public class LocationPreferences : ICloneable
     {
         #region Public Methods
@@ -119,14 +120,15 @@ namespace HBP.Data.Preferences
         }
         #endregion
     }
-    [DataContract]
+
+    [JsonObject(MemberSerialization.OptIn)]
     public class SystemPreferences : ICloneable
     {
         #region Properties
-        [DataMember] public bool MultiThreading { get; set; }
-        [DataMember] public int MemoryCacheLimit { get; set; }
-        [DataMember] public int SleepModeAfter { get; set; }
-        [DataMember] public int TargetFramerate { get; set; }
+        [JsonProperty] public bool MultiThreading { get; set; }
+        [JsonProperty] public int MemoryCacheLimit { get; set; }
+        [JsonProperty] public int SleepModeAfter { get; set; }
+        [JsonProperty] public int TargetFramerate { get; set; }
         #endregion
 
         #region Constructors

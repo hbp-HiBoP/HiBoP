@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization;
 using HBP.Core.Errors;
 using System.ComponentModel;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data.Container
 {
@@ -29,7 +29,7 @@ namespace HBP.Core.Data.Container
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("BrainVision"), IEEG, CCEP, MEGc]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("BrainVision"), IEEG, CCEP, MEGc]
     public class BrainVision : DataContainer
     {
         #region Properties
@@ -41,7 +41,7 @@ namespace HBP.Core.Data.Container
         /// <summary>
         /// Path to the BrainVision header file with Alias.
         /// </summary>
-        [DataMember(Name = "Header")] public string SavedHeader { get; protected set; } = "";
+        [JsonProperty("Header")] public string SavedHeader { get; protected set; } = "";
         /// <summary>
         /// Path to the BrainVision format header file without Alias.
         /// </summary>

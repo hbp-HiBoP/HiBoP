@@ -1,17 +1,16 @@
 using HBP.Core.Data;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
 using System.IO;
-using System.Runtime.Serialization;
-using UnityEngine;
 
 namespace HBP.Data.Database
 {
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class GlobalDatabaseSettings : BaseData
     {
         #region Properties
         public static string PATH = Path.Combine(ApplicationState.DatabasePath, "Settings.json");
-        [DataMember] public bool IsFirstUse { get; set; }
+        [JsonProperty] public bool IsFirstUse { get; set; }
         #endregion
 
         #region Constructors

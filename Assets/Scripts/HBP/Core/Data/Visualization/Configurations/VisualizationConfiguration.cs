@@ -1,146 +1,146 @@
-﻿using System.Runtime.Serialization;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using HBP.Core.Enums;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class VisualizationConfiguration : BaseData
     {
         #region Properties
         /// <summary>
         /// Color of the brain
         /// </summary>
-        [DataMember(Name = "Brain Color")]
+        [JsonProperty("Brain Color")]
         public ColorType BrainColor { get; set; } = ColorType.BrainColor;
 
         /// <summary>
         /// Color of the cuts
         /// </summary>
-        [DataMember(Name = "Brain Cut Color")]
+        [JsonProperty("Brain Cut Color")]
         public ColorType BrainCutColor { get; set; } = ColorType.Default;
 
         /// <summary>
         /// EEG colormap
         /// </summary>
-        [DataMember(Name = "Colormap")]
+        [JsonProperty("Colormap")]
         public ColorType Colormap { get; set; } = ColorType.MatLab;
 
         /// <summary>
         /// Mesh part to display
         /// </summary>
-        [DataMember(Name = "Mesh Part")]
+        [JsonProperty("Mesh Part")]
         public MeshPart MeshPart { get; set; } = MeshPart.Both;
 
         /// <summary>
         /// Mesh to display
         /// </summary>
-        [DataMember(Name = "Mesh")]
+        [JsonProperty("Mesh")]
         public string MeshName { get; set; }
 
         /// <summary>
         /// MRI to display
         /// </summary>
-        [DataMember(Name = "MRI")]
+        [JsonProperty("MRI")]
         public string MRIName { get; set; }
 
         /// <summary>
         /// Implantation to display
         /// </summary>
-        [DataMember(Name = "Implantation")]
+        [JsonProperty("Implantation")]
         public string ImplantationName { get; set; }
 
         /// <summary>
         /// Show edges of the meshes
         /// </summary>
-        [DataMember(Name = "Edges")]
+        [JsonProperty("Edges")]
         public bool ShowEdges { get; set; }
 
         /// <summary>
         /// Is the mesh invisible?
         /// </summary>
-        [DataMember(Name = "Transparent Brain")]
+        [JsonProperty("Transparent Brain")]
         public bool TransparentBrain { get; set; }
 
         /// <summary>
         /// Alpha value when the brain is invisible
         /// </summary>
-        [DataMember(Name = "Brain Alpha")]
+        [JsonProperty("Brain Alpha")]
         public float BrainAlpha { get; set; } = 0.2f;
 
         /// <summary>
         /// Cut behaviour
         /// </summary>
-        [DataMember(Name = "Strong Cuts")]
+        [JsonProperty("Strong Cuts")]
         public bool StrongCuts { get; set; }
 
         /// <summary>
         /// Hide blacklisted sites
         /// </summary>
-        [DataMember(Name = "Hide Blacklisted Sites")]
+        [JsonProperty("Hide Blacklisted Sites")]
         public bool HideBlacklistedSites { get; set; }
 
         /// <summary>
         /// Show all sites in the scene
         /// </summary>
-        [DataMember(Name = "ShowAllSites")]
+        [JsonProperty("ShowAllSites")]
         public bool ShowAllSites { get; set; }
 
         /// <summary>
         /// Automatically cut the brain around the selected site
         /// </summary>
-        [DataMember(Name = "AutomaticCutAroundSelectedSite")]
+        [JsonProperty("AutomaticCutAroundSelectedSite")]
         public bool AutomaticCutAroundSelectedSite { get; set; } = false;
 
         /// <summary>
         /// Sites Gain
         /// </summary>
-        [DataMember(Name = "Site Gain")]
+        [JsonProperty("Site Gain")]
         public float SiteGain { get; set; } = 1.0f;
 
         /// <summary>
         /// MRI Cal Min Factor
         /// </summary>
-        [DataMember(Name = "MRI Min")]
+        [JsonProperty("MRI Min")]
         public float MRICalMinFactor { get; set; }
 
         /// <summary>
         /// MRI Cal Max Factor
         /// </summary>
-        [DataMember(Name = "MRI Max")]
+        [JsonProperty("MRI Max")]
         public float MRICalMaxFactor { get; set; } = 1;
 
         /// <summary>
         /// Camera control type
         /// </summary>
-        [DataMember(Name = "Camera Type")]
+        [JsonProperty("Camera Type")]
         public CameraControl CameraType { get; set; } = CameraControl.Trackball;
 
         /// <summary>
         /// Cuts of the visualization
         /// </summary>
-        [DataMember(Name = "Cuts")]
+        [JsonProperty("Cuts")]
         public List<Cut> Cuts { get; set; } = new List<Cut>();
 
         /// <summary>
         /// Views of the visualization
         /// </summary>
-        [DataMember(Name = "Views")]
+        [JsonProperty("Views")]
         public List<View> Views { get; set; } = new List<View>();
 
         /// <summary>
         /// Region of interest.
         /// </summary>
-        [DataMember] public List<RegionOfInterest> RegionsOfInterest { get; set; } = new List<RegionOfInterest>();
+        [JsonProperty] public List<RegionOfInterest> RegionsOfInterest { get; set; } = new List<RegionOfInterest>();
 
-        [IgnoreDataMember]
+        [JsonIgnore]
         public string FirstSiteToSelect { get; set; }
-        [IgnoreDataMember]
+        [JsonIgnore]
         public int FirstColumnToSelect { get; set; }
-        [IgnoreDataMember]
+        [JsonIgnore]
         public List<Object3D.Mesh3D> PreloadedMeshes { get; set; } = new List<Object3D.Mesh3D>();
-        [IgnoreDataMember]
+        [JsonIgnore]
         public List<Object3D.MRI3D> PreloadedMRIs { get; set; } = new List<Object3D.MRI3D>();
         #endregion
 

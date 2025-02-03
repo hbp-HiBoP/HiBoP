@@ -1,7 +1,6 @@
 using HBP.Data.Database;
 using HBP.UI.Main;
 using HBP.UI.Tools;
-using System;
 using UnityEngine;
 using UnityEngine.UI;
 

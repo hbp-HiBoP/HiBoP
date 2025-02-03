@@ -1,21 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using UnityEngine;
 using HBP.Core.Enums;
 using HBP.Core.Data;
+using Newtonsoft.Json;
 
 namespace HBP.Data.Preferences
 {
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class VisualizationPreferences : ICloneable
     {
         #region Properties
-        [DataMember] public _3DPreferences _3D { get; set; }
-        [DataMember] public TrialMatrixPreferences TrialMatrix { get; set; }
-        [DataMember] public GraphPreferences Graph { get; set; }
-        [DataMember] public CutPreferences Cut { get; set; }
+        [JsonProperty] public _3DPreferences _3D { get; set; }
+        [JsonProperty] public TrialMatrixPreferences TrialMatrix { get; set; }
+        [JsonProperty] public GraphPreferences Graph { get; set; }
+        [JsonProperty] public CutPreferences Cut { get; set; }
         #endregion
 
         #region Constructors
@@ -40,20 +40,20 @@ namespace HBP.Data.Preferences
         #endregion
     }
 
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class _3DPreferences : ICloneable
     {
         #region Properties
-        [DataMember] public bool AutomaticEEGUpdate { get; set; }
-        [DataMember] public bool RawCuts { get; set; }
-        [DataMember] public LayoutDirection VisualizationsLayoutDirection { get; set; }
-        [DataMember] public SiteInfluenceByDistanceType SiteInfluenceByDistance { get; set; }
-        [DataMember] public string DefaultSelectedMRIInSinglePatientVisualization { get; set; }
-        [DataMember] public string DefaultSelectedMeshInSinglePatientVisualization { get; set; }
-        [DataMember] public string DefaultSelectedImplantationInSinglePatientVisualization { get; set; }
-        [DataMember] public string DefaultSelectedMRIInMultiPatientsVisualization { get; set; }
-        [DataMember] public string DefaultSelectedMeshInMultiPatientsVisualization { get; set; }
-        [DataMember] public string DefaultSelectedImplantationInMultiPatientsVisualization { get; set; }
+        [JsonProperty] public bool AutomaticEEGUpdate { get; set; }
+        [JsonProperty] public bool RawCuts { get; set; }
+        [JsonProperty] public LayoutDirection VisualizationsLayoutDirection { get; set; }
+        [JsonProperty] public SiteInfluenceByDistanceType SiteInfluenceByDistance { get; set; }
+        [JsonProperty] public string DefaultSelectedMRIInSinglePatientVisualization { get; set; }
+        [JsonProperty] public string DefaultSelectedMeshInSinglePatientVisualization { get; set; }
+        [JsonProperty] public string DefaultSelectedImplantationInSinglePatientVisualization { get; set; }
+        [JsonProperty] public string DefaultSelectedMRIInMultiPatientsVisualization { get; set; }
+        [JsonProperty] public string DefaultSelectedMeshInMultiPatientsVisualization { get; set; }
+        [JsonProperty] public string DefaultSelectedImplantationInMultiPatientsVisualization { get; set; }
         #endregion
 
         #region Constructors
@@ -90,7 +90,7 @@ namespace HBP.Data.Preferences
         #endregion
     }
 
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class TrialMatrixPreferences : ICloneable
     {
         #region Properties
@@ -100,14 +100,14 @@ namespace HBP.Data.Preferences
         public const float MAXIMUM_TRIAL_RATIO = 0.2f;
         public const float MINIMUM_BLOC_RATIO = 0.05f;
         public const float MAXIMUM_BLOC_RATIO = 1.0f;
-        [DataMember] public bool ShowWholeProtocol { get; set; }
-        [DataMember] public bool TrialsSynchronization { get; set; }
-        [DataMember] public bool TrialSmoothing { get; set; }
-        [DataMember] public int NumberOfIntermediateValues { get; set; }
-        [DataMember] public BlocFormatType SubBlocFormat { get; set; }
-        [DataMember] public int TrialHeight { get; set; }
-        [DataMember] public float TrialRatio { get; set; }
-        [DataMember] public float BlocRatio { get; set; }
+        [JsonProperty] public bool ShowWholeProtocol { get; set; }
+        [JsonProperty] public bool TrialsSynchronization { get; set; }
+        [JsonProperty] public bool TrialSmoothing { get; set; }
+        [JsonProperty] public int NumberOfIntermediateValues { get; set; }
+        [JsonProperty] public BlocFormatType SubBlocFormat { get; set; }
+        [JsonProperty] public int TrialHeight { get; set; }
+        [JsonProperty] public float TrialRatio { get; set; }
+        [JsonProperty] public float BlocRatio { get; set; }
         #endregion
 
         #region Constructors
@@ -134,14 +134,14 @@ namespace HBP.Data.Preferences
         #endregion
     }
 
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class GraphPreferences : ICloneable
     {
         #region Properties
-        [IgnoreDataMember] const int NUMBER_OF_COLORS = 24;
-        [DataMember] public bool ShowCurvesOfMinimizedColumns { get; set; }
-        [DataMember] private SerializableColor[] m_Colors;
-        public Color[] Colors
+        [JsonIgnore] const int NUMBER_OF_COLORS = 24;
+        [JsonProperty] public bool ShowCurvesOfMinimizedColumns { get; set; }
+        [JsonProperty] private SerializableColor[] m_Colors;
+        [JsonIgnore] public Color[] Colors
         {
             get
             {
@@ -155,7 +155,7 @@ namespace HBP.Data.Preferences
                 }
             }
         }
-        [IgnoreDataMember] private Dictionary<int, Color> m_AdditionalColors = new Dictionary<int, Color>();
+        [JsonIgnore] private Dictionary<int, Color> m_AdditionalColors = new Dictionary<int, Color>();
         #endregion
 
         #region Constructors
@@ -239,11 +239,11 @@ namespace HBP.Data.Preferences
         #endregion
     }
 
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class CutPreferences : ICloneable
     {
         #region Properties
-        [DataMember] public bool ShowCutLines { get; set; }
+        [JsonProperty] public bool ShowCutLines { get; set; }
         #endregion
 
         #region Constructors

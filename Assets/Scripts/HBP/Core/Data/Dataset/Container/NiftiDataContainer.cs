@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization;
 using System.Collections.ObjectModel;
 using HBP.Core.Errors;
 using System.ComponentModel;
 using System.Linq;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data.Container
 {
@@ -31,7 +31,7 @@ namespace HBP.Core.Data.Container
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("Nifti"), FMRI, MEGv]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("Nifti"), FMRI, MEGv]
     public class Nifti : DataContainer
     {
         #region Properties
@@ -47,7 +47,7 @@ namespace HBP.Core.Data.Container
             }
         }
 
-        [DataMember(Name = "File")] public string SavedFile { get; protected set; }
+        [JsonProperty("File")] public string SavedFile { get; protected set; }
         /// <summary>
         /// Path to the file containing the NIFTI data.
         /// </summary>

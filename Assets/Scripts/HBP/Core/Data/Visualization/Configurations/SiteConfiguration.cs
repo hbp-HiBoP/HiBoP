@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using UnityEngine;
 
 namespace HBP.Core.Data
@@ -21,22 +21,22 @@ namespace HBP.Core.Data
     *   - \a IsMarked
     *   - \a Color.
     */
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class SiteConfiguration : BaseData
     {
         #region Properties
         /// <summary>
         /// The site is blacklisted ?
         /// </summary>
-        [DataMember] public bool IsBlacklisted { get; set; }
+        [JsonProperty] public bool IsBlacklisted { get; set; }
         /// <summary>
         /// The site is highlighted ?
         /// </summary>
-        [DataMember] public bool IsHighlighted { get; set; }
+        [JsonProperty] public bool IsHighlighted { get; set; }
         /// <summary>
         /// Color of the site
         /// </summary>
-        [DataMember(Name = "Color")] private SerializableColor m_Color;
+        [JsonProperty("Color")] private SerializableColor m_Color;
         public Color Color
         {
             get
@@ -48,7 +48,7 @@ namespace HBP.Core.Data
                 m_Color = new SerializableColor(value);
             }
         }
-        [DataMember] public string[] Labels { get; set; }
+        [JsonProperty] public string[] Labels { get; set; }
         #endregion
 
         #region Constructors

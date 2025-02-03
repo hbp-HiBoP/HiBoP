@@ -4,17 +4,26 @@ using System.IO;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
 using Cysharp.Threading.Tasks;
+using Newtonsoft.Json.Serialization;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace HBP.Core.Tools
 {
     public static class ClassLoaderSaver
     {
+        private static readonly JsonSerializerSettings m_Settings = new()
+        {
+            TypeNameHandling = TypeNameHandling.Auto,
+            TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
+            Formatting = Formatting.Indented,
+        };
         public static T LoadFromJson<T>(string path) where T : new()
         {
             T result = new T();
             using (StreamReader streamReader = new StreamReader(path))
             {
-                result = JsonConvert.DeserializeObject<T>(streamReader.ReadToEnd(), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+                result = JsonConvert.DeserializeObject<T>(streamReader.ReadToEnd(), m_Settings);
             }
             return result;
         }
@@ -22,7 +31,7 @@ namespace HBP.Core.Tools
         {
             await UniTask.SwitchToThreadPool();
             using StreamReader streamReader = new(path);
-            T result = JsonConvert.DeserializeObject<T>(streamReader.ReadToEnd(), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+            T result = JsonConvert.DeserializeObject<T>(streamReader.ReadToEnd(), m_Settings);
             return result;
         }
         public static bool SaveToJSon<T>(T instance, string path, bool overwrite = false) where T : new()
@@ -31,7 +40,7 @@ namespace HBP.Core.Tools
             {
                 if (!overwrite) path = path.GenerateUniqueFilePath();
                 using StreamWriter streamWriter = new StreamWriter(path);
-                string json = JsonConvert.SerializeObject(instance, Formatting.Indented, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple });
+                string json = JsonConvert.SerializeObject(instance, m_Settings);
                 streamWriter.Write(json);
                 streamWriter.Close();
                 return true;
@@ -49,7 +58,7 @@ namespace HBP.Core.Tools
                 await UniTask.SwitchToThreadPool();
                 if (!overwrite) path = path.GenerateUniqueFilePath();
                 using StreamWriter streamWriter = new(path);
-                string json = JsonConvert.SerializeObject(instance, Formatting.Indented, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple });
+                string json = JsonConvert.SerializeObject(instance, m_Settings);
                 streamWriter.Write(json);
                 streamWriter.Close();
                 return true;

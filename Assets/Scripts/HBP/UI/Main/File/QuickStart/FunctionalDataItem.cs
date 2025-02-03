@@ -2,8 +2,6 @@
 using HBP.UI.Tools.Lists;
 using UnityEngine;
 using HBP.UI.Tools;
-using HBP.Core.Tools;
-using HBP.Data.Database;
 
 namespace HBP.UI.Main.QuickStart
 {

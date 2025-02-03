@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,31 +13,33 @@ using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using HBP.Data.Preferences;
 using Cysharp.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace HBP.UI.Toolbar
 {
     public class SiteCorrelations : Tool
     {
         #region Internal Classes
-        [DataContract]
+        [JsonObject(MemberSerialization.OptIn)]
         public class CorrelationsContainer
         {
-            [DataMember] public string PatientName { get; set; }
-            [DataMember] public string PatientID { get; set; }
-            [DataMember] public List<ColumnContainer> Columns { get; set; }
-            [DataMember] public NormalizationType DefaultNormalization { get; set; }
-            [DataMember] public float CorrelationThreshold { get; set; }
-            [DataMember] public bool UseBonferroniCorrection { get; set; }
+            [JsonProperty] public string PatientName { get; set; }
+            [JsonProperty] public string PatientID { get; set; }
+            [JsonProperty] public List<ColumnContainer> Columns { get; set; }
+            [JsonProperty] public NormalizationType DefaultNormalization { get; set; }
+            [JsonProperty] public float CorrelationThreshold { get; set; }
+            [JsonProperty] public bool UseBonferroniCorrection { get; set; }
         }
-        [DataContract]
+
+        [JsonObject(MemberSerialization.OptIn)]
         public class ColumnContainer
         {
-            [DataMember] public string Name { get; set; }
-            [DataMember] public Bloc Bloc { get; set; }
-            [DataMember] public DataInfo Data { get; set; }
-            [DataMember] public string CorrelationsFile { get; set; }
-            [DataMember] public string CorrelationsBinaryFile { get; set; }
-            [DataMember] public string CorrelationsMeanFile { get; set; }
+            [JsonProperty] public string Name { get; set; }
+            [JsonProperty] public Bloc Bloc { get; set; }
+            [JsonProperty] public DataInfo Data { get; set; }
+            [JsonProperty] public string CorrelationsFile { get; set; }
+            [JsonProperty] public string CorrelationsBinaryFile { get; set; }
+            [JsonProperty] public string CorrelationsMeanFile { get; set; }
         }
         #endregion
 

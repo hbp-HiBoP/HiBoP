@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using System.IO;
 using HBP.Core.Exceptions;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
@@ -28,7 +28,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class Group : BaseData, ILoadable<Group>, INameable
     {
         #region Properties
@@ -39,11 +39,11 @@ namespace HBP.Core.Data
         /// <summary>
         /// <description>Name of the group.</description>
         /// </summary>
-        [DataMember] public string Name { get; set; }
+        [JsonProperty] public string Name { get; set; }
         /// <summary>
         /// IDs of the patients of the group.
         /// </summary>
-        [DataMember(Name = "Patients",Order = 3)] List<string> m_PatientsID = new List<string>();
+        [JsonProperty("Patients", Order = 3)] List<string> m_PatientsID = new List<string>();
         /// <summary>
         /// Patients of the group.
         /// </summary>

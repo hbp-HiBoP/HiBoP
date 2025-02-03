@@ -1,5 +1,4 @@
-﻿using UnityEngine;
-using System.IO;
+﻿using System.IO;
 using HBP.Core.Data;
 
 namespace HBP.Core.Tools

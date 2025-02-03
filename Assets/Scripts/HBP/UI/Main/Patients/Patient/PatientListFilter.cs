@@ -9,7 +9,6 @@ using UnityEngine.UI;
 using HBP.Core.Exceptions;
 using HBP.Core.Data;
 using HBP.UI.Tools;
-using HBP.Core.Tools;
 using HBP.Data.Preferences;
 
 namespace HBP.UI.Main

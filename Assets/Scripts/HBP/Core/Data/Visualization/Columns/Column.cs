@@ -1,6 +1,6 @@
 ﻿using HBP.Core.Interfaces;
+using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 
 namespace HBP.Core.Data
 {
@@ -13,18 +13,18 @@ namespace HBP.Core.Data
     * 
     * \detail Visualization column is a class which contains the base information of the visualization column.
     */
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public abstract class Column : BaseData, INameable
     {
         #region Properties
         /// <summary>
         /// Name of the column.
         /// </summary>
-        [DataMember] public virtual string Name { get; set; }
+        [JsonProperty] public virtual string Name { get; set; }
         /// <summary>
         /// Base Configuration of the column.
         /// </summary>
-        [DataMember] public virtual BaseConfiguration BaseConfiguration { get; set; }
+        [JsonProperty] public virtual BaseConfiguration BaseConfiguration { get; set; }
         #endregion
 
         #region Constructors

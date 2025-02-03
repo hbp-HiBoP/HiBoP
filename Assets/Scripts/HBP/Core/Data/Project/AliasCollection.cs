@@ -1,20 +1,21 @@
 using HBP.Core.Tools;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace HBP.Core.Data
 {
+    [JsonObject(MemberSerialization.OptIn)]
     public class AliasCollection : BaseData
     {
         #region Properties
         public static string PATH = Path.Combine(Application.persistentDataPath, "Aliases.json");
 
-        [DataMember] private List<Alias> m_Aliases = new List<Alias>();
+        [JsonProperty] private List<Alias> m_Aliases = new List<Alias>();
         public ReadOnlyCollection<Alias> Aliases => new ReadOnlyCollection<Alias>(m_Aliases);
         #endregion
 

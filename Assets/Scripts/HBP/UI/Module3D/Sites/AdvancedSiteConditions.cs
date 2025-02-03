@@ -6,7 +6,6 @@ using HBP.Core.Exceptions;
 using HBP.Data.Tools;
 using HBP.Core.Data;
 using HBP.Data.Module3D;
-using HBP.Core.Tools;
 using HBP.Data.Preferences;
 
 namespace HBP.UI.Module3D

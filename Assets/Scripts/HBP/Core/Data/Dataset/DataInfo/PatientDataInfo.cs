@@ -1,9 +1,9 @@
 ﻿using HBP.Core.Errors;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using HBP.Core.Tools;
 using HBP.Data.Database;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
@@ -46,11 +46,11 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, Hide]
+    [JsonObject(MemberSerialization.OptIn), Hide]
     public class PatientDataInfo : DataInfo
     {
         #region Properties
-        [DataMember(Name = "Patient")] protected string m_PatientID;
+        [JsonProperty("Patient")] protected string m_PatientID;
         protected Patient m_Patient;
         /// <summary>
         /// Patient who has passed the experiment.

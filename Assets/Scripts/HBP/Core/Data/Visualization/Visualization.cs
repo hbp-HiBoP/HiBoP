@@ -2,13 +2,13 @@
 using System.Linq;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using System.IO;
 using HBP.Core.Exceptions;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
 using HBP.Data.Preferences;
 using Cysharp.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
@@ -26,7 +26,7 @@ namespace HBP.Core.Data
     *   - \a Configuration.
     *   - \a Columns.   
     */
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class Visualization :  BaseData, ILoadable<Visualization>, INameable
     {
         #region Properties
@@ -34,9 +34,9 @@ namespace HBP.Core.Data
         /// <summary>
         /// Name of the visualization.
         /// </summary>
-        [DataMember(Order = 2)] public string Name { get; set; }
+        [JsonProperty(Order = 2)] public string Name { get; set; }
 
-        [DataMember(Name = "Patients", Order = 3)] List<string> m_PatientsID;
+        [JsonProperty("Patients", Order = 3)] List<string> m_PatientsID;
         /// <summary>
         /// Patients of the Visualization.
         /// </summary>
@@ -45,12 +45,12 @@ namespace HBP.Core.Data
         /// <summary>
         /// Configuration of the visualization.
         /// </summary>
-        [DataMember(Order = 4)] public VisualizationConfiguration Configuration { get; set; }
+        [JsonProperty(Order = 4)] public VisualizationConfiguration Configuration { get; set; }
 
         /// <summary>
         /// Columns of the visualization.
         /// </summary>
-        [DataMember(Order = 5)] public List<Column> Columns { get; set; }
+        [JsonProperty(Order = 5)] public List<Column> Columns { get; set; }
         /// <summary>
         /// EEG Columns of the visualization.
         /// </summary>

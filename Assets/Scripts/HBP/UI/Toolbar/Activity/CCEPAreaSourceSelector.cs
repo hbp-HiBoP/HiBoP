@@ -5,7 +5,6 @@ using System.Linq;
 using HBP.Core.Data;
 using HBP.Core.Object3D;
 using HBP.Data.Module3D;
-using HBP.Core.Tools;
 using HBP.Data.Preferences;
 
 namespace HBP.UI.Toolbar

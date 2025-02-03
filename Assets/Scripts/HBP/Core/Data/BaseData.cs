@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using HBP.Core.Interfaces;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
@@ -20,14 +21,14 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public abstract class BaseData: ICopiable, ICloneable, IIdentifiable
     {
         #region Properties
         /// <summary>
         /// Unique identifier to identify the data.
         /// </summary>
-        [DataMember] public string ID { get; set; }
+        [JsonProperty] public string ID { get; set; }
         #endregion
 
         #region Constructors

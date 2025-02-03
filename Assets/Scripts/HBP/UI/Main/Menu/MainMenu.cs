@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
-using HBP.UI.Tools;
 
 namespace HBP.UI.Main
 {

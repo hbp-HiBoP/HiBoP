@@ -1,16 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Runtime.Serialization;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
-    [DataContract, DisplayName("Static")]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("Static")]
     public class StaticColumn : Column
     {
         #region Properties
-        [DataMember(Name = "Dataset")] string datasetID;
+        [JsonProperty("Dataset")] string datasetID;
         /// <summary>
         /// Dataset of the column.
         /// </summary>
@@ -36,14 +36,14 @@ namespace HBP.Core.Data
         /// <summary>
         /// Data name of the column.
         /// </summary>
-        [DataMember] public string DataName { get; set; }
+        [JsonProperty] public string DataName { get; set; }
 
-        [DataMember] public StaticConfiguration StaticConfiguration { get; set; }
+        [JsonProperty] public StaticConfiguration StaticConfiguration { get; set; }
         
         /// <summary>
         /// Data of the column.
         /// </summary>
-        [IgnoreDataMember] public Processed.StaticData Data { get; set; } = new Processed.StaticData();
+        [JsonIgnore] public Processed.StaticData Data { get; set; } = new Processed.StaticData();
         #endregion
 
         #region Constructors
