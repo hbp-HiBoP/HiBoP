@@ -13,6 +13,7 @@ using HBP.Core.Tools;
 using HBP.UI.Tools;
 using HBP.Data.Database;
 using Cysharp.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace HBP.Dev
 {
@@ -36,6 +37,26 @@ namespace HBP.Dev
         }
         private void Update()
         {
+            if (Input.GetKeyDown(KeyCode.F1))
+            {
+                TestLoadPatients1().Forget();
+            }
+            if (Input.GetKeyDown(KeyCode.F2))
+            {
+                TestLoadPatients2().Forget();
+            }
+            if (Input.GetKeyDown(KeyCode.F4))
+            {
+                TestLoadPatients4().Forget();
+            }
+            if (Input.GetKeyDown(KeyCode.F5))
+            {
+                TestLoadPatients5().Forget();
+            }
+            if (Input.GetKeyDown(KeyCode.F6))
+            {
+                TestLoadPatients6().Forget();
+            }
             //if (Input.GetKeyDown(KeyCode.F1))
             //{
             //    CheckProjectAndDatabaseIntegrity();
@@ -124,6 +145,93 @@ namespace HBP.Dev
                 m_Percent += Time.deltaTime;
             }
             */
+        }
+        private async UniTaskVoid TestLoadPatients1()
+        {
+            System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+            watch.Start();
+            List<Patient> patients = new List<Patient>();
+            DirectoryInfo patientDirectory = new DirectoryInfo(@"C:\HBP\Projects\VISU_full").GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
+            FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
+            foreach (var file in patientFiles)
+            {
+                patients.Add(await ClassLoaderSaver.LoadFromJsonAsync<Patient>(file.FullName));
+            }
+            watch.Stop();
+            Debug.Log("Time : " + watch.ElapsedMilliseconds);
+        }
+        private async UniTaskVoid TestLoadPatients2()
+        {
+            System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+            watch.Start();
+            await UniTask.SwitchToThreadPool();
+            List<Patient> patients = new List<Patient>();
+            DirectoryInfo patientDirectory = new DirectoryInfo(@"C:\HBP\Projects\VISU_full").GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
+            FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
+            foreach (var file in patientFiles)
+            {
+                patients.Add(ClassLoaderSaver.LoadFromJson<Patient>(file.FullName));
+            }
+            watch.Stop();
+            Debug.Log("Time : " + watch.ElapsedMilliseconds);
+        }
+        private async UniTaskVoid TestLoadPatients4()
+        {
+            System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+            watch.Start();
+            List<Patient> patients = new List<Patient>();
+            DirectoryInfo patientDirectory = new DirectoryInfo(@"C:\HBP\Projects\VISU_full").GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
+            FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
+            patients = (await UniTask.WhenAll(patientFiles.Select(pf => ClassLoaderSaver.LoadFromJsonAsync<Patient>(pf.FullName)))).ToList();
+            watch.Stop();
+            Debug.Log("Time : " + watch.ElapsedMilliseconds);
+        }
+        private async UniTaskVoid TestLoadPatients5()
+        {
+            await UniTask.SwitchToThreadPool();
+            System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+            watch.Start();
+            List<Patient> patients = new List<Patient>();
+            DirectoryInfo patientDirectory = new DirectoryInfo(@"C:\HBP\Projects\VISU_full").GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
+            FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
+            var tasks = patientFiles.Select(file => (Func<UniTask<Patient>>)(async () => await ClassLoaderSaver.LoadFromJsonAsync<Patient>(file.FullName)));
+            await Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "tutu", (a, b, c) => { }, 20, true);
+            watch.Stop();
+            Debug.Log("Time : " + watch.ElapsedMilliseconds);
+        }
+        private async UniTaskVoid TestLoadPatients6()
+        {
+            await UniTask.SwitchToThreadPool();
+            System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+            watch.Start();
+            List<Patient> patients = new List<Patient>();
+            DirectoryInfo patientDirectory = new DirectoryInfo(@"C:\HBP\Projects\VISU_full").GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
+            FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
+            System.Random rand = new();
+            var tasks = patientFiles.Select(file => (Func<UniTask<Patient>>)(async () =>
+            {
+                await UniTask.SwitchToThreadPool();
+                await UniTask.WaitForSeconds((float)rand.NextDouble() * 10);
+                using StreamReader streamReader = new StreamReader(file.FullName);
+                var str = streamReader.ReadToEnd();
+                var result = JsonConvert.DeserializeObject<Patient>(str, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+                return new Patient();
+
+                /*return await ClassLoaderSaver.LoadFromJsonAsync<Patient>(file.FullName)*/
+            }));
+            await LoadingManager.LoadAsync((update) => Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "tutu", update, 0, true));
+            watch.Stop();
+            Debug.Log("Time : " + watch.ElapsedMilliseconds);
+        }
+
+        private T LoadFromJson<T>(string path) where T : new()
+        {
+            T result = new T();
+            using (StreamReader streamReader = new StreamReader(path))
+            {
+                result = JsonConvert.DeserializeObject<T>(streamReader.ReadToEnd(), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+            }
+            return result;
         }
         private async UniTaskVoid ThrowError()
         {

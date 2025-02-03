@@ -313,7 +313,7 @@ namespace HBP.Core.Tools
                         lock (updateProgress)
                         {
                             count++;
-                            updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0, new LoadingText(loadingText, " ", count + "/" + length));
+                            updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0.2f, new LoadingText(loadingText, " ", count + "/" + length));
                         }
                     });
                     await UniTask.WhenAll(tasksToExecute);
@@ -330,7 +330,7 @@ namespace HBP.Core.Tools
                             lock (updateProgress)
                             {
                                 count++;
-                                updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0, new LoadingText(loadingText, " ", count + "/" + length));
+                                updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0.2f, new LoadingText(loadingText, " ", count + "/" + length));
                             }
                         }
                         finally
@@ -348,7 +348,7 @@ namespace HBP.Core.Tools
                 {
                     await task();
                     count++;
-                    updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0, new LoadingText(loadingText, " ", count + "/" + length));
+                    updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0.2f, new LoadingText(loadingText, " ", count + "/" + length));
                 }
             }
         }
@@ -368,7 +368,7 @@ namespace HBP.Core.Tools
                         lock (updateProgress)
                         {
                             count++;
-                            updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0, new LoadingText(loadingText, " ", count + "/" + length));
+                            updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0.2f, new LoadingText(loadingText, " ", count + "/" + length));
                         }
                         return data;
                     });
@@ -388,7 +388,7 @@ namespace HBP.Core.Tools
                             lock (updateProgress)
                             {
                                 count++;
-                                updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0, new LoadingText(loadingText, " ", count + "/" + length));
+                                updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0.2f, new LoadingText(loadingText, " ", count + "/" + length));
                             }
                             lock (results)
                             {
@@ -412,7 +412,7 @@ namespace HBP.Core.Tools
                 {
                     result.Add(await task());
                     count++;
-                    updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0, new LoadingText(loadingText, " ", count + "/" + length));
+                    updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0.2f, new LoadingText(loadingText, " ", count + "/" + length));
                 }
                 return result;
             }

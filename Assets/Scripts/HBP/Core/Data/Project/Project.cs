@@ -437,6 +437,7 @@ namespace HBP.Core.Data
             updateProgress.Invoke(progress, 0, new LoadingText("Loading project"));
 
             // Unzipping
+            await UniTask.SwitchToThreadPool();
             if (Directory.Exists(ApplicationState.ExtractProjectFolder)) Directory.Delete(ApplicationState.ExtractProjectFolder, true);
             using ZipFile zip = ZipFile.Read(projectInfo.Path);
             zip.ExtractAll(ApplicationState.ExtractProjectFolder, ExtractExistingFileAction.OverwriteSilently);

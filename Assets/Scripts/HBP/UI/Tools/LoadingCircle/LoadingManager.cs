@@ -23,11 +23,12 @@ namespace HBP.UI.Tools
         public static async UniTask<T> LoadAsync<T>(Func<Action<float, float, LoadingText>, UniTask<T>> taskToExecute)
         {
             AsyncMethod<T> method = new(taskToExecute);
+            await UniTask.SwitchToMainThread();
             m_Instance.m_LoadingCircle.Open();
+            await UniTask.SwitchToThreadPool();
             method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.m_LoadingCircle.ChangePercentage(progress, 0, message));
             try
             {
-                await UniTask.SwitchToThreadPool();
                 return await method.ExecuteAsync();
             }
             catch (Exception e)
@@ -45,11 +46,12 @@ namespace HBP.UI.Tools
         public static async UniTask LoadAsync(Func<Action<float, float, LoadingText>, UniTask> taskToExecute)
         {
             AsyncMethod method = new(taskToExecute);
+            await UniTask.SwitchToMainThread();
             m_Instance.m_LoadingCircle.Open();
+            await UniTask.SwitchToThreadPool();
             method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.m_LoadingCircle.ChangePercentage(progress, 0, message));
             try
             {
-                await UniTask.SwitchToThreadPool();
                 await method.ExecuteAsync();
             }
             catch (Exception e)
@@ -70,11 +72,12 @@ namespace HBP.UI.Tools
         private static async UniTaskVoid LoadVoid(Func<Action<float, float, LoadingText>, UniTask> taskToExecute)
         {
             AsyncMethod method = new(taskToExecute);
+            await UniTask.SwitchToMainThread();
             m_Instance.m_LoadingCircle.Open();
+            await UniTask.SwitchToThreadPool();
             method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.m_LoadingCircle.ChangePercentage(progress, 0, message));
             try
             {
-                await UniTask.SwitchToThreadPool();
                 await method.ExecuteAsync();
             }
             catch (Exception e)

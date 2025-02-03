@@ -79,7 +79,7 @@ namespace HBP.UI.Tools
         {
             while (!token.IsCancellationRequested)
             {
-                await UniTask.WaitUntil(() => gameObject && gameObject.activeSelf);
+                await UniTask.WaitUntil(() => gameObject.activeSelf);
                 m_LoadingEffectText.text = "";
                 await UniTask.WaitForSeconds(0.25f);
                 m_LoadingEffectText.text = ".";
@@ -96,7 +96,7 @@ namespace HBP.UI.Tools
         private void Awake()
         {
             m_CancellationTokenSource = new();
-            //TextLoadingEffect(m_CancellationTokenSource.Token).Forget();
+            TextLoadingEffect(m_CancellationTokenSource.Token).Forget();
         }
         private void Update()
         {
