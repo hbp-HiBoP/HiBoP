@@ -51,20 +51,23 @@ namespace HBP.UI.Main
         {
             if (!CheckUnicity(obj))
             {
-                obj.GenerateID();
+                List.UpdateObject(obj);
             }
-            if (List.Objects.Any(c => c.Name == obj.Name && c.Place == obj.Place && c.Date == obj.Date && !c.Equals(obj)))
+            else
             {
-                int count = 1;
-                string name = string.Format("{0}({1})", obj.Name, count);
-                while (List.Objects.Any(c => c.Name == name))
+                if (List.Objects.Any(c => c.Name == obj.Name && c.Place == obj.Place && c.Date == obj.Date && !c.Equals(obj)))
                 {
-                    count++;
-                    name = string.Format("{0}({1})", obj.Name, count);
+                    int count = 1;
+                    string name = string.Format("{0}({1})", obj.Name, count);
+                    while (List.Objects.Any(c => c.Name == name))
+                    {
+                        count++;
+                        name = string.Format("{0}({1})", obj.Name, count);
+                    }
+                    obj.Name = name;
                 }
-                obj.Name = name;
+                List.Add(obj);
             }
-            List.Add(obj);
         }
         #endregion
     }
