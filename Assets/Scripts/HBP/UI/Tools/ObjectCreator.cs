@@ -6,6 +6,7 @@ using UnityEngine.Events;
 using HBP.Core.Enums;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Tools
 {
@@ -209,19 +210,16 @@ namespace HBP.UI.Tools
         /// <summary>
         /// Create a new object from a database.
         /// </summary>
-        public async virtual void CreateFromDatabase()
+        public virtual void CreateFromDatabase()
         {
-            ILoadableFromDatabase<T> loadable = new T() as ILoadableFromDatabase<T>;
-            var result = await LoadingManager.LoadAsync((update) => loadable.LoadFromDatabase(update));
-            if (result.Count() > 0)
-                OpenSelector(result, true, false, false);
+            LoadFromDatabase().Forget();
         }
         /// <summary>
         /// Create a new object from a directory
         /// </summary>
         public virtual void CreateFromDirectory()
         {
-            SelectDirectory();
+            LoadFromDirectory().Forget();
         }
         #endregion
 
@@ -348,7 +346,7 @@ namespace HBP.UI.Tools
             }
 #endif
         }
-        protected async virtual void SelectDirectory()
+        protected virtual async UniTaskVoid LoadFromDirectory()
         {
 #if UNITY_STANDALONE_OSX
             FileBrowser.GetExistingDirectoryNamesAsync(async (paths) =>
@@ -383,6 +381,13 @@ namespace HBP.UI.Tools
                 }
             }
 #endif
+        }
+        protected virtual async UniTaskVoid LoadFromDatabase()
+        {
+            ILoadableFromDatabase<T> loadable = new T() as ILoadableFromDatabase<T>;
+            var result = await LoadingManager.LoadAsync((update) => loadable.LoadFromDatabase(update));
+            if (result.Count() > 0)
+                OpenSelector(result, true, false, false);
         }
         #endregion
     }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
@@ -233,7 +234,7 @@ namespace HBP.UI.Tools.Lists
         /// </summary>
         protected virtual void Display()
         {
-            int newFirstIndexDisplayed, newLastIndexDisplayed; GetLimits(out newFirstIndexDisplayed, out newLastIndexDisplayed);
+            GetLimits(out int newFirstIndexDisplayed, out int newLastIndexDisplayed);
             int firstIndexDifference = newFirstIndexDisplayed - m_FirstIndexDisplayed;
             int lastIndexDifference = newLastIndexDisplayed - m_LastIndexDisplayed;
 
@@ -442,15 +443,25 @@ namespace HBP.UI.Tools.Lists
         {
             if (ScrollRect.viewport.hasChanged)
             {
-                m_MaximumNumberOfItems = Mathf.CeilToInt(ScrollRect.viewport.rect.height / m_ItemHeight) + NUMBER_OF_ADDITIONAL_ITEMS;
-                ScrollRect.verticalNormalizedPosition = Mathf.Clamp(ScrollRect.verticalNormalizedPosition, 0f, 1f);
-                ScrollRect.viewport.hasChanged = false;
+                OnViewportChanged().Forget();
             }
             if (ScrollRect.content.hasChanged)
             {
-                Display();
-                ScrollRect.content.hasChanged = false;
+                OnContentChanged().Forget();
             }
+        }
+        private async UniTaskVoid OnViewportChanged()
+        {
+            await UniTask.WaitForEndOfFrame();
+            m_MaximumNumberOfItems = Mathf.CeilToInt(ScrollRect.viewport.rect.height / m_ItemHeight) + NUMBER_OF_ADDITIONAL_ITEMS;
+            ScrollRect.verticalNormalizedPosition = Mathf.Clamp(ScrollRect.verticalNormalizedPosition, 0f, 1f);
+            ScrollRect.viewport.hasChanged = false;
+        }
+        private async UniTaskVoid OnContentChanged()
+        {
+            await UniTask.WaitForEndOfFrame();
+            Display();
+            ScrollRect.content.hasChanged = false;
         }
         #endregion
     } 
