@@ -128,12 +128,16 @@ namespace HBP.UI.Informations
         {
             m_OnMinimize.Invoke();
         }
-        public void ComputeAndDisplayGridGraphs()
+        public async void ComputeAndDisplayGridGraphs()
         {
             var channelStructs = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered && !s.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray();
             if (channelStructs.Length > CHANNEL_WARNING_THRESHOLD)
             {
-                DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "High number of sites", string.Format("The number of sites you want to display is high ({0}): the recommended value is less than 50. This can cause performance issues. Do you really want to display that many sites?", channelStructs.Length), () => { GridInformations.Display(channelStructs); }, "Display", () => { }, "Cancel");
+                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "High number of sites", string.Format("The number of sites you want to display is high ({0}): the recommended value is less than 50. This can cause performance issues. Do you really want to display that many sites?", channelStructs.Length), "Display", "Cancel");
+                if (result == 0)
+                {
+                    GridInformations.Display(channelStructs);
+                }
             }
             else
             {

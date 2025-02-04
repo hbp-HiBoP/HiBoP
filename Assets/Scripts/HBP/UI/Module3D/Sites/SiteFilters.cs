@@ -80,7 +80,7 @@ namespace HBP.UI.Module3D
             catch (Exception e)
             {
                 StopFiltering(false);
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Warning, e.ToString(), e.Message).Forget();
             }
         }
         public void ResetFilters()

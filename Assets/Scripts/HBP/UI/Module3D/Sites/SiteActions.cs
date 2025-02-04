@@ -156,7 +156,7 @@ namespace HBP.UI.Module3D
             catch (Exception e)
             {
                 Debug.LogException(e);
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Warning, e.ToString(), e.Message).Forget();
             }
         }
         #endregion
@@ -269,7 +269,7 @@ namespace HBP.UI.Module3D
                     group.Name = name;
                 }
                 ApplicationState.LoadedProject.AddGroup(group);
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Group added to project", string.Format("The group {0} containing the {1} patients of the filtered sites has been added to the project.", group.Name, patients.Count()));
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Group added to project", string.Format("The group {0} containing the {1} patients of the filtered sites has been added to the project.", group.Name, patients.Count())).Forget();
             });
         }
         /// <summary>
@@ -442,14 +442,14 @@ namespace HBP.UI.Module3D
             catch (Exception e)
             {
                 Debug.LogException(e);
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Warning, e.ToString(), e.Message).Forget();
                 throw e;
             }
 
             // End
             await UniTask.SwitchToMainThread();
             StopExport();
-            DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Sites exported", "The filtered sites have been sucessfully exported to " + csvPath);
+            DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Sites exported", "The filtered sites have been sucessfully exported to " + csvPath).Forget();
             OnRequestListUpdate.Invoke();
         }
 #endregion

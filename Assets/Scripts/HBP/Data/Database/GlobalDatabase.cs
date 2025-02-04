@@ -261,7 +261,7 @@ namespace HBP.Data.Database
             }
             await SaveDatabaseReferencesAsync();
             await UniTask.SwitchToMainThread();
-            DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Databases updated", "The databases have been updated successfully");
+            await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "Databases updated", "The databases have been updated successfully");
             onUpdated();
         }
         #endregion

@@ -34,7 +34,7 @@ namespace HBP.UI.Toolbar
                 {
                     Core.Data.RegionOfInterest ROI = new Core.Data.RegionOfInterest(SelectedScene.ROIManager.SelectedROI.Name, SelectedScene.ROIManager.SelectedROI.Spheres.Select(s => new Core.Data.Sphere(s.Position, s.Radius)).ToList());
                     ClassLoaderSaver.SaveToJSon(ROI, savePath, true);
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Region of Interest saved", "The selected ROI has been saved to <color=#3080ffff>" + savePath + "</color>");
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Region of Interest saved", "The selected ROI has been saved to <color=#3080ffff>" + savePath + "</color>").Forget();
                 }
             }, new string[] { "roi" }, "Save ROI to");
 #else
@@ -43,7 +43,7 @@ namespace HBP.UI.Toolbar
             {
                 Core.Data.RegionOfInterest ROI = new Core.Data.RegionOfInterest(SelectedScene.ROIManager.SelectedROI.Name, SelectedScene.ROIManager.SelectedROI.Spheres.Select(s => new Core.Data.Sphere(s.Position, s.Radius)).ToList());
                 ClassLoaderSaver.SaveToJSon(ROI, savePath, true);
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Region of Interest saved", "The selected ROI has been saved to <color=#3080ffff>" + savePath + "</color>");
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Region of Interest saved", "The selected ROI has been saved to <color=#3080ffff>" + savePath + "</color>").Forget();
             }
 #endif
         }
@@ -69,7 +69,7 @@ namespace HBP.UI.Toolbar
                     catch (Exception e)
                     {
                         Debug.LogException(e);
-                        DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Can not load ROI", "The ROI file you are trying to load is not valid.");
+                        DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Can not load ROI", "The ROI file you are trying to load is not valid.").Forget();
                     }
                 }
             }, new string[] { "roi" }, "Load ROI file");
@@ -89,7 +89,7 @@ namespace HBP.UI.Toolbar
                 catch (Exception e)
                 {
                     Debug.LogException(e);
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Can not load ROI", "The ROI file you are trying to load is not valid.");
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Can not load ROI", "The ROI file you are trying to load is not valid.").Forget();
                 }
             }
 #endif

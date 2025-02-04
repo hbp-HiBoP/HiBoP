@@ -55,7 +55,7 @@ namespace HBP.UI.Main.QuickStart
                     ApplicationState.LoadedProject.SetPatients(patients);
                 else
                 {
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "No patient have been selected", "You need to select at least one patient in order to continue.");
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "No patient have been selected", "You need to select at least one patient in order to continue.").Forget();
                     return false;
                 }
             }
@@ -66,13 +66,13 @@ namespace HBP.UI.Main.QuickStart
                     ApplicationState.LoadedProject.SetPatients(patients);
                 else
                 {
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "No patient have been added", "You need to add at least one patient to the list in order to continue.");
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "No patient have been added", "You need to add at least one patient to the list in order to continue.").Forget();
                     return false;
                 }
             }
             else
             {
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "No option selected", "You need to select an option in order to continue.");
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "No option selected", "You need to select an option in order to continue.").Forget();
                 return false;
             }
             return base.OpenNextPanel();

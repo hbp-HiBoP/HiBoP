@@ -35,27 +35,24 @@ namespace HBP.Dev
         private void Start()
         {
         }
-        private void Update()
+        private async void Update()
         {
             if (Input.GetKeyDown(KeyCode.F1))
             {
-                TestLoadPatients1().Forget();
+                DialogBoxManager.Open(DialogBoxType.Error, "Test", "Test").Forget();
             }
             if (Input.GetKeyDown(KeyCode.F2))
             {
-                TestLoadPatients2().Forget();
+                DialogBoxManager.Open(DialogBoxType.Warning, "Test", "Test").Forget();
+            }
+            if (Input.GetKeyDown(KeyCode.F3))
+            {
+                DialogBoxManager.Open(DialogBoxType.Informational, "Test", "Test").Forget();
             }
             if (Input.GetKeyDown(KeyCode.F4))
             {
-                TestLoadPatients4().Forget();
-            }
-            if (Input.GetKeyDown(KeyCode.F5))
-            {
-                TestLoadPatients5().Forget();
-            }
-            if (Input.GetKeyDown(KeyCode.F6))
-            {
-                TestLoadPatients6().Forget();
+                int result = await DialogBoxManager.OpenAsync(DialogBoxType.Informational, "Test", "Test", "Yes", "No");
+                Debug.Log(result);
             }
             //if (Input.GetKeyDown(KeyCode.F1))
             //{

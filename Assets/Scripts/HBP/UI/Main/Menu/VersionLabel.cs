@@ -39,10 +39,8 @@ namespace HBP.UI.Main
             await UniTask.SwitchToMainThread();
             if (string.Compare(version, Application.version) > 0)
             {
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "New version available", "A new version of HiBoP is available. Please update to the latest version.", () =>
-                {
-                    WindowsManager.Open("Version Window");
-                });
+                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "New version available", "A new version of HiBoP is available. Please update to the latest version.", "Update now", "Remind me later");
+                if (result == 0) WindowsManager.Open("Version Window");
             }
         }
         #endregion

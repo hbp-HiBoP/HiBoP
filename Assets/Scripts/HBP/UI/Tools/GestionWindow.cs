@@ -55,7 +55,7 @@ namespace HBP.UI.Tools
                     ClassLoaderSaver.SaveToJSon(selectedObject, Path.Combine(directory, string.Format("{0}.{1}", nameable.Name, loadable.GetExtensions()[0])));
                 }
             }
-            DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Selected items have been saved", string.Format("{0} items have been saved at {1}.", selectedObjects.Length, directory));
+            DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Selected items have been saved", string.Format("{0} items have been saved at {1}.", selectedObjects.Length, directory)).Forget();
         }
         protected void SetExport()
         {

@@ -585,8 +585,11 @@ namespace HBP.Core.Data
         /// <returns></returns>
         public static async UniTask<IEnumerable<Patient>> LoadFromDatabaseAsync(Action<float, float, LoadingText> updateProgress)
         {
+            updateProgress(0, 0, new LoadingText("Importing patients"));
             await UniTask.WaitUntil(() => DatabaseManager.Database.IsLoaded);
-            return DatabaseManager.Database.Patients;
+            updateProgress(1, 0.2f, new LoadingText("Importing patients"));
+            await UniTask.SwitchToThreadPool();
+            return DatabaseManager.Database.Patients.DeepClone();
         }
         /// <summary>
         /// Coroutine to load patients from database. Implementation of ILoadableFromDatabase.

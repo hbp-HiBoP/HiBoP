@@ -41,18 +41,18 @@ namespace HBP.UI.Main
             base.Close();
             WindowsManager.CloseAll();
         }
-        public override void OK()
+        public override async void OK()
 		{
             if (ApplicationState.LoadedProject != null)
             {
                 if (ApplicationState.LoadedProject.Visualizations.Any(v => Module3DMain.Visualizations.Contains(v)))
                 {
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Opened visualizations", "Some visualizations of the currently loaded project are opened. Loading another project will close any opened visualization.\n\nWould you like to load another project ?", () =>
+                    int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Opened visualizations", "Some visualizations of the currently loaded project are opened. Loading another project will close any opened visualization.\n\nWould you like to load another project ?", "Load project", "Cancel");
+                    if (result == 0)
                     {
                         Module3DMain.RemoveAllScenes();
                         Load(m_ProjectList.ObjectsSelected[0]);
-                    },
-                    "Load project");
+                    }
                 }
                 else
                 {

@@ -439,7 +439,7 @@ namespace HBP.UI.Module3D
             }
             catch (Exception e)
             {
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Warning, e.ToString(), e.Message).Forget();
             }
             OnEndFilter.Invoke(filtered);
         }

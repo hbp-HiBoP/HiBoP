@@ -23,12 +23,12 @@ namespace HBP.UI.Main.QuickStart
         {
             if (string.IsNullOrEmpty(m_ProjectName.text))
             {
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Name field must be filled", "You need to name your project in order to continue.");
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Name field must be filled", "You need to name your project in order to continue.").Forget();
                 return false;
             }
             if (string.IsNullOrEmpty(m_ProjectLocation.Folder) || !Directory.Exists(m_ProjectLocation.Folder))
             {
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Directory does not exist", "The input directory does not exist.");
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Directory does not exist", "The input directory does not exist.").Forget();
                 return false;
             }
             // Add visualization

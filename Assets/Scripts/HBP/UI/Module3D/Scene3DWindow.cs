@@ -166,7 +166,7 @@ namespace HBP.UI.Module3D
             catch (Exception e)
             {
                 Debug.LogException(e);
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Screenshots could not be saved", "Please verify your rights").Forget();
             }
         }
         /// <summary>
@@ -305,7 +305,7 @@ namespace HBP.UI.Module3D
                     }
                 }
                 // Feedback
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Screenshots saved", "Screenshots have been saved in " + path);
+                DialogBoxManager.Open(DialogBoxType.Informational, "Screenshots saved", "Screenshots have been saved in " + path).Forget();
             }
             else
             {
@@ -313,7 +313,7 @@ namespace HBP.UI.Module3D
                 Texture2D sceneTexture = Texture2DExtension.ScreenRectToTexture(sceneRect);
                 string screenshotPath = Path.Combine(path, string.Format("{0}_{1}_fullscene.png", openedProjectName, m_Scene.Name)).GenerateUniqueFilePath();
                 sceneTexture.SaveToPNG(screenshotPath);
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Screenshot saved", "A screenshot of the scene has been saved at " + screenshotPath);
+                DialogBoxManager.Open(DialogBoxType.Informational, "Screenshot saved", "A screenshot of the scene has been saved at " + screenshotPath).Forget();
             }
         }
         /// <summary>
@@ -415,7 +415,7 @@ namespace HBP.UI.Module3D
             }
             videoStream.Dispose();
             updateProgress.Invoke(1, 0, new LoadingText("Finished"));
-            DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Video saved", "A video of the scene has been saved at " + videoPath);
+            DialogBoxManager.Open(DialogBoxType.Informational, "Video saved", "A video of the scene has been saved at " + videoPath).Forget();
         }
         #endregion
     }

@@ -264,11 +264,11 @@ namespace HBP.UI.Toolbar
                 catch (Exception e)
                 {
                     Debug.LogException(e);
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Can not save correlations", "Please verify your rights.");
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Can not save correlations", "Please verify your rights.").Forget();
                     return;
                 }
             }
-            DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Site correlations saved", "Site correlations of this visualization have been saved to <color=#3080ffff>" + saveDirectory + "</color>");
+            DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Site correlations saved", "Site correlations of this visualization have been saved to <color=#3080ffff>" + saveDirectory + "</color>").Forget();
         }
         private void LoadCorrelations()
         {
@@ -280,12 +280,12 @@ namespace HBP.UI.Toolbar
                     // Checks
                     if (SelectedScene.Visualization.Patients[0].ID != container.PatientID)
                     {
-                        DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Correlation file is not compatible", "The patient of the correlations files you are trying to load is different from the patient in the visualization.");
+                        DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Correlation file is not compatible", "The patient of the correlations files you are trying to load is different from the patient in the visualization.").Forget();
                         return;
                     }
                     if (!container.Columns.All(c => SelectedScene.ColumnsIEEG.Any(col => col.Name == c.Name && col.ColumnIEEGData.Bloc == c.Bloc)))
                     {
-                        DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Correlation file is not compatible", "One of the columns in the correlations files has no corresponding column in the visualization.");
+                        DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Correlation file is not compatible", "One of the columns in the correlations files has no corresponding column in the visualization.").Forget();
                         return;
                     }
                     // Load
@@ -366,7 +366,7 @@ namespace HBP.UI.Toolbar
                 catch (Exception e)
                 {
                     Debug.LogException(e);
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Can not load correlations", "One or multiple files are either missing or invalid.");
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Can not load correlations", "One or multiple files are either missing or invalid.").Forget();
                 }
             }
 #if UNITY_STANDALONE_OSX
@@ -385,16 +385,17 @@ namespace HBP.UI.Toolbar
             }
 #endif
         }
-        private void ResetCorrelations()
+        private async void ResetCorrelations()
         {
-            DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Reset correlations", "This will erase all loaded or computed correlations. Please make sure you saved the computed correlations to files before reseting them.", () =>
+            int result = await DialogBoxManager.OpenAsync(DialogBoxType.Informational, "Reset correlations", "This will erase all loaded or computed correlations. Please make sure you saved the computed correlations to files before reseting them.", "Reset", "Cancel");
+            if (result == 0)
             {
                 foreach (var column in SelectedScene.ColumnsIEEG)
                 {
                     column.CorrelationBySitePair.Clear();
                 }
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
-            }, "Reset", () => { }, "Cancel");
+            }
         }
         #endregion
 

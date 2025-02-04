@@ -459,11 +459,16 @@ namespace HBP.Core.Data
         /// <returns></returns>
         private static async UniTask<IEnumerable<Dataset>> LoadFromDatabaseAsync(Action<float, float, LoadingText> update)
         {
+            update(0, 0, new LoadingText("Importing datasets"));
             await UniTask.WaitUntil(() => DatabaseManager.Database.IsLoaded);
 
+            await UniTask.SwitchToThreadPool();
             List<Dataset> datasets = DatabaseManager.Database.Datasets.DeepClone().ToList();
+            int length = datasets.Count;
+            int count = 0;
             foreach (var dataset in datasets)
             {
+                update((float)count/length, 0, new LoadingText("Importing datasets", "", $"{++count}/{length}"));
                 List<DataInfo> dataToDelete = new();
                 foreach (var dataInfo in dataset.Data)
                 {

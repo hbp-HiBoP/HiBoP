@@ -34,7 +34,7 @@ namespace HBP.UI.Tools
             catch (Exception e)
             {
                 await UniTask.SwitchToMainThread();
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, e.ToString(), e.Message);
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.ToString(), e.Message).Forget();
                 return default;
             }
             finally
@@ -57,7 +57,7 @@ namespace HBP.UI.Tools
             catch (Exception e)
             {
                 await UniTask.SwitchToMainThread();
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, e.ToString(), e.Message);
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.ToString(), e.Message).Forget();
             }
             await UniTask.SwitchToMainThread();
             m_Instance.m_LoadingCircle.Close();
@@ -83,7 +83,7 @@ namespace HBP.UI.Tools
             catch (Exception e)
             {
                 await UniTask.SwitchToMainThread();
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, e.ToString(), e.Message);
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.ToString(), e.Message).Forget();
             }
             m_Instance.m_LoadingCircle.Close();
         }

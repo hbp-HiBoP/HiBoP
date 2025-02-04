@@ -64,7 +64,7 @@ namespace HBP.UI.Tools
             {
                 if (arguments.Count == 0)
                 {
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Couldn't open project", "The project name has not been specified.");
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Couldn't open project", "The project name has not been specified.").Forget();
                 }
                 else
                 {
@@ -75,7 +75,7 @@ namespace HBP.UI.Tools
             {
                 if (arguments.Count == 0)
                 {
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Couldn't open project", "The project name has not been specified.");
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Couldn't open project", "The project name has not been specified.").Forget();
                 }
                 else
                 {
@@ -86,11 +86,11 @@ namespace HBP.UI.Tools
             {
                 if (ApplicationState.LoadedProject == null)
                 {
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Project not loaded", "You are trying to open a visualization without opening a project. This is not supported.");
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Project not loaded", "You are trying to open a visualization without opening a project. This is not supported.").Forget();
                 }
                 else if (arguments.Count == 0)
                 {
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Couldn't load visualizations", "The names of the visualizations have not been specified.");
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Couldn't load visualizations", "The names of the visualizations have not been specified.").Forget();
                 }
                 else
                 {

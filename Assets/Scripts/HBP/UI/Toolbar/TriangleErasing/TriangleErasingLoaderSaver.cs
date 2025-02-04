@@ -42,7 +42,7 @@ namespace HBP.UI.Toolbar
                         catch (Exception e)
                         {
                             Debug.LogException(e);
-                            DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Save Error", "The file could not be saved.");
+                            DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Save Error", "The file could not be saved.").Forget();
                         }
                     }
                 }, new string[] { "trimask" }, "Save brain state to");
@@ -58,7 +58,7 @@ namespace HBP.UI.Toolbar
                     catch (Exception e)
                     {
                         Debug.LogException(e);
-                        DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Save Error", "The file could not be saved.");
+                        DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Save Error", "The file could not be saved.").Forget();
                     }
                 }
 #endif
@@ -80,7 +80,7 @@ namespace HBP.UI.Toolbar
                         catch (Exception e)
                         {
                             Debug.LogException(e);
-                            DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Load Error", "The file could not be loaded.");
+                            DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Load Error", "The file could not be loaded.").Forget();
                         }
                     }
                 }, new string[] { "trimask" }, "Load brain state from");
@@ -96,7 +96,7 @@ namespace HBP.UI.Toolbar
                     catch (Exception e)
                     {
                         Debug.LogException(e);
-                        DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Load Error", "The file could not be loaded.");
+                        DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Load Error", "The file could not be loaded.").Forget();
                     }
                 }
 #endif

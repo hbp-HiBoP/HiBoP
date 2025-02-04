@@ -22,19 +22,20 @@ namespace HBP.UI.Toolbar
         /// </summary>
         public override void Initialize()
         {
-            m_Copy.onClick.AddListener(() =>
+            m_Copy.onClick.AddListener(async () =>
             {
                 if (ListenerLock) return;
 
                 SelectedScene.SaveConfiguration();
                 if (ApplicationState.LoadedProject.Visualizations.Contains(SelectedScene.Visualization))
                 {
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Visualization already exists", "The visualization you are trying to add to the project already exists.\n\nDo you want to create a clone of the selected visualization?\nThis will not link the selected visualization with the newly cloned visualization, but take a snapshot of the selected visualization and save it as a new visualization.", () =>
+                    int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Visualization already exists", "The visualization you are trying to add to the project already exists.\n\nDo you want to create a clone of the selected visualization?\nThis will not link the selected visualization with the newly cloned visualization, but take a snapshot of the selected visualization and save it as a new visualization.", "Clone", "Cancel");
+                    if (result == 0)
                     {
                         Visualization clonedVisualization = SelectedScene.Visualization.Clone() as Visualization;
                         clonedVisualization.GenerateID();
                         SaveVisualizationToProject(clonedVisualization);
-                    }, "Clone");
+                    }
                 }
                 else
                 {
@@ -74,7 +75,7 @@ namespace HBP.UI.Toolbar
                 visualization.Name = name;
             }
             ApplicationState.LoadedProject.AddVisualization(visualization);
-            DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Visualization saved", "The selected visualization has been saved under the name <color=#3080ffff>" + visualization.Name + "</color>.");
+            DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Visualization saved", "The selected visualization has been saved under the name <color=#3080ffff>" + visualization.Name + "</color>.").Forget();
         }
         #endregion
     }

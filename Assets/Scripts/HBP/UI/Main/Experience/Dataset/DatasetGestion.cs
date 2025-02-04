@@ -14,18 +14,19 @@ namespace HBP.UI.Main
         #endregion
 
         #region Public Methods
-        public override void OK()
+        public override async void OK()
 		{
             if (DataManager.HasData)
             {
-                DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
+                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", "Save & Reload", "Cancel");
+                if (result == 0)
                 {
                     base.OK();
                     ApplicationState.LoadedProject.SetDatasets(m_ListGestion.List.Objects);
                     DataManager.Clear();
                     Module3DMain.ReloadScenes();
                     UITools.CheckProjectIDAndAskForRegeneration().Forget();
-                });
+                }
             }
             else
             {

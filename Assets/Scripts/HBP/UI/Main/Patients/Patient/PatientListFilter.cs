@@ -69,7 +69,7 @@ namespace HBP.UI.Main
             }
             catch (Exception e)
             {
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, e.ToString(), e.Message);
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.ToString(), e.Message).Forget();
             }
         }
         /// <summary>

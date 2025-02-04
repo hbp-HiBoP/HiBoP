@@ -59,9 +59,10 @@ namespace HBP.UI.Main
         {
             WindowsManager.Open("Quick start window");
         }
-        public void Quit()
+        public async void Quit()
         {
-            DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Quit HiBoP?", "Are you sure you want to quit HiBoP? Make sure all your data is saved.", () => { Application.Quit(); }, "Quit", () => { }, "Cancel");
+            int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "Quit HiBoP?", "Are you sure you want to quit HiBoP? Make sure all your data is saved.", "Quit", "Cancel");
+            if (result == 0) Application.Quit();
         }
         #endregion
     }

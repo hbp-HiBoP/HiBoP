@@ -58,16 +58,16 @@ namespace HBP.UI.Main
         /// <summary>
         /// Save the modifications.
         /// </summary>
-        public override void OK()
+        public override async void OK()
         {
             if (Module3DMain.Visualizations.Contains(Object))
             {
-                DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Visualization already open", "The visualization you are trying to modify is already open. This visualization needs to be closed before saving the changes.\n\nWould you like to close it and save the changes ?", () =>
+                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Visualization already open", "The visualization you are trying to modify is already open. This visualization needs to be closed before saving the changes.\n\nWould you like to close it and save the changes ?", "Close & Save", "Cancel");
+                if (result == 0)
                 {
                     Module3DMain.RemoveScene(Object);
                     base.OK();
-                },
-                "Close & Save");
+                }
             }
             else
             {
