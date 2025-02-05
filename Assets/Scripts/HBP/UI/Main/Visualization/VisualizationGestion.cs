@@ -61,6 +61,11 @@ namespace HBP.UI.Main
             Module3DMain.LoadScenes(m_ListGestion.List.ObjectsSelected);
             OK();
         }
+        public override void Close()
+        {
+            RestoreOldValues(ApplicationState.LoadedProject.Visualizations);
+            base.Close();
+        }
         #endregion
 
         #region Private Methods
@@ -78,7 +83,7 @@ namespace HBP.UI.Main
         protected override void SetFields()
         {
             base.SetFields();
-            m_ListGestion.List.Set(ApplicationState.LoadedProject.Visualizations);
+            SetList(ApplicationState.LoadedProject.Visualizations);
             SetDisplay();
         }
         #endregion

@@ -20,7 +20,7 @@ namespace HBP.UI.Main
         #region Public Methods
         protected override void OnObjectCreated(Dataset obj)
         {
-            if (!CheckUnicity(obj))
+            if (List.Objects.Contains(obj))
             {
                 List.UpdateObject(obj);
             }

@@ -45,13 +45,18 @@ namespace HBP.UI.Main
                 }
             }
         }
+        public override void Close()
+        {
+            RestoreOldValues(DatabaseManager.Database.Protocols);
+            base.Close();
+        }
         #endregion
 
         #region Private Methods
         protected override void SetFields()
         {
             base.SetFields();
-            ListGestion.List.Set(DatabaseManager.Database.Protocols);
+            SetList(DatabaseManager.Database.Protocols);
         }
         #endregion
     }

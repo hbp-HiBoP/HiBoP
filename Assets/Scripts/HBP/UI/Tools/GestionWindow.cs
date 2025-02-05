@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace HBP.UI.Tools
 {
@@ -31,6 +33,8 @@ namespace HBP.UI.Tools
                 SetExport();
             }
         }
+
+        protected List<T> m_OldValues = new();
         #endregion
 
         #region Protected Methods
@@ -61,6 +65,22 @@ namespace HBP.UI.Tools
         {
             var selectedObjects = ListGestion.List.ObjectsSelected;
             m_ExportButton.interactable = selectedObjects.Length > 0 && Interactable;
+        }
+        protected virtual void SetList(IEnumerable<T> values)
+        {
+            ListGestion.List.Set(values);
+            m_OldValues = values.DeepClone().ToList();
+        }
+        protected void RestoreOldValues(IEnumerable<T> currentValues)
+        {
+            foreach (var value in currentValues)
+            {
+                var oldValue = m_OldValues.FirstOrDefault(v => v.ID == value.ID);
+                if (oldValue != null)
+                {
+                    value.Copy(oldValue);
+                }
+            }
         }
         #endregion
     }

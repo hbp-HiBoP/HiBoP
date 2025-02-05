@@ -20,13 +20,18 @@ namespace HBP.UI.Main
             InteractableStateManager.SetInteractables();
             UITools.CheckProjectIDAndAskForRegeneration().Forget();
         }
+        public override void Close()
+        {
+            RestoreOldValues(ApplicationState.LoadedProject.Groups);
+            base.Close();
+        }
         #endregion
 
         #region Private Methods
         protected override void SetFields()
         {
             base.SetFields();
-            m_ListGestion.List.Set(ApplicationState.LoadedProject.Groups);
+            SetList(ApplicationState.LoadedProject.Groups);
         }
         #endregion
     }

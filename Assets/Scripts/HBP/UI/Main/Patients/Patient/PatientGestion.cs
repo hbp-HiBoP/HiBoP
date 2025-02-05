@@ -36,13 +36,18 @@ namespace HBP.UI.Main
             }
             InteractableStateManager.SetInteractables();
         }
+        public override void Close()
+        {
+            RestoreOldValues(ApplicationState.LoadedProject.Patients);
+            base.Close();
+        }
         #endregion
 
         #region Private Methods
         protected override void SetFields()
         {
             base.SetFields();
-            ListGestion.List.Set(ApplicationState.LoadedProject.Patients);
+            SetList(ApplicationState.LoadedProject.Patients);
         }
         #endregion
     }

@@ -1,3 +1,4 @@
+using HBP.Core.Tools;
 using HBP.Data.Database;
 using HBP.UI.Main;
 using HBP.UI.Tools;
@@ -37,6 +38,11 @@ namespace HBP.UI.Database
             DatabaseManager.Database.SetDatabaseReferences(m_ListGestion.List.Objects);
             DatabaseManager.Database.UpdateDatabases(m_ListGestion.List.ObjectsSelected, m_ListGestion.List.Refresh);
         }
+        public override void Close()
+        {
+            RestoreOldValues(DatabaseManager.Database.DatabaseReferences);
+            base.Close();
+        }
         #endregion
 
         #region Private Methods
@@ -54,7 +60,7 @@ namespace HBP.UI.Database
         protected override void SetFields()
         {
             base.SetFields();
-            ListGestion.List.Set(DatabaseManager.Database.DatabaseReferences);
+            SetList(DatabaseManager.Database.DatabaseReferences);
             SetUpdateButtonInteractableState();
         }
         #endregion

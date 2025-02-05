@@ -49,7 +49,7 @@ namespace HBP.UI.Main
         /// <param name="obj">Object created</param>
         protected override void OnObjectCreated(Patient obj)
         {
-            if (!CheckUnicity(obj))
+            if (List.Objects.Contains(obj))
             {
                 List.UpdateObject(obj);
             }
