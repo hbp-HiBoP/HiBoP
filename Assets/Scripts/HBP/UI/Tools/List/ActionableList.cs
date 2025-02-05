@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using HBP.Core.Interfaces;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -31,6 +32,11 @@ namespace HBP.UI.Tools.Lists
         public override bool UpdateObject(T objectToUpdate)
         {
             int index = m_Objects.FindIndex(o => o.Equals(objectToUpdate));
+            if (m_Objects[index] is ICopiable copiable)
+            {
+                copiable.Copy(objectToUpdate);
+                objectToUpdate = (T)copiable;
+            }
             m_Objects[index] = objectToUpdate;
 
             if (GetItemFromObject(objectToUpdate, out Item<T> item))
