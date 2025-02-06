@@ -39,19 +39,19 @@ namespace HBP.Dev
         {
             if (Input.GetKeyDown(KeyCode.F1))
             {
-                DialogBoxManager.Open(DialogBoxType.Error, "Test", "Test").Forget();
+                DialogBoxManager.Open(DialogBoxType.Error, "Lorem ipsum dolor sit", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi accumsan lacus quam, vitae vestibulum libero malesuada vitae. Fusce ornare rutrum tortor vitae bibendum. Phasellus dolor.\r\n\r\n").Forget();
             }
             if (Input.GetKeyDown(KeyCode.F2))
             {
-                DialogBoxManager.Open(DialogBoxType.Warning, "Test", "Test").Forget();
+                DialogBoxManager.Open(DialogBoxType.Warning, "Lorem ipsum dolor sit", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi accumsan lacus quam, vitae vestibulum libero malesuada vitae. Fusce ornare rutrum tortor vitae bibendum. Phasellus dolor.\r\n\r\n").Forget();
             }
             if (Input.GetKeyDown(KeyCode.F3))
             {
-                DialogBoxManager.Open(DialogBoxType.Informational, "Test", "Test").Forget();
+                DialogBoxManager.Open(DialogBoxType.Informational, "Lorem ipsum dolor sit", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi accumsan lacus quam, vitae vestibulum libero malesuada vitae. Fusce ornare rutrum tortor vitae bibendum. Phasellus dolor.\r\n\r\n").Forget();
             }
             if (Input.GetKeyDown(KeyCode.F4))
             {
-                int result = await DialogBoxManager.OpenAsync(DialogBoxType.Informational, "Test", "Test", "Yes", "No");
+                int result = await DialogBoxManager.OpenAsync(DialogBoxType.Informational, "Test", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi accumsan lacus quam, vitae vestibulum libero malesuada vitae. Fusce ornare rutrum tortor vitae bibendum. Phasellus dolor.\r\n\r\n", "Yes", "No");
                 Debug.Log(result);
             }
             //if (Input.GetKeyDown(KeyCode.F1))

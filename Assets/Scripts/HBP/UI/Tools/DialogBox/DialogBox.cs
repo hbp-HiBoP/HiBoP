@@ -11,8 +11,8 @@ namespace HBP.UI.Tools
         #region Properties
         [SerializeField] DialogBoxIcon[] m_Icons;
         [SerializeField] Image m_Icon;
-        [SerializeField] Text m_Message;
-        [SerializeField] Text m_Title;
+        [SerializeField] TMPro.TMP_Text m_Message;
+        [SerializeField] TMPro.TMP_Text m_Title;
         [SerializeField] Transform m_ButtonsParent;
         [SerializeField] GameObject m_ButtonPrefab;
         #endregion
