@@ -25,6 +25,7 @@ namespace HBP.Core.Tools
         #region Public Methods
         public async UniTask ExecuteAsync()
         {
+            await UniTask.SwitchToThreadPool();
             await m_TaskToExecute(UpdateProgressAsync);
         }
         #endregion
@@ -58,6 +59,7 @@ namespace HBP.Core.Tools
         #region Public Methods
         public async UniTask ExecuteAsync()
         {
+            await UniTask.SwitchToThreadPool();
             await m_TaskToExecute(UpdateProgressAsync, m_CancellationTokenSource.Token);
         }
         public void Cancel()
@@ -94,6 +96,7 @@ namespace HBP.Core.Tools
         #region Public Methods
         public async UniTask<T> ExecuteAsync()
         {
+            await UniTask.SwitchToThreadPool();
             return await m_TaskToExecute(UpdateProgressAsync);
         }
         #endregion
@@ -127,6 +130,7 @@ namespace HBP.Core.Tools
         #region Public Methods
         public async UniTask<T> ExecuteAsync()
         {
+            await UniTask.SwitchToThreadPool();
             return await m_TaskToExecute(UpdateProgressAsync, m_CancellationTokenSource.Token);
         }
         public void Cancel()

@@ -360,10 +360,6 @@ namespace HBP.Dev
                 element.enabled = true;
             }
         }
-        private static void LoadDatabase()
-        {
-            Patient.LoadFromBIDSDatabase(@"Z:\BrainTV\HBP\Development\BaseBidsCCEPGrenoble\07-bids_20190416\07-bids", out Patient[] patients);
-        }
 #endif
     }
 }

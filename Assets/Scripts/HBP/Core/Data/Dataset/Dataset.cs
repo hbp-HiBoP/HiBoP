@@ -13,6 +13,7 @@ using UnityEngine;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using HBP.Data.Preferences;
+using System.Threading;
 
 namespace HBP.Core.Data
 {
@@ -303,7 +304,7 @@ namespace HBP.Core.Data
         /// <param name="path">The specified path of the localizers database.</param>
         /// <param name="datasets">Datasets loaded in the database.</param>
         /// <returns></returns>
-        public static void LoadFromLocalizersDatabase(string path, out Dataset[] datasets, Action<float, float, LoadingText> OnChangeProgress = null)
+        public static void LoadFromLocalizersDatabase(string path, out Dataset[] datasets, Action<float, float, LoadingText> OnChangeProgress, CancellationToken token)
         {
             OnChangeProgress?.Invoke(0, 0, new LoadingText("Finding datasets to load"));
             datasets = new Dataset[0];
@@ -335,8 +336,10 @@ namespace HBP.Core.Data
             {
                 datasetByProtocol.Add(protocol, new Dataset(protocol.Name, protocol, new DataInfo[0]));
             }
+            token.ThrowIfCancellationRequested();
             foreach (var dir in directories)
             {
+                token.ThrowIfCancellationRequested();
                 OnChangeProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading localizer ", dir.Name, " [" + (progress + 1) + "/" + length + "]"));
                 Patient patient = DatabaseManager.Database.Patients.FirstOrDefault(p => p.ID.ToUpper().CompareTo(dir.Name.ToUpper()) == 0);
                 if (patient != null)
@@ -391,7 +394,7 @@ namespace HBP.Core.Data
         /// <param name="path">The specified path of the BIDS database.</param>
         /// <param name="datasets"></param>
         /// <returns></returns>
-        public static void LoadFromBIDSDatabase(string path, out Dataset[] datasets, Action<float, float, LoadingText> OnChangeProgress = null)
+        public static void LoadFromBIDSDatabase(string path, out Dataset[] datasets, Action<float, float, LoadingText> OnChangeProgress, CancellationToken token)
         {
             datasets = new Dataset[0];
             if (string.IsNullOrEmpty(path)) return;
@@ -409,6 +412,7 @@ namespace HBP.Core.Data
             FileInfo[] brainvisionHeaderFiles = databaseDirectoryInfo.GetFiles("*.vhdr", SearchOption.AllDirectories);
             foreach (var file in brainvisionHeaderFiles)
             {
+                token.ThrowIfCancellationRequested();
                 Match match = brainvisionHeaderRegex.Match(file.FullName);
                 if (match.Success)
                 {
@@ -431,6 +435,7 @@ namespace HBP.Core.Data
             FileInfo[] edfFiles = databaseDirectoryInfo.GetFiles("*.edf", SearchOption.AllDirectories);
             foreach (var file in edfFiles)
             {
+                token.ThrowIfCancellationRequested();
                 Match match = edfRegex.Match(file.FullName);
                 if (match.Success)
                 {

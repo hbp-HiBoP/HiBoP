@@ -19,6 +19,7 @@ namespace HBP.UI.Tools
         }
         public static async UniTask<int> OpenAsync(DialogBoxType type, string title, string message, params string[] buttons)
         {
+            await UniTask.SwitchToMainThread();
             GameObject dialogBox = Instantiate(m_Instance.m_DialogBoxPrefab, m_Instance.m_Canvas.transform);
             dialogBox.transform.SetAsLastSibling();
             if (buttons.Length == 0) buttons = new string[] { "OK" };

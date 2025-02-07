@@ -83,7 +83,7 @@ namespace HBP.UI.Toolbar
                     ROI roi = SelectedScene.ROIManager.AddROI(serializedROI.Name);
                     foreach (Core.Data.Sphere sphere in serializedROI.Spheres)
                     {
-                        roi.AddSphere(Data.Module3D.Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
+                        roi.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
                     }
                 }
                 catch (Exception e)

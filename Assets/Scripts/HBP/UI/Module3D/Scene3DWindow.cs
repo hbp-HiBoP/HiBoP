@@ -166,7 +166,7 @@ namespace HBP.UI.Module3D
             catch (Exception e)
             {
                 Debug.LogException(e);
-                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Screenshots could not be saved", "Please verify your rights").Forget();
+                DialogBoxManager.Open(DialogBoxType.Error, "Screenshots could not be saved", "Please verify your rights").Forget();
             }
         }
         /// <summary>

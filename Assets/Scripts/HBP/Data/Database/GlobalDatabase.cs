@@ -9,6 +9,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using Cysharp.Threading.Tasks;
+using System.Threading;
 
 namespace HBP.Data.Database
 {
@@ -72,9 +73,9 @@ namespace HBP.Data.Database
             await UniTask.SwitchToThreadPool();
             await LoadDatabaseAsync();
         }
-        public void UpdateDatabases(IEnumerable<DatabaseReference> databaseReferences, UnityAction onUpdated)
+        public async UniTask UpdateDatabases(IEnumerable<DatabaseReference> databaseReferences)
         {
-            LoadingManager.Load((update) => UpdateDatabasesAsync(databaseReferences, update, onUpdated));
+            await LoadingManager.LoadAsync((update, token) => UpdateDatabasesAsync(databaseReferences, update, token));
         }
         #endregion
 
@@ -194,75 +195,109 @@ namespace HBP.Data.Database
             datasetsTempDirectory.MoveTo(datasetsDirectory.FullName);
         }
         
-        private async UniTask UpdateDatabasesAsync(IEnumerable<DatabaseReference> databaseReferences, Action<float, float, LoadingText> updateProgress, UnityAction onUpdated)
+        private async UniTask UpdateDatabasesAsync(IEnumerable<DatabaseReference> databaseReferences, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
+            updateProgress(0, 1, new LoadingText("Initialization"));
             await UniTask.SwitchToThreadPool();
             var brainvisaDatabaseReferences = databaseReferences.Where(d => d.Type == DatabaseType.Brainvisa).ToArray();
             var localizerDatabaseReferences = databaseReferences.Where(d => d.Type == DatabaseType.Localizer).ToArray();
             var bidsDatabaseReferences = databaseReferences.Where(d => d.Type == DatabaseType.BIDS).ToArray();
-            // Load patients first
-            foreach (var brainvisaDatabaseReference in brainvisaDatabaseReferences)
+            // Backup patients and datasets
+            List<Patient> patientsBackup = m_Patients.DeepClone().ToList();
+            List<Dataset> datasetsBackup = m_Datasets.DeepClone().ToList();
+            try
             {
-                Patient.LoadFromIntranatDatabase(brainvisaDatabaseReference.Path, out Patient[] patients, updateProgress);
-                foreach (var patient in patients) patient.CorrespondingDatabaseID = brainvisaDatabaseReference.ID;
-                // TODO: Warn that patients will be deleted / overwritten
-                m_Patients.RemoveAll(p => patients.Contains(p) || p.CorrespondingDatabaseID == brainvisaDatabaseReference.ID);
-                m_Patients.AddRange(patients);
+                // Load patients first
+                foreach (var brainvisaDatabaseReference in brainvisaDatabaseReferences)
+                {
+                    token.ThrowIfCancellationRequested();
+                    Patient.LoadFromIntranatDatabase(brainvisaDatabaseReference.Path, out Patient[] patients, updateProgress, token);
+                    foreach (var patient in patients) patient.CorrespondingDatabaseID = brainvisaDatabaseReference.ID;
+                    // TODO: Warn that patients will be deleted / overwritten
+                    m_Patients.RemoveAll(p => patients.Contains(p) || p.CorrespondingDatabaseID == brainvisaDatabaseReference.ID);
+                    m_Patients.AddRange(patients);
+                }
+                foreach (var bidsDatabaseReference in bidsDatabaseReferences)
+                {
+                    token.ThrowIfCancellationRequested();
+                    Patient.LoadFromBIDSDatabase(bidsDatabaseReference.Path, out Patient[] patients, updateProgress, token);
+                    foreach (var patient in patients) patient.CorrespondingDatabaseID = bidsDatabaseReference.ID;
+                    // TODO: Warn that patients will be deleted / overwritten
+                    m_Patients.RemoveAll(p => patients.Contains(p) || p.CorrespondingDatabaseID == bidsDatabaseReference.ID);
+                    m_Patients.AddRange(patients);
+                }
+                // Then load datasets
+                List<Dataset> generatedDatasets = new();
+                foreach (var localizerDatabaseReference in localizerDatabaseReferences)
+                {
+                    token.ThrowIfCancellationRequested();
+                    Dataset.LoadFromLocalizersDatabase(localizerDatabaseReference.Path, out Dataset[] datasets, updateProgress, token);
+                    foreach (var dataset in datasets)
+                        foreach (var data in dataset.Data)
+                            data.CorrespondingDatabaseID = localizerDatabaseReference.ID;
+                    generatedDatasets.AddRange(datasets);
+                }
+                foreach (var bidsDatabaseReference in bidsDatabaseReferences)
+                {
+                    token.ThrowIfCancellationRequested();
+                    Dataset.LoadFromBIDSDatabase(bidsDatabaseReference.Path, out Dataset[] datasets, updateProgress, token);
+                    foreach (var dataset in datasets)
+                        foreach (var data in dataset.Data)
+                            data.CorrespondingDatabaseID = bidsDatabaseReference.ID;
+                    generatedDatasets.AddRange(datasets);
+                }
+                // TODO: Warn that datasets will be deleted / overwritten
+                foreach (var dataset in m_Datasets)
+                {
+                    token.ThrowIfCancellationRequested();
+                    dataset.RemoveData(dataset.Data.Where(d => databaseReferences.Any(r => r.ID == d.CorrespondingDatabaseID)).ToList());
+                }
+                m_Datasets.RemoveAll(d => d.Data.Count == 0);
+                foreach (var dataset in generatedDatasets)
+                {
+                    token.ThrowIfCancellationRequested();
+                    Dataset protocolDataset = m_Datasets.FirstOrDefault(d => d.Protocol == dataset.Protocol);
+                    if (protocolDataset == null)
+                    {
+                        protocolDataset = dataset;
+                        m_Datasets.Add(protocolDataset);
+                    }
+                    else
+                    {
+                        protocolDataset.AddData(dataset.Data);
+                    }
+                }
+                // Update last updated
+                foreach (var databaseReference in databaseReferences)
+                {
+                    token.ThrowIfCancellationRequested();
+                    databaseReference.LastUpdated = DateTime.Now;
+                }
+                await SaveDatabaseReferencesAsync();
             }
-            foreach (var bidsDatabaseReference in bidsDatabaseReferences)
+            catch (Exception e)
             {
-                Patient.LoadFromBIDSDatabase(bidsDatabaseReference.Path, out Patient[] patients, updateProgress);
-                foreach (var patient in patients) patient.CorrespondingDatabaseID = bidsDatabaseReference.ID;
-                // TODO: Warn that patients will be deleted / overwritten
-                m_Patients.RemoveAll(p => patients.Contains(p) || p.CorrespondingDatabaseID == bidsDatabaseReference.ID);
-                m_Patients.AddRange(patients);
+                m_Patients = patientsBackup;
+                m_Datasets = datasetsBackup;
+                FixDatasets();
+                throw e;
             }
-            // Then load datasets
-            List<Dataset> generatedDatasets = new();
-            foreach (var localizerDatabaseReference in localizerDatabaseReferences)
-            {
-                Dataset.LoadFromLocalizersDatabase(localizerDatabaseReference.Path, out Dataset[] datasets, updateProgress);
-                foreach (var dataset in datasets)
-                    foreach (var data in dataset.Data)
-                        data.CorrespondingDatabaseID = localizerDatabaseReference.ID;
-                generatedDatasets.AddRange(datasets);
-            }
-            foreach (var bidsDatabaseReference in bidsDatabaseReferences)
-            {
-                Dataset.LoadFromBIDSDatabase(bidsDatabaseReference.Path, out Dataset[] datasets, updateProgress);
-                foreach (var dataset in datasets)
-                    foreach (var data in dataset.Data)
-                        data.CorrespondingDatabaseID = bidsDatabaseReference.ID;
-                generatedDatasets.AddRange(datasets);
-            }
-            // TODO: Warn that datasets will be deleted / overwritten
+        }
+
+        private void FixDatasets()
+        {
             foreach (var dataset in m_Datasets)
             {
-                dataset.RemoveData(dataset.Data.Where(d => databaseReferences.Any(r => r.ID == d.CorrespondingDatabaseID)).ToList());
-            }
-            m_Datasets.RemoveAll(d => d.Data.Count == 0);
-            foreach (var dataset in generatedDatasets)
-            {
-                Dataset protocolDataset = m_Datasets.FirstOrDefault(d => d.Protocol == dataset.Protocol);
-                if (protocolDataset == null)
+                dataset.Protocol = m_Protocols.FirstOrDefault(p => p.ID == dataset.Protocol.ID);
+                foreach (var data in dataset.Data)
                 {
-                    protocolDataset = dataset;
-                    m_Datasets.Add(protocolDataset);
-                }
-                else
-                {
-                    protocolDataset.AddData(dataset.Data);
+                    data.Dataset = dataset;
+                    if (data is PatientDataInfo patientData)
+                    {
+                        patientData.Patient = m_Patients.FirstOrDefault(p => p.ID == patientData.Patient.ID);
+                    }
                 }
             }
-            // Update last updated
-            foreach (var databaseReference in databaseReferences)
-            {
-                databaseReference.LastUpdated = DateTime.Now;
-            }
-            await SaveDatabaseReferencesAsync();
-            await UniTask.SwitchToMainThread();
-            await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "Databases updated", "The databases have been updated successfully");
-            onUpdated();
         }
         #endregion
     }

@@ -5,6 +5,7 @@ using HBP.Data.Module3D;
 using HBP.UI.Main;
 using System;
 using Cysharp.Threading.Tasks;
+using UnityEngine;
 
 namespace HBP.UI.Tools
 {
@@ -28,11 +29,14 @@ namespace HBP.UI.Tools
             try
             {
                 await LoadingManager.LoadAsync(update => projectToLoad.LoadAsync(projectInfo, update));
+                await UniTask.SwitchToMainThread();
                 InteractableStateManager.SetInteractables();
                 UITools.CheckProjectIDAndAskForRegeneration().Forget();
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Debug.LogException(e);
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.ToString(), e.Message).Forget();
                 ApplicationState.LoadedProject = projectLoaded;
                 ApplicationState.LoadedProjectLocation = projectLoadedLocation;
             }

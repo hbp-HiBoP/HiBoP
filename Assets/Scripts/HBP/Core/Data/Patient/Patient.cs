@@ -10,6 +10,7 @@ using HBP.Data.Preferences;
 using HBP.Data.Database;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
+using System.Threading;
 
 namespace HBP.Core.Data
 {
@@ -282,7 +283,7 @@ namespace HBP.Core.Data
         /// <param name="path">The specified path of the intranat database.</param>
         /// <param name="patients">Patients loaded in the database.</param>
         /// <returns></returns>
-        public static void LoadFromIntranatDatabase(string path, out Patient[] patients, Action<float, float, LoadingText> OnChangeProgress = null)
+        public static void LoadFromIntranatDatabase(string path, out Patient[] patients, Action<float, float, LoadingText> OnChangeProgress, CancellationToken token)
         {
             OnChangeProgress?.Invoke(0, 0, new LoadingText("Finding patients to load"));
             patients = new Patient[0];
@@ -296,6 +297,7 @@ namespace HBP.Core.Data
             List<Patient> patientsList = new List<Patient>(length);
             foreach (var dir in patientDirectories)
             {
+                token.ThrowIfCancellationRequested();
                 OnChangeProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading patient ", dir.Name, " [" + (progress + 1) + "/" + length + "]"));
                 if (LoadFromDirectory(dir.FullName, out Patient patient))
                 {
@@ -311,7 +313,7 @@ namespace HBP.Core.Data
         /// <param name="path">The specified path of the BIDS database.</param>
         /// <param name="patients"></param>
         /// <returns></returns>
-        public static void LoadFromBIDSDatabase(string path, out Patient[] patients, Action<float, float, LoadingText> OnChangeProgress = null)
+        public static void LoadFromBIDSDatabase(string path, out Patient[] patients, Action<float, float, LoadingText> OnChangeProgress, CancellationToken token)
         {
             patients = new Patient[0];
             if (string.IsNullOrEmpty(path)) return;
@@ -348,6 +350,7 @@ namespace HBP.Core.Data
             Dictionary<string, List<BIDSMeshFile>> meshesFilesBySubjectID = new Dictionary<string, List<BIDSMeshFile>>();
             foreach (var file in meshFiles)
             {
+                token.ThrowIfCancellationRequested();
                 Match match = meshRegex.Match(file.FullName);
                 if (match.Success)
                 {
@@ -379,6 +382,7 @@ namespace HBP.Core.Data
             Dictionary<string, List<BIDSMRIFile>> mriFilesBySubjectID = new Dictionary<string, List<BIDSMRIFile>>();
             foreach (var file in mriFiles)
             {
+                token.ThrowIfCancellationRequested();
                 Match match = mriRegex.Match(file.FullName);
                 if (match.Success)
                 {
@@ -409,6 +413,7 @@ namespace HBP.Core.Data
             Dictionary<string, List<BIDSElectrodeFile>> electrodesFilesBySubjectID = new Dictionary<string, List<BIDSElectrodeFile>>();
             foreach (var file in electrodesFiles)
             {
+                token.ThrowIfCancellationRequested();
                 Match match = electrodesRegex.Match(file.FullName);
                 if (match.Success)
                 {
@@ -440,6 +445,7 @@ namespace HBP.Core.Data
             List<Patient> patientsList = new List<Patient>(tagValuesBySubjectID.Count);
             foreach (var pair in tagValuesBySubjectID)
             {
+                token.ThrowIfCancellationRequested();
                 OnChangeProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading patient ", pair.Key, " [" + (progress + 1) + "/" + length + "]"));
 
                 // Meshes.

@@ -1,7 +1,9 @@
+using Cysharp.Threading.Tasks;
 using HBP.Core.Tools;
 using HBP.Data.Database;
 using HBP.UI.Main;
 using HBP.UI.Tools;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -33,10 +35,23 @@ namespace HBP.UI.Database
             DatabaseManager.Database.SaveDatabaseReferences().Forget();
             InteractableStateManager.SetInteractables();
         }
-        public void UpdateDatabases()
+        public async void UpdateDatabases()
         {
-            DatabaseManager.Database.SetDatabaseReferences(m_ListGestion.List.Objects);
-            DatabaseManager.Database.UpdateDatabases(m_ListGestion.List.ObjectsSelected, m_ListGestion.List.Refresh);
+            try
+            {
+                DatabaseManager.Database.SetDatabaseReferences(m_ListGestion.List.Objects);
+                await DatabaseManager.Database.UpdateDatabases(m_ListGestion.List.ObjectsSelected);
+                await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "Databases updated", "The databases have been updated successfully");
+                m_ListGestion.List.Refresh();
+            }
+            catch (OperationCanceledException)
+            {
+
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
         }
         public override void Close()
         {

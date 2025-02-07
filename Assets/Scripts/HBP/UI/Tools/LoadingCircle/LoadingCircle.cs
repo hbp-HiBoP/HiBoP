@@ -62,16 +62,18 @@ namespace HBP.UI.Tools
             m_CurrentDurationInSeconds = 0;
             Text = message;
         }
-        public void Open(bool cancelable = false)
+        public async void Open(bool cancelable = false)
         {
+            await UniTask.SwitchToMainThread();
             gameObject.SetActive(true);
             m_CancelButtonContainer.SetActive(cancelable);
             m_IsCancelling = false;
             ChangePercentage(0, 0, new LoadingText());
             ShowInformations();
         }
-        public void Close()
+        public async void Close()
         {
+            await UniTask.SwitchToMainThread();
             gameObject.SetActive(false);
             Reset();
         }
@@ -152,6 +154,7 @@ namespace HBP.UI.Tools
             m_PrefixText.text = "Cancelling";
             m_InformationText.text = "";
             m_SuffixText.text = "";
+            m_CancelButtonContainer.SetActive(false);
             OnCancel.Invoke();
         }
         #endregion

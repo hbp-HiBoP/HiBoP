@@ -441,6 +441,7 @@ namespace HBP.UI.Module3D
             {
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Warning, e.ToString(), e.Message).Forget();
             }
+            await UniTask.SwitchToMainThread();
             OnEndFilter.Invoke(filtered);
         }
         #endregion
