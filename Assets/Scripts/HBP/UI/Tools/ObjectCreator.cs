@@ -385,7 +385,7 @@ namespace HBP.UI.Tools
         protected virtual async UniTaskVoid LoadFromDatabase()
         {
             ILoadableFromDatabase<T> loadable = new T() as ILoadableFromDatabase<T>;
-            var result = await LoadingManager.LoadAsync((update) => loadable.LoadFromDatabase(update));
+            var result = await LoadingManager.LoadAsync(loadable.LoadFromDatabase);
             if (result.Count() > 0)
                 OpenSelector(result, true, false, false);
         }

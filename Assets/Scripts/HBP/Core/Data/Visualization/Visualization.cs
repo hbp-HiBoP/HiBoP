@@ -9,6 +9,7 @@ using HBP.Core.Tools;
 using HBP.Data.Preferences;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
+using System.Threading;
 
 namespace HBP.Core.Data
 {
@@ -186,58 +187,57 @@ namespace HBP.Core.Data
         /// Load the visualization.
         /// </summary>
         /// <returns></returns>
-        public async UniTask LoadAsync(Action<float, float, LoadingText> onChangeProgress)
+        public async UniTask LoadAsync(Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
-            await UniTask.RunOnThreadPool(async () =>
+            await UniTask.SwitchToThreadPool();
+
+            int nbDynamicColumns = CCEPColumns.Count + IEEGColumns.Count;
+            int nbFMRIColumns = FMRIColumns.Count;
+            int nbMEGColumns = MEGColumns.Count;
+            int nbStaticColumns = StaticColumns.Count;
+
+            onChangeProgress(0, 0, new LoadingText("Loading Visualization"));
+
+            int nbPatients = Patients.Count;
+
+            float steps = 1 + 2 * nbPatients * nbDynamicColumns + nbFMRIColumns + nbMEGColumns + nbStaticColumns;
+            float progress = 0.0f;
+
+            float findDataInfoToReadProgress = 1 / steps;
+            float loadDataProgress = nbPatients * nbDynamicColumns / steps;
+            float loadColumnsProgress = nbPatients * nbDynamicColumns / steps;
+            float loadFMRIColumnsProgress = nbFMRIColumns / steps;
+            float loadMEGColumnsProgress = nbMEGColumns / steps;
+            float loadStaticColumnsProgress = nbStaticColumns / steps;
+
+            if (nbDynamicColumns > 0)
             {
-                int nbDynamicColumns = CCEPColumns.Count + IEEGColumns.Count;
-                int nbFMRIColumns = FMRIColumns.Count;
-                int nbMEGColumns = MEGColumns.Count;
-                int nbStaticColumns = StaticColumns.Count;
+                var dataInfoByColumn = await FindDataInfoToReadAsync((localProgress, duration, text) => onChangeProgress(progress + localProgress * findDataInfoToReadProgress, duration, text), token);
+                progress += findDataInfoToReadProgress;
 
-                onChangeProgress(0, 0, new LoadingText("Loading Visualization"));
+                await LoadDataAsync(dataInfoByColumn, (localProgress, duration, text) => onChangeProgress(progress + localProgress * loadDataProgress, duration, text), token);
+                progress += loadDataProgress;
 
-                int nbPatients = Patients.Count;
+                await LoadColumnsAsync(dataInfoByColumn, (localProgress, duration, text) => onChangeProgress(progress + localProgress * loadColumnsProgress, duration, text), token);
+                progress += loadColumnsProgress;
+            }
+            if (nbFMRIColumns > 0)
+            {
+                await LoadFMRIColumnsAsync((localProgress, duration, text) => onChangeProgress(progress + localProgress * loadFMRIColumnsProgress, duration, text), token);
+                progress += loadFMRIColumnsProgress;
+            }
+            if (nbMEGColumns > 0)
+            {
+                await LoadMEGColumnsAsync((localProgress, duration, text) => onChangeProgress(progress + localProgress * loadMEGColumnsProgress, duration, text), token);
+                progress += loadMEGColumnsProgress;
+            }
+            if (nbStaticColumns > 0)
+            {
+                await LoadStaticColumnsAsync((localProgress, duration, text) => onChangeProgress(progress + localProgress * loadStaticColumnsProgress, duration, text), token);
+                progress += loadFMRIColumnsProgress;
+            }
 
-                float steps = 1 + 2 * nbPatients * nbDynamicColumns + nbFMRIColumns + nbMEGColumns + nbStaticColumns;
-                float progress = 0.0f;
-
-                float findDataInfoToReadProgress = 1 / steps;
-                float loadDataProgress = nbPatients * nbDynamicColumns / steps;
-                float loadColumnsProgress = nbPatients * nbDynamicColumns / steps;
-                float loadFMRIColumnsProgress = nbFMRIColumns / steps;
-                float loadMEGColumnsProgress = nbMEGColumns / steps;
-                float loadStaticColumnsProgress = nbStaticColumns / steps;
-
-                if (nbDynamicColumns > 0)
-                {
-                    var dataInfoByColumn = await FindDataInfoToReadAsync((localProgress, duration, text) => onChangeProgress(progress + localProgress * findDataInfoToReadProgress, duration, text));
-                    progress += findDataInfoToReadProgress;
-
-                    await LoadDataAsync(dataInfoByColumn, (localProgress, duration, text) => onChangeProgress(progress + localProgress * loadDataProgress, duration, text));
-                    progress += loadDataProgress;
-
-                    await LoadColumnsAsync(dataInfoByColumn, (localProgress, duration, text) => onChangeProgress(progress + localProgress * loadColumnsProgress, duration, text));
-                    progress += loadColumnsProgress;
-                }
-                if (nbFMRIColumns > 0)
-                {
-                    await LoadFMRIColumnsAsync((localProgress, duration, text) => onChangeProgress(progress + localProgress * loadFMRIColumnsProgress, duration, text));
-                    progress += loadFMRIColumnsProgress;
-                }
-                if (nbMEGColumns > 0)
-                {
-                    await LoadMEGColumnsAsync((localProgress, duration, text) => onChangeProgress(progress + localProgress * loadMEGColumnsProgress, duration, text));
-                    progress += loadMEGColumnsProgress;
-                }
-                if (nbStaticColumns > 0)
-                {
-                    await LoadStaticColumnsAsync((localProgress, duration, text) => onChangeProgress(progress + localProgress * loadStaticColumnsProgress, duration, text));
-                    progress += loadFMRIColumnsProgress;
-                }
-
-                onChangeProgress(1.0f, 0, new LoadingText("Visualization loaded successfully"));
-            });
+            onChangeProgress(1.0f, 0, new LoadingText("Visualization loaded successfully"));
         }
         /// <summary>
         /// Swap two columns by index.
@@ -352,52 +352,51 @@ namespace HBP.Core.Data
         #endregion
 
         #region Private Methods
-        private async UniTask<Dictionary<Column, IEnumerable<DataInfo>>> FindDataInfoToReadAsync(Action<float, float, LoadingText> onChangeProgress)
+        private async UniTask<Dictionary<Column, IEnumerable<DataInfo>>> FindDataInfoToReadAsync(Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
-            return await UniTask.RunOnThreadPool(() =>
+            await UniTask.SwitchToThreadPool();
+            Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn = new Dictionary<Column, IEnumerable<DataInfo>>();
+            int count = 0;
+            int length = Columns.Count;
+            foreach (var column in Columns)
             {
-                Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn = new Dictionary<Column, IEnumerable<DataInfo>>();
-                int count = 0;
-                int length = Columns.Count;
-                foreach (var column in Columns)
+                token.ThrowIfCancellationRequested();
+                onChangeProgress((float)count / length, 0.0f, new LoadingText("Finding dataInfo for ", column.Name, " [" + (count + 1) + "/" + length + "]"));
+                if (column is IEEGColumn iEEGColumn)
                 {
-                    onChangeProgress((float)count / length, 0.0f, new LoadingText("Finding dataInfo for ", column.Name, " [" + (count + 1) + "/" + length + "]"));
-                    if (column is IEEGColumn iEEGColumn)
+                    IEnumerable<IEEGDataInfo> dataInfoForThisColumn = GetDataInfo(iEEGColumn).OfType<IEEGDataInfo>();
+                    if (dataInfoForThisColumn.Select(d => d.Patient).Distinct().Count() != Patients.Count)
                     {
-                        IEnumerable<IEEGDataInfo> dataInfoForThisColumn = GetDataInfo(iEEGColumn).OfType<IEEGDataInfo>();
-                        if (dataInfoForThisColumn.Select(d => d.Patient).Distinct().Count() != Patients.Count)
+                        foreach (Patient patient in Patients)
                         {
-                            foreach (Patient patient in Patients)
+                            if (!dataInfoForThisColumn.Any((dataInfo) => dataInfo.Patient == patient))
                             {
-                                if (!dataInfoForThisColumn.Any((dataInfo) => dataInfo.Patient == patient))
-                                {
-                                    throw new CannotFindDataInfoException(patient.ID, iEEGColumn.DataName);
-                                }
+                                throw new CannotFindDataInfoException(patient.ID, iEEGColumn.DataName);
                             }
                         }
-                        dataInfoByColumn.Add(column, dataInfoForThisColumn);
                     }
-                    else if (column is CCEPColumn ccepColumn)
-                    {
-                        IEnumerable<CCEPDataInfo> dataInfoForThisColumn = GetDataInfo(ccepColumn).OfType<CCEPDataInfo>();
-                        if (dataInfoForThisColumn.Select(d => d.Patient).Distinct().Count() != Patients.Count)
-                        {
-                            foreach (Patient patient in Patients)
-                            {
-                                if (!dataInfoForThisColumn.Any((dataInfo) => dataInfo.Patient == patient))
-                                {
-                                    throw new CannotFindDataInfoException(patient.ID, ccepColumn.DataName);
-                                }
-                            }
-                        }
-                        dataInfoByColumn.Add(column, dataInfoForThisColumn);
-                    }
-                    count++;
+                    dataInfoByColumn.Add(column, dataInfoForThisColumn);
                 }
-                return dataInfoByColumn;
-            });
+                else if (column is CCEPColumn ccepColumn)
+                {
+                    IEnumerable<CCEPDataInfo> dataInfoForThisColumn = GetDataInfo(ccepColumn).OfType<CCEPDataInfo>();
+                    if (dataInfoForThisColumn.Select(d => d.Patient).Distinct().Count() != Patients.Count)
+                    {
+                        foreach (Patient patient in Patients)
+                        {
+                            if (!dataInfoForThisColumn.Any((dataInfo) => dataInfo.Patient == patient))
+                            {
+                                throw new CannotFindDataInfoException(patient.ID, ccepColumn.DataName);
+                            }
+                        }
+                    }
+                    dataInfoByColumn.Add(column, dataInfoForThisColumn);
+                }
+                count++;
+            }
+            return dataInfoByColumn;
         }
-        private async UniTask LoadDataAsync(Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn, Action<float, float, LoadingText> updateProgress)
+        private async UniTask LoadDataAsync(Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             const float LOADING_DATA_PROGRESS = 0.95f;
             const float NORMALIZING_DATA_PROGRESS = 0.05f;
@@ -434,11 +433,11 @@ namespace HBP.Core.Data
                     throw new CannotLoadDataInfoException(string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name), (dataInfo is PatientDataInfo pDataInfo ? pDataInfo.Patient.Name : "Unkwown patient"), e.Message);
                 }
             }));
-            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, LOADING_DATA_PROGRESS, "Loading data", updateProgress, 5, PersistentDataManager.UserPreferences.General.System.MultiThreading);
+            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, LOADING_DATA_PROGRESS, "Loading data", updateProgress, 5, PersistentDataManager.UserPreferences.General.System.MultiThreading, token);
             updateProgress.Invoke(LOADING_DATA_PROGRESS + NORMALIZING_DATA_PROGRESS, 1.0f, new LoadingText("Normalizing data"));
             DataManager.NormalizeiEEGData();
         }
-        private async UniTask LoadColumnsAsync(Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn, Action<float, float, LoadingText> onChangeProgress)
+        private async UniTask LoadColumnsAsync(Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn, Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
 
@@ -460,6 +459,7 @@ namespace HBP.Core.Data
             {
                 for (int i = 0; i < nbIEEGColumns; ++i)
                 {
+                    token.ThrowIfCancellationRequested();
                     IEEGColumn iEEGColumn = iEEGColumns[i];
                     progress += loadingDataStep;
                     onChangeProgress(progress, TIME_BY_DATAINFO * dataInfoByColumn[iEEGColumn].Count() , new LoadingText("Loading iEEG column ", iEEGColumn.Name, " [" + (i + 1) + "/" + nbIEEGColumns + "]"));
@@ -468,6 +468,7 @@ namespace HBP.Core.Data
                 Frequency maxiEEGFrequency = new Frequency(iEEGColumns.Max(column => column.Data.MaxFrequency));
                 for (int i = 0; i < nbIEEGColumns; ++i)
                 {
+                    token.ThrowIfCancellationRequested();
                     IEEGColumn column = iEEGColumns[i];
                     progress += loadingTimelineStep;
                     onChangeProgress(progress, 0, new LoadingText("Loading timeline of iEEG column ", column.Name, " [" + (i + 1) + "/" + nbIEEGColumns + "]"));
@@ -483,6 +484,7 @@ namespace HBP.Core.Data
             {
                 for (int i = 0; i < nbCCEPColumns; ++i)
                 {
+                    token.ThrowIfCancellationRequested();
                     CCEPColumn ccepColumn = ccepColumns[i];
                     progress += loadingDataStep;
                     onChangeProgress(progress, TIME_BY_DATAINFO * dataInfoByColumn[ccepColumn].Count(), new LoadingText("Loading CCEP column ", ccepColumn.Name, " [" + (i + 1) + "/" + nbCCEPColumns + "]"));
@@ -491,6 +493,7 @@ namespace HBP.Core.Data
                 Frequency maxCCEPFrequency = new Frequency(ccepColumns.Max(column => column.Data.Frequencies.Max(f => f.RawValue)));
                 for (int i = 0; i < nbCCEPColumns; ++i)
                 {
+                    token.ThrowIfCancellationRequested();
                     CCEPColumn column = ccepColumns[i];
                     progress += loadingTimelineStep;
                     onChangeProgress.Invoke(progress, 0, new LoadingText("Loading timeline of CCEP column ", column.Name, " [" + (i + 1) + "/" + nbCCEPColumns + "]"));
@@ -503,7 +506,7 @@ namespace HBP.Core.Data
 
             await UniTask.SwitchToMainThread();
         }
-        private async UniTask LoadFMRIColumnsAsync(Action<float, float, LoadingText> onChangeProgress)
+        private async UniTask LoadFMRIColumnsAsync(Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
             ReadOnlyCollection<FMRIColumn> fmriColumns = FMRIColumns;
@@ -517,6 +520,7 @@ namespace HBP.Core.Data
             {
                 for (int i = 0; i < nbFMRIColumns; ++i)
                 {
+                    token.ThrowIfCancellationRequested();
                     FMRIColumn fmriColumn = fmriColumns[i];
                     FMRIDataInfo[] dataInfos = fmriColumn.Dataset.GetFMRIDataInfos().Where(data => Patients.Contains(data.Patient)).ToArray();
                     SharedFMRIDataInfo[] sharedFMRIDataInfos = fmriColumn.Dataset.GetSharedFMRIDataInfos();
@@ -527,7 +531,7 @@ namespace HBP.Core.Data
             }
 
         }
-        private async UniTask LoadMEGColumnsAsync(Action<float, float, LoadingText> onChangeProgress)
+        private async UniTask LoadMEGColumnsAsync(Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
             ReadOnlyCollection<MEGColumn> megColumns = MEGColumns;
@@ -541,6 +545,7 @@ namespace HBP.Core.Data
             {
                 for (int i = 0; i < nbMegColumns; ++i)
                 {
+                    token.ThrowIfCancellationRequested();
                     MEGColumn megColumn = megColumns[i];
                     PatientDataInfo[] dataInfos = megColumn.Dataset.GetMEGDataInfos().Where(data => Patients.Contains(data.Patient)).ToArray();
                     progress += loadingDataStep;
@@ -549,7 +554,7 @@ namespace HBP.Core.Data
                 }
             }
         }
-        private async UniTask LoadStaticColumnsAsync(Action<float, float, LoadingText> onChangeProgress)
+        private async UniTask LoadStaticColumnsAsync(Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
             ReadOnlyCollection<StaticColumn> staticColumns = StaticColumns;
@@ -563,6 +568,7 @@ namespace HBP.Core.Data
             {
                 for (int i = 0; i < nbStaticColumns; ++i)
                 {
+                    token.ThrowIfCancellationRequested();
                     StaticColumn staticColumn = staticColumns[i];
                     StaticDataInfo[] dataInfos = staticColumn.Dataset.GetStaticDataInfos().Where(data => Patients.Contains(data.Patient) && staticColumn.DataName == data.Name).ToArray();
                     progress += loadingDataStep;

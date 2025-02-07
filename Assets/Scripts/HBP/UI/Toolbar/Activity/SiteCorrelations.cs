@@ -14,6 +14,7 @@ using HBP.UI.Tools;
 using HBP.Data.Preferences;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
+using System.Threading;
 
 namespace HBP.UI.Toolbar
 {
@@ -80,7 +81,7 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                LoadingManager.Load(update => ComputeCorrelations(update));
+                LoadingManager.Load((update, token) => ComputeCorrelations(update, token));
             });
             m_Load.onClick.AddListener(() =>
             {
@@ -405,16 +406,26 @@ namespace HBP.UI.Toolbar
         /// </summary>
         /// <param name="updateProgress">Action for the loading circle</param>
         /// <returns>Coroutine return</returns>
-        private async UniTask ComputeCorrelations(Action<float, float, LoadingText> updateProgress)
+        private async UniTask ComputeCorrelations(Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             m_CorrelationsComputing = true;
             await UniTask.SwitchToMainThread();
             UpdateInteractable();
             await UniTask.SwitchToThreadPool();
             List<Column3DIEEG> columns = SelectedScene.ColumnsIEEG;
-            for (int i = 0; i < columns.Count; i++)
+            try
             {
-                await columns[i].ComputeCorrelationsAsync((progress, duration, text) => { updateProgress((i + progress) / columns.Count, duration, text); } );
+                for (int i = 0; i < columns.Count; i++)
+                {
+                    await columns[i].ComputeCorrelationsAsync((progress, duration, text) => { updateProgress((i + progress) / columns.Count, duration, text); }, token);
+                }
+            }
+            catch (Exception)
+            {
+                m_CorrelationsComputing = false;
+                await UniTask.SwitchToMainThread();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                return;
             }
             m_CorrelationsComputing = false;
             updateProgress(1, 0, new LoadingText("Correlations computed"));

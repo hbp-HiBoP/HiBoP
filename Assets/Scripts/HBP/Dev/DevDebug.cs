@@ -236,7 +236,7 @@ namespace HBP.Dev
 
                 /*return await ClassLoaderSaver.LoadFromJsonAsync<Patient>(file.FullName)*/
             }));
-            await LoadingManager.LoadAsync((update) => Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "tutu", update, 0, true));
+            await LoadingManager.LoadAsync(update => Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "tutu", update, 0, true));
             watch.Stop();
             Debug.Log("Time : " + watch.ElapsedMilliseconds);
         }

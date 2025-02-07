@@ -297,7 +297,7 @@ namespace HBP.Core.Tools
                 results[i++] = await task;
             return results;
         }
-        public static async UniTask PerformMultipleTasksAsync(IEnumerable<Func<UniTask>> tasks, float startProgress, float endProgress, string loadingText, Action<float, float, LoadingText> updateProgress, int maxConcurrency, bool parallel)
+        public static async UniTask PerformMultipleTasksAsync(IEnumerable<Func<UniTask>> tasks, float startProgress, float endProgress, string loadingText, Action<float, float, LoadingText> updateProgress, int maxConcurrency, bool parallel, CancellationToken token = default)
         {
             var taskList = tasks.ToList();
             int count = 0;
@@ -326,6 +326,7 @@ namespace HBP.Core.Tools
                         await semaphore.WaitAsync();
                         try
                         {
+                            token.ThrowIfCancellationRequested();
                             await task();
                             lock (updateProgress)
                             {
@@ -346,13 +347,14 @@ namespace HBP.Core.Tools
             {
                 foreach (var task in taskList)
                 {
+                    token.ThrowIfCancellationRequested();
                     await task();
                     count++;
                     updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0.2f, new LoadingText(loadingText, " ", count + "/" + length));
                 }
             }
         }
-        public static async UniTask<IEnumerable<T>> PerformMultipleTasksAsync<T>(IEnumerable<Func<UniTask<T>>> tasks, float startProgress, float endProgress, string loadingText, Action<float, float, LoadingText> updateProgress, int maxConcurrency, bool parallel)
+        public static async UniTask<IEnumerable<T>> PerformMultipleTasksAsync<T>(IEnumerable<Func<UniTask<T>>> tasks, float startProgress, float endProgress, string loadingText, Action<float, float, LoadingText> updateProgress, int maxConcurrency, bool parallel, CancellationToken token = default)
         {
             var taskList = tasks.ToList();
             int count = 0;
@@ -384,6 +386,7 @@ namespace HBP.Core.Tools
                         await semaphore.WaitAsync();
                         try
                         {
+                            token.ThrowIfCancellationRequested();
                             T data = await task();
                             lock (updateProgress)
                             {
@@ -410,6 +413,7 @@ namespace HBP.Core.Tools
                 List<T> result = new List<T>();
                 foreach (var task in taskList)
                 {
+                    token.ThrowIfCancellationRequested();
                     result.Add(await task());
                     count++;
                     updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0.2f, new LoadingText(loadingText, " ", count + "/" + length));

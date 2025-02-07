@@ -11,6 +11,7 @@ using HBP.Core.Object3D;
 using HBP.UI.Tools;
 using HBP.Data.Preferences;
 using Cysharp.Threading.Tasks;
+using System.Threading;
 
 namespace HBP.Data.Module3D
 {
@@ -186,7 +187,7 @@ namespace HBP.Data.Module3D
         /// <param name="visualizations">Visualizations to be loaded</param>
         public static void LoadScenes(IEnumerable<Visualization> visualizations)
         {
-            LoadingManager.Load((update) => LoadAsync(visualizations, update));
+            LoadingManager.Load((update, token) => LoadAsync(visualizations, update, token));
         }
         /// <summary>
         /// Remove every scenes corresponding to a visualization
@@ -281,7 +282,7 @@ namespace HBP.Data.Module3D
         /// </summary>
         /// <param name="visualizations">Visualizations to be loaded</param>
         /// <returns></returns>
-        public static async UniTask LoadAsync(IEnumerable<Visualization> visualizations, Action<float, float, LoadingText> onChangeProgress)
+        public static async UniTask LoadAsync(IEnumerable<Visualization> visualizations, Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
             Dictionary<Visualization, int> weightByVisualization = visualizations.ToDictionary(v => v, v => (v.CCEPColumns.Count + v.IEEGColumns.Count) * v.Patients.Count + v.AnatomicColumns.Count + v.FMRIColumns.Count + v.MEGColumns.Count + v.StaticColumns.Count);
             int totalWeight = weightByVisualization.Values.Sum();
@@ -292,11 +293,17 @@ namespace HBP.Data.Module3D
             {
                 try
                 {
+                    token.ThrowIfCancellationRequested();
                     float visualizationWeight = (float)weightByVisualization[visualization] / totalWeight;
                     if (!visualization.IsVisualizable) throw new CanNotLoadVisualization(visualization.Name);
-                    await visualization.LoadAsync((localProgress, duration, text) => onChangeProgress(progress + localProgress * visualizationWeight * LOADING_VISUALIZATION_PROGRESS, duration, text));
+                    await visualization.LoadAsync((localProgress, duration, text) => onChangeProgress(progress + localProgress * visualizationWeight * LOADING_VISUALIZATION_PROGRESS, duration, text), token);
                     await LoadSceneAsync(visualization, (localProgress, duration, text) => onChangeProgress(progress + (LOADING_VISUALIZATION_PROGRESS + localProgress * LOADING_SCENE_PROGRESS) * visualizationWeight, duration, text));
                     progress += visualizationWeight;
+                }
+                catch (OperationCanceledException e)
+                {
+                    visualization.Unload();
+                    throw e;
                 }
                 catch (Exception e)
                 {
