@@ -38,7 +38,6 @@ namespace HBP.UI.Main
         {
             m_GeneralSubModifier.Save();
             base.OK();
-            LoadingManager.Load(update => CheckProjectAsync(update));
         }
         #endregion
 
@@ -58,13 +57,6 @@ namespace HBP.UI.Main
         protected override void SetFields(ProjectPreferences objectToDisplay)
         {
             m_GeneralSubModifier.Object = objectToDisplay;
-        }
-        #endregion
-
-        #region Coroutines
-        private async UniTask CheckProjectAsync(Action<float, float, LoadingText> updateProgress)
-        {
-            await ApplicationState.LoadedProject.CheckDatasetsAsync(DatabaseManager.Database.Protocols, updateProgress);
         }
         #endregion
     }

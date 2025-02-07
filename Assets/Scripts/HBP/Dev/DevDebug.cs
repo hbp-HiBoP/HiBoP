@@ -14,6 +14,7 @@ using HBP.UI.Tools;
 using HBP.Data.Database;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
+using System.Threading;
 
 namespace HBP.Dev
 {
@@ -39,21 +40,25 @@ namespace HBP.Dev
         {
             if (Input.GetKeyDown(KeyCode.F1))
             {
-                DialogBoxManager.Open(DialogBoxType.Error, "Lorem ipsum dolor sit", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi accumsan lacus quam, vitae vestibulum libero malesuada vitae. Fusce ornare rutrum tortor vitae bibendum. Phasellus dolor.\r\n\r\n").Forget();
+                TestLoadCancel();
             }
-            if (Input.GetKeyDown(KeyCode.F2))
-            {
-                DialogBoxManager.Open(DialogBoxType.Warning, "Lorem ipsum dolor sit", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi accumsan lacus quam, vitae vestibulum libero malesuada vitae. Fusce ornare rutrum tortor vitae bibendum. Phasellus dolor.\r\n\r\n").Forget();
-            }
-            if (Input.GetKeyDown(KeyCode.F3))
-            {
-                DialogBoxManager.Open(DialogBoxType.Informational, "Lorem ipsum dolor sit", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi accumsan lacus quam, vitae vestibulum libero malesuada vitae. Fusce ornare rutrum tortor vitae bibendum. Phasellus dolor.\r\n\r\n").Forget();
-            }
-            if (Input.GetKeyDown(KeyCode.F4))
-            {
-                int result = await DialogBoxManager.OpenAsync(DialogBoxType.Informational, "Test", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi accumsan lacus quam, vitae vestibulum libero malesuada vitae. Fusce ornare rutrum tortor vitae bibendum. Phasellus dolor.\r\n\r\n", "Yes", "No");
-                Debug.Log(result);
-            }
+            //if (Input.GetKeyDown(KeyCode.F1))
+            //{
+            //    DialogBoxManager.Open(DialogBoxType.Error, "Lorem ipsum dolor sit", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi accumsan lacus quam, vitae vestibulum libero malesuada vitae. Fusce ornare rutrum tortor vitae bibendum. Phasellus dolor.\r\n\r\n").Forget();
+            //}
+            //if (Input.GetKeyDown(KeyCode.F2))
+            //{
+            //    DialogBoxManager.Open(DialogBoxType.Warning, "Lorem ipsum dolor sit", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi accumsan lacus quam, vitae vestibulum libero malesuada vitae. Fusce ornare rutrum tortor vitae bibendum. Phasellus dolor.\r\n\r\n").Forget();
+            //}
+            //if (Input.GetKeyDown(KeyCode.F3))
+            //{
+            //    DialogBoxManager.Open(DialogBoxType.Informational, "Lorem ipsum dolor sit", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi accumsan lacus quam, vitae vestibulum libero malesuada vitae. Fusce ornare rutrum tortor vitae bibendum. Phasellus dolor.\r\n\r\n").Forget();
+            //}
+            //if (Input.GetKeyDown(KeyCode.F4))
+            //{
+            //    int result = await DialogBoxManager.OpenAsync(DialogBoxType.Informational, "Test", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi accumsan lacus quam, vitae vestibulum libero malesuada vitae. Fusce ornare rutrum tortor vitae bibendum. Phasellus dolor.\r\n\r\n", "Yes", "No");
+            //    Debug.Log(result);
+            //}
             //if (Input.GetKeyDown(KeyCode.F1))
             //{
             //    CheckProjectAndDatabaseIntegrity();
@@ -143,6 +148,21 @@ namespace HBP.Dev
             }
             */
         }
+
+        private void TestLoadCancel()
+        {
+            LoadingManager.Load(TestLoadCancelAsync);
+        }
+        private async UniTask TestLoadCancelAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                if (token.IsCancellationRequested) return;
+                updateProgress((float)(i + 1) / 10, 3, new LoadingText("Loading ", "", $"{i + 1} / 10"));
+                await UniTask.WaitForSeconds(3);
+            }
+        }
+
         private async UniTaskVoid TestLoadPatients1()
         {
             System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();

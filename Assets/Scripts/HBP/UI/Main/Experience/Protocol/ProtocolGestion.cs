@@ -26,7 +26,7 @@ namespace HBP.UI.Main
                     DatabaseManager.Database.SetProtocols(m_ListGestion.List.Objects);
                     DatabaseManager.Database.SaveProtocols().Forget();
                     InteractableStateManager.SetInteractables();
-                    LoadingManager.Load(update => ApplicationState.LoadedProject.CheckDatasetsAsync(m_ListGestion.ModifiedProtocols, update));
+                    LoadingManager.Load(update => Dataset.CheckDatasetsAsync(m_ListGestion.ModifiedProtocols, update));
                     DataManager.Clear();
                     Module3DMain.ReloadScenes();
                     UITools.CheckProjectIDAndAskForRegeneration().Forget();
@@ -40,7 +40,7 @@ namespace HBP.UI.Main
                 InteractableStateManager.SetInteractables();
                 if (ApplicationState.LoadedProject != null)
                 {
-                    LoadingManager.Load(update => ApplicationState.LoadedProject.CheckDatasetsAsync(m_ListGestion.ModifiedProtocols, update));
+                    LoadingManager.Load(update => Dataset.CheckDatasetsAsync(m_ListGestion.ModifiedProtocols, update));
                     UITools.CheckProjectIDAndAskForRegeneration().Forget();
                 }
             }

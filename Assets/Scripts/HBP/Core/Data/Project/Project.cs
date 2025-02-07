@@ -531,16 +531,6 @@ namespace HBP.Core.Data
             updateProgress.Invoke(1, 0, new LoadingText("Project saved successfully"));
         }
 
-        public async UniTask CheckDatasetsAsync(IEnumerable<Protocol> protocols, Action<float, float, LoadingText> updateProgress)
-        {
-            IEnumerable<Dataset> datasets = m_Datasets.Where(d => protocols.Contains(d.Protocol));
-            var tasks = datasets.SelectMany(d => d.Data).Select(d => (Func<UniTask>)(async () =>
-            {
-                await UniTask.SwitchToThreadPool();
-                d.GetErrorsAndWarnings();
-            }));
-            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Checking datasets", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
-        }
         public async UniTask CheckPatientTagValuesAsync(IEnumerable<BaseTag> tags, Action<float, float, LoadingText> updateProgress)
         {
             var tasks = m_Patients.Select(patient => (Func<UniTask>)(async () =>
@@ -675,8 +665,6 @@ namespace HBP.Core.Data
         }
         private async UniTask LoadDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
-            const float LOADING_TIME = 0.01f;
-            const float CHECKING_TIME = 0.99f;
             List<Dataset> datasets = new List<Dataset>();
             DirectoryInfo datasetDirectory = projectDirectory.GetDirectories("Datasets", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] datasetFiles = datasetDirectory.GetFiles("*" + Dataset.EXTENSION, SearchOption.TopDirectoryOnly);
@@ -692,9 +680,8 @@ namespace HBP.Core.Data
                     throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(file.Name));
                 }
             }));
-            datasets.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, LOADING_TIME, "Loading datasets", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading));
+            datasets.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading datasets", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading));
             SetDatasets(datasets.ToArray());
-            await CheckDatasetsAsync(DatabaseManager.Database.Protocols, (localProgress, duration, text) => updateProgress.Invoke(LOADING_TIME + localProgress * CHECKING_TIME, duration, text));
             updateProgress.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
         }
         private async UniTask LoadVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)

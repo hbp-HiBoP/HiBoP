@@ -12,6 +12,7 @@ using HBP.Data.Database;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
+using HBP.Data.Preferences;
 
 namespace HBP.Core.Data
 {
@@ -449,6 +450,17 @@ namespace HBP.Core.Data
 
             datasets = datasetByProtocol.Values.OrderBy(d => d.Name).ToArray();
             OnChangeProgress?.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
+        }
+        public static async UniTask CheckDatasetsAsync(IEnumerable<Protocol> protocols, Action<float, float, LoadingText> updateProgress)
+        {
+            List<Dataset> datasets = DatabaseManager.Database.Datasets.Where(d => protocols.Contains(d.Protocol)).ToList();
+            if (ApplicationState.LoadedProject != null) datasets.AddRange(ApplicationState.LoadedProject.Datasets.Where(d => protocols.Contains(d.Protocol)));
+            var tasks = datasets.SelectMany(d => d.Data).Select(d => (Func<UniTask>)(async () =>
+            {
+                await UniTask.SwitchToThreadPool();
+                d.GetErrorsAndWarnings();
+            }));
+            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Checking datasets", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
         }
         /// <summary>
         /// Coroutine to load datasets from database. Implementation of ILoadableFromDatabase.
