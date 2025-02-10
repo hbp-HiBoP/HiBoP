@@ -21,10 +21,10 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Public Methods
-        public static async UniTask<T> LoadAsync<T>(Func<Action<float, float, LoadingText>, UniTask<T>> taskToExecute)
+        public static async UniTask<T> LoadAsync<T>(Func<Action<float, float, LoadingText>, UniTask<T>> taskToExecute, bool showInformations = true)
         {
             AsyncMethod<T> method = new(taskToExecute);
-            m_Instance.m_LoadingCircle.Open();
+            m_Instance.m_LoadingCircle.Open(showInformations);
             method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.m_LoadingCircle.ChangePercentage(progress, duration, message));
             try
             {
@@ -40,10 +40,10 @@ namespace HBP.UI.Tools
                 m_Instance.m_LoadingCircle.Close();
             }
         }
-        public static async UniTask LoadAsync(Func<Action<float, float, LoadingText>, UniTask> taskToExecute)
+        public static async UniTask LoadAsync(Func<Action<float, float, LoadingText>, UniTask> taskToExecute, bool showInformations = true)
         {
             AsyncMethod method = new(taskToExecute);
-            m_Instance.m_LoadingCircle.Open();
+            m_Instance.m_LoadingCircle.Open(showInformations, true);
             method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.m_LoadingCircle.ChangePercentage(progress, duration, message));
             try
             {
@@ -55,15 +55,15 @@ namespace HBP.UI.Tools
             }
             m_Instance.m_LoadingCircle.Close();
         }
-        public static void Load(Func<Action<float, float, LoadingText>, UniTask> taskToExecute)
+        public static void Load(Func<Action<float, float, LoadingText>, UniTask> taskToExecute, bool showInformations = true)
         {
-            LoadVoid(taskToExecute).Forget();
+            LoadVoid(taskToExecute, showInformations).Forget();
         }
 
-        public static async UniTask<T> LoadAsync<T>(Func<Action<float, float, LoadingText>, CancellationToken, UniTask<T>> taskToExecute)
+        public static async UniTask<T> LoadAsync<T>(Func<Action<float, float, LoadingText>, CancellationToken, UniTask<T>> taskToExecute, bool showInformations = true)
         {
             CancelableAsyncMethod<T> method = new(taskToExecute);
-            m_Instance.m_LoadingCircle.Open(true);
+            m_Instance.m_LoadingCircle.Open(showInformations, true);
             method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.m_LoadingCircle.ChangePercentage(progress, duration, message));
             m_Instance.m_LoadingCircle.OnCancel.AddListener(method.Cancel);
             try
@@ -85,10 +85,10 @@ namespace HBP.UI.Tools
                 m_Instance.m_LoadingCircle.OnCancel.RemoveListener(method.Cancel);
             }
         }
-        public static async UniTask LoadAsync(Func<Action<float, float, LoadingText>, CancellationToken, UniTask> taskToExecute)
+        public static async UniTask LoadAsync(Func<Action<float, float, LoadingText>, CancellationToken, UniTask> taskToExecute, bool showInformations = true)
         {
             CancelableAsyncMethod method = new(taskToExecute);
-            m_Instance.m_LoadingCircle.Open(true);
+            m_Instance.m_LoadingCircle.Open(showInformations, true);
             method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.m_LoadingCircle.ChangePercentage(progress, duration, message));
             m_Instance.m_LoadingCircle.OnCancel.AddListener(method.Cancel);
             try
@@ -109,17 +109,17 @@ namespace HBP.UI.Tools
                 m_Instance.m_LoadingCircle.OnCancel.RemoveListener(method.Cancel);
             }
         }
-        public static void Load(Func<Action<float, float, LoadingText>, CancellationToken, UniTask> taskToExecute)
+        public static void Load(Func<Action<float, float, LoadingText>, CancellationToken, UniTask> taskToExecute, bool showInformations = true)
         {
-            LoadVoid(taskToExecute).Forget();
+            LoadVoid(taskToExecute, showInformations).Forget();
         }
         #endregion
 
         #region Private Methods
-        private static async UniTaskVoid LoadVoid(Func<Action<float, float, LoadingText>, UniTask> taskToExecute)
+        private static async UniTaskVoid LoadVoid(Func<Action<float, float, LoadingText>, UniTask> taskToExecute, bool showInformations)
         {
             AsyncMethod method = new(taskToExecute);
-            m_Instance.m_LoadingCircle.Open();
+            m_Instance.m_LoadingCircle.Open(showInformations);
             method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.m_LoadingCircle.ChangePercentage(progress, duration, message));
             try
             {
@@ -131,10 +131,10 @@ namespace HBP.UI.Tools
             }
             m_Instance.m_LoadingCircle.Close();
         }
-        private static async UniTaskVoid LoadVoid(Func<Action<float, float, LoadingText>, CancellationToken, UniTask> taskToExecute)
+        private static async UniTaskVoid LoadVoid(Func<Action<float, float, LoadingText>, CancellationToken, UniTask> taskToExecute, bool showInformations)
         {
             CancelableAsyncMethod method = new(taskToExecute);
-            m_Instance.m_LoadingCircle.Open(true);
+            m_Instance.m_LoadingCircle.Open(showInformations, true);
             method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.m_LoadingCircle.ChangePercentage(progress, duration, message));
             m_Instance.m_LoadingCircle.OnCancel.AddListener(method.Cancel);
             try

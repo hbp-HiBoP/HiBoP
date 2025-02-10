@@ -79,6 +79,7 @@ namespace HBP.UI.Main
             {
                 ILoadableFromDirectory<Patient> loadable = new Patient();
                 var patients = await LoadingManager.LoadAsync(update => loadable.LoadFromDirectory(paths, update));
+                await UniTask.SwitchToMainThread();
                 var length = patients.Count();
                 if (length > 0)
                 {

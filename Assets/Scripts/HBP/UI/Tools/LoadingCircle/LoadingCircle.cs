@@ -62,14 +62,14 @@ namespace HBP.UI.Tools
             m_CurrentDurationInSeconds = 0;
             Text = message;
         }
-        public async void Open(bool cancelable = false)
+        public async void Open(bool showInformations = true, bool cancelable = false)
         {
             await UniTask.SwitchToMainThread();
             gameObject.SetActive(true);
             m_CancelButtonContainer.SetActive(cancelable);
             m_IsCancelling = false;
             ChangePercentage(0, 0, new LoadingText());
-            ShowInformations();
+            if (showInformations) ShowInformations();
         }
         public async void Close()
         {

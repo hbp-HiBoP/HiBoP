@@ -55,7 +55,7 @@ namespace HBP.UI.Database
         }
         public override void Close()
         {
-            RestoreOldValues(DatabaseManager.Database.DatabaseReferences);
+            LoadingManager.Load(update => RestoreOldValuesAsync(DatabaseManager.Database.DatabaseReferences, update), false);
             base.Close();
         }
         #endregion

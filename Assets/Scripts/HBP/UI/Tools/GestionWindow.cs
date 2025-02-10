@@ -5,6 +5,8 @@ using HBP.Core.Interfaces;
 using HBP.Core.Tools;
 using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
+using System;
 
 namespace HBP.UI.Tools
 {
@@ -34,7 +36,7 @@ namespace HBP.UI.Tools
             }
         }
 
-        protected List<T> m_OldValues = new();
+        protected List<T> m_OldValues = null;
         #endregion
 
         #region Protected Methods
@@ -66,15 +68,21 @@ namespace HBP.UI.Tools
             var selectedObjects = ListGestion.List.ObjectsSelected;
             m_ExportButton.interactable = selectedObjects.Length > 0 && Interactable;
         }
-        protected virtual void SetList(IEnumerable<T> values)
+        protected async virtual void SetList(IEnumerable<T> values)
         {
             ListGestion.List.Set(values);
+            await UniTask.SwitchToThreadPool();
             m_OldValues = values.DeepClone().ToList();
         }
-        protected void RestoreOldValues(IEnumerable<T> currentValues)
+        protected async UniTask RestoreOldValuesAsync(IEnumerable<T> currentValues, Action<float, float, LoadingText> updateProgress)
         {
+            await UniTask.WaitUntil(() => m_OldValues != null);
+            await UniTask.SwitchToThreadPool();
+            int length = currentValues.Count();
+            int count = 0;
             foreach (var value in currentValues)
             {
+                updateProgress.Invoke((float)count++ / length, 0, new LoadingText("Cancelling"));
                 var oldValue = m_OldValues.FirstOrDefault(v => v.ID == value.ID);
                 if (oldValue != null)
                 {

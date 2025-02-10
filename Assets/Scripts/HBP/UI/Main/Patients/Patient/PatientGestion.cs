@@ -38,7 +38,7 @@ namespace HBP.UI.Main
         }
         public override void Close()
         {
-            RestoreOldValues(ApplicationState.LoadedProject.Patients);
+            LoadingManager.Load(update => RestoreOldValuesAsync(ApplicationState.LoadedProject.Patients, update), false);
             base.Close();
         }
         #endregion

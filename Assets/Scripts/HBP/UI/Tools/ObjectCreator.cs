@@ -371,6 +371,7 @@ namespace HBP.UI.Tools
             {
                 ILoadableFromDirectory<T> loadable = new T() as ILoadableFromDirectory<T>;
                 var result = await LoadingManager.LoadAsync(update => loadable.LoadFromDirectory(paths, update));
+                await UniTask.SwitchToMainThread();
                 var length = result.Count();
                 if (length > 0)
                 {
@@ -386,6 +387,7 @@ namespace HBP.UI.Tools
         {
             ILoadableFromDatabase<T> loadable = new T() as ILoadableFromDatabase<T>;
             var result = await LoadingManager.LoadAsync(loadable.LoadFromDatabase);
+            await UniTask.SwitchToMainThread();
             if (result.Count() > 0)
                 OpenSelector(result, true, false, false);
         }

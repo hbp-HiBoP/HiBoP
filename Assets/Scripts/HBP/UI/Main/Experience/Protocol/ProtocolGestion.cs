@@ -47,7 +47,7 @@ namespace HBP.UI.Main
         }
         public override void Close()
         {
-            RestoreOldValues(DatabaseManager.Database.Protocols);
+            LoadingManager.Load(update => RestoreOldValuesAsync(DatabaseManager.Database.Protocols, update), false);
             base.Close();
         }
         #endregion

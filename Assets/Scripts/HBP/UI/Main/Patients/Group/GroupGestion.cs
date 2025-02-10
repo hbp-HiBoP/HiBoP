@@ -22,7 +22,7 @@ namespace HBP.UI.Main
         }
         public override void Close()
         {
-            RestoreOldValues(ApplicationState.LoadedProject.Groups);
+            LoadingManager.Load(update => RestoreOldValuesAsync(ApplicationState.LoadedProject.Groups, update), false);
             base.Close();
         }
         #endregion
