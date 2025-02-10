@@ -1839,7 +1839,7 @@ namespace HBP.Data.Module3D
         /// <param name="onChangeProgress">Event to update the loading circle</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        public async UniTask InitializeAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress)
+        public async UniTask InitializeAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
             // Compute progress variables
             float progress = 0f;
@@ -1880,6 +1880,7 @@ namespace HBP.Data.Module3D
             onChangeProgress(progress, 0.0f, new LoadingText());
 
             // Checking MNI
+            token.ThrowIfCancellationRequested();
             onChangeProgress(progress, 0.0f, new LoadingText("Loading MNI"));
             System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
             watch.Start();
@@ -1891,11 +1892,13 @@ namespace HBP.Data.Module3D
             }
 
             // Loading MNI
+            token.ThrowIfCancellationRequested();
             progress += loadingMNIProgress;
             onChangeProgress.Invoke(progress, loadingMNITime, new LoadingText("Loading MNI objects"));
             await LoadMNIObjectsAsync();
 
             // Loading Meshes
+            token.ThrowIfCancellationRequested();
             if (Type == SceneType.SinglePatient)
             {
                 if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization && Visualization.Configuration.PreloadedMeshes.Count > 0)
@@ -1938,6 +1941,7 @@ namespace HBP.Data.Module3D
             await UniTask.SwitchToThreadPool();
 
             // Loading MRIs
+            token.ThrowIfCancellationRequested();
             if (Type == SceneType.SinglePatient)
             {
                 if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization && Visualization.Configuration.PreloadedMRIs.Count > 0)
@@ -1977,16 +1981,19 @@ namespace HBP.Data.Module3D
             }
 
             // Loading Sites
+            token.ThrowIfCancellationRequested();
             progress += loadingImplantationsProgress;
             onChangeProgress.Invoke(progress, loadingImplantationsTime, new LoadingText("Loading implantations"));
             await LoadSitesAsync(visualization.Patients.ToArray());
 
             // Loading Columns
+            token.ThrowIfCancellationRequested();
             progress += loadingIEEGProgress;
             onChangeProgress.Invoke(progress, loadingIEEGTime, new LoadingText("Loading columns"));
             await LoadColumnsAsync();
 
             // Finalization
+            token.ThrowIfCancellationRequested();
             await UniTask.SwitchToMainThread();
             foreach (Column3D column in Columns)
             {

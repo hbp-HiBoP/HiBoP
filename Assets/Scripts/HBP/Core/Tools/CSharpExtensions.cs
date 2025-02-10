@@ -326,7 +326,7 @@ namespace HBP.Core.Tools
                         await semaphore.WaitAsync();
                         try
                         {
-                            token.ThrowIfCancellationRequested();
+                            if (token.IsCancellationRequested) return;
                             await task();
                             lock (updateProgress)
                             {
@@ -347,7 +347,7 @@ namespace HBP.Core.Tools
             {
                 foreach (var task in taskList)
                 {
-                    token.ThrowIfCancellationRequested();
+                    if (token.IsCancellationRequested) break;
                     await task();
                     count++;
                     updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0.2f, new LoadingText(loadingText, " ", count + "/" + length));
@@ -386,7 +386,7 @@ namespace HBP.Core.Tools
                         await semaphore.WaitAsync();
                         try
                         {
-                            token.ThrowIfCancellationRequested();
+                            if (token.IsCancellationRequested) return;
                             T data = await task();
                             lock (updateProgress)
                             {
@@ -413,7 +413,7 @@ namespace HBP.Core.Tools
                 List<T> result = new List<T>();
                 foreach (var task in taskList)
                 {
-                    token.ThrowIfCancellationRequested();
+                    if (token.IsCancellationRequested) break;
                     result.Add(await task());
                     count++;
                     updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0.2f, new LoadingText(loadingText, " ", count + "/" + length));

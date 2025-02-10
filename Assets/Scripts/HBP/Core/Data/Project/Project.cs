@@ -11,6 +11,7 @@ using HBP.Core.Interfaces;
 using HBP.Data.Preferences;
 using HBP.Data.Database;
 using Cysharp.Threading.Tasks;
+using System.Threading;
 
 namespace HBP.Core.Data
 {
@@ -416,119 +417,148 @@ namespace HBP.Core.Data
             });
         }
 
-        public async UniTask LoadAsync(ProjectInfo projectInfo, Action<float, float, LoadingText> updateProgress)
+        public async UniTask LoadAsync(ProjectInfo projectInfo, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
-            // Initialize progress.
-            float progress = 0.0f;
-            float settingsProgress = 1;
-            float patientsProgress = 2 * projectInfo.Patients;
-            float groupsProgress = projectInfo.Groups;
-            float protocolsProgress = projectInfo.Protocols;
-            float datasetsProgress = projectInfo.Patients * projectInfo.Datasets;
-            float visualizationsProgress = projectInfo.Visualizations;
-            float steps = settingsProgress + groupsProgress + patientsProgress + protocolsProgress + datasetsProgress + visualizationsProgress;
-            settingsProgress /= steps;
-            patientsProgress /= steps;
-            groupsProgress /= steps;
-            protocolsProgress /= steps;
-            datasetsProgress /= steps;
-            visualizationsProgress /= steps;
-
-            updateProgress.Invoke(progress, 0, new LoadingText("Loading project"));
-
-            // Unzipping
-            await UniTask.SwitchToThreadPool();
-            if (Directory.Exists(ApplicationState.ExtractProjectFolder)) Directory.Delete(ApplicationState.ExtractProjectFolder, true);
-            using ZipFile zip = ZipFile.Read(projectInfo.Path);
-            zip.ExtractAll(ApplicationState.ExtractProjectFolder, ExtractExistingFileAction.OverwriteSilently);
-            if (!File.Exists(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file exists.
-            if (!IsProject(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file is a project.
-            DirectoryInfo projectDirectory = new DirectoryInfo(ApplicationState.ExtractProjectFolder);
-
-            // Load Settings.
-            await LoadSettingsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * settingsProgress, duration, text));
-            progress += settingsProgress;
-
-            // Load Patients.
-            await LoadPatientsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * patientsProgress, duration, text));
-            progress += patientsProgress;
-
-            // Load Groups.
-            await LoadGroupsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * groupsProgress, duration, text));
-            progress += groupsProgress;
-
-            // Load Datasets.
-            await LoadDatasetsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * datasetsProgress, duration, text));
-            progress += datasetsProgress;
-
-            // Load Visualizations.
-            await LoadVisualizationsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text));
-            progress += visualizationsProgress;
-
-            Directory.Delete(ApplicationState.ExtractProjectFolder, true);
-            updateProgress.Invoke(1.0f, 0, new LoadingText("Project loaded successfully."));
-        }
-        public async UniTask SaveAsync(string path, Action<float, float, LoadingText> updateProgress)
-        {
-            // Initialize progress.
-            float steps = 12 + m_Patients.Count + m_Groups.Count + m_Datasets.Count + m_Visualizations.Count;
-            float progress = 0.0f;
-
-            float initializationProgress = 1 / steps;
-            float settingsProgress = 1 / steps;
-            float patientsProgress = m_Patients.Count / steps;
-            float groupsProgress = m_Groups.Count / steps;
-            float datasetsProgress = m_Datasets.Count / steps;
-            float visualizationsProgress = m_Visualizations.Count / steps;
-            float finalizationProgress = 10 / steps;
-
-            // Initialization.
-            updateProgress.Invoke(progress, 0, new LoadingText("Initialization"));
-
-            if (string.IsNullOrEmpty(path)) throw new Exceptions.DirectoryNotFoundException("");
-            if (!Directory.Exists(path)) throw new Exceptions.DirectoryNotFoundException(path);
-            DirectoryInfo projectDirectory = Directory.Exists(ApplicationState.ExtractProjectFolder) ? new DirectoryInfo(ApplicationState.ExtractProjectFolder) : Directory.CreateDirectory(ApplicationState.ExtractProjectFolder);
-            progress += initializationProgress;
-
-            updateProgress.Invoke(progress, 0, new LoadingText("Saving project"));
-
-            // Save Settings.
-            await SaveSettingsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * settingsProgress, duration, text));
-            progress += settingsProgress;
-
-            // Save Patients
-            await SavePatientsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * patientsProgress, duration, text));
-            progress += patientsProgress;
-
-            // Save Groups.
-            await SaveGroupsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * groupsProgress, duration, text));
-            progress += groupsProgress;
-
-            // Save Datasets
-            await SaveDatasetsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * datasetsProgress, duration, text));
-            progress += datasetsProgress;
-
-            // Save Visualizations.
-            await SaveVisualizationsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text));
-            progress += visualizationsProgress;
-
-            // Deleting old directories.
-            updateProgress.Invoke(progress + finalizationProgress, 0.75f, new LoadingText("Finalizing"));
-            progress += finalizationProgress;
-
-            // Zipping
-            await UniTask.SwitchToThreadPool();
-            string filePath = Path.Combine(path, FileName);
-            if (File.Exists(filePath)) File.Delete(filePath);
-            using (ZipFile zip = new(filePath))
+            try
             {
-                zip.AddDirectory(ApplicationState.ExtractProjectFolder);
-                zip.Save();
-            }
-            Directory.Delete(ApplicationState.ExtractProjectFolder, true);
-            await UniTask.SwitchToMainThread();
+                // Initialize progress.
+                float progress = 0.0f;
+                float settingsProgress = 1;
+                float patientsProgress = 2 * projectInfo.Patients;
+                float groupsProgress = projectInfo.Groups;
+                float protocolsProgress = projectInfo.Protocols;
+                float datasetsProgress = projectInfo.Patients * projectInfo.Datasets;
+                float visualizationsProgress = projectInfo.Visualizations;
+                float steps = settingsProgress + groupsProgress + patientsProgress + protocolsProgress + datasetsProgress + visualizationsProgress;
+                settingsProgress /= steps;
+                patientsProgress /= steps;
+                groupsProgress /= steps;
+                protocolsProgress /= steps;
+                datasetsProgress /= steps;
+                visualizationsProgress /= steps;
 
-            updateProgress.Invoke(1, 0, new LoadingText("Project saved successfully"));
+                updateProgress.Invoke(progress, 0, new LoadingText("Loading project"));
+
+                // Unzipping
+                await UniTask.SwitchToThreadPool();
+                if (Directory.Exists(ApplicationState.ExtractProjectFolder)) Directory.Delete(ApplicationState.ExtractProjectFolder, true);
+                using ZipFile zip = ZipFile.Read(projectInfo.Path);
+                zip.ExtractAll(ApplicationState.ExtractProjectFolder, ExtractExistingFileAction.OverwriteSilently);
+                if (!File.Exists(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file exists.
+                if (!IsProject(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file is a project.
+                DirectoryInfo projectDirectory = new DirectoryInfo(ApplicationState.ExtractProjectFolder);
+
+                // Load Settings.
+                token.ThrowIfCancellationRequested();
+                await LoadSettingsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * settingsProgress, duration, text));
+                progress += settingsProgress;
+
+                // Load Patients.
+                token.ThrowIfCancellationRequested();
+                await LoadPatientsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * patientsProgress, duration, text), token);
+                progress += patientsProgress;
+
+                // Load Groups.
+                token.ThrowIfCancellationRequested();
+                await LoadGroupsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * groupsProgress, duration, text), token);
+                progress += groupsProgress;
+
+                // Load Datasets.
+                token.ThrowIfCancellationRequested();
+                await LoadDatasetsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * datasetsProgress, duration, text), token);
+                progress += datasetsProgress;
+
+                // Load Visualizations.
+                token.ThrowIfCancellationRequested();
+                await LoadVisualizationsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text), token);
+                progress += visualizationsProgress;
+
+                updateProgress.Invoke(1.0f, 0, new LoadingText("Project loaded successfully."));
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            finally
+            {
+                if (Directory.Exists(ApplicationState.ExtractProjectFolder)) Directory.Delete(ApplicationState.ExtractProjectFolder, true);
+            }
+        }
+        public async UniTask SaveAsync(string path, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        {
+            try
+            {
+                // Initialize progress.
+                float steps = 12 + m_Patients.Count + m_Groups.Count + m_Datasets.Count + m_Visualizations.Count;
+                float progress = 0.0f;
+
+                float initializationProgress = 1 / steps;
+                float settingsProgress = 1 / steps;
+                float patientsProgress = m_Patients.Count / steps;
+                float groupsProgress = m_Groups.Count / steps;
+                float datasetsProgress = m_Datasets.Count / steps;
+                float visualizationsProgress = m_Visualizations.Count / steps;
+                float finalizationProgress = 10 / steps;
+
+                // Initialization.
+                updateProgress.Invoke(progress, 0, new LoadingText("Initialization"));
+
+                if (string.IsNullOrEmpty(path)) throw new Exceptions.DirectoryNotFoundException("");
+                if (!Directory.Exists(path)) throw new Exceptions.DirectoryNotFoundException(path);
+                DirectoryInfo projectDirectory = Directory.Exists(ApplicationState.ExtractProjectFolder) ? new DirectoryInfo(ApplicationState.ExtractProjectFolder) : Directory.CreateDirectory(ApplicationState.ExtractProjectFolder);
+                progress += initializationProgress;
+
+                updateProgress.Invoke(progress, 0, new LoadingText("Saving project"));
+
+                // Save Settings.
+                token.ThrowIfCancellationRequested();
+                await SaveSettingsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * settingsProgress, duration, text));
+                progress += settingsProgress;
+
+                // Save Patients
+                token.ThrowIfCancellationRequested();
+                await SavePatientsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * patientsProgress, duration, text), token);
+                progress += patientsProgress;
+
+                // Save Groups.
+                token.ThrowIfCancellationRequested();
+                await SaveGroupsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * groupsProgress, duration, text), token);
+                progress += groupsProgress;
+
+                // Save Datasets
+                token.ThrowIfCancellationRequested();
+                await SaveDatasetsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * datasetsProgress, duration, text), token);
+                progress += datasetsProgress;
+
+                // Save Visualizations.
+                token.ThrowIfCancellationRequested();
+                await SaveVisualizationsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text), token);
+                progress += visualizationsProgress;
+
+                // Zipping
+                token.ThrowIfCancellationRequested();
+                updateProgress.Invoke(progress + finalizationProgress, 0.75f, new LoadingText("Finalizing"));
+                progress += finalizationProgress;
+                await UniTask.SwitchToThreadPool();
+                string filePath = Path.Combine(path, FileName);
+                if (File.Exists(filePath)) File.Delete(filePath);
+                using (ZipFile zip = new(filePath))
+                {
+                    zip.AddDirectory(ApplicationState.ExtractProjectFolder);
+                    zip.Save();
+                }
+                await UniTask.SwitchToMainThread();
+
+                updateProgress.Invoke(1, 0, new LoadingText("Project saved successfully"));
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            finally
+            {
+                if (Directory.Exists(ApplicationState.ExtractProjectFolder)) Directory.Delete(ApplicationState.ExtractProjectFolder, true);
+            }
         }
 
         public async UniTask CheckPatientTagValuesAsync(IEnumerable<BaseTag> tags, Action<float, float, LoadingText> updateProgress)
@@ -618,7 +648,7 @@ namespace HBP.Core.Data
             }
             updateProgress.Invoke(1.0f, 0, new LoadingText("Settings loaded successfully"));
         }
-        private async UniTask LoadPatientsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async UniTask LoadPatientsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             const float LOADING_PROGRESS = 0.95f;
             const float CHECKING_PROGRESS = 0.05f;
@@ -637,12 +667,12 @@ namespace HBP.Core.Data
                     throw new CanNotReadPatientFileException(Path.GetFileNameWithoutExtension(file.Name));
                 }
             }));
-            patients.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, LOADING_PROGRESS, "Loading patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading));
+            patients.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, LOADING_PROGRESS, "Loading patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
             SetPatients(patients.ToArray());
             await CheckPatientTagValuesAsync(PersistentDataManager.Tags.AllTags, (localProgress, duration, text) => updateProgress.Invoke(LOADING_PROGRESS + localProgress * CHECKING_PROGRESS, duration, text));
             updateProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
         }
-        private async UniTask LoadGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async UniTask LoadGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             List<Group> groups = new List<Group>();
             DirectoryInfo groupDirectory = projectDirectory.GetDirectories("Groups", SearchOption.TopDirectoryOnly)[0];
@@ -659,11 +689,11 @@ namespace HBP.Core.Data
                     throw new CanNotReadGroupFileException(Path.GetFileNameWithoutExtension(file.Name));
                 }
             }));
-            groups.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading groups", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading));
+            groups.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading groups", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
             SetGroups(groups.ToArray());
             updateProgress.Invoke(1.0f, 0, new LoadingText("Groups loaded successfully"));
         }
-        private async UniTask LoadDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async UniTask LoadDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             List<Dataset> datasets = new List<Dataset>();
             DirectoryInfo datasetDirectory = projectDirectory.GetDirectories("Datasets", SearchOption.TopDirectoryOnly)[0];
@@ -680,11 +710,11 @@ namespace HBP.Core.Data
                     throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(file.Name));
                 }
             }));
-            datasets.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading datasets", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading));
+            datasets.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading datasets", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
             SetDatasets(datasets.ToArray());
             updateProgress.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
         }
-        private async UniTask LoadVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async UniTask LoadVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             DirectoryInfo visualizationsDirectory = projectDirectory.GetDirectories("Visualizations", SearchOption.TopDirectoryOnly)[0];
             List<Visualization> visualizations = new List<Visualization>();
@@ -701,7 +731,7 @@ namespace HBP.Core.Data
                     throw new CanNotReadVisualizationFileException(Path.GetFileNameWithoutExtension(file.Name));
                 }
             }));
-            visualizations.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading visualizations", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading));
+            visualizations.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading visualizations", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
             SetVisualizations(visualizations.ToArray());
             updateProgress.Invoke(1.0f, 0, new LoadingText("Visualizations loaded successfully"));
         }
@@ -720,7 +750,7 @@ namespace HBP.Core.Data
             }
             updateProgress.Invoke(1.0f, 0, new LoadingText("Settings saved successfully"));
         }
-        private async UniTask SavePatientsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async UniTask SavePatientsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             DirectoryInfo patientDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Patients"));
             var tasks = m_Patients.Select(patient => (Func<UniTask>)(async () =>
@@ -735,10 +765,10 @@ namespace HBP.Core.Data
                     throw new CanNotSaveSettingsException();
                 }
             }));
-            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
+            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Patients saved successfully"));
         }
-        private async UniTask SaveGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async UniTask SaveGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             DirectoryInfo groupDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Groups"));
             var tasks = m_Groups.Select(group => (Func<UniTask>)(async () =>
@@ -753,10 +783,10 @@ namespace HBP.Core.Data
                     throw new CanNotSaveSettingsException();
                 }
             }));
-            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving groups", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
+            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving groups", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Groups saved successfully"));
         }
-        private async UniTask SaveDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async UniTask SaveDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             DirectoryInfo datasetDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Datasets"));
             var tasks = m_Datasets.Select(dataset => (Func<UniTask>)(async () =>
@@ -771,10 +801,10 @@ namespace HBP.Core.Data
                     throw new CanNotSaveSettingsException();
                 }
             }));
-            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving datasets", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
+            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving datasets", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Datasets saved successfully"));
         }
-        private async UniTask SaveVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async UniTask SaveVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             DirectoryInfo visualizationDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Visualizations"));
             var tasks = m_Visualizations.Select(visualization => (Func<UniTask>)(async () =>
@@ -789,7 +819,7 @@ namespace HBP.Core.Data
                     throw new CanNotSaveSettingsException();
                 }
             }));
-            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving visualizations", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
+            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving visualizations", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Visualizations saved successfully"));
         }
 

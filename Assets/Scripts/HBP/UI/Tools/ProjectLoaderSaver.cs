@@ -28,10 +28,14 @@ namespace HBP.UI.Tools
 
             try
             {
-                await LoadingManager.LoadAsync(update => projectToLoad.LoadAsync(projectInfo, update));
+                await LoadingManager.LoadAsync((update, token) => projectToLoad.LoadAsync(projectInfo, update, token));
                 await UniTask.SwitchToMainThread();
                 InteractableStateManager.SetInteractables();
                 UITools.CheckProjectIDAndAskForRegeneration().Forget();
+            }
+            catch (OperationCanceledException)
+            {
+
             }
             catch (Exception e)
             {
@@ -45,7 +49,7 @@ namespace HBP.UI.Tools
         {
             Module3DMain.SaveConfigurations();
             ApplicationState.LoadedProjectLocation = path;
-            LoadingManager.Load(update => ApplicationState.LoadedProject.SaveAsync(path, update));
+            LoadingManager.Load((update, token) => ApplicationState.LoadedProject.SaveAsync(path, update, token));
         }
         public static void Save()
         {

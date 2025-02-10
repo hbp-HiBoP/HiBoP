@@ -5,6 +5,7 @@ using HBP.Core.Data;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using Cysharp.Threading.Tasks;
+using System.Threading;
 
 namespace HBP.UI.Main.QuickStart
 {
@@ -81,7 +82,7 @@ namespace HBP.UI.Main.QuickStart
         private async UniTaskVoid Finish()
         {
             base.Close();
-            await LoadingManager.LoadAsync(update => ApplicationState.LoadedProject.SaveAsync(ApplicationState.LoadedProjectLocation, update));
+            await LoadingManager.LoadAsync((update, token) => ApplicationState.LoadedProject.SaveAsync(ApplicationState.LoadedProjectLocation, update, token));
             InteractableStateManager.SetInteractables();
             Module3DMain.LoadScenes(ApplicationState.LoadedProject.Visualizations);
         }

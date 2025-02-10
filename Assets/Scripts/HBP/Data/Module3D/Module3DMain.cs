@@ -297,7 +297,7 @@ namespace HBP.Data.Module3D
                     float visualizationWeight = (float)weightByVisualization[visualization] / totalWeight;
                     if (!visualization.IsVisualizable) throw new CanNotLoadVisualization(visualization.Name);
                     await visualization.LoadAsync((localProgress, duration, text) => onChangeProgress(progress + localProgress * visualizationWeight * LOADING_VISUALIZATION_PROGRESS, duration, text), token);
-                    await LoadSceneAsync(visualization, (localProgress, duration, text) => onChangeProgress(progress + (LOADING_VISUALIZATION_PROGRESS + localProgress * LOADING_SCENE_PROGRESS) * visualizationWeight, duration, text));
+                    await LoadSceneAsync(visualization, (localProgress, duration, text) => onChangeProgress(progress + (LOADING_VISUALIZATION_PROGRESS + localProgress * LOADING_SCENE_PROGRESS) * visualizationWeight, duration, text), token);
                     progress += visualizationWeight;
                 }
                 catch (OperationCanceledException e)
@@ -320,11 +320,12 @@ namespace HBP.Data.Module3D
         /// <param name="visualization">Visualization to be loaded</param>
         /// <param name="onChangeProgress">Event to update the loading circle</param>
         /// <returns></returns>
-        private static async UniTask LoadSceneAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress)
+        private static async UniTask LoadSceneAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
             Base3DScene scene = Instantiate(m_Instance.m_ScenePrefab, m_Instance.m_ScenesParent).GetComponent<Base3DScene>();
             scene.Initialize(visualization);
-            await scene.InitializeAsync(visualization, onChangeProgress);
+            token.ThrowIfCancellationRequested();
+            await scene.InitializeAsync(visualization, onChangeProgress, token);
             // Add the listeners
             scene.OnSelect.AddListener(() =>
             {
