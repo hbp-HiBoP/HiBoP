@@ -191,6 +191,7 @@ namespace HBP.Core.Data
         public SortingMethodError GetSortingMethodError()
         {
             string[] orders = Sort.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+            bool[] orderOk = new bool[orders.Length];
             for (int i = 0; i < orders.Length; i++)
             {
                 string order = orders[i];
@@ -208,7 +209,7 @@ namespace HBP.Core.Data
                         {
                             if (command == "LATENCY" || command == "CODE")
                             {
-                                return SortingMethodError.NoError;
+                                orderOk[i] = true;
                             }
                             else
                             {
@@ -230,7 +231,10 @@ namespace HBP.Core.Data
                     return SortingMethodError.InvalidNumberOfElements;
                 }
             }
-            return SortingMethodError.NoSortingConditionFound;
+            if (orderOk.All(o => o))
+                return SortingMethodError.NoError;
+            else
+                return SortingMethodError.NoSortingConditionFound;
         }
         /// <summary>
         /// Generate unique identifier.
