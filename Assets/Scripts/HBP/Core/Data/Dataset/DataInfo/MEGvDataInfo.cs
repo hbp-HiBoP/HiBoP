@@ -113,7 +113,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new MEGvDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, CorrespondingDatabaseID, ID);
+            return new MEGvDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, CorrespondingDatabaseID, ID) { Dataset = Dataset };
         }
         public override void Copy(object copy)
         {

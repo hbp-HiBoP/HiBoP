@@ -139,7 +139,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new PatientDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, CorrespondingDatabaseID, ID);
+            return new PatientDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, CorrespondingDatabaseID, ID) { Dataset = Dataset };
         }
         public override void Copy(object obj)
         {

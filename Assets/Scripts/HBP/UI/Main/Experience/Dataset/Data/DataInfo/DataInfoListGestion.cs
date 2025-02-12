@@ -15,8 +15,6 @@ namespace HBP.UI.Main
 
         [SerializeField] protected DataInfoCreator m_ObjectCreator;
         public override ObjectCreator<Core.Data.DataInfo> ObjectCreator => m_ObjectCreator;
-
-        public GenericEvent<Core.Data.DataInfo> OnDataInfoNeedCheckErrors { get; } = new GenericEvent<Core.Data.DataInfo>();
         #endregion
 
         #region Public Methods
@@ -33,7 +31,7 @@ namespace HBP.UI.Main
         #region Protected Methods
         protected override void OnSaveModifier(Core.Data.DataInfo obj)
         {
-            OnDataInfoNeedCheckErrors.Invoke(obj);
+            obj.GetErrorsAndWarnings();
             RenameObject(obj);
             if (!List.Objects.Contains(obj))
             {
@@ -46,7 +44,7 @@ namespace HBP.UI.Main
         }
         protected override void OnObjectCreated(Core.Data.DataInfo obj)
         {
-            OnDataInfoNeedCheckErrors.Invoke(obj);
+            obj.GetErrorsAndWarnings();
             RenameObject(obj);
             if (!List.Objects.Contains(obj))
             {

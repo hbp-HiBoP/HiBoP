@@ -113,7 +113,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new SharedFMRIDataInfo(Name, DataContainer.Clone() as Container.DataContainer, CorrespondingDatabaseID, ID);
+            return new SharedFMRIDataInfo(Name, DataContainer.Clone() as Container.DataContainer, CorrespondingDatabaseID, ID) { Dataset = Dataset };
         }
         public override void Copy(object copy)
         {

@@ -307,7 +307,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new DataInfo(Name, DataContainer.Clone() as Container.DataContainer, CorrespondingDatabaseID, ID);
+            return new DataInfo(Name, DataContainer.Clone() as Container.DataContainer, CorrespondingDatabaseID, ID) { Dataset = Dataset };
         }
         /// <summary>
         /// Copy an instance to this instance.
@@ -321,6 +321,7 @@ namespace HBP.Core.Data
                 Name = dataInfo.Name;
                 DataContainer = dataInfo.DataContainer;
                 CorrespondingDatabaseID = dataInfo.CorrespondingDatabaseID;
+                Dataset = dataInfo.Dataset;
             }
         }
         #endregion

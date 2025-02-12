@@ -122,7 +122,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new CCEPDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, StimulatedChannel, CorrespondingDatabaseID, ID);
+            return new CCEPDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, StimulatedChannel, CorrespondingDatabaseID, ID) { Dataset = Dataset };
         }
         public override void Copy(object copy)
         {

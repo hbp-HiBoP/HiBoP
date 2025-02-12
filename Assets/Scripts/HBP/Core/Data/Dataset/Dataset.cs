@@ -68,7 +68,10 @@ namespace HBP.Core.Data
             set
             {
                 m_Protocol = value;
-                UpdateDataStates();
+
+                if (m_Data != null)
+                    foreach (DataInfo dataInfo in m_Data)
+                        dataInfo.GetErrorsAndWarnings();
             }
         }
 
@@ -245,16 +248,6 @@ namespace HBP.Core.Data
         {
             m_Data = new List<DataInfo>();
             return data.All((d) => AddData(d));
-        }
-        /// <summary>
-        /// Update all the dataInfo states.
-        /// </summary>
-        public void UpdateDataStates()
-        {
-            if (m_Data != null)
-            {
-                foreach (DataInfo dataInfo in m_Data) dataInfo.GetErrorsAndWarnings();
-            }
         }
         public override void GenerateID()
         {

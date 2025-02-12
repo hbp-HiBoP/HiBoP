@@ -123,7 +123,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new IEEGDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, Normalization, CorrespondingDatabaseID, ID);
+            return new IEEGDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, Normalization, CorrespondingDatabaseID, ID) { Dataset = Dataset };
         }
         public override void Copy(object obj)
         {

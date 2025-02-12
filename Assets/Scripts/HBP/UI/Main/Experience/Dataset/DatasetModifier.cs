@@ -55,7 +55,6 @@ namespace HBP.UI.Main
             m_ProtocolDropdown.onValueChanged.AddListener(ChangeProtocol);
 
             m_DataInfoListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
-            m_DataInfoListGestion.OnDataInfoNeedCheckErrors.AddListener(CheckErrors);
             m_DataInfoListGestion.List.OnAddObject.AddListener(AddData);
             m_DataInfoListGestion.List.OnRemoveObject.AddListener(RemoveData);
             m_DataInfoListGestion.List.OnUpdateObject.AddListener(UpdateData);
@@ -78,14 +77,6 @@ namespace HBP.UI.Main
         {
             ObjectTemp.Protocol = DatabaseManager.Database.Protocols[index];
             m_DataInfoListGestion.UpdateAllObjects();
-        }
-        /// <summary>
-        /// Check the errors.
-        /// </summary>
-        /// <param name="dataInfo">Check the the errors of the dataInfo</param>
-        protected virtual void CheckErrors(DataInfo dataInfo)
-        {
-            dataInfo.GetErrorsAndWarnings();
         }
         /// <summary>
         /// Change the name.
