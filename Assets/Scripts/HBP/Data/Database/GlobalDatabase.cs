@@ -202,6 +202,8 @@ namespace HBP.Data.Database
             var brainvisaDatabaseReferences = databaseReferences.Where(d => d.Type == DatabaseType.Brainvisa).ToArray();
             var localizerDatabaseReferences = databaseReferences.Where(d => d.Type == DatabaseType.Localizer).ToArray();
             var bidsDatabaseReferences = databaseReferences.Where(d => d.Type == DatabaseType.BIDS).ToArray();
+            int numberOfDatabases = brainvisaDatabaseReferences.Length + localizerDatabaseReferences.Length + 2 * bidsDatabaseReferences.Length;
+            float progress = 0;
             // Backup patients and datasets
             List<Patient> patientsBackup = m_Patients.DeepClone().ToList();
             List<Dataset> datasetsBackup = m_Datasets.DeepClone().ToList();
@@ -211,40 +213,44 @@ namespace HBP.Data.Database
                 foreach (var brainvisaDatabaseReference in brainvisaDatabaseReferences)
                 {
                     token.ThrowIfCancellationRequested();
-                    Patient.LoadFromIntranatDatabase(brainvisaDatabaseReference.Path, out Patient[] patients, updateProgress, token);
+                    Patient.LoadFromIntranatDatabase(brainvisaDatabaseReference.Path, out Patient[] patients, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
                     foreach (var patient in patients) patient.CorrespondingDatabaseID = brainvisaDatabaseReference.ID;
                     // TODO: Warn that patients will be deleted / overwritten
                     m_Patients.RemoveAll(p => patients.Contains(p) || p.CorrespondingDatabaseID == brainvisaDatabaseReference.ID);
                     m_Patients.AddRange(patients);
+                    progress += 1f / numberOfDatabases;
                 }
                 foreach (var bidsDatabaseReference in bidsDatabaseReferences)
                 {
                     token.ThrowIfCancellationRequested();
-                    Patient.LoadFromBIDSDatabase(bidsDatabaseReference.Path, out Patient[] patients, updateProgress, token);
+                    Patient.LoadFromBIDSDatabase(bidsDatabaseReference.Path, out Patient[] patients, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
                     foreach (var patient in patients) patient.CorrespondingDatabaseID = bidsDatabaseReference.ID;
                     // TODO: Warn that patients will be deleted / overwritten
                     m_Patients.RemoveAll(p => patients.Contains(p) || p.CorrespondingDatabaseID == bidsDatabaseReference.ID);
                     m_Patients.AddRange(patients);
+                    progress += 1f / numberOfDatabases;
                 }
                 // Then load datasets
                 List<Dataset> generatedDatasets = new();
                 foreach (var localizerDatabaseReference in localizerDatabaseReferences)
                 {
                     token.ThrowIfCancellationRequested();
-                    Dataset.LoadFromLocalizersDatabase(localizerDatabaseReference.Path, out Dataset[] datasets, updateProgress, token);
+                    Dataset.LoadFromLocalizersDatabase(localizerDatabaseReference.Path, out Dataset[] datasets, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
                     foreach (var dataset in datasets)
                         foreach (var data in dataset.Data)
                             data.CorrespondingDatabaseID = localizerDatabaseReference.ID;
                     generatedDatasets.AddRange(datasets);
+                    progress += 1f / numberOfDatabases;
                 }
                 foreach (var bidsDatabaseReference in bidsDatabaseReferences)
                 {
                     token.ThrowIfCancellationRequested();
-                    Dataset.LoadFromBIDSDatabase(bidsDatabaseReference.Path, out Dataset[] datasets, updateProgress, token);
+                    Dataset.LoadFromBIDSDatabase(bidsDatabaseReference.Path, out Dataset[] datasets, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
                     foreach (var dataset in datasets)
                         foreach (var data in dataset.Data)
                             data.CorrespondingDatabaseID = bidsDatabaseReference.ID;
                     generatedDatasets.AddRange(datasets);
+                    progress += 1f / numberOfDatabases;
                 }
                 // TODO: Warn that datasets will be deleted / overwritten
                 foreach (var dataset in m_Datasets)

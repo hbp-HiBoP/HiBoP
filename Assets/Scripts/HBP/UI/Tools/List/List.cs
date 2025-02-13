@@ -439,27 +439,31 @@ namespace HBP.UI.Tools.Lists
             itemToReturn = null;
             return false;
         }
+        private async void Start()
+        {
+            await UniTask.WaitForEndOfFrame();
+            OnViewportChanged();
+            OnContentChanged();
+        }
         void Update()
         {
             if (ScrollRect.viewport.hasChanged)
             {
-                OnViewportChanged().Forget();
+                OnViewportChanged();
             }
             if (ScrollRect.content.hasChanged)
             {
-                OnContentChanged().Forget();
+                OnContentChanged();
             }
         }
-        private async UniTaskVoid OnViewportChanged()
+        private void OnViewportChanged()
         {
-            await UniTask.WaitForEndOfFrame();
             m_MaximumNumberOfItems = Mathf.CeilToInt(ScrollRect.viewport.rect.height / m_ItemHeight) + NUMBER_OF_ADDITIONAL_ITEMS;
             ScrollRect.verticalNormalizedPosition = Mathf.Clamp(ScrollRect.verticalNormalizedPosition, 0f, 1f);
             ScrollRect.viewport.hasChanged = false;
         }
-        private async UniTaskVoid OnContentChanged()
+        private void OnContentChanged()
         {
-            await UniTask.WaitForEndOfFrame();
             Display();
             ScrollRect.content.hasChanged = false;
         }
