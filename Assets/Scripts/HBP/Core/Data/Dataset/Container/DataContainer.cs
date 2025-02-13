@@ -59,11 +59,6 @@ namespace HBP.Core.Data.Container
         /// True if the dataContainer is OK, False otherwise.
         /// </summary>v 
         public bool IsOk => Errors.Length == 0;
-
-        /// <summary>
-        /// Callback executed when error checking is required.
-        /// </summary>
-        public UnityEvent OnRequestErrorCheck { get; } = new UnityEvent();
         #endregion
 
         #region Constructors

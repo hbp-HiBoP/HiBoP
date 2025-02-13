@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using HBP.Core.Enums;
 using Newtonsoft.Json;
+using HBP.Data.Database;
 
 namespace HBP.Core.Data
 {
@@ -93,7 +94,7 @@ namespace HBP.Core.Data
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="normalization">Normalization of the iEEG data.</param>
         /// <param name="ID">Unique identifier</param>
-        public IEEGDataInfo(string name, Container.DataContainer dataContainer, Patient patient, NormalizationType normalization, string correspondingDatabaseID, string ID) : base(name, dataContainer, patient, correspondingDatabaseID, ID)
+        public IEEGDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, Patient patient, NormalizationType normalization, string correspondingDatabaseID, string ID) : base(name, protocol, dataContainer, patient, correspondingDatabaseID, ID)
         {
             Normalization = normalization;
         }
@@ -104,14 +105,14 @@ namespace HBP.Core.Data
         /// <param name="dataContainer">Data container of the iEEG data.</param>
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="normalization">Normalization of the iEEG data.</param>
-        public IEEGDataInfo(string name, Container.DataContainer dataContainer, Patient patient, NormalizationType normalization, string correspondingDatabaseID) : base(name, dataContainer, patient, correspondingDatabaseID)
+        public IEEGDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, Patient patient, NormalizationType normalization, string correspondingDatabaseID) : base(name, protocol, dataContainer, patient, correspondingDatabaseID)
         {
             Normalization = normalization;
         }
         /// <summary>
         /// Create a new iEEG dataInfo instance.
         /// </summary>
-        public IEEGDataInfo() : this("Data", new Container.Elan(), null, NormalizationType.Auto, "")
+        public IEEGDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Elan(), null, NormalizationType.Auto, "")
         {
         }
         #endregion
@@ -123,7 +124,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new IEEGDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, Normalization, CorrespondingDatabaseID, ID) { Dataset = Dataset };
+            return new IEEGDataInfo(Name, Protocol, DataContainer.Clone() as Container.DataContainer, Patient, Normalization, CorrespondingDatabaseID, ID);
         }
         public override void Copy(object obj)
         {
@@ -197,10 +198,9 @@ namespace HBP.Core.Data
                 }
                 DLL.EEG.File file = new DLL.EEG.File(type, false, files);
                 List<DLL.EEG.Trigger> triggers = file.Triggers;
-                Protocol protocol = Dataset.Protocol;
-                if (protocol.IsVisualizable && !protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))))
+                if (Protocol.IsVisualizable && !Protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))))
                 {
-                    IEnumerable<string> blocsNotFound = protocol.Blocs.Where(bloc => !bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))).Select(bloc => bloc.Name);
+                    IEnumerable<string> blocsNotFound = Protocol.Blocs.Where(bloc => !bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))).Select(bloc => bloc.Name);
                     warnings.Add(new BlocsCantBeEpochedWarning(string.Join(", ", blocsNotFound)));
                 }
                 List<DLL.EEG.Electrode> electrodes = file.Electrodes;

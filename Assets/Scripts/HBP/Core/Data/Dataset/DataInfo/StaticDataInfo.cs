@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using HBP.Core.Errors;
 using HBP.Core.Tools;
+using HBP.Data.Database;
 
 namespace HBP.Core.Data
 {
@@ -88,7 +89,7 @@ namespace HBP.Core.Data
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="channel">Stimulated channel.</param>
         /// <param name="id">Unique identifier</param>
-        public StaticDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string correspondingDatabaseID, string ID) : base(name, dataContainer, patient, correspondingDatabaseID, ID)
+        public StaticDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, Patient patient, string correspondingDatabaseID, string ID) : base(name, protocol, dataContainer, patient, correspondingDatabaseID, ID)
         {
         }
         /// <summary>
@@ -98,13 +99,13 @@ namespace HBP.Core.Data
         /// <param name="dataContainer">Data container of the CCEP dataInfo.</param>
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="channel">Stimulated channel.</param>
-        public StaticDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string correspondingDatabaseID) : base(name, dataContainer, patient, correspondingDatabaseID)
+        public StaticDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, Patient patient, string correspondingDatabaseID) : base(name, protocol, dataContainer, patient, correspondingDatabaseID)
         {
         }
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
-        public StaticDataInfo() : this("Data", new Container.CSV(), null, "")
+        public StaticDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.CSV(), null, "")
         {
 
         }
@@ -117,7 +118,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new StaticDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, CorrespondingDatabaseID, ID) { Dataset = Dataset };
+            return new StaticDataInfo(Name, DatabaseManager.Database.Protocols.FirstOrDefault(), DataContainer.Clone() as Container.DataContainer, Patient, CorrespondingDatabaseID, ID);
         }
         public override void Copy(object copy)
         {

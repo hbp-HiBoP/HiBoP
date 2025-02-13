@@ -297,7 +297,6 @@ namespace HBP.Data.Database
                 dataset.Protocol = m_Protocols.FirstOrDefault(p => p.ID == dataset.Protocol.ID);
                 foreach (var data in dataset.Data)
                 {
-                    data.Dataset = dataset;
                     if (data is PatientDataInfo patientData)
                     {
                         patientData.Patient = m_Patients.FirstOrDefault(p => p.ID == patientData.Patient.ID);

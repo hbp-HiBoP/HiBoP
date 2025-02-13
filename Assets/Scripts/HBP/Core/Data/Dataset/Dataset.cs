@@ -71,7 +71,7 @@ namespace HBP.Core.Data
 
                 if (m_Data != null)
                     foreach (DataInfo dataInfo in m_Data)
-                        dataInfo.GetErrorsAndWarnings();
+                        dataInfo.Protocol = value;
             }
         }
 
@@ -181,7 +181,6 @@ namespace HBP.Core.Data
         {
             if (!m_Data.Contains(data))
             {
-                data.Dataset = this;
                 m_Data.Add(data);
                 return true;
             }
@@ -349,7 +348,7 @@ namespace HBP.Core.Data
                                 FileInfo rawEEG = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".eeg"));
                                 FileInfo rawPos = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".pos"));
                                 if (rawEEG.Exists && rawPos.Exists)
-                                    datasetByProtocol[protocol].AddData(new IEEGDataInfo("raw", new Container.Elan(rawEEG.FullName, rawPos.FullName, ""), patient, NormalizationType.Auto, ""));
+                                    datasetByProtocol[protocol].AddData(new IEEGDataInfo("raw", protocol, new Container.Elan(rawEEG.FullName, rawPos.FullName, ""), patient, NormalizationType.Auto, ""));
 
                                 string ds = GetDownsamplingString(subdir);
                                 if (!string.IsNullOrEmpty(ds))
@@ -367,7 +366,7 @@ namespace HBP.Core.Data
                                                 FileInfo eeg = new FileInfo(Path.Combine(subdir.FullName, string.Format("{0}_{1}", subdir.Name, freq), string.Format("{0}_{1}_{2}_{3}.eeg", subdir.Name, freq, ds, ts)));
                                                 if (eeg.Exists)
                                                 {
-                                                    datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", freq, ts), new Container.Elan(eeg.FullName, posDS.FullName, ""), patient, NormalizationType.Auto, ""));
+                                                    datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", freq, ts), protocol, new Container.Elan(eeg.FullName, posDS.FullName, ""), patient, NormalizationType.Auto, ""));
                                                 }
                                             }
                                         }
@@ -417,7 +416,7 @@ namespace HBP.Core.Data
                         {
                             string acq = string.IsNullOrEmpty(match.Groups[7].Value) ? "raw" : match.Groups[7].Value;
                             string run = string.IsNullOrEmpty(match.Groups[9].Value) ? "" : "-" + match.Groups[9].Value;
-                            datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", acq, run), new Container.BrainVision(file.FullName), patient, NormalizationType.Auto, ""));
+                            datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", acq, run), protocol, new Container.BrainVision(file.FullName), patient, NormalizationType.Auto, ""));
                         }
                     }
                 }
@@ -440,7 +439,7 @@ namespace HBP.Core.Data
                         {
                             string acq = string.IsNullOrEmpty(match.Groups[4].Value) ? "raw" : match.Groups[4].Value;
                             string run = string.IsNullOrEmpty(match.Groups[5].Value) ? "" : "-" + match.Groups[5].Value;
-                            datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", acq, run), new Container.EDF(file.FullName), patient, NormalizationType.Auto, ""));
+                            datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", acq, run), protocol, new Container.EDF(file.FullName), patient, NormalizationType.Auto, ""));
                         }
                     }
                 }
@@ -544,7 +543,6 @@ namespace HBP.Core.Data
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            foreach (var data in m_Data) data.Dataset = this;
             var protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.ID == m_ProtocolID) ?? DatabaseManager.Database.Protocols.First();
             Protocol = protocol;
         }

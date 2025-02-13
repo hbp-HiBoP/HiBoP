@@ -60,7 +60,7 @@ namespace HBP.Core.Data.Container
         public string EEG
         {
             get { return SavedEEG?.ConvertToFullPath(); }
-            set { SavedEEG = value?.ConvertToShortPath(); OnRequestErrorCheck.Invoke(); }
+            set { SavedEEG = value?.ConvertToShortPath(); }
         }
         /// <summary>
         /// Path to the EEG header file.
@@ -83,7 +83,7 @@ namespace HBP.Core.Data.Container
         public string POS
         {
             get { return SavedPOS?.ConvertToFullPath(); }
-            set { SavedPOS = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
+            set { SavedPOS = value?.ConvertToShortPath(); GetErrors(); }
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace HBP.Core.Data.Container
         public string Notes
         {
             get { return SavedNotes?.ConvertToFullPath(); }
-            set { SavedNotes = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
+            set { SavedNotes = value?.ConvertToShortPath(); GetErrors(); }
         }
         #endregion
 

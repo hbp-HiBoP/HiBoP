@@ -40,7 +40,7 @@ namespace HBP.UI.Main
         #region Protected Methods
         protected override void SetFields(PatientDataInfo objectToDisplay)
         {
-            if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Contains(Object.Dataset))
+            if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.Contains(objectToDisplay)))
                 m_Patients = ApplicationState.LoadedProject.Patients;
             else
                 m_Patients = DatabaseManager.Database.Patients;

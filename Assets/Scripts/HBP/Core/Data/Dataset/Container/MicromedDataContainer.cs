@@ -46,7 +46,7 @@ namespace HBP.Core.Data.Container
         public string Path
         {
             get { return SavedPath?.ConvertToFullPath(); }
-            set { SavedPath = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
+            set { SavedPath = value?.ConvertToShortPath(); GetErrors(); }
         }
         #endregion
 

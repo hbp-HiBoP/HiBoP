@@ -4,6 +4,7 @@ using System.Linq;
 using HBP.Core.Tools;
 using HBP.Data.Database;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace HBP.Core.Data
 {
@@ -62,12 +63,12 @@ namespace HBP.Core.Data
             {
                 if (m_Patient == null)
                 {
-                    if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Contains(Dataset))
+                    if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.Contains(this)))
                         m_Patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == m_PatientID);
                     else
                         m_Patient = DatabaseManager.Database.Patients.FirstOrDefault(p => p.ID == m_PatientID);
                     m_PatientErrors = GetPatientErrors();
-
+                    Debug.LogError("POURQUOI CE TRUC EST APPELE");
                 }
                 return m_Patient;
             }
@@ -110,7 +111,7 @@ namespace HBP.Core.Data
         /// <param name="dataContainer">Data container of the patient dataInfo.</param>
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="ID">Unique identifier</param>
-        public PatientDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string correspondingDatabaseID, string ID) : base(name, dataContainer, correspondingDatabaseID, ID)
+        public PatientDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, Patient patient, string correspondingDatabaseID, string ID) : base(name, protocol, dataContainer, correspondingDatabaseID, ID)
         {
             Patient = patient;
         }
@@ -120,14 +121,14 @@ namespace HBP.Core.Data
         /// <param name="name">Name of the patient dataInfo.</param>
         /// <param name="dataContainer">Data container of the patient dataInfo.</param>
         /// <param name="patient">Patient related to the data.</param>
-        public PatientDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string correspondingDatabaseID) : base(name, dataContainer, correspondingDatabaseID)
+        public PatientDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, Patient patient, string correspondingDatabaseID) : base(name, protocol, dataContainer, correspondingDatabaseID)
         {
             Patient = patient;
         }
         /// <summary>
         /// Create a new PatientDataInfo instance.
         /// </summary>
-        public PatientDataInfo() : this("Data", new Container.Elan(), ApplicationState.LoadedProject.Patients.FirstOrDefault(), "")
+        public PatientDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Elan(), ApplicationState.LoadedProject.Patients.FirstOrDefault(), "")
         {
         }
         #endregion
@@ -139,7 +140,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new PatientDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, CorrespondingDatabaseID, ID) { Dataset = Dataset };
+            return new PatientDataInfo(Name, Protocol, DataContainer.Clone() as Container.DataContainer, Patient, CorrespondingDatabaseID, ID);
         }
         public override void Copy(object obj)
         {
@@ -187,10 +188,10 @@ namespace HBP.Core.Data
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Contains(Dataset))
-                Patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == m_PatientID);
+            if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.Contains(this)))
+                m_Patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == m_PatientID);
             else
-                Patient = DatabaseManager.Database.Patients.FirstOrDefault(p => p.ID == m_PatientID);
+                m_Patient = DatabaseManager.Database.Patients.FirstOrDefault(p => p.ID == m_PatientID);
         }
         #endregion
     }

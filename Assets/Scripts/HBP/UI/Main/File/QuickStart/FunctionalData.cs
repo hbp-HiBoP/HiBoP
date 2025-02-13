@@ -38,7 +38,7 @@ namespace HBP.UI.Main.QuickStart
             {
                 container = FIFDataContainer;
             }
-            DataInfo = new Core.Data.IEEGDataInfo("Data", container, patient, NormalizationType.Auto, "");
+            DataInfo = new Core.Data.IEEGDataInfo("Data", null, container, patient, NormalizationType.Auto, "");
         }
         #endregion
 

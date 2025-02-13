@@ -23,13 +23,9 @@ namespace HBP.Core.Data
 
             // Generate DataByBloc.
             DataByBloc = new Dictionary<Bloc, BlocData>();
-            Protocol protocol = dataInfo.Dataset?.Protocol;
-            if (protocol != null)
+            foreach (var bloc in dataInfo.Protocol.Blocs)
             {
-                foreach (var bloc in protocol.Blocs)
-                {
-                    DataByBloc.Add(bloc, new BlocData(rawData, bloc));
-                }
+                DataByBloc.Add(bloc, new BlocData(rawData, bloc));
             }
         }
         #endregion

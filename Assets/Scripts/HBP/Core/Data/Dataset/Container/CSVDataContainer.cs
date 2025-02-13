@@ -61,7 +61,6 @@ namespace HBP.Core.Data.Container
             {
                 SavedFile = value?.ConvertToShortPath();
                 GetErrors();
-                OnRequestErrorCheck.Invoke();
             }
         }
         #endregion

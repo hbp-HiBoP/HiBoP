@@ -292,33 +292,33 @@ namespace HBP.Dev
         }
         private void MarsAtlasCCEP()
         {
-            DirectoryInfo dir = new DirectoryInfo(@"D:\HBP\CCEP\07-bids_20190416\converted");
-            FileInfo[] files = dir.GetFiles("*.vhdr");
-            foreach (var file in files)
-            {
-                ApplicationState.LoadedProject.Datasets[0].AddData(new CCEPDataInfo("ccep", new Core.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), ApplicationState.LoadedProject.Patients[0], file.Name.Replace(file.Extension, ""), ""));
-            }
+            //DirectoryInfo dir = new DirectoryInfo(@"D:\HBP\CCEP\07-bids_20190416\converted");
+            //FileInfo[] files = dir.GetFiles("*.vhdr");
+            //foreach (var file in files)
+            //{
+            //    ApplicationState.LoadedProject.Datasets[0].AddData(new CCEPDataInfo("ccep", new Core.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), ApplicationState.LoadedProject.Patients[0], file.Name.Replace(file.Extension, ""), ""));
+            //}
         }
         private void GetAllCCEPData()
         {
-            string ccepDB = @"D:\HBP\CCEP\07-bids_20190416\07-bids";
-            DirectoryInfo baseDir = new DirectoryInfo(ccepDB);
-            DirectoryInfo[] patientDirs = baseDir.GetDirectories("sub-*");
-            foreach (var dir in patientDirs)
-            {
-                string patientName = dir.Name.Substring(4);
-                Patient patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.Name == patientName);
-                if (patient == null) continue;
-                DirectoryInfo ieegDir = new DirectoryInfo(Path.Combine(dir.FullName, "ses-postimp01", "ieeg"));
-                FileInfo[] files = ieegDir.GetFiles("*.vhdr").Where(f => f.FullName.Contains("ccep")).ToArray();
-                foreach (var file in files)
-                {
-                    string site = file.Name.Split('_')[3].Substring(4, 8);
-                    if (!site.Contains("p")) site = site.Substring(0, 6);
-                    site = site.Insert(site.Length / 2, "-");
-                    ApplicationState.LoadedProject.Datasets[0].AddData(new CCEPDataInfo("ccep", new Core.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), patient, site, ""));
-                }
-            }
+            //string ccepDB = @"D:\HBP\CCEP\07-bids_20190416\07-bids";
+            //DirectoryInfo baseDir = new DirectoryInfo(ccepDB);
+            //DirectoryInfo[] patientDirs = baseDir.GetDirectories("sub-*");
+            //foreach (var dir in patientDirs)
+            //{
+            //    string patientName = dir.Name.Substring(4);
+            //    Patient patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.Name == patientName);
+            //    if (patient == null) continue;
+            //    DirectoryInfo ieegDir = new DirectoryInfo(Path.Combine(dir.FullName, "ses-postimp01", "ieeg"));
+            //    FileInfo[] files = ieegDir.GetFiles("*.vhdr").Where(f => f.FullName.Contains("ccep")).ToArray();
+            //    foreach (var file in files)
+            //    {
+            //        string site = file.Name.Split('_')[3].Substring(4, 8);
+            //        if (!site.Contains("p")) site = site.Substring(0, 6);
+            //        site = site.Insert(site.Length / 2, "-");
+            //        ApplicationState.LoadedProject.Datasets[0].AddData(new CCEPDataInfo("ccep", new Core.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), patient, site, ""));
+            //    }
+            //}
         }
         private void ScreenshotWindow()
         {

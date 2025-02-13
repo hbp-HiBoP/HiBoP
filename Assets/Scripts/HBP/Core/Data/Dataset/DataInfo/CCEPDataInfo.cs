@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using HBP.Core.Errors;
+using HBP.Data.Database;
 using Newtonsoft.Json;
 
 namespace HBP.Core.Data
@@ -91,7 +92,7 @@ namespace HBP.Core.Data
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="channel">Stimulated channel.</param>
         /// <param name="id">Unique identifier</param>
-        public CCEPDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string channel, string correspondingDatabaseID, string ID) : base(name, dataContainer, patient, correspondingDatabaseID, ID)
+        public CCEPDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, Patient patient, string channel, string correspondingDatabaseID, string ID) : base(name, protocol, dataContainer, patient, correspondingDatabaseID, ID)
         {
             StimulatedChannel = channel;
         }
@@ -102,14 +103,14 @@ namespace HBP.Core.Data
         /// <param name="dataContainer">Data container of the CCEP dataInfo.</param>
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="channel">Stimulated channel.</param>
-        public CCEPDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string channel, string correspondingDatabaseID) : base(name, dataContainer, patient, correspondingDatabaseID)
+        public CCEPDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, Patient patient, string channel, string correspondingDatabaseID) : base(name, protocol, dataContainer, patient, correspondingDatabaseID)
         {
             StimulatedChannel = channel;
         }
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
-        public CCEPDataInfo() : this("Data", new Container.Elan(), null, "Unknown", "")
+        public CCEPDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Elan(), null, "Unknown", "")
         {
 
         }
@@ -122,7 +123,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new CCEPDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, StimulatedChannel, CorrespondingDatabaseID, ID) { Dataset = Dataset };
+            return new CCEPDataInfo(Name, Protocol, DataContainer.Clone() as Container.DataContainer, Patient, StimulatedChannel, CorrespondingDatabaseID, ID);
         }
         public override void Copy(object copy)
         {
@@ -184,8 +185,7 @@ namespace HBP.Core.Data
                 }
                 DLL.EEG.File file = new DLL.EEG.File(type, false, files);
                 List<DLL.EEG.Trigger> triggers = file.Triggers;
-                Protocol protocol = Dataset.Protocol;
-                if (protocol.IsVisualizable && !protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))))
+                if (Protocol.IsVisualizable && !Protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))))
                 {
                     errors.Add(new BlocsCantBeEpochedError());
                 }

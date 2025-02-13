@@ -48,7 +48,7 @@ namespace HBP.Core.Data.Container
         public string File
         {
             get { return SavedFile?.ConvertToFullPath(); }
-            set { SavedFile = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
+            set { SavedFile = value?.ConvertToShortPath(); }
         }
         #endregion
 

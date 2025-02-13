@@ -6,6 +6,7 @@ using UnityEngine.Events;
 using HBP.Core.Errors;
 using HBP.Core.Interfaces;
 using Newtonsoft.Json;
+using HBP.Data.Database;
 
 namespace HBP.Core.Data
 {
@@ -65,15 +66,22 @@ namespace HBP.Core.Data
         public Container.DataContainer DataContainer
         {
             get { return m_DataContainer; }
-            set { m_DataContainer = value; m_DataContainer.GetErrors(); m_DataContainer.OnRequestErrorCheck.AddListener(GetErrorsAndWarnings); }
+            set { m_DataContainer = value; m_DataContainer.GetErrors(); }
         }
 
         [JsonProperty] public string CorrespondingDatabaseID { get; set; }
 
-        /// <summary>
-        /// Dataset the dataInfo belongs to.
-        /// </summary>
-        public Dataset Dataset { get; set; }
+        [JsonProperty] private string m_ProtocolID;
+        private Protocol m_Protocol;
+        public Protocol Protocol
+        {
+            get => m_Protocol;
+            set
+            {
+                m_Protocol = value;
+                GetErrorsAndWarnings();
+            }
+        }
 
         /// <summary>
         /// Naming-related errors.
@@ -134,10 +142,11 @@ namespace HBP.Core.Data
         /// <param name="name">Name of the dataInfo.</param>
         /// <param name="dataContainer">Data container of the dataInfo.</param>
         /// <param name="ID">Unique identifier of the dataInfo.</param>
-        public DataInfo(string name, Container.DataContainer dataContainer, string correspondingDatabaseID, string ID) : base(ID)
+        public DataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, string correspondingDatabaseID, string ID) : base(ID)
         {
-            Name = name;
-            DataContainer = dataContainer;
+            m_Name = name;
+            m_Protocol = protocol;
+            m_DataContainer = dataContainer;
             CorrespondingDatabaseID = correspondingDatabaseID;
         }
         /// <summary>
@@ -145,16 +154,17 @@ namespace HBP.Core.Data
         /// </summary>
         /// <param name="name">Name of the dataInfo.</param>
         /// <param name="dataContainer">Data container of the dataInfo.</param>
-        public DataInfo(string name, Container.DataContainer dataContainer, string correspondingDatabaseID) : base()
+        public DataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, string correspondingDatabaseID) : base()
         {
-            Name = name;
-            DataContainer = dataContainer;
+            m_Name = name;
+            m_Protocol = protocol;
+            m_DataContainer = dataContainer;
             CorrespondingDatabaseID = correspondingDatabaseID;
         }
         /// <summary>
         /// Create a new DataInfo instance with default value.
         /// </summary>
-        public DataInfo() : this("Data", new Container.Elan(), "", Guid.NewGuid().ToString())
+        public DataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Elan(), "", Guid.NewGuid().ToString())
         {
         }
         #endregion
@@ -307,7 +317,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new DataInfo(Name, DataContainer.Clone() as Container.DataContainer, CorrespondingDatabaseID, ID) { Dataset = Dataset };
+            return new DataInfo(Name, Protocol, DataContainer.Clone() as Container.DataContainer, CorrespondingDatabaseID, ID);
         }
         /// <summary>
         /// Copy an instance to this instance.
@@ -319,11 +329,20 @@ namespace HBP.Core.Data
             if (copy is DataInfo dataInfo)
             {
                 Name = dataInfo.Name;
+                Protocol = dataInfo.Protocol;
                 DataContainer = dataInfo.DataContainer;
                 CorrespondingDatabaseID = dataInfo.CorrespondingDatabaseID;
-                Dataset = dataInfo.Dataset;
             }
         }
         #endregion
+
+        #region Serialization
+        protected override void OnSerializing()
+        {
+            base.OnSerializing();
+            m_ProtocolID = m_Protocol?.ID;
+        }
+        #endregion
+
     }
 }
