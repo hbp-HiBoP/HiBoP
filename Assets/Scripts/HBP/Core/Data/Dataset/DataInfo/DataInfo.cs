@@ -79,7 +79,6 @@ namespace HBP.Core.Data
             set
             {
                 m_Protocol = value;
-                GetErrorsAndWarnings();
             }
         }
 

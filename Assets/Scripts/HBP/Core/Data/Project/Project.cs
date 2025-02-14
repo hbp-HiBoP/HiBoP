@@ -473,7 +473,7 @@ namespace HBP.Core.Data
                 await LoadVisualizationsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text), token);
                 progress += visualizationsProgress;
 
-                updateProgress.Invoke(1.0f, 0, new LoadingText("Project loaded successfully."));
+                updateProgress.Invoke(1.0f, 0, new LoadingText("Project loaded successfully"));
             }
             catch (Exception e)
             {

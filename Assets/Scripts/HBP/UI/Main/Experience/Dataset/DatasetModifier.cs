@@ -76,7 +76,7 @@ namespace HBP.UI.Main
         protected virtual void ChangeProtocol(int index)
         {
             ObjectTemp.Protocol = DatabaseManager.Database.Protocols[index];
-            m_DataInfoListGestion.UpdateAllObjects();
+            LoadingManager.Load(update => m_DataInfoListGestion.UpdateAllObjectsAsync(update));
         }
         /// <summary>
         /// Change the name.

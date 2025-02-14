@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
 using System.Linq;
-using UnityEngine.Events;
 using System.Collections.Generic;
 using HBP.UI.Tools.Lists;
 using HBP.UI.Tools;
+using Cysharp.Threading.Tasks;
+using System;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Main
 {
@@ -18,12 +20,19 @@ namespace HBP.UI.Main
         #endregion
 
         #region Public Methods
-        public void UpdateAllObjects()
+        public async UniTask UpdateAllObjectsAsync(Action<float, float, LoadingText> updateProgress)
         {
             Core.Data.DataInfo[] dataInfos = List.Objects.ToArray();
+            int count = 0;
+            updateProgress.Invoke(0, 0, new LoadingText("Checking dataset"));
             foreach (var obj in dataInfos)
             {
+                await UniTask.SwitchToThreadPool();
+                obj.GetErrorsAndWarnings();
+                await UniTask.SwitchToMainThread();
                 List.UpdateObject(obj);
+                count++;
+                updateProgress.Invoke((float)count / dataInfos.Length, 0, new LoadingText("Checking dataset", " ", $"{count}/{dataInfos.Length}"));
             }
         }
         #endregion

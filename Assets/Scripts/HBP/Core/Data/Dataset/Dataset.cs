@@ -477,7 +477,7 @@ namespace HBP.Core.Data
             int count = 0;
             foreach (var dataset in datasets)
             {
-                update((float)count/length, 0, new LoadingText("Importing datasets", "", $"{++count}/{length}"));
+                update((float)count/length, 0, new LoadingText("Importing datasets", " ", $"{++count}/{length}"));
                 List<DataInfo> dataToDelete = new();
                 foreach (var dataInfo in dataset.Data)
                 {
