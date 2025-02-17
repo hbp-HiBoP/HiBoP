@@ -59,28 +59,6 @@ namespace HBP.Core.Data
         /// Stimulated channel.
         /// </summary>
         [JsonProperty] public string StimulatedChannel { get; set; }
-
-        protected Error[] m_CCEPErrors = new Error[0];
-        public override Error[] Errors
-        {
-            get
-            {
-                List<Error> errors = new List<Error>(base.Errors);
-                errors.AddRange(m_CCEPErrors);
-                return errors.Distinct().ToArray();
-            }
-        }
-
-        protected Warning[] m_CCEPWarnings = new Warning[0];
-        public override Warning[] Warnings
-        {
-            get
-            {
-                List<Warning> warnings = new List<Warning>(base.Warnings);
-                warnings.AddRange(m_CCEPWarnings);
-                return warnings.Distinct().ToArray();
-            }
-        }
         #endregion
 
         #region Constructors
@@ -92,7 +70,7 @@ namespace HBP.Core.Data
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="channel">Stimulated channel.</param>
         /// <param name="id">Unique identifier</param>
-        public CCEPDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, Patient patient, string channel, string correspondingDatabaseID, string ID) : base(name, protocol, dataContainer, patient, correspondingDatabaseID, ID)
+        public CCEPDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, Patient patient, string channel, string correspondingDatabaseID, string ID) : base(name, protocol, dataContainer, errors, warnings, patient, correspondingDatabaseID, ID)
         {
             StimulatedChannel = channel;
         }
@@ -103,14 +81,14 @@ namespace HBP.Core.Data
         /// <param name="dataContainer">Data container of the CCEP dataInfo.</param>
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="channel">Stimulated channel.</param>
-        public CCEPDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, Patient patient, string channel, string correspondingDatabaseID) : base(name, protocol, dataContainer, patient, correspondingDatabaseID)
+        public CCEPDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, Patient patient, string channel, string correspondingDatabaseID) : base(name, protocol, dataContainer, errors, warnings, patient, correspondingDatabaseID)
         {
             StimulatedChannel = channel;
         }
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
-        public CCEPDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Elan(), null, "Unknown", "")
+        public CCEPDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Elan(), new Error[0], new Warning[0], null, "Unknown", "")
         {
 
         }
@@ -123,7 +101,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new CCEPDataInfo(Name, Protocol, DataContainer.Clone() as Container.DataContainer, Patient, StimulatedChannel, CorrespondingDatabaseID, ID);
+            return new CCEPDataInfo(Name, Protocol, DataContainer.Clone() as Container.DataContainer, Errors, Warnings, Patient, StimulatedChannel, CorrespondingDatabaseID, ID);
         }
         public override void Copy(object copy)
         {
@@ -135,19 +113,19 @@ namespace HBP.Core.Data
         }
         #endregion
 
-        #region Public Methods
-        public override Error[] GetErrors()
+        #region Private Methods
+        protected override IEnumerable<Error> GetErrors()
         {
             List<Error> errors = new List<Error>(base.GetErrors());
             errors.AddRange(GetCCEPErrors());
-            return errors.Distinct().ToArray();
+            return errors;
         }
         /// <summary>
         /// Get all dataInfo errors related to CCEP.
         /// </summary>
         /// <param name="protocol"></param>
         /// <returns>CCEP related errors</returns>
-        public virtual Error[] GetCCEPErrors()
+        private IEnumerable<Error> GetCCEPErrors()
         {
             List<Error> errors = new List<Error>();
             if (m_DataContainer.IsOk)
@@ -194,25 +172,23 @@ namespace HBP.Core.Data
             {
                 errors.Add(new ChannelNotFoundError());
             }
-            m_CCEPErrors = errors.ToArray();
-            return m_CCEPErrors;
+            return errors;
         }
-        public override Warning[] GetWarnings()
+        protected override IEnumerable<Warning> GetWarnings()
         {
             List<Warning> warnings = new List<Warning>(base.GetWarnings());
             warnings.AddRange(GetCCEPWarnings());
-            return warnings.Distinct().ToArray();
+            return warnings;
         }
         /// <summary>
         /// Get all dataInfo errors related to CCEP.
         /// </summary>
         /// <param name="protocol"></param>
         /// <returns>CCEP related errors</returns>
-        public virtual Warning[] GetCCEPWarnings()
+        private IEnumerable<Warning> GetCCEPWarnings()
         {
             List<Warning> warnings = new List<Warning>();
-            m_CCEPWarnings = warnings.ToArray();
-            return m_CCEPWarnings;
+            return warnings;
         }
         #endregion
     }

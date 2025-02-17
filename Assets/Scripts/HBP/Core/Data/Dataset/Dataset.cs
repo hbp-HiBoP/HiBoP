@@ -14,6 +14,7 @@ using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using HBP.Data.Preferences;
 using System.Threading;
+using HBP.Core.Errors;
 
 namespace HBP.Core.Data
 {
@@ -268,7 +269,7 @@ namespace HBP.Core.Data
         /// <returns></returns>
         public static string[] GetExtensions()
         {
-            return new string[] { EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION };
+            return new string[] { EXTENSION[0] == '.' ? EXTENSION[1..] : EXTENSION };
         }
         /// <summary>
         /// Load a dataset from a specified file.
@@ -348,7 +349,11 @@ namespace HBP.Core.Data
                                 FileInfo rawEEG = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".eeg"));
                                 FileInfo rawPos = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".pos"));
                                 if (rawEEG.Exists && rawPos.Exists)
-                                    datasetByProtocol[protocol].AddData(new IEEGDataInfo("raw", protocol, new Container.Elan(rawEEG.FullName, rawPos.FullName, ""), patient, NormalizationType.Auto, ""));
+                                {
+                                    var dataInfo = new IEEGDataInfo("raw", protocol, new Container.Elan(rawEEG.FullName, rawPos.FullName, ""), new Error[0], new Warning[0], patient, NormalizationType.Auto, "");
+                                    dataInfo.CheckErrorsAndWarnings();
+                                    datasetByProtocol[protocol].AddData(dataInfo);
+                                }
 
                                 string ds = GetDownsamplingString(subdir);
                                 if (!string.IsNullOrEmpty(ds))
@@ -366,7 +371,9 @@ namespace HBP.Core.Data
                                                 FileInfo eeg = new FileInfo(Path.Combine(subdir.FullName, string.Format("{0}_{1}", subdir.Name, freq), string.Format("{0}_{1}_{2}_{3}.eeg", subdir.Name, freq, ds, ts)));
                                                 if (eeg.Exists)
                                                 {
-                                                    datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", freq, ts), protocol, new Container.Elan(eeg.FullName, posDS.FullName, ""), patient, NormalizationType.Auto, ""));
+                                                    var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", freq, ts), protocol, new Container.Elan(eeg.FullName, posDS.FullName, ""), new Error[0], new Warning[0], patient, NormalizationType.Auto, "");
+                                                    dataInfo.CheckErrorsAndWarnings();
+                                                    datasetByProtocol[protocol].AddData(dataInfo);
                                                 }
                                             }
                                         }
@@ -416,7 +423,9 @@ namespace HBP.Core.Data
                         {
                             string acq = string.IsNullOrEmpty(match.Groups[7].Value) ? "raw" : match.Groups[7].Value;
                             string run = string.IsNullOrEmpty(match.Groups[9].Value) ? "" : "-" + match.Groups[9].Value;
-                            datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", acq, run), protocol, new Container.BrainVision(file.FullName), patient, NormalizationType.Auto, ""));
+                            var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", acq, run), protocol, new Container.BrainVision(file.FullName), new Error[0], new Warning[0], patient, NormalizationType.Auto, "");
+                            dataInfo.CheckErrorsAndWarnings();
+                            datasetByProtocol[protocol].AddData(dataInfo);
                         }
                     }
                 }
@@ -439,7 +448,9 @@ namespace HBP.Core.Data
                         {
                             string acq = string.IsNullOrEmpty(match.Groups[4].Value) ? "raw" : match.Groups[4].Value;
                             string run = string.IsNullOrEmpty(match.Groups[5].Value) ? "" : "-" + match.Groups[5].Value;
-                            datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", acq, run), protocol, new Container.EDF(file.FullName), patient, NormalizationType.Auto, ""));
+                            var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", acq, run), protocol, new Container.EDF(file.FullName), new Error[0], new Warning[0], patient, NormalizationType.Auto, "");
+                            dataInfo.CheckErrorsAndWarnings();
+                            datasetByProtocol[protocol].AddData(dataInfo);
                         }
                     }
                 }
@@ -455,7 +466,7 @@ namespace HBP.Core.Data
             var tasks = datasets.SelectMany(d => d.Data).Select(d => (Func<UniTask>)(async () =>
             {
                 await UniTask.SwitchToThreadPool();
-                d.GetErrorsAndWarnings();
+                d.CheckErrorsAndWarnings();
             }));
             await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Checking datasets", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
         }
@@ -493,19 +504,6 @@ namespace HBP.Core.Data
                 dataset.RemoveData(dataToDelete);
             }
             return datasets;
-        }
-        #endregion
-
-        #region Private Static Methods
-        /// <summary>
-        /// Checks if the input directory is a BIDS database
-        /// </summary>
-        /// <param name="path">Path to the input database</param>
-        /// <returns>True if the input database is a BIDS database</returns>
-        private static bool IsBIDSDirectory(string path)
-        {
-            FileInfo participantsFileInfo = new FileInfo(Path.Combine(path, "participants.tsv"));
-            return participantsFileInfo.Exists;
         }
         #endregion
 
@@ -569,7 +567,7 @@ namespace HBP.Core.Data
             result = new Dataset[] { dataset };
             return success;
         }
-        async UniTask<IEnumerable<Dataset>> ILoadableFromDatabase<Dataset>.LoadFromDatabase(Action<float, float, LoadingText> updateProgress)
+        async UniTask<IEnumerable<Dataset>> ILoadableFromDatabase<Dataset>.LoadFromDatabaseAsync(Action<float, float, LoadingText> updateProgress)
         {
             return await LoadFromDatabaseAsync(updateProgress);
         }

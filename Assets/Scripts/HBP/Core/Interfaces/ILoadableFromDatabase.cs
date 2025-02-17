@@ -7,6 +7,6 @@ namespace HBP.Core.Interfaces
 {
     public interface ILoadableFromDatabase<T>
     {
-        UniTask<IEnumerable<T>> LoadFromDatabase(Action<float, float, LoadingText> updateProgress);
+        UniTask<IEnumerable<T>> LoadFromDatabaseAsync(Action<float, float, LoadingText> updateProgress);
     }
 }

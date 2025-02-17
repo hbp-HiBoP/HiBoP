@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using UnityEngine.Events;
 using HBP.Core.Errors;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data.Container
 {
@@ -24,10 +25,11 @@ namespace HBP.Core.Data.Container
     /// </item>
     /// </list>
     /// </remarks>
+    [JsonObject(MemberSerialization.OptIn)]
     public abstract class DataContainer : BaseData
     {
         #region Properties
-        protected Error[] m_Errors = new Error[0];
+        [JsonProperty] protected Error[] m_Errors = new Error[0];
         /// <summary>
         /// Errors of the dataContainer.
         /// </summary>
@@ -41,7 +43,7 @@ namespace HBP.Core.Data.Container
             }
         }
 
-        protected Warning[] m_Warnings = new Warning[0];
+        [JsonProperty] protected Warning[] m_Warnings = new Warning[0];
         /// <summary>
         /// Errors of the dataContainer.
         /// </summary>

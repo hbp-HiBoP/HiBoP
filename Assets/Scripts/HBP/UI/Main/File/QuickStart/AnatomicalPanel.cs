@@ -35,7 +35,7 @@ namespace HBP.UI.Main.QuickStart
         private async UniTaskVoid LoadBIDSDatabase(string path)
         {
             ILoadableFromDatabase<Patient> loadable = new Patient();
-            var result = await LoadingManager.LoadAsync(update => loadable.LoadFromDatabase(update));
+            var result = await LoadingManager.LoadAsync(update => loadable.LoadFromDatabaseAsync(update));
             FinishedLoadingBIDSDatabase(result);
         }
         private void FinishedLoadingBIDSDatabase(IEnumerable<Patient> patients)

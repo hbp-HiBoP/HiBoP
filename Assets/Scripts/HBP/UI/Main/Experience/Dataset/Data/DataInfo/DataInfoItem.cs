@@ -41,14 +41,14 @@ namespace HBP.UI.Main
 
                 var errors = Object.Errors;
                 var warnings = Object.Warnings;
-                if (errors.Length > 0 && warnings.Length > 0)
+                if (errors.Count > 0 && warnings.Count > 0)
                     m_ErrorText.Text = Object.GetErrorsMessage() + "\n\n" + Object.GetWarningsMessage();
-                else if (warnings.Length > 0)
+                else if (warnings.Count > 0)
                     m_ErrorText.Text = Object.GetWarningsMessage();
                 else
                     m_ErrorText.Text = Object.GetErrorsMessage();
 
-                m_StateThemeElement.Set(value.IsOk ? (warnings.Length > 0 ? m_WarningState : m_OKState) : m_ErrorState);
+                m_StateThemeElement.Set(value.IsOk ? (warnings.Count > 0 ? m_WarningState : m_OKState) : m_ErrorState);
             }
         }
         #endregion

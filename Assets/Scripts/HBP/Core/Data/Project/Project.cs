@@ -427,7 +427,7 @@ namespace HBP.Core.Data
                 float patientsProgress = 2 * projectInfo.Patients;
                 float groupsProgress = projectInfo.Groups;
                 float protocolsProgress = projectInfo.Protocols;
-                float datasetsProgress = projectInfo.Patients * projectInfo.Datasets;
+                float datasetsProgress = projectInfo.Datasets;
                 float visualizationsProgress = projectInfo.Visualizations;
                 float steps = settingsProgress + groupsProgress + patientsProgress + protocolsProgress + datasetsProgress + visualizationsProgress;
                 settingsProgress /= steps;

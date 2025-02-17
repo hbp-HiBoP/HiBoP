@@ -143,6 +143,11 @@ namespace HBP.Core.Tools
             }
             return result;
         }
+        public static bool IsBIDS(this string path)
+        {
+            FileInfo participantsFileInfo = new FileInfo(Path.Combine(path, "participants.tsv"));
+            return participantsFileInfo.Exists;
+        }
     }
 
     public static class TypeExtension

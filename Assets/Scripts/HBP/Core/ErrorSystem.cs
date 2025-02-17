@@ -1,10 +1,13 @@
-﻿namespace HBP.Core.Errors
+﻿using System.Text;
+
+namespace HBP.Core.Errors
 {
     public abstract class Error
     {
         #region Properties
         public virtual string Title { get; }
         public virtual string Message { get; }
+        public string FormatedMessage => !string.IsNullOrEmpty(Message) ? $"• {Title} ({Message})" : $"• {Title}";
         #endregion
 
         #region Constructors
@@ -156,6 +159,7 @@
         #region Properties
         public virtual string Title { get; }
         public virtual string Message { get; }
+        public string FormatedMessage => !string.IsNullOrEmpty(Message) ? $"• {Title} ({Message})" : $"• {Title}";
         #endregion
 
         #region Constructors

@@ -28,7 +28,7 @@ namespace HBP.UI.Main
             foreach (var obj in dataInfos)
             {
                 await UniTask.SwitchToThreadPool();
-                obj.GetErrorsAndWarnings();
+                obj.CheckErrorsAndWarnings();
                 await UniTask.SwitchToMainThread();
                 List.UpdateObject(obj);
                 count++;
@@ -40,7 +40,7 @@ namespace HBP.UI.Main
         #region Protected Methods
         protected override void OnSaveModifier(Core.Data.DataInfo obj)
         {
-            obj.GetErrorsAndWarnings();
+            obj.CheckErrorsAndWarnings();
             RenameObject(obj);
             if (!List.Objects.Contains(obj))
             {
@@ -53,7 +53,7 @@ namespace HBP.UI.Main
         }
         protected override void OnObjectCreated(Core.Data.DataInfo obj)
         {
-            obj.GetErrorsAndWarnings();
+            obj.CheckErrorsAndWarnings();
             RenameObject(obj);
             if (!List.Objects.Contains(obj))
             {

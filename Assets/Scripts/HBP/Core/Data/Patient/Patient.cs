@@ -673,7 +673,7 @@ namespace HBP.Core.Data
             result = new Patient[] { patient };
             return success;
         }
-        async UniTask<IEnumerable<Patient>> ILoadableFromDatabase<Patient>.LoadFromDatabase(Action<float, float, LoadingText> updateProgress)
+        async UniTask<IEnumerable<Patient>> ILoadableFromDatabase<Patient>.LoadFromDatabaseAsync(Action<float, float, LoadingText> updateProgress)
         {
             return await LoadFromDatabaseAsync(updateProgress);
         }

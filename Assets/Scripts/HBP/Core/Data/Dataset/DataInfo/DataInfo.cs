@@ -7,6 +7,9 @@ using HBP.Core.Errors;
 using HBP.Core.Interfaces;
 using Newtonsoft.Json;
 using HBP.Data.Database;
+using System.Collections.ObjectModel;
+using Cysharp.Threading.Tasks;
+using HBP.Core.Tools;
 
 namespace HBP.Core.Data
 {
@@ -46,9 +49,11 @@ namespace HBP.Core.Data
     /// </list>
     /// </remarks>
     [JsonObject(MemberSerialization.OptIn)]
-    public class DataInfo : BaseData, INameable
+    public class DataInfo : BaseData, ILoadableFromDatabase<DataInfo>, INameable
     {
         #region Properties
+        public const string EXTENSION = ".datainfo";
+
         [JsonProperty("Name")] protected string m_Name;
         /// <summary>
         /// Name of the data.
@@ -56,7 +61,7 @@ namespace HBP.Core.Data
         public string Name
         {
             get { return m_Name; }
-            set { m_Name = value; m_NameErrors = GetNameErrors(); }
+            set { m_Name = value; }
         }
 
         [JsonProperty("DataContainer")] protected Container.DataContainer m_DataContainer;
@@ -66,7 +71,7 @@ namespace HBP.Core.Data
         public Container.DataContainer DataContainer
         {
             get { return m_DataContainer; }
-            set { m_DataContainer = value; m_DataContainer.GetErrors(); }
+            set { m_DataContainer = value; }
         }
 
         [JsonProperty] public string CorrespondingDatabaseID { get; set; }
@@ -82,12 +87,11 @@ namespace HBP.Core.Data
             }
         }
 
-        /// <summary>
-        /// Naming-related errors.
-        /// </summary>
-        protected Error[] m_NameErrors = new Error[0];
+        [JsonProperty] protected Error[] m_Errors = new Error[0];
+        public ReadOnlyCollection<Error> Errors => new(m_Errors);
 
-        protected Warning[] m_NameWarnings = new Warning[0];
+        [JsonProperty] protected Warning[] m_Warnings = new Warning[0];
+        public ReadOnlyCollection<Warning> Warnings => new(m_Warnings);
 
         /// <summary>
         /// True if the dataInfo is visualizable, False otherwise.
@@ -96,35 +100,7 @@ namespace HBP.Core.Data
         {
             get
             {
-                return Errors.Length == 0;
-            }
-        }
-
-        /// <summary>
-        /// All dataInfo errors.
-        /// </summary>
-        public virtual Error[] Errors
-        {
-            get
-            {
-                List<Error> errors = new List<Error>();
-                errors.AddRange(m_NameErrors);
-                errors.AddRange(m_DataContainer.Errors);
-                return errors.Distinct().ToArray();
-            }
-        }
-
-        /// <summary>
-        /// All dataInfo warnings.
-        /// </summary>
-        public virtual Warning[] Warnings
-        {
-            get
-            {
-                List<Warning> warnings = new List<Warning>();
-                warnings.AddRange(m_NameWarnings);
-                warnings.AddRange(m_DataContainer.Warnings);
-                return warnings.Distinct().ToArray();
+                return Errors.Count == 0;
             }
         }
 
@@ -141,11 +117,13 @@ namespace HBP.Core.Data
         /// <param name="name">Name of the dataInfo.</param>
         /// <param name="dataContainer">Data container of the dataInfo.</param>
         /// <param name="ID">Unique identifier of the dataInfo.</param>
-        public DataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, string correspondingDatabaseID, string ID) : base(ID)
+        public DataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, string correspondingDatabaseID, string ID) : base(ID)
         {
             m_Name = name;
             m_Protocol = protocol;
             m_DataContainer = dataContainer;
+            m_Errors = errors.ToArray();
+            m_Warnings = warnings.ToArray();
             CorrespondingDatabaseID = correspondingDatabaseID;
         }
         /// <summary>
@@ -153,43 +131,28 @@ namespace HBP.Core.Data
         /// </summary>
         /// <param name="name">Name of the dataInfo.</param>
         /// <param name="dataContainer">Data container of the dataInfo.</param>
-        public DataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, string correspondingDatabaseID) : base()
+        public DataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, string correspondingDatabaseID) : base()
         {
             m_Name = name;
             m_Protocol = protocol;
             m_DataContainer = dataContainer;
+            m_Errors = errors.ToArray();
+            m_Warnings = warnings.ToArray();
             CorrespondingDatabaseID = correspondingDatabaseID;
         }
         /// <summary>
         /// Create a new DataInfo instance with default value.
         /// </summary>
-        public DataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Elan(), "", Guid.NewGuid().ToString())
+        public DataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Elan(), new Error[0], new Warning[0], "", Guid.NewGuid().ToString())
         {
         }
         #endregion
 
         #region Public Methods
-        /// <summary>
-        /// Get all dataInfo errors.
-        /// </summary>
-        /// <param name="protocol">Protocol of the dataset the dataInfo belongs to.</param>
-        /// <returns>All dataInfo errors.</returns>
-        public virtual Error[] GetErrors()
+        public virtual void CheckErrorsAndWarnings()
         {
-            List<Error> errors = new List<Error>(GetNameErrors());
-            errors.AddRange(m_DataContainer.GetErrors());
-            return errors.Distinct().ToArray();
-        }
-        /// <summary>
-        /// Get all naming-related errors.
-        /// </summary>
-        /// <returns>All naming-related errors.</returns>
-        public virtual Error[] GetNameErrors()
-        {
-            List<Error> errors = new List<Error>();
-            if (string.IsNullOrEmpty(Name)) errors.Add(new LabelEmptyError());
-            m_NameErrors = errors.ToArray();
-            return m_NameErrors;
+            m_Errors = GetErrors().Distinct().ToArray();
+            m_Warnings = GetWarnings().Distinct().ToArray();
         }
         /// <summary>
         /// Get all message errors in a readable form.
@@ -197,58 +160,18 @@ namespace HBP.Core.Data
         /// <returns></returns>
         public virtual string GetErrorsMessage()
         {
-            Error[] errors = Errors;
-            StringBuilder stringBuilder = new StringBuilder();
-            if (errors.Length == 0) stringBuilder.Append(string.Format("• {0}", "No error detected."));
+            var errors = Errors;
+            StringBuilder stringBuilder = new();
+            if (errors.Count == 0)
+                stringBuilder.Append(string.Format("• {0}", "No error detected."));
             else
             {
                 stringBuilder.AppendLine("Errors:");
-                for (int i = 0; i < errors.Length - 1; i++)
-                {
-                    if (errors[i].Message != "")
-                    {
-                        stringBuilder.AppendLine(string.Format("• {0} ({1})", errors[i].Title, errors[i].Message));
-
-                    }
-                    else
-                    {
-                        stringBuilder.AppendLine(string.Format("• {0}", errors[i].Title));
-
-                    }
-                }
-                if (errors.Last().Message != "")
-                {
-                    stringBuilder.Append(string.Format("• {0} ({1})", errors.Last().Title, errors.Last().Message));
-
-                }
-                else
-                {
-                    stringBuilder.Append(string.Format("• {0}", errors.Last().Title));
-
-                }
+                for (int i = 0; i < errors.Count - 1; i++)
+                    stringBuilder.AppendLine(errors[i].FormatedMessage);
+                stringBuilder.Append(errors.Last().FormatedMessage);
             }
             return stringBuilder.ToString();
-        }
-        /// <summary>
-        /// Get all dataInfo warnings.
-        /// </summary>
-        /// <param name="protocol">Protocol of the dataset the dataInfo belongs to.</param>
-        /// <returns>All dataInfo errors.</returns>
-        public virtual Warning[] GetWarnings()
-        {
-            List<Warning> warnings = new List<Warning>();
-            warnings.AddRange(m_DataContainer.GetWarnings());
-            return warnings.Distinct().ToArray();
-        }
-        /// <summary>
-        /// Get all naming-related errors.
-        /// </summary>
-        /// <returns>All naming-related errors.</returns>
-        public virtual Warning[] GetNameWarnings()
-        {
-            List<Warning> warnings = new List<Warning>();
-            m_NameWarnings = warnings.ToArray();
-            return m_NameWarnings;
         }
         /// <summary>
         /// Get all message warnings in a readable form.
@@ -256,42 +179,18 @@ namespace HBP.Core.Data
         /// <returns></returns>
         public virtual string GetWarningsMessage()
         {
-            Warning[] warnings = Warnings;
-            StringBuilder stringBuilder = new StringBuilder();
-            if (warnings.Length == 0) stringBuilder.Append(string.Format("• {0}", "No error detected."));
+            var warnings = Warnings;
+            StringBuilder stringBuilder = new();
+            if (warnings.Count == 0)
+                stringBuilder.Append(string.Format("• {0}", "No error detected."));
             else
             {
                 stringBuilder.AppendLine("Warnings:");
-                for (int i = 0; i < warnings.Length - 1; i++)
-                {
-                    if (warnings[i].Message != "")
-                    {
-                        stringBuilder.AppendLine(string.Format("• {0} ({1})", warnings[i].Title, warnings[i].Message));
-
-                    }
-                    else
-                    {
-                        stringBuilder.AppendLine(string.Format("• {0}", warnings[i].Title));
-
-                    }
-                }
-                if (warnings.Last().Message != "")
-                {
-                    stringBuilder.Append(string.Format("• {0} ({1})", warnings.Last().Title, warnings.Last().Message));
-
-                }
-                else
-                {
-                    stringBuilder.Append(string.Format("• {0}", warnings.Last().Title));
-
-                }
+                for (int i = 0; i < warnings.Count - 1; i++)
+                    stringBuilder.AppendLine(warnings[i].FormatedMessage);
+                stringBuilder.Append(warnings.Last().FormatedMessage);
             }
             return stringBuilder.ToString();
-        }
-        public virtual void GetErrorsAndWarnings()
-        {
-            GetErrors();
-            GetWarnings();
         }
         /// <summary>
         /// Generate a new unique identifier.
@@ -309,6 +208,52 @@ namespace HBP.Core.Data
         }
         #endregion
 
+        #region Private Methods
+        /// <summary>
+        /// Get all dataInfo errors.
+        /// </summary>
+        /// <param name="protocol">Protocol of the dataset the dataInfo belongs to.</param>
+        /// <returns>All dataInfo errors.</returns>
+        protected virtual IEnumerable<Error> GetErrors()
+        {
+            List<Error> errors = new();
+            errors.AddRange(GetNameErrors());
+            errors.AddRange(m_DataContainer.GetErrors());
+            return errors;
+        }
+        /// <summary>
+        /// Get all naming-related errors.
+        /// </summary>
+        /// <returns>All naming-related errors.</returns>
+        private IEnumerable<Error> GetNameErrors()
+        {
+            List<Error> errors = new();
+            if (string.IsNullOrEmpty(Name)) errors.Add(new LabelEmptyError());
+            return errors;
+        }
+        /// <summary>
+        /// Get all dataInfo warnings.
+        /// </summary>
+        /// <param name="protocol">Protocol of the dataset the dataInfo belongs to.</param>
+        /// <returns>All dataInfo errors.</returns>
+        protected virtual IEnumerable<Warning> GetWarnings()
+        {
+            List<Warning> warnings = new();
+            warnings.AddRange(GetNameWarnings());
+            warnings.AddRange(m_DataContainer.GetWarnings());
+            return warnings;
+        }
+        /// <summary>
+        /// Get all naming-related errors.
+        /// </summary>
+        /// <returns>All naming-related errors.</returns>
+        private IEnumerable<Warning> GetNameWarnings()
+        {
+            List<Warning> warnings = new();
+            return warnings;
+        }
+        #endregion
+
         #region Operators
         /// <summary>
         /// Clone this instance.
@@ -316,7 +261,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new DataInfo(Name, Protocol, DataContainer.Clone() as Container.DataContainer, CorrespondingDatabaseID, ID);
+            return new DataInfo(Name, Protocol, DataContainer.Clone() as Container.DataContainer, Errors, Warnings, CorrespondingDatabaseID, ID);
         }
         /// <summary>
         /// Copy an instance to this instance.
@@ -330,6 +275,8 @@ namespace HBP.Core.Data
                 Name = dataInfo.Name;
                 Protocol = dataInfo.Protocol;
                 DataContainer = dataInfo.DataContainer;
+                m_Errors = dataInfo.Errors.ToArray();
+                m_Warnings = dataInfo.Warnings.ToArray();
                 CorrespondingDatabaseID = dataInfo.CorrespondingDatabaseID;
             }
         }
@@ -343,5 +290,11 @@ namespace HBP.Core.Data
         }
         #endregion
 
+        #region Interfaces
+        public UniTask<IEnumerable<DataInfo>> LoadFromDatabaseAsync(Action<float, float, LoadingText> updateProgress)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
     }
 }
