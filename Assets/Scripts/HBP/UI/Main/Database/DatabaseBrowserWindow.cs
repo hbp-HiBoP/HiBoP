@@ -17,7 +17,7 @@ namespace HBP.UI.Database
         {
             base.SetFields();
             m_PatientListGestion.List.Set(DatabaseManager.Database.Patients);
-            m_DatasetListGestion.List.Set(DatabaseManager.Database.Datasets);
+            //m_DatasetListGestion.List.Set(DatabaseManager.Database.Datasets);
         }
         #endregion
     }

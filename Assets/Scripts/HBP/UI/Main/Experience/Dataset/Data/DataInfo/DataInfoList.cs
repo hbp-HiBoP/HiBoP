@@ -127,12 +127,12 @@ namespace HBP.UI.Main
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.IsOk).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.State).ToList();
                     m_OrderBy = OrderBy.State;
                     m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.IsOk).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.State).ToList();
                     m_OrderBy = OrderBy.DescendingState;
                     m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;

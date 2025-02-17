@@ -114,6 +114,8 @@ namespace HBP.UI.Tools
             }
         }
 
+        public Func<T, bool> DatabaseFilterMethod { get; set; } = o => true;
+
         [SerializeField] protected WindowsReferencer m_WindowsReferencer = new WindowsReferencer();
         /// <summary>
         /// Windows references used to manage sub windows opened by the object creator.
@@ -386,7 +388,7 @@ namespace HBP.UI.Tools
         protected virtual async UniTaskVoid LoadFromDatabase()
         {
             ILoadableFromDatabase<T> loadable = new T() as ILoadableFromDatabase<T>;
-            var result = await LoadingManager.LoadAsync(loadable.LoadFromDatabaseAsync);
+            var result = await LoadingManager.LoadAsync(update => loadable.LoadFromDatabaseAsync(update, DatabaseFilterMethod));
             await UniTask.SwitchToMainThread();
             if (result.Count() > 0)
                 OpenSelector(result, true, false, false);

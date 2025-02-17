@@ -15,6 +15,7 @@ using HBP.Data.Database;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Threading;
+using UnityEngine.EventSystems;
 
 namespace HBP.Dev
 {
@@ -267,14 +268,11 @@ namespace HBP.Dev
         private void CheckProjectAndDatabaseIntegrity()
         {
             // Database
-            foreach (var dataset in DatabaseManager.Database.Datasets)
+            foreach (var dataInfo in DatabaseManager.Database.DataInfos)
             {
-                foreach (var data in dataset.Data.OfType<PatientDataInfo>())
+                if (dataInfo is PatientDataInfo patientDataInfo && !DatabaseManager.Database.Patients.Contains(patientDataInfo.Patient))
                 {
-                    if (!DatabaseManager.Database.Patients.Contains(data.Patient))
-                    {
-                        Debug.LogError(string.Format("Patient of {0}-{1} not found in database", dataset.Name, data.Name));
-                    }
+                    Debug.LogError(string.Format("Patient of {0} not found in database", patientDataInfo.Name));
                 }
             }
             // Project

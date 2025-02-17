@@ -37,7 +37,7 @@ public class DatabaseDebuggerEditor : Editor
         EditorGUILayout.LabelField("Is Loaded", database.IsLoaded.ToString());
 
         DrawFoldoutList("Patients", "Patients", database.Patients.ToList());
-        DrawFoldoutList("Datasets", "Datasets", database.Datasets.ToList());
+        DrawFoldoutList("Data", "Data", database.DataInfos.ToList());
     }
 
     private void DrawFoldoutList(string label, string foldoutID, IEnumerable<BaseData> ienumerable)

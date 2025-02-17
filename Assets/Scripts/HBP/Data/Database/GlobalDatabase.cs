@@ -10,6 +10,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using Cysharp.Threading.Tasks;
 using System.Threading;
+using System.Diagnostics;
 
 namespace HBP.Data.Database
 {
@@ -28,8 +29,8 @@ namespace HBP.Data.Database
         private List<Patient> m_Patients = new();
         public ReadOnlyCollection<Patient> Patients => new(m_Patients);
 
-        private List<Dataset> m_Datasets = new();
-        public ReadOnlyCollection<Dataset> Datasets => new(m_Datasets);
+        private List<DataInfo> m_DataInfos = new();
+        public ReadOnlyCollection<DataInfo> DataInfos => new(m_DataInfos);
 
         public bool IsLoaded { get; private set; } = false;
         #endregion
@@ -96,7 +97,7 @@ namespace HBP.Data.Database
                 }
                 catch (Exception e)
                 {
-                    Debug.LogException(e);
+                    UnityEngine.Debug.LogException(e);
                     throw e;
                 }
             }
@@ -115,9 +116,13 @@ namespace HBP.Data.Database
         }
         private async UniTask LoadDatabaseAsync()
         {
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
             await LoadPatientsAsync();
-            await LoadDatasetsAsync();
+            await LoadDataInfosAsync();
             IsLoaded = true;
+            stopwatch.Stop();
+            UnityEngine.Debug.Log($"Database loaded in {stopwatch.ElapsedMilliseconds} ms");
         }
 
         private async UniTask LoadProtocolsAsync()
@@ -132,7 +137,7 @@ namespace HBP.Data.Database
         {
             DirectoryInfo protocolDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "Protocols"));
             DirectoryInfo protocolTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "ProtocolsTemp"));
-            await UniTask.WhenAll(m_Protocols.Select(p => ClassLoaderSaver.SaveToJSonAsync(p, Path.Combine(protocolTempDirectory.FullName, p.Name + Protocol.EXTENSION), true)));
+            await UniTask.WhenAll(m_Protocols.Select(p => ClassLoaderSaver.SaveToJsonAsync(p, Path.Combine(protocolTempDirectory.FullName, p.Name + Protocol.EXTENSION), true)));
             protocolDirectory.Delete(true);
             protocolTempDirectory.MoveTo(protocolDirectory.FullName);
         }
@@ -149,16 +154,13 @@ namespace HBP.Data.Database
         {
             DirectoryInfo referencesDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "References"));
             DirectoryInfo referencesTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "ReferencesTemp"));
-            await UniTask.WhenAll(m_DatabaseReferences.Select(dr => ClassLoaderSaver.SaveToJSonAsync(dr, Path.Combine(referencesTempDirectory.FullName, dr.Name + DatabaseReference.EXTENSION), true)));
+            await UniTask.WhenAll(m_DatabaseReferences.Select(dr => ClassLoaderSaver.SaveToJsonAsync(dr, Path.Combine(referencesTempDirectory.FullName, dr.Name + DatabaseReference.EXTENSION), true)));
             referencesDirectory.Delete(true);
             referencesTempDirectory.MoveTo(referencesDirectory.FullName);
-            // Remove patients and datasets that are not in the database references
-            // TODO : warn the user that patients and datasets will be deleted
             m_Patients.RemoveAll(p => !m_DatabaseReferences.Any(r => r.ID == p.CorrespondingDatabaseID));
-            foreach (var dataset in m_Datasets) dataset.RemoveData(dataset.Data.Where(d => m_DatabaseReferences.All(r => r.ID != d.CorrespondingDatabaseID) || (d is PatientDataInfo pd && !m_Patients.Contains(pd.Patient))).ToList());
-            m_Datasets.RemoveAll(d => d.Data.Count == 0);
+            m_DataInfos.RemoveAll(d => m_DatabaseReferences.All(r => r.ID != d.CorrespondingDatabaseID) || (d is PatientDataInfo pd && !m_Patients.Contains(pd.Patient)));
             await SavePatientsAsync();
-            await SaveDatasetsAsync();
+            await SaveDataInfosAsync();
         }
 
         private async UniTask LoadPatientsAsync()
@@ -173,26 +175,26 @@ namespace HBP.Data.Database
         {
             DirectoryInfo patientsDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "Patients"));
             DirectoryInfo patientsTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "PatientsTemp"));
-            await UniTask.WhenAll(m_Patients.Select(p => ClassLoaderSaver.SaveToJSonAsync(p, Path.Combine(patientsTempDirectory.FullName, p.ID + Patient.EXTENSION), true)));
+            await UniTask.WhenAll(m_Patients.Select(p => ClassLoaderSaver.SaveToJsonAsync(p, Path.Combine(patientsTempDirectory.FullName, p.ID + Patient.EXTENSION), true)));
             patientsDirectory.Delete(true);
             patientsTempDirectory.MoveTo(patientsDirectory.FullName);
         }
 
-        private async UniTask LoadDatasetsAsync()
+        private async UniTask LoadDataInfosAsync()
         {
-            List<Dataset> datasets = new List<Dataset>();
-            DirectoryInfo datasetsDirectory = new DirectoryInfo(Path.Combine(ApplicationState.DatabasePath, "Datasets"));
-            if (!datasetsDirectory.Exists) datasetsDirectory.Create();
-            FileInfo[] datasetFiles = datasetsDirectory.GetFiles("*" + Dataset.EXTENSION, SearchOption.TopDirectoryOnly);
-            m_Datasets = (await UniTask.WhenAll(datasetFiles.Select(df => ClassLoaderSaver.LoadFromJsonAsync<Dataset>(df.FullName)))).ToList();
+            List<DataInfo> dataInfos = new List<DataInfo>();
+            DirectoryInfo dataInfosDirectory = new DirectoryInfo(Path.Combine(ApplicationState.DatabasePath, "DataInfos"));
+            if (!dataInfosDirectory.Exists) dataInfosDirectory.Create();
+            FileInfo[] dataInfoFiles = dataInfosDirectory.GetFiles("*" + DataInfo.EXTENSION, SearchOption.TopDirectoryOnly);
+            m_DataInfos = (await UniTask.WhenAll(dataInfoFiles.Select(df => ClassLoaderSaver.LoadFromJsonAsync<DataInfo>(df.FullName)))).ToList();
         }
-        private async UniTask SaveDatasetsAsync()
+        private async UniTask SaveDataInfosAsync()
         {
-            DirectoryInfo datasetsDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "Datasets"));
-            DirectoryInfo datasetsTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "DatasetsTemp"));
-            await UniTask.WhenAll(m_Datasets.Select(d => ClassLoaderSaver.SaveToJSonAsync(d, Path.Combine(datasetsTempDirectory.FullName, d.Name + Dataset.EXTENSION), true)));
-            datasetsDirectory.Delete(true);
-            datasetsTempDirectory.MoveTo(datasetsDirectory.FullName);
+            DirectoryInfo dataInfosDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "DataInfos"));
+            DirectoryInfo dataInfosTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "DataInfosTemp"));
+            await UniTask.WhenAll(m_DataInfos.Select(d => ClassLoaderSaver.SaveToJsonAsync(d, Path.Combine(dataInfosTempDirectory.FullName, d.ID + DataInfo.EXTENSION), true)));
+            dataInfosDirectory.Delete(true);
+            dataInfosTempDirectory.MoveTo(dataInfosDirectory.FullName);
         }
         
         private async UniTask UpdateDatabasesAsync(IEnumerable<DatabaseReference> databaseReferences, Action<float, float, LoadingText> updateProgress, CancellationToken token)
@@ -206,7 +208,7 @@ namespace HBP.Data.Database
             float progress = 0;
             // Backup patients and datasets
             List<Patient> patientsBackup = m_Patients.DeepClone().ToList();
-            List<Dataset> datasetsBackup = m_Datasets.DeepClone().ToList();
+            List<DataInfo> dataInfosBackup = m_DataInfos.DeepClone().ToList();
             try
             {
                 // Load patients first
@@ -230,48 +232,26 @@ namespace HBP.Data.Database
                     m_Patients.AddRange(patients);
                     progress += 1f / numberOfDatabases;
                 }
-                // Then load datasets
-                List<Dataset> generatedDatasets = new();
+                // Then load dataInfos
                 foreach (var localizerDatabaseReference in localizerDatabaseReferences)
                 {
                     token.ThrowIfCancellationRequested();
-                    Dataset.LoadFromLocalizersDatabase(localizerDatabaseReference.Path, out Dataset[] datasets, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
-                    foreach (var dataset in datasets)
-                        foreach (var data in dataset.Data)
-                            data.CorrespondingDatabaseID = localizerDatabaseReference.ID;
-                    generatedDatasets.AddRange(datasets);
+                    DataInfo.LoadFromLocalizersDatabase(localizerDatabaseReference.Path, out DataInfo[] dataInfos, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
+                    foreach (var dataInfo in dataInfos) dataInfo.CorrespondingDatabaseID = localizerDatabaseReference.ID;
+                    // TODO: Warn that dataInfos will be deleted / overwritten
+                    m_DataInfos.RemoveAll(d => dataInfos.Contains(d) || d.CorrespondingDatabaseID == localizerDatabaseReference.ID);
+                    m_DataInfos.AddRange(dataInfos);
                     progress += 1f / numberOfDatabases;
                 }
                 foreach (var bidsDatabaseReference in bidsDatabaseReferences)
                 {
                     token.ThrowIfCancellationRequested();
-                    Dataset.LoadFromBIDSDatabase(bidsDatabaseReference.Path, out Dataset[] datasets, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
-                    foreach (var dataset in datasets)
-                        foreach (var data in dataset.Data)
-                            data.CorrespondingDatabaseID = bidsDatabaseReference.ID;
-                    generatedDatasets.AddRange(datasets);
+                    DataInfo.LoadFromBIDSDatabase(bidsDatabaseReference.Path, out DataInfo[] dataInfos, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
+                    foreach (var dataInfo in dataInfos) dataInfo.CorrespondingDatabaseID = bidsDatabaseReference.ID;
+                    // TODO: Warn that dataInfos will be deleted / overwritten
+                    m_DataInfos.RemoveAll(d => dataInfos.Contains(d) || d.CorrespondingDatabaseID == bidsDatabaseReference.ID);
+                    m_DataInfos.AddRange(dataInfos);
                     progress += 1f / numberOfDatabases;
-                }
-                // TODO: Warn that datasets will be deleted / overwritten
-                foreach (var dataset in m_Datasets)
-                {
-                    token.ThrowIfCancellationRequested();
-                    dataset.RemoveData(dataset.Data.Where(d => databaseReferences.Any(r => r.ID == d.CorrespondingDatabaseID)).ToList());
-                }
-                m_Datasets.RemoveAll(d => d.Data.Count == 0);
-                foreach (var dataset in generatedDatasets)
-                {
-                    token.ThrowIfCancellationRequested();
-                    Dataset protocolDataset = m_Datasets.FirstOrDefault(d => d.Protocol == dataset.Protocol);
-                    if (protocolDataset == null)
-                    {
-                        protocolDataset = dataset;
-                        m_Datasets.Add(protocolDataset);
-                    }
-                    else
-                    {
-                        protocolDataset.AddData(dataset.Data);
-                    }
                 }
                 // Update last updated
                 foreach (var databaseReference in databaseReferences)
@@ -284,7 +264,7 @@ namespace HBP.Data.Database
             catch (Exception e)
             {
                 m_Patients = patientsBackup;
-                m_Datasets = datasetsBackup;
+                m_DataInfos = dataInfosBackup;
                 FixDatasets();
                 throw e;
             }
@@ -292,15 +272,12 @@ namespace HBP.Data.Database
 
         private void FixDatasets()
         {
-            foreach (var dataset in m_Datasets)
+            foreach (var dataInfo in m_DataInfos)
             {
-                dataset.Protocol = m_Protocols.FirstOrDefault(p => p.ID == dataset.Protocol.ID);
-                foreach (var data in dataset.Data)
+                dataInfo.Protocol = m_Protocols.FirstOrDefault(p => p.ID == dataInfo.Protocol.ID);
+                if (dataInfo is PatientDataInfo patientDataInfo)
                 {
-                    if (data is PatientDataInfo patientData)
-                    {
-                        patientData.Patient = m_Patients.FirstOrDefault(p => p.ID == patientData.Patient.ID);
-                    }
+                    patientDataInfo.Patient = m_Patients.FirstOrDefault(p => p.ID == patientDataInfo.Patient.ID);
                 }
             }
         }

@@ -28,29 +28,37 @@ namespace HBP.UI.Database
         #endregion
 
         #region Public Methods
-        public override void OK()
+        public async override void OK()
         {
-            base.OK();
-            DatabaseManager.Database.SetDatabaseReferences(m_ListGestion.List.Objects);
-            DatabaseManager.Database.SaveDatabaseReferences().Forget();
-            InteractableStateManager.SetInteractables();
+            int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Save references", "Patients and data of removed references will be deleted. Do you want to continue?", "Yes", "Cancel");
+            if (result == 0)
+            {
+                base.OK();
+                DatabaseManager.Database.SetDatabaseReferences(m_ListGestion.List.Objects);
+                DatabaseManager.Database.SaveDatabaseReferences().Forget();
+                InteractableStateManager.SetInteractables();
+            }
         }
         public async void UpdateDatabases()
         {
-            try
+            int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Override data", "Patients and data will be overridden. Do you want to continue?", "Yes", "Cancel");
+            if (result == 0)
             {
-                DatabaseManager.Database.SetDatabaseReferences(m_ListGestion.List.Objects);
-                await DatabaseManager.Database.UpdateDatabases(m_ListGestion.List.ObjectsSelected);
-                await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "Databases updated", "The databases have been updated successfully");
-                m_ListGestion.List.Refresh();
-            }
-            catch (OperationCanceledException)
-            {
+                try
+                {
+                    DatabaseManager.Database.SetDatabaseReferences(m_ListGestion.List.Objects);
+                    await DatabaseManager.Database.UpdateDatabases(m_ListGestion.List.ObjectsSelected);
+                    await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "Databases updated", "The databases have been updated successfully");
+                    m_ListGestion.List.Refresh();
+                }
+                catch (OperationCanceledException)
+                {
 
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
             }
         }
         public override void Close()

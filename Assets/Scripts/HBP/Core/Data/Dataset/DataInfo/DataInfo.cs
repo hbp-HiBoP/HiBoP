@@ -10,6 +10,13 @@ using HBP.Data.Database;
 using System.Collections.ObjectModel;
 using Cysharp.Threading.Tasks;
 using HBP.Core.Tools;
+using System.IO;
+using System.Text.RegularExpressions;
+using System.Threading;
+using HBP.Core.Enums;
+using UnityEditor;
+using UnityEngine.UIElements;
+using System.Diagnostics;
 
 namespace HBP.Core.Data
 {
@@ -100,9 +107,11 @@ namespace HBP.Core.Data
         {
             get
             {
-                return Errors.Count == 0;
+                return m_Errors.Length == 0;
             }
         }
+        public enum DataState { Error, Warning, Ok }
+        public DataState State => m_Errors.Length > 0 ? DataState.Error : m_Warnings.Length > 0 ? DataState.Warning : DataState.Ok;
 
         /// <summary>
         /// Callback executed when error checking is required.
@@ -208,6 +217,190 @@ namespace HBP.Core.Data
         }
         #endregion
 
+        #region Public Static Methods
+        public static async UniTask<IEnumerable<DataInfo>> LoadFromDatabaseAsync(Action<float, float, LoadingText> updateProgress, Func<DataInfo, bool> filter)
+        {
+            updateProgress(0, 0, new LoadingText("Importing data"));
+            await UniTask.WaitUntil(() => DatabaseManager.Database.IsLoaded);
+
+            await UniTask.SwitchToThreadPool();
+            List<DataInfo> dataInfos = DatabaseManager.Database.DataInfos.Where(filter).DeepClone().ToList();
+            int length = dataInfos.Count;
+            int count = 0;
+            List<DataInfo> dataToDelete = new();
+            foreach (var dataInfo in dataInfos)
+            {
+                updateProgress((float)count / length, 0, new LoadingText("Importing data", " ", $"{++count}/{length}"));
+                if (dataInfo is PatientDataInfo patientDataInfo)
+                {
+                    Patient projectPatient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == patientDataInfo.Patient.ID);
+                    if (projectPatient != null)
+                        patientDataInfo.Patient = projectPatient;
+                    else
+                        dataToDelete.Add(patientDataInfo);
+                }
+            }
+            dataInfos.RemoveAll(d => dataToDelete.Contains(d));
+            return dataInfos;
+        }
+        public static void LoadFromLocalizersDatabase(string path, out DataInfo[] dataInfos, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        {
+            updateProgress?.Invoke(0, 0, new LoadingText("Finding data to load"));
+            dataInfos = new DataInfo[0];
+            if (string.IsNullOrEmpty(path)) return;
+            DirectoryInfo directory = new DirectoryInfo(path);
+            if (!directory.Exists) return;
+
+            static string GetDownsamplingString(DirectoryInfo dir)
+            {
+                Regex posRegex = new Regex(dir.Name + @"_(ds[0-9]+)?\.pos$");
+                FileInfo[] posFiles = dir.GetFiles("*.pos", SearchOption.AllDirectories);
+                string ds = "";
+                foreach (var file in posFiles)
+                {
+                    Match match = posRegex.Match(file.FullName);
+                    if (match.Success)
+                    {
+                        ds = match.Groups[1].Value;
+                    }
+                }
+                return ds;
+            }
+
+            IEnumerable<DirectoryInfo> directories = directory.GetDirectories().SelectMany(d => d.GetDirectories());
+            int length = directories.Count();
+            int progress = 0;
+            token.ThrowIfCancellationRequested();
+            List<DataInfo> dataInfoList = new();
+            foreach (var dir in directories)
+            {
+                token.ThrowIfCancellationRequested();
+                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading localizer ", dir.Name, " [" + progress + "/" + length + "]"));
+                Patient patient = DatabaseManager.Database.Patients.FirstOrDefault(p => p.ID.ToUpper().CompareTo(dir.Name.ToUpper()) == 0);
+                if (patient != null)
+                {
+                    DirectoryInfo[] subDirectories = dir.GetDirectories();
+                    foreach (var subdir in subDirectories)
+                    {
+                        string[] splits = subdir.Name.Split('_');
+                        if (splits.Length == 4)
+                        {
+                            Protocol protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.Name == splits[3]);
+                            if (protocol != null)
+                            {
+                                FileInfo rawEEG = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".eeg"));
+                                FileInfo rawPos = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".pos"));
+                                if (rawEEG.Exists && rawPos.Exists)
+                                {
+                                    var dataInfo = new IEEGDataInfo("raw", protocol, new Container.Elan(rawEEG.FullName, rawPos.FullName, ""), new Error[0], new Warning[0], patient, NormalizationType.Auto, "");
+                                    dataInfo.CheckErrorsAndWarnings();
+                                    dataInfoList.Add(dataInfo);
+                                }
+
+                                string ds = GetDownsamplingString(subdir);
+                                if (!string.IsNullOrEmpty(ds))
+                                {
+                                    FileInfo posDS = new FileInfo(Path.Combine(subdir.FullName, string.Format("{0}_{1}.pos", subdir.Name, ds)));
+                                    if (posDS.Exists)
+                                    {
+                                        // Maybe TODO : parameters (specific UI or user preferences)
+                                        string[] frequencies = new string[] { "f8f24", "f50f150" };
+                                        string[] temporalSmoothings = new string[] { "sm0", "sm250", "sm500", "sm1000", "sm2500", "sm5000" };
+                                        foreach (var freq in frequencies)
+                                        {
+                                            foreach (var ts in temporalSmoothings)
+                                            {
+                                                FileInfo eeg = new FileInfo(Path.Combine(subdir.FullName, string.Format("{0}_{1}", subdir.Name, freq), string.Format("{0}_{1}_{2}_{3}.eeg", subdir.Name, freq, ds, ts)));
+                                                if (eeg.Exists)
+                                                {
+                                                    var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", freq, ts), protocol, new Container.Elan(eeg.FullName, posDS.FullName, ""), new Error[0], new Warning[0], patient, NormalizationType.Auto, "");
+                                                    dataInfo.CheckErrorsAndWarnings();
+                                                    dataInfoList.Add(dataInfo);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            dataInfos = dataInfoList.ToArray();
+            updateProgress?.Invoke(1.0f, 0, new LoadingText("Data loaded successfully"));
+        }
+        public static void LoadFromBIDSDatabase(string path, out DataInfo[] dataInfos, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        {
+            updateProgress?.Invoke(0, 0, new LoadingText("Finding data to load"));
+
+            dataInfos = new DataInfo[0];
+            if (string.IsNullOrEmpty(path)) return;
+            DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(path);
+            if (!databaseDirectoryInfo.Exists) return;
+
+            List<DataInfo> dataInfoList = new();
+
+            // Find all dataInfo files
+            Regex brainvisionHeaderRegex = new Regex(@"sub-([a-zA-Z0-9.]+)(_ses-([a-zA-Z0-9.]+))?(_task-([a-zA-Z0-9.]+))(_acq-([a-zA-Z0-9.]+))?(_run-([a-zA-Z0-9.]+))?_ieeg\.vhdr$");
+            FileInfo[] brainvisionHeaderFiles = databaseDirectoryInfo.GetFiles("*.vhdr", SearchOption.AllDirectories);
+            Regex edfRegex = new Regex(@"sub-([a-zA-Z0-9.]+)(_ses-([a-zA-Z0-9.]+))?(_task-([a-zA-Z0-9.]+))(_acq-([a-zA-Z0-9.]+))?(_run-([a-zA-Z0-9.]+))?_ieeg\.edf$");
+            FileInfo[] edfFiles = databaseDirectoryInfo.GetFiles("*.edf", SearchOption.AllDirectories);
+            int progress = 0;
+            int length = brainvisionHeaderFiles.Length + edfFiles.Length;
+
+            // Brainvision
+            foreach (var file in brainvisionHeaderFiles)
+            {
+                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading file ", file.Name, " [" + progress + "/" + length + "]"));
+                token.ThrowIfCancellationRequested();
+                Match match = brainvisionHeaderRegex.Match(file.FullName);
+                if (match.Success)
+                {
+                    Patient patient = DatabaseManager.Database.Patients.FirstOrDefault(p => p.Name.CompareTo(match.Groups[1].Value) == 0);
+                    if (patient != null)
+                    {
+                        Protocol protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.Name == match.Groups[5].Value);
+                        if (protocol != null)
+                        {
+                            string acq = string.IsNullOrEmpty(match.Groups[7].Value) ? "raw" : match.Groups[7].Value;
+                            string run = string.IsNullOrEmpty(match.Groups[9].Value) ? "" : "-" + match.Groups[9].Value;
+                            var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", acq, run), protocol, new Container.BrainVision(file.FullName), new Error[0], new Warning[0], patient, NormalizationType.Auto, "");
+                            dataInfo.CheckErrorsAndWarnings();
+                            dataInfoList.Add(dataInfo);
+                        }
+                    }
+                }
+            }
+
+            // EDF
+            foreach (var file in edfFiles)
+            {
+                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading file ", file.Name, " [" + progress + "/" + length + "]"));
+                token.ThrowIfCancellationRequested();
+                Match match = edfRegex.Match(file.FullName);
+                if (match.Success)
+                {
+                    Patient patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID.ToUpper().CompareTo(match.Groups[1].Value.ToUpper()) == 0);
+                    if (patient != null)
+                    {
+                        Protocol protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.Name == match.Groups[5].Value);
+                        if (protocol != null)
+                        {
+                            string acq = string.IsNullOrEmpty(match.Groups[4].Value) ? "raw" : match.Groups[4].Value;
+                            string run = string.IsNullOrEmpty(match.Groups[5].Value) ? "" : "-" + match.Groups[5].Value;
+                            var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", acq, run), protocol, new Container.EDF(file.FullName), new Error[0], new Warning[0], patient, NormalizationType.Auto, "");
+                            dataInfo.CheckErrorsAndWarnings();
+                            dataInfoList.Add(dataInfo);
+                        }
+                    }
+                }
+            }
+
+            dataInfos = dataInfoList.ToArray();
+            updateProgress?.Invoke(1.0f, 0, new LoadingText("Data loaded successfully"));
+        }
+        #endregion
+
         #region Private Methods
         /// <summary>
         /// Get all dataInfo errors.
@@ -288,12 +481,18 @@ namespace HBP.Core.Data
             base.OnSerializing();
             m_ProtocolID = m_Protocol?.ID;
         }
+        protected override void OnDeserialized()
+        {
+            base.OnDeserialized();
+            var protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.ID == m_ProtocolID) ?? DatabaseManager.Database.Protocols.First();
+            Protocol = protocol;
+        }
         #endregion
 
         #region Interfaces
-        public UniTask<IEnumerable<DataInfo>> LoadFromDatabaseAsync(Action<float, float, LoadingText> updateProgress)
+        async UniTask<IEnumerable<DataInfo>> ILoadableFromDatabase<DataInfo>.LoadFromDatabaseAsync(Action<float, float, LoadingText> updateProgress, Func<DataInfo, bool> filter)
         {
-            throw new NotImplementedException();
+            return await LoadFromDatabaseAsync(updateProgress, filter);
         }
         #endregion
     }

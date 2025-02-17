@@ -14,7 +14,7 @@ namespace HBP.Core.Tools
     {
         private static readonly JsonSerializerSettings m_Settings = new()
         {
-            TypeNameHandling = TypeNameHandling.Auto,
+            TypeNameHandling = TypeNameHandling.All,
             TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
             Formatting = Formatting.Indented,
         };
@@ -51,7 +51,7 @@ namespace HBP.Core.Tools
                 return false;
             }
         }
-        public static async UniTask<bool> SaveToJSonAsync<T>(T instance, string path, bool overwrite = false) where T : new()
+        public static async UniTask<bool> SaveToJsonAsync<T>(T instance, string path, bool overwrite = false) where T : new()
         {
             try
             {

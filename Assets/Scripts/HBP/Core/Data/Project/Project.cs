@@ -741,7 +741,7 @@ namespace HBP.Core.Data
             updateProgress.Invoke(0, 0, new LoadingText("Saving settings"));
             try
             {
-                await ClassLoaderSaver.SaveToJSonAsync(Preferences, Path.Combine(projectDirectory.FullName, Preferences.Name + ProjectPreferences.EXTENSION));
+                await ClassLoaderSaver.SaveToJsonAsync(Preferences, Path.Combine(projectDirectory.FullName, Preferences.Name + ProjectPreferences.EXTENSION));
             }
             catch (Exception e)
             {
@@ -757,7 +757,7 @@ namespace HBP.Core.Data
             {
                 try
                 {
-                    await ClassLoaderSaver.SaveToJSonAsync(patient, Path.Combine(patientDirectory.FullName, patient.ID + Patient.EXTENSION));
+                    await ClassLoaderSaver.SaveToJsonAsync(patient, Path.Combine(patientDirectory.FullName, patient.ID + Patient.EXTENSION));
                 }
                 catch (Exception e)
                 {
@@ -775,7 +775,7 @@ namespace HBP.Core.Data
             {
                 try
                 {
-                    await ClassLoaderSaver.SaveToJSonAsync(group, Path.Combine(groupDirectory.FullName, group.Name + Group.EXTENSION));
+                    await ClassLoaderSaver.SaveToJsonAsync(group, Path.Combine(groupDirectory.FullName, group.Name + Group.EXTENSION));
                 }
                 catch (Exception e)
                 {
@@ -793,7 +793,7 @@ namespace HBP.Core.Data
             {
                 try
                 {
-                    await ClassLoaderSaver.SaveToJSonAsync(dataset, Path.Combine(datasetDirectory.FullName, dataset.Name + Dataset.EXTENSION));
+                    await ClassLoaderSaver.SaveToJsonAsync(dataset, Path.Combine(datasetDirectory.FullName, dataset.Name + Dataset.EXTENSION));
                 }
                 catch (Exception e)
                 {
@@ -811,7 +811,7 @@ namespace HBP.Core.Data
             {
                 try
                 {
-                    await ClassLoaderSaver.SaveToJSonAsync(visualization, Path.Combine(visualizationDirectory.FullName, visualization.Name + Visualization.EXTENSION));
+                    await ClassLoaderSaver.SaveToJsonAsync(visualization, Path.Combine(visualizationDirectory.FullName, visualization.Name + Visualization.EXTENSION));
                 }
                 catch (Exception e)
                 {

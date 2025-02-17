@@ -589,7 +589,7 @@ namespace HBP.Core.Data
         /// <param name="OnChangeProgress">Action called on change progress.</param>
         /// <param name="result">The patients loaded.</param>
         /// <returns></returns>
-        public static async UniTask<IEnumerable<Patient>> LoadFromDatabaseAsync(Action<float, float, LoadingText> updateProgress)
+        public static async UniTask<IEnumerable<Patient>> LoadFromDatabaseAsync(Action<float, float, LoadingText> updateProgress, Func<Patient, bool> filter)
         {
             updateProgress(0, 0, new LoadingText("Importing patients"));
             await UniTask.WaitUntil(() => DatabaseManager.Database.IsLoaded);
@@ -616,19 +616,6 @@ namespace HBP.Core.Data
                 }
             }
             return patients;
-        }
-        #endregion
-
-        #region Private Static Methods
-        /// <summary>
-        /// Checks if the input directory is a BIDS database
-        /// </summary>
-        /// <param name="path">Path to the input database</param>
-        /// <returns>True if the input database is a BIDS database</returns>
-        private static bool IsBIDSDirectory(string path)
-        {
-            FileInfo participantsFileInfo = new FileInfo(Path.Combine(path, "participants.tsv"));
-            return participantsFileInfo.Exists;
         }
         #endregion
 
@@ -673,9 +660,9 @@ namespace HBP.Core.Data
             result = new Patient[] { patient };
             return success;
         }
-        async UniTask<IEnumerable<Patient>> ILoadableFromDatabase<Patient>.LoadFromDatabaseAsync(Action<float, float, LoadingText> updateProgress)
+        async UniTask<IEnumerable<Patient>> ILoadableFromDatabase<Patient>.LoadFromDatabaseAsync(Action<float, float, LoadingText> updateProgress, Func<Patient, bool> filter)
         {
-            return await LoadFromDatabaseAsync(updateProgress);
+            return await LoadFromDatabaseAsync(updateProgress, filter);
         }
         async UniTask<IEnumerable<Patient>> ILoadableFromDirectory<Patient>.LoadFromDirectory(string[] paths, Action<float, float, LoadingText> updateProgress)
         {

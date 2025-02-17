@@ -58,6 +58,7 @@ namespace HBP.UI.Main
             m_DataInfoListGestion.List.OnAddObject.AddListener(AddData);
             m_DataInfoListGestion.List.OnRemoveObject.AddListener(RemoveData);
             m_DataInfoListGestion.List.OnUpdateObject.AddListener(UpdateData);
+            m_DataInfoListGestion.ObjectCreator.DatabaseFilterMethod = data => data.Protocol == ObjectTemp.Protocol;
         }
         /// <summary>
         /// Set the fields.
