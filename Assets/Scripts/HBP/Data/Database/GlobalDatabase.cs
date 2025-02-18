@@ -52,7 +52,7 @@ namespace HBP.Data.Database
             GlobalDatabase database = new();
             if (!new DirectoryInfo(ApplicationState.DatabasePath).Exists) Directory.CreateDirectory(ApplicationState.DatabasePath);
             database.LoadSettings();
-            if (!database.Settings.IsFirstUse)
+            if (database.Settings.IsFirstUse)
             {
                 CopyDefaultDatabase();
                 database.SaveSettings();
@@ -104,7 +104,7 @@ namespace HBP.Data.Database
         }
         private void SaveSettings()
         {
-            m_Settings.IsFirstUse = true;
+            m_Settings.IsFirstUse = false;
             ClassLoaderSaver.SaveToJSon(m_Settings, GlobalDatabaseSettings.PATH, true);
         }
 
@@ -116,13 +116,9 @@ namespace HBP.Data.Database
         }
         private async UniTask LoadDatabaseAsync()
         {
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
             await LoadPatientsAsync();
             await LoadDataInfosAsync();
             IsLoaded = true;
-            stopwatch.Stop();
-            UnityEngine.Debug.Log($"Database loaded in {stopwatch.ElapsedMilliseconds} ms");
         }
 
         private async UniTask LoadProtocolsAsync()
@@ -145,15 +141,15 @@ namespace HBP.Data.Database
         private async UniTask LoadDatabaseReferencesAsync()
         {
             List<DatabaseReference> databaseReferences = new List<DatabaseReference>();
-            DirectoryInfo referencesDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "References"));
+            DirectoryInfo referencesDirectory = Directory.CreateDirectory(Path.Combine(Settings.SelectedWorkspace.Path, "References"));
             if (!referencesDirectory.Exists) referencesDirectory.Create();
             FileInfo[] referenceFiles = referencesDirectory.GetFiles("*" + DatabaseReference.EXTENSION, SearchOption.TopDirectoryOnly);
             m_DatabaseReferences = (await UniTask.WhenAll(referenceFiles.Select(rf => ClassLoaderSaver.LoadFromJsonAsync<DatabaseReference>(rf.FullName)))).ToList();
         }
         private async UniTask SaveDatabaseReferencesAsync()
         {
-            DirectoryInfo referencesDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "References"));
-            DirectoryInfo referencesTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "ReferencesTemp"));
+            DirectoryInfo referencesDirectory = Directory.CreateDirectory(Path.Combine(Settings.SelectedWorkspace.Path, "References"));
+            DirectoryInfo referencesTempDirectory = Directory.CreateDirectory(Path.Combine(Settings.SelectedWorkspace.Path, "ReferencesTemp"));
             await UniTask.WhenAll(m_DatabaseReferences.Select(dr => ClassLoaderSaver.SaveToJsonAsync(dr, Path.Combine(referencesTempDirectory.FullName, dr.Name + DatabaseReference.EXTENSION), true)));
             referencesDirectory.Delete(true);
             referencesTempDirectory.MoveTo(referencesDirectory.FullName);
@@ -166,15 +162,15 @@ namespace HBP.Data.Database
         private async UniTask LoadPatientsAsync()
         {
             List<Patient> patients = new List<Patient>();
-            DirectoryInfo patientsDirectory = new DirectoryInfo(Path.Combine(ApplicationState.DatabasePath, "Patients"));
+            DirectoryInfo patientsDirectory = new DirectoryInfo(Path.Combine(Settings.SelectedWorkspace.Path, "Patients"));
             if (!patientsDirectory.Exists) patientsDirectory.Create();
             FileInfo[] patientFiles = patientsDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
             m_Patients = (await UniTask.WhenAll(patientFiles.Select(pf => ClassLoaderSaver.LoadFromJsonAsync<Patient>(pf.FullName)))).ToList();
         }
         private async UniTask SavePatientsAsync()
         {
-            DirectoryInfo patientsDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "Patients"));
-            DirectoryInfo patientsTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "PatientsTemp"));
+            DirectoryInfo patientsDirectory = Directory.CreateDirectory(Path.Combine(Settings.SelectedWorkspace.Path, "Patients"));
+            DirectoryInfo patientsTempDirectory = Directory.CreateDirectory(Path.Combine(Settings.SelectedWorkspace.Path, "PatientsTemp"));
             await UniTask.WhenAll(m_Patients.Select(p => ClassLoaderSaver.SaveToJsonAsync(p, Path.Combine(patientsTempDirectory.FullName, p.ID + Patient.EXTENSION), true)));
             patientsDirectory.Delete(true);
             patientsTempDirectory.MoveTo(patientsDirectory.FullName);
@@ -183,15 +179,15 @@ namespace HBP.Data.Database
         private async UniTask LoadDataInfosAsync()
         {
             List<DataInfo> dataInfos = new List<DataInfo>();
-            DirectoryInfo dataInfosDirectory = new DirectoryInfo(Path.Combine(ApplicationState.DatabasePath, "DataInfos"));
+            DirectoryInfo dataInfosDirectory = new DirectoryInfo(Path.Combine(Settings.SelectedWorkspace.Path, "DataInfos"));
             if (!dataInfosDirectory.Exists) dataInfosDirectory.Create();
             FileInfo[] dataInfoFiles = dataInfosDirectory.GetFiles("*" + DataInfo.EXTENSION, SearchOption.TopDirectoryOnly);
             m_DataInfos = (await UniTask.WhenAll(dataInfoFiles.Select(df => ClassLoaderSaver.LoadFromJsonAsync<List<DataInfo>>(df.FullName)))).SelectMany(d => d).ToList();
         }
         private async UniTask SaveDataInfosAsync()
         {
-            DirectoryInfo dataInfosDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "DataInfos"));
-            DirectoryInfo dataInfosTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "DataInfosTemp"));
+            DirectoryInfo dataInfosDirectory = Directory.CreateDirectory(Path.Combine(Settings.SelectedWorkspace.Path, "DataInfos"));
+            DirectoryInfo dataInfosTempDirectory = Directory.CreateDirectory(Path.Combine(Settings.SelectedWorkspace.Path, "DataInfosTemp"));
             await ClassLoaderSaver.SaveToJsonAsync(m_DataInfos, Path.Combine(dataInfosTempDirectory.FullName, "DataInfos" + DataInfo.EXTENSION), true);
             dataInfosDirectory.Delete(true);
             dataInfosTempDirectory.MoveTo(dataInfosDirectory.FullName);

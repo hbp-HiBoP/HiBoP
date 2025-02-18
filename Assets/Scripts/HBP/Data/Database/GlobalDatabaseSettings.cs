@@ -1,7 +1,10 @@
 using HBP.Core.Data;
 using HBP.Core.Tools;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 
 namespace HBP.Data.Database
 {
@@ -10,31 +13,76 @@ namespace HBP.Data.Database
     {
         #region Properties
         public static string PATH = Path.Combine(ApplicationState.DatabasePath, "Settings.json");
+
         [JsonProperty] public bool IsFirstUse { get; set; }
+
+        [JsonProperty] private List<Workspace> m_Workspaces = new();
+        public ReadOnlyCollection<Workspace> Workspaces => new(m_Workspaces);
+
+        [JsonProperty] private string m_SelectedWorkspaceID;
+        private Workspace m_SelectedWorkspace;
+        public Workspace SelectedWorkspace
+        {
+            get
+            {
+                return m_SelectedWorkspace;
+            }
+            set
+            {
+                m_SelectedWorkspace = value;
+            }
+        }
         #endregion
 
         #region Constructors
-        public GlobalDatabaseSettings(string ID) : base(ID)
+        public GlobalDatabaseSettings(bool isFirstUse, IEnumerable<Workspace> workspaces, Workspace selectedWorkspace, string ID) : base(ID)
         {
-            IsFirstUse = false;
+            IsFirstUse = isFirstUse;
+            m_Workspaces = workspaces.ToList();
+            SelectedWorkspace = selectedWorkspace;
+        }
+        public GlobalDatabaseSettings(bool isFirstUse, List<Workspace> workspaces, Workspace selectedWorkspace) : base()
+        {
+            IsFirstUse = isFirstUse;
+            m_Workspaces = workspaces;
+            SelectedWorkspace = selectedWorkspace;
         }
         public GlobalDatabaseSettings() : base()
         {
-            IsFirstUse = false;
+            IsFirstUse = true;
+            Workspace defaultWorkspace = new("Default");
+            m_Workspaces = new List<Workspace>() { defaultWorkspace };
+            SelectedWorkspace = defaultWorkspace;
         }
         #endregion
 
-        #region Public Methods
+        #region Operators
         public override object Clone()
         {
-            return new GlobalDatabaseSettings(ID)
-            {
-                IsFirstUse = IsFirstUse
-            };
+            return new GlobalDatabaseSettings(IsFirstUse, m_Workspaces, SelectedWorkspace, ID);
         }
-        public void Copy(GlobalDatabaseSettings settings)
+        public override void Copy(object obj)
         {
-            IsFirstUse = settings.IsFirstUse;
+            base.Copy(obj);
+            if (obj is GlobalDatabaseSettings globalDatabaseSettings)
+            {
+                IsFirstUse = globalDatabaseSettings.IsFirstUse;
+                m_Workspaces = globalDatabaseSettings.m_Workspaces;
+                SelectedWorkspace = globalDatabaseSettings.SelectedWorkspace;
+            }
+        }
+        #endregion
+
+        #region Serialization
+        protected override void OnSerializing()
+        {
+            base.OnSerializing();
+            m_SelectedWorkspaceID = m_SelectedWorkspace?.ID;
+        }
+        protected override void OnDeserialized()
+        {
+            base.OnDeserialized();
+            SelectedWorkspace = m_Workspaces.FirstOrDefault(w => w.ID == m_SelectedWorkspaceID);
         }
         #endregion
     }
