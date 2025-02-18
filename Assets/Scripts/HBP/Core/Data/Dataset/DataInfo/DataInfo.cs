@@ -59,7 +59,7 @@ namespace HBP.Core.Data
     public class DataInfo : BaseData, ILoadableFromDatabase<DataInfo>, INameable
     {
         #region Properties
-        public const string EXTENSION = ".datainfo";
+        public const string EXTENSION = ".data";
 
         [JsonProperty("Name")] protected string m_Name;
         /// <summary>

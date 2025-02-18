@@ -35,9 +35,11 @@ namespace HBP.UI.Toolbar
         [JsonObject(MemberSerialization.OptIn)]
         public class ColumnContainer
         {
-            [JsonProperty] public string Name { get; set; }
-            [JsonProperty] public Bloc Bloc { get; set; }
-            [JsonProperty] public DataInfo Data { get; set; }
+            [JsonProperty] public string Column { get; set; }
+            [JsonProperty] public string Protocol { get; set; }
+            [JsonProperty] public string Bloc { get; set; }
+            [JsonProperty] public string Dataset { get; set; }
+            [JsonProperty] public string Data { get; set; }
             [JsonProperty] public string CorrelationsFile { get; set; }
             [JsonProperty] public string CorrelationsBinaryFile { get; set; }
             [JsonProperty] public string CorrelationsMeanFile { get; set; }
@@ -167,11 +169,21 @@ namespace HBP.UI.Toolbar
                 Bloc bloc = column.ColumnIEEGData.Bloc.Clone() as Bloc;
                 IEEGDataInfo dataInfo = column.ColumnIEEGData.Dataset.GetIEEGDataInfos().FirstOrDefault(d => d.Patient == SelectedScene.Visualization.Patients[0] && d.Name == column.ColumnIEEGData.DataName).Clone() as IEEGDataInfo;
                 dataInfo.DataContainer.ConvertAllPathsToFullPaths();
-                container.Columns.Add(new ColumnContainer() { Name = column.Name, Bloc = bloc, Data = dataInfo, CorrelationsFile = string.Format("{0}_{1}_correlations.csv", container.PatientName, column.Name), CorrelationsBinaryFile = string.Format("{0}_{1}_significant.csv", container.PatientName, column.Name), CorrelationsMeanFile = string.Format("{0}_{1}_pearson.csv", container.PatientName, column.Name) });
+                container.Columns.Add(new ColumnContainer()
+                {
+                    Column = column.Name,
+                    Protocol = column.ColumnIEEGData.Dataset.Protocol.Name,
+                    Bloc = bloc.Name,
+                    Dataset = column.ColumnIEEGData.Dataset.Name,
+                    Data = dataInfo.Name,
+                    CorrelationsFile = string.Format("{0}_{1}_correlations.csv", container.PatientID, column.Name),
+                    CorrelationsBinaryFile = string.Format("{0}_{1}_significant.csv", container.PatientID, column.Name),
+                    CorrelationsMeanFile = string.Format("{0}_{1}_pearson.csv", container.PatientID, column.Name)
+                });
             }
             string saveDirectory = Path.Combine(SelectedScene.GenerateExportDirectory(), "Correlations").GenerateUniqueDirectoryPath();
             if (!Directory.Exists(saveDirectory)) Directory.CreateDirectory(saveDirectory);
-            ClassLoaderSaver.SaveToJSon(container, Path.Combine(saveDirectory, string.Format("{0}_Correlations.json", container.PatientName)));
+            ClassLoaderSaver.SaveToJSon(container, Path.Combine(saveDirectory, string.Format("{0}_Correlations.json", container.PatientID)));
 
             int siteWeight(string name)
             {
@@ -249,15 +261,15 @@ namespace HBP.UI.Toolbar
                 }
                 try
                 {
-                    using (StreamWriter sw = new StreamWriter(Path.Combine(saveDirectory, string.Format("{0}_{1}_correlations.csv", container.PatientName, column.Name))))
+                    using (StreamWriter sw = new StreamWriter(Path.Combine(saveDirectory, string.Format("{0}_{1}_correlations.csv", container.PatientID, column.Name))))
                     {
                         sw.Write(csvText.ToString());
                     }
-                    using (StreamWriter sw = new StreamWriter(Path.Combine(saveDirectory, string.Format("{0}_{1}_significant.csv", container.PatientName, column.Name))))
+                    using (StreamWriter sw = new StreamWriter(Path.Combine(saveDirectory, string.Format("{0}_{1}_significant.csv", container.PatientID, column.Name))))
                     {
                         sw.Write(csvBinaryText.ToString());
                     }
-                    using (StreamWriter sw = new StreamWriter(Path.Combine(saveDirectory, string.Format("{0}_{1}_pearson.csv", container.PatientName, column.Name))))
+                    using (StreamWriter sw = new StreamWriter(Path.Combine(saveDirectory, string.Format("{0}_{1}_pearson.csv", container.PatientID, column.Name))))
                     {
                         sw.Write(csvMeanText.ToString());
                     }
@@ -284,7 +296,7 @@ namespace HBP.UI.Toolbar
                         DialogBoxManager.Open(DialogBoxType.Error, "Correlation file is not compatible", "The patient of the correlations files you are trying to load is different from the patient in the visualization.").Forget();
                         return;
                     }
-                    if (!container.Columns.All(c => SelectedScene.ColumnsIEEG.Any(col => col.Name == c.Name && col.ColumnIEEGData.Bloc == c.Bloc)))
+                    if (!container.Columns.All(c => SelectedScene.ColumnsIEEG.Any(col => col.Name == c.Column)))
                     {
                         DialogBoxManager.Open(DialogBoxType.Error, "Correlation file is not compatible", "One of the columns in the correlations files has no corresponding column in the visualization.").Forget();
                         return;
@@ -297,7 +309,7 @@ namespace HBP.UI.Toolbar
                     string directory = new FileInfo(path).Directory.FullName;
                     foreach (var column in SelectedScene.ColumnsIEEG)
                     {
-                        ColumnContainer columnContainer = container.Columns.FirstOrDefault(c => c.Name == column.Name);
+                        ColumnContainer columnContainer = container.Columns.FirstOrDefault(c => c.Column == column.Name);
                         string csvFilePath = Path.Combine(directory, columnContainer.CorrelationsFile);
                         using (StreamReader sr = new StreamReader(csvFilePath))
                         {

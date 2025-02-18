@@ -14,7 +14,7 @@ namespace HBP.Core.Tools
     {
         private static readonly JsonSerializerSettings m_Settings = new()
         {
-            TypeNameHandling = TypeNameHandling.All,
+            TypeNameHandling = TypeNameHandling.Auto,
             TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
             Formatting = Formatting.Indented,
         };

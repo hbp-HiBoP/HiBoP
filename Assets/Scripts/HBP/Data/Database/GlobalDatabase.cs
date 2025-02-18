@@ -186,13 +186,13 @@ namespace HBP.Data.Database
             DirectoryInfo dataInfosDirectory = new DirectoryInfo(Path.Combine(ApplicationState.DatabasePath, "DataInfos"));
             if (!dataInfosDirectory.Exists) dataInfosDirectory.Create();
             FileInfo[] dataInfoFiles = dataInfosDirectory.GetFiles("*" + DataInfo.EXTENSION, SearchOption.TopDirectoryOnly);
-            m_DataInfos = (await UniTask.WhenAll(dataInfoFiles.Select(df => ClassLoaderSaver.LoadFromJsonAsync<DataInfo>(df.FullName)))).ToList();
+            m_DataInfos = (await UniTask.WhenAll(dataInfoFiles.Select(df => ClassLoaderSaver.LoadFromJsonAsync<List<DataInfo>>(df.FullName)))).SelectMany(d => d).ToList();
         }
         private async UniTask SaveDataInfosAsync()
         {
             DirectoryInfo dataInfosDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "DataInfos"));
             DirectoryInfo dataInfosTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "DataInfosTemp"));
-            await UniTask.WhenAll(m_DataInfos.Select(d => ClassLoaderSaver.SaveToJsonAsync(d, Path.Combine(dataInfosTempDirectory.FullName, d.ID + DataInfo.EXTENSION), true)));
+            await ClassLoaderSaver.SaveToJsonAsync(m_DataInfos, Path.Combine(dataInfosTempDirectory.FullName, "DataInfos" + DataInfo.EXTENSION), true);
             dataInfosDirectory.Delete(true);
             dataInfosTempDirectory.MoveTo(dataInfosDirectory.FullName);
         }
