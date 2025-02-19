@@ -47,18 +47,22 @@ namespace HBP.Data.Database
         #endregion
 
         #region Public Methods
-        public static GlobalDatabase Initialize()
+        public async UniTaskVoid Initialize()
         {
-            GlobalDatabase database = new();
+            await UniTask.SwitchToThreadPool();
             if (!new DirectoryInfo(ApplicationState.DatabasePath).Exists) Directory.CreateDirectory(ApplicationState.DatabasePath);
-            database.LoadSettings();
-            if (database.Settings.IsFirstUse)
+            LoadSettings();
+            if (m_Settings.IsFirstUse)
             {
-                CopyDefaultDatabase();
-                database.SaveSettings();
+                ConfigureDefault();
+                SaveSettings();
             }
-            database.InitializeDatabase().Forget();
-            return database;
+            await LoadProtocolsAsync();
+            LoadDatabase().Forget();
+        }
+        public void SaveSettings()
+        {
+            ClassLoaderSaver.SaveToJSon(m_Settings, GlobalDatabaseSettings.PATH, true);
         }
         public async UniTaskVoid SaveProtocols()
         {
@@ -72,6 +76,7 @@ namespace HBP.Data.Database
         public async UniTaskVoid LoadDatabase()
         {
             await UniTask.SwitchToThreadPool();
+            await LoadDatabaseReferencesAsync();
             await LoadDatabaseAsync();
         }
         public async UniTask UpdateDatabases(IEnumerable<DatabaseReference> databaseReferences)
@@ -81,10 +86,12 @@ namespace HBP.Data.Database
         #endregion
 
         #region Private Methods
-        private static void CopyDefaultDatabase()
+        private void ConfigureDefault()
         {
             DirectoryInfo defaultDatabaseDirectory = new DirectoryInfo(Path.Combine(ApplicationState.DataPath, "DefaultDatabase"));
             defaultDatabaseDirectory.CopyFilesRecursively(new DirectoryInfo(ApplicationState.DatabasePath));
+            m_Settings.SetDefaultWorkspace();
+            m_Settings.IsFirstUse = false;
         }
 
         private void LoadSettings()
@@ -102,18 +109,7 @@ namespace HBP.Data.Database
                 }
             }
         }
-        private void SaveSettings()
-        {
-            m_Settings.IsFirstUse = false;
-            ClassLoaderSaver.SaveToJSon(m_Settings, GlobalDatabaseSettings.PATH, true);
-        }
 
-        private async UniTaskVoid InitializeDatabase()
-        {
-            await LoadProtocolsAsync();
-            await LoadDatabaseReferencesAsync();
-            LoadDatabase().Forget();
-        }
         private async UniTask LoadDatabaseAsync()
         {
             await LoadPatientsAsync();

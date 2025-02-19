@@ -17,7 +17,7 @@ namespace HBP.Data.Database
         [JsonProperty] public bool IsFirstUse { get; set; }
 
         [JsonProperty] private List<Workspace> m_Workspaces = new();
-        public ReadOnlyCollection<Workspace> Workspaces => new(m_Workspaces);
+        public List<Workspace> Workspaces => new(m_Workspaces);
 
         [JsonProperty] private string m_SelectedWorkspaceID;
         private Workspace m_SelectedWorkspace;
@@ -41,18 +41,14 @@ namespace HBP.Data.Database
             m_Workspaces = workspaces.ToList();
             SelectedWorkspace = selectedWorkspace;
         }
-        public GlobalDatabaseSettings(bool isFirstUse, List<Workspace> workspaces, Workspace selectedWorkspace) : base()
+        public GlobalDatabaseSettings(bool isFirstUse, IEnumerable<Workspace> workspaces, Workspace selectedWorkspace) : base()
         {
             IsFirstUse = isFirstUse;
-            m_Workspaces = workspaces;
+            m_Workspaces = workspaces.ToList();
             SelectedWorkspace = selectedWorkspace;
         }
-        public GlobalDatabaseSettings() : base()
+        public GlobalDatabaseSettings() : this(true, new List<Workspace>(), null)
         {
-            IsFirstUse = true;
-            Workspace defaultWorkspace = new("Default");
-            m_Workspaces = new List<Workspace>() { defaultWorkspace };
-            SelectedWorkspace = defaultWorkspace;
         }
         #endregion
 
@@ -70,6 +66,19 @@ namespace HBP.Data.Database
                 m_Workspaces = globalDatabaseSettings.m_Workspaces;
                 SelectedWorkspace = globalDatabaseSettings.SelectedWorkspace;
             }
+        }
+        #endregion
+
+        #region Public Methods
+        public void SetDefaultWorkspace()
+        {
+            Workspace workspace = new Workspace("Default");
+            m_Workspaces.Add(workspace);
+            SelectedWorkspace = workspace;
+        }
+        public void SetWorkspaces(IEnumerable<Workspace> workspaces)
+        {
+            m_Workspaces = workspaces.ToList();
         }
         #endregion
 

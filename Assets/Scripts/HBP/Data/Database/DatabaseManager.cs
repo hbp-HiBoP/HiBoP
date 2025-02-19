@@ -13,7 +13,8 @@ namespace HBP.Data.Database
         protected override void Initialization()
         {
             base.Initialization();
-            m_Database = GlobalDatabase.Initialize();
+            m_Database = new GlobalDatabase();
+            m_Database.Initialize().Forget();
         }
         #endregion
     }

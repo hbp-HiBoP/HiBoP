@@ -18,6 +18,7 @@ namespace HBP.UI.Tools.Lists
         /// UI items displayed by the list.
         /// </summary>
         protected System.Collections.Generic.List<Item<T>> m_Items = new System.Collections.Generic.List<Item<T>>();
+        public virtual ReadOnlyCollection<Item<T>> Items => new ReadOnlyCollection<Item<T>>(m_Items);
 
         protected System.Collections.Generic.List<T> m_Objects = new System.Collections.Generic.List<T>();
         /// <summary>
