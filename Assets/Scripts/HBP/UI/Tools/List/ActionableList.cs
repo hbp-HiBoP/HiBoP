@@ -29,7 +29,7 @@ namespace HBP.UI.Tools.Lists
         #endregion
 
         #region Public Methods
-        public override bool UpdateObject(T objectToUpdate)
+        public override void UpdateObject(T objectToUpdate)
         {
             int index = m_Objects.FindIndex(o => o.Equals(objectToUpdate));
             if (m_Objects[index] is ICopiable copiable)
@@ -50,9 +50,7 @@ namespace HBP.UI.Tools.Lists
                 actionnableItem.OnAction.RemoveAllListeners();
                 actionnableItem.OnAction.AddListener((action) => OnActionHandler(action, objectToUpdate));
                 OnUpdateObject.Invoke(objectToUpdate);
-                return true;
             }
-            return false;
         }
         public override void Refresh()
         {

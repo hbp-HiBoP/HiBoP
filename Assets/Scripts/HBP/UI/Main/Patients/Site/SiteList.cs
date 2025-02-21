@@ -20,10 +20,10 @@ namespace HBP.UI.Main
         #endregion
 
         #region Public Methods
-        public override bool Add(Core.Data.Site obj)
+        public override void Add(Core.Data.Site obj)
         {
             SortByNone();
-            return base.Add(obj);
+            base.Add(obj);
         }
 
         /// <summary>

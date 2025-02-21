@@ -55,6 +55,7 @@ namespace HBP.UI.Tools.Lists
         /// Toggle to select/deselect all items of the list.
         /// </summary>
         [SerializeField] protected Toggle m_SelectAllToggle;
+        private bool m_RequestSelectAllUpdate = false;
 
         protected Dictionary<T, bool> m_SelectedStateByObject = new Dictionary<T, bool>();
         /// <summary>
@@ -115,25 +116,17 @@ namespace HBP.UI.Tools.Lists
         #endregion
 
         #region Public Methods
-        public override bool Add(T obj)
+        public override void Add(T obj)
         {
-            if (base.Add(obj))
-            {
-                m_SelectedStateByObject.Add(obj, false);
-                OnSelectionChanged();
-                return true;
-            }
-            return false;
+            base.Add(obj);
+            m_SelectedStateByObject.Add(obj, false);
+            OnSelectionChanged();
         }
-        public override bool Remove(T obj)
+        public override void Remove(T obj)
         {
-            if (base.Remove(obj))
-            {
-                m_SelectedStateByObject.Remove(obj);
-                OnSelectionChanged();
-                return true;
-            }
-            return false;
+            base.Remove(obj);
+            m_SelectedStateByObject.Remove(obj);
+            OnSelectionChanged();
         }
         /// <summary>
         /// Select all objects.
@@ -233,7 +226,7 @@ namespace HBP.UI.Tools.Lists
         /// </summary>
         /// <param name="objectToUpdate">Object to update</param>
         /// <returns>True if updated, False otherwise</returns>
-        public override bool UpdateObject(T objectToUpdate)
+        public override void UpdateObject(T objectToUpdate)
         {
             int index = m_Objects.FindIndex(o => o.Equals(objectToUpdate));
             m_Objects[index] = objectToUpdate;
@@ -246,9 +239,7 @@ namespace HBP.UI.Tools.Lists
                 selectableItem.ChangeSelectionValue(m_SelectedStateByObject[objectToUpdate]);
                 selectableItem.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(objectToUpdate, selected));
                 OnUpdateObject.Invoke(objectToUpdate);
-                return true;
             }
-            return false;
         }
         /// <summary>
         /// Refresh all the list.
@@ -287,10 +278,18 @@ namespace HBP.UI.Tools.Lists
         {
             Validate();
         }
-        void Awake()
+        protected virtual void Awake()
         {
             if (m_SelectAllToggle != null) m_SelectAllToggle.onValueChanged.AddListener(OnSelectAllToggleValueChanged);
             Validate();
+        }
+        protected override void Update()
+        {
+            base.Update();
+            if (m_RequestSelectAllUpdate && m_SelectAllToggle != null)
+            {
+                m_SelectAllToggle.isOn = m_DisplayedObjects.Count == ObjectsSelected.Length && m_DisplayedObjects.Count > 0 && m_ItemSelection == SelectionType.MultipleItems;
+            }
         }
         protected override void Validate()
         {
@@ -353,7 +352,7 @@ namespace HBP.UI.Tools.Lists
         /// </summary> 
         protected virtual void OnSelectionChanged()
         {
-            if (m_SelectAllToggle != null) m_SelectAllToggle.isOn = m_DisplayedObjects.Count == ObjectsSelected.Length && m_DisplayedObjects.Count > 0 && m_ItemSelection == SelectionType.MultipleItems;
+            m_RequestSelectAllUpdate = true;
             (this as ISelectionCountable).OnSelectionChanged.Invoke();
         }
         /// <summary>

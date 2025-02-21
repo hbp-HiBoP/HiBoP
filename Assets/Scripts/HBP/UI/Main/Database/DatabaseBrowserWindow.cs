@@ -9,7 +9,7 @@ namespace HBP.UI.Database
     {
         #region Properties
         [SerializeField] PatientListGestion m_PatientListGestion;
-        [SerializeField] DatasetListGestion m_DatasetListGestion;
+        [SerializeField] DataInfoListGestion m_DataInfoListGestion;
         #endregion
 
         #region Private Methods
@@ -17,7 +17,7 @@ namespace HBP.UI.Database
         {
             base.SetFields();
             m_PatientListGestion.List.Set(DatabaseManager.Database.Patients);
-            //m_DatasetListGestion.List.Set(DatabaseManager.Database.Datasets);
+            m_DataInfoListGestion.List.Set(DatabaseManager.Database.DataInfos);
         }
         #endregion
     }

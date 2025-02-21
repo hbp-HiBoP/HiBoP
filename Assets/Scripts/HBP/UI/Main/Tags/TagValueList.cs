@@ -24,10 +24,10 @@ namespace HBP.UI.Main
         /// </summary>
         /// <param name="objectToAdd">TagValue to add</param>
         /// <returns>True if end without error, False otherwise</returns>
-        public override bool Add(Core.Data.BaseTagValue objectToAdd)
+        public override void Add(Core.Data.BaseTagValue objectToAdd)
         {
             SortByNone();
-            return base.Add(objectToAdd);
+            base.Add(objectToAdd);
         }
         #endregion
 

@@ -29,10 +29,10 @@ namespace HBP.UI.Main
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public override bool Add(Core.Data.Patient obj)
+        public override void Add(Core.Data.Patient obj)
         {
             SortByNone();
-            return base.Add(obj);
+            base.Add(obj);
         }
 
         /// <summary>

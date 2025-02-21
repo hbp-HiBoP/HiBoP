@@ -26,14 +26,10 @@ namespace HBP.UI.Main
         /// </summary>
         /// <param name="objectToAdd">DataInfo to add</param>
         /// <returns>True if end without errors, False otherwise</returns>
-        public override bool Add(Core.Data.DataInfo objectToAdd)
+        public override void Add(Core.Data.DataInfo objectToAdd)
         {
-            if (base.Add(objectToAdd))
-            {
-                SortByNone();
-                return true;
-            }
-            else return false;
+            SortByNone();
+            base.Add(objectToAdd);
         }
         #endregion
 
@@ -80,22 +76,23 @@ namespace HBP.UI.Main
         /// <param name="sorting">Sorting</param>
         public void SortByPatient(Sorting sorting)
         {
-            IEnumerable<Core.Data.DataInfo> patientDataInfo;
-            IEnumerable<Core.Data.DataInfo> otherDataInfo;
+            System.Collections.Generic.List<Core.Data.PatientDataInfo> patientDataInfo = new();
+            System.Collections.Generic.List<Core.Data.DataInfo> otherDataInfo = new();
+            foreach (var data in m_DisplayedObjects)
+            {
+                if (data is Core.Data.PatientDataInfo patientData) patientDataInfo.Add(patientData);
+                else otherDataInfo.Add(data);
+            }
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    patientDataInfo = m_DisplayedObjects.OfType<Core.Data.PatientDataInfo>().OrderByDescending((elt) => elt.Patient.Name);
-                    otherDataInfo = m_DisplayedObjects.Where(elt => !patientDataInfo.Contains(elt));
-                    m_DisplayedObjects = new System.Collections.Generic.List<Core.Data.DataInfo>(patientDataInfo);
+                    m_DisplayedObjects = new System.Collections.Generic.List<Core.Data.DataInfo>(patientDataInfo.OrderByDescending((elt) => elt.Patient.Name));
                     m_DisplayedObjects.AddRange(otherDataInfo);
                     m_OrderBy = OrderBy.Patient;
                     m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    patientDataInfo = m_DisplayedObjects.OfType<Core.Data.PatientDataInfo>().OrderBy((elt) => elt.Patient.Name);
-                    otherDataInfo = m_DisplayedObjects.Where(elt => !patientDataInfo.Contains(elt));
-                    m_DisplayedObjects = new System.Collections.Generic.List<Core.Data.DataInfo>(patientDataInfo);
+                    m_DisplayedObjects = new System.Collections.Generic.List<Core.Data.DataInfo>(patientDataInfo.OrderBy((elt) => elt.Patient.Name));
                     m_DisplayedObjects.AddRange(otherDataInfo);
                     m_OrderBy = OrderBy.DescendingPatient;
                     m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;

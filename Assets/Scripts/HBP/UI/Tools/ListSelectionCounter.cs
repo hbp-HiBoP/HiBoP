@@ -32,7 +32,7 @@ namespace HBP.UI.Tools
         }
         void OnDisable()
         {
-            if(m_SelectionCountable != null) m_SelectionCountable.OnSelectionChanged.RemoveListener(m_Action);
+            m_SelectionCountable?.OnSelectionChanged.RemoveListener(m_Action);
         }
         void UpdateCounter()
         {

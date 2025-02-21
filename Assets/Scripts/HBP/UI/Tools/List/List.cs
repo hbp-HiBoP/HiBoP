@@ -79,76 +79,58 @@ namespace HBP.UI.Tools.Lists
         /// </summary>
         /// <param name="obj">Object to add</param>
         /// <returns>True if added, False otherwise</returns>
-        public virtual bool Add(T obj)
+        public virtual void Add(T obj)
         {
-            if (!m_Objects.Contains(obj))
-            {
-                m_Objects.Add(obj);
-                if (!m_DisplayedObjects.Contains(obj))
-                {
-                    m_DisplayedObjects.Add(obj);
-                    ScrollRect.content.sizeDelta += new Vector2(0, m_ItemHeight);
-                    ScrollRect.content.hasChanged = true;
-                }
-                OnAddObject.Invoke(obj);
-                return true;
-            }
-            return false;
+            m_Objects.Add(obj);
+            m_DisplayedObjects.Add(obj);
+            ScrollRect.content.sizeDelta += new Vector2(0, m_ItemHeight);
+            ScrollRect.content.hasChanged = true;
+            OnAddObject.Invoke(obj);
         }
         /// <summary>
         /// Add multiple objects to the list.
         /// </summary>
         /// <param name="objectsToAdd">Objects to add</param>
         /// <returns>True if added, False otherwise</returns>
-        public virtual bool Add(IEnumerable<T> objectsToAdd)
+        public virtual void Add(IEnumerable<T> objectsToAdd)
         {
-            bool result = true;
-            foreach (T obj in objectsToAdd.ToArray()) result &= Add(obj);
-            return result;
+            foreach (T obj in objectsToAdd.ToArray())
+                Add(obj);
         }
         /// <summary>
         /// Remove a object from the list.
         /// </summary>
         /// <param name="obj">Object to add</param>
         /// <returns>True if removed, False otherwise</returns>
-        public virtual bool Remove(T obj)
+        public virtual void Remove(T obj)
         {
-            if (m_Objects.Contains(obj))
+            m_Objects.Remove(obj);
+            if (m_DisplayedObjects.Count <= m_MaximumNumberOfItems)
             {
-                m_Objects.Remove(obj);
-                if (m_DisplayedObjects.Contains(obj))
-                {
-                    if (m_DisplayedObjects.Count <= m_MaximumNumberOfItems)
-                    {
-                        DestroyItem(1, false);
-                    }
-                    m_DisplayedObjects.Remove(obj);
-                    UpdateContent();
-                    GetLimits(out m_FirstIndexDisplayed, out m_LastIndexDisplayed);
-                    Refresh();
-                }
-                OnRemoveObject.Invoke(obj);
-                return true;
+                DestroyItem(1, false);
             }
-            return false;
+            m_DisplayedObjects.Remove(obj);
+            UpdateContent();
+            GetLimits(out m_FirstIndexDisplayed, out m_LastIndexDisplayed);
+            Refresh();
+            OnRemoveObject.Invoke(obj);
         }
         /// <summary>
         /// Remove multiple objects from the list.
         /// </summary>
         /// <param name="objectsToRemove">Objects to remove</param>
         /// <returns>True if removed, False otherwise</returns>
-        public virtual bool Remove(IEnumerable<T> objectsToRemove)
+        public virtual void Remove(IEnumerable<T> objectsToRemove)
         {
-            bool result = true;
-            foreach (T obj in objectsToRemove.ToArray()) result &= Remove(obj);
-            return result;
+            foreach (T obj in objectsToRemove.ToArray())
+                Remove(obj);
         }
         /// <summary>
         /// Update a object from the list.
         /// </summary>
         /// <param name="objectToUpdate">Object to update.</param>
         /// <returns>True if updated, False otherwise</returns>
-        public virtual bool UpdateObject(T objectToUpdate)
+        public virtual void UpdateObject(T objectToUpdate)
         {
             int index = m_Objects.FindIndex(o => o.Equals(objectToUpdate));
             m_Objects[index] = objectToUpdate;
@@ -157,9 +139,7 @@ namespace HBP.UI.Tools.Lists
             {
                 item.Object = objectToUpdate;
                 OnUpdateObject.Invoke(objectToUpdate);
-                return true;
             }
-            return false;
         }
         /// <summary>
         /// Refresh all the list.
@@ -440,13 +420,13 @@ namespace HBP.UI.Tools.Lists
             itemToReturn = null;
             return false;
         }
-        private async void Start()
+        protected virtual async void Start()
         {
             await UniTask.WaitForEndOfFrame();
             OnViewportChanged();
             OnContentChanged();
         }
-        void Update()
+        protected virtual void Update()
         {
             if (ScrollRect.viewport.hasChanged)
             {
