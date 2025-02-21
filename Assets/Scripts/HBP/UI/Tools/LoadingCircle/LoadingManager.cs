@@ -43,7 +43,7 @@ namespace HBP.UI.Tools
         public static async UniTask LoadAsync(Func<Action<float, float, LoadingText>, UniTask> taskToExecute, bool showInformations = true)
         {
             AsyncMethod method = new(taskToExecute);
-            m_Instance.m_LoadingCircle.Open(showInformations, true);
+            m_Instance.m_LoadingCircle.Open(showInformations);
             method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.m_LoadingCircle.ChangePercentage(progress, duration, message));
             try
             {
