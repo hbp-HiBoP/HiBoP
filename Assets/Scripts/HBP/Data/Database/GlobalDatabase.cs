@@ -243,7 +243,7 @@ namespace HBP.Data.Database
             }
             var tasks = patientDataInfos.Select(kvp => (Func<UniTask>)(async () =>
             {
-                await ClassLoaderSaver.SaveToJsonAsync(kvp.Value, Path.Combine(dataInfosTempDirectory.FullName, kvp.Key.ID + Patient.EXTENSION), true);
+                await ClassLoaderSaver.SaveToJsonAsync(kvp.Value, Path.Combine(dataInfosTempDirectory.FullName, kvp.Key.ID + DataInfo.EXTENSION), true);
             }));
             await Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving data", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
             await ClassLoaderSaver.SaveToJsonAsync(otherDataInfos, Path.Combine(dataInfosTempDirectory.FullName, "None" + DataInfo.EXTENSION), true);

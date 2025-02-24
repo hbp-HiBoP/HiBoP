@@ -323,6 +323,9 @@ namespace HBP.UI.Tools.Lists
         {
             Item<T>[] items = m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
             int numberOfItems = m_Items.Count;
+            if (numberOfItems == 0)
+                return;
+
             for (int i = 0; i < numberOfItemToDestroy; i++)
             {
                 int index = destroyOnTop ? i : (numberOfItems - 1) - i;
