@@ -1,6 +1,7 @@
 using HBP.Core.Data;
 using HBP.UI.Tools;
 using HBP.UI.Tools.Lists;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -22,6 +23,12 @@ namespace HBP.UI.Database
         {
             SortByNone();
             base.Add(obj);
+        }
+
+        public override void Set(IEnumerable<Patient> objects)
+        {
+            base.Set(objects);
+            m_DisplayedObjects = m_DisplayedObjects.OrderBy(e => e.Place).ThenBy(e => e.Date).ThenBy(e => e.Name).ToList();
         }
 
         public void SortByName(Sorting sorting)

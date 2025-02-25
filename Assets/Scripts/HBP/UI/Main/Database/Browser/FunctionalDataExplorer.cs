@@ -1,6 +1,8 @@
 using HBP.Core.Data;
 using HBP.Data.Database;
 using HBP.UI.Main;
+using NUnit.Framework;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -16,24 +18,35 @@ namespace HBP.UI.Database
 
         private Protocol m_CurrentProtocol;
         private Patient m_CurrentPatient;
+        private Dictionary<Patient, List<PatientDataInfo>> m_DataInfosByPatient;
 
-        [SerializeField] private DataInfoListGestion m_DataInfoListGestion;
+        [SerializeField] private DatabaseDataInfoListGestion m_DatabaseDataInfoListGestion;
+
+        private List<ProtocolTab> m_Tabs = new();
         #endregion
 
         #region Private Methods
         private void Awake()
         {
-            System.Collections.Generic.List<ProtocolTab> tabs = new();
             foreach (var protocol in DatabaseManager.Database.Protocols)
             {
                 var tab = Instantiate(m_ProtocolTabPrefab, m_ProtocolTabParent).GetComponent<ProtocolTab>();
                 tab.Initialize(protocol);
                 tab.OnSelect.AddListener(OnSelectProtocol);
-                tabs.Add(tab);
+                m_Tabs.Add(tab);
             }
-            foreach (var tab in tabs)
+            foreach (var tab in m_Tabs)
             {
                 tab.Toggle.group = m_ProtocolTabToggleGroup;
+            }
+            m_DataInfosByPatient = new Dictionary<Patient, List<PatientDataInfo>>();
+            foreach (var patient in DatabaseManager.Database.Patients)
+            {
+                m_DataInfosByPatient[patient] = new List<PatientDataInfo>();
+            }
+            foreach (var dataInfo in DatabaseManager.Database.DataInfos.OfType<PatientDataInfo>())
+            {
+                m_DataInfosByPatient[dataInfo.Patient].Add(dataInfo);
             }
         }
         private void OnSelectProtocol(Protocol protocol)
@@ -45,7 +58,7 @@ namespace HBP.UI.Database
         {
             if (m_CurrentPatient != null && m_CurrentProtocol != null)
             {
-                m_DataInfoListGestion.List.Set(DatabaseManager.Database.DataInfos.OfType<PatientDataInfo>().Where(pd => pd.Protocol == m_CurrentProtocol && pd.Patient == m_CurrentPatient));
+                m_DatabaseDataInfoListGestion.List.Set(m_DataInfosByPatient[m_CurrentPatient].Where(pd => pd.Protocol == m_CurrentProtocol));
             }
         }
         #endregion
@@ -54,6 +67,10 @@ namespace HBP.UI.Database
         public void Set(Patient patient)
         {
             m_CurrentPatient = patient;
+            foreach (var tab in m_Tabs)
+            {
+                tab.Interactable = m_DataInfosByPatient[patient].Any(pd => pd.Protocol == tab.Protocol);
+            }
             UpdateList();
         }
         #endregion

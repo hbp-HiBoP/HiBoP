@@ -1,5 +1,7 @@
 using HBP.Core.Data;
+using HBP.Data.Preferences;
 using HBP.UI.Main;
+using System.Linq;
 using UnityEngine;
 
 namespace HBP.UI.Database
@@ -19,6 +21,7 @@ namespace HBP.UI.Database
             m_MeshListGestion.List.Set(patient.Meshes);
             m_MRIListGestion.List.Set(patient.MRIs);
             m_SiteListGestion.List.Set(patient.Sites);
+            m_TagValueListGestion.Tags = PersistentDataManager.Tags.PatientsTags.Concat(PersistentDataManager.Tags.GeneralTags).ToArray();
             m_TagValueListGestion.List.Set(patient.Tags);
         }
         #endregion
