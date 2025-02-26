@@ -69,7 +69,7 @@ namespace HBP.UI.Database
             m_CurrentPatient = patient;
             foreach (var tab in m_Tabs)
             {
-                tab.Interactable = m_DataInfosByPatient[patient].Any(pd => pd.Protocol == tab.Protocol);
+                tab.HasData = m_DataInfosByPatient[patient].Any(pd => pd.Protocol == tab.Protocol);
             }
             UpdateList();
         }

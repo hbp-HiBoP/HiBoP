@@ -1,4 +1,5 @@
 using HBP.Core.Data;
+using HBP.Theme;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -10,16 +11,24 @@ namespace HBP.UI.Database
         #region Properties
         [SerializeField] private Toggle m_Toggle;
         public Toggle Toggle => m_Toggle;
-        [SerializeField] private Text m_Text;
+        [SerializeField] private UnityEngine.UI.Text m_Text;
         public Protocol Protocol { get; private set; }
 
         public GenericEvent<Protocol> OnSelect = new();
 
-        public bool Interactable
+        private bool m_HasData = false;
+        public bool HasData
         {
-            get => m_Toggle.interactable;
-            set => m_Toggle.interactable = value;
+            get => m_HasData;
+            set
+            {
+                m_HasData = value;
+                m_Toggle.graphic.GetComponent<ThemeElement>().Set(value ? m_HasDataState : m_NoDataState);
+                m_Text.GetComponent<ThemeElement>().Set(value ? m_HasDataState : m_NoDataState);
+            }
         }
+        [SerializeField] private State m_HasDataState;
+        [SerializeField] private State m_NoDataState;
         #endregion
 
         #region Public Methods
