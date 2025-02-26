@@ -26,6 +26,7 @@ namespace HBP.UI.Main
             set
             {
                 base.Interactable = value;
+                m_ListGestion.Modifiable = value;
                 SetDisplay();
             }
         }

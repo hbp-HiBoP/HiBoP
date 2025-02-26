@@ -19,6 +19,7 @@ namespace HBP.UI.Main
             {
                 base.Interactable = value;
                 m_TagListGestion.Interactable = value;
+                m_TagListGestion.Modifiable = value;
             }
         }
         #endregion

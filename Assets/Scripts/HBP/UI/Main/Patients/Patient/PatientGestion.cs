@@ -11,6 +11,18 @@ namespace HBP.UI.Main
         #region Properties
         [SerializeField] PatientListGestion m_ListGestion;
         public override ListGestion<Patient> ListGestion => m_ListGestion;
+
+        public override bool Interactable
+        {
+            get => base.Interactable;
+            set
+            {
+                base.Interactable = value;
+
+                m_ListGestion.Interactable = value;
+                m_ListGestion.Modifiable = value;
+            }
+        }
         #endregion
 
         #region Public Methods

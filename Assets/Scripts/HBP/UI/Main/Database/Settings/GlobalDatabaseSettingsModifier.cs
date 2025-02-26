@@ -22,6 +22,8 @@ namespace HBP.UI.Database
                 base.Interactable = value;
 
                 m_WorkspaceListGestion.Interactable = value;
+                m_WorkspaceListGestion.Modifiable = value;
+
                 SetSwitchWorkspaceButtonInteractableState();
             }
         }

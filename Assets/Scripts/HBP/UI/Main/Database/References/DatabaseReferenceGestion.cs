@@ -24,6 +24,7 @@ namespace HBP.UI.Database
                 base.Interactable = value;
 
                 m_ListGestion.Interactable = value;
+                m_ListGestion.Modifiable = value;
                 SetUpdateButtonInteractableState();
             }
         }

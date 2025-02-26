@@ -21,7 +21,9 @@ namespace HBP.UI.Main
             set
             {
                 base.Interactable = value;
+
                 m_AliasListGestion.Interactable = value;
+                m_AliasListGestion.Modifiable = value;
             }
         }
         #endregion
