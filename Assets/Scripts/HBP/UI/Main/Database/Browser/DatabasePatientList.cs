@@ -25,12 +25,6 @@ namespace HBP.UI.Database
             base.Add(obj);
         }
 
-        public override void Set(IEnumerable<Patient> objects)
-        {
-            base.Set(objects);
-            m_DisplayedObjects = m_DisplayedObjects.OrderBy(e => e.Place).ThenBy(e => e.Date).ThenBy(e => e.Name).ToList();
-        }
-
         public void SortByName(Sorting sorting)
         {
             switch (sorting)

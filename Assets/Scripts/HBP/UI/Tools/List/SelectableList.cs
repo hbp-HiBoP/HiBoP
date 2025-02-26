@@ -51,6 +51,23 @@ namespace HBP.UI.Tools.Lists
             }
         }
 
+        [SerializeField] private bool m_AllowSwitchOff = true;
+        public bool AllowSwitchOff
+        {
+            get
+            {
+                return m_AllowSwitchOff;
+            }
+            set
+            {
+                m_AllowSwitchOff = value;
+                if (!m_AllowSwitchOff && Objects.Count > 0 && ObjectsSelected.Length == 0)
+                {
+                    Select(m_Objects[0]);
+                }
+            }
+        }
+
         /// <summary>
         /// Toggle to select/deselect all items of the list.
         /// </summary>
@@ -290,11 +307,16 @@ namespace HBP.UI.Tools.Lists
             {
                 m_SelectAllToggle.isOn = m_DisplayedObjects.Count == ObjectsSelected.Length && m_DisplayedObjects.Count > 0 && m_ItemSelection == SelectionType.MultipleItems;
             }
+            if (!m_AllowSwitchOff && Objects.Count > 0 && ObjectsSelected.Length == 0)
+            {
+                Select(Objects[0]);
+            }
         }
         protected override void Validate()
         {
             base.Validate();
             ItemSelection = ItemSelection;
+            AllowSwitchOff = AllowSwitchOff;
         }
         protected override void SetItem(Item<T> item, T obj)
         {
@@ -345,6 +367,10 @@ namespace HBP.UI.Tools.Lists
                 else OnDeselect.Invoke(obj);
                 OnSelectionChanged();
                 m_SelectionLock = false;
+            }
+            if (!m_AllowSwitchOff && !selected && ObjectsSelected.Length == 0)
+            {
+                Select(obj);
             }
         }
         /// <summary>

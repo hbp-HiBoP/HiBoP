@@ -1,5 +1,7 @@
 using HBP.Data.Database;
+using HBP.Data.Module3D;
 using HBP.UI.Tools;
+using System.Linq;
 using UnityEngine;
 
 namespace HBP.UI.Database
@@ -15,7 +17,7 @@ namespace HBP.UI.Database
         protected override void SetFields()
         {
             base.SetFields();
-            m_PatientList.Set(DatabaseManager.Database.Patients);
+            m_PatientList.Set(DatabaseManager.Database.Patients.OrderBy(p => p.Place).ThenBy(p => p.Date).ThenBy(p => p.Name));
             m_PatientList.OnSelect.AddListener(m_PatientExplorer.Set);
         }
         #endregion
