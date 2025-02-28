@@ -38,6 +38,10 @@ namespace HBP.Data.Database
         public bool IsLoaded { get; private set; } = false;
         #endregion
 
+        #region Events
+        public UnityEvent OnUpdateDatabases { get; } = new UnityEvent();
+        #endregion
+
         #region Getters/Setters
         public void SetProtocols(IEnumerable<Protocol> protocols)
         {
@@ -315,6 +319,8 @@ namespace HBP.Data.Database
                 }
                 await SaveDatabaseReferencesAsync();
                 await SaveDatabaseAsync(updateProgress);
+                await UniTask.SwitchToMainThread();
+                OnUpdateDatabases.Invoke();
             }
             catch (Exception e)
             {

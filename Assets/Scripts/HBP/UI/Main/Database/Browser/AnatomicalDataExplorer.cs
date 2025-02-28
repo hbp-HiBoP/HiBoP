@@ -1,6 +1,7 @@
 using HBP.Core.Data;
 using HBP.Data.Preferences;
 using HBP.UI.Main;
+using HBP.UI.Tools;
 using System.Linq;
 using UnityEngine;
 
@@ -16,6 +17,17 @@ namespace HBP.UI.Database
         #endregion
 
         #region Public Methods
+        public void Initialize(WindowsReferencer windowsReferencer)
+        {
+            m_MeshListGestion.WindowsReferencer.OnOpenWindow.AddListener(windowsReferencer.Add);
+            m_MRIListGestion.WindowsReferencer.OnOpenWindow.AddListener(windowsReferencer.Add);
+            m_SiteListGestion.WindowsReferencer.OnOpenWindow.AddListener(windowsReferencer.Add);
+            m_TagValueListGestion.WindowsReferencer.OnOpenWindow.AddListener(windowsReferencer.Add);
+        }
+        public void SetFields()
+        {
+
+        }
         public void Set(Patient patient)
         {
             m_MeshListGestion.List.Set(patient.Meshes);

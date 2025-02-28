@@ -1,4 +1,6 @@
 using HBP.Core.Data;
+using HBP.UI.Tools;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,6 +18,16 @@ namespace HBP.UI.Database
         #endregion
 
         #region Public Methods
+        public void Initialize(WindowsReferencer windowsReferencer)
+        {
+            m_AnatomicalDataExplorer.Initialize(windowsReferencer);
+            m_FunctionalDataExplorer.Initialize(windowsReferencer);
+        }
+        public void SetFields()
+        {
+            m_AnatomicalDataExplorer.SetFields();
+            m_FunctionalDataExplorer.SetFields();
+        }
         public void Set(Patient patient)
         {
             m_NameInputField.text = patient.Name;

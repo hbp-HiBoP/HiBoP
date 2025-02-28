@@ -1,6 +1,7 @@
 using HBP.Core.Data;
 using HBP.Data.Database;
 using HBP.UI.Main;
+using HBP.UI.Tools;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,8 +27,32 @@ namespace HBP.UI.Database
         #endregion
 
         #region Private Methods
-        private void Awake()
+        private void OnSelectProtocol(Protocol protocol)
         {
+            m_CurrentProtocol = protocol;
+            UpdateList();
+        }
+        private void UpdateList()
+        {
+            if (m_CurrentPatient != null && m_CurrentProtocol != null)
+            {
+                m_DatabaseDataInfoListGestion.List.Set(m_DataInfosByPatient[m_CurrentPatient].Where(pd => pd.Protocol == m_CurrentProtocol));
+            }
+        }
+        #endregion
+
+        #region Public Methods
+        public void Initialize(WindowsReferencer windowsReferencer)
+        {
+            m_DatabaseDataInfoListGestion.WindowsReferencer.OnOpenWindow.AddListener(windowsReferencer.Add);
+        }
+        public void SetFields()
+        {
+            foreach (var tab in m_Tabs)
+            {
+                Destroy(tab.gameObject);
+            }
+            m_Tabs.Clear();
             foreach (var protocol in DatabaseManager.Database.Protocols)
             {
                 var tab = Instantiate(m_ProtocolTabPrefab, m_ProtocolTabParent).GetComponent<ProtocolTab>();
@@ -49,21 +74,6 @@ namespace HBP.UI.Database
                 m_DataInfosByPatient[dataInfo.Patient].Add(dataInfo);
             }
         }
-        private void OnSelectProtocol(Protocol protocol)
-        {
-            m_CurrentProtocol = protocol;
-            UpdateList();
-        }
-        private void UpdateList()
-        {
-            if (m_CurrentPatient != null && m_CurrentProtocol != null)
-            {
-                m_DatabaseDataInfoListGestion.List.Set(m_DataInfosByPatient[m_CurrentPatient].Where(pd => pd.Protocol == m_CurrentProtocol));
-            }
-        }
-        #endregion
-
-        #region Public Methods
         public void Set(Patient patient)
         {
             m_CurrentPatient = patient;
