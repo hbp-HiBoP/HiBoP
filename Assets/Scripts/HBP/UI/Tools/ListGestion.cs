@@ -107,7 +107,7 @@ namespace HBP.UI.Tools
             List.OnUpdateObject.AddListener(OnUpdateObject);
             ObjectCreator.ExistingObjects = List.Objects.ToList();
             ObjectCreator.OnObjectCreated.AddListener(OnObjectCreated);
-            ObjectCreator.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
+            ObjectCreator.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
         }
         /// <summary>
         /// Open a ObjectModifier to modify a object.
@@ -116,7 +116,7 @@ namespace HBP.UI.Tools
         /// <returns>ObjectModifier</returns>
         protected virtual ObjectModifier<T> OpenModifier(T obj)
         {
-            ObjectModifier<T> modifier = WindowsManager.OpenModifier(obj, m_Modifiable);
+            ObjectModifier<T> modifier = WindowsManager.OpenModifier(obj, GetComponentInParent<Window>(), m_Modifiable);
             modifier.OnOk.AddListener(() => OnSaveModifier(modifier.Object));
             WindowsReferencer.Add(modifier);
             return modifier;

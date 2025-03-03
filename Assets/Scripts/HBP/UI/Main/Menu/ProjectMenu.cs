@@ -38,23 +38,23 @@ namespace HBP.UI.Main
         #region Public Methods
         public void OpenProjectPreferences()
         {
-            WindowsManager.OpenModifier(ApplicationState.LoadedProject.Preferences);
+            WindowsManager.OpenModifier(ApplicationState.LoadedProject.Preferences, null);
         }
         public void OpenPatientGestion()
         {
-            WindowsManager.Open("Patient gestion window");
+            WindowsManager.Open("Patient gestion window", null);
         }
         public void OpenGroupGestion()
         {
-            WindowsManager.Open("Group gestion window");
+            WindowsManager.Open("Group gestion window", null);
         }
         public void OpenDatasetGestion()
         {
-            WindowsManager.Open("Dataset gestion window");
+            WindowsManager.Open("Dataset gestion window", null);
         }
         public void OpenVisualizationGestion()
         {
-            WindowsManager.Open("Visualization gestion window");
+            WindowsManager.Open("Visualization gestion window", null);
         }
         #endregion
     }

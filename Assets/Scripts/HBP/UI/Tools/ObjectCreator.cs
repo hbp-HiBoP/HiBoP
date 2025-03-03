@@ -239,7 +239,7 @@ namespace HBP.UI.Tools
         /// <param name="generateNewIDs"></param>
         protected virtual void OpenSelector(IEnumerable<T> objects, bool multiSelection = false, bool openModifiers = true, bool generateNewIDs = true)
         {
-            ObjectSelector<T> selector = WindowsManager.OpenSelector(objects, multiSelection, openModifiers);
+            ObjectSelector<T> selector = WindowsManager.OpenSelector(objects, GetComponentInParent<Window>(), multiSelection, openModifiers);
             selector.OnOk.AddListener(() => SaveSelector(selector, generateNewIDs));
             WindowsReferencer.Add(selector);
         }
@@ -282,7 +282,7 @@ namespace HBP.UI.Tools
         /// <returns>Return the objectModifier.</returns>
         protected virtual ObjectModifier<T> OpenModifier(T @object)
         {
-            ObjectModifier<T> modifier = WindowsManager.OpenModifier(@object);
+            ObjectModifier<T> modifier = WindowsManager.OpenModifier(@object, GetComponentInParent<Window>());
             modifier.OnOk.AddListener(() => SaveModifier(modifier));
             WindowsReferencer.Add(modifier);
             return modifier;

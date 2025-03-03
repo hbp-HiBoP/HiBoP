@@ -19,7 +19,7 @@ namespace HBP.Data.Tools
         {
             if (type == LogType.Exception)
             {
-                WindowsManager.Open("Bug Reporter window");
+                WindowsManager.Open("Bug Reporter window", null);
             }
         }
         #endregion

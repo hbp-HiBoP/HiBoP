@@ -40,7 +40,7 @@ namespace HBP.UI.Main
             if (string.Compare(version, Application.version) > 0)
             {
                 int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "New version available", "A new version of HiBoP is available. Please update to the latest version.", "Update now", "Remind me later");
-                if (result == 0) WindowsManager.Open("Version Window");
+                if (result == 0) WindowsManager.Open("Version Window", null);
             }
         }
         #endregion

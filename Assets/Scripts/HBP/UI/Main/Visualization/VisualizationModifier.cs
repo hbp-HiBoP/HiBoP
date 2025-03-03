@@ -79,7 +79,7 @@ namespace HBP.UI.Main
         /// </summary>
         public void AddPatients()
         {
-            ObjectSelector<Patient> selector = WindowsManager.OpenSelector(ApplicationState.LoadedProject.Patients.Where(p => !m_ObjectTemp.Patients.Contains(p)));
+            ObjectSelector<Patient> selector = WindowsManager.OpenSelector(ApplicationState.LoadedProject.Patients.Where(p => !m_ObjectTemp.Patients.Contains(p)), this);
             selector.OnOk.AddListener(() => m_PatientListGestion.List.Add(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
@@ -88,7 +88,7 @@ namespace HBP.UI.Main
         /// </summary>
         public void AddGroups()
         {
-            ObjectSelector<Group> selector = WindowsManager.OpenSelector(ApplicationState.LoadedProject.Groups);
+            ObjectSelector<Group> selector = WindowsManager.OpenSelector(ApplicationState.LoadedProject.Groups, this);
             selector.OnOk.AddListener(() => AddGroups(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
@@ -97,7 +97,7 @@ namespace HBP.UI.Main
         /// </summary>
         public void RemoveGroups()
         {
-            ObjectSelector<Group> selector = WindowsManager.OpenSelector(ApplicationState.LoadedProject.Groups);
+            ObjectSelector<Group> selector = WindowsManager.OpenSelector(ApplicationState.LoadedProject.Groups, this);
             selector.OnOk.AddListener(() => RemoveGroups(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }

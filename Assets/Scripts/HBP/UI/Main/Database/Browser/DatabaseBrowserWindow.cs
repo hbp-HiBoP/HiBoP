@@ -33,7 +33,7 @@ namespace HBP.UI.Database
         }
         private void OpenDatabaseReferenceGestionWindow()
         {
-            var window = WindowsManager.Open("Database Reference gestion window") as DialogWindow;
+            var window = WindowsManager.Open("Database Reference gestion window", this) as DialogWindow;
             window.OnOk.AddListener(SetFields);
             WindowsReferencer.Add(window);
         }

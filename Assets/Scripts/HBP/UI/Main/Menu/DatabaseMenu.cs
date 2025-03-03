@@ -30,15 +30,15 @@ namespace HBP.UI.Main
         #region Public Methods
         public void OpenSettingsModifier()
         {
-            WindowsManager.OpenModifier(DatabaseManager.Database.Settings);
+            WindowsManager.OpenModifier(DatabaseManager.Database.Settings, null);
         }
         public void OpenProtocolGestion()
         {
-            WindowsManager.Open("Protocol gestion window");
+            WindowsManager.Open("Protocol gestion window", null);
         }
         public void OpenDatabaseBrowser()
         {
-            WindowsManager.Open("Database browser window");
+            WindowsManager.Open("Database browser window", null);
         }
         #endregion
     }

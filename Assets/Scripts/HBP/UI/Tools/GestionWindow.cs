@@ -43,7 +43,7 @@ namespace HBP.UI.Tools
         protected override void Initialize()
         {
             base.Initialize();
-            ListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
+            ListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
             m_ExportButton.onClick.AddListener(ExportSelected);
             ListGestion.List.OnSelect.AddListener((obj) => SetExport());
             ListGestion.List.OnDeselect.AddListener((obj) => SetExport());

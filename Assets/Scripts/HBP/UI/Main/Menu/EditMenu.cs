@@ -30,15 +30,15 @@ namespace HBP.UI.Main
         #region Public Methods
         public void OpenPreferences()
         {
-            WindowsManager.OpenModifier(PersistentDataManager.UserPreferences);
+            WindowsManager.OpenModifier(PersistentDataManager.UserPreferences, null);
         }
         public void OpenTagsManager()
         {
-            WindowsManager.OpenModifier(PersistentDataManager.Tags);
+            WindowsManager.OpenModifier(PersistentDataManager.Tags, null);
         }
         public void OpenAliasesManager()
         {
-            WindowsManager.OpenModifier(PersistentDataManager.Aliases);
+            WindowsManager.OpenModifier(PersistentDataManager.Aliases, null);
         }
         #endregion
     }

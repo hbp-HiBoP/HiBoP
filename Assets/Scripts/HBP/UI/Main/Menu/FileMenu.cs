@@ -41,11 +41,11 @@ namespace HBP.UI.Main
         #region Public Methods
         public void OpenNewProject()
         {
-            WindowsManager.Open("New project window");
+            WindowsManager.Open("New project window", null);
         }
         public void OpenLoadProject()
         {
-            WindowsManager.Open("Open project window");
+            WindowsManager.Open("Open project window", null);
         }
         public void Save()
         {
@@ -53,11 +53,11 @@ namespace HBP.UI.Main
         }
         public void OpenSaveProjectAs()
         {
-            WindowsManager.Open("Save project as window");
+            WindowsManager.Open("Save project as window", null);
         }
         public void QuickStart()
         {
-            WindowsManager.Open("Quick start window");
+            WindowsManager.Open("Quick start window", null);
         }
         public async void Quit()
         {

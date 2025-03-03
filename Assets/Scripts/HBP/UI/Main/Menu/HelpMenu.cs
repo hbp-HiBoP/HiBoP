@@ -29,15 +29,15 @@ namespace HBP.UI.Main
         #region Public Methods
         public void OpenVersionWindow()
         {
-            WindowsManager.Open("Version Window");
+            WindowsManager.Open("Version Window", null);
         }
         public void OpenBugReporter()
         {
-            WindowsManager.Open("Bug Reporter window");
+            WindowsManager.Open("Bug Reporter window", null);
         }
         public void OpenAboutWindow()
         {
-            WindowsManager.Open("About window");
+            WindowsManager.Open("About window", null);
         }
         #endregion
     }

@@ -42,7 +42,7 @@ namespace HBP.UI.Main
         protected override void Initialize()
         {
             base.Initialize();
-            m_AliasListGestion.WindowsReferencer.OnOpenWindow.AddListener(window => WindowsReferencer.Add(window));
+            m_AliasListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
         }
         protected override void SetFields(AliasCollection objectToDisplay)
         {

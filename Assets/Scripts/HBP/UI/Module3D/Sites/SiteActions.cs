@@ -252,7 +252,7 @@ namespace HBP.UI.Module3D
         {
             var patients = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered).Select(s => s.Information.Patient).Distinct();
             Group group = new Group("New group", patients);
-            ObjectModifier<Group> modifier = WindowsManager.OpenModifier(group);
+            ObjectModifier<Group> modifier = WindowsManager.OpenModifier(group, null);
             modifier.OnOk.AddListener(() =>
             {
                 // Generate unique name
