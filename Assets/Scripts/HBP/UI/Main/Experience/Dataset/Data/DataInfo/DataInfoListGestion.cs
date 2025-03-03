@@ -63,6 +63,7 @@ namespace HBP.UI.Main
             {
                 List.UpdateObject(obj);
             }
+            HasBeenModified = true;
         }
         private void RenameObject(Core.Data.DataInfo obj)
         {

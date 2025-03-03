@@ -39,6 +39,7 @@ namespace HBP.UI.Main
                 }
                 List.Add(obj);
             }
+            HasBeenModified = true;
         }
         #endregion
     }

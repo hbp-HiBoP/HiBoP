@@ -33,12 +33,20 @@ namespace HBP.UI.Database
         #region Public Methods
         public async override void OK()
         {
-            int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Save references", "Patients and data of removed references will be deleted. Do you want to continue?", "Yes", "Cancel");
-            if (result == 0)
+            if (m_ListGestion.HasBeenModified)
+            {
+                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Save references", "Patients and data of removed references will be deleted. Do you want to continue?", "Yes", "Cancel");
+                if (result == 0)
+                {
+                    base.OK();
+                    DatabaseManager.Database.SetDatabaseReferences(m_ListGestion.List.Objects);
+                    DatabaseManager.Database.SaveDatabaseReferences().Forget();
+                    InteractableStateManager.SetInteractables();
+                }
+            }
+            else
             {
                 base.OK();
-                DatabaseManager.Database.SetDatabaseReferences(m_ListGestion.List.Objects);
-                DatabaseManager.Database.SaveDatabaseReferences().Forget();
                 InteractableStateManager.SetInteractables();
             }
         }
@@ -52,7 +60,8 @@ namespace HBP.UI.Database
                     DatabaseManager.Database.SetDatabaseReferences(m_ListGestion.List.Objects);
                     await DatabaseManager.Database.UpdateDatabases(m_ListGestion.List.ObjectsSelected);
                     await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "Databases updated", "The databases have been updated successfully");
-                    m_ListGestion.List.Refresh();
+                    m_ListGestion.HasBeenModified = true;
+                    base.OK();
                 }
                 catch (OperationCanceledException)
                 {

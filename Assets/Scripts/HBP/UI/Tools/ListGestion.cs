@@ -18,10 +18,7 @@ namespace HBP.UI.Tools
         /// </summary>
         public bool Interactable
         {
-            get
-            {
-                return m_Interactable;
-            }
+            get { return m_Interactable; }
             set
             {
                 m_Interactable = value;
@@ -36,10 +33,7 @@ namespace HBP.UI.Tools
         /// </summary>
         public bool Modifiable
         {
-            get
-            {
-                return m_Modifiable;
-            }
+            get { return m_Modifiable; }
             set
             {
                 m_Modifiable = value;
@@ -49,6 +43,11 @@ namespace HBP.UI.Tools
                 }
             }
         }
+
+        /// <summary>
+        /// Indique si la liste a été modifiée.
+        /// </summary>
+        public bool HasBeenModified { get; set; } = false;
 
         /// <summary>
         /// UI list which display the elements.
@@ -70,7 +69,7 @@ namespace HBP.UI.Tools
 
         #region Public Methods
         /// <summary>
-        /// Create a new elements and add it to the list.
+        /// Create a new element and add it to the list.
         /// </summary>
         public virtual void Create()
         {
@@ -78,7 +77,7 @@ namespace HBP.UI.Tools
             ObjectCreator.Create();
         }
         /// <summary>
-        /// Remove all the selected elements to the list.
+        /// Remove all the selected elements from the list.
         /// </summary>
         public virtual void RemoveSelected()
         {
@@ -102,8 +101,16 @@ namespace HBP.UI.Tools
         protected virtual void Initialize()
         {
             List.OnAction.AddListener((item, v) => OpenModifier(item));
-            List.OnAddObject.AddListener(obj => ObjectCreator.ExistingObjects.Add(obj));
-            List.OnRemoveObject.AddListener(obj => ObjectCreator.ExistingObjects.Remove(obj));
+            List.OnAddObject.AddListener(obj =>
+            {
+                ObjectCreator.ExistingObjects.Add(obj);
+                HasBeenModified = true;
+            });
+            List.OnRemoveObject.AddListener(obj =>
+            {
+                ObjectCreator.ExistingObjects.Remove(obj);
+                HasBeenModified = true;
+            });
             List.OnUpdateObject.AddListener(OnUpdateObject);
             ObjectCreator.ExistingObjects = List.Objects.ToList();
             ObjectCreator.OnObjectCreated.AddListener(OnObjectCreated);
@@ -127,7 +134,7 @@ namespace HBP.UI.Tools
         /// <param name="obj">Object modified</param>
         protected virtual void OnSaveModifier(T obj)
         {
-            if(obj is INameable nameable)
+            if (obj is INameable nameable)
             {
                 if (List.Objects.Any(c => (c as INameable).Name == nameable.Name && !c.Equals(obj)))
                 {
@@ -151,7 +158,7 @@ namespace HBP.UI.Tools
             }
         }
         /// <summary>
-        /// Callback executed when a object is created.
+        /// Callback executed when an object is created.
         /// </summary>
         /// <param name="obj">Object created</param>
         protected virtual void OnObjectCreated(T obj)
@@ -175,15 +182,17 @@ namespace HBP.UI.Tools
                 }
             }
             List.Add(obj);
+            HasBeenModified = true;
         }
         /// <summary>
-        /// Callback executed when a object is update.
+        /// Callback executed when an object is updated.
         /// </summary>
         /// <param name="obj">Object to update</param>
         protected virtual void OnUpdateObject(T obj)
         {
             int index = ObjectCreator.ExistingObjects.FindIndex(o => o.Equals(obj));
             ObjectCreator.ExistingObjects[index] = obj;
+            HasBeenModified = true;
         }
         protected virtual bool CheckUnicity(T obj)
         {

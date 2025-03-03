@@ -34,7 +34,11 @@ namespace HBP.UI.Database
         private void OpenDatabaseReferenceGestionWindow()
         {
             var window = WindowsManager.Open("Database Reference gestion window", this) as DialogWindow;
-            window.OnOk.AddListener(SetFields);
+            window.OnOk.AddListener(() =>
+            {
+                if (window is DatabaseReferenceGestion databaseReferenceGestion && databaseReferenceGestion.ListGestion.HasBeenModified)
+                    SetFields();
+            });
             WindowsReferencer.Add(window);
         }
         #endregion

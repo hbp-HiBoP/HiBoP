@@ -17,7 +17,7 @@ namespace HBP.Data.Database
         [JsonProperty] public bool IsFirstUse { get; set; }
 
         [JsonProperty] private List<Workspace> m_Workspaces = new();
-        public List<Workspace> Workspaces => new(m_Workspaces);
+        public List<Workspace> Workspaces => m_Workspaces;
 
         [JsonProperty] private string m_SelectedWorkspaceID;
         private Workspace m_SelectedWorkspace;
