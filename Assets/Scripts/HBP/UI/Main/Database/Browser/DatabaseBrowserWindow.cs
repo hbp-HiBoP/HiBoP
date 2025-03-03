@@ -17,6 +17,17 @@ namespace HBP.UI.Database
         #endregion
 
         #region Private Methods
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.DownArrow))
+            {
+                m_PatientList.SelectNext();
+            }
+            else if (Input.GetKeyDown(KeyCode.UpArrow))
+            {
+                m_PatientList.SelectPrevious();
+            }
+        }
         protected override void Initialize()
         {
             base.Initialize();

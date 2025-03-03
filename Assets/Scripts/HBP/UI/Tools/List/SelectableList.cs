@@ -211,6 +211,34 @@ namespace HBP.UI.Tools.Lists
         {
             foreach (var obj in objectsToSelect) Select(obj, transition);
         }
+        public virtual void SelectNext(bool scroll = true)
+        {
+            var selectedObjects = ObjectsSelected;
+            System.Collections.Generic.List<int> selectedIndexes = m_DisplayedObjects.Where(o => selectedObjects.Contains(o)).Select(o => m_DisplayedObjects.IndexOf(o)).ToList();
+            if (selectedIndexes.Count > 0)
+            {
+                int index = selectedIndexes.Max();
+                if (index < m_DisplayedObjects.Count - 1)
+                {
+                    Select(m_DisplayedObjects[index + 1]);
+                    if (scroll) ScrollToObject(m_DisplayedObjects[index + 1]);
+                }
+            }
+        }
+        public virtual void SelectPrevious(bool scroll = true)
+        {
+            var selectedObjects = ObjectsSelected;
+            System.Collections.Generic.List<int> selectedIndexes = m_DisplayedObjects.Where(o => selectedObjects.Contains(o)).Select(o => m_DisplayedObjects.IndexOf(o)).ToList();
+            if (selectedIndexes.Count > 0)
+            {
+                int index = selectedIndexes.Min();
+                if (index > 0)
+                {
+                    Select(m_DisplayedObjects[index - 1]);
+                    if (scroll) ScrollToObject(m_DisplayedObjects[index - 1]);
+                }
+            }
+        }
         /// <summary>
         /// Deselect a specified object with a specified transition.
         /// </summary>
