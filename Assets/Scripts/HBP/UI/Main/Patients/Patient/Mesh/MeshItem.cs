@@ -28,6 +28,8 @@ namespace HBP.UI.Main
             }
             set
             {
+                SetInteractable();
+
                 base.Object = value;
                 m_NameInputField.text = value.Name;
                 if (value.HasMesh) m_MeshThemeElement.Set();
@@ -36,6 +38,8 @@ namespace HBP.UI.Main
                 else m_MarsAtlasThemeElement.Set(m_ErrorState);
                 if (value.HasTransformation) m_TransformationThemeElement.Set();
                 else m_TransformationThemeElement.Set(m_ErrorState);
+
+                SetNotInteractable();
             }
         }
         #endregion

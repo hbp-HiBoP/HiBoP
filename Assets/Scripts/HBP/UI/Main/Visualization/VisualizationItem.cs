@@ -30,11 +30,15 @@ namespace HBP.UI.Main
 
             set
             {
+                SetInteractable();
+
                 base.Object = value;
 
                 m_NameText.text = value.Name;
                 m_PatientsText.SetIEnumerableFieldInItem("Patients", value.Patients.Select(p => p.Name), m_ErrorState);
                 m_ColumnsText.SetIEnumerableFieldInItem("Columns", value.Columns.Select(c => c.Name), m_ErrorState);
+
+                SetNotInteractable();
             }
         }
         #endregion

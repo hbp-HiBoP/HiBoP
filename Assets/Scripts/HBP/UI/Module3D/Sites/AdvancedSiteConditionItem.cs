@@ -21,8 +21,12 @@ namespace HBP.UI.Module3D
             }
             set
             {
+                SetInteractable();
+
                 base.Object = value;
                 UpdateFields();
+
+                SetNotInteractable();
             }
         }
         /// <summary>

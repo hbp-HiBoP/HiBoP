@@ -47,7 +47,7 @@ namespace HBP.UI.Main
             m_Button.onClick.AddListener(ApplyFilters);
             OnApplyFilters.AddListener(mask =>
             {
-                m_PatientList.MaskList(mask);
+                m_PatientList.MaskList(mask, false);
                 m_PatientList.SortByNone();
             });
         }

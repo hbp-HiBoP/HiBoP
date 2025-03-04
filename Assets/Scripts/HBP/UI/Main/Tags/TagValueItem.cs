@@ -24,9 +24,13 @@ namespace HBP.UI.Main
             }
             set
             {
+                SetInteractable();
+
                 base.Object = value;
                 m_NameText.text = value.Tag.Name;
                 m_ValueText.text = value.DisplayableValue;
+
+                SetNotInteractable();
             }
         }
         #endregion

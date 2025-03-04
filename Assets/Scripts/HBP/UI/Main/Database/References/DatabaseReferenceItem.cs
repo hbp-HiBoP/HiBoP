@@ -22,10 +22,14 @@ namespace HBP.UI.Database
             }
             set
             {
+                SetInteractable();
+
                 base.Object = value;
                 m_NameText.text = value.Name;
                 m_TypeText.text = value.Type.ToString();
                 m_LastUpdatedText.text = value.LastUpdated == DateTime.MinValue ? "Never Updated" : value.LastUpdated.ToString();
+
+                SetNotInteractable();
             }
         }
         #endregion

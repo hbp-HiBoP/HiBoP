@@ -20,10 +20,14 @@ namespace HBP.UI.Database
             }
             set
             {
+                SetInteractable();
+
                 base.Object = value;
                 m_NameText.text = value.Name;
                 m_PlaceText.text = value.Place;
                 m_DateText.text = value.Date.ToString();
+
+                SetNotInteractable();
             }
         }
         #endregion

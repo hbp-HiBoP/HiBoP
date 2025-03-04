@@ -193,14 +193,14 @@ namespace HBP.UI.Tools.Lists
         /// Mask the list of objects to only display some of them
         /// </summary>
         /// <param name="mask">Mask for the list</param>
-        public virtual bool MaskList(bool[] mask)
+        public virtual bool MaskList(bool[] mask, bool hide = true)
         {
             if (mask.Length != m_Objects.Count) return false;
 
             m_DisplayedObjects.Clear();
             for (int i = 0; i < mask.Length; i++)
             {
-                if (mask[i]) m_DisplayedObjects.Add(m_Objects[i]);
+                if (mask[i] || !hide) m_DisplayedObjects.Add(m_Objects[i]);
             }
             ScrollRect.content.sizeDelta = new Vector2(0, m_ItemHeight * m_DisplayedObjects.Count);
             ScrollRect.content.hasChanged = true;

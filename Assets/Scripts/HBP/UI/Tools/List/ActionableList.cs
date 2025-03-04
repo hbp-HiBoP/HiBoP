@@ -46,6 +46,7 @@ namespace HBP.UI.Tools.Lists
                 actionnableItem.Actionable = Actionable;
                 actionnableItem.OnChangeSelected.RemoveAllListeners();
                 actionnableItem.ChangeSelectionValue(m_SelectedStateByObject[objectToUpdate]);
+                actionnableItem.Interactable = m_SelectableStateByObject[objectToUpdate];
                 actionnableItem.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(objectToUpdate, selected));
                 actionnableItem.OnAction.RemoveAllListeners();
                 actionnableItem.OnAction.AddListener((action) => OnActionHandler(action, objectToUpdate));
@@ -64,6 +65,7 @@ namespace HBP.UI.Tools.Lists
                 item.Actionable = Actionable;
                 item.OnChangeSelected.RemoveAllListeners();
                 item.ChangeSelectionValue(m_SelectedStateByObject[obj]);
+                item.Interactable = m_SelectableStateByObject[obj];
                 item.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(obj, selected));
                 item.OnAction.RemoveAllListeners();
                 item.OnAction.AddListener((actionID) => OnAction.Invoke(obj, actionID));

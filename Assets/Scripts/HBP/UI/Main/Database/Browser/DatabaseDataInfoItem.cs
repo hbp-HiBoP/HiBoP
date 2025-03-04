@@ -30,6 +30,8 @@ namespace HBP.UI.Database
             }
             set
             {
+                SetInteractable();
+
                 base.Object = value;
                 m_NameText.text = value.Name + (value is CCEPDataInfo ccepDataInfo ? " (" + ccepDataInfo.StimulatedChannel + ")" : "");
                 m_TypeText.text = value.GetType().GetDisplayName();
@@ -44,6 +46,8 @@ namespace HBP.UI.Database
                     m_ErrorText.Text = Object.GetErrorsMessage();
 
                 m_StateThemeElement.Set(value.IsOk ? (warnings.Count > 0 ? m_WarningState : m_OKState) : m_ErrorState);
+
+                SetNotInteractable();
             }
         }
         #endregion

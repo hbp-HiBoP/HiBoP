@@ -19,8 +19,12 @@ namespace HBP.UI.Database
             }
             set
             {
+                SetInteractable();
+
                 base.Object = value;
                 m_NameText.text = value.Name;
+
+                SetNotInteractable();
             }
         }
         #endregion

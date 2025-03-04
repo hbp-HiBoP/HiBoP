@@ -34,6 +34,8 @@ namespace HBP.UI.Main
             }
             set
             {
+                SetInteractable();
+
                 base.Object = value;
                 m_NameText.text = value.Name;
                 m_PlaceText.text = value.Place;
@@ -43,6 +45,8 @@ namespace HBP.UI.Main
                 m_MRIText.SetIEnumerableFieldInItem("MRIs", from MRI in value.MRIs where MRI.WasUsable select MRI.Name, m_ErrorState);
                 m_SitesText.SetIEnumerableFieldInItem("Sites", from site in value.Sites select site.Name, m_ErrorState);
                 m_TagsText.SetIEnumerableFieldInItem("Tags", from tag in value.Tags select tag.Tag.Name, m_ErrorState);
+
+                SetNotInteractable();
             }
         }
         #endregion

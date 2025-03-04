@@ -39,6 +39,8 @@ namespace HBP.UI.Main.QuickStart
             }
             set
             {
+                SetInteractable();
+
                 base.Object = value;
                 m_PatientName.text = value.DataInfo.Patient.Name;
 
@@ -136,6 +138,8 @@ namespace HBP.UI.Main.QuickStart
 
                 m_ErrorText.Text = value.DataInfo.GetErrorsMessage();
                 m_StateThemeElement.Set(value.DataInfo.IsOk ? m_OKState : m_ErrorState);
+
+                SetNotInteractable();
             }
         }
         #endregion

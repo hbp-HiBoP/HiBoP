@@ -19,10 +19,39 @@ namespace HBP.UI.Tools.Lists
             set { m_Object = value; }
         }
 
+        private bool m_Interactable;
         /// <summary>
         /// True if interactable, False otherwise:
         /// </summary>
-        public virtual bool Interactable { get; set; }
+        public virtual bool Interactable
+        {
+            get { return m_Interactable; }
+            set { m_Interactable = value; if (m_Object != null) Object = m_Object; }
+        }
+
+        [SerializeField] private Theme.State m_InteractableState;
+        [SerializeField] private Theme.State m_NotInteractableState;
+        [SerializeField] private Theme.ThemeElement[] m_InteractableElements;
+        #endregion
+
+        #region Private Methods
+        protected void SetInteractable()
+        {
+            foreach (var element in m_InteractableElements)
+            {
+                element.Set(m_InteractableState);
+            }
+        }
+        protected void SetNotInteractable()
+        {
+            if (!Interactable)
+            {
+                foreach (var element in m_InteractableElements)
+                {
+                    element.Set(m_NotInteractableState);
+                }
+            }
+        }
         #endregion
     }
 }

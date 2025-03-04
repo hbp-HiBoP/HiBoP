@@ -33,6 +33,8 @@ namespace HBP.UI.Main
             }
             set
             {
+                SetInteractable();
+
                 base.Object = value;
                 m_NameText.text = value.Name + (value is Core.Data.CCEPDataInfo ccepDataInfo ? " (" + ccepDataInfo.StimulatedChannel + ")" : "");
                 if (value is Core.Data.PatientDataInfo patientDataInfo) m_PatientText.text = patientDataInfo.Patient.Name;
@@ -49,6 +51,8 @@ namespace HBP.UI.Main
                     m_ErrorText.Text = Object.GetErrorsMessage();
 
                 m_StateThemeElement.Set(value.IsOk ? (warnings.Count > 0 ? m_WarningState : m_OKState) : m_ErrorState);
+
+                SetNotInteractable();
             }
         }
         #endregion
