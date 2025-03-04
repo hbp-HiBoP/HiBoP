@@ -114,6 +114,15 @@ namespace HBP.Data.Database
                 try
                 {
                     m_Settings = ClassLoaderSaver.LoadFromJson<GlobalDatabaseSettings>(GlobalDatabaseSettings.PATH);
+                    // Remove unused workspaces
+                    var workspaceDirectories = new DirectoryInfo(Path.Combine(ApplicationState.DatabasePath, "Workspaces")).GetDirectories();
+                    foreach (var workspaceDirectory in workspaceDirectories)
+                    {
+                        if (!m_Settings.Workspaces.Any(w => w.ID == workspaceDirectory.Name))
+                        {
+                            workspaceDirectory.Delete(true);
+                        }
+                    }
                 }
                 catch (Exception e)
                 {
