@@ -35,6 +35,22 @@ namespace HBP.UI.Main
             base.Add(obj);
         }
 
+        public void OpenFilterWindow()
+        {
+            var parentWindow = GetComponentInParent<Window>();
+
+            var filterWindow = WindowsManager.Open("Patient filter window", parentWindow).GetComponent<PatientFilter>();
+            filterWindow.Objects = Objects.ToList();
+            filterWindow.OnApplyFilters.AddListener(mask =>
+            {
+                MaskList(mask, false);
+                SortByNone();
+            });
+
+            if (parentWindow)
+                parentWindow.WindowsReferencer.Add(filterWindow);
+        }
+
         /// <summary>
         /// Sort by name.
         /// </summary>

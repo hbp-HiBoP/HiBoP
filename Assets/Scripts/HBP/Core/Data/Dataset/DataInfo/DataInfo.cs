@@ -220,28 +220,32 @@ namespace HBP.Core.Data
         #region Public Static Methods
         public static async UniTask<IEnumerable<DataInfo>> LoadFromDatabaseAsync(Action<float, float, LoadingText> updateProgress, Func<DataInfo, bool> filter)
         {
-            updateProgress(0, 0, new LoadingText("Importing data"));
+            updateProgress(0, 0, new LoadingText("Loading database"));
             await UniTask.WaitUntil(() => DatabaseManager.Database.IsLoaded);
-
             await UniTask.SwitchToThreadPool();
-            List<DataInfo> dataInfos = DatabaseManager.Database.DataInfos.Where(filter).DeepClone().ToList();
-            int length = dataInfos.Count;
-            int count = 0;
+            var result = new List<DataInfo>();
+            int length = DatabaseManager.Database.DataInfos.Count;
+            int progress = 0;
             List<DataInfo> dataToDelete = new();
-            foreach (var dataInfo in dataInfos)
+            foreach (var dataInfo in DatabaseManager.Database.DataInfos)
             {
-                updateProgress((float)count / length, 0, new LoadingText("Importing data", " ", $"{++count}/{length}"));
-                if (dataInfo is PatientDataInfo patientDataInfo)
+                updateProgress((float)progress++ / length, 0, new LoadingText("Loading data"));
+                if (filter(dataInfo))
                 {
-                    Patient projectPatient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == patientDataInfo.Patient.ID);
-                    if (projectPatient != null)
-                        patientDataInfo.Patient = projectPatient;
+                    if (dataInfo is PatientDataInfo patientDataInfo)
+                    {
+                        Patient projectPatient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == patientDataInfo.Patient.ID);
+                        if (projectPatient != null)
+                        {
+                            patientDataInfo.Patient = projectPatient;
+                            result.Add(patientDataInfo);
+                        }
+                    }
                     else
-                        dataToDelete.Add(patientDataInfo);
+                        result.Add(dataInfo);
                 }
             }
-            dataInfos.RemoveAll(d => dataToDelete.Contains(d));
-            return dataInfos;
+            return result;
         }
         public static void LoadFromLocalizersDatabase(string path, out DataInfo[] dataInfos, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {

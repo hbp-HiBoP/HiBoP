@@ -25,9 +25,16 @@ namespace HBP.Core.Tools
             stringBuilder.Append(")");
             return stringBuilder.ToString();
         }
-        public static IEnumerable<T> DeepClone<T>(this IEnumerable<T> IEnumerable) where T : ICloneable
+        public static IEnumerable<T> DeepClone<T>(this IEnumerable<T> IEnumerable, bool forceEnumeration = false) where T : ICloneable
         {
-            return IEnumerable.Select(a => (T)a.Clone());
+            if (forceEnumeration)
+            {
+                return IEnumerable.Select(a => (T)a.Clone()).ToList();
+            }
+            else
+            {
+                return IEnumerable.Select(a => (T)a.Clone());
+            }
         }
     }
 

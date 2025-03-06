@@ -56,7 +56,7 @@ namespace HBP.UI.Tools
         #region Private Methods
         private void Update()
         {
-            if (m_Text != "" && m_Image != null)
+            if (m_Text != "" || m_Image != null)
             {
                 if (m_Entered)
                 {
