@@ -93,17 +93,10 @@ namespace HBP.UI.Tools.Lists
 
         protected Dictionary<T, bool> m_SelectableStateByObject = new();
 
-        /// <summary>
-        /// Number of item selected.
-        /// </summary>
-        int ISelectionCountable.NumberOfItemSelected
-        {
-            get { return ObjectsSelected.Length; }
-        }
+        int ISelectionCountable.NumberOfSelectedObjects => ObjectsSelected.Length;
+        int ISelectionCountable.NumberOfObjects => Objects.Count;
+        int ISelectionCountable.NumberOfFilteredObjects => m_SelectableStateByObject.Count(kv => kv.Value);
 
-        /// <summary>
-        /// Callback executed when selection is changed.
-        /// </summary> 
         UnityEvent ISelectionCountable.OnSelectionChanged { get; } = new UnityEvent();
 
         /// <summary>
@@ -319,6 +312,7 @@ namespace HBP.UI.Tools.Lists
                     m_SelectedStateByObject[obj] &= mask[i];
                     m_SelectableStateByObject[obj] = mask[i];
                 }
+                OnSelectionChanged();
                 return true;
             }
             return false;
