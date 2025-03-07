@@ -1,97 +1,77 @@
 using HBP.Core.Data;
-using HBP.Core.Exceptions;
-using HBP.Data.Preferences;
 using HBP.UI.Tools;
+using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace HBP.UI.Main
 {
     public class PatientFilter : ListFilter<Patient>
     {
+        #region Properties
+        [SerializeField] Toggle m_FilterName;
+        [SerializeField] InputField m_NameInputField;
+
+        [SerializeField] Toggle m_FilterPlace;
+        [SerializeField] Transform m_PlaceTogglesParent;
+        List<FilterToggle> m_PlaceToggles = new();
+
+        [SerializeField] Toggle m_FilterDate;
+        [SerializeField] Transform m_DateTogglesParent;
+        List<FilterToggle> m_DateToggles = new();
+
+        [SerializeField] GameObject m_FilterTogglePrefab;
+        #endregion
+
         #region Private Methods
-        protected override bool ParseConditionAndCheckValue(Patient obj, string s)
+        protected override void SetObjects()
         {
-            s = s.ToUpper();
-            Regex conditionRegex = new Regex(@"(.+)([=><]{1})(.+)");
-            Match match = conditionRegex.Match(s);
-            if (match.Success)
+            m_FilterName.onValueChanged.RemoveAllListeners();
+            m_FilterName.onValueChanged.AddListener((value) => m_NameInputField.interactable = value);
+            m_FilterName.isOn = false;
+
+            m_FilterPlace.onValueChanged.RemoveAllListeners();
+            m_PlaceToggles.Clear();
+            foreach (var place in m_Objects.Select(p => p.Place).Distinct().OrderBy(p => p))
             {
-                GroupCollection groups = match.Groups;
-                string label = groups[1].Value.Replace("\"", "");
-                string deblankedLabel = Regex.Replace(label, "^\\s+", "");
-                deblankedLabel = Regex.Replace(deblankedLabel, "\\s+$", "");
-                string value = groups[3].Value.Replace("\"", "");
-                string deblankedValue = Regex.Replace(value, "^\\s+", "");
-                deblankedValue = Regex.Replace(deblankedValue, "\\s+$", "");
-                if (deblankedLabel == "NAME")
-                {
-                    if (groups[2].Value == "=")
-                        return obj.Name.ToUpper().Contains(deblankedValue);
-                    else if (groups[2].Value == ">")
-                        return obj.Name.ToUpper().CompareTo(deblankedValue) > 0;
-                    else if (groups[2].Value == "<")
-                        return obj.Name.ToUpper().CompareTo(deblankedValue) < 0;
-                }
-                else if (deblankedLabel == "PLACE")
-                {
-                    if (groups[2].Value == "=")
-                        return obj.Place.ToUpper().Contains(deblankedValue);
-                    else if (groups[2].Value == ">")
-                        return obj.Place.ToUpper().CompareTo(deblankedValue) > 0;
-                    else if (groups[2].Value == "<")
-                        return obj.Place.ToUpper().CompareTo(deblankedValue) < 0;
-                }
-                else if (deblankedLabel == "DATE")
-                {
-                    if (int.TryParse(deblankedValue, out int dateValue))
-                    {
-                        if (groups[2].Value == "=")
-                            return obj.Date == dateValue;
-                        else if (groups[2].Value == ">")
-                            return obj.Date > dateValue;
-                        else if (groups[2].Value == "<")
-                            return obj.Date < dateValue;
-                    }
-                }
-                else
-                {
-                    BaseTag tag = PersistentDataManager.Tags.PatientsTags.FirstOrDefault(t => t.Name.ToUpper() == deblankedLabel) ?? PersistentDataManager.Tags.GeneralTags.FirstOrDefault(t => t.Name.ToUpper() == deblankedLabel);
-                    if (tag != null)
-                    {
-                        BaseTagValue tagValue = obj.Tags.FirstOrDefault(t => t.Tag == tag);
-                        if (tagValue != null)
-                        {
-                            if (groups[2].Value == "=")
-                                return tagValue.DisplayableValue.ToUpper().Contains(deblankedValue);
-                            else if (groups[2].Value == ">")
-                                return tagValue.DisplayableValue.ToUpper().CompareTo(deblankedValue) > 0;
-                            else if (groups[2].Value == "<")
-                                return tagValue.DisplayableValue.ToUpper().CompareTo(deblankedValue) < 0;
-                        }
-                        else
-                        {
-                            return false;
-                        }
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
+                var toggle = Instantiate(m_FilterTogglePrefab, m_PlaceTogglesParent).GetComponent<FilterToggle>();
+                toggle.Label = place;
+                m_PlaceToggles.Add(toggle);
             }
-            else
+            m_FilterPlace.onValueChanged.AddListener((value) =>
             {
-                if (s == "TRUE")
+                foreach (var toggle in m_PlaceToggles)
                 {
-                    return true;
+                    toggle.Interactable = value;
                 }
-                else if (s == "FALSE")
-                {
-                    return false;
-                }
+            });
+            m_FilterPlace.isOn = false;
+
+            m_FilterDate.onValueChanged.RemoveAllListeners();
+            m_DateToggles.Clear();
+            foreach (var date in m_Objects.Select(p => p.Date).Distinct().OrderBy(d => d))
+            {
+                var toggle = Instantiate(m_FilterTogglePrefab, m_DateTogglesParent).GetComponent<FilterToggle>();
+                toggle.Label = date.ToString();
+                m_DateToggles.Add(toggle);
             }
-            throw new InvalidConditionException(s);
+            m_FilterDate.onValueChanged.AddListener((value) =>
+            {
+                foreach (var toggle in m_DateToggles)
+                {
+                    toggle.Interactable = value;
+                }
+            });
+            m_FilterDate.isOn = false;
+        }
+        protected override bool CheckConditions(Patient obj)
+        {
+            bool result = true;
+            if (m_FilterName.isOn) result &= obj.Name.Contains(m_NameInputField.text);
+            if (m_FilterPlace.isOn) result &= m_PlaceToggles.Any(t => t.IsOn && t.Label == obj.Place);
+            if (m_FilterDate.isOn) result &= m_DateToggles.Any(t => t.IsOn && t.Label == obj.Date.ToString());
+            return result;
         }
         #endregion
     }

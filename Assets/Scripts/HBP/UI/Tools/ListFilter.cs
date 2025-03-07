@@ -10,15 +10,16 @@ namespace HBP.UI.Tools
     public abstract class ListFilter<T> : DialogWindow
     {
         #region Properties
-        public List<T> Objects { get; set; }
-        /// <summary>
-        /// Conditions to be used when filtering the corresponding list
-        /// </summary>
-        [SerializeField] private InputField m_Conditions;
-        /// <summary>
-        /// Boolean expression parsed from the string
-        /// </summary>
-        private BooleanExpression m_BooleanExpression;
+        protected List<T> m_Objects;
+        public List<T> Objects
+        {
+            get => m_Objects;
+            set
+            {
+                m_Objects = value;
+                SetObjects();
+            }
+        }
         #endregion
 
         #region Events
@@ -37,14 +38,10 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Private Methods
-        /// <summary>
-        /// Apply the filters given the input conditions
-        /// </summary>
         protected void ApplyFilters()
         {
             try
             {
-                ParseConditions();
                 bool[] result = new bool[Objects.Count];
                 for (int i = 0; i < result.Length; i++)
                 {
@@ -57,19 +54,8 @@ namespace HBP.UI.Tools
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.ToString(), e.Message).Forget();
             }
         }
-        protected void ParseConditions()
-        {
-            m_BooleanExpression = BooleanExpressionParser.Parse(m_Conditions.text);
-        }
-        protected bool CheckConditions(T obj)
-        {
-            foreach (var booleanValue in m_BooleanExpression.GetAllBooleanValuesUnderThisOne())
-            {
-                booleanValue.SetBooleanValue((s) => ParseConditionAndCheckValue(obj, s));
-            }
-            return m_BooleanExpression.Evaluate();
-        }
-        protected abstract bool ParseConditionAndCheckValue(T obj, string s);
+        protected abstract bool CheckConditions(T obj);
+        protected abstract void SetObjects();
         #endregion
     }
 }
