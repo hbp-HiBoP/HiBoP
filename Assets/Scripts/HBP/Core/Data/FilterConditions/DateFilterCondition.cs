@@ -9,7 +9,46 @@ namespace HBP.Core.Data
     public class DateFilterCondition : BaseFilterCondition
     {
         #region Properties
-        override public string Description => "";
+        public override string Description
+        {
+            get
+            {
+                if (Dates == null || Dates.Count == 0)
+                    return "Empty date filter";
+
+                List<string> displayDates = new List<string>();
+                if (Dates.Count > 5)
+                {
+                    displayDates.AddRange(Dates.Take(4).Select(d => d.ToString()));
+                    displayDates.Add("...");
+                    displayDates.Add(Dates.Last().ToString());
+                }
+                else
+                {
+                    displayDates.AddRange(Dates.Select(d => d.ToString()));
+                }
+
+                string formattedDates;
+                if (displayDates.Count == 1)
+                {
+                    formattedDates = displayDates[0];
+                }
+                else if (displayDates.Count == 2)
+                {
+                    formattedDates = $"{displayDates[0]} {(IsNot ? "nor" : "or")} {displayDates[1]}";
+                }
+                else
+                {
+                    var allButLast = displayDates.Take(displayDates.Count - 1);
+                    var last = displayDates.Last();
+                    formattedDates = $"{string.Join(", ", allButLast)} {(IsNot ? "nor" : "or")} {last}";
+                }
+
+                return displayDates.Count > 1
+                    ? $"The date {(IsNot ? "is neither" : "is either")} {formattedDates}"
+                    : $"The date {(IsNot ? "is not" : "is")} {formattedDates}";
+            }
+        }
         public List<int> Dates { get; set; }
         #endregion
 
@@ -39,6 +78,18 @@ namespace HBP.Core.Data
             {
                 Dates = new List<int>(dateFilterCondition.Dates);
             }
+        }
+        #endregion
+
+
+        #region Public Methods
+        public override bool Check(BaseData obj)
+        {
+            if (obj is Patient patient)
+            {
+                return IsNot ? !Dates.Contains(patient.Date) : Dates.Contains(patient.Date);
+            }
+            return false;
         }
         #endregion
     }

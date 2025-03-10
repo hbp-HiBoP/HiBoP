@@ -126,7 +126,7 @@ namespace HBP.UI.Tools
                     m_Instance.m_Containers[i].name = i.ToString();
                 }
             }
-            window.transform.parent = m_Instance.m_Containers[window.Height];
+            window.transform.SetParent(m_Instance.m_Containers[window.Height]);
 
             Window existingWindow = WindowsReferencer.Windows.FirstOrDefault(w => w.GetType() == window.GetType());
             if (existingWindow != null)

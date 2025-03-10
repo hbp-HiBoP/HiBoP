@@ -64,7 +64,7 @@ namespace HBP.UI.Main
 
             if (m_FilteringObjects != null && m_FilteringObjects.Count > 0)
             {
-                var places = m_FilteringObjects.OfType<Patient>().Select(p => p.Place).Distinct().ToList();
+                var places = m_FilteringObjects.OfType<Patient>().Select(p => p.Place).Distinct().OrderBy(p => p).ToList();
                 foreach (var place in places)
                 {
                     var toggle = Instantiate(m_PlaceFilterTogglePrefab, m_PlaceFilterParent).GetComponent<FilterToggle>();
@@ -77,6 +77,9 @@ namespace HBP.UI.Main
                     m_Toggles.Add(toggle);
                 }
             }
+
+            if (m_Object != null)
+                SetFields(m_Object);
         }
         #endregion
     }
