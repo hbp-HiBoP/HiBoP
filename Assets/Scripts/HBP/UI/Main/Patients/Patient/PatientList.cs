@@ -2,13 +2,14 @@
 using System.Linq;
 using UnityEngine;
 using HBP.UI.Tools;
+using HBP.Core.Data;
 
 namespace HBP.UI.Main
 {
 	/// <summary>
 	/// List to display patients.
 	/// </summary>
-	public class PatientList : ActionableList<Core.Data.Patient>
+	public class PatientList : ActionableList<Patient>
 	{
         #region Properties
         enum OrderBy { None, Name, DescendingName, Place, DescendingPlace, Date, DescendingDate, Mesh, DescendingMesh, MRI, DescendingMRI, Site, DescendingSite, Tag, DescendingTag }
@@ -29,7 +30,7 @@ namespace HBP.UI.Main
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public override void Add(Core.Data.Patient obj)
+        public override void Add(Patient obj)
         {
             SortByNone();
             base.Add(obj);
@@ -40,7 +41,7 @@ namespace HBP.UI.Main
             var parentWindow = GetComponentInParent<Window>();
 
             var filterWindow = WindowsManager.Open("Patient filter window", parentWindow).GetComponent<PatientFilter>();
-            filterWindow.Objects = Objects.ToList();
+            filterWindow.FilteringObjects = Objects.Select(o => (BaseData)o).ToList();
             filterWindow.OnApplyFilters.AddListener(mask =>
             {
                 MaskList(mask, false);

@@ -1,23 +1,31 @@
-using HBP.Data.Tools;
 using System;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.UI;
 using System.Collections.Generic;
+using HBP.UI.Main;
+using HBP.Core.Data;
 
 namespace HBP.UI.Tools
 {
-    public abstract class ListFilter<T> : DialogWindow
+    public abstract class ListFilter : DialogWindow
     {
         #region Properties
-        protected List<T> m_Objects;
-        public List<T> Objects
+        [SerializeField] protected FilterConditionListGestion m_ListGestion;
+
+        protected List<BaseData> m_FilteringObjects;
+        public List<BaseData> FilteringObjects
         {
-            get => m_Objects;
+            get => m_FilteringObjects;
             set
             {
-                m_Objects = value;
-                SetObjects();
+                if (value.Count == 0)
+                {
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "No objects to filter", "The list you are trying to filter contains no object. This is not supported.").Forget();
+                    Close();
+                    return;
+                }
+                m_FilteringObjects = value;
+                m_ListGestion.FilteringObjects = value;
             }
         }
         #endregion
@@ -42,10 +50,10 @@ namespace HBP.UI.Tools
         {
             try
             {
-                bool[] result = new bool[Objects.Count];
+                bool[] result = new bool[FilteringObjects.Count];
                 for (int i = 0; i < result.Length; i++)
                 {
-                    result[i] = CheckConditions(Objects[i]);
+                    result[i] = CheckConditions(FilteringObjects[i]);
                 }
                 OnApplyFilters.Invoke(result);
             }
@@ -54,8 +62,7 @@ namespace HBP.UI.Tools
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.ToString(), e.Message).Forget();
             }
         }
-        protected abstract bool CheckConditions(T obj);
-        protected abstract void SetObjects();
+        protected abstract bool CheckConditions(BaseData obj);
         #endregion
     }
 }
