@@ -70,7 +70,7 @@ namespace HBP.UI.Tools.Lists
         /// <param name="objects"></param>
         public virtual void Set(IEnumerable<T> objects)
         {
-            var obj = objects.ToArray();
+            var obj = DefaultSorting(objects).ToArray();
             Remove(m_Objects.ToArray());
             Add(obj);
         }
@@ -210,6 +210,10 @@ namespace HBP.UI.Tools.Lists
         #endregion
 
         #region Private Methods
+        protected virtual IEnumerable<T> DefaultSorting(IEnumerable<T> objects)
+        {
+            return objects;
+        }
         /// <summary>
         /// Display all the items.
         /// </summary>

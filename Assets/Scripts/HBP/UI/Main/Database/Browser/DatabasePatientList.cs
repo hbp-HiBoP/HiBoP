@@ -117,5 +117,12 @@ namespace HBP.UI.Database
             m_OrderBy = OrderBy.None;
         }
         #endregion
+
+        #region Protected Methods
+        protected override IEnumerable<Patient> DefaultSorting(IEnumerable<Patient> objects)
+        {
+            return objects.OrderBy(p => p.Place).ThenBy(p => p.Date).ThenBy(p => p.Name);
+        }
+        #endregion
     }
 }

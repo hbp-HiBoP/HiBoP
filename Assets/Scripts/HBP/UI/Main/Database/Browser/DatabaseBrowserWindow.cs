@@ -80,7 +80,7 @@ namespace HBP.UI.Database
             base.SetFields();
             m_PatientExplorer.SetFields();
 
-            m_PatientList.Set(DatabaseManager.Database.Patients.OrderBy(p => p.Place).ThenBy(p => p.Date).ThenBy(p => p.Name));
+            m_PatientList.Set(DatabaseManager.Database.Patients);
             m_PatientList.OnSelect.AddListener(m_PatientExplorer.Set);
         }
         private void OpenDatabaseReferenceGestionWindow()
