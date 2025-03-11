@@ -2,7 +2,9 @@
 using HBP.Core.Data;
 using HBP.Core.Enums;
 using HBP.Core.Interfaces;
+using HBP.Core.Tools;
 using HBP.UI.Tools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -14,7 +16,7 @@ namespace HBP.UI.Main
     public class PatientCreator : ObjectCreator<Patient>
     {
         #region Private Methods
-        protected override async void SaveSelector(ObjectSelector<Patient> selector, bool generateNewIDs = true)
+        protected override async UniTaskVoid SaveSelector(ObjectSelector<Patient> selector, bool generateNewIDs)
         {
             if (!generateNewIDs)
             {
@@ -44,7 +46,7 @@ namespace HBP.UI.Main
                 }
             }
 
-            base.SaveSelector(selector, generateNewIDs);
+            base.SaveSelector(selector, generateNewIDs).Forget();
         }
 
         protected async override UniTaskVoid LoadFromDirectory()

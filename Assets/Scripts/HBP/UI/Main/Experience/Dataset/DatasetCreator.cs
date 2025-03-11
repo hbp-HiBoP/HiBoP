@@ -2,7 +2,9 @@
 using HBP.Core.Data;
 using HBP.Core.Enums;
 using HBP.Core.Interfaces;
+using HBP.Core.Tools;
 using HBP.UI.Tools;
+using System;
 using System.Linq;
 
 namespace HBP.UI.Main
@@ -13,7 +15,7 @@ namespace HBP.UI.Main
     public class DatasetCreator : ObjectCreator<Dataset>
     {
         #region Private Methods
-        protected override async void SaveSelector(ObjectSelector<Dataset> selector, bool generateNewIDs = true)
+        protected override async UniTaskVoid SaveSelector(ObjectSelector<Dataset> selector, bool generateNewIDs)
         {
             if (!generateNewIDs)
             {
@@ -43,7 +45,7 @@ namespace HBP.UI.Main
                 }
             }
 
-            base.SaveSelector(selector, generateNewIDs);
+            base.SaveSelector(selector, generateNewIDs).Forget();
         }
         #endregion
     }

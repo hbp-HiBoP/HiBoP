@@ -3,7 +3,6 @@ using HBP.Core.Tools;
 using HBP.UI.Tools;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,11 +12,13 @@ namespace HBP.UI.Main
     {
         #region Properties
         [SerializeField] Dropdown m_TypeDropdown;
-        [SerializeField] Toggle m_NotToggle;
+        [SerializeField] Dropdown m_EvaluateDropdown;
 
         [SerializeField] NameFilterConditionSubModifier m_NameFilterConditionSubModifier;
         [SerializeField] DateFilterConditionSubModifier m_DateFilterConditionSubModifier;
         [SerializeField] PlaceFilterConditionSubModifier m_PlaceFilterConditionSubModifier;
+
+        [SerializeField] Text m_ResultText;
 
         List<BaseSubModifier> m_SubModifiers;
         List<BaseFilterCondition> m_FilterConditionsTemp;
@@ -67,7 +68,7 @@ namespace HBP.UI.Main
                 base.Interactable = value;
 
                 m_TypeDropdown.interactable = value;
-                m_NotToggle.interactable = value;
+                m_EvaluateDropdown.interactable = value;
 
                 m_NameFilterConditionSubModifier.Interactable = value;
                 m_DateFilterConditionSubModifier.Interactable = value;
@@ -85,12 +86,16 @@ namespace HBP.UI.Main
         #endregion
 
         #region Protected Methods
+        private void Update()
+        {
+            m_ResultText.text = ObjectTemp.Description;
+        }
         protected override void Initialize()
         {
             base.Initialize();
 
             m_TypeDropdown.onValueChanged.AddListener(OnChangeType);
-            m_NotToggle.onValueChanged.AddListener(value => ObjectTemp.IsNot = value);
+            m_EvaluateDropdown.onValueChanged.AddListener(value => ObjectTemp.IsNot = value != 0);
 
             m_NameFilterConditionSubModifier.Initialize();
             m_DateFilterConditionSubModifier.Initialize();
@@ -117,7 +122,7 @@ namespace HBP.UI.Main
             m_Types = m_TypeDropdown.Set(typeof(BaseFilterCondition), m_FilterConditionAttribute);
             m_TypeDropdown.SetValue(Array.IndexOf(m_Types, ObjectTemp.GetType()));
 
-            m_NotToggle.isOn = objectToDisplay.IsNot;
+            m_EvaluateDropdown.SetValue(objectToDisplay.IsNot ? 1 : 0);
         }
         protected void OnChangeType(int index)
         {

@@ -14,7 +14,7 @@ namespace HBP.Core.Data
             get
             {
                 if (Dates == null || Dates.Count == 0)
-                    return "Empty date filter";
+                    return IsNot ? "Always true" : "Always false";
 
                 List<string> displayDates = new List<string>();
                 if (Dates.Count > 5)

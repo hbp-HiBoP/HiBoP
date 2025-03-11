@@ -240,37 +240,51 @@ namespace HBP.UI.Tools
         protected virtual void OpenSelector(IEnumerable<T> objects, bool multiSelection = false, bool openModifiers = true, bool generateNewIDs = true)
         {
             ObjectSelector<T> selector = WindowsManager.OpenSelector(objects, GetComponentInParent<Window>(), multiSelection, openModifiers);
-            selector.OnOk.AddListener(() => SaveSelector(selector, generateNewIDs));
+            selector.OnOk.AddListener(() => SaveSelector(selector, generateNewIDs).Forget());
             WindowsReferencer.Add(selector);
+        }
+        protected virtual async UniTaskVoid SaveSelector(ObjectSelector<T> selector, bool generateNewIDs)
+        {
+            await LoadingManager.LoadAsync(update => SaveSelectorAsync(selector, generateNewIDs, update));
         }
         /// <summary>
         /// Create clone of the objects selected in the ObjectSelector.
         /// </summary>
         /// <param name="selector">Object selector</param> 
         /// <param name="generateNewIDs">True if generate a new ID for every objects cloned, False otherwise.</param>
-        protected virtual void SaveSelector(ObjectSelector<T> selector, bool generateNewIDs = true)
+        protected virtual async UniTask SaveSelectorAsync(ObjectSelector<T> selector, bool generateNewIDs, Action<float, float, LoadingText> updateProgress)
         {
+            await UniTask.SwitchToThreadPool();
+            var length = selector.ObjectsSelected.Length;
+            var progress = 0;
+            var cloneList = new List<T>();
             foreach (var obj in selector.ObjectsSelected)
             {
+                updateProgress.Invoke((float)progress++ / length, 0, new LoadingText($"Creating {progress}/{length}"));
                 T clone = (T)obj.Clone();
-                if (generateNewIDs)
-                {
-                    if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
-                    {
-                        IIdentifiable identifiable = clone;
-                        identifiable.GenerateID();
-                    }
-                }
                 if (clone != null)
                 {
-                    if (selector.OpenModifiers)
-                    {
-                        OpenModifier(clone);
-                    }
-                    else
-                    {
-                        OnObjectCreated.Invoke(obj);
-                    }
+                    cloneList.Add(clone);
+                }
+            }
+            if (generateNewIDs && typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
+            {
+                foreach (var clone in cloneList)
+                {
+                    IIdentifiable identifiable = clone;
+                    identifiable.GenerateID();
+                }
+            }
+            await UniTask.SwitchToMainThread();
+            foreach (var clone in cloneList)
+            {
+                if (selector.OpenModifiers)
+                {
+                    OpenModifier(clone);
+                }
+                else
+                {
+                    OnObjectCreated.Invoke(clone);
                 }
             }
         }

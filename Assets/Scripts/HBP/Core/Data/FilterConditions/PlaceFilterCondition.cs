@@ -14,7 +14,7 @@ namespace HBP.Core.Data
             get
             {
                 if (Places == null || Places.Count == 0)
-                    return "Empty place filter";
+                    return IsNot ? "Always true" : "Always false";
 
                 List<string> displayPlaces = new List<string>();
                 if (Places.Count > 5)
