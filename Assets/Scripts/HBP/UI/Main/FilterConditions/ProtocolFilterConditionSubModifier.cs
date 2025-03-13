@@ -47,6 +47,10 @@ namespace HBP.UI.Main
                 foreach (var toggle in m_Toggles)
                     toggle.IsOn = false;
             });
+
+            m_LogicDropdown.onValueChanged.AddListener(OnChangeLogic);
+            m_ScopeDropdown.onValueChanged.AddListener(OnChangeScope);
+            m_ScopeDropdown.interactable = Interactable && ApplicationState.LoadedProject != null;
         }
         #endregion
 
@@ -71,11 +75,15 @@ namespace HBP.UI.Main
                 toggle.IsOn = objectToDisplay.Protocols.Select(p => p.Name).Contains(toggle.Label);
 
             m_LogicDropdown.value = (int)objectToDisplay.Logic;
-            m_LogicDropdown.onValueChanged.AddListener(value => Object.Logic = (ProtocolFilterCondition.CheckLogic)value);
-
             m_ScopeDropdown.value = (int)objectToDisplay.Scope;
-            m_ScopeDropdown.onValueChanged.AddListener(value => Object.Scope = (ProtocolFilterCondition.CheckScope)value);
-            m_ScopeDropdown.interactable = Interactable && ApplicationState.LoadedProject != null;
+        }
+        private void OnChangeLogic(int value)
+        {
+            Object.Logic = (ProtocolFilterCondition.CheckLogic)value;
+        }
+        private void OnChangeScope(int value)
+        {
+            Object.Scope = (ProtocolFilterCondition.CheckScope)value;
         }
         #endregion
     }
