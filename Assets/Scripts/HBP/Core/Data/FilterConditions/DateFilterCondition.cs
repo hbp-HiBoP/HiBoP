@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn), DisplayName("Date"), PatientFilter]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("Date"), SortingOrder(2), PatientFilter]
     public class DateFilterCondition : BaseFilterCondition
     {
         #region Properties
@@ -14,7 +14,7 @@ namespace HBP.Core.Data
             get
             {
                 if (Dates == null || Dates.Count == 0)
-                    return IsNot ? "Always true" : "Always false";
+                    return IsNot ? "The date is anything (always true)" : "The date is nothing (never true)";
 
                 List<string> displayDates = new List<string>();
                 if (Dates.Count > 5)

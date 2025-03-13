@@ -46,6 +46,12 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Private Methods
+        protected override void Initialize()
+        {
+            base.Initialize();
+
+            m_ListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
+        }
         protected void ApplyFilters()
         {
             try

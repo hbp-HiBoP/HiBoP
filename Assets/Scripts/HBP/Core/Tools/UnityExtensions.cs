@@ -115,8 +115,14 @@ namespace HBP.Core.Tools
         }
         public static Type[] Set(this Dropdown dropdown, Type parentType, Attribute attribute)
         {
+            static int orderMethod(Type t)
+            {
+                var attribute = t.GetCustomAttributes(typeof(SortingOrderAttribute), false);
+                return attribute.Length > 0 ? (attribute[0] as SortingOrderAttribute).Order : int.MaxValue;
+            }
+
             Type[] types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(t => t.IsSubclassOf(parentType)).ToArray();
-            types = types.Where(t => t.GetCustomAttributes(true).Contains(attribute)).ToArray();
+            types = types.Where(t => t.GetCustomAttributes(true).Contains(attribute)).OrderBy(orderMethod).ToArray();
             List<Dropdown.OptionData> options = new List<Dropdown.OptionData>();
             foreach (var type in types)
             {

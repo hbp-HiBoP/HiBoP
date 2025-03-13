@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn), DisplayName("Place"), PatientFilter]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("Place"), SortingOrder(1), PatientFilter]
     public class PlaceFilterCondition : BaseFilterCondition
     {
         #region Properties
@@ -14,7 +14,7 @@ namespace HBP.Core.Data
             get
             {
                 if (Places == null || Places.Count == 0)
-                    return IsNot ? "Always true" : "Always false";
+                    return IsNot ? "The place is anything (always true)" : "The place is nothing (never true)";
 
                 List<string> displayPlaces = new List<string>();
                 if (Places.Count > 5)
