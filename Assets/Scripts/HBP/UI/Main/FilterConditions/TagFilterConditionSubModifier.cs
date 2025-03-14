@@ -2,6 +2,7 @@ using HBP.Core.Data;
 using HBP.Core.Tools;
 using HBP.Data.Preferences;
 using HBP.UI.Tools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -14,9 +15,6 @@ namespace HBP.UI.Main
         #region Properties
         [SerializeField] Dropdown m_TargetDropdown;
         [SerializeField] Dropdown m_TagDropdown;
-        [SerializeField] InputField m_ValueInputField;
-        [SerializeField] Toggle m_ExactMatchToggle;
-        [SerializeField] Toggle m_CaseSensitiveToggle;
 
         protected List<BaseData> m_FilteringObjects;
         public List<BaseData> FilteringObjects
@@ -28,7 +26,16 @@ namespace HBP.UI.Main
             }
         }
 
+        [SerializeField] EmptyTagFilterValueSubModifier m_EmptyTagFilterValueSubModifier;
+        [SerializeField] BoolTagFilterValueSubModifier m_BoolTagFilterValueSubModifier;
+        [SerializeField] StringTagFilterValueSubModifier m_StringTagFilterValueSubModifier;
+        [SerializeField] NumberTagFilterValueSubModifier m_NumberTagFilterValueSubModifier;
+        [SerializeField] EnumTagFilterValueSubModifier m_EnumTagFilterValueSubModifier;
+
         private List<BaseTag> m_Tags = new();
+
+        Dictionary<Type, BaseSubModifier> m_SubModifiers;
+        Dictionary<Type, TagFilterValue> m_TagFilterValuesTemp;
         #endregion
 
         #region Public Methods
@@ -38,9 +45,30 @@ namespace HBP.UI.Main
 
             m_TargetDropdown.onValueChanged.AddListener(OnChangeTarget);
             m_TagDropdown.onValueChanged.AddListener(OnChangeTag);
-            m_ValueInputField.onValueChanged.AddListener(OnChangeName);
-            m_ExactMatchToggle.onValueChanged.AddListener(OnChangeExactMatch);
-            m_CaseSensitiveToggle.onValueChanged.AddListener(OnChangeCaseSensitive);
+
+            m_EmptyTagFilterValueSubModifier.Initialize();
+            m_BoolTagFilterValueSubModifier.Initialize();
+            m_StringTagFilterValueSubModifier.Initialize();
+            m_NumberTagFilterValueSubModifier.Initialize();
+            m_EnumTagFilterValueSubModifier.Initialize();
+
+            m_SubModifiers = new Dictionary<Type, BaseSubModifier>
+            {
+                { typeof(EmptyTagFilterValue), m_EmptyTagFilterValueSubModifier },
+                { typeof(BoolTagFilterValue), m_BoolTagFilterValueSubModifier },
+                { typeof(StringTagFilterValue), m_StringTagFilterValueSubModifier },
+                { typeof(NumberTagFilterValue), m_NumberTagFilterValueSubModifier },
+                { typeof(EnumTagFilterValue), m_EnumTagFilterValueSubModifier }
+            };
+            m_TagFilterValuesTemp = new Dictionary<Type, TagFilterValue>
+            {
+                { typeof(EmptyTag), new EmptyTagFilterValue() },
+                { typeof(BoolTag), new BoolTagFilterValue() },
+                { typeof(StringTag), new StringTagFilterValue() },
+                { typeof(IntTag), new NumberTagFilterValue() },
+                { typeof(FloatTag), new NumberTagFilterValue() },
+                { typeof(EnumTag), new EnumTagFilterValue() }
+            };
         }
         #endregion
 
@@ -53,10 +81,6 @@ namespace HBP.UI.Main
 
             var currentTag = m_Tags.FirstOrDefault(t => t == objectToDisplay.Tag);
             m_TagDropdown.SetValue(currentTag != null ? m_Tags.IndexOf(currentTag) : 0);
-
-            m_ValueInputField.text = objectToDisplay.Value;
-            m_ExactMatchToggle.isOn = objectToDisplay.ExactMatch;
-            m_CaseSensitiveToggle.isOn = objectToDisplay.CaseSensitive;
         }
         void OnChangeTarget(int value)
         {
@@ -72,19 +96,21 @@ namespace HBP.UI.Main
         }
         void OnChangeTag(int value)
         {
-            Object.Tag = m_Tags[value];
-        }
-        void OnChangeName(string value)
-        {
-            Object.Value = value;
-        }
-        void OnChangeExactMatch(bool value)
-        {
-            Object.ExactMatch = value;
-        }
-        void OnChangeCaseSensitive(bool value)
-        {
-            Object.CaseSensitive = value;
+            BaseTag tag = m_Tags[value];
+
+            Object.Tag = tag;
+
+            foreach (var sm in m_SubModifiers.Values)
+                sm.IsActive = false;
+
+            TagFilterValue tagFilterValue = m_TagFilterValuesTemp[Object.Tag.GetType()];
+            tagFilterValue.Copy(Object.Value);
+            Object.Value = tagFilterValue;
+
+            BaseSubModifier subModifier = m_SubModifiers[Object.Value.GetType()];
+            if (subModifier is EnumTagFilterValueSubModifier enumTagFilterValueSubModifier) enumTagFilterValueSubModifier.Tag = tag as EnumTag;
+            subModifier.IsActive = true;
+            subModifier.Object = Object.Value;
         }
         #endregion
     }
