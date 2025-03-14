@@ -231,8 +231,8 @@ namespace HBP.UI.Module3D
 
                     m_ExportSitesProgressBar.Begin();
                     List<Core.Object3D.Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered && !s.State.IsMasked).ToList();
-                    m_Source = new();
-                    ExportSites(sites, csvPath, m_Source.Token);
+                    m_ExportSource = new();
+                    ExportSites(sites, csvPath, m_ExportSource.Token).Forget();
                 }, new string[] { "csv" }, "Save sites to");
 #else
                 string csvPath = FileBrowser.GetSavedFileName(new string[] { "csv" }, "Save sites to");

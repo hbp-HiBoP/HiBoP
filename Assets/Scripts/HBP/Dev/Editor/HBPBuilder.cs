@@ -87,7 +87,7 @@ namespace HBP.Dev
             {
                 string pluginsPath = Path.Join(dataDirectory, "Contents", "PlugIns");
                 DirectoryInfo pluginsDirectory = new DirectoryInfo(pluginsPath);
-                DirectoryInfo arm64PluginsDirectory = new DirectoryInfo(Path.Join(pluginsPath, "ARM64"));
+                DirectoryInfo arm64PluginsDirectory = new DirectoryInfo(Path.Join(pluginsPath, "ARM64")); 
                 arm64PluginsDirectory.CopyFilesRecursively(pluginsDirectory);
                 arm64PluginsDirectory.Delete(true);
             }

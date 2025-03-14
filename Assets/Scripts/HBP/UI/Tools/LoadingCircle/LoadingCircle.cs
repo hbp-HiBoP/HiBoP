@@ -121,7 +121,7 @@ namespace HBP.UI.Tools
                 {
                     float t = Mathf.Approximately(DurationInSeconds, 0) ? 1 : m_CurrentDurationInSeconds / DurationInSeconds;
                     Progress = Mathf.Lerp(m_LastProgress, m_TargetProgress, t);
-                    int percentage = Mathf.Min(Mathf.FloorToInt(Progress * 100.0f), 100);
+                    int percentage = Mathf.Clamp(Mathf.FloorToInt(Progress * 100.0f), 0, 100);
                     m_FillProgress.fillAmount = Progress;
                     m_IconProgress.sprite = m_Sprites[percentage];
                     m_CurrentDurationInSeconds += Time.deltaTime;
