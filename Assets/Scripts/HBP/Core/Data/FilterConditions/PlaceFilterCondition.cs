@@ -14,7 +14,7 @@ namespace HBP.Core.Data
             get
             {
                 if (Places == null || Places.Count == 0)
-                    return IsNot ? "The place is anything (always true)" : "The place is nothing (never true)";
+                    return "The place is anything";
 
                 List<string> displayPlaces = new List<string>();
                 if (Places.Count > 5)
@@ -27,6 +27,7 @@ namespace HBP.Core.Data
                 {
                     displayPlaces.AddRange(Places);
                 }
+                displayPlaces.Sort();
 
                 string formattedPlaces;
                 if (displayPlaces.Count == 1)
@@ -87,6 +88,9 @@ namespace HBP.Core.Data
         {
             if (obj is Patient patient)
             {
+                if (Places == null || Places.Count == 0)
+                    return true;
+
                 return IsNot ? !Places.Contains(patient.Place) : Places.Contains(patient.Place);
             }
             return true;

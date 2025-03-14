@@ -14,7 +14,7 @@ namespace HBP.Core.Data
             get
             {
                 if (Dates == null || Dates.Count == 0)
-                    return IsNot ? "The date is anything (always true)" : "The date is nothing (never true)";
+                    return "The date is anything";
 
                 List<string> displayDates = new List<string>();
                 if (Dates.Count > 5)
@@ -27,6 +27,7 @@ namespace HBP.Core.Data
                 {
                     displayDates.AddRange(Dates.Select(d => d.ToString()));
                 }
+                displayDates.Sort();
 
                 string formattedDates;
                 if (displayDates.Count == 1)
@@ -87,6 +88,9 @@ namespace HBP.Core.Data
         {
             if (obj is Patient patient)
             {
+                if (Dates != null && Dates.Count == 0)
+                    return true;
+
                 return IsNot ? !Dates.Contains(patient.Date) : Dates.Contains(patient.Date);
             }
             return false;
