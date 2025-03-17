@@ -4,6 +4,7 @@ using HBP.Core.Errors;
 using System.ComponentModel;
 using HBP.Core.Tools;
 using Newtonsoft.Json;
+using System.Linq;
 
 namespace HBP.Core.Data.Container
 {
@@ -107,7 +108,7 @@ namespace HBP.Core.Data.Container
         /// </summary>
         /// <param name="header">Path to the BrainVision format header file</param>
         /// <param name="ID">Unique identifier</param>
-        public BrainVision(string header, string ID) : base(ID)
+        public BrainVision(string header, IEnumerable<Error> errors, IEnumerable<Warning> warnings, string ID) : base(errors, warnings, ID)
         {
             Header = header;
         }
@@ -115,7 +116,7 @@ namespace HBP.Core.Data.Container
         /// Create a new BrainVision data container.
         /// </summary>
         /// <param name="header">Path to the BrainVision format header file</param>
-        public BrainVision(string header) : base()
+        public BrainVision(string header, IEnumerable<Error> errors, IEnumerable<Warning> warnings) : base(errors, warnings)
         {
             Header = header;
         }
@@ -134,13 +135,15 @@ namespace HBP.Core.Data.Container
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new BrainVision(Header, ID);
+            return new BrainVision(Header, Errors, Warnings, ID);
         }
         public override void Copy(object copy)
         {
-            BrainVision dataInfo = copy as BrainVision;
-            Header = dataInfo.Header;
-            ID = dataInfo.ID;
+            base.Copy(copy);
+            if (copy is BrainVision brainVision)
+            {
+                Header = brainVision.Header;
+            }
         }
         #endregion
 

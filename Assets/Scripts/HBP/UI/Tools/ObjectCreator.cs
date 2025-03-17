@@ -260,7 +260,7 @@ namespace HBP.UI.Tools
             var cloneList = new List<T>();
             foreach (var obj in selector.ObjectsSelected)
             {
-                updateProgress.Invoke((float)progress++ / length, 0, new LoadingText($"Creating {progress}/{length}"));
+                updateProgress.Invoke((float)progress++ / length, 0, new LoadingText($"Importing {progress}/{length}"));
                 T clone = (T)obj.Clone();
                 if (clone != null)
                 {

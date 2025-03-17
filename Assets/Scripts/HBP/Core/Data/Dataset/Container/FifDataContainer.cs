@@ -100,7 +100,7 @@ namespace HBP.Core.Data.Container
         /// </summary>
         /// <param name="file">Path to the FIF file</param>
         /// <param name="ID"></param>
-        public FIF(string file, string ID) : base(ID)
+        public FIF(string file, IEnumerable<Error> errors, IEnumerable<Warning> warnings, string ID) : base(errors, warnings, ID)
         {
             File = file;
         }
@@ -108,14 +108,14 @@ namespace HBP.Core.Data.Container
         /// Create a new FIF data container.
         /// </summary>
         /// <param name="file">Path to the FIF file</param>
-        public FIF(string file) : base()
+        public FIF(string file, IEnumerable<Error> errors, IEnumerable<Warning> warnings) : base(errors, warnings)
         {
             File = file;
         }
         /// <summary>
         /// Create a new FIF data container.
         /// </summary>
-        public FIF() : this("")
+        public FIF() : base()
         {
 
         }
@@ -128,13 +128,15 @@ namespace HBP.Core.Data.Container
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new FIF(File, ID);
+            return new FIF(File, Errors, Warnings, ID);
         }
         public override void Copy(object copy)
         {
-            FIF dataInfo = copy as FIF;
-            File = dataInfo.File;
-            ID = dataInfo.ID;
+            base.Copy(copy);
+            if (copy is FIF fif)
+            {
+                File = fif.File;
+            }
         }
         #endregion
 

@@ -105,20 +105,20 @@ namespace HBP.Core.Data
         {
             if (obj is Patient patient)
             {
-                IEnumerable<PatientDataInfo> data = Scope switch
+                List<PatientDataInfo> data = (Scope switch
                 {
                     CheckScope.Database => DatabaseManager.Database.DataInfos.OfType<PatientDataInfo>().Where(d => d.Patient == patient),
                     CheckScope.CurrentProject => ApplicationState.LoadedProject.Datasets.SelectMany(ds => ds.Data).OfType<PatientDataInfo>().Where(d => d.Patient == patient),
                     _ => DatabaseManager.Database.DataInfos.OfType<PatientDataInfo>().Where(d => d.Patient == patient),
-                };
+                }).ToList();
                 if (Protocols.Count == 0)
                 {
-                    return data.Count() > 0 != IsNot;
+                    return data.Count > 0 != IsNot;
                 }
                 return Logic switch
                 {
-                    CheckLogic.All => data.All(d => Protocols.Contains(d.Protocol)) != IsNot,
-                    CheckLogic.Any => data.Any(d => Protocols.Contains(d.Protocol)) != IsNot,
+                    CheckLogic.All => data.Count > 0 && data.All(d => Protocols.Contains(d.Protocol)) != IsNot,
+                    CheckLogic.Any => data.Count > 0 && data.Any(d => Protocols.Contains(d.Protocol)) != IsNot,
                     _ => false,
                 };
             }

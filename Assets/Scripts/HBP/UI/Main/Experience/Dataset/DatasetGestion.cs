@@ -51,7 +51,8 @@ namespace HBP.UI.Main
         }
         public override void Close()
         {
-            LoadingManager.Load(update => RestoreOldValuesAsync(ApplicationState.LoadedProject.Datasets, update), false);
+            if (m_ListGestion.HasBeenModified)
+                LoadingManager.Load(update => RestoreOldValuesAsync(ApplicationState.LoadedProject.Datasets, update), false);
             base.Close();
         }
         #endregion

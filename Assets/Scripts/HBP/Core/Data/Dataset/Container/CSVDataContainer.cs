@@ -71,7 +71,7 @@ namespace HBP.Core.Data.Container
         /// </summary>
         /// <param name="file">Path to the file containing the CSV data</param>
         /// <param name="ID">Unique identifier</param>
-        public CSV(string file, string ID) : base(ID)
+        public CSV(string file, IEnumerable<Error> errors, IEnumerable<Warning> warnings, string ID) : base(errors, warnings, ID)
         {
             File = file;
         }
@@ -79,7 +79,7 @@ namespace HBP.Core.Data.Container
         /// Create a new Nifti data container.
         /// </summary>
         /// <param name="file">Path to the file containing the NIFTI data</param>
-        public CSV(string file) : base()
+        public CSV(string file, IEnumerable<Error> errors, IEnumerable<Warning> warnings) : base(errors, warnings)
         {
             File = file;
         }
@@ -141,13 +141,15 @@ namespace HBP.Core.Data.Container
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new CSV(File, ID);
+            return new CSV(File, Errors, Warnings, ID);
         }
         public override void Copy(object copy)
         {
-            CSV csv = copy as CSV;
-            File = csv.File;
-            ID = csv.ID;
+            base.Copy(copy);
+            if (copy is CSV csv)
+            {
+                File = csv.File;
+            }
         }
         #endregion
 

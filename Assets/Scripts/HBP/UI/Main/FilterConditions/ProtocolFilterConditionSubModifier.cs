@@ -50,7 +50,7 @@ namespace HBP.UI.Main
 
             m_LogicDropdown.onValueChanged.AddListener(OnChangeLogic);
             m_ScopeDropdown.onValueChanged.AddListener(OnChangeScope);
-            m_ScopeDropdown.interactable = Interactable && ApplicationState.LoadedProject != null;
+            m_ScopeDropdown.interactable = ApplicationState.LoadedProject != null;
         }
         #endregion
 

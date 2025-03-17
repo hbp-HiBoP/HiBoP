@@ -188,7 +188,7 @@ namespace HBP.Core.Data.Container
         /// <param name="pos">Path to the POS file.</param>
         /// <param name="notes">Path to the notes file.</param>
         /// <param name="ID">Unique identifier.</param>
-        public Elan(string eeg, string pos, string notes, string ID) : base(ID)
+        public Elan(string eeg, string pos, string notes, IEnumerable<Error> errors, IEnumerable<Warning> warnings, string ID) : base(errors, warnings, ID)
         {
             EEG = eeg;
             POS = pos;
@@ -200,7 +200,7 @@ namespace HBP.Core.Data.Container
         /// <param name="eeg">Path to the EEG file.</param>
         /// <param name="pos">Path to the POS file.</param>
         /// <param name="notes">Path to the notes file.</param>
-        public Elan(string eeg, string pos, string notes) : base()
+        public Elan(string eeg, string pos, string notes, IEnumerable<Error> errors, IEnumerable<Warning> warnings) : base(errors, warnings)
         {
             EEG = eeg;
             POS = pos;
@@ -221,15 +221,17 @@ namespace HBP.Core.Data.Container
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new Elan(EEG, POS, Notes, ID);
+            return new Elan(EEG, POS, Notes, Errors, Warnings, ID);
         }
         public override void Copy(object copy)
         {
-            Elan dataInfo = copy as Elan;
-            EEG = dataInfo.EEG;
-            POS = dataInfo.POS;
-            Notes = dataInfo.Notes;
-            ID = dataInfo.ID;
+            base.Copy(copy);
+            if (copy is Elan elan)
+            {
+                EEG = elan.EEG;
+                POS = elan.POS;
+                Notes = elan.Notes;
+            }
         }
         #endregion
 

@@ -68,8 +68,15 @@ namespace HBP.Core.Data.Container
         /// Create a new DataContainer instance with a specified ID.
         /// </summary>
         /// <param name="ID">Unique identifier</param>
-        public DataContainer(string ID) : base(ID)
+        public DataContainer(IEnumerable<Error> errors, IEnumerable<Warning> warnings, string ID) : base(ID)
         {
+            m_Errors = errors.ToArray();
+            m_Warnings = warnings.ToArray();
+        }
+        public DataContainer(IEnumerable<Error> errors, IEnumerable<Warning> warnings) : base()
+        {
+            m_Errors = errors.ToArray();
+            m_Warnings = warnings.ToArray();
         }
         /// <summary>
         /// Create a new DataContainer instance with default values.
@@ -77,6 +84,18 @@ namespace HBP.Core.Data.Container
         public DataContainer() : base()
         {
 
+        }
+        #endregion
+
+        #region Operators
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+            if (copy is DataContainer dataContainer)
+            {
+                m_Errors = dataContainer.m_Errors;
+                m_Warnings = dataContainer.m_Warnings;
+            }
         }
         #endregion
 

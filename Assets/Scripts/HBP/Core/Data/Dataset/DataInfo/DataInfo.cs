@@ -95,10 +95,10 @@ namespace HBP.Core.Data
         }
 
         [JsonProperty] protected Error[] m_Errors = new Error[0];
-        public ReadOnlyCollection<Error> Errors => new(m_Errors);
+        public ReadOnlyCollection<Error> Errors => new(m_Errors.Concat(m_DataContainer.Errors).ToList());
 
         [JsonProperty] protected Warning[] m_Warnings = new Warning[0];
-        public ReadOnlyCollection<Warning> Warnings => new(m_Warnings);
+        public ReadOnlyCollection<Warning> Warnings => new(m_Warnings.Concat(m_DataContainer.Warnings).ToList());
 
         /// <summary>
         /// True if the dataInfo is visualizable, False otherwise.
@@ -113,10 +113,7 @@ namespace HBP.Core.Data
         public enum DataState { Error, Warning, Ok }
         public DataState State => m_Errors.Length > 0 ? DataState.Error : m_Warnings.Length > 0 ? DataState.Warning : DataState.Ok;
 
-        /// <summary>
-        /// Callback executed when error checking is required.
-        /// </summary>
-        public UnityEvent OnRequestErrorCheck { get; set; } = new UnityEvent();
+        public bool RequireErrorCheck { get; set; } = false;
         #endregion
 
         #region Constructors
@@ -158,10 +155,14 @@ namespace HBP.Core.Data
         #endregion
 
         #region Public Methods
-        public virtual void CheckErrorsAndWarnings()
+        public virtual void CheckErrorsAndWarnings(bool force = false)
         {
-            m_Errors = GetErrors().Distinct().ToArray();
-            m_Warnings = GetWarnings().Distinct().ToArray();
+            if (RequireErrorCheck || force)
+            {
+                m_Errors = GetErrors().Distinct().ToArray();
+                m_Warnings = GetWarnings().Distinct().ToArray();
+                RequireErrorCheck = false;
+            }
         }
         /// <summary>
         /// Get all message errors in a readable form.
@@ -296,8 +297,8 @@ namespace HBP.Core.Data
                                 FileInfo rawPos = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".pos"));
                                 if (rawEEG.Exists && rawPos.Exists)
                                 {
-                                    var dataInfo = new IEEGDataInfo("raw", protocol, new Container.Elan(rawEEG.FullName, rawPos.FullName, ""), new Error[0], new Warning[0], patient, NormalizationType.Auto, "");
-                                    dataInfo.CheckErrorsAndWarnings();
+                                    var dataInfo = new IEEGDataInfo("raw", protocol, new Container.Elan(rawEEG.FullName, rawPos.FullName, "", new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, "");
+                                    dataInfo.CheckErrorsAndWarnings(true);
                                     dataInfoList.Add(dataInfo);
                                 }
 
@@ -317,8 +318,8 @@ namespace HBP.Core.Data
                                                 FileInfo eeg = new FileInfo(Path.Combine(subdir.FullName, string.Format("{0}_{1}", subdir.Name, freq), string.Format("{0}_{1}_{2}_{3}.eeg", subdir.Name, freq, ds, ts)));
                                                 if (eeg.Exists)
                                                 {
-                                                    var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", freq, ts), protocol, new Container.Elan(eeg.FullName, posDS.FullName, ""), new Error[0], new Warning[0], patient, NormalizationType.Auto, "");
-                                                    dataInfo.CheckErrorsAndWarnings();
+                                                    var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", freq, ts), protocol, new Container.Elan(eeg.FullName, posDS.FullName, "", new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, "");
+                                                    dataInfo.CheckErrorsAndWarnings(true);
                                                     dataInfoList.Add(dataInfo);
                                                 }
                                             }
@@ -368,8 +369,8 @@ namespace HBP.Core.Data
                         {
                             string acq = string.IsNullOrEmpty(match.Groups[7].Value) ? "raw" : match.Groups[7].Value;
                             string run = string.IsNullOrEmpty(match.Groups[9].Value) ? "" : "-" + match.Groups[9].Value;
-                            var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", acq, run), protocol, new Container.BrainVision(file.FullName), new Error[0], new Warning[0], patient, NormalizationType.Auto, "");
-                            dataInfo.CheckErrorsAndWarnings();
+                            var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", acq, run), protocol, new Container.BrainVision(file.FullName, new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, "");
+                            dataInfo.CheckErrorsAndWarnings(true);
                             dataInfoList.Add(dataInfo);
                         }
                     }
@@ -392,8 +393,8 @@ namespace HBP.Core.Data
                         {
                             string acq = string.IsNullOrEmpty(match.Groups[4].Value) ? "raw" : match.Groups[4].Value;
                             string run = string.IsNullOrEmpty(match.Groups[5].Value) ? "" : "-" + match.Groups[5].Value;
-                            var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", acq, run), protocol, new Container.EDF(file.FullName), new Error[0], new Warning[0], patient, NormalizationType.Auto, "");
-                            dataInfo.CheckErrorsAndWarnings();
+                            var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", acq, run), protocol, new Container.EDF(file.FullName, new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, "");
+                            dataInfo.CheckErrorsAndWarnings(true);
                             dataInfoList.Add(dataInfo);
                         }
                     }

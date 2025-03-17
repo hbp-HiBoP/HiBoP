@@ -45,20 +45,28 @@ namespace HBP.UI.Tools
                 ApplicationState.LoadedProjectLocation = projectLoadedLocation;
             }
         }
-        public static void Save(string path)
+        public async static UniTaskVoid Save(string path)
+        {
+            await SaveAsync(path);
+        }
+        public async static UniTaskVoid Save()
+        {
+            await SaveAsync();
+        }
+        public async static UniTaskVoid SaveAndReload()
+        {
+            await SaveAsync();
+            InteractableStateManager.SetInteractables();
+        }
+        public async static UniTask SaveAsync()
+        {
+            await SaveAsync(ApplicationState.LoadedProjectLocation);
+        }
+        public async static UniTask SaveAsync(string path)
         {
             Module3DMain.SaveConfigurations();
             ApplicationState.LoadedProjectLocation = path;
-            LoadingManager.Load((update, token) => ApplicationState.LoadedProject.SaveAsync(path, update, token));
-        }
-        public static void Save()
-        {
-            Save(ApplicationState.LoadedProjectLocation);
-        }
-        public static void SaveAndReload()
-        {
-            Save();
-            InteractableStateManager.SetInteractables();
+            await LoadingManager.LoadAsync((update, token) => ApplicationState.LoadedProject.SaveAsync(path, update, token));
         }
         #endregion
     }

@@ -98,7 +98,7 @@ namespace HBP.Core.Data.Container
         /// </summary>
         /// <param name="trc"></param>
         /// <param name="ID"></param>
-        public Micromed(string trc, string ID) : base(ID)
+        public Micromed(string trc, IEnumerable<Error> errors, IEnumerable<Warning> warnings, string ID) : base(errors, warnings, ID)
         {
             Path = trc;
         }
@@ -106,14 +106,14 @@ namespace HBP.Core.Data.Container
         /// 
         /// </summary>
         /// <param name="trc"></param>
-        public Micromed(string trc) : base()
+        public Micromed(string trc, IEnumerable<Error> errors, IEnumerable<Warning> warnings) : base(errors, warnings)
         {
             Path = trc;
         }
         /// <summary>
         /// 
         /// </summary>
-        public Micromed() : this(string.Empty, Guid.NewGuid().ToString())
+        public Micromed() : base()
         {
         }
         #endregion
@@ -125,12 +125,12 @@ namespace HBP.Core.Data.Container
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new Micromed(Path, ID);
+            return new Micromed(Path, Errors, Warnings, ID);
         }
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            if(copy is Micromed micromed)
+            if (copy is Micromed micromed)
             {
                 Path = micromed.Path;
             }

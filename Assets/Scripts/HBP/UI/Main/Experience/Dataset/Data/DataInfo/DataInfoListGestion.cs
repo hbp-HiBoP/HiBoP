@@ -40,7 +40,7 @@ namespace HBP.UI.Main
         #region Protected Methods
         protected override void OnSaveModifier(Core.Data.DataInfo obj)
         {
-            obj.CheckErrorsAndWarnings();
+            obj.CheckErrorsAndWarnings(true);
             RenameObject(obj);
             if (!List.Objects.Contains(obj))
             {
