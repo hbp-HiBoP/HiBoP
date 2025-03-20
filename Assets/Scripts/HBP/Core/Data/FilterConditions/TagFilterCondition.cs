@@ -1,3 +1,4 @@
+using HBP.Data.Preferences;
 using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Linq;
@@ -36,10 +37,12 @@ namespace HBP.Core.Data
         }
 
         public enum TargetType { Patient, Site }
-        public TargetType Target { get; set; }
+        [JsonProperty("Target")] public TargetType Target { get; set; }
 
+        [JsonProperty("Tag")] private string m_TagID = "";
         public BaseTag Tag { get; set; }
-        public TagFilterValue Value { get; set; }
+
+        [JsonProperty("Value")] public TagFilterValue Value { get; set; }
         #endregion
 
         #region Constructors
@@ -63,7 +66,7 @@ namespace HBP.Core.Data
         #region Operators
         public override object Clone()
         {
-            return new TagFilterCondition(Target, Tag, Value, IsNot, ID);
+            return new TagFilterCondition(Target, Tag, Value.Clone() as TagFilterValue, IsNot, ID);
         }
         public override void Copy(object copy)
         {
@@ -110,6 +113,19 @@ namespace HBP.Core.Data
             return false;
         }
         #endregion
+
+        #region Serialization
+        protected override void OnDeserialized()
+        {
+            base.OnDeserialized();
+            Tag = PersistentDataManager.Tags.AllTags.FirstOrDefault(t => t.ID == m_TagID);
+        }
+        protected override void OnSerializing()
+        {
+            base.OnSerializing();
+            m_TagID = Tag.ID;
+        }
+        #endregion
     }
 
     [JsonObject(MemberSerialization.OptIn)]
@@ -142,7 +158,7 @@ namespace HBP.Core.Data
     [JsonObject(MemberSerialization.OptIn)]
     public class BoolTagFilterValue : TagFilterValue
     {
-        [JsonProperty] public bool Value { get; set; }
+        [JsonProperty("Value")] public bool Value { get; set; }
 
         public override bool Compare(object value)
         {
@@ -170,9 +186,9 @@ namespace HBP.Core.Data
     [JsonObject(MemberSerialization.OptIn)]
     public class StringTagFilterValue : TagFilterValue
     {
-        [JsonProperty] public string Value { get; set; }
-        [JsonProperty] public bool ExactMatch { get; set; }
-        [JsonProperty] public bool CaseSensitive { get; set; }
+        [JsonProperty("Value")] public string Value { get; set; }
+        [JsonProperty("ExactMatch")] public bool ExactMatch { get; set; }
+        [JsonProperty("CaseSensitive")] public bool CaseSensitive { get; set; }
 
         public override bool Compare(object value)
         {
@@ -218,10 +234,10 @@ namespace HBP.Core.Data
     public class NumberTagFilterValue : TagFilterValue
     {
         public enum ComparisonType { Equal, Greater, GreaterOrEqual, Lower, LowerOrEqual, Range }
-        [JsonProperty] public ComparisonType Type { get; set; }
-        [JsonProperty] public float Value { get; set; }
-        [JsonProperty] public float Min { get; set; }
-        [JsonProperty] public float Max { get; set; }
+        [JsonProperty("Type")] public ComparisonType Type { get; set; }
+        [JsonProperty("Value")] public float Value { get; set; }
+        [JsonProperty("Min")] public float Min { get; set; }
+        [JsonProperty("Max")] public float Max { get; set; }
 
         public override bool Compare(object value)
         {
@@ -348,7 +364,7 @@ namespace HBP.Core.Data
     [JsonObject(MemberSerialization.OptIn)]
     public class EnumTagFilterValue : TagFilterValue
     {
-        [JsonProperty] public int Value { get; set; }
+        [JsonProperty("Value")] public int Value { get; set; }
 
         public override bool Compare(object value)
         {

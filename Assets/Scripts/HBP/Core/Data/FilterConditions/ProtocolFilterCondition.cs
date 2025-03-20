@@ -56,13 +56,13 @@ namespace HBP.Core.Data
                 return $"{prefix} {formattedProtocols} {scopeText}";
             }
         }
-        public List<Protocol> Protocols { get; set; }
+        [JsonProperty("Protocols")] public List<Protocol> Protocols { get; set; }
 
         public enum CheckScope { Database, CurrentProject }
-        public CheckScope Scope { get; set; }
+        [JsonProperty("Scope")] public CheckScope Scope { get; set; }
 
         public enum CheckLogic { All, Any }
-        public CheckLogic Logic { get; set; }
+        [JsonProperty("Logic")] public CheckLogic Logic { get; set; }
         #endregion
 
         #region Constructors

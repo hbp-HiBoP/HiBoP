@@ -10,9 +10,9 @@ namespace HBP.Core.Data
         #region Properties
         public override string Description => $"The name {(IsNot ? (ExactMatch ? "is not exactly" : "does not contain") : (ExactMatch ? "is exactly" : "contains"))} \"{Name}\" (case {(CaseSensitive ? "sensitive" : "insensitive")})";
 
-        public string Name { get; set; }
-        public bool ExactMatch { get; set; }
-        public bool CaseSensitive { get; set; }
+        [JsonProperty("Name")] public string Name { get; set; }
+        [JsonProperty("ExactMatch")] public bool ExactMatch { get; set; }
+        [JsonProperty("CaseSensitive")] public bool CaseSensitive { get; set; }
         #endregion
 
         #region Constructors

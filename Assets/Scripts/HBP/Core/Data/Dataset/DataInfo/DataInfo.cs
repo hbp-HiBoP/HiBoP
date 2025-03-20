@@ -248,7 +248,7 @@ namespace HBP.Core.Data
             }
             return result;
         }
-        public static void LoadFromLocalizersDatabase(string path, out DataInfo[] dataInfos, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        public static void LoadFromLocalizersDatabase(string path, string[] frequencies, string[] temporalSmoothings, out DataInfo[] dataInfos, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             updateProgress?.Invoke(0, 0, new LoadingText("Finding data to load"));
             dataInfos = new DataInfo[0];
@@ -308,9 +308,6 @@ namespace HBP.Core.Data
                                     FileInfo posDS = new FileInfo(Path.Combine(subdir.FullName, string.Format("{0}_{1}.pos", subdir.Name, ds)));
                                     if (posDS.Exists)
                                     {
-                                        // Maybe TODO : parameters (specific UI or user preferences)
-                                        string[] frequencies = new string[] { "f8f24", "f50f150" };
-                                        string[] temporalSmoothings = new string[] { "sm0", "sm250", "sm500", "sm1000", "sm2500", "sm5000" };
                                         foreach (var freq in frequencies)
                                         {
                                             foreach (var ts in temporalSmoothings)

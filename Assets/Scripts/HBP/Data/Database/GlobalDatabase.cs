@@ -303,7 +303,8 @@ namespace HBP.Data.Database
                 foreach (var localizerDatabaseReference in localizerDatabaseReferences)
                 {
                     token.ThrowIfCancellationRequested();
-                    DataInfo.LoadFromLocalizersDatabase(localizerDatabaseReference.Path, out DataInfo[] dataInfos, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
+                    LocalizerDatabaseParameters parameters = localizerDatabaseReference.Parameters as LocalizerDatabaseParameters;
+                    DataInfo.LoadFromLocalizersDatabase(localizerDatabaseReference.Path, parameters.Frequencies, parameters.TemporalSmoothings, out DataInfo[] dataInfos, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
                     foreach (var dataInfo in dataInfos) dataInfo.CorrespondingDatabaseID = localizerDatabaseReference.ID;
                     // TODO: Warn that dataInfos will be deleted / overwritten
                     m_DataInfos.RemoveAll(d => dataInfos.Contains(d) || d.CorrespondingDatabaseID == localizerDatabaseReference.ID);

@@ -50,7 +50,7 @@ namespace HBP.Core.Data
                     : $"The date {(IsNot ? "is not" : "is")} {formattedDates}";
             }
         }
-        public List<int> Dates { get; set; }
+        [JsonProperty("Dates")] public List<int> Dates { get; set; }
         #endregion
 
         #region Constructors
@@ -81,7 +81,6 @@ namespace HBP.Core.Data
             }
         }
         #endregion
-
 
         #region Public Methods
         public override bool Check(BaseData obj)

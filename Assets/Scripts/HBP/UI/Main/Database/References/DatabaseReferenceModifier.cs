@@ -1,5 +1,7 @@
+using HBP.Core.Tools;
 using HBP.Data.Database;
 using HBP.UI.Tools;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -27,6 +29,14 @@ namespace HBP.UI.Database
                 m_FolderSelector.interactable = value;
             }
         }
+
+        [SerializeField] BrainvisaDatabaseParametersSubModifier m_BrainvisaDatabaseParametersSubModifier;
+        [SerializeField] LocalizerDatabaseParametersSubModifier m_LocalizerDatabaseParametersSubModifier;
+        [SerializeField] BIDSDatabaseParametersSubModifier m_BIDSDatabaseParametersSubModifier;
+        [SerializeField] TagsDatabaseParametersSubModifier m_TagsDatabaseParametersSubModifier;
+
+        Dictionary<DatabaseType, BaseSubModifier> m_SubModifiers;
+        Dictionary<DatabaseType, DatabaseReferenceParameters> m_ParametersTemp;
         #endregion
 
         #region Private Methods
@@ -34,21 +44,40 @@ namespace HBP.UI.Database
         {
             base.Initialize();
 
-            m_NameInputField.onEndEdit.AddListener(ChangeName);
-            m_TypeDropdown.options = (from name in System.Enum.GetNames(typeof(DatabaseType)) select new Dropdown.OptionData(name, null)).ToList();
-            m_TypeDropdown.onValueChanged.AddListener((value) => { ObjectTemp.Type = (DatabaseType)value; });
-            m_FolderSelector.onValueChanged.AddListener(ChangePath);
+            m_NameInputField.onEndEdit.AddListener(OnChangeName);
+            m_TypeDropdown.onValueChanged.AddListener(OnChangeType);
+            m_FolderSelector.onValueChanged.AddListener(OnChangePath);
+
+            m_BrainvisaDatabaseParametersSubModifier.Initialize();
+            m_LocalizerDatabaseParametersSubModifier.Initialize();
+            m_BIDSDatabaseParametersSubModifier.Initialize();
+            m_TagsDatabaseParametersSubModifier.Initialize();
+
+            m_SubModifiers = new Dictionary<DatabaseType, BaseSubModifier>
+            {
+                { DatabaseType.Brainvisa, m_BrainvisaDatabaseParametersSubModifier },
+                { DatabaseType.Localizer, m_LocalizerDatabaseParametersSubModifier },
+                { DatabaseType.BIDS, m_BIDSDatabaseParametersSubModifier },
+                { DatabaseType.Tags, m_TagsDatabaseParametersSubModifier }
+            };
+
+            m_ParametersTemp = new Dictionary<DatabaseType, DatabaseReferenceParameters>
+            {
+                { DatabaseType.Brainvisa, new BrainvisaDatabaseParameters() },
+                { DatabaseType.Localizer, new LocalizerDatabaseParameters() },
+                { DatabaseType.BIDS, new BIDSDatabaseParameters() },
+                { DatabaseType.Tags, new TagsDatabaseParameters() }
+            };
         }
         protected override void SetFields(DatabaseReference objectToModify)
         {
             base.SetFields();
 
             m_NameInputField.text = objectToModify.Name;
-            m_TypeDropdown.value = (int)objectToModify.Type;
-            m_TypeDropdown.RefreshShownValue();
+            m_TypeDropdown.Set(typeof(DatabaseType), (int)objectToModify.Type);
             m_FolderSelector.Folder = objectToModify.Path;
         }
-        protected void ChangeName(string value)
+        protected void OnChangeName(string value)
         {
             if (value != "")
             {
@@ -59,9 +88,24 @@ namespace HBP.UI.Database
                 m_NameInputField.text = ObjectTemp.Name;
             }
         }
-        protected void ChangePath(string value)
+        protected void OnChangePath(string value)
         {
             ObjectTemp.Path = value;
+        }
+        protected void OnChangeType(int value)
+        {
+            ObjectTemp.Type = (DatabaseType)value;
+
+            foreach (var sm in m_SubModifiers.Values)
+                sm.IsActive = false;
+
+            DatabaseReferenceParameters parameters = m_ParametersTemp[ObjectTemp.Type];
+            parameters.Copy(ObjectTemp.Parameters);
+            ObjectTemp.Parameters = parameters;
+
+            BaseSubModifier subModifier = m_SubModifiers[ObjectTemp.Type];
+            subModifier.IsActive = true;
+            subModifier.Object = ObjectTemp.Parameters;
         }
         #endregion
     }

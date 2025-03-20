@@ -12,25 +12,26 @@ namespace HBP.Data.Database
         [JsonProperty("Name")] public string Name { get; set; }
         [JsonProperty("Type")] public DatabaseType Type { get; set; }
         [JsonProperty("Path")] public string Path { get; set; }
-        [JsonProperty("LastUpdated")] public DateTime LastUpdated { get; set; }
+        [JsonProperty("Parameters")] public DatabaseReferenceParameters Parameters { get; set; }
+        [JsonProperty("LastUpdated")] public DateTime LastUpdated { get; set; } = DateTime.MinValue;
         #endregion
 
         #region Constructors
-        public DatabaseReference(string name, DatabaseType type, string path, DateTime lastUpdated, string ID) : base(ID)
+        public DatabaseReference(string name, DatabaseType type, string path, DatabaseReferenceParameters parameters, string ID) : base(ID)
         {
             Name = name;
             Type = type;
             Path = path;
-            LastUpdated = lastUpdated;
+            Parameters = parameters;
         }
-        public DatabaseReference(string name, DatabaseType type, string path, DateTime lastUpdated) : base()
+        public DatabaseReference(string name, DatabaseType type, string path, DatabaseReferenceParameters parameters) : base()
         {
             Name = name;
             Type = type;
             Path = path;
-            LastUpdated = lastUpdated;
+            Parameters = parameters;
         }
-        public DatabaseReference() : this("New Database", DatabaseType.Brainvisa, "", DateTime.MinValue)
+        public DatabaseReference() : this("New Database", DatabaseType.Brainvisa, "", null)
         {
         }
         #endregion
@@ -38,7 +39,7 @@ namespace HBP.Data.Database
         #region Public Methods
         public override object Clone()
         {
-            return new DatabaseReference(Name, Type, Path, LastUpdated, ID);
+            return new DatabaseReference(Name, Type, Path, Parameters?.Clone() as DatabaseReferenceParameters, ID);
         }
         public override void Copy(object copy)
         {
@@ -48,9 +49,76 @@ namespace HBP.Data.Database
                 Name = databaseReference.Name;
                 Type = databaseReference.Type;
                 Path = databaseReference.Path;
+                Parameters = databaseReference.Parameters;
                 LastUpdated = databaseReference.LastUpdated;
             }
         }
         #endregion
+    }
+
+    [JsonObject(MemberSerialization.OptIn)]
+    public abstract class DatabaseReferenceParameters : BaseData
+    {
+
+    }
+
+    [JsonObject(MemberSerialization.OptIn)]
+    public class BrainvisaDatabaseParameters : DatabaseReferenceParameters
+    {
+        public override object Clone()
+        {
+            return new BrainvisaDatabaseParameters();
+        }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+        }
+    }
+
+    [JsonObject(MemberSerialization.OptIn)]
+    public class LocalizerDatabaseParameters : DatabaseReferenceParameters
+    {
+        [JsonProperty] public string[] Frequencies { get; set; } = new string[] { "f8f24", "f50f150" };
+        [JsonProperty] public string[] TemporalSmoothings { get; set; } = new string[] { "sm0", "sm250", "sm500", "sm1000", "sm2500", "sm5000" };
+
+        public override object Clone()
+        {
+            return new LocalizerDatabaseParameters() { Frequencies = Frequencies, TemporalSmoothings = TemporalSmoothings };
+        }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+            if (copy is LocalizerDatabaseParameters localizerDatabaseParameters)
+            {
+                Frequencies = localizerDatabaseParameters.Frequencies;
+                TemporalSmoothings = localizerDatabaseParameters.TemporalSmoothings;
+            }
+        }
+    }
+
+    [JsonObject(MemberSerialization.OptIn)]
+    public class BIDSDatabaseParameters : DatabaseReferenceParameters
+    {
+        public override object Clone()
+        {
+            return new BIDSDatabaseParameters();
+        }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+        }
+    }
+
+    [JsonObject(MemberSerialization.OptIn)]
+    public class TagsDatabaseParameters : DatabaseReferenceParameters
+    {
+        public override object Clone()
+        {
+            return new TagsDatabaseParameters();
+        }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+        }
     }
 }

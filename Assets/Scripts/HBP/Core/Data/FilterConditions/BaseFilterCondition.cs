@@ -8,7 +8,7 @@ namespace HBP.Core.Data
         #region Properties
         public virtual string Description => "";
 
-        public bool IsNot { get; set; }
+        [JsonProperty("IsNot")] public bool IsNot { get; set; }
         #endregion
 
         #region Constructors

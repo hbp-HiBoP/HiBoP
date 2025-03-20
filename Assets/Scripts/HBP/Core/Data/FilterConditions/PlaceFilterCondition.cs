@@ -51,7 +51,7 @@ namespace HBP.Core.Data
             }
         }
 
-        public List<string> Places { get; set; } = new();
+        [JsonProperty("Places")] public List<string> Places { get; set; } = new();
         #endregion
 
         #region Constructors
