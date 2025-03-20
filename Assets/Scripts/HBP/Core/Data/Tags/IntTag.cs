@@ -116,6 +116,14 @@ namespace HBP.Core.Data
                 Max = (int) floatTag.Max;
             }
         }
+        public override BaseTagValue CreateValue(string value)
+        {
+            if (int.TryParse(value, out int result))
+            {
+                return new IntTagValue(this, result);
+            }
+            return null;
+        }
         #endregion
     }
 }

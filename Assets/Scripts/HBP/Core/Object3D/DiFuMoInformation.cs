@@ -54,7 +54,7 @@ namespace HBP.Core.Object3D
         {
             await UniTask.SwitchToThreadPool();
             Loading = true;
-            Regex csvParser = new Regex(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
+            Regex csvParser = new(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
             if (new FileInfo(csvFile).Exists)
             {
                 using (StreamReader sr = new StreamReader(csvFile))

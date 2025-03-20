@@ -625,6 +625,7 @@ namespace HBP.Core.Data
                         tagValue.UpdateValue();
                     }
                 }
+                // FIXME : also update site tags
             }));
             await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Checking patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
         }

@@ -87,8 +87,8 @@ namespace HBP.UI.Main
             Object.Target = (TagFilterCondition.TargetType)value;
             m_Tags = Object.Target switch
             {
-                TagFilterCondition.TargetType.Patient => PersistentDataManager.Tags.GeneralTags.Concat(PersistentDataManager.Tags.PatientsTags).ToList(),
-                TagFilterCondition.TargetType.Site => PersistentDataManager.Tags.GeneralTags.Concat(PersistentDataManager.Tags.SitesTags).ToList(),
+                TagFilterCondition.TargetType.Patient => PersistentDataManager.Tags.PatientsTags.Concat(PersistentDataManager.Tags.GeneralTags).ToList(),
+                TagFilterCondition.TargetType.Site => PersistentDataManager.Tags.SitesTags.Concat(PersistentDataManager.Tags.GeneralTags).ToList(),
                 _ => PersistentDataManager.Tags.GeneralTags.ToList(),
             };
             m_TagDropdown.options = m_Tags.Select(t => new Dropdown.OptionData(t.Name)).ToList();

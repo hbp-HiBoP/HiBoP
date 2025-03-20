@@ -236,7 +236,7 @@ namespace HBP.Core.Data
                 int.TryParse(directoryNameParts[1], out int date);
                 string name = directoryNameParts[2];
                 string place = directoryNameParts[0];
-                IEnumerable<BaseTag> tags = PersistentDataManager.Tags.GeneralTags.Concat(PersistentDataManager.Tags.PatientsTags);
+                IEnumerable<BaseTag> tags = PersistentDataManager.Tags.PatientsTags.Concat(PersistentDataManager.Tags.GeneralTags);
                 IntTag dateTag = tags.OfType<IntTag>().FirstOrDefault(t => t.Name == "Date");
                 if (dateTag == null)
                 {
@@ -283,12 +283,12 @@ namespace HBP.Core.Data
         /// <param name="path">The specified path of the intranat database.</param>
         /// <param name="patients">Patients loaded in the database.</param>
         /// <returns></returns>
-        public static void LoadFromIntranatDatabase(string path, out Patient[] patients, Action<float, float, LoadingText> OnChangeProgress, CancellationToken token)
+        public static void LoadFromIntranatDatabase(DatabaseReference databaseReference, out Patient[] patients, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
-            OnChangeProgress?.Invoke(0, 0, new LoadingText("Finding patients to load"));
+            updateProgress?.Invoke(0, 0, new LoadingText("Finding patients to load"));
             patients = new Patient[0];
-            if (string.IsNullOrEmpty(path)) return;
-            DirectoryInfo directory = new DirectoryInfo(path);
+            if (string.IsNullOrEmpty(databaseReference.Path)) return;
+            DirectoryInfo directory = new DirectoryInfo(databaseReference.Path);
             if (!directory.Exists) return;
             
             IEnumerable<DirectoryInfo> patientDirectories = directory.GetDirectories().Where(d => IsPatientDirectory(d.FullName));
@@ -298,14 +298,15 @@ namespace HBP.Core.Data
             foreach (var dir in patientDirectories)
             {
                 token.ThrowIfCancellationRequested();
-                OnChangeProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading patient ", dir.Name, " [" + (progress + 1) + "/" + length + "]"));
+                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading patient ", dir.Name, " [" + (progress + 1) + "/" + length + "]"));
                 if (LoadFromDirectory(dir.FullName, out Patient patient))
                 {
+                    patient.CorrespondingDatabaseID = databaseReference.ID;
                     patientsList.Add(patient);
                 }
             }
             patients = patientsList.ToArray();
-            OnChangeProgress?.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
+            updateProgress?.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
         }
         /// <summary>
         /// Loads patients from BIDS database.
@@ -313,15 +314,15 @@ namespace HBP.Core.Data
         /// <param name="path">The specified path of the BIDS database.</param>
         /// <param name="patients"></param>
         /// <returns></returns>
-        public static void LoadFromBIDSDatabase(string path, out Patient[] patients, Action<float, float, LoadingText> OnChangeProgress, CancellationToken token)
+        public static void LoadFromBIDSDatabase(DatabaseReference databaseReference, out Patient[] patients, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             patients = new Patient[0];
-            if (string.IsNullOrEmpty(path)) return;
-            DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(path);
+            if (string.IsNullOrEmpty(databaseReference.Path)) return;
+            DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(databaseReference.Path);
             if (!databaseDirectoryInfo.Exists) return;
 
             // Read participants.tsv.
-            OnChangeProgress?.Invoke(0, 0, new LoadingText("Reading participants.tsv file"));
+            updateProgress?.Invoke(0, 0, new LoadingText("Reading participants.tsv file"));
             FileInfo participantsFileInfo = new FileInfo(Path.Combine(databaseDirectoryInfo.FullName, "participants.tsv"));
             Dictionary<string, Dictionary<string, string>> tagValuesBySubjectID = new Dictionary<string, Dictionary<string, string>>();
             using (StreamReader streamReader = new StreamReader(participantsFileInfo.FullName))
@@ -339,7 +340,7 @@ namespace HBP.Core.Data
                         {
                             valueByTag.Add(tags[t], values[t]);
                         }
-                        tagValuesBySubjectID.Add(values[0].Substring(4), valueByTag);
+                        tagValuesBySubjectID.Add(values[0][4..], valueByTag);
                     }
                 }
             }
@@ -446,7 +447,7 @@ namespace HBP.Core.Data
             foreach (var pair in tagValuesBySubjectID)
             {
                 token.ThrowIfCancellationRequested();
-                OnChangeProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading patient ", pair.Key, " [" + (progress + 1) + "/" + length + "]"));
+                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading patient ", pair.Key, " [" + (progress + 1) + "/" + length + "]"));
 
                 // Meshes.
                 List<BaseMesh> meshes = new List<BaseMesh>();
@@ -530,43 +531,7 @@ namespace HBP.Core.Data
                         BaseTag tag = projectTags.FirstOrDefault(t => t.Name == subjectTag.Key);
                         if (tag != null)
                         {
-                            BaseTagValue tagValue = null;
-                            if (tag is EmptyTag emptyTag)
-                            {
-                                tagValue = new EmptyTagValue(emptyTag);
-                            }
-                            else if (tag is BoolTag boolTag)
-                            {
-                                if (bool.TryParse(subjectTag.Value, out bool result))
-                                {
-                                    tagValue = new BoolTagValue(boolTag, result);
-                                }
-                            }
-                            else if (tag is EnumTag enumTag)
-                            {
-                                tagValue = new EnumTagValue(enumTag, subjectTag.Value);
-                            }
-                            else if (tag is FloatTag floatTag)
-                            {
-                                if (NumberExtension.TryParseFloat(subjectTag.Value, out float result))
-                                {
-                                    tagValue = new FloatTagValue(floatTag, result);
-                                }
-                            }
-                            else if (tag is IntTag intTag)
-                            {
-                                if (int.TryParse(subjectTag.Value, out int result))
-                                {
-                                    tagValue = new IntTagValue(intTag, result);
-                                }
-                            }
-                            else if (tag is StringTag stringTag)
-                            {
-                                if (!string.IsNullOrEmpty(subjectTag.Value))
-                                {
-                                    tagValue = new StringTagValue(stringTag, subjectTag.Value);
-                                }
-                            }
+                            var tagValue = tag.CreateValue(subjectTag.Value);
                             if (tagValue != null)
                             {
                                 tags.Add(tagValue);
@@ -576,11 +541,75 @@ namespace HBP.Core.Data
                 }
 
                 // Create patient.
-                Patient patient = new Patient(pair.Key, "", 0, meshes, mris, sites, tags, "");
+                Patient patient = new Patient(pair.Key, "Unknown", 0, meshes, mris, sites, tags, databaseReference.ID, pair.Key);
                 patientsList.Add(patient);
             }
             patients = patientsList.ToArray();
-            OnChangeProgress?.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
+            updateProgress?.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
+        }
+        public static void LoadAdditionalTagsFromTagsDatabase(DatabaseReference databaseReference, ref List<Patient> patients, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        {
+            if (string.IsNullOrEmpty(databaseReference.Path)) return;
+            DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(databaseReference.Path);
+            if (!databaseDirectoryInfo.Exists) return;
+
+            // Read patients.csv
+            FileInfo patientsFileInfo = new FileInfo(Path.Combine(databaseDirectoryInfo.FullName, "patients.csv"));
+            if (patientsFileInfo.Exists)
+            {
+                var tagValuesByPatient = PersistentDataManager.Tags.GeneratePatientTagsFromCSV(patientsFileInfo.FullName);
+                foreach (var kv in tagValuesByPatient)
+                {
+                    var patient = patients.FirstOrDefault(p => p.ID == kv.Key);
+                    if (patient != null)
+                    {
+                        foreach (var tagValue in kv.Value)
+                        {
+                            var existingTagValue = patient.Tags.FirstOrDefault(t => t.Tag.Name == tagValue.Tag.Name);
+                            if (existingTagValue != null)
+                            {
+                                existingTagValue.Copy(tagValue);
+                            }
+                            else
+                            {
+                                patient.Tags.Add(tagValue);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Read all patients csv files
+            FileInfo[] patientsFiles = databaseDirectoryInfo.GetFiles("*.csv", SearchOption.AllDirectories);
+            foreach (var file in patientsFiles)
+            {
+                token.ThrowIfCancellationRequested();
+                if (file.Name == "patients.csv") continue;
+                var tagValuesBySite = PersistentDataManager.Tags.GenerateSiteTagsFromCSV(file.FullName);
+                var patient = patients.FirstOrDefault(p => p.ID == Path.GetFileNameWithoutExtension(file.Name));
+                if (patient != null)
+                {
+                    foreach (var kv in tagValuesBySite)
+                    {
+                        var site = patient.Sites.FirstOrDefault(s => s.Name == kv.Key);
+                        if (site != null)
+                        {
+                            foreach (var tagValue in kv.Value)
+                            {
+                                var existingTagValue = site.Tags.FirstOrDefault(t => t.Tag.Name == tagValue.Tag.Name);
+                                if (existingTagValue != null)
+                                {
+                                    existingTagValue.Copy(tagValue);
+                                }
+                                else
+                                {
+                                    site.Tags.Add(tagValue);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
         /// <summary>
         /// Coroutine to load patients from database. Implementation of ILoadableFromDatabase.

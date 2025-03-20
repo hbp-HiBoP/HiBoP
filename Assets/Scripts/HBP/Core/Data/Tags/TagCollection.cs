@@ -1,9 +1,11 @@
 using HBP.Core.Tools;
+using HBP.Data.Preferences;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -19,9 +21,9 @@ namespace HBP.Core.Data
             get
             {
                 List<BaseTag> tags = new List<BaseTag>();
-                tags.AddRange(GeneralTags);
                 tags.AddRange(PatientsTags);
                 tags.AddRange(SitesTags);
+                tags.AddRange(GeneralTags);
                 return new ReadOnlyCollection<BaseTag>(tags);
             }
         }
@@ -154,6 +156,110 @@ namespace HBP.Core.Data
         {
             m_SitesTags = tags.ToList();
             if (autoSave) Save();
+        }
+        public Dictionary<string, List<BaseTagValue>> GeneratePatientTagsFromCSV(string csvPath)
+        {
+            Regex csvParser = new(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
+            Dictionary<string, List<BaseTagValue>> resultTags = new Dictionary<string, List<BaseTagValue>>();
+            if (File.Exists(csvPath))
+            {
+                string[] lines = File.ReadAllLines(csvPath);
+                if (lines.Length > 0)
+                {
+                    string[] headers = csvParser.Split(lines[0]);
+                    BaseTag[] tags = new BaseTag[headers.Length - 1];
+                    for (int i = 1; i < headers.Length; i++)
+                    {
+                        string tagName = headers[i];
+                        BaseTag tag = m_PatientsTags.Concat(m_GeneralTags).FirstOrDefault(t => t.Name == tagName);
+                        if (tag == null)
+                        {
+                            tag = new StringTag(tagName);
+                            PersistentDataManager.Tags.AddPatientTag(tag);
+                        }
+                        tags[i - 1] = tag;
+                    }
+                    for (int i = 1; i < lines.Length; i++)
+                    {
+                        string[] values = csvParser.Split(lines[i]);
+                        string name = values.Length > 0 ? values[0] : "";
+                        List<BaseTagValue> tagValues = new List<BaseTagValue>();
+                        for (int j = 1; j < values.Length; j++)
+                        {
+                            BaseTag tag = tags[j - 1];
+                            if (tag != null)
+                            {
+                                var tagValue = tag.CreateValue(values[j]);
+                                if (tagValue != null)
+                                {
+                                    tagValues.Add(tagValue);
+                                }
+                            }
+                        }
+                        if (!resultTags.ContainsKey(name))
+                        {
+                            resultTags.Add(name, tagValues);
+                        }
+                        else
+                        {
+                            resultTags[name] = tagValues;
+                        }
+                    }
+                }
+            }
+            return resultTags;
+        }
+        public Dictionary<string, List<BaseTagValue>> GenerateSiteTagsFromCSV(string csvPath)
+        {
+            Regex csvParser = new(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
+            Dictionary<string, List<BaseTagValue>> resultTags = new Dictionary<string, List<BaseTagValue>>();
+            if (File.Exists(csvPath))
+            {
+                string[] lines = File.ReadAllLines(csvPath);
+                if (lines.Length > 0)
+                {
+                    string[] headers = csvParser.Split(lines[0]);
+                    BaseTag[] tags = new BaseTag[headers.Length - 1];
+                    for (int i = 1; i < headers.Length; i++)
+                    {
+                        string tagName = headers[i];
+                        BaseTag tag = m_SitesTags.Concat(m_GeneralTags).FirstOrDefault(t => t.Name == tagName);
+                        if (tag == null)
+                        {
+                            tag = new StringTag(tagName);
+                            PersistentDataManager.Tags.AddSiteTag(tag);
+                        }
+                        tags[i - 1] = tag;
+                    }
+                    for (int i = 1; i < lines.Length; i++)
+                    {
+                        string[] values = csvParser.Split(lines[i]);
+                        string name = values.Length > 0 ? values[0] : "";
+                        List<BaseTagValue> tagValues = new List<BaseTagValue>();
+                        for (int j = 1; j < values.Length; j++)
+                        {
+                            BaseTag tag = tags[j - 1];
+                            if (tag != null)
+                            {
+                                var tagValue = tag.CreateValue(values[j]);
+                                if (tagValue != null)
+                                {
+                                    tagValues.Add(tagValue);
+                                }
+                            }
+                        }
+                        if (!resultTags.ContainsKey(name))
+                        {
+                            resultTags.Add(name, tagValues);
+                        }
+                        else
+                        {
+                            resultTags[name] = tagValues;
+                        }
+                    }
+                }
+            }
+            return resultTags;
         }
         #endregion
     }

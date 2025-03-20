@@ -248,13 +248,15 @@ namespace HBP.Core.Data
             }
             return result;
         }
-        public static void LoadFromLocalizersDatabase(string path, string[] frequencies, string[] temporalSmoothings, out DataInfo[] dataInfos, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        public static void LoadFromLocalizersDatabase(DatabaseReference databaseReference, out DataInfo[] dataInfos, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             updateProgress?.Invoke(0, 0, new LoadingText("Finding data to load"));
             dataInfos = new DataInfo[0];
-            if (string.IsNullOrEmpty(path)) return;
-            DirectoryInfo directory = new DirectoryInfo(path);
+            if (string.IsNullOrEmpty(databaseReference.Path)) return;
+            DirectoryInfo directory = new DirectoryInfo(databaseReference.Path);
             if (!directory.Exists) return;
+            LocalizerDatabaseParameters parameters = databaseReference.Parameters as LocalizerDatabaseParameters;
+            if (parameters == null) return;
 
             static string GetDownsamplingString(DirectoryInfo dir)
             {
@@ -297,7 +299,7 @@ namespace HBP.Core.Data
                                 FileInfo rawPos = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".pos"));
                                 if (rawEEG.Exists && rawPos.Exists)
                                 {
-                                    var dataInfo = new IEEGDataInfo("raw", protocol, new Container.Elan(rawEEG.FullName, rawPos.FullName, "", new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, "");
+                                    var dataInfo = new IEEGDataInfo("raw", protocol, new Container.Elan(rawEEG.FullName, rawPos.FullName, "", new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, databaseReference.ID);
                                     dataInfo.CheckErrorsAndWarnings(true);
                                     dataInfoList.Add(dataInfo);
                                 }
@@ -308,14 +310,14 @@ namespace HBP.Core.Data
                                     FileInfo posDS = new FileInfo(Path.Combine(subdir.FullName, string.Format("{0}_{1}.pos", subdir.Name, ds)));
                                     if (posDS.Exists)
                                     {
-                                        foreach (var freq in frequencies)
+                                        foreach (var freq in parameters.Frequencies)
                                         {
-                                            foreach (var ts in temporalSmoothings)
+                                            foreach (var ts in parameters.TemporalSmoothings)
                                             {
                                                 FileInfo eeg = new FileInfo(Path.Combine(subdir.FullName, string.Format("{0}_{1}", subdir.Name, freq), string.Format("{0}_{1}_{2}_{3}.eeg", subdir.Name, freq, ds, ts)));
                                                 if (eeg.Exists)
                                                 {
-                                                    var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", freq, ts), protocol, new Container.Elan(eeg.FullName, posDS.FullName, "", new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, "");
+                                                    var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", freq, ts), protocol, new Container.Elan(eeg.FullName, posDS.FullName, "", new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, databaseReference.ID);
                                                     dataInfo.CheckErrorsAndWarnings(true);
                                                     dataInfoList.Add(dataInfo);
                                                 }
@@ -331,13 +333,13 @@ namespace HBP.Core.Data
             dataInfos = dataInfoList.ToArray();
             updateProgress?.Invoke(1.0f, 0, new LoadingText("Data loaded successfully"));
         }
-        public static void LoadFromBIDSDatabase(string path, out DataInfo[] dataInfos, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        public static void LoadFromBIDSDatabase(DatabaseReference databaseReference, out DataInfo[] dataInfos, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             updateProgress?.Invoke(0, 0, new LoadingText("Finding data to load"));
 
             dataInfos = new DataInfo[0];
-            if (string.IsNullOrEmpty(path)) return;
-            DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(path);
+            if (string.IsNullOrEmpty(databaseReference.Path)) return;
+            DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(databaseReference.Path);
             if (!databaseDirectoryInfo.Exists) return;
 
             List<DataInfo> dataInfoList = new();
@@ -366,7 +368,7 @@ namespace HBP.Core.Data
                         {
                             string acq = string.IsNullOrEmpty(match.Groups[7].Value) ? "raw" : match.Groups[7].Value;
                             string run = string.IsNullOrEmpty(match.Groups[9].Value) ? "" : "-" + match.Groups[9].Value;
-                            var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", acq, run), protocol, new Container.BrainVision(file.FullName, new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, "");
+                            var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", acq, run), protocol, new Container.BrainVision(file.FullName, new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, databaseReference.ID);
                             dataInfo.CheckErrorsAndWarnings(true);
                             dataInfoList.Add(dataInfo);
                         }
@@ -390,7 +392,7 @@ namespace HBP.Core.Data
                         {
                             string acq = string.IsNullOrEmpty(match.Groups[4].Value) ? "raw" : match.Groups[4].Value;
                             string run = string.IsNullOrEmpty(match.Groups[5].Value) ? "" : "-" + match.Groups[5].Value;
-                            var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", acq, run), protocol, new Container.EDF(file.FullName, new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, "");
+                            var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", acq, run), protocol, new Container.EDF(file.FullName, new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, databaseReference.ID);
                             dataInfo.CheckErrorsAndWarnings(true);
                             dataInfoList.Add(dataInfo);
                         }

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using HBP.Core.Tools;
+using Newtonsoft.Json;
 using System;
 using System.ComponentModel;
 using UnityEngine;
@@ -113,6 +114,14 @@ namespace HBP.Core.Data
                 Min = intTag.Min;
                 Max = intTag.Max;
             }
+        }
+        public override BaseTagValue CreateValue(string value)
+        {
+            if (NumberExtension.TryParseFloat(value, out float result))
+            {
+                return new FloatTagValue(this, result);
+            }
+            return null;
         }
         #endregion
     }

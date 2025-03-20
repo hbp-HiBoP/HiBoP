@@ -49,5 +49,12 @@ namespace HBP.Core.Data
             }
         }
         #endregion
+
+        #region Public Methods
+        public virtual BaseTagValue CreateValue(string value)
+        {
+            return new BaseTagValue();
+        }
+        #endregion
     }
 }

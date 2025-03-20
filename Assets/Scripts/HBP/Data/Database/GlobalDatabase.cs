@@ -271,7 +271,8 @@ namespace HBP.Data.Database
             var brainvisaDatabaseReferences = databaseReferences.Where(d => d.Type == DatabaseType.Brainvisa).ToArray();
             var localizerDatabaseReferences = databaseReferences.Where(d => d.Type == DatabaseType.Localizer).ToArray();
             var bidsDatabaseReferences = databaseReferences.Where(d => d.Type == DatabaseType.BIDS).ToArray();
-            int numberOfDatabases = brainvisaDatabaseReferences.Length + localizerDatabaseReferences.Length + 2 * bidsDatabaseReferences.Length;
+            var tagsDatabaseReferences = databaseReferences.Where(d => d.Type == DatabaseType.Tags).ToArray();
+            int numberOfDatabases = brainvisaDatabaseReferences.Length + localizerDatabaseReferences.Length + 2 * bidsDatabaseReferences.Length + tagsDatabaseReferences.Length;
             float progress = 0;
             // Backup patients and datasets
             List<Patient> patientsBackup = m_Patients.DeepClone().ToList();
@@ -282,9 +283,7 @@ namespace HBP.Data.Database
                 foreach (var brainvisaDatabaseReference in brainvisaDatabaseReferences)
                 {
                     token.ThrowIfCancellationRequested();
-                    Patient.LoadFromIntranatDatabase(brainvisaDatabaseReference.Path, out Patient[] patients, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
-                    foreach (var patient in patients) patient.CorrespondingDatabaseID = brainvisaDatabaseReference.ID;
-                    // TODO: Warn that patients will be deleted / overwritten
+                    Patient.LoadFromIntranatDatabase(brainvisaDatabaseReference, out Patient[] patients, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
                     m_Patients.RemoveAll(p => patients.Contains(p) || p.CorrespondingDatabaseID == brainvisaDatabaseReference.ID);
                     m_Patients.AddRange(patients);
                     progress += 1f / numberOfDatabases;
@@ -292,21 +291,24 @@ namespace HBP.Data.Database
                 foreach (var bidsDatabaseReference in bidsDatabaseReferences)
                 {
                     token.ThrowIfCancellationRequested();
-                    Patient.LoadFromBIDSDatabase(bidsDatabaseReference.Path, out Patient[] patients, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
+                    Patient.LoadFromBIDSDatabase(bidsDatabaseReference, out Patient[] patients, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
                     foreach (var patient in patients) patient.CorrespondingDatabaseID = bidsDatabaseReference.ID;
-                    // TODO: Warn that patients will be deleted / overwritten
                     m_Patients.RemoveAll(p => patients.Contains(p) || p.CorrespondingDatabaseID == bidsDatabaseReference.ID);
                     m_Patients.AddRange(patients);
+                    progress += 1f / numberOfDatabases;
+                }
+                // Then load additional tags
+                foreach (var tagsDatabaseReference in tagsDatabaseReferences)
+                {
+                    token.ThrowIfCancellationRequested();
+                    Patient.LoadAdditionalTagsFromTagsDatabase(tagsDatabaseReference, ref m_Patients, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
                     progress += 1f / numberOfDatabases;
                 }
                 // Then load dataInfos
                 foreach (var localizerDatabaseReference in localizerDatabaseReferences)
                 {
                     token.ThrowIfCancellationRequested();
-                    LocalizerDatabaseParameters parameters = localizerDatabaseReference.Parameters as LocalizerDatabaseParameters;
-                    DataInfo.LoadFromLocalizersDatabase(localizerDatabaseReference.Path, parameters.Frequencies, parameters.TemporalSmoothings, out DataInfo[] dataInfos, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
-                    foreach (var dataInfo in dataInfos) dataInfo.CorrespondingDatabaseID = localizerDatabaseReference.ID;
-                    // TODO: Warn that dataInfos will be deleted / overwritten
+                    DataInfo.LoadFromLocalizersDatabase(localizerDatabaseReference, out DataInfo[] dataInfos, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
                     m_DataInfos.RemoveAll(d => dataInfos.Contains(d) || d.CorrespondingDatabaseID == localizerDatabaseReference.ID);
                     m_DataInfos.AddRange(dataInfos);
                     progress += 1f / numberOfDatabases;
@@ -314,9 +316,7 @@ namespace HBP.Data.Database
                 foreach (var bidsDatabaseReference in bidsDatabaseReferences)
                 {
                     token.ThrowIfCancellationRequested();
-                    DataInfo.LoadFromBIDSDatabase(bidsDatabaseReference.Path, out DataInfo[] dataInfos, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
-                    foreach (var dataInfo in dataInfos) dataInfo.CorrespondingDatabaseID = bidsDatabaseReference.ID;
-                    // TODO: Warn that dataInfos will be deleted / overwritten
+                    DataInfo.LoadFromBIDSDatabase(bidsDatabaseReference, out DataInfo[] dataInfos, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
                     m_DataInfos.RemoveAll(d => dataInfos.Contains(d) || d.CorrespondingDatabaseID == bidsDatabaseReference.ID);
                     m_DataInfos.AddRange(dataInfos);
                     progress += 1f / numberOfDatabases;

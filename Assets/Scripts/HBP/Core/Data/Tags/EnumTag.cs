@@ -71,6 +71,10 @@ namespace HBP.Core.Data
                 Values = enumTag.Values;
             }
         }
+        public override BaseTagValue CreateValue(string value)
+        {
+            return new EnumTagValue(this, value);
+        }
         #endregion
     }
 }
