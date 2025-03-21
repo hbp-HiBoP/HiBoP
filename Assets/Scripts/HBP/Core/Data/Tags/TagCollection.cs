@@ -1,6 +1,10 @@
+using Cysharp.Threading.Tasks;
 using HBP.Core.Tools;
+using HBP.Data.Database;
 using HBP.Data.Preferences;
+using HBP.UI.Tools;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -58,6 +62,10 @@ namespace HBP.Core.Data
 
         #region Events
         public UnityEvent OnSaveTags = new UnityEvent();
+        #endregion
+
+        #region Private Methods
+        
         #endregion
 
         #region Public Methods
@@ -260,6 +268,19 @@ namespace HBP.Core.Data
                 }
             }
             return resultTags;
+        }
+        public async UniTask CheckTagsAsync(IEnumerable<BaseTag> tags)
+        {
+            await UniTask.SwitchToThreadPool();
+            List<Patient> patients = new List<Patient>();
+            if (ApplicationState.LoadedProject != null) patients.AddRange(ApplicationState.LoadedProject.Patients);
+            if (DatabaseManager.Database.IsLoaded) patients.AddRange(DatabaseManager.Database.Patients);
+
+            var tasks = patients.Select(patient => (Func<UniTask>)(async () =>
+            {
+                await patient.CheckTagsAsync(tags);
+            }));
+            await LoadingManager.LoadAsync(async update => await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Checking patients", update, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading));
         }
         #endregion
     }

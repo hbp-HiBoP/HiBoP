@@ -193,6 +193,69 @@ namespace HBP.Core.Data
                     site.Tags.Remove(tag);
             }
         }
+        public async UniTask CheckTagsAsync(IEnumerable<BaseTag> tags)
+        {
+            await UniTask.SwitchToThreadPool();
+            Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
+            foreach (var site in Sites) site.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
+            List<BaseTagValue> tagsToUpdate = Tags.Where(t => tags.Contains(t.Tag)).ToList();
+            tagsToUpdate.AddRange(Sites.SelectMany(s => s.Tags).Where(t => tags.Contains(t.Tag)));
+            foreach (var tagValue in tagsToUpdate)
+            {
+                if (tagValue.Tag is IntTag && tagValue is not IntTagValue)
+                {
+                    Tags.Remove(tagValue);
+                    var newTagValue = new IntTagValue();
+                    newTagValue.Copy(tagValue);
+                    Tags.Add(newTagValue);
+                    newTagValue.UpdateValue();
+                }
+                else if (tagValue.Tag is FloatTag && tagValue is not FloatTagValue)
+                {
+                    Tags.Remove(tagValue);
+                    var newTagValue = new FloatTagValue();
+                    newTagValue.Copy(tagValue);
+                    Tags.Add(newTagValue);
+                    newTagValue.UpdateValue();
+                }
+                else if (tagValue.Tag is BoolTag && tagValue is not BoolTagValue)
+                {
+                    Tags.Remove(tagValue);
+                    var newTagValue = new BoolTagValue();
+                    newTagValue.Copy(tagValue);
+                    Tags.Add(newTagValue);
+                    newTagValue.UpdateValue();
+                }
+                else if (tagValue.Tag is EmptyTag && tagValue is not EmptyTagValue)
+                {
+                    Tags.Remove(tagValue);
+                    var newTagValue = new EmptyTagValue();
+                    newTagValue.Copy(tagValue);
+                    Tags.Add(newTagValue);
+                    newTagValue.UpdateValue();
+                }
+                else if (tagValue.Tag is EnumTag && tagValue is not EnumTagValue)
+                {
+                    Tags.Remove(tagValue);
+                    var newTagValue = new EnumTagValue();
+                    newTagValue.Copy(tagValue);
+                    Tags.Add(newTagValue);
+                    newTagValue.UpdateValue();
+                }
+                else if (tagValue.Tag is StringTag && tagValue is not StringTagValue)
+                {
+                    Tags.Remove(tagValue);
+                    var newTagValue = new StringTagValue();
+                    newTagValue.Copy(tagValue);
+                    Tags.Add(newTagValue);
+                    newTagValue.UpdateValue();
+                }
+                else
+                {
+                    tagValue.UpdateValue();
+                }
+            }
+        }
         #endregion
 
         #region Public Static Methods

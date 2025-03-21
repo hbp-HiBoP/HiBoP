@@ -560,75 +560,6 @@ namespace HBP.Core.Data
                 if (Directory.Exists(ApplicationState.ExtractProjectFolder)) Directory.Delete(ApplicationState.ExtractProjectFolder, true);
             }
         }
-
-        public async UniTask CheckPatientTagValuesAsync(IEnumerable<BaseTag> tags, Action<float, float, LoadingText> updateProgress)
-        {
-            var tasks = m_Patients.Select(patient => (Func<UniTask>)(async () =>
-            {
-                await UniTask.SwitchToThreadPool();
-                patient.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
-                foreach (var site in patient.Sites) site.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
-                List<BaseTagValue> tagsToUpdate = patient.Tags.Where(t => tags.Contains(t.Tag)).ToList();
-                tagsToUpdate.AddRange(patient.Sites.SelectMany(s => s.Tags).Where(t => tags.Contains(t.Tag)));
-                foreach (var tagValue in tagsToUpdate)
-                {
-                    if (tagValue.Tag is IntTag && tagValue is not IntTagValue)
-                    {
-                        patient.Tags.Remove(tagValue);
-                        var newTagValue = new IntTagValue();
-                        newTagValue.Copy(tagValue);
-                        patient.Tags.Add(newTagValue);
-                        newTagValue.UpdateValue();
-                    }
-                    else if (tagValue.Tag is FloatTag && tagValue is not FloatTagValue)
-                    {
-                        patient.Tags.Remove(tagValue);
-                        var newTagValue = new FloatTagValue();
-                        newTagValue.Copy(tagValue);
-                        patient.Tags.Add(newTagValue);
-                        newTagValue.UpdateValue();
-                    }
-                    else if (tagValue.Tag is BoolTag && tagValue is not BoolTagValue)
-                    {
-                        patient.Tags.Remove(tagValue);
-                        var newTagValue = new BoolTagValue();
-                        newTagValue.Copy(tagValue);
-                        patient.Tags.Add(newTagValue);
-                        newTagValue.UpdateValue();
-                    }
-                    else if (tagValue.Tag is EmptyTag && tagValue is not EmptyTagValue)
-                    {
-                        patient.Tags.Remove(tagValue);
-                        var newTagValue = new EmptyTagValue();
-                        newTagValue.Copy(tagValue);
-                        patient.Tags.Add(newTagValue);
-                        newTagValue.UpdateValue();
-                    }
-                    else if (tagValue.Tag is EnumTag && tagValue is not EnumTagValue)
-                    {
-                        patient.Tags.Remove(tagValue);
-                        var newTagValue = new EnumTagValue();
-                        newTagValue.Copy(tagValue);
-                        patient.Tags.Add(newTagValue);
-                        newTagValue.UpdateValue();
-                    }
-                    else if (tagValue.Tag is StringTag && tagValue is not StringTagValue)
-                    {
-                        patient.Tags.Remove(tagValue);
-                        var newTagValue = new StringTagValue();
-                        newTagValue.Copy(tagValue);
-                        patient.Tags.Add(newTagValue);
-                        newTagValue.UpdateValue();
-                    }
-                    else
-                    {
-                        tagValue.UpdateValue();
-                    }
-                }
-                // FIXME : also update site tags
-            }));
-            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Checking patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
-        }
         #endregion
 
         #region Private Methods
@@ -651,8 +582,6 @@ namespace HBP.Core.Data
         }
         private async UniTask LoadPatientsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
-            const float LOADING_PROGRESS = 0.95f;
-            const float CHECKING_PROGRESS = 0.05f;
             List<Patient> patients = new List<Patient>();
             DirectoryInfo patientDirectory = projectDirectory.GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
@@ -660,7 +589,9 @@ namespace HBP.Core.Data
             {
                 try
                 {
-                    return await ClassLoaderSaver.LoadFromJsonAsync<Patient>(file.FullName);
+                    var patient = await ClassLoaderSaver.LoadFromJsonAsync<Patient>(file.FullName);
+                    await patient.CheckTagsAsync(PersistentDataManager.Tags.AllTags);
+                    return patient;
                 }
                 catch (Exception e)
                 {
@@ -668,9 +599,8 @@ namespace HBP.Core.Data
                     throw new CanNotReadPatientFileException(Path.GetFileNameWithoutExtension(file.Name));
                 }
             }));
-            patients.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, LOADING_PROGRESS, "Loading patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
+            patients.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
             SetPatients(patients.ToArray());
-            await CheckPatientTagValuesAsync(PersistentDataManager.Tags.AllTags, (localProgress, duration, text) => updateProgress.Invoke(LOADING_PROGRESS + localProgress * CHECKING_PROGRESS, duration, text));
             updateProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
         }
         private async UniTask LoadGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)

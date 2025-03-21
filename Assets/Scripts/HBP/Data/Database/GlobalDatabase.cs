@@ -208,9 +208,11 @@ namespace HBP.Data.Database
         {
             var tasks = patientFiles.Select(file => (Func<UniTask<Patient>>)(async () =>
             {
-                return await ClassLoaderSaver.LoadFromJsonAsync<Patient>(file.FullName);
+                var patient = await ClassLoaderSaver.LoadFromJsonAsync<Patient>(file.FullName);
+                await patient.CheckTagsAsync(PersistentDataManager.Tags.AllTags);
+                return patient;
             }));
-            m_Patients = (await Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading)).ToList();
+            m_Patients = (await Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading database patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading)).ToList();
         }
         private async UniTask SavePatientsAsync(Action<float, float, LoadingText> updateProgress)
         {
@@ -220,7 +222,7 @@ namespace HBP.Data.Database
             {
                 await ClassLoaderSaver.SaveToJsonAsync(p, Path.Combine(patientsTempDirectory.FullName, p.ID + Patient.EXTENSION), true);
             }));
-            await Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
+            await Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving database patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
             patientsDirectory.Delete(true);
             patientsTempDirectory.MoveTo(patientsDirectory.FullName);
         }
@@ -237,7 +239,7 @@ namespace HBP.Data.Database
             {
                 return await ClassLoaderSaver.LoadFromJsonAsync<List<DataInfo>>(file.FullName);
             }));
-            m_DataInfos = (await Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading data", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading)).SelectMany(d => d).ToList();
+            m_DataInfos = (await Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading database functional data", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading)).SelectMany(d => d).ToList();
         }
         private async UniTask SaveDataInfosAsync(Action<float, float, LoadingText> updateProgress)
         {
@@ -258,7 +260,7 @@ namespace HBP.Data.Database
             {
                 await ClassLoaderSaver.SaveToJsonAsync(kvp.Value, Path.Combine(dataInfosTempDirectory.FullName, kvp.Key.ID + DataInfo.EXTENSION), true);
             }));
-            await Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving data", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
+            await Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving database functional data", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
             await ClassLoaderSaver.SaveToJsonAsync(otherDataInfos, Path.Combine(dataInfosTempDirectory.FullName, "None" + DataInfo.EXTENSION), true);
             dataInfosDirectory.Delete(true);
             dataInfosTempDirectory.MoveTo(dataInfosDirectory.FullName);
