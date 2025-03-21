@@ -277,8 +277,8 @@ namespace HBP.Data.Database
             int numberOfDatabases = brainvisaDatabaseReferences.Length + localizerDatabaseReferences.Length + 2 * bidsDatabaseReferences.Length + tagsDatabaseReferences.Length;
             float progress = 0;
             // Backup patients and datasets
-            List<Patient> patientsBackup = m_Patients.DeepClone().ToList();
-            List<DataInfo> dataInfosBackup = m_DataInfos.DeepClone().ToList();
+            List<Patient> patientsBackup = new(m_Patients);
+            List<DataInfo> dataInfosBackup = new(m_DataInfos);
             try
             {
                 // Load patients first

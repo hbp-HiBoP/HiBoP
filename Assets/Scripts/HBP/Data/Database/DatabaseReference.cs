@@ -17,21 +17,23 @@ namespace HBP.Data.Database
         #endregion
 
         #region Constructors
-        public DatabaseReference(string name, DatabaseType type, string path, DatabaseReferenceParameters parameters, string ID) : base(ID)
+        public DatabaseReference(string name, DatabaseType type, string path, DatabaseReferenceParameters parameters, DateTime lastUpdated, string ID) : base(ID)
         {
             Name = name;
             Type = type;
             Path = path;
             Parameters = parameters;
+            LastUpdated = lastUpdated;
         }
-        public DatabaseReference(string name, DatabaseType type, string path, DatabaseReferenceParameters parameters) : base()
+        public DatabaseReference(string name, DatabaseType type, string path, DatabaseReferenceParameters parameters, DateTime lastUpdated) : base()
         {
             Name = name;
             Type = type;
             Path = path;
             Parameters = parameters;
+            LastUpdated = lastUpdated;
         }
-        public DatabaseReference() : this("New Database", DatabaseType.Brainvisa, "", null)
+        public DatabaseReference() : this("New Database", DatabaseType.Brainvisa, "", null, DateTime.MinValue)
         {
         }
         #endregion
@@ -39,7 +41,7 @@ namespace HBP.Data.Database
         #region Public Methods
         public override object Clone()
         {
-            return new DatabaseReference(Name, Type, Path, Parameters?.Clone() as DatabaseReferenceParameters, ID);
+            return new DatabaseReference(Name, Type, Path, Parameters?.Clone() as DatabaseReferenceParameters, LastUpdated, ID);
         }
         public override void Copy(object copy)
         {

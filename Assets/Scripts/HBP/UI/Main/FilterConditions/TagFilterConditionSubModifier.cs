@@ -96,12 +96,18 @@ namespace HBP.UI.Main
         }
         void OnChangeTag(int value)
         {
-            BaseTag tag = m_Tags[value];
-
-            Object.Tag = tag;
-
             foreach (var sm in m_SubModifiers.Values)
                 sm.IsActive = false;
+
+            if (m_Tags.Count == 0)
+            {
+                Object.Tag = null;
+                Object.Value = new EmptyTagFilterValue();
+                return;
+            }
+
+            BaseTag tag = m_Tags[value];
+            Object.Tag = tag;
 
             TagFilterValue tagFilterValue = m_TagFilterValuesTemp[Object.Tag.GetType()];
             tagFilterValue.Copy(Object.Value);
