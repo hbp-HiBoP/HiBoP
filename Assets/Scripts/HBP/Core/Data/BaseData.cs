@@ -98,7 +98,7 @@ namespace HBP.Core.Data
                 return true;
             }
 
-            if (((object)a == null) || ((object)b == null))
+            if ((a is null) || (b is null))
             {
                 return false;
             }

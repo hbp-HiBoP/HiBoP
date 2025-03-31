@@ -17,6 +17,7 @@ using HBP.Core.Enums;
 using UnityEditor;
 using UnityEngine.UIElements;
 using System.Diagnostics;
+using HBP.UI.Main;
 
 namespace HBP.Core.Data
 {
@@ -248,7 +249,7 @@ namespace HBP.Core.Data
             }
             return result;
         }
-        public static void LoadFromLocalizersDatabase(DatabaseReference databaseReference, out DataInfo[] dataInfos, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        public static void LoadFromLocalizersDatabase(DatabaseReference databaseReference, List<Patient> patients, out DataInfo[] dataInfos, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             updateProgress?.Invoke(0, 0, new LoadingText("Finding data to load"));
             dataInfos = new DataInfo[0];
@@ -283,7 +284,7 @@ namespace HBP.Core.Data
             {
                 token.ThrowIfCancellationRequested();
                 updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading localizer ", dir.Name, " [" + progress + "/" + length + "]"));
-                Patient patient = DatabaseManager.Database.Patients.FirstOrDefault(p => p.ID.ToUpper().CompareTo(dir.Name.ToUpper()) == 0);
+                Patient patient = patients.FirstOrDefault(p => p.ID.ToUpper().CompareTo(dir.Name.ToUpper()) == 0);
                 if (patient != null)
                 {
                     DirectoryInfo[] subDirectories = dir.GetDirectories();
@@ -333,7 +334,7 @@ namespace HBP.Core.Data
             dataInfos = dataInfoList.ToArray();
             updateProgress?.Invoke(1.0f, 0, new LoadingText("Data loaded successfully"));
         }
-        public static void LoadFromBIDSDatabase(DatabaseReference databaseReference, out DataInfo[] dataInfos, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        public static void LoadFromBIDSDatabase(DatabaseReference databaseReference, List<Patient> patients, out DataInfo[] dataInfos, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             updateProgress?.Invoke(0, 0, new LoadingText("Finding data to load"));
 
@@ -360,7 +361,7 @@ namespace HBP.Core.Data
                 Match match = brainvisionHeaderRegex.Match(file.FullName);
                 if (match.Success)
                 {
-                    Patient patient = DatabaseManager.Database.Patients.FirstOrDefault(p => p.Name.CompareTo(match.Groups[1].Value) == 0);
+                    Patient patient = patients.FirstOrDefault(p => p.Name.CompareTo(match.Groups[1].Value) == 0);
                     if (patient != null)
                     {
                         Protocol protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.Name == match.Groups[5].Value);

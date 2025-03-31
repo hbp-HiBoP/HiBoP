@@ -59,7 +59,6 @@ namespace HBP.UI.Database
                 {
                     DatabaseManager.Database.SetDatabaseReferences(m_ListGestion.List.Objects);
                     await DatabaseManager.Database.UpdateDatabases(m_ListGestion.List.ObjectsSelected);
-                    await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "Databases updated", "The databases have been updated successfully");
                     m_ListGestion.HasBeenModified = true;
                     base.OK();
                 }

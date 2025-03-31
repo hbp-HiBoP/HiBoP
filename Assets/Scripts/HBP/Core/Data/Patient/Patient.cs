@@ -610,8 +610,11 @@ namespace HBP.Core.Data
             patients = patientsList.ToArray();
             updateProgress?.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
         }
-        public static void LoadAdditionalTagsFromTagsDatabase(DatabaseReference databaseReference, ref List<Patient> patients, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        public static void LoadAdditionalTagsFromTagsDatabase(DatabaseReference databaseReference, List<Patient> patients, out Dictionary<Patient, List<BaseTagValue>> tagsByPatient, out Dictionary<Site, List<BaseTagValue>> tagsBySite, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
+            tagsByPatient = new Dictionary<Patient, List<BaseTagValue>>();
+            tagsBySite = new Dictionary<Site, List<BaseTagValue>>();
+
             if (string.IsNullOrEmpty(databaseReference.Path)) return;
             DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(databaseReference.Path);
             if (!databaseDirectoryInfo.Exists) return;
@@ -626,18 +629,7 @@ namespace HBP.Core.Data
                     var patient = patients.FirstOrDefault(p => p.ID == kv.Key);
                     if (patient != null)
                     {
-                        foreach (var tagValue in kv.Value)
-                        {
-                            var existingTagValue = patient.Tags.FirstOrDefault(t => t.Tag.Name == tagValue.Tag.Name);
-                            if (existingTagValue != null)
-                            {
-                                existingTagValue.Copy(tagValue);
-                            }
-                            else
-                            {
-                                patient.Tags.Add(tagValue);
-                            }
-                        }
+                        tagsByPatient.Add(patient, kv.Value);
                     }
                 }
             }
@@ -657,18 +649,19 @@ namespace HBP.Core.Data
                         var site = patient.Sites.FirstOrDefault(s => s.Name == kv.Key);
                         if (site != null)
                         {
-                            foreach (var tagValue in kv.Value)
-                            {
-                                var existingTagValue = site.Tags.FirstOrDefault(t => t.Tag.Name == tagValue.Tag.Name);
-                                if (existingTagValue != null)
-                                {
-                                    existingTagValue.Copy(tagValue);
-                                }
-                                else
-                                {
-                                    site.Tags.Add(tagValue);
-                                }
-                            }
+                            tagsBySite.Add(site, kv.Value);
+                            //foreach (var tagValue in kv.Value)
+                            //{
+                            //    var existingTagValue = site.Tags.FirstOrDefault(t => t.Tag.Name == tagValue.Tag.Name);
+                            //    if (existingTagValue != null)
+                            //    {
+                            //        existingTagValue.Copy(tagValue);
+                            //    }
+                            //    else
+                            //    {
+                            //        site.Tags.Add(tagValue);
+                            //    }
+                            //}
                         }
                     }
                 }

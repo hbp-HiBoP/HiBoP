@@ -14,6 +14,8 @@ using System.Diagnostics;
 using HBP.Core.Exceptions;
 using HBP.Data.Preferences;
 using UnityEngine.PlayerLoop;
+using System.Text;
+using HBP.Core.Enums;
 
 namespace HBP.Data.Database
 {
@@ -276,71 +278,114 @@ namespace HBP.Data.Database
             var tagsDatabaseReferences = databaseReferences.Where(d => d.Type == DatabaseType.Tags).ToArray();
             int numberOfDatabases = brainvisaDatabaseReferences.Length + localizerDatabaseReferences.Length + 2 * bidsDatabaseReferences.Length + tagsDatabaseReferences.Length;
             float progress = 0;
-            // Backup patients and datasets
-            List<Patient> patientsBackup = new(m_Patients);
-            List<DataInfo> dataInfosBackup = new(m_DataInfos);
-            try
+            // Load databases
+            List<Patient> patientsTemp = new(m_Patients);
+            List<DataInfo> dataInfosTemp = new(m_DataInfos);
+            Dictionary<Patient, List<BaseTagValue>> patientTagsTemp = new();
+            Dictionary<Site, List<BaseTagValue>> siteTagsTemp = new();
+            List<Patient> updatedPatients = new();
+            // Load patients first
+            foreach (var brainvisaDatabaseReference in brainvisaDatabaseReferences)
             {
-                // Load patients first
-                foreach (var brainvisaDatabaseReference in brainvisaDatabaseReferences)
-                {
-                    token.ThrowIfCancellationRequested();
-                    Patient.LoadFromIntranatDatabase(brainvisaDatabaseReference, out Patient[] patients, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
-                    m_Patients.RemoveAll(p => patients.Contains(p) || p.CorrespondingDatabaseID == brainvisaDatabaseReference.ID);
-                    m_Patients.AddRange(patients);
-                    progress += 1f / numberOfDatabases;
-                }
-                foreach (var bidsDatabaseReference in bidsDatabaseReferences)
-                {
-                    token.ThrowIfCancellationRequested();
-                    Patient.LoadFromBIDSDatabase(bidsDatabaseReference, out Patient[] patients, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
-                    foreach (var patient in patients) patient.CorrespondingDatabaseID = bidsDatabaseReference.ID;
-                    m_Patients.RemoveAll(p => patients.Contains(p) || p.CorrespondingDatabaseID == bidsDatabaseReference.ID);
-                    m_Patients.AddRange(patients);
-                    progress += 1f / numberOfDatabases;
-                }
-                // Then load additional tags
-                foreach (var tagsDatabaseReference in tagsDatabaseReferences)
-                {
-                    token.ThrowIfCancellationRequested();
-                    Patient.LoadAdditionalTagsFromTagsDatabase(tagsDatabaseReference, ref m_Patients, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
-                    progress += 1f / numberOfDatabases;
-                }
-                // Then load dataInfos
-                foreach (var localizerDatabaseReference in localizerDatabaseReferences)
-                {
-                    token.ThrowIfCancellationRequested();
-                    DataInfo.LoadFromLocalizersDatabase(localizerDatabaseReference, out DataInfo[] dataInfos, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
-                    m_DataInfos.RemoveAll(d => dataInfos.Contains(d) || d.CorrespondingDatabaseID == localizerDatabaseReference.ID);
-                    m_DataInfos.AddRange(dataInfos);
-                    progress += 1f / numberOfDatabases;
-                }
-                foreach (var bidsDatabaseReference in bidsDatabaseReferences)
-                {
-                    token.ThrowIfCancellationRequested();
-                    DataInfo.LoadFromBIDSDatabase(bidsDatabaseReference, out DataInfo[] dataInfos, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
-                    m_DataInfos.RemoveAll(d => dataInfos.Contains(d) || d.CorrespondingDatabaseID == bidsDatabaseReference.ID);
-                    m_DataInfos.AddRange(dataInfos);
-                    progress += 1f / numberOfDatabases;
-                }
-                // Update last updated
-                foreach (var databaseReference in databaseReferences)
-                {
-                    token.ThrowIfCancellationRequested();
-                    databaseReference.LastUpdated = DateTime.Now;
-                }
-                await SaveDatabaseReferencesAsync();
-                await SaveDatabaseAsync(updateProgress);
-                await UniTask.SwitchToMainThread();
-                OnUpdateDatabases.Invoke();
+                token.ThrowIfCancellationRequested();
+                Patient.LoadFromIntranatDatabase(brainvisaDatabaseReference, out Patient[] patients, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
+                patientsTemp.RemoveAll(p => patients.Contains(p) || p.CorrespondingDatabaseID == brainvisaDatabaseReference.ID);
+                patientsTemp.AddRange(patients);
+                updatedPatients.AddRange(patients);
+                progress += 1f / numberOfDatabases;
             }
-            catch (Exception e)
+            foreach (var bidsDatabaseReference in bidsDatabaseReferences)
             {
-                m_Patients = patientsBackup;
-                m_DataInfos = dataInfosBackup;
-                FixDatasets();
-                throw e;
+                token.ThrowIfCancellationRequested();
+                Patient.LoadFromBIDSDatabase(bidsDatabaseReference, out Patient[] patients, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
+                foreach (var patient in patients) patient.CorrespondingDatabaseID = bidsDatabaseReference.ID;
+                patientsTemp.RemoveAll(p => patients.Contains(p) || p.CorrespondingDatabaseID == bidsDatabaseReference.ID);
+                patientsTemp.AddRange(patients);
+                updatedPatients.AddRange(patients);
+                progress += 1f / numberOfDatabases;
             }
+            // Then load additional tags
+            foreach (var tagsDatabaseReference in tagsDatabaseReferences)
+            {
+                token.ThrowIfCancellationRequested();
+                Patient.LoadAdditionalTagsFromTagsDatabase(tagsDatabaseReference, patientsTemp, out Dictionary<Patient, List<BaseTagValue>> databasePatientTags, out Dictionary<Site, List<BaseTagValue>> databaseSiteTags, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
+                foreach (var kvp in databasePatientTags)
+                {
+                    if (!patientTagsTemp.ContainsKey(kvp.Key)) patientTagsTemp.Add(kvp.Key, new List<BaseTagValue>());
+                    patientTagsTemp[kvp.Key].AddRange(kvp.Value);
+                }
+                foreach (var kvp in databaseSiteTags)
+                {
+                    if (!siteTagsTemp.ContainsKey(kvp.Key)) siteTagsTemp.Add(kvp.Key, new List<BaseTagValue>());
+                    siteTagsTemp[kvp.Key].AddRange(kvp.Value);
+                }
+                updatedPatients.AddRange(patientTagsTemp.Keys);
+                updatedPatients.AddRange(patientsTemp.Where(p => p.Sites.Any(s => databaseSiteTags.ContainsKey(s))));
+                progress += 1f / numberOfDatabases;
+            }
+            // Then load dataInfos
+            foreach (var localizerDatabaseReference in localizerDatabaseReferences)
+            {
+                token.ThrowIfCancellationRequested();
+                DataInfo.LoadFromLocalizersDatabase(localizerDatabaseReference, patientsTemp, out DataInfo[] dataInfos, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
+                dataInfosTemp.RemoveAll(d => dataInfos.Contains(d) || d.CorrespondingDatabaseID == localizerDatabaseReference.ID);
+                dataInfosTemp.AddRange(dataInfos);
+                progress += 1f / numberOfDatabases;
+            }
+            foreach (var bidsDatabaseReference in bidsDatabaseReferences)
+            {
+                token.ThrowIfCancellationRequested();
+                DataInfo.LoadFromBIDSDatabase(bidsDatabaseReference, patientsTemp, out DataInfo[] dataInfos, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
+                dataInfosTemp.RemoveAll(d => dataInfos.Contains(d) || d.CorrespondingDatabaseID == bidsDatabaseReference.ID);
+                dataInfosTemp.AddRange(dataInfos);
+                progress += 1f / numberOfDatabases;
+            }
+            // Update last updated
+            foreach (var databaseReference in databaseReferences)
+            {
+                token.ThrowIfCancellationRequested();
+                databaseReference.LastUpdated = DateTime.Now;
+            }
+            updateProgress(1, 0, new LoadingText("Finalizing"));
+            await FindAndDisplayChanges(m_Patients, patientsTemp, updatedPatients);
+            // Apply Tags
+            foreach (var kv in patientTagsTemp)
+            {
+                foreach (var tagValue in kv.Value)
+                {
+                    var existingTagValue = kv.Key.Tags.FirstOrDefault(t => t.Tag.ID == tagValue.Tag.ID);
+                    if (existingTagValue != null)
+                    {
+                        existingTagValue.Copy(tagValue);
+                    }
+                    else
+                    {
+                        kv.Key.Tags.Add(tagValue);
+                    }
+                }
+            }
+            foreach (var kv in siteTagsTemp)
+            {
+                foreach (var tagValue in kv.Value)
+                {
+                    var existingTagValue = kv.Key.Tags.FirstOrDefault(t => t.Tag.ID == tagValue.Tag.ID);
+                    if (existingTagValue != null)
+                    {
+                        existingTagValue.Copy(tagValue);
+                    }
+                    else
+                    {
+                        kv.Key.Tags.Add(tagValue);
+                    }
+                }
+            }
+            // Set new lists
+            m_Patients = patientsTemp;
+            m_DataInfos = dataInfosTemp;
+            await SaveDatabaseReferencesAsync();
+            await SaveDatabaseAsync(updateProgress);
+            await UniTask.SwitchToMainThread();
+            OnUpdateDatabases.Invoke();
         }
 
         private void FixDatasets()
@@ -352,6 +397,45 @@ namespace HBP.Data.Database
                 {
                     patientDataInfo.Patient = m_Patients.FirstOrDefault(p => p.ID == patientDataInfo.Patient.ID);
                 }
+            }
+        }
+        private async UniTask FindAndDisplayChanges(List<Patient> oldPatients, List<Patient> newPatients, List<Patient> updatedPatients)
+        {
+            var removedPatients = oldPatients.Except(newPatients).ToList();
+            var addedPatients = newPatients.Except(oldPatients).ToList();
+            updatedPatients = updatedPatients.Distinct().Except(addedPatients).Except(removedPatients).ToList();
+
+            StringBuilder stringBuilder = new StringBuilder();
+            if (removedPatients.Count > 0)
+            {
+                stringBuilder.AppendLine("<b>Removed patients:</b>");
+                foreach (var patient in removedPatients)
+                {
+                    stringBuilder.AppendLine(patient.ID);
+                }
+                stringBuilder.AppendLine();
+            }
+            if (addedPatients.Count > 0)
+            {
+                stringBuilder.AppendLine("<b>Added patients:</b>");
+                foreach (var patient in addedPatients)
+                {
+                    stringBuilder.AppendLine(patient.ID);
+                }
+                stringBuilder.AppendLine();
+            }
+            if (updatedPatients.Count > 0)
+            {
+                stringBuilder.AppendLine("<b>Updated patients:</b>");
+                foreach (var patient in updatedPatients)
+                {
+                    stringBuilder.AppendLine(patient.ID);
+                }
+                stringBuilder.AppendLine();
+            }
+            if (stringBuilder.Length != 0)
+            {
+                await DialogBoxManager.OpenScrollableAsync(DialogBoxType.Informational, "Databases updated", stringBuilder.ToString(), "OK");
             }
         }
         #endregion
