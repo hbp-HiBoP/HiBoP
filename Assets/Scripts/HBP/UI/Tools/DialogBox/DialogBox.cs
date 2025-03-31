@@ -47,7 +47,8 @@ namespace HBP.UI.Tools
             m_Title.text = title;
             m_Message.text = message;
             LayoutElement layoutElement = m_Message.transform.parent.GetComponent<LayoutElement>();
-            layoutElement.preferredWidth = Mathf.Min(Mathf.Max(m_Title.preferredWidth, m_Message.preferredWidth), layoutElement.preferredWidth);
+            if (layoutElement != null)
+                layoutElement.preferredWidth = Mathf.Min(Mathf.Max(m_Title.preferredWidth, m_Message.preferredWidth), layoutElement.preferredWidth);
         }
         async UniTask<int> SetButtons(string[] buttons)
         {

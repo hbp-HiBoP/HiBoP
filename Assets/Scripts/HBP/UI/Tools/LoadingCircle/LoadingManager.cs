@@ -39,7 +39,7 @@ namespace HBP.UI.Tools
             catch (Exception e)
             {
                 Debug.LogError(e.ToString());
-                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Unknown error", "An unknown error has occured. Please send a bug report.").Forget();
+                DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
                 throw e;
             }
             finally
@@ -63,7 +63,7 @@ namespace HBP.UI.Tools
             catch (Exception e)
             {
                 Debug.LogError(e.ToString());
-                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Unknown error", "An unknown error has occured. Please send a bug report.").Forget();
+                DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
             }
             m_Instance.m_LoadingCircle.Close();
         }
@@ -94,7 +94,7 @@ namespace HBP.UI.Tools
             catch (Exception e)
             {
                 Debug.LogError(e.ToString());
-                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Unknown error", "An unknown error has occured. Please send a bug report.").Forget();
+                DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
                 throw e;
             }
             finally
@@ -125,7 +125,7 @@ namespace HBP.UI.Tools
             catch (Exception e)
             {
                 Debug.LogError(e.ToString());
-                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Unknown error", "An unknown error has occured. Please send a bug report.").Forget();
+                DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
                 throw e;
             }
             finally
@@ -157,7 +157,7 @@ namespace HBP.UI.Tools
             catch (Exception e)
             {
                 Debug.LogError(e.ToString());
-                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Unknown error", "An unknown error has occured. Please send a bug report.").Forget();
+                DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
             }
             m_Instance.m_LoadingCircle.Close();
         }
@@ -181,7 +181,7 @@ namespace HBP.UI.Tools
             catch (Exception e)
             {
                 Debug.LogError(e.ToString());
-                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Unknown error", "An unknown error has occured. Please send a bug report.").Forget();
+                DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
             }
             finally
             {
