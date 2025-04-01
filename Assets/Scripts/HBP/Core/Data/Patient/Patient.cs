@@ -11,6 +11,7 @@ using HBP.Data.Database;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Threading;
+using System.Runtime.CompilerServices;
 
 namespace HBP.Core.Data
 {
@@ -610,17 +611,22 @@ namespace HBP.Core.Data
             patients = patientsList.ToArray();
             updateProgress?.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
         }
-        public static void LoadAdditionalTagsFromTagsDatabase(DatabaseReference databaseReference, List<Patient> patients, out Dictionary<Patient, List<BaseTagValue>> tagsByPatient, out Dictionary<Site, List<BaseTagValue>> tagsBySite, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        public static void LoadAdditionalTagsFromTagsDatabase(DatabaseReference databaseReference, List<Patient> patients, out Patient[] modifiedPatients, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
-            tagsByPatient = new Dictionary<Patient, List<BaseTagValue>>();
-            tagsBySite = new Dictionary<Site, List<BaseTagValue>>();
-
+            modifiedPatients = new Patient[0];
+            List<Patient> clonedPatients = new();
             if (string.IsNullOrEmpty(databaseReference.Path)) return;
             DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(databaseReference.Path);
             if (!databaseDirectoryInfo.Exists) return;
 
-            // Read patients.csv
             FileInfo patientsFileInfo = new FileInfo(Path.Combine(databaseDirectoryInfo.FullName, "patients.csv"));
+            FileInfo[] patientsFiles = databaseDirectoryInfo.GetFiles("*.csv", SearchOption.AllDirectories);
+            var progress = 0;
+            var length = patientsFiles.Length + 1;
+            updateProgress?.Invoke(0, 0, new LoadingText("Loading additional tags"));
+
+            // Read patients.csv
+            updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading additional tags from patients.csv"));
             if (patientsFileInfo.Exists)
             {
                 var tagValuesByPatient = PersistentDataManager.Tags.GeneratePatientTagsFromCSV(patientsFileInfo.FullName);
@@ -629,43 +635,59 @@ namespace HBP.Core.Data
                     var patient = patients.FirstOrDefault(p => p.ID == kv.Key);
                     if (patient != null)
                     {
-                        tagsByPatient.Add(patient, kv.Value);
+                        patient = patient.Clone() as Patient;
+                        foreach (var tagValue in kv.Value)
+                        {
+                            var existingTagValue = patient.Tags.FirstOrDefault(t => t.Tag.Name == tagValue.Tag.Name);
+                            if (existingTagValue != null)
+                            {
+                                existingTagValue.Copy(tagValue);
+                            }
+                            else
+                            {
+                                patient.Tags.Add(tagValue);
+                            }
+                        }
+                        clonedPatients.Add(patient);
                     }
                 }
             }
 
             // Read all patients csv files
-            FileInfo[] patientsFiles = databaseDirectoryInfo.GetFiles("*.csv", SearchOption.AllDirectories);
             foreach (var file in patientsFiles)
             {
+                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading additional tags from ", file.Name));
                 token.ThrowIfCancellationRequested();
                 if (file.Name == "patients.csv") continue;
                 var tagValuesBySite = PersistentDataManager.Tags.GenerateSiteTagsFromCSV(file.FullName);
                 var patient = patients.FirstOrDefault(p => p.ID == Path.GetFileNameWithoutExtension(file.Name));
                 if (patient != null)
                 {
+                    patient = patient.Clone() as Patient;
                     foreach (var kv in tagValuesBySite)
                     {
                         var site = patient.Sites.FirstOrDefault(s => s.Name == kv.Key);
                         if (site != null)
                         {
-                            tagsBySite.Add(site, kv.Value);
-                            //foreach (var tagValue in kv.Value)
-                            //{
-                            //    var existingTagValue = site.Tags.FirstOrDefault(t => t.Tag.Name == tagValue.Tag.Name);
-                            //    if (existingTagValue != null)
-                            //    {
-                            //        existingTagValue.Copy(tagValue);
-                            //    }
-                            //    else
-                            //    {
-                            //        site.Tags.Add(tagValue);
-                            //    }
-                            //}
+                            foreach (var tagValue in kv.Value)
+                            {
+                                var existingTagValue = site.Tags.FirstOrDefault(t => t.Tag.Name == tagValue.Tag.Name);
+                                if (existingTagValue != null)
+                                {
+                                    existingTagValue.Copy(tagValue);
+                                }
+                                else
+                                {
+                                    site.Tags.Add(tagValue);
+                                }
+                            }
                         }
                     }
+                    clonedPatients.Add(patient);
                 }
             }
+
+            modifiedPatients = clonedPatients.ToArray();
         }
         /// <summary>
         /// Coroutine to load patients from database. Implementation of ILoadableFromDatabase.

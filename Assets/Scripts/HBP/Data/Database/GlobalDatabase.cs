@@ -97,6 +97,9 @@ namespace HBP.Data.Database
         public async UniTask UpdateDatabases(IEnumerable<DatabaseReference> databaseReferences)
         {
             await LoadingManager.LoadAsync((update, token) => UpdateDatabasesAsync(databaseReferences, update, token));
+            await LoadingManager.LoadAsync(update => SaveDatabaseAsync(update));
+            await UniTask.SwitchToMainThread();
+            OnUpdateDatabases.Invoke();
         }
         #endregion
 
@@ -281,8 +284,6 @@ namespace HBP.Data.Database
             // Load databases
             List<Patient> patientsTemp = new(m_Patients);
             List<DataInfo> dataInfosTemp = new(m_DataInfos);
-            Dictionary<Patient, List<BaseTagValue>> patientTagsTemp = new();
-            Dictionary<Site, List<BaseTagValue>> siteTagsTemp = new();
             List<Patient> updatedPatients = new();
             // Load patients first
             foreach (var brainvisaDatabaseReference in brainvisaDatabaseReferences)
@@ -308,19 +309,13 @@ namespace HBP.Data.Database
             foreach (var tagsDatabaseReference in tagsDatabaseReferences)
             {
                 token.ThrowIfCancellationRequested();
-                Patient.LoadAdditionalTagsFromTagsDatabase(tagsDatabaseReference, patientsTemp, out Dictionary<Patient, List<BaseTagValue>> databasePatientTags, out Dictionary<Site, List<BaseTagValue>> databaseSiteTags, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
-                foreach (var kvp in databasePatientTags)
+                Patient.LoadAdditionalTagsFromTagsDatabase(tagsDatabaseReference, patientsTemp, out Patient[] patients, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
+                foreach (var patient in patients)
                 {
-                    if (!patientTagsTemp.ContainsKey(kvp.Key)) patientTagsTemp.Add(kvp.Key, new List<BaseTagValue>());
-                    patientTagsTemp[kvp.Key].AddRange(kvp.Value);
+                    patientsTemp.Remove(patient);
+                    patientsTemp.Add(patient);
                 }
-                foreach (var kvp in databaseSiteTags)
-                {
-                    if (!siteTagsTemp.ContainsKey(kvp.Key)) siteTagsTemp.Add(kvp.Key, new List<BaseTagValue>());
-                    siteTagsTemp[kvp.Key].AddRange(kvp.Value);
-                }
-                updatedPatients.AddRange(patientTagsTemp.Keys);
-                updatedPatients.AddRange(patientsTemp.Where(p => p.Sites.Any(s => databaseSiteTags.ContainsKey(s))));
+                updatedPatients.AddRange(patients);
                 progress += 1f / numberOfDatabases;
             }
             // Then load dataInfos
@@ -348,44 +343,10 @@ namespace HBP.Data.Database
             }
             updateProgress(1, 0, new LoadingText("Finalizing"));
             await FindAndDisplayChanges(m_Patients, patientsTemp, updatedPatients);
-            // Apply Tags
-            foreach (var kv in patientTagsTemp)
-            {
-                foreach (var tagValue in kv.Value)
-                {
-                    var existingTagValue = kv.Key.Tags.FirstOrDefault(t => t.Tag.ID == tagValue.Tag.ID);
-                    if (existingTagValue != null)
-                    {
-                        existingTagValue.Copy(tagValue);
-                    }
-                    else
-                    {
-                        kv.Key.Tags.Add(tagValue);
-                    }
-                }
-            }
-            foreach (var kv in siteTagsTemp)
-            {
-                foreach (var tagValue in kv.Value)
-                {
-                    var existingTagValue = kv.Key.Tags.FirstOrDefault(t => t.Tag.ID == tagValue.Tag.ID);
-                    if (existingTagValue != null)
-                    {
-                        existingTagValue.Copy(tagValue);
-                    }
-                    else
-                    {
-                        kv.Key.Tags.Add(tagValue);
-                    }
-                }
-            }
             // Set new lists
             m_Patients = patientsTemp;
             m_DataInfos = dataInfosTemp;
             await SaveDatabaseReferencesAsync();
-            await SaveDatabaseAsync(updateProgress);
-            await UniTask.SwitchToMainThread();
-            OnUpdateDatabases.Invoke();
         }
 
         private void FixDatasets()
