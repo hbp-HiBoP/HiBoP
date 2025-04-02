@@ -266,7 +266,7 @@ namespace HBP.Core.Data
         /// <returns></returns>
         public static string[] GetExtensions()
         {
-            return new string[] { EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION };
+            return new string[] { EXTENSION[0] == '.' ? EXTENSION[1..] : EXTENSION };
         }
         /// <summary>
         /// Determines if the specified directory is a patient directory.

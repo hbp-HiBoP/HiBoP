@@ -39,54 +39,20 @@ namespace HBP.Data.Preferences
     public class ProjectPreferences : ICloneable
     {
         #region Properties
-        [JsonProperty] public string DefaultName
-        {
-            get
-            {
-                return Core.Data.ProjectPreferences.DefaultName;
-            }
-            set
-            {
-                Core.Data.ProjectPreferences.DefaultName = value;
-            }
-        }
+        [JsonProperty] public string DefaultName { get; set; }
         [JsonProperty] public string DefaultLocation { get; set; }
-        [JsonProperty] public string DefaultPatientDatabase
-        {
-            get
-            {
-                return Core.Data.ProjectPreferences.DefaultPatientDatabase;
-            }
-            set
-            {
-                Core.Data.ProjectPreferences.DefaultPatientDatabase = value;
-            }
-        }
-        [JsonProperty] public string DefaultLocalizerDatabase
-        {
-            get
-            {
-                return Core.Data.ProjectPreferences.DefaultLocalizerDatabase;
-            }
-            set
-            {
-                Core.Data.ProjectPreferences.DefaultLocalizerDatabase = value;
-            }
-        }
         [JsonProperty] public string DefaultExportLocation { get; set; }
         #endregion
 
         #region Constructors
-        public ProjectPreferences() : this("New Project","","","","")
+        public ProjectPreferences() : this("New Project", "", "")
         {
 
         }
-        public ProjectPreferences(string defaultName, string defaultLocation, string defaultPatientDatabase, string defaultLocalizerDatabase, string defaultExportLocation)
+        public ProjectPreferences(string defaultName, string defaultLocation, string defaultExportLocation)
         {
             DefaultName = defaultName;
             DefaultLocation = defaultLocation;
-            DefaultPatientDatabase = defaultPatientDatabase;
-            DefaultLocalizerDatabase = defaultLocalizerDatabase;
             DefaultExportLocation = defaultExportLocation;
         }
         #endregion
@@ -94,7 +60,7 @@ namespace HBP.Data.Preferences
         #region Public Methods
         public object Clone()
         {
-            return new ProjectPreferences(DefaultName, DefaultLocation, DefaultPatientDatabase, DefaultLocalizerDatabase, DefaultExportLocation);
+            return new ProjectPreferences(DefaultName, DefaultLocation, DefaultExportLocation);
         }
         #endregion
     }

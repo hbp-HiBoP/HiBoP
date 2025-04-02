@@ -78,8 +78,6 @@ namespace HBP.UI.Main
 
             m_NameInputField.text = preferences.DefaultName;
             m_ProjectLocationFolderSelector.Folder = preferences.DefaultLocation;
-            m_PatientsDatabaseLocationFolderSelector.Folder = preferences.DefaultPatientDatabase;
-            m_LocalizerDatabaseLocationFolderSelector.Folder = preferences.DefaultLocalizerDatabase;
         }
         async void CreateNewProject()
         {
@@ -88,19 +86,19 @@ namespace HBP.UI.Main
                 int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Project already exists", string.Format("A project named {0} already exists within the selected directory.\n\nWould you like to override this project?", m_NameInputField.text), "OK", "Cancel");
                 if (result == 0)
                 {
-                    Core.Data.ProjectPreferences preferences = new Core.Data.ProjectPreferences(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
+                    Core.Data.ProjectPreferences preferences = new Core.Data.ProjectPreferences(m_NameInputField.text);
                     ApplicationState.LoadedProject = new Project(preferences);
                     ApplicationState.LoadedProjectLocation = m_ProjectLocationFolderSelector.Folder;
-                    ProjectLoaderSaver.SaveAndReload();
+                    ProjectLoaderSaver.SaveAndReload().Forget();
                     base.OK();
                 }
             }
             else
             {
-                Core.Data.ProjectPreferences preferences = new Core.Data.ProjectPreferences(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
+                Core.Data.ProjectPreferences preferences = new Core.Data.ProjectPreferences(m_NameInputField.text);
                 ApplicationState.LoadedProject = new Project(preferences);
                 ApplicationState.LoadedProjectLocation = m_ProjectLocationFolderSelector.Folder;
-                ProjectLoaderSaver.SaveAndReload();
+                ProjectLoaderSaver.SaveAndReload().Forget();
                 base.OK();
             }
         }

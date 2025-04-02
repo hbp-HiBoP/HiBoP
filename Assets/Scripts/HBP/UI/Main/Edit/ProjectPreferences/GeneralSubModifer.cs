@@ -7,7 +7,6 @@ namespace HBP.UI.Main
     {
         #region Properties
         [SerializeField] InfoSubModifier m_InfoSubModifier;
-        [SerializeField] DatabaseSubModifier m_DatabaseSubModifier;
 
         public override bool Interactable
         {
@@ -16,7 +15,6 @@ namespace HBP.UI.Main
             {
                 base.Interactable = value;
                 m_InfoSubModifier.Interactable = value;
-                m_DatabaseSubModifier.Interactable = value;
             }
         }
         #endregion
@@ -25,14 +23,12 @@ namespace HBP.UI.Main
         public override void Save()
         {
             m_InfoSubModifier.Save();
-            m_DatabaseSubModifier.Save();
             base.Save();
         }
         public override void Initialize()
         {
             base.Initialize();
             m_InfoSubModifier.Initialize();
-            m_DatabaseSubModifier.Initialize();
         }
         #endregion
 
@@ -41,7 +37,6 @@ namespace HBP.UI.Main
         {
             base.SetFields(objectToDisplay);
             m_InfoSubModifier.Object = objectToDisplay;
-            m_DatabaseSubModifier.Object = objectToDisplay;
         }
         #endregion
     }
