@@ -4,10 +4,12 @@ using UnityEngine.Events;
 using System.Collections.Generic;
 using HBP.UI.Main;
 using HBP.Core.Data;
+using HBP.Data.Preferences;
+using System.Linq;
 
 namespace HBP.UI.Tools
 {
-    public abstract class ListFilter : DialogWindow
+    public class ListFilter : DialogWindow
     {
         #region Properties
         [SerializeField] protected FilterConditionListGestion m_ListGestion;
@@ -42,17 +44,15 @@ namespace HBP.UI.Tools
         {
             base.OK();
             ApplyFilters();
+            PersistentDataManager.FilterConditionsPresets.CurrentPreset = new(m_ListGestion.List.Objects);
         }
-        #endregion
-
-        #region Private Methods
-        protected override void Initialize()
+        public override void Close()
         {
-            base.Initialize();
-
-            m_ListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
+            base.Close();
+            OnApplyFilters.Invoke(Enumerable.Repeat(true, FilteringObjects.Count).ToArray());
+            PersistentDataManager.FilterConditionsPresets.CurrentPreset = new(m_ListGestion.List.Objects);
         }
-        protected void ApplyFilters()
+        public void ApplyFilters()
         {
             try
             {
@@ -68,7 +68,28 @@ namespace HBP.UI.Tools
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.ToString(), e.Message).Forget();
             }
         }
-        protected abstract bool CheckConditions(BaseData obj);
+        public void SetPreset(FilterConditionsPreset preset)
+        {
+            m_ListGestion.List.Set(preset.Conditions);
+        }
+        #endregion
+
+        #region Private Methods
+        protected override void Initialize()
+        {
+            base.Initialize();
+
+            m_ListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
+        }
+        protected virtual bool CheckConditions(BaseData obj)
+        {
+            bool result = true;
+            foreach (var condition in m_ListGestion.List.Objects)
+            {
+                result &= condition.Check(obj);
+            }
+            return result;
+        }
         #endregion
     }
 }

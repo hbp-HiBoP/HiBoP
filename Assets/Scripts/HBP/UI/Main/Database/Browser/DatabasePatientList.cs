@@ -1,4 +1,5 @@
 using HBP.Core.Data;
+using HBP.Data.Preferences;
 using HBP.UI.Tools;
 using HBP.UI.Tools.Lists;
 using System.Collections.Generic;
@@ -29,8 +30,9 @@ namespace HBP.UI.Database
         {
             var parentWindow = GetComponentInParent<Window>();
 
-            var filterWindow = WindowsManager.Open("Patient filter window", parentWindow).GetComponent<Main.PatientFilter>();
+            var filterWindow = WindowsManager.Open("Filter window", parentWindow).GetComponent<ListFilter>();
             filterWindow.FilteringObjects = Objects.Select(o => (BaseData)o).ToList();
+            filterWindow.SetPreset(PersistentDataManager.FilterConditionsPresets.CurrentPreset);
             filterWindow.OnApplyFilters.AddListener(mask =>
             {
                 MaskList(mask, false);
