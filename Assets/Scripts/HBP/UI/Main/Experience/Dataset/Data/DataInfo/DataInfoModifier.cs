@@ -65,6 +65,7 @@ namespace HBP.UI.Main
         public override void OK()
         {
             m_Object = ObjectTemp;
+            m_Object.RequireErrorCheck = true;
             base.OK();
         }
         /// <summary>

@@ -108,11 +108,11 @@ namespace HBP.Core.Data
         {
             get
             {
-                return m_Errors.Length == 0;
+                return Errors.Count == 0;
             }
         }
         public enum DataState { Error, Warning, Ok }
-        public DataState State => m_Errors.Length > 0 ? DataState.Error : m_Warnings.Length > 0 ? DataState.Warning : DataState.Ok;
+        public DataState State => Errors.Count > 0 ? DataState.Error : Warnings.Count > 0 ? DataState.Warning : DataState.Ok;
 
         public bool RequireErrorCheck { get; set; } = false;
         #endregion
@@ -416,7 +416,7 @@ namespace HBP.Core.Data
         {
             List<Error> errors = new();
             errors.AddRange(GetNameErrors());
-            errors.AddRange(m_DataContainer.GetErrors());
+            m_DataContainer.GetErrors();
             return errors;
         }
         /// <summary>
@@ -438,7 +438,7 @@ namespace HBP.Core.Data
         {
             List<Warning> warnings = new();
             warnings.AddRange(GetNameWarnings());
-            warnings.AddRange(m_DataContainer.GetWarnings());
+            m_DataContainer.GetWarnings();
             return warnings;
         }
         /// <summary>

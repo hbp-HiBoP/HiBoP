@@ -39,6 +39,8 @@ namespace HBP.UI.Main
                 m_DataInfoListGestion.Modifiable = value;
             }
         }
+
+        public Protocol SelectedProtocol => ObjectTemp.Protocol;
         #endregion
 
         #region Protected Methods

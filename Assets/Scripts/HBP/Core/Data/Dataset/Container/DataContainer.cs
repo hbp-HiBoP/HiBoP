@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine.Events;
 using HBP.Core.Errors;
 using Newtonsoft.Json;
+using System.Collections.ObjectModel;
 
 namespace HBP.Core.Data.Container
 {
@@ -33,34 +34,18 @@ namespace HBP.Core.Data.Container
         /// <summary>
         /// Errors of the dataContainer.
         /// </summary>
-        public virtual Error[] Errors
-        {
-            get
-            {
-                List<Error> errors = new List<Error>();
-                errors.AddRange(m_Errors);
-                return errors.Distinct().ToArray();
-            }
-        }
+        public virtual ReadOnlyCollection<Error> Errors => new(m_Errors);
 
         [JsonProperty] protected Warning[] m_Warnings = new Warning[0];
         /// <summary>
         /// Errors of the dataContainer.
         /// </summary>
-        public virtual Warning[] Warnings
-        {
-            get
-            {
-                List<Warning> warnings = new List<Warning>();
-                warnings.AddRange(m_Warnings);
-                return warnings.Distinct().ToArray();
-            }
-        }
+        public virtual ReadOnlyCollection<Warning> Warnings => new(m_Warnings);
 
         /// <summary>
         /// True if the dataContainer is OK, False otherwise.
         /// </summary>v 
-        public bool IsOk => Errors.Length == 0;
+        public bool IsOk => Errors.Count == 0;
         #endregion
 
         #region Constructors

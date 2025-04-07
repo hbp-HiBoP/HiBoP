@@ -2,6 +2,7 @@
 using HBP.Core.Data;
 using HBP.Core.Enums;
 using HBP.Core.Interfaces;
+using HBP.Data.Database;
 using HBP.UI.Tools;
 using System.Linq;
 
@@ -18,7 +19,18 @@ namespace HBP.UI.Main
         /// </summary>
         public override void CreateFromScratch()
         {
-            OpenModifier(new IEEGDataInfo());
+            // FIXME: this is ugly
+            var dataInfo = new IEEGDataInfo();
+            var parentModifier = GetComponentInParent<DatasetModifier>();
+            if (parentModifier != null)
+            {
+                dataInfo.Protocol = parentModifier.SelectedProtocol;
+            }
+            else
+            {
+                dataInfo.Protocol = DatabaseManager.Database.Protocols.First();
+            }
+            OpenModifier(dataInfo);
         }
         #endregion
 

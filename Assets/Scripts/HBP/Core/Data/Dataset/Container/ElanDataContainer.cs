@@ -83,7 +83,7 @@ namespace HBP.Core.Data.Container
         public string POS
         {
             get { return SavedPOS?.ConvertToFullPath(); }
-            set { SavedPOS = value?.ConvertToShortPath(); GetErrors(); }
+            set { SavedPOS = value?.ConvertToShortPath(); }
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace HBP.Core.Data.Container
         public string Notes
         {
             get { return SavedNotes?.ConvertToFullPath(); }
-            set { SavedNotes = value?.ConvertToShortPath(); GetErrors(); }
+            set { SavedNotes = value?.ConvertToShortPath(); }
         }
         #endregion
 

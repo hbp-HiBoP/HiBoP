@@ -216,7 +216,7 @@ namespace HBP.UI.Module3D
         void SetIEEG(Core.Object3D.SiteInfo siteInfo)
         {
             string unit = siteInfo.IEEGUnit;
-            if (unit == "microV") unit = "mV";
+            if (unit == "microV") unit = "µV";
             if (unit != string.Empty) unit = " (" + unit + ")";
             m_IEEGAmplitudeText.text = siteInfo.IEEGAmplitude + unit;      
         }

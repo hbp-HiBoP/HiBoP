@@ -28,7 +28,7 @@ namespace HBP.UI.Main
             foreach (var obj in dataInfos)
             {
                 await UniTask.SwitchToThreadPool();
-                obj.CheckErrorsAndWarnings();
+                obj.CheckErrorsAndWarnings(true);
                 await UniTask.SwitchToMainThread();
                 List.UpdateObject(obj);
                 count++;

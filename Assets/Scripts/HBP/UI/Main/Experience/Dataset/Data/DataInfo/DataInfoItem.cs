@@ -50,7 +50,18 @@ namespace HBP.UI.Main
                 else
                     m_ErrorText.Text = Object.GetErrorsMessage();
 
-                m_StateThemeElement.Set(value.IsOk ? (warnings.Count > 0 ? m_WarningState : m_OKState) : m_ErrorState);
+                switch (value.State)
+                {
+                    case Core.Data.DataInfo.DataState.Error:
+                        m_StateThemeElement.Set(m_ErrorState);
+                        break;
+                    case Core.Data.DataInfo.DataState.Warning:
+                        m_StateThemeElement.Set(m_WarningState);
+                        break;
+                    case Core.Data.DataInfo.DataState.Ok:
+                        m_StateThemeElement.Set(m_OKState);
+                        break;
+                }
 
                 SetNotInteractable();
             }
