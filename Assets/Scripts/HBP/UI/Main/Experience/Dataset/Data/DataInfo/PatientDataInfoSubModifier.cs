@@ -40,10 +40,15 @@ namespace HBP.UI.Main
         #region Protected Methods
         protected override void SetFields(PatientDataInfo objectToDisplay)
         {
+            // FIXME: this is ugly
             if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.Contains(objectToDisplay)))
                 m_Patients = ApplicationState.LoadedProject.Patients;
-            else
+            else if (DatabaseManager.Database.DataInfos.Contains(objectToDisplay))
                 m_Patients = DatabaseManager.Database.Patients;
+            else if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Patients.Count > 0)
+                m_Patients = ApplicationState.LoadedProject.Patients;
+            else
+                throw new System.Exception("No patients available in the project or database.");
             m_PatientDropdown.options = (from patient in m_Patients select new Dropdown.OptionData(patient.CompleteName, null)).ToList();
             m_PatientDropdown.value = m_Patients.IndexOf(objectToDisplay.Patient);
         }

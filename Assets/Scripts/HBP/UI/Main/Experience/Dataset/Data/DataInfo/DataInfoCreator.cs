@@ -2,6 +2,7 @@
 using HBP.Core.Data;
 using HBP.Core.Enums;
 using HBP.Core.Interfaces;
+using HBP.Core.Tools;
 using HBP.Data.Database;
 using HBP.UI.Tools;
 using System.Linq;
@@ -25,10 +26,14 @@ namespace HBP.UI.Main
             if (parentModifier != null)
             {
                 dataInfo.Protocol = parentModifier.SelectedProtocol;
+                if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Any(ds => ds.ID == parentModifier.Object.ID))
+                    dataInfo.Patient = ApplicationState.LoadedProject.Patients.FirstOrDefault();
+                else
+                    dataInfo.Patient = DatabaseManager.Database.Patients.FirstOrDefault();
             }
             else
             {
-                dataInfo.Protocol = DatabaseManager.Database.Protocols.First();
+                dataInfo.Protocol = DatabaseManager.Database.Protocols.FirstOrDefault();
             }
             OpenModifier(dataInfo);
         }

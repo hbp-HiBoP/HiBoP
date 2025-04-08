@@ -61,14 +61,6 @@ namespace HBP.Core.Data
         {
             get
             {
-                if (m_Patient == null)
-                {
-                    if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.Contains(this)))
-                        m_Patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == m_PatientID);
-                    else
-                        m_Patient = DatabaseManager.Database.Patients.FirstOrDefault(p => p.ID == m_PatientID);
-                    Debug.LogError("POURQUOI CE TRUC EST APPELE");
-                }
                 return m_Patient;
             }
             set
