@@ -128,20 +128,6 @@ namespace HBP.UI.Tools.Lists
         #endregion
 
         #region Public Methods
-        public override void Add(T obj)
-        {
-            base.Add(obj);
-            m_SelectedStateByObject.Add(obj, false);
-            m_SelectableStateByObject.Add(obj, true);
-            OnSelectionChanged();
-        }
-        public override void Remove(T obj)
-        {
-            base.Remove(obj);
-            m_SelectedStateByObject.Remove(obj);
-            m_SelectableStateByObject.Remove(obj);
-            OnSelectionChanged();
-        }
         /// <summary>
         /// Select all objects.
         /// </summary>
@@ -422,6 +408,20 @@ namespace HBP.UI.Tools.Lists
                 else DeselectAll();
                 m_SelectionLock = false;
             }
+        }
+        protected override void AddObject(T obj)
+        {
+            base.AddObject(obj);
+            m_SelectedStateByObject.Add(obj, false);
+            m_SelectableStateByObject.Add(obj, true);
+            OnSelectionChanged();
+        }
+        protected override void RemoveObject(T obj)
+        {
+            base.RemoveObject(obj);
+            m_SelectedStateByObject.Remove(obj);
+            m_SelectableStateByObject.Remove(obj);
+            OnSelectionChanged();
         }
         #endregion
     }

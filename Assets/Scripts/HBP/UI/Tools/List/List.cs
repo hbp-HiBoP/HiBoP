@@ -79,12 +79,9 @@ namespace HBP.UI.Tools.Lists
         /// </summary>
         /// <param name="obj">Object to add</param>
         /// <returns>True if added, False otherwise</returns>
-        public virtual void Add(T obj)
+        public void Add(T obj)
         {
-            m_Objects.Add(obj);
-            m_DisplayedObjects.Add(obj);
-            ScrollRect.content.sizeDelta += new Vector2(0, m_ItemHeight);
-            ScrollRect.content.hasChanged = true;
+            AddObject(obj);
             OnAddObject.Invoke(obj);
         }
         /// <summary>
@@ -102,17 +99,9 @@ namespace HBP.UI.Tools.Lists
         /// </summary>
         /// <param name="obj">Object to add</param>
         /// <returns>True if removed, False otherwise</returns>
-        public virtual void Remove(T obj)
+        public void Remove(T obj)
         {
-            m_Objects.Remove(obj);
-            if (m_DisplayedObjects.Count <= m_MaximumNumberOfItems)
-            {
-                DestroyItem(1, false);
-            }
-            m_DisplayedObjects.Remove(obj);
-            UpdateContent();
-            GetLimits(out m_FirstIndexDisplayed, out m_LastIndexDisplayed);
-            Refresh();
+            RemoveObject(obj);
             OnRemoveObject.Invoke(obj);
         }
         /// <summary>
@@ -456,6 +445,25 @@ namespace HBP.UI.Tools.Lists
         {
             Display();
             ScrollRect.content.hasChanged = false;
+        }
+        protected virtual void AddObject(T obj)
+        {
+            m_Objects.Add(obj);
+            m_DisplayedObjects.Add(obj);
+            ScrollRect.content.sizeDelta += new Vector2(0, m_ItemHeight);
+            ScrollRect.content.hasChanged = true;
+        }
+        protected virtual void RemoveObject(T obj)
+        {
+            m_Objects.Remove(obj);
+            if (m_DisplayedObjects.Count <= m_MaximumNumberOfItems)
+            {
+                DestroyItem(1, false);
+            }
+            m_DisplayedObjects.Remove(obj);
+            UpdateContent();
+            GetLimits(out m_FirstIndexDisplayed, out m_LastIndexDisplayed);
+            Refresh();
         }
         #endregion
     } 

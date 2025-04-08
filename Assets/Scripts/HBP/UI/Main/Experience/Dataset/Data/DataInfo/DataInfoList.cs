@@ -26,10 +26,10 @@ namespace HBP.UI.Main
         /// </summary>
         /// <param name="objectToAdd">DataInfo to add</param>
         /// <returns>True if end without errors, False otherwise</returns>
-        public override void Add(Core.Data.DataInfo objectToAdd)
+        protected override void AddObject(Core.Data.DataInfo objectToAdd)
         {
             SortByNone();
-            base.Add(objectToAdd);
+            base.AddObject(objectToAdd);
         }
         #endregion
 

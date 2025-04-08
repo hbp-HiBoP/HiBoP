@@ -86,6 +86,8 @@ namespace HBP.UI.Database
             base.Initialize();
             m_ListGestion.List.OnSelect.AddListener((database) => SetUpdateButtonInteractableState());
             m_ListGestion.List.OnDeselect.AddListener((database) => SetUpdateButtonInteractableState());
+            m_ListGestion.List.OnRemoveObject.AddListener((database) => SetUpdateButtonInteractableState());
+            m_ListGestion.List.OnAddObject.AddListener((database) => SetUpdateButtonInteractableState());
         }
         private void SetUpdateButtonInteractableState()
         {

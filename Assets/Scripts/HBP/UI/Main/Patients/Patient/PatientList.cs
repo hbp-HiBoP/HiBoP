@@ -32,10 +32,10 @@ namespace HBP.UI.Main
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public override void Add(Patient obj)
+        protected override void AddObject(Patient obj)
         {
             SortByNone();
-            base.Add(obj);
+            base.AddObject(obj);
         }
 
         public void OpenFilterWindow()

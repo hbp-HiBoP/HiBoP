@@ -62,6 +62,8 @@ namespace HBP.UI.Database
             m_WorkspaceListGestion.List.OnUpdateObject.AddListener(UpdateWorkspace);
             m_WorkspaceListGestion.List.OnSelect.AddListener((workspace) => SetSwitchWorkspaceButtonInteractableState());
             m_WorkspaceListGestion.List.OnDeselect.AddListener((workspace) => SetSwitchWorkspaceButtonInteractableState());
+            m_WorkspaceListGestion.List.OnRemoveObject.AddListener((workspace) => SetSwitchWorkspaceButtonInteractableState());
+            m_WorkspaceListGestion.List.OnAddObject.AddListener((workspace) => SetSwitchWorkspaceButtonInteractableState());
         }
 
         protected void AddWorkspace(Workspace workspace)

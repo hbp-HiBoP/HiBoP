@@ -18,16 +18,16 @@ namespace HBP.UI.Main
         [SerializeField] SortingDisplayer m_ValueSortingDisplayer;
         #endregion
 
-        #region Public Methods
+        #region Private Methods
         /// <summary>
         /// Add alias.
         /// </summary>
         /// <param name="objectToAdd">Alias to add</param>
         /// <returns>True if end without errors, False otherwise</returns>
-        public override void Add(Core.Data.Alias objectToAdd)
+        protected override void AddObject(Core.Data.Alias objectToAdd)
         {
             SortByNone();
-            base.Add(objectToAdd);
+            base.AddObject(objectToAdd);
         }
         #endregion
 

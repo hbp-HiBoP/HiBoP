@@ -74,8 +74,10 @@ namespace HBP.UI.Main
         protected override void Initialize()
         {
             base.Initialize();
-            ListGestion.List.OnSelect.AddListener((visualization) => SetDisplay());
-            ListGestion.List.OnDeselect.AddListener((visualization) => SetDisplay());
+            m_ListGestion.List.OnSelect.AddListener((visualization) => SetDisplay());
+            m_ListGestion.List.OnDeselect.AddListener((visualization) => SetDisplay());
+            m_ListGestion.List.OnRemoveObject.AddListener((visualization) => SetDisplay());
+            m_ListGestion.List.OnAddObject.AddListener((visualization) => SetDisplay());
         }
         void SetDisplay()
         {

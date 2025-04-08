@@ -17,10 +17,10 @@ namespace HBP.UI.Main
         #endregion
 
         #region Public Methods
-        public override void Add(BaseFilterCondition filterCondition)
+        protected override void AddObject(BaseFilterCondition filterCondition)
         {
             SortByNone();
-            base.Add(filterCondition);
+            base.AddObject(filterCondition);
         }
         #endregion
 

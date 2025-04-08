@@ -20,10 +20,10 @@ namespace HBP.UI.Database
         #endregion
 
         #region Public Methods
-        public override void Add(Patient obj)
+        protected override void AddObject(Patient obj)
         {
             SortByNone();
-            base.Add(obj);
+            base.AddObject(obj);
         }
 
         public void OpenFilterWindow()
