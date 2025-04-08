@@ -268,6 +268,8 @@ namespace HBP.UI.Tools.Lists
         {
             int index = m_Objects.FindIndex(o => o.Equals(objectToUpdate));
             m_Objects[index] = objectToUpdate;
+            int displayedIndex = m_DisplayedObjects.FindIndex(o => o.Equals(objectToUpdate));
+            m_DisplayedObjects[displayedIndex] = objectToUpdate;
 
             if (GetItemFromObject(objectToUpdate, out Item<T> item))
             {
