@@ -344,6 +344,56 @@ namespace HBP.Core.Tools
             texture.LoadImage(bytes);
             return texture;
         }
+        public static Texture2D UpscaleSmooth(this Texture2D source, int factor)
+        {
+            if (factor < 2) return source;
+
+            int srcWidth = source.width;
+            int srcHeight = source.height;
+
+            int newWidth = (srcWidth - 1) * factor + 1;
+            int newHeight = (srcHeight - 1) * factor + 1;
+
+            Texture2D result = new Texture2D(newWidth, newHeight, source.format, false);
+
+            Color[,] srcColors = new Color[srcWidth, srcHeight];
+            for (int y = 0; y < srcHeight; y++)
+                for (int x = 0; x < srcWidth; x++)
+                    srcColors[x, y] = source.GetPixel(x, y);
+
+            for (int y = 0; y < newHeight; y++)
+            {
+                float srcY = (float)y / (factor);
+                int y0 = Mathf.FloorToInt(srcY);
+                int y1 = Mathf.Min(y0 + 1, srcHeight - 1);
+                float ty = srcY - y0;
+
+                for (int x = 0; x < newWidth; x++)
+                {
+                    float srcX = (float)x / (factor);
+                    int x0 = Mathf.FloorToInt(srcX);
+                    int x1 = Mathf.Min(x0 + 1, srcWidth - 1);
+                    float tx = srcX - x0;
+
+                    Color c00 = srcColors[x0, y0];
+                    Color c10 = srcColors[x1, y0];
+                    Color c01 = srcColors[x0, y1];
+                    Color c11 = srcColors[x1, y1];
+
+                    // Interpolation bilinéaire
+                    Color interpolated =
+                        (1 - tx) * (1 - ty) * c00 +
+                        (tx) * (1 - ty) * c10 +
+                        (1 - tx) * (ty) * c01 +
+                        (tx) * (ty) * c11;
+
+                    result.SetPixel(x, y, interpolated);
+                }
+            }
+
+            result.Apply();
+            return result;
+        }
     }
 
     public static class PathExtension

@@ -373,12 +373,20 @@ namespace HBP.UI.Informations.TrialMatrix
                 {
                     case BlocFormatType.TrialHeight:
                         m_LayoutElement.preferredHeight = PersistentDataManager.UserPreferences.Visualization.TrialMatrix.TrialHeight * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length / scale;
+                        m_LayoutElement.flexibleHeight = -1;
                         break;
                     case BlocFormatType.TrialRatio:
                         m_LayoutElement.preferredHeight = PersistentDataManager.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length / scale;
+                        m_LayoutElement.flexibleHeight = -1;
                         break;
                     case BlocFormatType.BlocRatio:
                         m_LayoutElement.preferredHeight = PersistentDataManager.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width / scale;
+                        m_LayoutElement.flexibleHeight = -1;
+                        break;
+                    case BlocFormatType.ProtocolRatio:
+                        var length = Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length;
+                        m_LayoutElement.preferredHeight = length * 5;
+                        m_LayoutElement.flexibleHeight = length;
                         break;
                 }
             }

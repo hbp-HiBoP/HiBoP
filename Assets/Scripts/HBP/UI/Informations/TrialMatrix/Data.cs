@@ -1,8 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Core.Enums;
+using HBP.Data.Preferences;
+using HBP.UI.Tools;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 using UnityEngine.UI.Extensions;
 using d = HBP.Data.Informations.TrialMatrix;
 
@@ -145,7 +149,9 @@ namespace HBP.UI.Informations.TrialMatrix
 
         List<TimeLegend> m_TimeLegends = new List<TimeLegend>();
         [SerializeField] GameObject m_TimeLegendPrefab;
-        [SerializeField] RectTransform m_TimeLegendContainer; 
+        [SerializeField] RectTransform m_TimeLegendContainer;
+
+        [SerializeField] LayoutElement m_LayoutElement;
         #endregion
 
         #region Public Methods
@@ -176,6 +182,10 @@ namespace HBP.UI.Informations.TrialMatrix
         #endregion
 
         #region Private Methods
+        void OnRectTransformDimensionsChange()
+        {
+            SetSize();
+        }
         void Clear()
         {
             foreach (var timeLegend in m_TimeLegends)
@@ -201,6 +211,23 @@ namespace HBP.UI.Informations.TrialMatrix
             bloc.Set(data, Colors, Limits);
             bloc.OnChangeIsHovered.AddListener(() => OnChangeIsHovered.Invoke(IsHovered));
             m_Blocs.Add(bloc);
+        }
+        void SetSize()
+        {
+            CanvasScalerHandler canvasScalerHandler = GetComponentInParent<CanvasScalerHandler>();
+            float scale = canvasScalerHandler ? canvasScalerHandler.Scale : 1;
+            switch (PersistentDataManager.UserPreferences.Visualization.TrialMatrix.SubBlocFormat)
+            {
+                case BlocFormatType.ProtocolRatio:
+                    m_LayoutElement.enabled = true;
+                    var height = GetComponent<RectTransform>().rect.width * PersistentDataManager.UserPreferences.Visualization.TrialMatrix.ProtocolRatio * scale;
+                    m_LayoutElement.minHeight = height;
+                    m_LayoutElement.preferredHeight = height;
+                    break;
+                default:
+                    m_LayoutElement.enabled = false;
+                    break;
+            }
         }
         #endregion
     }

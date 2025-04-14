@@ -31,8 +31,8 @@
             {
               "Name": "RESPONSE",
               "Codes": [
-                1,
-                2
+                100,
+                200
               ],
               "Type": 1,
               "ID": "c20447f8-f6a6-4787-b7ff-dd8ec07b0c3b"
@@ -75,8 +75,8 @@
             {
               "Name": "RESPONSE",
               "Codes": [
-                1,
-                2
+                100,
+                200
               ],
               "Type": 1,
               "ID": "641bb770-0a0e-4b2f-a672-f5851e328e53"
