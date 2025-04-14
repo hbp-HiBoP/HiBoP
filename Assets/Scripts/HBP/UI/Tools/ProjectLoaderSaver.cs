@@ -1,60 +1,72 @@
-﻿using UnityEngine.Events;
-using System.IO;
-using ThirdParty.CielaSpike;
+﻿using System.IO;
 using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Data.Module3D;
+using HBP.UI.Main;
+using System;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
 
 namespace HBP.UI.Tools
 {
     public class ProjectLoaderSaver
     {
         #region Public Methods  
-        public static void Load(ProjectInfo projectInfo)
+        public async static UniTaskVoid Load(ProjectInfo projectInfo)
+        {
+            await LoadAsync(projectInfo);
+        }
+        public async static UniTask LoadAsync(ProjectInfo projectInfo)
         {
             Project projectToLoad = new();
 
             DataManager.Clear();
-            Project projectLoaded = ApplicationState.ProjectLoaded;
-            string projectLoadedLocation = ApplicationState.ProjectLoadedLocation;
-            ApplicationState.ProjectLoaded = projectToLoad;
-            ApplicationState.ProjectLoadedLocation = Directory.GetParent(projectInfo.Path).FullName; 
+            Project projectLoaded = ApplicationState.LoadedProject;
+            string projectLoadedLocation = ApplicationState.LoadedProjectLocation;
+            ApplicationState.LoadedProject = projectToLoad;
+            ApplicationState.LoadedProjectLocation = Directory.GetParent(projectInfo.Path).FullName;
 
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            LoadingManager.Load(
-                projectToLoad.c_Load(projectInfo, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)),
-                onChangeProgress,
-                (taskState) =>
-                {
-                    if (taskState == TaskState.Done)
-                    {
-                        MenuButtonState.SetInteractables();
-                        UITools.CheckProjectIDAndAskForRegeneration();
-                    }
-                    else
-                    {
-                        ApplicationState.ProjectLoaded = projectLoaded;
-                        ApplicationState.ProjectLoadedLocation = projectLoadedLocation;
-                    }
-                });
+            try
+            {
+                await LoadingManager.LoadAsync((update, token) => projectToLoad.LoadAsync(projectInfo, update, token));
+                await UniTask.SwitchToMainThread();
+                InteractableStateManager.SetInteractables();
+                UITools.CheckProjectIDAndAskForRegeneration().Forget();
+            }
+            catch (OperationCanceledException)
+            {
+
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.ToString(), e.Message).Forget();
+                ApplicationState.LoadedProject = projectLoaded;
+                ApplicationState.LoadedProjectLocation = projectLoadedLocation;
+            }
         }
-        public static void Save(string path)
+        public async static UniTaskVoid Save(string path)
+        {
+            await SaveAsync(path);
+        }
+        public async static UniTaskVoid Save()
+        {
+            await SaveAsync();
+        }
+        public async static UniTaskVoid SaveAndReload()
+        {
+            await SaveAsync();
+            InteractableStateManager.SetInteractables();
+        }
+        public async static UniTask SaveAsync()
+        {
+            await SaveAsync(ApplicationState.LoadedProjectLocation);
+        }
+        public async static UniTask SaveAsync(string path)
         {
             Module3DMain.SaveConfigurations();
-            ApplicationState.ProjectLoadedLocation = path;
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            LoadingManager.Load(
-                ApplicationState.ProjectLoaded.c_Save(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)),
-                onChangeProgress);
-        }
-        public static void Save()
-        {
-            Save(ApplicationState.ProjectLoadedLocation);
-        }
-        public static void SaveAndReload()
-        {
-            Save();
-            MenuButtonState.SetInteractables();
+            ApplicationState.LoadedProjectLocation = path;
+            await LoadingManager.LoadAsync((update, token) => ApplicationState.LoadedProject.SaveAsync(path, update, token));
         }
         #endregion
     }

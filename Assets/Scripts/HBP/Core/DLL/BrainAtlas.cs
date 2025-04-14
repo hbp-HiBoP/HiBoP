@@ -34,8 +34,11 @@ namespace HBP.Core.DLL
         /// <returns>Array of strings containing information (name, location, arealabel, status, doi) about an area</returns>
         public string[] GetInformation(int labelIndex)
         {
-            string result = Marshal.PtrToStringAnsi(get_area_information_BrainAtlas(_handle, labelIndex));
-            return result.Split(new char[1] { '?' }, StringSplitOptions.None);
+            lock (typeof(Marshal))
+            {
+                string result = Marshal.PtrToStringAnsi(get_area_information_BrainAtlas(_handle, labelIndex));
+                return result.Split(new char[1] { '?' }, StringSplitOptions.None);
+            }
         }
         /// <summary>
         /// Get the labels of the area for each vertex of a surface

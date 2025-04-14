@@ -13,7 +13,7 @@ namespace HBP.Core.Data
         {
             EventsStatisticsByBloc = new Dictionary<Bloc, BlocEventsStatistics>();
             DataManager.GetData(dataInfo);
-            foreach (var bloc in dataInfo.Dataset.Protocol.Blocs)
+            foreach (var bloc in dataInfo.Protocol.Blocs)
             {
                 EventsStatisticsByBloc.Add(bloc,DataManager.GetEventsStatistics(dataInfo, bloc));
             }

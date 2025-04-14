@@ -11,29 +11,48 @@ namespace HBP.UI.Main
         #region Properties
         [SerializeField] PatientListGestion m_ListGestion;
         public override ListGestion<Patient> ListGestion => m_ListGestion;
+
+        public override bool Interactable
+        {
+            get => base.Interactable;
+            set
+            {
+                base.Interactable = value;
+
+                m_ListGestion.Interactable = value;
+                m_ListGestion.Modifiable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
-        public override void OK()
+        public override async void OK()
         {
             if (DataManager.HasData)
             {
-                DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
+                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", "Save & Reload", "Cancel");
+                if (result == 0)
                 {
                     base.OK();
-                    ApplicationState.ProjectLoaded.SetPatients(ListGestion.List.Objects);
+                    ApplicationState.LoadedProject.SetPatients(ListGestion.List.Objects);
                     DataManager.Clear();
                     Module3DMain.ReloadScenes();
-                    UITools.CheckProjectIDAndAskForRegeneration();
-                });
+                    UITools.CheckProjectIDAndAskForRegeneration().Forget();
+                }
             }
             else
             {
                 base.OK();
-                ApplicationState.ProjectLoaded.SetPatients(ListGestion.List.Objects);
-                UITools.CheckProjectIDAndAskForRegeneration();
+                ApplicationState.LoadedProject.SetPatients(ListGestion.List.Objects);
+                UITools.CheckProjectIDAndAskForRegeneration().Forget();
             }
-            MenuButtonState.SetInteractables();
+            InteractableStateManager.SetInteractables();
+        }
+        public override void Close()
+        {
+            if (m_ListGestion.HasBeenModified)
+                LoadingManager.Load(update => RestoreOldValuesAsync(ApplicationState.LoadedProject.Patients, update), false);
+            base.Close();
         }
         #endregion
 
@@ -41,7 +60,7 @@ namespace HBP.UI.Main
         protected override void SetFields()
         {
             base.SetFields();
-            ListGestion.List.Set(ApplicationState.ProjectLoaded.Patients);
+            SetList(ApplicationState.LoadedProject.Patients);
         }
         #endregion
     }

@@ -1,15 +1,17 @@
-﻿using ThirdParty.CielaSpike;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using HBP.Core.Exceptions;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
 using HBP.Data.Preferences;
+using HBP.Data.Database;
+using Cysharp.Threading.Tasks;
+using Newtonsoft.Json;
+using System.Threading;
+using System.Runtime.CompilerServices;
 
 namespace HBP.Core.Data
 {
@@ -52,7 +54,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class Patient : BaseData, ILoadable<Patient>, ILoadableFromDatabase<Patient>, ILoadableFromDirectory<Patient>, INameable
     {
         #region Properties
@@ -63,35 +65,36 @@ namespace HBP.Core.Data
         /// <summary>
         /// Name of the patient.
         /// </summary>
-        [DataMember] public string Name { get; set; }
+        [JsonProperty] public string Name { get; set; }
         /// <summary>
         /// Year in which the patient was implanted.
         /// </summary>
-        [DataMember] public int Date { get; set; }
+        [JsonProperty] public int Date { get; set; }
         /// <summary>
         /// Place where the patient had the operation.
         /// </summary>
-        [DataMember] public string Place { get; set; }
+        [JsonProperty] public string Place { get; set; }
         /// <summary>
         /// Meshes of the patient.
         /// </summary>
-        [DataMember] public List<BaseMesh> Meshes { get; set; }
+        [JsonProperty] public List<BaseMesh> Meshes { get; set; }
         /// <summary>
         /// MRI scans of the patient.
         /// </summary>
-        [DataMember] public List<MRI> MRIs { get; set; }
+        [JsonProperty] public List<MRI> MRIs { get; set; }
         /// <summary>
         /// Sites of the patient.
         /// </summary>
-        [DataMember] public List<Site> Sites { get; set; }
+        [JsonProperty] public List<Site> Sites { get; set; }
         /// <summary>
         /// Tags of the patient.
         /// </summary>
-        [DataMember] public List<BaseTagValue> Tags { get; set; }
+        [JsonProperty] public List<BaseTagValue> Tags { get; set; }
+        [JsonProperty] public string CorrespondingDatabaseID { get; set; }
         /// <summary>
         /// Complete name of the patient. Name (Place-Date).
         /// </summary>
-        [IgnoreDataMember] public string CompleteName { get { return Name + " (" + Place + " - " + Date + ")"; } }
+        [JsonIgnore] public string CompleteName { get { return Name + " (" + Place + " - " + Date + ")"; } }
         #endregion
 
         #region Constructors
@@ -106,7 +109,7 @@ namespace HBP.Core.Data
         /// <param name="sites">Sites of the patient.</param>
         /// <param name="tags">Tags of the patient.</param>
         /// <param name="ID">Unique identifier to identify the patient.</param>
-        public Patient(string name, string place, int date, IEnumerable<BaseMesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Site> sites, IEnumerable<BaseTagValue> tags, string ID) : base(ID)
+        public Patient(string name, string place, int date, IEnumerable<BaseMesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Site> sites, IEnumerable<BaseTagValue> tags, string correspondingDatabaseID, string ID) : base(ID)
         {
             Name = name;
             Place = place;
@@ -115,6 +118,7 @@ namespace HBP.Core.Data
             this.MRIs = MRIs.ToList();
             Sites = sites.ToList();
             Tags = tags.ToList();
+            CorrespondingDatabaseID = correspondingDatabaseID;
         }
         /// <summary>
         /// Create a new instance of Patient.
@@ -126,7 +130,7 @@ namespace HBP.Core.Data
         /// <param name="MRIs">MRI scans of the patient.</param>
         /// <param name="sites">Sites of the patient.</param>
         /// <param name="tags">Tags of the patient.</param>
-        public Patient(string name, string place, int date, IEnumerable<BaseMesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Site> sites, IEnumerable<BaseTagValue> tags) : base()
+        public Patient(string name, string place, int date, IEnumerable<BaseMesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Site> sites, IEnumerable<BaseTagValue> tags, string correspondingDatabaseID) : base()
         {
             Name = name;
             Place = place;
@@ -135,11 +139,12 @@ namespace HBP.Core.Data
             this.MRIs = MRIs.ToList();
             Sites = sites.ToList();
             Tags = tags.ToList();
+            CorrespondingDatabaseID = correspondingDatabaseID;
         }
         /// <summary>
         /// Create a new instance of Patient.
         /// </summary>
-        public Patient() : this("Unknown", "Unknown", 0, new BaseMesh[0], new MRI[0], new Site[0], new BaseTagValue[0])
+        public Patient() : this("Unknown", "Unknown", 0, new BaseMesh[0], new MRI[0], new Site[0], new BaseTagValue[0], "")
         {
         }
         #endregion
@@ -189,6 +194,69 @@ namespace HBP.Core.Data
                     site.Tags.Remove(tag);
             }
         }
+        public async UniTask CheckTagsAsync(IEnumerable<BaseTag> tags)
+        {
+            await UniTask.SwitchToThreadPool();
+            Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
+            foreach (var site in Sites) site.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
+            List<BaseTagValue> tagsToUpdate = Tags.Where(t => tags.Contains(t.Tag)).ToList();
+            tagsToUpdate.AddRange(Sites.SelectMany(s => s.Tags).Where(t => tags.Contains(t.Tag)));
+            foreach (var tagValue in tagsToUpdate)
+            {
+                if (tagValue.Tag is IntTag && tagValue is not IntTagValue)
+                {
+                    Tags.Remove(tagValue);
+                    var newTagValue = new IntTagValue();
+                    newTagValue.Copy(tagValue);
+                    Tags.Add(newTagValue);
+                    newTagValue.UpdateValue();
+                }
+                else if (tagValue.Tag is FloatTag && tagValue is not FloatTagValue)
+                {
+                    Tags.Remove(tagValue);
+                    var newTagValue = new FloatTagValue();
+                    newTagValue.Copy(tagValue);
+                    Tags.Add(newTagValue);
+                    newTagValue.UpdateValue();
+                }
+                else if (tagValue.Tag is BoolTag && tagValue is not BoolTagValue)
+                {
+                    Tags.Remove(tagValue);
+                    var newTagValue = new BoolTagValue();
+                    newTagValue.Copy(tagValue);
+                    Tags.Add(newTagValue);
+                    newTagValue.UpdateValue();
+                }
+                else if (tagValue.Tag is EmptyTag && tagValue is not EmptyTagValue)
+                {
+                    Tags.Remove(tagValue);
+                    var newTagValue = new EmptyTagValue();
+                    newTagValue.Copy(tagValue);
+                    Tags.Add(newTagValue);
+                    newTagValue.UpdateValue();
+                }
+                else if (tagValue.Tag is EnumTag && tagValue is not EnumTagValue)
+                {
+                    Tags.Remove(tagValue);
+                    var newTagValue = new EnumTagValue();
+                    newTagValue.Copy(tagValue);
+                    Tags.Add(newTagValue);
+                    newTagValue.UpdateValue();
+                }
+                else if (tagValue.Tag is StringTag && tagValue is not StringTagValue)
+                {
+                    Tags.Remove(tagValue);
+                    var newTagValue = new StringTagValue();
+                    newTagValue.Copy(tagValue);
+                    Tags.Add(newTagValue);
+                    newTagValue.UpdateValue();
+                }
+                else
+                {
+                    tagValue.UpdateValue();
+                }
+            }
+        }
         #endregion
 
         #region Public Static Methods
@@ -198,7 +266,7 @@ namespace HBP.Core.Data
         /// <returns></returns>
         public static string[] GetExtensions()
         {
-            return new string[] { EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION };
+            return new string[] { EXTENSION[0] == '.' ? EXTENSION[1..] : EXTENSION };
         }
         /// <summary>
         /// Determines if the specified directory is a patient directory.
@@ -232,22 +300,22 @@ namespace HBP.Core.Data
                 int.TryParse(directoryNameParts[1], out int date);
                 string name = directoryNameParts[2];
                 string place = directoryNameParts[0];
-                IEnumerable<BaseTag> tags = PersistentDataManager.Tags.GeneralTags.Concat(PersistentDataManager.Tags.PatientsTags);
+                IEnumerable<BaseTag> tags = PersistentDataManager.Tags.PatientsTags.Concat(PersistentDataManager.Tags.GeneralTags);
                 IntTag dateTag = tags.OfType<IntTag>().FirstOrDefault(t => t.Name == "Date");
                 if (dateTag == null)
                 {
                     dateTag = new IntTag("Date");
-                    PersistentDataManager.Tags.PatientsTags.Add(dateTag);
+                    PersistentDataManager.Tags.AddPatientTag(dateTag);
                 }
                 StringTag placeTag = tags.OfType<StringTag>().FirstOrDefault(t => t.Name == "Place");
                 if (placeTag == null)
                 {
                     placeTag = new StringTag("Place");
-                    PersistentDataManager.Tags.PatientsTags.Add(placeTag);
+                    PersistentDataManager.Tags.AddPatientTag(placeTag);
                 }
                 IntTagValue dateTagValue = new IntTagValue(dateTag, date);
                 StringTagValue placeTagValue = new StringTagValue(placeTag, place);
-                result = new Patient(name, place, date, BaseMesh.LoadFromDirectory(path), MRI.LoadFromDirectory(path), Site.LoadFromIntranatDirectory(path), new BaseTagValue[] { dateTagValue, placeTagValue }, directory.Name);
+                result = new Patient(name, place, date, BaseMesh.LoadFromDirectory(path), MRI.LoadFromDirectory(path), Site.LoadFromIntranatDirectory(path), new BaseTagValue[] { dateTagValue, placeTagValue }, "", directory.Name);
                 return true;
             }
             return false;
@@ -279,12 +347,12 @@ namespace HBP.Core.Data
         /// <param name="path">The specified path of the intranat database.</param>
         /// <param name="patients">Patients loaded in the database.</param>
         /// <returns></returns>
-        public static void LoadFromIntranatDatabase(string path, out Patient[] patients, Action<float, float, LoadingText> OnChangeProgress = null)
+        public static void LoadFromIntranatDatabase(DatabaseReference databaseReference, out Patient[] patients, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
-            OnChangeProgress?.Invoke(0, 0, new LoadingText("Finding patients to load"));
+            updateProgress?.Invoke(0, 0, new LoadingText("Finding patients to load"));
             patients = new Patient[0];
-            if (string.IsNullOrEmpty(path)) return;
-            DirectoryInfo directory = new DirectoryInfo(path);
+            if (string.IsNullOrEmpty(databaseReference.Path)) return;
+            DirectoryInfo directory = new DirectoryInfo(databaseReference.Path);
             if (!directory.Exists) return;
             
             IEnumerable<DirectoryInfo> patientDirectories = directory.GetDirectories().Where(d => IsPatientDirectory(d.FullName));
@@ -293,14 +361,16 @@ namespace HBP.Core.Data
             List<Patient> patientsList = new List<Patient>(length);
             foreach (var dir in patientDirectories)
             {
-                OnChangeProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading patient ", dir.Name, " [" + (progress + 1) + "/" + length + "]"));
+                token.ThrowIfCancellationRequested();
+                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading patient ", dir.Name, " [" + (progress + 1) + "/" + length + "]"));
                 if (LoadFromDirectory(dir.FullName, out Patient patient))
                 {
+                    patient.CorrespondingDatabaseID = databaseReference.ID;
                     patientsList.Add(patient);
                 }
             }
             patients = patientsList.ToArray();
-            OnChangeProgress?.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
+            updateProgress?.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
         }
         /// <summary>
         /// Loads patients from BIDS database.
@@ -308,15 +378,15 @@ namespace HBP.Core.Data
         /// <param name="path">The specified path of the BIDS database.</param>
         /// <param name="patients"></param>
         /// <returns></returns>
-        public static void LoadFromBIDSDatabase(string path, out Patient[] patients, Action<float, float, LoadingText> OnChangeProgress = null)
+        public static void LoadFromBIDSDatabase(DatabaseReference databaseReference, out Patient[] patients, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             patients = new Patient[0];
-            if (string.IsNullOrEmpty(path)) return;
-            DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(path);
+            if (string.IsNullOrEmpty(databaseReference.Path)) return;
+            DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(databaseReference.Path);
             if (!databaseDirectoryInfo.Exists) return;
 
             // Read participants.tsv.
-            OnChangeProgress?.Invoke(0, 0, new LoadingText("Reading participants.tsv file"));
+            updateProgress?.Invoke(0, 0, new LoadingText("Reading participants.tsv file"));
             FileInfo participantsFileInfo = new FileInfo(Path.Combine(databaseDirectoryInfo.FullName, "participants.tsv"));
             Dictionary<string, Dictionary<string, string>> tagValuesBySubjectID = new Dictionary<string, Dictionary<string, string>>();
             using (StreamReader streamReader = new StreamReader(participantsFileInfo.FullName))
@@ -334,7 +404,7 @@ namespace HBP.Core.Data
                         {
                             valueByTag.Add(tags[t], values[t]);
                         }
-                        tagValuesBySubjectID.Add(values[0].Substring(4), valueByTag);
+                        tagValuesBySubjectID.Add(values[0][4..], valueByTag);
                     }
                 }
             }
@@ -345,6 +415,7 @@ namespace HBP.Core.Data
             Dictionary<string, List<BIDSMeshFile>> meshesFilesBySubjectID = new Dictionary<string, List<BIDSMeshFile>>();
             foreach (var file in meshFiles)
             {
+                token.ThrowIfCancellationRequested();
                 Match match = meshRegex.Match(file.FullName);
                 if (match.Success)
                 {
@@ -376,6 +447,7 @@ namespace HBP.Core.Data
             Dictionary<string, List<BIDSMRIFile>> mriFilesBySubjectID = new Dictionary<string, List<BIDSMRIFile>>();
             foreach (var file in mriFiles)
             {
+                token.ThrowIfCancellationRequested();
                 Match match = mriRegex.Match(file.FullName);
                 if (match.Success)
                 {
@@ -406,6 +478,7 @@ namespace HBP.Core.Data
             Dictionary<string, List<BIDSElectrodeFile>> electrodesFilesBySubjectID = new Dictionary<string, List<BIDSElectrodeFile>>();
             foreach (var file in electrodesFiles)
             {
+                token.ThrowIfCancellationRequested();
                 Match match = electrodesRegex.Match(file.FullName);
                 if (match.Success)
                 {
@@ -437,7 +510,8 @@ namespace HBP.Core.Data
             List<Patient> patientsList = new List<Patient>(tagValuesBySubjectID.Count);
             foreach (var pair in tagValuesBySubjectID)
             {
-                OnChangeProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading patient ", pair.Key, " [" + (progress + 1) + "/" + length + "]"));
+                token.ThrowIfCancellationRequested();
+                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading patient ", pair.Key, " [" + (progress + 1) + "/" + length + "]"));
 
                 // Meshes.
                 List<BaseMesh> meshes = new List<BaseMesh>();
@@ -511,7 +585,7 @@ namespace HBP.Core.Data
                     {
                         if (!projectTags.Any(t => t.Name == tagName))
                         {
-                            PersistentDataManager.Tags.PatientsTags.Add(new StringTag(tagName));
+                            PersistentDataManager.Tags.AddPatientTag(new StringTag(tagName));
                         }
                     }
                     // Add tags to patient
@@ -521,43 +595,7 @@ namespace HBP.Core.Data
                         BaseTag tag = projectTags.FirstOrDefault(t => t.Name == subjectTag.Key);
                         if (tag != null)
                         {
-                            BaseTagValue tagValue = null;
-                            if (tag is EmptyTag emptyTag)
-                            {
-                                tagValue = new EmptyTagValue(emptyTag);
-                            }
-                            else if (tag is BoolTag boolTag)
-                            {
-                                if (bool.TryParse(subjectTag.Value, out bool result))
-                                {
-                                    tagValue = new BoolTagValue(boolTag, result);
-                                }
-                            }
-                            else if (tag is EnumTag enumTag)
-                            {
-                                tagValue = new EnumTagValue(enumTag, subjectTag.Value);
-                            }
-                            else if (tag is FloatTag floatTag)
-                            {
-                                if (NumberExtension.TryParseFloat(subjectTag.Value, out float result))
-                                {
-                                    tagValue = new FloatTagValue(floatTag, result);
-                                }
-                            }
-                            else if (tag is IntTag intTag)
-                            {
-                                if (int.TryParse(subjectTag.Value, out int result))
-                                {
-                                    tagValue = new IntTagValue(intTag, result);
-                                }
-                            }
-                            else if (tag is StringTag stringTag)
-                            {
-                                if (!string.IsNullOrEmpty(subjectTag.Value))
-                                {
-                                    tagValue = new StringTagValue(stringTag, subjectTag.Value);
-                                }
-                            }
+                            var tagValue = tag.CreateValue(subjectTag.Value);
                             if (tagValue != null)
                             {
                                 tags.Add(tagValue);
@@ -567,11 +605,89 @@ namespace HBP.Core.Data
                 }
 
                 // Create patient.
-                Patient patient = new Patient(pair.Key, "", 0, meshes, mris, sites, tags);
+                Patient patient = new Patient(pair.Key, "Unknown", 0, meshes, mris, sites, tags, databaseReference.ID, pair.Key);
                 patientsList.Add(patient);
             }
             patients = patientsList.ToArray();
-            OnChangeProgress?.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
+            updateProgress?.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
+        }
+        public static void LoadAdditionalTagsFromTagsDatabase(DatabaseReference databaseReference, List<Patient> patients, out Patient[] modifiedPatients, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        {
+            modifiedPatients = new Patient[0];
+            List<Patient> clonedPatients = new();
+            if (string.IsNullOrEmpty(databaseReference.Path)) return;
+            DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(databaseReference.Path);
+            if (!databaseDirectoryInfo.Exists) return;
+
+            FileInfo patientsFileInfo = new FileInfo(Path.Combine(databaseDirectoryInfo.FullName, "patients.csv"));
+            FileInfo[] patientsFiles = databaseDirectoryInfo.GetFiles("*.csv", SearchOption.AllDirectories);
+            var progress = 0;
+            var length = patientsFiles.Length + 1;
+            updateProgress?.Invoke(0, 0, new LoadingText("Loading additional tags"));
+
+            // Read patients.csv
+            updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading additional tags from patients.csv"));
+            if (patientsFileInfo.Exists)
+            {
+                var tagValuesByPatient = PersistentDataManager.Tags.GeneratePatientTagsFromCSV(patientsFileInfo.FullName);
+                foreach (var kv in tagValuesByPatient)
+                {
+                    var patient = patients.FirstOrDefault(p => p.ID == kv.Key);
+                    if (patient != null)
+                    {
+                        patient = patient.Clone() as Patient;
+                        foreach (var tagValue in kv.Value)
+                        {
+                            var existingTagValue = patient.Tags.FirstOrDefault(t => t.Tag.Name == tagValue.Tag.Name);
+                            if (existingTagValue != null)
+                            {
+                                existingTagValue.Copy(tagValue);
+                            }
+                            else
+                            {
+                                patient.Tags.Add(tagValue);
+                            }
+                        }
+                        clonedPatients.Add(patient);
+                    }
+                }
+            }
+
+            // Read all patients csv files
+            foreach (var file in patientsFiles)
+            {
+                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading additional tags from ", file.Name));
+                token.ThrowIfCancellationRequested();
+                if (file.Name == "patients.csv") continue;
+                var tagValuesBySite = PersistentDataManager.Tags.GenerateSiteTagsFromCSV(file.FullName);
+                var patient = patients.FirstOrDefault(p => p.ID == Path.GetFileNameWithoutExtension(file.Name));
+                if (patient != null)
+                {
+                    patient = patient.Clone() as Patient;
+                    foreach (var kv in tagValuesBySite)
+                    {
+                        var site = patient.Sites.FirstOrDefault(s => s.Name == kv.Key);
+                        if (site != null)
+                        {
+                            foreach (var tagValue in kv.Value)
+                            {
+                                var existingTagValue = site.Tags.FirstOrDefault(t => t.Tag.Name == tagValue.Tag.Name);
+                                if (existingTagValue != null)
+                                {
+                                    existingTagValue.Copy(tagValue);
+                                }
+                                else
+                                {
+                                    site.Tags.Add(tagValue);
+                                }
+                            }
+                        }
+                    }
+                    clonedPatients.Add(patient);
+                }
+            }
+
+            modifiedPatients = clonedPatients.ToArray();
         }
         /// <summary>
         /// Coroutine to load patients from database. Implementation of ILoadableFromDatabase.
@@ -580,48 +696,40 @@ namespace HBP.Core.Data
         /// <param name="OnChangeProgress">Action called on change progress.</param>
         /// <param name="result">The patients loaded.</param>
         /// <returns></returns>
-        public static IEnumerator c_LoadFromDatabase(string path, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Patient>> result)
+        public static async UniTask<IEnumerable<Patient>> LoadFromDatabaseAsync(Action<float, float, LoadingText> updateProgress, Func<Patient, bool> filter)
         {
-            yield return Ninja.JumpBack;
-            Patient[] patients;
-            if (IsBIDSDirectory(path)) LoadFromBIDSDatabase(path, out patients, OnChangeProgress);
-            else LoadFromIntranatDatabase(path, out patients, OnChangeProgress);
-            yield return Ninja.JumpToUnity;
-            result(patients);
+            updateProgress(0, 0, new LoadingText("Loading database"));
+            await UniTask.WaitUntil(() => DatabaseManager.Database.IsLoaded);
+            await UniTask.SwitchToThreadPool();
+            var result = new List<Patient>();
+            int length = DatabaseManager.Database.Patients.Count;
+            int progress = 0;
+            foreach (var patient in DatabaseManager.Database.Patients)
+            {
+                updateProgress((float)progress++ / length, 0, new LoadingText("Loading patients"));
+                if (filter(patient)) result.Add(patient);
+            }
+            return result;
         }
         /// <summary>
         /// Coroutine to load patients from database. Implementation of ILoadableFromDatabase.
         /// </summary>
         /// <param name="paths">The specified path of the patient file.</param>
-        /// <param name="OnChangeProgress">Action called on change progress.</param>
+        /// <param name="updateProgress">Action called on change progress.</param>
         /// <param name="result">The patients loaded.</param>
         /// <returns></returns>
-        public static IEnumerator c_LoadFromDirectory(string[] paths, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Patient>> result)
+        public static async UniTask<IEnumerable<Patient>> LoadFromDirectoryAsync(string[] paths, Action<float, float, LoadingText> updateProgress)
         {
-            yield return Ninja.JumpBack;
             List<Patient> patients = new List<Patient>(paths.Length);
+            await UniTask.SwitchToThreadPool();
             foreach (var path in paths)
             {
-                if(LoadFromDirectory(path, out Patient patient))
+                if (LoadFromDirectory(path, out Patient patient))
                 {
                     patients.Add(patient);
                 }
             }
-            yield return Ninja.JumpToUnity;
-            result(patients);
-        }
-        #endregion
-
-        #region Private Static Methods
-        /// <summary>
-        /// Checks if the input directory is a BIDS database
-        /// </summary>
-        /// <param name="path">Path to the input database</param>
-        /// <returns>True if the input database is a BIDS database</returns>
-        private static bool IsBIDSDirectory(string path)
-        {
-            FileInfo participantsFileInfo = new FileInfo(Path.Combine(path, "participants.tsv"));
-            return participantsFileInfo.Exists;
+            return patients;
         }
         #endregion
 
@@ -632,7 +740,7 @@ namespace HBP.Core.Data
         /// <returns>object cloned.</returns>
         public override object Clone()
         {
-            return new Patient(Name, Place, Date, Meshes.DeepClone(), MRIs.DeepClone(), Sites.DeepClone(), Tags.DeepClone(), ID);
+            return new Patient(Name, Place, Date, Meshes.DeepClone(), MRIs.DeepClone(), Sites.DeepClone(), Tags.DeepClone(), CorrespondingDatabaseID, ID);
         }
         /// <summary>
         /// Copy the instance.
@@ -650,6 +758,7 @@ namespace HBP.Core.Data
                 MRIs = patient.MRIs;
                 Sites = patient.Sites;
                 Tags = patient.Tags;
+                CorrespondingDatabaseID = patient.CorrespondingDatabaseID;
             }
         }
         #endregion
@@ -665,17 +774,13 @@ namespace HBP.Core.Data
             result = new Patient[] { patient };
             return success;
         }
-        IEnumerator ILoadableFromDatabase<Patient>.LoadFromDatabase(string path, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Patient>> result)
+        async UniTask<IEnumerable<Patient>> ILoadableFromDatabase<Patient>.LoadFromDatabaseAsync(Action<float, float, LoadingText> updateProgress, Func<Patient, bool> filter)
         {
-            yield return Ninja.JumpToUnity;
-            yield return CoroutineManager.StartAsync(c_LoadFromDatabase(path, OnChangeProgress, result));
-            yield return Ninja.JumpBack;
+            return await LoadFromDatabaseAsync(updateProgress, filter);
         }
-        IEnumerator ILoadableFromDirectory<Patient>.LoadFromDirectory(string[] paths, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Patient>> result)
+        async UniTask<IEnumerable<Patient>> ILoadableFromDirectory<Patient>.LoadFromDirectory(string[] paths, Action<float, float, LoadingText> updateProgress)
         {
-            yield return Ninja.JumpToUnity;
-            yield return CoroutineManager.StartAsync(c_LoadFromDirectory(paths, OnChangeProgress, result));
-            yield return Ninja.JumpBack;
+            return await LoadFromDirectoryAsync(paths, updateProgress);
         }
         #endregion
 

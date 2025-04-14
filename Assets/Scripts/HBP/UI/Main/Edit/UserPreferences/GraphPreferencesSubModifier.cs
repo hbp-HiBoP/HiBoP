@@ -46,13 +46,14 @@ namespace HBP.UI.Main
                     });
                 });
             }
-            m_Default.onClick.AddListener(() =>
+            m_Default.onClick.AddListener(async () =>
             {
-                DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Restore colors to default", "Do you want to restore the colors to their original states?", () =>
+                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "Restore colors to default", "Do you want to restore the colors to their original states?", "Yes", "No");
+                if (result == 0)
                 {
                     Object.SetDefaultColors();
                     SetFields(Object);
-                }, "Yes", () => { }, "No");
+                }
             });
         }
         #endregion

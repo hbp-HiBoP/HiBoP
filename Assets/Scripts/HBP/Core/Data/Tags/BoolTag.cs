@@ -38,6 +38,14 @@ namespace HBP.Core.Data
         {
             return new BoolTag(Name, ID);
         }
+        public override BaseTagValue CreateValue(string value)
+        {
+            if (bool.TryParse(value, out bool result))
+            {
+                return new BoolTagValue(this, result);
+            }
+            return null;
+        }
         #endregion
     }
 }

@@ -1,6 +1,4 @@
-﻿using ThirdParty.CielaSpike;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -10,6 +8,8 @@ using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using HBP.Core.DLL;
 using HBP.Core.Tools;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Module3D
 {
@@ -27,10 +27,6 @@ namespace HBP.UI.Module3D
         /// Current queue of all sites that match the conditions (used to smooth the checking)
         /// </summary>
         private Queue<Core.Object3D.Site> m_MatchingSites = new Queue<Core.Object3D.Site>();
-        /// <summary>
-        /// Do we update the UI ?
-        /// </summary>
-        private bool m_UpdateUI;
         #endregion
 
         #region Events
@@ -45,10 +41,6 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
-        private void Update()
-        {
-            m_UpdateUI = true;
-        }
         /// <summary>
         /// Check all the set conditions for a specific site
         /// </summary>
@@ -406,53 +398,51 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="sites">List of the sites to be checked using the set of conditions defined in the subclasses</param>
         /// <returns>Coroutine return</returns>
-        public IEnumerator c_FilterSitesWithConditions(List<Core.Object3D.Site> sites)
+        public async UniTaskVoid FilterSitesWithConditions(List<Core.Object3D.Site> sites, CancellationToken token, CancellationToken progressToken)
         {
             int length = sites.Count;
-            Exception exception = null;
-            for (int i = 0; i < length; ++i)
+            float progress = 0;
+            async UniTaskVoid reportProgress(CancellationToken cancellationToken)
             {
-                try
+                while (true)
                 {
+                    if (cancellationToken.IsCancellationRequested) return;
+                    while (m_MatchingSites.Count > 0)
+                    {
+                        Core.Object3D.Site filteredSite = m_MatchingSites.Dequeue();
+                        filteredSite.State.IsFiltered = true;
+                    }
+                    OnFilter.Invoke(progress);
+                    await UniTask.WaitForEndOfFrame();
+                }
+            }
+            reportProgress(progressToken).Forget();
+            bool filtered = false;
+            await UniTask.SwitchToThreadPool();
+            try
+            {
+                for (int i = 0; i < length; ++i)
+                {
+                    token.ThrowIfCancellationRequested();
                     Core.Object3D.Site site = sites[i];
                     bool match = CheckConditions(site);
                     if (match)
                     {
                         m_MatchingSites.Enqueue(site);
                     }
+                    progress = (float)(i + 1) / length;
                 }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    exception = e;
-                }
-                if (exception != null)
-                {
-                    break;
-                }
-                if (m_UpdateUI || i == length - 1)
-                {
-                    yield return Ninja.JumpToUnity;
-                    while (m_MatchingSites.Count > 0)
-                    {
-                        Core.Object3D.Site filteredSite = m_MatchingSites.Dequeue();
-                        filteredSite.State.IsFiltered = true;
-                    }
-                    OnFilter.Invoke((float)(i + 1) / length);
-                    m_UpdateUI = false;
-                    yield return Ninja.JumpBack;
-                }
+                filtered = true;
             }
-            yield return Ninja.JumpToUnity;
-            if (exception != null)
+            catch (OperationCanceledException)
             {
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Warning, exception.ToString(), exception.Message);
-                OnEndFilter.Invoke(false);
             }
-            else
+            catch (Exception e)
             {
-                OnEndFilter.Invoke(true);
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Warning, e.ToString(), e.Message).Forget();
             }
+            await UniTask.SwitchToMainThread();
+            OnEndFilter.Invoke(filtered);
         }
         #endregion
     }

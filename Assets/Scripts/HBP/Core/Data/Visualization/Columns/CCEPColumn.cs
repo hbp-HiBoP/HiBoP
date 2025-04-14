@@ -1,8 +1,8 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using System.ComponentModel;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
@@ -18,11 +18,11 @@ namespace HBP.Core.Data
     *   - \a Protocol.
     *   - \a Bloc.
     */
-    [DataContract, DisplayName("CCEP")]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("CCEP")]
     public class CCEPColumn : Column
     {
         #region Properties
-        [DataMember(Name = "Dataset")] string datasetID;
+        [JsonProperty("Dataset")] string datasetID;
         /// <summary>
         /// Dataset of the column.
         /// </summary>
@@ -30,7 +30,7 @@ namespace HBP.Core.Data
         {
             get
             {
-                return ApplicationState.ProjectLoaded.Datasets.FirstOrDefault(d => d.ID == datasetID);
+                return ApplicationState.LoadedProject.Datasets.FirstOrDefault(d => d.ID == datasetID);
             }
             set
             {
@@ -48,9 +48,9 @@ namespace HBP.Core.Data
         /// <summary>
         /// Data name of the column.
         /// </summary>
-        [DataMember] public string DataName { get; set; }
+        [JsonProperty] public string DataName { get; set; }
 
-        [DataMember(Name = "Bloc")] string blocID;
+        [JsonProperty("Bloc")] string blocID;
         /// <summary>
         /// Protocol bloc of the column.
         /// </summary>
@@ -83,12 +83,12 @@ namespace HBP.Core.Data
         /// <summary>
         /// Configuration of the column.
         /// </summary>
-        [DataMember] public DynamicConfiguration DynamicConfiguration { get; set; }
+        [JsonProperty] public DynamicConfiguration DynamicConfiguration { get; set; }
 
         /// <summary>
         /// Data of the column.
         /// </summary>
-        [IgnoreDataMember] public Processed.CCEPData Data { get; set; } = new Processed.CCEPData();
+        [JsonIgnore] public Processed.CCEPData Data { get; set; } = new Processed.CCEPData();
         #endregion
 
         #region Constructors
@@ -109,7 +109,7 @@ namespace HBP.Core.Data
         }
         public CCEPColumn(string name, BaseConfiguration baseConfiguration, IEnumerable<Patient> patients) : this(name, baseConfiguration)
         {
-            foreach (Dataset dataset in ApplicationState.ProjectLoaded.Datasets)
+            foreach (Dataset dataset in ApplicationState.LoadedProject.Datasets)
             {
                 IEEGDataInfo[] iEEGDataInfos = dataset.GetIEEGDataInfos();
                 foreach (var dataName in dataset.Data.Select(data => data.Name).Distinct())

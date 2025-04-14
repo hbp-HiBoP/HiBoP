@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
-using System.Runtime.Serialization;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
@@ -43,14 +43,14 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("Offset")]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("Offset")]
     public class OffsetTreatment : Treatment
     {
         #region Properties
         /// <summary>
         /// Offset to add to the values.
         /// </summary>
-        [DataMember] public float Offset { get; set; }
+        [JsonProperty] public float Offset { get; set; }
         #endregion
 
         #region Constructors

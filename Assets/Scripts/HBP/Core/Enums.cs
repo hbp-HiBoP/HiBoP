@@ -41,4 +41,5 @@ namespace HBP.Core.Enums
     public enum CreationType { FromScratch, FromExistingObject, FromFile, FromDatabase, FromDirectory }
     public enum RaycastHitResult { None, Cut, Mesh, Site, ROI }
     public enum LayoutDirection { Horizontal, Vertical }
+    public enum DialogBoxType { Informational, Warning, Error }
 }

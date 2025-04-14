@@ -23,8 +23,12 @@ namespace HBP.UI.Tools.Lists
             }
             set
             {
+                SetInteractable();
+
                 base.Object = value;
                 Text.text = value;
+
+                SetNotInteractable();
             }
         }
         #endregion

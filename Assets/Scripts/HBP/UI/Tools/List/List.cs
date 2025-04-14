@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
@@ -17,6 +18,7 @@ namespace HBP.UI.Tools.Lists
         /// UI items displayed by the list.
         /// </summary>
         protected System.Collections.Generic.List<Item<T>> m_Items = new System.Collections.Generic.List<Item<T>>();
+        public virtual ReadOnlyCollection<Item<T>> Items => new ReadOnlyCollection<Item<T>>(m_Items);
 
         protected System.Collections.Generic.List<T> m_Objects = new System.Collections.Generic.List<T>();
         /// <summary>
@@ -68,7 +70,7 @@ namespace HBP.UI.Tools.Lists
         /// <param name="objects"></param>
         public virtual void Set(IEnumerable<T> objects)
         {
-            var obj = objects.ToArray();
+            var obj = DefaultSorting(objects).ToArray();
             Remove(m_Objects.ToArray());
             Add(obj);
         }
@@ -77,87 +79,58 @@ namespace HBP.UI.Tools.Lists
         /// </summary>
         /// <param name="obj">Object to add</param>
         /// <returns>True if added, False otherwise</returns>
-        public virtual bool Add(T obj)
+        public void Add(T obj)
         {
-            if (!m_Objects.Contains(obj))
-            {
-                m_Objects.Add(obj);
-                if (!m_DisplayedObjects.Contains(obj))
-                {
-                    m_DisplayedObjects.Add(obj);
-                    ScrollRect.content.sizeDelta += new Vector2(0, m_ItemHeight);
-                    ScrollRect.content.hasChanged = true;
-                }
-                OnAddObject.Invoke(obj);
-                return true;
-            }
-            return false;
+            AddObject(obj);
+            OnAddObject.Invoke(obj);
         }
         /// <summary>
         /// Add multiple objects to the list.
         /// </summary>
         /// <param name="objectsToAdd">Objects to add</param>
         /// <returns>True if added, False otherwise</returns>
-        public virtual bool Add(IEnumerable<T> objectsToAdd)
+        public virtual void Add(IEnumerable<T> objectsToAdd)
         {
-            bool result = true;
-            foreach (T obj in objectsToAdd.ToArray()) result &= Add(obj);
-            return result;
+            foreach (T obj in objectsToAdd.ToArray())
+                Add(obj);
         }
         /// <summary>
         /// Remove a object from the list.
         /// </summary>
         /// <param name="obj">Object to add</param>
         /// <returns>True if removed, False otherwise</returns>
-        public virtual bool Remove(T obj)
+        public void Remove(T obj)
         {
-            if (m_Objects.Contains(obj))
-            {
-                m_Objects.Remove(obj);
-                if (m_DisplayedObjects.Contains(obj))
-                {
-                    if (m_DisplayedObjects.Count <= m_MaximumNumberOfItems)
-                    {
-                        DestroyItem(1, false);
-                    }
-                    m_DisplayedObjects.Remove(obj);
-                    UpdateContent();
-                    GetLimits(out m_FirstIndexDisplayed, out m_LastIndexDisplayed);
-                    Refresh();
-                }
-                OnRemoveObject.Invoke(obj);
-                return true;
-            }
-            return false;
+            RemoveObject(obj);
+            OnRemoveObject.Invoke(obj);
         }
         /// <summary>
         /// Remove multiple objects from the list.
         /// </summary>
         /// <param name="objectsToRemove">Objects to remove</param>
         /// <returns>True if removed, False otherwise</returns>
-        public virtual bool Remove(IEnumerable<T> objectsToRemove)
+        public virtual void Remove(IEnumerable<T> objectsToRemove)
         {
-            bool result = true;
-            foreach (T obj in objectsToRemove.ToArray()) result &= Remove(obj);
-            return result;
+            foreach (T obj in objectsToRemove.ToArray())
+                Remove(obj);
         }
         /// <summary>
         /// Update a object from the list.
         /// </summary>
         /// <param name="objectToUpdate">Object to update.</param>
         /// <returns>True if updated, False otherwise</returns>
-        public virtual bool UpdateObject(T objectToUpdate)
+        public virtual void UpdateObject(T objectToUpdate)
         {
             int index = m_Objects.FindIndex(o => o.Equals(objectToUpdate));
             m_Objects[index] = objectToUpdate;
+            int displayedIndex = m_DisplayedObjects.FindIndex(o => o.Equals(objectToUpdate));
+            m_DisplayedObjects[displayedIndex] = objectToUpdate;
 
             if (GetItemFromObject(objectToUpdate, out Item<T> item))
             {
                 item.Object = objectToUpdate;
                 OnUpdateObject.Invoke(objectToUpdate);
-                return true;
             }
-            return false;
         }
         /// <summary>
         /// Refresh all the list.
@@ -211,14 +184,14 @@ namespace HBP.UI.Tools.Lists
         /// Mask the list of objects to only display some of them
         /// </summary>
         /// <param name="mask">Mask for the list</param>
-        public virtual bool MaskList(bool[] mask)
+        public virtual bool MaskList(bool[] mask, bool hide = true)
         {
             if (mask.Length != m_Objects.Count) return false;
 
             m_DisplayedObjects.Clear();
             for (int i = 0; i < mask.Length; i++)
             {
-                if (mask[i]) m_DisplayedObjects.Add(m_Objects[i]);
+                if (mask[i] || !hide) m_DisplayedObjects.Add(m_Objects[i]);
             }
             ScrollRect.content.sizeDelta = new Vector2(0, m_ItemHeight * m_DisplayedObjects.Count);
             ScrollRect.content.hasChanged = true;
@@ -228,12 +201,16 @@ namespace HBP.UI.Tools.Lists
         #endregion
 
         #region Private Methods
+        protected virtual IEnumerable<T> DefaultSorting(IEnumerable<T> objects)
+        {
+            return objects;
+        }
         /// <summary>
         /// Display all the items.
         /// </summary>
         protected virtual void Display()
         {
-            int newFirstIndexDisplayed, newLastIndexDisplayed; GetLimits(out newFirstIndexDisplayed, out newLastIndexDisplayed);
+            GetLimits(out int newFirstIndexDisplayed, out int newLastIndexDisplayed);
             int firstIndexDifference = newFirstIndexDisplayed - m_FirstIndexDisplayed;
             int lastIndexDifference = newLastIndexDisplayed - m_LastIndexDisplayed;
 
@@ -341,6 +318,9 @@ namespace HBP.UI.Tools.Lists
         {
             Item<T>[] items = m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
             int numberOfItems = m_Items.Count;
+            if (numberOfItems == 0)
+                return;
+
             for (int i = 0; i < numberOfItemToDestroy; i++)
             {
                 int index = destroyOnTop ? i : (numberOfItems - 1) - i;
@@ -438,19 +418,52 @@ namespace HBP.UI.Tools.Lists
             itemToReturn = null;
             return false;
         }
-        void Update()
+        protected virtual async void Start()
+        {
+            await UniTask.WaitForEndOfFrame();
+            OnViewportChanged();
+            OnContentChanged();
+        }
+        protected virtual void Update()
         {
             if (ScrollRect.viewport.hasChanged)
             {
-                m_MaximumNumberOfItems = Mathf.CeilToInt(ScrollRect.viewport.rect.height / m_ItemHeight) + NUMBER_OF_ADDITIONAL_ITEMS;
-                ScrollRect.verticalNormalizedPosition = Mathf.Clamp(ScrollRect.verticalNormalizedPosition, 0f, 1f);
-                ScrollRect.viewport.hasChanged = false;
+                OnViewportChanged();
             }
             if (ScrollRect.content.hasChanged)
             {
-                Display();
-                ScrollRect.content.hasChanged = false;
+                OnContentChanged();
             }
+        }
+        private void OnViewportChanged()
+        {
+            m_MaximumNumberOfItems = Mathf.CeilToInt(ScrollRect.viewport.rect.height / m_ItemHeight) + NUMBER_OF_ADDITIONAL_ITEMS;
+            ScrollRect.verticalNormalizedPosition = Mathf.Clamp(ScrollRect.verticalNormalizedPosition, 0f, 1f);
+            ScrollRect.viewport.hasChanged = false;
+        }
+        private void OnContentChanged()
+        {
+            Display();
+            ScrollRect.content.hasChanged = false;
+        }
+        protected virtual void AddObject(T obj)
+        {
+            m_Objects.Add(obj);
+            m_DisplayedObjects.Add(obj);
+            ScrollRect.content.sizeDelta += new Vector2(0, m_ItemHeight);
+            ScrollRect.content.hasChanged = true;
+        }
+        protected virtual void RemoveObject(T obj)
+        {
+            m_Objects.Remove(obj);
+            if (m_DisplayedObjects.Count <= m_MaximumNumberOfItems)
+            {
+                DestroyItem(1, false);
+            }
+            m_DisplayedObjects.Remove(obj);
+            UpdateContent();
+            GetLimits(out m_FirstIndexDisplayed, out m_LastIndexDisplayed);
+            Refresh();
         }
         #endregion
     } 

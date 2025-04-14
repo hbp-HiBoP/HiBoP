@@ -15,7 +15,7 @@ namespace HBP.UI.Tools
             set
             {
                 m_Selected = value;
-                m_TargetGraphic.gameObject.SetActive(value);
+                if (m_TargetGraphic != null) m_TargetGraphic.gameObject.SetActive(value);
                 OnChangeValue.Invoke(value);
                 if (value) transform.SetAsLastSibling();
             }

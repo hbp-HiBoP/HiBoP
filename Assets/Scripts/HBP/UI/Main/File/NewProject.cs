@@ -41,23 +41,23 @@ namespace HBP.UI.Main
         #endregion
 
         #region Public Methods
-        public override void OK()
+        public override async void OK()
         {
             if (string.IsNullOrEmpty(m_ProjectLocationFolderSelector.Folder) || !Directory.Exists(m_ProjectLocationFolderSelector.Folder))
             {
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Directory not found", "Please select a valid directory to save your project file.");
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Directory not found", "Please select a valid directory to save your project file.").Forget();
                 return;
             }
-            if (ApplicationState.ProjectLoaded != null)
+            if (ApplicationState.LoadedProject != null)
             {
-                if (ApplicationState.ProjectLoaded.Visualizations.Any(v => Module3DMain.Visualizations.Contains(v)))
+                if (ApplicationState.LoadedProject.Visualizations.Any(v => Module3DMain.Visualizations.Contains(v)))
                 {
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Opened visualizations", "Some visualizations of the currently loaded project are opened. Loading another project will close any opened visualization.\n\nWould you like to load another project ?", () =>
+                    int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Opened visualizations", "Some visualizations of the currently loaded project are opened. Loading another project will close any opened visualization.\n\nWould you like to load another project ?", "Load project", "Cancel");
+                    if (result == 0)
                     {
                         Module3DMain.RemoveAllScenes();
                         CreateNewProject();
-                    },
-                    "Load project");
+                    }
                 }
                 else
                 {
@@ -78,29 +78,27 @@ namespace HBP.UI.Main
 
             m_NameInputField.text = preferences.DefaultName;
             m_ProjectLocationFolderSelector.Folder = preferences.DefaultLocation;
-            m_PatientsDatabaseLocationFolderSelector.Folder = preferences.DefaultPatientDatabase;
-            m_LocalizerDatabaseLocationFolderSelector.Folder = preferences.DefaultLocalizerDatabase;
         }
-        void CreateNewProject()
+        async void CreateNewProject()
         {
             if (new FileInfo(Path.Combine(m_ProjectLocationFolderSelector.Folder, string.Format("{0}.hibop", m_NameInputField.text))).Exists)
             {
-                DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Project already exists", string.Format("A project named {0} already exists within the selected directory.\n\nWould you like to override this project?", m_NameInputField.text), () =>
+                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Project already exists", string.Format("A project named {0} already exists within the selected directory.\n\nWould you like to override this project?", m_NameInputField.text), "OK", "Cancel");
+                if (result == 0)
                 {
-                    Core.Data.ProjectPreferences preferences = new Core.Data.ProjectPreferences(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
-                    ApplicationState.ProjectLoaded = new Project(preferences);
-                    ApplicationState.ProjectLoadedLocation = m_ProjectLocationFolderSelector.Folder;
-                    ProjectLoaderSaver.SaveAndReload();
+                    Core.Data.ProjectPreferences preferences = new Core.Data.ProjectPreferences(m_NameInputField.text);
+                    ApplicationState.LoadedProject = new Project(preferences);
+                    ApplicationState.LoadedProjectLocation = m_ProjectLocationFolderSelector.Folder;
+                    ProjectLoaderSaver.SaveAndReload().Forget();
                     base.OK();
-                },
-                "OK");
+                }
             }
             else
             {
-                Core.Data.ProjectPreferences preferences = new Core.Data.ProjectPreferences(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
-                ApplicationState.ProjectLoaded = new Project(preferences);
-                ApplicationState.ProjectLoadedLocation = m_ProjectLocationFolderSelector.Folder;
-                ProjectLoaderSaver.SaveAndReload();
+                Core.Data.ProjectPreferences preferences = new Core.Data.ProjectPreferences(m_NameInputField.text);
+                ApplicationState.LoadedProject = new Project(preferences);
+                ApplicationState.LoadedProjectLocation = m_ProjectLocationFolderSelector.Folder;
+                ProjectLoaderSaver.SaveAndReload().Forget();
                 base.OK();
             }
         }

@@ -1,18 +1,18 @@
-﻿using System.Runtime.Serialization;
+﻿using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class FMRIConfiguration : BaseData
     {
         #region Properties
-        [DataMember(Name = "Negative Min")] public float NegativeMin { get; set; }
-        [DataMember(Name = "Negative Max")] public float NegativeMax { get; set; }
-        [DataMember(Name = "Positive Min")] public float PositiveMin { get; set; }
-        [DataMember(Name = "Positive Max")] public float PositiveMax { get; set; }
-        [DataMember(Name = "Hide Lower Values")] public bool HideLowerValues { get; set; }
-        [DataMember(Name = "Hide Middle Values")] public bool HideMiddleValues { get; set; }
-        [DataMember(Name = "Hide Higher Values")] public bool HideHigherValues { get; set; }
+        [JsonProperty("Negative Min")] public float NegativeMin { get; set; }
+        [JsonProperty("Negative Max")] public float NegativeMax { get; set; }
+        [JsonProperty("Positive Min")] public float PositiveMin { get; set; }
+        [JsonProperty("Positive Max")] public float PositiveMax { get; set; }
+        [JsonProperty("Hide Lower Values")] public bool HideLowerValues { get; set; }
+        [JsonProperty("Hide Middle Values")] public bool HideMiddleValues { get; set; }
+        [JsonProperty("Hide Higher Values")] public bool HideHigherValues { get; set; }
         #endregion
 
         #region Constructors

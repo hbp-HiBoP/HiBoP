@@ -33,6 +33,8 @@ namespace HBP.UI.Main
 
             set
             {
+                SetInteractable();
+
                 base.Object = value;
 
                 m_NameText.text = value.Settings.Name;
@@ -41,8 +43,16 @@ namespace HBP.UI.Main
                 m_ProtocolsText.SetIEnumerableFieldInItem(value.Protocols, m_EmptyState);
                 m_DatasetsText.SetIEnumerableFieldInItem(value.Datasets, m_EmptyState);
                 m_VisualizationsText.SetIEnumerableFieldInItem(value.Visualizations, m_EmptyState);
-                Interactable = value.Settings.CanLoadProject;
+
+                SetNotInteractable();
             }
+        }
+        #endregion
+
+        #region Private Methods
+        private void Update()
+        {
+            Interactable = m_Object.Settings.CanLoadProject;
         }
         #endregion
     }

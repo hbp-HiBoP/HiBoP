@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using HBP.Core.Tools;
 
 namespace HBP.Core.Interfaces
 {
     public interface ILoadableFromDatabase<T>
     {
-        IEnumerator LoadFromDatabase(string path, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<T>> result);
+        UniTask<IEnumerable<T>> LoadFromDatabaseAsync(Action<float, float, LoadingText> updateProgress, Func<T, bool> filter);
     }
 }

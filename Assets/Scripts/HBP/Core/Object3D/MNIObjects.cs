@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using Cysharp.Threading.Tasks;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
 
@@ -39,8 +40,9 @@ namespace HBP.Core.Object3D
         /// </summary>
         /// <param name="mniMRIDir">Directory of the MRI of the MNI</param>
         /// <param name="mniMeshDir">Directory of the meshes of the MNI</param>
-        private void LoadData(string mniMRIDir, string mniMeshDir)
+        private async UniTask LoadDataAsync(string mniMRIDir, string mniMeshDir)
         {
+            await UniTask.SwitchToThreadPool();
             DLL.Volume volume = new DLL.Volume();
             volume.LoadNIFTIFile(Path.Combine(mniMRIDir, "MNI.nii"));
             MRI = new MRI3D("MNI", volume);
@@ -84,10 +86,10 @@ namespace HBP.Core.Object3D
         #endregion
 
         #region Public Methods
-        public void Load()
+        public async UniTaskVoid Load()
         {
             string baseIRMDir = Path.Combine(ApplicationState.DataPath, "IRM"), baseMeshDir = Path.Combine(ApplicationState.DataPath, "Meshes");
-            LoadData(baseIRMDir, baseMeshDir);
+            await LoadDataAsync(baseIRMDir, baseMeshDir);
             IsLoaded = true;
         }
         public void Clean()

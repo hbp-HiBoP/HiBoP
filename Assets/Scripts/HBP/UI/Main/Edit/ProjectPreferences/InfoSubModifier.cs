@@ -39,7 +39,7 @@ namespace HBP.UI.Main
         {
             base.SetFields(objectToDisplay);
             m_NameInputField.text = objectToDisplay.Name;
-            m_LocationInputField.text = ApplicationState.ProjectLoadedLocation;
+            m_LocationInputField.text = ApplicationState.LoadedProjectLocation;
             m_IDInputField.text = objectToDisplay.ID;
         }
         #endregion

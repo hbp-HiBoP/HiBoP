@@ -308,6 +308,8 @@ namespace HBP.UI.Informations.TrialMatrix
         }
         public void OnScroll(BaseEventData baseEventData)
         {
+            if (m_TrialIsSelected.Length == 0) return;
+
             int delta = Mathf.RoundToInt(Input.GetAxis("Mouse ScrollWheel") * 10);
             if (delta < 0)
             {

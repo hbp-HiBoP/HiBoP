@@ -1,0 +1,184 @@
+{
+  "Name": "MVIS",
+  "Blocs": [
+    {
+      "IllustrationPath": "",
+      "Name": "LOAD2",
+      "Order": 1,
+      "Sort": "Main_RESPONSE_LATENCY;Main_LOAD2_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 7000
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "LOAD2",
+              "Codes": [
+                20
+              ],
+              "Type": 0,
+              "ID": "753dffdc-897d-4e95-8976-5030f2c3f919"
+            },
+            {
+              "Name": "RESPONSE",
+              "Codes": [
+                1,
+                2
+              ],
+              "Type": 1,
+              "ID": "8355a4aa-674c-438a-a41a-8e2a9dc912b4"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "c6d4415f-802e-47c1-9822-8237c11bb90e"
+        }
+      ],
+      "ID": "849f9fd2-73ee-40fc-a6da-2d6d1c379e14"
+    },
+    {
+      "IllustrationPath": "",
+      "Name": "LOAD4",
+      "Order": 2,
+      "Sort": "Main_RESPONSE_LATENCY;Main_LOAD4_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 7000
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "LOAD4",
+              "Codes": [
+                40
+              ],
+              "Type": 0,
+              "ID": "3ad24721-dc8d-4d84-bf34-f2348eda2be5"
+            },
+            {
+              "Name": "RESPONSE",
+              "Codes": [
+                1,
+                2
+              ],
+              "Type": 1,
+              "ID": "e16dccf6-9ee9-4fcc-99a7-894353d7def8"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "e133eec5-95b8-4a9f-9801-dcb5fe551865"
+        }
+      ],
+      "ID": "b8c06aac-35d4-4259-823c-56376f0e5bb2"
+    },
+    {
+      "IllustrationPath": "",
+      "Name": "LOAD6",
+      "Order": 3,
+      "Sort": "Main_RESPONSE_LATENCY;Main_LOAD6_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 7000
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "LOAD6",
+              "Codes": [
+                60
+              ],
+              "Type": 0,
+              "ID": "06e45c91-5a8a-4210-a89c-d2657e2b5b31"
+            },
+            {
+              "Name": "RESPONSE",
+              "Codes": [
+                1,
+                2
+              ],
+              "Type": 1,
+              "ID": "ac2ad76e-78ef-4f00-9f24-134fcf6a66ab"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "d29c0b7a-ee8f-45d7-881f-d15de2e44680"
+        }
+      ],
+      "ID": "ca053cf7-69b4-4fbb-bcdc-5fe7b6e7ee95"
+    },
+    {
+      "IllustrationPath": "",
+      "Name": "CONTROL",
+      "Order": 0,
+      "Sort": "Main_RESPONSE_LATENCY;Main_CONTROL_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 7000
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "CONTROL",
+              "Codes": [
+                21,
+                41,
+                61
+              ],
+              "Type": 0,
+              "ID": "869e03ac-68b7-4ed4-a73b-f3b12be7357c"
+            },
+            {
+              "Name": "RESPONSE",
+              "Codes": [
+                1,
+                2
+              ],
+              "Type": 1,
+              "ID": "e68a832b-6ba5-4a3f-80ca-8b14f0e475f8"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "4658d34b-98cb-4bc5-87f6-b5735fa5a90a"
+        }
+      ],
+      "ID": "f1c7a8d5-24bd-48df-84b5-ce82fc74010b"
+    }
+  ],
+  "ID": "a3449480-dc82-4874-af65-6318e9b8a3f2"
+}

@@ -140,9 +140,6 @@ namespace HBP.UI.Tools
 
             Vector3[] corners = new Vector3[4];
             m_RectTransform.GetWorldCorners(corners);
-            Debug.Log(m_RectTransform.rect);
-            Debug.Log(m_RectTransform.sizeDelta);
-            Vector2 size = corners[2] - corners[0];
 
             if(resize.x <= 0) w = Mathf.Sign(resize.x) * Mathf.Min(m_RectTransform.rect.width - m_LayoutElement.minWidth, -resize.x);
             if (resize.y <= 0) h = Mathf.Sign(resize.y) * Mathf.Min(m_RectTransform.rect.height - m_LayoutElement.minHeight, -resize.y);

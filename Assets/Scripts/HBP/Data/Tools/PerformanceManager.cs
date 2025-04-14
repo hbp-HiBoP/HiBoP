@@ -4,7 +4,7 @@ using HBP.Core.Tools;
 
 namespace HBP.Data.Tools
 {
-    public class PerformanceManager : Singleton<PerformanceManager>
+    public class PerformanceManager : Manager<PerformanceManager>
     {
         #region Properties
         [SerializeField] private GameObject m_DarkImage;

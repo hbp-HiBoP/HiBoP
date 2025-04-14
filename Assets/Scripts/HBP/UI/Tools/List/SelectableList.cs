@@ -51,10 +51,28 @@ namespace HBP.UI.Tools.Lists
             }
         }
 
+        [SerializeField] private bool m_AllowSwitchOff = true;
+        public bool AllowSwitchOff
+        {
+            get
+            {
+                return m_AllowSwitchOff;
+            }
+            set
+            {
+                m_AllowSwitchOff = value;
+                if (!m_AllowSwitchOff && Objects.Count > 0 && ObjectsSelected.Length == 0)
+                {
+                    Select(m_Objects[0]);
+                }
+            }
+        }
+
         /// <summary>
         /// Toggle to select/deselect all items of the list.
         /// </summary>
         [SerializeField] protected Toggle m_SelectAllToggle;
+        private bool m_RequestSelectAllUpdate = false;
 
         protected Dictionary<T, bool> m_SelectedStateByObject = new Dictionary<T, bool>();
         /// <summary>
@@ -73,17 +91,12 @@ namespace HBP.UI.Tools.Lists
             }
         }
 
-        /// <summary>
-        /// Number of item selected.
-        /// </summary>
-        int ISelectionCountable.NumberOfItemSelected
-        {
-            get { return ObjectsSelected.Length; }
-        }
+        protected Dictionary<T, bool> m_SelectableStateByObject = new();
 
-        /// <summary>
-        /// Callback executed when selection is changed.
-        /// </summary> 
+        int ISelectionCountable.NumberOfSelectedObjects => ObjectsSelected.Length;
+        int ISelectionCountable.NumberOfObjects => Objects.Count;
+        int ISelectionCountable.NumberOfFilteredObjects => m_SelectableStateByObject.Count(kv => kv.Value);
+
         UnityEvent ISelectionCountable.OnSelectionChanged { get; } = new UnityEvent();
 
         /// <summary>
@@ -115,26 +128,6 @@ namespace HBP.UI.Tools.Lists
         #endregion
 
         #region Public Methods
-        public override bool Add(T obj)
-        {
-            if (base.Add(obj))
-            {
-                m_SelectedStateByObject.Add(obj, false);
-                OnSelectionChanged();
-                return true;
-            }
-            return false;
-        }
-        public override bool Remove(T obj)
-        {
-            if (base.Remove(obj))
-            {
-                m_SelectedStateByObject.Remove(obj);
-                OnSelectionChanged();
-                return true;
-            }
-            return false;
-        }
         /// <summary>
         /// Select all objects.
         /// </summary>
@@ -172,6 +165,8 @@ namespace HBP.UI.Tools.Lists
         /// <param name="transition">Transition</param>
         public virtual void Select(T objectToSelect, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {
+            if (!m_SelectableStateByObject[objectToSelect]) return;
+
             switch (m_ItemSelection)
             {
                 case SelectionType.None:
@@ -181,10 +176,7 @@ namespace HBP.UI.Tools.Lists
                     Deselect(m_DisplayedObjects.Where((o) => !o.Equals(objectToSelect)));
                     break;
             }
-            if (m_SelectedStateByObject.ContainsKey(objectToSelect))
-            {
-                m_SelectedStateByObject[objectToSelect] = true;
-            }
+            m_SelectedStateByObject[objectToSelect] = true;
             if (GetItemFromObject(objectToSelect, out Item<T> item))
             {
                 (item as SelectableItem<T>).ChangeSelectionValue(true, transition);
@@ -201,6 +193,34 @@ namespace HBP.UI.Tools.Lists
         {
             foreach (var obj in objectsToSelect) Select(obj, transition);
         }
+        public virtual void SelectNext(bool scroll = true)
+        {
+            var selectedObjects = ObjectsSelected;
+            System.Collections.Generic.List<int> selectedIndexes = m_DisplayedObjects.Where(o => selectedObjects.Contains(o)).Select(o => m_DisplayedObjects.IndexOf(o)).ToList();
+            if (selectedIndexes.Count > 0)
+            {
+                int index = selectedIndexes.Max();
+                if (index < m_DisplayedObjects.Count - 1)
+                {
+                    Select(m_DisplayedObjects[index + 1]);
+                    if (scroll) ScrollToObject(m_DisplayedObjects[index + 1]);
+                }
+            }
+        }
+        public virtual void SelectPrevious(bool scroll = true)
+        {
+            var selectedObjects = ObjectsSelected;
+            System.Collections.Generic.List<int> selectedIndexes = m_DisplayedObjects.Where(o => selectedObjects.Contains(o)).Select(o => m_DisplayedObjects.IndexOf(o)).ToList();
+            if (selectedIndexes.Count > 0)
+            {
+                int index = selectedIndexes.Min();
+                if (index > 0)
+                {
+                    Select(m_DisplayedObjects[index - 1]);
+                    if (scroll) ScrollToObject(m_DisplayedObjects[index - 1]);
+                }
+            }
+        }
         /// <summary>
         /// Deselect a specified object with a specified transition.
         /// </summary>
@@ -208,10 +228,7 @@ namespace HBP.UI.Tools.Lists
         /// <param name="transition">Transition</param>
         public virtual void Deselect(T objectToDeselect, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {
-            if (m_SelectedStateByObject.ContainsKey(objectToDeselect))
-            {
-                m_SelectedStateByObject[objectToDeselect] = false;
-            }
+            m_SelectedStateByObject[objectToDeselect] = false;
             if (GetItemFromObject(objectToDeselect, out Item<T> item))
             {
                 (item as SelectableItem<T>).ChangeSelectionValue(false, transition);
@@ -233,10 +250,12 @@ namespace HBP.UI.Tools.Lists
         /// </summary>
         /// <param name="objectToUpdate">Object to update</param>
         /// <returns>True if updated, False otherwise</returns>
-        public override bool UpdateObject(T objectToUpdate)
+        public override void UpdateObject(T objectToUpdate)
         {
             int index = m_Objects.FindIndex(o => o.Equals(objectToUpdate));
             m_Objects[index] = objectToUpdate;
+            int displayedIndex = m_DisplayedObjects.FindIndex(o => o.Equals(objectToUpdate));
+            m_DisplayedObjects[displayedIndex] = objectToUpdate;
 
             if (GetItemFromObject(objectToUpdate, out Item<T> item))
             {
@@ -244,11 +263,10 @@ namespace HBP.UI.Tools.Lists
                 selectableItem.Object = objectToUpdate;
                 selectableItem.OnChangeSelected.RemoveAllListeners();
                 selectableItem.ChangeSelectionValue(m_SelectedStateByObject[objectToUpdate]);
+                selectableItem.Interactable = m_SelectableStateByObject[objectToUpdate];
                 selectableItem.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(objectToUpdate, selected));
                 OnUpdateObject.Invoke(objectToUpdate);
-                return true;
             }
-            return false;
         }
         /// <summary>
         /// Refresh all the list.
@@ -264,6 +282,7 @@ namespace HBP.UI.Tools.Lists
                 item.Object = obj;
                 item.OnChangeSelected.RemoveAllListeners();
                 item.ChangeSelectionValue(m_SelectedStateByObject[obj]);
+                item.Interactable = m_SelectableStateByObject[obj];
                 item.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(obj, selected));
             }
         }
@@ -271,11 +290,17 @@ namespace HBP.UI.Tools.Lists
         /// Mask the list of objects to only display some of them
         /// </summary>
         /// <param name="mask">Mask for the list</param>
-        public override bool MaskList(bool[] mask)
+        public override bool MaskList(bool[] mask, bool hide = true)
         {
-            if (base.MaskList(mask))
+            if (base.MaskList(mask, hide))
             {
-                m_SelectedStateByObject = m_SelectedStateByObject.ToDictionary(s => s.Key, s => false);
+                for (int i = 0; i < mask.Length; ++i)
+                {
+                    var obj = m_Objects[i];
+                    m_SelectedStateByObject[obj] &= mask[i];
+                    m_SelectableStateByObject[obj] = mask[i];
+                }
+                OnSelectionChanged();
                 return true;
             }
             return false;
@@ -287,15 +312,28 @@ namespace HBP.UI.Tools.Lists
         {
             Validate();
         }
-        void Awake()
+        protected virtual void Awake()
         {
             if (m_SelectAllToggle != null) m_SelectAllToggle.onValueChanged.AddListener(OnSelectAllToggleValueChanged);
             Validate();
+        }
+        protected override void Update()
+        {
+            base.Update();
+            if (m_RequestSelectAllUpdate && m_SelectAllToggle != null)
+            {
+                m_SelectAllToggle.isOn = m_SelectableStateByObject.Count(kv => kv.Value) == ObjectsSelected.Length && ObjectsSelected.Length > 0 && m_DisplayedObjects.Count > 0 && m_ItemSelection == SelectionType.MultipleItems;
+            }
+            if (!m_AllowSwitchOff && Objects.Count > 0 && ObjectsSelected.Length == 0)
+            {
+                Select(Objects[0]);
+            }
         }
         protected override void Validate()
         {
             base.Validate();
             ItemSelection = ItemSelection;
+            AllowSwitchOff = AllowSwitchOff;
         }
         protected override void SetItem(Item<T> item, T obj)
         {
@@ -303,6 +341,7 @@ namespace HBP.UI.Tools.Lists
             SelectableItem<T> selectableItem = item as SelectableItem<T>;
             selectableItem.OnChangeSelected.RemoveAllListeners();
             selectableItem.ChangeSelectionValue(m_SelectedStateByObject[obj]);
+            selectableItem.Interactable = m_SelectableStateByObject[obj];
             selectableItem.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(obj, selected));
         }
         /// <summary>
@@ -338,14 +377,15 @@ namespace HBP.UI.Tools.Lists
                         }
                         break;
                 }
-                if (m_SelectedStateByObject.ContainsKey(obj))
-                {
-                    m_SelectedStateByObject[obj] = selected;
-                }
+                m_SelectedStateByObject[obj] = selected;
                 if (selected) OnSelect.Invoke(obj);
                 else OnDeselect.Invoke(obj);
                 OnSelectionChanged();
                 m_SelectionLock = false;
+            }
+            if (!m_AllowSwitchOff && !selected && ObjectsSelected.Length == 0)
+            {
+                Select(obj);
             }
         }
         /// <summary>
@@ -353,7 +393,7 @@ namespace HBP.UI.Tools.Lists
         /// </summary> 
         protected virtual void OnSelectionChanged()
         {
-            if (m_SelectAllToggle != null) m_SelectAllToggle.isOn = m_DisplayedObjects.Count == ObjectsSelected.Length && m_DisplayedObjects.Count > 0 && m_ItemSelection == SelectionType.MultipleItems;
+            m_RequestSelectAllUpdate = true;
             (this as ISelectionCountable).OnSelectionChanged.Invoke();
         }
         /// <summary>
@@ -368,6 +408,20 @@ namespace HBP.UI.Tools.Lists
                 else DeselectAll();
                 m_SelectionLock = false;
             }
+        }
+        protected override void AddObject(T obj)
+        {
+            base.AddObject(obj);
+            m_SelectedStateByObject.Add(obj, false);
+            m_SelectableStateByObject.Add(obj, true);
+            OnSelectionChanged();
+        }
+        protected override void RemoveObject(T obj)
+        {
+            base.RemoveObject(obj);
+            m_SelectedStateByObject.Remove(obj);
+            m_SelectableStateByObject.Remove(obj);
+            OnSelectionChanged();
         }
         #endregion
     }

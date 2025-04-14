@@ -6,6 +6,7 @@ namespace HBP.Core.Tools
     {
         #region Properties
         protected static T m_Instance;
+        public static bool IsInitialized => m_Instance != null;
         #endregion
 
         #region Private Methods
@@ -18,7 +19,6 @@ namespace HBP.Core.Tools
             else
             {
                 m_Instance = this as T;
-                DontDestroyOnLoad(this);
                 Initialization();
             }
         }

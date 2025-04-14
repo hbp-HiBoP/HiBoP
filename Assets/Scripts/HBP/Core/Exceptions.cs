@@ -13,10 +13,6 @@ namespace HBP.Core.Exceptions
                 return base.Message;
             }
         }
-        public override string ToString()
-        {
-            return Title;
-        }
         public HBPException() { }
         public HBPException(string message) : base(message) { }
         public HBPException(string message, Exception inner) : base(message, inner) { }

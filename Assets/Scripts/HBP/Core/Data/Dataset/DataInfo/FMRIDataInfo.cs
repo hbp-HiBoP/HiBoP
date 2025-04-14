@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Runtime.Serialization;
 using HBP.Core.Errors;
-using HBP.Core.Tools;
+using HBP.Data.Database;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
@@ -50,33 +50,9 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("FMRI")]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("FMRI")]
     public class FMRIDataInfo : PatientDataInfo
     {
-        #region Properties
-        protected Error[] m_FMRIErrors = new Error[0];
-        public override Error[] Errors
-        {
-            get
-            {
-                List<Error> errors = new List<Error>(base.Errors);
-                errors.AddRange(m_FMRIErrors);
-                return errors.Distinct().ToArray();
-            }
-        }
-
-        protected Warning[] m_FMRIWarnings = new Warning[0];
-        public override Warning[] Warnings
-        {
-            get
-            {
-                List<Warning> warnings = new List<Warning>(base.Warnings);
-                warnings.AddRange(m_FMRIWarnings);
-                return warnings.Distinct().ToArray();
-            }
-        }
-        #endregion
-
         #region Constructors
         /// <summary>
         /// Create a new CCEPDataInfo instance.
@@ -86,7 +62,7 @@ namespace HBP.Core.Data
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="channel">Stimulated channel.</param>
         /// <param name="id">Unique identifier</param>
-        public FMRIDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string ID) : base(name, dataContainer, patient, ID)
+        public FMRIDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, Patient patient, string correspondingDatabaseID, string ID) : base(name, protocol, dataContainer, errors, warnings, patient, correspondingDatabaseID, ID)
         {
         }
         /// <summary>
@@ -96,13 +72,13 @@ namespace HBP.Core.Data
         /// <param name="dataContainer">Data container of the CCEP dataInfo.</param>
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="channel">Stimulated channel.</param>
-        public FMRIDataInfo(string name, Container.DataContainer dataContainer, Patient patient) : base(name, dataContainer, patient)
+        public FMRIDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, Patient patient, string correspondingDatabaseID) : base(name, protocol, dataContainer, errors, warnings, patient, correspondingDatabaseID)
         {
         }
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
-        public FMRIDataInfo() : this("Data", new Container.Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault())
+        public FMRIDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Elan(), new Error[0], new Warning[0], null, "")
         {
 
         }
@@ -115,7 +91,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new FMRIDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, ID);
+            return new FMRIDataInfo(Name, Protocol, DataContainer.Clone() as Container.DataContainer, Errors, Warnings, Patient, CorrespondingDatabaseID, ID);
         }
         public override void Copy(object copy)
         {
@@ -123,41 +99,38 @@ namespace HBP.Core.Data
         }
         #endregion
 
-        #region Public Methods
-        public override Error[] GetErrors(Protocol protocol)
+        #region Private Methods
+        protected override IEnumerable<Error> GetErrors()
         {
-            List<Error> errors = new List<Error>(base.GetErrors(protocol));
-            errors.AddRange(GetFMRIErrors(protocol));
-            return errors.Distinct().ToArray();
+            List<Error> errors = new List<Error>(base.GetErrors());
+            errors.AddRange(GetFMRIErrors());
+            return errors;
         }
         /// <summary>
         /// Get all dataInfo errors related to CCEP.
         /// </summary>
         /// <param name="protocol"></param>
         /// <returns>CCEP related errors</returns>
-        public virtual Error[] GetFMRIErrors(Protocol protocol)
+        private IEnumerable<Error> GetFMRIErrors()
         {
             List<Error> errors = new List<Error>();
-            // TODO
-            m_FMRIErrors = errors.ToArray();
-            return m_FMRIErrors;
+            return errors;
         }
-        public override Warning[] GetWarnings(Protocol protocol)
+        protected override IEnumerable<Warning> GetWarnings()
         {
-            List<Warning> warnings = new List<Warning>(base.GetWarnings(protocol));
-            warnings.AddRange(GetFMRIWarnings(protocol));
-            return warnings.Distinct().ToArray();
+            List<Warning> warnings = new List<Warning>(base.GetWarnings());
+            warnings.AddRange(GetFMRIWarnings());
+            return warnings;
         }
         /// <summary>
         /// Get all dataInfo errors related to CCEP.
         /// </summary>
         /// <param name="protocol"></param>
         /// <returns>CCEP related errors</returns>
-        public virtual Warning[] GetFMRIWarnings(Protocol protocol)
+        private IEnumerable<Warning> GetFMRIWarnings()
         {
             List<Warning> warnings = new List<Warning>();
-            m_FMRIWarnings = warnings.ToArray();
-            return m_FMRIWarnings;
+            return warnings;
         }
         #endregion
     }

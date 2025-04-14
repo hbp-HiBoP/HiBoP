@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
-using UnityEngine.Events;
 using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
+using HBP.Data.Database;
 
 namespace HBP.UI.Main
 {
@@ -12,34 +12,56 @@ namespace HBP.UI.Main
         #region Properties
         [SerializeField] ProtocolListGestion m_ListGestion;
         public override ListGestion<Protocol> ListGestion => m_ListGestion;
+
+        public override bool Interactable
+        {
+            get => base.Interactable;
+            set
+            {
+                base.Interactable = value;
+
+                m_ListGestion.Interactable = value;
+                m_ListGestion.Modifiable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
-        public override void OK()
+        public override async void OK()
         {
             if (DataManager.HasData)
             {
-                DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
+                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", "Save & Reload", "Cancel");
+                if (result == 0)
                 {
                     base.OK();
-                    ApplicationState.ProjectLoaded.SetProtocols(m_ListGestion.List.Objects);
-                    MenuButtonState.SetInteractables();
-                    GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                    LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckDatasets(m_ListGestion.ModifiedProtocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
+                    DatabaseManager.Database.SetProtocols(m_ListGestion.List.Objects);
+                    DatabaseManager.Database.SaveProtocols().Forget();
+                    InteractableStateManager.SetInteractables();
+                    LoadingManager.Load(update => Dataset.CheckDatasetsAsync(m_ListGestion.ModifiedProtocols, update));
                     DataManager.Clear();
                     Module3DMain.ReloadScenes();
-                    UITools.CheckProjectIDAndAskForRegeneration();
-                });
+                    UITools.CheckProjectIDAndAskForRegeneration().Forget();
+                }
             }
             else
             {
                 base.OK();
-                ApplicationState.ProjectLoaded.SetProtocols((m_ListGestion.List.Objects));
-                MenuButtonState.SetInteractables();
-                GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckDatasets(m_ListGestion.ModifiedProtocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
-                UITools.CheckProjectIDAndAskForRegeneration();
+                DatabaseManager.Database.SetProtocols(m_ListGestion.List.Objects);
+                DatabaseManager.Database.SaveProtocols().Forget();
+                InteractableStateManager.SetInteractables();
+                if (ApplicationState.LoadedProject != null)
+                {
+                    LoadingManager.Load(update => Dataset.CheckDatasetsAsync(m_ListGestion.ModifiedProtocols, update));
+                    UITools.CheckProjectIDAndAskForRegeneration().Forget();
+                }
             }
+        }
+        public override void Close()
+        {
+            if (m_ListGestion.HasBeenModified)
+                LoadingManager.Load(update => RestoreOldValuesAsync(DatabaseManager.Database.Protocols, update), false);
+            base.Close();
         }
         #endregion
 
@@ -47,7 +69,7 @@ namespace HBP.UI.Main
         protected override void SetFields()
         {
             base.SetFields();
-            ListGestion.List.Set(ApplicationState.ProjectLoaded.Protocols);
+            SetList(DatabaseManager.Database.Protocols);
         }
         #endregion
     }

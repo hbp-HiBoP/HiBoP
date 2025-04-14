@@ -1,8 +1,5 @@
-﻿using System.Runtime.Serialization;
-
-namespace HBP.Core.Data
+﻿namespace HBP.Core.Data
 {
-    [DataContract]
     public class AnatomicConfiguration : BaseData
     {
         #region Properties

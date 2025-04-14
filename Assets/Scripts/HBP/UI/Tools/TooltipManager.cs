@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Tools
 {
-    public class TooltipManager : Singleton<TooltipManager>
+    public class TooltipManager : Manager<TooltipManager>
     {
         #region Properties
         private static Vector3 m_Offset = new Vector3(0, -20, 0);

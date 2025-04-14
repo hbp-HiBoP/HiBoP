@@ -26,10 +26,10 @@ namespace HBP.UI.Main
         /// </summary>
         /// <param name="obj">Coordinate to add</param>
         /// <returns>True if end without errors, False otherwise</returns>
-        public override bool Add(Core.Data.Coordinate obj)
+        protected override void AddObject(Core.Data.Coordinate obj)
         {
             SortByNone();
-            return base.Add(obj);
+            base.AddObject(obj);
         }
 
         /// <summary>

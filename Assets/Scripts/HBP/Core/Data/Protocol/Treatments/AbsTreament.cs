@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Runtime.Serialization;
 using HBP.Core.Tools;
 
 namespace HBP.Core.Data
@@ -40,7 +39,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("Absolute")]
+    [DisplayName("Absolute")]
     public class AbsTreatment : Treatment
     {
         #region Public Methods

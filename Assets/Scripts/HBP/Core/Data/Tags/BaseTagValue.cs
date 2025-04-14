@@ -1,7 +1,6 @@
 ﻿using System.Linq;
-using System.Runtime.Serialization;
-using HBP.Core.Tools;
 using HBP.Data.Preferences;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
@@ -24,17 +23,17 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class BaseTagValue : BaseData
     {
         #region Properties
-        [DataMember(Name = "Tag")] protected string m_TagID;
+        [JsonProperty("Tag")] protected string m_TagID;
         /// <summary>
         /// Tag associated with the value.
         /// </summary>
         public BaseTag Tag { get; set; }
 
-        [DataMember(Name = "Value")] protected object m_Value;
+        [JsonProperty("Value")] protected object m_Value;
         /// <summary>
         /// Value associated with the tag.
         /// </summary>

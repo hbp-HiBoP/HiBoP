@@ -1,10 +1,14 @@
-﻿namespace HBP.Core.Errors
+﻿using Newtonsoft.Json;
+
+namespace HBP.Core.Errors
 {
+    [JsonObject(MemberSerialization.OptIn)]
     public abstract class Error
     {
         #region Properties
         public virtual string Title { get; }
-        public virtual string Message { get; }
+        [JsonProperty] public virtual string Message { get; }
+        public string FormatedMessage => !string.IsNullOrEmpty(Message) ? $"• {Title} ({Message})" : $"• {Title}";
         #endregion
 
         #region Constructors
@@ -151,11 +155,13 @@
         #endregion
     }
 
+    [JsonObject(MemberSerialization.OptIn)]
     public abstract class Warning
     {
         #region Properties
         public virtual string Title { get; }
-        public virtual string Message { get; }
+        [JsonProperty] public virtual string Message { get; }
+        public string FormatedMessage => !string.IsNullOrEmpty(Message) ? $"• {Title} ({Message})" : $"• {Title}";
         #endregion
 
         #region Constructors

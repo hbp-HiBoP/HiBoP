@@ -18,6 +18,7 @@ namespace HBP.UI.Main
             {
                 base.Interactable = value;
                 m_TagListGestion.Interactable = value;
+                m_TagListGestion.Modifiable = value;
             }
         }
         #endregion
@@ -26,7 +27,7 @@ namespace HBP.UI.Main
         public override void Save()
         {
             base.Save();
-            Object.SitesTags = m_TagListGestion.List.Objects.ToList();
+            Object.SetSiteTags(m_TagListGestion.List.Objects.ToList(), false);
         }
         #endregion
 

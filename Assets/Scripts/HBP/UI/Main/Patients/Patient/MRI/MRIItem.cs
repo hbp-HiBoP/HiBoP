@@ -26,10 +26,14 @@ namespace HBP.UI.Main
             }
             set
             {
+                SetInteractable();
+
                 base.Object = value;
                 m_NameText.text = value.Name;
                 if (Object.HasMRI) m_MRI.Set();
                 else m_MRI.Set(m_ErrorState);
+
+                SetNotInteractable();
             }
         }
         #endregion

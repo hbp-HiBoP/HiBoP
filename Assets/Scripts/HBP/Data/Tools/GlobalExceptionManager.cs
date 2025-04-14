@@ -1,12 +1,15 @@
 ﻿using UnityEngine;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
+using System.Transactions;
 
 namespace HBP.Data.Tools
 {
-    public class GlobalExceptionManager : Singleton<GlobalExceptionManager>
+    public class GlobalExceptionManager : Manager<GlobalExceptionManager>
     {
         #region Private Methods
+        private string m_LastException;
+
         private void OnEnable()
         {
             Application.logMessageReceived += HandleException;
@@ -19,7 +22,12 @@ namespace HBP.Data.Tools
         {
             if (type == LogType.Exception)
             {
-                WindowsManager.Open("Bug Reporter window");
+                string exception = condition + "\n" + stackTrace;
+                if (!string.Equals(exception, m_LastException, System.StringComparison.Ordinal))
+                {
+                    WindowsManager.Open("Bug Reporter window", null);
+                    m_LastException = exception;
+                }
             }
         }
         #endregion

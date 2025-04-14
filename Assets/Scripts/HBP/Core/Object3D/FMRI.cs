@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace HBP.Core.Object3D
 {
@@ -11,6 +12,7 @@ namespace HBP.Core.Object3D
         public string Name { get; set; }
         public DLL.NIFTI NIFTI { get; private set; } = new DLL.NIFTI();
         public List<DLL.Volume> Volumes { get; private set; } = new List<DLL.Volume>();
+        public bool Loading { get; private set; } = false;
         public bool Loaded { get; private set; } = false;
         #endregion
 
@@ -20,15 +22,13 @@ namespace HBP.Core.Object3D
             Name = "Default";
             Volumes.Add(new DLL.Volume());
         }
-        public FMRI(Data.MRI mri)
+        public FMRI(Data.MRI mri) : this(mri.Name, mri.File)
         {
-            Name = mri.Name;
-            Load(mri.File);
         }
         public FMRI(string name, string file)
         {
             Name = name;
-            Load(file);
+            Load(file).Forget();
         }
         #endregion
 
@@ -36,13 +36,16 @@ namespace HBP.Core.Object3D
         /// <summary>
         /// Load the FMRI
         /// </summary>
-        private void Load(string file)
+        private async UniTaskVoid Load(string file)
         {
+            await UniTask.SwitchToThreadPool();
+            Loading = true;
             NIFTI.Load(file);
             for (int i = 0; i < NIFTI.NumberOfVolumes; i++)
             {
                 Volumes.Add(NIFTI.ExtractVolume(i));
             }
+            Loading = false;
             Loaded = true;
         }
         #endregion

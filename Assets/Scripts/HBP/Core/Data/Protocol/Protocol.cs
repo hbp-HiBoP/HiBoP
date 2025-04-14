@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using System.IO;
 using HBP.Core.Exceptions;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
@@ -32,8 +32,8 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
-	public class Protocol : BaseData, ILoadable<Protocol>, INameable
+	[JsonObject(MemberSerialization.OptIn)]
+    public class Protocol : BaseData, ILoadable<Protocol>, INameable
     {
         #region Properties
         /// <summary>
@@ -43,11 +43,11 @@ namespace HBP.Core.Data
         /// <summary>
         /// Name of the protocol.
         /// </summary>
-        [DataMember] public string Name { get; set; }
+        [JsonProperty] public string Name { get; set; }
         /// <summary>
         /// Blocs of the protocol.
         /// </summary>
-        [DataMember] public List<Bloc> Blocs { get; set; }
+        [JsonProperty] public List<Bloc> Blocs { get; set; }
         /// <summary>
         /// Blocs ordered by Bloc.Order.
         /// </summary>

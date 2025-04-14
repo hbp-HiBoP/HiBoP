@@ -7,7 +7,6 @@ using UnityEngine.UI.Extensions;
 using HBP.Core.Enums;
 using HBP.Core.Data;
 using HBP.Data.Module3D;
-using HBP.UI.Tools;
 using HBP.Data.Preferences;
 using HBP.Core.Tools;
 

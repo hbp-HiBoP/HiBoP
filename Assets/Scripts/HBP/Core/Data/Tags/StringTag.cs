@@ -38,6 +38,14 @@ namespace HBP.Core.Data
         {
             return new StringTag(Name, ID);
         }
+        public override BaseTagValue CreateValue(string value)
+        {
+            if (!string.IsNullOrEmpty(value))
+            {
+                return new StringTagValue(this, value);
+            }
+            return null;
+        }
         #endregion
     }
 }

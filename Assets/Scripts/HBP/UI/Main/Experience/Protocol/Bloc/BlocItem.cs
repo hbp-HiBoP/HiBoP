@@ -30,12 +30,16 @@ namespace HBP.UI.Main
             }
             set
             {
+                SetInteractable();
+
                 base.Object = value;
                 m_NameText.text = value.Name;
                 m_OrderText.text = value.Order.ToString();
                 m_SubBlocsText.SetIEnumerableFieldInItem("SubBlocs", from subBloc in m_Object.SubBlocs select subBloc.Name, m_ErrorState);
                 m_Image.overrideSprite = value.Image;
                 m_ImageTooltip.Image = value.Image;
+
+                SetNotInteractable();
             }
         }
         #endregion

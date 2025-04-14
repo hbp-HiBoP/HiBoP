@@ -2,13 +2,16 @@
 using System.Linq;
 using UnityEngine;
 using HBP.UI.Tools;
+using HBP.Core.Data;
+using System.Collections.Generic;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Main
 {
 	/// <summary>
 	/// List to display patients.
 	/// </summary>
-	public class PatientList : ActionableList<Core.Data.Patient>
+	public class PatientList : ActionableList<Patient>
 	{
         #region Properties
         enum OrderBy { None, Name, DescendingName, Place, DescendingPlace, Date, DescendingDate, Mesh, DescendingMesh, MRI, DescendingMRI, Site, DescendingSite, Tag, DescendingTag }
@@ -29,10 +32,27 @@ namespace HBP.UI.Main
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public override bool Add(Core.Data.Patient obj)
+        protected override void AddObject(Patient obj)
         {
             SortByNone();
-            return base.Add(obj);
+            base.AddObject(obj);
+        }
+
+        public void OpenFilterWindow()
+        {
+            var parentWindow = GetComponentInParent<Window>();
+
+            var filterWindow = WindowsManager.Open("Filter window", parentWindow).GetComponent<ListFilter>();
+            filterWindow.FilteringObjects = Objects.Select(o => (BaseData)o).ToList();
+            filterWindow.SetPreset(PersistentDataManager.FilterConditionsPresets.CurrentPreset);
+            filterWindow.OnApplyFilters.AddListener(mask =>
+            {
+                MaskList(mask, false);
+                SortByNone();
+            });
+
+            if (parentWindow)
+                parentWindow.WindowsReferencer.Add(filterWindow);
         }
 
         /// <summary>
@@ -323,6 +343,13 @@ namespace HBP.UI.Main
             m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderBy = OrderBy.None;
+        }
+        #endregion
+
+        #region Protected Methods
+        protected override IEnumerable<Patient> DefaultSorting(IEnumerable<Patient> objects)
+        {
+            return objects.OrderBy(p => p.Place).ThenBy(p => p.Date).ThenBy(p => p.Name);
         }
         #endregion
     }

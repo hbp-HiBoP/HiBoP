@@ -4,8 +4,8 @@ using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.Core.Data;
 using HBP.UI.Tools;
-using HBP.Core.Tools;
 using HBP.Data.Preferences;
+using HBP.Data.Database;
 
 namespace HBP.UI.Main.QuickStart
 {
@@ -37,7 +37,7 @@ namespace HBP.UI.Main.QuickStart
             Core.Tools.TimeWindow window = new Core.Tools.TimeWindow((int)m_Window.Values.x, (int)m_Window.Values.y);
             if (window.Length == 0)
             {
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Window length is zero", "The length of the window needs to be strictly above zero in order to continue.");
+                DialogBoxManager.Open(DialogBoxType.Error, "Window length is zero", "The length of the window needs to be strictly above zero in order to continue.").Forget();
                 return false;
             }
             List<Bloc> blocs = new List<Bloc>();
@@ -52,17 +52,17 @@ namespace HBP.UI.Main.QuickStart
                 }
                 if (blocs.Count == 0)
                 {
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "No code found", "You need to put at least one code in the input field in order to continue.");
+                    DialogBoxManager.Open(DialogBoxType.Error, "No code found", "You need to put at least one code in the input field in order to continue.").Forget();
                     return false;
                 }
             }
             Protocol protocol = new Protocol("QuickStart", blocs);
-            ApplicationState.ProjectLoaded.SetProtocols(new Protocol[] { protocol });
+            DatabaseManager.Database.SetProtocols(new Protocol[] { protocol });
             return base.OpenNextPanel();
         }
         public override bool OpenPreviousPanel()
         {
-            ApplicationState.ProjectLoaded.SetProtocols(new Protocol[0]);
+            DatabaseManager.Database.SetProtocols(new Protocol[0]);
             return base.OpenPreviousPanel();
         }
         #endregion

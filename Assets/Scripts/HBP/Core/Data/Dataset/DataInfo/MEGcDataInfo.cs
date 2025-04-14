@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Runtime.Serialization;
 using HBP.Core.Errors;
-using HBP.Core.Tools;
+using HBP.Data.Database;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
@@ -50,33 +50,9 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("MEGc")]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("MEGc")]
     public class MEGcDataInfo : PatientDataInfo
     {
-        #region Properties
-        protected Error[] m_MEGErrors = new Error[0];
-        public override Error[] Errors
-        {
-            get
-            {
-                List<Error> errors = new List<Error>(base.Errors);
-                errors.AddRange(m_MEGErrors);
-                return errors.Distinct().ToArray();
-            }
-        }
-
-        protected Warning[] m_MEGWarnings = new Warning[0];
-        public override Warning[] Warnings
-        {
-            get
-            {
-                List<Warning> errors = new List<Warning>(base.Warnings);
-                errors.AddRange(m_MEGWarnings);
-                return errors.Distinct().ToArray();
-            }
-        }
-        #endregion
-
         #region Constructors
         /// <summary>
         /// Create a new CCEPDataInfo instance.
@@ -86,7 +62,7 @@ namespace HBP.Core.Data
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="channel">Stimulated channel.</param>
         /// <param name="id">Unique identifier</param>
-        public MEGcDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string ID) : base(name, dataContainer, patient, ID)
+        public MEGcDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, Patient patient, string correspondingDatabaseID, string ID) : base(name, protocol, dataContainer, errors, warnings, patient, correspondingDatabaseID, ID)
         {
         }
         /// <summary>
@@ -96,13 +72,13 @@ namespace HBP.Core.Data
         /// <param name="dataContainer">Data container of the CCEP dataInfo.</param>
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="channel">Stimulated channel.</param>
-        public MEGcDataInfo(string name, Container.DataContainer dataContainer, Patient patient) : base(name, dataContainer, patient)
+        public MEGcDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, Patient patient, string correspondingDatabaseID) : base(name, protocol, dataContainer, errors, warnings, patient, correspondingDatabaseID)
         {
         }
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
-        public MEGcDataInfo() : this("Data", new Container.Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault())
+        public MEGcDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Elan(), new Error[0], new Warning[0], null, "")
         {
 
         }
@@ -115,7 +91,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new MEGcDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, ID);
+            return new MEGcDataInfo(Name, Protocol, DataContainer.Clone() as Container.DataContainer, Errors, Warnings, Patient, CorrespondingDatabaseID, ID);
         }
         public override void Copy(object copy)
         {
@@ -124,27 +100,26 @@ namespace HBP.Core.Data
         #endregion
 
         #region Public Methods
-        public override Error[] GetErrors(Protocol protocol)
+        protected override IEnumerable<Error> GetErrors()
         {
-            List<Error> errors = new List<Error>(base.GetErrors(protocol));
-            errors.AddRange(GetMEGErrors(protocol));
-            return errors.Distinct().ToArray();
+            List<Error> errors = new List<Error>(base.GetErrors());
+            errors.AddRange(GetMEGErrors());
+            return errors;
         }
         /// <summary>
         /// Get all dataInfo errors related to CCEP.
         /// </summary>
         /// <param name="protocol"></param>
         /// <returns>CCEP related errors</returns>
-        public virtual Error[] GetMEGErrors(Protocol protocol)
+        private IEnumerable<Error> GetMEGErrors()
         {
             List<Error> errors = new List<Error>();
-            m_MEGErrors = errors.ToArray();
-            return m_MEGErrors;
+            return errors;
         }
-        public override Warning[] GetWarnings(Protocol protocol)
+        protected override IEnumerable<Warning> GetWarnings()
         {
-            List<Warning> warnings = new List<Warning>(base.GetWarnings(protocol));
-            warnings.AddRange(GetMEGWarnings(protocol));
+            List<Warning> warnings = new List<Warning>(base.GetWarnings());
+            warnings.AddRange(GetMEGWarnings());
             return warnings.Distinct().ToArray();
         }
         /// <summary>
@@ -152,11 +127,10 @@ namespace HBP.Core.Data
         /// </summary>
         /// <param name="protocol"></param>
         /// <returns>CCEP related errors</returns>
-        public virtual Warning[] GetMEGWarnings(Protocol protocol)
+        private IEnumerable<Warning> GetMEGWarnings()
         {
             List<Warning> warnings = new List<Warning>();
-            m_MEGWarnings = warnings.ToArray();
-            return m_MEGWarnings;
+            return warnings;
         }
         #endregion
     }

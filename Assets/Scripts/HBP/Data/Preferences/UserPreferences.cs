@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
 using System.IO;
-using System.Runtime.Serialization;
 using UnityEngine.Events;
 using HBP.Core.Data;
 using HBP.Core.Tools;
+using System;
+using Newtonsoft.Json;
 
 namespace HBP.Data.Preferences
 {
@@ -19,14 +20,14 @@ namespace HBP.Data.Preferences
     *     - Data preferences.
     *     - Visualization preferences.
     */
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class UserPreferences : BaseData
     {
         #region Properties
         public static string PATH = Path.Combine(Application.persistentDataPath, "Preferences.txt");
-        [DataMember] public GeneralPreferences General { get; set; }
-        [DataMember] public DataPreferences Data { get; set; }
-        [DataMember] public VisualizationPreferences Visualization { get; set; }
+        [JsonProperty] public GeneralPreferences General { get; set; }
+        [JsonProperty] public DataPreferences Data { get; set; }
+        [JsonProperty] public VisualizationPreferences Visualization { get; set; }
         #endregion
 
         #region Events
@@ -52,6 +53,23 @@ namespace HBP.Data.Preferences
         #endregion
 
         #region Public Methods
+        public static UserPreferences Initialize()
+        {
+            UserPreferences userPreferences = new UserPreferences();
+            if (new FileInfo(PATH).Exists)
+            {
+                try
+                {
+                    userPreferences = ClassLoaderSaver.LoadFromJson<UserPreferences>(PATH);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
+            }
+            userPreferences.Save();
+            return userPreferences;
+        }
         public void Save()
         {
             ClassLoaderSaver.SaveToJSon(this, PATH, true);

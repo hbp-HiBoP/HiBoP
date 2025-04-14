@@ -94,12 +94,12 @@ namespace HBP.UI.Toolbar
                         sw.WriteLine("{0},{1},{2},{3},{4}", site.Key, site.Value.IsBlackListed, site.Value.IsHighlighted, site.Value.Color.ToHexString(), string.Join(";", site.Value.Labels));
                     }
                 }
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Site states saved", "Site states of the selected column have been saved to <color=#3080ffff>" + path + "</color>");
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Site states saved", "Site states of the selected column have been saved to <color=#3080ffff>" + path + "</color>").Forget();
             }
             catch (System.Exception e)
             {
                 Debug.LogException(e);
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Can not save site states", "Please verify your rights.");
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Can not save site states", "Please verify your rights.").Forget();
             }
         }
         /// <summary>
@@ -196,7 +196,7 @@ namespace HBP.UI.Toolbar
             catch (System.Exception e)
             {
                 Debug.LogException(e);
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Can not load site states", "Please verify your files and try again.");
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Can not load site states", "Please verify your files and try again.").Forget();
             }
         }
         #endregion

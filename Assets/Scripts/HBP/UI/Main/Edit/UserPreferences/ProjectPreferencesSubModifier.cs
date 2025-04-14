@@ -10,8 +10,6 @@ namespace HBP.UI.Main
         #region Properties
         [SerializeField] InputField m_DefaultName;
         [SerializeField] FolderSelector m_DefaultLocation;
-        [SerializeField] FolderSelector m_DefaultPatientDatabase;
-        [SerializeField] FolderSelector m_DefaultLocalizerDatabase;
         [SerializeField] FolderSelector m_DefaultExportDatabase;
 
         public override bool Interactable
@@ -26,8 +24,6 @@ namespace HBP.UI.Main
 
                 m_DefaultName.interactable = value;
                 m_DefaultLocation.interactable = value;
-                m_DefaultPatientDatabase.interactable = value;
-                m_DefaultLocalizerDatabase.interactable = value;
                 m_DefaultExportDatabase.interactable = value;
             }
         }
@@ -40,8 +36,6 @@ namespace HBP.UI.Main
 
             m_DefaultName.onValueChanged.AddListener(value => Object.DefaultName = value);
             m_DefaultLocation.onValueChanged.AddListener(value => Object.DefaultLocation = value);
-            m_DefaultPatientDatabase.onValueChanged.AddListener(value => Object.DefaultPatientDatabase = value);
-            m_DefaultLocalizerDatabase.onValueChanged.AddListener(value => Object.DefaultLocalizerDatabase = value);
             m_DefaultExportDatabase.onValueChanged.AddListener(value => Object.DefaultExportLocation = value);
         }
         #endregion
@@ -53,8 +47,6 @@ namespace HBP.UI.Main
 
             m_DefaultName.text = objectToDisplay.DefaultName;
             m_DefaultLocation.Folder = objectToDisplay.DefaultLocation;
-            m_DefaultPatientDatabase.Folder = objectToDisplay.DefaultPatientDatabase;
-            m_DefaultLocalizerDatabase.Folder = objectToDisplay.DefaultLocalizerDatabase;
             m_DefaultExportDatabase.Folder = objectToDisplay.DefaultExportLocation;
         }
         #endregion

@@ -1,12 +1,9 @@
 using HBP.Core.Data;
 using HBP.Core.Tools;
-using System;
-using System.IO;
-using UnityEngine;
 
 namespace HBP.Data.Preferences
 {
-    public class PersistentDataManager : Singleton<PersistentDataManager>
+    public class PersistentDataManager : Manager<PersistentDataManager>
     {
         #region Properties
         private UserPreferences m_UserPreferences;
@@ -14,53 +11,22 @@ namespace HBP.Data.Preferences
 
         private TagCollection m_Tags;
         public static TagCollection Tags { get { return m_Instance.m_Tags; } }
+
+        private AliasCollection m_Aliases;
+        public static AliasCollection Aliases { get { return m_Instance.m_Aliases; } }
+
+        private FilterConditionsPresetCollection m_FilterConditionsPresets;
+        public static FilterConditionsPresetCollection FilterConditionsPresets { get { return m_Instance.m_FilterConditionsPresets; } }
         #endregion
 
         #region Private Methods
         protected override void Initialization()
         {
-            InitializePreferences();
-            InitializeTags();
-        }
-        private void InitializePreferences()
-        {
-            if (new FileInfo(UserPreferences.PATH).Exists)
-            {
-                try
-                {
-                    m_UserPreferences = ClassLoaderSaver.LoadFromJson<UserPreferences>(UserPreferences.PATH);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    m_UserPreferences = new UserPreferences();
-                }
-            }
-            else
-            {
-                m_UserPreferences = new UserPreferences();
-            }
-            m_UserPreferences.Save();
-        }
-        private void InitializeTags()
-        {
-            if (new FileInfo(TagCollection.PATH).Exists)
-            {
-                try
-                {
-                    m_Tags = ClassLoaderSaver.LoadFromJson<TagCollection>(TagCollection.PATH);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    m_Tags = new TagCollection();
-                }
-            }
-            else
-            {
-                m_Tags = new TagCollection();
-            }
-            m_Tags.Save();
+            base.Initialization();
+            m_UserPreferences = UserPreferences.Initialize();
+            m_Tags = TagCollection.Initialize();
+            m_Aliases = AliasCollection.Initialize();
+            m_FilterConditionsPresets = FilterConditionsPresetCollection.Initialize();
         }
         #endregion
     }

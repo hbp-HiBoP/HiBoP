@@ -1,4 +1,6 @@
 ﻿using HBP.Core.Data;
+using System.IO;
+using UnityEngine;
 
 namespace HBP.Core.Tools
 {
@@ -12,26 +14,35 @@ namespace HBP.Core.Tools
         /// <summary>
         /// Project loaded on the application.
         /// </summary>
-        public static Project ProjectLoaded { get; set; }
+        public static Project LoadedProject { get; set; } = null;
 
         /// <summary>
         /// Location of the project loaded.
         /// </summary>
-        public static string ProjectLoadedLocation { get; set; }
+        public static string LoadedProjectLocation { get; set; } = string.Empty;
 
         /// <summary>
         /// TMP folder to store the open projects
         /// </summary>
-        public static string TMPFolder { get; set; }
+        public static string TMPFolder { get; private set; } = Path.Combine(Application.persistentDataPath, "tmp");
 
         /// <summary>
         /// Full path to the loaded project
         /// </summary>
-        public static string ExtractProjectFolder { get; set; }
+        public static string ExtractProjectFolder { get; private set; } = Path.Combine(Application.persistentDataPath, InstanceID);
 
         /// <summary>
         /// Path to the data folder
         /// </summary>
-        static public string DataPath { get; set; }
+#if UNITY_EDITOR
+        public static string DataPath { get; private set; } = Path.Combine(Application.dataPath, "Data");
+#else
+        public static string DataPath { get; private set; } = Path.Combine(Application.dataPath, "..", "Data");
+#endif
+
+        /// <summary>
+        /// Path to the database folder
+        /// </summary>
+        public static string DatabasePath { get; private set; } = Path.Combine(Application.persistentDataPath, "Database");
     }
 }

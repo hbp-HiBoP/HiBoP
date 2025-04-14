@@ -12,7 +12,7 @@ using HBP.Core.Tools;
 
 namespace HBP.UI.Tools
 {
-    public class ShortcutManager : Singleton<ShortcutManager>
+    public class ShortcutManager : Manager<ShortcutManager>
     {
         #region Properties
         private MainMenu m_MainMenu;
@@ -284,68 +284,55 @@ namespace HBP.UI.Tools
         }
         private void NewProject()
         {
-            if (MainMenu.FileMenu.NewProjectInteractableConditions.interactable)
-                MainMenu.FileMenu.OpenNewProject();
+            MainMenu.FileMenu.NewProjectButton.Action();
         }
         private void OpenProject()
         {
-            if (MainMenu.FileMenu.OpenProjectInteractableConditions.interactable)
-                MainMenu.FileMenu.OpenLoadProject();
+            MainMenu.FileMenu.OpenProjectButton.Action();
         }
         private void Save()
         {
-            if (MainMenu.FileMenu.SaveProjectInteractableConditions.interactable)
-                MainMenu.FileMenu.Save();
+            MainMenu.FileMenu.SaveButton.Action();
         }
         private void SaveAs()
         {
-            if (MainMenu.FileMenu.SaveProjectAsInteractableConditions.interactable)
-                MainMenu.FileMenu.OpenSaveProjectAs();
+            MainMenu.FileMenu.SaveAsButton.Action();
         }
         private void Quit()
         {
-            if (MainMenu.FileMenu.QuitInteractableConditions.interactable)
-                MainMenu.FileMenu.Quit();
+            MainMenu.FileMenu.QuitButton.Action();
         }
         private void UserPreferences()
         {
-            if (MainMenu.EditMenu.PreferencesInteractableConditions.interactable)
-                MainMenu.EditMenu.OpenPreferences();
+            MainMenu.EditMenu.OpenPreferencesButton.Action();
         }
         private void TagsManager()
         {
-            if (MainMenu.EditMenu.TagsManagerInteractableConditions.interactable)
-                MainMenu.EditMenu.OpenTagsManager();
+            MainMenu.EditMenu.OpenTagsManagerButton.Action();
         }
         private void ProjectPreferences()
         {
-            if (MainMenu.EditMenu.ProjectPreferencesInteractableConditions.interactable)
-                MainMenu.EditMenu.OpenProjectPreferences();
+            MainMenu.ProjectMenu.OpenProjectPreferencesButton.Action();
         }
         private void Patients()
         {
-            if (MainMenu.PatientMenu.PatientsInteractableConditions.interactable)
-                MainMenu.PatientMenu.OpenPatientGestion();
+            MainMenu.ProjectMenu.OpenPatientGestionButton.Action();
         }
         private void Groups()
         {
-            if (MainMenu.PatientMenu.GroupsInteractableConditions.interactable)
-                MainMenu.PatientMenu.OpenGroupGestion();
-        }
-        private void Protocols()
-        {
-            if (MainMenu.ExperienceMenu.ProtocolsInteractableConditions.interactable)
-                MainMenu.ExperienceMenu.OpenProtocolGestion();
+            MainMenu.ProjectMenu.OpenGroupGestionButton.Action();
         }
         private void Datasets()
         {
-            if (MainMenu.ExperienceMenu.DatasetsInteractableConditions.interactable)
-                MainMenu.ExperienceMenu.OpenDatasetGestion();
+            MainMenu.ProjectMenu.OpenDatasetGestionButton.Action();
         }
         private void Visualizations()
         {
-            if (MainMenu.VisualizationMenu.InteractableConditions.interactable)
-                MainMenu.VisualizationMenu.OpenVisualizationGestion();
+            MainMenu.ProjectMenu.OpenVisualizationGestionButton.Action();
+        }
+        private void Protocols()
+        {
+            MainMenu.DatabaseMenu.OpenProtocolGestionButton.Action();
         }
         private void ChangeSiteSelection(SiteNavigationDirection direction)
         {

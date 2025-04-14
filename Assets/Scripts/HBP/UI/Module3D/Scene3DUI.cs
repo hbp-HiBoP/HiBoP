@@ -149,9 +149,9 @@ namespace HBP.UI.Module3D
                 if (updating) m_ProgressBar.Open();
                 else m_ProgressBar.Close();
             });
-            m_Scene.OnProgressUpdateGenerator.AddListener((progress, message, duration) =>
+            m_Scene.OnProgressUpdateGenerator.AddListener((progress, message) =>
             {
-                m_ProgressBar.Progress(progress, message, duration);
+                m_ProgressBar.Progress(progress, message, 0.2f);
             });
             m_Scene.OnIEEGOutdated.AddListener((state) =>
             {

@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization;
 using HBP.Core.Errors;
 using System.ComponentModel;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data.Container
 {
@@ -29,7 +29,7 @@ namespace HBP.Core.Data.Container
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("EDF"), IEEG, CCEP, MEGc]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("EDF"), IEEG, CCEP, MEGc]
     public class EDF : DataContainer
     {
         #region Properties
@@ -41,14 +41,14 @@ namespace HBP.Core.Data.Container
         /// <summary>
         /// Path to the EDF file with Alias.
         /// </summary>
-        [DataMember(Name = "EDF")] public string SavedFile { get; protected set; } = "";
+        [JsonProperty("EDF")] public string SavedFile { get; protected set; } = "";
         /// <summary>
         /// Path to the EDF file without Alias.
         /// </summary>
         public string File
         {
             get { return SavedFile?.ConvertToFullPath(); }
-            set { SavedFile = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
+            set { SavedFile = value?.ConvertToShortPath(); }
         }
         #endregion
 
@@ -100,7 +100,7 @@ namespace HBP.Core.Data.Container
         /// </summary>
         /// <param name="file">Path to the EDF file</param>
         /// <param name="ID"></param>
-        public EDF(string file, string ID) : base(ID)
+        public EDF(string file, IEnumerable<Error> errors, IEnumerable<Warning> warnings, string ID) : base(errors, warnings, ID)
         {
             File = file;
         }
@@ -108,14 +108,14 @@ namespace HBP.Core.Data.Container
         /// Create a new EDF data container.
         /// </summary>
         /// <param name="file">Path to the EDF file</param>
-        public EDF(string file) : base()
+        public EDF(string file, IEnumerable<Error> errors, IEnumerable<Warning> warnings) : base(errors, warnings)
         {
             File = file;
         }
         /// <summary>
         /// Create a new EDF data container.
         /// </summary>
-        public EDF() : this("")
+        public EDF() : base()
         {
 
         }
@@ -128,13 +128,15 @@ namespace HBP.Core.Data.Container
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new EDF(File, ID);
+            return new EDF(File, Errors, Warnings, ID);
         }
         public override void Copy(object copy)
         {
-            EDF dataInfo = copy as EDF;
-            File = dataInfo.File;
-            ID = dataInfo.ID;
+            base.Copy(copy);
+            if (copy is EDF edf)
+            {
+                File = edf.File;
+            }
         }
         #endregion
 

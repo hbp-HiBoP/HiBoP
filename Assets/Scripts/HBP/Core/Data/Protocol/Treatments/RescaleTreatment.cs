@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
-using System.Runtime.Serialization;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
@@ -55,26 +55,26 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("Rescale")]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("Rescale")]
     public class RescaleTreatment : Treatment
     {
         #region Properties
         /// <summary>
         /// Minimum Value before rescaled the values.
         /// </summary>
-        [DataMember] public float BeforeMin { get; set; }
+        [JsonProperty] public float BeforeMin { get; set; }
         /// <summary>
         /// Maximum Value before rescaled the values.
         /// </summary>
-        [DataMember] public float BeforeMax { get; set; }
+        [JsonProperty] public float BeforeMax { get; set; }
         /// <summary>
         /// Minimum Value after rescaled the values.
         /// </summary>
-        [DataMember] public float AfterMin { get; set; }
+        [JsonProperty] public float AfterMin { get; set; }
         /// <summary>
         /// Maximum Value after rescaled the values.
         /// </summary>
-        [DataMember] public float AfterMax { get; set; }
+        [JsonProperty] public float AfterMax { get; set; }
         #endregion
 
         #region Constructors

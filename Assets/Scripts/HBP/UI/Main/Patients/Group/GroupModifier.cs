@@ -42,7 +42,7 @@ namespace HBP.UI.Main
         /// </summary>
         public virtual void OpenPatientsSelector()
         {
-            ObjectSelector<Patient> selector = WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Patients.Where(p => !ObjectTemp.Patients.Contains(p)));
+            ObjectSelector<Patient> selector = WindowsManager.OpenSelector(ApplicationState.LoadedProject.Patients.Where(p => !ObjectTemp.Patients.Contains(p)), this);
             selector.OnOk.AddListener(() => m_PatientListGestion.List.Add(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }

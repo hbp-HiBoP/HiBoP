@@ -6,6 +6,7 @@ using UnityEngine.Events;
 using HBP.Core.Enums;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Tools
 {
@@ -113,6 +114,8 @@ namespace HBP.UI.Tools
             }
         }
 
+        public Func<T, bool> DatabaseFilterMethod { get; set; } = o => true;
+
         [SerializeField] protected WindowsReferencer m_WindowsReferencer = new WindowsReferencer();
         /// <summary>
         /// Windows references used to manage sub windows opened by the object creator.
@@ -211,14 +214,14 @@ namespace HBP.UI.Tools
         /// </summary>
         public virtual void CreateFromDatabase()
         {
-            SelectDatabase();
+            LoadFromDatabase().Forget();
         }
         /// <summary>
         /// Create a new object from a directory
         /// </summary>
         public virtual void CreateFromDirectory()
         {
-            SelectDirectory();
+            LoadFromDirectory().Forget();
         }
         #endregion
 
@@ -236,38 +239,52 @@ namespace HBP.UI.Tools
         /// <param name="generateNewIDs"></param>
         protected virtual void OpenSelector(IEnumerable<T> objects, bool multiSelection = false, bool openModifiers = true, bool generateNewIDs = true)
         {
-            ObjectSelector<T> selector = WindowsManager.OpenSelector(objects, multiSelection, openModifiers);
-            selector.OnOk.AddListener(() => SaveSelector(selector, generateNewIDs));
+            ObjectSelector<T> selector = WindowsManager.OpenSelector(objects, GetComponentInParent<Window>(), multiSelection, openModifiers);
+            selector.OnOk.AddListener(() => SaveSelector(selector, generateNewIDs).Forget());
             WindowsReferencer.Add(selector);
+        }
+        protected virtual async UniTaskVoid SaveSelector(ObjectSelector<T> selector, bool generateNewIDs)
+        {
+            await LoadingManager.LoadAsync(update => SaveSelectorAsync(selector, generateNewIDs, update));
         }
         /// <summary>
         /// Create clone of the objects selected in the ObjectSelector.
         /// </summary>
         /// <param name="selector">Object selector</param> 
         /// <param name="generateNewIDs">True if generate a new ID for every objects cloned, False otherwise.</param>
-        protected virtual void SaveSelector(ObjectSelector<T> selector, bool generateNewIDs = true)
+        protected virtual async UniTask SaveSelectorAsync(ObjectSelector<T> selector, bool generateNewIDs, Action<float, float, LoadingText> updateProgress)
         {
+            await UniTask.SwitchToThreadPool();
+            var length = selector.ObjectsSelected.Length;
+            var progress = 0;
+            var cloneList = new List<T>();
             foreach (var obj in selector.ObjectsSelected)
             {
+                updateProgress.Invoke((float)progress++ / length, 0, new LoadingText($"Importing {progress}/{length}"));
                 T clone = (T)obj.Clone();
-                if (generateNewIDs)
-                {
-                    if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
-                    {
-                        IIdentifiable identifiable = clone;
-                        identifiable.GenerateID();
-                    }
-                }
                 if (clone != null)
                 {
-                    if (selector.OpenModifiers)
-                    {
-                        OpenModifier(clone);
-                    }
-                    else
-                    {
-                        OnObjectCreated.Invoke(obj);
-                    }
+                    cloneList.Add(clone);
+                }
+            }
+            if (generateNewIDs && typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
+            {
+                foreach (var clone in cloneList)
+                {
+                    IIdentifiable identifiable = clone;
+                    identifiable.GenerateID();
+                }
+            }
+            await UniTask.SwitchToMainThread();
+            foreach (var clone in cloneList)
+            {
+                if (selector.OpenModifiers)
+                {
+                    OpenModifier(clone);
+                }
+                else
+                {
+                    OnObjectCreated.Invoke(clone);
                 }
             }
         }
@@ -279,7 +296,7 @@ namespace HBP.UI.Tools
         /// <returns>Return the objectModifier.</returns>
         protected virtual ObjectModifier<T> OpenModifier(T @object)
         {
-            ObjectModifier<T> modifier = WindowsManager.OpenModifier(@object);
+            ObjectModifier<T> modifier = WindowsManager.OpenModifier(@object, GetComponentInParent<Window>());
             modifier.OnOk.AddListener(() => SaveModifier(modifier));
             WindowsReferencer.Add(modifier);
             return modifier;
@@ -345,41 +362,23 @@ namespace HBP.UI.Tools
             }
 #endif
         }
-        /// <summary>
-        /// Open a browser to select a folder database and load objects asynchroniously.
-        /// </summary>
-        protected virtual void SelectDatabase()
+        protected virtual async UniTaskVoid LoadFromDirectory()
         {
 #if UNITY_STANDALONE_OSX
-            FileBrowser.GetExistingDirectoryNameAsync((path) =>
-            {
-                if (path != null)
-                {
-                    ILoadableFromDatabase<T> loadable = new T() as ILoadableFromDatabase<T>;
-                    GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                    LoadingManager.Load(loadable.LoadFromDatabase(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => OnEndLoadFromDatabase(result.ToArray())), onChangeProgress);
-                }
-            });
-#else
-            string path = FileBrowser.GetExistingDirectoryName();
-            if (path != null)
-            {
-                ILoadableFromDatabase<T> loadable = new T() as ILoadableFromDatabase<T>;
-                GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                LoadingManager.Load(loadable.LoadFromDatabase(path, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => OnEndLoadFromDatabase(result.ToArray())), onChangeProgress);
-            }
-#endif
-        }
-        protected virtual void SelectDirectory()
-        {
-#if UNITY_STANDALONE_OSX
-            FileBrowser.GetExistingDirectoryNamesAsync((paths) =>
+            FileBrowser.GetExistingDirectoryNamesAsync(async (paths) =>
             {
                 if (paths.Length > 0)
                 {
                     ILoadableFromDirectory<T> loadable = new T() as ILoadableFromDirectory<T>;
-                    GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                    LoadingManager.Load(loadable.LoadFromDirectory(paths, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => OnEndLoadFromDirectory(result.ToArray())), onChangeProgress);
+                    var result = await LoadingManager.LoadAsync(update => loadable.LoadFromDirectory(paths, update));
+                    var length = result.Count();
+                    if (length > 0)
+                    {
+                        if (length == 1)
+                            OnObjectCreated.Invoke(result.First());
+                        else
+                            OpenSelector(result, true, false, false);
+                    }
                 }
             });
 #else
@@ -387,31 +386,26 @@ namespace HBP.UI.Tools
             if (paths.Length > 0)
             {
                 ILoadableFromDirectory<T> loadable = new T() as ILoadableFromDirectory<T>;
-                GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                LoadingManager.Load(loadable.LoadFromDirectory(paths, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text), (result) => OnEndLoadFromDirectory(result.ToArray())), onChangeProgress);
+                var result = await LoadingManager.LoadAsync(update => loadable.LoadFromDirectory(paths, update));
+                await UniTask.SwitchToMainThread();
+                var length = result.Count();
+                if (length > 0)
+                {
+                    if (length == 1)
+                        OnObjectCreated.Invoke(result.First());
+                    else
+                        OpenSelector(result, true, false, false);
+                }
             }
 #endif
         }
-        /// <summary>
-        /// Called when the asynchronious method to load objects from the database are ended.
-        /// </summary>
-        /// <param name="result">Objects created from the database</param>
-        protected virtual void OnEndLoadFromDatabase(T[] result)
+        protected virtual async UniTaskVoid LoadFromDatabase()
         {
-            if (result.Length > 0)
-            {
+            ILoadableFromDatabase<T> loadable = new T() as ILoadableFromDatabase<T>;
+            var result = await LoadingManager.LoadAsync(update => loadable.LoadFromDatabaseAsync(update, DatabaseFilterMethod), false);
+            await UniTask.SwitchToMainThread();
+            if (result.Count() > 0)
                 OpenSelector(result, true, false, false);
-            }
-        }
-        protected virtual void OnEndLoadFromDirectory(T[] result)
-        {
-            if (result.Length > 0)
-            {
-                if (result.Length == 1)
-                    OnObjectCreated.Invoke(result[0]);
-                else
-                    OpenSelector(result, true, false, false);
-            }
         }
         #endregion
     }

@@ -1,8 +1,10 @@
 ﻿using HBP.Core.Errors;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using HBP.Core.Tools;
+using HBP.Data.Database;
+using Newtonsoft.Json;
+using UnityEngine;
 
 namespace HBP.Core.Data
 {
@@ -45,11 +47,11 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, Hide]
+    [JsonObject(MemberSerialization.OptIn), Hide]
     public class PatientDataInfo : DataInfo
     {
         #region Properties
-        [DataMember(Name = "Patient")] protected string m_PatientID;
+        [JsonProperty("Patient")] protected string m_PatientID;
         protected Patient m_Patient;
         /// <summary>
         /// Patient who has passed the experiment.
@@ -57,29 +59,14 @@ namespace HBP.Core.Data
         ///
         public Patient Patient
         {
-            get { return m_Patient; }
-            set { m_PatientID = value.ID; m_Patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == m_PatientID); m_PatientErrors = GetPatientErrors(); }
-        }
-
-        protected Error[] m_PatientErrors = new Error[0];
-        public override Error[] Errors
-        {
             get
             {
-                List<Error> errors = new List<Error>(base.Errors);
-                errors.AddRange(m_PatientErrors);
-                return errors.Distinct().ToArray();
+                return m_Patient;
             }
-        }
-
-        protected Warning[] m_PatientWarnings = new Warning[0];
-        public override Warning[] Warnings
-        {
-            get
+            set
             {
-                List<Warning> warnings = new List<Warning>(base.Warnings);
-                warnings.AddRange(m_PatientWarnings);
-                return warnings.Distinct().ToArray();
+                if (value != null) m_PatientID = value.ID;
+                m_Patient = value;
             }
         }
         #endregion
@@ -92,7 +79,7 @@ namespace HBP.Core.Data
         /// <param name="dataContainer">Data container of the patient dataInfo.</param>
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="ID">Unique identifier</param>
-        public PatientDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string ID) : base(name, dataContainer, ID)
+        public PatientDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, Patient patient, string correspondingDatabaseID, string ID) : base(name, protocol, dataContainer, errors, warnings, correspondingDatabaseID, ID)
         {
             Patient = patient;
         }
@@ -102,14 +89,14 @@ namespace HBP.Core.Data
         /// <param name="name">Name of the patient dataInfo.</param>
         /// <param name="dataContainer">Data container of the patient dataInfo.</param>
         /// <param name="patient">Patient related to the data.</param>
-        public PatientDataInfo(string name, Container.DataContainer dataContainer, Patient patient) : base(name, dataContainer)
+        public PatientDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, Patient patient, string correspondingDatabaseID) : base(name, protocol, dataContainer, errors, warnings, correspondingDatabaseID)
         {
             Patient = patient;
         }
         /// <summary>
         /// Create a new PatientDataInfo instance.
         /// </summary>
-        public PatientDataInfo() : this("Data", new Container.Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault())
+        public PatientDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Elan(), new Error[0], new Warning[0], ApplicationState.LoadedProject.Patients.FirstOrDefault(), "")
         {
         }
         #endregion
@@ -121,7 +108,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new PatientDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, ID);
+            return new PatientDataInfo(Name, Protocol, DataContainer.Clone() as Container.DataContainer, Errors, Warnings, Patient, CorrespondingDatabaseID, ID);
         }
         public override void Copy(object obj)
         {
@@ -133,35 +120,33 @@ namespace HBP.Core.Data
         }
         #endregion
 
-        #region Public Methods
-        public override Error[] GetErrors(Protocol protocol)
+        #region Private Methods
+        protected override IEnumerable<Error> GetErrors()
         {
-            List<Error> errors = new List<Error>(base.GetErrors(protocol));
+            List<Error> errors = new List<Error>(base.GetErrors());
             errors.AddRange(GetPatientErrors());
-            return errors.Distinct().ToArray();
+            return errors;
         }
         /// <summary>
         /// Get all dataInfo errors related to the patient.
         /// </summary>
         /// <returns></returns>
-        public Error[] GetPatientErrors()
+        private IEnumerable<Error> GetPatientErrors()
         {
             List<Error> errors = new List<Error>();
-            if (Patient == null) errors.Add(new PatientEmptyError());
-            m_PatientErrors = errors.ToArray();
-            return m_PatientErrors;
+            if (m_Patient == null) errors.Add(new PatientEmptyError());
+            return errors;
         }
-        public override Warning[] GetWarnings(Protocol protocol)
+        protected override IEnumerable<Warning> GetWarnings()
         {
-            List<Warning> warnings = new List<Warning>(base.GetWarnings(protocol));
+            List<Warning> warnings = new List<Warning>(base.GetWarnings());
             warnings.AddRange(GetPatientWarnings());
-            return warnings.Distinct().ToArray();
+            return warnings;
         }
-        public Warning[] GetPatientWarnings()
+        private IEnumerable<Warning> GetPatientWarnings()
         {
             List<Warning> warnings = new List<Warning>();
-            m_PatientWarnings = warnings.ToArray();
-            return m_PatientWarnings;
+            return warnings;
         }
         #endregion
 
@@ -169,7 +154,10 @@ namespace HBP.Core.Data
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            m_Patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == m_PatientID);
+            if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.Contains(this)))
+                m_Patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == m_PatientID);
+            else
+                m_Patient = DatabaseManager.Database.Patients.FirstOrDefault(p => p.ID == m_PatientID);
         }
         #endregion
     }

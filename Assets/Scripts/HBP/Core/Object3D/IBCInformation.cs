@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -40,11 +41,22 @@ namespace HBP.Core.Object3D
 
         #region Properties
         public List<Labels> AllLabels { get; } = new List<Labels>();
+        public bool Loaded { get; private set; } = false;
+        public bool Loading { get; private set; } = false;
         #endregion
 
         #region Constructors
         public IBCInformation(string csvFile)
         {
+            LoadAsync(csvFile).Forget();
+        }
+        #endregion
+
+        #region Private Methods
+        private async UniTaskVoid LoadAsync(string csvFile)
+        {
+            await UniTask.SwitchToThreadPool();
+            Loading = true;
             Regex csvParser = new Regex(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
             if (new FileInfo(csvFile).Exists)
             {
@@ -64,6 +76,8 @@ namespace HBP.Core.Object3D
                     }
                 }
             }
+            Loading = false;
+            Loaded = true;
         }
         #endregion
 

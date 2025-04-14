@@ -1,4 +1,5 @@
 ﻿using HBP.Core.Data;
+using HBP.Data.Preferences;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -112,10 +113,16 @@ namespace HBP.Core.Tools
             dropdown.RefreshShownValue();
             return displayedType.ToArray();
         }
-        public static Type[] Set(this Dropdown dropdown, Type parentType, DataAttribute dataAttribute)
+        public static Type[] Set(this Dropdown dropdown, Type parentType, Attribute attribute)
         {
+            static int orderMethod(Type t)
+            {
+                var attribute = t.GetCustomAttributes(typeof(SortingOrderAttribute), false);
+                return attribute.Length > 0 ? (attribute[0] as SortingOrderAttribute).Order : int.MaxValue;
+            }
+
             Type[] types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(t => t.IsSubclassOf(parentType)).ToArray();
-            types = types.Where(t => t.GetCustomAttributes(true).Contains(dataAttribute)).ToArray();
+            types = types.Where(t => t.GetCustomAttributes(true).Contains(attribute)).OrderBy(orderMethod).ToArray();
             List<Dropdown.OptionData> options = new List<Dropdown.OptionData>();
             foreach (var type in types)
             {
@@ -273,7 +280,7 @@ namespace HBP.Core.Tools
                 return false;
             }
         }
-        public static void Rotate(this Texture2D textureToRotate)
+        public static void Rotate(ref Texture2D textureToRotate)
         {
             Texture2D l_texture = new Texture2D(textureToRotate.height, textureToRotate.width);
             for (int y = 0; y < l_texture.height; y++)
@@ -325,6 +332,18 @@ namespace HBP.Core.Tools
             tex.anisoLevel = anisoLvl;
             return tex;
         }
+        public static string ToBase64(this Texture2D texture)
+        {
+            byte[] bytes = texture.EncodeToPNG();
+            return Convert.ToBase64String(bytes);
+        }
+        public static Texture2D ToTexture2D(string base64)
+        {
+            byte[] bytes = Convert.FromBase64String(base64);
+            Texture2D texture = new Texture2D(1, 1);
+            texture.LoadImage(bytes);
+            return texture;
+        }
     }
 
     public static class PathExtension
@@ -341,7 +360,7 @@ namespace HBP.Core.Tools
                 localPath = ApplicationState.ExtractProjectFolder + localPath;
             }
             
-            foreach (var alias in ApplicationState.ProjectLoaded.Preferences.Aliases)
+            foreach (var alias in PersistentDataManager.Aliases.Aliases)
             {
                 alias.ConvertKeyToValue(ref localPath);
             }
@@ -357,7 +376,7 @@ namespace HBP.Core.Tools
                 localPath = PROJECT_TOKEN + path.Remove(0, ApplicationState.ExtractProjectFolder.Length);
             }
             
-            foreach (var alias in ApplicationState.ProjectLoaded.Preferences.Aliases)
+            foreach (var alias in PersistentDataManager.Aliases.Aliases)
             {
                 alias.ConvertValueToKey(ref localPath);
             }
@@ -381,11 +400,10 @@ namespace HBP.Core.Tools
             if (layoutElement)
             {
                 int totalWidth = 0;
-                CharacterInfo charInfo = new CharacterInfo();
                 char[] stringArray = text.text.ToCharArray();
                 foreach (var c in stringArray)
                 {
-                    text.font.GetCharacterInfo(c, out charInfo, text.fontSize);
+                    text.font.GetCharacterInfo(c, out CharacterInfo charInfo, text.fontSize);
                     totalWidth += charInfo.advance;
                 }
                 text.GetComponent<LayoutElement>().minWidth = totalWidth;

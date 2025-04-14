@@ -1,9 +1,9 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
@@ -30,7 +30,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class BaseMesh : BaseData, INameable
     {
         #region Properties
@@ -45,7 +45,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// Name of the mesh.
         /// </summary>
-        [DataMember(Order = 0)] public string Name { get; set; }
+        [JsonProperty(Order = 0)] public string Name { get; set; }
 
         /// <summary>
         /// Specifies if a mesh was usable at the last verification. Don't perform the verification.
@@ -81,7 +81,7 @@ namespace HBP.Core.Data
                 return !string.IsNullOrEmpty(Transformation) && File.Exists(Transformation) && (new FileInfo(Transformation).Extension == TRANSFORMATION_EXTENSION || new FileInfo(Transformation).Extension == ".txt");
             }
         }
-        [DataMember(Order = 5, Name = "Transformation")] public string SavedTransformation { get; protected set; }
+        [JsonProperty("Transformation", Order = 5)] public string SavedTransformation { get; protected set; }
         /// <summary>
         /// Transformation file of the mesh.
         /// </summary>

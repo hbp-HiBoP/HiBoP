@@ -33,6 +33,8 @@ namespace HBP.UI.Main
                 m_NameInputField.interactable = value;
 
                 m_BlocListGestion.Interactable = value;
+                m_BlocListGestion.Modifiable = value;
+
                 m_CreateBlocButton.interactable = value;
                 m_RemoveBlocButton.interactable = value;
             }

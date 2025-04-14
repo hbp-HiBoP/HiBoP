@@ -6,39 +6,36 @@ using HBP.UI.Tools.Lists;
 
 namespace HBP.UI.Tools
 {
-    [RequireComponent(typeof(SelectableList<>))]
     public class ListSelectionCounter : MonoBehaviour
     {
         #region Properties
-        public Text Counter;
+        public Text DisplayText;
         public BaseList List;
-        UnityAction m_Action;
         ISelectionCountable m_SelectionCountable;
         #endregion
 
         #region Private Methods
         void OnEnable()
         {
-            m_Action = UpdateCounter;
             if (List is ISelectionCountable selectionCountable)
             {
                 m_SelectionCountable = selectionCountable;
-                m_SelectionCountable.OnSelectionChanged.AddListener(m_Action);
-            }
-            else
-            {
-                List = null;
+                m_SelectionCountable.OnSelectionChanged.AddListener(UpdateCounter);
+                UpdateCounter();
             }
         }
         void OnDisable()
         {
-            if(m_SelectionCountable != null) m_SelectionCountable.OnSelectionChanged.RemoveListener(m_Action);
+            m_SelectionCountable?.OnSelectionChanged.RemoveListener(UpdateCounter);
         }
         void UpdateCounter()
         {
-            if(m_SelectionCountable != null)
+            if (m_SelectionCountable != null)
             {
-                Counter.text = m_SelectionCountable.NumberOfItemSelected.ToString();
+                int numberOfSelectedObjects = m_SelectionCountable.NumberOfSelectedObjects;
+                int numberOfObjects = m_SelectionCountable.NumberOfObjects;
+                int numberOfFilteredObjects = m_SelectionCountable.NumberOfFilteredObjects;
+                DisplayText.text = $"Selected: {numberOfSelectedObjects}" + (numberOfFilteredObjects < numberOfObjects ? $" - Filtered: {numberOfFilteredObjects}" : "") + $" - Total: {numberOfObjects}";
             }
         }
         #endregion

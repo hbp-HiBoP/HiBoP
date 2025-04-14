@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.UI.Tools;
-using HBP.Core.Tools;
+using HBP.Data.Database;
 
 namespace HBP.UI.Main
 {
@@ -39,6 +39,8 @@ namespace HBP.UI.Main
                 m_DataInfoListGestion.Modifiable = value;
             }
         }
+
+        public Protocol SelectedProtocol => ObjectTemp.Protocol;
         #endregion
 
         #region Protected Methods
@@ -51,14 +53,14 @@ namespace HBP.UI.Main
 
             m_NameInputField.onEndEdit.AddListener(ChangeName);
 
-            m_ProtocolDropdown.options = (from protocol in ApplicationState.ProjectLoaded.Protocols select new Dropdown.OptionData(protocol.Name)).ToList();
+            m_ProtocolDropdown.options = (from protocol in DatabaseManager.Database.Protocols select new Dropdown.OptionData(protocol.Name)).ToList();
             m_ProtocolDropdown.onValueChanged.AddListener(ChangeProtocol);
 
             m_DataInfoListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
-            m_DataInfoListGestion.OnDataInfoNeedCheckErrors.AddListener(CheckErrors);
             m_DataInfoListGestion.List.OnAddObject.AddListener(AddData);
             m_DataInfoListGestion.List.OnRemoveObject.AddListener(RemoveData);
             m_DataInfoListGestion.List.OnUpdateObject.AddListener(UpdateData);
+            m_DataInfoListGestion.ObjectCreator.DatabaseFilterMethod = data => data.Protocol == ObjectTemp.Protocol;
         }
         /// <summary>
         /// Set the fields.
@@ -67,7 +69,7 @@ namespace HBP.UI.Main
         protected override void SetFields(Dataset objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
-            m_ProtocolDropdown.value = ApplicationState.ProjectLoaded.Protocols.IndexOf(objectToDisplay.Protocol);
+            m_ProtocolDropdown.value = DatabaseManager.Database.Protocols.IndexOf(objectToDisplay.Protocol);
             m_DataInfoListGestion.List.Set(objectToDisplay.Data);
         }
         /// <summary>
@@ -76,16 +78,8 @@ namespace HBP.UI.Main
         /// <param name="index">Index of the protocol</param>
         protected virtual void ChangeProtocol(int index)
         {
-            ObjectTemp.Protocol = ApplicationState.ProjectLoaded.Protocols[index];
-            m_DataInfoListGestion.UpdateAllObjects();
-        }
-        /// <summary>
-        /// Check the errors.
-        /// </summary>
-        /// <param name="dataInfo">Check the the errors of the dataInfo</param>
-        protected virtual void CheckErrors(DataInfo dataInfo)
-        {
-            dataInfo.GetErrorsAndWarnings(ObjectTemp.Protocol);
+            ObjectTemp.Protocol = DatabaseManager.Database.Protocols[index];
+            LoadingManager.Load(update => m_DataInfoListGestion.UpdateAllObjectsAsync(update));
         }
         /// <summary>
         /// Change the name.

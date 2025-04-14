@@ -1,13 +1,13 @@
-﻿using HBP.Core.Data;
+﻿using Cysharp.Threading.Tasks;
+using HBP.Core.Data;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
 using HBP.Data.Preferences;
 using HBP.UI.Tools;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using ThirdParty.CielaSpike;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -119,16 +119,13 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Currently computing coroutine (for the export of the sites to a csv file)
         /// </summary>
-        private Coroutine m_Coroutine;
+        private bool m_Exporting;
+        private CancellationTokenSource m_ExportSource;
+        private CancellationTokenSource m_ProgressSource;
         /// <summary>
         /// Progress bar used to display a feedback when filtering or applying an action
         /// </summary>
         [SerializeField] private SiteConditionsProgressBar m_ExportSitesProgressBar;
-
-        /// <summary>
-        /// Do we need an update in the progress bar ?
-        /// </summary>
-        private bool m_UpdateUI = true;
         #endregion
 
         #region Events
@@ -159,7 +156,7 @@ namespace HBP.UI.Module3D
             catch (Exception e)
             {
                 Debug.LogException(e);
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Warning, e.ToString(), e.Message).Forget();
             }
         }
         #endregion
@@ -182,10 +179,6 @@ namespace HBP.UI.Module3D
             m_AddLabelToggle.onValueChanged.AddListener(isOn => m_LabelInputField.interactable = m_AddLabelToggle.isOn || m_RemoveLabelToggle.isOn);
             m_RemoveLabelToggle.onValueChanged.AddListener(isOn => m_LabelInputField.interactable = m_AddLabelToggle.isOn || m_RemoveLabelToggle.isOn);
             m_ColorToggle.onValueChanged.AddListener(isOn => m_ColorPickerButton.interactable = isOn);
-        }
-        private void Update()
-        {
-            m_UpdateUI = true;
         }
         /// <summary>
         /// Change the states of the filtered sites
@@ -224,9 +217,9 @@ namespace HBP.UI.Module3D
         /// </summary>
         private void ExportSites()
         {
-            if (m_Coroutine != null)
+            if (m_Exporting)
             {
-                StopCoroutine(m_Coroutine);
+                m_ExportSource.Cancel();
                 StopExport();
             }
             else
@@ -238,7 +231,8 @@ namespace HBP.UI.Module3D
 
                     m_ExportSitesProgressBar.Begin();
                     List<Core.Object3D.Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered && !s.State.IsMasked).ToList();
-                    m_Coroutine = this.StartCoroutineAsync(c_ExportSites(sites, csvPath));
+                    m_ExportSource = new();
+                    ExportSites(sites, csvPath, m_ExportSource.Token).Forget();
                 }, new string[] { "csv" }, "Save sites to");
 #else
                 string csvPath = FileBrowser.GetSavedFileName(new string[] { "csv" }, "Save sites to");
@@ -246,7 +240,8 @@ namespace HBP.UI.Module3D
 
                 m_ExportSitesProgressBar.Begin();
                 List<Core.Object3D.Site> sites = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered && !s.State.IsMasked).ToList();
-                m_Coroutine = this.StartCoroutineAsync(c_ExportSites(sites, csvPath));
+                m_ExportSource = new();
+                ExportSites(sites, csvPath, m_ExportSource.Token).Forget();
 #endif
             }
         }
@@ -257,11 +252,11 @@ namespace HBP.UI.Module3D
         {
             var patients = m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered).Select(s => s.Information.Patient).Distinct();
             Group group = new Group("New group", patients);
-            ObjectModifier<Group> modifier = WindowsManager.OpenModifier(group);
+            ObjectModifier<Group> modifier = WindowsManager.OpenModifier(group, null);
             modifier.OnOk.AddListener(() =>
             {
                 // Generate unique name
-                var projectGroups = ApplicationState.ProjectLoaded.Groups;
+                var projectGroups = ApplicationState.LoadedProject.Groups;
                 if (projectGroups.Any(g => g.Name == group.Name))
                 {
                     int count = 1;
@@ -273,8 +268,8 @@ namespace HBP.UI.Module3D
                     }
                     group.Name = name;
                 }
-                ApplicationState.ProjectLoaded.AddGroup(group);
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Group added to project", string.Format("The group {0} containing the {1} patients of the filtered sites has been added to the project.", group.Name, patients.Count()));
+                ApplicationState.LoadedProject.AddGroup(group);
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Group added to project", string.Format("The group {0} containing the {1} patients of the filtered sites has been added to the project.", group.Name, patients.Count())).Forget();
             });
         }
         /// <summary>
@@ -282,7 +277,8 @@ namespace HBP.UI.Module3D
         /// </summary>
         private void StopExport()
         {
-            m_Coroutine = null;
+            m_Exporting = false;
+            m_ProgressSource.Cancel();
             m_ExportSitesProgressBar.End();
         }
         private void DisplayGraphs()
@@ -298,14 +294,28 @@ namespace HBP.UI.Module3D
         /// <param name="sites">List of the sites to export</param>
         /// <param name="csvPath">Path to the csv file</param>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_ExportSites(List<Core.Object3D.Site> sites, string csvPath)
+        private async UniTaskVoid ExportSites(List<Core.Object3D.Site> sites, string csvPath, CancellationToken token)
         {
             int length = sites.Count;
-
+            m_Exporting = true;
+            float progress = 0;
+            async UniTaskVoid reportProgress(CancellationToken cancellationToken)
+            {
+                while (true)
+                {
+                    if (cancellationToken.IsCancellationRequested) return;
+                    m_ExportSitesProgressBar.Progress(progress);
+                    await UniTask.WaitForEndOfFrame();
+                }
+            }
+            m_ProgressSource = new();
+            reportProgress(m_ProgressSource.Token).Forget();
+            await UniTask.SwitchToThreadPool();
             // Prepare DataInfo by Patient for performance increase
-            Dictionary<Patient, DataInfo>  dataInfoByPatient = new Dictionary<Patient, DataInfo>();
+            Dictionary <Patient, DataInfo>  dataInfoByPatient = new Dictionary<Patient, DataInfo>();
             for (int i = 0; i < length; i++)
             {
+                if (token.IsCancellationRequested) return;
                 Core.Object3D.Site site = sites[i];
                 if (!dataInfoByPatient.ContainsKey(site.Information.Patient))
                 {
@@ -325,17 +335,11 @@ namespace HBP.UI.Module3D
                         dataInfoByPatient.Add(site.Information.Patient, dataInfo);
                     }
                 }
-                // Update progressbar
-                if (m_UpdateUI || i == length - 1)
-                {
-                    yield return Ninja.JumpToUnity;
-                    m_ExportSitesProgressBar.Progress(0.5f * ((float)(i + 1) / length));
-                    m_UpdateUI = false;
-                    yield return Ninja.JumpBack;
-                }
+                progress = 0.5f * ((float)(i + 1) / length);
             }
 
             // Create string builder
+            if (token.IsCancellationRequested) return;
             System.Text.StringBuilder csvBuilder = new System.Text.StringBuilder();
             string tagsString = "";
             IEnumerable<BaseTag> tags = PersistentDataManager.Tags.GeneralTags.Concat(PersistentDataManager.Tags.SitesTags);
@@ -343,12 +347,13 @@ namespace HBP.UI.Module3D
             csvBuilder.AppendLine("Site,Patient,Place,Date,X,Y,Z,CoordSystem,Labels,DataType,DataFiles" + tagsString);
 
             // Prepare sites positions for performance increase
-            yield return Ninja.JumpToUnity;
-            List<Vector3> sitePositions = sites.Select(s => s.transform.localPosition).ToList();
-            yield return Ninja.JumpBack;
+            await UniTask.SwitchToMainThread();
+            List <Vector3> sitePositions = sites.Select(s => s.transform.localPosition).ToList();
+            await UniTask.SwitchToThreadPool();
 
             for (int i = 0; i < length; i++)
             {
+                if (token.IsCancellationRequested) return;
                 // Get required values
                 Core.Object3D.Site site = sites[i];
                 Vector3 sitePosition = sitePositions[i];
@@ -424,36 +429,27 @@ namespace HBP.UI.Module3D
                         dataType,
                         dataFiles,
                         tagValuesString));
-                // Update progressbar
-                if (m_UpdateUI || i == length - 1)
-                {
-                    yield return Ninja.JumpToUnity;
-                    m_ExportSitesProgressBar.Progress(0.5f * (1 + (float)(i + 1) / length));
-                    m_UpdateUI = false;
-                    yield return Ninja.JumpBack;
-                }
+                progress = 0.5f * (1 + (float)(i + 1) / length);
             }
 
             // Write csv file
-            yield return Ninja.JumpBack;
+            if (token.IsCancellationRequested) return;
             try
             {
-                using (System.IO.StreamWriter sw = new System.IO.StreamWriter(csvPath))
-                {
-                    sw.Write(csvBuilder.ToString());
-                }
+                using System.IO.StreamWriter sw = new System.IO.StreamWriter(csvPath);
+                sw.Write(csvBuilder.ToString());
             }
             catch (Exception e)
             {
                 Debug.LogException(e);
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
-                yield break;
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Warning, e.ToString(), e.Message).Forget();
+                throw e;
             }
-            yield return Ninja.JumpToUnity;
 
             // End
+            await UniTask.SwitchToMainThread();
             StopExport();
-            DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Sites exported", "The filtered sites have been sucessfully exported to " + csvPath);
+            DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Sites exported", "The filtered sites have been sucessfully exported to " + csvPath).Forget();
             OnRequestListUpdate.Invoke();
         }
 #endregion

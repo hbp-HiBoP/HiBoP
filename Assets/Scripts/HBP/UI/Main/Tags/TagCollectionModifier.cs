@@ -3,8 +3,8 @@ using System.Collections.ObjectModel;
 using UnityEngine;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
-using UnityEngine.Events;
 using HBP.Data.Preferences;
+using HBP.Data.Database;
 
 namespace HBP.UI.Main
 {
@@ -41,17 +41,21 @@ namespace HBP.UI.Main
         #endregion
 
         #region Public Methods
-        public override void OK()
+        public override async void OK()
         {
-            m_GeneralSubModifiers.Save();
-            m_PatientsSubModifiers.Save();
-            m_SitesSubModifiers.Save();
-            base.OK();
-            PersistentDataManager.Tags.Save();
-            if (ApplicationState.ProjectLoaded != null)
+            if (m_GeneralSubModifiers.TagListGestion.HasBeenModified || m_PatientsSubModifiers.TagListGestion.HasBeenModified || m_SitesSubModifiers.TagListGestion.HasBeenModified)
             {
-                GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckPatientTagValues(ModifiedTags, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
+                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "Tags Modified", "Some tags have been added, deleted or modified. Patients and sites will be checked if you proceed.", "OK", "Cancel");
+                if (result == 0)
+                {
+                    m_GeneralSubModifiers.Save();
+                    m_PatientsSubModifiers.Save();
+                    m_SitesSubModifiers.Save();
+                    base.OK();
+                    PersistentDataManager.Tags.Save();
+                    await PersistentDataManager.Tags.CheckTagsAsync(ModifiedTags);
+                    if (DatabaseManager.Database.IsLoaded) DatabaseManager.Database.SaveDatabase().Forget();
+                }
             }
         }
         #endregion

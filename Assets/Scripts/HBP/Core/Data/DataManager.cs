@@ -228,9 +228,6 @@ namespace HBP.Core.Data
                 UnloadStatistics(m_BlocRequestsRequiringStatisticsReset.Pop());
             }
         }
-
-        // CCEP
-        //public static 
         #endregion
 
         #region Private Methods
@@ -243,8 +240,7 @@ namespace HBP.Core.Data
                     IEEGData data = new IEEGData(iEEGDataInfo);
                     m_DataByRequest.Add(request, data);
 
-                    Protocol protocol = request.DataInfo.Dataset.Protocol;
-                    foreach (var bloc in protocol.Blocs)
+                    foreach (var bloc in request.DataInfo.Protocol.Blocs)
                     {
                         m_BlocDataByRequest.Add(new BlocRequest(request.DataInfo, bloc), data.DataByBloc[bloc]);
                         m_NormalizeByRequest.Add(new BlocRequest(request.DataInfo, bloc), NormalizationType.None);
@@ -255,8 +251,7 @@ namespace HBP.Core.Data
                     CCEPData data = new CCEPData(CCEPDataInfo);
                     m_DataByRequest.Add(request, data);
 
-                    Protocol protocol = request.DataInfo.Dataset.Protocol;
-                    foreach (var bloc in protocol.Blocs)
+                    foreach (var bloc in request.DataInfo.Protocol.Blocs)
                     {
                         m_BlocDataByRequest.Add(new BlocRequest(request.DataInfo, bloc), data.DataByBloc[bloc]);
                         m_NormalizeByRequest.Add(new BlocRequest(request.DataInfo, bloc), NormalizationType.None);
@@ -758,7 +753,7 @@ namespace HBP.Core.Data
             {
                 get
                 {
-                    return base.IsValid && DataInfo.Dataset.Protocol.Blocs.Contains(Bloc) && DataInfo is IEpochable;
+                    return base.IsValid && DataInfo.Protocol.Blocs.Contains(Bloc) && DataInfo is IEpochable;
                 }
             }
             #endregion
@@ -839,7 +834,7 @@ namespace HBP.Core.Data
             {
                 get
                 {
-                    return base.IsValid && DataInfo.Dataset.Protocol.Blocs.Contains(Bloc); // AddTestOnChannel
+                    return base.IsValid && DataInfo.Protocol.Blocs.Contains(Bloc); // AddTestOnChannel
                 }
             }
             #endregion

@@ -34,13 +34,13 @@ namespace HBP.UI.Toolbar
                 if (ListenerLock) return;
 
                 SelectedScene.SaveConfiguration();
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Configuration saved", "The configuration of the selected scene has been saved in the visualization <color=#3080ffff>" + SelectedScene.Name + "</color>.\n\nPlease save the project to apply changes in the project files.");
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Configuration saved", "The configuration of the selected scene has been saved in the visualization <color=#3080ffff>" + SelectedScene.Name + "</color>.\n\nPlease save the project to apply changes in the project files.").Forget();
             });
             m_Load.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
 
-                ObjectSelector<Visualization> selector = WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Visualizations,false);
+                ObjectSelector<Visualization> selector = WindowsManager.OpenSelector(ApplicationState.LoadedProject.Visualizations, null, false);
                 selector.OnOk.AddListener(() =>
                 {
                     if (selector.ObjectsSelected.Length > 0)

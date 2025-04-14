@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using HBP.Data.Preferences;
 using HBP.UI.Tools;
 using System.Linq;
+using System;
 
 namespace HBP.UI.Main
 {
@@ -51,7 +52,7 @@ namespace HBP.UI.Main
             m_MemorySizeSlider.maxValue = SystemInfo.systemMemorySize;
             m_MemorySizeSlider.minValue = 0;
 
-            m_TargetFramerateSlider.maxValue = Mathf.RoundToInt(Screen.resolutions.Max(r => r.refreshRate));
+            m_TargetFramerateSlider.maxValue = Mathf.RoundToInt(Screen.resolutions.Max(r => (float)r.refreshRateRatio.value));
             m_TargetFramerateSlider.minValue = 5;
 
             m_MultiThreading.isOn = objectToDisplay.MultiThreading;

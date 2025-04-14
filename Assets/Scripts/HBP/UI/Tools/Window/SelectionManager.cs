@@ -7,11 +7,14 @@ using HBP.Core.Tools;
 
 namespace HBP.UI.Tools
 {
-    public class SelectionManager : Singleton<SelectionManager>
+    public class SelectionManager : Manager<SelectionManager>
     {
         #region Properties
         [SerializeField] private Selector m_Selection;
         List<Selector> m_Selectors = new List<Selector>();
+
+        [SerializeField] private RectTransform m_ParentContainer;
+        private List<RectTransform> m_Containers = new();
         #endregion
 
         #region Public Methods
@@ -70,19 +73,6 @@ namespace HBP.UI.Tools
                     }
                 }
             }
-        }
-
-        static public Rect GetWorldRect(RectTransform rt, Vector2 scale)
-        {
-            // Convert the rectangle to world corners and grab the top left
-            Vector3[] corners = new Vector3[4];
-            rt.GetWorldCorners(corners);
-            Vector3 topLeft = corners[0];
-
-            // Rescale the size appropriately based on the current Canvas scale
-            Vector2 scaledSize = new Vector2(scale.x * rt.rect.size.x, scale.y * rt.rect.size.y);
-
-            return new Rect(topLeft, scaledSize);
         }
         #endregion
     }

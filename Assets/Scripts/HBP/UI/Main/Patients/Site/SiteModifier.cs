@@ -33,8 +33,12 @@ namespace HBP.UI.Main
                 base.Interactable = value;
 
                 m_NameInputField.interactable = value;
+
                 m_CoordinateListGestion.Interactable = value;
+                m_CoordinateListGestion.Modifiable = value;
+
                 m_TagValueListGestion.Interactable = value;
+                m_TagValueListGestion.Modifiable = value;
             }
         }
         #endregion

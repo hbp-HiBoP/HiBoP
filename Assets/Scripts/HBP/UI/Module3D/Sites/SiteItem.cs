@@ -34,9 +34,13 @@ namespace HBP.UI.Module3D
             }
             set
             {
+                SetInteractable();
+
                 base.Object = value;
                 UpdateFields();
                 value.State.OnChangeState.AddListener(() => m_UpdateRequired = true);
+
+                SetNotInteractable();
             }
         }
         /// <summary>

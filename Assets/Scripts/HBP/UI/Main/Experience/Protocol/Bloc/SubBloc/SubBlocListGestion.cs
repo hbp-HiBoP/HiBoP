@@ -64,6 +64,7 @@ namespace HBP.UI.Main
             }
             base.OnObjectCreated(obj);
             List.Refresh();
+            HasBeenModified = true;
         }
         #endregion
     }

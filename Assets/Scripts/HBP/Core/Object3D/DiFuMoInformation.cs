@@ -1,4 +1,5 @@
-﻿using HBP.Core.Tools;
+﻿using Cysharp.Threading.Tasks;
+using HBP.Core.Tools;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -37,12 +38,23 @@ namespace HBP.Core.Object3D
 
         #region Properties
         public List<Labels> AllLabels { get; } = new List<Labels>();
+        public bool Loaded { get; private set; } = false;
+        public bool Loading { get; private set; } = false;
         #endregion
 
         #region Constructors
         public DiFuMoInformation(string csvFile)
         {
-            Regex csvParser = new Regex(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
+            LoadAsync(csvFile).Forget();
+        }
+        #endregion
+
+        #region Private Methods
+        private async UniTaskVoid LoadAsync(string csvFile)
+        {
+            await UniTask.SwitchToThreadPool();
+            Loading = true;
+            Regex csvParser = new(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
             if (new FileInfo(csvFile).Exists)
             {
                 using (StreamReader sr = new StreamReader(csvFile))
@@ -63,6 +75,8 @@ namespace HBP.Core.Object3D
                 }
                 AllLabels.Sort(delegate (Labels a, Labels b) { return a.Component.CompareTo(b.Component); });
             }
+            Loading = false;
+            Loaded = true;
         }
         #endregion
 

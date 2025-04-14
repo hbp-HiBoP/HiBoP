@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using UnityEngine;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
@@ -35,7 +35,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn)]
     public class Bloc : BaseData, INameable
     {
         #region Properties
@@ -43,16 +43,16 @@ namespace HBP.Core.Data
         /// <summary>
         /// Name of the bloc.
         /// </summary>
-        [DataMember] public string Name { get; set; }
+        [JsonProperty] public string Name { get; set; }
         /// <summary>
         /// Position of the bloc.
         /// </summary>
-        [DataMember] public int Order { get; set; }
-        [DataMember(Name = "IllustrationPath")] string m_IllustrationPath = "";
+        [JsonProperty] public int Order { get; set; }
+        [JsonProperty("IllustrationPath")] string m_IllustrationPath = "";
         /// <summary>
         /// Path of the bloc illustration.
         /// </summary>
-        [IgnoreDataMember]
+        [JsonIgnore]
         public string IllustrationPath
         {
             get
@@ -87,11 +87,11 @@ namespace HBP.Core.Data
         /// <summary>
         /// Sorting trials of the bloc.
         /// </summary>
-        [DataMember] public string Sort { get; set; }
+        [JsonProperty] public string Sort { get; set; }
         /// <summary>
         /// The subBlocs of the bloc.
         /// </summary>
-        [DataMember] public List<SubBloc> SubBlocs { get; set; }
+        [JsonProperty] public List<SubBloc> SubBlocs { get; set; }
         /// <summary>
         /// Main subBloc of the bloc.
         /// </summary>
@@ -191,6 +191,7 @@ namespace HBP.Core.Data
         public SortingMethodError GetSortingMethodError()
         {
             string[] orders = Sort.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+            bool[] orderOk = new bool[orders.Length];
             for (int i = 0; i < orders.Length; i++)
             {
                 string order = orders[i];
@@ -208,7 +209,7 @@ namespace HBP.Core.Data
                         {
                             if (command == "LATENCY" || command == "CODE")
                             {
-                                return SortingMethodError.NoError;
+                                orderOk[i] = true;
                             }
                             else
                             {
@@ -230,7 +231,10 @@ namespace HBP.Core.Data
                     return SortingMethodError.InvalidNumberOfElements;
                 }
             }
-            return SortingMethodError.NoSortingConditionFound;
+            if (orderOk.All(o => o))
+                return SortingMethodError.NoError;
+            else
+                return SortingMethodError.NoSortingConditionFound;
         }
         /// <summary>
         /// Generate unique identifier.

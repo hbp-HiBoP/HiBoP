@@ -1,6 +1,5 @@
 ﻿using HBP.Core.Enums;
 using System.Collections.Generic;
-using System.Threading;
 using UnityEngine;
 
 namespace HBP.Core.Object3D

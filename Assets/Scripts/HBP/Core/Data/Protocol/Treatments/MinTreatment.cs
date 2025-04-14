@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Runtime.Serialization;
 using HBP.Core.Tools;
 
 namespace HBP.Core.Data
@@ -39,7 +38,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("Min")]
+    [DisplayName("Min")]
     public class MinTreatment : Treatment
     {
         #region Constructors

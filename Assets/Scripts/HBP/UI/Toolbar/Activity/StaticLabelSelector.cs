@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using HBP.Core.Enums;
 using HBP.Data.Module3D;
 
 namespace HBP.UI.Toolbar
