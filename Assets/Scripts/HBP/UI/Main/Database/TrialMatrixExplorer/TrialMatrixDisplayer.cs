@@ -26,7 +26,7 @@ namespace HBP.UI.Database
         private IEEGDataInfo m_CurrentDataInfo;
 
         TrialMatrixGrid m_TrialMatrixGridData;
-        Dictionary<TrialMatrixGrid.TrialMatrixData, Settings> m_SettingsByData;
+        Settings m_Settings;
         #endregion
 
         #region Public Methods
@@ -45,10 +45,6 @@ namespace HBP.UI.Database
                 new TrialMatrixGrid.IEEGTrialMatrixData(new Dataset(dataInfo.Protocol.Name, dataInfo.Protocol, new DataInfo[] { dataInfo }), dataInfo.Name, dataInfo.Protocol.Blocs)
             };
             SaveSettings();
-            foreach (var data in dataToDisplay)
-            {
-                m_SettingsByData.AddIfAbsent(data, new Settings());
-            }
             m_TrialMatrixGridData = new TrialMatrixGrid(new ChannelStruct[] { channelStruct }, dataToDisplay.ToArray());
             m_TrialMatrixGrid.gameObject.SetActive(true);
             m_TrialMatrixGrid.Display(m_TrialMatrixGridData);
@@ -59,7 +55,7 @@ namespace HBP.UI.Database
         #region Private Methods
         private void Awake()
         {
-            m_SettingsByData = new Dictionary<TrialMatrixGrid.TrialMatrixData, Settings>();
+            m_Settings = new Settings();
             m_TrialMatrixGrid.Colormap = m_Colormap;
             m_TrialMatrixGrid.gameObject.SetActive(false);
         }
@@ -116,25 +112,21 @@ namespace HBP.UI.Database
         }
         void SaveSettings()
         {
-            foreach (var data in m_TrialMatrixGrid.Data)
+            var data = m_TrialMatrixGrid.Data.FirstOrDefault();
+            if (data != null)
             {
-                var settings = m_SettingsByData[data.GridData.DataStruct];
-                settings.UseDefaultLimit = data.UseDefaultLimits;
-                if (!settings.UseDefaultLimit)
-                {
-                    settings.Limits = data.Limits;
-                }
-                m_SettingsByData[data.GridData.DataStruct] = settings;
+                m_Settings.UseDefaultLimit = data.UseDefaultLimits;
+                m_Settings.Limits = data.Limits;
             }
         }
         void ApplySettings()
         {
             foreach (var data in m_TrialMatrixGrid.Data)
             {
-                Settings settings = m_SettingsByData[data.GridData.DataStruct];
-                if (!settings.UseDefaultLimit)
+                data.UseDefaultLimits = m_Settings.UseDefaultLimit;
+                if (!m_Settings.UseDefaultLimit)
                 {
-                    data.Limits = settings.Limits;
+                    data.Limits = m_Settings.Limits;
                 }
             }
         }
