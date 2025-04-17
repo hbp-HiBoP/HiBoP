@@ -117,7 +117,6 @@ namespace HBP.UI.Informations.TrialMatrix
         List<GameObject> m_SelectionMasks = new List<GameObject>();
 
         RectTransform m_RectTransform;
-        LayoutElement m_LayoutElement;
         int m_OnPointerDownTrial;
         int m_LastPointerDownTrial;
         int m_AnchorTrial;
@@ -141,6 +140,8 @@ namespace HBP.UI.Informations.TrialMatrix
                 return m_OnChangeHovered;
             }
         }
+
+        public UnityEvent OnSet = new();
         #endregion
 
         #region Public Methods
@@ -152,8 +153,8 @@ namespace HBP.UI.Informations.TrialMatrix
             Data = data;
             Clear();
             foreach (var subBloc in data.SubBlocs) AddSubBloc(subBloc, colors, limits);
-            SetSize();
             m_TrialIsSelected = Enumerable.Repeat(true, SubBlocs.First(s => s.Data.SubBlocProtocol == Data.Bloc.MainSubBloc).Data.SubTrials.Length).ToArray();
+            OnSet.Invoke();
         }
 
         public void OnPointerDown(BaseEventData baseEventData)
@@ -347,14 +348,9 @@ namespace HBP.UI.Informations.TrialMatrix
         }
         #endregion
 
-        #region Private Methods    
-        void OnRectTransformDimensionsChange()
-        {
-            SetSize();
-        }
+        #region Private Methods
         void Awake()
         {
-            m_LayoutElement = GetComponent<LayoutElement>();
             m_RectTransform = GetComponent<RectTransform>();
         }
         void OnValidate()
@@ -362,38 +358,6 @@ namespace HBP.UI.Informations.TrialMatrix
             SetTitle();
             SetColors();
             SetSelections();
-        }
-        void SetSize()
-        {
-            if (Data.IsFound)
-            {
-                CanvasScalerHandler canvasScalerHandler = GetComponentInParent<CanvasScalerHandler>();
-                float scale = canvasScalerHandler ? canvasScalerHandler.Scale : 1;
-                switch (PersistentDataManager.UserPreferences.Visualization.TrialMatrix.SubBlocFormat)
-                {
-                    case BlocFormatType.TrialHeight:
-                        m_LayoutElement.preferredHeight = PersistentDataManager.UserPreferences.Visualization.TrialMatrix.TrialHeight * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length / scale;
-                        m_LayoutElement.flexibleHeight = -1;
-                        break;
-                    case BlocFormatType.TrialRatio:
-                        m_LayoutElement.preferredHeight = PersistentDataManager.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length / scale;
-                        m_LayoutElement.flexibleHeight = -1;
-                        break;
-                    case BlocFormatType.BlocRatio:
-                        m_LayoutElement.preferredHeight = PersistentDataManager.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width / scale;
-                        m_LayoutElement.flexibleHeight = -1;
-                        break;
-                    case BlocFormatType.ProtocolRatio:
-                        var length = Data.SubBlocs.First(s => s.SubBlocProtocol == Data.Bloc.MainSubBloc).SubTrials.Length;
-                        m_LayoutElement.preferredHeight = length * 5;
-                        m_LayoutElement.flexibleHeight = length;
-                        break;
-                }
-            }
-            else
-            {
-                m_LayoutElement.flexibleHeight = 1;
-            }
         }
         void AddSubBloc(data.SubBloc data, Color[] colors, Vector2 limits)
         {

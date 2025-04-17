@@ -267,7 +267,7 @@ namespace HBP.Core.Data
                         Site site = new Site();
                         string[] splits = Regex.Split(line, "[\\s\t]+");
                         if (splits.Length < 4) continue;
-                        site.Name = SiteNameCorrection ? FixName(splits[0]) : splits[0];
+                        site.Name = SiteNameCorrection ? SiteTools.FixName(splits[0]) : splits[0];
                         if (!NumberExtension.TryParseFloat(splits[1], out float x)) continue;
                         if (!NumberExtension.TryParseFloat(splits[2], out float y)) continue;
                         if (!NumberExtension.TryParseFloat(splits[3], out float z)) continue;
@@ -302,7 +302,7 @@ namespace HBP.Core.Data
                         while ((line = csvsr.ReadLine()) != null)
                         {
                             string[] args = line.Split('\t');
-                            string siteName = SiteNameCorrection ? FixName(args[indices[0]]) : args[indices[0]];
+                            string siteName = SiteNameCorrection ? SiteTools.FixName(args[indices[0]]) : args[indices[0]];
                             Site site = result.FirstOrDefault(s => s.Name == siteName);
                             if (site != null)
                             {
@@ -337,7 +337,7 @@ namespace HBP.Core.Data
                         Site site = new Site();
                         string[] splits = Regex.Split(line, "[\\s\t]+");
                         if (splits.Length < 4) continue;
-                        site.Name = SiteNameCorrection ? FixName(splits[0]) : splits[0];
+                        site.Name = SiteNameCorrection ? SiteTools.FixName(splits[0]) : splits[0];
                         if (!NumberExtension.TryParseFloat(splits[1], out float x)) continue;
                         if (!NumberExtension.TryParseFloat(splits[2], out float y)) continue;
                         if (!NumberExtension.TryParseFloat(splits[3], out float z)) continue;
@@ -420,7 +420,7 @@ namespace HBP.Core.Data
                     for (int l = 1; l < splittedLines.Count; l++)
                     {
                         List<string> values = splittedLines[l];
-                        string name = SiteNameCorrection ? FixName(values[0]) : values[0];
+                        string name = SiteNameCorrection ? SiteTools.FixName(values[0]) : values[0];
                         List<BaseTagValue> tagValues = new List<BaseTagValue>();
                         for (int i = 1; i < values.Count; i++)
                         {
@@ -442,29 +442,6 @@ namespace HBP.Core.Data
             return sites;
         }
 
-        /// <summary>
-        /// Fix the name (P,'p).
-        /// </summary>
-        /// <param name="name">Name</param>
-        /// <returns>Fixed name</returns>
-        public static string FixName(string name)
-        {
-            string siteName = name.ToUpper();
-            siteName = siteName.Replace("PLOT", "");
-            int prime = siteName.LastIndexOf('P');
-            if (prime > 0)
-            {
-                siteName = siteName.Remove(prime, 1).Insert(prime, "\'");
-            }
-            for (int i = siteName.Length - 1; i > 0; --i)
-            {
-                if (siteName[i] == '0' && !char.IsDigit(siteName[i - 1]))
-                {
-                    siteName = siteName.Remove(i, 1);
-                }
-            }
-            return siteName;
-        }
         /// <summary>
         /// Generates  ID recursively.
         /// </summary>

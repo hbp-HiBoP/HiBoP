@@ -157,6 +157,7 @@ namespace HBP.UI.Informations.TrialMatrix
                 Texture2D texture = GenerateTexture(trials, m_Limits, m_Colors);
                 texture.mipMapBias = -5;
                 texture.wrapMode = TextureWrapMode.Clamp;
+                texture.filterMode = PersistentDataManager.UserPreferences.Visualization.TrialMatrix.TrialSmoothing && PersistentDataManager.UserPreferences.Visualization.TrialMatrix.Smooth2D ? FilterMode.Bilinear : FilterMode.Point;
                 m_RawImage.texture = texture;
             }
         }
