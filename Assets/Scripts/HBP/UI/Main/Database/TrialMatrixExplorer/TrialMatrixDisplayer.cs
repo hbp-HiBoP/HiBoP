@@ -4,6 +4,7 @@ using HBP.Core.Tools;
 using HBP.Data.Database;
 using HBP.Data.Informations;
 using HBP.Data.Informations.TrialMatrix;
+using HBP.Data.Preferences;
 using HBP.UI.Tools;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ namespace HBP.UI.Database
     public class TrialMatrixDisplayer : MonoBehaviour
     {
         #region Properties
-        [SerializeField] Informations.TrialMatrix.TrialMatrixGrid m_TrialMatrixGrid;
+        [SerializeField] TrialMatrixGrid m_TrialMatrixGrid;
         [SerializeField] Texture2D m_Colormap;
 
         private Patient m_Patient;
@@ -25,7 +26,7 @@ namespace HBP.UI.Database
         private ChannelStruct m_CurrentChannelStruct;
         private IEEGDataInfo m_CurrentDataInfo;
 
-        TrialMatrixGrid m_TrialMatrixGridData;
+        Data.Informations.TrialMatrix.TrialMatrixGrid m_TrialMatrixGridData;
         Settings m_Settings;
         #endregion
 
@@ -38,17 +39,28 @@ namespace HBP.UI.Database
         }
         public void Display(ChannelStruct channelStruct, IEEGDataInfo dataInfo)
         {
+            if (channelStruct == null || dataInfo == null)
+            {
+                m_TrialMatrixGrid.gameObject.SetActive(false);
+                return;
+            }
+
             m_CurrentChannelStruct = channelStruct;
             m_CurrentDataInfo = dataInfo;
-            List<TrialMatrixGrid.TrialMatrixData> dataToDisplay = new()
+            List<Data.Informations.TrialMatrix.TrialMatrixGrid.TrialMatrixData> dataToDisplay = new()
             {
-                new TrialMatrixGrid.IEEGTrialMatrixData(new Dataset(dataInfo.Protocol.Name, dataInfo.Protocol, new DataInfo[] { dataInfo }), dataInfo.Name, dataInfo.Protocol.Blocs)
+                new Data.Informations.TrialMatrix.TrialMatrixGrid.IEEGTrialMatrixData(new Dataset(dataInfo.Protocol.Name, dataInfo.Protocol, new DataInfo[] { dataInfo }), dataInfo.Name, dataInfo.Protocol.Blocs)
             };
             SaveSettings();
-            m_TrialMatrixGridData = new TrialMatrixGrid(new ChannelStruct[] { channelStruct }, dataToDisplay.ToArray());
+            m_TrialMatrixGridData = new Data.Informations.TrialMatrix.TrialMatrixGrid(new ChannelStruct[] { channelStruct }, dataToDisplay.ToArray());
             m_TrialMatrixGrid.gameObject.SetActive(true);
-            m_TrialMatrixGrid.Display(m_TrialMatrixGridData);
+            m_TrialMatrixGrid.Display(m_TrialMatrixGridData, $"{m_Patient.CompleteName} - {dataInfo.Protocol.Name} - {dataInfo.Name} - {channelStruct.Channel}", m_Colormap);
             ApplySettings();
+        }
+        public void Refresh()
+        {
+            DataManager.NormalizeiEEGData();
+            Display(m_CurrentChannelStruct, m_CurrentDataInfo);
         }
         #endregion
 
@@ -56,8 +68,8 @@ namespace HBP.UI.Database
         private void Awake()
         {
             m_Settings = new Settings();
-            m_TrialMatrixGrid.Colormap = m_Colormap;
             m_TrialMatrixGrid.gameObject.SetActive(false);
+            PersistentDataManager.UserPreferences.OnSavePreferences.AddSafeListener(Refresh, gameObject);
         }
         private void Update()
         {
@@ -101,6 +113,7 @@ namespace HBP.UI.Database
                 updateProgress((float)progress / length, 0, new LoadingText("Loading data for ", dataInfo.Protocol.Name, $" {++progress} / {length}"));
                 loadedData.Add(DataManager.GetData(dataInfo) as Core.Data.IEEGData);
             }
+            DataManager.NormalizeiEEGData();
 
             // Create channel strucs
             m_ChannelStructs = loadedData.SelectMany(d => d.UnitByChannel.Keys).OrderBy(c => c, new SiteNameComparer()).Distinct().Select(c => new ChannelStruct(c, m_Patient, false)).ToList();
