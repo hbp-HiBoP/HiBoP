@@ -5,11 +5,13 @@ using HBP.Data.Database;
 using HBP.Data.Informations;
 using HBP.Data.Informations.TrialMatrix;
 using HBP.Data.Preferences;
+using HBP.UI.Main;
 using HBP.UI.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace HBP.UI.Database
 {
@@ -17,6 +19,8 @@ namespace HBP.UI.Database
     {
         #region Properties
         [SerializeField] TrialMatrixGrid m_TrialMatrixGrid;
+        [SerializeField] ChannelList m_ChannelList;
+        [SerializeField] CircularDropdown m_ProtocolDropdown;
         [SerializeField] Texture2D m_Colormap;
 
         private Patient m_Patient;
@@ -28,6 +32,20 @@ namespace HBP.UI.Database
 
         Data.Informations.TrialMatrix.TrialMatrixGrid m_TrialMatrixGridData;
         Settings m_Settings;
+
+        public bool Visible
+        {
+            get
+            {
+                return m_TrialMatrixGrid.gameObject.activeSelf && m_ChannelList.gameObject.activeSelf && m_ProtocolDropdown.gameObject.activeSelf;
+            }
+            set
+            {
+                m_TrialMatrixGrid.gameObject.SetActive(value);
+                m_ChannelList.gameObject.SetActive(value);
+                m_ProtocolDropdown.gameObject.SetActive(value);
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -39,14 +57,15 @@ namespace HBP.UI.Database
         }
         public void Display(ChannelStruct channelStruct, IEEGDataInfo dataInfo)
         {
-            if (channelStruct == null || dataInfo == null)
+            m_CurrentChannelStruct = channelStruct;
+            m_CurrentDataInfo = dataInfo;
+
+            if (m_CurrentChannelStruct == null || m_CurrentDataInfo == null)
             {
                 m_TrialMatrixGrid.gameObject.SetActive(false);
                 return;
             }
 
-            m_CurrentChannelStruct = channelStruct;
-            m_CurrentDataInfo = dataInfo;
             List<Data.Informations.TrialMatrix.TrialMatrixGrid.TrialMatrixData> dataToDisplay = new()
             {
                 new Data.Informations.TrialMatrix.TrialMatrixGrid.IEEGTrialMatrixData(new Dataset(dataInfo.Protocol.Name, dataInfo.Protocol, new DataInfo[] { dataInfo }), dataInfo.Name, dataInfo.Protocol.Blocs)
@@ -68,30 +87,20 @@ namespace HBP.UI.Database
         private void Awake()
         {
             m_Settings = new Settings();
-            m_TrialMatrixGrid.gameObject.SetActive(false);
+            Visible = false;
             PersistentDataManager.UserPreferences.OnSavePreferences.AddSafeListener(Refresh, gameObject);
+            m_ChannelList.OnSelect.AddSafeListener(channelStruct => Display(channelStruct, m_CurrentDataInfo), gameObject);
+            m_ProtocolDropdown.OnValueChanged.AddSafeListener(index => Display(m_CurrentChannelStruct, m_DataInfos[index]), gameObject);
         }
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.DownArrow))
-            {
-                int index = (m_ChannelStructs.IndexOf(m_CurrentChannelStruct) + 1 + m_ChannelStructs.Count) % m_ChannelStructs.Count;
-                Display(m_ChannelStructs[index], m_CurrentDataInfo);
-            }
-            else if (Input.GetKeyDown(KeyCode.UpArrow))
-            {
-                int index = (m_ChannelStructs.IndexOf(m_CurrentChannelStruct) - 1 + m_ChannelStructs.Count) % m_ChannelStructs.Count;
-                Display(m_ChannelStructs[index], m_CurrentDataInfo);
-            }
             if (Input.GetKeyDown(KeyCode.LeftArrow))
             {
-                int index = (m_DataInfos.IndexOf(m_CurrentDataInfo) - 1 + m_DataInfos.Count) % m_DataInfos.Count;
-                Display(m_CurrentChannelStruct, m_DataInfos[index]);
+                m_ProtocolDropdown.SelectPrevious();
             }
             else if (Input.GetKeyDown(KeyCode.RightArrow))
             {
-                int index = (m_DataInfos.IndexOf(m_CurrentDataInfo) + 1 + m_DataInfos.Count) % m_DataInfos.Count;
-                Display(m_CurrentChannelStruct, m_DataInfos[index]);
+                m_ProtocolDropdown.SelectNext();
             }
         }
         private async UniTaskVoid LoadData(Patient patient, string dataName)
@@ -118,10 +127,11 @@ namespace HBP.UI.Database
             // Create channel strucs
             m_ChannelStructs = loadedData.SelectMany(d => d.UnitByChannel.Keys).OrderBy(c => c, new SiteNameComparer()).Distinct().Select(c => new ChannelStruct(c, m_Patient, false)).ToList();
 
+            // Set UI
             await UniTask.SwitchToMainThread();
-
-            // Display first
-            Display(m_ChannelStructs[0], m_DataInfos[0]);
+            m_ChannelList.Set(m_ChannelStructs);
+            m_ProtocolDropdown.Options = m_DataInfos.Select(d => new Dropdown.OptionData(d.Protocol.Name)).ToList();
+            Visible = m_ChannelStructs.Count > 0 && m_DataInfos.Count > 0;
         }
         void SaveSettings()
         {
