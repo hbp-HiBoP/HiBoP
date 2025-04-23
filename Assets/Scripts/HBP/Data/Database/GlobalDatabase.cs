@@ -217,7 +217,7 @@ namespace HBP.Data.Database
                 await patient.CheckTagsAsync(PersistentDataManager.Tags.AllTags);
                 return patient;
             }));
-            m_Patients = (await Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading database patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading)).ToList();
+            m_Patients = (await Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading database patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading)).OrderBy(p => p.Place).ThenBy(p => p.Date).ThenBy(p => p.Name).ToList();
         }
         private async UniTask SavePatientsAsync(Action<float, float, LoadingText> updateProgress)
         {

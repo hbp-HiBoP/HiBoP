@@ -96,40 +96,47 @@ namespace HBP.Data.Preferences
         #region Properties
         public const int MINIMUM_TRIAL_HEIGHT = 5;
         public const int MAXIMUM_TRIAL_HEIGHT = 50;
-        public const float MINIMUM_TRIAL_RATIO = 0.02f;
-        public const float MAXIMUM_TRIAL_RATIO = 0.2f;
+        public const float MINIMUM_TRIAL_RATIO = 0.001f;
+        public const float MAXIMUM_TRIAL_RATIO = 0.05f;
         public const float MINIMUM_BLOC_RATIO = 0.05f;
         public const float MAXIMUM_BLOC_RATIO = 1.0f;
+        public const float MINIMUM_PROTOCOL_RATIO = 0.5f;
+        public const float MAXIMUM_PROTOCOL_RATIO = 2.0f;
         [JsonProperty] public bool ShowWholeProtocol { get; set; }
         [JsonProperty] public bool TrialsSynchronization { get; set; }
         [JsonProperty] public bool TrialSmoothing { get; set; }
         [JsonProperty] public int NumberOfIntermediateValues { get; set; }
+        [JsonProperty] public bool Smooth2D { get; set; }
         [JsonProperty] public BlocFormatType SubBlocFormat { get; set; }
         [JsonProperty] public int TrialHeight { get; set; }
         [JsonProperty] public float TrialRatio { get; set; }
         [JsonProperty] public float BlocRatio { get; set; }
+        [JsonProperty] public float ProtocolRatio { get; set; }
         #endregion
 
         #region Constructors
         public TrialMatrixPreferences(bool showWholeProtocol = false, bool trialsSynchronization = true, bool trialSmooting = true,
-            int numberOfIntermediateValues = 3, BlocFormatType subBlocFormat = BlocFormatType.BlocRatio,
-            int trialHeight = (int)(0.3f * (MAXIMUM_TRIAL_HEIGHT - MINIMUM_TRIAL_HEIGHT)), float trialRatio = 0.3f * (MAXIMUM_TRIAL_RATIO - MINIMUM_TRIAL_RATIO), float blocRatio = 0.3f * (MAXIMUM_BLOC_RATIO - MINIMUM_BLOC_RATIO))
+            int numberOfIntermediateValues = 3, bool smooth2D = true, BlocFormatType subBlocFormat = BlocFormatType.BlocRatio,
+            int trialHeight = (int)(0.3f * (MAXIMUM_TRIAL_HEIGHT - MINIMUM_TRIAL_HEIGHT)), float trialRatio = 0.3f * (MAXIMUM_TRIAL_RATIO - MINIMUM_TRIAL_RATIO), float blocRatio = 0.3f * (MAXIMUM_BLOC_RATIO - MINIMUM_BLOC_RATIO),
+            float protocolRatio = 0.3f * (MAXIMUM_PROTOCOL_RATIO - MINIMUM_PROTOCOL_RATIO))
         {
             ShowWholeProtocol = showWholeProtocol;
             TrialsSynchronization = trialsSynchronization;
             TrialSmoothing = trialSmooting;
             NumberOfIntermediateValues = numberOfIntermediateValues;
+            Smooth2D = smooth2D;
             SubBlocFormat = subBlocFormat;
             TrialHeight = trialHeight;
             TrialRatio = trialRatio;
             BlocRatio = blocRatio;
+            ProtocolRatio = protocolRatio;
         }
         #endregion
 
         #region Public Methods
         public object Clone()
         {
-            return new TrialMatrixPreferences(ShowWholeProtocol, TrialsSynchronization, TrialSmoothing, NumberOfIntermediateValues, SubBlocFormat, TrialHeight, TrialRatio, BlocRatio);
+            return new TrialMatrixPreferences(ShowWholeProtocol, TrialsSynchronization, TrialSmoothing, NumberOfIntermediateValues, Smooth2D, SubBlocFormat, TrialHeight, TrialRatio, BlocRatio, ProtocolRatio);
         }
         #endregion
     }

@@ -61,7 +61,15 @@ namespace HBP.Core.Data
         {
             get
             {
-                return m_Patient;
+                // Utile si le patient ne fait pas parti de la base de données
+                if (m_Patient == null)
+                {
+                    if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.Contains(this)))
+                        m_Patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == m_PatientID);
+                    else
+                        m_Patient = DatabaseManager.Database.Patients.FirstOrDefault(p => p.ID == m_PatientID);
+                }
+                return m_Patient; 
             }
             set
             {
