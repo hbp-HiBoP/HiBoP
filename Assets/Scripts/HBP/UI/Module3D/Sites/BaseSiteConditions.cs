@@ -439,7 +439,7 @@ namespace HBP.UI.Module3D
             }
             catch (Exception e)
             {
-                DialogBoxManager.Open(Core.Enums.DialogBoxType.Warning, e.ToString(), e.Message).Forget();
+                DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
             }
             await UniTask.SwitchToMainThread();
             OnEndFilter.Invoke(filtered);

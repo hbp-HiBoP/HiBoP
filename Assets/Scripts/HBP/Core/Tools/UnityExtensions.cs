@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Events;
@@ -121,8 +122,45 @@ namespace HBP.Core.Tools
                 return attribute.Length > 0 ? (attribute[0] as SortingOrderAttribute).Order : int.MaxValue;
             }
 
-            Type[] types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(t => t.IsSubclassOf(parentType)).ToArray();
-            types = types.Where(t => t.GetCustomAttributes(true).Contains(attribute)).OrderBy(orderMethod).ToArray();
+            Type[] types = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(s => s.GetTypes())
+                .Where(t => t.IsSubclassOf(parentType))
+                .Where(t => t.GetCustomAttributes(true).Contains(attribute))
+                .OrderBy(orderMethod)
+                .ToArray();
+
+            List<Dropdown.OptionData> options = new List<Dropdown.OptionData>();
+            foreach (var type in types)
+            {
+                object[] displayNameAttributes = type.GetCustomAttributes(typeof(DisplayNameAttribute), false);
+                if (displayNameAttributes.Length > 0)
+                {
+                    options.Add(new Dropdown.OptionData((displayNameAttributes[0] as DisplayNameAttribute).DisplayName));
+                }
+                else
+                {
+                    options.Add(new Dropdown.OptionData(StringExtension.CamelCaseToWords(type.Name)));
+                }
+            }
+            dropdown.options = options;
+            dropdown.RefreshShownValue();
+            return types;
+        }
+        public static Type[] Set(this Dropdown dropdown, Type parentType, TypedAttribute attribute)
+        {
+            static int orderMethod(Type t)
+            {
+                var attribute = t.GetCustomAttributes(typeof(SortingOrderAttribute), false);
+                return attribute.Length > 0 ? (attribute[0] as SortingOrderAttribute).Order : int.MaxValue;
+            }
+
+            Type[] types = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(s => s.GetTypes())
+                .Where(t => t.IsSubclassOf(parentType))
+                .Where(t => t.GetCustomAttributes(true).OfType<TypedAttribute>().FirstOrDefault(a => a.Type == attribute.Type) != null)
+                .OrderBy(orderMethod)
+                .ToArray();
+
             List<Dropdown.OptionData> options = new List<Dropdown.OptionData>();
             foreach (var type in types)
             {

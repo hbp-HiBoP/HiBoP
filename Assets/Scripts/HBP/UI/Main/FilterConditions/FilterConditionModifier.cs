@@ -34,11 +34,9 @@ namespace HBP.UI.Main
                 m_FilteringObjects = value;
                 if (value.Count > 0)
                 {
-                    Type type = value[0].GetType();
-                    if (type == typeof(Patient)) FilterConditionAttribute = new Core.Data.PatientFilter();
-                    else FilterConditionAttribute = new FilterConditionAttribute();
+                    FilterConditionAttribute = new FilterConditionAttribute(value[0].GetType());
                 }
-                else FilterConditionAttribute = new FilterConditionAttribute();
+                else FilterConditionAttribute = new FilterConditionAttribute(null);
 
                 m_NameFilterConditionSubModifier.FilteringObjects = value;
                 m_DateFilterConditionSubModifier.FilteringObjects = value;
@@ -46,7 +44,7 @@ namespace HBP.UI.Main
             }
         }
 
-        FilterConditionAttribute m_FilterConditionAttribute = new FilterConditionAttribute();
+        FilterConditionAttribute m_FilterConditionAttribute = new FilterConditionAttribute(null);
         public FilterConditionAttribute FilterConditionAttribute
         {
             get

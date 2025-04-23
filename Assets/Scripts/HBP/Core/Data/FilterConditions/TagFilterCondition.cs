@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn), DisplayName("Tag"), SortingOrder(4), PatientFilter]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("Tag"), SortingOrder(4), FilterCondition(typeof(Patient))]
     public class TagFilterCondition : BaseFilterCondition
     {
         #region Properties
@@ -186,7 +186,7 @@ namespace HBP.Core.Data
     [JsonObject(MemberSerialization.OptIn)]
     public class StringTagFilterValue : TagFilterValue
     {
-        [JsonProperty("Value")] public string Value { get; set; }
+        [JsonProperty("Value")] public string Value { get; set; } = "";
         [JsonProperty("ExactMatch")] public bool ExactMatch { get; set; }
         [JsonProperty("CaseSensitive")] public bool CaseSensitive { get; set; }
 

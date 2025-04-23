@@ -40,7 +40,7 @@ namespace HBP.UI.Tools
             catch (Exception e)
             {
                 Debug.LogException(e);
-                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.ToString(), e.Message).Forget();
+                DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
                 ApplicationState.LoadedProject = projectLoaded;
                 ApplicationState.LoadedProjectLocation = projectLoadedLocation;
             }

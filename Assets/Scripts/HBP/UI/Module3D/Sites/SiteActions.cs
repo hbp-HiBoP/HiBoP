@@ -156,7 +156,7 @@ namespace HBP.UI.Module3D
             catch (Exception e)
             {
                 Debug.LogException(e);
-                DialogBoxManager.Open(Core.Enums.DialogBoxType.Warning, e.ToString(), e.Message).Forget();
+                DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
             }
         }
         #endregion
@@ -442,7 +442,7 @@ namespace HBP.UI.Module3D
             catch (Exception e)
             {
                 Debug.LogException(e);
-                DialogBoxManager.Open(Core.Enums.DialogBoxType.Warning, e.ToString(), e.Message).Forget();
+                DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
                 throw e;
             }
 

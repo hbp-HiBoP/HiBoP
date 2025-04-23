@@ -65,7 +65,8 @@ namespace HBP.UI.Tools
             }
             catch (Exception e)
             {
-                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.ToString(), e.Message).Forget();
+                Debug.LogException(e);
+                DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
             }
         }
         public void SetPreset(FilterConditionsPreset preset)

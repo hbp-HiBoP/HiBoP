@@ -4,7 +4,7 @@ using System.ComponentModel;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn), DisplayName("Name"), SortingOrder(0), PatientFilter]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("Name"), SortingOrder(0), FilterCondition(typeof(Patient))]
     public class NameFilterCondition : BaseFilterCondition
     {
         #region Properties
