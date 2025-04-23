@@ -69,6 +69,10 @@ namespace HBP.UI.Tools
                 DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
             }
         }
+        public void OpenPresetsWindow()
+        {
+            WindowsManager.OpenModifier(PersistentDataManager.FilterConditionsPresets, null);
+        }
         public void SetPreset(FilterConditionsPreset preset)
         {
             m_ListGestion.List.Set(preset.Conditions);

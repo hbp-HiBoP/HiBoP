@@ -79,17 +79,17 @@ namespace HBP.Core.Data
                 m_Presets = aliasCollection.m_Presets;
             }
         }
-        public void AddAlias(FilterConditionsPreset presets, bool autoSave = true)
+        public void AddPreset(FilterConditionsPreset presets, bool autoSave = true)
         {
             m_Presets.Add(presets);
             if (autoSave) Save();
         }
-        public void RemoveAlias(FilterConditionsPreset presets, bool autoSave = true)
+        public void RemovePreset(FilterConditionsPreset presets, bool autoSave = true)
         {
             m_Presets.Remove(presets);
             if (autoSave) Save();
         }
-        public void SetAliases(IEnumerable<FilterConditionsPreset> presets, bool autoSave = true)
+        public void SetPresets(IEnumerable<FilterConditionsPreset> presets, bool autoSave = true)
         {
             m_Presets = presets.ToList();
             if (autoSave) Save();

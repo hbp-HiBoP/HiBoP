@@ -22,7 +22,7 @@ namespace HBP.Core.Data
                     }
                     else if (Target == TargetType.Site)
                     {
-                        result = $"The patient has a site with the tag \"{Tag.Name}\" {Value.GetDescription(IsNot)}";
+                        result = $"The patient has a site with the tag \"{Tag.Name}\"{Value.GetDescription(IsNot)}";
                     }
 
                     if (Tag is EnumTag enumTag)
