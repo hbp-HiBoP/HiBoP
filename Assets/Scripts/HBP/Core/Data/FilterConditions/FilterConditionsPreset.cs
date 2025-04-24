@@ -10,7 +10,7 @@ namespace HBP.Core.Data
     {
         #region Properties
         [JsonProperty] public string Name { get; set; }
-        [JsonProperty] public List<BaseFilterCondition> Conditions { get; private set; }
+        [JsonProperty] public List<BaseFilterCondition> Conditions { get; set; }
         #endregion
 
         #region Constructors

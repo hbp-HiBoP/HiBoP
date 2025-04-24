@@ -13,6 +13,26 @@ namespace HBP.UI.Main
 
         [SerializeField] FilterConditionsPresetCreator m_ObjectCreator;
         public override ObjectCreator<FilterConditionsPreset> ObjectCreator => m_ObjectCreator;
+
+        protected System.Collections.Generic.List<BaseData> m_FilteringObjects;
+        public System.Collections.Generic.List<BaseData> FilteringObjects
+        {
+            get => m_FilteringObjects;
+            set
+            {
+                m_FilteringObjects = value;
+                m_ObjectCreator.FilteringObjects = value;
+            }
+        }
+        #endregion
+
+        #region Public Methods
+        protected override ObjectModifier<FilterConditionsPreset> OpenModifier(FilterConditionsPreset obj)
+        {
+            var modifier = base.OpenModifier(obj) as FilterConditionsPresetModifier;
+            modifier.FilteringObjects = m_FilteringObjects;
+            return modifier;
+        }
         #endregion
     }
 }

@@ -117,8 +117,8 @@ namespace HBP.Core.Data
                 }
                 return Logic switch
                 {
-                    CheckLogic.All => data.Count > 0 && data.All(d => Protocols.Contains(d.Protocol)) != IsNot,
-                    CheckLogic.Any => data.Count > 0 && data.Any(d => Protocols.Contains(d.Protocol)) != IsNot,
+                    CheckLogic.All => data.Count > 0 && Protocols.All(p => data.Any(d => d.Protocol == p)) != IsNot,
+                    CheckLogic.Any => data.Count > 0 && Protocols.Any(p => data.Any(d => d.Protocol == p)) != IsNot,
                     _ => false,
                 };
             }

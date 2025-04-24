@@ -71,7 +71,12 @@ namespace HBP.UI.Tools
         }
         public void OpenPresetsWindow()
         {
-            WindowsManager.OpenModifier(PersistentDataManager.FilterConditionsPresets, null);
+            var modifier = WindowsManager.OpenModifier(PersistentDataManager.FilterConditionsPresets, this).GetComponent<FilterConditionsPresetCollectionModifier>();
+            modifier.FilteringObjects = m_FilteringObjects;
+            modifier.OnApplyPreset.AddListener(conditions =>
+            {
+                m_ListGestion.List.Set(conditions);
+            });
         }
         public void SetPreset(FilterConditionsPreset preset)
         {
@@ -85,6 +90,9 @@ namespace HBP.UI.Tools
             base.Initialize();
 
             m_ListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
+            m_ListGestion.List.OnAddObject.AddListener(condition => PersistentDataManager.FilterConditionsPresets.CurrentPreset = new(m_ListGestion.List.Objects));
+            m_ListGestion.List.OnRemoveObject.AddListener(condition => PersistentDataManager.FilterConditionsPresets.CurrentPreset = new(m_ListGestion.List.Objects));
+            m_ListGestion.List.OnUpdateObject.AddListener(condition => PersistentDataManager.FilterConditionsPresets.CurrentPreset = new(m_ListGestion.List.Objects));
         }
         protected virtual bool CheckConditions(BaseData obj)
         {
