@@ -6,6 +6,7 @@ using HBP.UI.Main;
 using HBP.Core.Data;
 using HBP.Data.Preferences;
 using System.Linq;
+using UnityEngine.UI;
 
 namespace HBP.UI.Tools
 {
@@ -13,6 +14,7 @@ namespace HBP.UI.Tools
     {
         #region Properties
         [SerializeField] protected FilterConditionListGestion m_ListGestion;
+        [SerializeField] protected Button m_ApplyButton;
 
         protected List<BaseData> m_FilteringObjects;
         public List<BaseData> FilteringObjects
@@ -40,16 +42,9 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Public Methods
-        public override void OK()
-        {
-            base.OK();
-            ApplyFilters();
-            PersistentDataManager.FilterConditionsPresets.CurrentPreset = new(m_ListGestion.List.Objects);
-        }
         public override void Close()
         {
             base.Close();
-            OnApplyFilters.Invoke(Enumerable.Repeat(true, FilteringObjects.Count).ToArray());
             PersistentDataManager.FilterConditionsPresets.CurrentPreset = new(m_ListGestion.List.Objects);
         }
         public void ApplyFilters()
@@ -69,13 +64,32 @@ namespace HBP.UI.Tools
                 DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
             }
         }
+        public void ResetFilters()
+        {
+            OnApplyFilters.Invoke(Enumerable.Repeat(true, FilteringObjects.Count).ToArray());
+        }
         public void OpenPresetsWindow()
         {
             var modifier = WindowsManager.OpenModifier(PersistentDataManager.FilterConditionsPresets, this).GetComponent<FilterConditionsPresetCollectionModifier>();
             modifier.FilteringObjects = m_FilteringObjects;
-            modifier.OnApplyPreset.AddListener(conditions =>
+        }
+        public void CreatePresetFromSelected()
+        {
+            var preset = new FilterConditionsPreset("New preset", m_ListGestion.List.ObjectsSelected);
+            var modifier = WindowsManager.OpenModifier(preset, this) as FilterConditionsPresetModifier;
+            modifier.FilteringObjects = m_FilteringObjects;
+            modifier.OnOk.AddListener(() =>
             {
-                m_ListGestion.List.Set(conditions);
+                PersistentDataManager.FilterConditionsPresets.AddPreset(modifier.Object);
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Preset created", "The preset has been created and added to the list of presets.").Forget();
+            });
+        }
+        public void LoadConditionsFromPreset()
+        {
+            var selector = WindowsManager.OpenSelector(PersistentDataManager.FilterConditionsPresets.Presets, this) as FilterConditionsPresetSelector;
+            selector.OnOk.AddListener(() =>
+            {
+                m_ListGestion.List.Add(selector.ObjectsSelected.SelectMany(p => p.Conditions).Where(c => !m_ListGestion.List.Objects.Contains(c)));
             });
         }
         public void SetPreset(FilterConditionsPreset preset)
@@ -93,15 +107,23 @@ namespace HBP.UI.Tools
             m_ListGestion.List.OnAddObject.AddListener(condition => PersistentDataManager.FilterConditionsPresets.CurrentPreset = new(m_ListGestion.List.Objects));
             m_ListGestion.List.OnRemoveObject.AddListener(condition => PersistentDataManager.FilterConditionsPresets.CurrentPreset = new(m_ListGestion.List.Objects));
             m_ListGestion.List.OnUpdateObject.AddListener(condition => PersistentDataManager.FilterConditionsPresets.CurrentPreset = new(m_ListGestion.List.Objects));
+            m_ListGestion.List.OnSelect.AddListener((condition) => SetApplyButtonState());
+            m_ListGestion.List.OnDeselect.AddListener((condition) => SetApplyButtonState());
+            m_ListGestion.List.OnRemoveObject.AddListener((condition) => SetApplyButtonState());
+            m_ListGestion.List.OnAddObject.AddListener((condition) => SetApplyButtonState());
         }
         protected virtual bool CheckConditions(BaseData obj)
         {
             bool result = true;
-            foreach (var condition in m_ListGestion.List.Objects)
+            foreach (var condition in m_ListGestion.List.ObjectsSelected)
             {
                 result &= condition.Check(obj);
             }
             return result;
+        }
+        protected void SetApplyButtonState()
+        {
+            m_ApplyButton.interactable = m_ListGestion.List.ObjectsSelected.Length > 0;
         }
         #endregion
     }

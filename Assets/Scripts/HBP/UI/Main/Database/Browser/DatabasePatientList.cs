@@ -5,6 +5,7 @@ using HBP.UI.Tools.Lists;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace HBP.UI.Database
 {
@@ -13,6 +14,8 @@ namespace HBP.UI.Database
         #region Properties
         enum OrderBy { None, Name, DescendingName, Place, DescendingPlace, Date, DescendingDate }
         OrderBy m_OrderBy = OrderBy.None;
+
+        [SerializeField] Button m_ResetFiltersButton;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
         [SerializeField] SortingDisplayer m_PlaceSortingDisplayer;
@@ -41,6 +44,16 @@ namespace HBP.UI.Database
 
             if (parentWindow)
                 parentWindow.WindowsReferencer.Add(filterWindow);
+        }
+        public void ResetFilters()
+        {
+            MaskList(Enumerable.Repeat(true, m_Objects.Count).ToArray(), false);
+            SortByNone();
+        }
+        public override bool MaskList(bool[] mask, bool hide = true)
+        {
+            m_ResetFiltersButton.interactable = mask.Any(m => !m);
+            return base.MaskList(mask, hide);
         }
 
         public void SortByName(Sorting sorting)

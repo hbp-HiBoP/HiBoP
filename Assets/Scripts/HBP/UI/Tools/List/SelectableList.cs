@@ -96,6 +96,7 @@ namespace HBP.UI.Tools.Lists
         int ISelectionCountable.NumberOfSelectedObjects => ObjectsSelected.Length;
         int ISelectionCountable.NumberOfObjects => Objects.Count;
         int ISelectionCountable.NumberOfFilteredObjects => m_SelectableStateByObject.Count(kv => kv.Value);
+        bool ISelectionCountable.CanSelectMultipleObjects => m_ItemSelection == SelectionType.MultipleItems;
 
         UnityEvent ISelectionCountable.OnSelectionChanged { get; } = new UnityEvent();
 

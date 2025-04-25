@@ -8,5 +8,7 @@ namespace HBP.Core.Interfaces
         int NumberOfObjects { get; }
         int NumberOfFilteredObjects { get; }
         UnityEvent OnSelectionChanged { get; }
+
+        bool CanSelectMultipleObjects { get; }
     }
 }

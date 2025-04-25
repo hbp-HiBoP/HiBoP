@@ -19,15 +19,16 @@ namespace HBP.Core.Data
                 List<string> displayDates = new List<string>();
                 if (Dates.Count > 5)
                 {
-                    displayDates.AddRange(Dates.Take(4).Select(d => d.ToString()));
+                    var sortedDates = Dates.OrderBy(d => d).ToList();
+                    displayDates.AddRange(sortedDates.Take(4).Select(d => d.ToString()));
                     displayDates.Add("...");
-                    displayDates.Add(Dates.Last().ToString());
+                    displayDates.Add(sortedDates.Last().ToString());
                 }
                 else
                 {
-                    displayDates.AddRange(Dates.Select(d => d.ToString()));
+                    displayDates.AddRange(Dates.OrderBy(d => d).Select(d => d.ToString()));
                 }
-                displayDates.Sort();
+
 
                 string formattedDates;
                 if (displayDates.Count == 1)

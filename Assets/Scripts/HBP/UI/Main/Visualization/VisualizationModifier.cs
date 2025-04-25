@@ -172,7 +172,7 @@ namespace HBP.UI.Main
         /// <param name="groups">Groups to add</param>
         protected void AddGroups(IEnumerable<Group> groups)
         {
-            m_PatientListGestion.List.Add(groups.SelectMany(g => g.Patients).Distinct());
+            m_PatientListGestion.List.Add(groups.SelectMany(g => g.Patients).Distinct().Where(p => !m_PatientListGestion.List.Objects.Contains(p)));
         }
         /// <summary>
         /// Remove groups to the visualization.
@@ -180,7 +180,7 @@ namespace HBP.UI.Main
         /// <param name="groups">Groups to remove</param>
         protected void RemoveGroups(IEnumerable<Group> groups)
         {
-            m_PatientListGestion.List.Remove(groups.SelectMany(g => g.Patients).Distinct());
+            m_PatientListGestion.List.Remove(groups.SelectMany(g => g.Patients).Distinct().Where(p => m_PatientListGestion.List.Objects.Contains(p)));
         }
         /// <summary>
         /// Select column.
