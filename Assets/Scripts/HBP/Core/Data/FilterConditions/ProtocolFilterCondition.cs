@@ -108,7 +108,7 @@ namespace HBP.Core.Data
                 List<PatientDataInfo> data = (Scope switch
                 {
                     CheckScope.Database => DatabaseManager.Database.DataInfos.OfType<PatientDataInfo>().Where(d => d.Patient == patient),
-                    CheckScope.CurrentProject => ApplicationState.LoadedProject.Datasets.SelectMany(ds => ds.Data).OfType<PatientDataInfo>().Where(d => d.Patient == patient),
+                    CheckScope.CurrentProject => ApplicationState.LoadedProject != null ? ApplicationState.LoadedProject.Datasets.SelectMany(ds => ds.Data).OfType<PatientDataInfo>().Where(d => d.Patient == patient) : new List<PatientDataInfo>(),
                     _ => DatabaseManager.Database.DataInfos.OfType<PatientDataInfo>().Where(d => d.Patient == patient),
                 }).ToList();
                 if (Protocols.Count == 0)
