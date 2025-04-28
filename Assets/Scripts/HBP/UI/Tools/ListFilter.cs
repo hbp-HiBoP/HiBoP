@@ -7,6 +7,9 @@ using HBP.Core.Data;
 using HBP.Data.Preferences;
 using System.Linq;
 using UnityEngine.UI;
+using Cysharp.Threading.Tasks;
+using HBP.Core.Tools;
+using System.Threading;
 
 namespace HBP.UI.Tools
 {
@@ -49,20 +52,7 @@ namespace HBP.UI.Tools
         }
         public void ApplyFilters()
         {
-            try
-            {
-                bool[] result = new bool[FilteringObjects.Count];
-                for (int i = 0; i < result.Length; i++)
-                {
-                    result[i] = CheckConditions(FilteringObjects[i]);
-                }
-                OnApplyFilters.Invoke(result);
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
-            }
+            LoadingManager.Load((update, token) => ApplyFiltersAsync(update, token), false);
         }
         public void ResetFilters()
         {
@@ -111,6 +101,23 @@ namespace HBP.UI.Tools
             m_ListGestion.List.OnDeselect.AddListener((condition) => SetApplyButtonState());
             m_ListGestion.List.OnRemoveObject.AddListener((condition) => SetApplyButtonState());
             m_ListGestion.List.OnAddObject.AddListener((condition) => SetApplyButtonState());
+        }
+        protected async UniTask ApplyFiltersAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        {
+            await UniTask.SwitchToThreadPool();
+
+            bool[] result = new bool[FilteringObjects.Count];
+            for (int i = 0; i < result.Length; i++)
+            {
+                updateProgress.Invoke((float)i / result.Length, 0, new LoadingText("Filtering objects"));
+                result[i] = CheckConditions(FilteringObjects[i]);
+                token.ThrowIfCancellationRequested();
+            }
+            updateProgress.Invoke(1, 0, new LoadingText("Filtered"));
+
+            await UniTask.SwitchToMainThread();
+
+            OnApplyFilters.Invoke(result);
         }
         protected virtual bool CheckConditions(BaseData obj)
         {
