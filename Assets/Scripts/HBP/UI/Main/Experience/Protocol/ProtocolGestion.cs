@@ -29,32 +29,45 @@ namespace HBP.UI.Main
         #region Public Methods
         public override async void OK()
         {
+            bool requiresReload = false;
+            bool requiresCheck = false;
+
             if (DataManager.HasData)
             {
-                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", "Save & Reload", "Cancel");
+                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Reload required", "Some data is already loaded. Your recent changes won't be applied unless you reload the data.\n\nWould you like to save and reload now?", "Save&Reload", "Cancel");
+                
                 if (result == 0)
-                {
-                    base.OK();
-                    DatabaseManager.Database.SetProtocols(m_ListGestion.List.Objects);
-                    DatabaseManager.Database.SaveProtocols().Forget();
-                    InteractableStateManager.SetInteractables();
-                    LoadingManager.Load(update => Dataset.CheckDatasetsAsync(m_ListGestion.ModifiedProtocols, update));
-                    DataManager.Clear();
-                    Module3DMain.ReloadScenes();
-                    UITools.CheckProjectIDAndAskForRegeneration().Forget();
-                }
+                    requiresReload = true;
+                else
+                    return;
             }
-            else
+
+            if (m_ListGestion.ModifiedProtocols.Count > 0)
             {
-                base.OK();
-                DatabaseManager.Database.SetProtocols(m_ListGestion.List.Objects);
-                DatabaseManager.Database.SaveProtocols().Forget();
-                InteractableStateManager.SetInteractables();
-                if (ApplicationState.LoadedProject != null)
-                {
-                    LoadingManager.Load(update => Dataset.CheckDatasetsAsync(m_ListGestion.ModifiedProtocols, update));
-                    UITools.CheckProjectIDAndAskForRegeneration().Forget();
-                }
+                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Data check required", "Some protocols have been modified. A data integrity check is required to ensure there are no errors.\n\nWould you like to proceed with the check?", "Check", "Cancel");
+
+                if (result == 0)
+                    requiresCheck = true;
+                else
+                    return;
+            }
+
+            base.OK();
+            DatabaseManager.Database.SetProtocols(m_ListGestion.List.Objects);
+            DatabaseManager.Database.SaveProtocols().Forget();
+            InteractableStateManager.SetInteractables();
+            if (requiresCheck)
+            {
+                await LoadingManager.LoadAsync(update => Dataset.CheckDatasetsAsync(m_ListGestion.ModifiedProtocols, true, update));
+            }
+            if (requiresReload)
+            {
+                DataManager.Clear();
+                Module3DMain.ReloadScenes();
+            }
+            if (ApplicationState.LoadedProject != null)
+            {
+                UITools.CheckProjectIDAndAskForRegeneration().Forget();
             }
         }
         public override void Close()

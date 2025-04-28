@@ -65,7 +65,7 @@ namespace HBP.Core.Data.Container
             List<Error> errors = new List<Error>();
             if (string.IsNullOrEmpty(Header))
             {
-                errors.Add(new RequieredFieldEmptyError("BrainVision header file path is empty"));
+                errors.Add(new RequiredFieldEmptyError("BrainVision header file path is empty"));
             }
             else
             {

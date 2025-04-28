@@ -291,16 +291,16 @@ namespace HBP.Core.Data
                 throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(path));
             }
         }
-        public static async UniTask CheckDatasetsAsync(IEnumerable<Protocol> protocols, Action<float, float, LoadingText> updateProgress)
+        public static async UniTask CheckDatasetsAsync(IEnumerable<Protocol> protocols, bool force, Action<float, float, LoadingText> updateProgress, CancellationToken token = default)
         {
             List<DataInfo> dataInfos = DatabaseManager.Database.DataInfos.Where(d => protocols.Contains(d.Protocol)).ToList();
             if (ApplicationState.LoadedProject != null) dataInfos.AddRange(ApplicationState.LoadedProject.Datasets.Where(d => protocols.Contains(d.Protocol)).SelectMany(d => d.Data));
             var tasks = dataInfos.Select(d => (Func<UniTask>)(async () =>
             {
                 await UniTask.SwitchToThreadPool();
-                d.CheckErrorsAndWarnings();
+                d.CheckErrorsAndWarnings(force);
             }));
-            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Checking datasets", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
+            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Checking data", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token);
         }
         #endregion
 

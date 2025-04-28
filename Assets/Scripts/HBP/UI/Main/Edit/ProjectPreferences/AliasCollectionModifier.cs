@@ -29,12 +29,26 @@ namespace HBP.UI.Main
         #endregion
 
         #region Public Methods
-        public override void OK()
+        public override async void OK()
         {
+            bool requiresCheck = false;
+
+            if (m_AliasListGestion.HasBeenModified)
+            {
+                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Data check required", "Some aliases have been modified. A data integrity check is required to ensure there are no errors.\n\nWould you like to proceed with the check?", "Check", "Cancel");
+
+                if (result == 0)
+                    requiresCheck = true;
+                else
+                    return;
+            }
+
             base.OK();
             Object.SetAliases(m_AliasListGestion.List.Objects.ToList());
             PersistentDataManager.Aliases.Save();
-            LoadingManager.Load(update => Dataset.CheckDatasetsAsync(DatabaseManager.Database.Protocols, update));
+
+            if (requiresCheck)
+                LoadingManager.Load(update => Dataset.CheckDatasetsAsync(DatabaseManager.Database.Protocols, true, update));
         }
         #endregion
 

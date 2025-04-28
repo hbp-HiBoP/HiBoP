@@ -18,6 +18,9 @@ namespace HBP.UI.Main
 
         [SerializeField] private MenuButton m_OpenTrialMatrixExplorerButton;
         public MenuButton OpenTrialMatrixExplorerButton { get { return m_OpenTrialMatrixExplorerButton; } }
+
+        [SerializeField] private MenuButton m_CheckDatabaseIntegrityButton;
+        public MenuButton CheckDatabaseIntegrityButton { get { return m_CheckDatabaseIntegrityButton; } }
         #endregion
 
         #region Private Methods
@@ -28,6 +31,7 @@ namespace HBP.UI.Main
             m_OpenProtocolGestionButton.Initialize(this, OpenProtocolGestion);
             m_OpenDatabaseBrowserButton.Initialize(this, OpenDatabaseBrowser);
             m_OpenTrialMatrixExplorerButton.Initialize(this, OpenTrialMatrixExplorer);
+            m_CheckDatabaseIntegrityButton.Initialize(this, CheckDatabaseIntegrity);
         }
         #endregion
 
@@ -47,6 +51,20 @@ namespace HBP.UI.Main
         public void OpenTrialMatrixExplorer()
         {
             WindowsManager.Open("Trial matrix explorer window", null);
+        }
+        public async void CheckDatabaseIntegrity()
+        {
+            int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "Database integrity check", "This operation will check the integrity of the database and generate a report of any errors or warnings found. This may take a while.\n\nWould you like to proceed?", "Check", "Cancel");
+            if (result == 1)
+                return;
+
+            string path = FileBrowser.GetSavedFileName(new string[] { "txt" }, "Save report to", "", "database_integrity_report");
+            if (string.IsNullOrEmpty(path))
+                return;
+
+            await LoadingManager.LoadAsync((update, token) => DatabaseManager.Database.CheckIntegrityAsync(path, update, token));
+
+            await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "Database integrity check", "The database integrity check has been completed. The report has been saved to the specified location.", "OK");
         }
         #endregion
     }

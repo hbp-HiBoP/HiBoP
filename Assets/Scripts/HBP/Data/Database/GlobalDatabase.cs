@@ -16,6 +16,7 @@ using HBP.Data.Preferences;
 using UnityEngine.PlayerLoop;
 using System.Text;
 using HBP.Core.Enums;
+using HBP.Core.Errors;
 
 namespace HBP.Data.Database
 {
@@ -100,6 +101,103 @@ namespace HBP.Data.Database
             await LoadingManager.LoadAsync(update => SaveDatabaseAsync(update));
             await UniTask.SwitchToMainThread();
             OnUpdateDatabases.Invoke();
+        }
+
+        public async UniTask CheckIntegrityAsync(string path, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        {
+            await Dataset.CheckDatasetsAsync(Protocols, true, updateProgress, token);
+
+            updateProgress(1, 0, new LoadingText("Writing report"));
+
+            // Gather useful information
+
+            // Anatomical
+            List<Patient> missingMeshesPatients = m_Patients.Where(p => p.Meshes.Count == 0).OrderBy(p => p.Place).ThenBy(p => p.Date).ThenBy(p => p.Name).ToList();
+            List<Patient> missingMRIsPatients = m_Patients.Where(p => p.MRIs.Count == 0).OrderBy(p => p.Place).ThenBy(p => p.Date).ThenBy(p => p.Name).ToList();
+            List<Patient> missingSitesPatients = m_Patients.Where(p => p.Sites.Count == 0).OrderBy(p => p.Place).ThenBy(p => p.Date).ThenBy(p => p.Name).ToList();
+
+            // Functional
+            Dictionary<string, Dictionary<Type, List<IEEGDataInfo>>> dataInfosByErrorTypeByDataName = new();
+            var ieegDataInfos = m_DataInfos.OfType<IEEGDataInfo>();
+            List<string> dataNames = ieegDataInfos.Select(d => d.Name).Distinct().ToList();
+            foreach (var name in dataNames)
+            {
+                Dictionary<Type, List<IEEGDataInfo>> dataInfosByErrorType = new();
+                foreach (var dataInfo in ieegDataInfos.Where(d => d.Name == name))
+                {
+                    foreach (var error in dataInfo.Errors)
+                    {
+                        if (!dataInfosByErrorType.ContainsKey(error.GetType()))
+                            dataInfosByErrorType[error.GetType()] = new List<IEEGDataInfo>();
+
+                        dataInfosByErrorType[error.GetType()].Add(dataInfo);
+                    }
+                    foreach (var warning in dataInfo.Warnings)
+                    {
+                        if (!dataInfosByErrorType.ContainsKey(warning.GetType()))
+                            dataInfosByErrorType[warning.GetType()] = new List<IEEGDataInfo>();
+
+                        dataInfosByErrorType[warning.GetType()].Add(dataInfo);
+                    }
+                }
+                dataInfosByErrorTypeByDataName[name] = dataInfosByErrorType;
+            }
+
+            // Write report
+            using StreamWriter writer = new StreamWriter(path);
+            await writer.WriteLineAsync("=== Anatomical Data Check ===\n");
+            if (missingMeshesPatients.Any())
+            {
+                await writer.WriteLineAsync("Missing Meshes:");
+                foreach (var patient in missingMeshesPatients)
+                    await writer.WriteLineAsync($"    - {patient.ID}");
+                await writer.WriteLineAsync();
+            }
+
+            if (missingMRIsPatients.Any())
+            {
+                await writer.WriteLineAsync("Missing MRIs:");
+                foreach (var patient in missingMRIsPatients)
+                    await writer.WriteLineAsync($"    - {patient.ID}");
+                await writer.WriteLineAsync();
+            }
+
+            if (missingSitesPatients.Any())
+            {
+                await writer.WriteLineAsync("Missing Sites:");
+                foreach (var patient in missingSitesPatients)
+                    await writer.WriteLineAsync($"    - {patient.ID}");
+                await writer.WriteLineAsync();
+            }
+
+            await writer.WriteLineAsync("=== Functional Data Check ===\n");
+
+            foreach (var (dataName, dataInfosByErrorType) in dataInfosByErrorTypeByDataName)
+            {
+                await writer.WriteLineAsync($"== {dataName} ==\n");
+
+                foreach (var kv in dataInfosByErrorType)
+                {
+                    await writer.WriteLineAsync($"{kv.Key}:");
+
+                    var groupedByPatient = kv.Value.GroupBy(d => d.Patient).Where(g => g.Key != null).OrderBy(g => g.Key.Place).ThenBy(g => g.Key.Date).ThenBy(g => g.Key.Name);
+
+                    foreach (var patientGroup in groupedByPatient)
+                    {
+                        string patientId = patientGroup.Key.ID;
+                        var protocolNames = patientGroup.Select(d => d.Protocol?.Name).Where(name => !string.IsNullOrEmpty(name)).Distinct().OrderBy(name => name);
+
+                        string protocolsJoined = string.Join(", ", protocolNames);
+
+                        await writer.WriteLineAsync($"    - {patientId}: {protocolsJoined}");
+                    }
+                    await writer.WriteLineAsync();
+                }
+            }
+
+            writer.Close();
+
+            await SaveDatabaseAsync(updateProgress);
         }
         #endregion
 

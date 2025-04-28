@@ -106,7 +106,7 @@ namespace HBP.Core.Data.Container
             List<Error> errors = new List<Error>();
             if (string.IsNullOrEmpty(EEG))
             {
-                errors.Add(new RequieredFieldEmptyError("EEG file path is empty"));
+                errors.Add(new RequiredFieldEmptyError("EEG file path is empty"));
             }
             else
             {
@@ -125,7 +125,7 @@ namespace HBP.Core.Data.Container
                     {
                         if (!File.Exists(EEGHeader))
                         {
-                            errors.Add(new RequieredFieldEmptyError("EEG header file path is empty"));
+                            errors.Add(new RequiredFieldEmptyError("EEG header file path is empty"));
                         }
                         else
                         {
@@ -139,7 +139,7 @@ namespace HBP.Core.Data.Container
             }
             if (string.IsNullOrEmpty(POS))
             {
-                errors.Add(new RequieredFieldEmptyError("POS file path is empty"));
+                errors.Add(new RequiredFieldEmptyError("POS file path is empty"));
             }
             else
             {

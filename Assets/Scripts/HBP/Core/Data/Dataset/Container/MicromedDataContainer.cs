@@ -56,7 +56,7 @@ namespace HBP.Core.Data.Container
             List<Error> errors = new List<Error>();
             if (string.IsNullOrEmpty(Path))
             {
-                errors.Add(new RequieredFieldEmptyError("TRC file path is empty"));
+                errors.Add(new RequiredFieldEmptyError("TRC file path is empty"));
             }
             else
             {

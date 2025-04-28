@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using HBP.Core.Data;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Errors
 {
@@ -33,14 +34,14 @@ namespace HBP.Core.Errors
     /// <summary>
     /// Error raised when a required field is empty.
     /// </summary>
-    public class RequieredFieldEmptyError : Error
+    public class RequiredFieldEmptyError : Error
     {
         #region Constructors
-        public RequieredFieldEmptyError() : this("")
+        public RequiredFieldEmptyError() : this("")
         {
 
         }
-        public RequieredFieldEmptyError(string informations) : base("One of the required fields is empty", informations)
+        public RequiredFieldEmptyError(string informations) : base("One of the required fields is empty", informations)
         {
 
         }

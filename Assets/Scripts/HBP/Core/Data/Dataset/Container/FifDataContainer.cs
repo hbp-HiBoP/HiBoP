@@ -58,7 +58,7 @@ namespace HBP.Core.Data.Container
             List<Error> errors = new List<Error>();
             if (string.IsNullOrEmpty(File))
             {
-                errors.Add(new RequieredFieldEmptyError("FIF file path is empty"));
+                errors.Add(new RequiredFieldEmptyError("FIF file path is empty"));
             }
             else
             {

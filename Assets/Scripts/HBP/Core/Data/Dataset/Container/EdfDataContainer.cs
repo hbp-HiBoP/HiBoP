@@ -58,7 +58,7 @@ namespace HBP.Core.Data.Container
             List<Error> errors = new List<Error>();
             if (string.IsNullOrEmpty(File))
             {
-                errors.Add(new RequieredFieldEmptyError("EDF file path is empty"));
+                errors.Add(new RequiredFieldEmptyError("EDF file path is empty"));
             }
             else
             {
