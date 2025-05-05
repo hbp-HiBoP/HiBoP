@@ -323,7 +323,7 @@ namespace HBP.UI.Tools.Lists
             base.Update();
             if (m_RequestSelectAllUpdate && m_SelectAllToggle != null)
             {
-                m_SelectAllToggle.isOn = m_SelectableStateByObject.Count(kv => kv.Value) == ObjectsSelected.Length && ObjectsSelected.Length > 0 && m_DisplayedObjects.Count > 0 && m_ItemSelection == SelectionType.MultipleItems;
+                m_SelectAllToggle.SetIsOnWithoutNotify(m_SelectableStateByObject.Count(kv => kv.Value) == ObjectsSelected.Length && ObjectsSelected.Length > 0 && m_DisplayedObjects.Count > 0 && m_ItemSelection == SelectionType.MultipleItems);
             }
             if (!m_AllowSwitchOff && Objects.Count > 0 && ObjectsSelected.Length == 0)
             {
