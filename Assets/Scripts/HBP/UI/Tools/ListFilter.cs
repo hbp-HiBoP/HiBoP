@@ -25,12 +25,6 @@ namespace HBP.UI.Tools
             get => m_FilteringObjects;
             set
             {
-                if (value.Count == 0)
-                {
-                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "No objects to filter", "The list you are trying to filter contains no object. This is not supported.").Forget();
-                    Close();
-                    return;
-                }
                 m_FilteringObjects = value;
                 m_ListGestion.FilteringObjects = value;
             }

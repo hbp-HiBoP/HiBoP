@@ -12,7 +12,7 @@ namespace HBP.UI.Module3D
     {
         #region Properties
         [SerializeField] private Button m_Site;
-        [SerializeField] private SiteLabel m_SiteLabel;
+        [SerializeField] private SiteItemInfoDisplayer m_SiteItemInfoDisplayer;
         [SerializeField] private Image m_SelectedImage;
         [SerializeField] private SiteLabels m_Labels;
         [SerializeField] private Text m_LabelsText;
@@ -85,7 +85,7 @@ namespace HBP.UI.Module3D
         private void UpdateFields()
         {
             m_Site.GetComponentInChildren<Text>().text = Object.Information.Name;
-            m_SiteLabel.Initialize(Object);
+            m_SiteItemInfoDisplayer.Initialize(Object);
             m_SelectedImage.gameObject.SetActive(Object.IsSelected);
             m_LabelsText.text = Object.State.Labels.Count.ToString();
             m_Patient.text = Object.Information.Patient.Name;

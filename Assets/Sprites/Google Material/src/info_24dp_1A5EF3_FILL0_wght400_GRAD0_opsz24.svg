@@ -6,11 +6,11 @@
    fill="#FFFFFF"
    version="1.1"
    id="svg4"
-   sodipodi:docname="info_24dp_FFFFFF_FILL0_wght400_GRAD0_opsz24_Blue.svg"
-   inkscape:export-filename="..\Information_white.png"
+   sodipodi:docname="info_24dp_FFFFFF_FILL0_wght400_GRAD0_opsz24.svg"
+   inkscape:export-filename="C:\Users\Zigaroula\Documents\HBP\Software\HiBoP\Assets\Sprites\Google Material\Information.png"
    inkscape:export-xdpi="2048"
    inkscape:export-ydpi="2048"
-   inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
+   inkscape:version="1.1.1 (3bf5ae0d25, 2021-09-20)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -27,18 +27,16 @@
      inkscape:pagecheckerboard="1"
      showgrid="false"
      inkscape:zoom="36.375"
-     inkscape:cx="10.941581"
-     inkscape:cy="12.054983"
+     inkscape:cx="11.986254"
+     inkscape:cy="12.013746"
      inkscape:window-width="1809"
      inkscape:window-height="1008"
-     inkscape:window-x="2560"
+     inkscape:window-x="2056"
      inkscape:window-y="0"
      inkscape:window-maximized="0"
-     inkscape:current-layer="svg4"
-     inkscape:showpageshadow="0"
-     inkscape:deskcolor="#505050" />
+     inkscape:current-layer="svg4" />
   <path
      d="M440-280h80v-240h-80v240Zm40-320q17 0 28.5-11.5T520-640q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640q0 17 11.5 28.5T480-600Zm0 520q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"
      id="path2"
-     style="fill:#ffffff;fill-opacity:1" />
+     style="fill:#1a5ef3;fill-opacity:1" />
 </svg>

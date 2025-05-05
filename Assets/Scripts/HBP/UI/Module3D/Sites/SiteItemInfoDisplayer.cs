@@ -5,7 +5,7 @@ using HBP.Data.Module3D;
 
 namespace HBP.UI.Module3D
 {
-    public class SiteLabel : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+    public class SiteItemInfoDisplayer : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         #region Properties
         private Core.Object3D.Site m_Site;
@@ -30,6 +30,7 @@ namespace HBP.UI.Module3D
         public void OnPointerEnter(PointerEventData eventData)
         {
             m_IsInside = true;
+            Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(m_Site, true, Input.mousePosition, SiteInformationDisplayMode.Anatomy));
         }
         public void OnPointerExit(PointerEventData eventData)
         {
