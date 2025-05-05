@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace HBP.Core.Data
 {
-    public struct Trial
+    public class Trial
     {
         #region Properties
         public bool IsValid
@@ -21,7 +21,7 @@ namespace HBP.Core.Data
         {
             SubTrialBySubBloc = subTrialBySubBloc;
         }
-        public Trial(Dictionary<string,float[]> valuesByChannel, Dictionary<string, string> unitByChannel,  int startIndex, EventOccurence mainEventOccurence, int endIndex, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Bloc bloc, Tools.Frequency frequency) : this()
+        public Trial(Dictionary<string,float[]> valuesByChannel, Dictionary<string, string> unitByChannel,  int startIndex, EventOccurence mainEventOccurence, int endIndex, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Bloc bloc, Tools.Frequency frequency)
         {
             SubTrialBySubBloc = new Dictionary<SubBloc, SubTrial>(bloc.SubBlocs.Count); // Initialize dictionary
 

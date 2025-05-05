@@ -41,7 +41,7 @@ namespace HBP.Dev
         {
             if (Input.GetKeyDown(KeyCode.F1))
             {
-                TestLoadCancel();
+                DataManager.Clear();
             }
             //if (Input.GetKeyDown(KeyCode.F1))
             //{
